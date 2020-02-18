@@ -932,11 +932,7 @@ class ReaderApp extends Component {
     if (this.state.panels.length > 1) {
       $container.css({paddingRight: "", paddingLeft: ""});
     } else {
-      if (this.props.interfaceLang == "hebrew") {
-        $container.css({paddingRight: width, paddingLeft: 0});
-      } else {
-        $container.css({paddingRight: 0, paddingLeft: width});
-      }
+      $container.css({paddingRight: 0, paddingLeft: width});
     }
   }
   toggleSignUpModal() {

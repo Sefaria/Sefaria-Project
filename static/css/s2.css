@@ -1,7 +1,6 @@
 body {
   padding: 0;
   margin: 0;
-  overflow: hidden;
   -webkit-text-size-adjust: 100%;
 }
 *::selection {
@@ -264,9 +263,6 @@ body.hasBannerMessage #s2.headerOnly {
   flex: 1;
   position: relative;
 }
-.readerApp.interface-hebrew{
-  direction: rtl;
-}
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari/Opera */
@@ -282,7 +278,6 @@ input.noselect {
   display: none;
 }
 .interface-hebrew #panelWrapBox,
-.readerApp.interface-hebrew .readerPanel
 {
   direction: rtl;
 }
@@ -830,15 +825,17 @@ input.noselect {
 .interface-hebrew .readerPanel .en{
   direction: ltr;
 }
-.interface-hebrew .readerPanel .readerNavMenu,
+.interface-hebrew .readerPanel .contentInner,
+.interface-hebrew .readerControls,
+.interface-hebrew .readerPanel .textRange,
+.interface-hebrew .readerPanel .sheetContent,
 .interface-hebrew .readerPanel .readerNavMenu .gridBox,
 .interface-hebrew .readerPanel.bilingual .readerNavMenu .gridBox,
 .readerPanel.hebrew .readerNavSection,
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
-.readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox,
-.readerPanel.hebrew .readerNavMenu .donationLink {
+.interface-english .readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox {
   direction: ltr;
 }
 .interface-english .readerPanel .readerNavMenu,
@@ -942,10 +939,6 @@ input.noselect {
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
 }
-.interface-hebrew.multiPanel .readerNavMenu .content,
-.interface-hebrew.multiPanel .homeFeedWrapper .content {
-  padding-right: 40px;
-}
 .multiPanel .readerNavMenu .content {
   padding: 30px 30px 70px 30px;
 }
@@ -959,8 +952,14 @@ input.noselect {
 .multiPanel .readerNavMenu.compare .content {
   padding-top: 30px;
 }
-.readerNavMenu .content .contentInner,
+.readerNavMenu .content .contentInner {
+  max-width: 660px;
+  margin: 0 auto;
+}
 .homeFeedWrapper .content .contentInner {
+  max-width: none;
+}
+.homeFeedWrapper.userStats .content .contentInner {
   max-width: 660px;
   margin: 0 auto;
 }
@@ -1614,7 +1613,10 @@ a.readerNavCategory {
     margin-right: 10px;
     float:none;
 }
-
+.interface-hebrew .imageBox {
+  margin-right: 0;
+  margin-left: 10px;
+}
 .authorStatement span p
  {
   display: inline-block;
@@ -5111,7 +5113,7 @@ h2.splitHeader .he {
   float: left;
   margin-right: 20px;
 }
-.interface-hebrew .groupListingImageBox {
+.interface-hebrew .groupsList .groupListingImageBox {
   margin: 0 0 0 20px;
 }
 .sheetMetaDataBox .groupListingImageBox,
@@ -6866,7 +6868,6 @@ body .homeFeedWrapper .content {
 }
 .interface-hebrew .homeFeedWrapper #homeCover {
   left: auto;
-  right: -20px;
 }
 .homeFeedWrapper #homeVideo {
   position: absolute;

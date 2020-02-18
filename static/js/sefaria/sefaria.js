@@ -2130,6 +2130,7 @@ Sefaria = extend(Sefaria, {
       "Remove": "הסרת מקור",
       "Create New" : "יצירת חדש",
       "Close" : "סגירה",
+      "by": "", // by line on sheets in reader, left blank
 
       //reader panel
       "Search" : "חיפוש",
