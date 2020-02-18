@@ -64,8 +64,6 @@ node_modules
 # Sefaria Local Settings files #
 ################################
 /sefaria/local_settings.py
-/node/local_settings.json
-
 
 # Site specific templates and urls #
 ####################################

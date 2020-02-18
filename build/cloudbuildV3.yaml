@@ -28,16 +28,14 @@ steps:
     id: web_container
     wait_for: [ "-" ]
   
-  # TODO: Find a better way of passing in SRC_IMG
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/production-deployment/sefaria-node:$SHORT_SHA", "-f", "build/node/Dockerfile", "."]
+    id: nodejs_container
+    wait_for: [ "-" ]
+
   - name: "gcr.io/cloud-builders/docker"
     args: ["build", "-t", "gcr.io/production-deployment/sefaria-asset:$SHORT_SHA", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/production-deployment/sefaria-web:$SHORT_SHA", "."]
     id: nginx_container
-    wait_for:
-      - web_container
-
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/production-deployment/sefaria-node:$SHORT_SHA", "-f", "build/node/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/production-deployment/sefaria-web:$SHORT_SHA", "."]
-    id: nodejs_container
     wait_for:
       - web_container
 
@@ -82,13 +80,20 @@ steps:
   #
   # Post-Deploy Tasks
   #
-  # Flush Varnish -- Helm Post-Deploy Hook
-  # Purge CloudFlare -- Helm Post-Deploy Hook
-  # Prime Webserver Cache -- Helm Post-Deploy Hook or import into application (do on application startup)
-  # Send Slack Notification -- Probably via Pub/Sub message sent to Slack
-  # Messy piece: flushed caches should be repopulating from outmodded servers
-    # 'wait_for' script didn't work
-  # Todo: Read-only
+  # NB: Move these into Helm post-deploy hooks or into the application
+  # Post Deploy
+  - name: 'gcr.io/cloud-builders/kubectl'
+    entrypoint: "bash"
+    dir: "k8s-admin/scripts"
+    args: ["-c", "apt-get -y update && apt-get -y install curl && ./post_deploy.sh $SHORT_SHA"]
+    env:
+    - 'CLOUDSDK_COMPUTE_ZONE=${_TARGET_REGION}'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=${_TARGET_CLUSTER}'
+
+  # Todo: 
+  # * Share /node_modules while having Dockerfiles that call `npm install`
+  #   * I want Dockerfiles to be agnostic about their location -- the old
+  #     dockerfiles assumed the container was being built on CloudBuild
     
 images:
   - "gcr.io/production-deployment/sefaria-asset:$SHORT_SHA"
