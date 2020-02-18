@@ -17,47 +17,36 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
         'en': topic_obj.title_is_transliteration(response['primaryTitle']['en'], 'en'),
         'he': topic_obj.title_is_transliteration(response['primaryTitle']['he'], 'he')
     }
-    intra_link_query = {"$or": [{"fromTopic": topic}, {"toTopic": topic}]}
     if with_links and with_refs:
         # can load faster by querying `topic_links` query just once
-        all_links = TopicLinkSetHelper.find(intra_link_query)
+        all_links = topic_obj.link_set(_class=None)
         intra_links = [l.contents() for l in all_links if isinstance(l, IntraTopicLink)]
         response['refs'] = [l.contents() for l in all_links if isinstance(l, RefTopicLink)]
     else:
         if with_links:
-            intra_links = [l.contents() for l in IntraTopicLinkSet(intra_link_query)]
+            intra_links = [l.contents() for l in topic_obj.link_set(_class='intraTopic')]
         if with_refs:
-            response['refs'] = [l.contents() for l in RefTopicLinkSet({"toTopic": topic})]
+            response['refs'] = [l.contents() for l in topic_obj.link_set(_class='refTopic')]
     if with_links:
         response['links'] = {}
         from_topic_set = set()  # duplicates can crop up for symmetric edges b/c of $or query
+        link_topic_dict = {other_topic.slug: other_topic for other_topic in TopicSet({"$or": [{"slug": link['topic']} for link in intra_links]})}
         for link in intra_links:
-            is_inverse = link['toTopic'] == topic
-            other_topic_slug = link['fromTopic'] if is_inverse else link['toTopic']
-            if other_topic_slug in from_topic_set:
+            is_inverse = link['isInverse']
+            if link['topic'] in from_topic_set:
                 continue
-            from_topic_set.add(other_topic_slug)
-            del link['toTopic']
-            del link['fromTopic']
-            del link['class']
-            link['topic'] = other_topic_slug
+            from_topic_set.add(link['topic'])
             link_type = library.get_topic_link_type(link['linkType'])
             if group_related and link_type.get('groupRelated', is_inverse, False):
                 link_type = library.get_topic_link_type(TopicLinkType.related_type)
             del link['linkType']
+            del link['class']
             link_type_slug = link_type.get('slug', is_inverse)
-            link['isInverse'] = is_inverse
-            if link.get('order', {}).get('fromTfidf', None) is not None:
-                link['order']['tfidf'] = link['order'].get('fromTfidf', 0) if is_inverse else link['order'].get('toTfidf', 0)
-                link['order'].pop('toTfidf', None)
-                link['order'].pop('fromTfidf', None)
-
             if annotate_links:
                 # add display information
-                # TODO load all-at-once with TopicSet
-                other_topic = Topic().load({"slug": other_topic_slug})
+                other_topic = link_topic_dict.get(link['topic'], None)
                 if other_topic is None:
-                    logger.warning("Topic slug {} doesn't exist. Linked to {}".format(other_topic_slug, topic))
+                    logger.warning("Topic slug {} doesn't exist. Linked to {}".format(link['topic'], topic))
                     continue
                 link["title"] = {
                     "en": other_topic.get_primary_title('en'),
@@ -114,6 +103,15 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
 
 def get_all_topics(limit=1000):
     return TopicSet({}, limit=limit, sort=[('numSources', -1)]).array()
+
+
+def get_topic_by_parasha(parasha:str) -> Topic:
+    """
+    Returns topic corresponding to `parasha`
+    :param parasha: as spelled in `parshiot` collection
+    :return Topic:
+    """
+    return Topic().load({"parasha": parasha})
 
 
 def sort_refs_by_relevance(a, b):
