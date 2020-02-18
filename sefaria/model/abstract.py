@@ -295,8 +295,9 @@ class AbstractMongoSet(collections.abc.Iterable):
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None):
+    def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None, record_kwargs=None):
         self.query = query or {}
+        self.record_kwargs = record_kwargs or {}  # kwargs to pass to record when instantiating
         self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj).sort(sort).skip(page * limit).limit(limit)
         self.hint = hint
         self.limit = limit
@@ -321,7 +322,7 @@ class AbstractMongoSet(collections.abc.Iterable):
         if self.records is None:
             self.records = []
             for rec in self.raw_records:
-                self.records.append(self.recordClass(attrs=rec))
+                self.records.append(self.recordClass(attrs=rec, **self.record_kwargs))
             self.max = len(self.records)
 
     def __len__(self):
