@@ -648,9 +648,10 @@ const getNextSheetItemPath = (SheetItemPath) => {
 async function getRefInText(editor) {
   const closestSheetItem = getClosestSheetItem(editor, editor.selection.focus.path)
   if (!closestSheetItem) {return null}
-  const query = Node.string(closestSheetItem[0]);
+  const query = Node.string(closestSheetItem[0]).trim();
 
-  if (query.length > 100) {return null} //if query length is too long, 413 errors can occur
+  //return null if query length is too long to be a ref or if query is empty
+  if (query.length > 50 || query == "") {return null}
 
   const ref = await Sefaria.getName(query)
       .then(d => {
@@ -661,7 +662,7 @@ async function getRefInText(editor) {
     }
 
     if (d["is_ref"] && (d["is_segment"] || d["is_section"]) ) {
-      return(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+      return(d["ref"]);  //todo: pass an onError function through here to the panel onError function 
     }
     else {
       return null;
