@@ -3,10 +3,11 @@ from apscheduler.jobstores.mongodb import MongoDBJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from sefaria.system.database import client
 from . import jobs
+from .settings import APSCHEDULER_NAME
 
 
 def run_background_scheduler():
-    jobstores = {'default': MongoDBJobStore(client=client)}
+    jobstores = {'default': MongoDBJobStore(client=client, database=APSCHEDULER_NAME)}
     scheduler = BackgroundScheduler(jobstores=jobstores, timezone=utc)
     scheduler.start()
     jobs.remove_jobs(scheduler)
