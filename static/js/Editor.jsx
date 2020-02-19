@@ -359,6 +359,9 @@ const defaultsheetMetaDataBox = (sheetTitle, authorStatement, groupStatement) =>
     }
 }
 
+function getInitialSheetNodes(sheet) {
+  return sheet["sources"].map(source => source["node"])
+}
 
 function transformSheetJsonToDraft(sheet) {
     const sheetTitle = sheet.title.stripHtmlKeepLineBreaks();
@@ -615,6 +618,31 @@ const getClosestSheetItem = (editor, path) => {
     return(null);
 };
 
+const isWholeSheetItemSelected = (editor) => {
+  if (Range.isCollapsed(editor.selection)) {return false}
+
+  const focus = editor.selection.focus;
+  const anchor = editor.selection.anchor;
+
+  const currentSheetItem = (getClosestSheetItem(editor, focus.path));
+  if (!currentSheetItem) {return false}
+
+  const lastNodeInSheetItem = Node.last(currentSheetItem[0], []);
+  const firstNodeInSheetItem = Node.first(currentSheetItem[0], []);
+
+  if (
+    0 == anchor.offset &&
+    lastNodeInSheetItem[0].text.length == focus.offset &&
+    Path.compare(currentSheetItem[1].concat(lastNodeInSheetItem[1]), focus.path) == 0 &&
+    Path.compare(currentSheetItem[1].concat(firstNodeInSheetItem[1]), anchor.path) == 0
+  ) {
+    return true
+  }
+
+  else {return false}
+
+}
+
 const isSelectionFocusAtEdgeOfSheetItem = (editor) => {
   const focus = editor.selection.focus;
   const currentSheetItem = (getClosestSheetItem(editor, focus.path));
@@ -662,7 +690,7 @@ async function getRefInText(editor) {
     }
 
     if (d["is_ref"] && (d["is_segment"] || d["is_section"]) ) {
-      return(d["ref"]);  //todo: pass an onError function through here to the panel onError function 
+      return(d["ref"]);  //todo: pass an onError function through here to the panel onError function
     }
     else {
       return null;
@@ -1197,6 +1225,7 @@ const SefariaEditor = (props) => {
     const initValue = transformSheetJsonToDraft(sheet);
     const renderElement = useCallback(props => <Element {...props} />, []);
     const [value, setValue] = useState(initValue)
+    const [sheetNodes, setSheetNodes] = useState(getInitialSheetNodes(sheet))
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
@@ -1231,6 +1260,8 @@ const SefariaEditor = (props) => {
     }
 
     function onChange(value) {
+        if (isWholeSheetItemSelected(editor)) {console.log("whole sheet item selected")}
+
         if (currentDocument !== value) {
             setCurrentDocument(value);
         }
@@ -1250,6 +1281,10 @@ const SefariaEditor = (props) => {
     };
 
     const onPaste = event => {
+
+      //// TODO: Add code to adjust node if node already exists in sheet
+      console.log(sheetNodes)
+      ////
       const mediaUrl = event.clipboardData.getData('Text');
       const pastedMediaLink = parseMediaLink(mediaUrl);
 
@@ -1258,16 +1293,6 @@ const SefariaEditor = (props) => {
         insertMedia(editor, pastedMediaLink)
 
       }
-
-      console.log(pastedMediaLink)
-
-
-
-
-      // const closestSheetItem = getClosestSheetItem(editor, editor.selection.focus.path)
-      // if (!closestSheetItem) {return null}
-      // const potentialMedia = Node.string(closestSheetItem[0]);
-
 
     };
     const onKeyDown = event => {
