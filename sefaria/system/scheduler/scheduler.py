@@ -3,7 +3,7 @@ from apscheduler.jobstores.mongodb import MongoDBJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from sefaria.system.database import client
 from . import jobs
-from .settings import APSCHEDULER_NAME
+from sefaria.settings import APSCHEDULER_NAME
 
 
 def run_background_scheduler():
