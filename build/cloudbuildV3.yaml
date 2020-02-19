@@ -85,7 +85,7 @@ steps:
   - name: 'gcr.io/cloud-builders/kubectl'
     entrypoint: "bash"
     dir: "k8s-admin/scripts"
-    args: ["-c", "apt-get -y update && apt-get -y install curl && ./post_deploy.sh $SHORT_SHA"]
+    args: ["-c", "apt-get -y update && apt-get -y install curl && ./post_deploy.sh $SHORT_SHA-${__HELM_RELEASE_NAME_SLUG}"]
     env:
     - 'CLOUDSDK_COMPUTE_ZONE=${_TARGET_REGION}'
     - 'CLOUDSDK_CONTAINER_CLUSTER=${_TARGET_CLUSTER}'
