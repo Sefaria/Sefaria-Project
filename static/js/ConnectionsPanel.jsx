@@ -239,6 +239,10 @@ class ConnectionsPanel extends Component {
     if (typeof(srefs) == "object" && srefs.length == 1) {
       srefs = Sefaria.splitRangingRef(srefs[0]);
     }
+    if (srefs.length == 1 && (Sefaria.sectionRef(srefs[0]) == srefs[0])) {
+        const oref = Sefaria.ref(srefs[0]);
+        srefs = Sefaria.makeSegments(oref).map(segment => segment.ref)
+    }
     return(srefs)
   }
   showSheetNodeConnectionTools(ref,mode) {
