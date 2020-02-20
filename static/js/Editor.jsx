@@ -228,11 +228,14 @@ function renderSheetItem(source) {
             return content
         }
         case 'outsideText': {
+            const lang = Sefaria.hebrew.isHebrew(source.outsideText) ? 'he' : 'en';
+
             const content = (
                 {
                     type: sheet_item_els[sheetItemType],
                     children: parseSheetItemHTML(source.outsideText),
-                    node: source.node
+                    node: source.node,
+                    lang: lang
                 }
             );
             return content
@@ -490,8 +493,9 @@ const Element = ({attributes, children, element}) => {
             );
 
         case 'SheetOutsideText':
-            return (
-                <div className="SheetOutsideText" {...attributes}>
+                const classes = `SheetOutsideText ${element.lang}`;
+                return (
+                <div className={classes} {...attributes}>
                     {children}
                 </div>
             );
@@ -759,6 +763,14 @@ const withSefariaSheet = editor => {
               // console.log(`Sheet has ${node.children.length} children`)
           }
       }
+
+      if (node.type == "SheetOutsideText") {
+          const content = Node.string(node);
+          const lang = Sefaria.hebrew.isHebrew(content) && content.length > 0 ? 'he' : 'en';
+          Transforms.setNodes(editor, { lang: lang }, {at: path});
+      }
+
+
 
       if (node.type == "SheetMetaDataBox") {
           if (node.children.length < 3) {
