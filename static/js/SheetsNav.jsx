@@ -69,6 +69,8 @@ class SheetsNav extends Component {
                         interfaceLang={this.props.interfaceLang}
                         openProfile={this.props.openProfile}
                       />);
+      enTitle = "Groups";
+      heTitle = Sefaria._(enTitle);
 
     } else if (this.props.tag) {
       var content = (<TagSheetsPage

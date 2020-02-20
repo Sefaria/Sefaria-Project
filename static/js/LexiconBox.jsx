@@ -27,7 +27,7 @@ class LexiconBox extends Component {
     // console.log("component will receive props: ", nextProps.selectedWords);
     if (!nextProps.selectedWords) {
       this.clearLookups();
-    } else if (this.props.selectedWords != nextProps.selectedWords) {
+    } else if (this.props.selectedWords !== nextProps.selectedWords) {
       this.clearLookups();
       this.getLookups(nextProps.selectedWords, nextProps.oref);
     }
@@ -54,7 +54,7 @@ class LexiconBox extends Component {
           entries: data
         });
 
-        var action = (data.length == 0)? "Open No Result": "Open";
+        let action = (data.length == 0)? "Open No Result": "Open";
         action += oref ? " / " + oref.categories.join("/") + "/" + oref.book : "";
         Sefaria.track.event("Lexicon", action, words);
 

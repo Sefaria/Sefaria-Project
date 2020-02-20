@@ -406,10 +406,10 @@ class ReaderPanel extends Component {
 
   }
   closePanelSearch() {
-    // Assumption: Search in a panel is always within a "compare" panel
+    // Assumption: Search in a panel in multiPanel is always within a "compare" panel
     var state = {
       // If there's no content to show, return to home
-      menuOpen: this.state.refs.slice(-1)[0] ? null: "compare",
+      menuOpen: this.state.refs.slice(-1)[0] ? null : (this.props.multiPanel ? "compare" : "navigation"),
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
@@ -1023,6 +1023,8 @@ class ReaderPanel extends Component {
           handleInAppLinkClick={this.props.handleInAppLinkClick}
           openProfile={this.props.openProfile}
           toggleSignUpModal={this.props.toggleSignUpModal}
+          multiPanel={this.props.multiPanel}
+          navHome={this.openMenu.bind(null, "navigation")}
         />
       );
     }
@@ -1199,23 +1201,19 @@ class ReaderControls extends Component {
     }
   }
   render() {
-    var title  = this.props.sheet ? this.props.sheet.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ') : this.props.currentRef;
-    var heTitle, categoryAttribution;
+    var title = this.props.currentRef || "";
+    var heTitle = "";
+    var categoryAttribution = null;
+    var oref = Sefaria.ref(this.props.currentRef);
 
-    if (title) {
-      if (this.props.sheet) {
-        heTitle = title;
-      }
-      else {
-        var oref    = Sefaria.ref(title);
-        heTitle = oref ? oref.heRef : "";
-      }
-
-      categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ?
-                                  <CategoryAttribution categories={oref.categories} linked={false} /> : null;
-    } else {
-      heTitle = "";
-      categoryAttribution = null;
+    if (this.props.sheet) {
+      title = this.props.sheet.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ');
+      heTitle = title;
+    } else if (oref) {
+      var sectionString = oref.ref.replace(oref.indexTitle, "");
+      var heSectionString = oref.heRef.replace(oref.heIndexTitle, "");
+      title = <span>{oref.indexTitle}<span className="sectionString">{sectionString}</span></span>
+      heTitle = <span>{oref.heIndexTitle}<span className="sectionString">{heSectionString}</span></span>
     }
 
     var mode              = this.props.currentMode();
@@ -1223,7 +1221,7 @@ class ReaderControls extends Component {
     var connectionsHeader = this.props.multiPanel && mode === "Connections";
     var showVersion = this.props.currVersions.en && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
     var versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
-    var url = this.props.sheet ? "/sheets/"+ this.props.sheet.id : Sefaria.ref(title) ? "/" + Sefaria.normRef(Sefaria.ref(title).book) : Sefaria.normRef(title);
+    var url = this.props.sheet ? "/sheets/" + this.props.sheet.id : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);
 
     var centerContent = connectionsHeader ?
       (<div className="readerTextToc">
@@ -1269,7 +1267,7 @@ class ReaderControls extends Component {
           />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
-    var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel});
+    var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel, sheetReaderControls: !!this.props.sheet});
     var readerControls = hideHeader ? null :
         (<div className={classes}>
           <div className="readerControlsInner">

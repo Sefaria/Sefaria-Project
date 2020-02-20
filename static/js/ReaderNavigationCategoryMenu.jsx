@@ -66,7 +66,7 @@ class ReaderNavigationCategoryMenu extends Component {
               <div className={navTopClasses}>
                 <CategoryColorLine category={categories[0]} />
                 {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>)}
-                {this.props.hideNavHeader ? null : (<h2>
+                {this.props.hideNavHeader ? null : (<h2 className="readerNavTopCategory">
                   <span className="en">{catTitle}</span>
                   <span className="he">{heCatTitle}</span>
                 </h2>)}
