@@ -1209,11 +1209,17 @@ class SheetListing extends Component {
 
     const topics = sheet.topics.map((topic, i) => {
       const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
-      return (<a href={`/topics/${topic.slug}`}
-                  target="_blank"
-                  className="sheetTag"
-                  key={topic.slug}
-                  onClick={this.handleTopicClick.bind(null, topic.slug)}>{topic.asTyped}{separator}</a>)
+      return (
+        <a href={`/topics/${topic.slug}`}
+          target="_blank"
+          className="sheetTag"
+          key={topic.slug}
+          onClick={this.handleTopicClick.bind(null, topic.slug)}
+        >
+          <InterfaceTextWithFallback {...topic} />
+          {separator}
+        </a>
+      );
     });
     const created = Sefaria.util.localeDate(sheet.created);
     const underInfo = this.props.infoUnderneath ? [

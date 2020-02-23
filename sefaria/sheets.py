@@ -731,7 +731,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"ownerImageUrl":   ownerData.get('profile_pic_url_small',''),
 				"status":          sheet["status"],
 				"views":           sheet["views"],
-				"topics":          sheet.get("topics", []),
+				"topics":          add_langs_to_topics(sheet.get("topics", [])),
 				"likes":           sheet.get("likes", []),
 				"summary":         sheet.get("summary", None),
 				"attribution":     sheet.get("attribution", None),
