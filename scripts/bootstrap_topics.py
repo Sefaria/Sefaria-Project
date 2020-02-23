@@ -230,7 +230,7 @@ def do_topics(dry_run=False):
         }
         dedup_slug = top_toc_dedupper.get(top_toc.name, False)
         if dedup_slug:
-            ot = Topic().load({"slug": dedup_slug})
+            ot = Topic.init(dedup_slug)
             if ot is None:
                 print("Dedup Slug is None", dedup_slug, top_toc.name)
                 continue
@@ -537,7 +537,7 @@ def do_ref_topic_link(slug_to_sheet_map):
         except DuplicateRecordError:
             pass
     for slug, sheet_id_list in tqdm(slug_to_sheet_map.items(), desc="refTopic sheet links"):
-        to_topic = Topic().load({"slug": slug})
+        to_topic = Topic.init(slug)
         for sheet_id in sheet_id_list:
             attrs = {
                 "class": "refTopic",
@@ -795,9 +795,9 @@ def dedup_topics():
     with open("data/final_dedup_map.json", 'r') as fin:
         dedup_map = json.load(fin)
     for k, v in tqdm(dedup_map.items()):
-        main_topic = Topic().load({"slug": k})
+        main_topic = Topic.init(k)
         for slug in v:
-            minor_topic = Topic().load({"slug": slug})
+            minor_topic = Topic.init(slug)
             if main_topic is None:
                 print(main_topic, 'main')
                 continue
@@ -956,7 +956,7 @@ def set_should_display():
                 slug = row['Node'].lower()
                 slug = re.sub(r"[ /]", "-", slug.strip())
                 slug = re.sub(r"[^a-z0-9\-א-ת]", "", slug)
-                topic = Topic().load({"slug": slug})
+                topic = Topic.init(slug)
                 if topic is None:
                     print("BAD", row['Node'])
                     continue
@@ -1185,25 +1185,35 @@ def find_ambiguous_topics():
         for i, t in enumerate(v):
             row = {
                 "Ambiguous": k,
-                "Slug": t.slug
+                "Slug": t.slug,
+                "En": t.get_primary_title('en'),
+                "He": t.get_primary_title('he'),
+                "New En": "",
+                "New He": "",
+                "Disambiguation En": "",
+                "Disambiguation He": "",
+                "Other Titles": " | ".join([tit['text'] for tit in t.titles if not tit.get('primary', False)]),
+                "Link": "topics-dev.sandbox.sefaria.org/topics/{}".format(t.slug)
             }
             if len(t.titles) > max_titles:
                 max_titles = len(t.titles)
-            for ititle, title in enumerate(t.titles):
-                row["T{}".format(ititle)] = title['text']
-                if title.get('transliteration', False):
-                    row["T{}".format(ititle)] += ' (t)'
-                if title.get('primary', False):
-                    row["T{}".format(ititle)] += ' (p)'
-                row["T{}".format(ititle)] += ' ({})'.format(title['lang'])
+            # for ititle, title in enumerate(t.titles):
+            #     row["T{}".format(ititle)] = title['text']
+            #     if title.get('transliteration', False):
+            #         row["T{}".format(ititle)] += ' (t)'
+            #     if title.get('primary', False):
+            #         row["T{}".format(ititle)] += ' (p)'
+            #     row["T{}".format(ititle)] += ' ({})'.format(title['lang'])
+            """
             isas = IntraTopicLinkSet({"fromTopic": t.slug, "linkType": 'is-a'})
             if isas.count() > max_isa:
                 max_isa = isas.count()
             for iisa, isa in enumerate(isas):
                 row["I{}".format(iisa)] = isa.toTopic
+            """
             rows += [row]
     with open('data/ambig_topics.csv', 'w') as fout:
-        c = csv.DictWriter(fout, ['Ambiguous', 'Slug'] + ['T{}'.format(i) for i in range(0, max_titles)] + ['I{}'.format(i) for i in range(0, max_isa)])
+        c = csv.DictWriter(fout, ['Ambiguous', 'Slug', 'En', 'He', 'New En', 'New He', 'Disambiguation En', 'Disambiguation He', 'Other Titles', 'Link'])  # + ['I{}'.format(i) for i in range(0, max_isa)]
         c.writeheader()
         c.writerows(rows)
 
@@ -1226,8 +1236,9 @@ if __name__ == '__main__':
     # import_term_descriptions()
     # new_edge_type_research()
     # add_num_sources_to_topics()
-    update_intra_topic_link_orders()
+    # update_intra_topic_link_orders()
     # clean_up_time()
+    find_ambiguous_topics()
 
     
 def yo():
@@ -1356,5 +1367,23 @@ def modify_parashot():
         p.add_title('Parashat {}'.format(sans_par_en), 'en', True, True)
         p.add_title('פרשת {}'.format(sans_par_he), 'he', True, True)
         p.save()
+
+
+def make_desc_csv():
+    ts = TopicSet({"description": {"$exists": True}})
+    rows = []
+    for t in ts:
+        rows += [{
+            "Slug": t.slug,
+            "En": t.get_primary_title('en'),
+            "He": t.get_primary_title('he'),
+            "Desc En": t.description['en'],
+            "Desc He": t.description['he'],
+            "Link": "topics-dev.sandbox.sefaria.org/topics/{}".format(t.slug)
+        }]
+    with open("data/edit_descriptions.csv", "w") as fout:
+        c = csv.DictWriter(fout, ['Slug', 'En', 'He', 'Desc En', 'Desc He', 'Link'])
+        c.writeheader()
+        c.writerows(rows)
 
 

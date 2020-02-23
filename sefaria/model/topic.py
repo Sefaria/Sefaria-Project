@@ -6,6 +6,7 @@ import logging
 import regex as re
 logger = logging.getLogger(__name__)
 
+
 class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     collection = 'topics'
     slug_fields = ['slug']
@@ -26,6 +27,15 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'ref',  # for topics with refs associated with them, this stores the tref (e.g. for a parashah)
     ]
     uncategorized_topic = 'uncategorized0000'
+
+    @staticmethod
+    def init(slug:str) -> 'Topic':
+        """
+        Convenience func to avoid using .load() when you're only passing a slug
+        :param slug:
+        :return:
+        """
+        return Topic().load({'slug': slug})
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
@@ -57,7 +67,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                 logger.warning("Circular path starting from {} and ending at {} detected".format(new_path[0], isa_slug))
                 continue
             new_path += [isa_slug]
-            new_topic = Topic().load({"slug": isa_slug})
+            new_topic = Topic.init(isa_slug)
             if new_topic is None:
                 logger.warning("{} is None. Current path is {}".format(isa_slug, ', '.join(new_path)))
                 continue
@@ -71,7 +81,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             return [self]
         else:
             for slug in children:
-                child_topic = Topic().load({"slug": slug})
+                child_topic = Topic.init(slug)
                 if child_topic is None:
                     logger.warning("{} is None")
                     continue
@@ -81,7 +91,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     def has_types(self, search_slug_set):
         """
         WARNING: Expensive, lots of database calls
-        Checks if `self` has `topic_slug` as an ancestor when traversing `is-a` links
+        Checks if `self` has any slug in `search_slug_set` as an ancestor when traversing `is-a` links
         :param search_slug_set: set(str), slugs to search for. returns True if any slug is found
         :return: bool
         """
@@ -95,7 +105,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         slug_field = self.slug_fields[0]
         old_slug = getattr(self, slug_field)
         setattr(self, slug_field, new_slug)
-        setattr(self, slug_field, self.normalize_slug(slug_field))
+        setattr(self, slug_field, self.normalize_slug_field(slug_field))
         self.merge(old_slug)
 
     def merge(self, other):
@@ -173,12 +183,11 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             kwargs['record_kwargs'] = {'context_slug': self.slug}
             return TopicLinkSetHelper.find(intra_link_query, **kwargs)
 
-
     def __str__(self):
         return self.get_primary_title("en")
 
     def __repr__(self):
-        return "{}().load({{'slug': '{}'}}".format(self.__class__.__name__, self.slug)
+        return "{}.init('{}')".format(self.__class__.__name__, self.slug)
 
 
 class TopicSet(abst.AbstractMongoSet):
@@ -229,7 +238,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         :param str context_slug: if this link is being used in a specific context, give the topic slug which represents the context. used to set if the link should be considered inverted
         """
         super(IntraTopicLink, self).__init__(attrs=attrs)
-        self.context_slug = context_slug == self.toTopic
+        self.context_slug = context_slug
 
     def _normalize(self):
         setattr(self, "class", "intraTopic")
@@ -243,9 +252,9 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         # check everything exists
         link_type = TopicLinkType().load({"slug": self.linkType})
         assert link_type is not None, "Link type '{}' does not exist".format(self.linkType)
-        from_topic = Topic().load({"slug": self.fromTopic})
+        from_topic = Topic.init(self.fromTopic)
         assert from_topic is not None, "fromTopic '{}' does not exist".format(self.fromTopic)
-        to_topic = Topic().load({"slug": self.toTopic})
+        to_topic = Topic.init(self.toTopic)
         assert to_topic is not None, "toTopic '{}' does not exist".format(self.toTopic)
         data_source = TopicDataSource().load({"slug": self.dataSource})
         assert data_source is not None, "dataSource '{}' does not exist".format(self.dataSource)
@@ -275,7 +284,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         # assert this link doesn't create circular paths (in is_a link type)
         # should consider this test also for other non-symmetric link types such as child-of
         if self.linkType == TopicLinkType.isa_type:
-            to_topic = Topic().load({"slug":self.toTopic})
+            to_topic = Topic.init(self.toTopic)
             ancestors = to_topic.get_types()
             assert self.fromTopic not in ancestors, "{} is an is-a ancestor of {} creating an illogical circle in the topics graph, here are {} ancestors: {}".format(self.fromTopic, self.toTopic, self.toTopic, ancestors)
 
@@ -395,11 +404,11 @@ class TopicLinkType(abst.AbstractMongoRecord):
         super(TopicLinkType, self)._validate()
         # Check that validFrom and validTo contain valid topic slugs if exist
 
-        for validToTopic in self.validTo:
-            assert Topic().load({"slug": validToTopic}) is not None, "ValidTo topic '{}' does not exist".format(self.validToTopic)
+        for validToTopic in getattr(self, 'validTo', []):
+            assert Topic.init(validToTopic) is not None, "ValidTo topic '{}' does not exist".format(self.validToTopic)
 
-        for validFromTopic in self.validFrom:
-            assert Topic().load({"slug": validFromTopic}) is not None, "ValidTo topic '{}' does not exist".format(
+        for validFromTopic in getattr(self, 'validFrom', []):
+            assert Topic.init(validFromTopic) is not None, "ValidTo topic '{}' does not exist".format(
                 self.validFrom)
 
     def get(self, attr, is_inverse, default=None):

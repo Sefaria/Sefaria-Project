@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_topic(topic, with_links, annotate_links, with_refs, group_related):
-    topic_obj = Topic().load({"slug": topic})
+    topic_obj = Topic.init(topic)
     response = topic_obj.contents()
     response['primaryTitle'] = {
         'en': topic_obj.get_primary_title('en'),
