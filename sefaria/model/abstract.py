@@ -193,13 +193,11 @@ class AbstractMongoRecord(object):
             d["_id"] = str(self._id)
         return d
 
-    def normalize_slug(self, slug_field):
+    def normalize_slug_field(self, slug_field):
         """
         Set the slug (stored in self[slug_field]) using the first available number at the end if duplicates exist
         """
-        slug = getattr(self, slug_field).lower()
-        slug = re.sub(r"[ /]", "-", slug.strip())
-        slug = re.sub(r"[^a-z0-9\-]", "", slug)
+        slug = self.normalize_slug(getattr(self, slug_field))
         dupe_count = 0
         _id = getattr(self, '_id', None)  # _id is not necessarily set b/c record might not have been saved yet
         temp_slug = slug
@@ -207,6 +205,14 @@ class AbstractMongoRecord(object):
             dupe_count += 1
             temp_slug = "{}{}".format(slug, dupe_count)
         return temp_slug
+
+    @staticmethod
+    def normalize_slug(slug):
+        slug = slug.lower()
+        slug = re.sub(r"[ /]", "-", slug.strip())
+        slug = re.sub(r"[^a-z0-9\-א-ת]", "", slug)
+        slug = re.sub(r"-+", "-", slug)
+        return slug
 
     def _set_pkeys(self):
         if self.track_pkeys:
@@ -257,7 +263,7 @@ class AbstractMongoRecord(object):
     def _normalize(self):
         if self.slug_fields is not None:
             for slug_field in self.slug_fields:
-                setattr(self, slug_field, self.normalize_slug(slug_field))
+                setattr(self, slug_field, self.normalize_slug_field(slug_field))
 
     def _pre_save(self):
         pass
