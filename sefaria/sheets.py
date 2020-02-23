@@ -785,13 +785,11 @@ def public_tag_list(sort_by="alpha"):
 	return results
 
 
-def get_sheets_by_tag(tag, public=True, uid=None, group=None, proj=None, limit=0, page=0):
+def get_sheets_by_topic(topic, public=True, uid=None, group=None, proj=None, limit=0, page=0):
 	"""
-	Returns all sheets tagged with 'tag'
+	Returns all sheets tagged with 'topic'
 	"""
-	term = model.Term().load_by_title(tag)
-	tags = term.get_titles() if term else [tag]
-	query = {"tags": {"$in": tags} } if tag else {"tags": {"$exists": 0}}
+	query = {"topics.slug": topic} if topic else {"tags": {"$exists": 0}}
 
 	if uid:
 		query["owner"] = uid

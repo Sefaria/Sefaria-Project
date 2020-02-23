@@ -935,8 +935,8 @@ class SheetListFactory(AbstractStoryFactory):
 
     @classmethod
     def _get_topic_sheet_ids(cls, topic, k=3, page=0):
-        from sefaria.sheets import get_sheets_by_tag
-        sheets = get_sheets_by_tag(topic, limit=k, proj={"id": 1}, page=page)
+        from sefaria.sheets import get_sheets_by_topic
+        sheets = get_sheets_by_topic(topic.slug, limit=k, proj={"id": 1}, page=page)
         return [s["id"] for s in sheets]
         # sheets = SheetSet({"tags": topic, "status": "public"}, proj={"id": 1}, sort=[("views", -1)], limit=k)
         # return [s.id for s in sheets]
@@ -953,9 +953,12 @@ class SheetListFactory(AbstractStoryFactory):
     def create_parasha_sheets_stories(cls, iteration=1, k=3, **kwargs):
         def _create_parasha_sheet_story(parasha_obj, mustHave=None, **kwargs):
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+            from sefaria.helper.topic import get_topic_by_parasha
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
-
-            sheet_ids = cls._get_topic_sheet_ids(parasha_obj["parasha"], k=k, page=iteration-1)
+            topic = get_topic_by_parasha(parasha_obj["parasha"])
+            if not topic:
+                return
+            sheet_ids = cls._get_topic_sheet_ids(topic, k=k, page=iteration-1)
             if len(sheet_ids) < k:
                 return
 
@@ -984,8 +987,7 @@ class SheetListFactory(AbstractStoryFactory):
 
     @classmethod
     def generate_topic_story(cls, topic, **kwargs):
-        t = text.Term.normalize(topic)
-        return cls.generate_story(sheet_ids=cls._get_topic_sheet_ids(topic), title={"en": t, "he": hebrew_term(t)}, **kwargs)
+        return cls.generate_story(sheet_ids=cls._get_topic_sheet_ids(topic), title={"en": topic.get_primary_title('en'), "he": topic.get_primary_title('he')}, **kwargs)
 
     @classmethod
     def create_topic_story(cls, topic, **kwargs):
@@ -1009,10 +1011,9 @@ class TopicListStoryFactory(AbstractStoryFactory):
     """
     @classmethod
     def _data_object(cls, **kwargs):
-        normal_topics = [text.Term.normalize(topics) for topics in kwargs.get("topics")]
-        # todo: handle possibility of Hebrew terms trending.
+        # todo: handle possibility of Hebrew terms trending. NOAH: I think this may be solved now that we've moved to topics model
         return {
-            "topics": [{"en": topic, "he": hebrew_term(topic)} for topic in normal_topics],
+            "topics": [{"en": topic['en'], "he": topic['he']} for topic in kwargs.get('topics')],
             "title": kwargs.get("title", {"en": "Trending Recently", "he": "נושאים עדכניים"}),
             "lead": kwargs.get("lead", {"en": "Topics", "he": "נושאים"})
         }
@@ -1025,21 +1026,20 @@ class TopicListStoryFactory(AbstractStoryFactory):
     def create_trending_story(cls, **kwargs):
         days = kwargs.get("days", 7)
         from sefaria import sheets
-        topics = [t["tag"] for t in sheets.trending_topics(days=days, ntags=6)]
-        cls.create_shared_story(topics=topics)
+        cls.create_shared_story(topics=sheets.trending_topics(days=days, ntags=6))
 
     @classmethod
     def create_parasha_topics_stories(cls, iteration=1, k=6, **kwargs):
         def _create_parasha_topic_story(parasha_obj, mustHave=None, **kwargs):
-            from sefaria.model.topic_old import get_topics
-            from sefaria.utils.util import titlecase
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
-
+            from sefaria.helper.topic import get_topic_by_parasha
+            from sefaria.model.topic import Topic
             page = iteration-1
-            topics = get_topics()
-            parasha = text.Term.normalize(titlecase(parasha_obj["parasha"]))
-            topic = topics.get(parasha)
-            related_topics = [t for t,x in topic.related_topics[page*k:page*k+k] if x > 1]
+            topic = get_topic_by_parasha(parasha_obj["parasha"])
+            if not topic:
+                return
+            link_set = topic.link_set(_class='intraTopic', page=page, limit=k)
+            related_topics = list(filter(None, [Topic.init(l.topic) for l in link_set]))
             if len(related_topics) < k:
                 return
 
@@ -1077,19 +1077,16 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
         trefs = kwargs.get("refs")
         num = kwargs.get("num", 2)
 
-        t = text.Term.normalize(t)
-
         if not trefs:
-            from . import topic
-            topic_manager = topic.get_topics()
-            topic_obj = topic_manager.get(t)
+            from .topic import Topic
+            topic_obj = Topic().load({'slug': t})
             trefs = [pair[0] for pair in topic_obj.sources[:num]]
 
         normal_refs = [text.Ref(ref).normal() for ref in trefs]
 
         d = {
             "title": {
-                "en": t,
+                "en": t.get_primary_title,
                 "he": hebrew_term(t)
             },
             "refs": normal_refs
