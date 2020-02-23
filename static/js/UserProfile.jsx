@@ -3,6 +3,7 @@ const {
   TabView,
   FilterableList,
   SheetListing,
+  SinglePanelNavHeader,
   ProfileListing,
   ProfilePic,
   FollowButton,
@@ -315,6 +316,13 @@ class UserProfile extends Component {
   render() {
     return (
       <div key={this.props.profile.id} className="profile-page readerNavMenu noHeader">
+        {this.props.multiPanel ? null :
+          <SinglePanelNavHeader
+            enTitle="Profile"
+            heTitle={Sefaria._("Profile")}
+            navHome={this.props.navHome}
+            showDisplaySettings={false}/>
+        }
         <div className="content hasFooter noOverflowX">
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :
@@ -481,8 +489,8 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
               toggleSignUpModal={toggleSignUpModal}
             />
             <a href="#" className="resourcesLink" onClick={message}>
-              <span className="en">Message</span>
-              <span className="he">שלח הודעה</span>
+              <span className="int-en">Message</span>
+              <span className="int-he">שלח הודעה</span>
             </a>
           </div>)
         }

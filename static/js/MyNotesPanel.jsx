@@ -4,6 +4,7 @@ const {
   ReaderNavigationMenuDisplaySettingsButton,
   LanguageToggleButton,
   LoadingMessage,
+  SinglePanelNavHeader,
   Note,
 }                         = require('./Misc');
 const React               = require('react');
@@ -55,15 +56,13 @@ class MyNotesPanel extends Component {
     return (
       <div className={classStr}>
         {this.props.hideNavHeader ? null :
-          <div className={navTopClasses}>
-            <CategoryColorLine category={"Other"} />
-            <ReaderNavigationMenuMenuButton onClick={this.props.navHome}/>
-            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-            <h2>
-              <span className="int-en">My Notes</span>
-              <span className="int-he">הרשומות שלי</span>
-            </h2>
-        </div>}
+          <SinglePanelNavHeader
+            enTitle="My Notes"
+            heTitle="הרשומות שלי"
+            navHome={this.props.navHome}
+            showDisplaySettings={true}
+            openDisplaySettings={this.props.openDisplaySettings}/>
+        }
         <div className={contentClasses} onScroll={this.onScroll}>
           <div className="contentInner">
             {this.props.hideNavHeader ?

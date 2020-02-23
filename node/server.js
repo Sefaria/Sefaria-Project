@@ -9,7 +9,7 @@ var http           = require('http'),
     bodyParser     = require('body-parser'),
     cookieParser   = require('cookie-parser'),
     request        = require('request'),
-    settings       = require('./local_settings.json'),
+    settings       = require('./local_settings.js'),
     React          = require('react'),
     ReactDOMServer = require('react-dom/server'),
     SefariaReact   = require('../static/js/ReaderApp.jsx'),
@@ -29,6 +29,8 @@ var renderReaderApp = function(props, data, timer) {
   data._uid           = props._uid;
   data.recentlyViewed = props.recentlyViewed;
 
+  log(data.initialPath);
+  
   SefariaReact.sefariaSetup(data);
   SefariaReact.unpackDataFromProps(props);
   log("Time to set data: %dms", timer.elapsed());
@@ -56,7 +58,7 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
   log(props.initialRefs || props.initialMenu);
   log("Time to props: %dms", timer.elapsed());
   var options = {
-    url: settings.DJANGO_HOST + "/data.js",
+    url: "http://".concat(settings.DJANGO_HOST, ":", settings.DJANGO_PORT, "/data.js"),
     headers: {
       "User-Agent": "sefaria-node"
     }
@@ -81,6 +83,9 @@ server.post('/Footer/:cachekey', function(req, res) {
   res.send(html);
 });
 
-server.listen(settings.PORT, function() {
-  console.log('Listening on ' + settings.PORT);
+server.listen(settings.NODEJS_PORT, function() {
+  console.log('Django Host: ' + settings.DJANGO_HOST);
+  console.log('Django Post: ' + settings.DJANGO_PORT);
+  console.log('Debug: ' + settings.DEBUG);
+  console.log('Listening on ' + settings.NODEJS_PORT);
 });

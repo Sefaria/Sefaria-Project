@@ -56,7 +56,7 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
         try:
             com["compDate"] = int(compDate)
         except ValueError:
-            pass
+            com["compDate"] = 3000  # default comp date to in the future
         try:
             com["errorMargin"] = int(getattr(linkRef.index, "errorMargin", 0))
         except ValueError:

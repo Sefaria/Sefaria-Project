@@ -918,13 +918,16 @@ class ReaderApp extends Component {
     }
   }
   setContainerMode() {
-    // Applies CSS classes to the React container so that the App can function as a header only on top of another page.
-    // todo: because headerMode CSS was messing stuff up, header links are reloads in headerMode.  So - not sure if this method is still needed.
+    // Applies CSS classes to the React container and body so that the App can function as a header only on top of a static page.
     if (this.props.headerMode) {
       if (this.state.header.menuOpen || this.state.panels.length) {
         $("#s2").removeClass("headerOnly");
         $("body").css({overflow: "hidden"})
                   .removeClass("hasBannerMessage");
+        if (!this.props.multiPanel) {
+          // Hacky, needed because rendered html of Header doesn't differentiate multiPanel 
+          $(".readerApp").removeClass("multiPanel").addClass("singlePanel");
+        }
       } else {
         $("#s2").addClass("headerOnly");
         $("body").css({overflow: "auto"});
@@ -950,11 +953,7 @@ class ReaderApp extends Component {
     if (this.state.panels.length > 1) {
       $container.css({paddingRight: "", paddingLeft: ""});
     } else {
-      if (this.props.interfaceLang == "hebrew") {
-        $container.css({paddingRight: width, paddingLeft: 0});
-      } else {
-        $container.css({paddingRight: 0, paddingLeft: width});
-      }
+      $container.css({paddingRight: 0, paddingLeft: width});
     }
   }
   toggleSignUpModal() {
@@ -1506,7 +1505,6 @@ class ReaderApp extends Component {
       // If this is a Connection panel, we need to unset the filter in the base panel
       if (n > 0 && this.state.panels[n] && this.state.panels[n].mode === "Connections"){
         const parent = this.state.panels[n-1];
-        console.log("close connections panel");
         parent.filter = [];
         parent.highlightedRefs = [];
         parent.currentlyVisibleRef = !parent.currentlyVisibleRef ? parent.currentlyVisibleRef : Sefaria.ref(parent.currentlyVisibleRef).sectionRef;
@@ -1558,7 +1556,7 @@ class ReaderApp extends Component {
       if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
         this.state.panels[0].settings.language = "english";
       }
-      this.setState({panels: this.state.panels});
+      this.setState({panels: this.state.panels, header: {}, headerMode: false});
     }
   }
   showSearch(searchQuery) {
@@ -1813,6 +1811,7 @@ class ReaderApp extends Component {
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       getLicenseMap={this.getLicenseMap}
+                      handleInAppLinkClick={this.handleInAppLinkClick}
                       translateISOLanguageCode={this.translateISOLanguageCode}
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}

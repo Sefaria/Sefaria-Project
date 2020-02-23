@@ -762,7 +762,7 @@ def spam_dashboard(request):
 
         for spammer in spammers:
             try:
-                spammer_account = User.objects.get(id=spammer["owner"])
+                spammer_account = User.objects.get(id=spammer)
                 spammer_account.is_active = False
                 spammer_account.save()
             except:

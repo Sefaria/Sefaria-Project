@@ -71,7 +71,8 @@ function PublicGroupsPanel({multiPanel, navHome}) {
     <div className={classStr}>
       {multiPanel ? null :
         <SinglePanelNavHeader
-          enTitle="Public Groups"
+          enTitle="Groups"
+          heTitle={Sefaria._("Groups")}
           navHome={navHome}
           showDisplaySettings={false}/>
       }

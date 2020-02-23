@@ -1999,7 +1999,6 @@ Sefaria = extend(Sefaria, {
       " & ": " | ",
       "My Source Sheets" : "דפי המקורות שלי",
       "Public Source Sheets":"דפי מקורות פומביים",
-      "Public Groups": "קבוצות",
       "History": "היסטוריה",
       "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
       "Public Domain": "רשיון בנחלת הכלל",
@@ -2037,48 +2036,50 @@ Sefaria = extend(Sefaria, {
       "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
       "Pinned Sheet" : "דף מקורות נעוץ",
       "Pin Sheet" : "נעיצת דף מקורות",
+      "Created with": 'נוצר עבורך ע"י',
 
       //stuff moved from sheets.js
       "Loading..." : "טוען...",
-        "Saving..." : "שומר...",
-        "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
-        "קיימים שינויים בלתי שמורים בדף המקורות. השתמשו בכפתור השמירה לפני עזיבת הדף.",
-        "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.":
-        "קיימים שינויים בלתי שמורים בדף המקורות. אנא חכו שפעולת השמירה האוטומטית תסתיים.",
-        "Are you sure you want to delete this sheet? There is no way to undo this action.":
-        "מחיקת דף מקורות היא פעולה בלתי הפיכה. האם אתם בטוחים?",
-        "Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.":
-        "לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
-        //"Untitled Source Sheet": "דף מקורות ללא שם",
-        "Like": "אהבתי",
-        "Unlike": "ביטול סימון אהבתי",
-        "No one has liked this sheet yet. Will you be the first?":
-        "אף אחד עדיין לא אהב את דף המקורות הזה. תרצו להיות ראשונים?",
-        "1 Person Likes This Sheet": "אדם אחד אהב את דף המקורות",
-        " People Like This Sheet": " אנשים אהבו את דף המקורות",
-        "Tags Saved": "תוית נשמרה",
-        "Assignments allow you to create a template that your students can fill out on their own.":
-        "מטלות מאפשרות ליצור דף בסיס שתלמידים יכולים להשתמש בו כדי למלא וליצור את העבודה שלהם.",
-        "Students can complete their assignment at this link:":
-        "תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:",
-        "Reset text of Hebrew, English or both?": "האם לאפס את התוכן של המקור בעברית, אנגלית או הכל?",
-        "Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו",
-        "Looking up Connections..." : "מחפש קישורים...",
-        "No connections known for this source.": "למקור הזה אין קשרים ידועים",
-        "Edit Source title" : "עריכת כותרת",
-        "Add Source Below" : "הוספת מקור מתחת",
-        "Add Comment": "הוספת תגובה",
-        "Add All Connections": "הוספת כל המקורות הקשורים",
-        "Reset Source Text": "איפוס טקסט מקור",
-        "Copy to Sheet" : "העתקה לדף מקורות",
-        "Change Source Layout/Language": "שינוי שפת/עימוד מקור",
-        "Move Source Up": "הזזת מקור מעלה",
-        "Move Source Down": "הזזת מקור מטה",
-        "Outdent Source": "הזחת מקור החוצה",
-        "Indent Source": "הזחת מקור פנימה",
-        "Remove": "הסרת מקור",
-        "Create New" : "יצירת חדש",
-        "Close" : "סגירה",
+      "Saving..." : "שומר...",
+      "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
+      "קיימים שינויים בלתי שמורים בדף המקורות. השתמשו בכפתור השמירה לפני עזיבת הדף.",
+      "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.":
+      "קיימים שינויים בלתי שמורים בדף המקורות. אנא חכו שפעולת השמירה האוטומטית תסתיים.",
+      "Are you sure you want to delete this sheet? There is no way to undo this action.":
+      "מחיקת דף מקורות היא פעולה בלתי הפיכה. האם אתם בטוחים?",
+      "Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.":
+      "לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
+      //"Untitled Source Sheet": "דף מקורות ללא שם",
+      "Like": "אהבתי",
+      "Unlike": "ביטול סימון אהבתי",
+      "No one has liked this sheet yet. Will you be the first?":
+      "אף אחד עדיין לא אהב את דף המקורות הזה. תרצו להיות ראשונים?",
+      "1 Person Likes This Sheet": "אדם אחד אהב את דף המקורות",
+      " People Like This Sheet": " אנשים אהבו את דף המקורות",
+      "Tags Saved": "תוית נשמרה",
+      "Assignments allow you to create a template that your students can fill out on their own.":
+      "מטלות מאפשרות ליצור דף בסיס שתלמידים יכולים להשתמש בו כדי למלא וליצור את העבודה שלהם.",
+      "Students can complete their assignment at this link:":
+      "תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:",
+      "Reset text of Hebrew, English or both?": "האם לאפס את התוכן של המקור בעברית, אנגלית או הכל?",
+      "Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו",
+      "Looking up Connections..." : "מחפש קישורים...",
+      "No connections known for this source.": "למקור הזה אין קשרים ידועים",
+      "Edit Source title" : "עריכת כותרת",
+      "Add Source Below" : "הוספת מקור מתחת",
+      "Add Comment": "הוספת תגובה",
+      "Add All Connections": "הוספת כל המקורות הקשורים",
+      "Reset Source Text": "איפוס טקסט מקור",
+      "Copy to Sheet" : "העתקה לדף מקורות",
+      "Change Source Layout/Language": "שינוי שפת/עימוד מקור",
+      "Move Source Up": "הזזת מקור מעלה",
+      "Move Source Down": "הזזת מקור מטה",
+      "Outdent Source": "הזחת מקור החוצה",
+      "Indent Source": "הזחת מקור פנימה",
+      "Remove": "הסרת מקור",
+      "Create New" : "יצירת חדש",
+      "Close" : "סגירה",
+      "by": "", // by line on sheets in reader, left blank
 
       //reader panel
       "Search" : "חיפוש",
