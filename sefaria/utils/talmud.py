@@ -8,7 +8,7 @@ def section_to_daf(section, lang="en"):
     in English or in Hebrew.
     """
     section += 1
-    daf = section / 2
+    daf = section // 2
 
     if lang == "en":
         if section > daf * 2:
