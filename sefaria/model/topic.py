@@ -25,6 +25,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'shouldDisplay',
         'parasha',  # name of parsha as it appears in `parshiot` collection
         'ref',  # for topics with refs associated with them, this stores the tref (e.g. for a parashah)
+        'good_to_promote',
     ]
     uncategorized_topic = 'uncategorized0000'
 
@@ -74,7 +75,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-    def get_leaf_nodes(self, linkType):
+    def get_leaf_nodes(self, linkType='is-a'):
         leaves = []
         children = [l.fromTopic for l in IntraTopicLinkSet({"toTopic": self.slug, "linkType": linkType})]
         if len(children) == 0:
