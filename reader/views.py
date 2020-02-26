@@ -754,8 +754,8 @@ def sheets_list(request, type=None):
     either as a full page or as an HTML fragment
     """
     if not type:
-        # Sheet Splash page
-        return sheets(request)
+        # Topics Splash page (for now while waiting for sheets landing page)
+        return topics_page(request)
 
     response = { "status": 0 }
 
