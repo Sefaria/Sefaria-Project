@@ -50,4 +50,3 @@ httplib2
 lxml
 convertdate
 ipython
-LexiconBox.jsx
