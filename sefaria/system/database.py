@@ -91,6 +91,7 @@ def ensure_indices(active_db=None):
         ('sheets', ["owner"],{}),
         ('sheets', ["assignment_id"],{}),
         ('sheets', ["is_featured"],{}),
+        ('sheets', [[("views", pymongo.DESCENDING)]],{}),
         ('texts', ["title"],{}),
         ('texts', [[("priority", pymongo.DESCENDING), ("_id", pymongo.ASCENDING)]],{}),
         ('texts', [[("versionTitle", pymongo.ASCENDING), ("langauge", pymongo.ASCENDING)]],{}),
