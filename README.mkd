@@ -143,6 +143,15 @@ Now download the required Javascript libraries and install some global tools for
     npm install
     sudo npm run setup
 
+The following environment variables, defined in `./node/local_settings.js`, can be set to configure the node instance:
+
+| Env Var | Default | Description |
+|---------|---------|-------------|
+| `DJANGO_HOST` | No default | The hostname of the Django service |
+| `DJANGO_PORT` | `80` | The port used by the Django service | 
+| `NODEJS_PORT` | `3000` | The port to be used by the NodeJs service |
+| `DEBUG` | `false` | Determines whether the NodeJs service should run in debug mode | 
+
 Create a local settings file for node and tell it what port to run on and where to find the Django server. The port should match the `NODE_HOST` variable set in Django's `local_settings.py`.
 
     cp node/local_settings_example.json node/local_settings.json

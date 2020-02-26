@@ -6,6 +6,7 @@ const {
   LoadingMessage,
   TwoOrThreeBox,
   Link,
+  InterfaceTextWithFallback,
 }                         = require('./Misc');
 const React               = require('react');
 const PropTypes           = require('prop-types');
@@ -53,29 +54,32 @@ class TopicPageAll extends Component {
   }
 
   renderButton(item)  {
+    const topicTitle = {
+      en: this.getPrimaryTitle(item, 'en'),
+      he: this.getPrimaryTitle(item, 'he'),
+    };
     return (
       <Link
         className={classNames({navButton: 1, sheetButton: 1 })}
         href={"/topics/" + item.slug}
-        onClick={this.props.setTopic.bind(null, item.slug)}
+        onClick={this.props.setTopic.bind(null, item.slug, topicTitle)}
         title={"Explore sources related to '" + item.slug + "'"}
         key={item.slug}
       >
-        <span className="int-en">{this.getPrimaryTitle(item, 'en')}</span>
-        <span className="int-he">{this.getPrimaryTitle(item, 'he')}</span>
+        <InterfaceTextWithFallback en={topicTitle.en} he={topicTitle.he} />
       </Link>
     );
   }
 
   render() {
-    const hasFilter = this.state.filter.length > 0;
-    const topicList = this.state.topicList ? this.state.topicList.slice(0, hasFilter ? undefined : 500).filter(item => {
+    const hasFilter = this.state.filter.length > 1;  // dont filter by one letter. not useful
+    const topicList = this.state.topicList ? this.state.topicList.filter(item => {
       if (!hasFilter) { return true }
       for (let title of item.normTitles) {
         if (title.indexOf(this.state.filter) !== -1) { return true; }
       }
       return false;
-    }).map(this.renderButton) : null;
+    }).slice(0, 500).map(this.renderButton) : null;
     const isHeInt = Sefaria.interfaceLang == "hebrew";
     const classStr = classNames({topicsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
     const navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
@@ -117,7 +121,7 @@ class TopicPageAll extends Component {
               { topicList ?
                   (topicList.length ?
                       <div>
-                        { this.state.filter.length ? null :
+                        { hasFilter ? null :
                           <h3>
                             <span className="int-en">Most Used</span>
                             <span className="int-he">הכי בשימוש</span>

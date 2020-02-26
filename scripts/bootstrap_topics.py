@@ -9,21 +9,21 @@ from sefaria.system.database import db
 from sefaria.helper.topic import generate_topic_links_from_sheets, update_ref_topic_link_orders, update_intra_topic_link_orders, add_num_sources_to_topics
 from sefaria.system.exceptions import DuplicateRecordError
 
-with open("data/final_ref_topic_links.csv", 'r') as fin:
-    cin = csv.DictReader(fin)
-    ref_topic_links = list(cin)
-with open("data/edge_types.csv", 'r') as fin:
-    cin = csv.DictReader(fin)
-    edge_types = list(cin)
-with open("data/final_topics.json", 'r') as fin:
-    topics = json.load(fin)
-with open("data/source_sheet_cats.csv", 'r') as fin:
-    cin = csv.DictReader(fin)
-    cat_replacer = {"Bible": "Tanakh"}
-    fallback_sheet_cat_map = {}
-    for row in cin:
-        cat = cat_replacer.get(row['Cat'], row['Cat'])
-        fallback_sheet_cat_map[row['Tag']] = cat
+# with open("data/final_ref_topic_links.csv", 'r') as fin:
+#     cin = csv.DictReader(fin)
+#     ref_topic_links = list(cin)
+# with open("data/edge_types.csv", 'r') as fin:
+#     cin = csv.DictReader(fin)
+#     edge_types = list(cin)
+# with open("data/final_topics.json", 'r') as fin:
+#     topics = json.load(fin)
+# with open("data/source_sheet_cats.csv", 'r') as fin:
+#     cin = csv.DictReader(fin)
+#     cat_replacer = {"Bible": "Tanakh"}
+#     fallback_sheet_cat_map = {}
+#     for row in cin:
+#         cat = cat_replacer.get(row['Cat'], row['Cat'])
+#         fallback_sheet_cat_map[row['Tag']] = cat
 
 
 def autoreconnect_query(collection=None, query=None, proj=None, tries=0):
@@ -230,7 +230,7 @@ def do_topics(dry_run=False):
         }
         dedup_slug = top_toc_dedupper.get(top_toc.name, False)
         if dedup_slug:
-            ot = Topic().load({"slug": dedup_slug})
+            ot = Topic.init(dedup_slug)
             if ot is None:
                 print("Dedup Slug is None", dedup_slug, top_toc.name)
                 continue
@@ -537,7 +537,7 @@ def do_ref_topic_link(slug_to_sheet_map):
         except DuplicateRecordError:
             pass
     for slug, sheet_id_list in tqdm(slug_to_sheet_map.items(), desc="refTopic sheet links"):
-        to_topic = Topic().load({"slug": slug})
+        to_topic = Topic.init(slug)
         for sheet_id in sheet_id_list:
             attrs = {
                 "class": "refTopic",
@@ -795,9 +795,9 @@ def dedup_topics():
     with open("data/final_dedup_map.json", 'r') as fin:
         dedup_map = json.load(fin)
     for k, v in tqdm(dedup_map.items()):
-        main_topic = Topic().load({"slug": k})
+        main_topic = Topic.init(k)
         for slug in v:
-            minor_topic = Topic().load({"slug": slug})
+            minor_topic = Topic.init(slug)
             if main_topic is None:
                 print(main_topic, 'main')
                 continue
@@ -931,7 +931,7 @@ def renormalize_slugs():
 
     for t in ts:
         title = t.get_primary_title('en') if len(t.get_primary_title('en')) > 0 else t.get_primary_title('he')
-        if re.search(r'\d+$', t.slug) and temp_norm_slug(title) != t.slug:
+        if temp_norm_slug(title) != t.slug:  # re.search(r'\d+$', t.slug) and
             old_slug = t.slug
             new_alt_ids = getattr(t, 'alt_ids', {})
             new_alt_ids['_old_slug'] = old_slug
@@ -956,7 +956,7 @@ def set_should_display():
                 slug = row['Node'].lower()
                 slug = re.sub(r"[ /]", "-", slug.strip())
                 slug = re.sub(r"[^a-z0-9\-א-ת]", "", slug)
-                topic = Topic().load({"slug": slug})
+                topic = Topic.init(slug)
                 if topic is None:
                     print("BAD", row['Node'])
                     continue
@@ -1185,48 +1185,60 @@ def find_ambiguous_topics():
         for i, t in enumerate(v):
             row = {
                 "Ambiguous": k,
-                "Slug": t.slug
+                "Slug": t.slug,
+                "En": t.get_primary_title('en'),
+                "He": t.get_primary_title('he'),
+                "New En": "",
+                "New He": "",
+                "Disambiguation En": "",
+                "Disambiguation He": "",
+                "Other Titles": " | ".join([tit['text'] for tit in t.titles if not tit.get('primary', False)]),
+                "Link": "topics-dev.sandbox.sefaria.org/topics/{}".format(t.slug)
             }
             if len(t.titles) > max_titles:
                 max_titles = len(t.titles)
-            for ititle, title in enumerate(t.titles):
-                row["T{}".format(ititle)] = title['text']
-                if title.get('transliteration', False):
-                    row["T{}".format(ititle)] += ' (t)'
-                if title.get('primary', False):
-                    row["T{}".format(ititle)] += ' (p)'
-                row["T{}".format(ititle)] += ' ({})'.format(title['lang'])
+            # for ititle, title in enumerate(t.titles):
+            #     row["T{}".format(ititle)] = title['text']
+            #     if title.get('transliteration', False):
+            #         row["T{}".format(ititle)] += ' (t)'
+            #     if title.get('primary', False):
+            #         row["T{}".format(ititle)] += ' (p)'
+            #     row["T{}".format(ititle)] += ' ({})'.format(title['lang'])
+            """
             isas = IntraTopicLinkSet({"fromTopic": t.slug, "linkType": 'is-a'})
             if isas.count() > max_isa:
                 max_isa = isas.count()
             for iisa, isa in enumerate(isas):
                 row["I{}".format(iisa)] = isa.toTopic
+            """
             rows += [row]
     with open('data/ambig_topics.csv', 'w') as fout:
-        c = csv.DictWriter(fout, ['Ambiguous', 'Slug'] + ['T{}'.format(i) for i in range(0, max_titles)] + ['I{}'.format(i) for i in range(0, max_isa)])
+        c = csv.DictWriter(fout, ['Ambiguous', 'Slug', 'En', 'He', 'New En', 'New He', 'Disambiguation En', 'Disambiguation He', 'Other Titles', 'Link'])  # + ['I{}'.format(i) for i in range(0, max_isa)]
         c.writeheader()
         c.writerows(rows)
 
 
 if __name__ == '__main__':
-    slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
-    do_data_source()
-    do_topic_link_types()
-    db.topic_links.drop()
-    db.topic_links.create_index('class')
-    db.topic_links.create_index('expandedRefs')
-    db.topic_links.create_index('toTopic')
-    db.topic_links.create_index('fromTopic')
-    do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
-    do_ref_topic_link(slug_to_sheet_map)
-    do_sheet_refactor(tag_to_slug_map)
-    dedup_topics()
-    generate_topic_links_from_sheets()
-    update_ref_topic_link_orders()
-    import_term_descriptions()
-    new_edge_type_research()
-    add_num_sources_to_topics()
+    # slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
+    # do_data_source()
+    # do_topic_link_types()
+    # db.topic_links.drop()
+    # db.topic_links.create_index('class')
+    # db.topic_links.create_index('expandedRefs')
+    # db.topic_links.create_index('toTopic')
+    # db.topic_links.create_index('fromTopic')
+    # do_intra_topic_link(term_to_slug_map, invalid_term_to_slug_map)
+    # do_ref_topic_link(slug_to_sheet_map)
+    # do_sheet_refactor(tag_to_slug_map)
+    # dedup_topics()
+    # generate_topic_links_from_sheets()
+    # update_ref_topic_link_orders()
+    # import_term_descriptions()
+    # new_edge_type_research()
+    # add_num_sources_to_topics()
+    # update_intra_topic_link_orders()
     # clean_up_time()
+    find_ambiguous_topics()
 
     
 def yo():
@@ -1322,3 +1334,80 @@ def sup():
         json.dump(ambig_set, fout, ensure_ascii=False, indent=2)
     with open('data/sheet_good_tags.json', 'w') as fout:
         json.dump(good_set, fout, ensure_ascii=False, indent=2)
+
+
+def supyo():
+    from tqdm import tqdm
+    from sefaria.system.database import db
+    from pymongo import DeleteOne
+
+    deletes = set()
+    sheet_links = RefTopicLinkSet({"is_sheet": True})
+    sheet_cache = {}
+    for l in tqdm(sheet_links, total=sheet_links.count()):
+        sid = int(l.ref.replace("Sheet ", ''))
+        sheet = sheet_cache.get(sid, db.sheets.find_one({"id": sid}, {"status": 1}))
+        sheet_cache[sid] = sheet
+        if sheet['status'] != 'public':
+            deletes.add(l._id)
+    db.topic_links.bulk_write([
+        DeleteOne({"_id": _id} for _id in deletes)
+    ])
+
+
+def modify_parashot():
+    pars = IntraTopicLinkSet({"toTopic": "parasha", "linkType": "displays-under"})
+    pars = [Topic().load({'slug': l.fromTopic}) for l in pars]
+    pars = list(filter(lambda x: getattr(x, 'ref', False), pars))
+    for p in pars:
+        sans_par_en = p.get_primary_title('en')
+        sans_par_en.replace('Parashat ', '')
+        sans_par_he = p.get_primary_title('he')
+        sans_par_en.replace('פרשת ', '')
+        p.add_title('Parashat {}'.format(sans_par_en), 'en', True, True)
+        p.add_title('פרשת {}'.format(sans_par_he), 'he', True, True)
+        p.save()
+
+
+def make_desc_csv():
+    ts = TopicSet({"description": {"$exists": True}})
+    rows = []
+    for t in ts:
+        rows += [{
+            "Slug": t.slug,
+            "En": t.get_primary_title('en'),
+            "He": t.get_primary_title('he'),
+            "Desc En": t.description['en'],
+            "Desc He": t.description['he'],
+            "Link": "topics-dev.sandbox.sefaria.org/topics/{}".format(t.slug)
+        }]
+    with open("data/edit_descriptions.csv", "w") as fout:
+        c = csv.DictWriter(fout, ['Slug', 'En', 'He', 'Desc En', 'Desc He', 'Link'])
+        c.writeheader()
+        c.writerows(rows)
+
+
+def add_good_to_promote():
+    from collections import defaultdict
+    from sefaria.system.database import db
+
+    terms = TermSet({"good_to_promote": True})
+    all_terms = set()
+    for t in terms:
+        all_terms |= set(t.get_titles())
+    sheets = db.sheets.find({"$or": [{"topics.asTyped": t} for t in all_terms]})
+    term_mapping = defaultdict(set)
+    for s in sheets:
+        for top in s['topics']:
+            if top['asTyped'] in all_terms:
+                term_mapping[top['asTyped']].add(top['slug'])
+    for k, v in term_mapping.items():
+        for t in v:
+            tt = Topic.init(t)
+            if not tt:
+                print("No", t)
+                continue
+            setattr(tt, 'good_to_promote', True)
+            tt.save()
+
+

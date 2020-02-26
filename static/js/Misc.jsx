@@ -337,7 +337,7 @@ class FilterableList extends Component {
                 onChange={this.onFilterChange}
               />
             </div>
-            <div>
+            <div className="filter-sort-wrapper">
               <span className="systemText">
                 <span className="int-en">Sort by</span>
                 <span className="int-he">מיון לפי</span>
@@ -387,38 +387,42 @@ FilterableList.propTypes = {
 class TabView extends Component {
   constructor(props) {
     super(props);
+    const { currTabIndex } = props;
     this.state = {
-      openTabIndex: 0,
+      currTabIndex: (typeof currTabIndex == 'undefined') ? 0 : currTabIndex,
     };
   }
   openTab(index) {
-    this.setState({openTabIndex: index});
+    this.setState({currTabIndex: index});
   }
   onClickTab(e) {
     let target = $(event.target);
     while (!target.attr("data-tab-index")) { target = target.parent(); }
     const tabIndex = parseInt(target.attr("data-tab-index"));
-    const { onClickArray } = this.props;
+    const { onClickArray, setTab, tabs } = this.props;
     if (onClickArray && onClickArray[tabIndex]) {
       onClickArray[tabIndex]();
     } else {
       this.openTab(tabIndex);
+      setTab && setTab(tabIndex, tabs);
     }
   }
   renderTab(tab, index) {
+    const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
     return (
-      <div className={classNames({active: this.state.openTabIndex === index, justifyright: tab.justifyright})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
+      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
         {this.props.renderTab(tab, index)}
       </div>
     );
   }
   render() {
+    const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
     return (
       <div className="tab-view">
         <div className="tab-list">
           {this.props.tabs.map(this.renderTab)}
         </div>
-        { React.Children.toArray(this.props.children)[this.state.openTabIndex] }
+        { React.Children.toArray(this.props.children)[currTabIndex] }
       </div>
     );
   }
@@ -426,6 +430,8 @@ class TabView extends Component {
 TabView.propTypes = {
   tabs: PropTypes.array.isRequired,
   renderTab: PropTypes.func.isRequired,
+  currTabIndex: PropTypes.number,  // not required. If passed, TabView will be controlled from outside
+  setTab: PropTypes.func,          // not required. If passed, TabView will be controlled from outside
 };
 
 class DropdownOptionList extends Component {
@@ -457,6 +463,8 @@ class DropdownOptionList extends Component {
   }
 }
 DropdownOptionList.propTypes = {
+  initialTabIndex: PropTypes.number,
+  setTab: PropTypes.func,
   isOpen: PropTypes.bool.isRequired,
   options: PropTypes.array.isRequired,
   currOptionSelected: PropTypes.string.isRequired,
@@ -1153,7 +1161,7 @@ ProfileListing.propTypes = {
 class SheetListing extends Component {
   // A source sheet listed in the Sidebar
   handleSheetClick(e) {
-      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString())
+      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString());
       //console.log("Sheet Click Handled");
     if (Sefaria._uid == this.props.sheet.owner) {
       Sefaria.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
@@ -1201,15 +1209,19 @@ class SheetListing extends Component {
 
     const topics = sheet.topics.map((topic, i) => {
       const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
-      return (<a href={`/topics/${topic.slug}`}
-                  target="_blank"
-                  className="sheetTag"
-                  key={topic.slug}
-                  onClick={this.handleTopicClick.bind(null, topic.slug)}>{topic.asTyped}{separator}</a>)
+      return (
+        <a href={`/topics/${topic.slug}`}
+          target="_blank"
+          className="sheetTag"
+          key={topic.slug}
+          onClick={this.handleTopicClick.bind(null, topic.slug)}
+        >
+          <InterfaceTextWithFallback {...topic} />
+          {separator}
+        </a>
+      );
     });
-    const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
-    const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-    const created = (new Date(sheet.created)).toLocaleDateString(locale, dateOptions).replace(',', '');  // remove comma from english date
+    const created = Sefaria.util.localeDate(sheet.created);
     const underInfo = this.props.infoUnderneath ? [
         sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
         `${sheet.views} ${Sefaria._('Views')}`,

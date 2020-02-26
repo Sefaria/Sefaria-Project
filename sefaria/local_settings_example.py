@@ -116,6 +116,7 @@ SEFARIA_DB = 'sefaria'
 # Leave user and password blank if not using Mongo Auth
 SEFARIA_DB_USER = ''
 SEFARIA_DB_PASSWORD = ''
+APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
 SEARCH_HOST = "http://localhost:9200"
@@ -314,3 +315,4 @@ LOGGING = {
         },
     }
 }
+

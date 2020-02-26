@@ -1,7 +1,6 @@
 body {
   padding: 0;
   margin: 0;
-  overflow: hidden;
   -webkit-text-size-adjust: 100%;
 }
 *::selection {
@@ -185,13 +184,11 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   width: 100%;
   height: 100%;
 }
-
 .nochrome #s2 .headerNavSection,
 .nochrome #s2 .headerLinksSection,
 .nochrome #footerContainer {
   display: none;
 }
-
 #bannerMessage {
   color: white;
   background-color: #4871bf;
@@ -275,9 +272,6 @@ body.hasBannerMessage #s2.headerOnly {
   flex: 1;
   position: relative;
 }
-.readerApp.interface-hebrew{
-  direction: rtl;
-}
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
     -webkit-user-select: none; /* Safari/Opera */
@@ -293,7 +287,6 @@ input.noselect {
   display: none;
 }
 .interface-hebrew #panelWrapBox,
-.readerApp.interface-hebrew .readerPanel
 {
   direction: rtl;
 }
@@ -865,15 +858,17 @@ input.noselect {
 .interface-hebrew .readerPanel .en{
   direction: ltr;
 }
-.interface-hebrew .readerPanel .readerNavMenu,
+.interface-hebrew .readerPanel .contentInner,
+.interface-hebrew .readerControls,
+.interface-hebrew .readerPanel .textRange,
+.interface-hebrew .readerPanel .sheetContent,
 .interface-hebrew .readerPanel .readerNavMenu .gridBox,
 .interface-hebrew .readerPanel.bilingual .readerNavMenu .gridBox,
 .readerPanel.hebrew .readerNavSection,
 .readerPanel.hebrew .readerNavMenu .gridBox {
   direction: rtl;
 }
-.readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox,
-.readerPanel.hebrew .readerNavMenu .donationLink {
+.interface-english .readerPanel.hebrew .readerNavMenu .readerTocResources .gridBox {
   direction: ltr;
 }
 .interface-english .readerPanel .readerNavMenu,
@@ -977,10 +972,6 @@ input.noselect {
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
 }
-.interface-hebrew.multiPanel .readerNavMenu .content,
-.interface-hebrew.multiPanel .homeFeedWrapper .content {
-  padding-right: 40px;
-}
 .multiPanel .readerNavMenu .content {
   padding: 30px 30px 70px 30px;
 }
@@ -994,19 +985,23 @@ input.noselect {
 .multiPanel .readerNavMenu.compare .content {
   padding-top: 30px;
 }
-.readerNavMenu .content .contentInner,
+.readerNavMenu .content .contentInner {
+  max-width: 660px;
+  margin: 0 auto;
+}
 .homeFeedWrapper .content .contentInner {
+  max-width: none;
+}
+.homeFeedWrapper.userStats .content .contentInner {
   max-width: 660px;
   margin: 0 auto;
 }
 .readerNavTop {
-  /*position: absolute;*/
   width: 100%;
   background-color: #FBFBFA;
   border-bottom: 1px solid #E2E2E1;
   box-sizing: border-box;
   height: 58px;
-  /*direction: ltr;*/
   z-index: 1;
   padding: 5px 30px 0 30px;
   vertical-align: middle;
@@ -1033,6 +1028,12 @@ input.noselect {
   font-weight: 400;
   color: black;
 }
+.readerNavTop .readerNavTopCategory .en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.readerNavTop .readerNavTopCategory .he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
 .readerNavTop.search {
 }
 .readerNavMenu .readerSearch {
@@ -1048,7 +1049,6 @@ input.noselect {
 .readerNavMenu .readerSearch:focus {
   outline: 0;
 }
-
 .readerNavTop .readerNavMenuSearchButton,
 .readerNavTop .readerNavMenuCloseButton,
 .readerNavTop .readerNavMenuMenuButton,
@@ -1084,6 +1084,7 @@ input.noselect {
   text-align: right;
   display: flex;
   align-items: center;
+  width:27px;
 }
 .sefariaLogo img {
   width: 110px;
@@ -1097,7 +1098,10 @@ input.noselect {
   justify-content: flex-start;
 }
 .readerNavTop .searchBox .readerNavMenuSearchButton {
-  margin: 0 10px;
+  margin: 0 5px 0 10px;
+}
+.interface-hebrew .readerNavTop .searchBox .readerNavMenuSearchButton {
+  margin: 0 10px 0 5px;
 }
 .readerNavTop .searchBox .readerSearch {
   flex: 1;
@@ -1112,14 +1116,41 @@ input.noselect {
   letter-spacing: 1px;
   margin: 0 0 10px 0;
 }
+.readerNavMenu.topicPanel {
+  background-color: white;
+}
+.topicPanel .readings {
+  margin-bottom: 40px;
+}
+.topicPanel .readings .parasha-date {
+}
+.topicPanel .readings .sectionTitleText {
+  margin-top: 20px;
+}
+.topicPanel .readings .haftarot {
+  display: flex;
+  flex-direction: column;
+}
+.topicPanel .readings .sectionTitleText:first-child {
+  margin-top: 20px;
+}
 .topicPanel .mainColumn {
   padding: 0 0 0 50px;
+}
+@media (max-width: 450px) {
+  .topicPanel .mainColumn {
+    padding: 0 25px;
+  }
+  .topicPanel .filterable-list .filter-sort-wrapper {
+    margin-top: 20px;
+  }
 }
 .interface-hebrew .topicPanel .mainColumn {
   padding: 0 50px 0 0;
 }
 .topicPanel .sideColumn {
   padding: 0 50px;
+  background-color: white;
 }
 .topicPanel h1 {
   text-align: unset;
@@ -1137,13 +1168,13 @@ input.noselect {
   margin-top: 30px;
   margin-bottom: 10px;
 }
-.topicPanel .sideColumn div:first-child h2 {
+.topicPanel .sideColumn .link-section:first-child h2 {
   margin-top: 0;
 }
 .topicPanel h2 span {
   font-size: 22px;
   font-weight: normal;
-  color: #888;
+  color: #666;
   text-align: unset;
   text-transform: none;
   margin-bottom: 20px;
@@ -1168,19 +1199,23 @@ input.noselect {
 }
 .topicPanel .sideColumn .sideList a {
   display: block;
-  color: #888;
+  color: #000;
 }
 .topicPanel .sideColumn .sideList a .int-en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicPanel .sideColumn .sideList a .int-he {
-  font-family: "Heebo", sans-serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 .topicPanel .sideColumn .topicCategory {
   margin-bottom: 30px;
 }
 .topicPanel .story .storySheetList .pageTitle span {
   font-size: 24px;
+}
+.topicPanel .story .storySheetList .pageTitle .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 29px;
 }
 .topicPanel .authorOrganizationsystemText {
   font-size: 16px;
@@ -1189,18 +1224,34 @@ input.noselect {
 .topicPanel .pageTitle span {
   font-size: 24px;
 }
+.story .storyTitle .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 29px;
+}
 .topicPanel .pageTitle h1 span {
   font-size: 30px;
+}
+.topicPanel .pageTitle h1 .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 36px;
 }
 .pageTitle .topicTitleInHe .but-text-is-he {
   color: #888;
   font-size: 20px;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
 }
 .topicPanel .topicCategory {
   margin: 0 0 15px 0;
 }
 .readerTocTopics .topicDescription {
   margin: 0 0 30px 0;
+}
+.readerTocTopics .topicTitle .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+.readerTocTopics .topicDescription.systemText .int-en,
+.readerTocTopics .topicDescription.systemText .int-he {
+  color: #666;
 }
 .topicPanel .topicDescription {
   margin: 0 0 15px 0;
@@ -1209,7 +1260,7 @@ input.noselect {
 }
 .topicPanel .tab-view .tab-list {
     border-bottom: 1px solid #CCC;
-    margin-bottom: 20px;
+    margin-bottom: 30px;
 }
 .topicPanel .tab-view .filter-bar {
   margin-bottom: 30px;
@@ -1228,6 +1279,7 @@ input.noselect {
   align-items: center;
   width: unset;
   margin-bottom: 40px;
+  margin-top: 5px;
 }
 .topicPanel .resourcesLink.blue img {
   opacity: 1;
@@ -1243,7 +1295,8 @@ input.noselect {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicPanel .resourcesLink.blue .int-he {
-  font-family: "Heebo", sans-serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  margin-bottom: -3px;
 }
 h1 .languageToggle {
   text-align: center;
@@ -1435,7 +1488,6 @@ a.readerNavCategory {
 }
 @media (max-width: 450px) {
   .readerNavCategory {
-    margin: 2px;
     font-size: 13px;
   }
 }
@@ -1580,6 +1632,9 @@ a.readerNavCategory {
 }
 .multiPanel .readerNavCategoryMenu .content {
   padding: 100px 10px 10px;
+}
+.singlePanel .readerNavCategoryMenu .content {
+  padding-top: 0;
 }
 .readerNavCategoryMenu .content .category,
 .readerNavCategoryMenu .content .gridBox {
@@ -1778,7 +1833,10 @@ a.readerNavCategory {
     margin-right: 10px;
     float:none;
 }
-
+.interface-hebrew .imageBox {
+  margin-right: 0;
+  margin-left: 10px;
+}
 .authorStatement span p
  {
   display: inline-block;
@@ -1944,6 +2002,7 @@ a.readerNavCategory {
 .readerTextTableOfContents .content .sheetTags {
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   padding-top: 30px;
   border-top: 1px solid #ccc;
 }
@@ -3635,7 +3694,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment .segmentNumber,
 .segment .linkCount {
   display: none;
-  line-height: 1.6;
+  line-height: 1.4;
 }
 .sheetContent .segment .linkCount {
   display: inline-block;
@@ -3937,7 +3996,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 @media (max-width: 450px) {
   .gridBox td {
-    border: 2px solid transparent;
+    border: solid transparent;
+    border-width: 2px 4px;
   }
 }
 .twoBox td {
@@ -5252,6 +5312,9 @@ h2.splitHeader .he {
 .groupsList {
   margin-top: 30px;
 }
+.singlePanel .groupsList {
+  margin-top: 0;
+}
 .groupsList .loadingMessage {
   text-align: center;
 }
@@ -5289,6 +5352,9 @@ h2.splitHeader .he {
   height: 60px;
   float: left;
   margin-right: 20px;
+}
+.interface-hebrew .groupsList .groupListingImageBox {
+  margin: 0 0 0 20px;
 }
 .sheetMetaDataBox .groupListingImageBox,
 .tocTop .groupListingImageBox {
@@ -5537,6 +5603,11 @@ h2.splitHeader .he {
 }
 .groupMemberListingActionsMenu .role.current {
   color: #666;
+}
+.topicPanel .smallText .separator {
+  color: #999;
+  font-size: 20px;
+  margin: 0 3px;
 }
 .topicsPanel .loadingMessage {
   text-align: center;
@@ -6743,6 +6814,7 @@ span.purim-emoji img{
   justify-content: space-between;
   align-items: center;
   display: flex;
+  flex-wrap: wrap;
   flex-direction: row;
 }
 .filterable-list .filter-bar-new .filter-input {
@@ -7085,7 +7157,6 @@ body .homeFeedWrapper .content {
 }
 .interface-hebrew .homeFeedWrapper #homeCover {
   left: auto;
-  right: -20px;
 }
 .homeFeedWrapper #homeVideo {
   position: absolute;
@@ -7367,6 +7438,9 @@ body .homeFeedWrapper .content {
 .mainColumn .story .storyTitle {
   padding: 5px 0 15px;
 }
+.topicPanel .mainColumn .story .storyTitle {
+  padding: 0;
+}
 .mainColumn .story .storySubTitle {
   padding-bottom: 10px;
 }
@@ -7409,6 +7483,13 @@ img.smallProfileImage {
   margin: 10px 0;
   text-align: justify;
 }
+.story .contentText .en {
+  line-height: 1.6;
+}
+.story .contentText .he {
+  font-size: 22px;
+  line-height: 1.6;
+}
 .story .storySheetList {
   clear: both;
 }
@@ -7426,6 +7507,7 @@ img.smallProfileImage {
 }
 .story .saveLine {
   display: flex;
+  align-items: center;
   clear: both;
 }
 .story .saveLine .beforeSave {

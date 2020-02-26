@@ -40,11 +40,11 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.summaries import get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, trending_topics, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_topic, user_sheets, user_tags, trending_topics, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.talmud import daf_to_section
-from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, this_weeks_parasha
+from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache
@@ -489,9 +489,9 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     else:
         sheet = panels[0].get("sheet",{})
-        title = "Sefaria Source Sheet: " + strip_tags(sheet["title"])
+        title = strip_tags(sheet["title"]) + " | " + _("Sefaria Source Sheet")
         breadcrumb = sheet_crumbs(request, sheet)
-        desc = sheet.get("summary","A source sheet created with Sefaria's Source Sheet Builder")
+        desc = sheet.get("summary", _("A source sheet created with Sefaria's Source Sheet Builder"))
         noindex = sheet["status"] != "public"
 
     propsJSON = json.dumps(props)
@@ -754,8 +754,8 @@ def sheets_list(request, type=None):
     either as a full page or as an HTML fragment
     """
     if not type:
-        # Sheet Splash page
-        return sheets(request)
+        # Topics Splash page (for now while waiting for sheets landing page)
+        return topics_page(request)
 
     response = { "status": 0 }
 
@@ -1345,7 +1345,7 @@ def old_recent_redirect(request):
 @catch_error_as_json
 def parashat_hashavua_api(request):
     callback = request.GET.get("callback", None)
-    p = this_weeks_parasha(datetime.now(), request.diaspora)
+    p = get_parasha(datetime.now(), request.diaspora)
     p["date"] = p["date"].isoformat()
     #p.update(get_text(p["ref"]))
     p.update(TextFamily(Ref(p["ref"])).contents())
@@ -2186,6 +2186,21 @@ def calendars_api(request):
 
 @catch_error_as_json
 @csrf_exempt
+def parasha_next_read_api(request, parasha):
+    """
+    Get info on when `parasha` is next read.
+    Returns JSON with Haftarahs read and date of when this parasha is next read
+    :param request:
+    :return:
+    """
+    from sefaria.utils.calendars import parashat_hashavua_and_haftara
+    if request.method == "GET":
+        datetimeobj = timezone.localtime(timezone.now())
+        return jsonResponse(parashat_hashavua_and_haftara(datetimeobj, request.diaspora, parasha=parasha, ret_type='dict'))
+
+
+@catch_error_as_json
+@csrf_exempt
 def terms_api(request, name):
     """
     API for adding a Term to the Term collection.
@@ -2897,26 +2912,33 @@ def topic_page(request, topic):
     """
     """
 
-    topic_obj = Topic().load({'slug': topic})
+    topic_obj = Topic.init(topic)
     if topic_obj is None:
         # try to normalize
         norm_topic = re.sub(r"[ /]", "-", topic.lower().strip())
         norm_topic = re.sub(r"[^a-z0-9\-]", "", norm_topic)
-        topic_obj = Topic().load({'slug': norm_topic})
+        topic_obj = Topic.init(norm_topic)
         if topic_obj is None:
             raise Http404
         topic = norm_topic
-
     props = base_props(request)
     props.update({
         "initialMenu": "topics",
         "initialTopic": topic,
+        "initialTopicsTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
+        "initialTopicTitle": {
+            "en": topic_obj.get_primary_title('en'),
+            "he": topic_obj.get_primary_title('he')
+        },
         "topicData": _topic_data(topic),
     })
 
-    title = '{} | Sefaria'.format(topic_obj.get_primary_title('en'))
-    desc = 'Explore {} on Sefaria, drawing from our library of Jewish texts. {}'.format(topic_obj.get_primary_title('en'), getattr(topic_obj, 'description', {}).get('en', ''))
-
+    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
+    title = topic_obj.get_primary_title(short_lang) + _(' | Sefaria')
+    desc = _('Explore %(topic)s on Sefaria, drawing from our library of Jewish texts. ') % {'topic': topic_obj.get_primary_title(short_lang)}
+    topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
+    if topic_desc is not None:
+        desc += topic_desc
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request,'base.html', {

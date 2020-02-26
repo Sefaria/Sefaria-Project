@@ -972,7 +972,7 @@ def sheet_list_to_story_list(request, sid_list, public=True):
 
 
 def story_form_sheets_by_tag(request, tag):
-    sheets   = get_sheets_by_tag(tag, public=True)
+    sheets   = get_sheets_by_topic(tag, public=True)
     sheets   = [sheet_to_story_dict(request, s["id"]) for s in sheets]
     response = {"tag": tag, "sheets": sheets}
     response = jsonResponse(response, callback=request.GET.get("callback", None))
@@ -984,7 +984,7 @@ def sheets_by_tag_api(request, tag):
     """
     API to get a list of sheets by `tag`.
     """
-    sheets   = get_sheets_by_tag(tag, public=True)
+    sheets   = get_sheets_by_topic(tag, public=True)
     sheets   = [sheet_to_dict(s) for s in sheets]
     response = {"tag": tag, "sheets": sheets}
     response = jsonResponse(response, callback=request.GET.get("callback", None))

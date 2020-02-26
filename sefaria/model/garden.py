@@ -214,11 +214,11 @@ class Garden(abst.AbstractMongoRecord):
             self.import_sheet(sheet["id"])
 
     def import_sheets_by_tag(self, tag):
-        from sefaria.sheets import get_sheets_by_tag
+        from sefaria.sheets import get_sheets_by_topic
 
         self.updateFilter("Sheet Author", {"en": "Sheet Author", "he": "מחבר דף"})
         self.updateSort("weight", {"type": "Int", "en": "Weight", "he": "משקל"})
-        sheet_list = get_sheets_by_tag(tag)
+        sheet_list = get_sheets_by_topic(tag)
         for sheet in sheet_list:
             self.import_sheet(sheet["id"], remove_tags=[tag])
 

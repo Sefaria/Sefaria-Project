@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_topic(topic, with_links, annotate_links, with_refs, group_related):
-    topic_obj = Topic().load({"slug": topic})
+    topic_obj = Topic.init(topic)
     response = topic_obj.contents()
     response['primaryTitle'] = {
         'en': topic_obj.get_primary_title('en'),
@@ -17,42 +17,36 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
         'en': topic_obj.title_is_transliteration(response['primaryTitle']['en'], 'en'),
         'he': topic_obj.title_is_transliteration(response['primaryTitle']['he'], 'he')
     }
-    intra_link_query = {"$or": [{"fromTopic": topic}, {"toTopic": topic}]}
     if with_links and with_refs:
         # can load faster by querying `topic_links` query just once
-        all_links = TopicLinkSetHelper.find(intra_link_query)
+        all_links = topic_obj.link_set(_class=None)
         intra_links = [l.contents() for l in all_links if isinstance(l, IntraTopicLink)]
         response['refs'] = [l.contents() for l in all_links if isinstance(l, RefTopicLink)]
     else:
         if with_links:
-            intra_links = [l.contents() for l in IntraTopicLinkSet(intra_link_query)]
+            intra_links = [l.contents() for l in topic_obj.link_set(_class='intraTopic')]
         if with_refs:
-            response['refs'] = [l.contents() for l in RefTopicLinkSet({"toTopic": topic})]
+            response['refs'] = [l.contents() for l in topic_obj.link_set(_class='refTopic')]
     if with_links:
         response['links'] = {}
         from_topic_set = set()  # duplicates can crop up for symmetric edges b/c of $or query
+        link_topic_dict = {other_topic.slug: other_topic for other_topic in TopicSet({"$or": [{"slug": link['topic']} for link in intra_links]})}
         for link in intra_links:
-            is_inverse = link['toTopic'] == topic
-            other_topic_slug = link['fromTopic'] if is_inverse else link['toTopic']
-            if other_topic_slug in from_topic_set:
+            is_inverse = link['isInverse']
+            if link['topic'] in from_topic_set:
                 continue
-            from_topic_set.add(other_topic_slug)
-            del link['toTopic']
-            del link['fromTopic']
-            del link['class']
-            link['topic'] = other_topic_slug
+            from_topic_set.add(link['topic'])
             link_type = library.get_topic_link_type(link['linkType'])
             if group_related and link_type.get('groupRelated', is_inverse, False):
                 link_type = library.get_topic_link_type(TopicLinkType.related_type)
             del link['linkType']
+            del link['class']
             link_type_slug = link_type.get('slug', is_inverse)
-            link['isInverse'] = is_inverse
             if annotate_links:
                 # add display information
-                # TODO load all-at-once with TopicSet
-                other_topic = Topic().load({"slug": other_topic_slug})
+                other_topic = link_topic_dict.get(link['topic'], None)
                 if other_topic is None:
-                    logger.warning("Topic slug {} doesn't exist. Linked to {}".format(other_topic_slug, topic))
+                    logger.warning("Topic slug {} doesn't exist. Linked to {}".format(link['topic'], topic))
                     continue
                 link["title"] = {
                     "en": other_topic.get_primary_title('en'),
@@ -62,8 +56,8 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
                     'en': other_topic.title_is_transliteration(link["title"]['en'], 'en'),
                     'he': other_topic.title_is_transliteration(link["title"]['he'], 'he')
                 }
-                if not getattr(other_topic, 'shouldDisplay', True):
-                    link['shouldDisplay'] = other_topic.shouldDisplay
+                if not other_topic.should_display():
+                    link['shouldDisplay'] = False
                 link['order'] = link.get('order', None) or {}
                 link['order']['numSources'] = getattr(other_topic, 'numSources', 0)
             if link_type_slug in response['links']:
@@ -111,6 +105,15 @@ def get_all_topics(limit=1000):
     return TopicSet({}, limit=limit, sort=[('numSources', -1)]).array()
 
 
+def get_topic_by_parasha(parasha:str) -> Topic:
+    """
+    Returns topic corresponding to `parasha`
+    :param parasha: as spelled in `parshiot` collection
+    :return Topic:
+    """
+    return Topic().load({"parasha": parasha})
+
+
 def sort_refs_by_relevance(a, b):
     aord = a.get('order', {})
     bord = b.get('order', {})
@@ -123,18 +126,22 @@ def sort_refs_by_relevance(a, b):
     return (bord.get('numDatasource', 0) * bord.get('tfidf', 0)) - (aord.get('numDatasource', 0) * aord.get('tfidf', 0))
 
 
-def generate_topic_links_from_sheets():
+def generate_topic_links_from_sheets(topic=None):
     """
     Processes all public source sheets to create topic links.
     """
     from sefaria.system.database import db
     from sefaria.recommendation_engine import RecommendationEngine
     from tqdm import tqdm
+    from statistics import mean, stdev
 
-    RefTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
-    IntraTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
+    if not topic:
+        RefTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
+        IntraTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
     all_topics = {}
     query = {"status": "public", "viaOwner": {"$exists": 0}, "assignment_id": {"$exists": 0}}
+    if topic:
+        query['topics.slug'] = topic
     projection = {"topics": 1, "includedRefs": 1, "owner": 1}
     # ignore sheets that are copies or were assignments
     sheet_list = db.sheets.find(query, projection)
@@ -162,6 +169,9 @@ def generate_topic_links_from_sheets():
     already_created_related_links = {}
     related_links = []
     for slug, blob in tqdm(all_topics.items(), desc="creating sheet topic links"):
+        if topic is not None and slug != topic:
+            continue
+
         # filter related topics with less than 2 users who voted for it
         related_topics = [related_topic for related_topic in blob['related_topics_dict'].items() if len(related_topic[1]) >= 2]
         for related_topic, user_votes in related_topics:
@@ -176,18 +186,8 @@ def generate_topic_links_from_sheets():
                 'b': slug,
                 'user_votes': len(user_votes)
             }]
-            # tl = IntraTopicLink({
-            #     "class": "intraTopic",
-            #     "fromTopic": related_topic,
-            #     "toTopic": slug,
-            #     "linkType": "sheets-related-to",
-            #     "dataSource": "sefaria-users",
-            #     "generatedBy": "sheet-topic-aggregator",
-            #     "order": {"user_votes": len(user_votes)}
-            # })
-            # tl.save()
-        # filter sources with less than 2 users who added it
-        sources = [source for source in blob['sources_dict'].items() if len(source[1]) >= 2]
+        # filter sources with less than 3 users who added it
+        sources = [source for source in blob['sources_dict'].items() if len(source[1]) >= 3]
 
         # transform data to more convenient format
         temp_sources = []
@@ -195,36 +195,50 @@ def generate_topic_links_from_sheets():
             temp_sources += [(Ref(source[0]), len(source[1]))]
         sources = temp_sources
 
-        # cluster refs that are close to each other
+        # cluster refs that are close to each other and break up clusters where counts differ by more than 2 standard deviations
+        STD_DEV_CUTOFF = 2
         temp_sources = []
         if len(sources) == 0:
             continue
         refs, counts = zip(*sources)
         clustered = RecommendationEngine.cluster_close_refs(refs, counts, 2)
         for cluster in clustered:
-            ranged_ref = cluster[0]['ref'].to(cluster[-1]['ref'])
-            counts = [x['data'] for x in cluster]
-            avg_count = sum(counts) / len(cluster)
-            max_count = max(counts)
-            if max_count >= 3:
-                temp_sources += [(ranged_ref.normal(), [r.normal() for r in ranged_ref.range_list()], avg_count)]
+            counts = [(x['ref'], x['data']) for x in cluster]
+            curr_range_start = 0
+            for icount, (_, temp_count) in enumerate(counts):
+                temp_counts = [x[1] for x in counts[curr_range_start:icount]]
+                if len(temp_counts) < 2:
+                    # variance requires two data points
+                    continue
+                count_xbar = mean(temp_counts)
+                count_std = max(1/STD_DEV_CUTOFF, stdev(temp_counts, count_xbar))
+                if temp_count > (STD_DEV_CUTOFF*count_std + count_xbar) or temp_count < (count_xbar - STD_DEV_CUTOFF*count_std):
+                    temp_range = counts[curr_range_start][0].to(counts[icount-1][0])
+                    temp_sources += [(temp_range.normal(), [r.normal() for r in temp_range.range_list()], count_xbar)]
+                    curr_range_start = icount
+            temp_counts = [x[1] for x in counts[curr_range_start:]]
+            count_xbar = mean(temp_counts)
+            temp_range = counts[curr_range_start][0].to(counts[-1][0])
+            temp_sources += [(temp_range.normal(), [r.normal() for r in temp_range.range_list()], count_xbar)]
         sources = temp_sources
 
         # create links
-        for source in sources:
-            rtl = RefTopicLink({
-                "class": "refTopic",
-                "toTopic": slug,
-                "ref": source[0],
-                "expandedRefs": source[1],
-                "linkType": "about",
-                "is_sheet": False,
-                "dataSource": "sefaria-users",
-                "generatedBy": "sheet-topic-aggregator",
-                "order": {"user_votes": source[2]}
-            })
-            rtl.save()
-    tfidf_related_sheet_topics(related_links)
+        if not topic:
+            for source in sources:
+                rtl = RefTopicLink({
+                    "class": "refTopic",
+                    "toTopic": slug,
+                    "ref": source[0],
+                    "expandedRefs": source[1],
+                    "linkType": "about",
+                    "is_sheet": False,
+                    "dataSource": "sefaria-users",
+                    "generatedBy": "sheet-topic-aggregator",
+                    "order": {"user_votes": source[2]}
+                })
+                rtl.save()
+    if not topic:
+        tfidf_related_sheet_topics(related_links)
 
 
 def tfidf_related_sheet_topics(related_links):
@@ -381,6 +395,7 @@ def calculate_pagerank_scores(ref_topic_map):
     from sefaria.pagesheetrank import pagerank_rank_ref_list
     from tqdm import tqdm
     pr_map = {}
+    pr_seg_map = {}  # keys are (topic, seg_tref). used for sheet relevance
     for topic, ref_list in tqdm(ref_topic_map.items(), desc='calculate pr'):
         oref_list = []
         for tref in ref_list:
@@ -391,7 +406,9 @@ def calculate_pagerank_scores(ref_topic_map):
         oref_pr_list = pagerank_rank_ref_list(oref_list)
         for oref, pr in oref_pr_list:
             pr_map[(topic, oref.normal())] = pr
-    return pr_map
+            for seg_oref in oref.all_segment_refs():
+                pr_seg_map[(topic, seg_oref.normal())] = pr
+    return pr_map, pr_seg_map
 
 
 def calculate_other_ref_scores(ref_topic_map):
@@ -436,7 +453,7 @@ def update_ref_topic_link_orders():
 
     topic_tref_score_map, ref_topic_map = calculate_mean_tfidf()
     num_datasource_map, langs_available, comp_date_map, order_id_map = calculate_other_ref_scores(ref_topic_map)
-    pr_map = calculate_pagerank_scores(ref_topic_map)
+    pr_map, pr_seg_map = calculate_pagerank_scores(ref_topic_map)
     ref_topic_links = RefTopicLinkSet()
     total = ref_topic_links.count()
     sheet_cache = {}
@@ -465,21 +482,23 @@ def update_ref_topic_link_orders():
         for ref_range in sheet['includedRefs']:
             if len(ref_range) == 0:
                 continue
-            total_pr += sum([pr_map.get((topic_slug, ref), 0) for ref in ref_range]) / len(ref_range)
+            total_pr += sum([pr_seg_map.get((topic_slug, ref), 0) for ref in ref_range]) / len(ref_range)
         avg_pr = 0 if len(sheet['includedRefs']) == 0 else total_pr / len(sheet['includedRefs'])
 
         # relevance based on other topics on this sheet
         other_topic_slug_set = {t['slug'] for t in sheet.get('topics', []) if t['slug'] != topic_slug}
-        total_links_in_common = 0
+        total_tfidf = 0
         for other_topic_slug in other_topic_slug_set:
             intra_topic_link = IntraTopicLink().load({'$or': [
                 {'fromTopic': topic_slug, 'toTopic': other_topic_slug},
                 {'fromTopic': other_topic_slug, 'toTopic': topic_slug}]})
             if intra_topic_link:
-                total_links_in_common += getattr(intra_topic_link, 'order', {}).get('linksInCommon', 0)
-        avg_in_common = 1 if len(other_topic_slug_set) == 0 else (total_links_in_common / len(other_topic_slug_set)) + 1
+                is_inverse = intra_topic_link.toTopic == topic_slug
+                tfidfDir = 'fromTfidf' if is_inverse else 'toTfidf'
+                total_tfidf += getattr(intra_topic_link, 'order', {}).get(tfidfDir, 0)
+        avg_tfidf = 1 if len(other_topic_slug_set) == 0 else (total_tfidf / len(other_topic_slug_set)) + 1
 
-        relevance = 0 if avg_pr == 0 else 500*avg_pr + avg_in_common  # this weighting seems to work based on spot checking
+        relevance = 0 if avg_pr == 0 else 1000*avg_pr + avg_tfidf
         sheet_title = sheet.get('title', 'a')
         if not isinstance(sheet_title, str):
             title_lang = 'english'
@@ -524,6 +543,7 @@ def update_intra_topic_link_orders():
     add relevance order to intra topic links in sidebar
     :return:
     """
+    import math
     from tqdm import tqdm
     from sefaria.system.database import db
     from pymongo import UpdateOne
@@ -538,19 +558,27 @@ def update_intra_topic_link_orders():
         topic_links_by_slug = defaultdict(list)
         for link in topic_links:
             is_inverse = link.toTopic == topic.slug
-            topic_links_by_slug[link.fromTopic if is_inverse else link.toTopic] += [link]
+            topic_links_by_slug[link.fromTopic if is_inverse else link.toTopic] += [{'link': link, 'dir': 'from' if is_inverse else 'to'}]
         topic_link_dict[topic.slug] = topic_links_by_slug
-    update_dict = {}
+
+    # idf
+    idf_dict = {}
+    N = len(topic_link_dict)  # total num documents
+    for topic_slug, topic_links in topic_link_dict.items():
+        idf_dict[topic_slug] = 0 if len(topic_links) == 0 else math.log2(N/len(topic_links))
+
+    update_dict = defaultdict(lambda: {'order': {}})
     for topic_slug, topic_links in topic_link_dict.items():
         for other_topic_slug, link_list in topic_links.items():
             other_topic_links = topic_link_dict.get(other_topic_slug, None)
             if other_topic_links is None:
                 continue
             in_common = len(topic_links.keys() & other_topic_links.keys())
-            for link in link_list:
-                new_order = getattr(link, 'order', {})
-                new_order['linksInCommon'] = in_common
-                update_dict[link._id] = {"order": new_order}
+            for link_dict in link_list:
+                new_order = getattr(link_dict['link'], 'order', {})
+                update_dict[link_dict['link']._id]['order'].update(new_order)
+                tfidf = in_common * idf_dict[other_topic_slug]
+                update_dict[link_dict['link']._id]['order'][link_dict['dir'] + 'Tfidf'] = tfidf
 
     db.topic_links.bulk_write([
         UpdateOne({"_id": l[0]}, {"$set": l[1]}) for l in update_dict.items()
@@ -562,13 +590,14 @@ def add_num_sources_to_topics():
     from sefaria.system.database import db
     from pymongo import UpdateOne
     updates = [{"numSources": RefTopicLinkSet({"toTopic": t.slug}).count(), "_id": t._id} for t in TopicSet()]
-    db.topic_links.bulk_write([
+    db.topics.bulk_write([
         UpdateOne({"_id": t['_id']}, {"$set": {"numSources": t['numSources']}}) for t in updates
     ])
 
 
 def recalculate_secondary_topic_data():
-    add_num_sources_to_topics()
     generate_topic_links_from_sheets()
     update_intra_topic_link_orders()
     update_ref_topic_link_orders()
+    add_num_sources_to_topics()
+

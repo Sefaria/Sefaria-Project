@@ -23,9 +23,20 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'displayOrder',
         'numSources',
         'shouldDisplay',
+        'parasha',  # name of parsha as it appears in `parshiot` collection
         'ref',  # for topics with refs associated with them, this stores the tref (e.g. for a parashah)
+        'good_to_promote',
     ]
     uncategorized_topic = 'uncategorized0000'
+
+    @staticmethod
+    def init(slug:str) -> 'Topic':
+        """
+        Convenience func to avoid using .load() when you're only passing a slug
+        :param slug:
+        :return:
+        """
+        return Topic().load({'slug': slug})
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
@@ -57,21 +68,21 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                 logger.warning("Circular path starting from {} and ending at {} detected".format(new_path[0], isa_slug))
                 continue
             new_path += [isa_slug]
-            new_topic = Topic().load({"slug": isa_slug})
+            new_topic = Topic.init(isa_slug)
             if new_topic is None:
                 logger.warning("{} is None. Current path is {}".format(isa_slug, ', '.join(new_path)))
                 continue
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-    def get_leaf_nodes(self, linkType):
+    def get_leaf_nodes(self, linkType='is-a'):
         leaves = []
         children = [l.fromTopic for l in IntraTopicLinkSet({"toTopic": self.slug, "linkType": linkType})]
         if len(children) == 0:
             return [self]
         else:
             for slug in children:
-                child_topic = Topic().load({"slug": slug})
+                child_topic = Topic.init(slug)
                 if child_topic is None:
                     logger.warning("{} is None")
                     continue
@@ -81,13 +92,22 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     def has_types(self, search_slug_set):
         """
         WARNING: Expensive, lots of database calls
-        Checks if `self` has `topic_slug` as an ancestor when traversing `is-a` links
+        Checks if `self` has any slug in `search_slug_set` as an ancestor when traversing `is-a` links
         :param search_slug_set: set(str), slugs to search for. returns True if any slug is found
         :return: bool
         """
         types = self.get_types(search_slug_set=search_slug_set)
         return len(search_slug_set.intersection(types)) > 0
 
+    def should_display(self):
+        return getattr(self, 'shouldDisplay', True) and getattr(self, 'numSources', 0) > 0
+
+    def set_slug(self, new_slug):
+        slug_field = self.slug_fields[0]
+        old_slug = getattr(self, slug_field)
+        setattr(self, slug_field, new_slug)
+        setattr(self, slug_field, self.normalize_slug_field(slug_field))
+        self.merge(old_slug)
 
     def merge(self, other):
         """
@@ -149,6 +169,27 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             self.save()
             other.delete()
 
+    def link_set(self, _class='intraTopic', **kwargs):
+        """
+        :param str _class: could be 'intraTopic' or 'refTopic' or `None` (see `TopicLinkHelper`)
+        :return: link set of topic links to `self`
+        """
+        intra_link_query = {"$or": [{"fromTopic": self.slug}, {"toTopic": self.slug}]}
+        if _class == 'intraTopic':
+            kwargs['record_kwargs'] = {'context_slug': self.slug}
+            return IntraTopicLinkSet(intra_link_query, **kwargs)
+        elif _class == 'refTopic':
+            return RefTopicLinkSet({'toTopic': self.slug}, **kwargs)
+        elif _class is None:
+            kwargs['record_kwargs'] = {'context_slug': self.slug}
+            return TopicLinkSetHelper.find(intra_link_query, **kwargs)
+
+    def __str__(self):
+        return self.get_primary_title("en")
+
+    def __repr__(self):
+        return "{}.init('{}')".format(self.__class__.__name__, self.slug)
+
 
 class TopicSet(abst.AbstractMongoSet):
     recordClass = Topic
@@ -174,15 +215,15 @@ class TopicLinkHelper(object):
     ]
 
     @staticmethod
-    def init_by_class(topic_link):
+    def init_by_class(topic_link, context_slug=None):
         """
         :param topic_link: dict from `topic_links` collection
         :return: either instance of IntraTopicLink or RefTopicLink based on 'class' field of `topic_link`
         """
         if topic_link['class'] == 'intraTopic':
-            return IntraTopicLink().load_from_dict(topic_link, is_init=True)
+            return IntraTopicLink(topic_link, context_slug=context_slug)
         if topic_link['class'] == 'refTopic':
-            return RefTopicLink().load_from_dict(topic_link, is_init=True)
+            return RefTopicLink(topic_link)
 
 
 class IntraTopicLink(abst.AbstractMongoRecord):
@@ -190,6 +231,15 @@ class IntraTopicLink(abst.AbstractMongoRecord):
     required_attrs = TopicLinkHelper.required_attrs + ['fromTopic']
     optional_attrs = TopicLinkHelper.optional_attrs
     valid_links = []
+
+    def __init__(self, attrs=None, context_slug=None):
+        """
+
+        :param attrs:
+        :param str context_slug: if this link is being used in a specific context, give the topic slug which represents the context. used to set if the link should be considered inverted
+        """
+        super(IntraTopicLink, self).__init__(attrs=attrs)
+        self.context_slug = context_slug
 
     def _normalize(self):
         setattr(self, "class", "intraTopic")
@@ -203,9 +253,9 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         # check everything exists
         link_type = TopicLinkType().load({"slug": self.linkType})
         assert link_type is not None, "Link type '{}' does not exist".format(self.linkType)
-        from_topic = Topic().load({"slug": self.fromTopic})
+        from_topic = Topic.init(self.fromTopic)
         assert from_topic is not None, "fromTopic '{}' does not exist".format(self.fromTopic)
-        to_topic = Topic().load({"slug": self.toTopic})
+        to_topic = Topic.init(self.toTopic)
         assert to_topic is not None, "toTopic '{}' does not exist".format(self.toTopic)
         data_source = TopicDataSource().load({"slug": self.dataSource})
         assert data_source is not None, "dataSource '{}' does not exist".format(self.dataSource)
@@ -235,10 +285,38 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         # assert this link doesn't create circular paths (in is_a link type)
         # should consider this test also for other non-symmetric link types such as child-of
         if self.linkType == TopicLinkType.isa_type:
-            to_topic = Topic().load({"slug":self.toTopic})
+            to_topic = Topic.init(self.toTopic)
             ancestors = to_topic.get_types()
             assert self.fromTopic not in ancestors, "{} is an is-a ancestor of {} creating an illogical circle in the topics graph, here are {} ancestors: {}".format(self.fromTopic, self.toTopic, self.toTopic, ancestors)
 
+    def contents(self, **kwargs):
+        d = super(IntraTopicLink, self).contents(**kwargs)
+        if self.context_slug is not None:
+            d['isInverse'] = self.is_inverse
+            d['topic'] = self.topic
+            del d['toTopic']
+            del d['fromTopic']
+            if d.get('order', None) is not None:
+                d['order']['tfidf'] = self.tfidf
+                d['order'].pop('toTfidf', None)
+                d['order'].pop('fromTfidf', None)
+        return d
+
+    # PROPERTIES
+
+    def get_is_inverse(self):
+        return self.context_slug == self.toTopic
+
+    def get_topic(self):
+        return self.fromTopic if self.is_inverse else self.toTopic
+
+    def get_tfidf(self):
+        order = getattr(self, 'order', {})
+        return order.get('fromTfidf' if self.is_inverse else 'toTfidf', 0)
+
+    topic = property(get_topic)
+    tfidf = property(get_tfidf)
+    is_inverse = property(get_is_inverse)
 
 
 class RefTopicLink(abst.AbstractMongoRecord):
@@ -275,10 +353,11 @@ class TopicLinkSetHelper(object):
         return query
 
     @staticmethod
-    def find(query=None, page=0, limit=0, sort=[("_id", 1)], proj=None):
+    def find(query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, record_kwargs=None):
         from sefaria.system.database import db
+        record_kwargs = record_kwargs or {}
         raw_records = getattr(db, TopicLinkHelper.collection).find(query, proj).sort(sort).skip(page * limit).limit(limit)
-        return [TopicLinkHelper.init_by_class(r) for r in raw_records]
+        return [TopicLinkHelper.init_by_class(r, **record_kwargs) for r in raw_records]
 
 
 class IntraTopicLinkSet(abst.AbstractMongoSet):
@@ -326,11 +405,11 @@ class TopicLinkType(abst.AbstractMongoRecord):
         super(TopicLinkType, self)._validate()
         # Check that validFrom and validTo contain valid topic slugs if exist
 
-        for validToTopic in self.validTo:
-            assert Topic().load({"slug": validToTopic}) is not None, "ValidTo topic '{}' does not exist".format(self.validToTopic)
+        for validToTopic in getattr(self, 'validTo', []):
+            assert Topic.init(validToTopic) is not None, "ValidTo topic '{}' does not exist".format(self.validToTopic)
 
-        for validFromTopic in self.validFrom:
-            assert Topic().load({"slug": validFromTopic}) is not None, "ValidTo topic '{}' does not exist".format(
+        for validFromTopic in getattr(self, 'validFrom', []):
+            assert Topic.init(validFromTopic) is not None, "ValidTo topic '{}' does not exist".format(
                 self.validFrom)
 
     def get(self, attr, is_inverse, default=None):

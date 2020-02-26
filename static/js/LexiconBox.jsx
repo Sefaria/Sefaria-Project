@@ -27,7 +27,7 @@ class LexiconBox extends Component {
     // console.log("component will receive props: ", nextProps.selectedWords);
     if (!nextProps.selectedWords) {
       this.clearLookups();
-    } else if (this.props.selectedWords != nextProps.selectedWords) {
+    } else if (this.props.selectedWords !== nextProps.selectedWords) {
       this.clearLookups();
       this.getLookups(nextProps.selectedWords, nextProps.oref);
     }

@@ -58,6 +58,9 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
   if (interfaceLang === 'hebrew' && (aTLangHe ^ bTLangHe || aLangHe ^ bLangHe)) {
     if (aTLangHe ^ bTLangHe && aLangHe ^ bLangHe) { return bTLangHe - aTLangHe; }  // title lang takes precedence over content lang
     return (bTLangHe + bLangHe) - (aTLangHe + aLangHe);
+  } else if (interfaceLang === 'english' && (aTLangHe ^ bTLangHe || aLangHe ^ bLangHe)) {
+    if (aTLangHe ^ bTLangHe && aLangHe ^ bLangHe) { return aTLangHe - bTLangHe; }  // title lang takes precedence over content lang
+    return (aTLangHe + aLangHe) - (bTLangHe + bLangHe);
   }
   if (currSortOption === 'Views') {
     return b.order.views - a.order.views;
@@ -84,17 +87,21 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
     }, [topic]);
 
 
-    let topicBlocks = subtopics.map((t,i) => {
+    let topicBlocks = subtopics
+      .filter(t => t.shouldDisplay !== false)
+      .sort((a, b) => (0+(a.slug === topic)) - (0+(b.slug === topic)))
+      .map((t,i) => {
+      const { slug, children, en, he } = t;
       const openTopic = e => {
         e.preventDefault();
-        t.children ? setNavTopic(t.slug) : setTopic(t.slug);
+        t.children ? setNavTopic(slug) : setTopic(slug, {en, he});
       };
-      return <a href={`/topics/${t.children ? 'category/' : ''}${t.slug}`}
+      return <a href={`/topics/${children ? 'category/' : ''}${slug}`}
          onClick={openTopic}
          className="blockLink"
          key={i}>
-          <span className='en'>{t.en}</span>
-          <span className='he'>{t.he}</span>
+          <span className='en'>{en || he}</span>
+          <span className='he'>{he || en}</span>
       </a>
     });
 
@@ -122,7 +129,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, interfaceLang, isCat, setNa
     <div>
         <div className="topicTitle pageTitle">
           <h1>
-            <InterfaceTextWithFallback en={en} he={he} isItalics={isTransliteration} />
+            <InterfaceTextWithFallback en={en} he={he} isItalics={false} />
             { !! he ? <span className="topicTitleInHe"><span className="int-en but-text-is-he">{` (${he})`}</span></span> : null}
 
           </h1>
@@ -152,18 +159,24 @@ const TopicHeader = ({ topic, topicData, multiPanel, interfaceLang, isCat, setNa
     </div>
 );}
 
-const TopicPage = ({topic, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel, hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings}) => {
+const TopicPage = ({
+  tab, topic, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel,
+  hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings,
+  updateTopicsTab
+}) => {
     const [topicData, setTopicData] = useState(false);
     const [topicRefs, setTopicRefs] = useState(false);
     const [topicSheets, setTopicSheets] = useState(false);
     const [sheetData, setSheetData] = useState(null);
     const [textData, setTextData] = useState(null);
+    const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
     let textCancel, sheetCancel;
-    const clearAndSetTopic = (topic) => {setTopicData(false); setTopic(topic)};
+    const clearAndSetTopic = (topic, topicTitle) => {setTopicData(false); setTopic(topic, topicTitle)};
     useEffect(() => {
       const { promise, cancel } = Sefaria.makeCancelable((async () => {
         const d = await Sefaria.getTopic(topic);
+        if (d.parasha) { Sefaria.getParashaNextRead(d.parasha).then(setParashaData); }
         setTopicData(d);
         let refMap = {};
         for (let refObj of d.refs.filter(s => !s.is_sheet)) {
@@ -235,13 +248,23 @@ const TopicPage = ({topic, setTopic, setNavTopic, openTopics, interfaceLang, mul
       }
     }, [topic]);
     const tabs = [];
-    if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources")}); }
-    if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets")}); }
+    if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources"), id: 'sources'}); }
+    if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets"), id: 'sheets'}); }
     let onClickFilterIndex = 2;
     if (!!topicRefs.length || !!topicSheets.length) {
       tabs.push({text: Sefaria._("Filter"), icon: "/static/img/controls.svg", justifyright: true });
       onClickFilterIndex = tabs.length - 1;
     }
+    let tabIndex = tabs.findIndex(t => t.id === tab);
+    if (Array.isArray(topicSheets) && Array.isArray(topicSheets) && tabIndex == -1 && tabs.length > 0) {
+      // check topicSheets isArray which means setTopicSheets() has run
+      tabIndex = 0;
+    }
+    useEffect(() => {
+      if (!!tabs[tabIndex]) {
+        updateTopicsTab(tabs[tabIndex].id);
+      }
+    }, [tabIndex]);
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
         <div className="content hasFooter noOverflowX">
@@ -250,6 +273,8 @@ const TopicPage = ({topic, setTopic, setNavTopic, openTopics, interfaceLang, mul
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic}/>
                    {!!topicData?
                        <TabView
+                          currTabIndex={tabIndex}
+                          setTab={(tabIndex, tempTabs) => { updateTopicsTab(tempTabs[tabIndex].id); }}
                           tabs={tabs}
                           renderTab={t => (
                             <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright})}>
@@ -310,7 +335,8 @@ const TopicPage = ({topic, setTopic, setNavTopic, openTopics, interfaceLang, mul
                    :""}
                 </div>
                 <div className="sideColumn">
-                    <TopicSideColumn key={topic} links={topicData.links} clearAndSetTopic={clearAndSetTopic} />
+                    <TopicSideColumn key={topic} links={topicData.links}
+                      clearAndSetTopic={clearAndSetTopic} parashaData={parashaData} tref={topicData.ref}/>
                 </div>
             </div>
           </div>
@@ -318,10 +344,12 @@ const TopicPage = ({topic, setTopic, setNavTopic, openTopics, interfaceLang, mul
 };
 
 TopicPage.propTypes = {
+  tab:                 PropTypes.string.isRequired,
   topic:               PropTypes.string.isRequired,
   setTopic:            PropTypes.func.isRequired,
   setNavTopic:         PropTypes.func.isRequired,
   openTopics:          PropTypes.func.isRequired,
+  updateTopicsTab:     PropTypes.func.isRequired,
   interfaceLang:       PropTypes.string,
   multiPanel:          PropTypes.bool,
   hideNavHeader:       PropTypes.bool,
@@ -379,27 +407,30 @@ TextPassage.propTypes = {
   toggleSignUpModal:  PropTypes.func
 };
 
-const TopicLink = ({topic, topicTitle, clearAndSetTopic, isTransliteration}) => {
-
-  return (
-    <Link className="relatedTopic" href={"/topics/" + topic} onClick={clearAndSetTopic.bind(null, topic)} key={topic} title={topicTitle.en}>
-      <InterfaceTextWithFallback
-        en={topicTitle.en}
-        he={topicTitle.he}
-        isItalics={isTransliteration}
-      />
-    </Link>
-  );
-};
+const TopicLink = ({topic, topicTitle, clearAndSetTopic, isTransliteration}) => (
+  <Link className="relatedTopic" href={`/topics/${topic}`}
+    onClick={clearAndSetTopic.bind(null, topic, topicTitle)} key={topic}
+    title={topicTitle.en}
+  >
+    <InterfaceTextWithFallback
+      en={topicTitle.en}
+      he={topicTitle.he}
+      isItalics={false}
+    />
+  </Link>
+);
 TopicLink.propTypes = {
   topic: PropTypes.string.isRequired,
   clearAndSetTopic: PropTypes.func.isRequired,
   isTransliteration: PropTypes.object,
 };
 
-const TopicSideColumn = ({ links, clearAndSetTopic }) => {
+const TopicSideColumn = ({ links, clearAndSetTopic, parashaData, tref }) => {
   const [showMoreMap, setShowMoreMap] = useState({});
-  return (
+  const readingsComponent = (parashaData && tref) ? (
+    <ReadingsComponent parashaData={parashaData} tref={tref} />
+  ) : null;
+  const linksComponent = (
     links ?
       Object.values(links)
       .filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.length > 0)
@@ -407,13 +438,13 @@ const TopicSideColumn = ({ links, clearAndSetTopic }) => {
         const aInd = a.title.en.indexOf('Related');
         const bInd = b.title.en.indexOf('Related');
         if (aInd > -1 && bInd > -1) { return 0; }
-        if (aInd > -1) { return 1; }
-        if (bInd > -1) { return -1; }
+        if (aInd > -1) { return -1; }
+        if (bInd > -1) { return 1; }
         //alphabetical by en just to keep order consistent
         return a.title.en.localeCompare(b.title.en);
       })
       .map(({ title, pluralTitle, links }) => (
-        <div key={title.en}>
+        <div key={title.en} className="link-section">
           <h2>
             <span className="int-en">{(links.length > 1 && pluralTitle) ? pluralTitle.en : title.en}</span>
             <span className="int-he">{(links.length > 1 && pluralTitle) ? pluralTitle.he :title.he}</span>
@@ -425,8 +456,7 @@ const TopicSideColumn = ({ links, clearAndSetTopic }) => {
               .sort((a, b) => {
                 if (!a.order && !b.order) { return 0; }
                 if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
-                if (a.order.linksInCommon == b.order.linksInCommon) { return b.order.numSources - a.order.numSources; }
-                return b.order.linksInCommon - a.order.linksInCommon;
+                return b.order.tfidf - a.order.tfidf;
               })
               .slice(0, showMoreMap[title.en] ? undefined : 10)
               .map(l =>
@@ -450,11 +480,43 @@ const TopicSideColumn = ({ links, clearAndSetTopic }) => {
       ))
     : ""
   );
+  return (
+    <div>
+      { readingsComponent }
+      { linksComponent }
+    </div>
+  )
 }
 TopicSideColumn.propTypes = {
   topicData: PropTypes.object,
   clearAndSetTopic: PropTypes.func.isRequired,
 };
+
+const ReadingsComponent = ({ parashaData, tref }) => (
+  <div className="readings link-section">
+    <h2>
+      <InterfaceTextWithFallback en={"Readings"} he={"Readings (HE)"} />
+    </h2>
+    <span className="smallText parasha-date">
+      <InterfaceTextWithFallback en={Sefaria.util.localeDate(parashaData.date)} he={Sefaria.util.localeDate(parashaData.date)} />
+      <span className="separator">·</span>
+      <InterfaceTextWithFallback {...parashaData.he_date} />
+    </span>
+
+    <div className="sectionTitleText"><InterfaceTextWithFallback en={"Torah"} he={"תורה"} /></div>
+    <a href={'/' + tref.url} className="contentText"><InterfaceTextWithFallback en={tref.en} he={norm_hebrew_ref(tref.he)} /></a>
+    <div className="sectionTitleText"><InterfaceTextWithFallback en={"Haftarah"} he={"הפטרה"} /></div>
+    <div className="haftarot">
+    {
+      parashaData.haftarah.map(h => (
+        <a href={'/' + h.url} className="contentText" key={h.url}>
+          <InterfaceTextWithFallback en={h.displayValue.en} he={norm_hebrew_ref(h.displayValue.he)} />
+        </a>
+      ))
+    }
+    </div>
+  </div>
+);
 
 
 module.exports.TopicPage = TopicPage;

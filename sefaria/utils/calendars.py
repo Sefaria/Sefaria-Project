@@ -6,6 +6,7 @@ Uses MongoDB collections: dafyomi, parshiot
 """
 import datetime
 import p929
+import re
 from django.utils import timezone
 
 import sefaria.model as model
@@ -238,22 +239,40 @@ def aliyah_ref(parasha_db, aliyah):
     assert 1 <= aliyah <= 7
     return model.Ref(parasha_db["aliyot"][aliyah - 1])
 
-def this_weeks_parasha(datetime_obj, diaspora=True):
+def get_parasha(datetime_obj, diaspora=True, parasha=None):
     """
     Returns the upcoming Parasha for datetime.
     """
-    p = db.parshiot.find({"date": {"$gt": datetime_obj}, "diaspora": {'$in': [diaspora, None]}}, limit=1).sort([("date", 1)])
+    query = {"date": {"$gt": datetime_obj}, "diaspora": {'$in': [diaspora, None]}}
+    if parasha is not None:
+        # regex search for potential double parasha. there can be dash before or after name
+        query["parasha"] = re.compile('(?:(?<=^)|(?<=-)){}(?=-|$)'.format(parasha))
+    p = db.parshiot.find(query, limit=1).sort([("date", 1)])
     p = next(p)
 
     return p
 
 @graceful_exception(logger=logger, return_value=[])
-def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None):
-    parasha_items = []
-    db_parasha = this_weeks_parasha(datetime_obj, diaspora=diaspora)
-
-    parasha_items += make_parashah_response_from_calendar_entry(db_parasha)
-    parasha_items += make_haftarah_response_from_calendar_entry(db_parasha, custom)
+def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None, parasha=None, ret_type='list'):
+    db_parasha = get_parasha(datetime_obj, diaspora=diaspora, parasha=parasha)
+    parasha_item = make_parashah_response_from_calendar_entry(db_parasha)
+    haftarah_item = make_haftarah_response_from_calendar_entry(db_parasha, custom)
+    if ret_type not in {'list', 'dict'}:
+        raise Exception('ret_type parameter must be either "list" or "dict')
+    if ret_type == 'list':
+        parasha_items = parasha_item + haftarah_item
+    elif ret_type == 'dict':
+        from sefaria.utils.util import get_hebrew_date
+        he_date_in_english, he_date_in_hebrew = get_hebrew_date(db_parasha.get('date', None))
+        parasha_items = {
+            'parasha': parasha_item[0],
+            'haftarah': haftarah_item,
+            'date': db_parasha.get('date', None),
+            'he_date': {
+                "en": he_date_in_english,
+                "he": he_date_in_hebrew
+            }
+        }
     return parasha_items
 
 

@@ -63,6 +63,7 @@ class ReaderApp extends Component {
           currVersions: initialPanel.currVersions || {en:null, he:null},
           searchQuery: props.initialQuery,
           searchTab: props.initialSearchTab || "text",
+          topicsTab: props.initialTopicsTab || "sources",
           textSearchState: new SearchState({
             type: 'text',
             appliedFilters: props.initialTextSearchFilters,
@@ -79,6 +80,7 @@ class ReaderApp extends Component {
           navigationCategories: props.initialNavigationCategories,
           navigationTopicCategory: props.initialNavigationTopicCategory,
           navigationTopic: props.initialTopic,
+          topicTitle: props.initialTopicTitle,
           profile: props.initialProfile,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
@@ -105,6 +107,7 @@ class ReaderApp extends Component {
           currVersions: initialPanel.currVersions || {en:null, he:null},
           searchQuery: props.initialQuery,
           searchTab: props.initialSearchTab || "text",
+          topicsTab: props.initialTopicsTab || "sources",
           textSearchState: new SearchState({
             type: 'text',
             appliedFilters: props.initialTextSearchFilters,
@@ -121,6 +124,7 @@ class ReaderApp extends Component {
           navigationCategories: props.initialNavigationCategories,
           navigationTopicCategory: props.initialNavigationTopicCategory,
           navigationTopic: props.initialTopic,
+          topicTitle: props.initialTopicTitle,
           profile: props.initialProfile,
           sheetsTag: props.initialSheetsTag,
           group: props.initialGroup,
@@ -142,6 +146,7 @@ class ReaderApp extends Component {
         menuOpen: props.initialMenu,
         searchQuery: props.initialQuery,
         searchTab: props.initialSearchTab || "text",
+        topicsTab: props.initialTopicsTab || "sources",
         textSearchState: new SearchState({
           type: 'text',
           appliedFilters: props.initialTextSearchFilters,
@@ -158,6 +163,7 @@ class ReaderApp extends Component {
         navigationCategories: props.initialNavigationCategories,
         navigationTopicCategory: props.initialNavigationTopicCategory,
         navigationTopic: props.initialTopic,
+        topicTitle: props.initialTopicTitle,
         profile: props.initialProfile,
         sheetsTag: props.initialSheetsTag,
         group: props.initialGroup,
@@ -414,6 +420,7 @@ class ReaderApp extends Component {
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
+          (prev.topicsTab != next.topicsTab) ||
           (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
@@ -550,8 +557,9 @@ class ReaderApp extends Component {
             break;
           case "topics":
             if (states[i].navigationTopic) {
-              hist.url   = "topics/" + state.navigationTopic;
-              hist.title = state.navigationTopic + " | " + Sefaria._(siteName);
+              const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
+              hist.url = `topics/${state.navigationTopic}?tab=${state.topicsTab}`;
+              hist.title = `${state.topicTitle[shortLang]} | ${Sefaria._(siteName)}`;
               hist.mode  = "topic";
             } else {
               hist.url   = "topics";
@@ -862,9 +870,11 @@ class ReaderApp extends Component {
       sheetNodes:              state.sheetNodes              || null,
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
+      topicTitle:              state.topicTitle              || null,
       sheetsGroup:             state.group                   || null,
       searchQuery:             state.searchQuery             || null,
       searchTab:               state.searchTab               || 'text',
+      topicsTab:               state.topicsTab               || 'sources',
       textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
       sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
       openSidebarAsConnect:    state.openSidebarAsConnect    || false,
@@ -908,13 +918,16 @@ class ReaderApp extends Component {
     }
   }
   setContainerMode() {
-    // Applies CSS classes to the React container so that the App can function as a header only on top of another page.
-    // todo: because headerMode CSS was messing stuff up, header links are reloads in headerMode.  So - not sure if this method is still needed.
+    // Applies CSS classes to the React container and body so that the App can function as a header only on top of a static page.
     if (this.props.headerMode) {
       if (this.state.header.menuOpen || this.state.panels.length) {
         $("#s2").removeClass("headerOnly");
         $("body").css({overflow: "hidden"})
                   .removeClass("hasBannerMessage");
+        if (!this.props.multiPanel) {
+          // Hacky, needed because rendered html of Header doesn't differentiate multiPanel 
+          $(".readerApp").removeClass("multiPanel").addClass("singlePanel");
+        }
       } else {
         $("#s2").addClass("headerOnly");
         $("body").css({overflow: "auto"});
@@ -940,11 +953,7 @@ class ReaderApp extends Component {
     if (this.state.panels.length > 1) {
       $container.css({paddingRight: "", paddingLeft: ""});
     } else {
-      if (this.props.interfaceLang == "hebrew") {
-        $container.css({paddingRight: width, paddingLeft: 0});
-      } else {
-        $container.css({paddingRight: 0, paddingLeft: width});
-      }
+      $container.css({paddingRight: 0, paddingLeft: width});
     }
   }
   toggleSignUpModal() {
@@ -1111,6 +1120,13 @@ class ReaderApp extends Component {
     tempSetState({
       [searchStateName]: searchState.update({ sortType })
     });
+  }
+  updateTopicsTabInHeader(topicsTab) {
+    this.updateTopicsTab(undefined, ...arguments);
+  }
+  updateTopicsTab(n, topicsTab) {
+    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
+    tempSetState({ topicsTab });
   }
   setPanelState(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
@@ -1489,7 +1505,6 @@ class ReaderApp extends Component {
       // If this is a Connection panel, we need to unset the filter in the base panel
       if (n > 0 && this.state.panels[n] && this.state.panels[n].mode === "Connections"){
         const parent = this.state.panels[n-1];
-        console.log("close connections panel");
         parent.filter = [];
         parent.highlightedRefs = [];
         parent.currentlyVisibleRef = !parent.currentlyVisibleRef ? parent.currentlyVisibleRef : Sefaria.ref(parent.currentlyVisibleRef).sectionRef;
@@ -1541,7 +1556,7 @@ class ReaderApp extends Component {
       if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
         this.state.panels[0].settings.language = "english";
       }
-      this.setState({panels: this.state.panels});
+      this.setState({panels: this.state.panels, header: {}, headerMode: false});
     }
   }
   showSearch(searchQuery) {
@@ -1699,6 +1714,7 @@ class ReaderApp extends Component {
                     searchInGroup={this.searchInGroup}
                     onQueryChange={this.updateQueryInHeader}
                     updateSearchTab={this.updateSearchTabInHeader}
+                    updateTopicsTab={this.updateTopicsTabInHeader}
                     updateSearchFilter={this.updateSearchFilterInHeader}
                     updateSearchOptionField={this.updateSearchOptionFieldInHeader}
                     updateSearchOptionSort={this.updateSearchOptionSortInHeader}
@@ -1733,6 +1749,7 @@ class ReaderApp extends Component {
       var updateSearchFilter             = this.updateSearchFilter.bind(null, i);
       var updateSearchOptionField        = this.updateSearchOptionField.bind(null, i);
       var updateSearchOptionSort         = this.updateSearchOptionSort.bind(null, i);
+      var updateTopicsTab                = this.updateTopicsTab.bind(null, i);
       var onOpenConnectionsClick         = this.openTextListAt.bind(null, i+1);
       var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
@@ -1766,6 +1783,7 @@ class ReaderApp extends Component {
                       onNavigationClick={this.handleNavigationClick}
                       onRecentClick={this.handleRecentClick}
                       addToSourceSheet={addToSourceSheet}
+                      updateTopicsTab={updateTopicsTab}
                       onOpenConnectionsClick={onOpenConnectionsClick}
                       openComparePanel={openComparePanel}
                       setTextListHighlight={setTextListHighlight}
@@ -1793,6 +1811,7 @@ class ReaderApp extends Component {
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       getLicenseMap={this.getLicenseMap}
+                      handleInAppLinkClick={this.handleInAppLinkClick}
                       translateISOLanguageCode={this.translateISOLanguageCode}
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}
