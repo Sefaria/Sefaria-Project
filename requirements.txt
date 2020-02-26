@@ -48,4 +48,5 @@ django-easy-timezones
 gunicorn
 httplib2
 lxml
+convertdate
 ipython

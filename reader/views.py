@@ -125,7 +125,7 @@ def render_react_component(component, props):
     if not USE_NODE:
         return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
-    from sefaria.settings import NODE_TIMEOUT, NODE_TIMEOUT_MONITOR
+    from sefaria.settings import NODE_TIMEOUT
 
     propsJSON = json.dumps(props) if isinstance(props, dict) else props
     cache_key = "todo" # zlib.compress(propsJSON)
@@ -142,16 +142,13 @@ def render_react_component(component, props):
     except Exception as e:
         # Catch timeouts, however they may come.  Write to file NODE_TIMEOUT_MONITOR, which forever monitors to restart process
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
-            logger.exception("Node timeout: Fell back to client-side rendering.")
-            with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
-                props = json.loads(props) if isinstance(props, str) else props
-                myfile.write("Timeout at {}: {} / {} / {} / {}\n".format(
-                    datetime.now().isoformat(),
+            props = json.loads(props) if isinstance(props, str) else props
+            logger.exception("Node timeout: {} / {} / {} / {}\n".format(
                     props.get("initialPath"),
                     "MultiPanel" if props.get("multiPanel", True) else "Mobile",
                     "Logged In" if props.get("loggedIn", False) else "Logged Out",
                     props.get("interfaceLang")
-                ))
+            ))
             return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
         else:
             # If anything else goes wrong with Node, just fall back to client-side rendering
@@ -494,6 +491,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         noindex = sheet["status"] != "public"
 
     propsJSON = json.dumps(props)
+    if len(panels) > 0 and panels[0].get("refs") == [] and panels[0].get("mode") == "Text":
+        logger.debug("Mangled panel state: {}".format(panels), stack_info=True)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON":      propsJSON,
