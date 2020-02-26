@@ -1387,3 +1387,27 @@ def make_desc_csv():
         c.writerows(rows)
 
 
+def add_good_to_promote():
+    from collections import defaultdict
+    from sefaria.system.database import db
+
+    terms = TermSet({"good_to_promote": True})
+    all_terms = set()
+    for t in terms:
+        all_terms |= set(t.get_titles())
+    sheets = db.sheets.find({"$or": [{"topics.asTyped": t} for t in all_terms]})
+    term_mapping = defaultdict(set)
+    for s in sheets:
+        for top in s['topics']:
+            if top['asTyped'] in all_terms:
+                term_mapping[top['asTyped']].add(top['slug'])
+    for k, v in term_mapping.items():
+        for t in v:
+            tt = Topic.init(t)
+            if not tt:
+                print("No", t)
+                continue
+            setattr(tt, 'good_to_promote', True)
+            tt.save()
+
+
