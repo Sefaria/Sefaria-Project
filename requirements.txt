@@ -48,3 +48,4 @@ django-easy-timezones
 gunicorn
 httplib2
 lxml
+ipython
