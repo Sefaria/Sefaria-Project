@@ -155,7 +155,7 @@ class ProfilePic extends Component {
     const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
     const defaultViz = showDefault ? 'flex' : 'none';
     const profileViz = showDefault ? 'none' : 'block';
-    const imageSrc = url.replace(/d=.+?(?=&|$)/, 'd=thisimagedoesntexistandshouldfail');  // replace default with non-existant image to force onLoad to fail
+    const imageSrc = url.replace("profile-default.png", 'profile-default-404.png');  // replace default with non-existant image to force onLoad to fail
     return (
       <div style={outerStyle} className="profile-pic">
         <div
