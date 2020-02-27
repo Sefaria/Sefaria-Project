@@ -155,7 +155,7 @@ class ProfilePic extends Component {
     const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
     const defaultViz = showDefault ? 'flex' : 'none';
     const profileViz = showDefault ? 'none' : 'block';
-    const imageSrc = url.replace(/d=.+?(?=&|$)/, 'd=thisimagedoesntexistandshouldfail');  // replace default with non-existant image to force onLoad to fail
+    const imageSrc = url.replace("profile-default.png", 'profile-default-404.png');  // replace default with non-existant image to force onLoad to fail
     return (
       <div style={outerStyle} className="profile-pic">
         <div
@@ -1161,7 +1161,7 @@ ProfileListing.propTypes = {
 class SheetListing extends Component {
   // A source sheet listed in the Sidebar
   handleSheetClick(e) {
-      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString())
+      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString());
       //console.log("Sheet Click Handled");
     if (Sefaria._uid == this.props.sheet.owner) {
       Sefaria.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);

@@ -134,7 +134,7 @@ SEARCH_INDEX_NAME_MERGED = 'merged'
 USE_NODE = False
 NODE_HOST = "http://localhost:4040"
 NODE_TIMEOUT = 10
-NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
+# NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
 
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
