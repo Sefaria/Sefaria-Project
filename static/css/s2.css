@@ -1178,7 +1178,7 @@ input.noselect {
   color: #000;
 }
 .topicPanel .sideColumn .sideList a .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";
 }
 .topicPanel .sideColumn .sideList a .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -1296,7 +1296,7 @@ h1 .languageToggle .he {
   font-size: 22px;
 }
 .readerNavMenu h1 .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";  /* fallback on Hebrew if Hebrew in text */
 }
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
@@ -5621,7 +5621,7 @@ h2.splitHeader .he {
   min-height: 500px;
 }
 .topicsPanel .content .topicList .navButton .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";
 }
 .topicsPanel .content .topicList .navButton .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
