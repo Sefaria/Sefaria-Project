@@ -59,7 +59,7 @@ class AutoCompleter(object):
         self.spell_checker = SpellChecker(lang)
         self.ngram_matcher = NGramMatcher(lang)
         self.other_lang_ac = None
-        self.prefer_longest = True  # True for titles, False for dictionary entries.  AC w/ combo of two may be tricky.
+        # self.prefer_longest = True  # True for titles, False for dictionary entries.  AC w/ combo of two may be tricky.
 
         # Titles in library
         if include_titles:
@@ -108,7 +108,7 @@ class AutoCompleter(object):
             self.ngram_matcher.train_phrases(gnames, normal_group_names)
         if include_lexicons:
             # languages get muddy for lexicons
-            self.prefer_longest = False
+            # self.prefer_longest = False
             wfs = WordFormSet({"generated_by": {"$ne": "replace_shorthand"}})
 
             for wf in wfs:
@@ -286,8 +286,9 @@ class Completions(object):
         """
 
         try:
-            skip = -1 if self.auto_completer.prefer_longest else 1
-            all_continuations = self.auto_completer.title_trie.items(str)[::skip]
+            # skip = -1 if self.auto_completer.prefer_longest else 1
+            all_continuations = self.auto_completer.title_trie.items(str)
+            all_continuations.sort(key=lambda i: len(i[0]))
         except KeyError:
             return []
 
@@ -318,7 +319,7 @@ class Completions(object):
 
         # Iterate through non primary ones, until we cover the whole node-space
         for k, v in non_primary_matches:
-            if (v["type"], v["key"]) not in self.keys_covered:
+            if (v["type"], v["key"]) not in self.keys_covered and len(v["title"]) > 4:   # The > 4 looks to get rid of "Gen" "Exod" and the like.
                 completions += [v["title"]]
                 completion_objects += [v]
                 self.keys_covered.add((v["type"], v["key"]))
