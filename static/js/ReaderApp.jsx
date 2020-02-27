@@ -953,7 +953,7 @@ class ReaderApp extends Component {
     if (this.state.panels.length > 1) {
       $container.css({paddingRight: "", paddingLeft: ""});
     } else {
-      $container.css({paddingRight: 0, paddingLeft: width});
+        $container.css({paddingRight: 0, paddingLeft: width});
     }
   }
   toggleSignUpModal() {
@@ -1020,6 +1020,8 @@ class ReaderApp extends Component {
       this.showMyNotes();
     } else if (path == "torahtracker") {
       this.showUserStats();
+    } else if (path.match(/sheets\/\d+/)) {
+      this.openPanel("Sheet " + path.slice(7));
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
