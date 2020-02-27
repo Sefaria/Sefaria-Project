@@ -26,6 +26,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'parasha',  # name of parsha as it appears in `parshiot` collection
         'ref',  # for topics with refs associated with them, this stores the tref (e.g. for a parashah)
         'good_to_promote',
+        'disambiguation'
     ]
     uncategorized_topic = 'uncategorized0000'
 
@@ -183,6 +184,21 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         elif _class is None:
             kwargs['record_kwargs'] = {'context_slug': self.slug}
             return TopicLinkSetHelper.find(intra_link_query, **kwargs)
+
+    def contents(self, **kwargs):
+        d = super(Topic, self).contents(**kwargs)
+        d['primaryTitle'] = {}
+        for lang in ('en', 'he'):
+            d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
+        return d
+
+    def get_primary_title(self, lang='en', with_disambiguation=True):
+        title = super(Topic, self).get_primary_title(lang=lang)
+        if with_disambiguation:
+            disambig_dict = getattr(self, 'disambiguation', {})
+            if disambig_dict.get(lang, False):
+                title += ' ({})'.format(disambig_dict[lang])
+        return title
 
     def __str__(self):
         return self.get_primary_title("en")

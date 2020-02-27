@@ -130,8 +130,6 @@ const TopicHeader = ({ topic, topicData, multiPanel, interfaceLang, isCat, setNa
         <div className="topicTitle pageTitle">
           <h1>
             <InterfaceTextWithFallback en={en} he={he} isItalics={false} />
-            { !! he ? <span className="topicTitleInHe"><span className="int-en but-text-is-he">{` (${he})`}</span></span> : null}
-
           </h1>
         </div>
        {!topicData && !isCat ?<LoadingMessage/>:""}

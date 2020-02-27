@@ -1388,6 +1388,7 @@ def make_desc_csv():
 
 
 def add_good_to_promote():
+    from tqdm import tqdm
     from collections import defaultdict
     from sefaria.system.database import db
 
@@ -1395,9 +1396,9 @@ def add_good_to_promote():
     all_terms = set()
     for t in terms:
         all_terms |= set(t.get_titles())
-    sheets = db.sheets.find({"$or": [{"topics.asTyped": t} for t in all_terms]})
+    sheets = list(db.sheets.find({"$or": [{"topics.asTyped": t} for t in all_terms]}))
     term_mapping = defaultdict(set)
-    for s in sheets:
+    for s in tqdm(sheets, desc='sheets'):
         for top in s['topics']:
             if top['asTyped'] in all_terms:
                 term_mapping[top['asTyped']].add(top['slug'])
@@ -1407,7 +1408,94 @@ def add_good_to_promote():
             if not tt:
                 print("No", t)
                 continue
-            setattr(tt, 'good_to_promote', True)
-            tt.save()
+            # setattr(tt, 'good_to_promote', True)
+            # tt.save()
+
+
+def add_gens_to_rabs():
+    from tqdm import tqdm
+
+    gens = TimePeriodSet.get_generations()
+    all_peeps = []
+    for gen in gens:
+        all_peeps += gen.get_people_in_generation()
+
+    rabbi_topics = {t.fromTopic for t in IntraTopicLinkSet(
+        {'linkType': 'is-a', '$or': [{'toTopic': 'mishnaic-people'}, {'toTopic': 'talmudic-people'}]})}
+
+    for peep in tqdm(all_peeps):
+        query = {"titles.text": peep.primary_name("en")}
+        topic_set = [t for t in TopicSet(query) if t.slug in rabbi_topics]
+        if len(topic_set) > 1 or len(topic_set) == 0:
+            print('Len', len(topic_set),peep.primary_name("en"))
+            continue
+        p_dict = {
+            'jeLink': peep.jeLink,
+            'enWikiLink': getattr(peep, 'enWikiLink', None),
+            'heWikiLink': getattr(peep, 'heWikiLink', None),
+            'generation': peep.generation
+        }
+        t = topic_set[0]
+        props = ['heWikiLink', 'enWikiLink', 'jeLink', 'generation']
+        final_props = {}
+        for prop in props:
+            if p_dict.get(prop, '') is not None and len(p_dict.get(prop, '')) > 0:
+                final_props[prop] = {
+                    "value": p_dict[prop],
+                    "dataSource": "talmudic-people"
+                }
+        if getattr(t, 'properties', False):
+            for k, v in t.properties.items():
+                if v['value'] != final_props[k]['value']:
+                    print(v['value'])
+                    print('Topic', t.properties)
+                    print('Peeps', final_props)
+        elif len(final_props) > 0:
+            t.properties = final_props
+            # t.save()
+
+
+def merge_rav_nataf():
+    with open('data/Analyze Ambiguous Topics - Resolve merges.csv', 'r') as fin:
+        c = csv.DictReader(fin)
+        for row in c:
+            if row['To merge into (Unique ID)'] == 'dont merge':
+                continue
+            t = Topic.init(row['To merge into (Unique ID)'])
+            s = Topic.init(row['Unique ID'])
+            # t.merge(s)
+
+
+def add_disambiguation():
+    import csv
+    with open('data/Analyze Ambiguous Topics - ambig_topics.csv', 'r') as fin:
+        c = csv.DictReader(fin)
+        for row in c:
+            t = Topic.init(row['Unique ID'])
+            if not t:
+                print('No', row['Unique ID'])
+                continue
+            if 'MERGE' in row['New En']:
+                continue
+            new_titles = {}
+            disambiguation = {}
+            if len(row['New En']) > 0:
+                new_titles['en'] = row['New En'].strip()
+            elif len(row['New He']) > 0:
+                new_titles['he'] = row['New He'].strip()
+            elif len(row['Disambiguation En']) > 0:
+                disambiguation['en'] = row['Disambiguation En']
+            elif len(row['Disambiguation He']) > 0:
+                disambiguation['he'] = row['Disambiguation He']
+
+            for lang, new_title in new_titles.items():
+                for title in t.titles:
+                    if title['lang'] == lang and title.get('primary', False):
+                        title['text'] = new_title
+            if len(disambiguation) > 0:
+                old_disambig = getattr(t, 'disambiguation', {})
+                old_disambig.update(disambiguation)
+                t.disambiguation = old_disambig
+            t.save()
 
 

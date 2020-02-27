@@ -44,29 +44,16 @@ class TopicPageAll extends Component {
     this.setState({filter: ''});
     $(".topicFilterInput").val("");
   }
-  getPrimaryTitle(topic, lang) {
-    for (let title of topic.titles) {
-      if (title.lang == lang && title.primary) {
-        return title.text;
-      }
-    }
-    return '';
-  }
-
   renderButton(item)  {
-    const topicTitle = {
-      en: this.getPrimaryTitle(item, 'en'),
-      he: this.getPrimaryTitle(item, 'he'),
-    };
     return (
       <Link
         className={classNames({navButton: 1, sheetButton: 1 })}
         href={"/topics/" + item.slug}
-        onClick={this.props.setTopic.bind(null, item.slug, topicTitle)}
+        onClick={this.props.setTopic.bind(null, item.slug, item.primaryTitle)}
         title={"Explore sources related to '" + item.slug + "'"}
         key={item.slug}
       >
-        <InterfaceTextWithFallback en={topicTitle.en} he={topicTitle.he} />
+        <InterfaceTextWithFallback {...item.primaryTitle} />
       </Link>
     );
   }

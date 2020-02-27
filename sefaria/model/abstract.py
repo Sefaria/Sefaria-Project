@@ -210,7 +210,7 @@ class AbstractMongoRecord(object):
     def normalize_slug(slug):
         slug = slug.lower()
         slug = re.sub(r"[ /]", "-", slug.strip())
-        slug = re.sub(r"[^a-z0-9\-א-ת]", "", slug)
+        slug = re.sub(r"[^a-z0-9()\-א-ת]", "", slug)  # parens are for disambiguation on topics
         slug = re.sub(r"-+", "-", slug)
         return slug
 
