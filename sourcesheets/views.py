@@ -5,7 +5,7 @@ from urllib3.exceptions import NewConnectionError
 from elasticsearch.exceptions import AuthorizationException
 
 from datetime import datetime, timedelta
-from io import StringIO
+from io import StringIO, BytesIO
 
 import logging
 logger = logging.getLogger(__name__)
@@ -45,7 +45,6 @@ from sefaria.sheets import clean_source, bleach_text
 import sefaria.model.dependencies
 
 from sefaria.gauth.decorators import gauth_required
-
 
 def annotate_user_links(sources):
 	"""
@@ -1054,10 +1053,10 @@ def export_to_drive(request, credential, sheet_id):
 		'mimeType': 'application/vnd.google-apps.document'
 	}
 
-	html_string = sheet_to_html_string(sheet)
+	html_string = bytes(sheet_to_html_string(sheet), "utf8")
 
 	media = MediaIoBaseUpload(
-		StringIO(html_string),
+		BytesIO(html_string),
 		mimetype='text/html',
 		resumable=True)
 
