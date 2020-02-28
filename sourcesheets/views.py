@@ -1015,7 +1015,7 @@ def sheet_to_html_string(sheet):
 		"assignments_from_sheet": assignments_from_sheet(sheet['id']),
 	}
 
-	return render_to_string('gdocs_sheet.html', context).encode('utf-8')
+	return render_to_string('gdocs_sheet.html', context)
 
 
 def resolve_options_of_sources(sheet):
