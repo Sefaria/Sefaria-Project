@@ -410,15 +410,15 @@ urlpatterns += [
     url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
 ]
 
+# add static files to urls
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+urlpatterns += staticfiles_urlpatterns()
+
 # Catch all to send to Reader
 urlpatterns += [
     url(r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', reader_views.old_versions_redirect),
     url(r'^(?P<tref>[^/]+)(/)?$', reader_views.catchall)
 ]
-
-# add static files to urls
-from django.contrib.staticfiles.urls import staticfiles_urlpatterns
-urlpatterns += staticfiles_urlpatterns()
 
 if DOWN_FOR_MAINTENANCE:
     # Keep admin accessible
