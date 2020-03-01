@@ -4,7 +4,8 @@ import httplib2
 from urllib3.exceptions import NewConnectionError
 from elasticsearch.exceptions import AuthorizationException
 
-from io import StringIO
+from datetime import datetime, timedelta
+from io import StringIO, BytesIO
 
 import logging
 logger = logging.getLogger(__name__)
@@ -39,7 +40,6 @@ from sefaria.sheets import clean_source, bleach_text
 import sefaria.model.dependencies
 
 from sefaria.gauth.decorators import gauth_required
-
 
 def annotate_user_links(sources):
     """
@@ -1025,39 +1025,39 @@ def make_sheet_from_text_api(request, ref, sources=None):
 
 
 def sheet_to_html_string(sheet):
-    """
-    Create the html string of sheet with sheet_id.
-    """
-    sheet["sources"] = annotate_user_links(sheet["sources"])
-    sheet = resolve_options_of_sources(sheet)
+	"""
+	Create the html string of sheet with sheet_id.
+	"""
+	sheet["sources"] = annotate_user_links(sheet["sources"])
+	sheet = resolve_options_of_sources(sheet)
 
-    try:
-        owner = User.objects.get(id=sheet["owner"])
-        author = owner.first_name + " " + owner.last_name
-    except User.DoesNotExist:
-        author = "Someone Mysterious"
+	try:
+		owner = User.objects.get(id=sheet["owner"])
+		author = owner.first_name + " " + owner.last_name
+	except User.DoesNotExist:
+		author = "Someone Mysterious"
 
-    sheet_group = (Group().load({"name": sheet["group"]})
-                   if "group" in sheet and sheet["group"] != "None" else None)
+	sheet_group = (Group().load({"name": sheet["group"]})
+				   if "group" in sheet and sheet["group"] != "None" else None)
 
-    context = {
-        "sheetJSON": json.dumps(sheet),
-        "sheet": sheet,
-        "sheet_class": make_sheet_class_string(sheet),
-        "can_edit": False,
-        "can_add": False,
-        "title": sheet["title"],
-        "author": author,
-        "is_owner": False,
-        "is_public": sheet["status"] == "public",
-        "owner_groups": None,
-        "sheet_group":  sheet_group,
-        "like_count": len(sheet.get("likes", [])),
-        "viewer_is_liker": False,
-        "assignments_from_sheet": assignments_from_sheet(sheet['id']),
-    }
+	context = {
+		"sheetJSON": json.dumps(sheet),
+		"sheet": sheet,
+		"sheet_class": make_sheet_class_string(sheet),
+		"can_edit": False,
+		"can_add": False,
+		"title": sheet["title"],
+		"author": author,
+		"is_owner": False,
+		"is_public": sheet["status"] == "public",
+		"owner_groups": None,
+		"sheet_group":  sheet_group,
+		"like_count": len(sheet.get("likes", [])),
+		"viewer_is_liker": False,
+		"assignments_from_sheet": assignments_from_sheet(sheet['id']),
+	}
 
-    return render_to_string('gdocs_sheet.html', context).encode('utf-8')
+	return render_to_string('gdocs_sheet.html', context)
 
 
 def resolve_options_of_sources(sheet):
@@ -1096,12 +1096,12 @@ def export_to_drive(request, credential, sheet_id):
         'mimeType': 'application/vnd.google-apps.document'
     }
 
-    html_string = sheet_to_html_string(sheet)
+	html_string = bytes(sheet_to_html_string(sheet), "utf8")
 
-    media = MediaIoBaseUpload(
-        StringIO(html_string),
-        mimetype='text/html',
-        resumable=True)
+	media = MediaIoBaseUpload(
+		BytesIO(html_string),
+		mimetype='text/html',
+		resumable=True)
 
     new_file = service.files().create(body=file_metadata,
                                       media_body=media,
