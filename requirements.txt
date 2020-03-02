@@ -25,6 +25,7 @@ unicodecsv
 pathos
 oauth2client
 google-api-python-client
+jsonpickle
 boto3
 pillow
 datrie
