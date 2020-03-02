@@ -2728,9 +2728,13 @@ function saveSheet(sheet, reload) {
 			$lastSaved.find(".lastSavedConfirmed").show().siblings().hide();
 		}
 
-		if ("error" in data) {
+		if (!!data.error) {
 			sjs.alert.flash(data.error);
 			$("#save").data("mode", "editing").find("#doSave").show().siblings().hide();
+			if (data.errorAction === 'loginRedirect') {
+				// redirect to login page
+				window.location.href = "/login?next=/sheets/" + sjs.current.id + "?editor=1";
+			}
 		}
 	})
 }

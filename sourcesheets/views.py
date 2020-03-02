@@ -4,7 +4,12 @@ import httplib2
 from urllib3.exceptions import NewConnectionError
 from elasticsearch.exceptions import AuthorizationException
 
+<<<<<<< HEAD
 from io import StringIO
+=======
+from datetime import datetime, timedelta
+from io import StringIO, BytesIO
+>>>>>>> p3
 
 import logging
 logger = logging.getLogger(__name__)
@@ -39,7 +44,6 @@ from sefaria.sheets import clean_source, bleach_text
 import sefaria.model.dependencies
 
 from sefaria.gauth.decorators import gauth_required
-
 
 def annotate_user_links(sources):
     """
@@ -583,7 +587,7 @@ def save_sheet_api(request):
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to save."})
+                return jsonResponse({"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
@@ -1025,6 +1029,7 @@ def make_sheet_from_text_api(request, ref, sources=None):
 
 
 def sheet_to_html_string(sheet):
+<<<<<<< HEAD
     """
     Create the html string of sheet with sheet_id.
     """
@@ -1058,6 +1063,41 @@ def sheet_to_html_string(sheet):
     }
 
     return render_to_string('gdocs_sheet.html', context).encode('utf-8')
+=======
+	"""
+	Create the html string of sheet with sheet_id.
+	"""
+	sheet["sources"] = annotate_user_links(sheet["sources"])
+	sheet = resolve_options_of_sources(sheet)
+
+	try:
+		owner = User.objects.get(id=sheet["owner"])
+		author = owner.first_name + " " + owner.last_name
+	except User.DoesNotExist:
+		author = "Someone Mysterious"
+
+	sheet_group = (Group().load({"name": sheet["group"]})
+				   if "group" in sheet and sheet["group"] != "None" else None)
+
+	context = {
+		"sheetJSON": json.dumps(sheet),
+		"sheet": sheet,
+		"sheet_class": make_sheet_class_string(sheet),
+		"can_edit": False,
+		"can_add": False,
+		"title": sheet["title"],
+		"author": author,
+		"is_owner": False,
+		"is_public": sheet["status"] == "public",
+		"owner_groups": None,
+		"sheet_group":  sheet_group,
+		"like_count": len(sheet.get("likes", [])),
+		"viewer_is_liker": False,
+		"assignments_from_sheet": assignments_from_sheet(sheet['id']),
+	}
+
+	return render_to_string('gdocs_sheet.html', context)
+>>>>>>> p3
 
 
 def resolve_options_of_sources(sheet):
@@ -1096,12 +1136,21 @@ def export_to_drive(request, credential, sheet_id):
         'mimeType': 'application/vnd.google-apps.document'
     }
 
+<<<<<<< HEAD
     html_string = sheet_to_html_string(sheet)
 
     media = MediaIoBaseUpload(
         StringIO(html_string),
         mimetype='text/html',
         resumable=True)
+=======
+	html_string = bytes(sheet_to_html_string(sheet), "utf8")
+
+	media = MediaIoBaseUpload(
+		BytesIO(html_string),
+		mimetype='text/html',
+		resumable=True)
+>>>>>>> p3
 
     new_file = service.files().create(body=file_metadata,
                                       media_body=media,
