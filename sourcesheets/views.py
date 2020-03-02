@@ -1096,12 +1096,12 @@ def export_to_drive(request, credential, sheet_id):
         'mimeType': 'application/vnd.google-apps.document'
     }
 
-	html_string = bytes(sheet_to_html_string(sheet), "utf8")
+    html_string = bytes(sheet_to_html_string(sheet), "utf8")
 
-	media = MediaIoBaseUpload(
-		BytesIO(html_string),
-		mimetype='text/html',
-		resumable=True)
+    media = MediaIoBaseUpload(
+        BytesIO(html_string),
+        mimetype='text/html',
+        resumable=True)
 
     new_file = service.files().create(body=file_metadata,
                                       media_body=media,
