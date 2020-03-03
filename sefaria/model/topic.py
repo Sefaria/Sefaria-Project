@@ -26,7 +26,8 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'parasha',  # name of parsha as it appears in `parshiot` collection
         'ref',  # for topics with refs associated with them, this stores the tref (e.g. for a parashah)
         'good_to_promote',
-        'disambiguation'
+        'disambiguation',
+        'description_published',  # bool to keep track of which descriptions we've vetted
     ]
     uncategorized_topic = 'uncategorized0000'
 
@@ -119,10 +120,12 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         if other is None:
             return
         other_slug = other if isinstance(other, str) else other.slug
+        if other_slug == self.slug:
+            logger.warning('Cant merge slug into itself')
 
         # links
         for link in TopicLinkSetHelper.find({"$or": [{"toTopic": other_slug}, {"fromTopic": other_slug}]}):
-            if link.linkType == TopicLinkType.isa_type and link.toTopic == Topic.uncategorized_topic :
+            if link.linkType == TopicLinkType.isa_type and link.toTopic == Topic.uncategorized_topic:
                 # no need to merge uncategorized is-a links
                 link.delete()
                 continue
@@ -199,6 +202,10 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             if disambig_dict.get(lang, False):
                 title += ' ({})'.format(disambig_dict[lang])
         return title
+
+    @staticmethod
+    def get_uncategorized_slug_set():
+        return {t.fromTopic for t in IntraTopicLinkSet({'toTopic': Topic.uncategorized_topic, 'linkType': 'is-a'})}
 
     def __str__(self):
         return self.get_primary_title("en")
