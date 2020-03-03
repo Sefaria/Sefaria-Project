@@ -1,10 +1,10 @@
 {
 	"title": "",
-	"text": ["While it might be winter, our summer internship program is on our minds -- which invests in two talented engineers to collaborate, grow and learn with the Sefaria team.",
-    "Help us raise $20,000 to bring this program to life."
+	"text": ["Sefaria's paid internship program invests in two talented engineers to grow and learn with the Sefaria team.",
+    "We're almost halfway to our $20,000 goal to cover summer 2020 intern program costs. Support the future of Torah and tech with an $18 donation today."
     ],
-	"buttonLink": "https://sefaria.nationbuilder.com/interncampaign20?utm_source=Sefaria&utm_medium=App_Modal&utm_campaign=Intern_Campaign_20",
+	"buttonLink": "https://sefaria.nationbuilder.com/interncampaign20?utm_source=Sefaria&utm_medium=Web_Modal&utm_campaign=Intern_Campaign_20",
 	"buttonText": "Donate Now",
-	"name": "interns-2020",
+	"name": "interns-2020-2",
 	"schemaVersion": 1
 }
