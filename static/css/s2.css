@@ -859,6 +859,7 @@ input.noselect {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .contentInner,
+.interface-hebrew .readerPanel .columnLayout,
 .interface-hebrew .readerControls,
 .interface-hebrew .readerPanel .textRange,
 .interface-hebrew .readerPanel .sheetContent,
@@ -1138,8 +1139,9 @@ input.noselect {
   padding: 0 0 0 50px;
 }
 @media (max-width: 450px) {
-  .topicPanel .mainColumn {
-    padding: 0 25px;
+  .topicPanel .mainColumn,
+  .interface-hebrew .topicPanel .mainColumn {
+    padding: 0 25px !important;
   }
   .topicPanel .filterable-list .filter-sort-wrapper {
     margin-top: 20px;
@@ -7208,8 +7210,11 @@ body .homeFeedWrapper .content {
   padding: 60px 50px;
 }
 @media (max-width: 540px) {
-  .sideColumn {
-    display: none;
+  .topicPanel .columnLayout {
+    flex-direction: column;
+  }
+  .topicPanel .sideColumn {
+    padding: 0 25px;
   }
 }
 .sideColumn .section {
