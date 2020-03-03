@@ -835,6 +835,7 @@ input.noselect {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .contentInner,
+.interface-hebrew .readerPanel .columnLayout,
 .interface-hebrew .readerControls,
 .interface-hebrew .readerPanel .textRange,
 .interface-hebrew .readerPanel .sheetContent,
