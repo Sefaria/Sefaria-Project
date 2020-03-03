@@ -44,7 +44,7 @@ class InterruptingMessage(object):
         return False
 
     # Filter logged out users
-    if self.condition.get("logged_in_only", True):
+    if self.condition.get("logged_in_only", False):
       if not self.request.user.is_authenticated:
         return False
 
