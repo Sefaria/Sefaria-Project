@@ -5,7 +5,7 @@ from urllib3.exceptions import NewConnectionError
 from elasticsearch.exceptions import AuthorizationException
 
 from datetime import datetime, timedelta
-from io import StringIO
+from io import StringIO, BytesIO
 
 import logging
 logger = logging.getLogger(__name__)
@@ -45,7 +45,6 @@ from sefaria.sheets import clean_source, bleach_text
 import sefaria.model.dependencies
 
 from sefaria.gauth.decorators import gauth_required
-
 
 def annotate_user_links(sources):
 	"""
@@ -620,7 +619,7 @@ def save_sheet_api(request):
 		if not request.user.is_authenticated:
 			key = request.POST.get("apikey")
 			if not key:
-				return jsonResponse({"error": "You must be logged in or use an API key to save."})
+				return jsonResponse({"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"})
 			apikey = db.apikeys.find_one({"key": key})
 			if not apikey:
 				return jsonResponse({"error": "Unrecognized API key."})
@@ -1046,7 +1045,7 @@ def sheet_to_html_string(sheet):
 		"assignments_from_sheet": assignments_from_sheet(sheet['id']),
 	}
 
-	return render_to_string('gdocs_sheet.html', context).encode('utf-8')
+	return render_to_string('gdocs_sheet.html', context)
 
 
 def resolve_options_of_sources(sheet):
@@ -1085,10 +1084,10 @@ def export_to_drive(request, credential, sheet_id):
 		'mimeType': 'application/vnd.google-apps.document'
 	}
 
-	html_string = sheet_to_html_string(sheet)
+	html_string = bytes(sheet_to_html_string(sheet), "utf8")
 
 	media = MediaIoBaseUpload(
-		StringIO(html_string),
+		BytesIO(html_string),
 		mimetype='text/html',
 		resumable=True)
 

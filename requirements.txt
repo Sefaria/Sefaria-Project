@@ -25,6 +25,7 @@ unicodecsv
 pathos
 oauth2client
 google-api-python-client
+jsonpickle
 boto3
 pillow
 datrie
@@ -48,3 +49,5 @@ django-easy-timezones
 gunicorn
 httplib2
 lxml
+convertdate
+ipython

@@ -29,6 +29,8 @@ var renderReaderApp = function(props, data, timer) {
   data._uid           = props._uid;
   data.recentlyViewed = props.recentlyViewed;
 
+  log(data.initialPath);
+
   SefariaReact.sefariaSetup(data);
   SefariaReact.unpackDataFromProps(props);
   log("Time to set data: %dms", timer.elapsed());
@@ -82,5 +84,8 @@ server.post('/Footer/:cachekey', function(req, res) {
 });
 
 server.listen(settings.NODEJS_PORT, function() {
+  console.log('Django Host: ' + settings.DJANGO_HOST);
+  console.log('Django Post: ' + settings.DJANGO_PORT);
+  console.log('Debug: ' + settings.DEBUG);
   console.log('Listening on ' + settings.NODEJS_PORT);
 });

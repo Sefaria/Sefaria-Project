@@ -52,7 +52,7 @@ class SlackLogHandler(logging.Handler):
             if record.exc_info:
                 message += '\n'.join(traceback.format_exception(*record.exc_info))
         slack_payload = {
-            "text":message.encode('utf-8'),
+            "text": message,
             "username": "errorbot",
             "icon_emoji": ":scream:",
             "channel": self.channel

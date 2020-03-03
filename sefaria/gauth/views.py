@@ -58,8 +58,9 @@ def auth_return(request):
     if 'state' not in request.GET:
         return redirect('gauth_index')
 
+    get_state = bytes(request.GET.get('state'), 'utf8')
     if not xsrfutil.validate_token(settings.SECRET_KEY,
-                                   str(request.GET['state']),
+                                   get_state,
                                    request.user):
         return HttpResponseBadRequest()
 
