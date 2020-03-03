@@ -508,6 +508,8 @@ def update_ref_topic_link_orders():
             'views': sheet.get('views', 0),
             'dateCreated': sheet['dateCreated'],
             'relevance': relevance,
+            'avg_ref_pr': avg_pr,
+            'avg_topic_tfidf': avg_tfidf,
             'language': sheet.get('options', {}).get('language', 'bilingual'),
             'titleLanguage': title_lang
         }
