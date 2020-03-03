@@ -38,9 +38,11 @@ const refSort = (currSortOption, a, b, { interfaceLang }) => {
     return a.order.comp_date - b.order.comp_date;
   }
   else {
-    if (interfaceLang === 'english' && a.order.availableLangs.length !== b.order.availableLangs.length) {
-      if (a.order.availableLangs.indexOf('en') > -1) { return -1; }
-      if (b.order.availableLangs.indexOf('en') > -1) { return 1; }
+    const aAvailLangs = a.order.availableLangs || [];
+    const bAvailLangs = b.order.availableLangs || [];
+    if (interfaceLang === 'english' && aAvailLangs.length !== bAvailLangs.length) {
+      if (aAvailLangs.indexOf('en') > -1) { return -1; }
+      if (bAvailLangs.indexOf('en') > -1) { return 1; }
       return 0;
     }
     else if (a.order.pr !== b.order.pr) { return b.order.pr - a.order.pr; }
@@ -337,6 +339,7 @@ const TopicPage = ({
                       clearAndSetTopic={clearAndSetTopic} parashaData={parashaData} tref={topicData.ref}/>
                 </div>
             </div>
+            <Footer />
           </div>
       </div>;
 };
