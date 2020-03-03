@@ -4,6 +4,7 @@ import httplib2
 from urllib3.exceptions import NewConnectionError
 from elasticsearch.exceptions import AuthorizationException
 
+from datetime import datetime, timedelta
 from io import StringIO, BytesIO
 
 import logging

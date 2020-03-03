@@ -431,7 +431,7 @@ const TopicSideColumn = ({ links, clearAndSetTopic, parashaData, tref }) => {
   const linksComponent = (
     links ?
       Object.values(links)
-      .filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.length > 0)
+      .filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0)
       .sort((a, b) => {
         const aInd = a.title.en.indexOf('Related');
         const bInd = b.title.en.indexOf('Related');
