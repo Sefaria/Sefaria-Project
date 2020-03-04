@@ -14,7 +14,7 @@ substitutions:
   _TARGET_CLUSTER: preproduction-cluster
   _TARGET_NAMESPACE: default
   _TARGET_REGION: us-central1-a
-  _WEB_REPLICAS: 3
+  _WEB_REPLICAS: "3"
 
 options:
   machineType: N1_HIGHCPU_8
