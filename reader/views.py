@@ -949,12 +949,14 @@ def _crumb(pos, id, name):
 
 
 def sheet_crumbs(request, sheet=None):
+    from sefaria.helper.topic import get_top_topic
     if sheet is None:
         return ""
-
-    # todo: write up topic breadcrumbs
-    breadcrumbJsonList = [_crumb(1, "/sheets", _("Sheets"))]
-
+    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
+    main_topic = get_top_topic(sheet)
+    breadcrumbJsonList = [_crumb(1, "/topics", _("Sheets"))]
+    if main_topic:
+        breadcrumbJsonList.append(_crumb(2, "/topics/{}", main_topic.get_primary_title(short_lang)))
     return json.dumps({
         "@context": "http://schema.org",
         "@type": "BreadcrumbList",
