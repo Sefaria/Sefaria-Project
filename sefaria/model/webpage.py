@@ -451,6 +451,11 @@ sites_data = [
     {
         "name": "The Lehrhaus",
         "domains": ["thelehrhaus.com"]
+    },
+    {
+        "name": "סִינַי",
+        "domains": ["sinai.org.il"],
+        "title_branding": ["הדף היומי ב15 דקות - שיעורי דף יומי קצרים בגמרא"]
     }
 
 ]
