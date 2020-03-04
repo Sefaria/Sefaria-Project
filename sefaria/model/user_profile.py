@@ -459,7 +459,7 @@ class UserProfile(object):
         Sets the partner group if email pattern matches known school
         """
         email_pattern = self.email.split("@")[1]
-        tsv_file = csv.reader(open(PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, "rb"), delimiter="\t")
+        tsv_file = csv.reader(open(PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, "rt"), delimiter="\t")
         for row in tsv_file:
             # if current rows 2nd value is equal to input, print that row
             if email_pattern == row[1]:
