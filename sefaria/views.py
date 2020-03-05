@@ -66,24 +66,19 @@ def process_register_form(request, auth_method='session'):
     form = SefariaNewUserForm(request.POST) if auth_method == 'session' else SefariaNewUserFormAPI(request.POST)
     token_dict = None
     if form.is_valid():
-        try:
-            with transaction.atomic():
-                new_user = form.save()
-                user = authenticate(email=form.cleaned_data['email'],
-                                    password=form.cleaned_data['password1'])
-                p = UserProfile(id=user.id)
-                p.assign_slug()
-                p.join_invited_groups()
-                if PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE:
-                    p.add_partner_group_by_email()
-                if hasattr(request, "interfaceLang"):
-                    p.settings["interface_language"] = request.interfaceLang
+        with transaction.atomic():
+            new_user = form.save()
+            user = authenticate(email=form.cleaned_data['email'],
+                                password=form.cleaned_data['password1'])
+            p = UserProfile(id=user.id)
+            p.assign_slug()
+            p.join_invited_groups()
+            if PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE:
+                p.add_partner_group_by_email()
+            if hasattr(request, "interfaceLang"):
+                p.settings["interface_language"] = request.interfaceLang
 
-                p.save()
-        except Exception:
-            return {
-                "error": "something went wrong"
-            }
+            p.save()
         if auth_method == 'session':
             auth_login(request, user)
         elif auth_method == 'jwt':
