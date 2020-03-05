@@ -679,11 +679,11 @@ const getNextSheetItemPath = (SheetItemPath) => {
 
 async function getRefInText(editor) {
   const closestSheetItem = getClosestSheetItem(editor, editor.selection.focus.path)
-  if (!closestSheetItem) {return null}
+  if (!closestSheetItem) {return {}}
   const query = Node.string(closestSheetItem[0]).trim();
 
   //return null if query length is too long to be a ref or if query is empty
-  if (query.length > 50 || query == "") {return null}
+  if (query.length > 50 || query == "") {return {}}
 
   const ref = await Sefaria.getName(query)
       .then(d => {
@@ -693,32 +693,17 @@ async function getRefInText(editor) {
       return;
     }
 
-    if (d["is_ref"] && (d["is_segment"] || d["is_section"]) ) {
-      return(d["ref"]);  //todo: pass an onError function through here to the panel onError function
-    }
-    else {
-      return null;
-    }
+    return d
+
+    // if (d["is_ref"] && (d["is_segment"] || d["is_section"]) ) {
+    //   return(d["ref"]);  //todo: pass an onError function through here to the panel onError function
+    // }
+    // else {
+    //   return null;
+    // }
   });
   return ref
 }
-
-
-const getFirstSefRefInSheetItem = (editor) => {
-  const closestSheetItem = getClosestSheetItem(editor, editor.selection.focus.path)
-  if (!closestSheetItem) {return null}
-  const textContent = Node.string(closestSheetItem[0]);
-  const titles = Sefaria.titlesInText(textContent);
-  if (titles.length == 0) {return null}
-  const refRe = Sefaria.makeRefRe(titles)
-
-  const match = refRe.exec(textContent);
-
-  if (match && match[0] == match.input) {
-      return match[0]
-  }
-  return null
-};
 
 
 const withSefariaSheet = editor => {
@@ -736,11 +721,12 @@ const withSefariaSheet = editor => {
             return
         }
 
-        getRefInText(editor).then(refInNode =>{
-          if (refInNode) {
-              insertSource(editor, refInNode)
-              return
-          }
+        getRefInText(editor).then(query =>{
+          if (query["is_ref"] && (query["is_segment"] || query["is_section"]) ) {
+          insertSource(editor, query["ref"])
+          return
+        }
+
 
           const selectionAtEdge = isSelectionFocusAtEdgeOfSheetItem(editor);
           if (selectionAtEdge) {
@@ -937,8 +923,6 @@ const insertMedia = (editor, mediaUrl) => {
 }
 
 const insertSource = (editor, ref) => {
-    console.log(ref)
-
     Sefaria.getText(ref).then(text => {
         const enText = Array.isArray(text.text) ? text.text.flat(Infinity).join(" ") : text.text;
         const heText = Array.isArray(text.text) ? text.he.flat(Infinity).join(" ") : text.he;
@@ -1075,6 +1059,9 @@ const Leaf = ({attributes, children, leaf}) => {
     }
     if (leaf.small) {
         children = <small>{children}</small>
+    }
+    if (leaf.isRef) {
+        children = <span className="inlineTextRef">{children}</span>
     }
 
     return <span {...attributes}>{children}</span>
@@ -1310,11 +1297,21 @@ const SefariaEditor = (props) => {
     const onKeyDown = event => {
         // add ref on space if end of line
         if (event.key == " ") {
+            getRefInText(editor).then(query =>{
+              if (query["is_ref"]){
+                console.log(Node.get(editor, editor.selection.focus.path))
 
-            getRefInText(editor).then(refInNode =>{
-              if (refInNode) {
-                  insertSource(editor, refInNode)
+                Transforms.setNodes(editor, { isRef: true }, {at: editor.selection.focus.path});
+
+
+                if ((query["is_segment"] || query["is_section"]) ) {
+                  insertSource(editor, query["ref"])
                   return
+                }
+              }
+              else {
+                Transforms.setNodes(editor, { isRef: false }, {at: editor.selection.focus.path});
+
               }
             })
         }
