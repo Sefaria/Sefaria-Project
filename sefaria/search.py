@@ -125,6 +125,7 @@ def index_sheet(index_name, id):
     pud = public_user_data(sheet["owner"])
     tag_terms_simple = make_sheet_tags(sheet)
     tags = [t["en"] for t in tag_terms_simple]
+    topics = [t['slug'] for t in sheet.get('topics', [])]
     try:
         doc = {
             "title": strip_tags(sheet["title"]),
@@ -135,6 +136,7 @@ def index_sheet(index_name, id):
             "profile_url": pud["profileUrl"],
             "version": "Source Sheet by " + user_link(sheet["owner"]),
             "tags": tags,
+            "topics": topics,
             "sheetId": id,
             "summary": sheet.get("summary", None),
             "group": sheet.get("group", ''),
@@ -337,6 +339,9 @@ def put_sheet_mapping(index_name):
                 'type': 'keyword'
             },
             'tags': {
+                'type': 'keyword'
+            },
+            'topics': {
                 'type': 'keyword'
             },
             'owner_image': {
