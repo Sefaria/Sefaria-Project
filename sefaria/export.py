@@ -74,7 +74,7 @@ def make_json(doc):
     """
     if "original_text" in doc:
         doc = {k: v for k, v in doc.items() if k is not "original_text"}
-    return json.dumps(doc, indent=4, encoding='utf-8', ensure_ascii=False)
+    return json.dumps(doc, indent=4, ensure_ascii=False)
 
 
 def make_text(doc, strip_html=False):
