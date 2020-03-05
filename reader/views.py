@@ -954,7 +954,7 @@ def sheet_crumbs(request, sheet=None):
         return ""
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     main_topic = get_top_topic(sheet)
-    breadcrumbJsonList = [_crumb(1, "/topics", _("Sheets"))]
+    breadcrumbJsonList = [_crumb(1, "/topics", _("Topics"))]
     if main_topic:
         breadcrumbJsonList.append(_crumb(2, "/topics/{}", main_topic.get_primary_title(short_lang)))
     return json.dumps({
