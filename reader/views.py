@@ -2971,6 +2971,22 @@ def _topic_data(topic):
 
 
 @catch_error_as_json
+def bulk_topic_api(request):
+    """
+    Use POST because topic_slug_list can be very large when used for search topic filters
+    :param request:
+    :return:
+    """
+    from sefaria.helper.topic import get_bulk_topics
+    if request.method == "POST":
+        minify = request.GET.get("minify", False)
+        postJSON = request.POST.get("json")
+        topic_slug_list = json.loads(postJSON)
+        response = [t.contents(minify=minify) for t in get_bulk_topics(topic_slug_list)]
+        return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
 def recommend_topics_api(request, ref_list=None):
     """
     API to receive recommended topics for list of strings `refs`.
@@ -3938,22 +3954,18 @@ def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
     """
+    from sefaria.helper.topic import get_random_topic, get_random_topic_source
+
     cb = request.GET.get("callback", None)
-    topics_filtered = [x for x in get_topics().list() if x['good_to_promote']]
-    if len(topics_filtered) == 0:
-        resp = jsonResponse({"ref": None, "topic": None, "url": None}, callback=cb)
-        resp['Content-Type'] = "application/json; charset=utf-8"
-        return resp
-    random_topic = choice(topics_filtered)['tag']
-    term = Term().load_by_title(random_topic)
-    random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
-    try:
-        oref = Ref(random_source)
-        tref = oref.normal()
-        url = oref.url()
-    except Exception:
+    random_topic = get_random_topic(good_to_promote=True)
+    if random_topic is None:
         return random_by_topic_api(request)
-    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=cb)
+    random_source = get_random_topic_source(random_topic)
+    if random_source is None:
+        return random_by_topic_api(request)
+    tref = random_source.normal()
+    url = random_source.url()
+    resp = jsonResponse({"ref": tref, "topic": random_topic.contents(), "url": url}, callback=cb)
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 

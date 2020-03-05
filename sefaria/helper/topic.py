@@ -1,8 +1,10 @@
 import re
+from typing import Optional
 from collections import defaultdict
 from functools import cmp_to_key
 from sefaria.model import *
 import logging
+
 logger = logging.getLogger(__name__)
 
 
@@ -124,6 +126,47 @@ def sort_refs_by_relevance(a, b):
     if aord.get('pr', 0) != bord.get('pr', 0):
         return bord.get('pr', 0) - aord.get('pr', 0)
     return (bord.get('numDatasource', 0) * bord.get('tfidf', 0)) - (aord.get('numDatasource', 0) * aord.get('tfidf', 0))
+
+
+def get_random_topic(good_to_promote=True) -> Optional[Topic]:
+    from sefaria.system.database import db
+
+    query = {"good_to_promote": True} if good_to_promote else {}
+    random_topic_dict = list(db.topics.aggregate([
+        {"$match": query},
+        {"$sample": {"size": 1}}
+    ]))
+    if len(random_topic_dict) == 0:
+        return None
+
+    return Topic(random_topic_dict[0])
+
+
+def get_random_topic_source(topic:Topic) -> Optional[Ref]:
+    from sefaria.system.database import db
+    from sefaria.system.exceptions import InputError
+
+    random_source_dict = list(db.topic_links.aggregate([
+        {"$match": {"toTopic": topic.slug, 'linkType': 'about', 'class': 'refTopic', 'is_sheet': False, 'order.pr': {'$gt': 0}}},
+        {"$sample": {"size": 1}}
+    ]))
+    if len(random_source_dict) == 0:
+        return None
+    try:
+        oref = Ref(random_source_dict[0]['ref'])
+    except InputError:
+        return None
+
+    return oref
+
+
+def get_bulk_topics(topic_list: list) -> TopicSet:
+    return TopicSet({'$or': [{'slug': slug} for slug in topic_list]})
+
+
+"""
+    SECONDARY TOPIC DATA GENERATION
+"""
 
 
 def generate_topic_links_from_sheets(topic=None):
@@ -482,7 +525,7 @@ def update_ref_topic_link_orders():
         for ref_range in sheet['includedRefs']:
             if len(ref_range) == 0:
                 continue
-            total_pr += sum([pr_seg_map.get((topic_slug, ref), 0) for ref in ref_range]) / len(ref_range)
+            total_pr += sum([pr_seg_map.get((topic_slug, ref), 1e-5) for ref in ref_range]) / len(ref_range)  # make default pr epsilon so that relevance can tell difference between sheets that have sources on topic and those that dont
         avg_pr = 0 if len(sheet['includedRefs']) == 0 else total_pr / len(sheet['includedRefs'])
 
         # relevance based on other topics on this sheet
