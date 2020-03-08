@@ -954,9 +954,13 @@ def sheet_crumbs(request, sheet=None):
         return ""
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     main_topic = get_top_topic(sheet)
-    breadcrumbJsonList = [_crumb(1, "/topics", _("Topics"))]
-    if main_topic:
-        breadcrumbJsonList.append(_crumb(2, "/topics/{}", main_topic.get_primary_title(short_lang)))
+    if main_topic is None:  # crumbs make no sense if there are no topics on sheet
+        return ""
+    breadcrumbJsonList = [
+        _crumb(1, "/topics", _("Topics")),
+        _crumb(2, f"/topics/{main_topic.slug}", main_topic.get_primary_title(short_lang)),
+        _crumb(3, f"/sheets/{sheet['id']}", _("Source Sheet"))
+    ]
     return json.dumps({
         "@context": "http://schema.org",
         "@type": "BreadcrumbList",
