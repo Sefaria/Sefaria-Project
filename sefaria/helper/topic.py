@@ -652,6 +652,41 @@ def update_intra_topic_link_orders():
     ])
 
 
+def get_top_topic(sheet):
+    """
+    Chooses the "top" topic of a sheet out of all the topics the sheet was tagged with
+    based on the relevance parameter of the topics in regard to the sheet
+    :param sheet: Sheet() obj
+    :return: Topic() obj
+    """
+    # get all topics on the sheet (learn the candidates)
+    topics = sheet.get("topics", [])  # mongo query on sheet
+
+    def topic_score(t):
+        topic = t["slug"]
+        rtl = RefTopicLink().load({"toTopic": topic, "ref": "Sheet {}".format(sheet.get("id"))})
+        if rtl is None:
+            return topic, 0
+        avg_pr = rtl.contents().get("order", {}).get("avg_ref_pr", 0)
+        norm_abg_pr = 0.5 if avg_pr == 0 else 1000*avg_pr
+        avg_tfidf = rtl.contents().get("order", {}).get("avg_topic_tfidf", 0)
+        score = norm_abg_pr + avg_tfidf
+        return topic, score
+
+
+    max_topic = "" # if len(topics) < 1
+    if len(topics) == 1:
+        max_topic = Topic().load({"slug": topics[0]})
+    elif len(topics) > 1:
+        topic_dict = defaultdict(lambda: [(0, 0), 0])
+        for t in topics:
+            topic_dict[t.get("slug")][1] += 1
+            topic_dict[t.get("slug")][0] = topic_score(t)
+        scores = dict([(k, v[0][1] * v[1]) for k, v in topic_dict.items()])
+        max_topic = max(scores, key=scores.get)
+    top_topic = Topic().load({"slug": max_topic})  # Topic(db.topics.find_one({"slug": max_topic}))  #
+    return top_topic
+
 
 def add_num_sources_to_topics():
     from sefaria.system.database import db
