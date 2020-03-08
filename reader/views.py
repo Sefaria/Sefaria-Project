@@ -2991,18 +2991,18 @@ def recommend_topics_api(request, ref_list=None):
     """
     API to receive recommended topics for list of strings `refs`.
     """
+    from sefaria.helper.topic import recommend_topics
+
     if request.method == "GET":
         refs = [Ref(ref).normal() for ref in ref_list.split("+")] if ref_list else []
 
     elif request.method == "POST":
-        topics = get_topics()
         postJSON = request.POST.get("json")
         if not postJSON:
             return jsonResponse({"error": "No post JSON."})
         refs = json.loads(postJSON)
 
-    topics = get_topics()
-    response = {"topics": topics.recommend_topics(refs)}
+    response = {"topics": recommend_topics(refs)}
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     return response
 
