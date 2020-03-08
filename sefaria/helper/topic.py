@@ -599,14 +599,16 @@ def get_top_topic(sheet):
 
     def topic_score(t):
         topic = t["slug"]
-        try:
-            rtl = RefTopicLink().load({"toTopic": topic, "ref": "Sheet {}".format(sheet.get("id"))})
-            avg_pr = rtl.contents().get("order", {}).get("avg_ref_pr", 0)
-            norm_abg_pr = 0.5 if avg_pr == 0 else 1000*avg_pr
-            avg_tfidf = rtl.contents().get("order", {}).get("avg_topic_tfidf", 0)
-            score = norm_abg_pr + avg_tfidf
-        except AttributeError:
-            score = 0
+        # try:
+        rtl = RefTopicLink().load({"toTopic": topic, "ref": "Sheet {}".format(sheet.get("id"))})
+        if rtl is None:
+            return topic, 0
+        avg_pr = rtl.contents().get("order", {}).get("avg_ref_pr", 0)
+        norm_abg_pr = 0.5 if avg_pr == 0 else 1000*avg_pr
+        avg_tfidf = rtl.contents().get("order", {}).get("avg_topic_tfidf", 0)
+        score = norm_abg_pr + avg_tfidf
+        # except AttributeError:
+        #     score = 0
         return topic, score
 
 
