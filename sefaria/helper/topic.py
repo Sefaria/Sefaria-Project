@@ -599,7 +599,6 @@ def get_top_topic(sheet):
 
     def topic_score(t):
         topic = t["slug"]
-        # try:
         rtl = RefTopicLink().load({"toTopic": topic, "ref": "Sheet {}".format(sheet.get("id"))})
         if rtl is None:
             return topic, 0
@@ -607,8 +606,6 @@ def get_top_topic(sheet):
         norm_abg_pr = 0.5 if avg_pr == 0 else 1000*avg_pr
         avg_tfidf = rtl.contents().get("order", {}).get("avg_topic_tfidf", 0)
         score = norm_abg_pr + avg_tfidf
-        # except AttributeError:
-        #     score = 0
         return topic, score
 
 
