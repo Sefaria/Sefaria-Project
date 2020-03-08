@@ -32,7 +32,10 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
     if with_links:
         response['links'] = {}
         from_topic_set = set()  # duplicates can crop up for symmetric edges b/c of $or query
-        link_topic_dict = {other_topic.slug: other_topic for other_topic in TopicSet({"$or": [{"slug": link['topic']} for link in intra_links]})}
+        if len(intra_links) > 0:
+            link_topic_dict = {other_topic.slug: other_topic for other_topic in TopicSet({"$or": [{"slug": link['topic']} for link in intra_links]})}
+        else:
+            link_topic_dict = {}
         for link in intra_links:
             is_inverse = link['isInverse']
             if link['topic'] in from_topic_set:
@@ -162,6 +165,25 @@ def get_random_topic_source(topic:Topic) -> Optional[Ref]:
 
 def get_bulk_topics(topic_list: list) -> TopicSet:
     return TopicSet({'$or': [{'slug': slug} for slug in topic_list]})
+
+
+def recommend_topics(refs: list) -> list:
+    """Returns a list of topics recommended for the list of string refs"""
+    from sefaria.system.exceptions import InputError
+
+    seg_refs = []
+    for tref in refs:
+        try:
+           oref = Ref(tref)
+        except InputError:
+            continue
+        seg_refs += [r.normal() for r in oref.all_segment_refs()]
+    topic_count = defaultdict(int)
+    ref_links = RefTopicLinkSet({"expandedRefs": {"$in": seg_refs}})
+    for link in ref_links:
+        topic_count[link.toTopic] += 1
+
+    return sorted(iter(topic_count.items()), key=lambda x: x[1], reverse=True)
 
 
 """
@@ -645,4 +667,3 @@ def recalculate_secondary_topic_data():
     update_intra_topic_link_orders()
     update_ref_topic_link_orders()
     add_num_sources_to_topics()
-
