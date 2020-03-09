@@ -14,6 +14,7 @@ substitutions:
   _TARGET_CLUSTER: preproduction-cluster
   _TARGET_NAMESPACE: default
   _TARGET_REGION: us-central1-a
+  _WEB_REPLICAS: "3"
 
 options:
   machineType: N1_HIGHCPU_8
@@ -64,7 +65,7 @@ steps:
   - name: "gcr.io/production-deployment/cloudbuild-helm:v3.0.2"
     id: install_chart
     dir: k8s-admin/v2
-    args: ["upgrade", "-i", "${_HELM_RELEASE_NAME}", "./charts/sefaria", "--namespace", "${_TARGET_NAMESPACE}", "--set-string", "releaseSlug=${_HELM_RELEASE_NAME_SLUG},releaseImageTag=$SHORT_SHA", "--debug"]
+    args: ["upgrade", "-i", "${_HELM_RELEASE_NAME}", "./charts/sefaria", "--namespace", "${_TARGET_NAMESPACE}", "--set-string", "releaseSlug=${_HELM_RELEASE_NAME_SLUG},releaseImageTag=$SHORT_SHA,web.replicaCount=${_WEB_REPLICAS}", "--debug"]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_TARGET_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_TARGET_CLUSTER}'

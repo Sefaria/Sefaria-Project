@@ -3310,9 +3310,15 @@ def profile_sync_api(request):
                 continue
             field_data = json.loads(post[field])
             if field == "settings":
-                if field_data["time_stamp"] > profile.attr_time_stamps[field]:
+                settings_time_stamp = field_data.pop("time_stamp")  # don't save time_stamp as a field of profile
+                try:
+                    # mobile app is sending time_stamps as strings. for now, patch by casting server-side. can be None if user hasn't updated settings yet.
+                    settings_time_stamp = 0 if settings_time_stamp is None else int(settings_time_stamp)
+                except ValueError as e:
+                    logger.warning(f'profile_sync_api: {e}')
+                    continue
+                if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
-                    settings_time_stamp = field_data.pop("time_stamp")  # don't save time_stamp as a field of profile
                     profile.attr_time_stamps.update({field: settings_time_stamp})
                     profile.update({
                         field: field_data,
