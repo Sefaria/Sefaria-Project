@@ -1,3 +1,4 @@
+from typing import Union
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref
@@ -86,7 +87,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             for slug in children:
                 child_topic = Topic.init(slug)
                 if child_topic is None:
-                    logger.warning("{} is None")
+                    logger.warning(f"{slug} is None")
                     continue
                 leaves += child_topic.get_leaf_nodes(linkType)
         return leaves
@@ -111,7 +112,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         setattr(self, slug_field, self.normalize_slug_field(slug_field))
         self.merge(old_slug)
 
-    def merge(self, other):
+    def merge(self, other: Union['Topic', str]) -> None:
         """
         :param other: Topic or old slug to migrate from
         :return: None
@@ -189,7 +190,8 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             return TopicLinkSetHelper.find(intra_link_query, **kwargs)
 
     def contents(self, **kwargs):
-        d = super(Topic, self).contents(**kwargs)
+        mini = kwargs.get('minify', False)
+        d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
