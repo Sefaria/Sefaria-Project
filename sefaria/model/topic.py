@@ -87,7 +87,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             for slug in children:
                 child_topic = Topic.init(slug)
                 if child_topic is None:
-                    logger.warning("{} is None")
+                    logger.warning(f"{slug} is None")
                     continue
                 leaves += child_topic.get_leaf_nodes(linkType)
         return leaves
