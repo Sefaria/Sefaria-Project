@@ -496,6 +496,7 @@ const Element = ({attributes, children, element}) => {
                 const classes = `SheetOutsideText ${element.lang}`;
                 return (
                 <div className={classes} {...attributes}>
+                    {element.loading ? <div className="sourceLoader"></div> : null}
                     {children}
                 </div>
             );
@@ -612,15 +613,15 @@ const Element = ({attributes, children, element}) => {
 
 }
 
-const getClosestSheetItem = (editor, path) => {
+const getClosestSheetElement = (editor, path, elementType) => {
     for(const node of Node.ancestors(editor, path)) {
-        if (node[0].type == "SheetItem") {
+        if (node[0].type == elementType) {
             return node;
             break
         }
     }
     return(null);
-};
+}
 
 const isWholeSheetItemSelected = (editor) => {
   if (Range.isCollapsed(editor.selection)) {return false}
@@ -628,7 +629,7 @@ const isWholeSheetItemSelected = (editor) => {
   const focus = editor.selection.focus;
   const anchor = editor.selection.anchor;
 
-  const currentSheetItem = (getClosestSheetItem(editor, focus.path));
+  const currentSheetItem = (getClosestSheetElement(editor, focus.path, "SheetItem"));
   if (!currentSheetItem) {return false}
 
   const lastNodeInSheetItem = Node.last(currentSheetItem[0], []);
@@ -649,7 +650,7 @@ const isWholeSheetItemSelected = (editor) => {
 
 const isSelectionFocusAtEdgeOfSheetItem = (editor) => {
   const focus = editor.selection.focus;
-  const currentSheetItem = (getClosestSheetItem(editor, focus.path));
+  const currentSheetItem = (getClosestSheetElement(editor, focus.path, "SheetItem"));
 
   if (!currentSheetItem) return false;
 
@@ -678,7 +679,7 @@ const getNextSheetItemPath = (SheetItemPath) => {
 };
 
 async function getRefInText(editor) {
-  const closestSheetItem = getClosestSheetItem(editor, editor.selection.focus.path)
+  const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")
   if (!closestSheetItem) {return {}}
   const query = Node.string(closestSheetItem[0]).trim();
 
@@ -880,7 +881,7 @@ const parseMediaLink = (url) => {
 }
 
 const addItemToSheet = (editor, fragment, position) => {
-    const closestSheetItem = getClosestSheetItem(editor, editor.selection.focus.path)[1];
+    const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")[1];
     const nextSheetItemPath = position == "top" ? closestSheetItem : getNextSheetItemPath(closestSheetItem);
     Transforms.setNodes(editor, {nextNode: editor.children[0].nextNode + 1}, {at: [0]});
     Transforms.insertNodes(editor, fragment, {at: nextSheetItemPath});
@@ -923,6 +924,11 @@ const insertMedia = (editor, mediaUrl) => {
 }
 
 const insertSource = (editor, ref) => {
+
+    const currentNode = getClosestSheetElement(editor, editor.selection.focus.path, "SheetOutsideText")
+    console.log(currentNode)
+    Transforms.setNodes(editor, { loading: true }, {at: currentNode[1]});
+
     Sefaria.getText(ref).then(text => {
         const enText = Array.isArray(text.text) ? text.text.flat(Infinity).join(" ") : text.text;
         const heText = Array.isArray(text.text) ? text.he.flat(Infinity).join(" ") : text.he;
@@ -1228,6 +1234,7 @@ const SefariaEditor = (props) => {
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
+    const [nodeLoading, setNodeLoading] = useState(null)
 
     useEffect(
         () => {
@@ -1299,11 +1306,7 @@ const SefariaEditor = (props) => {
         if (event.key == " ") {
             getRefInText(editor).then(query =>{
               if (query["is_ref"]){
-                console.log(Node.get(editor, editor.selection.focus.path))
-
                 Transforms.setNodes(editor, { isRef: true }, {at: editor.selection.focus.path});
-
-
                 if ((query["is_segment"] || query["is_section"]) ) {
                   insertSource(editor, query["ref"])
                   return
