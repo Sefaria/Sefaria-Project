@@ -756,6 +756,7 @@ const withSefariaSheet = editor => {
           }
       }
 
+      // Autoset language of an outside text for proper RTL/LTR handling
       if (node.type == "SheetOutsideText") {
           const content = Node.string(node);
           const lang = Sefaria.hebrew.isHebrew(content) && content.length > 0 ? 'he' : 'en';
@@ -763,7 +764,7 @@ const withSefariaSheet = editor => {
       }
 
 
-
+      // If SheetMetaDataBox is missing a title or authorStatement or groupStatement, reset it
       if (node.type == "SheetMetaDataBox") {
           if (node.children.length < 3) {
               const editorSheetMeta = editor.children[0];
@@ -777,6 +778,7 @@ const withSefariaSheet = editor => {
           }
       }
 
+      // If SheetAuthorStatement is missing content reset it
       if (node.type == "SheetAuthorStatement") {
           if (node.children.length < 2) {
               const editorSheetMeta = editor.children[0];
@@ -785,15 +787,16 @@ const withSefariaSheet = editor => {
           }
       }
 
+      // prevent any edits to Text References
       if (node.type == "TextRef") {
         const currentText = Node.string(node);
         if (node.refText != currentText) {
-          console.log(path)
           Transforms.insertText(editor, node.refText, {at: path})
         }
       }
 
 
+      // If sheet elements are in sheetcontent and not wrapped in sheetItem, wrap it.
       if (node.type == "SheetContent") {
         for (const [child, childPath] of Node.children(editor, path)) {
           if (sheetElementTypes.includes(child.type)) {
@@ -813,7 +816,7 @@ const withSefariaSheet = editor => {
       }
 
 
-
+      // SheetItems should only be of a specific type and only one per sheet item
       if (node.type == "SheetItem") {
         for (const [child, childPath] of Node.children(editor, path)) {
           if (!sheetElementTypes.includes(child.type)) {
