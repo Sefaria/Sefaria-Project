@@ -1,8 +1,7 @@
 from datetime import datetime
 import requests
-import os
-import sys
 import traceback
+import os
 import django
 django.setup()
 from sefaria.model import *
@@ -29,19 +28,20 @@ try:
     else:
         print("SUCCESS!", r.text)
 except Exception as e:
-    t, v, tb = sys.exc_info()
+    tb_str = traceback.format_exc()
+    print("Caught exception")
     post_object = {
         "icon_emoji": ":facepalm:",
         "username": "Reindex ElasticSearch",
         "channel": "#engineering-discuss",
-    	"attachments": [
-        {
-            "fallback": message,
-            "color": "#a30200",
-            "pretext": "Cronjob Error",
-            "text": traceback.print_exc()
-        }
+        "attachments": [
+            {
+                "fallback": tb_str,
+                "color": "#a30200",
+                "pretext": "Cronjob Error",
+                "text": tb_str
+            }
         ]
     }
     requests.post(os.environ['SLACK_URL'], json=post_object)
-    raise t(v).with_traceback(tb)
+    raise e

@@ -15,6 +15,7 @@ substitutions:
   _TARGET_NAMESPACE: default
   _TARGET_REGION: us-central1-a
   _WEB_REPLICAS: "3"
+  _K8S_ADMIN_BRANCH: "master"
 
 options:
   machineType: N1_HIGHCPU_8
@@ -46,7 +47,7 @@ steps:
 
   # Clone k8s-admin -- get the `lorenzo/deploy-python3' branch
   - name: "gcr.io/cloud-builders/git"
-    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', 'master', '--single-branch']
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', '${_K8S_ADMIN_BRANCH}', '--single-branch']
     id: k8s-admin_clone
     wait_for: [ "-" ]
 

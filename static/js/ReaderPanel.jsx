@@ -1214,12 +1214,14 @@ class ReaderControls extends Component {
       var heSectionString = oref.heRef.replace(oref.heIndexTitle, "");
       title = <span>{oref.indexTitle}<span className="sectionString">{sectionString}</span></span>
       heTitle = <span>{oref.heIndexTitle}<span className="sectionString">{heSectionString}</span></span>
+      categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ?
+                                  <CategoryAttribution categories={oref.categories} linked={false} /> : null;
     }
 
     var mode              = this.props.currentMode();
     var hideHeader        = !this.props.multiPanel && mode === "Connections";
     var connectionsHeader = this.props.multiPanel && mode === "Connections";
-    var showVersion = this.props.currVersions.en && (this.props.settings.language == "english" || this.props.settings.language == "bilingual");
+    var showVersion = this.props.currVersions.en && (this.props.settings.language === "english" || this.props.settings.language === "bilingual");
     var versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
     var url = this.props.sheet ? "/sheets/" + this.props.sheet.id : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);
 
@@ -1237,7 +1239,7 @@ class ReaderControls extends Component {
         </div>) :
       (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheet? this.openSheetMeta : this.openTextToc}>
         <div className={"readerTextTocBox" + (this.props.sheet ? " sheetBox":"")} role="heading" aria-level="1" aria-live="polite">
-          <a href={url} aria-label={"Show table of contents for " + title} >
+          <a href={url} aria-label={"Show table of contents for " + this.props.currentRef} >
             { title ? (<i className="fa fa-angle-down invisible"></i>) : null }
             { this.props.sheet? <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
             { this.props.sheet? <div style={{"direction": Sefaria.hebrew.isHebrew(title) ? "rtl" :"ltr"}}><span>{title}</span></div> :
