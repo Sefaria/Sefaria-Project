@@ -29,7 +29,7 @@ const sheet_item_els = {
 const voidElements = [
     "ProfilePic",
     "GroupStatement",
-    "SheetMedia"
+    "SheetMedia",
 ];
 
 const ELEMENT_TAGS = {
@@ -321,7 +321,7 @@ const defaultSheetAuthorStatement = (ownerProfileUrl, ownerName, ownerImageUrl) 
             ]
         },
         {
-            type: "paragraph",
+            type: "byline",
             children: [
                 {
                     text: "by "
@@ -429,7 +429,7 @@ function transformSheetJsonToDraft(sheet) {
                                         },
                                     ]
                                 },
-                              {type: "paragraph",
+                              {type: "byline",
                                   children: [
                                       {
                                           text: "by "
@@ -593,6 +593,11 @@ const Element = ({attributes, children, element}) => {
             return (
                 <p>{children}</p>
             );
+        case 'byline':
+            return (
+                <span>{children}</span>
+            );
+
         case 'bulleted-list':
             return (
                 <ul>{children}</ul>
@@ -770,6 +775,22 @@ const withSefariaSheet = editor => {
               Transforms.delete(editor, {at: path});
               Transforms.insertNodes(editor, newMetaBox, { at: path });
           }
+      }
+
+      if (node.type == "SheetAuthorStatement") {
+          if (node.children.length < 2) {
+              const editorSheetMeta = editor.children[0];
+              Transforms.delete(editor, {at: path});
+              Transforms.insertNodes(editor, defaultSheetAuthorStatement(editorSheetMeta['authorUrl'], editorSheetMeta['authorStatement'], editorSheetMeta['authorImage']), { at: path });
+          }
+      }
+
+      if (node.type == "TextRef") {
+        const currentText = Node.string(node);
+        if (node.refText != currentText) {
+          console.log(path)
+          Transforms.insertText(editor, node.refText, {at: path})
+        }
       }
 
 
