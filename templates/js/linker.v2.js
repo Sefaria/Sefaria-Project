@@ -201,7 +201,7 @@
                 '<div class="sefaria-powered-by-box">' + poweredByText + ' <div id="sefaria-logo">&nbsp;</div></div>' +
                 (mode == "popup-click" ? 
                 '<span class="sefaria-read-more-button">' +
-                    '<a class = "sefaria-popup-ref" href = "">' + readMoreText + '</a>' +
+                    '<a class = "sefaria-popup-ref" target="_blank" href = "">' + readMoreText + '</a>' +
                 '</span>' : "") + 
             '</div>';
 

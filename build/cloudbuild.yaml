@@ -6,8 +6,6 @@ steps:
     args: ["push", "gcr.io/production-deployment/multi_monitor:$TAG_NAME"]
 
   # Install npm dependencies, and build bundles.
-  - name: 'debian'
-    args: ['cp', 'build/node/local_settings.json', 'node/local_settings.json']
   - name: 'gcr.io/cloud-builders/npm'
     args: ['install']
   - name: 'gcr.io/cloud-builders/npm'

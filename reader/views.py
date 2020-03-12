@@ -127,7 +127,7 @@ def render_react_component(component, props):
     if not USE_NODE:
         return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
-    from sefaria.settings import NODE_TIMEOUT, NODE_TIMEOUT_MONITOR
+    from sefaria.settings import NODE_TIMEOUT
 
     propsJSON = json.dumps(props) if isinstance(props, dict) else props
     cache_key = "todo" # zlib.compress(propsJSON)
@@ -144,16 +144,13 @@ def render_react_component(component, props):
     except Exception as e:
         # Catch timeouts, however they may come.  Write to file NODE_TIMEOUT_MONITOR, which forever monitors to restart process
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
-            logger.exception("Node timeout: Fell back to client-side rendering.")
-            with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
-                props = json.loads(props) if isinstance(props, str) else props
-                myfile.write("Timeout at {}: {} / {} / {} / {}\n".format(
-                    datetime.now().isoformat(),
+            props = json.loads(props) if isinstance(props, str) else props
+            logger.exception("Node timeout: {} / {} / {} / {}\n".format(
                     props.get("initialPath"),
                     "MultiPanel" if props.get("multiPanel", True) else "Mobile",
                     "Logged In" if props.get("loggedIn", False) else "Logged Out",
                     props.get("interfaceLang")
-                ))
+            ))
             return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
         else:
             # If anything else goes wrong with Node, just fall back to client-side rendering
@@ -490,12 +487,14 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     else:
         sheet = panels[0].get("sheet",{})
-        title = "Sefaria Source Sheet: " + strip_tags(sheet["title"])
+        title = strip_tags(sheet["title"]) + " | " + _("Sefaria Source Sheet")
         breadcrumb = sheet_crumbs(request, sheet)
-        desc = sheet.get("summary","A source sheet created with Sefaria's Source Sheet Builder")
+        desc = sheet.get("summary", _("A source sheet created with Sefaria's Source Sheet Builder"))
         noindex = sheet["status"] != "public"
 
     propsJSON = json.dumps(props)
+    if len(panels) > 0 and panels[0].get("refs") == [] and panels[0].get("mode") == "Text":
+        logger.debug("Mangled panel state: {}".format(panels), stack_info=True)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON":      propsJSON,
@@ -1159,8 +1158,6 @@ def terms_editor(request, term=None):
                               'dataJSON': dataJSON,
                               'is_update': "true" if existing_term else "false"
                              })
-
-
 
 
 def interface_language_redirect(request, language):
@@ -3243,9 +3240,15 @@ def profile_sync_api(request):
                 continue
             field_data = json.loads(post[field])
             if field == "settings":
-                if field_data["time_stamp"] > profile.attr_time_stamps[field]:
+                settings_time_stamp = field_data.pop("time_stamp")  # don't save time_stamp as a field of profile
+                try:
+                    # mobile app is sending time_stamps as strings. for now, patch by casting server-side. can be None if user hasn't updated settings yet.
+                    settings_time_stamp = 0 if settings_time_stamp is None else int(settings_time_stamp)
+                except ValueError as e:
+                    logger.warning(f'profile_sync_api: {e}')
+                    continue
+                if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
-                    settings_time_stamp = field_data.pop("time_stamp")  # don't save time_stamp as a field of profile
                     profile.attr_time_stamps.update({field: settings_time_stamp})
                     profile.update({
                         field: field_data,
@@ -3255,6 +3258,9 @@ def profile_sync_api(request):
             elif field == "user_history":
                 # loop thru `field_data` reversed to apply `last_place` to the last item read in each book
                 for hist in reversed(field_data):
+                    if 'ref' not in hist:
+                        logger.warning(f'Ref not in hist. Post data: {post[field]}. User ID: {request.user.id}')
+                        continue
                     uh = UserHistory.save_history_item(request.user.id, hist, now)
                     ret["created"] += [uh.contents(for_api=True)]
 
@@ -3262,7 +3268,7 @@ def profile_sync_api(request):
             # determine return value after new history saved to include new saved and deleted saves
             # send back items after `last_sync`
             last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
-            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}})
+            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}}, hint="uid_1_server_time_stamp_1")
             ret["last_sync"] = now
             ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
             ret["settings"] = profile.settings

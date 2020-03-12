@@ -34,7 +34,6 @@ install:
   - "pip install -r requirements.txt"
   - rm -rf ~/.nvm && git clone https://github.com/creationix/nvm.git ~/.nvm && (cd ~/.nvm && git checkout `git describe --abbrev=0 --tags`) && source ~/.nvm/nvm.sh && nvm install $TRAVIS_NODE_VERSION
   - npm install
-  - cp ./node/local_settings_example.json ./node/local_settings.json
   - npm run build-prod
 
 before_script:

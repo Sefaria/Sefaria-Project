@@ -37,7 +37,6 @@ class SearchPage extends Component {
                           initialQuery = { this.props.query }
                           updateQuery = { this.props.onQueryChange } />
                       </div>
-                      <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                     </div>)}
                   <div className={contentClasses}>
                     <div className="contentInner">

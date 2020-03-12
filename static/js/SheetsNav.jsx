@@ -69,6 +69,8 @@ class SheetsNav extends Component {
                         interfaceLang={this.props.interfaceLang}
                         openProfile={this.props.openProfile}
                       />);
+      enTitle = "Groups";
+      heTitle = Sefaria._(enTitle);
 
     } else if (this.props.tag) {
       var content = (<TagSheetsPage
@@ -219,7 +221,7 @@ class SheetsHomePage extends Component {
                 { this.props.multiPanel ? null :
                   (<h2>
                      <span className="int-en">Trending Tags</span>
-                    <span className="int-he">תוויות פופולריות</span>
+                    <span className="int-he">תוויות עדכניות</span>
                    </h2>)}
 
                 { this.props.multiPanel ? null : (<TwoOrThreeBox content={trendingTags} width={this.props.width} /> )}
@@ -232,7 +234,7 @@ class SheetsHomePage extends Component {
                         <div className="type-buttons">
                           {this._type_sheet_button("Most Used", "הכי בשימוש", () => this.changeSort("count"), (this.props.tagSort == "count"))}
                           {this._type_sheet_button("Alphabetical", "אלפביתי", () => this.changeSort((Sefaria.interfaceLang=="hebrew")?"alpha-hebrew":"alpha"), (this.props.tagSort == "alpha" || this.props.tagSort == "alpha-hebrew"))}
-                          {this._type_sheet_button("Trending", "פופולרי", () => this.changeSort("trending"), (this.props.tagSort == "trending"))}
+                          {this._type_sheet_button("Trending", "עדכני", () => this.changeSort("trending"), (this.props.tagSort == "trending"))}
                         </div>
                       </div>
                     </h2>

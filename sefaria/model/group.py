@@ -37,15 +37,16 @@ class Group(abst.AbstractMongoRecord):
         "pinned_sheets",    # list of sheet ids, pinned to top
         "listed",           # Bool, whether to list group publicly
         "moderationStatus", # string status code for moderator-set statuses
-        "tag_order",        # list of strings, display order for sheet tags
+        "pinnedTags",       # list of strings, display order for sheet tags
+        "showTagsByDefault",# Bool, whether to default to opening tags list
         "toc",              # object signaling inclusion in TOC with fields
-                                # `catogories` - list
+                                # `categories` - list
                                 # `title` - string
                                 # `heTitle` - string
                                 # `collectiveTitle` - optional dictionary with `en`, `he`, overiding title display in TOC/Sidebar.
                                 # `desscription` - string
                                 # `heDescription` - string
-                                # These fields will override `name` and `description for display
+                                # These fields will override `name` and `description` for display
     ]
 
     def _normalize(self):
@@ -107,6 +108,7 @@ class Group(abst.AbstractMongoRecord):
             contents["members"]      = [public_user_data(uid) for uid in contents["members"]]
             contents["invitations"]  = getattr(self, "invitations", []) if authenticated else []
             contents["pinnedSheets"] = getattr(self, "pinned_sheets", [])
+            contents["pinnedTags"]   = getattr(self, "pinnedTags", [])
         return contents
 
     def listing_contents(self, uid=None):

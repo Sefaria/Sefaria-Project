@@ -269,6 +269,7 @@ class Header extends Component {
                           translateISOLanguageCode={this.props.translateISOLanguageCode}
                           toggleSignUpModal={this.props.toggleSignUpModal}
                           openProfile={this.props.openProfile}
+                          showLibrary={this.showLibrary}
                         />) : null;
 
 

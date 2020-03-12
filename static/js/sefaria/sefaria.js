@@ -558,7 +558,6 @@ Sefaria = extend(Sefaria, {
     return data;
   }, */
   _index: {}, // Cache for text index records
-  _translateTerms: {},
    index: function(text, index) {
     if (!index) {
       return this._index[text];
@@ -589,45 +588,18 @@ Sefaria = extend(Sefaria, {
       }
     }
   },
-  _cacheHebrewTerms: function(terms) {
-      Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
-  },
   _indexDetails: {},
-  /* hasIndexDetails: title => {title in this._indexDetails}, */
   getIndexDetails: function(title) {
-    return new Promise((resolve, reject) => {
-        var details = title in this._indexDetails ? this._indexDetails[title] : null;
-        if (details) {
-          resolve(details);
-        } else {
-            var url = Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1";
-            this._api(url, data => {
-                Sefaria._indexDetails[title] = data;
-                resolve(data);
-            });
-        }
+    return this._cachedApiPromise({
+        url:   Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1",
+        key:   title,
+        store: this._indexDetails
     });
   },
   titleIsTorah: function(title){
       let torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/;
       return torah_re.test(title)
   },
-  _titleVariants: {},
-    /*  Unused?
-  normalizeTitle: function(title, callback) {
-    if (title in this._titleVariants) {
-        callback(this._titleVariants[title]);
-    }
-    else {
-        this._api("/api/v2/index/" + title, function(data) {
-          for (var i = 0; i < data.titleVariants.length; i++) {
-            Sefaria._titleVariants[data.titleVariants[i]] = data.title;
-          }
-          callback(data.title);
-        });
-    }
-  },
-     */
   postSegment: function(ref, versionTitle, language, text, success, error) {
     if (!versionTitle || !language) { return; }
     this.getName(ref, true)
@@ -687,7 +659,6 @@ Sefaria = extend(Sefaria, {
   },
   _lookups: {},
   _ref_lookups: {},
-
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
   getName: function(name, refOnly) {
     const trimmed_name = name.trim();
@@ -745,11 +716,6 @@ Sefaria = extend(Sefaria, {
     }
   },
   _links: {},
-  /*
-  hasLinks: function(ref) {
-      return ref in this._links;
-  },
-  */
   getLinks: function(ref) {
     // When there is an error in the returned data, this calls `reject` rather than returning empty.
     return new Promise((resolve, reject) => {
@@ -772,31 +738,6 @@ Sefaria = extend(Sefaria, {
     ref = Sefaria.humanRef(ref);
     return ref in this._links ? this._links[ref] : [];
   },
-  /*
-  links: function(ref, cb) {
-    // Returns a list of links known for `ref`.
-    // WARNING: calling this function with spanning refs can cause bad state in cache.
-    // When processing links for "Genesis 2:4-4:4", a link to the entire chapter "Genesis 3" will be split and stored with that key.
-    // The data for "Genesis 3" then represents only links to the entire chapter, not all links within the chapter.
-    // Fixing this generally on the client side requires more understanding of ref logic.
-    console.log("Method Sefaria.links() is deprecated in favor of Sefaria.getLinks()");
-    ref = Sefaria.humanRef(ref);
-    if (!cb) {
-      return this._links[ref] || [];
-    }
-    if (ref in this._links) {
-      cb(this._links[ref]);
-    } else {
-       const url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0&with_sheet_links=1";
-       this._api(url, function(data) {
-          if ("error" in data) {
-            return;
-          }
-          this._saveLinkData(ref, data);
-          cb(data);
-        }.bind(this));
-    }
-  }, */
   _saveLinkData: function(ref, data) {
     ref = Sefaria.humanRef(ref);
     const l = this._saveLinksByRef(data);
@@ -1022,20 +963,6 @@ Sefaria = extend(Sefaria, {
   linkSummaryBookSortHebrew: function(category, a, b) {
     return Sefaria.linkSummaryBookSort(category, a, b, true);
   },
-  /*
-  flatLinkSummary: function(ref) {
-    // Returns an array containing texts and categories with counts for ref
-    var summary = Sefaria.linkSummary(ref);
-    var booksByCat = summary.map(function(cat) {
-      return cat.books.map(function(book) {
-        return book;
-      });
-    });
-    var books = [];
-    books = books.concat.apply(books, booksByCat);
-    return books;
-  },
-  */
   commentarySectionRef: function(commentator, baseRef) {
     // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
     // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
@@ -1972,33 +1899,21 @@ Sefaria = extend(Sefaria, {
     }
   },
   _groups: {},
-  groups: function(group, sortBy, callback) {
-    // Returns data for an individual group
-    var groupObj = this._groups[group];
-    if (groupObj) {
-      if (callback) { callback(groupObj); }
-    } else if (callback) {
-      var url = Sefaria.apiHost + "/api/groups/" + group;
-       Sefaria._api(url, function(data) {
-           this._groups[group] = data;
-           callback(data);
-        }.bind(this));
-      }
-    return groupObj;
+  getGroup: function(key) {
+      const url = Sefaria.apiHost + "/api/groups/" + key;
+      const store = this._groups;
+      return this._cachedApiPromise({url, key, store});
   },
   _groupsList: null,
-  groupsList: function(callback) {
-    // Returns list of public and private groups
-    if (this._groupsList) {
-      if (callback) { callback(this._groupsList); }
-    } else if (callback) {
-      var url = Sefaria.apiHost + "/api/groups";
-       Sefaria._api(url, function(data) {
-          this._groupsList = data;
-           if (callback) { callback(data); }
-        }.bind(this));
-      }
-    return this._groupsList;
+  getGroupsList: function() {
+      // Is there other cases where the cache isn't keyed?   Could refactor _cachedApiPromise for a no key case.
+      return (this._groupsList) ?
+          Promise.resolve(this._groupsList) :
+          Sefaria._promiseAPI(Sefaria.apiHost + "/api/groups")
+              .then(data => {
+                  this._groupsList = data;
+                  return data;
+              })
   },
   userGroups: function(uid) {
     const url = `${Sefaria.apiHost}/api/groups/user-groups/${uid}`;
@@ -2007,6 +1922,10 @@ Sefaria = extend(Sefaria, {
   calendarRef: function(calendarTitle) {
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
     return cal.length ? cal[0].ref : null;
+  },
+  _translateTerms: {},
+  _cacheHebrewTerms: function(terms) {
+      Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
   },
   hebrewTerm: function(name) {
     // Returns a string translating `name` into Hebrew.
@@ -2051,7 +1970,6 @@ Sefaria = extend(Sefaria, {
       " & ": " | ",
       "My Source Sheets" : "דפי המקורות שלי",
       "Public Source Sheets":"דפי מקורות פומביים",
-      "Public Groups": "קבוצות",
       "History": "היסטוריה",
       "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
       "Public Domain": "רשיון בנחלת הכלל",
@@ -2089,48 +2007,50 @@ Sefaria = extend(Sefaria, {
       "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
       "Pinned Sheet" : "דף מקורות נעוץ",
       "Pin Sheet" : "נעיצת דף מקורות",
+      "Created with": 'נוצר עבורך ע"י',
 
       //stuff moved from sheets.js
       "Loading..." : "טוען...",
-        "Saving..." : "שומר...",
-        "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
-        "קיימים שינויים בלתי שמורים בדף המקורות. השתמשו בכפתור השמירה לפני עזיבת הדף.",
-        "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.":
-        "קיימים שינויים בלתי שמורים בדף המקורות. אנא חכו שפעולת השמירה האוטומטית תסתיים.",
-        "Are you sure you want to delete this sheet? There is no way to undo this action.":
-        "מחיקת דף מקורות היא פעולה בלתי הפיכה. האם אתם בטוחים?",
-        "Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.":
-        "לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
-        //"Untitled Source Sheet": "דף מקורות ללא שם",
-        "Like": "אהבתי",
-        "Unlike": "ביטול סימון אהבתי",
-        "No one has liked this sheet yet. Will you be the first?":
-        "אף אחד עדיין לא אהב את דף המקורות הזה. תרצו להיות ראשונים?",
-        "1 Person Likes This Sheet": "אדם אחד אהב את דף המקורות",
-        " People Like This Sheet": " אנשים אהבו את דף המקורות",
-        "Tags Saved": "תוית נשמרה",
-        "Assignments allow you to create a template that your students can fill out on their own.":
-        "מטלות מאפשרות ליצור דף בסיס שתלמידים יכולים להשתמש בו כדי למלא וליצור את העבודה שלהם.",
-        "Students can complete their assignment at this link:":
-        "תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:",
-        "Reset text of Hebrew, English or both?": "האם לאפס את התוכן של המקור בעברית, אנגלית או הכל?",
-        "Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו",
-        "Looking up Connections..." : "מחפש קישורים...",
-        "No connections known for this source.": "למקור הזה אין קשרים ידועים",
-        "Edit Source title" : "עריכת כותרת",
-        "Add Source Below" : "הוספת מקור מתחת",
-        "Add Comment": "הוספת תגובה",
-        "Add All Connections": "הוספת כל המקורות הקשורים",
-        "Reset Source Text": "איפוס טקסט מקור",
-        "Copy to Sheet" : "העתקה לדף מקורות",
-        "Change Source Layout/Language": "שינוי שפת/עימוד מקור",
-        "Move Source Up": "הזזת מקור מעלה",
-        "Move Source Down": "הזזת מקור מטה",
-        "Outdent Source": "הזחת מקור החוצה",
-        "Indent Source": "הזחת מקור פנימה",
-        "Remove": "הסרת מקור",
-        "Create New" : "יצירת חדש",
-        "Close" : "סגירה",
+      "Saving..." : "שומר...",
+      "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
+      "קיימים שינויים בלתי שמורים בדף המקורות. השתמשו בכפתור השמירה לפני עזיבת הדף.",
+      "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.":
+      "קיימים שינויים בלתי שמורים בדף המקורות. אנא חכו שפעולת השמירה האוטומטית תסתיים.",
+      "Are you sure you want to delete this sheet? There is no way to undo this action.":
+      "מחיקת דף מקורות היא פעולה בלתי הפיכה. האם אתם בטוחים?",
+      "Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.":
+      "לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
+      //"Untitled Source Sheet": "דף מקורות ללא שם",
+      "Like": "אהבתי",
+      "Unlike": "ביטול סימון אהבתי",
+      "No one has liked this sheet yet. Will you be the first?":
+      "אף אחד עדיין לא אהב את דף המקורות הזה. תרצו להיות ראשונים?",
+      "1 Person Likes This Sheet": "אדם אחד אהב את דף המקורות",
+      " People Like This Sheet": " אנשים אהבו את דף המקורות",
+      "Tags Saved": "תוית נשמרה",
+      "Assignments allow you to create a template that your students can fill out on their own.":
+      "מטלות מאפשרות ליצור דף בסיס שתלמידים יכולים להשתמש בו כדי למלא וליצור את העבודה שלהם.",
+      "Students can complete their assignment at this link:":
+      "תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:",
+      "Reset text of Hebrew, English or both?": "האם לאפס את התוכן של המקור בעברית, אנגלית או הכל?",
+      "Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו",
+      "Looking up Connections..." : "מחפש קישורים...",
+      "No connections known for this source.": "למקור הזה אין קשרים ידועים",
+      "Edit Source title" : "עריכת כותרת",
+      "Add Source Below" : "הוספת מקור מתחת",
+      "Add Comment": "הוספת תגובה",
+      "Add All Connections": "הוספת כל המקורות הקשורים",
+      "Reset Source Text": "איפוס טקסט מקור",
+      "Copy to Sheet" : "העתקה לדף מקורות",
+      "Change Source Layout/Language": "שינוי שפת/עימוד מקור",
+      "Move Source Up": "הזזת מקור מעלה",
+      "Move Source Down": "הזזת מקור מטה",
+      "Outdent Source": "הזחת מקור החוצה",
+      "Indent Source": "הזחת מקור פנימה",
+      "Remove": "הסרת מקור",
+      "Create New" : "יצירת חדש",
+      "Close" : "סגירה",
+      "by": "", // by line on sheets in reader, left blank
 
       //reader panel
       "Search" : "חיפוש",
@@ -2211,8 +2131,8 @@ Sefaria = extend(Sefaria, {
       "Sign Up": "הרשמו לספריא",
       "Already have an account?": "כבר יש לכם חשבון?",
       "Sign\u00A0in": "התחברו",
-      "Save": "שמירת",
-      "Remove": "הסרת",
+      "Save": "שמירה",
+      "Remove": "הסרה",
 
       //user stats
       "Torah Tracker" : "לימוד במספרים",
@@ -2302,7 +2222,7 @@ Sefaria = extend(Sefaria, {
   },
   _cachedApiPromise: function({url, key, store}) {
       // Checks store[key].  Resolves to this value, if present.
-      // Otherwise, calls Promise(url), caches, and returns
+      // Otherwise, calls Promise(url), caches in store[key], and returns
       return (key in store) ?
           Promise.resolve(store[key]) :
           Sefaria._promiseAPI(url)

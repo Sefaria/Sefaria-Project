@@ -313,7 +313,7 @@ class TextSearchFilterPanel extends Component {
         />
         <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
           <SearchFilterTabRow
-            tabs={[{en: 'Titles', he: 'כותרות'}, {en: 'Options', he: 'אופציות'}]}
+            tabs={[{en: 'Titles', he: 'מקורות'}, {en: 'Options', he: 'אופציות'}]}
             activeTab={this.state.activeTab}
             changeTab={this.changeTab}
           />
