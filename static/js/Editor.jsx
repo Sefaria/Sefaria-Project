@@ -789,6 +789,16 @@ const withSefariaSheet = editor => {
           }
       }
 
+      // Replaces blank sheettitle with "Untitled Sheet"
+      if (node.type == "SheetTitle") {
+        const currentText = Node.string(node);
+        if (currentText == "") {
+          Transforms.insertText(editor, "Untitled Sheet ", {at: path})
+        }
+      }
+
+
+
       // prevent any edits to Text References
       if (node.type == "TextRef") {
         const currentText = Node.string(node);
@@ -796,7 +806,6 @@ const withSefariaSheet = editor => {
           Transforms.insertText(editor, node.refText, {at: path})
         }
       }
-
 
       // prevent any edits to username
       if (node.type == "byline") {
