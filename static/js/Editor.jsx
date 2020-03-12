@@ -322,6 +322,7 @@ const defaultSheetAuthorStatement = (ownerProfileUrl, ownerName, ownerImageUrl) 
         },
         {
             type: "byline",
+            owner: ownerName,
             children: [
                 {
                     text: "by "
@@ -430,6 +431,7 @@ function transformSheetJsonToDraft(sheet) {
                                     ]
                                 },
                               {type: "byline",
+                                  owner: sheet.ownerName,
                                   children: [
                                       {
                                           text: "by "
@@ -794,6 +796,25 @@ const withSefariaSheet = editor => {
           Transforms.insertText(editor, node.refText, {at: path})
         }
       }
+
+
+      // prevent any edits to username
+      if (node.type == "byline") {
+        const currentText = Node.string(node);
+        if (currentText != `by ${node.owner}`) {
+          const fragment = {
+            type: "byline",
+            owner: node.owner,
+            children: [
+              {text: "by "},
+              {type: "link", url: node.owner, children: [{text: node.owner}]},
+            ]
+          }
+          Transforms.delete(editor, {at: path});
+          Transforms.insertNodes(editor, fragment, { at: path });
+        }
+      }
+
 
 
       // If sheet elements are in sheetcontent and not wrapped in sheetItem, wrap it.
