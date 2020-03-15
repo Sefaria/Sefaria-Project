@@ -810,7 +810,7 @@ def get_sheets_by_topic(topic, public=True, uid=None, group=None, proj=None, lim
 	"""
 	Returns all sheets tagged with 'topic'
 	"""
-	query = {"topics.slug": topic} if topic else {"tags": {"$exists": 0}}
+	query = {"topics.slug": topic} if topic else {"topics": {"$exists": 0}}
 
 	if uid:
 		query["owner"] = uid

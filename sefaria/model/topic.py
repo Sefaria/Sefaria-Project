@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     collection = 'topics'
+    history_noun = 'topic'
     slug_fields = ['slug']
     title_group = None
     required_attrs = [
@@ -174,17 +175,23 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             self.save()
             other.delete()
 
-    def link_set(self, _class='intraTopic', **kwargs):
+    def link_set(self, _class='intraTopic', query_kwargs: dict = None, **kwargs):
         """
         :param str _class: could be 'intraTopic' or 'refTopic' or `None` (see `TopicLinkHelper`)
+        :param query_kwargs: dict of extra query keyword arguments
         :return: link set of topic links to `self`
         """
         intra_link_query = {"$or": [{"fromTopic": self.slug}, {"toTopic": self.slug}]}
+        if query_kwargs is not None:
+            intra_link_query.update(query_kwargs)
         if _class == 'intraTopic':
             kwargs['record_kwargs'] = {'context_slug': self.slug}
             return IntraTopicLinkSet(intra_link_query, **kwargs)
         elif _class == 'refTopic':
-            return RefTopicLinkSet({'toTopic': self.slug}, **kwargs)
+            ref_link_query = {'toTopic': self.slug}
+            if query_kwargs is not None:
+                ref_link_query.update(query_kwargs)
+            return RefTopicLinkSet(ref_link_query, **kwargs)
         elif _class is None:
             kwargs['record_kwargs'] = {'context_slug': self.slug}
             return TopicLinkSetHelper.find(intra_link_query, **kwargs)

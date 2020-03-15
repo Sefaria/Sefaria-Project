@@ -1073,21 +1073,19 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
 
     @classmethod
     def _data_object(cls, **kwargs):
-        t = kwargs.get("topic")
+        topic = kwargs.get("topic")
         trefs = kwargs.get("refs")
         num = kwargs.get("num", 2)
 
         if not trefs:
-            from .topic import Topic
-            topic_obj = Topic().load({'slug': t})
-            trefs = [pair[0] for pair in topic_obj.sources[:num]]
+            trefs = [link.ref for link in topic.link_set(_class='refTopic', query_kwargs={"is_sheet": False}, limit=num, sort=[("order.pr", -1)])]
 
         normal_refs = [text.Ref(ref).normal() for ref in trefs]
 
         d = {
             "title": {
-                "en": t.get_primary_title,
-                "he": hebrew_term(t)
+                "en": topic.get_primary_title('en'),
+                "he": topic.get_primary_title('he')
             },
             "refs": normal_refs
         }
@@ -1104,11 +1102,8 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
 
     @classmethod
     def generate_random_shared_story(cls, **kwargs):
-        from . import topic
-
-        topics_filtered = [x for x in topic.get_topics().list() if x['good_to_promote']]
-        random_topic = random.choice(topics_filtered)['tag']
-
+        from sefaria.helper.topic import get_random_topic
+        random_topic = get_random_topic(good_to_promote=True)
         return cls._generate_shared_story(topic=random_topic, **kwargs)
 
     @classmethod
