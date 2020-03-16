@@ -3061,7 +3061,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         return self.padded_ref().context_ref(self.index_node.depth - 1)
 
-    def next_section_ref(self):
+    def next_section_ref(self, vstate=None):
         """
         Returns a Ref to the next section (e.g. Chapter).
 
@@ -3074,7 +3074,7 @@ class Ref(object, metaclass=RefCacheType):
                 nl = self.index_node.next_leaf()
                 self._next = nl.ref() if nl else None
                 return self._next
-            self._next = self._iter_text_section()
+            self._next = self._iter_text_section(vstate=vstate)
             if self._next is None and not self.index_node.children:
                 current_leaf = self.index_node
                 #we now need to iterate over the next leaves, finding the first available section
@@ -3087,7 +3087,7 @@ class Ref(object, metaclass=RefCacheType):
                             return None
                     if next_leaf:
                         next_node_ref = next_leaf.ref() #get a ref so we can do the next lines
-                        potential_next = next_node_ref._iter_text_section(depth_up=0 if next_leaf.depth == 1 else 1)
+                        potential_next = next_node_ref._iter_text_section(depth_up=0 if next_leaf.depth == 1 else 1, vstate=vstate)
                         if potential_next:
                             self._next = potential_next
                             break
@@ -3097,7 +3097,7 @@ class Ref(object, metaclass=RefCacheType):
                         break
         return self._next
 
-    def prev_section_ref(self):
+    def prev_section_ref(self, vstate=None):
         """
         Returns a Ref to the previous section (e.g. Chapter).
 
@@ -3110,7 +3110,7 @@ class Ref(object, metaclass=RefCacheType):
                 pl = self.index_node.prev_leaf()
                 self._prev = pl.ref() if pl else None
                 return self._prev
-            self._prev = self._iter_text_section(False)
+            self._prev = self._iter_text_section(False, vstate=vstate)
             if self._prev is None and not self.index_node.children:
                 current_leaf = self.index_node
                 # we now need to iterate over the prev leaves, finding the first available section
@@ -3123,7 +3123,7 @@ class Ref(object, metaclass=RefCacheType):
                             return None
                     if prev_leaf:
                         prev_node_ref = prev_leaf.ref()  # get a ref so we can do the next lines
-                        potential_prev = prev_node_ref._iter_text_section(forward=False, depth_up=0 if prev_leaf.depth == 1 else 1)
+                        potential_prev = prev_node_ref._iter_text_section(forward=False, depth_up=0 if prev_leaf.depth == 1 else 1, vstate=vstate)
                         if potential_prev:
                             self._prev = potential_prev
                             break
@@ -3282,12 +3282,13 @@ class Ref(object, metaclass=RefCacheType):
 
         return db.texts.count_documents(self.condition_query(lang)) == 0
 
-    def _iter_text_section(self, forward=True, depth_up=1):
+    def _iter_text_section(self, forward=True, depth_up=1, vstate=None):
         """
         Iterate forwards or backwards to the next available :class:`Ref` in a text
 
         :param forward: Boolean indicating direction to iterate
         :depth_up: if we want to traverse the text at a higher level than most granular. Defaults to one level above
+        :param vstate: VersionState for this index. Pass this down to avoid calling expensive database lookups
         :return: :class:`Ref`
         """
         if self.index_node.depth <= depth_up:  # if there is only one level of text, don't even waste time iterating.
@@ -3307,7 +3308,10 @@ class Ref(object, metaclass=RefCacheType):
             starting_points[-1] += 1 if forward else -1
 
         #let the counts obj calculate the correct place to go.
-        c = self.get_state_node(hint=[("all","availableTexts")]).ja("all", "availableTexts")
+        if vstate:
+            c = vstate.state_node(self.index_node).ja("all", "availableTexts")
+        else:
+            c = self.get_state_node(hint=[("all","availableTexts")]).ja("all", "availableTexts")
         new_section = c.next_index(starting_points) if forward else c.prev_index(starting_points)
 
         # we are also scaling back the sections to the level ABOVE the lowest section type (eg, for bible we want chapter, not verse)

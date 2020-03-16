@@ -47,10 +47,11 @@ logger = logging.getLogger(__name__)
 # last_updated = {}
 
 
-def add_langs_to_topics(topic_list: list, use_as_typed=True) -> list:
+def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_lang_fields: dict = None) -> list:
 	"""
 	adds primary en and he to each topic in topic_list and returns new topic_list
 	:param list topic_list: list of topics where each item is dict of form {'slug': required, 'asTyped': optional}
+	:param dict backwards_compat_lang_fields: of shape {'en': str, 'he': str}. Defines lang fields for backwards compatibility. If None, ignore.
 	:param bool use_as_typed:
 	"""
 	new_topic_list = []
@@ -69,6 +70,10 @@ def add_langs_to_topics(topic_list: list, use_as_typed=True) -> list:
 				new_topic['he'] = topic_obj.get_primary_title('he')
 			elif not use_as_typed:
 				new_topic['en'] = topic_obj.get_primary_title('en')
+
+			if backwards_compat_lang_fields is not None:
+				for lang in ('en', 'he'):
+					new_topic[backwards_compat_lang_fields[lang]] = new_topic[lang]
 			new_topic_list += [new_topic]
 
 	return new_topic_list
@@ -314,7 +319,7 @@ def trending_topics(days=7, ntags=14):
 		"slug": topic['slug'],
 		"count": topic['sheet_count'],
 		"author_count": len(topic['authors']),
-	} for topic in filter(lambda x: len(x["authors"]) > 1, topics)], use_as_typed=False)
+	} for topic in filter(lambda x: len(x["authors"]) > 1, topics)], use_as_typed=False, backwards_compat_lang_fields={'en': 'tag', 'he': 'he_tag'})
 	results = sorted(results, key=lambda x: -x["author_count"])
 
 	return results[:ntags]
@@ -810,7 +815,7 @@ def get_sheets_by_topic(topic, public=True, uid=None, group=None, proj=None, lim
 	"""
 	Returns all sheets tagged with 'topic'
 	"""
-	query = {"topics.slug": topic} if topic else {"tags": {"$exists": 0}}
+	query = {"topics.slug": topic} if topic else {"topics": {"$exists": 0}}
 
 	if uid:
 		query["owner"] = uid

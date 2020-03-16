@@ -60,14 +60,18 @@ class TopicPageAll extends Component {
 
   render() {
     const hasFilter = this.state.filter.length > 1;  // dont filter by one letter. not useful
+    const isHeInt = Sefaria.interfaceLang == "hebrew";
     const topicList = this.state.topicList ? this.state.topicList.filter(item => {
+      if (item.shouldDisplay === false || item.numSources == 0) { return false; }
       if (!hasFilter) { return true }
       for (let title of item.normTitles) {
         if (title.indexOf(this.state.filter) !== -1) { return true; }
       }
       return false;
-    }).slice(0, 500).map(this.renderButton) : null;
-    const isHeInt = Sefaria.interfaceLang == "hebrew";
+    }).slice(0, 500).sort((a, b) => {
+      if (isHeInt) { return (0 + (!!b.primaryTitle.he)) - (0 + (!!a.primaryTitle.he)); }
+      else         { return (0 + (!!b.primaryTitle.en)) - (0 + (!!a.primaryTitle.en)); }
+    }).map(this.renderButton) : null;
     const classStr = classNames({topicsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
     const navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
     const contentClasses = classNames({content: 1, hasFooter: 1});
