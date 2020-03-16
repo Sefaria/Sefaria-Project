@@ -1029,29 +1029,33 @@ class TopicListStoryFactory(AbstractStoryFactory):
         cls.create_shared_story(topics=sheets.trending_topics(days=days, ntags=6))
 
     @classmethod
+    def generate_parasha_topics_story(cls, parasha_obj, mustHave, iteration, k, **kwargs):
+        from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+        from sefaria.helper.topic import get_topic_by_parasha
+        from sefaria.model.topic import Topic
+        page = iteration - 1
+        topic = get_topic_by_parasha(parasha_obj["parasha"])
+        if not topic:
+            return
+        link_set = topic.link_set(_class='intraTopic', page=page, limit=k)
+        related_topics = list(filter(None, [Topic.init(l.topic) for l in link_set]))
+        if len(related_topics) < k:
+            return
+
+        cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
+
+        return cls.generate_story(
+            topics=related_topics,
+            title={"en": "Topics in " + cal["displayValue"]["en"], "he": "נושאים ב" + cal["displayValue"]["he"]},
+            lead={"en": "Weekly Torah Portion", "he": 'פרשת השבוע'},
+            mustHave=mustHave or [],
+            **kwargs
+        )
+
+    @classmethod
     def create_parasha_topics_stories(cls, iteration=1, k=6, **kwargs):
         def _create_parasha_topic_story(parasha_obj, mustHave=None, **kwargs):
-            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
-            from sefaria.helper.topic import get_topic_by_parasha
-            from sefaria.model.topic import Topic
-            page = iteration-1
-            topic = get_topic_by_parasha(parasha_obj["parasha"])
-            if not topic:
-                return
-            link_set = topic.link_set(_class='intraTopic', page=page, limit=k)
-            related_topics = list(filter(None, [Topic.init(l.topic) for l in link_set]))
-            if len(related_topics) < k:
-                return
-
-            cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
-
-            cls.generate_story(
-                topics=related_topics,
-                title={"en": "Topics in " + cal["displayValue"]["en"], "he": "נושאים ב" + cal["displayValue"]["he"]},
-                lead={"en": "Weekly Torah Portion", "he": 'פרשת השבוע'},
-                mustHave=mustHave or [],
-                **kwargs
-            ).save()
+            cls.generate_parasha_topics_story(parasha_obj, mustHave, iteration, k, **kwargs).save()
 
         create_israel_and_diaspora_stories(_create_parasha_topic_story, **kwargs)
 
