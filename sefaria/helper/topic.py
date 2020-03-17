@@ -200,20 +200,28 @@ def generate_topic_links_from_sheets(topic=None):
     from tqdm import tqdm
     from statistics import mean, stdev
 
-    if not topic:
-        RefTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
-        IntraTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
     all_topics = {}
+    # ignore sheets that are copies or were assignments
     query = {"status": "public", "viaOwner": {"$exists": 0}, "assignment_id": {"$exists": 0}}
     if topic:
         query['topics.slug'] = topic
     projection = {"topics": 1, "includedRefs": 1, "owner": 1}
-    # ignore sheets that are copies or were assignments
     sheet_list = db.sheets.find(query, projection)
+    sheet_links = []
     for sheet in tqdm(sheet_list, desc="aggregating sheet topics"):
         sheet_topics = sheet.get("topics", [])
         for topic_dict in sheet_topics:
             slug = topic_dict['slug']
+            sheet_links += [{
+                "class": "refTopic",
+                "toTopic": slug,
+                "ref": f"Sheet {sheet['id']}",
+                "expandedRefs": [f"Sheet {sheet['id']}"],
+                "linkType": "about",
+                "is_sheet": True,
+                "dataSource": "sefaria-users",
+                "generatedBy": "sheet-topic-aggregator"
+            }]
             if slug not in all_topics:
                 all_topics[slug] = {
                                 "topic": slug,
@@ -233,6 +241,7 @@ def generate_topic_links_from_sheets(topic=None):
 
     already_created_related_links = {}
     related_links = []
+    source_links = []
     for slug, blob in tqdm(all_topics.items(), desc="creating sheet topic links"):
         if topic is not None and slug != topic:
             continue
@@ -290,7 +299,7 @@ def generate_topic_links_from_sheets(topic=None):
         # create links
         if not topic:
             for source in sources:
-                rtl = RefTopicLink({
+                source_links += [{
                     "class": "refTopic",
                     "toTopic": slug,
                     "ref": source[0],
@@ -300,10 +309,15 @@ def generate_topic_links_from_sheets(topic=None):
                     "dataSource": "sefaria-users",
                     "generatedBy": "sheet-topic-aggregator",
                     "order": {"user_votes": source[2]}
-                })
-                rtl.save()
+                }]
+
     if not topic:
-        tfidf_related_sheet_topics(related_links)
+        final_related_links = tfidf_related_sheet_topics(related_links)
+
+        # now that we've gathered all the new links, delete old ones and insert new ones
+        RefTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
+        IntraTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
+        db.topic_links.insert_many(sheet_links + source_links + final_related_links, ordered=False)
 
 
 def tfidf_related_sheet_topics(related_links):
@@ -351,9 +365,7 @@ def tfidf_related_sheet_topics(related_links):
                     "generatedBy": "sheet-topic-aggregator",
                     "order": {"tfidf": inner_score_dict['tfidf']}
                 }]
-
-    # save
-    db.topic_links.insert_many(final_related_links, ordered=False)
+    return final_related_links
 
 
 def tokenize_words_for_tfidf(text, stopwords):
