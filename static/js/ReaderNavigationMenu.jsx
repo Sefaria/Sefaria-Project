@@ -42,7 +42,7 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
 
   const navHome = () => {
     setCategories([]);
-    setNavTopic("");
+    setNavTopic("", null);
     openNav();
   };
 
@@ -230,7 +230,7 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
 
 
   let topicBlocks = Sefaria.topicTocPage().map((t,i) => {
-      const openTopic = e => {e.preventDefault(); setNavTopic(t.slug)};
+      const openTopic = e => {e.preventDefault(); setNavTopic(t.slug, {en: t.en, he: t.he})};
       return <a href={"/topics/category/" + t.slug}
          onClick={openTopic}
          className="blockLink"

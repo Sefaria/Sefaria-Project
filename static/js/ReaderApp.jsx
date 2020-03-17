@@ -80,6 +80,7 @@ class ReaderApp extends Component {
           navigationCategories: props.initialNavigationCategories,
           navigationTopicCategory: props.initialNavigationTopicCategory,
           navigationTopic: props.initialTopic,
+          navigationTopicTitle: props.initialNavigationTopicTitle,
           topicTitle: props.initialTopicTitle,
           profile: props.initialProfile,
           sheetsTag: props.initialSheetsTag,
@@ -124,6 +125,7 @@ class ReaderApp extends Component {
           navigationCategories: props.initialNavigationCategories,
           navigationTopicCategory: props.initialNavigationTopicCategory,
           navigationTopic: props.initialTopic,
+          navigationTopicTitle: props.initialNavigationTopicTitle,
           topicTitle: props.initialTopicTitle,
           profile: props.initialProfile,
           sheetsTag: props.initialSheetsTag,
@@ -163,6 +165,7 @@ class ReaderApp extends Component {
         navigationCategories: props.initialNavigationCategories,
         navigationTopicCategory: props.initialNavigationTopicCategory,
         navigationTopic: props.initialTopic,
+        navigationTopicTitle: props.initialNavigationTopicTitle,
         topicTitle: props.initialTopicTitle,
         profile: props.initialProfile,
         sheetsTag: props.initialSheetsTag,
@@ -485,9 +488,10 @@ class ReaderApp extends Component {
             hist.mode  = "home";
             break;
           case "navigation":
+            const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
             var topics   = state.navigationTopicCategory;
-            hist.title = cats ? state.navigationCategories.join(", ") + " | " + Sefaria._(siteName) : topics ? state.navigationTopicCategory + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
+            hist.title = cats ? state.navigationCategories.join(", ") + " | " + Sefaria._(siteName) : topics ? state.navigationTopicTitle[shortLang] + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
             hist.url   = topics ? "topics/category/" + topics : "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
@@ -870,6 +874,7 @@ class ReaderApp extends Component {
       sheetNodes:              state.sheetNodes              || null,
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
+      navigationTopicTitle:    state.navigationTopicTitle    || null,
       topicTitle:              state.topicTitle              || null,
       sheetsGroup:             state.group                   || null,
       searchQuery:             state.searchQuery             || null,
@@ -925,7 +930,7 @@ class ReaderApp extends Component {
         $("body").css({overflow: "hidden"})
                   .removeClass("hasBannerMessage");
         if (!this.props.multiPanel) {
-          // Hacky, needed because rendered html of Header doesn't differentiate multiPanel 
+          // Hacky, needed because rendered html of Header doesn't differentiate multiPanel
           $(".readerApp").removeClass("multiPanel").addClass("singlePanel");
         }
       } else {

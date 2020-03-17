@@ -84,6 +84,7 @@ class ReaderPanel extends Component {
       navigationTopicCategory:     props.initialNavigationTopicCategory || "",
       navigationSheetTag:   props.initialSheetsTag || null,
       navigationTopic:      props.initialTopic || null,
+      navigationTopicTitle: props.initialNavigationTopicTitle || null,
       topicTitle:           props.initialTopicTitle || null,
       sheetsGroup:          props.initialGroup || null,
       sheet:                props.sheet || null,
@@ -418,14 +419,15 @@ class ReaderPanel extends Component {
       // appliedSearchFilters: [],
       navigationSheetTag: null,
       navigationTopic: null,
+      navigationTopicTitle: null,
       topicTitle: null,
     });
   }
   setNavigationCategories(categories) {
     this.conditionalSetState({navigationCategories: categories});
   }
-  setNavigationTopic(topic) {
-    this.conditionalSetState({menuOpen: 'navigation', navigationTopicCategory: topic, navigationTopic: null, topicTitle: null});
+  setNavigationTopic(topic, topicTitle) {
+    this.conditionalSetState({menuOpen: 'navigation', navigationTopicCategory: topic, navigationTopicTitle: topicTitle, navigationTopic: null, topicTitle: null});
   }
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});

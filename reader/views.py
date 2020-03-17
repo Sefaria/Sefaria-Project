@@ -451,6 +451,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
         "initialNavigationTopicCategory":     None,
+        "initialNavigationTopicTitle": None,
     })
     if sheet == None:
         title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
@@ -561,10 +562,14 @@ def topics_toc_page(request, topicCategory):
     List of texts in a category.
     """
     props = base_props(request)
-
+    topic_obj = Topic.init(topicCategory)
     props.update({
         "initialMenu": "navigation",
         "initialNavigationTopicCategory": topicCategory,
+        "initialNavigationTopicTitle": {
+            "en": topic_obj.get_primary_title('en'),
+            "he": topic_obj.get_primary_title('he')
+        }
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
