@@ -96,7 +96,7 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
       const { slug, children, en, he } = t;
       const openTopic = e => {
         e.preventDefault();
-        t.children ? setNavTopic(slug) : setTopic(slug, {en, he});
+        t.children ? setNavTopic(slug, {en, he}) : setTopic(slug, {en, he});
       };
       return <a href={`/topics/${children ? 'category/' : ''}${slug}`}
          onClick={openTopic}
@@ -137,7 +137,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, interfaceLang, isCat, setNa
        {!topicData && !isCat ?<LoadingMessage/>:""}
        {!isCat && category?
            <div className="topicCategory sectionTitleText">
-             <a href={`/topics/category/${category.slug}`} onClick={e=>{ e.preventDefault(); setNavTopic(category.slug); }}>
+             <a href={`/topics/category/${category.slug}`} onClick={e=>{ e.preventDefault(); setNavTopic(category.slug, category); }}>
               <span className="int-en">{category.en}</span>
               <span className="int-he">{category.he}</span>
              </a>
