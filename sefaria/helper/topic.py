@@ -191,7 +191,7 @@ def recommend_topics(refs: list) -> list:
 """
 
 
-def generate_topic_links_from_sheets(topic=None):
+def generate_all_topic_links_from_sheets(topic=None):
     """
     Processes all public source sheets to create topic links.
     """
@@ -207,21 +207,10 @@ def generate_topic_links_from_sheets(topic=None):
         query['topics.slug'] = topic
     projection = {"topics": 1, "includedRefs": 1, "owner": 1}
     sheet_list = db.sheets.find(query, projection)
-    sheet_links = []
     for sheet in tqdm(sheet_list, desc="aggregating sheet topics"):
         sheet_topics = sheet.get("topics", [])
         for topic_dict in sheet_topics:
             slug = topic_dict['slug']
-            sheet_links += [{
-                "class": "refTopic",
-                "toTopic": slug,
-                "ref": f"Sheet {sheet['id']}",
-                "expandedRefs": [f"Sheet {sheet['id']}"],
-                "linkType": "about",
-                "is_sheet": True,
-                "dataSource": "sefaria-users",
-                "generatedBy": "sheet-topic-aggregator"
-            }]
             if slug not in all_topics:
                 all_topics[slug] = {
                                 "topic": slug,
@@ -312,15 +301,35 @@ def generate_topic_links_from_sheets(topic=None):
                 }]
 
     if not topic:
-        final_related_links = tfidf_related_sheet_topics(related_links)
-
+        final_related_links = calculate_tfidf_related_sheet_links(related_links)
+        sheet_links = generate_sheet_topic_links()
         # now that we've gathered all the new links, delete old ones and insert new ones
         RefTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
         IntraTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
         db.topic_links.insert_many(sheet_links + source_links + final_related_links, ordered=False)
 
 
-def tfidf_related_sheet_topics(related_links):
+def generate_sheet_topic_links():
+    projection = {"topics": 1}
+    sheet_list = db.sheets.find({}, projection)
+    sheet_links = []
+    for sheet in tqdm(sheet_list, desc="getting sheet topic links"):
+        sheet_topics = sheet.get("topics", [])
+        for topic_dict in sheet_topics:
+            slug = topic_dict['slug']
+            sheet_links += [{
+                "class": "refTopic",
+                "toTopic": slug,
+                "ref": f"Sheet {sheet['id']}",
+                "expandedRefs": [f"Sheet {sheet['id']}"],
+                "linkType": "about",
+                "is_sheet": True,
+                "dataSource": "sefaria-users",
+                "generatedBy": "sheet-topic-aggregator"
+            }]
+    return sheet_links
+
+def calculate_tfidf_related_sheet_links(related_links):
     import math
     from tqdm import tqdm
     from sefaria.system.database import db
@@ -709,7 +718,7 @@ def add_num_sources_to_topics():
 
 
 def recalculate_secondary_topic_data():
-    generate_topic_links_from_sheets()
+    generate_all_topic_links_from_sheets()
     update_intra_topic_link_orders()
     update_ref_topic_link_orders()
     add_num_sources_to_topics()
