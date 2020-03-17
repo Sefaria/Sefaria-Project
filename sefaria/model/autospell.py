@@ -232,7 +232,7 @@ class Completions(object):
         self.keys_covered = set()
         self.completions = []  # titles to return
         self.completion_objects = []
-        self.duplicate_matches = []  # (key, {}) pairs, as constructed in TitleTrie
+        # self.duplicate_matches = []  # (key, {}) pairs, as constructed in TitleTrie
 
     def process(self):
         """
@@ -263,6 +263,7 @@ class Completions(object):
             if self.limit and len(self.completions) >= self.limit:
                 return self.completions
         """
+
         # This string of characters, or a minor variations thereof, deeper in the string
         try:
             for suggestion in self.auto_completer.ngram_matcher.guess_titles(
@@ -319,14 +320,17 @@ class Completions(object):
 
         # Iterate through non primary ones, until we cover the whole node-space
         for k, v in non_primary_matches:
-            if (v["type"], v["key"]) not in self.keys_covered and len(v["title"]) > 4:   # The > 4 looks to get rid of "Gen" "Exod" and the like.
+            if (v["type"], v["key"]) not in self.keys_covered:
+                if v["type"] == "ref" and len(v["title"]) <= 4:  # The > 4 looks to get rid of "Gen" "Exod" and the like.
+                    continue
                 completions += [v["title"]]
                 completion_objects += [v]
                 self.keys_covered.add((v["type"], v["key"]))
+            """ Unnecc? 
             else:
                 # todo: Check if this is in there already?
                 self.duplicate_matches += [(k, v)]
-
+            """
         return [completions, completion_objects]
 
 
@@ -442,11 +446,12 @@ class SpellChecker(object):
                     continue
                 self.WORDS[w] += 1
 
-    def single_edits(self, word):
+    def single_edits(self, word, hold_first_letter=True):
         """All edits that are one edit away from `word`."""
-        splits     = [(word[:i], word[i:])    for i in range(len(word) + 1)]
+        start      = 1 if hold_first_letter else 0
+        splits     = [(word[:i], word[i:])    for i in range(start, len(word) + 1)]
         deletes    = [L + R[1:]               for L, R in splits if R]
-        transposes = [L + R[1] + R[0] + R[2:] for L, R in splits if len(R)>1]
+        transposes = [L + R[1] + R[0] + R[2:] for L, R in splits if len(R) > 1]
         replaces   = [L + c + R[1:]           for L, R in splits if R for c in self.letters]
         inserts    = [L + c + R               for L, R in splits for c in self.letters]
         return set(deletes + transposes + replaces + inserts)
@@ -474,7 +479,7 @@ class NGramMatcher(object):
     Utility to find titles in our list that roughly match a given string. 
     """
 
-    MIN_N_GRAM_SIZE = 3
+    # MIN_N_GRAM_SIZE = 3
 
     def __init__(self, lang):
         assert lang in ["en", "he"]
@@ -504,7 +509,7 @@ class NGramMatcher(object):
             except KeyError:
                 possibilities = []
             for title in possibilities:
-                score = float(len(token)) / len(title.replace(" ", ""))
+                score = float(len(token)) / len(title.replace(" ", ""))   # How much of this title does this token account for
                 possibilities__scores.append((title, score))
         return possibilities__scores
 
