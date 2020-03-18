@@ -232,7 +232,6 @@ class Completions(object):
         self.keys_covered = set()
         self.completions = []  # titles to return
         self.completion_objects = []
-        # self.duplicate_matches = []  # (key, {}) pairs, as constructed in TitleTrie
 
     def process(self):
         """
@@ -255,28 +254,26 @@ class Completions(object):
             if self.limit and len(self.completions) >= self.limit:
                 return self.completions[:self.limit or None]
 
-        # double misspellings
-        """
-        double_edits = (e2 for e1 in single_edits for e2 in self.full_auto_completer.spell_checker.single_edits(e1))
-        for edit in double_edits:
-            self.add_new_continuations_from_string(edit)
-            if self.limit and len(self.completions) >= self.limit:
-                return self.completions
-        """
 
         # This string of characters, or a minor variations thereof, deeper in the string
         try:
             for suggestion in self.auto_completer.ngram_matcher.guess_titles(
                 self.auto_completer.spell_checker.correct_phrase(self.normal_string)
             ):
-                completion_set = set(self.completions)
-                if suggestion not in completion_set:
-                    self.completions += [suggestion]
-                    self.completion_objects += self.auto_completer.title_trie[normalizer(self.lang)(suggestion)]
+                k = normalizer(self.lang)(suggestion)
+                all_v = self.auto_completer.title_trie[k]
+                added_to_completions = False
+                for v in all_v:
+                    if (v["type"], v["key"]) not in self.keys_covered:
+                        self.completion_objects += [v]
+                        if not added_to_completions:
+                            self.completions += [v["title"]]
+                            added_to_completions = True
         except ValueError:
             pass
 
-        return self.completions[:self.limit or None]
+        self.completions = self.completions[:self.limit or None]
+        return self.completions
 
     def get_new_continuations_from_string(self, str):
         """
@@ -317,7 +314,6 @@ class Completions(object):
                 else:
                     non_primary_matches += [(k, v)]
 
-
         # Iterate through non primary ones, until we cover the whole node-space
         for k, v in non_primary_matches:
             if (v["type"], v["key"]) not in self.keys_covered:
@@ -326,11 +322,7 @@ class Completions(object):
                 completions += [v["title"]]
                 completion_objects += [v]
                 self.keys_covered.add((v["type"], v["key"]))
-            """ Unnecc? 
-            else:
-                # todo: Check if this is in there already?
-                self.duplicate_matches += [(k, v)]
-            """
+
         return [completions, completion_objects]
 
 

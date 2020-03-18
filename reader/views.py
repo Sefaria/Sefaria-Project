@@ -2287,18 +2287,11 @@ def get_name_completions(name, limit, ref_only):
             t = [base_title + ", " + t[1] for t in lexicon_ac.items(inode.word)[:limit or None]]
             completions = list(OrderedDict.fromkeys(t))  # filter out dupes
             completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
-        else:
-            [completions, completion_objects] = completer.next_steps_from_node(name)
-            completions = [name.capitalize()] + completions
-            completion_objects = completer.get_data(name.capitalize()) + completion_objects
 
-        if limit == 0 or len(completions) < limit:
-            current = {t: 1 for t in completions}
-            additional_results, _ = completer.complete(name, limit)
-            for res in additional_results:
-                if res not in current:
-                    completions += [res]
-                    completion_objects += completer.get_data(res)
+        else:
+            completions, completion_objects = completer.complete(name, limit)
+            object_data = completer.get_object(name)
+
     except DictionaryEntryNotFoundError as e:
         # A dictionary beginning, but not a valid entry
         lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
@@ -2347,8 +2340,6 @@ def name_api(request, name):
             "internalToSections": ref.toSections,
             "sections": ref.normal_sections(),  # this switch is to match legacy behavior of parseRef
             "toSections": ref.normal_toSections(),
-            # "number_follows": inode.has_numeric_continuation(),
-            # "titles_follow": titles_follow,
             "completions": completions_dict["completions"] if LIMIT == 0 else completions_dict["completions"][:LIMIT],
             "completion_objects": completions_dict["completion_objects"],
             # todo: ADD textual completions as well
