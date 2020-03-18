@@ -106,13 +106,19 @@ class Header extends Component {
           $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
       }
   }
-  focusSearch() {
+  focusSearch(e) {
+    const parent = document.getElementById('searchBox');
     this.setState({searchFocused: true});
     this.showVirtualKeyboardIcon(true);
   }
-  blurSearch() {
-    this.setState({searchFocused: false});
-    this.showVirtualKeyboardIcon(false);
+  blurSearch(e) {
+    // check that you're actually focusing in on element outside of searchBox
+    // see 2nd answer https://stackoverflow.com/questions/12092261/prevent-firing-the-blur-event-if-any-one-of-its-children-receives-focus/47563344
+    const parent = document.getElementById('searchBox');
+    if (!e.relatedTarget || !parent.contains(e.relatedTarget)) {
+      this.setState({searchFocused: false});
+      this.showVirtualKeyboardIcon(false);
+    }
   }
   showDesktop() {
     if (this.props.panelsOpen === 0) {
@@ -345,7 +351,7 @@ class Header extends Component {
               <div className={headerInnerClasses}>
                 <div className="headerNavSection">
                     <a href="/texts" aria-label={this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 ? "Return to text" : "Open the Sefaria Library Table of Contents" } className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
-                    <div  className={searchBoxClasses}>
+                    <div id="searchBox" className={searchBoxClasses}>
                       <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                       <input className={inputClasses}
                              id="searchInput"
