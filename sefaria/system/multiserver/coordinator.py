@@ -1,6 +1,6 @@
 import json
 import uuid
-
+from redis import ConnectionError
 from django.core.exceptions import MiddlewareNotUsed
 
 from sefaria.settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
@@ -43,21 +43,39 @@ class ServerCoordinator(MessagingNode):
         import os
         logger.info("publish_event from {}:{} - {}".format(socket.gethostname(), os.getpid(), msg_data))
 
-        self.redis_client.publish(MULTISERVER_REDIS_EVENT_CHANNEL, msg_data)
+        try:
+            self.redis_client.publish(MULTISERVER_REDIS_EVENT_CHANNEL, msg_data)
+        except ConnectionError as e:
+            logger.error("Server failed to publish message to Redis: {}".format(e))
+            return
 
         # Since we are subscribed to this channel as well, throw away the message we just sent.
         # It would be nice to assume that nothing new came through in the microseconds that it took to publish ##
         # But the below should insulate against even that case ##
-        popped_msg = self.pubsub.get_message()
+        try:
+            popped_msg = self.pubsub.get_message()
+        except ConnectionError as e:
+            logger.error("Server, in publish_event, failed to get messages from Redis: {}".format(e))
+            return
+
         while popped_msg:
             if popped_msg["data"] != msg_data:
                 logger.warning("Multiserver Message collision!")
                 self._process_message(popped_msg)
-            popped_msg = self.pubsub.get_message()
+            try:
+                popped_msg = self.pubsub.get_message()
+            except ConnectionError as e:
+                logger.error("Server, in publish_event, failed to get messages from Redis: {}".format(e))
+                return
 
     def sync(self):
         self._check_initialization()
-        msg = self.pubsub.get_message()
+        try:
+            msg = self.pubsub.get_message()
+        except ConnectionError as e:
+            logger.error("Server, in sync, failed to get messages from Redis: {}".format(e))
+            return
+
         if not msg or msg["type"] == "subscribe":
             return
 

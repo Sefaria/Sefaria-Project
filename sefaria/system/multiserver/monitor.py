@@ -1,6 +1,6 @@
 import json
 import time
-
+from redis import ConnectionError
 from sefaria.settings import MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
 
 import logging
@@ -31,7 +31,11 @@ class MultiServerMonitor(MessagingNode):
 
         :return:
         """
-        msg = self.pubsub.get_message()
+        try:
+            msg = self.pubsub.get_message()
+        except ConnectionError as e:
+            logger.error("Monitor failed to get messages: {}".format(e))
+            return
         if not msg:
             return
 
@@ -57,7 +61,11 @@ class MultiServerMonitor(MessagingNode):
         :return:
         """
         event_id = data["id"]
-        (_, subscribers) = self.redis_client.execute_command('PUBSUB', 'NUMSUB', MULTISERVER_REDIS_EVENT_CHANNEL)
+        try:
+            (_, subscribers) = self.redis_client.execute_command('PUBSUB', 'NUMSUB', MULTISERVER_REDIS_EVENT_CHANNEL)
+        except ConnectionError as e:
+            logger.error("Monitor failed to execute NUMSUB: {}".format(e))
+            return
         expected = int(subscribers - 2)  # No confirms from the publisher or the monitor => subscribers - 2
         self.events[event_id] = {
             "data": data,
@@ -82,6 +90,7 @@ class MultiServerMonitor(MessagingNode):
 
         if not event_record:
             logger.error("Got confirmation of unknown event. {}".format(data))
+            return
 
         event_record["confirmed"] += 1
         event_record["confirmations"] += [data]
