@@ -83,11 +83,12 @@ class Header extends Component {
       },
       focus: function( event, ui ) {
         $(".ui-state-focus").removeClass("ui-state-focus");
+
         $(".ui-menu-item a[data-value='" + ui.item.value + "']").addClass("ui-state-focus");
       },
       source: (request, response) => Sefaria.getName(request.term)
         .then(d => {
-          const comps = d["completion_objects"].map(o => ({value: o["title"], label: o["title"], key: o["key"], type: o["type"]}));
+          const comps = d["completion_objects"].map(o => ({value: o["title"].replace(/'/g, '|||'), label: o["title"], key: o["key"], type: o["type"]}));
           if (comps.length > 0) {
             const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
             response(comps.concat([{value: q, label: q, type: "search"}]));
