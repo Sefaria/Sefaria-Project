@@ -68,7 +68,7 @@ class Header extends Component {
       minLength: 3,
       select: ( event, ui ) => {
         debugger;
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear, but the eye can sometimes catch it.
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.label);  // This will disappear, but the eye can sometimes catch it.
 
         const override = ui.item.label.match(this._searchOverrideRegex());
         if (override) {
