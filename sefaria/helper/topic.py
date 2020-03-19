@@ -183,7 +183,19 @@ def recommend_topics(refs: list) -> list:
     for link in ref_links:
         topic_count[link.toTopic] += 1
 
-    return sorted(iter(topic_count.items()), key=lambda x: x[1], reverse=True)
+    recommend_topics = []
+    for slug in topic_count.keys():
+        topic = Topic.init(slug)
+        recommend_topics.append({
+            "slug": slug,
+            "titles": {
+                "en": topic.get_primary_title(lang="en"),
+                "he": topic.get_primary_title(lang="he")
+            },
+            "count": topic_count[slug]
+        })
+
+    return sorted(recommend_topics, key=lambda x: x["count"], reverse=True)
 
 
 """

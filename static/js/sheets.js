@@ -841,7 +841,7 @@ $(function() {
 	$("#highlightToggle").click(toggleHighlighter);
 
 	// ------- Sheet Tags --------------
-	sjs.sheetTagger.init(sjs.current.id, sjs.current.tags);
+	sjs.sheetTagger.init();
 	$("#editTags").click(showShareModal);
 
 
@@ -1658,11 +1658,12 @@ $(function() {
 		$("#shareWithOthers, #overlay").hide();
 		$("#sheetSummary").text($("#sheetSummaryInput").val());
 
-		var curTagsHTML = "";
-    for (var i = 0; i < sjs.sheetTagger.tags().length; i++) {
-    	curTagsHTML = curTagsHTML + '<a class="button" role="button" href="/topics/'+sjs.sheetTagger.tags()[i]+'">'+sjs.sheetTagger.tags()[i]+'</a>';
+	var curTagsHTML = "";
+	var tags = sjs.sheetTagger.topics();
+    for (var i = 0; i < tags.length; i++) {
+    	curTagsHTML = curTagsHTML + '<a class="button" role="button" href="/topics/'+tags[i].slug+'">'+tags[i].asTyped+'</a>';
     }
-		$("#sheetTags").html(curTagsHTML);
+	$("#sheetTags").html(curTagsHTML);
 
     //save whole sheet if possible, otherwise, just save sheet tags:
     if (sjs.can_save) {
@@ -1703,14 +1704,6 @@ $(function() {
 			$("#sheetHeader").hide();
 			$("#sourceSheetsAccessOptions").show();
 		}
-	});
-
-
-
-	$("#suggestedTags").on('click', '.tagButton', function() {
-		$("#tags").tagit("createTag",$(this).text());
-		$("#tags .addTagMsg").hide()
-		$(this).hide();
 	});
 
 
@@ -2164,31 +2157,65 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 
 
 sjs.sheetTagger = {
-	init: function(id, topics, callback) {
-		this.id       = id;
-		this.initTags = topics;
-		this.callback = callback;
-
-
-		// Init with tagit and with its tags
-		$("#tags").tagit({ allowSpaces: true });
-		this.setTags(topics);
-		if (topics && topics.length>0) {
-			$("#tags .addTagMsg").hide();
-		}
-
+	init: function() {
+		$("#tags").tagit({ allowSpaces: true, readOnly: true });
+		$("#suggestedTags").on('click', '.tagButton', function() {
+			$("#tags").tagit("createTag",$(this).text());
+			$("#tags .addTagMsg").hide()
+			$(this).hide();
+		});
 	},
 	tags: function() {
 		return sjs.tagitTags("#tags");
 	},
+	topics: function() {
+		return sjs.sheetTagger.tags().map(function(tag){
+			return {
+				slug: sjs.sheetTagger.tagSlugs[tag],
+				asTyped: tag
+			};
+		})
+	},
 	setTags: function(topics) {
 		$("#tags").tagit("removeAll");
 		if (topics && topics.length) {
+			$("#tags .addTagMsg").hide();
 			for (var i=0; i < topics.length; i++) {
-				$("#tags").tagit("createTag", topics[i].slug);
+				$("#tags").tagit("createTag", topics[i].asTyped);
 			}
 		}
 	},
+	suggestTags: function() {
+		var suggestedTagsLookup = [];
+		var sources = readSources($("#sources"));
+		for (var i = 0; i < sources.length; i++) {
+			if (sources[i].ref) {
+				suggestedTagsLookup.push(sources[i].ref);
+			}
+		}
+
+		if (suggestedTagsLookup.length) {
+			$.getJSON("/api/recommend/topics/" + suggestedTagsLookup.join("+"), function(data) {
+				var suggestedTags = [];
+				$("#suggestedTags").html('');
+				for (var i = 0; i < data.topics.length; i++) {
+					Object.keys(data.topics[i].titles).map(function(lang) {
+						sjs.sheetTagger.tagSlugs[data.topics[i]["titles"][lang]] = data.topics[i].slug;
+					});
+					if (data.topics[i]["count"] > 1 ) { //only suggest tag if it has more than one topic link
+						suggestedTags.push(data.topics[i]["titles"][sjs.interfaceLang]);
+					}
+				}
+
+				for (var i = 0; i < suggestedTags.length; i++) {
+					if ($("#suggestedTags .tagButton").length < 5 && sjs.sheetTagger.tags().indexOf(suggestedTags[i]) == -1) {
+						$("#suggestedTags").append("<span class='tagButton'>"+suggestedTags[i]+"</span>");
+					}
+				}
+			});
+		}
+	},
+	tagSlugs: {}
 };
 
 
@@ -2401,6 +2428,7 @@ function readSheet() {
 	sheet.status   = "unlisted";
 	sheet.nextNode = sjs.current.nextNode;
 	sheet.tags     = sjs.sheetTagger.tags();
+	sheet.topics   = sjs.sheetTagger.topics();
 	sheet.summary  = $("#sheetSummaryInput").val();
 
 	if ($("#author").hasClass("custom")) {
@@ -2817,7 +2845,7 @@ function buildSheet(data){
 		$("#sourceSheetGroupOptions").hide();
 	}
 
-	sjs.sheetTagger.init(data.id, data.topics);
+	sjs.sheetTagger.setTags(data.topics);
 
 	buildSources($("#sources"), data.sources);
 	setSourceNumbers();
@@ -3540,34 +3568,7 @@ function showShareModal(){
 	}
 	$("#overlay").show();
 
-	var suggestedTagsLookup = [];
-
-	var sources = readSources($("#sources"));
-
-	for (var i = 0; i < sources.length; i++) {
-		if (sources[i].ref) {
-			suggestedTagsLookup.push(sources[i].ref);
-		}
-	}
-
-	if (suggestedTagsLookup.length) {
-		$.getJSON("/api/recommend/topics/" + suggestedTagsLookup.join("+"), function(data) {
-			var suggestedTags = [];
-			$("#suggestedTags").html('');
-			for (var i = 0; i < data.topics.length; i++) {
-				if (data.topics[i][1] > 1 ){ //only add tag if it's included on more than one sheet. Creates better suggestions.
-					suggestedTags.push(data.topics[i][0]);
-				}
-			}
-
-			for (var i = 0; i < suggestedTags.length; i++) {
-				if ($("#suggestedTags .tagButton").length < 5 && sjs.sheetTagger.tags().indexOf(suggestedTags[i]) == -1) {
-					$("#suggestedTags").append("<span class='tagButton'>"+suggestedTags[i]+"</span>");
-				}
-			}
-		});
-	}
-
+	sjs.sheetTagger.suggestTags();
 }
 
 
