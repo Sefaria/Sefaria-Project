@@ -58,7 +58,7 @@ class Header extends Component {
           .data( "item.autocomplete", item )
           .toggleClass("search-override", !!override)
           .append(`<img alt="${item.type}" src="/static/icons/${this._type_icon_map[item.type]}">`)
-          .append( $( "<a role='option' data-value='" + item.value + "'></a>" ).text( item.label ) )
+          .append( $( `<a href="${this.getURLForObject(item.type, item.key)}" role='option' data-value='${item.value}'></a>` ).text( item.label ) )
           .appendTo( ul );
       }.bind(this)
     });
@@ -67,8 +67,8 @@ class Header extends Component {
       position: {my: anchorSide + "12 top+17", at: anchorSide + "0 bottom"},
       minLength: 3,
       select: ( event, ui ) => {
-        debugger;
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear, but the eye can sometimes catch it.
+        event.preventDefault();
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.label);  // This will disappear, but the eye can sometimes catch it.
 
         const override = ui.item.label.match(this._searchOverrideRegex());
         if (override) {
@@ -83,11 +83,12 @@ class Header extends Component {
       },
       focus: function( event, ui ) {
         $(".ui-state-focus").removeClass("ui-state-focus");
+
         $(".ui-menu-item a[data-value='" + ui.item.value + "']").addClass("ui-state-focus");
       },
       source: (request, response) => Sefaria.getName(request.term)
         .then(d => {
-          const comps = d["completion_objects"].map(o => ({value: o["title"], label: o["title"], key: o["key"], type: o["type"]}));
+          const comps = d["completion_objects"].map(o => ({value: `${o['type']}|${o["key"]}`, label: o["title"], key: o["key"], type: o["type"]}));
           if (comps.length > 0) {
             const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
             response(comps.concat([{value: q, label: q, type: "search"}]));
@@ -115,8 +116,11 @@ class Header extends Component {
     // check that you're actually focusing in on element outside of searchBox
     // see 2nd answer https://stackoverflow.com/questions/12092261/prevent-firing-the-blur-event-if-any-one-of-its-children-receives-focus/47563344
     const parent = document.getElementById('searchBox');
-    if (!e.relatedTarget || !parent.contains(e.relatedTarget)) {
-      this.setState({searchFocused: false});
+    if (!parent.contains(e.relatedTarget)) {
+      if (!document.getElementById('keyboardInputMaster')) {
+        // if keyboard is open, don't just close it and don't close search
+        this.setState({searchFocused: false});
+      }
       this.showVirtualKeyboardIcon(false);
     }
   }
@@ -179,15 +183,31 @@ class Header extends Component {
   hideTestMessage() {
     this.props.setCentralState({showTestMessage: false});
   }
+  getURLForObject(type, key) {
+    if (type === "Person") {
+      return `/person/${key}`;
+    } else if (type === "Group") {
+      return `/groups/${key.replace(/ /g,"-")}`;
+    } else if (type === "TocCategory") {
+      return `/texts/${key.join('/')}`;
+    } else if (type === "Topic") {
+      return `/topics/${key}`;
+    } else if (type === "ref") {
+      return `/${key.replace(/ /g, '_')}`;
+    }
+  }
+  showObject(type, key) {
+    window.location = this.getURLForObject(type, key);
+  }
   redirectToObject(type, key) {
       if (type === "Person") {
         Sefaria.track.event("Search", "Search Box Navigation - Person", key);
         this.closeSearchAutocomplete();
-        this.showPerson(key);
+        this.showObject(type, key);
       } else if (type === "Group") {
         Sefaria.track.event("Search", "Search Box Navigation - Group", key);
         this.closeSearchAutocomplete();
-        this.showGroup(key);
+        this.showObject(type, key);
       } else if (type === "TocCategory") {
         Sefaria.track.event("Search", "Search Box Navigation - Category", key);
         this.closeSearchAutocomplete();
@@ -195,7 +215,7 @@ class Header extends Component {
       } else if (type === "Topic") {
         Sefaria.track.event("Search", "Search Box Navigation - Topic", key);
         this.closeSearchAutocomplete();
-        this.showTopic(key);
+        this.showObject(type, key);
       } else if (type === "ref") {
         Sefaria.track.event("Search", "Search Box Navigation - Book", key);
         this.closeSearchAutocomplete();
@@ -232,19 +252,6 @@ class Header extends Component {
   }
   clearSearchBox() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
-  }
-  showTopic(slug) {
-    //todo: This could be done in React
-    window.location = "/topics/" + slug;
-  }
-  showPerson(key) {
-    //todo: move people into React
-    window.location = "/person/" + key;
-  }
-  showGroup(key) {
-    //todo: move people into React
-    key = key.replace(" ","-");
-    window.location = "/groups/" + key;
   }
   handleLibraryClick(e) {
     e.preventDefault();
