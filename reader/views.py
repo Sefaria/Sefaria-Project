@@ -2201,14 +2201,15 @@ def calendars_api(request):
         diaspora = request.GET.get("diaspora", "1")
         custom = request.GET.get("custom", None)
 
-        zone = request.GET.get("timezone", None)
-        if zone:
+        zone_name = request.GET.get("timezone", None)
+        if zone_name:
             try:
-                zone = pytz.timezone(zone)
+                zone = pytz.timezone(zone_name)
             except pytz.exceptions.UnknownTimeZoneError as e:
                 return jsonResponse({"error": "Unknown 'timezone' value: '%s'." % zone})\
         else:
-            zone = timezone.now()
+            zone = None
+            zone_name = timezone.get_current_timezone_name()
 
         try:
             year = int(request.GET.get("year", None))
@@ -2216,7 +2217,7 @@ def calendars_api(request):
             day = int(request.GET.get("day", None))
             datetimeobj = datetime.datetime(year, month, day, tzinfo=zone)
         except Exception as e:
-            datetimeobj = timezone.localtime(zone)
+            datetimeobj = timezone.localtime(timezone.now(), timezone=zone)
 
         if diaspora not in ["0", "1"]:
             return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
@@ -2224,7 +2225,7 @@ def calendars_api(request):
             diaspora = True if diaspora == "1" else False
             calendars = get_all_calendar_items(datetimeobj, diaspora=diaspora, custom=custom)
             return jsonResponse({"date": datetimeobj.date().isoformat(),
-                                 "timezone" : timezone.get_current_timezone_name(),
+                                 "timezone" : zone_name,
                                  "calendar_items": calendars},
                                 callback=request.GET.get("callback", None))
 
