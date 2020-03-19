@@ -2454,19 +2454,19 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #dafyomiPage .sectionRegular{
   max-width: 960px;
 }
-#dafyomiPage .sectionNarrow{
+#dafyomiPage .sectionNarrow {
   max-width: 640px;
 }
-#dafyomiPage .flexContainer{
+#dafyomiPage .flexContainer {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-between;
 }
-#dafyomiPage .flexReverse{
+#dafyomiPage .flexReverse {
   flex-direction: row-reverse;
 }
-#dafyomiPage #dafyomiPageHeader{
+#dafyomiPage #dafyomiPageHeader, .staticPageFrame .staticPageInner {
   background-color: #18345D;
   padding: 70px 0;
   margin-top: 60px;
@@ -2615,7 +2615,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #dafyomiPage #dafyomiExamples .example div{
   flex: 0 0 45%;
 }
-#dafyomiPage #dafyomiExamples .example .dafyomiExampleHeader h3{
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleHeader h3 {
   display: inline-block;
   border-bottom: 4px solid;
 }
@@ -2773,6 +2773,47 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
     height: 246px;
   }
 }
+
+/* Static Page Templates */
+
+.staticPage .flexContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+.staticPage .flexReverse {
+  flex-direction: row-reverse;
+}
+
+.staticPage .feature .featureText{
+  font-family: "Roboto", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 21px;
+  text-align: justify;
+  color: #000000;
+}
+.staticPage .feature .featureImage {
+  text-align: center;
+}
+
+.staticPage .feature .featureImage img {
+  height: 250px;
+}
+
+.staticPage .feature {}
+.staticPage .feature .featureHeader {}
+.staticPage .feature .featureHeader h3 {
+  text-align: center;
+  border-bottom: none;
+  margin: 65px 0 10px 0;
+  display: inline-block;
+  border-bottom: 4px solid;
+}
+
+
 
 /*** Filters for coloring svgs ***/
 .svg-white {

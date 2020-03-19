@@ -43,6 +43,7 @@ static_pages = [
     "torah-tab",
     "dicta-thanks",
     "daf-yomi",
+    "distance-learning"
 ]
 
 
