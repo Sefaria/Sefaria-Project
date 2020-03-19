@@ -2201,15 +2201,11 @@ def calendars_api(request):
         diaspora = request.GET.get("diaspora", "1")
         custom = request.GET.get("custom", None)
 
-        zone_name = request.GET.get("timezone", None)
-        if zone_name:
-            try:
-                zone = pytz.timezone(zone_name)
-            except pytz.exceptions.UnknownTimeZoneError as e:
-                return jsonResponse({"error": "Unknown 'timezone' value: '%s'." % zone})\
-        else:
-            zone = None
-            zone_name = timezone.get_current_timezone_name()
+        zone_name = request.GET.get("timezone", timezone.get_current_timezone_name())
+        try:
+            zone = pytz.timezone(zone_name)
+        except pytz.exceptions.UnknownTimeZoneError as e:
+            return jsonResponse({"error": "Unknown 'timezone' value: '%s'." % zone})\
 
         try:
             year = int(request.GET.get("year", None))
