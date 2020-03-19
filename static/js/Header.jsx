@@ -115,8 +115,11 @@ class Header extends Component {
     // check that you're actually focusing in on element outside of searchBox
     // see 2nd answer https://stackoverflow.com/questions/12092261/prevent-firing-the-blur-event-if-any-one-of-its-children-receives-focus/47563344
     const parent = document.getElementById('searchBox');
-    if (!e.relatedTarget || !parent.contains(e.relatedTarget)) {
-      this.setState({searchFocused: false});
+    if (!parent.contains(e.relatedTarget)) {
+      if (!document.getElementById('keyboardInputMaster')) {
+        // if keyboard is open, don't just close it and don't close search
+        this.setState({searchFocused: false});
+      }
       this.showVirtualKeyboardIcon(false);
     }
   }
