@@ -4,7 +4,8 @@
 .container{
   width: 100%;
 }
-.interface-hebrew .static {
+.interface-hebrew .static,
+.interface-hebrew .staticPage {
   direction:rtl;
 }
 .static {
@@ -2466,7 +2467,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #dafyomiPage .flexReverse {
   flex-direction: row-reverse;
 }
-#dafyomiPage #dafyomiPageHeader, .staticPageFrame .staticPageInner {
+#dafyomiPage #dafyomiPageHeader {
   background-color: #18345D;
   padding: 70px 0;
   margin-top: 60px;
@@ -2776,6 +2777,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 
 /* Static Page Templates */
 
+.staticPage .staticPageBlockInner {
+  width: 800px;
+  margin: 0 auto;
+  max-width: 90%;
+}
 .staticPage .flexContainer {
   display: flex;
   flex-direction: row;
@@ -2785,7 +2791,49 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .flexReverse {
   flex-direction: row-reverse;
 }
-
+.staticPage .greyBackground {
+  background-color: #EDEDEC
+}
+.staticPage .staticPageHeader {
+  background-color: #212E50;
+  padding: 70px 0 0 0;
+  margin-top: 60px;
+  color: white;
+}
+.staticPage .staticPageHeader .flexContainer > div {
+  flex: 1;
+}
+.staticPageHeader h1 {
+  font-size: 48px;
+  line-height: 58px;
+  font-weight: normal;
+  margin: 0 0 14px 0;
+}
+.staticPageHeader h1 .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.staticPageHeaderText {
+  font-size: 16px;
+  line-height: 22px;
+}
+.staticPageHeaderImg img {
+  width: 100%;
+  display: block;
+}
+.staticPageAbout {
+  padding: 50px 0;
+}
+.staticPageAbout h2 {
+  font-size:22px;
+  font-weight: 500;
+  color: #666;
+  line-height: 26px;
+  margin: 0 0 19px 0;
+}
+.staticPageAboutText {
+  font-size: 16px;
+  line-height: 19px;
+}
 .staticPage .feature .featureText{
   font-family: "Roboto", sans-serif;
   font-style: normal;
@@ -2798,11 +2846,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .feature .featureImage {
   text-align: center;
 }
-
 .staticPage .feature .featureImage img {
   height: 250px;
 }
-
 .staticPage .feature {}
 .staticPage .feature .featureHeader {}
 .staticPage .feature .featureHeader h3 {
@@ -2812,7 +2858,22 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   display: inline-block;
   border-bottom: 4px solid;
 }
-
+@media (max-width: 540px) {
+  .staticPage .flexContainer {
+    flex-direction: column;
+  }
+  .staticPage .staticPageBlockInner {
+    width: auto;
+    max-width: none;
+    margin: 0 30px;
+  }
+  .staticPage .staticPageHeader {
+    padding-top: 40px;
+  }
+  .staticPageHeaderText {
+    margin-bottom: 30px;
+  }
+}
 
 
 /*** Filters for coloring svgs ***/
