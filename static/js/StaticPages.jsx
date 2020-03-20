@@ -5,7 +5,8 @@ const Sefaria    = require('./sefaria/sefaria');
 const {
     SimpleContentBlock,
     SimpleInterfaceBlock,
-    TextBlockLink
+    TextBlockLink,
+    ThreeBox
 }                   = require('./Misc');
 import Component from 'react-class';
 
@@ -32,6 +33,28 @@ const DistanceLearningPage = () => (
             heText="More and more people across the world are discovering the power of the internet for education. Sefaria is always open and ready to bring you foundational Jewish texts, modern works, and user-generated Torah content, with the tools you need to take your learning to the next level."
 
         />
+        <GreyBox>
+            <LinkGrid>
+                <SimpleButton href="" he="" en="Foo"/>
+                <SimpleButton href="" he="" en="Bar"/>
+                <SimpleButton href="" he="" en="Quuz"/>
+            </LinkGrid>
+        </GreyBox>
+        <Feature
+            enTitle="Learners"
+            enText="Whether you’re a pro, or a new user, Sefaria has resources to help your virtual study thrive. Join a Sefaria 101 webinar, browse our tutorials, or sign up for the online student training course to up your skills on all things Sefaria. Create a free account to track your learning, save texts, and follow users creating things that interest you."
+            enImg="/static/img/distance-learning-landing-page/learners 1.png"
+            enImgAlt="Source Sheet - Pesach 101"
+            heTitle=""
+            heText=""
+            heImg="/static/img/distance-learning-landing-page/learners 1.png"
+            heImgAlt=""
+        />
+        <LinkGrid>
+            <SimpleButton href="" he="" en="Foo"/>
+            <SimpleButton href="" he="" en="Bar"/>
+            <SimpleButton href="" he="" en="Quuz"/>
+        </LinkGrid>
         <Feature
             enTitle=""
             enText=""
@@ -42,17 +65,11 @@ const DistanceLearningPage = () => (
             heImg=""
             heImgAlt=""
         />
-        <LinkGrid />
-        <Feature
-            enTitle=""
-            enText=""
-            enImg=""
-            enImgAlt=""
-            heTitle=""
-            heText=""
-            heImg=""
-            heImgAlt=""
-        />
+        <LinkGrid>
+            <SimpleButton href="" he="" en="Foo"/>
+            <SimpleButton href="" he="" en="Bar"/>
+            <SimpleButton href="" he="" en="Quuz"/>
+        </LinkGrid>
         <Feature
             enTitle=""
             enText=""
@@ -73,7 +90,7 @@ const StaticPage = ({children}) => (
 );
 
 const GreyBox = ({children}) => (
-    <div className="">
+    <div className="greyBackground">
         {children}
     </div>
 );
@@ -86,14 +103,11 @@ const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImg
                     <span className="int-en">{enTitle}</span>
                     <span className="int-he">{heTitle}</span>
                 </h1>
-                <div className="staticPageHeaderText">
-                    <span className="int-en">{enText}</span>
-                    <span className="int-he">{heText}</span>
-                </div>
+                <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText} />
                 {enActionURL ?
                 <div className="staticPageHeaderAction">
-                    <a class="button int-en" href={enActionURL}>{enActionText}</a>
-                    <a class="button int-he" href={heActionURL}>{heActionText}</a>
+                    <a className="button int-en" href={enActionURL}>{enActionText}</a>
+                    <a className="button int-he" href={heActionURL}>{heActionText}</a>
                 </div>
                 : null}
             </div>
@@ -105,7 +119,6 @@ const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImg
     </div>
 );
 
-
 const About = ({enTitle, heTitle, enText, heText, backgroundColor}) => (
     <div className={"staticPageAbout" + (backgroundColor == "grey" ? " greyBackground" : "")}>
         <div className="staticPageBlockInner">
@@ -113,54 +126,52 @@ const About = ({enTitle, heTitle, enText, heText, backgroundColor}) => (
                 <span className="int-en">{enTitle}</span>
                 <span className="int-he">{heTitle}</span>
             </h2>
-            <div className="staticPageAboutText">
-                <span className="int-en">{enText}</span>
-                <span className="int-he">{heText}</span>
-            </div>
+            <SimpleInterfaceBlock classes="staticPageAboutText" he={heText} en={enText} />
         </div>
     </div>
 );
 
 const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt}) => (
     <div className="feature flexContainer">
-        <div className="featureText">
-            <div className="featureHeader">
-                <h3>
-                    <span className="int-en">{enTitle}</span>
-                    <span className="int-he">{heTitle}</span>
-                </h3>
+        <div className="staticPageBlockInner">
+            <div className="featureText">
+                <div className="featureHeader">
+                    <h3>
+                        <span className="int-en">{enTitle}</span>
+                        <span className="int-he">{heTitle}</span>
+                    </h3>
+                </div>
+                <p className="int-en">{enText}</p>
+                <p className="int-he">{heText}</p>
             </div>
-            <p className="int-en">{enText}</p>
-            <p className="int-he">{heText}</p>
-        </div>
-        <div className="featureImage">
-            <span className="int-en">
-                <img className="button-icon" src={enImg} alt={enImgAlt}/>
-            </span>
-            <span className="int-he">
-                <img className="button-icon" src={heImg} alt={heImgAlt}/>
-            </span>
+            <div className="featureImage">
+                <span className="int-en">
+                    <img className="button-icon" src={enImg} alt={enImgAlt}/>
+                </span>
+                <span className="int-he">
+                    <img className="button-icon" src={heImg} alt={heImgAlt}/>
+                </span>
+            </div>
         </div>
     </div>
 );
 
-const LinkGrid = ({}) => (<div></div>);
+// links - array of {href, he, en}
+const LinkGrid = ({children}) =>
+    <div className="staticPageBlockInner blockVerticalPadding">
+        <ThreeBox content={React.Children.toArray(children)}/>
+    </div>;
 
-/*
-      let calendar = Sefaria.calendars.map(function(item) {
-          return (<TextBlockLink
-                    sref={item.ref}
-                    url_string={item.url}
-                    title={item.title["en"]}
-                    heTitle={item.title["he"]}
-                    displayValue={item.displayValue["en"]}
-                    heDisplayValue={item.displayValue["he"]}
-                    category={item.category}
-                    showSections={false}
-                    recentItem={false} />)
-      });
-      calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={this.width} /></div>);
-*/
+const SimpleButton = ({href, he, en}) => (
+    <div className="">
+        <a href={href} className="button white flexContainer">
+            <span className="int-en">{en}</span>
+            <span className="int-he">{he}</span>
+        </a>
+    </div>
+);
+
+
 
 
 module.exports.DistanceLearningPage = DistanceLearningPage;

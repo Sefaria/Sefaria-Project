@@ -2782,6 +2782,10 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   margin: 0 auto;
   max-width: 90%;
 }
+.staticPage .blockVerticalPadding {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
 .staticPage .flexContainer {
   display: flex;
   flex-direction: row;
@@ -2802,6 +2806,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPage .staticPageHeader .flexContainer > div {
   flex: 1;
+}
+.staticPage .button {
+  border-radius: 0;
 }
 .staticPageHeader h1 {
   font-size: 48px;
