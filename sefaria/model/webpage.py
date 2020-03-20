@@ -376,6 +376,7 @@ sites_data = [
     {   
         "name":           "My Jewish Learning",
         "domains":        ["myjewishlearning.com"],
+        "normalization_rules": ["use https"]
     },
     {
         "name":           "Virtual Beit Midrash",
