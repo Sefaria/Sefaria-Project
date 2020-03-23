@@ -11,6 +11,7 @@ from bson.json_util import dumps
 import socket
 import bleach
 from collections import OrderedDict
+import pytz
 
 from rest_framework.decorators import api_view
 from django.template.loader import render_to_string, get_template
@@ -2199,13 +2200,20 @@ def calendars_api(request):
         import datetime
         diaspora = request.GET.get("diaspora", "1")
         custom = request.GET.get("custom", None)
+
+        zone_name = request.GET.get("timezone", timezone.get_current_timezone_name())
+        try:
+            zone = pytz.timezone(zone_name)
+        except pytz.exceptions.UnknownTimeZoneError as e:
+            return jsonResponse({"error": "Unknown 'timezone' value: '%s'." % zone_name})\
+
         try:
             year = int(request.GET.get("year", None))
             month = int(request.GET.get("month", None))
             day = int(request.GET.get("day", None))
-            datetimeobj = datetime.datetime(year, month, day)
+            datetimeobj = datetime.datetime(year, month, day, tzinfo=zone)
         except Exception as e:
-            datetimeobj = timezone.localtime(timezone.now())
+            datetimeobj = timezone.localtime(timezone.now(), timezone=zone)
 
         if diaspora not in ["0", "1"]:
             return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
@@ -2213,7 +2221,7 @@ def calendars_api(request):
             diaspora = True if diaspora == "1" else False
             calendars = get_all_calendar_items(datetimeobj, diaspora=diaspora, custom=custom)
             return jsonResponse({"date": datetimeobj.date().isoformat(),
-                                 "timezone" : timezone.get_current_timezone_name(),
+                                 "timezone" : zone_name,
                                  "calendar_items": calendars},
                                 callback=request.GET.get("callback", None))
 
