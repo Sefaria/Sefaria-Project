@@ -6,7 +6,7 @@ py2-py3-django-email-as-username==1.7.1
 diff_match_patch
 dateutils
 bs4
-bleach==1.4.2
+bleach==3.1.2
 rauth
 elasticsearch
 elasticsearch_dsl
