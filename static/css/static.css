@@ -2848,6 +2848,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 16px;
   line-height: 21px;
   text-align: justify;
+  border-top: 4px solid;
   color: #000000;
   width: 40%;
 }
@@ -2862,10 +2863,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .feature .featureHeader {}
 .staticPage .feature .featureHeader h3 {
   text-align: center;
-  border-bottom: none;
-  margin: 65px 0 10px 0;
+  margin: 10px 0 10px 0;
   display: inline-block;
-  border-top: 4px solid;
 }
 @media (max-width: 540px) {
   .staticPage .flexContainer {

@@ -144,9 +144,9 @@ const About = ({enTitle, heTitle, enText, heText, backgroundColor}) => (
 const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, borderColor}) => (
     <div className="feature">
         <div className="staticPageBlockInner flexContainer">
-            <div className="featureText">
+            <div className="featureText" style={{borderColor: borderColor}}>
                 <div className="featureHeader">
-                    <h3 style={{borderColor: borderColor}}>
+                    <h3>
                         <span className="int-en">{enTitle}</span>
                         <span className="int-he">{heTitle}</span>
                     </h3>
