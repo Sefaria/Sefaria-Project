@@ -40,6 +40,7 @@ const DistanceLearningPage = () => (
                 <SimpleButton href="" he="" en="Quuz"/>
             </LinkGrid>
         </GreyBox>
+        <H2Block en="Resources for Everyone" he="" />
         <Feature
             enTitle="Learners"
             enText="Whether you’re a pro, or a new user, Sefaria has resources to help your virtual study thrive. Join a Sefaria 101 webinar, browse our tutorials, or sign up for the online student training course to up your skills on all things Sefaria. Create a free account to track your learning, save texts, and follow users creating things that interest you."
@@ -49,6 +50,7 @@ const DistanceLearningPage = () => (
             heText=""
             heImg="/static/img/distance-learning-landing-page/learners 1.png"
             heImgAlt=""
+            borderColor="#004E5F"
         />
         <LinkGrid>
             <SimpleButton href="" he="" en="Foo"/>
@@ -56,14 +58,15 @@ const DistanceLearningPage = () => (
             <SimpleButton href="" he="" en="Quuz"/>
         </LinkGrid>
         <Feature
-            enTitle=""
-            enText=""
+            enTitle="Educators"
+            enText="Sefaria is here to support your efforts to teach from a distance. Our Education Department has a variety of resources to get you started with distance learning using Sefaria. Create an account to make and assign source sheets to your students, organize your sheets into groups, and save texts."
             enImg=""
             enImgAlt=""
             heTitle=""
             heText=""
             heImg=""
             heImgAlt=""
+            borderColor="#CCB479"
         />
         <LinkGrid>
             <SimpleButton href="" he="" en="Foo"/>
@@ -71,14 +74,15 @@ const DistanceLearningPage = () => (
             <SimpleButton href="" he="" en="Quuz"/>
         </LinkGrid>
         <Feature
-            enTitle=""
-            enText=""
+            enTitle="Developers"
+            enText="Is it time to start incorporating digital texts into your website and/or app? Sefaria has you covered. All of our software is open source and our texts are all in the creative commons, meaning you can use anything we have for your own projects. Browse our tutorials or head over to GitHub to see all that our API has to offer."
             enImg=""
             enImgAlt=""
             heTitle=""
             heText=""
             heImg=""
             heImgAlt=""
+            borderColor="#802F3E"
         />
     </StaticPage>
 );
@@ -94,6 +98,12 @@ const GreyBox = ({children}) => (
         {children}
     </div>
 );
+const H2Block = ({en, he, classes}) =>
+    <div className="staticPageBlockInner">
+        <h2>
+            <SimpleInterfaceBlock en={en} he={he} />
+        </h2>
+    </div>;
 
 const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, enActionURL, enActionText, heActionURL, heActionText}) => (
     <div className="staticPageHeader">
@@ -131,12 +141,12 @@ const About = ({enTitle, heTitle, enText, heText, backgroundColor}) => (
     </div>
 );
 
-const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt}) => (
-    <div className="feature flexContainer">
-        <div className="staticPageBlockInner">
+const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, borderColor}) => (
+    <div className="feature">
+        <div className="staticPageBlockInner flexContainer">
             <div className="featureText">
                 <div className="featureHeader">
-                    <h3>
+                    <h3 style={{borderColor: borderColor}}>
                         <span className="int-en">{enTitle}</span>
                         <span className="int-he">{heTitle}</span>
                     </h3>

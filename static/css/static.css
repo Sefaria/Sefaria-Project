@@ -2849,9 +2849,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   line-height: 21px;
   text-align: justify;
   color: #000000;
+  width: 40%;
 }
 .staticPage .feature .featureImage {
   text-align: center;
+  width: 55%;
 }
 .staticPage .feature .featureImage img {
   height: 250px;
@@ -2863,7 +2865,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   border-bottom: none;
   margin: 65px 0 10px 0;
   display: inline-block;
-  border-bottom: 4px solid;
+  border-top: 4px solid;
 }
 @media (max-width: 540px) {
   .staticPage .flexContainer {
