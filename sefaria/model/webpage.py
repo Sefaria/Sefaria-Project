@@ -30,7 +30,7 @@ class WebPage(abst.AbstractMongoRecord):
     def load(self, url_or_query):
         query = {"url": WebPage.normalize_url(url_or_query)} if isinstance(url_or_query, str) else url_or_query
         return super(WebPage, self).load(query)
-        
+
     def _set_derived_attributes(self):
         if getattr(self, "url", None):
             self.domain      = WebPage.domain_for_url(self.url)
@@ -123,7 +123,7 @@ class WebPage(abst.AbstractMongoRecord):
         d = self.contents()
         d["domain"]     = self.domain
         d["siteName"]   = self.site_name
-        d["faviconUrl"] = self.favicon 
+        d["faviconUrl"] = self.favicon
         del d["lastUpdated"]
         d = self.clean_client_contents(d)
         return d
@@ -145,8 +145,8 @@ class WebPage(abst.AbstractMongoRecord):
                 if self._site_data.get("initial_title_branding", False):
                     brand_str = "{} {} ".format(brand, separator)
                     if title.startswith(brand_str):
-                        title = title[len(brand_str):]                   
-                else:    
+                        title = title[len(brand_str):]
+                else:
                     brand_str = " {} {}".format(separator, brand)
                     if title.endswith(brand_str):
                         title = title[:-len(brand_str)]
@@ -183,7 +183,7 @@ def get_webpages_for_ref(tref):
             webpage_contents = webpage.client_contents()
             webpage_contents["anchorRef"] = ref
             client_results.append(webpage_contents)
-    
+
     return client_results
 
 
@@ -247,7 +247,7 @@ def dedupe_identical_urls(test=True):
             "count": {"$sum": 1}
             }
         },
-        {"$match": { 
+        {"$match": {
             "count": {"$gt": 1}
             }
         },
@@ -275,7 +275,7 @@ def dedupe_identical_urls(test=True):
                 merged_page_data["refs"]  = page.refs
                 merged_page_data["title"] = page.title
                 merged_page_data["description"]  = page.description
-        
+
         removed_count += (pages.count() - 1)
 
         merged_page = WebPage(merged_page_data)
@@ -292,7 +292,7 @@ def dedupe_identical_urls(test=True):
 def clean_webpages(delete=False):
     """ Delete webpages matching patterns deemed not worth including"""
     pages = WebPageSet({"$or": [
-            {"url": {"$regex": WebPage.excluded_pages_url_regex()}}, 
+            {"url": {"$regex": WebPage.excluded_pages_url_regex()}},
             {"title": {"$regex": WebPage.excluded_pages_title_regex()}}
         ]})
 
@@ -360,7 +360,7 @@ def webpages_stats():
                 total_in_book = set([ref.normal() for ref in text.Ref(book).all_segment_refs()])
             except:
                 continue # Bad data in Mishnah Sukkah
-            
+
             # print "{} in covered, not in total:".format(book)
             # print list(covered_in_book - total_in_book)
             # Ignore refs that we don't have in the library
@@ -373,9 +373,10 @@ def webpages_stats():
 
 
 sites_data = [
-    {   
+    {
         "name":           "My Jewish Learning",
         "domains":        ["myjewishlearning.com"],
+        "normalization_rules": ["use https"]
     },
     {
         "name":           "Virtual Beit Midrash",
@@ -456,6 +457,11 @@ sites_data = [
         "name": "סִינַי",
         "domains": ["sinai.org.il"],
         "title_branding": ["הדף היומי ב15 דקות - שיעורי דף יומי קצרים בגמרא"]
+    },
+    {
+        "name": "לבנה",
+        "domains": ["levana.org.il"],
+        "title_branding": ["אתר לבנה מבית קרן תל&#039;&#039;י", "אתר לבנה מבית קרן תל''י"]  # not sure how HTML escape characters are handled. Including both options.
     }
 
 ]
