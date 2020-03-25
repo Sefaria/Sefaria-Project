@@ -6,7 +6,7 @@ from pymongo.errors import AutoReconnect
 from sefaria.model import *
 from sefaria.utils.util import titlecase
 from sefaria.system.database import db
-from sefaria.helper.topic import generate_topic_links_from_sheets, update_ref_topic_link_orders, update_intra_topic_link_orders, add_num_sources_to_topics
+from sefaria.helper.topic import generate_all_topic_links_from_sheets, update_ref_topic_link_orders, update_intra_topic_link_orders, add_num_sources_to_topics
 from sefaria.system.exceptions import DuplicateRecordError
 
 # with open("data/final_ref_topic_links.csv", 'r') as fin:
@@ -808,58 +808,58 @@ def dedup_topics():
 
 
 def recat_toc():
-    TOC_MAP = {
-        'art': 'art',
-        'group-of-people': 'authors',
-        'people': 'authors',
-        'tanakh-people': 'tanakh',
-        "biblical-event": 'tanakh',
-        'biblical-source': 'tanakh',
-        "specific-biblical-person-relationship": 'tanakh',
-        'magic': 'aggadah',
-        'sustenance': 'food',
-        'place': 'geographic-locations',
-        'history': 'history',
-        'holiday': 'holidays',
-        'language-entity': 'language',
-        'preposition': 'language',
-        'law': 'law',
-        'halachic-process': 'law',
-        'halachic-role': 'law',
-        'philosophy': 'philosophy',
-        'freedom': 'philosophy',
-        'knowledge1': 'philosophy',
-        'prayer': 'prayer',
-        'brachah': 'prayer',
-        'theology': 'theology',
-        'theological-tenets': 'theology',
-        'divine-names': 'theology',
-        'theological-process': 'theology',
-        'ethics': 'theology',
-        'halachic-role-of-inanimate-object': 'ritual-objects',
-        'science': 'science',
-        'group-of-animals': 'science',
-        'animals': 'science',
-        'plants': 'science',
-        'weather': 'science',
-        'middot': 'society',
-        'emotions': 'society',
-        'role-of-person': 'society',
-        'specific-person-relationship': 'society',
-        'source': 'source'
-    }
-    cat_prefs = {
-        ('history', 'tanakh'): 'tanakh',
-        ('philosophy', 'theology'): 'theology',
-        ('history', 'theology'): 'theology',
-        ('law', 'ritual-objects'): 'ritual-objects',
-        ('society', 'tanakh'): 'tanakh',
-        ('authors', 'tanakh'): 'tanakh',
-        ('law', 'society'): 'law',
-        ('art', 'society'): 'art',
-        ('food', 'science'): 'food',
-        ('prayer', 'source', 'theology'): 'prayer'
-    }
+    # TOC_MAP = {
+    #     'art': 'art',
+    #     'group-of-people': 'authors',
+    #     'people': 'authors',
+    #     'tanakh-people': 'tanakh',
+    #     "biblical-event": 'tanakh',
+    #     'biblical-source': 'tanakh',
+    #     "specific-biblical-person-relationship": 'tanakh',
+    #     'magic': 'aggadah',
+    #     'sustenance': 'food',
+    #     'place': 'geographic-locations',
+    #     'history': 'history',
+    #     'holiday': 'holidays',
+    #     'language-entity': 'language',
+    #     'preposition': 'language',
+    #     'law': 'law',
+    #     'halachic-process': 'law',
+    #     'halachic-role': 'law',
+    #     'philosophy': 'philosophy',
+    #     'freedom': 'philosophy',
+    #     'knowledge1': 'philosophy',
+    #     'prayer': 'prayer',
+    #     'brachah': 'prayer',
+    #     'theology': 'theology',
+    #     'theological-tenets': 'theology',
+    #     'divine-names': 'theology',
+    #     'theological-process': 'theology',
+    #     'ethics': 'theology',
+    #     'halachic-role-of-inanimate-object': 'ritual-objects',
+    #     'science': 'science',
+    #     'group-of-animals': 'science',
+    #     'animals': 'science',
+    #     'plants': 'science',
+    #     'weather': 'science',
+    #     'middot': 'society',
+    #     'emotions': 'society',
+    #     'role-of-person': 'society',
+    #     'specific-person-relationship': 'society',
+    #     'source': 'source'
+    # }
+    # cat_prefs = {
+    #     ('history', 'tanakh'): 'tanakh',
+    #     ('philosophy', 'theology'): 'theology',
+    #     ('history', 'theology'): 'theology',
+    #     ('law', 'ritual-objects'): 'ritual-objects',
+    #     ('society', 'tanakh'): 'tanakh',
+    #     ('authors', 'tanakh'): 'tanakh',
+    #     ('law', 'society'): 'law',
+    #     ('art', 'society'): 'art',
+    #     ('food', 'science'): 'food',
+    #     ('prayer', 'source', 'theology'): 'prayer'
+    # }
 
     display_links = IntraTopicLinkSet({'linkType': 'displays-under'})
     display_map = {}
@@ -868,7 +868,7 @@ def recat_toc():
         if l.fromTopic in display_map:
             print("WARNING:", l.fromTopic, 'has value', display_map[l.fromTopic], 'not', l.toTopic)
         display_map[l.fromTopic] = l.toTopic
-    ts = TopicSet({'numSources': {"$gte": 10}})
+    ts = TopicSet({'numSources': {"$gt": 0}})
     rows = []
     for t in tqdm(ts, total=ts.count()):
         row = {
@@ -876,34 +876,54 @@ def recat_toc():
             "He": t.get_primary_title('he'),
             "Num Sources": t.numSources,
             "Slug": t.slug,
-            "Description": getattr(t, 'description', {}).get('en', '')
+            "Description": getattr(t, 'description', {}).get('en', ''),
+            "Order": getattr(t, 'displayOrder', '10000'),
+            'Link': f'topics-dev.sandbox.sefaria.org/topics/{t.slug}'
         }
-        old_slug = getattr(t, 'alt_ids', {}).get('_old_slug', None)
-        if old_slug:
-            row['Old Slug'] = old_slug
-        if t.slug in display_map:
+        # old_slug = getattr(t, 'alt_ids', {}).get('_old_slug', None)
+        # if old_slug:
+        #     row['Old Slug'] = old_slug
+        if t.slug in display_map and display_map[t.slug] in top_level:
             row['Cat'] = top_level[display_map[t.slug]]
             row['Cat Source'] = 'Old Mapping'
-        else:
-            types = t.get_types()
-            auto_matches = TOC_MAP.keys() & types
-            if len(auto_matches) == 0:
-                pass
-            else:
-                cats = set()
-                for match in auto_matches:
-                    cats.add(TOC_MAP[match])
-                cat_key = tuple(sorted(list(cats), key=lambda x: x))
-                if cat_key in cat_prefs:
-                    cats = [cat_prefs[cat_key]]
-                elif len(cats) > 1:
-                    print(row['En'], "CATS:", ', '.join(cats))
-                row['Cat'] = top_level[list(cats)[0]]
-                row['Cat Source'] = 'Auto-match'
-        rows += [row]
+            rows += [row]
+        # else:
+        #     types = t.get_types()
+        #     auto_matches = TOC_MAP.keys() & types
+        #     if len(auto_matches) == 0:
+        #         pass
+        #     else:
+        #         cats = set()
+        #         for match in auto_matches:
+        #             cats.add(TOC_MAP[match])
+        #         cat_key = tuple(sorted(list(cats), key=lambda x: x))
+        #         if cat_key in cat_prefs:
+        #             cats = [cat_prefs[cat_key]]
+        #         elif len(cats) > 1:
+        #             print(row['En'], "CATS:", ', '.join(cats))
+        #         row['Cat'] = top_level[list(cats)[0]]
+        #         row['Cat Source'] = 'Auto-match'
+
 
     with open('recat.csv', 'w') as fout:
-        c = csv.DictWriter(fout, ['Cat Source', 'Cat', 'En', 'He', 'Num Sources', 'Slug', 'Description', 'Old Slug'])
+        c = csv.DictWriter(fout, ['Cat Source', 'Cat', 'En', 'He', 'Num Sources', 'Order', 'Slug', 'Link', 'Description', 'Old Slug'])
+        c.writeheader()
+        c.writerows(rows)
+
+
+def recat_top_level():
+    top_level = {t.slug: t for t in TopicSet({'isTopLevelDisplay': True})}
+    rows = []
+    for s, t in top_level.items():
+        rows += [{
+            "ID": t.get_primary_title('en'),
+            "En": t.get_primary_title('en'),
+            "He": t.get_primary_title('he'),
+            "Order": t.displayOrder,
+            "Status": ""
+        }]
+    with open('data/recat_top.csv', 'w') as fout:
+        c = csv.DictWriter(fout, ['ID', 'En', 'He', 'Order', 'Status']) 
         c.writeheader()
         c.writerows(rows)
 
@@ -1238,7 +1258,9 @@ if __name__ == '__main__':
     # add_num_sources_to_topics()
     # update_intra_topic_link_orders()
     # clean_up_time()
-    find_ambiguous_topics()
+    # find_ambiguous_topics()
+    # recat_toc()
+    recat_top_level()
 
     
 def yo():
@@ -1497,5 +1519,32 @@ def add_disambiguation():
                 old_disambig.update(disambiguation)
                 t.disambiguation = old_disambig
             t.save()
+
+
+def recat_toc_round2():
+    display_links = IntraTopicLinkSet({'linkType': 'displays-under'})
+    display_map = {}
+    top_level = {t.slug: t.get_primary_title('en') for t in TopicSet({'isTopLevelDisplay': True})}
+    for l in display_links:
+        if l.fromTopic in display_map:
+            print("WARNING:", l.fromTopic, 'has value', display_map[l.fromTopic], 'not', l.toTopic)
+        display_map[l.fromTopic] = l.toTopic
+
+
+def more_title_changes():
+    ts = TopicSet({"numSources": {"$gte": 10}})
+    rows = []
+    for t in ts:
+        rows += [{
+            "En": t.get_primary_title('en'),
+            "He": t.get_primary_title('he'),
+            "Slug": t.slug,
+            "New En": "",
+            "New He": "",
+        }]
+    with open('data/new_topic_titles.csv', 'w') as fout:
+        c = csv.DictWriter(fout, ['Slug', "En", 'He', 'New En', 'New He'])
+        c.writeheader()
+        c.writerows(rows)
 
 
