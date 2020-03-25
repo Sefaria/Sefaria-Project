@@ -1238,6 +1238,64 @@ def find_ambiguous_topics():
         c.writerows(rows)
 
 
+def more_title_changes():
+    ts = TopicSet({"numSources": {"$gte": 10}})
+    rows = []
+    for t in ts:
+        rows += [{
+            "En": t.get_primary_title('en'),
+            "He": t.get_primary_title('he'),
+            "Slug": t.slug,
+            "Link": f"topics-dev.sandbox.sefaria.org/topics/{t.slug}",
+            "New En": "",
+            "New He": "",
+        }]
+    with open('data/new_topic_titles.csv', 'w') as fout:
+        c = csv.DictWriter(fout, ['Slug', "En", 'He', 'New En', 'New He', 'Link'])
+        c.writeheader()
+        c.writerows(rows)
+
+
+def more_rabbi_matching_oh_boy():
+    roots = [Topic.init('mishnaic-people'), Topic.init('talmudic-people')]
+    all_rabbis = [t for r in roots for t in r.get_leaf_nodes()]
+    all_rabbi_dict = {t.slug: t for t in all_rabbis}
+    props = ['enWikiLink', 'heWikiLink', 'jeLink', 'generation']
+    all_link_types = {
+        link_type.slug: link_type for link_type in TopicLinkTypeSet()
+    }
+    rows = []
+    unique_link_types = set()
+    for t in all_rabbis:
+        row_dict = defaultdict(set)
+        for l in t.link_set():
+            c = l.contents()
+            if c['topic'] not in all_rabbi_dict:
+                continue
+            if c['linkType'] == "sheets-related-to":
+                continue  # avoid user input for this
+            lt = all_link_types[c['linkType']]
+            ltDisp = getattr(lt, 'pluralDisplayName', lt.displayName)['en']
+            row_dict[ltDisp].add(all_rabbi_dict[c['topic']].get_primary_title('en'))
+            unique_link_types.add(ltDisp)
+        for k, v in row_dict.items():
+            row_dict[k] = ' | '.join(v)
+        row_dict.update({
+            'Slug': t.slug,
+            'En': t.get_primary_title('en'),
+            'He': t.get_primary_title('he'),
+            'Link': f'topics-dev.sandbox.sefaria.org/topics/{t.slug}'
+        })
+        for p in props:
+            pval, _ = t.get_property(p)
+            if pval:
+                row_dict[p] = pval
+        rows += [row_dict]
+    with open('data/more_rabbi_matching.csv', 'w') as fout:
+        c = csv.DictWriter(fout, ['Slug', 'En', 'He'] + [lt for lt in unique_link_types] + props + ['Link'])
+        c.writeheader()
+        c.writerows(rows)
+
 if __name__ == '__main__':
     # slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
     # do_data_source()
@@ -1260,7 +1318,8 @@ if __name__ == '__main__':
     # clean_up_time()
     # find_ambiguous_topics()
     # recat_toc()
-    recat_top_level()
+    # recat_top_level()
+    more_rabbi_matching_oh_boy()
 
     
 def yo():
@@ -1529,22 +1588,5 @@ def recat_toc_round2():
         if l.fromTopic in display_map:
             print("WARNING:", l.fromTopic, 'has value', display_map[l.fromTopic], 'not', l.toTopic)
         display_map[l.fromTopic] = l.toTopic
-
-
-def more_title_changes():
-    ts = TopicSet({"numSources": {"$gte": 10}})
-    rows = []
-    for t in ts:
-        rows += [{
-            "En": t.get_primary_title('en'),
-            "He": t.get_primary_title('he'),
-            "Slug": t.slug,
-            "New En": "",
-            "New He": "",
-        }]
-    with open('data/new_topic_titles.csv', 'w') as fout:
-        c = csv.DictWriter(fout, ['Slug', "En", 'He', 'New En', 'New He'])
-        c.writeheader()
-        c.writerows(rows)
 
 
