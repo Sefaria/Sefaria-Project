@@ -2781,6 +2781,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   width: 800px;
   margin: 0 auto;
   max-width: 90%;
+  /* margin: 20px; */
 }
 .staticPage .blockVerticalPadding {
   padding-top: 20px;
@@ -2804,11 +2805,34 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   margin-top: 60px;
   color: white;
 }
+.staticPage .staticPageCallToActionFooter {
+  background-color: #212E50;
+  color: white;
+  height: 204px;
+}
+.staticPage .staticPageCallToActionFooter .staticPageBlockInner {
+  padding: 60px 0;
+}
+.staticPage .staticPageCallToActionFooter .callToActionText {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 30px;
+  line-height: 36px;
+  width: 50%;
+}
+.staticPage .staticPageCallToActionFooter {
+
+}
 .staticPage .staticPageHeader .flexContainer > div {
   flex: 1;
 }
-.staticPage .button {
+.staticPage .simpleButtonWrapper .button {
   border-radius: 0;
+  min-height: 78px;
+}
+.staticPage .simpleButtonWrapper .button span {
+  margin: auto;
 }
 .staticPageHeader h1 {
   font-size: 48px;

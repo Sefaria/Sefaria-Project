@@ -5,6 +5,7 @@ const Sefaria    = require('./sefaria/sefaria');
 const {
     SimpleContentBlock,
     SimpleInterfaceBlock,
+    NewsletterSignUpForm,
     TextBlockLink,
     ThreeBox
 }                   = require('./Misc');
@@ -89,6 +90,7 @@ const DistanceLearningPage = () => (
             <SimpleButton href="" he="" en="Tutorials"/>
             <SimpleButton href="" he="" en="GitHub"/>
         </LinkGrid>
+        <CallToActionFooterWithNewsletter enText="Sign up for our mailing list to get resources in your inbox" />
     </StaticPage>
 );
 
@@ -134,6 +136,21 @@ const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImg
     </div>
 );
 
+const CallToActionFooterWithButton = ({href, enText, heText, enButtonText, heButtonText}) => (
+    <div className="staticPageCallToActionFooter">
+        <SimpleInterfaceBlock classes="callToActionText" en={enText} he={heText} />
+        <CallToActionButton href={href} en={enButtonText} he={heButtonText} />
+    </div>
+);
+const CallToActionFooterWithNewsletter = ({enText, heText}) => (
+    <div className="staticPageCallToActionFooter">
+        <div className="staticPageBlockInner flexContainer">
+            <SimpleInterfaceBlock classes="callToActionText" en={enText} he={heText} />
+            <NewsletterSignUpForm contextName="Distance Learning Static Page" />
+        </div>
+    </div>
+);
+
 const About = ({enTitle, heTitle, enText, heText, backgroundColor}) => (
     <div className={"staticPageAbout" + (backgroundColor == "grey" ? " greyBackground" : "")}>
         <div className="staticPageBlockInner">
@@ -172,20 +189,28 @@ const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heIm
 );
 
 // links - array of {href, he, en}
-const LinkGrid = ({children}) =>
+const LinkGrid = ({children}) => (
     <div className="staticPageBlockInner blockVerticalPadding">
         <ThreeBox content={React.Children.toArray(children)}/>
-    </div>;
+    </div>
+);
 
 const SimpleButton = ({href, he, en}) => (
-    <div className="">
+    <div className="simpleButtonWrapper">
         <a href={href} className="button white flexContainer">
             <span className="int-en">{en}</span>
             <span className="int-he">{he}</span>
         </a>
     </div>
 );
-
+const CallToActionButton =  ({href, he, en}) => (
+    <div className="">
+        <a href={href} className="button flexContainer">
+            <span className="int-en">{en}</span>
+            <span className="int-he">{he}</span>
+        </a>
+    </div>
+);
 
 
 
