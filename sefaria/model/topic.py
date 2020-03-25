@@ -212,6 +212,13 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                 title += ' ({})'.format(disambig_dict[lang])
         return title
 
+    def get_property(self, property):
+        properties = getattr(self, 'properties', {})
+        if property not in properties:
+            return None, None
+        return properties[property]['value'], properties[property]['dataSource']
+
+
     @staticmethod
     def get_uncategorized_slug_set():
         return {t.fromTopic for t in IntraTopicLinkSet({'toTopic': Topic.uncategorized_topic, 'linkType': 'is-a'})}
