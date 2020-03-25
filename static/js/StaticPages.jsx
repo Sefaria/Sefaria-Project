@@ -35,11 +35,12 @@ const DistanceLearningPage = () => (
 
         />
         <GreyBox>
-            <LinkGrid>
+            <H2Block en="Browse our Latest Groups" he="" />
+            <ButtonRow>
                 <SimpleButton href="" he="" en="Seder on Sefaria"/>
                 <SimpleButton href="" he="" en="A Jewish Response to COVID-19"/>
                 <SimpleButton href="" he="" en="Online Learning Resources"/>
-            </LinkGrid>
+            </ButtonRow>
         </GreyBox>
         <H2Block en="Resources for Everyone" he="" />
         <Feature
@@ -53,11 +54,11 @@ const DistanceLearningPage = () => (
             heImgAlt=""
             borderColor="#004E5F"
         />
-        <LinkGrid>
+        <ButtonRow>
             <SimpleButton href="" he="" en="Webinars"/>
             <SimpleButton href="" he="" en="Tutorials"/>
             <SimpleButton href="" he="" en="Student Course"/>
-        </LinkGrid>
+        </ButtonRow>
         <Feature
             enTitle="Educators"
             enText="Sefaria is here to support your efforts to teach from a distance. Our Education Department has a variety of resources to get you started with distance learning using Sefaria. Create an account to make and assign source sheets to your students, organize your sheets into groups, and save texts."
@@ -69,11 +70,11 @@ const DistanceLearningPage = () => (
             heImgAlt=""
             borderColor="#CCB479"
         />
-        <LinkGrid>
+        <ButtonRow>
             <SimpleButton href="" he="" en="Webinars"/>
             <SimpleButton href="" he="" en="Tutorials"/>
             <SimpleButton href="" he="" en="Educator Course"/>
-        </LinkGrid>
+        </ButtonRow>
         <Feature
             enTitle="Developers"
             enText="Is it time to start incorporating digital texts into your website and/or app? Sefaria has you covered. All of our software is open source and our texts are all in the creative commons, meaning you can use anything we have for your own projects. Browse our tutorials or head over to GitHub to see all that our API has to offer."
@@ -85,11 +86,11 @@ const DistanceLearningPage = () => (
             heImgAlt=""
             borderColor="#802F3E"
         />
-        <LinkGrid>
+        <ButtonRow>
             <SimpleButton href="" he="" en="Webinars"/>
             <SimpleButton href="" he="" en="Tutorials"/>
             <SimpleButton href="" he="" en="GitHub"/>
-        </LinkGrid>
+        </ButtonRow>
         <CallToActionFooterWithNewsletter enText="Sign up for our mailing list to get resources in your inbox" />
     </StaticPage>
 );
@@ -107,7 +108,7 @@ const GreyBox = ({children}) => (
 );
 const H2Block = ({en, he, classes}) =>
     <div className="staticPageBlockInner">
-        <h2>
+        <h2 className="staticPageH2">
             <SimpleInterfaceBlock en={en} he={he} />
         </h2>
     </div>;
@@ -177,21 +178,16 @@ const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heIm
                 <p className="int-he">{heText}</p>
             </div>
             <div className="featureImage">
-                <span className="int-en">
-                    <img className="button-icon" src={enImg} alt={enImgAlt}/>
-                </span>
-                <span className="int-he">
-                    <img className="button-icon" src={heImg} alt={heImgAlt}/>
-                </span>
+                <img className="int-en" src={enImg} alt={enImgAlt}/>
+                <img className="int-he" src={heImg} alt={heImgAlt}/>
             </div>
         </div>
     </div>
 );
 
-// links - array of {href, he, en}
-const LinkGrid = ({children}) => (
-    <div className="staticPageBlockInner blockVerticalPadding">
-        <ThreeBox content={React.Children.toArray(children)}/>
+const ButtonRow = ({children}) => (
+    <div className="staticPageBlockInner blockVerticalPadding flexContainer">
+        {children}
     </div>
 );
 
