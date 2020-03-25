@@ -35,9 +35,9 @@ const DistanceLearningPage = () => (
         />
         <GreyBox>
             <LinkGrid>
-                <SimpleButton href="" he="" en="Foo"/>
-                <SimpleButton href="" he="" en="Bar"/>
-                <SimpleButton href="" he="" en="Quuz"/>
+                <SimpleButton href="" he="" en="Seder on Sefaria"/>
+                <SimpleButton href="" he="" en="A Jewish Response to COVID-19"/>
+                <SimpleButton href="" he="" en="Online Learning Resources"/>
             </LinkGrid>
         </GreyBox>
         <H2Block en="Resources for Everyone" he="" />
@@ -53,37 +53,42 @@ const DistanceLearningPage = () => (
             borderColor="#004E5F"
         />
         <LinkGrid>
-            <SimpleButton href="" he="" en="Foo"/>
-            <SimpleButton href="" he="" en="Bar"/>
-            <SimpleButton href="" he="" en="Quuz"/>
+            <SimpleButton href="" he="" en="Webinars"/>
+            <SimpleButton href="" he="" en="Tutorials"/>
+            <SimpleButton href="" he="" en="Student Course"/>
         </LinkGrid>
         <Feature
             enTitle="Educators"
             enText="Sefaria is here to support your efforts to teach from a distance. Our Education Department has a variety of resources to get you started with distance learning using Sefaria. Create an account to make and assign source sheets to your students, organize your sheets into groups, and save texts."
-            enImg=""
-            enImgAlt=""
+            enImg="/static/img/distance-learning-landing-page/Educators 1.png"
+            enImgAlt="Source Sheet - Teaching with Sefaria Online"
             heTitle=""
             heText=""
-            heImg=""
+            heImg="/static/img/distance-learning-landing-page/Educators 1.png"
             heImgAlt=""
             borderColor="#CCB479"
         />
         <LinkGrid>
-            <SimpleButton href="" he="" en="Foo"/>
-            <SimpleButton href="" he="" en="Bar"/>
-            <SimpleButton href="" he="" en="Quuz"/>
+            <SimpleButton href="" he="" en="Webinars"/>
+            <SimpleButton href="" he="" en="Tutorials"/>
+            <SimpleButton href="" he="" en="Educator Course"/>
         </LinkGrid>
         <Feature
             enTitle="Developers"
             enText="Is it time to start incorporating digital texts into your website and/or app? Sefaria has you covered. All of our software is open source and our texts are all in the creative commons, meaning you can use anything we have for your own projects. Browse our tutorials or head over to GitHub to see all that our API has to offer."
-            enImg=""
-            enImgAlt=""
+            enImg="/static/img/distance-learning-landing-page/Developers 1.png"
+            enImgAlt="Source Sheet - Link Sefaria to your Site"
             heTitle=""
             heText=""
-            heImg=""
+            heImg="/static/img/distance-learning-landing-page/Developers 1.png"
             heImgAlt=""
             borderColor="#802F3E"
         />
+        <LinkGrid>
+            <SimpleButton href="" he="" en="Webinars"/>
+            <SimpleButton href="" he="" en="Tutorials"/>
+            <SimpleButton href="" he="" en="GitHub"/>
+        </LinkGrid>
     </StaticPage>
 );
 
