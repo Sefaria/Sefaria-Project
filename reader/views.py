@@ -4304,3 +4304,11 @@ def application_health_api(request):
         return http.HttpResponse("Healthy", status="200")
     else:
         return http.HttpResponse("Unhealthy", status="500")
+
+@login_required
+def daf_roulette_redirect(request):
+
+    return render(request,'static/dafroulette.html', 
+                             {
+                              "user": UserProfile(id=request.user.id),
+                              })
