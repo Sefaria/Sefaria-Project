@@ -55,6 +55,8 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
 from django.utils.html import strip_tags
+from sefaria.local_settings import RTC_SERVER
+
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -4308,7 +4310,8 @@ def application_health_api(request):
 @login_required
 def daf_roulette_redirect(request):
 
-    return render(request,'static/dafroulette.html', 
+    return render(request,'static/dafroulette.html',
                              {
                               "user": UserProfile(id=request.user.id),
+                              "rtc_server": RTC_SERVER,
                               })

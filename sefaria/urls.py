@@ -341,6 +341,13 @@ urlpatterns += [
 
 ]
 
+# dafroulette.js -
+urlpatterns += [
+    url(r'^dafroulette\.js$', sefaria_views.dafroulette_js)
+]
+
+
+
 urlpatterns += [
     url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),
 ]

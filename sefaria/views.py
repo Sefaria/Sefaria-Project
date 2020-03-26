@@ -54,6 +54,8 @@ from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
 from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.local_settings import RTC_SERVER
+
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
@@ -208,6 +210,18 @@ def sefaria_js(request):
     }
 
     return render(request, "js/sefaria.js", attrs, content_type= "text/javascript")
+
+def dafroulette_js(request):
+    """
+    Javascript for dafroulette [required to pass server attribute].
+    """
+    attrs = {
+        "rtc_server": RTC_SERVER,
+    }
+
+
+    return render(request, "js/dafroulette.js", attrs, content_type="text/javascript")
+
 
 
 def linker_js(request, linker_version=None):

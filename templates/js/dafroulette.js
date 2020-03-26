@@ -1,3 +1,5 @@
+{% autoescape off %}
+
 'use strict';
 
 const TURN_SERVER = 'turn:192.168.86.158:3478?transport=udp';
@@ -32,7 +34,7 @@ const sdpConstraints = {
 
 var clientRoom;
 
-const socket = io.connect('https://651bf60b.ngrok.io');
+const socket = io.connect('{{ rtc_server }}');
 
 
 socket.emit('create or join');
@@ -282,3 +284,5 @@ function newRoom() {
   socket.emit('create or join');
   console.log('Attempted to create new room');
 }
+
+{% endautoescape %}

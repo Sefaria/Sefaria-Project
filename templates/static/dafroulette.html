@@ -138,9 +138,9 @@ button {
 {% endblock %}
 
 {% block js  %}
-<script src="https://651bf60b.ngrok.io/socket.io/socket.io.js"></script>
+<script src="{{ rtc_server }}/socket.io/socket.io.js"></script>
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
-<script src="/static/js/dafroulette.js"></script>
+<script src="/dafroulette.js"></script>
 <script>addAdditionalHTML()</script>
 
 {% endblock %}
