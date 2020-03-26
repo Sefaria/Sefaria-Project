@@ -724,7 +724,7 @@ input.noselect {
   position: absolute;
   background: white;
   list-style-type: none;
-  padding: 6px 0 6px 6px;
+  padding: 6px 0 6px 45px;
   border: 1px solid #aaa;
   border-top: 1px solid #ddd;
   z-index: 1000000 !important;
@@ -732,7 +732,8 @@ input.noselect {
 }
 .ui-autocomplete .ui-menu-item {
   display: block;
-  padding: 6px 3px;
+  padding: 6px 2px;
+  margin-left: -35px;
 }
 .ui-autocomplete .ui-menu-item img {
   display: inline-block;
