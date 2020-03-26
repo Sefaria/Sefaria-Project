@@ -89,7 +89,7 @@ class Search {
             };
         }
         return new Promise((resolve, reject) => {
-            
+
             if (this.queryDictaFlag && args.type === "text") {
                 if (this.dictaQueryQueue.lastSeen + 1 >= this.dictaQueryQueue.hits.total && ('start' in args && args['start'] > 0)) {
                     /* don't make new queries if results are exhausted.
@@ -427,14 +427,16 @@ class Search {
     process_text_hits(hits) {
       var newHits = [];
       var newHitsObj = {};  // map ref -> index in newHits
-      for (var i = 0; i < hits.length; i++) {
-        let currRef = hits[i]._source.ref;
+      const alreadySeenIds = {};  // for some reason there are duplicates in the `hits` array. This needs to be dealth with. This is a patch.
+      for (let hit of hits) {
+        if (alreadySeenIds[hit._id]) { continue; }
+        alreadySeenIds[hit._id] = true;
+        let currRef = hit._source.ref;
         let newHitsIndex = newHitsObj[currRef];
         if (typeof newHitsIndex != "undefined") {
-          newHits[newHitsIndex].duplicates = newHits[newHitsIndex].duplicates || [];
-          newHits[newHitsIndex].insertInOrder(hits[i], (a, b) => a._source.version_priority - b._source.version_priority);
+          newHits[newHitsIndex].insertInOrder(hit, (a, b) => a._source.version_priority - b._source.version_priority);
         } else {
-          newHits.push([hits[i]]);
+          newHits.push([hit]);
           newHitsObj[currRef] = newHits.length - 1;
         }
       }

@@ -138,21 +138,21 @@ class ReaderNavigationCategoryMenuContents extends Component {
   hebrewContentSort(cats) {
     // Sorts contents of this category by Hebrew Alphabetical
     //console.log(cats);
-    var heCats = cats.slice().map(function(item, indx) {
+    const heCats = cats.slice().map(function(item, indx) {
       item.enOrder = indx;
       return item;
     });
     //console.log(heCats.slice())
-    heCats = heCats.sort(function(a, b) {
+    heCats.sort(function(a, b) {
       if ("order" in a || "order" in b) {
-        var aOrder = "order" in a ? a.order : 9999;
-        var bOrder = "order" in b ? b.order : 9999;
+        const aOrder = "order" in a ? a.order : 9999;
+        const bOrder = "order" in b ? b.order : 9999;
         return aOrder > bOrder ? 1 : -1;
 
-      } else if (("category" in a) != ("category" in b)) {
+      } else if (("category" in a) !== ("category" in b)) {
         return a.enOrder > b.enOrder ? 1 : -1;
 
-      } else if (a.heComplete != b.heComplete) {
+      } else if (a.heComplete !== b.heComplete) {
         return a.heComplete ? -1 : 1;
 
       } else if (a.heTitle && b.heTitle) {
@@ -170,7 +170,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
       var contents = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ?
                       this.hebrewContentSort(this.props.contents)
                       : this.props.contents;
-      for (var i = 0; i < contents.length; i++) {
+      for (let i = 0; i < contents.length; i++) {
         var item = contents[i];
         if (item.category) {
           // Category
@@ -233,7 +233,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
           } else {
             // Add a Text
             var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
-            const lastPlace = Sefaria.lastPlaceForText(item.title)
+            const lastPlace = Sefaria.lastPlaceForText(item.title);
             var ref =  lastPlace ? lastPlace.ref : item.firstSection;
             var url = "/" + Sefaria.normRef(ref);
             var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
