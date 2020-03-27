@@ -313,8 +313,8 @@ const Dedication = () => {
         !dedicationData ? null :
         <div className="dedication">
           <span>
-              <span className="en">{dedicationData.en}</span>
-              <span className="he">{dedicationData.he}</span>
+              <span className="int-en">{dedicationData.en}</span>
+              <span className="int-he">{dedicationData.he}</span>
           </span>
         </div>
     );
