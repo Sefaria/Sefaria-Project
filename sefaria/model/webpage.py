@@ -459,7 +459,7 @@ sites_data = [
         "title_branding": ["הדף היומי ב15 דקות - שיעורי דף יומי קצרים בגמרא"]
     },
     {
-        "name": "לבנה",
+        "name": 'אתר לבנ"ה - קרן תל"י',
         "domains": ["levana.org.il"],
         "title_branding": ["אתר לבנה מבית קרן תל&#039;&#039;י", "אתר לבנה מבית קרן תל''י"]  # not sure how HTML escape characters are handled. Including both options.
     }
