@@ -303,7 +303,7 @@ class Util {
             this.splice(new_index, 0, this.splice(old_index, 1)[0]);
             return this; // for testing purposes
         };
-
+        /*  I highly suspect that these functions work properly. Not worth the slight performance gain. Commenting out for now in case we want to revisit later.
         Array.prototype.insertInOrder = function(element, comparer) {
           // see https://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
           // insert `element` into array so that the array remains sorted, assuming it was sorted to begin with
@@ -330,7 +330,7 @@ class Util {
             case 1: return this.locationOfSorted(element, comparer, pivot, end);
           };
         };
-
+        */
         if (!Array.prototype.fill) {
           Object.defineProperty(Array.prototype, 'fill', {
             value: function(value) {
