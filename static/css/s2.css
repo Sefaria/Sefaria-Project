@@ -738,6 +738,7 @@ input.noselect {
   display: inline-block;
   opacity: .4;
   height: 18px;
+  width: 18px;
 }
 .ui-autocomplete .ui-menu-item a {
   display: inline-block;
