@@ -1126,7 +1126,11 @@ input.noselect {
 .topicPanel .readings .parasha-date {
 }
 .topicPanel .readings .sectionTitleText {
-  margin-top: 20px;
+  margin-top: 15px;
+}
+.topicPanel .readings .sectionTitleText .int-en,
+.topicPanel .readings .sectionTitleText .int-he {
+  font-size: 13px;
 }
 .topicPanel .readings .haftarot {
   display: flex;
@@ -1142,9 +1146,14 @@ input.noselect {
   .topicPanel .mainColumn,
   .interface-hebrew .topicPanel .mainColumn {
     padding: 0 25px !important;
+    margin: 0;
   }
   .topicPanel .filterable-list .filter-sort-wrapper {
     margin-top: 20px;
+  }
+  .topicPanel .readerNavTop {
+    margin: -25px 0 30px -25px;
+    width: 115%;
   }
 }
 .interface-hebrew .topicPanel .mainColumn {
@@ -1152,7 +1161,11 @@ input.noselect {
 }
 .topicPanel .sideColumn {
   padding: 0 50px;
-  background-color: white;
+  background-color: #FBFBFA;
+  /* HACK: add grey background beyond bounding box of sidebar by utilizing negative margins! */
+  border-top: 80px solid #FBFBFA;
+  border-bottom: 120px solid #FBFBFA;
+  margin: -80px 0 -120px 0;
 }
 .topicPanel h1 {
   text-align: unset;
@@ -1197,7 +1210,8 @@ input.noselect {
   padding: 0 0 30px 0;
 }
 .topicPanel .sideColumn .sideList {
-  font-size: 16px;
+  font-size: 18px;
+  line-height: 26px;
 }
 .topicPanel .sideColumn .sideList a {
   display: block;
@@ -1246,7 +1260,8 @@ input.noselect {
   margin: 0 0 15px 0;
 }
 .readerTocTopics .topicDescription {
-  margin: 0 0 30px 0;
+  margin: 10px 0 40px 0;
+  text-align: center;
 }
 .readerTocTopics .topicTitle .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -1262,7 +1277,7 @@ input.noselect {
 }
 .topicPanel .tab-view .tab-list {
     border-bottom: 1px solid #CCC;
-    margin-bottom: 30px;
+    margin-bottom: 18px;
 }
 .topicPanel .tab-view .filter-bar {
   margin-bottom: 30px;
@@ -1385,7 +1400,7 @@ h1 .languageToggle .he {
 .readerPanel h2 .he, .readerPanel h3 .he {
   font-family: "Heebo", sans-serif;
 }
-.readerNavSection h2 {
+.readerNavSection h2, .topicsPanel h2 {
   font-size: 16px;
   font-weight: normal;
   letter-spacing: 1px;
@@ -3115,7 +3130,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .mainColumn .saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
-  margin-bottom: 10px;
+  margin-bottom: 13px;
   padding: 0;
   width: 22px;
   height: 20px;
@@ -5667,6 +5682,9 @@ h2.splitHeader .he {
 
 .topicPanel .sideColumnMore {
   cursor: pointer;
+  font-size: 16px;
+  line-height: 26px;
+  color: #666;
 }
 .topicPanel .sideColumnMore:hover {
   cursor: pointer;
@@ -6667,12 +6685,21 @@ span.purim-emoji img{
 .tab-view .tab-list .tab.filter {
   font-size: 16px;
   margin: 0;
+  padding: 6px 9px;
+  border: 1px solid #EDEDEC;
+  background-color: #EDEDEC;
+  border-radius: 6px;
+}
+.tab-view .tab-list .tab.filter.open {
+  background-color: inherit;
 }
 .tab-view .tab-list .tab.filter img {
-  margin: 0 0 -2px 10px;
+  margin: 0 0 1px 6px;
+  width: 12px;
+  height: 12px;
 }
 .interface-hebrew .tab-view .tab-list .tab.filter img {
-  margin: 0 10px -2px 0;
+  margin: 0 6px 1px 0;
 }
 .tab-view .tab-list .applink a {
     color: #666;
@@ -6825,13 +6852,15 @@ span.purim-emoji img{
   padding: 5px;
   color: black;
   width: 250px;
+  display: flex;
+  align-items: center;
 }
 .filterable-list .filter-bar-new .filter-input ::placeholder {
   color: #999;
 }
 .filterable-list .filter-bar-new .sort-option {
   padding: 7px;
-  color: #999;
+  color: #666;
   font-size: 16px;
   cursor: pointer;
   margin: 0 0 0 7px;
@@ -6845,10 +6874,15 @@ span.purim-emoji img{
   color: black;
 }
 .filterable-list .filter-bar-new .systemText span {
-  color: #999;
+  color: #000;
+}
+.filterable-list .filter-bar .filter-bar-inner {
+  display: flex;
+  align-items: center;
 }
 .filterable-list .readerNavMenuSearchButton {
   margin: 0 10px 0 5px;
+  display: inline-flex;
 }
 .interface-hebrew .filterable-list .readerNavMenuSearchButton {
   margin: 0 5px 0 10px;
@@ -7214,7 +7248,11 @@ body .homeFeedWrapper .content {
     flex-direction: column;
   }
   .topicPanel .sideColumn {
-    padding: 0 25px;
+    padding: 20px 25px 0 25px;
+    max-width: 100%;
+    align-self: stretch;
+    border: 0;
+    margin: 0;
   }
 }
 .sideColumn .section {

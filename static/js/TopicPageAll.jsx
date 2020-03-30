@@ -10,11 +10,10 @@ const {
 }                         = require('./Misc');
 const React               = require('react');
 const PropTypes           = require('prop-types');
-const ReactDOM            = require('react-dom');
 const classNames          = require('classnames');
 const Sefaria             = require('./sefaria/sefaria');
 const $                   = require('./sefaria/sefariaJquery');
-const TextRange           = require('./TextRange');
+const MobileHeader        = require('./MobileHeader');
 const Footer              = require('./Footer');
 import Component          from 'react-class';
 
@@ -79,15 +78,15 @@ class TopicPageAll extends Component {
     return (
       <div className={classStr}>
         {this.props.hideNavHeader ? null :
-          <div className={navTopClasses}>
-            <CategoryColorLine category={"Other"} />
-            <ReaderNavigationMenuMenuButton onClick={this.props.navHome} />
-            <h2>
-              <span className="int-en">Topics</span>
-              <span className="int-he">נושאים</span>
-            </h2>
-            <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-        </div>}
+          <MobileHeader
+            mode="innerTOC"
+            hideNavHeader={this.props.hideNavHeader}
+            category="Other"
+            interfaceLang={Sefaria.interfaceLang}
+            navHome={this.props.navHome}
+            catTitle="Topics"
+            heCatTitle="נושאים"
+          />}
         <div className={contentClasses} onScroll={this.onScroll}>
           <div className="contentInner">
             {this.props.hideNavHeader ?
@@ -113,10 +112,10 @@ class TopicPageAll extends Component {
                   (topicList.length ?
                       <div>
                         { hasFilter ? null :
-                          <h3>
+                          <h2>
                             <span className="int-en">Most Used</span>
                             <span className="int-he">הכי בשימוש</span>
-                          </h3>
+                          </h2>
                         }
                         <TwoOrThreeBox content={topicList} width={this.props.width} />
                       </div>

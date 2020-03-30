@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 const PropTypes           = require('prop-types');
 const classNames          = require('classnames');
 const Sefaria             = require('./sefaria/sefaria');
+const MobileHeader        = require('./MobileHeader');
 const {
     SheetBlock,
     StorySheetList,
@@ -76,7 +77,7 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
   }
 };
 
-const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang}) => {
+const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang, openDisplaySettings, openSearch, onClose}) => {
     const [topicData, setTopicData] = useState(false);   // For root topic
     const [subtopics, setSubtopics] = useState([]);
 
@@ -115,7 +116,11 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
             <div className={contentClasses}>
                 <div className="contentInner">
                     <TopicHeader topic={topic} topicData={topicData}
-                      multiPanel={multiPanel} interfaceLang={interfaceLang} isCat />
+                      multiPanel={multiPanel} interfaceLang={interfaceLang} isCat
+                      hideNavHeader={hideNavHeader}
+                      openDisplaySettings={openDisplaySettings}
+                      openSearch={openSearch}
+                      onClose={onClose} />
                     <TwoOrThreeBox content={topicBlocks} width={width} />
                 </div>
             </div>
@@ -123,12 +128,33 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
     );
 };
 
-const TopicHeader = ({ topic, topicData, multiPanel, interfaceLang, isCat, setNavTopic }) => {
+/*
+<div className="readerNavTop search">
+  <CategoryColorLine category="Other" />
+  <ReaderNavigationMenuSearchButton onClick={navHome} />
+  <div className='sefariaLogo'><img src="/static/img/logo.svg" alt="Sefaria Logo" /></div>
+  {interfaceLang !== "hebrew" ?
+    <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} />
+    : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> }
+</div>
+*/
+const TopicHeader = ({
+  topic, topicData, multiPanel, interfaceLang, isCat, setNavTopic, hideNavHeader,
+  onClose, openDisplaySettings, openSearch
+}) => {
   const { en, he } = !!topicData ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
   const category = Sefaria.topicTocCategory(topicData.slug);
   return (
     <div>
+        {hideNavHeader ? null : (<MobileHeader
+          compare
+          mode="mainTOC"
+          onClose={onClose}
+          interfaceLang={interfaceLang}
+          openSearch={openSearch}
+          openDisplaySettings={openDisplaySettings}
+        />)}
         <div className="topicTitle pageTitle">
           <h1>
             <InterfaceTextWithFallback en={en} he={he} isItalics={false} />
@@ -152,8 +178,8 @@ const TopicHeader = ({ topic, topicData, multiPanel, interfaceLang, isCat, setNa
        {topicData.ref?
          <a href={`/${topicData.ref.url}`} className="resourcesLink blue">
            <img src="/static/img/book-icon-black.svg" alt="Book Icon" />
-           <span className="int-en">{ topicData.ref.en }</span>
-           <span className="int-he">{ norm_hebrew_ref(topicData.ref.he) }</span>
+           <span className="int-en">{ topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en }</span>
+           <span className="int-he">{ topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he) }</span>
          </a>
        :""}
     </div>
@@ -162,7 +188,7 @@ const TopicHeader = ({ topic, topicData, multiPanel, interfaceLang, isCat, setNa
 const TopicPage = ({
   tab, topic, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel,
   hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings,
-  updateTopicsTab
+  updateTopicsTab, onClose, openSearch
 }) => {
     const [topicData, setTopicData] = useState(false);
     const [topicRefs, setTopicRefs] = useState(false);
@@ -252,7 +278,7 @@ const TopicPage = ({
     if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets"), id: 'sheets'}); }
     let onClickFilterIndex = 2;
     if (!!topicRefs.length || !!topicSheets.length) {
-      tabs.push({text: Sefaria._("Filter"), icon: "/static/img/controls.svg", justifyright: true });
+      tabs.push({text: Sefaria._("Filter"), icon: `/static/img/arrow-${showFilterHeader ? 'up' : 'down'}-bold.svg`, justifyright: true });
       onClickFilterIndex = tabs.length - 1;
     }
     let tabIndex = tabs.findIndex(t => t.id === tab);
@@ -270,14 +296,14 @@ const TopicPage = ({
         <div className="content hasFooter noOverflowX">
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
-                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic}/>
+                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic} onClose={onClose} openSearch={openSearch} openDisplaySettings={openDisplaySettings} hideNavHeader={hideNavHeader}/>
                    {!!topicData?
                        <TabView
                           currTabIndex={tabIndex}
                           setTab={(tabIndex, tempTabs) => { updateTopicsTab(tempTabs[tabIndex].id); }}
                           tabs={tabs}
                           renderTab={t => (
-                            <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright})}>
+                            <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
                               {t.text}
                               { t.icon ? <img src={t.icon} alt={`${t.text} icon`} /> : null }
                             </div>

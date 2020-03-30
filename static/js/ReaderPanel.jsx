@@ -912,24 +912,28 @@ class ReaderPanel extends Component {
         contentLangOverride = "bilingual";
       }
       if (this.state.navigationTopic) {
-        menu = (<TopicPage
-                  tab={this.state.topicsTab}
-                  topic={this.state.navigationTopic}
-                  interfaceLang={this.props.interfaceLang}
-                  setTopic={this.setTopic}
-                  setNavTopic={this.setNavigationTopic}
-                  openTopics={this.openMenu.bind(null, "topics")}
-                  showBaseText={this.props.onNavTextClick || this.showBaseText}
-                  openNav={this.openMenu.bind(null, "navigation")}
-                  close={this.closeMenus}
-                  multiPanel={this.props.multiPanel}
-                  hideNavHeader={this.props.hideNavHeader}
-                  navHome={this.openMenu.bind(null, "navigation")}
-                  openDisplaySettings={this.openDisplaySettings}
-                  toggleSignUpModal={this.props.toggleSignUpModal}
-                  updateTopicsTab={this.props.updateTopicsTab}
-                  key={"TopicPage"}
-                />);
+        menu = (
+          <TopicPage
+            tab={this.state.topicsTab}
+            topic={this.state.navigationTopic}
+            interfaceLang={this.props.interfaceLang}
+            setTopic={this.setTopic}
+            setNavTopic={this.setNavigationTopic}
+            openTopics={this.openMenu.bind(null, "topics")}
+            showBaseText={this.props.onNavTextClick || this.showBaseText}
+            openNav={this.openMenu.bind(null, "navigation")}
+            openSearch={this.openSearch}
+            close={this.closeMenus}
+            onClose={this.onClose}
+            multiPanel={this.props.multiPanel}
+            hideNavHeader={this.props.hideNavHeader}
+            navHome={this.openMenu.bind(null, "navigation")}
+            openDisplaySettings={this.openDisplaySettings}
+            toggleSignUpModal={this.props.toggleSignUpModal}
+            updateTopicsTab={this.props.updateTopicsTab}
+            key={"TopicPage"}
+          />
+        );
       } else {
         menu = (<TopicPageAll
                   interfaceLang={this.props.interfaceLang}

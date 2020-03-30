@@ -1707,7 +1707,6 @@ class ReaderApp extends Component {
     } else {
       widths = panelStates.map( panel => evenWidth );
     }
-
     var header = this.props.multiPanel || this.state.panels.length == 0 ?
                   (<Header
                     initialState={this.state.header}
@@ -1735,7 +1734,6 @@ class ReaderApp extends Component {
                     translateISOLanguageCode={this.translateISOLanguageCode}
                     openProfile={this.openProfile}
                     toggleSignUpModal={this.toggleSignUpModal} />) : null;
-
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
                                   .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));

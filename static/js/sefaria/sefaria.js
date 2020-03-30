@@ -2179,6 +2179,7 @@ Sefaria = extend(Sefaria, {
       "Newest": "הכי חדש",
       "This source is connected to ": "מקור הזה קשור ל-",
       "by": "על ידי",
+      "Read the Portion": "קראו את הפרשה",
 
       //user stats
       "Torah Tracker" : "לימוד במספרים",

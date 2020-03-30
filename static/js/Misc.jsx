@@ -295,7 +295,7 @@ class FilterableList extends Component {
     return (
       <div className="filterable-list">
         {oldDesign ? <div className="filter-bar">
-          <div>
+          <div className="filter-bar-inner">
             <ReaderNavigationMenuSearchButton />
             <input
               type="text"

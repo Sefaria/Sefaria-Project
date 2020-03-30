@@ -11,6 +11,7 @@ const {
   LanguageToggleButton,
 }                                  = require('./Misc');
 const {TopicCategory}              = require('./TopicPage');
+const MobileHeader                 = require('./MobileHeader');
 import React, { useState, useEffect, useRef } from 'react';
 const ReactDOM                     = require('react-dom');
 const PropTypes                    = require('prop-types');
@@ -55,20 +56,6 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
     setShowMoreTopics(true);
   };
 
-  const handleSearchKeyUp = (event) => {
-    if (event.keyCode === 13) {
-      const query = $(event.target).val();
-      openSearch(query);
-    }
-  };
-
-  const handleSearchButtonClick = (event) => {
-    const query = $(ReactDOM.findDOMNode(ref.current)).find(".readerSearch").val();
-    if (query) {
-      openSearch(query);
-    }
-  };
-
   const openSaved = () => (Sefaria._uid) ? openMenu("saved") : toggleSignUpModal();
 
   // List of Texts in a Category
@@ -107,6 +94,9 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
               multiPanel={multiPanel}
               compare={compare}
               hideNavHeader={hideNavHeader}
+              openDisplaySettings={openDisplaySettings}
+              openSearch={openSearch}
+              onClose={onClose}
             />
         </div>
     )
@@ -194,26 +184,17 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
   resources = (<div className="readerTocResources"><TwoBox content={resources} width={width} /></div>);
 
 
-  const topContent = hideNavHeader ? null : home ?
-          (<div className="readerNavTop search">
-            <CategoryColorLine category="Other" />
-            <ReaderNavigationMenuSearchButton onClick={navHome} />
-            <div className='sefariaLogo'><img src="/static/img/logo.svg" alt="Sefaria Logo" /></div>
-            {interfaceLang !== "hebrew" ?
-              <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} />
-              : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> }
-          </div>) :
-          (<div className="readerNavTop search">
-            <CategoryColorLine category="Other" />
-            <div className="readerNavTopStart">
-              <ReaderNavigationMenuMenuButton onClick={onClose} compare={compare} interfaceLang={interfaceLang}/>
-              <div className="searchBox">
-                <ReaderNavigationMenuSearchButton onClick={handleSearchButtonClick} />
-                <input id="searchInput" className="readerSearch" title={Sefaria._("Search for Texts or Keywords Here")} placeholder={Sefaria._("Search")} onKeyUp={handleSearchKeyUp} />
-              </div>
-            </div>
-            {interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} /> : null}
-          </div>);
+  const topContent = hideNavHeader ? null : (
+    <MobileHeader
+      mode={home ? 'home' : 'mainTOC'}
+      navHome={navHome}
+      interfaceLang={interfaceLang}
+      openDisplaySettings={openDisplaySettings}
+      onClose={onClose}
+      compare={compare}
+      openSearch={openSearch}
+    />
+  );
 
   let topUserData = [
       <TocLink en="Saved" he="שמורים" href="/texts/saved" resourcesLink={true} onClick={openSaved} img="/static/img/star.png" alt="saved text icon"/>,
