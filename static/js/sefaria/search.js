@@ -434,18 +434,17 @@ class Search {
         let currRef = hit._source.ref;
         let newHitsIndex = newHitsObj[currRef];
         if (typeof newHitsIndex != "undefined") {
-          newHits[newHitsIndex].insertInOrder(hit, (a, b) => a._source.version_priority - b._source.version_priority);
+          newHits[newHitsIndex].push(hit);
         } else {
           newHits.push([hit]);
           newHitsObj[currRef] = newHits.length - 1;
         }
       }
       newHits = newHits.map(hit_list => {
-        let hit = hit_list[0];
-        if (hit_list.length > 1) {
-          hit.duplicates = hit_list.slice(1);
-        }
-        return hit;
+        if (hit_list.length === 1) { return hit_list[0]; }
+        const new_hit_list = hit_list.sort((a, b) => a._source.version_priority - b._source.version_priority);
+        new_hit_list[0].duplicates = hit_list.slice(1);
+        return new_hit_list[0];
       });
       return newHits;
     }

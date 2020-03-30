@@ -1786,9 +1786,17 @@ a.readerNavCategory {
   font-style: italic;
 }
 .readerTextTableOfContents .categoryAttribution .he,
-.readerTextTableOfContents .dedication .he,
-.readerNavMenu .dedication .he {
+.readerTextTableOfContents .dedication .int-he,
+.readerNavMenu .dedication .int-he {
   font-style: normal;
+}
+.readerNavMenu .dedication .int-he {
+  font-family: "Heebo", sans-serif;
+  font-size: 18px;
+}
+.readerNavMenu .dedication .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 18px;
 }
 .hebrew .readerNavMenu .dedication {
   direction: rtl;
