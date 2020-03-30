@@ -2,7 +2,7 @@
 
 'use strict';
 
-const TURN_SERVER = 'turn:192.168.86.158:3478?transport=udp';
+const TURN_SERVER = 'turn:{{ turn_server_ip }}?transport=udp';
 
 let isChannelReady = false;
 let isInitiator = false;
