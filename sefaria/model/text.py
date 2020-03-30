@@ -712,9 +712,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if order:
             return order[0]
         elif getattr(self, 'base_text_titles', None):
-            order = max([library.get_index(x).get_toc_index_order() for x in self.base_text_titles])
-            return order
-        return 9999
+            orders = [a for a in filter(None, [library.get_index(x).get_toc_index_order() for x in self.base_text_titles])]
+            if len(orders) > 0:
+                return min(orders)
+        return None
 
     def slim_toc_contents(self):
         toc_contents_dict = {
