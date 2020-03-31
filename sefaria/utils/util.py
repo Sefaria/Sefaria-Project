@@ -27,7 +27,7 @@ def graceful_exception(logger=None, return_value=[], exception_type=Exception):
                 return func(*args, **kwargs)
             except exception_type as e:
                 if logger:
-                    logger.exception(e)
+                    logger.exception(str(e))
             return return_value
         return decorated_function
     return argumented_decorator
