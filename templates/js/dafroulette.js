@@ -36,8 +36,24 @@ var clientRoom;
 
 const socket = io.connect('{{ rtc_server }}');
 
+socket.emit('how many rooms');
+socket.on('return rooms', function(numRooms) {
+  document.getElementById("numberOfChevrutas").innerHTML = numRooms;
+})
 
-socket.emit('create or join');
+
+socket.on('route new user', function(numRooms){
+  document.getElementById("numberOfChevrutas").innerHTML = numRooms;
+
+  if (numRooms == 1) {
+    socket.emit('create or join', true);
+  }
+
+  else {
+    socket.emit('create or join');
+  }
+})
+
 console.log('Attempted to create or join room');
 
 socket.on('created', function(room) {
