@@ -25,36 +25,9 @@ io.sockets.on('connection', function(socket) {
 
   socket.on('authenticate', async function(auth) {
     const authData = {
-      username: 'USER',
-      password: 'PW',
+      username: process.env.TURN_USER ||'USER',
+      password: process.env.TURN_SECRET || 'PW',
     };
-
-    const parsedRes = await (login(authData)).then(res => res.json());
-
-    if (!parsedRes.access) {
-      socket.emit('authenticate', false)
-
-    } else {
-      // await storeAuthToken(parsedRes);
-      socket.emit('authenticate', parsedRes)
-
-    }
-
-
-  });
-
-  function login(authData) {
-
-  const url = 'https://www.sefaria.org/api/login/';
-  return fetch(url, {
-    method: "POST",
-    body: JSON.stringify(authData),
-    headers: {
-      "Content-Type": "application/json;charset=UTF-8"
-    }
-  })
-  }
-
 
   // convenience function to log server messages on the client
   function log() {
