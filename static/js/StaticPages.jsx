@@ -1,15 +1,10 @@
 const React      = require('react');
-const PropTypes  = require('prop-types');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
 const {
     SimpleContentBlock,
     SimpleInterfaceBlock,
     NewsletterSignUpForm,
     TextBlockLink,
-    ThreeBox
 }                   = require('./Misc');
-import Component from 'react-class';
 
 const DistanceLearningPage = () => (
     <StaticPage>
@@ -93,12 +88,12 @@ const DistanceLearningPage = () => (
                 en="Educator Course"/>
         </ButtonRow>
         <Feature
-            enTitle="Developers"
-            enText="Is it time to start incorporating digital texts into your website and/or app? Sefaria has you covered. All of our software is open source and our texts are all in the creative commons, meaning you can use anything we have for your own projects. Browse our tutorials or head over to GitHub to see all that our API has to offer."
+            enTitle="Institutions & Organizations"
+            enText="Is it time to start incorporating digital texts into your website, blog, or app? Sefaria has you covered. All of our software is open source and our texts are all in the creative commons – meaning you can use anything we have for your own projects. Take a look at these resources and get in touch with your web/app developer to start including Sefaria’s texts on your site."
             enImg="/static/img/distance-learning-landing-page/remotelearningpage_developers.png"
             enImgAlt="Source Sheet - Link Sefaria to your Site"
             heTitle="מפתחים"
-            heText=""
+            heText="האם תרצו להטמיע מקורות דיגיטליים לאתר או לאפליקציה שלכם? ספריא יכולה לסייע לכם. כל המידע שיש באתר הינו בקוד פתוח. תוכלו להשתמש בכל המקורות של ספריא עבור הפרוייקטים האישיים שלכם. עיינו בGit Hub כדי לראות מה יש ל API של ספריא להציע."
             heImg="/static/img/distance-learning-landing-page/remotelearningpage_developers_HEB.png"
             heImgAlt=""
             borderColor="#802F3E"
