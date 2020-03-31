@@ -15,7 +15,7 @@ dafChat:
     env:
       TURN_SERVER: dummyValue
       TURN_USER: dummyValue
-      TURN_PW: dummyValue
+      TURN_SECRET: dummyValue
   coturn:
     containerImage: defaultImage
     replicaCount: 1

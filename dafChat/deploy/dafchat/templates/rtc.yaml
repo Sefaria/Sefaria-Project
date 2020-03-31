@@ -48,6 +48,6 @@ spec:
               value: {{ .Values.dafChat.coturn.env.TURN_SERVER }}
             - name: TURN_USER
               value: {{ .Values.dafChat.coturn.env.TURN_USER }}
-            - name: TURN_PW
-              value: {{ .Values.dafChat.coturn.env.TURN_PW }}
+            - name: TURN_SECRET
+              value: {{ .Values.dafChat.coturn.env.TURN_SECRET }}
 ...
