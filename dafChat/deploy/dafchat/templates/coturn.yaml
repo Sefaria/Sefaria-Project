@@ -1,0 +1,46 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coturn-{{ .Values.deployEnv }}
+  labels:
+    app: coturn-{{ .Values.deployEnv }}
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 3478
+  selector:
+    app: coturn-{{ .Values.deployEnv }}
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coturn-{{ .Values.deployEnv }}
+spec:
+  selector:
+    matchLabels:
+      app: coturn-{{ .Values.deployEnv }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: coturn-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: coturn
+    spec:
+      containers:
+      - name: coturn-{{ .Values.deployEnv }}
+        image: coturn
+        ports:
+          - containerPort: 3478
+        resources:
+          requests:
+            memory: {{ .Values.dafChat.coturn.resources.request.memory }}
+            cpu: {{ .Values.dafChat.coturn.resources.request.cpu }}
+          limits:
+            memory: {{ .Values.dafChat.coturn.resources.limit.memory }}
+            cpu: {{ .Values.dafChat.coturn.resources.limit.cpu }}
+...

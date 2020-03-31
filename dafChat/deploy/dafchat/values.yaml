@@ -1,0 +1,24 @@
+---
+deployEnv: testing
+dafChat:
+  rtc:
+    containerImage: defaultImage
+    replicaCount: 1
+    resources:
+      request:
+        memory: "100Mi"
+        cpu: "50m"
+      limit:
+        memory: "250Mi"
+        cpu: "150m"
+  coturn:
+    containerImage: defaultImage
+    replicaCount: 1
+    resources:
+      request:
+        memory: "100Mi"
+        cpu: "50m"
+      limit:
+        memory: "250Mi"
+        cpu: "150m"
+...

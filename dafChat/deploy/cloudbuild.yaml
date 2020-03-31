@@ -1,0 +1,50 @@
+# Builds and deploys based on trigger
+---
+substitutions:
+  _ENV_NAME: asdf
+  _GKE_CLUSTER: cluster-1
+  _GKE_NAMESPACE: sandboxes
+  _GKE_REGION: us-east1-b
+  _IMAGE_TAG: asdf
+  
+steps:
+
+  #
+  # Build Containers
+  ##################
+  # We generate the git short sha using ${_IMAGE_TAG} instead of using the 
+  # built-in variable $SHORT_SHA because the latter is only avalable for triggered builts
+  - name: "gcr.io/cloud-builders/docker"
+    dir: dafRoulette
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-dafchat-turn:${_IMAGE_TAG}", "-f", "deploy/turnServer.dockerfile", "."]
+    id: turn_container
+    wait_for: [ "-" ]
+  
+  - name: "gcr.io/cloud-builders/docker"
+    dir: dafRoulette
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-dafchat-rtc:${_IMAGE_TAG}", "-f", "deploy/dafChat.dockerfile", "."]
+    id: rtc_container
+    wait_for: [ "-" ]
+
+  #
+  # Deploy Helm Chart
+  ###################
+
+  # Idempotently install/upgrade the Helm Release
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.0.2"
+    dir: dafRoulette
+    id: install_chart
+    args: ["upgrade", "-i", "dafchat-${_ENV_NAME}", "./deploy/dafchat", "--namespace", "${_GKE_NAMESPACE}", "--debug"]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for:
+      - turn_container
+      - rtc_container
+
+images:
+  - "gcr.io/${PROJECT_ID}/sefaria-dafchat-turn:${_IMAGE_TAG}"
+  - "gcr.io/${PROJECT_ID}/sefaria-dafchat-rtc:${_IMAGE_TAG}"
+...

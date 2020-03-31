@@ -1,0 +1,46 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rtc-{{ .Values.deployEnv }}
+  labels:
+    app: rtc-{{ .Values.deployEnv }}
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 80
+  selector:
+    app: rtc-{{ .Values.deployEnv }}
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rtc-{{ .Values.deployEnv }}
+spec:
+  selector:
+    matchLabels:
+      app: rtc-{{ .Values.deployEnv }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: rtc-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: rtc
+    spec:
+      containers:
+      - name: rtc-{{ .Values.deployEnv }}
+        image: rtc
+        ports:
+        - containerPort: 6379
+        resources:
+          requests:
+            memory: {{ .Values.dafChat.rtc.resources.request.memory }}
+            cpu: {{ .Values.dafChat.rtc.resources.request.cpu }}
+          limits:
+            memory: {{ .Values.dafChat.rtc.resources.limit.memory }}
+            cpu: {{ .Values.dafChat.rtc.resources.limit.cpu }}
+...
