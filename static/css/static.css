@@ -2785,8 +2785,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   /* display: block; */
 }
 .staticPage .blockVerticalPadding {
-  padding-top: 20px;
-  padding-bottom: 70px;
+  padding-top: 0;
+  padding-bottom: 80px;
 }
 .staticPage .flexContainer {
   display: flex;
@@ -2794,6 +2794,12 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   flex-wrap: wrap;
   justify-content: space-between;
 }
+/* We need to hide some <a> tags that have a flexContainer on them. */
+.interface-hebrew .staticPage .flexContainer.int-en,
+.interface-english .staticPage .flexContainer.int-he {
+    display: none;
+}
+
 .staticPage .flexReverse {
   flex-direction: row-reverse;
 }
@@ -2830,7 +2836,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 
 .staticPage .staticPageH2 {
-  padding: 56px 0 20px 0;
+  padding: 0 0 80px 0;
   margin: 0;
 }
 .staticPage .staticPageH2 span.int-en {
@@ -2901,7 +2907,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   width: 454px;
 }
 .staticPage .feature {
-    padding: 20px 0 60px 0;
+    padding: 0px 0 80px 0;
 }
 .staticPage .feature .featureHeader {}
 .staticPage .feature .featureHeader h3 {

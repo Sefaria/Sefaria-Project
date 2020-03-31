@@ -15,83 +15,103 @@ const DistanceLearningPage = () => (
     <StaticPage>
         <Header
             enTitle="Remote Learning"
-            enText="For educators, learners, and the curious."
+            enText="Discover the power of online education. Sefaria is always available to provide foundational Jewish texts, educational materials, and the tools to allow you to engage with dynamic Jewish learning."
             enImg="/static/img/distance-learning-landing-page/tablet.png"
             enImgAlt="Sefaria on tablet."
             enActionURL={null}
             enActionText={null}
-            heTitle="Remote Learning"
-            heText="For educators, learners, and the curious."
-            heImg="/static/img/distance-learning-landing-page/tablet.png"
+            heTitle="מקורות ללימוד וללמידה למידה מרחוק"
+            heText="לומדים רבים ברחבי העולם מגלים את הכוח והפוטנציאל שיש בלמידה מקוונת. אתר ספריא פתוח לכולם, בחינם, ומציע מאגר עצום של מקורות יהודיים וכלים מתקדמים להעצמת הלמידה."
+            heImg="/static/img/distance-learning-landing-page/remotelearningpage_headerimage-HEB.png"
             heImgAlt="Sefaria on tablet."
             heActionURL={null}
             heActionText={null}
         />
-        <About
-            enTitle="Resources for teaching and learning virtually"
-            enText="More and more people across the world are discovering the power of the internet for education. Sefaria is always open and ready to bring you foundational Jewish texts, modern works, and user-generated Torah content, with the tools you need to take your learning to the next level."
-            heTitle="Resources for teaching and learning virtually"
-            heText="More and more people across the world are discovering the power of the internet for education. Sefaria is always open and ready to bring you foundational Jewish texts, modern works, and user-generated Torah content, with the tools you need to take your learning to the next level."
-
-        />
         <GreyBox>
-            <H2Block en="Browse our Latest Groups" he="" />
+            <H2Block en="Browse our Latest Resources" he="דפי מקורות אקטואליים" />
             <ButtonRow>
-                <SimpleButton href="" he="" en="Seder on Sefaria"/>
-                <SimpleButton href="" he="" en="A Jewish Response to COVID-19"/>
-                <SimpleButton href="" he="" en="Online Learning Resources"/>
+                <SimpleButton href="/groups/Seder-on-Sefaria?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="" en="Seder on Sefaria"/>
+                <SimpleButton href="/sheets/227733?lang=bi?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="" en="A Jewish Response to COVID-19"/>
+                <SimpleButton href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="" en="Online Learning Resources"/>
             </ButtonRow>
         </GreyBox>
-        <H2Block en="Resources for Everyone" he="" />
+        <H2Block en="Resources for Everyone" he="לומדים עם ספריא" />
         <Feature
             enTitle="Learners"
             enText="Whether you’re a pro, or a new user, Sefaria has resources to help your virtual study thrive. Join a Sefaria 101 webinar, browse our tutorials, or sign up for the online student training course to up your skills on all things Sefaria. Create a free account to track your learning, save texts, and follow users creating things that interest you."
-            enImg="/static/img/distance-learning-landing-page/learners 1.png"
+            enImg="/static/img/distance-learning-landing-page/remotelearningpage_learners.png"
             enImgAlt="Source Sheet - Pesach 101"
-            heTitle=""
-            heText=""
-            heImg="/static/img/distance-learning-landing-page/learners 1.png"
+            heTitle="לומדים עם ספריא"
+            heText="ספריא נותנת כלים להעצים את הלימוד המקוון שלכם. השתמשו בוובינר וב'מדריך למשתמש המתחיל' כדי ללמוד איך להשתמש באתר."
+            heImg="/static/img/distance-learning-landing-page/remotelearningpage_learners_HEB.png"
             heImgAlt=""
             borderColor="#004E5F"
         />
         <ButtonRow>
-            <SimpleButton href="" he="" en="Webinars"/>
-            <SimpleButton href="" he="" en="Tutorials"/>
-            <SimpleButton href="" he="" en="Student Course"/>
+            <SimpleButton
+                href="/groups/Webinars-for-Learners?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he_href="/sheets/224909?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he="וובינרים"
+                en="Webinars for Learners"/>
+            <SimpleButton
+                href="/groups/Tutorials-for-Learners?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he_href=""
+                he=""
+                en="Tutorials for Learners"/>
+            <SimpleButton
+                href="/groups/Sefaria-Student-Course?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he_href="/sheets/224919?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he="מדריך למשתמש המתחיל"
+                en="Student Course"/>
         </ButtonRow>
         <Feature
-            enTitle="Educators"
-            enText="Sefaria is here to support your efforts to teach from a distance. Our Education Department has a variety of resources to get you started with distance learning using Sefaria. Create an account to make and assign source sheets to your students, organize your sheets into groups, and save texts."
-            enImg="/static/img/distance-learning-landing-page/Educators 1.png"
+            enTitle="Educators and Rabbis"
+            enText="Sefaria is here to support your online teaching. Our Learning Department has a variety of resources to get you started with distance learning using Sefaria. Create a free account to make and assign source sheets to your students, organize your sheets into groups, and save texts."
+            enImg="/static/img/distance-learning-landing-page/remotelearningpage_educators.png"
             enImgAlt="Source Sheet - Teaching with Sefaria Online"
-            heTitle=""
-            heText=""
-            heImg="/static/img/distance-learning-landing-page/Educators 1.png"
+            heTitle="מורים ואנשי הוראה"
+            heText="צוות ספריא תומך בהוראה דיגיטלית ובהוראה מרחוק. למדו בעזרת החומרים שצוות החינוך שלנו יצר עבורכם- כיצד ללמד עם ספריא, בכיתה ומחוצה לה."
+            heImg="/static/img/distance-learning-landing-page/remotelearningpage_educators_HEB.png"
             heImgAlt=""
             borderColor="#CCB479"
         />
         <ButtonRow>
-            <SimpleButton href="" he="" en="Webinars"/>
-            <SimpleButton href="" he="" en="Tutorials"/>
-            <SimpleButton href="" he="" en="Educator Course"/>
+            <SimpleButton
+                href="/groups/Webinars-for-Educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he_href="/sheets/224909?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he="וובינרים"
+                en="Webinars for Educators"/>
+            <SimpleButton
+                href="/groups/Tutorials-for-Educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he_href="/sheets/224923?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he="קורס למורים: 'ספריא בכיתה'"
+                en="Tutorials for Educators"/>
+            <SimpleButton
+                href="/sheets/187032?lang=bi?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he_href="/sheets/223245?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he="טיפים להוראה עם ספריא"
+                en="Educator Course"/>
         </ButtonRow>
         <Feature
             enTitle="Developers"
             enText="Is it time to start incorporating digital texts into your website and/or app? Sefaria has you covered. All of our software is open source and our texts are all in the creative commons, meaning you can use anything we have for your own projects. Browse our tutorials or head over to GitHub to see all that our API has to offer."
-            enImg="/static/img/distance-learning-landing-page/Developers 1.png"
+            enImg="/static/img/distance-learning-landing-page/remotelearningpage_developers.png"
             enImgAlt="Source Sheet - Link Sefaria to your Site"
-            heTitle=""
+            heTitle="מפתחים"
             heText=""
-            heImg="/static/img/distance-learning-landing-page/Developers 1.png"
+            heImg="/static/img/distance-learning-landing-page/remotelearningpage_developers_HEB.png"
             heImgAlt=""
             borderColor="#802F3E"
         />
         <ButtonRow>
-            <SimpleButton href="" he="" en="Webinars"/>
-            <SimpleButton href="" he="" en="Tutorials"/>
-            <SimpleButton href="" he="" en="GitHub"/>
+            <SimpleButton href="/linker?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="" en="Two-Way Linker"/>
+            <SimpleButton href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria" he="" en="Powered by Sefaria"/>
+            <SimpleButton href="https://github.com/Sefaria/Sefaria-Project/wiki#developers" he="" en="GitHub"/>
         </ButtonRow>
-        <CallToActionFooterWithNewsletter enText="Sign up for our mailing list to get resources in your inbox" />
+        <CallToActionFooterWithNewsletter
+            enText="Sign up for our mailing list to get resources in your inbox"
+            heText="הרשמו לרשימת התפוצה שלנו על מנת לקבל עדכונים מספריא"
+        />
     </StaticPage>
 );
 
@@ -191,10 +211,12 @@ const ButtonRow = ({children}) => (
     </div>
 );
 
-const SimpleButton = ({href, he, en}) => (
+const SimpleButton = ({href, he_href, he, en}) => (
     <div className="simpleButtonWrapper">
-        <a href={href} className="button white flexContainer">
+        <a href={href} className="button white flexContainer int-en">
             <span className="int-en">{en}</span>
+        </a>
+        <a href={he_href || href} className="button white flexContainer int-he">
             <span className="int-he">{he}</span>
         </a>
     </div>
