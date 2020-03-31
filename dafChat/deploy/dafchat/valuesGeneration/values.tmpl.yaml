@@ -2,6 +2,9 @@
 deployEnv: ${DEPLOY_ENV}
 releaseImageTag: ${IMAGE_TAG}
 dafChat:
+  auth:
+    turnUser: ${TURN_USER}
+    turnSecret: ${TURN_SECRET}
   rtc: 
     containerImage: ${IMAGE_NAME_RTC}
   coturn:

@@ -2,6 +2,9 @@
 deployEnv: testing
 releaseImageTag: asdf
 dafChat:
+  auth:
+    turnUser: dummyValue
+    turnSecret: dummyValue
   rtc:
     containerImage: defaultImage
     replicaCount: 1
@@ -12,10 +15,6 @@ dafChat:
       limit:
         memory: "250Mi"
         cpu: "150m"
-    env:
-      TURN_SERVER: dummyValue
-      TURN_USER: dummyValue
-      TURN_PW: dummyValue
   coturn:
     containerImage: defaultImage
     replicaCount: 1
@@ -26,8 +25,4 @@ dafChat:
       limit:
         memory: "250Mi"
         cpu: "150m"
-    env:
-      TURN_SECRET: dummyValue
-      TURN_USER: dummyValue
-      TURN_REALM: dummyValue
 ...
