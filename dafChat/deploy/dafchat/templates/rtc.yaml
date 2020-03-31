@@ -43,4 +43,11 @@ spec:
             limits:
               memory: {{ .Values.dafChat.rtc.resources.limit.memory }}
               cpu: {{ .Values.dafChat.rtc.resources.limit.cpu }}
+          env:
+            - name: TURN_SERVER
+              value: {{ .Values.dafChat.coturn.env.TURN_SERVER }}
+            - name: TURN_USER
+              value: {{ .Values.dafChat.coturn.env.TURN_USER }}
+            - name: TURN_PW
+              value: {{ .Values.dafChat.coturn.env.TURN_PW }}
 ...
