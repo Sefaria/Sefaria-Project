@@ -5,7 +5,8 @@ const fetch = require('node-fetch');
 const jwt_decode = require('jwt-decode');
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./db/chatrooms.db');
-db.run(`DELETE FROM chatrooms WHERE 1==1`)
+db.run(`DROP TABLE IF EXISTS "chatrooms"`);
+db.run(`CREATE TABLE IF NOT EXISTS "chatrooms" ("name"	TEXT UNIQUE, "clients"	INTEGER DEFAULT 0, "roomStarted"	INTEGER, PRIMARY KEY("name"));`)
 console.log('creating and clearing db');
 var os = require('os');
 
