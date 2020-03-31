@@ -17,7 +17,7 @@ const DistanceLearningPage = () => (
             enActionText={null}
             heTitle="מקורות ללימוד וללמידה למידה מרחוק"
             heText="לומדים רבים ברחבי העולם מגלים את הכוח והפוטנציאל שיש בלמידה מקוונת. אתר ספריא פתוח לכולם, בחינם, ומציע מאגר עצום של מקורות יהודיים וכלים מתקדמים להעצמת הלמידה."
-            heImg="/static/img/distance-learning-landing-page/remotelearningpage_headerimage-HEB.png"
+            heImg="/static/img/distance-learning-landing-page/remotelearningpage_headerimage_HEB.png"
             heImgAlt="Sefaria on tablet."
             heActionURL={null}
             heActionText={null}
@@ -25,9 +25,21 @@ const DistanceLearningPage = () => (
         <GreyBox>
             <H2Block en="Browse our Latest Resources" he="דפי מקורות אקטואליים" />
             <ButtonRow>
-                <SimpleButton href="/groups/Seder-on-Sefaria?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="" en="Seder on Sefaria"/>
-                <SimpleButton href="/sheets/227733?lang=bi?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="" en="A Jewish Response to COVID-19"/>
-                <SimpleButton href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="" en="Online Learning Resources"/>
+                <SimpleButton
+                    href="/groups/Seder-on-Sefaria?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he_href="/groups/%D7%93%D7%A4%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%90%D7%A7%D7%98%D7%95%D7%90%D7%9C%D7%99%D7%99%D7%9D?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he="דפי מקורות אקטואליים"
+                    en="Seder on Sefaria"/>
+                <SimpleButton
+                    href="/sheets/227733?lang=bi?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he_href="https://docs.google.com/document/d/1auCOnEjr8biCgRiWPB3SmuU6g02FEwoL/edit"
+                    he="קורונה"
+                    en="A Jewish Response to COVID-19"/>
+                <SimpleButton
+                    href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he_href=""
+                    he=""
+                    en="Online Learning Resources"/>
             </ButtonRow>
         </GreyBox>
         <H2Block en="Resources for Everyone" he="לומדים עם ספריא" />
