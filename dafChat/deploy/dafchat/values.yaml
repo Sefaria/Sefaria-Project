@@ -1,5 +1,6 @@
 ---
 deployEnv: testing
+releaseImageTag: asdf
 dafChat:
   rtc:
     containerImage: defaultImage

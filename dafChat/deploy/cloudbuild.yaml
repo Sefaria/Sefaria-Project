@@ -15,8 +15,8 @@ steps:
   # We generate the git short sha using ${_IMAGE_TAG} instead of using the 
   # built-in variable $SHORT_SHA because the latter is only avalable for triggered builts
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-dafchat-turn:${_IMAGE_TAG}", "-f", "deploy/turnServer.dockerfile", "."]
-    id: turn_container
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-dafchat-coturn:${_IMAGE_TAG}", "-f", "deploy/coturnServer.dockerfile", "."]
+    id: coturn_container
     wait_for: [ "-" ]
   
   - name: "gcr.io/cloud-builders/docker"
@@ -28,20 +28,35 @@ steps:
   # Deploy Helm Chart
   ###################
 
+  # Create the Helm Values file
+  # outputs ./_generatedHelmValues.yaml
+  - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
+    id: generate_helm_values
+    dir: deploy/dafchat/valuesGeneration
+    entrypoint: "bash"
+    args: [ '-c', './generateHelmValues.bash' ]
+    env:
+      - 'IMAGE_NAME_COTURN=gcr.io/${PROJECT_ID}/sefaria-dafchat-coturn'
+      - 'IMAGE_NAME_RTC=gcr.io/${PROJECT_ID}/sefaria-dafchat-rtc'
+      - 'IMAGE_TAG=${_IMAGE_TAG}'
+      - 'DEPLOY_ENV=${_ENV_NAME}'
+    wait_for: [ "-" ]
+
   # Idempotently install/upgrade the Helm Release
   - name: "gcr.io/production-deployment/cloudbuild-helm:v3.0.2"
     id: install_chart
-    args: ["upgrade", "-i", "dafchat-${_ENV_NAME}", "./deploy/dafchat", "--namespace", "${_GKE_NAMESPACE}", "--set-string", "deployEnv=${_ENV_NAME}", "--debug"]
+    args: ["upgrade", "-i", "dafchat-${_ENV_NAME}", "./deploy/dafchat", "--namespace", "${_GKE_NAMESPACE}", "-f", "./deploy/dafchat/valuesGeneration/_generatedHelmValues.yaml", "--debug" ]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
       - 'KUBECTL_VERSION=1.14'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
-      - turn_container
+      - coturn_container
       - rtc_container
+      - generate_helm_values
 
 images:
-  - "gcr.io/${PROJECT_ID}/sefaria-dafchat-turn:${_IMAGE_TAG}"
+  - "gcr.io/${PROJECT_ID}/sefaria-dafchat-coturn:${_IMAGE_TAG}"
   - "gcr.io/${PROJECT_ID}/sefaria-dafchat-rtc:${_IMAGE_TAG}"
 ...

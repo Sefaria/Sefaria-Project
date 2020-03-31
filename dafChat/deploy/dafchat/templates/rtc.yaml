@@ -32,15 +32,15 @@ spec:
         stackRole: rtc
     spec:
       containers:
-      - name: rtc-{{ .Values.deployEnv }}
-        image: rtc
-        ports:
-        - containerPort: 6379
-        resources:
-          requests:
-            memory: {{ .Values.dafChat.rtc.resources.request.memory }}
-            cpu: {{ .Values.dafChat.rtc.resources.request.cpu }}
-          limits:
-            memory: {{ .Values.dafChat.rtc.resources.limit.memory }}
-            cpu: {{ .Values.dafChat.rtc.resources.limit.cpu }}
+        - name: rtc-{{ .Values.deployEnv }}
+          image: "{{ .Values.dafChat.rtc.containerImage }}:{{ .Values.releaseImageTag }}"
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              memory: {{ .Values.dafChat.rtc.resources.request.memory }}
+              cpu: {{ .Values.dafChat.rtc.resources.request.cpu }}
+            limits:
+              memory: {{ .Values.dafChat.rtc.resources.limit.memory }}
+              cpu: {{ .Values.dafChat.rtc.resources.limit.cpu }}
 ...

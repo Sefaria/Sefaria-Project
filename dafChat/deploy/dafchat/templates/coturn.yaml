@@ -33,7 +33,7 @@ spec:
     spec:
       containers:
       - name: coturn-{{ .Values.deployEnv }}
-        image: coturn
+        image: "{{ .Values.dafChat.coturn.containerImage }}:{{ .Values.releaseImageTag }}"
         ports:
           - containerPort: 3478
         resources:
