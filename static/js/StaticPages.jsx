@@ -11,7 +11,7 @@ const DistanceLearningPage = () => (
         <Header
             enTitle="Remote Learning"
             enText="Discover the power of online education. Sefaria is always available to provide foundational Jewish texts, educational materials, and the tools to allow you to engage with dynamic Jewish learning."
-            enImg="/static/img/distance-learning-landing-page/tablet.png"
+            enImg="/static/img/distance-learning-landing-page/remotelearning_headerimage.png"
             enImgAlt="Sefaria on tablet."
             enActionURL={null}
             enActionText={null}
