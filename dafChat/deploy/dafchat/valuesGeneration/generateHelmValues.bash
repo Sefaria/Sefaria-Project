@@ -27,11 +27,13 @@ if [[ -z "${IMAGE_NAME_RTC}" ]]; then
   exit 1
 fi
 
-
+export TURN_USER=`openssl rand -hex 8`
+export TURN_SECRET=`openssl rand -hex 20`
 
 # Using template, generate Helm Configs file
 echo "[INFO] Substituting values..."
-envsubst '${DEPLOY_ENV},${IMAGE_NAME_RTC},${IMAGE_NAME_COTURN},${IMAGE_TAG}' < ./values.tmpl.yaml > ./_generatedHelmValues.yaml
+envsubst '${DEPLOY_ENV},${IMAGE_NAME_RTC},${IMAGE_NAME_COTURN},${IMAGE_TAG},${TURN_USER},${TURN_SECRET}' \
+  < ./values.tmpl.yaml > ./_generatedHelmValues.yaml
 echo "[INFO] Subsitution occured successfully."
 
 cat ./_generatedHelmValues.yaml
