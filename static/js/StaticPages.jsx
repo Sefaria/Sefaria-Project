@@ -45,7 +45,7 @@ const DistanceLearningPage = () => (
         <H2Block en="Resources for Everyone" he="לומדים עם ספריא" />
         <Feature
             enTitle="Learners"
-            enText="Whether you’re a pro, or a new user, Sefaria has resources to help your virtual study thrive. Join a Sefaria 101 webinar, browse our tutorials, or sign up for the online student training course to up your skills on all things Sefaria. Create a free account to track your learning, save texts, and follow users creating things that interest you."
+            enText="Whether you’re a pro, or a new user, Sefaria has resources to help your virtual study thrive. Join a Sefaria 101 webinar, browse our tutorials, or sign up for the online student training course to up your skills on all things Sefaria. <a href='/register?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>Create a free account</a> to track your learning, save texts, and follow users creating things that interest you."
             enImg="/static/img/distance-learning-landing-page/remotelearningpage_learners.png"
             enImgAlt="Source Sheet - Pesach 101"
             heTitle="לומדים עם ספריא"
@@ -73,7 +73,7 @@ const DistanceLearningPage = () => (
         </ButtonRow>
         <Feature
             enTitle="Educators and Rabbis"
-            enText="Sefaria is here to support your online teaching. Our Learning Department has a variety of resources to get you started with distance learning using Sefaria. Create a free account to make and assign source sheets to your students, organize your sheets into groups, and save texts."
+            enText="Sefaria is here to support your online teaching. Our <a href='/educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>Learning Department</a> has a variety of resources to get you started with distance learning using Sefaria. <a href='/register?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>Create a free account</a> to make and assign source sheets to your students, organize your sheets into groups, and save texts."
             enImg="/static/img/distance-learning-landing-page/remotelearningpage_educators.png"
             enImgAlt="Source Sheet - Teaching with Sefaria Online"
             heTitle="מורים ואנשי הוראה"
@@ -201,8 +201,8 @@ const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heIm
                         <span className="int-he">{heTitle}</span>
                     </h3>
                 </div>
-                <p className="int-en">{enText}</p>
-                <p className="int-he">{heText}</p>
+                <p className="int-en" dangerouslySetInnerHTML={{__html:enText}} />
+                <p className="int-he" dangerouslySetInnerHTML={{__html:heText}} />
             </div>
             <div className="featureImage">
                 <img className="int-en" src={enImg} alt={enImgAlt}/>

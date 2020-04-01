@@ -2905,6 +2905,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPage .feature .featureImage img {
   width: 454px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .staticPage .feature {
     padding: 0px 0 80px 0;
