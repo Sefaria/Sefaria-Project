@@ -36,7 +36,6 @@ var clientRoom;
 
 const socket = io.connect('{{ rtc_server }}');
 
-socket.emit('how many rooms');
 socket.on('return rooms', function(numRooms) {
   document.getElementById("numberOfChevrutas").innerHTML = numRooms;
 })
@@ -67,11 +66,14 @@ socket.on('full', function(room) {
 });
 
 socket.on('join', function(room) {
-  console.log('Another peer made a request to join room ' + room);
-  console.log('This peer is the initiator of room ' + room + '!');
+  console.log('another user joined room: ' + room);
   Sefaria.track.event("DafRoulette", "Chevruta Match Made", "initator");
   isChannelReady = true;
   socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room)
+  if (!isStarted) {
+    maybeStart()
+  }
+
 });
 
 socket.on('joined', function(room) {
@@ -86,10 +88,6 @@ socket.on('got user name', function(userName, uid) {
   document.getElementById("chevrutaName").innerHTML = userName;
   document.getElementById("chevrutaUID").value = uid;
 })
-
-socket.on('log', function(array) {
-  console.log.apply(console, array);
-});
 
 socket.on('user reported', function(){
   remoteVideo.srcObject = null;
@@ -123,7 +121,7 @@ socket.on('message', function(message) {
       candidate: message.candidate
     });
     pc.addIceCandidate(candidate);
-  } else if (message === 'bye' && isStarted) {
+  } else if (message === 'bye') {
     handleRemoteHangup();
   }
 });
@@ -194,6 +192,7 @@ function reportUser() {
 }
 
 function gotStream(stream) {
+  socket.emit('how many rooms');
   console.log('Adding local stream.');
   localStream = stream;
   localVideo.srcObject = stream;
@@ -339,7 +338,8 @@ function hangup() {
 function handleRemoteHangup() {
   socket.emit('bye', clientRoom);
   console.log('Session terminated.');
-  location.reload()
+  setTimeout(function(){ location.reload(); }, 2000);
+
   // newRoom();
 }
 

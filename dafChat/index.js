@@ -23,15 +23,7 @@ var app = http.createServer(function(req, res) {
 var io = socketIO.listen(app);
 io.sockets.on('connection', function(socket) {
 
-  // convenience function to log server messages on the client
-  function log() {
-    var array = ['Message from server:'];
-    array.push.apply(array, arguments);
-    socket.emit('log', array);
-  }
-
   socket.on('message', function(message) {
-    log('Client said: ', message);
     var roomId = (Object.keys(socket.rooms).filter(item => item!=socket.id))[0]
     socket.to(roomId).emit('message', message);
   });
@@ -40,11 +32,10 @@ io.sockets.on('connection', function(socket) {
     var room = Math.random().toString(36).substring(7);
     socket.join(room);
     console.log(`${socket.id} created room ${room}`)
-    log('Client ID ' + socket.id + ' created room ' + room);
     socket.emit('created', room, socket.id);
     db.run(`INSERT INTO chatrooms(name, clients, roomStarted) VALUES(?, ?, ?)`, [room, 1, +new Date], function(err) {
       if (err) {
-        log(err.message);
+        console.log(err.message);
       }
     });
   }
@@ -82,7 +73,6 @@ io.sockets.on('connection', function(socket) {
         if (rows.length >= 2 || (joinOverride == true && rows.length > 0))  {
           var row = rows[0];
           var room = row.name;
-          log('Client ID ' + socket.id + ' joined room ' + room);
           console.log('Client ID ' + socket.id + ' joined room ' + room);
 
           io.sockets.in(room).emit('join', room);
