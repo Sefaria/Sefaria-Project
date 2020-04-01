@@ -69,6 +69,7 @@ socket.on('full', function(room) {
 socket.on('join', function(room) {
   console.log('Another peer made a request to join room ' + room);
   console.log('This peer is the initiator of room ' + room + '!');
+  Sefaria.track.event("DafRoulette", "Chevruta Match Made", "initator");
   isChannelReady = true;
   socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room)
 });
@@ -77,6 +78,7 @@ socket.on('joined', function(room) {
   console.log('joined: ' + room);
   isChannelReady = true;
   clientRoom = room;
+  Sefaria.track.event("DafRoulette", "Chevruta Match Made", "joiner");
   socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room)
 });
 
@@ -142,7 +144,7 @@ navigator.mediaDevices.getUserMedia({
 
 function addAdditionalHTML() {
   const newRoomButton = document.createElement('div');
-  newRoomButton.innerHTML = '<button id="newRoom" onclick="location.reload();">New Person</button>';
+  newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()">New Person</button>';
   document.getElementById("buttonContainer").appendChild(newRoomButton)
 
   const iframe = document.createElement('iframe');
@@ -150,6 +152,11 @@ function addAdditionalHTML() {
   document.getElementById("iframeContainer").appendChild(iframe)
 }
 
+
+function getNewChevruta() {
+  Sefaria.track.event("DafRoulette", "New Chevruta Click", "");
+  location.reload()
+}
 
 
 function reportUser() {
@@ -177,7 +184,6 @@ function reportUser() {
           window.onbeforeunload = null;
           alert(`We're sorry you had this experience. ${username} has been reported to the Sefaria administrators.`)
           location.reload()
-          // Sefaria.track.event("Tools", "Send Feedback", "");
       }
   }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
       alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
