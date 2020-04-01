@@ -23,12 +23,6 @@ var app = http.createServer(function(req, res) {
 var io = socketIO.listen(app);
 io.sockets.on('connection', function(socket) {
 
-  socket.on('authenticate', async function(auth) {
-    const authData = {
-      username: process.env.TURN_USER ||'USER',
-      password: process.env.TURN_SECRET || 'PW',
-    };
-
   // convenience function to log server messages on the client
   function log() {
     var array = ['Message from server:'];
