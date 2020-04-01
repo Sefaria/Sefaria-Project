@@ -2850,7 +2850,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 
 .staticPage .simpleButtonWrapper {
-  width: 30%;
+  width: 33%;
 }
 .staticPage .simpleButtonWrapper .button {
   border-radius: 0;
@@ -2913,13 +2913,13 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPage .feature .featureHeader {}
 .staticPage .feature .featureHeader h3 {
-  text-align: center;
   margin: 20px 0 20px 0;
   font-size: 30px;
   line-height: 36px;
   font-weight: normal;
   display: inline-block;
 }
+
 .staticPage .feature .featureHeader h3 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }

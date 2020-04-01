@@ -37,8 +37,8 @@ const DistanceLearningPage = () => (
                     en="A Jewish Response to COVID-19"/>
                 <SimpleButton
                     href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he_href=""
-                    he=""
+                    he_href="/sheets/228257?lang=he"
+                    he="עשרת הדיברות ללמידה מרחוק"
                     en="Online Learning Resources"/>
             </ButtonRow>
         </GreyBox>
@@ -72,7 +72,7 @@ const DistanceLearningPage = () => (
                 en="Student Course"/>
         </ButtonRow>
         <Feature
-            enTitle="Educators and Rabbis"
+            enTitle="Educators & Rabbis"
             enText="Sefaria is here to support your online teaching. Our <a href='/educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>Learning Department</a> has a variety of resources to get you started with distance learning using Sefaria. <a href='/register?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>Create a free account</a> to make and assign source sheets to your students, organize your sheets into groups, and save texts."
             enImg="/static/img/distance-learning-landing-page/remotelearningpage_educators.png"
             enImgAlt="Source Sheet - Teaching with Sefaria Online"
@@ -111,9 +111,9 @@ const DistanceLearningPage = () => (
             borderColor="#802F3E"
         />
         <ButtonRow>
-            <SimpleButton href="/linker?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="" en="Two-Way Linker"/>
-            <SimpleButton href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria" he="" en="Powered by Sefaria"/>
-            <SimpleButton href="https://github.com/Sefaria/Sefaria-Project/wiki#developers" he="" en="GitHub"/>
+            <SimpleButton href="/linker?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="לינקר דו צדדי" en="Two-Way Linker"/>
+            <SimpleButton href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria" he="אתרים המופעלים ע”י ספריא" en="Powered by Sefaria"/>
+            <SimpleButton href="https://github.com/Sefaria/Sefaria-Project/wiki#developers" he="גיטהאב" en="GitHub"/>
         </ButtonRow>
         <CallToActionFooterWithNewsletter
             enText="Sign up for our mailing list to get resources in your inbox."
