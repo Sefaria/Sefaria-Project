@@ -118,6 +118,7 @@ const DistanceLearningPage = () => (
         <CallToActionFooterWithNewsletter
             enText="Sign up for our mailing list to get resources in your inbox"
             heText="הרשמו לרשימת התפוצה שלנו על מנת לקבל עדכונים מספריא"
+            includeEducatorOption={true}
         />
     </StaticPage>
 );
@@ -170,11 +171,11 @@ const CallToActionFooterWithButton = ({href, enText, heText, enButtonText, heBut
         <CallToActionButton href={href} en={enButtonText} he={heButtonText} />
     </div>
 );
-const CallToActionFooterWithNewsletter = ({enText, heText}) => (
+const CallToActionFooterWithNewsletter = ({enText, heText, includeEducatorOption}) => (
     <div className="staticPageCallToActionFooter">
         <div className="staticPageBlockInner flexContainer">
             <SimpleInterfaceBlock classes="callToActionText" en={enText} he={heText} />
-            <NewsletterSignUpForm contextName="Distance Learning Static Page" />
+            <NewsletterSignUpForm contextName="Distance Learning Static Page" includeEducatorOption={includeEducatorOption} />
         </div>
     </div>
 );

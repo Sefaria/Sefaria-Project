@@ -119,26 +119,6 @@
   font-size: 14px;
   background-color: white;
 }
-.static input:focus {
-  outline: none;
-}
-.static input::placeholder { /* eventual spec? */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static input::-moz-placeholder { /* Firefox 19+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static input:-ms-input-placeholder { /* IE 10+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static input:-moz-placeholder { /* Firefox 18- */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-
-
 .static a {
   color: #333;
 }
@@ -152,7 +132,6 @@
 .static a.button.transparent {
   color: #666;
 }
-
 .static .refLink {
   text-decoration: none;
 }
@@ -677,6 +656,21 @@
   cursor: pointer;
   width: 100%;
   box-sizing: border-box;
+}
+.registrationContent input::placeholder { /* eventual spec? */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input::-moz-placeholder { /* Firefox 19+ */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input:-ms-input-placeholder { /* IE 10+ */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input:-moz-placeholder { /* Firefox 18- */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
   width: auto;
@@ -2828,8 +2822,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   line-height: 36px;
   width: 50%;
 }
-.staticPage .staticPageCallToActionFooter {
-
+.staticPage .staticPageCallToActionFooter .newsletterSignUpBox .subscribeMessage {
+  color: white;
 }
 .staticPage .staticPageHeader .flexContainer > div {
   flex: 1;

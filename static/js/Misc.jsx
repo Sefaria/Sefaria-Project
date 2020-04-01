@@ -1267,8 +1267,9 @@ Note.propTypes = {
 
 
 function NewsletterSignUpForm(props) {
-  const {contextName} = props;
+  const {contextName, includeEducatorOption} = props;
   const [input, setInput] = useState('');
+  const [educatorCheck, setEducatorCheck] = useState(false);
   const [subscribeMessage, setSubscribeMessage] = useState(null);
 
   function handleSubscribeKeyUp(e) {
@@ -1281,7 +1282,10 @@ function NewsletterSignUpForm(props) {
     var email = input;
     if (Sefaria.util.isValidEmailAddress(email)) {
       setSubscribeMessage("Subscribing...");
-      var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
+      var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General";
+      if (educatorCheck) {
+        list += "|" + (Sefaria.interfaceLang == "hebrew" ? "Announcements_Edu_Hebrew" : "Announcements_Edu");
+      }
       $.post("/api/subscribe/" + email + "?lists=" + list, function(data) {
         if ("error" in data) {
           setSubscribeMessage(data.error);
@@ -1314,9 +1318,27 @@ function NewsletterSignUpForm(props) {
           onKeyUp={handleSubscribeKeyUp} />
       </span>
       <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} />
+      {includeEducatorOption ? 
+        <div className="newsletterEducatorOption">
+          <span className="int-en">
+            <input
+              type="checkbox"
+              checked={educatorCheck}
+              onChange={e => setEducatorCheck(e.target.checked)} />
+            <span>I am an educator</span>
+          </span>
+          <span className="int-he">
+            <input
+              type="checkbox"
+              checked={educatorCheck}
+              onChange={e => setEducatorCheck(e.target.checked)} />
+            <span>אני מחנך</span>
+          </span>
+        </div>
+      : null}
       { subscribeMessage ?
-        <div className="subscribeMessage">{subscribeMessage}</div>
-        : null }
+      <div className="subscribeMessage">{subscribeMessage}</div>
+      : null }
     </div>);
 }
 

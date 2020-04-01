@@ -4849,32 +4849,32 @@ a .button:hover {
 ::-webkit-input-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
-   color: #000;
+   color: #666;
 }
 ::-moz-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
-   color: #000;
+   color: #666;
 }
 :-ms-input-placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", Georgia, serif;
-   color: #000;
+   color: #666;
 }
 .interface-hebrew ::-webkit-input-placeholder {
   font-style: normal;
   font-family: "Heebo", sans-serif;
-  color: #000;
+  color: #666;
 }
 .interface-hebrew ::-moz-placeholder {
   font-style: normal;
   font-family: "Heebo", sans-serif;
-  color: #000;
+  color: #666;
 }
 .interface-hebrew :-ms-input-placeholder {
   font-style: normal;
   font-family: "Heebo", sans-serif;
-  color: #000;
+  color: #666;
 }
 .lexicon-content{
   font-size: 15px;
@@ -5845,7 +5845,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   position: relative;
   margin-bottom: 4px;
 }
-.newsletterInput {
+.newsletterSignUpBox .newsletterInput {
   border-radius: 6px;
   padding: 8px 32px 11px 16px;
   width: 150px;
@@ -5853,11 +5853,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border: 1px solid #EEE;
   margin-bottom: 6px;
   color: #333;
-}
-.newsletterInput ::-webkit-input-placeholder,
-.newsletterInput ::-moz-placeholder,
-.newsletterInput :-ms-input-placeholder {
-  color: #AAA;
 }
 .newsletterSignUpBox img {
   height: 18px;
@@ -5867,7 +5862,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   top: 10px;
   right: 12px;
 }
-.interface-hebrew .newsletterInput {
+.interface-hebrew .newsletterSignUpBox .newsletterInput {
   padding: 8px 16px 11px 32px;
 }
 .interface-hebrew .newsletterSignUpBox img {
@@ -5875,13 +5870,20 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   left: 12px;
   transform: scale(-1, 1);
 }
-.subscribeMessage {
-  margin-bottom: 14px;
+.newsletterEducatorOption {
+  font-size: 14px;
+  padding: 0px 3px;
+  margin-top: 2px;
+}
+.newsletterSignUpBox .subscribeMessage {
+  margin: 4px 0 14px 0;
   color: #333;
   font-size: 14px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: italic;
   text-align: center;
+  width: 200px;
+  direction: ltr;
 }
 #footer .section.connect a {
   display: inline;
