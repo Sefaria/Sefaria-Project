@@ -2897,7 +2897,7 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
 @sanitize_get_params
 def topics_page(request):
     """
-    Page of all
+    Page of all Topics
     """
     props = base_props(request)
     props.update({
@@ -2919,8 +2919,8 @@ def topics_page(request):
 @sanitize_get_params
 def topic_page(request, topic):
     """
+    Page of an individual Topic
     """
-
     topic_obj = Topic.init(topic)
     if topic_obj is None:
         # try to normalize

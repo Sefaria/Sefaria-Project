@@ -1681,11 +1681,6 @@ $(function() {
 			$(this).height(heightToSwitch);
 	}).find("#sheetSummaryInput").change();
 
-	$("#tags").on("focus", "input", function() {
-		$("#tags .addTagMsg").hide();
-	});
-
-
 	$("#sourceSheetGroupSelect").change(function() {
 		if ($(this).val()!="None") {
 			var $el = $("#sourceSheetGroupSelect option:selected");
@@ -2158,11 +2153,38 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 
 sjs.sheetTagger = {
 	init: function() {
-		$("#tags").tagit({ allowSpaces: true, readOnly: true });
+		$("#tags").tagit({ allowSpaces: true });
 		$("#suggestedTags").on('click', '.tagButton', function() {
 			$("#tags").tagit("createTag",$(this).text());
-			$("#tags .addTagMsg").hide()
 			$(this).hide();
+		});
+		const dropdownAnchorSide = sjs.interfaceLang == "he" ? "right" : "left";
+		$("#addTag")
+		.keyup(function(e) {
+			if (e.keyCode == 13) {
+				sjs.sheetTagger.addTagFromInput($("#addTag").val());
+			}
+		})
+		.autocomplete({
+			source: function(request, response) {
+			Sefaria.getName(request.term, false, 0)
+				.then(function(d) {
+					var topics = [];
+					d.completion_objects.map(function(obj) {
+						if (obj.type == "Topic") {
+							topics.push(obj.title);
+							sjs.sheetTagger.tagSlugs[obj.title] = obj.key;
+						}
+					});
+					return topics;
+				})
+				.then(response);
+			},
+			position: {my: dropdownAnchorSide + " top", at: dropdownAnchorSide + " bottom"},
+			select: function(event, ui) { 
+				sjs.sheetTagger.addTagFromInput(ui.item.value);
+			},
+			minLength: 3
 		});
 	},
 	tags: function() {
@@ -2179,11 +2201,15 @@ sjs.sheetTagger = {
 	setTags: function(topics) {
 		$("#tags").tagit("removeAll");
 		if (topics && topics.length) {
-			$("#tags .addTagMsg").hide();
 			for (var i=0; i < topics.length; i++) {
+				sjs.sheetTagger.tagSlugs[topics[i].asTyped] = topics[i].slug;
 				$("#tags").tagit("createTag", topics[i].asTyped);
 			}
 		}
+	},
+	addTagFromInput: function(tag) {
+		$("#tags").tagit("createTag", tag);
+		$("#addTag").val("").autocomplete("close");
 	},
 	suggestTags: function() {
 		var suggestedTagsLookup = [];
@@ -2215,7 +2241,7 @@ sjs.sheetTagger = {
 			});
 		}
 	},
-	tagSlugs: {}
+	tagSlugs: {} /* cache mapping typed tags to their slugs */
 };
 
 
@@ -2427,7 +2453,6 @@ function readSheet() {
 	sheet.options  = {};
 	sheet.status   = "unlisted";
 	sheet.nextNode = sjs.current.nextNode;
-	sheet.tags     = sjs.sheetTagger.tags();
 	sheet.topics   = sjs.sheetTagger.topics();
 	sheet.summary  = $("#sheetSummaryInput").val();
 
