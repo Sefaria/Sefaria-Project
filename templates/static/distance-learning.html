@@ -12,12 +12,9 @@
 {% block js %}
 <script>
     {% autoescape off %}
-    var DJANGO_VARS = {
-        props: {},
-        containerId: 'distanceLearningPageInner',
-        reactComponentName: 'DistanceLearningPage',
-        static_url: {{ STATIC_PREFIX }}
-    };
+    DJANGO_VARS.containerId = 'distanceLearningPageInner';
+    DJANGO_VARS.reactComponentName = 'DistanceLearningPage';
+    DJANGO_VARS.static_url = {{ STATIC_PREFIX }};
     {% endautoescape %}
 </script>
 {% endblock %}

@@ -21,16 +21,6 @@ $(function() {
     component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.props);
     renderFunc(component, container);
   
-  } else if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
-    // Rendering just a specifc component to a container
-    container = document.getElementById(DJANGO_VARS.containerId);
-    component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.props);
-    renderFunc(component, container);
-    if (footerContainer){
-      renderFunc(React.createElement(SefariaReact.Footer), footerContainer);
-    }
-
-  
   } else {
     // Rendering the Header & Footer only on top of a static page
     var settings = {
@@ -63,4 +53,12 @@ $(function() {
       renderFunc(React.createElement(SefariaReact.Footer), footerContainer);
     }
   }
+
+  if (DJANGO_VARS.containerId && DJANGO_VARS.reactComponentName) {
+    // Render a specifc component to a container
+    container = document.getElementById(DJANGO_VARS.containerId);
+    component = React.createElement(SefariaReact[DJANGO_VARS.reactComponentName], DJANGO_VARS.props);
+    renderFunc(component, container);
+  }
+
 });
