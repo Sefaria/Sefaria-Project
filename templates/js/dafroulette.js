@@ -18,8 +18,8 @@ const pcConfig = {
     },
     {
       'urls': TURN_SERVER,
-      'credential': 'test',
-      'username': 'test'
+      'credential': '{{ turn_user }}',
+      'username': '{{ turn_secret }}'
     }
   ]
 };
@@ -70,13 +70,19 @@ socket.on('join', function(room) {
   console.log('Another peer made a request to join room ' + room);
   console.log('This peer is the initiator of room ' + room + '!');
   isChannelReady = true;
+  socket.emit('send user info', '{{ client_name }}', room)
 });
 
 socket.on('joined', function(room) {
   console.log('joined: ' + room);
   isChannelReady = true;
   clientRoom = room;
+  socket.emit('send user info', '{{ client_name }}', room)
 });
+
+socket.on('got user name', function(userName) {
+  document.getElementById("chevrutaName").innerHTML = userName;
+})
 
 socket.on('log', function(array) {
   console.log.apply(console, array);

@@ -142,7 +142,9 @@ SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting t
 
 # DafRoulette server
 RTC_SERVER = '' # Root URL/IP of the server
-TURN_SERVER_IP = '' # IP & Port for the Turn Server 
+TURN_SERVER_IP = '' # IP & Port for the Turn Server
+TURN_SECRET = ''
+TURN_USER = ''
 
 # Map domain to an interface language that the domain should be pinned to.
 # Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English

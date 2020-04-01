@@ -4311,6 +4311,5 @@ def daf_roulette_redirect(request):
 
     return render(request,'static/dafroulette.html',
                              {
-                              "user": UserProfile(id=request.user.id),
                               "rtc_server": RTC_SERVER,
                               })

@@ -116,4 +116,8 @@ io.sockets.on('connection', function(socket) {
     socket.to(room).emit('message', 'bye');
   })
 
+  socket.on('send user info', function(userName, room) {
+    socket.to(room).emit('got user name', userName);
+  })
+
 });
