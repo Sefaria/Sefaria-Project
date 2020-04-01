@@ -457,6 +457,10 @@ input.noselect {
   font-size: 24px;
   line-height: 24px;
 }
+.header .library .fa {
+  position: relative;
+  top: 1px;
+}
 .header .notifications {
   display: inline-block;
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
