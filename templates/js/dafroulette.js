@@ -70,23 +70,30 @@ socket.on('join', function(room) {
   console.log('Another peer made a request to join room ' + room);
   console.log('This peer is the initiator of room ' + room + '!');
   isChannelReady = true;
-  socket.emit('send user info', '{{ client_name }}', room)
+  socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room)
 });
 
 socket.on('joined', function(room) {
   console.log('joined: ' + room);
   isChannelReady = true;
   clientRoom = room;
-  socket.emit('send user info', '{{ client_name }}', room)
+  socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room)
 });
 
-socket.on('got user name', function(userName) {
+socket.on('got user name', function(userName, uid) {
   document.getElementById("chevrutaName").innerHTML = userName;
+  document.getElementById("chevrutaUID").value = uid;
 })
 
 socket.on('log', function(array) {
   console.log.apply(console, array);
 });
+
+socket.on('user reported', function(){
+  remoteVideo.srcObject = null;
+  document.getElementById("reportUser").remove();
+  alert("Your chevruta clicked the 'Report User' button. \n\nA report has been sent to the Sefaria administrators.")
+})
 
 ////////////////////////////////////////////////
 
@@ -135,13 +142,54 @@ navigator.mediaDevices.getUserMedia({
 
 function addAdditionalHTML() {
   const newRoomButton = document.createElement('div');
-  var span = document.createElement('span');
   newRoomButton.innerHTML = '<button id="newRoom" onclick="location.reload();">New Person</button>';
   document.getElementById("buttonContainer").appendChild(newRoomButton)
+
+  const reportUserButton = document.createElement('div');
+  reportUserButton.innerHTML = '<button id="reportUser" onclick="reportUser();">Report User</button>';
+  document.getElementById("buttonContainer").appendChild(reportUserButton)
+
 
   const iframe = document.createElement('iframe');
   iframe.src = "https://www.sefaria.org/todays-daf-yomi";
   document.getElementById("iframeContainer").appendChild(iframe)
+}
+
+
+
+function reportUser() {
+  remoteVideo.srcObject = null;
+  socket.emit('report user', clientRoom)
+
+  const uid = document.getElementById("chevrutaUID").value;
+  const username = document.getElementById("chevrutaName").innerHTML;
+  console.log(uid, username)
+
+  var feedback = {
+      type: "daf_roulette_report",
+      msg: `{{client_name}} ({{client_uid}}) reported ${username} (${uid}) on DafRoulette`,
+      uid: {{client_uid}} || null,
+      url: "/daf-roulette",
+  };
+  var postData = {json: JSON.stringify(feedback)};
+  var url = "/api/send_feedback";
+
+  $.post(url, postData, function (data) {
+      if (data.error) {
+          alert(data.error);
+      } else {
+          console.log(data);
+          window.onbeforeunload = null;
+          alert(`We're sorry you had this experience. ${username} has been reported to the Sefaria administrators.`)
+          location.reload()
+          // Sefaria.track.event("Tools", "Send Feedback", "");
+      }
+  }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
+      alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
+  });
+
+
+
 }
 
 function gotStream(stream) {

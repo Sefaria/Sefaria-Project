@@ -222,6 +222,7 @@ def dafroulette_js(request):
         "turn_secret": TURN_SECRET,
         "turn_user": TURN_USER,
         "client_name": client_user.first_name + " " + client_user.last_name,
+        "client_uid": client_user.id
     }
 
 

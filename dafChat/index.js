@@ -109,6 +109,10 @@ io.sockets.on('connection', function(socket) {
     }
   });
 
+  socket.on('report user', function(room){
+    socket.to(room).emit('user reported');
+  });
+
   socket.on('bye', function(room){
     console.log(`bye received from ${socket.id} for room ${room}`)
     db.run(`DELETE FROM chatrooms WHERE name=?`, room);
@@ -116,8 +120,8 @@ io.sockets.on('connection', function(socket) {
     socket.to(room).emit('message', 'bye');
   })
 
-  socket.on('send user info', function(userName, room) {
-    socket.to(room).emit('got user name', userName);
+  socket.on('send user info', function(userName, uid, room) {
+    socket.to(room).emit('got user name', userName, uid);
   })
 
 });

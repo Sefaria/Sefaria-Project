@@ -87,11 +87,14 @@ a {
     }
 
     #chevrutaName {
-      margin: -30px 20px 20px;
+      margin: -30px 5px 20px;
+      padding: 5px;
+      border-radius: 10px;
       z-index: 1;
+      background: rgba(0,0,0,.3);
       color: white;
       align-self: flex-start;
-      font-size: 14px;
+      font-size: 13px;
     }
 
 button {
@@ -116,6 +119,11 @@ button {
 
 }
 
+#reportUser {
+  background: #c82333;
+  border-color: rgb(189, 33, 48);
+  color: #fff;
+}
 
 {% endblock %}
 
@@ -127,6 +135,7 @@ button {
     <video id="localVideo" class="flippedVideo" autoplay muted></video>
     <video id="remoteVideo" autoplay poster="/static/img/dafroulette-loading.png"></video>
     <div id="chevrutaName"></div>
+    <input type="hidden" id="chevrutaUID" value=false>
     <div id="buttonContainer"></div>
     <p>
       DafRoulette is an experimental project from Sefaria to match you with random partners for studying daf yomi.
@@ -151,5 +160,4 @@ button {
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
 <script src="/dafroulette.js"></script>
 <script>addAdditionalHTML()</script>
-
 {% endblock %}
