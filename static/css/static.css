@@ -2793,7 +2793,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .interface-english .staticPage .flexContainer.int-he {
     display: none;
 }
-
 .staticPage .flexReverse {
   flex-direction: row-reverse;
 }
@@ -2815,20 +2814,29 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   padding: 60px 0;
 }
 .staticPage .staticPageCallToActionFooter .callToActionText {
-  font-family: "adobe-garamond-pro", Georgia, serif;
   font-style: normal;
   font-weight: normal;
   font-size: 30px;
   line-height: 36px;
   width: 50%;
+}.staticPage .staticPageCallToActionFooter .callToActionText .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .staticPage .staticPageCallToActionFooter .newsletterSignUpBox .subscribeMessage {
   color: white;
 }
-.staticPage .staticPageHeader .flexContainer > div {
-  flex: 1;
+.staticPage .staticPageHeader .staticPageHeaderTextBox {
+  flex: 7;
 }
-
+.staticPage .staticPageHeader .staticPageHeaderImg {
+  flex: 9;
+}
+.interface-english .staticPage .staticPageHeader .staticPageHeaderTextBox {
+  padding-right: 10px;
+}
+.interface-hebrew .staticPage .staticPageHeader .staticPageHeaderTextBox {
+  padding-left: 10px;
+}
 .staticPage .staticPageH2 {
   padding: 55px 0;
   margin: 0;
@@ -2882,13 +2890,12 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 16px;
   line-height: 19px;
 }
-.staticPage .feature .featureText{
+.staticPage .feature .featureText {
   font-family: "Roboto", sans-serif;
   font-style: normal;
   font-weight: normal;
   font-size: 16px;
   line-height: 21px;
-  text-align: justify;
   border-top: 4px solid;
   color: #000000;
   width: 35%;
@@ -2907,8 +2914,14 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .feature .featureHeader {}
 .staticPage .feature .featureHeader h3 {
   text-align: center;
-  margin: 10px 0 10px 0;
+  margin: 20px 0 20px 0;
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: normal;
   display: inline-block;
+}
+.staticPage .feature .featureHeader h3 .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 @media (max-width: 540px) {
   .staticPage .flexContainer {

@@ -116,8 +116,8 @@ const DistanceLearningPage = () => (
             <SimpleButton href="https://github.com/Sefaria/Sefaria-Project/wiki#developers" he="" en="GitHub"/>
         </ButtonRow>
         <CallToActionFooterWithNewsletter
-            enText="Sign up for our mailing list to get resources in your inbox"
-            heText="הרשמו לרשימת התפוצה שלנו על מנת לקבל עדכונים מספריא"
+            enText="Sign up for our mailing list to get resources in your inbox."
+            heText="הרשמו לרשימת התפוצה שלנו על מנת לקבל עדכונים מספריא."
             includeEducatorOption={true}
         />
     </StaticPage>
@@ -202,8 +202,8 @@ const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heIm
                         <span className="int-he">{heTitle}</span>
                     </h3>
                 </div>
-                <p className="int-en" dangerouslySetInnerHTML={{__html:enText}} />
-                <p className="int-he" dangerouslySetInnerHTML={{__html:heText}} />
+                <div className="int-en" dangerouslySetInnerHTML={{__html:enText}} />
+                <div className="int-he" dangerouslySetInnerHTML={{__html:heText}} />
             </div>
             <div className="featureImage">
                 <img className="int-en" src={enImg} alt={enImgAlt}/>
