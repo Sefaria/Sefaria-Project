@@ -145,11 +145,6 @@ function addAdditionalHTML() {
   newRoomButton.innerHTML = '<button id="newRoom" onclick="location.reload();">New Person</button>';
   document.getElementById("buttonContainer").appendChild(newRoomButton)
 
-  const reportUserButton = document.createElement('div');
-  reportUserButton.innerHTML = '<button id="reportUser" onclick="reportUser();">Report User</button>';
-  document.getElementById("buttonContainer").appendChild(reportUserButton)
-
-
   const iframe = document.createElement('iframe');
   iframe.src = "https://www.sefaria.org/todays-daf-yomi";
   document.getElementById("iframeContainer").appendChild(iframe)
