@@ -13,8 +13,8 @@ const DistanceLearningPage = () => (
             enImgAlt="Sefaria on tablet."
             enActionURL={null}
             enActionText={null}
-            heTitle="מקורות ללימוד וללמידה למידה מרחוק"
-            heText="לומדים רבים ברחבי העולם מגלים את הכוח והפוטנציאל שיש בלמידה מקוונת. אתר ספריא פתוח לכולם, בחינם, ומציע מאגר עצום של מקורות יהודיים וכלים מתקדמים להעצמת הלמידה."
+            heTitle="מקורות ללימוד וללמידה מרחוק"
+            heText="לומדים רבים ברחבי העולם מגלים את הכוח והפוטנציאל שיש בלמידה מקוונת. אתר ספריא פתוח לכולם, בחינם, ומציע מאגר רחב של מקורות יהודיים וכלים מתקדמים להעצמת הלמידה."
             heImg="/static/img/distance-learning-landing-page/remotelearningpage_headerimage_HEB.png"
             heImgAlt="Sefaria on tablet."
             heActionURL={null}
@@ -47,7 +47,13 @@ const DistanceLearningPage = () => (
             enImg="/static/img/distance-learning-landing-page/remotelearningpage_learners.png"
             enImgAlt="Source Sheet - Pesach 101"
             heTitle="לומדים עם ספריא"
-            heText="ספריא נותנת כלים להעצים את הלימוד המקוון שלכם. השתמשו בוובינר וב'מדריך למשתמש המתחיל' כדי ללמוד איך להשתמש באתר."
+            heText={
+                "ספריא נותנת כלים להעצים את הלימוד המקוון שלכם. השתמשו בוובינרים וב'מדריך למשתמש המתחיל' כדי ללמוד איך להשתמש באתר. "
+                + "<a href='/register?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>"
+                + "צרו חשבון משתמש"
+                + "</a>"
+                + " כדי לארגן את חומרי הלימוד שלכם, לשמור מקורות ולעקוב אחר חומרים של אחרים שמעניינים אתכם."
+            }
             heImg="/static/img/distance-learning-landing-page/remotelearningpage_learners_HEB.png"
             heImgAlt=""
             borderColor="#004E5F"
@@ -75,7 +81,16 @@ const DistanceLearningPage = () => (
             enImg="/static/img/distance-learning-landing-page/remotelearningpage_educators.png"
             enImgAlt="Source Sheet - Teaching with Sefaria Online"
             heTitle="מורים ואנשי הוראה"
-            heText="צוות ספריא תומך בהוראה דיגיטלית ובהוראה מרחוק. למדו בעזרת החומרים שצוות החינוך שלנו יצר עבורכם- כיצד ללמד עם ספריא, בכיתה ומחוצה לה."
+            heText={"צוות ספריא תומך בהוראה דיגיטלית ובהוראה מרחוק. למדו בעזרת החומרים שצוות החינוך שלנו יצר עבורכם- "
+                + "<a href='/educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>"
+                + "כיצד ללמד עם ספריא"
+                + "</a>"
+                + ", בכיתה ומחוצה לה. "
+                + "<a href='/register?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>"
+                + "צרו חשבון משתמש"
+                + "</a>"
+                + ' כדי ליצור דפי מקורות עבורכם או לתלמידים, לארגן דפי מקורות ע"פי קבוצות ולשמור מקורות נבחרים.'
+            }
             heImg="/static/img/distance-learning-landing-page/remotelearningpage_educators_HEB.png"
             heImgAlt=""
             borderColor="#CCB479"
@@ -103,7 +118,7 @@ const DistanceLearningPage = () => (
             enImg="/static/img/distance-learning-landing-page/remotelearningpage_developers.png"
             enImgAlt="Source Sheet - Link Sefaria to your Site"
             heTitle="מפתחים"
-            heText="האם תרצו להטמיע מקורות דיגיטליים לאתר או לאפליקציה שלכם? ספריא יכולה לסייע לכם. כל המידע שיש באתר הינו בקוד פתוח. תוכלו להשתמש בכל המקורות של ספריא עבור הפרוייקטים האישיים שלכם. עיינו בGit Hub כדי לראות מה יש ל API של ספריא להציע."
+            heText="האם תרצו להטמיע מקורות דיגיטליים לאתר, לבלוג או לאפליקציה שלכם? ספריא יכולה לסייע לכם. כל המידע שיש באתר הינו בקוד פתוח, ותוכלו להשתמש בכל המקורות של ספריא עבור הפרוייקטים האישיים שלכם. אתם מוזמנים לפנות למפתחים ולמהנדסים שלכם בכדי להשתמש במקורות של ספריא באתר שלכם."
             heImg="/static/img/distance-learning-landing-page/remotelearningpage_developers_HEB.png"
             heImgAlt=""
             borderColor="#802F3E"
