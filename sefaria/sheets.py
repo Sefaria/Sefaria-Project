@@ -20,7 +20,7 @@ from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
 from sefaria.model.group import Group
 from sefaria.model.story import UserStory, UserStorySet
-from sefaria.model.topic import TopicSet
+from sefaria.model.topic import TopicSet, Topic
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.utils.hebrew import is_hebrew
 from sefaria.system.exceptions import InputError
@@ -471,8 +471,8 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 	else:
 		db.sheets.find_one_and_replace({"id": sheet["id"]}, sheet)
 
-	if "tags" in sheet:
-		update_sheet_tags(sheet["id"], sheet["tags"])
+	if "topics" in sheet:
+		update_sheet_topics(sheet["id"], sheet["topics"])
 
 	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
 		try:
@@ -752,16 +752,67 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	return results
 
 
-def update_sheet_tags(sheet_id, tags):
+def update_sheet_topics(sheet_id, topics):
 	"""
-	Sets the tag list for sheet_id to those listed in list 'tags'.
+	Sets the topic list for sheet_id to those listed in list 'topics', 
+	containging fields `asTyped` and `slug`.
+	Performs some normalization of `asTyped` and creates new topic objects for new topics.  
 	"""
-	tags = list(set(tags)) 	# tags list should be unique
-	# replace | with - b/c | is a reserved char for search sheet queries when filtering on tags
-	normalizedTags = [titlecase(tag).replace('|','-') for tag in tags]
-	db.sheets.update({"id": sheet_id}, {"$set": {"tags": normalizedTags}})
+	normalizedTopics = []
+	seenSlugTagPairs = set()
+	for topic in topics:
+		title = normalize_new_topic_title(topic["asTyped"])
+		if "slug" not in topic:
+			# TODO check if a topic already exists for this title
+			new_topic = create_topic_from_new_tag(title)
+			topic["slug"] = new_topic.slug
+		if (title, topic["slug"]) in seenSlugTagPairs:
+			continue
+		normalizedTopics.append({"asTyped": title, "slug": topic["slug"]})
+		seenSlugTagPairs.add((title, topic["slug"]))
+
+	db.sheets.update({"id": sheet_id}, {"$set": {"topics": normalizedTopics}})
+
+	update_sheet_topic_links(sheet_id, [topic["slug"] for topic in normalizedTopics])
 
 	return {"status": "ok"}
+
+
+def normalize_new_topic_title(title):
+	if title != "#MeToo":
+		title.replace("#","")
+	# replace | with - b/c | is a reserved char for search sheet queries when filtering on tags
+	title = titlecase(title).replace('|','-')
+	return title
+
+
+def update_sheet_topic_links(sheet_id, current_slugs):
+	for slug in current_slugs:
+		attrs = {
+			"class": "refTopic",
+			"toTopic": slug,
+			"ref": "Sheet {}".format(sheet_id),
+			"expandedRefs": ["Sheet {}".format(sheet_id)],
+			"linkType": "about",
+			"is_sheet": True,
+			"dataSource": "sefaria-users"
+		}
+		tl = RefTopicLink(attrs)
+		try:
+			tl.save()
+		except DuplicateRecordError:
+			pass
+
+def create_topic_from_new_tag(tag):
+	topic = Topic({
+		"slug": Topic.normalize_slug(tag),
+		"titles": [{
+			"text": tag,
+			"lang": "he" if is_hebrew(tag) else "en",
+		"primary": True,
+		}]
+	})
+	return topic
 
 
 def get_last_updated_time(sheet_id):
@@ -929,12 +980,12 @@ class Sheet(abstract.AbstractMongoRecord):
 		"id"
 	]
 	optional_attrs = [
-		"generatedBy",  # this had been required, but it's not always there.
 		"is_featured",  # boolean - show this sheet, unsolicited.
 		"includedRefs",
 		"views",
 		"nextNode",
 		"tags",
+		"topics",
 		"promptedToPublish",
 		"attribution",
 		"datePublished",
@@ -947,12 +998,11 @@ class Sheet(abstract.AbstractMongoRecord):
 		"group",
 		"generatedBy",
 		"highlighterTags",
-		"summary" # double check this one
+		"summary"
 	]
 
 	def is_hebrew(self):
 		"""Returns True if this sheet appears to be in Hebrew according to its title"""
-		from sefaria.utils.hebrew import is_hebrew
 		import regex
 		title = strip_tags(self.title)
 		# Consider a sheet Hebrew if its title contains Hebrew character but no English characters

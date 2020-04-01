@@ -734,10 +734,15 @@ input.noselect {
   display: block;
   padding: 6px 12px;
 }
+.interface-hebrew .ui-autocomplete .ui-menu-item {
+  direction: rtl;
+  text-align: right;
+}
 .ui-autocomplete .ui-menu-item img {
   display: inline-block;
   opacity: .4;
   height: 18px;
+  width: 18px;
 }
 .ui-autocomplete .ui-menu-item a {
   display: inline-block;

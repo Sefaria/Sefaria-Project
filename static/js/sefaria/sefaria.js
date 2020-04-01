@@ -669,14 +669,18 @@ Sefaria = extend(Sefaria, {
       return ref ? this.getRefFromCache(ref) : null;
   },
   _lookups: {},
-  _ref_lookups: {},
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
-  getName: function(name, refOnly) {
+  getName: function(name, refOnly = false, limit = undefined) {
     const trimmed_name = name.trim();
+    let params = {};
+    if (refOnly) { params["refOnly"] = 1; }
+    if (limit != undefined) { params["limit"] = limit; }
+    let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
+    queryString = (queryString ? "?" + queryString : "");
     return this._cachedApiPromise({
-        url:   this.apiHost + "/api/name/" + trimmed_name + (refOnly?"?ref_only=1":""),
-        key:   trimmed_name,
-        store: refOnly? this._ref_lookups: this._lookups
+        url:   this.apiHost + "/api/name/" + trimmed_name + queryString,
+        key:   trimmed_name + queryString,
+        store: this._lookups
     });
   },
   _lexiconCompletions: {},

@@ -412,7 +412,7 @@ const TextPassage = ({text, toggleSignUpModal, topicTitle, interfaceLang}) => {
     let dataSourceText = '';
     const langKey = interfaceLang === 'english' ? 'en' : 'he';
     if (!!text.dataSources && Object.values(text.dataSources).length > 0) {
-      dataSourceText = `${Sefaria._('This source is connected to ')}"${topicTitle && topicTitle[langKey]}" ${Sefaria._('by')} ${Object.values(text.dataSources).map(d => d[langKey]).join(' & ')}`;
+      dataSourceText = `${Sefaria._('This source is connected to ')}"${topicTitle && topicTitle[langKey]}" ${Sefaria._('by')} ${Object.values(text.dataSources).map(d => d[langKey]).join(' & ')}.`;
     }
     return <StoryFrame cls="textPassageStory">
         <SaveLine dref={text.ref} toggleSignUpModal={toggleSignUpModal} classes={"storyTitleWrapper"}

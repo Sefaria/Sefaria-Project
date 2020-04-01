@@ -702,6 +702,7 @@ def sheet_api(request, sheet_id):
     if request.method == "POST":
         return jsonResponse({"error": "TODO - save to sheet by id"})
 
+
 def sheet_node_api(request, sheet_id, node_id):
     if request.method == "GET":
         sheet_node = get_sheet_node(int(sheet_id),int(node_id))
@@ -709,6 +710,7 @@ def sheet_node_api(request, sheet_id, node_id):
 
     if request.method == "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
+
 
 def check_sheet_modified_api(request, sheet_id, timestamp):
     """

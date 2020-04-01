@@ -2289,18 +2289,21 @@ label[for="sourceSheetShareSelect"] {
 	padding-left: 10px;
     border-radius: 4px;
 }
-
-#tags .addTagMsg {
-	font-style: italic;
+#tags input {
+	display: none; /* hack tagit to be readonly but all removings tags */
+}
+#addTag {
+	width: 100%;
 	font-size: 16px;
-	float: left;
-	padding-top: 3px;
-    margin: 8px 3px;
-	color: #999999;
+	padding: 10px 15px;
+    border-radius: 4px;
+	font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+	margin-bottom: 0;
 }
 
-#tags .addTagMsg .int-he {
-	float: right;
+#addTag::placeholder {
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
+	color: #999999;
 }
 
 #suggestedTags {
@@ -2344,7 +2347,7 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
 
 ul.tagit li.tagit-choice {
     color: #666;
-	background-color: #FBFBFA;
+	background-color: #ededec;
 	border-radius: 2px;
 	padding: 5px 15px 5px 5px;
 	margin: 5px 0 0 5px;
