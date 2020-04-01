@@ -2228,16 +2228,17 @@ sjs.sheetTagger = {
 					Object.keys(data.topics[i].titles).map(function(lang) {
 						sjs.sheetTagger.tagSlugs[data.topics[i]["titles"][lang]] = data.topics[i].slug;
 					});
-					if (data.topics[i]["count"] > 1 ) { //only suggest tag if it has more than one topic link
+					if (data.topics[i]["count"] > 1 ) { // only suggest tag if it has more than one topic link
 						suggestedTags.push(data.topics[i]["titles"][sjs.interfaceLang]);
 					}
 				}
-
-				for (var i = 0; i < suggestedTags.length; i++) {
-					if ($("#suggestedTags .tagButton").length < 5 && sjs.sheetTagger.tags().indexOf(suggestedTags[i]) == -1) {
-						$("#suggestedTags").append("<span class='tagButton'>"+suggestedTags[i]+"</span>");
-					}
+				suggestedTags = suggestedTags.filter(function(tag) { return sjs.sheetTagger.tags().indexOf(tag) == -1});
+				suggestedTags = suggestedTags.slice(0,3);
+				var placeholderText = sjs.interfaceLang == "he" ? "הוספת תיוגים... כמו " : "Add Tags... like ";
+				if (suggestedTags.length) {
+					placeholderText += '"' + suggestedTags.join('", "') + '".';
 				}
+				$("#addTag").attr("placeholder", placeholderText);
 			});
 		}
 	},
