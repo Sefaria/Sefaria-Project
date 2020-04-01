@@ -1,9 +1,7 @@
 const React      = require('react');
 const {
-    SimpleContentBlock,
     SimpleInterfaceBlock,
     NewsletterSignUpForm,
-    TextBlockLink,
 }                   = require('./Misc');
 
 const DistanceLearningPage = () => (
@@ -23,21 +21,21 @@ const DistanceLearningPage = () => (
             heActionText={null}
         />
         <GreyBox>
-            <H2Block en="Browse our Latest Resources" he="דפי מקורות אקטואליים" />
+            <H2Block en="Browse our Latest Resources" he="מקורות בספריא" />
             <ButtonRow>
                 <SimpleButton
                     href="/groups/Seder-on-Sefaria?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he_href="/groups/%D7%93%D7%A4%D7%99-%D7%9E%D7%A7%D7%95%D7%A8%D7%95%D7%AA-%D7%90%D7%A7%D7%98%D7%95%D7%90%D7%9C%D7%99%D7%99%D7%9D?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he="דפי מקורות אקטואליים"
+                    he_href="/sheets/219410?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he="פסח בספריא"
                     en="Seder on Sefaria"/>
                 <SimpleButton
-                    href="/sheets/227733?lang=bi?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he_href="https://docs.google.com/document/d/1auCOnEjr8biCgRiWPB3SmuU6g02FEwoL/edit"
+                    href="/groups/A-Jewish-Response-to-Coronavirus?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he_href="/sheets/227981.5?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="קורונה"
                     en="A Jewish Response to COVID-19"/>
                 <SimpleButton
                     href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he_href="/sheets/228257?lang=he"
+                    he_href="/sheets/228257?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="עשרת הדיברות ללמידה מרחוק"
                     en="Online Learning Resources"/>
             </ButtonRow>
@@ -62,13 +60,13 @@ const DistanceLearningPage = () => (
                 en="Webinars for Learners"/>
             <SimpleButton
                 href="/groups/Tutorials-for-Learners?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he_href=""
-                he=""
+                he_href="/sheets/224919?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he="מדריך למשתמש המתחיל"
                 en="Tutorials for Learners"/>
             <SimpleButton
                 href="/groups/Sefaria-Student-Course?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he_href="/sheets/224919?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he="מדריך למשתמש המתחיל"
+                he_href="/sheets/228260?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he="הסודות של ספריא"
                 en="Student Course"/>
         </ButtonRow>
         <Feature
