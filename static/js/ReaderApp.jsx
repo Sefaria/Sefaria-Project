@@ -8,7 +8,7 @@ const ReaderPanel   = require('./ReaderPanel');
 const $             = require('./sefaria/sefariaJquery');
 const EditGroupPage = require('./EditGroupPage');
 const {
-  DistanceLearningPage
+  RemoteLearningPage
 }                   = require('./StaticPages');
 const Footer        = require('./Footer');
 const SearchState   = require('./sefaria/searchState');
@@ -1880,4 +1880,4 @@ module.exports.Footer               = Footer;
 module.exports.sefariaSetup         = Sefaria.setup;
 module.exports.unpackDataFromProps  = Sefaria.unpackDataFromProps;
 module.exports.EditGroupPage        = EditGroupPage;
-module.exports.DistanceLearningPage = DistanceLearningPage;
+module.exports.RemoteLearningPage   = RemoteLearningPage;

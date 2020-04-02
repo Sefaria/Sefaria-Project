@@ -4,7 +4,7 @@ const {
     NewsletterSignUpForm,
 }                   = require('./Misc');
 
-const DistanceLearningPage = () => (
+const RemoteLearningPage = () => (
     <StaticPage>
         <Header
             enTitle="Remote Learning"
@@ -129,7 +129,7 @@ const DistanceLearningPage = () => (
             <SimpleButton href="https://github.com/Sefaria/Sefaria-Project/wiki#developers" he="גיטהאב" en="GitHub"/>
         </ButtonRow>
         <CallToActionFooterWithNewsletter
-            enText="Sign up for our mailing list to get resources in your inbox."
+            enText="Sign up for our mailing list to get updates in your inbox."
             heText="הרשמו לרשימת התפוצה שלנו על מנת לקבל עדכונים מספריא."
             includeEducatorOption={true}
         />
@@ -253,4 +253,4 @@ const CallToActionButton =  ({href, he, en}) => (
 
 
 
-module.exports.DistanceLearningPage = DistanceLearningPage;
+module.exports.RemoteLearningPage = RemoteLearningPage;

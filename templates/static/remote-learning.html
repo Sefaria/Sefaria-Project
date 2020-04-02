@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load i18n static %}
 
-{% block title %}{% trans "Distance Learning | Sefaria" %}{% endblock %}
+{% block title %}{% trans "Remote Learning | Sefaria" %}{% endblock %}
 
 {% block description %}{% trans "Resources for teaching and learning virtually." %}{% endblock %}
 
@@ -12,16 +12,16 @@
 {% block js %}
 <script>
     {% autoescape off %}
-    DJANGO_VARS.containerId = 'distanceLearningPageInner';
-    DJANGO_VARS.reactComponentName = 'DistanceLearningPage';
+    DJANGO_VARS.containerId = 'remoteLearningPageInner';
+    DJANGO_VARS.reactComponentName = 'RemoteLearningPage';
     DJANGO_VARS.static_url = {{ STATIC_PREFIX }};
     {% endautoescape %}
 </script>
 {% endblock %}
 
 {% block content %}
-<div id="distanceLearningPage" class="staticPageFrame">
-  <div id="distanceLearningPageInner" class="staticPageInner">
+<div id="remoteLearningPage" class="staticPageFrame">
+  <div id="remoteLearningPageInner" class="staticPageInner">
     <h1 id="appLoading">Loading...</h1>
   </div>
 </div>
