@@ -338,7 +338,7 @@ function hangup() {
 function handleRemoteHangup() {
   socket.emit('bye', clientRoom);
   console.log('Session terminated.');
-  setTimeout(function(){ location.reload(); }, 2000);
+  setTimeout(function(){ location.reload(); }, 1000);
 
   // newRoom();
 }

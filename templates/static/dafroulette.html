@@ -123,6 +123,11 @@ button {
   color: #c82333;
 }
 
+a {
+  text-decoration: underline;
+
+}
+
 {% endblock %}
 
 {% block bodyclasses %}nochrome{% endblock %}
@@ -139,6 +144,10 @@ button {
       DafRoulette is an experimental project from Sefaria to match you with random partners for studying daf yomi.
     </p>
     <p>
+      Pirkei Avot says you should be at least <a href="https://www.sefaria.org/Pirkei_Avot.5.21?lang=bi&with=all&lang2=bi">15+ to experience this</a>, so check with your grownup if you're younger.
+    </p>
+
+    <p>
       There are currently <span id="numberOfChevrutas"><em>loading...</em></span> chevrutas studying.
     </p>
 
@@ -153,8 +162,6 @@ button {
   <div id="iframeContainer">
   </div>
 </div>
-
-
 {% endblock %}
 
 {% block js  %}
