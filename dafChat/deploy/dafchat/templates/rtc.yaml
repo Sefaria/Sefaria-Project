@@ -10,6 +10,7 @@ spec:
   ports:
   - name: http
     port: 80
+    targetPort: 8080
   selector:
     app: rtc-{{ .Values.deployEnv }}
 ---
@@ -35,7 +36,7 @@ spec:
         - name: rtc-{{ .Values.deployEnv }}
           image: "{{ .Values.dafChat.rtc.containerImage }}:{{ .Values.releaseImageTag }}"
           ports:
-            - containerPort: 6379
+            - containerPort: 8080
           resources:
             requests:
               memory: {{ .Values.dafChat.rtc.resources.request.memory }}

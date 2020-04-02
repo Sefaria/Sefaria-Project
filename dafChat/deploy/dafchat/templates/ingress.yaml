@@ -11,13 +11,13 @@ spec:
       http:
         paths:
           - backend:
-              serviceName: {{ .Values.deployEnv }}-coturn
+              serviceName: coturn-{{ .Values.deployEnv }}
               servicePort: 3478
     - host: rtc.{{ .Values.dafChat.sefariaHost }}
       http:
         paths:
           - backend:
-              serviceName: {{ .Values.deployEnv }}-rtc
+              serviceName: rtc-{{ .Values.deployEnv }}
               servicePort: 80
 ---
 # For each ingress, provision a certificate
