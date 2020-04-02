@@ -43,6 +43,11 @@ class InterruptingMessage(object):
       if self.request.LANGUAGE_CODE != "en":
         return False
 
+    # Filter non Hebrew interface traffic
+    if self.condition.get("hebrew_only", True):
+      if self.request.LANGUAGE_CODE != "he":
+        return False
+
     # Filter logged out users
     if self.condition.get("logged_in_only", False):
       if not self.request.user.is_authenticated:
