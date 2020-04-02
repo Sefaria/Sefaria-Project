@@ -2,6 +2,7 @@
 deployEnv: ${DEPLOY_ENV}
 releaseImageTag: ${IMAGE_TAG}
 dafChat:
+  sefariaHost: ${SEFARIA_HOST}
   auth:
     turnUser: ${TURN_USER}
     turnSecret: ${TURN_SECRET}

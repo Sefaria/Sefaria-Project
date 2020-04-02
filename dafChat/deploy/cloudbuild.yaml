@@ -6,6 +6,7 @@ substitutions:
   _GKE_NAMESPACE: sandboxes
   _GKE_REGION: us-east1-b
   _IMAGE_TAG: asdf
+  _SEFARIA_HOST: sefaria.org
   
 steps:
 
@@ -40,6 +41,7 @@ steps:
       - 'IMAGE_NAME_RTC=gcr.io/${PROJECT_ID}/sefaria-dafchat-rtc'
       - 'IMAGE_TAG=${_IMAGE_TAG}'
       - 'DEPLOY_ENV=${_ENV_NAME}'
+      - 'SEFARIA_HOST=${_SEFARIA_HOST}'
     wait_for: [ "-" ]
 
   # Idempotently install/upgrade the Helm Release

@@ -13,11 +13,13 @@ gkeCluster=cluster-1
 gkeNamespace=default
 gkeRegion=us-east1-b
 gcpProject=development-205018 
+sefariaHost="sefaria.org"
+echo $sefariaHost
 
 ######
 # Override defaults using command-line flags
 
-args=`getopt n:p:c:s:r: $*`
+args=`getopt n:p:c:d:s:r: $*`
 if [ $? != 0 ]
 then
   echo 'Look at the README for usage instructions.'
@@ -39,17 +41,23 @@ do
    
     # gke namespace
     -s)
-      gkeNamespace="$2" shift; shift;;
+      gkeNamespace="$2"; shift; shift;;
+
+    # hostname of the sefaria host
+    -d)
+      sefariaHost="$2"; shift; shift;;
 
     # gke region
     -r)
-      gkeRegion="$2" shift; shift;;
+      gkeRegion="$2"; shift; shift;;
     
     # gcp project
     -p) 
-      gcpProject="$2" shift; shift;;
+      gcpProject="$2"; shift; shift;;
   esac
 done
+
+echo $sefariaHost
 
 imageTag=`git rev-parse --verify HEAD --short=6`
 
@@ -59,6 +67,7 @@ substVars+=("_GKE_NAMESPACE=$gkeNamespace")
 substVars+=("_GKE_REGION=$gkeRegion")
 substVars+=("_ENV_NAME=$envName")
 substVars+=("_IMAGE_TAG=$imageTag")
+substVars+=("_SEFARIA_HOST=$sefariaHost")
 #substVars+=("")
 #...
 
