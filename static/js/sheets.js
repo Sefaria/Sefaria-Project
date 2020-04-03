@@ -1653,23 +1653,14 @@ $(function() {
 		$(".s2Modal, #overlay").hide();
 	});
 
-
 	$("#shareWithOthers .ok").click(function(){
 		$("#shareWithOthers, #overlay").hide();
 		$("#sheetSummary").text($("#sheetSummaryInput").val());
 
-	var curTagsHTML = "";
-	var tags = sjs.sheetTagger.topics();
-    for (var i = 0; i < tags.length; i++) {
-    	curTagsHTML = curTagsHTML + '<a class="button" role="button" href="/topics/'+tags[i].slug+'">'+tags[i].asTyped+'</a>';
-    }
-	$("#sheetTags").html(curTagsHTML);
-
     //save whole sheet if possible, otherwise, just save sheet tags:
     if (sjs.can_save) {
 			autoSave();
-		}
-    else {
+	} else {
     	var tags = JSON.stringify(sjs.sheetTagger.tags());
     	$.post("/api/sheets/" + sjs.current.id + "/tags", {"tags": tags});
     }
@@ -2206,6 +2197,11 @@ sjs.sheetTagger = {
 				$("#tags").tagit("createTag", topics[i].asTyped);
 			}
 		}
+		var html = "";
+		for (var i = 0; i < topics.length; i++) {
+			html = html + '<a class="button" role="button" href="/topics/'+topics[i].slug+'">'+topics[i].asTyped+'</a>';
+	    }
+		$("#sheetTags").html(html);
 	},
 	addTagFromInput: function(tag) {
 		$("#tags").tagit("createTag", tag);
@@ -2776,6 +2772,7 @@ function saveSheet(sheet, reload) {
 			}
 			sjs.current = data;
 			sjs.lastEdit = null;    // save was succesful, won't need to replay
+			sjs.sheetTagger.setTags(data.topics);
 			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
 			var $lastSaved = $("#lastSaved");

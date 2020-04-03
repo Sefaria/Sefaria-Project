@@ -20,7 +20,7 @@ from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
 from sefaria.model.group import Group
 from sefaria.model.story import UserStory, UserStorySet
-from sefaria.model.topic import TopicSet, Topic
+from sefaria.model.topic import TopicSet, Topic, RefTopicLink
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.utils.hebrew import is_hebrew
 from sefaria.system.exceptions import InputError
@@ -754,22 +754,23 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 
 def update_sheet_topics(sheet_id, topics):
 	"""
-	Sets the topic list for sheet_id to those listed in list 'topics', 
+	Sets the topic list for `sheet_id` to those listed in list `topics`, 
 	containging fields `asTyped` and `slug`.
 	Performs some normalization of `asTyped` and creates new topic objects for new topics.  
 	"""
-	normalizedTopics = []
-	seenSlugTagPairs = set()
+	normalizedSlugTagPairs = set()
 	for topic in topics:
 		title = normalize_new_topic_title(topic["asTyped"])
 		if "slug" not in topic:
-			# TODO check if a topic already exists for this title
-			new_topic = create_topic_from_new_tag(title)
-			topic["slug"] = new_topic.slug
-		if (title, topic["slug"]) in seenSlugTagPairs:
-			continue
-		normalizedTopics.append({"asTyped": title, "slug": topic["slug"]})
-		seenSlugTagPairs.add((title, topic["slug"]))
+			match = choose_existing_topic_for_title(title)
+			if match:
+				topic["slug"] = match.slug
+			else:
+				new_topic = create_topic_from_title(title)
+				topic["slug"] = new_topic.slug
+		normalizedSlugTagPairs.add((title, topic["slug"]))
+
+	normalizedTopics = [{"asTyped": pair[0], "slug": pair[1]} for pair in normalizedSlugTagPairs]
 
 	db.sheets.update({"id": sheet_id}, {"$set": {"topics": normalizedTopics}})
 
@@ -779,14 +780,41 @@ def update_sheet_topics(sheet_id, topics):
 
 
 def normalize_new_topic_title(title):
-	if title != "#MeToo":
-		title.replace("#","")
+	ALLOWED_HASHTAGS = ("#MeToo")
+	if title not in ALLOWED_HASHTAGS:
+		title = title.replace("#","")
 	# replace | with - b/c | is a reserved char for search sheet queries when filtering on tags
 	title = titlecase(title).replace('|','-')
 	return title
 
 
+def choose_existing_topic_for_title(title):
+	"""
+	Returns the best existing topic to match with `title` or None if none matches.
+	"""
+	existing_topics = TopicSet.load_by_title(title)
+	if existing_topics.count() == 0:
+		return None
+
+	from functools import cmp_to_key
+
+	def is_title_primary(title, topic):
+		all_primary_titles = [topic.get_primary_title(lang) for lang in topic.title_group.langs]
+		return title in all_primary_titles
+
+	def compare(t1, t2):
+		if is_title_primary(title, t1) == is_title_primary(title, t2):
+			# If both or neither match primary title, prefer greater number of sources
+			return getattr(t1, "numSources", 0) - getattr(t2, "numSources", 0)
+		else:
+		 	# Prefer matches to primary title
+		 	return 1 if is_title_primary(title, t1) else -1
+
+	return max(list(existing_topics), key=cmp_to_key(compare))
+
+
 def update_sheet_topic_links(sheet_id, current_slugs):
+	return
 	for slug in current_slugs:
 		attrs = {
 			"class": "refTopic",
@@ -803,15 +831,17 @@ def update_sheet_topic_links(sheet_id, current_slugs):
 		except DuplicateRecordError:
 			pass
 
-def create_topic_from_new_tag(tag):
+
+def create_topic_from_title(title):
 	topic = Topic({
-		"slug": Topic.normalize_slug(tag),
+		"slug": Topic.normalize_slug(title),
 		"titles": [{
-			"text": tag,
-			"lang": "he" if is_hebrew(tag) else "en",
+			"text": title,
+			"lang": "he" if is_hebrew(title) else "en",
 		"primary": True,
 		}]
 	})
+	topic.save()
 	return topic
 
 

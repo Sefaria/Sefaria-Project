@@ -232,6 +232,10 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
 class TopicSet(abst.AbstractMongoSet):
     recordClass = Topic
+    @staticmethod
+    def load_by_title(title):
+        query = {'titles.text': title}
+        return TopicSet(query=query)
 
 
 class TopicLinkHelper(object):
