@@ -218,7 +218,7 @@ def dafroulette_js(request):
 
     attrs = {
         "rtc_server": RTC_SERVER,
-        "turn_server_ip": TURN_SERVER_IP,
+        "turn_server_ip": TURN_SERVER,
         "turn_secret": TURN_SECRET,
         "turn_user": TURN_USER,
         "client_name": client_user.first_name + " " + client_user.last_name,

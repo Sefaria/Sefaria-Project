@@ -142,7 +142,7 @@ SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting t
 
 # DafRoulette server
 RTC_SERVER = '' # Root URL/IP of the server
-TURN_SERVER_IP = '' # IP & Port for the Turn Server
+TURN_SERVER = '' # IP & Port for the Turn Server
 TURN_SECRET = ''
 TURN_USER = ''
 
