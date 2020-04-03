@@ -34,7 +34,7 @@ const sdpConstraints = {
 
 var clientRoom;
 
-const socket = io.connect('{{ rtc_server }}');
+const socket = io.connect('https://{{ rtc_server }}');
 
 socket.on('return rooms', function(numRooms) {
   document.getElementById("numberOfChevrutas").innerHTML = numRooms;
