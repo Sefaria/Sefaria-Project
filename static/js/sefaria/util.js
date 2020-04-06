@@ -7,10 +7,32 @@ var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
     static localeDate(dateString) {
-      // takes dateString (usually generated from Python datetime object) and returns a human readable string depending on interfaceLang
-      const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
-      const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-      return (new Date(dateString)).toLocaleDateString(locale, dateOptions).replace(',', '');  // remove comma from english date
+        // takes dateString (usually generated from Python datetime object) and returns a human readable string depending on interfaceLang
+        const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
+        const dateOptions = {year: 'numeric', month: 'short', day: 'numeric'};
+        return (new Date(dateString)).toLocaleDateString(locale, dateOptions).replace(',', '');  // remove comma from english date
+    }
+    static sign_up_user_testing() {
+      // temporary function to be used in template 'user_testing_israel.html'
+        const validateEmail = function(email) {
+          const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+          return re.test(email);
+        };
+        const email = $('#email-input').val();
+        if (!validateEmail(email)) {
+            alert(email + ' is not a valid email');
+            return;
+        }
+        console.log('Email valid', email);
+        const feedback = {
+          refs: null,
+          type: 'user_testing',
+          url: null,
+          currVersions: null,
+          email: email
+        };
+        const postData = {json: JSON.stringify(feedback)};
+        $.post('/api/send_feedback', postData);
     }
     static naturalTimePlural(n, singular, plural) {
       return n <= 1 ? singular : plural;

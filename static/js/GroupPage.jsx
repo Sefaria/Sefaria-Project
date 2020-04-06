@@ -51,7 +51,6 @@ class GroupPage extends Component {
       }
     }
   }
-
   sortSheetData(group) {
     // Warning: This sorts the sheets within the cached group item in sefaria.js
     if (!group.sheets) { return; }
@@ -166,7 +165,8 @@ class GroupPage extends Component {
         alert(data.error);
       } else {
         Sefaria._groups[this.props.group] = data.group;
-        this.onDataLoad();
+        this.sortSheetData(data.group);
+        this.setState({groupData: data.group});
       }
       this.pinning = false;
     }.bind(this)).fail(function() {

@@ -7,6 +7,9 @@ const Header        = require('./Header');
 const ReaderPanel   = require('./ReaderPanel');
 const $             = require('./sefaria/sefariaJquery');
 const EditGroupPage = require('./EditGroupPage');
+const {
+  RemoteLearningPage
+}                   = require('./StaticPages');
 const Footer        = require('./Footer');
 const SearchState   = require('./sefaria/searchState');
 const {
@@ -1256,8 +1259,9 @@ class ReaderApp extends Component {
       "it": "Italian",
       "pl": "Polish",
       "ru": "Russian",
+      "eo": "Esparanto",
     };
-    return codeMap[code.toLowerCase()];
+    return codeMap[code.toLowerCase()] || code;
   }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
@@ -1906,8 +1910,9 @@ ReaderApp.defaultProps = {
 };
 
 
-module.exports.ReaderApp           = ReaderApp;
-module.exports.Footer              = Footer;
-module.exports.sefariaSetup        = Sefaria.setup;
-module.exports.unpackDataFromProps = Sefaria.unpackDataFromProps;
-module.exports.EditGroupPage       = EditGroupPage;
+module.exports.ReaderApp            = ReaderApp;
+module.exports.Footer               = Footer;
+module.exports.sefariaSetup         = Sefaria.setup;
+module.exports.unpackDataFromProps  = Sefaria.unpackDataFromProps;
+module.exports.EditGroupPage        = EditGroupPage;
+module.exports.RemoteLearningPage   = RemoteLearningPage;

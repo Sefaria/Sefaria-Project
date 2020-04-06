@@ -2133,6 +2133,7 @@ Sefaria = extend(Sefaria, {
       "Italian": "איטלקית",
       "Polish": "פולנית",
       "Russian": "רוסית",
+      "Esparanto": "אספרנטו",
 
       "On": "הצג",
       "Off": "הסתר",
