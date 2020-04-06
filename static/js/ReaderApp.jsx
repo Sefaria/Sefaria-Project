@@ -904,7 +904,7 @@ class ReaderApp extends Component {
         $("body").css({overflow: "hidden"})
                   .removeClass("hasBannerMessage");
         if (!this.props.multiPanel) {
-          // Hacky, needed because rendered html of Header doesn't differentiate multiPanel 
+          // Hacky, needed because rendered html of Header doesn't differentiate multiPanel
           $(".readerApp").removeClass("multiPanel").addClass("singlePanel");
         }
       } else {
@@ -1223,8 +1223,9 @@ class ReaderApp extends Component {
       "it": "Italian",
       "pl": "Polish",
       "ru": "Russian",
+      "eo": "Esparanto",
     };
-    return codeMap[code.toLowerCase()];
+    return codeMap[code.toLowerCase()] || code;
   }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
