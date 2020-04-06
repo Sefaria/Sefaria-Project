@@ -1139,9 +1139,9 @@ Sefaria = extend(Sefaria, {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
     var ref = Sefaria.normRefList(refs);
     refs.map(r => {
-      // Also include webpages linked at section level. Deduped below. 
+      // Also include webpages linked at section level. Deduped below.
       if (r.indexOf(":") !== -1) {
-        refs.push(r.slice(0, r.lastIndexOf(":"))); 
+        refs.push(r.slice(0, r.lastIndexOf(":")));
       }
     }, this);
 
@@ -2079,6 +2079,7 @@ Sefaria = extend(Sefaria, {
       "Italian": "איטלקית",
       "Polish": "פולנית",
       "Russian": "רוסית",
+      "Esparanto": "אספרנטו",
 
       "On": "הצג",
       "Off": "הסתר",
