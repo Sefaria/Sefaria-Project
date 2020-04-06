@@ -238,7 +238,7 @@ class Header extends Component {
           Sefaria.track.event("Search", action, query);
           this.clearSearchBox();
           this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
-        } else if (d["type"] === "Person" || d["type"] === "Group" || d["type"] === "TocCategory" || d["type"] === "Topic") {
+        } else if (d["type"] === "Person" || d["type"] === "Group" || d["type"] === "TocCategory") {
           this.redirectToObject(d["type"], d["key"]);
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
