@@ -1018,7 +1018,7 @@ def fix_recat_toc():
         c = csv.DictReader(fin)
         rows = list(c)
     for row in rows:
-        t = Topic().load({"alt_ids._old_slug": row["Slug"]})
+        t = Topic().load({"slug": row["Slug"]})
         if t:
             row["Slug"] = t.slug
         if not Topic().load({"slug": row["Slug"]}):
@@ -1066,67 +1066,126 @@ def recat_law():
         c.writerows(out_rows)
 
 
+def export_law_toc():
+    def recurse_displays_under(curr_slug='law'):
+        curr_topic = Topic.init(curr_slug)
+        curr_links = curr_topic.link_set('intraTopic', query_kwargs={'linkType': 'displays-under'})
+        temp_rows = []
+        for l in curr_links:
+            contents = l.contents()
+            if not contents['isInverse']:
+                continue
+            temp_rows += [{
+                'Cat': curr_topic.get_primary_title('en'),
+                'Slug': l.topic,
+                'Order': '10000',
+                'Cat Source': '',
+                'En': '',
+                'He': '',
+                'Num Sources': '',
+                'Link': '',
+                'Description': ''
+            }]
+            if l.topic != curr_slug:
+                temp_rows += recurse_displays_under(l.topic)
+        return temp_rows
+
+    rows = recurse_displays_under()
+    with open('../data/new-new-recat-toc.csv', 'w') as fout:
+        c = csv.DictWriter(fout, ['Cat Source', 'Cat', 'En', 'He', 'Num Sources', 'Order', 'Slug', 'Link', 'Description'])
+        c.writeheader()
+        c.writerows(rows)
+
+
 def apply_recat_toc():
-    IntraTopicLinkSet({"linkType": "displays-under"}).delete()
-    file_prefix = "data/Recategorize Topics - "
-    with open(file_prefix + "Categories.csv", "r") as fin:
-        c = csv.DictReader(fin)
-        categories = list(c)
-    with open(file_prefix + "Law Categories.csv", "r") as fin:
-        c = csv.DictReader(fin)
-        law_categories = list(c)
+    from sefaria.system.database import db
+
+    law_slugs = [
+        'law',
+        'legal-text',
+        'united-states-law',
+        'halachic-principles',
+        'human-ethics',
+        'family-law',
+        'laws-of-prayer',
+        'laws-of-kindness',
+        'property-law',
+        'tort-law',
+        'laws-of-impurity-and-purity',
+        'agricultural-law',
+        'laws-of-optional-restrictions',
+        'laws-of-scribes',
+        'laws-of-the-calendar',
+        'laws-of-worship-of-god',
+        'laws-of-government',
+        'laws-of-food',
+        'laws-of-clothing',
+        'noahide-(gentile)-law'
+    ]
+    delete_query = {'linkType': 'displays-under', '$and': [{key: {'$ne': lslug}} for key in ('fromTopic', 'toTopic') for lslug in law_slugs]}
+    find_query = {'linkType': 'displays-under', 'or': [{key: lslug} for key in ('fromTopic', 'toTopic') for lslug in law_slugs]}
+
+    db.topic_links.delete_many(delete_query)
+    # IntraTopicLinkSet({"linkType": "displays-under"}).delete()
+    file_prefix = "../data/Recategorize Topics - "
+    # with open(file_prefix + "Categories.csv", "r") as fin:
+    #     c = csv.DictReader(fin)
+    #     categories = list(c)
+    # with open(file_prefix + "Law Categories.csv", "r") as fin:
+    #     c = csv.DictReader(fin)
+    #     law_categories = list(c)
     with open(file_prefix + "TOC Mapping.csv", "r") as fin:
         c = csv.DictReader(fin)
         toc_mapping = list(c)
-    with open(file_prefix + "Law TOC Mapping.csv", "r") as fin:
-        c = csv.DictReader(fin)
-        law_toc_mapping = list(c)
-        law_slugs = {row['Slug'] for row in law_toc_mapping if len(row['Cat']) > 0}
+    # with open("../data/new-new-recat-toc.csv", "r") as fin:
+    #     c = csv.DictReader(fin)
+    #     law_toc_mapping = list(c)
+    #     law_slugs = {row['Slug'] for row in law_toc_mapping if len(row['Cat']) > 0}
 
     top_level = TopicSet({"isTopLevelDisplay": True})
     name_topic_map = {t.get_primary_title('en'): t for t in top_level}
     name_slug_map = {}
-    for cat in categories:
-        if cat["Status"] == "New category":
-            # if len(cat["New Slug"]) > 0:
-            t = Topic().load({"slug": cat["New Slug"]})
-            # else:
-            #     t = Topic({"slug": cat["En"], "titles": [{"primary": True, "lang": "en", "text": cat["En"]}, {"primary": True, "lang": "he", "text": cat["He"]}]})
-            if t is None:
-                print("NONE!", cat["New Slug"])
-            name_slug_map[cat["En"]] = t.slug
-            setattr(t, "isTopLevelDisplay", True)
-            setattr(t, "displayOrder", int(cat["Order"]))
-            for title in t.titles:
-                if title.get('primary', False) and title['lang'] == 'en':
-                    title['text'] = cat["En"]
-            t.save()
-        elif cat["Status"] == "Deleted":
-            t = name_topic_map[cat["En"]]
-            delattr(t, "isTopLevelDisplay")
-            delattr(t, "displayOrder")
-            t.save()
-        elif cat["Status"] == "Fully Deleted":
-            t = name_topic_map[cat["En"]]
-            t.delete()
-        else:
-            if cat["En"] == "NA":
-                continue
-            t = name_topic_map[cat["En"]]
-            setattr(t, "isTopLevelDisplay", True)
-            setattr(t, "displayOrder", int(cat["Order"]))
-            t.save()
-            name_slug_map[cat["En"]] = t.slug
+    # for cat in categories:
+    #     if cat["Status"] == "New category":
+    #         # if len(cat["New Slug"]) > 0:
+    #         t = Topic().load({"slug": cat["New Slug"]})
+    #         # else:
+    #         #     t = Topic({"slug": cat["En"], "titles": [{"primary": True, "lang": "en", "text": cat["En"]}, {"primary": True, "lang": "he", "text": cat["He"]}]})
+    #         if t is None:
+    #             print("NONE!", cat["New Slug"])
+    #         name_slug_map[cat["En"]] = t.slug
+    #         setattr(t, "isTopLevelDisplay", True)
+    #         setattr(t, "displayOrder", int(cat["Order"]))
+    #         for title in t.titles:
+    #             if title.get('primary', False) and title['lang'] == 'en':
+    #                 title['text'] = cat["En"]
+    #         t.save()
+    #     elif cat["Status"] == "Deleted":
+    #         t = name_topic_map[cat["En"]]
+    #         delattr(t, "isTopLevelDisplay")
+    #         delattr(t, "displayOrder")
+    #         t.save()
+    #     elif cat["Status"] == "Fully Deleted":
+    #         t = name_topic_map[cat["En"]]
+    #         t.delete()
+    #     else:
+    #         if cat["En"] == "NA":
+    #             continue
+    #         t = name_topic_map[cat["En"]]
+    #         setattr(t, "isTopLevelDisplay", True)
+    #         setattr(t, "displayOrder", int(cat["Order"]))
+    #         t.save()
+    #         name_slug_map[cat["En"]] = t.slug
 
     links = []
     for row in toc_mapping:
-        if row['Slug'] in law_slugs or len(row['Cat']) == 0:
+        if row['Cat'] == 'Law' or row['Slug'] in law_slugs or len(row['Cat']) == 0:
             continue
 
         try:
             link = {
                 "fromTopic": row['Slug'],
-                "toTopic": name_slug_map[row['Cat']],
+                "toTopic": name_topic_map[row['Cat']].slug,
                 "linkType": "displays-under",
                 "dataSource": "sefaria",
                 "class": "intraTopic",
@@ -1142,46 +1201,46 @@ def apply_recat_toc():
             t.save()
         links += [link]
 
-    for cat in law_categories:
-        link = {
-            "fromTopic": cat['ID'],
-            "toTopic": 'law',
-            "linkType": "displays-under",
-            "dataSource": "sefaria",
-            "class": "intraTopic",
-        }
-        t = Topic().load({"slug": cat["ID"]})
-        if t is None:
-            print("LAW CAT NONE", cat["ID"])
-            continue
-        if cat["Order"] != "10000":
-            setattr(t, 'displayOrder', int(cat["Order"]))
-            t.save()
-        links += [link]
+    # for cat in law_categories:
+    #     link = {
+    #         "fromTopic": cat['ID'],
+    #         "toTopic": 'law',
+    #         "linkType": "displays-under",
+    #         "dataSource": "sefaria",
+    #         "class": "intraTopic",
+    #     }
+    #     t = Topic().load({"slug": cat["ID"]})
+    #     if t is None:
+    #         print("LAW CAT NONE", cat["ID"])
+    #         continue
+    #     if cat["Order"] != "10000":
+    #         setattr(t, 'displayOrder', int(cat["Order"]))
+    #         t.save()
+    #     links += [link]
 
-    for row in law_toc_mapping:
-        link = {
-            "fromTopic": row['Slug'],
-            "toTopic": row['Cat'],
-            "linkType": "displays-under",
-            "dataSource": "sefaria",
-            "class": "intraTopic",
-        }
-        t = Topic().load({"slug": row["Slug"]})
-        if t is None:
-            print("TOC MAPPING NONE", row["Slug"])
-            continue
-        if row["Order"] != "10000":
-            setattr(t, 'displayOrder', int(row["Order"]))
-            t.save()
-        links += [link]
+    # for row in law_toc_mapping:
+    #     link = {
+    #         "fromTopic": row['Slug'],
+    #         "toTopic": row['Cat'],
+    #         "linkType": "displays-under",
+    #         "dataSource": "sefaria",
+    #         "class": "intraTopic",
+    #     }
+    #     t = Topic().load({"slug": row["Slug"]})
+    #     if t is None:
+    #         print("TOC MAPPING NONE", row["Slug"])
+    #         continue
+    #     if row["Order"] != "10000":
+    #         setattr(t, 'displayOrder', int(row["Order"]))
+    #         t.save()
+    #     links += [link]
 
     deduper = {}
     for link in links:
         deduper[(link['fromTopic'], link['toTopic'])] = link
     links = list(deduper.values())
-
-    from sefaria.system.database import db
+    with open('../data/new-toc-links.csv', 'w') as fout:
+        json.dump(links, fout, ensure_ascii=False, indent=2)
     db.topic_links.insert_many(links, ordered=False)
 
 
@@ -1319,7 +1378,9 @@ if __name__ == '__main__':
     # find_ambiguous_topics()
     # recat_toc()
     # recat_top_level()
-    more_rabbi_matching_oh_boy()
+    # more_rabbi_matching_oh_boy()
+    # export_law_toc()
+    apply_recat_toc()
 
     
 def yo():
