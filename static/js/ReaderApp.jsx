@@ -1256,8 +1256,9 @@ class ReaderApp extends Component {
       "it": "Italian",
       "pl": "Polish",
       "ru": "Russian",
+      "eo": "Esparanto",
     };
-    return codeMap[code.toLowerCase()];
+    return codeMap[code.toLowerCase()] || code;
   }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
