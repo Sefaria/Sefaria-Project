@@ -1332,7 +1332,7 @@ function NewsletterSignUpForm(props) {
               type="checkbox"
               checked={educatorCheck}
               onChange={e => setEducatorCheck(e.target.checked)} />
-            <span>אני מחנך</span>
+            <span>מורים/ אנשי הוראה</span>
           </span>
         </div>
       : null}

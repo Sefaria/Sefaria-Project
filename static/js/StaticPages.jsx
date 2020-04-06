@@ -14,7 +14,7 @@ const RemoteLearningPage = () => (
             enActionURL={null}
             enActionText={null}
             heTitle="מקורות ללימוד וללמידה מרחוק"
-            heText="לומדים רבים ברחבי העולם מגלים את הכוח והפוטנציאל שיש בלמידה מקוונת. אתר ספריא פתוח לכולם, בחינם, ומציע מאגר רחב של מקורות יהודיים וכלים מתקדמים להעצמת הלמידה."
+            heText="לומדים רבים ברחבי העולם מגלים את הכוח והפוטנציאל שיש בלמידה מקוונת. אתר ספריא פתוח לכולם בחינם, ומציע מאגר רחב של מקורות יהודיים וכלים מתקדמים להעצמת הלמידה."
             heImg="/static/img/distance-learning-landing-page/remotelearningpage_headerimage_HEB.png"
             heImgAlt="Sefaria on tablet."
             heActionURL={null}
@@ -31,7 +31,7 @@ const RemoteLearningPage = () => (
                 <SimpleButton
                     href="/groups/A-Jewish-Response-to-Coronavirus?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/227981.5?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he="קורונה"
+                    he="נגיף הקורונה"
                     en="A Jewish Response to COVID-19"/>
                 <SimpleButton
                     href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
@@ -52,7 +52,7 @@ const RemoteLearningPage = () => (
                 + "<a href='/register?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>"
                 + "צרו חשבון משתמש"
                 + "</a>"
-                + " כדי לארגן את חומרי הלימוד שלכם, לשמור מקורות ולעקוב אחר חומרים של אחרים שמעניינים אתכם."
+                + " כדי לארגן את חומרי הלימוד שלכם, לשמור מקורות ולעקוב אחר חומרים של אנשים אחרים שמעניינים אתכם."
             }
             heImg="/static/img/distance-learning-landing-page/remotelearningpage_learners_HEB.png"
             heImgAlt=""
@@ -89,7 +89,7 @@ const RemoteLearningPage = () => (
                 + "<a href='/register?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>"
                 + "צרו חשבון משתמש"
                 + "</a>"
-                + ' כדי ליצור דפי מקורות עבורכם או לתלמידים, לארגן דפי מקורות ע"פי קבוצות ולשמור מקורות נבחרים.'
+                + ' כדי ליצור דפי מקורות עבורכם או עבור תלמידים, לארגן דפי מקורות ע"פי נושאים ולשמור מקורות נבחרים.'
             }
             heImg="/static/img/distance-learning-landing-page/remotelearningpage_educators_HEB.png"
             heImgAlt=""
@@ -117,7 +117,7 @@ const RemoteLearningPage = () => (
             enText="Is it time to start incorporating digital texts into your website, blog, or app? Sefaria has you covered. All of our software is open source and our texts are all in the creative commons – meaning you can use anything we have for your own projects. Take a look at these resources and get in touch with your web/app developer to start including Sefaria’s texts on your site."
             enImg="/static/img/distance-learning-landing-page/remotelearningpage_developers.png"
             enImgAlt="Source Sheet - Link Sefaria to your Site"
-            heTitle="מפתחים"
+            heTitle="מוסדות וארגונים"
             heText="האם תרצו להטמיע מקורות דיגיטליים לאתר, לבלוג או לאפליקציה שלכם? ספריא יכולה לסייע לכם. כל המידע שיש באתר הינו בקוד פתוח, ותוכלו להשתמש בכל המקורות של ספריא עבור הפרוייקטים האישיים שלכם. אתם מוזמנים לפנות למפתחים ולמהנדסים שלכם בכדי להשתמש במקורות של ספריא באתר שלכם."
             heImg="/static/img/distance-learning-landing-page/remotelearningpage_developers_HEB.png"
             heImgAlt=""
@@ -126,7 +126,7 @@ const RemoteLearningPage = () => (
         <ButtonRow>
             <SimpleButton href="/linker?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="לינקר דו צדדי" en="Two-Way Linker"/>
             <SimpleButton href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria" he="אתרים המופעלים ע”י ספריא" en="Powered by Sefaria"/>
-            <SimpleButton href="https://github.com/Sefaria/Sefaria-Project/wiki#developers" he="גיטהאב" en="GitHub"/>
+            <SimpleButton href="https://github.com/Sefaria/Sefaria-Project/wiki#developers" he="Github גיטהאב" en="GitHub"/>
         </ButtonRow>
         <CallToActionFooterWithNewsletter
             enText="Sign up for our mailing list to get updates in your inbox."
