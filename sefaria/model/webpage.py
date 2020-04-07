@@ -331,19 +331,19 @@ def webpages_stats():
 
     # Count by Site
     print("\nSITES")
-    sites = sorted(sites.iteritems(), key=lambda x: -x[1])
+    sites = sorted(sites.items(), key=lambda x: -x[1])
     for site in sites:
         print("{}: {}".format(site[0], site[1]))
 
     # Count / Percentage by Category
     print("\nCATEGORIES")
-    categories = sorted(categories.iteritems(), key=lambda x: -x[1])
+    categories = sorted(categories.items(), key=lambda x: -x[1])
     for category in categories:
         print("{}: {} ({}%)".format(category[0], category[1], round(category[1] * 100.0 / total_links, 2)))
 
     # Count / Percentage by Book
     print("\nBOOKS")
-    books = sorted(books.iteritems(), key=lambda x: -x[1])
+    books = sorted(books.items(), key=lambda x: -x[1])
     for book in books:
         print("{}: {} ({}%)".format(book[0], book[1], round(book[1] * 100.0 / total_links, 2)))
 
