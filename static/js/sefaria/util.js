@@ -7,10 +7,10 @@ var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
     static localeDate(dateString) {
-      // takes dateString (usually generated from Python datetime object) and returns a human readable string depending on interfaceLang
-      const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
-      const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-      return (new Date(dateString)).toLocaleDateString(locale, dateOptions).replace(',', '');  // remove comma from english date
+        // takes dateString (usually generated from Python datetime object) and returns a human readable string depending on interfaceLang
+        const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
+        const dateOptions = {year: 'numeric', month: 'short', day: 'numeric'};
+        return (new Date(dateString)).toLocaleDateString(locale, dateOptions).replace(',', '');  // remove comma from english date
     }
     static sign_up_user_testing() {
       // temporary function to be used in template 'user_testing_israel.html'
