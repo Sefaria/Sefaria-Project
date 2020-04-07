@@ -96,6 +96,7 @@ def ensure_indices(active_db=None):
         ('texts', ["title"],{}),
         ('texts', [[("priority", pymongo.DESCENDING), ("_id", pymongo.ASCENDING)]],{}),
         ('texts', [[("versionTitle", pymongo.ASCENDING), ("langauge", pymongo.ASCENDING)]],{}),
+        ('topics', ["title.text"], {}),
         ('word_form', ["form"],{}),
         ('word_form', ["c_form"],{}),
         ('word_form', ["refs"], {}),
