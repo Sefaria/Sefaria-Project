@@ -2080,7 +2080,7 @@ Sefaria = extend(Sefaria, {
       "Polish": "פולנית",
       "Russian": "רוסית",
       "Esparanto": "אספרנטו",
-
+      "Persian": "פרסי",
       "On": "הצג",
       "Off": "הסתר",
       "Show Parasha Aliyot": "עליות לתורה מוצגות",
