@@ -102,6 +102,7 @@ def ensure_indices(active_db=None):
         ('term', ["titles.text"], {'unique': True}),
         ('term', ["category"],{}),
         ('lexicon_entry', [[("headword", pymongo.ASCENDING), ("parent_lexicon", pymongo.ASCENDING)]],{}),
+        ('user_story', ["uid"],{}),
         ('user_story', [[("uid", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]],{}),
         ('user_story', [[("timestamp", pymongo.DESCENDING)]],{}),
         ('passage', ["ref_list"],{}),

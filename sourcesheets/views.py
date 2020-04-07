@@ -834,12 +834,13 @@ def add_ref_to_sheet_api(request, sheet_id):
 
 
 @login_required
-def update_sheet_tags_api(request, sheet_id):
+def update_sheet_topics_api(request, sheet_id):
     """
     API to update tags for sheet_id.
     """
-    tags = json.loads(request.POST.get("tags"))
-    return jsonResponse(update_sheet_tags(int(sheet_id), tags))
+    topics = json.loads(request.POST.get("topics"))
+    old_topics = db.sheets.find_one({"id": int(sheet_id)}, {"topics":1}).get("topics", [])
+    return jsonResponse(update_sheet_topics(int(sheet_id), topics, old_topics))
 
 
 def visual_sheet_api(request, sheet_id):

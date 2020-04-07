@@ -1661,8 +1661,8 @@ $(function() {
     if (sjs.can_save) {
 			autoSave();
 	} else {
-    	var tags = JSON.stringify(sjs.sheetTagger.tags());
-    	$.post("/api/sheets/" + sjs.current.id + "/tags", {"tags": tags});
+    	var topics = JSON.stringify(sjs.sheetTagger.topics());
+    	$.post("/api/sheets/" + sjs.current.id + "/topics", {"topics": topics});
     }
 	});
 
@@ -2164,7 +2164,10 @@ sjs.sheetTagger = {
 					d.completion_objects.map(function(obj) {
 						if (obj.type == "Topic") {
 							topics.push(obj.title);
-							sjs.sheetTagger.tagSlugs[obj.title] = obj.key;
+							if (!(obj.title in sjs.sheetTagger.tagSlugs)) {
+								// Cache slug / title pair, but don't overwrite so more popular slug is kept in case of collision
+								sjs.sheetTagger.tagSlugs[obj.title] = obj.key;								
+							}
 						}
 					});
 					return topics;
