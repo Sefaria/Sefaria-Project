@@ -1224,6 +1224,7 @@ class ReaderApp extends Component {
       "pl": "Polish",
       "ru": "Russian",
       "eo": "Esparanto",
+      "fa": "Farsi",
     };
     return codeMap[code.toLowerCase()] || code;
   }
