@@ -673,7 +673,7 @@ Sefaria = extend(Sefaria, {
   getName: function(name, refOnly = false, limit = undefined) {
     const trimmed_name = name.trim();
     let params = {};
-    if (refOnly) { params["refOnly"] = 1; }
+    if (refOnly) { params["ref_only"] = 1; }
     if (limit != undefined) { params["limit"] = limit; }
     let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
     queryString = (queryString ? "?" + queryString : "");
@@ -2133,6 +2133,7 @@ Sefaria = extend(Sefaria, {
       "Italian": "איטלקית",
       "Polish": "פולנית",
       "Russian": "רוסית",
+      "Esparanto": "אספרנטו",
 
       "On": "הצג",
       "Off": "הסתר",

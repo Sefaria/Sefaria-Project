@@ -4,6 +4,10 @@ sheets.py - backend core for Sefaria Source sheets
 
 Writes to MongoDB Collection: sheets
 """
+import sys
+import hashlib
+import urllib.request, urllib.parse, urllib.error
+import logging
 import regex
 import dateutil.parser
 import bleach
@@ -11,6 +15,7 @@ from datetime import datetime, timedelta
 from functools import wraps
 from bson.son import SON
 from collections import defaultdict
+from pymongo.errors import DuplicateKeyError
 
 import sefaria.model as model
 import sefaria.model.abstract as abstract
@@ -20,19 +25,15 @@ from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
 from sefaria.model.group import Group
 from sefaria.model.story import UserStory, UserStorySet
-from sefaria.model.topic import TopicSet, Topic
+from sefaria.model.topic import TopicSet, Topic, RefTopicLink, RefTopicLinkSet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
 from sefaria.utils.hebrew import is_hebrew
-from sefaria.system.exceptions import InputError
-from pymongo.errors import DuplicateKeyError
+from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.system.cache import django_cache
 from .history import record_sheet_publication, delete_sheet_publication
 from .settings import SEARCH_INDEX_ON_SAVE
 from . import search
-import sys
-import hashlib
-import urllib.request, urllib.parse, urllib.error
-import logging
+
 logger = logging.getLogger(__name__)
 
 if not hasattr(sys, '_doc_build'):
@@ -41,42 +42,6 @@ from django.contrib.humanize.templatetags.humanize import naturaltime
 
 import logging
 logger = logging.getLogger(__name__)
-
-
-# Simple cache of the last updated time for sheets
-# last_updated = {}
-
-
-def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_lang_fields: dict = None) -> list:
-	"""
-	adds primary en and he to each topic in topic_list and returns new topic_list
-	:param list topic_list: list of topics where each item is dict of form {'slug': required, 'asTyped': optional}
-	:param dict backwards_compat_lang_fields: of shape {'en': str, 'he': str}. Defines lang fields for backwards compatibility. If None, ignore.
-	:param bool use_as_typed:
-	"""
-	new_topic_list = []
-	if len(topic_list) > 0:
-		topic_set = {topic.slug: topic for topic in TopicSet({'$or': [{'slug': topic['slug']} for topic in topic_list]})}
-		for topic in topic_list:
-			topic_obj = topic_set.get(topic['slug'], None)
-			if topic_obj is None:
-				continue
-			new_topic = topic.copy()
-			tag_lang = 'en'
-			if use_as_typed:
-				tag_lang = 'he' if is_hebrew(new_topic['asTyped']) else 'en'
-				new_topic[tag_lang] = new_topic['asTyped']
-			if not use_as_typed or tag_lang == 'en':
-				new_topic['he'] = topic_obj.get_primary_title('he')
-			elif not use_as_typed:
-				new_topic['en'] = topic_obj.get_primary_title('en')
-
-			if backwards_compat_lang_fields is not None:
-				for lang in ('en', 'he'):
-					new_topic[backwards_compat_lang_fields[lang]] = new_topic[lang]
-			new_topic_list += [new_topic]
-
-	return new_topic_list
 
 
 def get_sheet(id=None):
@@ -409,6 +374,9 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 		if sheet["status"] != existing["status"]:
 			status_changed = True
 
+		old_topics = existing.get("topics", [])
+		topics_diff = topic_list_diff(old_topics, sheet.get("topics", []))
+
 		sheet["views"] = existing["views"] 										# prevent updating views
 		sheet["owner"] = existing["owner"] 										# prevent updating owner
 		sheet["likes"] = existing["likes"] if "likes" in existing else [] 		# prevent updating likes
@@ -423,6 +391,9 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 			sheet["status"] = "unlisted"
 		sheet["owner"] = user_id
 		sheet["views"] = 1
+		
+		old_topics = []
+		topics_diff = topic_list_diff(old_topics, sheet.get("topics", []))
 
 		#ensure that sheet sources have nodes (primarily for sheets posted via API)
 		nextNode = sheet.get("nextNode", 1)
@@ -445,10 +416,12 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 			# UNPUBLISH
 			delete_sheet_publication(sheet["id"], user_id)  # remove history
 			UserStorySet({"storyForm": "publishSheet",
+								"uid": user_id,
 								"data.publisher": user_id,
 								"data.sheet_id": sheet["id"]
 							}).delete()
 			NotificationSet({"type": "sheet publish",
+								"uid": user_id,
 								"content.publisher_id": user_id,
 								"content.sheet_id": sheet["id"]
 							}).delete()
@@ -471,8 +444,17 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 	else:
 		db.sheets.find_one_and_replace({"id": sheet["id"]}, sheet)
 
-	if "topics" in sheet:
-		update_sheet_topics(sheet["id"], sheet["topics"])
+	if len(topics_diff["added"]) or len(topics_diff["removed"]):
+		update_sheet_topics(sheet["id"], sheet.get("topics", []), old_topics)
+		sheet = db.sheets.find_one({"id": sheet["id"]})
+
+	if status_changed and sheet["status"] == "public":
+		# Publish, update sheet topic links as though all are new - add links for all
+		update_sheet_topic_links(sheet["id"], sheet["topics"], [])
+	elif status_changed and sheet["status"] != "public":
+		# Unpublish, update sheet topic links as though there are now none - remove links for all
+		update_sheet_topic_links(sheet["id"], [], old_topics)
+
 
 	if sheet["status"] == "public" and SEARCH_INDEX_ON_SAVE and not search_override:
 		try:
@@ -480,11 +462,6 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 			search.index_sheet(index_name, sheet["id"])
 		except:
 			logger.error("Failed index on " + str(sheet["id"]))
-
-	'''
-	global last_updated
-	last_updated[sheet["id"]] = sheet["dateModified"]
-	'''
 
 	return sheet
 
@@ -504,7 +481,6 @@ def bleach_text(text):
 	ok_sheet_styles = ['color', 'background-color', 'text-align']
 
 	return bleach.clean(text, tags=ok_sheet_tags, attributes=ok_sheet_attrs, styles=ok_sheet_styles, strip=True)
-
 
 
 def clean_source(source):
@@ -551,6 +527,7 @@ def add_source_to_sheet(id, source, note=None):
 		sheet["sources"].append({"outsideText": note, "options": {"indented": "indented-1"}})
 	db.sheets.save(sheet)
 	return {"status": "ok", "id": id, "source": source}
+
 
 def add_ref_to_sheet(id, ref):
 	"""
@@ -752,45 +729,110 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	return results
 
 
-def update_sheet_topics(sheet_id, topics):
+def topic_list_diff(old, new):
 	"""
-	Sets the topic list for sheet_id to those listed in list 'topics', 
-	containging fields `asTyped` and `slug`.
+	Returns a dictionary with fields `removed` and `added` that describes the differences
+	in topics (slug, titles pairs) between lists `old` and `new`.
+	"""
+	old_set = set([(t["asTyped"], t.get("slug", None)) for t in old])
+	new_set = set([(t["asTyped"], t.get("slug", None)) for t in new])
+
+	return {
+		"removed": list(old_set - new_set),
+		"added":   list(new_set - old_set),
+	}
+
+
+def update_sheet_topics(sheet_id, topics, old_topics):
+	"""
+	Sets the topic list for `sheet_id` to those listed in list `topics`, 
+	containing fields `asTyped` and `slug`.
 	Performs some normalization of `asTyped` and creates new topic objects for new topics.  
 	"""
-	normalizedTopics = []
-	seenSlugTagPairs = set()
+	normalized_slug_title_pairs = set()
+	
 	for topic in topics:
+	# Dedupe, normalize titles, create/choose topics for any missing slugs
 		title = normalize_new_topic_title(topic["asTyped"])
 		if "slug" not in topic:
-			# TODO check if a topic already exists for this title
-			new_topic = create_topic_from_new_tag(title)
-			topic["slug"] = new_topic.slug
-		if (title, topic["slug"]) in seenSlugTagPairs:
-			continue
-		normalizedTopics.append({"asTyped": title, "slug": topic["slug"]})
-		seenSlugTagPairs.add((title, topic["slug"]))
+			match = choose_existing_topic_for_title(title)
+			if match:
+				topic["slug"] = match.slug
+			else:
+				new_topic = create_topic_from_title(title)
+				topic["slug"] = new_topic.slug
+		normalized_slug_title_pairs.add((title, topic["slug"]))
 
-	db.sheets.update({"id": sheet_id}, {"$set": {"topics": normalizedTopics}})
+	normalized_topics = [{"asTyped": pair[0], "slug": pair[1]} for pair in normalized_slug_title_pairs]
 
-	update_sheet_topic_links(sheet_id, [topic["slug"] for topic in normalizedTopics])
+	db.sheets.update({"id": sheet_id}, {"$set": {"topics": normalized_topics}})
+
+	update_sheet_topic_links(sheet_id, normalized_topics, old_topics)
 
 	return {"status": "ok"}
 
 
 def normalize_new_topic_title(title):
-	if title != "#MeToo":
-		title.replace("#","")
+	ALLOWED_HASHTAGS = ("#MeToo")
+	if title not in ALLOWED_HASHTAGS:
+		title = title.replace("#","")
 	# replace | with - b/c | is a reserved char for search sheet queries when filtering on tags
 	title = titlecase(title).replace('|','-')
 	return title
 
 
-def update_sheet_topic_links(sheet_id, current_slugs):
-	for slug in current_slugs:
+def choose_existing_topic_for_title(title):
+	"""
+	Returns the best existing topic to match with `title` or None if none matches.
+	"""
+	existing_topics = TopicSet.load_by_title(title)
+	if existing_topics.count() == 0:
+		return None
+
+	from functools import cmp_to_key
+
+	def is_title_primary(title, topic):
+		all_primary_titles = [topic.get_primary_title(lang) for lang in topic.title_group.langs]
+		return title in all_primary_titles
+
+	def compare(t1, t2):
+		if is_title_primary(title, t1) == is_title_primary(title, t2):
+			# If both or neither match primary title, prefer greater number of sources
+			return getattr(t1, "numSources", 0) - getattr(t2, "numSources", 0)
+		else:
+		 	# Prefer matches to primary title
+		 	return 1 if is_title_primary(title, t1) else -1
+
+	return max(list(existing_topics), key=cmp_to_key(compare))
+
+
+def update_sheet_topic_links(sheet_id, new_topics, old_topics):
+	"""	
+	Adds and removes sheet topic links per differences in old and new topics list.  
+	Only adds link for public sheets.
+	"""
+	topic_diff = topic_list_diff(old_topics, new_topics)
+
+	for removed in topic_diff["removed"]:
+		#print("removing {}".format(removed[1]))
+		RefTopicLinkSet({
+			"class": "refTopic",
+			"toTopic": removed[1],
+			"expandedRefs": "Sheet {}".format(sheet_id),
+			"linkType": "about",
+			"is_sheet": True,
+			"dataSource": "sefaria-users"
+		}, hint="expandedRefs_1").delete()
+
+	status = db.sheets.find_one({"id": sheet_id}, {"status": 1}).get("status", "unlisted")
+	if status != "public":
+		return
+
+	for added in topic_diff["added"]:
+		#print("adding {}".format(added[1]))
 		attrs = {
 			"class": "refTopic",
-			"toTopic": slug,
+			"toTopic": added[1],
 			"ref": "Sheet {}".format(sheet_id),
 			"expandedRefs": ["Sheet {}".format(sheet_id)],
 			"linkType": "about",
@@ -803,35 +845,60 @@ def update_sheet_topic_links(sheet_id, current_slugs):
 		except DuplicateRecordError:
 			pass
 
-def create_topic_from_new_tag(tag):
+def create_topic_from_title(title):
 	topic = Topic({
-		"slug": Topic.normalize_slug(tag),
+		"slug": Topic.normalize_slug(title),
 		"titles": [{
-			"text": tag,
-			"lang": "he" if is_hebrew(tag) else "en",
+			"text": title,
+			"lang": "he" if is_hebrew(title) else "en",
 		"primary": True,
 		}]
 	})
+	topic.save()
 	return topic
+
+
+def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_lang_fields: dict = None) -> list:
+	"""
+	adds primary en and he to each topic in topic_list and returns new topic_list
+	:param list topic_list: list of topics where each item is dict of form {'slug': required, 'asTyped': optional}
+	:param dict backwards_compat_lang_fields: of shape {'en': str, 'he': str}. Defines lang fields for backwards compatibility. If None, ignore.
+	:param bool use_as_typed:
+	"""
+	new_topic_list = []
+	if len(topic_list) > 0:
+		topic_set = {topic.slug: topic for topic in TopicSet({'$or': [{'slug': topic['slug']} for topic in topic_list]})}
+		for topic in topic_list:
+			topic_obj = topic_set.get(topic['slug'], None)
+			if topic_obj is None:
+				continue
+			new_topic = topic.copy()
+			tag_lang = 'en'
+			if use_as_typed:
+				tag_lang = 'he' if is_hebrew(new_topic['asTyped']) else 'en'
+				new_topic[tag_lang] = new_topic['asTyped']
+			if not use_as_typed or tag_lang == 'en':
+				new_topic['he'] = topic_obj.get_primary_title('he')
+			elif not use_as_typed:
+				new_topic['en'] = topic_obj.get_primary_title('en')
+
+			if backwards_compat_lang_fields is not None:
+				for lang in ('en', 'he'):
+					new_topic[backwards_compat_lang_fields[lang]] = new_topic[lang]
+			new_topic_list += [new_topic]
+
+	return new_topic_list
 
 
 def get_last_updated_time(sheet_id):
 	"""
 	Returns a timestamp of the last modified date for sheet_id.
 	"""
-	'''
-	if sheet_id in last_updated:
-		return last_updated[sheet_id]
-	'''
-
 	sheet = db.sheets.find_one({"id": sheet_id}, {"dateModified": 1})
 
 	if not sheet:
 		return None
-
-	'''
-	last_updated[sheet_id] = sheet["dateModified"]
-	'''
+		
 	return sheet["dateModified"]
 
 

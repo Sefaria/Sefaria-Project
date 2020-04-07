@@ -123,6 +123,7 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
                       onClose={onClose} />
                     <TwoOrThreeBox content={topicBlocks} width={width} />
                 </div>
+                {footer}
             </div>
         </div>
     );
