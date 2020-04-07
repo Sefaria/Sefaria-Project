@@ -436,11 +436,9 @@ input.noselect {
   img.keyboardInputInitiator{
     display: none;
   }
-
   .nochrome .header .home {
     display: inline;
   }
-
 }
 .header .accountLinks {
   display: flex;
@@ -456,6 +454,10 @@ input.noselect {
 .header .library, .header .my-profile {
   font-size: 24px;
   line-height: 24px;
+}
+.header .library .fa {
+  position: relative;
+  top: 1px;
 }
 .header .notifications {
   display: inline-block;

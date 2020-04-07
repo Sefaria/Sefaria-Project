@@ -2281,31 +2281,38 @@ label[for="sourceSheetShareSelect"] {
 	display: none;
 }
 
-#tags {
-	border: 1px solid rgb(204, 204, 204);
-	background: #ffffff;
-	color: #222222;
-	margin: 0 0 5px 0;
-	padding-left: 10px;
-    border-radius: 4px;
-}
-#tags input {
-	display: none; /* hack tagit to be readonly but all removings tags */
-}
-#addTag {
+#sheetsContent #addTag {
 	width: 100%;
 	font-size: 16px;
 	padding: 10px 15px;
     border-radius: 4px;
 	font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 	margin-bottom: 0;
+	border-bottom-right-radius: 0px;
+	border-bottom-left-radius: 0px;
 }
 
-#addTag::placeholder {
+#sheetsContent #addTag::placeholder {
 	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
 	color: #999999;
 }
 
+#tags {
+	border: 1px solid rgb(204, 204, 204);
+	border-top: none;
+	background: #ffffff;
+	color: #222222;
+	margin: 0 0 5px 0;
+	padding: 10px;
+    border-radius: 4px;
+    border-top-right-radius: 0px;
+	border-top-left-radius: 0px;
+}
+
+#sheetsContent #tags input {
+	width: 0px; /* hack tagit to be readonly but allow removings tags */
+}
+	
 #suggestedTags {
 	margin-bottom: 9px;
 }
@@ -2329,11 +2336,6 @@ label[for="sourceSheetShareSelect"] {
 ul.tagit li.tagit-choice .tagit-close .text-icon {
 	display:block;
 	margin-left: 5px;
-}
-
-#tags input {
-    font-size: 16px;
-    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 .tagit .ui-icon {

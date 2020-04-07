@@ -1653,25 +1653,16 @@ $(function() {
 		$(".s2Modal, #overlay").hide();
 	});
 
-
 	$("#shareWithOthers .ok").click(function(){
 		$("#shareWithOthers, #overlay").hide();
 		$("#sheetSummary").text($("#sheetSummaryInput").val());
 
-	var curTagsHTML = "";
-	var tags = sjs.sheetTagger.topics();
-    for (var i = 0; i < tags.length; i++) {
-    	curTagsHTML = curTagsHTML + '<a class="button" role="button" href="/topics/'+tags[i].slug+'">'+tags[i].asTyped+'</a>';
-    }
-	$("#sheetTags").html(curTagsHTML);
-
     //save whole sheet if possible, otherwise, just save sheet tags:
     if (sjs.can_save) {
 			autoSave();
-		}
-    else {
-    	var tags = JSON.stringify(sjs.sheetTagger.tags());
-    	$.post("/api/sheets/" + sjs.current.id + "/tags", {"tags": tags});
+	} else {
+    	var topics = JSON.stringify(sjs.sheetTagger.topics());
+    	$.post("/api/sheets/" + sjs.current.id + "/topics", {"topics": topics});
     }
 	});
 
@@ -2173,7 +2164,10 @@ sjs.sheetTagger = {
 					d.completion_objects.map(function(obj) {
 						if (obj.type == "Topic") {
 							topics.push(obj.title);
-							sjs.sheetTagger.tagSlugs[obj.title] = obj.key;
+							if (!(obj.title in sjs.sheetTagger.tagSlugs)) {
+								// Cache slug / title pair, but don't overwrite so more popular slug is kept in case of collision
+								sjs.sheetTagger.tagSlugs[obj.title] = obj.key;								
+							}
 						}
 					});
 					return topics;
@@ -2206,6 +2200,11 @@ sjs.sheetTagger = {
 				$("#tags").tagit("createTag", topics[i].asTyped);
 			}
 		}
+		var html = "";
+		for (var i = 0; i < topics.length; i++) {
+			html = html + '<a class="button" role="button" href="/topics/'+topics[i].slug+'">'+topics[i].asTyped+'</a>';
+	    }
+		$("#sheetTags").html(html);
 	},
 	addTagFromInput: function(tag) {
 		$("#tags").tagit("createTag", tag);
@@ -2228,16 +2227,17 @@ sjs.sheetTagger = {
 					Object.keys(data.topics[i].titles).map(function(lang) {
 						sjs.sheetTagger.tagSlugs[data.topics[i]["titles"][lang]] = data.topics[i].slug;
 					});
-					if (data.topics[i]["count"] > 1 ) { //only suggest tag if it has more than one topic link
+					if (data.topics[i]["count"] > 1 ) { // only suggest tag if it has more than one topic link
 						suggestedTags.push(data.topics[i]["titles"][sjs.interfaceLang]);
 					}
 				}
-
-				for (var i = 0; i < suggestedTags.length; i++) {
-					if ($("#suggestedTags .tagButton").length < 5 && sjs.sheetTagger.tags().indexOf(suggestedTags[i]) == -1) {
-						$("#suggestedTags").append("<span class='tagButton'>"+suggestedTags[i]+"</span>");
-					}
+				suggestedTags = suggestedTags.filter(function(tag) { return sjs.sheetTagger.tags().indexOf(tag) == -1});
+				suggestedTags = suggestedTags.slice(0,3);
+				var placeholderText = sjs.interfaceLang == "he" ? "הוספת תיוגים... כמו " : "Add Tags... like ";
+				if (suggestedTags.length) {
+					placeholderText += '"' + suggestedTags.join('", "') + '".';
 				}
+				$("#addTag").attr("placeholder", placeholderText);
 			});
 		}
 	},
@@ -2775,6 +2775,7 @@ function saveSheet(sheet, reload) {
 			}
 			sjs.current = data;
 			sjs.lastEdit = null;    // save was succesful, won't need to replay
+			sjs.sheetTagger.setTags(data.topics);
 			startPollingIfNeeded(); // Start or stop polling if collab/group status has changed
 			promptToPublish();      // If conditions are right, prompt to publish
 			var $lastSaved = $("#lastSaved");

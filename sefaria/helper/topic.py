@@ -19,6 +19,8 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
         'en': topic_obj.title_is_transliteration(response['primaryTitle']['en'], 'en'),
         'he': topic_obj.title_is_transliteration(response['primaryTitle']['he'], 'he')
     }
+    if not response.get("description_published", False) and "description" in response:
+        del response["description"]
     if with_links and with_refs:
         # can load faster by querying `topic_links` query just once
         all_links = topic_obj.link_set(_class=None)
@@ -650,8 +652,7 @@ def update_intra_topic_link_orders():
     from sefaria.system.database import db
     from pymongo import UpdateOne
 
-    uncats = {l.fromTopic for l in IntraTopicLinkSet({"linkType": "is-a", "toTopic": Topic.uncategorized_topic})}
-    ts = TopicSet()
+    uncats = Topic.get_uncategorized_link_set()
     topic_link_dict = {}
     for topic in tqdm(ts, total=ts.count(), desc="update intra orders"):
         if topic.slug in uncats:
