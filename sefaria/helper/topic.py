@@ -650,8 +650,7 @@ def update_intra_topic_link_orders():
     from sefaria.system.database import db
     from pymongo import UpdateOne
 
-    uncats = {l.fromTopic for l in IntraTopicLinkSet({"linkType": "is-a", "toTopic": Topic.uncategorized_topic})}
-    ts = TopicSet()
+    uncats = Topic.get_uncategorized_link_set()
     topic_link_dict = {}
     for topic in tqdm(ts, total=ts.count(), desc="update intra orders"):
         if topic.slug in uncats:

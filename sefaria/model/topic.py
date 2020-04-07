@@ -31,7 +31,6 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'disambiguation',
         'description_published',  # bool to keep track of which descriptions we've vetted
     ]
-    uncategorized_topic = 'uncategorized0000'
 
     @staticmethod
     def init(slug:str) -> 'Topic':
@@ -127,10 +126,6 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
         # links
         for link in TopicLinkSetHelper.find({"$or": [{"toTopic": other_slug}, {"fromTopic": other_slug}]}):
-            if link.linkType == TopicLinkType.isa_type and link.toTopic == Topic.uncategorized_topic:
-                # no need to merge uncategorized is-a links
-                link.delete()
-                continue
             attr = 'toTopic' if link.toTopic == other_slug else 'fromTopic'
             setattr(link, attr, self.slug)
             if getattr(link, 'fromTopic', None) == link.toTopic:
@@ -218,10 +213,11 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             return None, None
         return properties[property]['value'], properties[property]['dataSource']
 
-
     @staticmethod
     def get_uncategorized_slug_set():
-        return {t.fromTopic for t in IntraTopicLinkSet({'toTopic': Topic.uncategorized_topic, 'linkType': 'is-a'})}
+        categorized_topics = IntraTopicLinkSet({"linkType": TopicLinkType.isa_type}).distinct("fromTopic")
+        all_topics = TopicSet().distinct("slug")
+        return list(set(all_topics) - set(categorized_topics))
 
     def __str__(self):
         return self.get_primary_title("en")
