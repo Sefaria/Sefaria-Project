@@ -397,8 +397,8 @@ input.noselect {
   width: 160px;
 }
 .header .search.hebrewSearch {
-  font-family: "Heebo", sans-serif;
-  font-size: 16px;
+  font-family: 'Hebrew Text Font', serif;
+  font-size: 18px;
 }
 .search-override {
   border-top: solid 1px #999;
@@ -730,8 +730,9 @@ input.noselect {
   border: 1px solid #aaa;
   border-top: 1px solid #ddd;
   z-index: 1000000 !important;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'Hebrew Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
+
 .ui-autocomplete .ui-menu-item {
   display: block;
   padding: 6px 12px;
@@ -748,6 +749,7 @@ input.noselect {
 }
 .ui-autocomplete .ui-menu-item a {
   display: inline-block;
+  line-height: 21px;
   font-size: 19px;
   color: #000;
   cursor: pointer;
@@ -5127,17 +5129,20 @@ a .button:hover {
 }
 .interface-hebrew ::-webkit-input-placeholder {
   font-style: normal;
-  font-family: "Heebo", sans-serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 18px;
   color: #666;
 }
 .interface-hebrew ::-moz-placeholder {
   font-style: normal;
-  font-family: "Heebo", sans-serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 18px;
   color: #666;
 }
 .interface-hebrew :-ms-input-placeholder {
   font-style: normal;
-  font-family: "Heebo", sans-serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 18px;
   color: #666;
 }
 .lexicon-content{
