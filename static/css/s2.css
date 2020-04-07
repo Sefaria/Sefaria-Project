@@ -729,6 +729,8 @@ input.noselect {
   padding: 6px 0;
   border: 1px solid #aaa;
   border-top: 1px solid #ddd;
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
   z-index: 1000000 !important;
   font-family: 'Hebrew Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
