@@ -88,7 +88,7 @@ class Header extends Component {
       },
       source: (request, response) => Sefaria.getName(request.term)
         .then(d => {
-          const comps = d["completion_objects"].map(o => ({value: `${o['type']}|${o["key"]}`, label: o["title"], key: o["key"], type: o["type"]}));
+          const comps = d["completion_objects"].map(o => ({value: `${o['title']}${o["type"]==="ref"?"":` (${o["type"]})`}`, label: o["title"], key: o["key"], type: o["type"]}));
           if (comps.length > 0) {
             const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
             response(comps.concat([{value: q, label: q, type: "search"}]));
