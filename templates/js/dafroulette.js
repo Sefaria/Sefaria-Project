@@ -26,11 +26,11 @@ const socket = io.connect('https://{{ rtc_server }}');
 
 socket.on('cred', function(conf) {
   pcConfig = conf;
-}
+});
 
 socket.on('return rooms', function(numRooms) {
   document.getElementById("numberOfChevrutas").innerHTML = numRooms;
-})
+});
 
 
 socket.on('route new user', function(numRooms){
