@@ -4,7 +4,8 @@
 .container{
   width: 100%;
 }
-.interface-hebrew .static {
+.interface-hebrew .static,
+.interface-hebrew .staticPage {
   direction:rtl;
 }
 .static {
@@ -118,26 +119,6 @@
   font-size: 14px;
   background-color: white;
 }
-.static input:focus {
-  outline: none;
-}
-.static input::placeholder { /* eventual spec? */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static input::-moz-placeholder { /* Firefox 19+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static input:-ms-input-placeholder { /* IE 10+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static input:-moz-placeholder { /* Firefox 18- */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-
-
 .static a {
   color: #333;
 }
@@ -151,7 +132,6 @@
 .static a.button.transparent {
   color: #666;
 }
-
 .static .refLink {
   text-decoration: none;
 }
@@ -676,6 +656,21 @@
   cursor: pointer;
   width: 100%;
   box-sizing: border-box;
+}
+.registrationContent input::placeholder { /* eventual spec? */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input::-moz-placeholder { /* Firefox 19+ */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input:-ms-input-placeholder { /* IE 10+ */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input:-moz-placeholder { /* Firefox 18- */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
   width: auto;
@@ -2454,19 +2449,19 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #dafyomiPage .sectionRegular{
   max-width: 960px;
 }
-#dafyomiPage .sectionNarrow{
+#dafyomiPage .sectionNarrow {
   max-width: 640px;
 }
-#dafyomiPage .flexContainer{
+#dafyomiPage .flexContainer {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-between;
 }
-#dafyomiPage .flexReverse{
+#dafyomiPage .flexReverse {
   flex-direction: row-reverse;
 }
-#dafyomiPage #dafyomiPageHeader{
+#dafyomiPage #dafyomiPageHeader {
   background-color: #18345D;
   padding: 70px 0;
   margin-top: 60px;
@@ -2615,7 +2610,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #dafyomiPage #dafyomiExamples .example div{
   flex: 0 0 45%;
 }
-#dafyomiPage #dafyomiExamples .example .dafyomiExampleHeader h3{
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleHeader h3 {
   display: inline-block;
   border-bottom: 4px solid;
 }
@@ -2773,6 +2768,183 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
     height: 246px;
   }
 }
+
+/* Static Page Templates */
+
+.staticPage .staticPageBlockInner {
+  width: 800px;
+  margin: 0 auto;
+  max-width: 90%;
+  /* margin: 20px; */
+  /* display: block; */
+}
+.staticPage .blockVerticalPadding {
+  padding-top: 0;
+  padding-bottom: 80px;
+}
+.staticPage .flexContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+/* We need to hide some <a> tags that have a flexContainer on them. */
+.interface-hebrew .staticPage .flexContainer.int-en,
+.interface-english .staticPage .flexContainer.int-he {
+    display: none;
+}
+.staticPage .flexReverse {
+  flex-direction: row-reverse;
+}
+.staticPage .greyBackground {
+  background-color: #EDEDEC
+}
+.staticPage .staticPageHeader {
+  background-color: #212E50;
+  padding: 70px 0 0 0;
+  margin-top: 60px;
+  color: white;
+}
+.staticPage .staticPageCallToActionFooter {
+  background-color: #212E50;
+  color: white;
+  height: 204px;
+}
+.staticPage .staticPageCallToActionFooter .staticPageBlockInner {
+  padding: 60px 0;
+}
+.staticPage .staticPageCallToActionFooter .callToActionText {
+  font-style: normal;
+  font-weight: normal;
+  font-size: 30px;
+  line-height: 36px;
+  width: 50%;
+}.staticPage .staticPageCallToActionFooter .callToActionText .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.staticPage .staticPageCallToActionFooter .newsletterSignUpBox .subscribeMessage {
+  color: white;
+}
+.staticPage .staticPageHeader .staticPageHeaderTextBox {
+  flex: 7;
+}
+.staticPage .staticPageHeader .staticPageHeaderImg {
+  flex: 9;
+}
+.interface-english .staticPage .staticPageHeader .staticPageHeaderTextBox {
+  padding-right: 10px;
+}
+.interface-hebrew .staticPage .staticPageHeader .staticPageHeaderTextBox {
+  padding-left: 10px;
+}
+.staticPage .staticPageH2 {
+  padding: 55px 0;
+  margin: 0;
+}
+.staticPage .staticPageH2 span.int-en {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 30px;
+  line-height: 35px;
+  color: #666666;
+}
+
+.staticPage .simpleButtonWrapper {
+  width: 33%;
+}
+.staticPage .simpleButtonWrapper .button {
+  border-radius: 0;
+  min-height: 78px;
+}
+.staticPage .simpleButtonWrapper .button span {
+  margin: auto;
+}
+.staticPageHeader h1 {
+  font-size: 48px;
+  line-height: 58px;
+  font-weight: normal;
+  margin: 0 0 14px 0;
+}
+.staticPageHeader h1 .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.staticPageHeaderText {
+  font-size: 16px;
+  line-height: 22px;
+}
+.staticPageHeaderImg img {
+  width: 100%;
+  display: block;
+}
+.staticPageAbout {
+  padding: 50px 0;
+}
+.staticPageAbout h2 {
+  font-size:22px;
+  font-weight: 500;
+  color: #666;
+  line-height: 26px;
+  margin: 0 0 19px 0;
+}
+.staticPageAboutText {
+  font-size: 16px;
+  line-height: 19px;
+}
+.staticPage .feature .featureText {
+  font-family: "Roboto", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 21px;
+  border-top: 4px solid;
+  color: #000000;
+  width: 35%;
+}
+.staticPage .feature .featureImage {
+  text-align: center;
+  width: 57%;
+}
+.staticPage .feature .featureImage img {
+  width: 454px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.staticPage .feature {
+    padding: 0px 0 80px 0;
+}
+.staticPage .feature .featureHeader {}
+.staticPage .feature .featureHeader h3 {
+  margin: 20px 0 20px 0;
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: normal;
+  display: inline-block;
+}
+
+.staticPage .feature .featureHeader h3 .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+@media (max-width: 540px) {
+  .staticPage .flexContainer {
+    flex-direction: column;
+  }
+  .staticPage .staticPageBlockInner {
+    width: auto;
+    max-width: none;
+    margin: 0 30px;
+  }
+  .staticPage .staticPageHeader {
+    padding-top: 40px;
+  }
+  .staticPageHeaderText {
+    margin-bottom: 30px;
+  }
+  .staticPage .simpleButtonWrapper,
+  .staticPage .feature .featureText,
+  .staticPage .staticPageCallToActionFooter .callToActionText {
+    width: 100%;
+  }
+}
+
 
 /*** Filters for coloring svgs ***/
 .svg-white {

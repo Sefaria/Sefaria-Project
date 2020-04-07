@@ -26,16 +26,16 @@ fi
 if [ $# -eq 1 ]; then
     if [ "$profilescript" = true ] ; then
         echo "profiling"
-        python -m cProfile $script
+        python3 -m cProfile $script
     else
-        python $script
+        python3 $script
     fi
 elif [ $# -ge 2 ]; then
     passargs=("${@:2}")
     if [ "$profilescript" = true ] ; then
         echo "profiling"
-        python -m cProfile $script "${passargs[@]}"
+        python3 -m cProfile $script "${passargs[@]}"
     else
-        python $script "${passargs[@]}"
+        python3 $script "${passargs[@]}"
     fi
 fi

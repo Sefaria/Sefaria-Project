@@ -61,7 +61,8 @@ def write_sheet_makers_csv(query={}):
 
         author_list_for_csv.append([
             author,
-            profile.full_name,
+            profile.first_name,
+            profile.last_name,
             profile.email, 
             profile.slug,
             profile.position,
@@ -78,7 +79,7 @@ def write_sheet_makers_csv(query={}):
 
     with open("output.csv", 'w') as resultFile:
         wr = csv.writer(resultFile)
-        wr.writerow(["user_id","full name","email","profile_slug","position","organization","bio","website","interface_language","total_sheet_count","public_sheet_count","private_sheet_count","untagged_public_sheet_count","latest_sheet_editted_date"])
+        wr.writerow(["user_id","firt_name","last_name","email","profile_slug","position","organization","bio","website","interface_language","total_sheet_count","public_sheet_count","private_sheet_count","untagged_public_sheet_count","latest_sheet_editted_date"])
         wr.writerows(author_list_for_csv)
 
 
