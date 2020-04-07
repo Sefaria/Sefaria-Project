@@ -667,7 +667,7 @@ def import_term_descriptions():
     Halloween
     Taanit Esther
     Yom Hashoah
-    
+
     no term
     Rabbinic Holiday
     Yom Haatzmaut
@@ -675,7 +675,7 @@ def import_term_descriptions():
     Taanit Bekhorot
     Yom HaZikaron
     Sigd
-    
+
     ambig
     Fast Day: fasting, fast-day
     Shabbat: shabbat, shabbat1
@@ -923,7 +923,7 @@ def recat_top_level():
             "Status": ""
         }]
     with open('data/recat_top.csv', 'w') as fout:
-        c = csv.DictWriter(fout, ['ID', 'En', 'He', 'Order', 'Status']) 
+        c = csv.DictWriter(fout, ['ID', 'En', 'He', 'Order', 'Status'])
         c.writeheader()
         c.writerows(rows)
 
@@ -1355,6 +1355,20 @@ def more_rabbi_matching_oh_boy():
         c.writeheader()
         c.writerows(rows)
 
+def reupdate_descs():
+    with open('data/Topic Descriptions - Biblical Figures.csv', 'r') as fin:
+        c = csv.DictReader(fin)
+        rows = list(c)
+    for row in rows:
+        t = Topic.init(row['Slug'])
+        if len(row['Copy']) == 0:
+            continue
+        setattr(t, 'description', {
+            'en': row['Copy'],
+            'he': row['Hebrew Copy']
+        })
+        t.save()
+
 if __name__ == '__main__':
     # slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
     # do_data_source()
@@ -1382,7 +1396,7 @@ if __name__ == '__main__':
     # export_law_toc()
     apply_recat_toc()
 
-    
+
 def yo():
     import re
     from tqdm import tqdm
@@ -1649,5 +1663,3 @@ def recat_toc_round2():
         if l.fromTopic in display_map:
             print("WARNING:", l.fromTopic, 'has value', display_map[l.fromTopic], 'not', l.toTopic)
         display_map[l.fromTopic] = l.toTopic
-
-
