@@ -21,7 +21,25 @@ var app = http.createServer(function(req, res) {
 }).listen(PORT);
 
 var io = socketIO.listen(app);
+
+const TURN_SERVER = `turn:${process.env.TURN_SERVER}?transport=udp`;
+
+const pcConfig = {
+  'iceServers': [{
+      'urls': 'stun:stun.l.google.com:19302'
+    },
+    {
+      'urls': TURN_SERVER,
+      'credential': process.env.TURN_USER,
+      'username': process.env.TURN_SECRET
+    }
+  ]
+};
+
+
 io.sockets.on('connection', function(socket) {
+
+  socket.emit('cred', pcConfig);
 
   socket.on('message', function(message) {
     var roomId = (Object.keys(socket.rooms).filter(item => item!=socket.id))[0]

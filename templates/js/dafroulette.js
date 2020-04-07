@@ -2,7 +2,6 @@
 
 'use strict';
 
-const TURN_SERVER = 'turn:{{ turn_server_ip }}?transport=udp';
 
 let isChannelReady = false;
 let isInitiator = false;
@@ -11,18 +10,7 @@ let localStream;
 let pc;
 let remoteStream;
 let turnReady;
-
-const pcConfig = {
-  'iceServers': [{
-      'urls': 'stun:stun.l.google.com:19302'
-    },
-    {
-      'urls': TURN_SERVER,
-      'credential': '{{ turn_user }}',
-      'username': '{{ turn_secret }}'
-    }
-  ]
-};
+let pcConfig;
 
 // Set up audio and video regardless of what devices are present.
 const sdpConstraints = {
@@ -35,6 +23,10 @@ const sdpConstraints = {
 var clientRoom;
 
 const socket = io.connect('https://{{ rtc_server }}');
+
+socket.on('cred', function(conf) {
+  pcConfig = conf;
+}
 
 socket.on('return rooms', function(numRooms) {
   document.getElementById("numberOfChevrutas").innerHTML = numRooms;
@@ -282,34 +274,34 @@ function onCreateSessionDescriptionError(error) {
   trace('Failed to create session description: ' + error.toString());
 }
 
-function requestTurn(turnURL) {
-  let turnExists = false;
-  for (let i in pcConfig.iceServers) {
-    if (pcConfig.iceServers[i].urls.substr(0, 5) === 'turn:') {
-      turnExists = true;
-      turnReady = true;
-      break;
-    }
-  }
-  if (!turnExists) {
-    console.log('Getting TURN server from ', turnURL);
-    // No TURN server. Get one from computeengineondemand.appspot.com:
-    let xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState === 4 && xhr.status === 200) {
-        const turnServer = JSON.parse(xhr.responseText);
-        console.log('Got TURN server: ', turnServer);
-        pcConfig.iceServers.push({
-          'urls': 'turn:' + turnServer.username + '@' + turnServer.turn,
-          'credential': turnServer.password
-        });
-        turnReady = true;
-      }
-    };
-    xhr.open('GET', turnURL, true);
-    xhr.send();
-  }
-}
+// function requestTurn(turnURL) {
+//   let turnExists = false;
+//   for (let i in pcConfig.iceServers) {
+//     if (pcConfig.iceServers[i].urls.substr(0, 5) === 'turn:') {
+//       turnExists = true;
+//       turnReady = true;
+//       break;
+//     }
+//   }
+//   if (!turnExists) {
+//     console.log('Getting TURN server from ', turnURL);
+//     // No TURN server. Get one from computeengineondemand.appspot.com:
+//     let xhr = new XMLHttpRequest();
+//     xhr.onreadystatechange = function() {
+//       if (xhr.readyState === 4 && xhr.status === 200) {
+//         const turnServer = JSON.parse(xhr.responseText);
+//         console.log('Got TURN server: ', turnServer);
+//         pcConfig.iceServers.push({
+//           'urls': 'turn:' + turnServer.username + '@' + turnServer.turn,
+//           'credential': turnServer.password
+//         });
+//         turnReady = true;
+//       }
+//     };
+//     xhr.open('GET', turnURL, true);
+//     xhr.send();
+//   }
+// }
 
 function handleRemoteStreamAdded(event) {
   console.log('Remote stream added.');

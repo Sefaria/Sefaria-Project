@@ -37,7 +37,7 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
 from sefaria.forms import NewUserForm, NewUserFormAPI
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, RTC_SERVER, TURN_SERVER, TURN_SECRET, TURN_USER
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.group import GroupSet
 from sefaria.model.translation_request import count_completed_translation_requests
@@ -218,9 +218,6 @@ def dafroulette_js(request):
 
     attrs = {
         "rtc_server": RTC_SERVER,
-        "turn_server_ip": TURN_SERVER,
-        "turn_secret": TURN_SECRET,
-        "turn_user": TURN_USER,
         "client_name": client_user.first_name + " " + client_user.last_name,
         "client_uid": client_user.id
     }
