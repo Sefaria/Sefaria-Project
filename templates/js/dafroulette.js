@@ -24,18 +24,14 @@ var clientRoom;
 
 const socket = io.connect('https://{{ rtc_server }}');
 
-socket.on('cred', function(conf) {
-  pcConfig = conf;
-});
-
 socket.on('return rooms', function(numRooms) {
   document.getElementById("numberOfChevrutas").innerHTML = numRooms;
 });
 
 
-socket.on('route new user', function(numRooms){
+socket.on('route new user', function(numRooms, conf){
   document.getElementById("numberOfChevrutas").innerHTML = numRooms;
-
+  pcConfig = conf;
   if (numRooms == 1) {
     socket.emit('create or join', true);
   }
@@ -274,35 +270,6 @@ function onCreateSessionDescriptionError(error) {
   trace('Failed to create session description: ' + error.toString());
 }
 
-// function requestTurn(turnURL) {
-//   let turnExists = false;
-//   for (let i in pcConfig.iceServers) {
-//     if (pcConfig.iceServers[i].urls.substr(0, 5) === 'turn:') {
-//       turnExists = true;
-//       turnReady = true;
-//       break;
-//     }
-//   }
-//   if (!turnExists) {
-//     console.log('Getting TURN server from ', turnURL);
-//     // No TURN server. Get one from computeengineondemand.appspot.com:
-//     let xhr = new XMLHttpRequest();
-//     xhr.onreadystatechange = function() {
-//       if (xhr.readyState === 4 && xhr.status === 200) {
-//         const turnServer = JSON.parse(xhr.responseText);
-//         console.log('Got TURN server: ', turnServer);
-//         pcConfig.iceServers.push({
-//           'urls': 'turn:' + turnServer.username + '@' + turnServer.turn,
-//           'credential': turnServer.password
-//         });
-//         turnReady = true;
-//       }
-//     };
-//     xhr.open('GET', turnURL, true);
-//     xhr.send();
-//   }
-// }
-
 function handleRemoteStreamAdded(event) {
   console.log('Remote stream added.');
   remoteStream = event.stream;
@@ -330,9 +297,7 @@ function hangup() {
 function handleRemoteHangup() {
   socket.emit('bye', clientRoom);
   console.log('Session terminated.');
-  setTimeout(function(){ location.reload(); }, 1000);
-
-  // newRoom();
+  location.reload();
 }
 
 function stop() {

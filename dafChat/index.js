@@ -39,8 +39,6 @@ const pcConfig = {
 
 io.sockets.on('connection', function(socket) {
 
-  socket.emit('cred', pcConfig);
-
   socket.on('message', function(message) {
     var roomId = (Object.keys(socket.rooms).filter(item => item!=socket.id))[0]
     socket.to(roomId).emit('message', message);
@@ -67,7 +65,7 @@ io.sockets.on('connection', function(socket) {
 
       const numRows = rows["COUNT(*)"]
       socket.broadcast.emit('return rooms', numRows);
-      socket.emit('route new user', numRows);
+      socket.emit('route new user', numRows, pcConfig);
 
     });
 
