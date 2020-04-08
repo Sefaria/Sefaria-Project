@@ -26,17 +26,17 @@ steps:
   # Build artifacts
   #
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/production-deployment/sefaria-web:$SHORT_SHA", "-f", "build/web/Dockerfile", "."]
+    args: ["build", "-t", "gcr.io/production-deployment/sefaria-web-${_HELM_RELEASE_NAME_SLUG}:$SHORT_SHA", "-f", "build/web/Dockerfile", "."]
     id: web_container
     wait_for: [ "-" ]
   
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/production-deployment/sefaria-node:$SHORT_SHA", "-f", "build/node/Dockerfile", "."]
+    args: ["build", "-t", "gcr.io/production-deployment/sefaria-node-${_HELM_RELEASE_NAME_SLUG}:$SHORT_SHA", "-f", "build/node/Dockerfile", "."]
     id: nodejs_container
     wait_for: [ "-" ]
 
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/production-deployment/sefaria-asset:$SHORT_SHA", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/production-deployment/sefaria-web:$SHORT_SHA", "."]
+    args: ["build", "-t", "gcr.io/production-deployment/sefaria-asset-${_HELM_RELEASE_NAME_SLUG}:$SHORT_SHA", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/production-deployment/sefaria-web-${_HELM_RELEASE_NAME_SLUG}:$SHORT_SHA", "."]
     id: nginx_container
     wait_for:
       - web_container
@@ -127,7 +127,7 @@ steps:
   #     dockerfiles assumed the container was being built on CloudBuild
     
 images:
-  - "gcr.io/production-deployment/sefaria-asset:$SHORT_SHA"
-  - "gcr.io/production-deployment/sefaria-web:$SHORT_SHA"
-  - "gcr.io/production-deployment/sefaria-node:$SHORT_SHA"
+  - "gcr.io/production-deployment/sefaria-asset-${_HELM_RELEASE_NAME_SLUG}:$SHORT_SHA"
+  - "gcr.io/production-deployment/sefaria-web-${_HELM_RELEASE_NAME_SLUG}:$SHORT_SHA"
+  - "gcr.io/production-deployment/sefaria-node-${_HELM_RELEASE_NAME_SLUG}:$SHORT_SHA"
 ...
