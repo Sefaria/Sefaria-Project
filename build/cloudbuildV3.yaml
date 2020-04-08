@@ -53,7 +53,7 @@ steps:
 
   # Outputs a file to /k8s-admin/v2/app_settings/helm/_sandboxValues.yaml
   - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
-    dir: v2/app_settings/helm
+    dir: k8s-admin/v2/app_settings/helm
     entrypoint: "bash"
     args: ['-c', './generateHelmValues.bash']
     id: generate_helm_values
@@ -62,11 +62,12 @@ steps:
       - 'IS_SANDBOX=${_IS_SANDBOX}'
       - 'RESOURCE_ALLOC=${_RESOURCE_ALLOCATION}'
       - 'PROJECT_ID=${PROJECT_ID}'
-    wait_for: [ "-" ]
-
+    wait_for: 
+     - k8s-admin_clone
+     
   # Outputs a file to /k8s-admin/v2/app_settings/local_settings/_local_settings.py
   - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
-    dir: v2/app_settings/local_settings
+    dir: k8s-admin/v2/app_settings/local_settings
     entrypoint: "bash"
     args: ['-c', './generateLocalSettings.bash']
     id: generate_localsettings_file
@@ -75,12 +76,13 @@ steps:
       - 'IS_SANDBOX=${_IS_SANDBOX}'
       - 'MONGO_HOST=${_MONGO_HOST}' # Should this be parmeterized here or read in the repo
       - 'POSTGRES_HOST=${_POSTGRES_HOST}' # Should this be parmeterized here or read in the repo
-    wait_for: [ "-" ]
+    wait_for: 
+     - k8s-admin_clone
 
   # Copy localsettings into file
   # Later, combined this with the script above
   - name: "gcr.io/production-deployment/cloudbuild-helm:v3.0.2"
-    dir: v2
+    dir: k8s-admin/v2
     id: copy_localsettings_file
     entrypoint: cp
     args: ["-f", "./app_settings/local_settings/_local_settings.py", "./charts/sefaria/local_settings.py"]
