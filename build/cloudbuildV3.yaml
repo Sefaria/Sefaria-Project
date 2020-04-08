@@ -51,58 +51,29 @@ steps:
     id: k8s-admin_clone
     wait_for: [ "-" ]
 
-  # Outputs a file to /k8s-admin/v2/app_settings/helm/_sandboxValues.yaml
-  - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
-    dir: k8s-admin/v2/app_settings/helm
-    entrypoint: "bash"
-    args: ['-c', './generateHelmValues.bash']
-    id: generate_helm_values
-    env: 
-      - 'ENV_NAME=${_HELM_RELEASE_NAME_SLUG}'
-      - 'IS_SANDBOX=false'
-      - 'RESOURCE_ALLOC=prod'
-      - 'PROJECT_ID=${PROJECT_ID}'
-    wait_for: 
-     - k8s-admin_clone
-
-  # Outputs a file to /k8s-admin/v2/app_settings/local_settings/_local_settings.py
-  - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
-    dir: k8s-admin/v2/app_settings/local_settings
-    entrypoint: "bash"
-    args: ['-c', './generateLocalSettings.bash']
-    id: generate_localsettings_file
-    env: 
-      - 'ENV_NAME=${_HELM_RELEASE_NAME_SLUG}'
-      - 'IS_SANDBOX=false'
-      - 'MONGO_HOST=mongo' # Should this be parmeterized here or read in the repo
-      - 'POSTGRES_HOST=postgres' # Should this be parmeterized here or read in the repo
-    wait_for: 
-     - k8s-admin_clone
-
-  # Copy localsettings into file
-  # Later, combined this with the script above
+  # Copy local_settings.py into the chart directory. There is no way to inject this with `helm`
+  # https://github.com/helm/helm/issues/3276
+  # This can also be resolved by parameterizing all setting variables and passing them in
   - name: "gcr.io/production-deployment/cloudbuild-helm:v3.0.2"
     dir: k8s-admin/v2
-    id: copy_localsettings_file
+    id: copy_local_settings_file
     entrypoint: cp
-    args: ["-f", "./app_settings/local_settings/_local_settings.py", "./charts/sefaria/local_settings.py"]
+    args: ["-f", "./app_settings/local_settings.${_HELM_RELEASE_NAME_SLUG}.py", "./charts/sefaria/local_settings.py"]
     wait_for:
-      - generate_localsettings_file
-
+      - k8s-admin_clone
+  
   # Idempotently Install/Upgrade the Helm Release
   - name: "gcr.io/production-deployment/cloudbuild-helm:v3.0.2"
     id: install_chart
-    dir: k8s-admin/v2    
-    args: ["upgrade", "-i", "${_HELM_RELEASE_NAME}", "./charts/sefaria", "--namespace", "${_TARGET_NAMESPACE}", "--set-string", "releaseImageTag=${SHORT_SHA}", "-f", "app_settings/helm/_envValues.yaml", "-f", "app_settings/helm/_resourceValues.yaml", "--debug"]
+    dir: k8s-admin/v2
+    args: ["upgrade", "-i", "${_HELM_RELEASE_NAME}", "./charts/sefaria", "--namespace", "${_TARGET_NAMESPACE}", "--set-string", "deployEnv=${_HELM_RELEASE_NAME_SLUG},releaseSlug=${_HELM_RELEASE_NAME_SLUG},releaseImageTag=$SHORT_SHA,web.replicaCount=${_WEB_REPLICAS}", "--debug"]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_TARGET_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_TARGET_CLUSTER}'
       - 'KUBECTL_VERSION=1.14'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
-      - generate_localsettings_file
-      - copy_localsettings_file
-      - generate_helm_values
+      - copy_local_settings_file
       - k8s-admin_clone
       - nginx_container
       - nodejs_container
