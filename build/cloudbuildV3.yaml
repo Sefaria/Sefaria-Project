@@ -98,7 +98,9 @@ steps:
       - 'KUBECTL_VERSION=1.14'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
-      - copy_local_settings_file
+      - generate_localsettings_file
+      - copy_localsettings_file
+      - generate_helm_values
       - k8s-admin_clone
       - nginx_container
       - nodejs_container
