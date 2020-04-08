@@ -299,7 +299,7 @@ GLOBAL_INTERRUPTING_MESSAGE = {
     "style":      "modal",
     "condition": {"returning_only": False, "desktop_only": False, "hebrew_only": True, "debug": False}
 }
-GLOBAL_INTERRUPTING_MESSAGE = None
+# GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab enviornment specific settings from a file which
 # is left out of the repo.
