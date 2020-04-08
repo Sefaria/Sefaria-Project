@@ -58,13 +58,13 @@ steps:
     args: ['-c', './generateHelmValues.bash']
     id: generate_helm_values
     env: 
-      - 'ENV_NAME=${_ENV_NAME}'
-      - 'IS_SANDBOX=${_IS_SANDBOX}'
-      - 'RESOURCE_ALLOC=${_RESOURCE_ALLOCATION}'
+      - 'ENV_NAME=${_HELM_RELEASE_NAME_SLUG}'
+      - 'IS_SANDBOX=false'
+      - 'RESOURCE_ALLOC=prod'
       - 'PROJECT_ID=${PROJECT_ID}'
     wait_for: 
      - k8s-admin_clone
-     
+
   # Outputs a file to /k8s-admin/v2/app_settings/local_settings/_local_settings.py
   - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
     dir: k8s-admin/v2/app_settings/local_settings
@@ -72,10 +72,10 @@ steps:
     args: ['-c', './generateLocalSettings.bash']
     id: generate_localsettings_file
     env: 
-      - 'ENV_NAME=${_ENV_NAME}'
-      - 'IS_SANDBOX=${_IS_SANDBOX}'
-      - 'MONGO_HOST=${_MONGO_HOST}' # Should this be parmeterized here or read in the repo
-      - 'POSTGRES_HOST=${_POSTGRES_HOST}' # Should this be parmeterized here or read in the repo
+      - 'ENV_NAME=${_HELM_RELEASE_NAME_SLUG}'
+      - 'IS_SANDBOX=false'
+      - 'MONGO_HOST=mongo' # Should this be parmeterized here or read in the repo
+      - 'POSTGRES_HOST=postgres' # Should this be parmeterized here or read in the repo
     wait_for: 
      - k8s-admin_clone
 
