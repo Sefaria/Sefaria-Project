@@ -64,7 +64,7 @@ class Header extends Component {
     });
     const anchorSide = this.props.interfaceLang === "hebrew" ? "right+" : "left-";
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
-      position: {my: anchorSide + "40 top+18", at: anchorSide + "0 bottom"},
+      position: {my: anchorSide + "40 top+20", at: anchorSide + "0 bottom"},
       minLength: 3,
       select: ( event, ui ) => {
         event.preventDefault();

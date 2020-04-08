@@ -2099,6 +2099,7 @@ Sefaria = extend(Sefaria, {
       //reader panel
       "Search" : "חיפוש",
       "Search Dictionary": "חפש במילון",
+      "Search for": "חיפוש",
       "Search for:": "חיפוש:",
       "Views": "צפיות",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",

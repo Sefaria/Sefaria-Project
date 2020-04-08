@@ -401,7 +401,7 @@ input.noselect {
   font-size: 18px;
 }
 .search-override {
-  border-top: solid 1px #999;
+  border-top: solid 1px #ccc;
   padding-top: 5px;
 }
 .header .home {
@@ -727,8 +727,7 @@ input.noselect {
   background: white;
   list-style-type: none;
   padding: 6px 0;
-  border: 1px solid #aaa;
-  border-top: 1px solid #ddd;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   z-index: 1000000 !important;
@@ -759,7 +758,7 @@ input.noselect {
   vertical-align: top;
 }
 .ui-autocomplete .ui-menu-item a.ui-state-focus {
-  background-color: #E9E9E7;
+  text-decoration: underline;
 }
 .ui-helper-hidden-accessible {
   display: none;
@@ -2402,7 +2401,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
   display: block;
 }
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
-  background-color: #E9E9E7;
+  text-decoration: underline;
 }
 .searchContentFrame h1 {
   direction: ltr;
