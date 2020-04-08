@@ -168,7 +168,7 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
 
   let resources = [
       <TocLink en="Create a Sheet" he="צור דף חדש" href="/sheets/new" resourcesLink={true} outOfAppLink={true}
-            img="/static/img/new-sheet.svg"  alt="new source sheet icon" classes="blue"/>,
+            img="/static/img/new-sheet.svg"  alt="new source sheet icon" />,
       <TocLink en="Authors" he="רשימת מחברים" href="/people" resourcesLink={true} outOfAppLink={true}
             img="/static/img/authors-icon.png" alt="author icon"/>,
       <TocLink en="Groups" he="קבוצות" href="/groups" resourcesLink={true} outOfAppLink={true}

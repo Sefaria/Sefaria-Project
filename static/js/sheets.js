@@ -2151,9 +2151,15 @@ sjs.sheetTagger = {
 		});
 		const dropdownAnchorSide = sjs.interfaceLang == "he" ? "right" : "left";
 		$("#addTag")
-		.keyup(function(e) {
-			if (e.keyCode == 13) {
+		.keydown(function(e) {
+			if (e.shiftKey && (e.keyCode == 50 || e.keyCode == 51)) {
+				// Don't allow # or @ in tags
+				return false;
+			}
+			if (e.keyCode == 13 || e.keyCode == 188) {
+				// Let enter or , trigger enter
 				sjs.sheetTagger.addTagFromInput($("#addTag").val());
+				return false;
 			}
 		})
 		.autocomplete({
