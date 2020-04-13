@@ -278,9 +278,9 @@ class ReaderApp extends Component {
     this.updateHistoryState(this.replaceHistory);
   }
   handlePopState(event) {
-    var state = event.state;
-    //console.log("Pop - " + window.location.pathname);
-    //console.log(state);
+    var state = event.state.readerAppState;
+    // console.log("Pop - " + window.location.pathname);
+    // console.log(event.state);
     if (state) {
       this.justPopped = true;
       // history does not preserve custom objects
@@ -294,12 +294,17 @@ class ReaderApp extends Component {
           p.textSearchState = p.textSearchState && new SearchState(p.textSearchState);
         }
       }
-      this.setState(state);
+
       if (!h && state.panels) {
-        // potentially going back to panel state from header state
         // make sure header is closed
-        this.setHeaderState({menuOpen: null});
+        state.header = {menuOpen: null};
       }
+      this.setState(state, () => {
+        if (event.state.scrollPosition) {
+          $(".content").scrollTop(event.state.scrollPosition);
+        }
+      });
+
       this.setContainerMode();
     }
   }
@@ -366,13 +371,14 @@ class ReaderApp extends Component {
   shouldHistoryUpdate() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
-    // If there's no history or the number or basic state of panels has changed
+
     if (!history.state
         || (!history.state.panels && !history.state.header)
         || (!history.state.panels && this.state.panels)
         || (history.state.panels && (history.state.panels.length !== this.state.panels.length))
         || (history.state.header && (history.state.header.menuOpen !== this.state.header.menuOpen))
       ) {
+      // If there's no history or the number or basic state of panels has changed
       return true;
     }
 
@@ -618,6 +624,7 @@ class ReaderApp extends Component {
             hist.mode = "homefeed";
             break;
         }
+
       } else if (state.mode === "Text") {
         var highlighted = state.highlightedRefs.length ? Sefaria.normRefList(state.highlightedRefs) : null;
 
@@ -635,6 +642,7 @@ class ReaderApp extends Component {
         if(Sefaria.titleIsTorah(htitle)){
           hist.aliyot = (state.settings.aliyotTorah == "aliyotOff") ? 0 : 1;
         }
+
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
         var filter    = state.filter.length ? state.filter :
@@ -663,6 +671,7 @@ class ReaderApp extends Component {
         if(Sefaria.titleIsTorah(ref)){
           hist.aliyot = (state.settings.aliyotTorah == "aliyotOff") ? 0 : 1;
         }
+
       } else if (state.mode === "Header") {
         hist.title    = document.title;
         hist.url      = window.location.pathname.slice(1);
@@ -680,6 +689,7 @@ class ReaderApp extends Component {
         hist.sources  = filter.join("+");
         hist.url = i == 0 ? "sheets/"+ sheetURLSlug : "sheet&s="+ sheetURLSlug;
         hist.mode     = "Sheet"
+
       } else if (state.mode === "SheetAndConnections") {
         var filter    = state.filter.length ? state.filter :
                           (state.connectionsMode in moreSidebarModes ? [state.connectionsMode] : ["all"]);
@@ -691,6 +701,7 @@ class ReaderApp extends Component {
         hist.url = i == 0 ? "sheets/"+state.sheet.id : "sheet&s="+ state.sheet.id + "?with=" + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.mode     = "SheetAndConnections";
       }
+
       if (state.mode !== "Header") {
         hist.lang =  state.settings.language ? state.settings.language.substring(0,2) : "bi";
       }
@@ -713,8 +724,8 @@ class ReaderApp extends Component {
         url += "&aliyot=" + histories[0].aliyot;
     }
     hist = (headerPanel)
-        ? {state: {header: states[0]}, url: url, title: title}
-        : {state: {panels: states}, url: url, title: title};
+        ? {state: {readerAppState: {header: states[0]}}, url: url, title: title}
+        : {state: {readerAppState: {panels: states}}, url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
       if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") || (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections")) {
         if (i == 1) {
@@ -830,6 +841,7 @@ class ReaderApp extends Component {
     $("title").html(hist.title);
     this.replaceHistory = false;
 
+    $(".content").on("scroll", this.setScrollPositionInHistory); // when .content may have rerendered
     this.setPaddingForScrollbar() // Called here to save duplicate calls to shouldHistoryUpdate
   }
   makePanelState(state) {
@@ -879,6 +891,13 @@ class ReaderApp extends Component {
       }
     }
     return panel;
+  }
+  setScrollPositionInHistory(e) {
+    const $scrollContainer = $(e.target);
+    const scrollTop = $scrollContainer.scrollTop();
+    let state = history.state;
+    state.scrollPosition = scrollTop;
+    history.replaceState(state, window.location.href);
   }
   getDefaultPanelSettings() {
     if (this.state && this.state.defaultPanelSettings) {
