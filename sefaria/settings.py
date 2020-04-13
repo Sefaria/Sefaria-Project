@@ -294,14 +294,13 @@ CACHES = {
 }
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "user_testing_israel",
+    "name":       "passover-2020-banner",
     "repetition": 0,
-    "style":      "modal",
+    "style":      "banner",
     "condition": {
         "returning_only": False,
         "desktop_only": False,
         "english_only": False,
-        "hebrew_only": True,
         "debug": False
     }
 }
