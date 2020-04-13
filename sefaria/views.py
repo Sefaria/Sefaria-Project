@@ -175,6 +175,10 @@ def generate_feedback(request):
         to_email = "corrections@sefaria.org"
         subject = "Correction from website - " + ' / '.join(refs)
         message_html = msg + "\n\n" + "refs: " + ' / '.join(refs) + "\n" + "versions: " + str(versions) + "\n\n" + "URL: " + url
+    elif fb_type == "user_testing":
+        to_email = "gabriel@sefaria.org"
+        subject = "User Testing Sign Up"
+        message_html = "Hi! I want to sign up for user testing!"
     else:
         to_email = "hello@sefaria.org"
         subject = "Feedback from website - " + fb_type.replace("_"," ")

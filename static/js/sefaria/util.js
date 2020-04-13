@@ -6,6 +6,28 @@ const humanizeDuration = require('humanize-duration');
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
+    static sign_up_user_testing() {
+      // temporary function to be used in template 'user_testing_israel.html'
+        const validateEmail = function(email) {
+          const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+          return re.test(email);
+        };
+        const email = $('#email-input').val();
+        if (!validateEmail(email)) {
+            alert(email + ' is not a valid email');
+            return;
+        }
+        console.log('Email valid', email);
+        const feedback = {
+          refs: null,
+          type: 'user_testing',
+          url: null,
+          currVersions: null,
+          email: email
+        };
+        const postData = {json: JSON.stringify(feedback)};
+        $.post('/api/send_feedback', postData);
+    }
     static naturalTimePlural(n, singular, plural) {
       return n <= 1 ? singular : plural;
     }
@@ -303,7 +325,7 @@ class Util {
             this.splice(new_index, 0, this.splice(old_index, 1)[0]);
             return this; // for testing purposes
         };
-
+        /*  I highly suspect that these functions work properly. Not worth the slight performance gain. Commenting out for now in case we want to revisit later.
         Array.prototype.insertInOrder = function(element, comparer) {
           // see https://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
           // insert `element` into array so that the array remains sorted, assuming it was sorted to begin with
@@ -330,7 +352,7 @@ class Util {
             case 1: return this.locationOfSorted(element, comparer, pivot, end);
           };
         };
-
+        */
         if (!Array.prototype.fill) {
           Object.defineProperty(Array.prototype, 'fill', {
             value: function(value) {

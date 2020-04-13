@@ -14,7 +14,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@graceful_exception(logger=logger, return_value=None, exception_type=UnicodeDecodeError)
+@graceful_exception(logger=logger, return_value=None)
 def invalidate_ref(oref, lang=None, version=None, purge=False):
     """
     Called when 'ref' is changed.

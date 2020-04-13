@@ -15,7 +15,7 @@ class InterruptingMessage(object):
 
   def check_condition(self):
     """Returns true if this interrupting message should be shown given its conditions"""
-    
+
     # Always show to debug
     if self.condition.get("debug", False):
       return True
@@ -41,6 +41,11 @@ class InterruptingMessage(object):
     # Filter non English interface traffic
     if self.condition.get("english_only", True):
       if self.request.LANGUAGE_CODE != "en":
+        return False
+
+    # Filter non Hebrew interface traffic
+    if self.condition.get("hebrew_only", False):
+      if self.request.LANGUAGE_CODE != 'he':
         return False
 
     # Filter logged out users

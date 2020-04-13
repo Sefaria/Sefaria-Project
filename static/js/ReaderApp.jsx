@@ -7,6 +7,9 @@ const Header        = require('./Header');
 const ReaderPanel   = require('./ReaderPanel');
 const $             = require('./sefaria/sefariaJquery');
 const EditGroupPage = require('./EditGroupPage');
+const {
+  RemoteLearningPage
+}                   = require('./StaticPages');
 const Footer        = require('./Footer');
 const SearchState   = require('./sefaria/searchState');
 const {
@@ -904,7 +907,7 @@ class ReaderApp extends Component {
         $("body").css({overflow: "hidden"})
                   .removeClass("hasBannerMessage");
         if (!this.props.multiPanel) {
-          // Hacky, needed because rendered html of Header doesn't differentiate multiPanel 
+          // Hacky, needed because rendered html of Header doesn't differentiate multiPanel
           $(".readerApp").removeClass("multiPanel").addClass("singlePanel");
         }
       } else {
@@ -1223,8 +1226,10 @@ class ReaderApp extends Component {
       "it": "Italian",
       "pl": "Polish",
       "ru": "Russian",
+      "eo": "Esparanto",
+      "fa": "Farsi",
     };
-    return codeMap[code.toLowerCase()];
+    return codeMap[code.toLowerCase()] || code;
   }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
@@ -1872,8 +1877,9 @@ ReaderApp.defaultProps = {
 };
 
 
-module.exports.ReaderApp           = ReaderApp;
-module.exports.Footer              = Footer;
-module.exports.sefariaSetup        = Sefaria.setup;
-module.exports.unpackDataFromProps = Sefaria.unpackDataFromProps;
-module.exports.EditGroupPage       = EditGroupPage;
+module.exports.ReaderApp            = ReaderApp;
+module.exports.Footer               = Footer;
+module.exports.sefariaSetup         = Sefaria.setup;
+module.exports.unpackDataFromProps  = Sefaria.unpackDataFromProps;
+module.exports.EditGroupPage        = EditGroupPage;
+module.exports.RemoteLearningPage   = RemoteLearningPage;
