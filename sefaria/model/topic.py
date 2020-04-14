@@ -28,7 +28,6 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'parasha',  # name of parsha as it appears in `parshiot` collection
         'ref',  # for topics with refs associated with them, this stores the tref (e.g. for a parashah)
         'good_to_promote',
-        'disambiguation',
         'description_published',  # bool to keep track of which descriptions we've vetted
     ]
 
@@ -202,9 +201,9 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     def get_primary_title(self, lang='en', with_disambiguation=True):
         title = super(Topic, self).get_primary_title(lang=lang)
         if with_disambiguation:
-            disambig_dict = getattr(self, 'disambiguation', {})
-            if disambig_dict.get(lang, False):
-                title += ' ({})'.format(disambig_dict[lang])
+            disambig_text = self.title_group.get_title_attr(title, lang, 'disambiguation')
+            if disambig_text:
+                title += f' ({disambig_text})'
         return title
 
     def get_property(self, property):

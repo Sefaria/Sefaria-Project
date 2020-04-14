@@ -39,7 +39,8 @@ class TitleGroup(object):
         "primary",
         "presentation",
         "transliteration",  # bool flag to indicate if title is transliteration
-        "fromTerm"  # bool flag to indicate if title originated from term (used in topics)
+        "disambiguation",   # str to help disambiguate this title from other similar titles (often on other objects)
+        "fromTerm"          # bool flag to indicate if title originated from term (used in topics)
     ]
 
     def __init__(self, serial=None):
@@ -2116,7 +2117,7 @@ class AddressPerek(AddressInteger):
         |\u05e4\u05bc?\u05b6?\u05e8\u05b6?\u05e7(?:\u05d9\u05b4?\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
         )"""
     }
-    
+
 
 class AddressPasuk(AddressInteger):
     section_patterns = {
@@ -2168,7 +2169,7 @@ class AddressHalakhah(AddressInteger):
     """
     section_patterns = {
         "en": r"""(?:(?:[Hh]ala[ck]hah?)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
-        "he": r"""(?:\u05d1? 
+        "he": r"""(?:\u05d1?
             (?:\u05d4\u05bb?\u05dc\u05b8?\u05db(?:\u05b8?\u05d4|\u05d5\u05b9?\u05ea)\s+)			# Halakhah spelled out, with a space after
             |(?:\u05d4\u05dc?(?:["\u05f4'\u05f3](?:['\u05f3\u05db]|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
         )"""
