@@ -1369,6 +1369,36 @@ def reupdate_descs():
         })
         t.save()
 
+
+def reupdate_titles():
+    with open('data/New Topic Titles - new_topic_titles.csv', 'r') as fin:
+        c = csv.DictReader(fin)
+        rows = list(c)
+    for row in rows:
+        if len(row['New En']) == 0:
+            continue
+        t = Topic.init(row['Slug'])
+        title_exists = False
+        title_index = -1
+        for ititle, title in enumerate(t.titles):
+            if title.get('primary', False) and title['lang'] == 'en':
+                del title['primary']
+            if (not title_exists) and (title['text'] == row['New En'].strip()) and (title['lang'] == 'en'):
+                title_exists = True
+                title_index = ititle
+                title['primary'] = True
+
+        if not title_exists:
+            t.titles += [{
+                "primary": True,
+                "text": row['New En'].strip(),
+                "lang": "en"
+            }]
+        is_trans = len(row['Is Transliteration']) > 0
+        if is_trans:
+            t.titles[title_index]['transliteration'] = True
+        t.save()
+
 if __name__ == '__main__':
     # slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
     # do_data_source()
