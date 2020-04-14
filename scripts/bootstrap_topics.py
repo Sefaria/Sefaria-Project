@@ -1399,6 +1399,19 @@ def reupdate_titles():
             t.titles[title_index]['transliteration'] = True
         t.save()
 
+
+def refactor_disambiguation():
+    for t in TopicSet():
+        if not getattr(t, 'disambiguation', None):
+            continue
+        for lang, disambig in t.disambiguation.items():
+            for title in t.titles:
+                if title['lang'] == lang and title.get('primary', False):
+                    title['disambiguation'] = disambig
+        delattr(t, 'disambiguation')
+        t.save()
+
+
 if __name__ == '__main__':
     # slug_to_sheet_map, term_to_slug_map, invalid_term_to_slug_map, tag_to_slug_map = do_topics(dry_run=False)
     # do_data_source()
