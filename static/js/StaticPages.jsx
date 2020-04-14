@@ -45,13 +45,13 @@ const SheetsLandingPage = () => (
         <Header
             enTitle="Sheets"
             enText="Mix and match sources from Sefaria’s library of Jewish texts, and add your comments, images and videos."
-            enImg="/static/img/sheets-landing-page/"
-            enImgAlt=""
+            enImg="/static/img/sheets-landing-page/sheetspage_headerimage.png"
+            enImgAlt="Sefaria Sheets"
             enActionURL="/sheets/new?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
             enActionText="Make a Sheet"
             heTitle="דפי מקורות"
             heText="בחרו לכם מקורות מארון הספרים היהודי של ספריא והוסיפו הערות, תמונות או סרטונים משלכם."
-            heImg="/static/img/sheets-landing-page/"
+            heImg="/static/img/sheets-landing-page/sheetspage_headerimage_HEB.png"
             heImgAlt=""
             heActionURL="/sheets/new?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
             heActionText="בנו דף מקורות"
@@ -63,54 +63,60 @@ const SheetsLandingPage = () => (
         <Feature
             enTitle="Organize Sources"
             enText="Sheets let you mix and match sources from our library. Type in a source title and chapter to add it to your sheet, then edit the source to cut it down or customize  the translation. Use sources in any order you wish. "
-            enImg="/static/img/"
-            enImgAlt=""
+            enImg="/static/img/sheets-landing-page/organizesources.png"
+            enImgAlt="Organize Sources"
             heTitle="סדרו את המקורות"
             heText="דפי מקורות מאפשרים לכם לבחור ולצרף שלל מקורות מהספרייה שלנו. הקלידו את שם המקור ומספר הפרק כדי להוסיף אותו לדף המקורות שלכם. בשלב הבא תוכלו לערוך ולקצר את המקור, לבחור בתרגום אחר ולארגן את המקורות בסדר הרצוי לכם."
-            heImg="/static/img/"
-            heImgAlt=""
+            heImg="/static/img/sheets-landing-page/organizesources_HEB.png"
+            heImgAlt="סדרו את המקורות"
             borderColor="#004E5F"
         />
         <Feature
             enTitle="Add Your Commentary"
             enText="Make it more than sources. You can easily add your own commentary or texts from outside our library to create something new. You can also add images and videos to enhance your reader’s experience even more. "
-            enImg="/static/img/"
-            enImgAlt=""
+            enImg="/static/img/sheets-landing-page/commentary_sheet.png"
+            enImgAlt="Add Your Commentary"
             heTitle="הוסיפו הערות משלכם"
             heText="היצירה שלכם יכולה להיות יותר מרשימת מקורות בלבד. תוכלו בקלות להוסיף הערות, פרשנות והסברים משלכם וכן טקסטים אחרים כדי ליצור משהו חדש. לחוויית לימוד משמעותית יותר תוכלו אפילו להוסיף תמונות וסרטונים."
-            heImg="/static/img/"
-            heImgAlt=""
+            heImg="/static/img/sheets-landing-page/addcommentary_HEB.png"
+            heImgAlt="הוסיפו הערות משלכם"
             borderColor="#CCB479"
         />
         <Feature
             enTitle="Share Your Work"
             enText="You can share your sheet privately with a link, publicly on our site, or print it out for your class. Make your sheet public and add it to our library of over 200,000 user-created sheets. "
-            enImg="/static/img/"
-            enImgAlt=""
+            enImg="/static/img/sheets-landing-page/shareyoursheets.png"
+            enImgAlt="Share Your Work"
             heTitle="שתפו"
             heText="תוכלו לשתף את דף המקורות באופן פרטי בעזרת לינק, להדפיס אותו עבור הכיתה שלכם או להעלות אותו באתר שלנו לתועלת ציבור הגולשים. אתם מוזמנים להוסיף את דף המקורות לספרייה שלנו – תוכלו למצוא בה למעלה מ-200 אלף דפי מקורות שנוצרו על ידי גולשי האתר."
-            heImg="/static/img/"
-            heImgAlt=""
+            heImg="/static/img/sheets-landing-page/shareyoursheets_HEB.png"
+            heImgAlt="שתפו"
             borderColor="#802F3E"
         />
         <Feature
             enTitle="Find Great Resources"
             enText="Browse user-created sheets by topic to research for your next class, learn something new, or to get inspiration for your own sheets. Filter results further by keyword and sort by relevance, views, or creation date."
-            enImg="/static/img/"
-            enImgAlt=""
+            enImg="/static/img/sheets-landing-page/sheetssearch.png"
+            enImgAlt="Find Great Resources"
             heTitle="אתרו מקורות מעולים"
             heText="כדי להעשיר את השיעור הבא שלכם, ללמוד משהו חדש או לחפש השראה לדף מקורות משלכם, דפדפו לפי נושא בדפי מקורות שיצרו משתמשים אחרים. סננו את התוצאות לפי מילות מפתח או לפי רלוונטיות, תצוגה או תאריך."
-            heImg="/static/img/"
-            heImgAlt=""
+            heImg="/static/img/sheets-landing-page/sheetssearch_HEB.png"
+            heImgAlt="אתרו מקורות מעולים"
             borderColor="#5A99B7"
         />
         <H2Block
             en="See what people are making with Sheets"
             he="ראו מה משתמשים אחרים יוצרים בעזרת דפי המקורות שלהם"
         />
+        <CallToActionButton
+            he="חפשו עוד לפי נושא"
+            en="Explore More by Topic"
+            href="/topics?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
+            he_href="/topics?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
+        />
         <CallToActionFooterWithButton
-            href=""
-            he_href=""
+            href="/sheets/228095?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
+            he_href="/sheets/228095?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
             enText="Start creating a sheet today."
             heText="צרו דף מקורות היום"
             enButtonText="How to Create a Sheet"
@@ -356,6 +362,7 @@ const SimpleButton = ({href, he_href, he, en}) => (
         </a>
     </div>
 );
+
 const CallToActionButton =  ({href, he_href, he, en}) => (
     <div className="callToActionButtonWrapper">
         <a href={href} className="button flexContainer int-en">
