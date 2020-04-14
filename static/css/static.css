@@ -2849,6 +2849,17 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   color: #666666;
 }
 
+.staticPage .callToActionButtonWrapper {
+  background: #ffffff;
+}
+.staticPage .callToActionButtonWrapper .button {
+  border-radius: 0;
+  min-height: 78px;
+}
+.staticPage .callToActionButtonWrapper .button span {
+  margin: auto;
+}
+
 .staticPage .simpleButtonWrapper {
   width: 33%;
 }
