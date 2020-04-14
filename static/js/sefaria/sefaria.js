@@ -2099,6 +2099,7 @@ Sefaria = extend(Sefaria, {
       //reader panel
       "Search" : "חיפוש",
       "Search Dictionary": "חפש במילון",
+      "Search for": "חיפוש",
       "Search for:": "חיפוש:",
       "Views": "צפיות",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
@@ -2134,7 +2135,7 @@ Sefaria = extend(Sefaria, {
       "Polish": "פולנית",
       "Russian": "רוסית",
       "Esparanto": "אספרנטו",
-
+      "Persian": "פרסי",
       "On": "הצג",
       "Off": "הסתר",
       "Show Parasha Aliyot": "עליות לתורה מוצגות",

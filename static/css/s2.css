@@ -397,11 +397,11 @@ input.noselect {
   width: 160px;
 }
 .header .search.hebrewSearch {
-  font-family: "Heebo", sans-serif;
-  font-size: 16px;
+  font-family: 'Hebrew Text Font', serif;
+  font-size: 18px;
 }
 .search-override {
-  border-top: solid 1px #999;
+  border-top: solid 1px #ccc;
   padding-top: 5px;
 }
 .header .home {
@@ -727,11 +727,13 @@ input.noselect {
   background: white;
   list-style-type: none;
   padding: 6px 0;
-  border: 1px solid #aaa;
-  border-top: 1px solid #ddd;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
   z-index: 1000000 !important;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'Hebrew Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
+
 .ui-autocomplete .ui-menu-item {
   display: block;
   padding: 6px 12px;
@@ -748,6 +750,7 @@ input.noselect {
 }
 .ui-autocomplete .ui-menu-item a {
   display: inline-block;
+  line-height: 21px;
   font-size: 19px;
   color: #000;
   cursor: pointer;
@@ -755,7 +758,7 @@ input.noselect {
   vertical-align: top;
 }
 .ui-autocomplete .ui-menu-item a.ui-state-focus {
-  background-color: #E9E9E7;
+  text-decoration: underline;
 }
 .ui-helper-hidden-accessible {
   display: none;
@@ -2398,7 +2401,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
   display: block;
 }
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
-  background-color: #E9E9E7;
+  text-decoration: underline;
 }
 .searchContentFrame h1 {
   direction: ltr;
@@ -5127,17 +5130,20 @@ a .button:hover {
 }
 .interface-hebrew ::-webkit-input-placeholder {
   font-style: normal;
-  font-family: "Heebo", sans-serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 18px;
   color: #666;
 }
 .interface-hebrew ::-moz-placeholder {
   font-style: normal;
-  font-family: "Heebo", sans-serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 18px;
   color: #666;
 }
 .interface-hebrew :-ms-input-placeholder {
   font-style: normal;
-  font-family: "Heebo", sans-serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 18px;
   color: #666;
 }
 .lexicon-content{

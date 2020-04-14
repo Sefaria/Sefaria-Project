@@ -64,7 +64,7 @@ class Header extends Component {
     });
     const anchorSide = this.props.interfaceLang === "hebrew" ? "right+" : "left-";
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
-      position: {my: anchorSide + "12 top+17", at: anchorSide + "0 bottom"},
+      position: {my: anchorSide + "40 top+20", at: anchorSide + "0 bottom"},
       minLength: 3,
       select: ( event, ui ) => {
         event.preventDefault();
@@ -88,7 +88,7 @@ class Header extends Component {
       },
       source: (request, response) => Sefaria.getName(request.term)
         .then(d => {
-          const comps = d["completion_objects"].map(o => ({value: `${o['type']}|${o["key"]}`, label: o["title"], key: o["key"], type: o["type"]}));
+          const comps = d["completion_objects"].map(o => ({value: `${o['title']}${o["type"]==="ref"?"":` (${o["type"]})`}`, label: o["title"], key: o["key"], type: o["type"]}));
           if (comps.length > 0) {
             const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
             response(comps.concat([{value: q, label: q, type: "search"}]));
@@ -238,7 +238,7 @@ class Header extends Component {
           Sefaria.track.event("Search", action, query);
           this.clearSearchBox();
           this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
-        } else if (d["type"] === "Person" || d["type"] === "Group" || d["type"] === "TocCategory" || d["type"] === "Topic") {
+        } else if (d["type"] === "Person" || d["type"] === "Group" || d["type"] === "TocCategory") {
           this.redirectToObject(d["type"], d["key"]);
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
