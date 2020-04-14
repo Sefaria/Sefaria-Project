@@ -705,7 +705,7 @@ input.noselect {
   border: 1px solid #aaa;
   border-top: 1px solid #ddd;
   z-index: 1000000 !important;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .ui-autocomplete .ui-menu-item a {
   padding: 4px 12px;
@@ -894,7 +894,7 @@ input.noselect {
 }
 .interface-english .systemPanel .content h1 .int-en {
   display: inline;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .interface-hebrew .systemPanel .content .int-he {
   display: inline;
@@ -996,7 +996,7 @@ input.noselect {
   color: black;
 }
 .readerNavTop .readerNavTopCategory .en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerNavTop .readerNavTopCategory .he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -1010,7 +1010,7 @@ input.noselect {
   border: none;
   background-color: inherit;
   font-size: 18px;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   height: 48px;
 }
 .readerNavMenu .readerSearch:focus {
@@ -1100,11 +1100,11 @@ h1 div.languageToggle .en {
   font-weight: normal;
 }
 h1 .languageToggle .he {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 22px;
 }
 .readerNavMenu h1 .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
@@ -1252,7 +1252,7 @@ input.resourcesLink {
 .readerNavCategory {
   background-color: white;
   text-transform: uppercase;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   text-align: center;
   font-size: 18px;
   padding: 16px 10px 17px;
@@ -1558,7 +1558,7 @@ a.readerNavCategory {
   font-size: 18px;
 }
 .readerNavMenu .dedication .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
 }
 .hebrew .readerNavMenu .dedication {
@@ -1655,7 +1655,7 @@ a.readerNavCategory {
   margin-bottom: 4px;
 }
 .readerTextTableOfContents .tocDetail .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerTextTableOfContents .tocDetail .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -2580,7 +2580,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .text_result .result-title .int-en,
 .searchContent .sheet_result .result-title .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
 }
 .searchContent .sheet_result .result-title {
@@ -2748,7 +2748,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
 }
 .readerSheetsNav .tagsList .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerSheetsNav .tagsList .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -4417,7 +4417,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   box-sizing: border-box;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   font-size: 18px;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   margin-bottom: 10px
 }
 .connectionsPanel .noteSharingToggle {
@@ -4848,17 +4848,17 @@ a .button:hover {
 }
 ::-webkit-input-placeholder {
    font-style: italic;
-   font-family: "adobe-garamond-pro", Georgia, serif;
+   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
    color: #666;
 }
 ::-moz-placeholder {
    font-style: italic;
-   font-family: "adobe-garamond-pro", Georgia, serif;
+   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
    color: #666;
 }
 :-ms-input-placeholder {
    font-style: italic;
-   font-family: "adobe-garamond-pro", Georgia, serif;
+   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
    color: #666;
 }
 .interface-hebrew ::-webkit-input-placeholder {
@@ -5004,7 +5004,7 @@ h2.splitHeader .he {
   color: inherit;
 }
 .sheet.userSheet .sheetTitle  {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 20px;
   color:#333;
   margin-bottom: 6px;
@@ -5202,7 +5202,7 @@ h2.splitHeader .he {
   font-size: 16px;
 }
 .groupPage .groupDescription .en .dedication {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: italic;
   font-size: 18px;
 }
@@ -5408,7 +5408,7 @@ h2.splitHeader .he {
   min-height: 500px;
 }
 .topicsPanel .content .topicList .navButton .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicsPanel .content .topicList .navButton .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -5430,7 +5430,7 @@ h2.splitHeader .he {
   font-size: 30px;
 }
 #s2 .topicPanel h1 .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 #s2 .topicPanel h1 .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -5447,7 +5447,7 @@ h2.splitHeader .he {
   display: inline-block;
 }
 .topicPanel .content .relatedTopic .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicPanel .content .relatedTopic .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -6592,7 +6592,7 @@ span.purim-emoji img{
 .filterable-list input {
   border: 0;
   font-size: 18px;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   background-color: transparent;
 }
 .filterable-list .loadingMessage {
@@ -6987,7 +6987,7 @@ body .homeFeedWrapper .content {
   font-size: 20px;
 }
 .homeFeedSidebar #homeLearn .refLink .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   text-transform: uppercase;
 }
 .homeFeedSidebar .button {
@@ -7295,7 +7295,7 @@ body .homeFeedWrapper.userStats {
 .userStats h1 {
   text-align: center;
   font-weight: normal;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 30px;
   padding: 60px 0 30px;
   margin: 0;
@@ -7374,7 +7374,7 @@ body .homeFeedWrapper.userStats {
 }
 .bilingual .userStats .blockLink .en,
 .english .userStats .blockLink .en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .hebrew .userStats .blockLink .he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
