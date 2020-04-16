@@ -172,7 +172,7 @@ SearchState.metadataByType = {
     fieldExact: null,
     fieldBroad: null,
     field: 'content',
-    aggregation_field_array: ['group', 'tags'],
+    aggregation_field_array: ['group', 'topics_en'],
     build_and_apply_filters: 'buildAndApplySheetFilters',  // func name from Search.js
     sortType: 'relevance',
     sortTypeArray: [
