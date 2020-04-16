@@ -123,7 +123,6 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
                       onClose={onClose} />
                     <TwoOrThreeBox content={topicBlocks} width={width} />
                 </div>
-                {footer}
             </div>
         </div>
     );
@@ -363,7 +362,9 @@ const TopicPage = ({
                 </div>
                 <div className="sideColumn">
                     <TopicSideColumn key={topic} links={topicData.links}
-                      clearAndSetTopic={clearAndSetTopic} parashaData={parashaData} tref={topicData.ref}/>
+                      clearAndSetTopic={clearAndSetTopic} parashaData={parashaData}
+                      tref={topicData.ref} interfaceLang={interfaceLang}
+                    />
                 </div>
             </div>
             <Footer />
@@ -453,7 +454,7 @@ TopicLink.propTypes = {
   isTransliteration: PropTypes.object,
 };
 
-const TopicSideColumn = ({ links, clearAndSetTopic, parashaData, tref }) => {
+const TopicSideColumn = ({ links, clearAndSetTopic, parashaData, tref, interfaceLang }) => {
   const [showMoreMap, setShowMoreMap] = useState({});
   const readingsComponent = (parashaData && tref) ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
@@ -482,6 +483,10 @@ const TopicSideColumn = ({ links, clearAndSetTopic, parashaData, tref }) => {
               links
               .filter(l => l.shouldDisplay !== false)
               .sort((a, b) => {
+                const shortLang = interfaceLang == 'hebrew' ? 'he' : 'en';
+                if (!!a.title[shortLang] !== !!b.title[shortLang]) {
+                  return (0+!!b.title[shortLang]) - (0+!!a.title[shortLang]);
+                }
                 if (!a.order && !b.order) { return 0; }
                 if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
                 return b.order.tfidf - a.order.tfidf;
@@ -523,7 +528,7 @@ TopicSideColumn.propTypes = {
 const ReadingsComponent = ({ parashaData, tref }) => (
   <div className="readings link-section">
     <h2>
-      <InterfaceTextWithFallback en={"Readings"} he={"Readings (HE)"} />
+      <InterfaceTextWithFallback en={"Readings"} he={"פרשיות והפטרות"} />
     </h2>
     <span className="smallText parasha-date">
       <InterfaceTextWithFallback en={Sefaria.util.localeDate(parashaData.date)} he={Sefaria.util.localeDate(parashaData.date)} />
