@@ -40,10 +40,11 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
             link_topic_dict = {}
         for link in intra_links:
             is_inverse = link['isInverse']
-            if link['topic'] in from_topic_set:
-                continue
-            from_topic_set.add(link['topic'])
             link_type = library.get_topic_link_type(link['linkType'])
+            if link_type.slug == link_type.inverseSlug:  # symmetric link
+                if link['topic'] in from_topic_set:
+                    continue
+                from_topic_set.add(link['topic'])
             if group_related and link_type.get('groupRelated', is_inverse, False):
                 link_type = library.get_topic_link_type(TopicLinkType.related_type)
             del link['linkType']
