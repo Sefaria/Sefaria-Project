@@ -122,6 +122,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         other_slug = other if isinstance(other, str) else other.slug
         if other_slug == self.slug:
             logger.warning('Cant merge slug into itself')
+            return
 
         # links
         for link in TopicLinkSetHelper.find({"$or": [{"toTopic": other_slug}, {"fromTopic": other_slug}]}):
