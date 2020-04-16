@@ -13,6 +13,7 @@ from functools import reduce
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User
+    from emailusernames.utils import get_user
     from django.core.mail import EmailMultiAlternatives
     from django.template.loader import render_to_string
     from django.core.validators import URLValidator, EmailValidator
@@ -216,6 +217,17 @@ class UserHistorySet(abst.AbstractMongoSet):
 
     def hits(self):
         return reduce(lambda agg,o: agg + getattr(o, "num_times_read", 1), self, 0)
+
+class UserUtil(object):
+    def __init__(self, email=None, id=None):
+        if email and not id:  # Load profile by email, if passed.
+            self.user = User.objects.get(email__iexact=email)
+        else:
+            self.user = User.objects.get(id=id)
+
+    def change_email(self, new_email):
+        self.user.email = new_email
+        self.save()
 
 
 class UserProfile(object):
