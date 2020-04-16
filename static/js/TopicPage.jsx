@@ -361,9 +361,9 @@ const TopicPage = ({
                    :""}
                 </div>
                 <div className="sideColumn">
-                    <TopicSideColumn key={topic} links={topicData.links}
-                      clearAndSetTopic={clearAndSetTopic} parashaData={parashaData}
-                      tref={topicData.ref} interfaceLang={interfaceLang}
+                    <TopicSideColumn key={topic} slug={topic} links={topicData.links}
+                      clearAndSetTopic={clearAndSetTopic} setNavTopic={setNavTopic}
+                      parashaData={parashaData} tref={topicData.ref} interfaceLang={interfaceLang}
                     />
                 </div>
             </div>
@@ -436,9 +436,9 @@ TextPassage.propTypes = {
   toggleSignUpModal:  PropTypes.func
 };
 
-const TopicLink = ({topic, topicTitle, clearAndSetTopic, isTransliteration}) => (
-  <Link className="relatedTopic" href={`/topics/${topic}`}
-    onClick={clearAndSetTopic.bind(null, topic, topicTitle)} key={topic}
+const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => (
+  <Link className="relatedTopic" href={`/topics/${isCategory ? 'category/' : ''}${topic}`}
+    onClick={onClick.bind(null, topic, topicTitle)} key={topic}
     title={topicTitle.en}
   >
     <InterfaceTextWithFallback
@@ -454,16 +454,29 @@ TopicLink.propTypes = {
   isTransliteration: PropTypes.object,
 };
 
-const TopicSideColumn = ({ links, clearAndSetTopic, parashaData, tref, interfaceLang }) => {
+const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, interfaceLang, setNavTopic }) => {
   const [showMoreMap, setShowMoreMap] = useState({});
+  const category = Sefaria.topicTocCategory(slug);
+  const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0) : [];
+  if (linkTypeArray.length === 0) {
+    linkTypeArray.push({
+      title: {
+        en: !category ? 'Explore Topics' : category.en,
+        he: !category ?  'נושאים כלליים' : category.he,
+      },
+      links: Sefaria.topicTocPage(category && category.slug).slice(0, 20).map(({slug, en, he}) => ({
+        topic: slug,
+        title: {en, he},
+        isCategory: !category,
+      })),
+    })
+  }
   const readingsComponent = (parashaData && tref) ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
   const linksComponent = (
     links ?
-      Object.values(links)
-      .filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0)
-      .sort((a, b) => {
+        linkTypeArray.sort((a, b) => {
         const aInd = a.title.en.indexOf('Related');
         const bInd = b.title.en.indexOf('Related');
         if (aInd > -1 && bInd > -1) { return 0; }
@@ -494,7 +507,10 @@ const TopicSideColumn = ({ links, clearAndSetTopic, parashaData, tref, interface
               .slice(0, showMoreMap[title.en] ? undefined : 10)
               .map(l =>
                 TopicLink({
-                  topic:l.topic, topicTitle: l.title, clearAndSetTopic, isTransliteration: l.titleIsTransliteration
+                  topic:l.topic, topicTitle: l.title,
+                  onClick: l.isCategory ? setNavTopic : clearAndSetTopic,
+                  isTransliteration: l.titleIsTransliteration,
+                  isCategory: l.isCategory
                 })
               )
             }
