@@ -929,35 +929,18 @@ def recat_top_level():
 
 
 def renormalize_slugs():
+    from tqdm import tqdm
+    from sefaria.model.abstract import AbstractMongoRecord
     ts = TopicSet()
-    def temp_norm_slug(en):
-        slug = re.sub(r"[ /]", "-", en.lower().strip())
-        return re.sub(r"[^a-z0-9\-א-ת]", "", slug)
 
-    def normalize_slug(self, slug_field):
-        """
-        Set the slug (stored in self[slug_field]) using the first available number at the end if duplicates exist
-        """
-        slug = getattr(self, slug_field).lower()
-        slug = re.sub(r"[ /]", "-", slug.strip())
-        slug = re.sub(r"[^a-z0-9\-א-ת]", "", slug)
-        dupe_count = 0
-        _id = getattr(self, '_id', None)  # _id is not necessarily set b/c record might not have been saved yet
-        temp_slug = slug
-        while getattr(db, self.collection).find_one({slug_field: temp_slug, "_id": {"$ne": _id}}):
-            dupe_count += 1
-            temp_slug = "{}{}".format(slug, dupe_count)
-        return temp_slug
-
-    for t in ts:
+    for t in tqdm(ts, total=ts.count()):
         title = t.get_primary_title('en') if len(t.get_primary_title('en')) > 0 else t.get_primary_title('he')
-        if temp_norm_slug(title) != t.slug:  # re.search(r'\d+$', t.slug) and
+        if AbstractMongoRecord.normalize_slug(title) != t.slug:  # re.search(r'\d+$', t.slug) and
             old_slug = t.slug
             new_alt_ids = getattr(t, 'alt_ids', {})
             new_alt_ids['_old_slug'] = old_slug
             setattr(t, 'alt_ids', new_alt_ids)
-            t.slug = title
-            new_slug = normalize_slug(t, 'slug')
+            new_slug = AbstractMongoRecord.normalize_slug(title)
             t.slug = new_slug
             t.save()
             print('---')
