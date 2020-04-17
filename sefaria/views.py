@@ -37,7 +37,7 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
 from sefaria.forms import NewUserForm, NewUserFormAPI
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.group import GroupSet
 from sefaria.model.translation_request import count_completed_translation_requests
@@ -54,6 +54,7 @@ from sefaria.clean import remove_old_counts
 from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_timestamp
 from sefaria.model import *
 from sefaria.system.multiserver.coordinator import server_coordinator
+
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
@@ -212,6 +213,22 @@ def sefaria_js(request):
     }
 
     return render(request, "js/sefaria.js", attrs, content_type= "text/javascript")
+
+def dafroulette_js(request):
+    """
+    Javascript for dafroulette [required to pass server attribute].
+    """
+    client_user = UserProfile(id=request.user.id)
+
+    attrs = {
+        "rtc_server": RTC_SERVER,
+        "client_name": client_user.first_name + " " + client_user.last_name,
+        "client_uid": client_user.id
+    }
+
+
+    return render(request, "js/dafroulette.js", attrs, content_type="text/javascript")
+
 
 
 def linker_js(request, linker_version=None):

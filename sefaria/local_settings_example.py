@@ -139,6 +139,10 @@ NODE_TIMEOUT = 10
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
 
+
+# DafRoulette server
+RTC_SERVER = '' # Root URL/IP of the server
+
 # Map domain to an interface language that the domain should be pinned to.
 # Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
 DOMAIN_LANGUAGES = {
@@ -315,4 +319,3 @@ LOGGING = {
         },
     }
 }
-
