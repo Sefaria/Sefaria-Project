@@ -67,7 +67,6 @@ class SheetsNav extends Component {
                         searchInGroup={this.props.searchInGroup}
                         toggleLanguage={this.props.toggleLanguage}
                         interfaceLang={this.props.interfaceLang}
-                        openProfile={this.props.openProfile}
                       />);
       enTitle = "Groups";
       heTitle = Sefaria._(enTitle);
@@ -119,7 +118,6 @@ SheetsNav.propTypes = {
   hideNavHeader:   PropTypes.bool,
   multiPanel:      PropTypes.bool,
   interfaceLang:   PropTypes.string,
-  openProfile:     PropTypes.func.isRequired,
 };
 
 

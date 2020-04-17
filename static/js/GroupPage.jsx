@@ -176,6 +176,9 @@ class GroupPage extends Component {
   }
   render() {
     var group        = this.state.groupData;
+    
+    if (!group) { return <LoadingMessage />; }
+
     var sheets       = group ? group.sheets : null;
     var groupTagList = group ? group.tags : null;
     var members      = this.memberList();
@@ -209,7 +212,7 @@ class GroupPage extends Component {
                 key={sheet.id} />);
     }.bind(this)) : <LoadingMessage />;
 
-    return (group ? <div className="content groupPage sheetList hasFooter">
+    return <div className="content groupPage sheetList hasFooter">
               <div className="contentInner">
 
                 {group.imageUrl ?
@@ -321,15 +324,14 @@ class GroupPage extends Component {
                                 isSelf={member.uid == Sefaria._uid}
                                 groupName={this.props.group}
                                 onDataChange={this.onDataLoad}
-                                openProfile={this.props.openProfile}
                                 key={member.uid} />;
                      }.bind(this)) }
                     </div>
                   : null }
 
               </div>
-            <Footer />
-            </div>: <LoadingMessage />);
+              <Footer />
+            </div>;
   }
 }
 GroupPage.propTypes = {
@@ -339,7 +341,6 @@ GroupPage.propTypes = {
   tag:            PropTypes.string,
   interfaceLang:  PropTypes.string,
   searchInGroup:  PropTypes.func,
-  openProfile:    PropTypes.func.isRequired,
 };
 
 
@@ -369,7 +370,7 @@ class GroupSheetListing extends Component {
     return (<div className="sheet userSheet">
                 <div className="groupSheetInner">
                   <div className="groupSheetInnerContent"> 
-                    <span><a className="sheetTitle" href={url}>{title}</a> <SheetAccessIcon sheet={sheet} /></span>
+                    <span><a className="sheetTitle inAppLink" href={url}>{title}</a> <SheetAccessIcon sheet={sheet} /></span>
                     <div>{sheet.ownerName} · {sheet.views} {Sefaria._('Views')} · {sheet.modified} · <span className="tagString">{tagString}</span></div>
                   </div>
                   {pinButton}
@@ -453,12 +454,6 @@ GroupInvitationBox.propTypes = {
 
 
 class GroupMemberListing extends Component {
-  openProfile(e) {
-    e.preventDefault();
-    const slugMatch = this.props.member.profileUrl.match(/profile\/(.+)$/);
-    const slug = !!slugMatch ? slugMatch[1] : ''
-    this.props.openProfile(slug, this.props.member.name);
-  }
   render() {
     if (this.props.member.role == "Invitation") {
       return this.props.isAdmin ?
@@ -472,7 +467,7 @@ class GroupMemberListing extends Component {
     return (
       <div className="groupMemberListing">
         <div className="groupLeft">
-          <a href={this.props.member.profileUrl} onClick={this.openProfile}>
+          <a href={this.props.member.profileUrl} className="inAppLink">
             <ProfilePic
               url={this.props.member.imageUrl}
               name={this.props.member.name}
@@ -480,7 +475,7 @@ class GroupMemberListing extends Component {
             />
           </a>
 
-          <a href={this.props.member.profileUrl} className="groupMemberListingName" onClick={this.openProfile}>
+          <a href={this.props.member.profileUrl} className="groupMemberListingName inAppLink">
             {this.props.member.name}
           </a>
         </div>
@@ -506,7 +501,6 @@ GroupMemberListing.propTypes ={
   isSelf:       PropTypes.bool,
   groupName:    PropTypes.string,
   onDataChange: PropTypes.func,
-  openProfile:  PropTypes.func.isRequired,
 };
 
 

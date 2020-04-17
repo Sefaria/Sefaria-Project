@@ -304,7 +304,6 @@ class SearchResultList extends Component {
               <SearchSheetResult
                     data={result}
                     query={this.props.query}
-                    openProfile={this.props.openProfile}
                     key={result._id} />);
         }
 
@@ -356,7 +355,6 @@ SearchResultList.propTypes = {
   updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort:  PropTypes.func,
   registerAvailableFilters: PropTypes.func,
-  openProfile:              PropTypes.func.isRequired,
 };
 
 

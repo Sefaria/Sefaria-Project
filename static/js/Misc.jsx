@@ -129,7 +129,7 @@ class ProfilePic extends Component {
         throw new Error(response.error);
       } else {
         this.closePopup({ cb: () => {
-          this.props.openProfile(Sefaria.slug, Sefaria.full_name);  // reload
+          //this.props.openProfile(Sefaria.slug, Sefaria.full_name);  // reload
           return;
         }});
       }
@@ -223,7 +223,6 @@ ProfilePic.propTypes = {
   url:     PropTypes.string,
   name:    PropTypes.string,
   len:     PropTypes.number,
-  openProfile: PropTypes.func,
   hideOnDefault: PropTypes.bool,  // hide profile pic if you have are displaying default pic
   showButtons: PropTypes.bool,  // show profile pic action buttons
 };
@@ -1052,18 +1051,12 @@ const CategoryColorLine = ({category}) =>
 
 
 class ProfileListing extends Component {
-  openProfile(e) {
-    if (this.props.openProfile) {
-      e.preventDefault();
-      this.props.openProfile(this.props.slug, this.props.name);
-    }
-  }
   render() {
     const { url, image, name, uid, is_followed, toggleSignUpModal, smallfonts, organization } = this.props;
     return (
       <div className="authorByLine">
         <div className="authorByLineImage">
-          <a href={url} onClick={this.openProfile}>
+          <a href={url} className="inAppLink">
             <ProfilePic
               len={40}
               url={image}
@@ -1073,12 +1066,11 @@ class ProfileListing extends Component {
         </div>
         <div className="authorByLineText">
           <SimpleLinkedBlock
-            classes="authorName"
+            classes="authorName inAppLink"
             aclasses={smallfonts?"smallText":"systemText"}
             url={url}
             en={name}
             he={name}
-            onClick={this.openProfile}
           >
             <FollowButton large={false} uid={uid} following={is_followed} toggleSignUpModal={toggleSignUpModal}/>
           </SimpleLinkedBlock>
@@ -1108,21 +1100,21 @@ ProfileListing.propTypes = {
 class SheetListing extends Component {
   // A source sheet listed in the Sidebar
   handleSheetClick(e) {
-      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString());
-      //console.log("Sheet Click Handled");
+    //console.log("Sheet Click Handled");
+    // TODO: There more contexts to distinguish / track. Profile, groups, search
     if (Sefaria._uid == this.props.sheet.owner) {
       Sefaria.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
     } else {
       Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
     }
-    this.props.handleSheetClick(e, this.props.sheet, null, this.props.connectedRefs);
+    if (this.props.handleSheetClick) {
+      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString());
+      this.props.handleSheetClick(e, this.props.sheet, null, this.props.connectedRefs);
+      e.preventDefault();
+    } 
   }
   handleSheetOwnerClick(e) {
-    e.preventDefault();
     Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
-    const slugMatch = this.props.sheet.ownerProfileUrl.match(/profile\/(.+)$/);
-    const slug = !!slugMatch ? slugMatch[1] : '';
-    this.props.openProfile(slug, this.props.sheet.ownerName);
   }
   handleSheetTagClick(tag) {
     Sefaria.track.event("Tools", "Sheet Tag Click", tag);
@@ -1141,7 +1133,7 @@ class SheetListing extends Component {
     var sheetInfo = this.props.hideAuthor ? null :
         <div className="sheetInfo">
           <div className="sheetUser">
-            <a href={sheet.ownerProfileUrl} target="_blank" onClick={this.handleSheetOwnerClick}>
+            <a href={sheet.ownerProfileUrl} target="_blank" className="inAppLink">
               <ProfilePic
                 outerStyle={{display: "inline-block"}}
                 name={sheet.ownerName}
@@ -1149,7 +1141,7 @@ class SheetListing extends Component {
                 len={26}
               />
             </a>
-            <a href={sheet.ownerProfileUrl} target="_blank" className="sheetAuthor" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
+            <a href={sheet.ownerProfileUrl} target="_blank" className="sheetAuthor inAppLink" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
           </div>
           {viewsIcon}
         </div>
@@ -1159,7 +1151,7 @@ class SheetListing extends Component {
       return (<a href={`/sheets/tags/${tag}`}
                   target="_blank"
                   className="sheetTag"
-                  key={tag}
+                  key={i}
                   onClick={this.handleSheetTagClick.bind(null, tag)}>{Sefaria._v(tag)}{separator}</a>)
     });
     const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
@@ -1170,14 +1162,14 @@ class SheetListing extends Component {
         `${sheet.views} ${Sefaria._('Views')}`,
         created,
         sheet.tags.length ? sheetTags : undefined,
-        !!sheet.group ? (<a href={`/groups/${sheet.group}`} target="_blank">{sheet.group}</a>) : undefined,
+        !!sheet.group ? (<a href={`/groups/${sheet.group}`} className="inAppLink" target="_blank">{sheet.group}</a>) : undefined,
       ].filter(x => x !== undefined) : [sheetTags];
 
     return (
       <div className="sheet" key={sheet.sheetUrl}>
         <div className="sheetLeft">
           {sheetInfo}
-          <a href={sheet.sheetUrl} target="_blank" className="sheetTitle" onClick={this.handleSheetClick}>
+          <a href={sheet.sheetUrl} target="_blank" className={"sheetTitle" + (this.props.handleSheetClick ? "" : " inAppLink")} onClick={this.handleSheetClick}>
             <img src="/static/img/sheet.svg" className="sheetIcon"/>
             <span className="sheetTitleText">{sheet.title}</span>
           </a>
@@ -1215,9 +1207,8 @@ class SheetListing extends Component {
 SheetListing.propTypes = {
   sheet:            PropTypes.object.isRequired,
   connectedRefs:    PropTypes.array.isRequired,
-  handleSheetClick: PropTypes.func.isRequired,
+  handleSheetClick: PropTypes.func,
   handleSheetDelete:PropTypes.func,
-  openProfile:      PropTypes.func,
   handleSheetEdit:  PropTypes.func,
   deletable:        PropTypes.bool,
   saveable:         PropTypes.bool,

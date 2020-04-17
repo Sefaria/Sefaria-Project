@@ -632,7 +632,6 @@ class ReaderPanel extends Component {
           contentLang={this.state.settings.language}
           interfaceLang={this.props.interfaceLang}
           onSegmentClick={this.handleSheetSegmentClick}
-          openProfile={this.props.openProfile}
       />);
     }
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
@@ -730,7 +729,6 @@ class ReaderPanel extends Component {
           setVersionFilter={this.setVersionFilter}
           viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "Connections")}
           checkIntentTimer={this.props.checkIntentTimer}
-          openProfile={this.props.openProfile}
           key="connections" />
       );
     }
@@ -859,7 +857,6 @@ class ReaderPanel extends Component {
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
                     registerAvailableFilters={this.props.registerAvailableFilters}
-                    openProfile={this.props.openProfile}
                   />);
 
     } else if (this.state.menuOpen === "sheets") {
@@ -880,9 +877,7 @@ class ReaderPanel extends Component {
                     setSheetTag={this.setSheetTag}
                     setGroupTag={this.setGroupTag}
                     searchInGroup={this.props.searchInGroup}
-                    openProfile={this.props.openProfile}
                     key={"SheetsNav"}
-                    openProfile={this.props.openProfile}
                   />);
 
     } else if (this.state.menuOpen === "topics") {
@@ -918,7 +913,6 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "account") {
       menu = (<AccountPanel
-                    handleInAppLinkClick={this.props.handleInAppLinkClick}
                     interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.state.menuOpen === "notifications") {
@@ -999,8 +993,6 @@ class ReaderPanel extends Component {
       menu = (
         <UserProfile
           profile={this.state.profile}
-          handleInAppLinkClick={this.props.handleInAppLinkClick}
-          openProfile={this.props.openProfile}
           toggleSignUpModal={this.props.toggleSignUpModal}
           multiPanel={this.props.multiPanel}
           navHome={this.openMenu.bind(null, "navigation")}
@@ -1141,7 +1133,6 @@ ReaderPanel.propTypes = {
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
-  openProfile:                 PropTypes.func,
   showLibrary:                 PropTypes.func,
 };
 

@@ -354,7 +354,6 @@ class ConnectionsPanel extends Component {
                     connectedSheet = {connectedSheet}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
-                    openProfile={this.props.openProfile}
                   /> : null }
 
                   { this.props.srefs[0].indexOf("Sheet") == -1 ?
@@ -363,7 +362,6 @@ class ConnectionsPanel extends Component {
                     connectedSheet = {connectedSheet}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
-                    openProfile={this.props.openProfile}
                   /> : null }
 
                 </div>);
@@ -545,7 +543,6 @@ ConnectionsPanel.propTypes = {
   recentVersionFilters:    PropTypes.array,
   setVersionFilter:        PropTypes.func.isRequired,
   checkIntentTimer:        PropTypes.func.isRequired,
-  openProfile:             PropTypes.func.isRequired,
 };
 
 
@@ -698,7 +695,7 @@ class MySheetsList extends Component {
       // Don't show sheets as connections to themselves
       return sheet.id !== this.props.connectedSheet;
     }).map(sheet => {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} openProfile={this.props.openProfile} />)
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
@@ -717,7 +714,7 @@ class PublicSheetsList extends Component {
       // My sheets are shown already in MySheetList
       return sheet.owner !== Sefaria._uid && sheet.id !== this.props.connectedSheet;
     }).map(sheet => {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} openProfile={this.props.openProfile} />)
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }

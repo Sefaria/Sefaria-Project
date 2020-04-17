@@ -200,7 +200,6 @@ class UserProfile extends Component {
         key={sheet.id}
         sheet={sheet}
         hideAuthor={true}
-        handleSheetClick={this.props.handleInAppLinkClick}
         handleSheetDelete={this.handleSheetDelete}
         editable={Sefaria._uid === this.props.profile.id}
         deletable={Sefaria._uid === this.props.profile.id}
@@ -251,7 +250,6 @@ class UserProfile extends Component {
     return (
       <ProfileListing
         key={item.id}
-        openProfile={this.props.openProfile}
         uid={item.id}
         slug={item.slug}
         url={`/profile/${item.slug}`}
@@ -333,7 +331,6 @@ class UserProfile extends Component {
                   follow={this.follow}
                   openFollowers={this.openFollowers}
                   openFollowing={this.openFollowing}
-                  openProfile={this.props.openProfile}
                   toggleSignUpModal={this.props.toggleSignUpModal}
                 />
                 <TabView
@@ -415,18 +412,16 @@ class UserProfile extends Component {
 }
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
-  openProfile: PropTypes.func.isRequired,
-  handleInAppLinkClick: PropTypes.func.isRequired,
 };
 
-const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, openProfile, toggleSignUpModal }) => {
+const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`
   const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
   let infoList = [];
   if (p.location) { infoList.push(p.location); }
   infoList = infoList.concat(p.jewish_education);
   if (p.website) {
-    infoList.push(<span><a href={p.website}>{"website"}</a></span>);
+    infoList.push(<span><a href={p.website} target="_blank">{"website"}</a></span>);
   }
   const socialList = social.filter(s => !!p[s]);
   if (socialList.length) {
@@ -504,7 +499,6 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
         <ProfilePic
           url={p.profile_pic_url}
           name={p.full_name}
-          openProfile={openProfile}
           len={175}
           hideOnDefault={Sefaria._uid !== p.id}
           showButtons={Sefaria._uid === p.id}

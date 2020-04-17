@@ -83,16 +83,6 @@ class Header extends Component {
           $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
       }
   }
-  showDesktop() {
-    if (this.props.panelsOpen == 0) {
-      const { last_place } = Sefaria;
-      if (last_place && last_place.length) {
-        this.handleRefClick(last_place[0].ref, last_place[0].versions);
-      }
-    }
-    this.props.setCentralState({menuOpen: null});
-    this.clearSearchBox();
-  }
   showLibrary(categories) {
     this.props.showLibrary(categories);
     this.clearSearchBox();
@@ -106,17 +96,6 @@ class Header extends Component {
     }
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
-  }
-  openMyProfile(e) {
-    e.preventDefault();
-    if (typeof sjs !== "undefined") {
-      window.location = "/my/profile";
-      return;
-    }
-    //if (!this.state.profile || Sefaria._uid !== this.state.profile.id) {
-      this.props.openProfile(Sefaria.slug, Sefaria.full_name);
-    //}
-    this.clearSearchBox();
   }
   showNotifications(e) {
     e.preventDefault();
@@ -206,8 +185,6 @@ class Header extends Component {
     }
     if (this.state.menuOpen === "home") {
       return;
-    } else if (this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0) {
-      this.showDesktop();
     } else {
       this.showLibrary();
     }
@@ -262,13 +239,11 @@ class Header extends Component {
                           registerAvailableFilters={this.props.registerAvailableFilters}
                           searchInGroup={this.props.searchInGroup}
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
-                          handleInAppLinkClick={this.props.handleInAppLinkClick}
                           hideNavHeader={true}
                           analyticsInitialized={this.props.analyticsInitialized}
                           getLicenseMap={this.props.getLicenseMap}
                           translateISOLanguageCode={this.props.translateISOLanguageCode}
                           toggleSignUpModal={this.props.toggleSignUpModal}
-                          openProfile={this.props.openProfile}
                           showLibrary={this.showLibrary}
                         />) : null;
 
@@ -280,7 +255,7 @@ class Header extends Component {
                           null;
     var loggedInLinks  = (<div className="accountLinks">
                             <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses} onClick={this.showNotifications}>{this.state.notificationCount}</a>
-                            <a href="/my/profile" className="my-profile" onClick={this.openMyProfile}><ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></a>
+                            <a href="/my/profile" className="my-profile inAppLink"><ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
                            <a className="login signupLink" href={"/register" + nextParam}>
@@ -355,7 +330,6 @@ Header.propTypes = {
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,
   toggleSignUpModal:           PropTypes.func.isRequired,
-  openProfile:                 PropTypes.func.isRequired,
 };
 
 

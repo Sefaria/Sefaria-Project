@@ -90,7 +90,6 @@ class Sheet extends Component {
             hasSidebar = {this.props.hasSidebar}
             sheetNumbered = {sheet.options.numbered}
             sheetID = {sheet.id}
-            openProfile={this.props.openProfile}
           />
       )
     }
@@ -196,13 +195,6 @@ class SheetContent extends Component {
     this.props.onRefClick(ref);
   }
 
-  openProfile(e) {
-    e.preventDefault();
-    const slugMatch = this.props.authorUrl.match(/profile\/(.+)$/);
-    const slug = !!slugMatch ? slugMatch[1] : '';
-    this.props.openProfile(slug, this.props.authorStatement);
-  }
-
   render() {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
       const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
@@ -299,7 +291,7 @@ class SheetContent extends Component {
 
             <div className="authorStatement">
                 <div className="groupListingImageBox imageBox">
-                    <a href={this.props.authorUrl} onClick={this.openProfile}>
+                    <a href={this.props.authorUrl} className="inAppLink">
                       <ProfilePic
                         url={this.props.authorImage}
                         len={30}
@@ -307,17 +299,17 @@ class SheetContent extends Component {
                       />
                     </a>
                 </div>
-                <span>{Sefaria._("by")} <a href={this.props.authorUrl} onClick={this.openProfile}>{this.props.authorStatement}</a></span>
+                <span>{Sefaria._("by")} <a href={this.props.authorUrl} className="inAppLink">{this.props.authorStatement}</a></span>
             </div>
 
             {this.props.group && this.props.group != "" ?
                 <div className="groupStatement">
                     <div className="groupListingImageBox imageBox">
-                        <a href={"/groups/"+this.props.group}>
+                        <a className="inAppLink" href={"/groups/"+this.props.group}>
                             <img className="groupListingImage img-circle" src={this.props.groupLogo} alt="Group Logo" />
                         </a>
                     </div>
-                    <a href={"/groups/"+this.props.group}>{this.props.group}</a>
+                    <a className="inAppLink" href={"/groups/"+this.props.group}>{this.props.group}</a>
                 </div>
 
                 : null}

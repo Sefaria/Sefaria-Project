@@ -122,7 +122,7 @@ function GroupListing({data, showMembership}) {
                 </div>
               </a>
               <div className="groupListingText">
-                <a href={groupUrl} className="groupListingName">{data.name}</a>
+                <a href={groupUrl} className="groupListingName inAppLink">{data.name}</a>
                 <div className="groupListingDetails">
                   <span className="groupListingDetail groupListingMemberCount">
                     <span className="int-en">{data.memberCount} Members</span>

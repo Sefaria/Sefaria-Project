@@ -225,9 +225,7 @@ class ReaderApp extends Component {
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("resize", this.setPanelCap);
     this.setPanelCap();
-    if (this.props.headerMode) {
-      $(".inAppLink").on("click", this.handleInAppLinkClick);
-    }
+    $(ReactDOM.findDOMNode(this)).on("click", ".inAppLink", this.handleInAppLinkClick);
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
   }
@@ -297,7 +295,7 @@ class ReaderApp extends Component {
 
       if (!h && state.panels) {
         // make sure header is closed
-        state.header = {menuOpen: null};
+        state.header = this.makePanelState({"mode": "Header"});
       }
       this.setState(state, () => {
         if (event.state.scrollPosition) {
@@ -704,6 +702,7 @@ class ReaderApp extends Component {
       }
 
       if (state.mode !== "Header") {
+        if (!state.settings) { debugger; }
         hist.lang =  state.settings.language ? state.settings.language.substring(0,2) : "bi";
       }
       histories.push(hist);
@@ -1009,26 +1008,43 @@ class ReaderApp extends Component {
   }
   handleInAppLinkClick(e) {
     e.preventDefault();
-    var path = $(e.currentTarget).attr("href").slice(1);
+    var path = $(e.currentTarget).attr("href");
     if (path == "texts") {
       this.showLibrary();
-    } else if (path == "sheets") {
+
+    } else if (path == "/sheets") {
       this.showSheets();
-    } else if (path == "sheets/private") {
+
+    } else if (path == "/groups") {
+      this.showGroups();
+
+    } else if (path == "/sheets/private") {
       this.showMySheets();
-    } else if (path == "my/groups") {
+
+    } else if (path == "/my/profile") {
+      this.openProfile(Sefaria.slug);
+
+    } else if (path == "/my/groups") {
       this.showMyGroups();
-    } else if (path == "my/notes") {
+
+    } else if (path == "/my/notes") {
       this.showMyNotes();
-    } else if (path == "torahtracker") {
+
+    } else if (path == "/torahtracker") {
       this.showUserStats();
-    } else if (path.match(/sheets\/\d+/)) {
-      this.openPanel("Sheet " + path.slice(7));
+
+    } else if (path.match(/\/sheets\/\d+/)) {
+      this.openPanel("Sheet " + path.slice(8));
+
+    } else if (path.match(/\/profile\/.+/)) {
+      this.openProfile(path.slice(9));
+
+    } else if (path.match(/\/groups\/.+/)) {
+      this.openGroup(path.slice(8).replace(/-/g, " "));
+
     } else if (Sefaria.isRef(path)) {
       this.openPanel(Sefaria.humanRef(path));
     }
-    $(".wrapper").remove();
-    $("#footer").remove();
   }
   _getStateAndSetStateForHeaderPanelFuncs(n) {
     // helper func to avoid code duplication in funcs of type `updateXInHeader` / `updateXInPanel`
@@ -1593,6 +1609,9 @@ class ReaderApp extends Component {
   showMySheets() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "sheets", navigationSheetTag: "My Sheets"});
   }
+  showGroups() {
+    this.setStateInHeaderOrSinglePanel({menuOpen: "groups"});
+  }
   showMyGroups() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "myGroups"});
   }
@@ -1609,14 +1628,14 @@ class ReaderApp extends Component {
       this.setState({panels: [state]}, cb);
     }
   }
-  openProfile(slug, full_name) {
-    // requires slug and full_name to properly set window title and url in history
-    this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile: { slug, full_name } }, () => {
-      Sefaria.profileAPI(slug).then(profile => {
-        Sefaria.profile_pic_url = profile.profile_pic_url;
-        this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile });
-      });
+  openProfile(slug) {
+    console.log(slug);
+    Sefaria.profileAPI(slug).then(profile => {
+      this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile });
     });
+  }
+  openGroup(group) {
+    this.setStateInHeaderOrSinglePanel({menuOpen: "sheets", navigationSheetTag: "sefaria-groups", sheetsGroup: group});
   }
   getHistoryObject(panel, hasSidebar) {
     // get rave to send to /api/profile/user_history
@@ -1718,13 +1737,11 @@ class ReaderApp extends Component {
                     updateSearchOptionSort={this.updateSearchOptionSortInHeader}
                     registerAvailableFilters={this.updateAvailableFiltersInHeader}
                     setUnreadNotificationsCount={this.setUnreadNotificationsCount}
-                    handleInAppLinkClick={this.handleInAppLinkClick}
                     headerMode={this.props.headerMode}
                     panelsOpen={panelStates.length}
                     analyticsInitialized={this.state.initialAnalyticsTracked}
                     getLicenseMap={this.getLicenseMap}
                     translateISOLanguageCode={this.translateISOLanguageCode}
-                    openProfile={this.openProfile}
                     toggleSignUpModal={this.toggleSignUpModal} />) : null;
 
     var panels = [];
@@ -1807,13 +1824,11 @@ class ReaderApp extends Component {
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       getLicenseMap={this.getLicenseMap}
-                      handleInAppLinkClick={this.handleInAppLinkClick}
                       translateISOLanguageCode={this.translateISOLanguageCode}
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}
                       toggleSignUpModal={this.toggleSignUpModal}
                       getHistoryObject={this.getHistoryObject}
-                      openProfile={this.openProfile}
                     />
                   </div>);
     }

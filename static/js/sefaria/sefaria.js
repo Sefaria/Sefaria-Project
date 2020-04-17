@@ -1532,8 +1532,13 @@ Sefaria = extend(Sefaria, {
   getRefSavedHistory: tref => {
     return Sefaria._promiseAPI(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
   },
+  _profiles: {},
   profileAPI: slug => {
-    return Sefaria._promiseAPI(`${Sefaria.apiHost}/api/profile/${slug}`);
+    return Sefaria._cachedApiPromise({
+      url:   Sefaria.apiHost + "/api/profile/" + slug,
+      key:   slug,
+      store: Sefaria._profiles
+    });
   },
   userHistoryAPI: () => {
     return Sefaria._promiseAPI(Sefaria.apiHost + "/api/profile/user_history?secondary=0");

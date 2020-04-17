@@ -13,9 +13,6 @@ import Component from 'react-class';
 
 
 class AccountPanel extends Component {
-  componentDidMount() {
-    $(".inAppLink").on("click", this.props.handleInAppLinkClick);
-  }
   render() {
     const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
