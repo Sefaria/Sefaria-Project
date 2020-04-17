@@ -75,9 +75,14 @@ class Header extends Component {
       }.bind(this)
     });
     const anchorSide = this.props.interfaceLang === "hebrew" ? "right+" : "left-";
+    const sideGap = this.props.interfaceLang === "hebrew" ? 38 : 40;
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
-      position: {my: anchorSide + "40 top+20", at: anchorSide + "0 bottom"},
+      position: {my: anchorSide + sideGap + " top+18", at: anchorSide + "0 bottom"},
       minLength: 3,
+      open: function($event, ui) {
+          const $widget = $("ul.ui-autocomplete");
+          $(".readerApp > .header").append($widget);
+      },
       select: ( event, ui ) => {
         event.preventDefault();
 
@@ -285,12 +290,11 @@ class Header extends Component {
     this.props.onRefClick(ref, currVersions);
   }
   handleSearchKeyUp(event) {
-    if (event.keyCode !== 13) { return; }
+    if (event.keyCode !== 13 || $(".ui-state-focus").length > 0) { return; }
     const query = $(event.target).val();
     if (!query) { return; }
     if (this.catchSearchOverride(query)) { return; }
     this.submitSearch(query);
-
   }
   handleSearchButtonClick(event) {
     const query = $(ReactDOM.findDOMNode(this)).find(".search").val();

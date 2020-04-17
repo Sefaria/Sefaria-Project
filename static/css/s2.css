@@ -400,9 +400,9 @@ input.noselect {
   font-family: 'Hebrew Text Font', serif;
   font-size: 18px;
 }
-.search-override {
+.ui-autocomplete .ui-menu-item.search-override {
   border-top: solid 1px #ccc;
-  padding-top: 5px;
+  padding-top: 12px;
 }
 .header .home {
   margin-top: 1px;
@@ -705,9 +705,6 @@ input.noselect {
 .readerNavTop .readerNavMenuSearchButton {
   top: 0;
 }
-.interface-hebrew .readerNavMenuSearchButton {
-  margin: 0 6px 0 10px;
-}
 .readerNavMenuSearchButton img {
   height: 18px;
   width: 18px;
@@ -734,6 +731,9 @@ input.noselect {
   font-family: 'Hebrew Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 
+.header > .ui-autocomplete {
+  z-index: 1000 !important;
+}
 .ui-autocomplete .ui-menu-item {
   display: block;
   padding: 6px 12px;
@@ -758,7 +758,7 @@ input.noselect {
   vertical-align: top;
 }
 .ui-autocomplete .ui-menu-item a.ui-state-focus {
-  text-decoration: underline;
+  background: #ddd;
 }
 .ui-helper-hidden-accessible {
   display: none;
