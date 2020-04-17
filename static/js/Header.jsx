@@ -48,7 +48,19 @@ class Header extends Component {
   _searchOverrideRegex() {
     return RegExp(`^${RegExp.escape(this._searchOverridePre)}(.*)${RegExp.escape(this._searchOverridePost)}`);
   }
-
+  // Returns true if override is caught.
+  catchSearchOverride(query) {
+    const override = query.match(this._searchOverrideRegex());
+    if (override) {
+      if (Sefaria.site) {
+        Sefaria.track.event("Search", "Search Box Navigation - Book Override", override[1]);
+      }
+      this.closeSearchAutocomplete();
+      this.showSearch(override[1]);
+      return true;
+    }
+    return false;
+  }
   initAutocomplete() {
     $.widget( "custom.sefaria_autocomplete", $.ui.autocomplete, {
       _renderItem: function(ul, item) {
@@ -68,22 +80,18 @@ class Header extends Component {
       minLength: 3,
       select: ( event, ui ) => {
         event.preventDefault();
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.label);  // This will disappear, but the eye can sometimes catch it.
 
-        const override = ui.item.label.match(this._searchOverrideRegex());
-        if (override) {
-          if (Sefaria.site) { Sefaria.track.event("Search", "Search Box Navigation - Book Override", override[1]); }
-          this.closeSearchAutocomplete();
-          this.showSearch(override[1]);
+        if (this.catchSearchOverride(ui.item.label)) {
           return false;
         }
 
         this.redirectToObject(ui.item.type, ui.item.key);
         return false;
       },
-      focus: function( event, ui ) {
+      focus: ( event, ui ) => {
+        event.preventDefault();
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.label);
         $(".ui-state-focus").removeClass("ui-state-focus");
-
         $(".ui-menu-item a[data-value='" + ui.item.value + "']").addClass("ui-state-focus");
       },
       source: (request, response) => Sefaria.getName(request.term)
@@ -103,7 +111,7 @@ class Header extends Component {
         return; //this prevents the icon from flashing on every key stroke.
       }
       if(this.props.interfaceLang === 'english'){
-          var opacity = show ? 0.4 : 0;
+          const opacity = show ? 0.4 : 0;
           $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
       }
   }
@@ -277,15 +285,15 @@ class Header extends Component {
     this.props.onRefClick(ref, currVersions);
   }
   handleSearchKeyUp(event) {
-    if (event.keyCode === 13) {
-      var query = $(event.target).val();
-      if (query) {
-        this.submitSearch(query);
-      }
-    }
+    if (event.keyCode !== 13) { return; }
+    const query = $(event.target).val();
+    if (!query) { return; }
+    if (this.catchSearchOverride(query)) { return; }
+    this.submitSearch(query);
+
   }
   handleSearchButtonClick(event) {
-    var query = $(ReactDOM.findDOMNode(this)).find(".search").val();
+    const query = $(ReactDOM.findDOMNode(this)).find(".search").val();
     if (query) {
       this.submitSearch(query);
     } else {
