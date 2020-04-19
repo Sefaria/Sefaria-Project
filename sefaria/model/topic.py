@@ -214,10 +214,10 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         return properties[property]['value'], properties[property]['dataSource']
 
     @staticmethod
-    def get_uncategorized_slug_set():
+    def get_uncategorized_slug_set() -> set:
         categorized_topics = IntraTopicLinkSet({"linkType": TopicLinkType.isa_type}).distinct("fromTopic")
         all_topics = TopicSet().distinct("slug")
-        return list(set(all_topics) - set(categorized_topics))
+        return set(all_topics) - set(categorized_topics)
 
     def __str__(self):
         return self.get_primary_title("en")
