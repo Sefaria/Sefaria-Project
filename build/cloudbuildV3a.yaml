@@ -6,26 +6,19 @@
 ---
 substitutions:
   _ENV_NAME: ASDF
-  _GIT_BRANCH: master
-  _GIT_REPO: Sefaria/Sefaria-Project
   _GKE_CLUSTER: cluster-1
   _GKE_NAMESPACE: sandboxes
   _GKE_REGION: us-east1-b
   _IS_SANDBOX: "false"
-  _MONGO_HOST: mongo
-  _MONGO_LOAD: "true" # must be a quoted string
-  _MONGO_SNAPSHOT_LOCATION: "latest"
-  _RESOURCE_ALLOCATION: ASDF
-  _POSTGRES_HOST: "postgres"
-  _SANDBOX_SUBDOMAIN: cauldron
   _K8S_ADMIN_BRANCH: "master"
+  _MONGO_HOST: mongo
+  _POSTGRES_HOST: "postgres"
+  _RESOURCE_ALLOCATION: ASDF
 
 options:
   machineType: N1_HIGHCPU_8
 
 steps:
-  # Clone K8s-admin
-
   # Clone k8s-admin -- get the `lorenzo/deploy-python3' branch
   - name: "gcr.io/cloud-builders/git"
     args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', '${_K8S_ADMIN_BRANCH}', '--single-branch']
@@ -38,23 +31,23 @@ steps:
   # TODO: Use the Kaniko builder to take advantage of shared build caches across builds
   # TODO: Use SHORT_SHA for image tags after a trigger for sandboxes is created (That variable is only available for triggered builds)
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:sandbox", "-f", "build/web/Dockerfile", "."]
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA", "-f", "build/web/Dockerfile", "."]
     dir: Sefaria-Project
     id: web_container
     wait_for: [ "-" ]  
+    
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:sandbox", "-f", "build/node/Dockerfile", "."]
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA", "-f", "build/node/Dockerfile", "."]
     dir: Sefaria-Project
     id: nodejs_container
     wait_for: [ "-" ]
 
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:sandbox", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:sandbox", "."]
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA", "."]
     dir: Sefaria-Project
     id: nginx_container
     wait_for:
       - web_container
-
 
   # Outputs a file to /k8s-admin/v2/app_settings/helm/_sandboxValues.yaml
   - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
@@ -116,16 +109,16 @@ steps:
   # 2. Create and apply ingress objecte with all routes
 
 
-    # Outputs a file to /k8s-admin/v2/app_settings/local_settings/_local_settings.py
-  - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
-    dir: k8s-admin/v2/sandboxes/ingresses
-    entrypoint: "bash"
-    args: ['-c', './generateIngressValuesFile.bash']
-    id: generate_ingress_values_file
-    env: 
-      - 'SUBDOMAIN=${_SANDBOX_SUBDOMAIN}'
-      - 'SANDBOX=${_ENV_NAME}'
-    wait_for: [ "k8s-admin_clone" ]
+  #   Outputs a file to /k8s-admin/v2/app_settings/local_settings/_local_settings.py
+  # - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
+  #   dir: k8s-admin/v2/sandboxes/ingresses
+  #   entrypoint: "bash"
+  #   args: ['-c', './generateIngressValuesFile.bash']
+  #   id: generate_ingress_values_file
+  #   env: 
+  #     - 'SUBDOMAIN=${_SANDBOX_SUBDOMAIN}'
+  #     - 'SANDBOX=${_ENV_NAME}'
+  #   wait_for: [ "k8s-admin_clone" ]
 
   - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.0.2"
     id: deploy_ingress
@@ -141,7 +134,7 @@ steps:
 
 
 images:
-  - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:sandbox"
-  - "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:sandbox"
-  - "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:sandbox"
+  - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA"
+  - "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA"
+  - "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA"
 ...
