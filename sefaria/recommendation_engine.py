@@ -267,19 +267,14 @@ class RecommendationEngine:
 
         clusters = []
         item_list = sorted(zip(ref_list, data_list), key=lambda x: x[0].order_id())
+        last_cluster = None
         for temp_oref, temp_data in item_list:
-            added_to_cluster = False
             new_cluster_item = {"ref": temp_oref, "data": temp_data}
-            for temp_cluster in clusters:
-                for temp_cluster_item in temp_cluster:
-                    if -1 < temp_cluster_item["ref"].distance(temp_oref) <= dist_threshold:
-                        temp_cluster.append(new_cluster_item)
-                        added_to_cluster = True
-                        break
-                if added_to_cluster:
-                    break
-            if not added_to_cluster:
-                clusters += [[new_cluster_item]]
+            if last_cluster is None or (not (-1 < last_cluster[-1]["ref"].distance(temp_oref) <= dist_threshold)):
+                last_cluster = [new_cluster_item]
+                clusters += [last_cluster]
+            else:
+                last_cluster.append(new_cluster_item)
         return clusters
 
     @staticmethod
