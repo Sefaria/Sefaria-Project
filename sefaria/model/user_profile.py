@@ -226,23 +226,27 @@ Wrapper class for operations on the user object. Currently only for changing pri
 class UserWrapper(object):
     def __init__(self, email=None):
         self.user = get_user(email)
+        self._errors = []
 
     def set_email(self, new_email):
         self.email = new_email
+        self._errors = []
 
     def validate(self):
         return self.errors()
 
     def errors(self):
+        if len(self._errors):
+            return self._errors[0]
         if user_exists(self.email):
             u = get_user(self.email)
             if u.id != self.user.id:
-                return _("A user with that email already exists")
+                self._errors.append(_("A user with that email already exists"))
         email_val = EmailValidator()
         try:
             email_val(self.email)
         except ValidationError as e:
-            return _("The email address is not valid.")
+            self._errors.append(_("The email address is not valid."))
         return None
 
     def save(self):
