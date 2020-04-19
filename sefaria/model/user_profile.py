@@ -238,11 +238,12 @@ class UserWrapper(object):
             u = get_user(self.email)
             if u.id != self.user.id:
                 return _("A user with that email already exists")
-            email_val = EmailValidator()
-            try:
-                email_val(self.email)
-            except ValidationError as e:
-                return _("The email address is not valid.")
+        email_val = EmailValidator()
+        try:
+            email_val(self.email)
+        except ValidationError as e:
+            return _("The email address is not valid.")
+        return None
 
     def save(self):
         if self.validate():
