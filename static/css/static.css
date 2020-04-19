@@ -1088,7 +1088,7 @@ p.registration-links a:hover{
 #accountSettingsPage input::placeholder{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: normal;
-  color: #333;
+  color: #999;
   padding-bottom: 15px;
   font-style: normal;
 }
