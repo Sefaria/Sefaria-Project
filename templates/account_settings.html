@@ -72,19 +72,19 @@
 		</div>
 	</div>
 	{% endif %}
-    <div id="username_change">
+    <div id="username-change">
         <label class="control-elem">
                 <span class="int-en">Account Email (This is used for login)</span>
                 <span class="int-he">כתובת אימייל (משמש לכניסה לחשבון)</span>
         </label>
-        <div id="username_change_display">
+        <div id="username-change-display">
             <input id="email-display" type="text" disabled="disabled" value="{{ user.email }}" />
             <button id="change-email" type="button" class="button blue full">
                 <span class="int-en">Change Email</span>
                 <span class="int-he">החלפת כתובת מייל</span>
             </button>
         </div>
-        <div id="username_change_edit" style="display: none">
+        <div id="username-change-edit" style="display: none">
             <input id="email" type="text" placeholder="{% trans "New Email" %}" autocomplete="off" />
             <input id="confirmEmail" type="text" placeholder="{% trans "Confirm New Email" %}" autocomplete="off" />
             <input id="confirmPassword" type="password" placeholder="{% trans "Password" %}" autocomplete="new-password" />
@@ -92,7 +92,7 @@
                 <span class="int-en">Update Email</span>
                 <span class="int-he">עדכון כתובת מייל</span>
             </button>
-            <span id="errors"></span>
+            <span id="email-edit-errors"></span>
         </div>
     </div>
 	</div>
@@ -149,24 +149,27 @@
             });
 
             $("#change-email").click(function () {
-                $("#username_change_display").toggle();
-                $("#username_change_edit").toggle();
+                $("#username-change-display").toggle();
+                $("#username-change-edit").toggle();
             });
 
-            $("#save-email").click(function(){
+            $("#update-email").click(function(){
 				const user_details = {
-                    email: $("#username_change_edit #email").val(),
-                    confirmEmail: $("#username_change_edit #confirmEmail").val(),
-                    confirmPassword: $("#username_change_edit #confirmPassword").val()
+                    email: $("#username-change-edit #email").val(),
+                    confirmEmail: $("#username-change-edit #confirmEmail").val(),
+                    confirmPassword: $("#username-change-edit #confirmPassword").val()
 				};
-
+				console.log(user_details);
 				$.post("/settings/account/user", {json: JSON.stringify(user_details)}, function(data) {
+				    console.log(data);
 					if ("error" in data) {
-						$("#username_change_edit #errors").val(data.error);
+	                    console.log(data.error);
+						$("#username-change-edit #email-edit-errors").text(data.error);
 					} else {
-                        $("username_change_display #email-display").val(user_details["email"]);
-                        $("#username_change_display").toggle();
-                        $("#username_change_edit").toggle();
+					    console.log(data)
+                        $("#username-change-display #email-display").val(user_details["email"]);
+                        $("#username-change-display").toggle();
+                        $("#username-change-edit").toggle();
 					}
 				});
 			});
