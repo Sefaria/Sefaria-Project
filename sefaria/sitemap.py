@@ -140,7 +140,7 @@ class SefariaSiteMapGenerator(object):
         out = self.output_directory + "sitemaps/" + self._interfaceLang + "/" + filename
         f = open(out, 'w')
         for url in urls:
-            f.write(url.encode('utf-8') + "\n")
+            f.write(url + "\n")
         f.close()
 
 
