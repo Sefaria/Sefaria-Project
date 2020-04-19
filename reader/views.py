@@ -3163,6 +3163,44 @@ def profile_api(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@login_required
+@ensure_csrf_cookie
+def account_user_update(request):
+    """
+    API for user profiles.
+    """
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to update your profile.")})
+
+    if request.method == "POST":
+        accountJSON = request.POST.get("json")
+        if not accountJSON:
+            return jsonResponse({"error": "No post JSON."})
+        accountUpdate = json.loads(accountJSON)
+
+        # some validation on post fields
+        if accountUpdate["email"] != accountUpdate["confirmEmail"]:
+            error = _("Email fields did not match")
+        if not request.user.check_password(accountUpdate["password"]):
+            error = _("Incorrect account password for this account")
+
+        # get the logged in user
+        uuser = UserWrapper(request.user.email)
+        try:
+            uuser.set_email(accountUpdate["email"])
+            uuser.save()
+        except Exception as e:
+            error = uuser.errors()
+
+        if error:
+            return jsonResponse({"error": error})
+        else:
+            return jsonResponse({"status": "ok"})
+
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+
 @catch_error_as_json
 def profile_get_api(request, slug):
     if request.method == "GET":
