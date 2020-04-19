@@ -190,6 +190,9 @@
   border: 1px solid #212E50;
   color: white;
 }
+.static .inner .button.full{
+  width:100%;
+}
 .static img.fullWidth {
   width: 100%;
   box-sizing: border-box;
@@ -1088,9 +1091,6 @@ p.registration-links a:hover{
   color: #333;
   padding-bottom: 15px;
   font-style: normal;
-}
-#accountSettingsPage .button{
-  width: 100%;
 }
 .interface-hebrew #accountSettingsPage.static.biReady .toggleOption:first-child{
   border-top-right-radius: 4px;
