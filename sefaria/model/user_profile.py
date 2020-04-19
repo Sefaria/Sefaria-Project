@@ -247,7 +247,7 @@ class UserWrapper(object):
             email_val(self.email)
         except ValidationError as e:
             self._errors.append(_("The email address is not valid."))
-        return None
+        return self._errors[0] if len(self._errors) else None
 
     def save(self):
         if self.validate():
