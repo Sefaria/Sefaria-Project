@@ -61,7 +61,7 @@ function StoryEditor(props) {
         </FormFunctions.Provider>
         <span className="error">{error}</span>
 
-        <div className="storyFeed">
+        <div className="mainColumn">
         {stories.map((s,i) =>
             [
                 Story(s,i, props),
