@@ -439,7 +439,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         :return: TimePeriod: First tries to return `compDate`. Deals with ranges and negative values for compDate
         If no compDate, looks at author info
         """
-        author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
         start, end, startIsApprox, endIsApprox = None, None, None, None
 
         if getattr(self, "compDate", None):
@@ -461,13 +460,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 except UnicodeEncodeError as e:
                     pass
 
-        elif author and author.mostAccurateTimePeriod():
-            tp = author.mostAccurateTimePeriod()
-            tpvars = vars(tp)
-            start = tp.start if "start" in tpvars else None
-            end = tp.end if "end" in tpvars else None
-            startIsApprox = tp.startIsApprox if "startIsApprox" in tpvars else None
-            endIsApprox = tp.endIsApprox if "endIsApprox" in tpvars else None
+        else:
+            author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
+            if author and author.mostAccurateTimePeriod():
+                tp = author.mostAccurateTimePeriod()
+                tpvars = vars(tp)
+                start = tp.start if "start" in tpvars else None
+                end = tp.end if "end" in tpvars else None
+                startIsApprox = tp.startIsApprox if "startIsApprox" in tpvars else None
+                endIsApprox = tp.endIsApprox if "endIsApprox" in tpvars else None
 
         if not start is None:
             from sefaria.model.timeperiod import TimePeriod
