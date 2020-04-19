@@ -89,7 +89,7 @@ steps:
   - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.0.2"
     id: deploy_sandbox
     dir: k8s-admin/v2
-    args: ["upgrade", "-i", "sandbox-${_ENV_NAME}", "./charts/sefaria", "--namespace", "${_GKE_NAMESPACE}", "--set-string", "releaseImageTag=$SHORT_SHA", "-f", "app_settings/helm/_envValues.yaml", "-f", "app_settings/helm/_resourceValues.yaml", "--debug"]
+    args: ["upgrade", "-i", "sefaria-${_ENV_NAME}", "./charts/sefaria", "--namespace", "${_GKE_NAMESPACE}", "--set-string", "releaseImageTag=$SHORT_SHA", "-f", "app_settings/helm/_envValues.yaml", "-f", "app_settings/helm/_resourceValues.yaml", "--debug"]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
