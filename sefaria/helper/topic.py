@@ -331,6 +331,8 @@ def generate_sheet_topic_links():
     sheet_list = db.sheets.find({}, projection)
     sheet_links = []
     for sheet in tqdm(sheet_list, desc="getting sheet topic links"):
+        if sheet.get('id', None) is None:
+            continue
         sheet_topics = sheet.get("topics", [])
         for topic_dict in sheet_topics:
             slug = topic_dict['slug']
@@ -506,7 +508,7 @@ def calculate_pagerank_scores(ref_topic_map):
                 oref_list += [Ref(tref)]
             except InputError:
                 continue
-        oref_pr_list = pagerank_rank_ref_list(oref_list)
+        oref_pr_list = pagerank_rank_ref_list(oref_list, normalize=True)
         for oref, pr in oref_pr_list:
             pr_map[(topic, oref.normal())] = pr
             for seg_oref in oref.all_segment_refs():
@@ -601,7 +603,7 @@ def update_ref_topic_link_orders():
                 total_tfidf += getattr(intra_topic_link, 'order', {}).get(tfidfDir, 0)
         avg_tfidf = 1 if len(other_topic_slug_set) == 0 else (total_tfidf / len(other_topic_slug_set)) + 1
 
-        relevance = 0 if avg_pr == 0 else 1000*avg_pr + avg_tfidf
+        relevance = 0 if avg_pr == 0 else avg_pr + avg_tfidf  # TODO: test this equation again
         sheet_title = sheet.get('title', 'a')
         if not isinstance(sheet_title, str):
             title_lang = 'english'
@@ -653,7 +655,8 @@ def update_intra_topic_link_orders():
     from sefaria.system.database import db
     from pymongo import UpdateOne
 
-    uncats = Topic.get_uncategorized_link_set()
+    uncats = Topic.get_uncategorized_slug_set()
+    ts = TopicSet()
     topic_link_dict = {}
     for topic in tqdm(ts, total=ts.count(), desc="update intra orders"):
         if topic.slug in uncats:

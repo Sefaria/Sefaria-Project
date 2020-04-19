@@ -86,7 +86,7 @@ def step(w, p, s=0.85):
     vector.'''
     n = w.size
     v = numpy.matrix(numpy.zeros((n, 1)))
-    inner_product = sum([p[j] for j in list(w.dangling_pages.keys())])
+    inner_product = sum(p[j] for j in w.dangling_pages.keys())
     for j in range(n):
         v[j] = s * sum([p[k] / w.number_out_links[k]
                         for k in w.in_links[j]]) + s * inner_product / n + (1 - s) / n
@@ -96,7 +96,7 @@ def step(w, p, s=0.85):
     return v / numpy.sum(v)
 
 
-def pagerank(g, s=0.85, tolerance=0.00001, maxiter=100, verbose=False):
+def pagerank(g, s=0.85, tolerance=0.00001, maxiter=100, verbose=False, normalize=False):
     w = create_web(g)
     n = w.size
     p = numpy.matrix(numpy.ones((n, 1))) / n
@@ -111,6 +111,15 @@ def pagerank(g, s=0.85, tolerance=0.00001, maxiter=100, verbose=False):
             print("Change in l1 norm: %s" % change)
         p = new_p
         iteration += 1
+    if normalize:
+        # This is interesting and nerdy, but min seems to do the exact same thing
+        # dangling_pr_sum = sum(p[j] for j in w.dangling_pages.keys())
+        # norm_factor = ((1-s) + s*dangling_pr_sum)/w.size  # see: https://www2007.org/posters/poster893.pdf
+        # p /= norm_factor
+        try:
+            p /= p.min()
+        except ValueError:
+            pass  # empty list can't calculate min
     pr_list = list(numpy.squeeze(numpy.asarray(p)))
     return {k: v for k, v in zip([x[0] for x in g], pr_list)}
 
@@ -240,21 +249,22 @@ def init_pagerank_graph(ref_list=None):
     return graph, all_ref_cat_counts
 
 
-def pagerank_rank_ref_list(ref_list):
+def pagerank_rank_ref_list(ref_list, normalize=False):
     # make unique
     ref_list = [v for k, v in {r.normal(): r for r in ref_list}.items()]
     graph, all_ref_cat_counts = init_pagerank_graph(ref_list)
-    pr = pagerank(list(graph.items()), 0.85, verbose=True, tolerance=0.00005)
+    pr = pagerank(list(graph.items()), 0.85, verbose=True, tolerance=0.00005, normalize=normalize)
 
-    # remove lowest pr value which just means it quoted at least one source but was never quoted
-    sorted_ranking = sorted(list(pr.items()), key=lambda x: x[1])
-    count = 0
-    if len(sorted_ranking) > 0:
-        smallest_pr = sorted_ranking[0][1]
-        while count < len(sorted_ranking) and (sorted_ranking[count][1] - smallest_pr) < 1e-30:
-            count += 1
-        if count < len(sorted_ranking) - 1:
-            pr = {r: temp_pr for r, temp_pr in sorted_ranking[count:]}
+    if not normalize:
+        # remove lowest pr value which just means it quoted at least one source but was never quoted
+        sorted_ranking = sorted(list(pr.items()), key=lambda x: x[1])
+        count = 0
+        if len(sorted_ranking) > 0:
+            smallest_pr = sorted_ranking[0][1]
+            while count < len(sorted_ranking) and (sorted_ranking[count][1] - smallest_pr) < 1e-30:
+                count += 1
+            if count < len(sorted_ranking) - 1:
+                pr = {r: temp_pr for r, temp_pr in sorted_ranking[count:]}
     # map pr values onto ref_list
     ref_map = {r.normal(): [rr.normal() for rr in r.all_segment_refs()] for r in ref_list}
     ref_list_with_pr = sorted([
