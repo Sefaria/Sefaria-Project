@@ -1,0 +1,147 @@
+# TODO: Fail the build if the target mongo host is not reachable
+# TODO: Consider "one mongo instance per sandbox" architecture
+# TODO: Idempotently update ingress definition
+# TODO: Notifications
+
+---
+substitutions:
+  _ENV_NAME: ASDF
+  _GIT_BRANCH: master
+  _GIT_REPO: Sefaria/Sefaria-Project
+  _GKE_CLUSTER: cluster-1
+  _GKE_NAMESPACE: sandboxes
+  _GKE_REGION: us-east1-b
+  _IS_SANDBOX: "false"
+  _MONGO_HOST: mongo
+  _MONGO_LOAD: "true" # must be a quoted string
+  _MONGO_SNAPSHOT_LOCATION: "latest"
+  _RESOURCE_ALLOCATION: ASDF
+  _POSTGRES_HOST: "postgres"
+  _SANDBOX_SUBDOMAIN: cauldron
+  _K8S_ADMIN_BRANCH: "master"
+
+options:
+  machineType: N1_HIGHCPU_8
+
+steps:
+  # Clone K8s-admin
+
+  # Clone k8s-admin -- get the `lorenzo/deploy-python3' branch
+  - name: "gcr.io/cloud-builders/git"
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', '${_K8S_ADMIN_BRANCH}', '--single-branch']
+    id: k8s-admin_clone
+    wait_for: [ "-" ]
+
+  #
+  # Build artifacts
+  #
+  # TODO: Use the Kaniko builder to take advantage of shared build caches across builds
+  # TODO: Use SHORT_SHA for image tags after a trigger for sandboxes is created (That variable is only available for triggered builds)
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:sandbox", "-f", "build/web/Dockerfile", "."]
+    dir: Sefaria-Project
+    id: web_container
+    wait_for: [ "-" ]  
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:sandbox", "-f", "build/node/Dockerfile", "."]
+    dir: Sefaria-Project
+    id: nodejs_container
+    wait_for: [ "-" ]
+
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:sandbox", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:sandbox", "."]
+    dir: Sefaria-Project
+    id: nginx_container
+    wait_for:
+      - web_container
+
+
+  # Outputs a file to /k8s-admin/v2/app_settings/helm/_sandboxValues.yaml
+  - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
+    dir: k8s-admin/v2/app_settings/helm
+    entrypoint: "bash"
+    args: ['-c', './generateHelmValues.bash']
+    id: generate_helm_values
+    env: 
+      - 'ENV_NAME=${_ENV_NAME}'
+      - 'IS_SANDBOX=${_IS_SANDBOX}'
+      - 'RESOURCE_ALLOC=${_RESOURCE_ALLOCATION}'
+      - 'PROJECT_ID=${PROJECT_ID}'
+    wait_for: [ "k8s-admin_clone" ]
+
+  # Outputs a file to /k8s-admin/v2/app_settings/local_settings/_local_settings.py
+  - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
+    dir: k8s-admin/v2/app_settings/local_settings
+    entrypoint: "bash"
+    args: ['-c', './generateLocalSettings.bash']
+    id: generate_localsettings_file
+    env: 
+      - 'ENV_NAME=${_ENV_NAME}'
+      - 'IS_SANDBOX=${_IS_SANDBOX}'
+      - 'MONGO_HOST=${_MONGO_HOST}' # Should this be parmeterized here or read in the repo
+      - 'POSTGRES_HOST=${_POSTGRES_HOST}' # Should this be parmeterized here or read in the repo
+    wait_for: [ "k8s-admin_clone" ]
+  
+  # Copy localsettings into file
+  # Later, combined this with the script above
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.0.2"
+    dir: k8s-admin/v2
+    id: copy_localsettings_file
+    entrypoint: cp
+    args: ["-f", "./app_settings/local_settings/_local_settings.py", "./charts/sefaria/local_settings.py"]
+    wait_for:
+      - generate_localsettings_file
+      - k8s-admin_clone
+
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.0.2"
+    id: deploy_sandbox
+    dir: k8s-admin/v2
+    args: ["upgrade", "-i", "sandbox-${_ENV_NAME}", "./charts/sefaria", "--namespace", "${_GKE_NAMESPACE}", "--set-string", "releaseImageTag=sandbox", "-f", "app_settings/helm/_envValues.yaml", "-f", "app_settings/helm/_resourceValues.yaml", "--debug"]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for:
+      - web_container
+      - nodejs_container
+      - nginx_container
+      - generate_helm_values
+      - generate_localsettings_file
+      - copy_localsettings_file
+      - k8s-admin_clone
+
+  # Manage the ingres
+  # 1. Add the sandbox name to v2/sandboxes/sandboxes.txt
+  # 2. Create and apply ingress objecte with all routes
+
+
+    # Outputs a file to /k8s-admin/v2/app_settings/local_settings/_local_settings.py
+  - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
+    dir: k8s-admin/v2/sandboxes/ingresses
+    entrypoint: "bash"
+    args: ['-c', './generateIngressValuesFile.bash']
+    id: generate_ingress_values_file
+    env: 
+      - 'SUBDOMAIN=${_SANDBOX_SUBDOMAIN}'
+      - 'SANDBOX=${_ENV_NAME}'
+    wait_for: [ "k8s-admin_clone" ]
+
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.0.2"
+    id: deploy_ingress
+    dir: k8s-admin/v2
+    args: ["upgrade", "-i", "sandbox-ingress", "./charts/sandbox-ingress", "--namespace", "${_GKE_NAMESPACE}", "-f", "sandboxes/ingresses/_ingressValues.yaml", "--debug"]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for:
+      - generate_ingress_values_file
+
+
+images:
+  - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:sandbox"
+  - "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:sandbox"
+  - "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:sandbox"
+...
