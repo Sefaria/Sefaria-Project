@@ -4,7 +4,7 @@ from random import randrange
 
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
-from sefaria.sheets import save_sheet, sheet_tag_counts
+from sefaria.sheets import save_sheet, sheet_topics_counts
 from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 
@@ -48,7 +48,7 @@ class SheetStats(object):
 			print("%d Public" % self.public_total)
 		
 		print("Processing tags...")
-		self.top_tags     = sheet_tag_counts({})
+		self.top_tags     = sheet_topics_counts({})
 
 		print("Processing sheets...")
 		for sheet in sheets: 

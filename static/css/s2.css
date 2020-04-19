@@ -35,19 +35,20 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   direction: rtl;
 }
 .featureTitle .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 50px;
   font-weight: normal;
   color: #000;
 }
-.pageTitle .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+.pageTitle .int-en,
+.pageTitle .int-he.but-text-is-en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 30px;
   font-weight: normal;
   color: #000;
 }
 .chapterText .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
   font-weight: normal;
   text-transform: uppercase;
@@ -65,13 +66,15 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
-.smallText .int-en {
+.smallText .int-en,
+.smallText .int-he.but-text-is-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   font-weight: normal;
   color: #999;
 }
-.systemText .int-en {
+.systemText .int-en,
+.systemText .int-he.but-text-is-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   font-weight: normal;
@@ -80,7 +83,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
 .contentText .int-en,
 .contentText .en,
 .contentText.en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
   font-weight: normal;
   color: #000;
@@ -91,7 +94,8 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   font-weight: normal;
   color: #000;
 }
-.pageTitle .int-he {
+.pageTitle .int-he,
+.pageTitle .int-en.but-text-is-he {
   font-family: "Heebo", sans-serif;
   font-size: 30px;
   font-weight: normal;
@@ -113,13 +117,15 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
-.smallText .int-he {
+.smallText .int-he,
+.smallText .int-en.but-text-is-he {
   font-family: "Heebo", sans-serif;
   font-size: 13px;
   font-weight: normal;
   color: #999;
 }
-.systemText .int-he {
+.systemText .int-he,
+.systemText .int-en.but-text-is-he {
   font-family: "Heebo", sans-serif;
   font-size: 16px;
   font-weight: normal;
@@ -132,6 +138,9 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   font-size: 18px;
   font-weight: normal;
   color: #000;
+}
+.italics {
+  font-style: italic;
 }
 /* end Style Guide */
 
@@ -358,10 +367,20 @@ input.noselect {
   padding: 0;
   text-align: inherit;
   margin: 0 17px 0 17px;
+  background: #EDEDEC;
+  border-radius: 250px;
+  width: 140px;
+  height: 30px;
+}
+.header .searchBox.searchFocused {
+  width: 240px;
 }
 .header .searchBox input {
   background-color: transparent; /*for firefox */
-  margin-top: 1px;
+  margin-top: 2px;
+}
+.header .searchBox input::placeholder {
+  font-style: normal;
 }
 .header .search {
   outline: none;
@@ -369,17 +388,21 @@ input.noselect {
   box-shadow: none;
   color: black;
   font-size:  18px;
-  font-family: "adobe-garamond-pro", Georgia, serif;
-  vertical-align: 1px;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  vertical-align: 6px;
   margin: 0;
+  width: 60px;
+}
+.header .searchFocused .search {
+  width: 160px;
 }
 .header .search.hebrewSearch {
-  font-family: "Heebo", sans-serif;
-  font-size: 16px;
+  font-family: 'Hebrew Text Font', serif;
+  font-size: 18px;
 }
-.search-override {
-  border-top: solid 1px #999;
-  padding-top: 5px;
+.ui-autocomplete .ui-menu-item.search-override {
+  border-top: solid 1px #ccc;
+  padding-top: 12px;
 }
 .header .home {
   margin-top: 1px;
@@ -413,11 +436,9 @@ input.noselect {
   img.keyboardInputInitiator{
     display: none;
   }
-
   .nochrome .header .home {
     display: inline;
   }
-
 }
 .header .accountLinks {
   display: flex;
@@ -433,6 +454,10 @@ input.noselect {
 .header .library, .header .my-profile {
   font-size: 24px;
   line-height: 24px;
+}
+.header .library .fa {
+  position: relative;
+  top: 1px;
 }
 .header .notifications {
   display: inline-block;
@@ -567,7 +592,7 @@ input.noselect {
 }
 .sefariaModalContent h2 {
   font-weight: normal;
-  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 30px;
   margin-bottom: 0px;
 }
@@ -674,19 +699,16 @@ input.noselect {
 }
 .readerNavMenuSearchButton {
   position: relative;
-  margin: 0 10px 0 6px;
-  top: -3px;
+  margin: 0 10px 0 10px;
+  top: -2px;
 }
 .readerNavTop .readerNavMenuSearchButton {
   top: 0;
 }
-.interface-hebrew .readerNavMenuSearchButton {
-  margin: 0 6px 0 10px;
-}
 .readerNavMenuSearchButton img {
-  height: 19px;
+  height: 18px;
+  width: 18px;
   opacity: 0.4;
-  vertical-align: middle;
 }
 .header .headerNavContent {
   position: absolute;
@@ -702,20 +724,41 @@ input.noselect {
   background: white;
   list-style-type: none;
   padding: 6px 0;
-  border: 1px solid #aaa;
-  border-top: 1px solid #ddd;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  border-bottom-left-radius: 6px;
+  border-bottom-right-radius: 6px;
   z-index: 1000000 !important;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'Hebrew Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+
+.header > .ui-autocomplete {
+  z-index: 1000 !important;
+}
+.ui-autocomplete .ui-menu-item {
+  display: block;
+  padding: 6px 12px;
+}
+.interface-hebrew .ui-autocomplete .ui-menu-item {
+  direction: rtl;
+  text-align: right;
+}
+.ui-autocomplete .ui-menu-item img {
+  display: inline-block;
+  opacity: .4;
+  height: 18px;
+  width: 18px;
 }
 .ui-autocomplete .ui-menu-item a {
-  padding: 4px 12px;
-  font-size: 16px;
-  color: black;
+  display: inline-block;
+  line-height: 21px;
+  font-size: 19px;
+  color: #000;
   cursor: pointer;
-  display: block;
+  margin: 0 10px;
+  vertical-align: top;
 }
 .ui-autocomplete .ui-menu-item a.ui-state-focus {
-  background-color: #E9E9E7;
+  background: #ddd;
 }
 .ui-helper-hidden-accessible {
   display: none;
@@ -826,6 +869,7 @@ input.noselect {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .contentInner,
+.interface-hebrew .readerPanel .columnLayout,
 .interface-hebrew .readerControls,
 .interface-hebrew .readerPanel .textRange,
 .interface-hebrew .readerPanel .sheetContent,
@@ -1083,7 +1127,206 @@ input.noselect {
   letter-spacing: 1px;
   margin: 0 0 10px 0;
 }
+.readerNavMenu.topicPanel {
+  background-color: white;
+}
+.topicPanel .readings {
+  margin-bottom: 40px;
+}
+.topicPanel .readings .parasha-date {
+}
+.topicPanel .readings .sectionTitleText {
+  margin-top: 15px;
+}
+.topicPanel .readings .sectionTitleText .int-en,
+.topicPanel .readings .sectionTitleText .int-he {
+  font-size: 13px;
+}
+.topicPanel .readings .haftarot {
+  display: flex;
+  flex-direction: column;
+}
+.topicPanel .readings .sectionTitleText:first-child {
+  margin-top: 20px;
+}
+.topicPanel .mainColumn {
+  padding: 0 0 0 50px;
+}
+@media (max-width: 450px) {
+  .topicPanel .mainColumn,
+  .interface-hebrew .topicPanel .mainColumn {
+    padding: 0 25px !important;
+    margin: 0;
+  }
+  .topicPanel .filterable-list .filter-sort-wrapper {
+    margin-top: 20px;
+  }
+  .topicPanel .readerNavTop {
+    margin: -25px 0 30px -25px;
+    width: 115%;
+  }
+}
+.interface-hebrew .topicPanel .mainColumn {
+  padding: 0 50px 0 0;
+}
+.topicPanel .sideColumn {
+  padding: 0 50px;
+  background-color: #FBFBFA;
+  /* HACK: add grey background beyond bounding box of sidebar by utilizing negative margins! */
+  border-top: 80px solid #FBFBFA;
+  border-bottom: 120px solid #FBFBFA;
+  margin: -80px 0 -120px 0;
+}
+.topicPanel h1 {
+  text-align: unset;
+  margin-bottom: 10px;
+  height: unset;
+}
+.topicPanel h1 span {
+  font-size: 40px;
+}
+
+.topicPanel .sideColumn h2 {
+  text-align: unset;
+  border-bottom: 1px solid #CCC;
+  padding-bottom: 10px;
+  margin-top: 30px;
+  margin-bottom: 10px;
+}
+.topicPanel .sideColumn .link-section:first-child h2 {
+  margin-top: 0;
+}
+.topicPanel h2 span {
+  font-size: 22px;
+  font-weight: normal;
+  color: #666;
+  text-align: unset;
+  text-transform: none;
+  margin-bottom: 20px;
+  letter-spacing: 2px;
+  height: unset;
+  line-height: unset;
+}
+.topicPanel h2 .int-en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.topicPanel h2 .int-he {
+  font-family: "Heebo", sans-serif;
+}
+.topicPanel .mainColumn .story {
+    padding: 0 0 20px 0;
+}
+.topicPanel .mainColumn .storySheetListItem {
+  padding: 0 0 30px 0;
+}
+.topicPanel .sideColumn .sideList {
+  font-size: 18px;
+  line-height: 26px;
+}
+.topicPanel .sideColumn .sideList a {
+  display: block;
+  color: #000;
+}
+.topicPanel .sideColumn .sideList a .int-en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";
+}
+.topicPanel .sideColumn .sideList a .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+.topicPanel .sideColumn .topicCategory {
+  margin-bottom: 30px;
+}
+.topicPanel .story .storySheetList .pageTitle span {
+  font-size: 24px;
+}
+.topicPanel .story .storySheetList .pageTitle .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 29px;
+}
+.topicPanel .authorOrganizationsystemText {
+  font-size: 16px;
+  color: #666;
+}
+.topicPanel .pageTitle span {
+  font-size: 24px;
+}
+.story .storyTitle .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 29px;
+}
+.topicPanel .pageTitle h1 span {
+  font-size: 30px;
+}
+.topicPanel .pageTitle h1 .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 36px;
+}
+.pageTitle .topicTitleInHe .but-text-is-he {
+  color: #888;
+  font-size: 20px;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+.topicPanel .topicCategory {
+  margin: 0 0 15px 0;
+}
+.readerTocTopics .topicDescription {
+  margin: 10px 0 40px 0;
+  text-align: center;
+}
+.readerTocTopics .topicTitle .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+}
+.readerTocTopics .topicDescription.systemText .int-en,
+.readerTocTopics .topicDescription.systemText .int-he {
+  color: #666;
+}
+.topicPanel .topicDescription {
+  margin: 0 0 15px 0;
+}
+.topicPanel .topicDescription span {
+}
+.topicPanel .tab-view .tab-list {
+    border-bottom: 1px solid #CCC;
+    margin-bottom: 18px;
+}
+.topicPanel .tab-view .filter-bar {
+  margin-bottom: 30px;
+}
+.topicPanel .tab-view .tab-list .tab {
+  font-size: 22px;
+}
+.topicPanel .tab-view .tab-list .active .tab {
+  border-bottom: 4px solid #999;
+}
+.topicPanel .resourcesLink.blue {
+  padding: 8px 16px;
+  font-size: 20px;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  width: unset;
+  margin-bottom: 40px;
+  margin-top: 5px;
+}
+.topicPanel .resourcesLink.blue img {
+  opacity: 1;
+  width: 20px;
+  height: 20px;
+  margin: 0 8px 5px 0;
+  filter: invert(1);
+}
+.interface-hebrew .topicPanel .resourcesLink.blue img {
+  margin: 0 0 5px 8px;
+}
+.topicPanel .resourcesLink.blue .int-en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.topicPanel .resourcesLink.blue .int-he {
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  margin-bottom: -3px;
+}
 h1 .languageToggle {
+  text-align: center;
   position: absolute;
   right: 0;
   color: #ccc;
@@ -1104,7 +1347,7 @@ h1 .languageToggle .he {
   font-size: 22px;
 }
 .readerNavMenu h1 .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";  /* fallback on Hebrew if Hebrew in text */
 }
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
@@ -1157,9 +1400,9 @@ h1 .languageToggle .he {
   font-weight: 300;
   color: #666;
   margin-bottom: 20px;
-  letter-spacing: 2px;
-  height: 16px;
-  line-height: 16px;
+  /* letter-spacing: 2px; */
+  /* height: 16px; */
+  /* line-height: 16px; */
 }
 .readerPanel h2 .en, .readerPanel h3 .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1167,7 +1410,7 @@ h1 .languageToggle .he {
 .readerPanel h2 .he, .readerPanel h3 .he {
   font-family: "Heebo", sans-serif;
 }
-.readerNavSection h2 {
+.readerNavSection h2, .topicsPanel h2 {
   font-size: 16px;
   font-weight: normal;
   letter-spacing: 1px;
@@ -1275,10 +1518,14 @@ a.readerNavCategory {
     font-size: 13px;
   }
 }
+.readerNavMenu .readerNavMore span {
+  color: #666;
+  text-transform: none;
+}
 .readerNavMenu .readerNavMore img {
   height: 10px;
   width: 10px;
-  opacity: 0.43;
+  opacity: 0.6;
 }
 .bilingual .readerNavCategory .he {
   display: none;
@@ -1787,16 +2034,12 @@ a.readerNavCategory {
   text-align: center;
   height: 100%;
 }
-.readerTextTableOfContents .content .sheetTags.int-en {
-  clear: both;
+.readerTextTableOfContents .content .sheetTags {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
   padding-top: 30px;
   border-top: 1px solid #ccc;
-}
-.readerTextTableOfContents .content .sheetTags.int-en {
-  text-align: left;
-}
-.readerTextTableOfContents .content .sheetTags.int-he {
-  text-align: right;
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;
@@ -2158,7 +2401,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item {
   display: block;
 }
 body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus {
-  background-color: #E9E9E7;
+  text-decoration: underline;
 }
 .searchContentFrame h1 {
   direction: ltr;
@@ -2902,6 +3145,30 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .rightButtons .saveButton.tooltip-toggle::before {
   left: auto;
   right: -50px;
+}
+.mainColumn .saveButton.tooltip-toggle.three-dots-button {
+  background-color: #ededec;
+  margin-bottom: 13px;
+  padding: 0;
+  width: 22px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+.three-dots-button img {
+  width: 10px;
+  height: 10px;
+  margin-top: 0;
+}
+.topicPanel .three-dots-button {
+  margin-left: 10px;
+  margin-right: 0;
+}
+.interface-hebrew .topicPanel .three-dots-button {
+  margin-left: 0px;
+  margin-right: 10px;
 }
 .leftButtons .readerNavMenuSearchButton,
 .leftButtons .readerNavMenuMenuButton,
@@ -4408,7 +4675,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .connectionsPanel textarea.noteText,
 .connectionsPanel textarea.feedbackText,
-.homeFeedSidebar textarea.feedbackText {
+.sideColumn textarea.feedbackText {
   width: 100%;
   min-height: 100px;
   border: none;
@@ -4863,17 +5130,20 @@ a .button:hover {
 }
 .interface-hebrew ::-webkit-input-placeholder {
   font-style: normal;
-  font-family: "Heebo", sans-serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 18px;
   color: #666;
 }
 .interface-hebrew ::-moz-placeholder {
   font-style: normal;
-  font-family: "Heebo", sans-serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 18px;
   color: #666;
 }
 .interface-hebrew :-ms-input-placeholder {
   font-style: normal;
-  font-family: "Heebo", sans-serif;
+  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-size: 18px;
   color: #666;
 }
 .lexicon-content{
@@ -5372,6 +5642,11 @@ h2.splitHeader .he {
 .groupMemberListingActionsMenu .role.current {
   color: #666;
 }
+.topicPanel .smallText .separator {
+  color: #999;
+  font-size: 20px;
+  margin: 0 3px;
+}
 .topicsPanel .loadingMessage {
   text-align: center;
 }
@@ -5408,7 +5683,7 @@ h2.splitHeader .he {
   min-height: 500px;
 }
 .topicsPanel .content .topicList .navButton .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";
 }
 .topicsPanel .content .topicList .navButton .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
@@ -5425,33 +5700,18 @@ h2.splitHeader .he {
 .topicPanel .topicLabel a {
   color: #8E8E8E;
 }
-#s2 .topicPanel h1 {
-  margin-bottom: 50px;
-  font-size: 30px;
-}
-#s2 .topicPanel h1 .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-#s2 .topicPanel h1 .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
-}
-.topicPanel .relatedTopicsList {
-  margin-bottom: 70px;
-  text-align: center;
-}
-.topicPanel .relatedTopic {
-  margin: 0 7px;
-  color: #333;
+
+.topicPanel .sideColumnMore {
+  cursor: pointer;
   font-size: 16px;
-  line-height: 1.4;
-  display: inline-block;
+  line-height: 26px;
+  color: #666;
 }
-.topicPanel .content .relatedTopic .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+.topicPanel .sideColumnMore:hover {
+  cursor: pointer;
+  text-decoration: underline;
 }
-.topicPanel .content .relatedTopic .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
-}
+
 .topicPanel .sourceList {
   min-height: 500px;
 }
@@ -5590,11 +5850,8 @@ h2.splitHeader .he {
     width: 16px;
     height: 16px;
     padding: 4px 7px;
-    background-color: #fff;
-    border-radius: 3px;
-    border: 1px solid #aaa;
     position: initial;
-    vertical-align: -7px;
+    vertical-align: 0px;
 }
 body #keyboardInputMaster {
     opacity: 1;
@@ -6422,7 +6679,7 @@ span.purim-emoji img{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: black;
   text-align: center;
-  padding: 14px 0;
+  padding: 10px 0;
   margin: 0 30px 0 0;
   cursor: pointer;
 }
@@ -6433,8 +6690,8 @@ span.purim-emoji img{
   margin: 0 0 0 30px;
 }
 .tab-view .tab-list .tab img {
-  width: 19px;
-  height: 19px;
+  width: 18px;
+  height: 18px;
   opacity: 0.4;
   margin: 0 10px 0 0;
   top: 2px;
@@ -6443,13 +6700,34 @@ span.purim-emoji img{
 .interface-hebrew .tab-view .tab-list .tab img {
   margin: 0 0 0 10px;
 }
-.tab-view .tab-list .applink {
-  margin: 0 0 0 auto;
+.tab-view .tab-list .justifyright {
+  margin: 0 0 4px auto;
+  display: flex;
+  align-items: center;
+}
+.tab-view .tab-list .tab.filter {
+  font-size: 16px;
+  margin: 0;
+  padding: 6px 9px;
+  border: 1px solid #EDEDEC;
+  background-color: #EDEDEC;
+  border-radius: 6px;
+}
+.tab-view .tab-list .tab.filter.open {
+  background-color: inherit;
+}
+.tab-view .tab-list .tab.filter img {
+  margin: 0 0 1px 6px;
+  width: 12px;
+  height: 12px;
+}
+.interface-hebrew .tab-view .tab-list .tab.filter img {
+  margin: 0 6px 1px 0;
 }
 .tab-view .tab-list .applink a {
     color: #666;
 }
-.interface-hebrew .tab-view .tab-list .applink {
+.interface-hebrew .tab-view .tab-list .justifyright {
   margin: 0 auto 0 0;
 }
 .tab-list :not(.active) .tab {
@@ -6583,11 +6861,54 @@ span.purim-emoji img{
   padding: 16px 0;
   justify-content: space-between;
 }
+.filterable-list .filter-bar-new {
+  padding: 0 0 20px 0;
+  justify-content: space-between;
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+}
+.filterable-list .filter-bar-new .filter-input {
+  background-color: #EDEDED;
+  border-radius: 5px;
+  padding: 5px;
+  color: black;
+  width: 250px;
+  display: flex;
+  align-items: center;
+}
+.filterable-list .filter-bar-new .filter-input ::placeholder {
+  color: #999;
+}
+.filterable-list .filter-bar-new .sort-option {
+  padding: 7px;
+  color: #666;
+  font-size: 16px;
+  cursor: pointer;
+  margin: 0 0 0 7px;
+  background-color: #EDEDED;
+  border-radius: 5px;
+}
+.interface-hebrew .filterable-list .filter-bar-new .sort-option {
+  margin: 0 7px 0 0;
+}
+.filterable-list .filter-bar-new .sort-option.active {
+  color: black;
+}
+.filterable-list .filter-bar-new .systemText span {
+  color: #000;
+}
+.filterable-list .filter-bar .filter-bar-inner {
+  display: flex;
+  align-items: center;
+}
 .filterable-list .readerNavMenuSearchButton {
-  margin: 0 10px 0 0;
+  margin: 0 10px 0 5px;
+  display: inline-flex;
 }
 .interface-hebrew .filterable-list .readerNavMenuSearchButton {
-  margin: 0 0 0 10px;
+  margin: 0 5px 0 10px;
 }
 .filterable-list input {
   border: 0;
@@ -6697,9 +7018,13 @@ span.purim-emoji img{
 .profile-page .resourcesLink.faded {
   color: #666;
 }
-.profile-page .profile-summary .resourcesLink.blue {
+.resourcesLink.blue {
   color: white;
   background-color: #18345d;
+}
+.resourcesLink.blue img {
+  filter: invert(1);
+  opacity: 1;
 }
 .profile-page .authorByLine {
   margin: 20px 0;
@@ -6781,6 +7106,19 @@ span.purim-emoji img{
   width: 18px;
 }
 /*Tooltip text container*/
+.three-dots-button.tooltip-toggle::before {
+  /* make the tooltip appear on right. % is an estimate that works most of the time */
+  top: 0;
+  transform: translateY(-35%);
+  left: 30px;
+  color: #999;
+  text-align: left;
+}
+.interface-hebrew .three-dots-button.tooltip-toggle::before {
+  left: unset;
+  right: 30px;
+  text-align: right;
+}
 .tooltip-toggle::before {
   color: #000;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -6918,41 +7256,48 @@ body .homeFeedWrapper .content {
   font-style: normal;
   position: relative;
 }
-.homeFeedColumns {
+.columnLayout {
   display: flex;
   flex-direction: row;
 }
-.homeFeedSidebar {
+.sideColumn {
   flex: 0 0 320px;
   max-width: 40%;
   background-color: #FBFBFA;
   padding: 60px 50px;
 }
 @media (max-width: 540px) {
-  .homeFeedSidebar {
-    display: none;
+  .topicPanel .columnLayout {
+    flex-direction: column;
+  }
+  .topicPanel .sideColumn {
+    padding: 20px 25px 0 25px;
+    max-width: 100%;
+    align-self: stretch;
+    border: 0;
+    margin: 0;
   }
 }
-.homeFeedSidebar .section {
+.sideColumn .section {
   margin-bottom: 70px;
 }
-.homeFeedSidebar .section h2 {
+.sideColumn .section h2 {
   text-transform: none;
   font-size: 24px;
   letter-spacing: normal;
   text-align: inherit;
   margin: 0 0 30px 0;
 }
-.homeFeedSidebar .section h2 .int-en {
+.sideColumn .section h2 .int-en {
   text-align: left;
 }
-.homeFeedSidebar .section h2 .int-he {
+.sideColumn .section h2 .int-he {
   text-align: right;
 }
-.homeFeedSidebar .section .description {
+.sideColumn .section .description {
   margin-bottom: 25px;
 }
-.homeFeedSidebar .button img {
+.sideColumn .button img {
   width: 16px;
   height: 16px;
   margin: 0 5px;
@@ -6960,25 +7305,25 @@ body .homeFeedWrapper .content {
   top: 2px;
   filter: invert(1);
 }
-.homeFeedSidebar .button.white img {
+.sideColumn .button.white img {
   filter: none;
   opacity: .4;
 }
-.homeFeedSidebar .button .fa {
+.sideColumn .button .fa {
   opacity: .4;
   margin: 0 5px;
 }
-.homeFeedSidebar .inlineButtonBox {
+.sideColumn .inlineButtonBox {
   display: flex;
   justify-content: space-between;
 }
-.homeFeedSidebar .inlineButtonBox a {
+.sideColumn .inlineButtonBox a {
   flex: 1;
 }
-.homeFeedSidebar .inlineButtonBox a .button {
+.sideColumn .inlineButtonBox a .button {
   width: 100%;
 }
-.homeFeedSidebar #homeLearn .refLink {
+.sideColumn #homeLearn .refLink {
   display: block;
   height: 56px;
   line-height: 56px;
@@ -6986,17 +7331,17 @@ body .homeFeedWrapper .content {
   color: #000;
   font-size: 20px;
 }
-.homeFeedSidebar #homeLearn .refLink .int-en {
+.sideColumn #homeLearn .refLink .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   text-transform: uppercase;
 }
-.homeFeedSidebar .button {
+.sideColumn .button {
   letter-spacing: 0;
 }
-.homeFeedSidebar h2 {
+.sideColumn h2 {
   font-weight: 400;
 }
-.homeFeedSidebar .sideCatLink .int-he {
+.sideColumn .sideCatLink .int-he {
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
   font-size: 22px;
   font-weight: normal;
@@ -7004,10 +7349,11 @@ body .homeFeedWrapper .content {
   letter-spacing: 0.05em;
   color: #333;
 }
-.homeFeedSidebar .newsletterInput {
+
+.sideColumn .newsletterInput {
   height: 53px;
 }
-.homeFeedSidebar .newsletterSignUpBox img {
+.sideColumn .newsletterSignUpBox img {
     height: 23px;
     width: 23px;
     opacity: 0.35;
@@ -7015,12 +7361,12 @@ body .homeFeedWrapper .content {
     top: 15px;
     right: 17px;
 }
-.interface-hebrew .homeFeedSidebar .newsletterSignUpBox img {
+.interface-hebrew .sideColumn .newsletterSignUpBox img {
   right: auto;
   left: 17px;
   transform: scale(-1, 1);
 }
-.homeFeedSidebar .newsletterInput, .homeFeedSidebar .newsletterInput::placeholder {
+.sideColumn .newsletterInput, .sideColumn .newsletterInput::placeholder {
   width: 100%;
   box-sizing: border-box;
   font-size: 16px;
@@ -7028,17 +7374,18 @@ body .homeFeedWrapper .content {
   font-style: normal;
   color: #000;
 }
-.interface-english .homeFeedSidebar .newsletterInput, .interface-english .homeFeedSidebar .newsletterInput::placeholder  {
+.interface-english .sideColumn .newsletterInput, .interface-english .sideColumn .newsletterInput::placeholder  {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.interface-hebrew .homeFeedSidebar .newsletterInput, .interface-hebrew .homeFeedSidebar .newsletterInput::placeholder   {
+
+.interface-hebrew .sideColumn .newsletterInput, .interface-hebrew .sideColumn .newsletterInput::placeholder   {
   font-family: "Heebo", sans-serif;
 }
 
-.homeFeedSidebar #homeSocialButtons {
+.sideColumn #homeSocialButtons {
   margin-top: 15px;
 }
-.homeFeedSidebar #homeSocialButtons .fa {
+.sideColumn #homeSocialButtons .fa {
   font-size: 18px;
   color: white;
   background-color: #aaa;
@@ -7050,14 +7397,14 @@ body .homeFeedWrapper .content {
   border-radius: 15px;
   margin-right: 5px;
 }
-.interface-hebrew .homeFeedSidebar #homeSocialButtons .fa {
+.interface-hebrew .sideColumn #homeSocialButtons .fa {
   margin: 0 0 0 5px;
 }
-.homeFeedSidebar #homeSocialButtons .fa:hover {
+.sideColumn #homeSocialButtons .fa:hover {
   text-decoration: none;
   background-color: #999;
 }
-.homeFeedSidebar #homeFeedback {
+.sideColumn #homeFeedback {
   background-color: #EDEDED;
   margin: 0 -50px;
   padding: 30px 50px;
@@ -7065,10 +7412,10 @@ body .homeFeedWrapper .content {
   position: sticky;
   top: 0;
 }
-.homeFeedSidebar #homeFeedback .button {
+.sideColumn #homeFeedback .button {
   margin-bottom: 10px;
 }
-.homeFeedSidebar .feedbackBoxOverlay.open {
+.sideColumn .feedbackBoxOverlay.open {
   position: fixed;
   width: 100%;
   height: 100%;
@@ -7079,18 +7426,21 @@ body .homeFeedWrapper .content {
   justify-content: center;
   background-color: #FBFBFA;
 }
-.homeFeedSidebar .feedbackBoxOverlay.open .feedbackBox {
+.sideColumn .feedbackBoxOverlay.open .feedbackBox {
   width: 470px;
 }
-.storyFeed {
+.mainColumn {
   flex: 1;
-  background-color: white;
   margin: 0 45px 0 30px;
 }
-.interface-hebrew .storyFeed {
+.homeFeedWrapper .mainColumn {
+  background-color: white;
+}
+.interface-hebrew .mainColumn {
   margin: 0 30px 0 45px;
 }
-.storyFeedInner {
+.storyFeedInner,
+.interface-hebrew .storyFeedInner {
   max-width: 700px;
   margin: 0 auto;
   padding-top: 60px;
@@ -7099,20 +7449,21 @@ body .homeFeedWrapper .content {
 .authorName:hover .smallFollowButton {
   display: inline-block;
 }
-.bilingual .homeFeedWrapper span.he {
+.bilingual .homeFeedWrapper span.he,
+.bilingual .readerNavMenu.topicPanel .he {
   display: block;
   padding-bottom: 10px;
 }
-.storyFeed .story {
+.mainColumn .story {
   padding: 0 0 60px 0;
 }
-.storyFeed .story .storyTitleBlock {
+.mainColumn .story .storyTitleBlock {
   clear: both;
 }
-.interface-english .storyFeed .story .storyTitleBlock {
+.interface-english .mainColumn .story .storyTitleBlock {
   float: left;
 }
-.interface-hebrew .storyFeed .story .storyTitleBlock {
+.interface-hebrew .mainColumn .story .storyTitleBlock {
   float: right;
 }
 .colorBarBox {
@@ -7140,24 +7491,27 @@ body .homeFeedWrapper .content {
 .storyTextListItem:last-child {
   padding-bottom: 0;
 }
-.storyFeed .saveButton {
+.mainColumn .saveButton {
   align-self: flex-start;
 }
-.storyFeed .saveLine.storyTitleWrapper .saveButton,
-.storyFeed .story.publishSheetStory .saveLine .saveButton  {
+.mainColumn .saveLine.storyTitleWrapper .saveButton,
+.mainColumn .story.publishSheetStory .saveLine .saveButton  {
   margin-top: 13px;
 }
-.storyFeed .story.publishSheetStory .storyTitle {
+.mainColumn .story.publishSheetStory .storyTitle {
   padding-bottom: 10px;
 }
-.storyFeed .story .storyTitle {
+.mainColumn .story .storyTitle {
   padding: 5px 0 15px;
 }
-.storyFeed .story .storySubTitle {
+.topicPanel .mainColumn .story .storyTitle {
+  padding: 0;
+}
+.mainColumn .story .storySubTitle {
   padding-bottom: 10px;
 }
-.storyFeed .story .storySubTitle .int-en,
-.storyFeed .story .storySubTitle .int-he {
+.mainColumn .story .storySubTitle .int-en,
+.mainColumn .story .storySubTitle .int-he {
   color: #666;
 }
 img.smallProfileImage {
@@ -7166,34 +7520,41 @@ img.smallProfileImage {
   margin: 0;
   border-radius: 20px;
 }
-.storyFeed .story img.mediumProfileImage {
+.mainColumn .story img.mediumProfileImage {
   height: 64px;
   width: 64px;
   margin: 0;
   border-radius: 32px;
 }
-.interface-english .storyFeed .story .storyTypeBlock {
+.interface-english .mainColumn .story .storyTypeBlock {
   float: left;
 }
-.interface-hebrew .storyFeed .story .storyTypeBlock {
+.interface-hebrew .mainColumn .story .storyTypeBlock {
   float: right;
 }
-.interface-english .storyFeed .story .topTailBlock {
+.interface-english .mainColumn .story .topTailBlock {
   float: right;
 }
-.interface-hebrew .storyFeed .story .topTailBlock {
+.interface-hebrew .mainColumn .story .topTailBlock {
   float: left;
 }
-.interface-english .storyFeed .story .mediumProfileImage {
+.interface-english .mainColumn .story .mediumProfileImage {
   float: right;
 }
-.interface-hebrew .storyFeed .story .mediumProfileImage {
+.interface-hebrew .mainColumn .story .mediumProfileImage {
   float: left;
 }
 .story .storyBody {
   clear: both;
   margin: 10px 0;
   text-align: justify;
+}
+.story .contentText .en {
+  line-height: 1.6;
+}
+.story .contentText .he {
+  font-size: 22px;
+  line-height: 1.6;
 }
 .story .storySheetList {
   clear: both;
@@ -7212,6 +7573,7 @@ img.smallProfileImage {
 }
 .story .saveLine {
   display: flex;
+  align-items: center;
   clear: both;
 }
 .story .saveLine .beforeSave {
@@ -7225,6 +7587,7 @@ img.smallProfileImage {
 }
 .story .saveLine .saveButton {
   align-self: center;
+  padding-bottom: 10px;
 }
 .story .citationLine.contentText .int-en,
 .story .citationLine.contentText .int-he {
@@ -7257,7 +7620,7 @@ img.smallProfileImage {
 .systemText.authorOrganization span {
   color: #999;
 }
-.storyFeed a {
+.mainColumn a {
   color: #000;
 }
 .storyBody a {

@@ -125,7 +125,12 @@ def index_sheet(index_name, id):
     pud = public_user_data(sheet["owner"])
     tag_terms_simple = make_sheet_tags(sheet)
     tags = [t["en"] for t in tag_terms_simple]
-    topics = [t['slug'] for t in sheet.get('topics', [])]
+    topics = []
+    for t in sheet.get('topics', []):
+        topic_obj = Topic.init(t['slug'])
+        if not topic_obj:
+            continue
+        topics += [topic_obj]
     try:
         doc = {
             "title": strip_tags(sheet["title"]),
@@ -136,7 +141,9 @@ def index_sheet(index_name, id):
             "profile_url": pud["profileUrl"],
             "version": "Source Sheet by " + user_link(sheet["owner"]),
             "tags": tags,
-            "topics": topics,
+            "topic_slugs": [topic_obj.slug for topic_obj in topics],
+            "topics_en": [topic_obj.get_primary_title('en') for topic_obj in topics],
+            "topics_he": [topic_obj.get_primary_title('he') for topic_obj in topics],
             "sheetId": id,
             "summary": sheet.get("summary", None),
             "group": sheet.get("group", ''),
