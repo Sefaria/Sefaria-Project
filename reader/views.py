@@ -3177,7 +3177,7 @@ def account_user_update(request):
         if not accountJSON:
             return jsonResponse({"error": "No post JSON."})
         accountUpdate = json.loads(accountJSON)
-
+        error = None
         # some validation on post fields
         if accountUpdate["email"] != accountUpdate["confirmEmail"]:
             error = _("Email fields did not match")
@@ -3192,10 +3192,10 @@ def account_user_update(request):
             except Exception as e:
                 error = uuser.errors()
 
-        if error:
-            return jsonResponse({"error": error})
-        else:
+        if not error:
             return jsonResponse({"status": "ok"})
+        else:
+            return jsonResponse({"error": error})
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 

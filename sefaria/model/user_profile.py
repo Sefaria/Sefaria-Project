@@ -233,7 +233,7 @@ class UserWrapper(object):
         self._errors = []
 
     def validate(self):
-        return self.errors()
+        return not self.errors()
 
     def errors(self):
         if len(self._errors):
