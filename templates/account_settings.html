@@ -159,14 +159,10 @@
                     confirmEmail: $("#username-change-edit #confirmEmail").val(),
                     confirmPassword: $("#username-change-edit #confirmPassword").val()
 				};
-				console.log(user_details);
 				$.post("/settings/account/user", {json: JSON.stringify(user_details)}, function(data) {
-				    console.log(data);
 					if ("error" in data) {
-	                    console.log(data.error);
 						$("#username-change-edit #email-edit-errors").text(data.error);
 					} else {
-					    console.log(data)
                         $("#username-change-display #email-display").val(user_details["email"]);
                         $("#username-change-display").toggle();
                         $("#username-change-edit").toggle();
