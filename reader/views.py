@@ -3164,6 +3164,7 @@ def profile_api(request):
 
 
 @login_required
+@csrf_protect
 def account_user_update(request):
     """
     API for user profiles.
@@ -3180,16 +3181,16 @@ def account_user_update(request):
         # some validation on post fields
         if accountUpdate["email"] != accountUpdate["confirmEmail"]:
             error = _("Email fields did not match")
-        if not request.user.check_password(accountUpdate["confirmPassword"]):
+        elif not request.user.check_password(accountUpdate["confirmPassword"]):
             error = _("Incorrect account password for this account")
-
-        # get the logged in user
-        uuser = UserWrapper(request.user.email)
-        try:
-            uuser.set_email(accountUpdate["email"])
-            uuser.save()
-        except Exception as e:
-            error = uuser.errors()
+        else:
+            # get the logged in user
+            uuser = UserWrapper(request.user.email)
+            try:
+                uuser.set_email(accountUpdate["email"])
+                uuser.save()
+            except Exception as e:
+                error = uuser.errors()
 
         if error:
             return jsonResponse({"error": error})
