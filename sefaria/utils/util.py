@@ -461,3 +461,31 @@ def get_size(obj, seen=None):
     elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes, bytearray)):
         size += sum((get_size(i, seen) for i in obj))
     return size
+
+
+def get_hebrew_date(dt_obj:datetime) -> tuple:
+    """
+
+    :param dt_obj : datetime object
+    :return: en date and he date for Hebrew date
+    """
+    from convertdate import hebrew
+    months = [
+        ("Nisan", "ניסן"),
+        ("Iyar", "אייר"),
+        ("Sivan", "סיוון"),
+        ("Tammuz", "תמוז"),
+        ("Av", "אב"),
+        ("Elul", "אלול"),
+        ("Tishrei", "תשרי"),
+        ("Cheshvan", "חשון"),
+        ("Kislev", "כסלו"),
+        ("Tevet", "טבת"),
+        ("Shevat", "שבט"),
+        ("Adar", "אדר"),
+        ("Adar II", "אדר ב׳"),
+    ]
+    y, m, d = hebrew.from_gregorian(dt_obj.year, dt_obj.month, dt_obj.day)
+    en = "{} {}, {}".format(months[m-1][0], d, y)
+    he = "{} {}, {}".format(months[m-1][1], d, y)
+    return en, he

@@ -32,7 +32,6 @@ from sefaria.reviews import *
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
-from sefaria.model.topic import get_topics
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
@@ -42,11 +41,11 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.summaries import get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, trending_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_topic, user_sheets, user_tags, trending_topics, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.talmud import daf_to_section
-from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, this_weeks_parasha
+from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache
@@ -54,6 +53,7 @@ from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES,
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
+from sefaria.helper.topic import get_topic, get_all_topics
 from django.utils.html import strip_tags
 
 
@@ -452,6 +452,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialQuery":                None,
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
+        "initialNavigationTopicCategory":     None,
+        "initialNavigationTopicTitle": None,
     })
     if sheet == None:
         title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
@@ -556,6 +558,31 @@ def texts_category_list(request, cats):
         "ldBreadcrumbs":    ld_cat_crumbs(request, cats)
     })
 
+@sanitize_get_params
+def topics_toc_page(request, topicCategory):
+    """
+    List of texts in a category.
+    """
+    props = base_props(request)
+    topic_obj = Topic.init(topicCategory)
+    props.update({
+        "initialMenu": "navigation",
+        "initialNavigationTopicCategory": topicCategory,
+        "initialNavigationTopicTitle": {
+            "en": topic_obj.get_primary_title('en'),
+            "he": topic_obj.get_primary_title('he')
+        }
+    })
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render(request, 'base.html', {
+        "propsJSON":        propsJSON,
+        "html":             html,
+        "title":            "",
+        "desc":             "",
+        #"ldBreadcrumbs":    ld_cat_crumbs(request, cats)
+    })
+
 
 def get_param(param, i=None):
     return "{}{}".format(param, "" if i is None else i)
@@ -624,7 +651,7 @@ def sheets(request):
         "initialMenu": "sheets",
         "topSheets": get_top_sheets(),
         "tagList": public_tag_list(sort_by="count"),
-        "trendingTags": trending_tags(ntags=18)
+        "trendingTags": trending_topics(ntags=18)
     })
 
     title = _("Sefaria Source Sheets")
@@ -713,10 +740,8 @@ def sheets_by_tag(request, tag):
         desc  = _("Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts.")
 
     else:
-        props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
-        tag   = Term.normalize(tag, lang=request.LANGUAGE_CODE)
-        title = tag + _(" | Sefaria")
-        desc  = _('Public Source Sheets on tagged with "%(tag)s", drawing from Sefaria\'s library of Jewish texts.') % {'tag': tag}
+        # redirect to topics
+        return redirect("/topics/{}".format(tag), permanent=True)
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -735,8 +760,8 @@ def sheets_list(request, type=None):
     either as a full page or as an HTML fragment
     """
     if not type:
-        # Sheet Splash page
-        return sheets(request)
+        # Topics Splash page (for now while waiting for sheets landing page)
+        return topics_page(request)
 
     response = { "status": 0 }
 
@@ -793,61 +818,6 @@ def groups_admin_page(request):
     """
     groups = GroupSet(sort=[["name", 1]])
     return render(request, "groups.html", {"groups": groups})
-
-
-@sanitize_get_params
-def topics_page(request):
-    """
-    Page of sheets by tag.
-    Currently used to for "My Sheets" and  "All Sheets" as well.
-    """
-    topics = get_topics()
-    props = base_props(request)
-    props.update({
-        "initialMenu":  "topics",
-        "initialTopic": None,
-        "topicList": topics.list(sort_by="count"),
-        "trendingTags": trending_tags(ntags=12),
-    })
-
-    propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request, 'base.html', {
-        "propsJSON":      propsJSON,
-        "title":          _("Topics") + " | " + _("Sefaria"),
-        "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
-        "html":           html,
-    })
-
-
-@sanitize_get_params
-def topic_page(request, topic):
-    """
-    Page of sheets by tag.
-    Currently used to for "My Sheets" and  "All Sheets" as well.
-    """
-    if topic != Term.normalize(topic):
-        return redirect("/topics/%s" % Term.normalize(topic))
-
-    topics = get_topics()
-    props = base_props(request)
-    props.update({
-        "initialMenu":  "topics",
-        "initialTopic": topic,
-        "topicData": topics.get(topic).contents(),
-    })
-
-    title = "%(topic)s | Sefaria" % {"topic": topic}
-    desc  = 'Explore "%(topic)s" on Sefaria, drawing from our library of Jewish texts.' % {"topic": topic}
-
-    propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request,'base.html', {
-        "propsJSON":      propsJSON,
-        "title":          title,
-        "desc":           desc,
-        "html":           html,
-    })
 
 
 @sanitize_get_params
@@ -986,12 +956,18 @@ def _crumb(pos, id, name):
 
 
 def sheet_crumbs(request, sheet=None):
+    from sefaria.helper.topic import get_top_topic
     if sheet is None:
         return ""
-
-    # todo: write up topic breadcrumbs
-    breadcrumbJsonList = [_crumb(1, "/sheets", _("Sheets"))]
-
+    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
+    main_topic = get_top_topic(sheet)
+    if main_topic is None:  # crumbs make no sense if there are no topics on sheet
+        return ""
+    breadcrumbJsonList = [
+        _crumb(1, "/topics", _("Topics")),
+        _crumb(2, f"/topics/{main_topic.slug}", main_topic.get_primary_title(short_lang)),
+        _crumb(3, f"/sheets/{sheet['id']}", _("Source Sheet"))
+    ]
     return json.dumps({
         "@context": "http://schema.org",
         "@type": "BreadcrumbList",
@@ -1381,7 +1357,7 @@ def old_recent_redirect(request):
 @catch_error_as_json
 def parashat_hashavua_api(request):
     callback = request.GET.get("callback", None)
-    p = this_weeks_parasha(datetime.now(), request.diaspora)
+    p = get_parasha(datetime.now(), request.diaspora)
     p["date"] = p["date"].isoformat()
     #p.update(get_text(p["ref"]))
     p.update(TextFamily(Ref(p["ref"])).contents())
@@ -2229,6 +2205,21 @@ def calendars_api(request):
 
 @catch_error_as_json
 @csrf_exempt
+def parasha_next_read_api(request, parasha):
+    """
+    Get info on when `parasha` is next read.
+    Returns JSON with Haftarahs read and date of when this parasha is next read
+    :param request:
+    :return:
+    """
+    from sefaria.utils.calendars import parashat_hashavua_and_haftara
+    if request.method == "GET":
+        datetimeobj = timezone.localtime(timezone.now())
+        return jsonResponse(parashat_hashavua_and_haftara(datetimeobj, request.diaspora, parasha=parasha, ret_type='dict'))
+
+
+@catch_error_as_json
+@csrf_exempt
 def terms_api(request, name):
     """
     API for adding a Term to the Term collection.
@@ -2259,7 +2250,7 @@ def terms_api(request, name):
 
             elif request.method == "DELETE":
                 if not t:
-                    return {"error": 'Term "%s" does not exist.' % term}
+                    return {"error": 'Term "%s" does not exist.' % name}
                 return tracker.delete(uid, model.Term, t._id)
 
         if not request.user.is_authenticated:
@@ -2304,26 +2295,25 @@ def get_name_completions(name, limit, ref_only):
             lexicon_ac = library.lexicon_auto_completer(inode.parent.lexiconName)
             t = [base_title + ", " + t[1] for t in lexicon_ac.items(inode.word)[:limit or None]]
             completions = list(OrderedDict.fromkeys(t))  # filter out dupes
-        else:
-            completions = [name.capitalize()] + completer.next_steps_from_node(name)
+            completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
 
-        if limit == 0 or len(completions) < limit:
-            current = {t: 1 for t in completions}
-            additional_results = completer.complete(name, limit)
-            for res in additional_results:
-                if res not in current:
-                    completions += [res]
+        else:
+            completions, completion_objects = completer.complete(name, limit)
+            object_data = completer.get_object(name)
+
     except DictionaryEntryNotFoundError as e:
         # A dictionary beginning, but not a valid entry
         lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
         t = [e.base_title + ", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
         completions = list(OrderedDict.fromkeys(t))  # filter out dupes
-    except InputError:
-        completions = completer.complete(name, limit)
-        object_data = completer.get_data(name)
+        completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
+    except InputError:  # Not a Ref
+        completions, completion_objects = completer.complete(name, limit)
+        object_data = completer.get_object(name)
 
     return {
-        "completions": completions,
+        "completions": completions[:limit or None],
+        "completion_objects": completion_objects[:limit or None],
         "lang": lang,
         "object_data": object_data,
         "ref": ref
@@ -2336,7 +2326,7 @@ def name_api(request, name):
         return jsonResponse({"error": "Unsupported HTTP method."})
 
     # Number of results to return.  0 indicates no limit
-    LIMIT = int(request.GET.get("limit", 16))
+    LIMIT = int(request.GET.get("limit", 10))
     ref_only = request.GET.get("ref_only", False)
     completions_dict = get_name_completions(name, LIMIT, ref_only)
     ref = completions_dict["ref"]
@@ -2359,9 +2349,8 @@ def name_api(request, name):
             "internalToSections": ref.toSections,
             "sections": ref.normal_sections(),  # this switch is to match legacy behavior of parseRef
             "toSections": ref.normal_toSections(),
-            # "number_follows": inode.has_numeric_continuation(),
-            # "titles_follow": titles_follow,
             "completions": completions_dict["completions"] if LIMIT == 0 else completions_dict["completions"][:LIMIT],
+            "completion_objects": completions_dict["completion_objects"],
             # todo: ADD textual completions as well
             "examples": []
         }
@@ -2377,7 +2366,8 @@ def name_api(request, name):
         d = {
             "lang": completions_dict["lang"],
             "is_ref": False,
-            "completions": completions_dict["completions"]
+            "completions": completions_dict["completions"],
+            "completion_objects": completions_dict["completion_objects"],
         }
 
         # let's see if it's a known name of another sort
@@ -2405,8 +2395,8 @@ def dictionary_completion_api(request, word, lexicon=None):
 
     if lexicon is None:
         ac = library.cross_lexicon_auto_completer()
-        rs = ac.complete(word, LIMIT)
-        result = [[r, ac.title_trie[ac.normalizer(r)]["key"]] for r in rs]
+        rs, _ = ac.complete(word, LIMIT)
+        result = [[r, ac.title_trie[ac.normalizer(r)][0]["key"]] for r in rs]
     else:
         result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
     return jsonResponse(result)
@@ -2903,13 +2893,79 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
         return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+
+
+@sanitize_get_params
+def topics_page(request):
+    """
+    Page of all Topics
+    """
+    props = base_props(request)
+    props.update({
+        "initialMenu":  "topics",
+        "initialTopic": None,
+        # "trendingTags": trending_tags(ntags=12),
+    })
+
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render(request, 'base.html', {
+        "propsJSON":      propsJSON,
+        "title":          _("Topics") + " | " + _("Sefaria"),
+        "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
+        "html":           html,
+    })
+
+
+@sanitize_get_params
+def topic_page(request, topic):
+    """
+    Page of an individual Topic
+    """
+    topic_obj = Topic.init(topic)
+    if topic_obj is None:
+        # try to normalize
+        norm_topic = re.sub(r"[ /]", "-", topic.lower().strip())
+        norm_topic = re.sub(r"[^a-z0-9\-]", "", norm_topic)
+        topic_obj = Topic.init(norm_topic)
+        if topic_obj is None:
+            raise Http404
+        topic = norm_topic
+    props = base_props(request)
+    props.update({
+        "initialMenu": "topics",
+        "initialTopic": topic,
+        "initialTopicsTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
+        "initialTopicTitle": {
+            "en": topic_obj.get_primary_title('en'),
+            "he": topic_obj.get_primary_title('he')
+        },
+        "topicData": _topic_data(topic),
+    })
+
+    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
+    title = topic_obj.get_primary_title(short_lang) + _(' | Sefaria')
+    desc = _('Explore %(topic)s on Sefaria, drawing from our library of Jewish texts. ') % {'topic': topic_obj.get_primary_title(short_lang)}
+    topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
+    if topic_desc is not None:
+        desc += topic_desc
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render(request,'base.html', {
+        "propsJSON":      propsJSON,
+        "title":          title,
+        "desc":           desc,
+        "html":           html,
+    })
+
 @catch_error_as_json
 def topics_list_api(request):
     """
     API to get data for a particular topic.
     """
-    topics = get_topics()
-    response = topics.list(sort_by="count")
+    limit = int(request.GET.get("limit", 1000))
+    topics = get_all_topics(limit)
+    response = [t.contents() for t in topics]
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
@@ -2920,12 +2976,33 @@ def topics_api(request, topic):
     """
     API to get data for a particular topic.
     """
-    topics = get_topics()
-    topic = Term.normalize(titlecase(topic))
-    response = topics.get(topic).contents()
-    response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
+    with_links = bool(int(request.GET.get("with_links", False)))
+    annotate_links = bool(int(request.GET.get("annotate_links", False)))
+    group_related = bool(int(request.GET.get("group_related", False)))
+    with_refs = bool(int(request.GET.get("with_refs", False)))
+    response = get_topic(topic, with_links, annotate_links, with_refs, group_related)
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+def _topic_data(topic):
+    response = get_topic(topic, with_links=True, annotate_links=True, with_refs=True, group_related=True)
     return response
+
+
+@catch_error_as_json
+def bulk_topic_api(request):
+    """
+    Use POST because topic_slug_list can be very large when used for search topic filters
+    :param request:
+    :return:
+    """
+    from sefaria.helper.topic import get_bulk_topics
+    if request.method == "POST":
+        minify = request.GET.get("minify", False)
+        postJSON = request.POST.get("json")
+        topic_slug_list = json.loads(postJSON)
+        response = [t.contents(minify=minify) for t in get_bulk_topics(topic_slug_list)]
+        return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -2933,18 +3010,18 @@ def recommend_topics_api(request, ref_list=None):
     """
     API to receive recommended topics for list of strings `refs`.
     """
+    from sefaria.helper.topic import recommend_topics
+
     if request.method == "GET":
         refs = [Ref(ref).normal() for ref in ref_list.split("+")] if ref_list else []
 
     elif request.method == "POST":
-        topics = get_topics()
         postJSON = request.POST.get("json")
         if not postJSON:
             return jsonResponse({"error": "No post JSON."})
         refs = json.loads(postJSON)
 
-    topics = get_topics()
-    response = {"topics": topics.recommend_topics(refs)}
+    response = {"topics": recommend_topics(refs)}
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     return response
 
@@ -3905,22 +3982,18 @@ def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
     """
+    from sefaria.helper.topic import get_random_topic, get_random_topic_source
+
     cb = request.GET.get("callback", None)
-    topics_filtered = [x for x in get_topics().list() if x['good_to_promote']]
-    if len(topics_filtered) == 0:
-        resp = jsonResponse({"ref": None, "topic": None, "url": None}, callback=cb)
-        resp['Content-Type'] = "application/json; charset=utf-8"
-        return resp
-    random_topic = choice(topics_filtered)['tag']
-    term = Term().load_by_title(random_topic)
-    random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
-    try:
-        oref = Ref(random_source)
-        tref = oref.normal()
-        url = oref.url()
-    except Exception:
+    random_topic = get_random_topic(good_to_promote=True)
+    if random_topic is None:
         return random_by_topic_api(request)
-    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=cb)
+    random_source = get_random_topic_source(random_topic)
+    if random_source is None:
+        return random_by_topic_api(request)
+    tref = random_source.normal()
+    url = random_source.url()
+    resp = jsonResponse({"ref": tref, "topic": random_topic.contents(), "url": url}, callback=cb)
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 

@@ -37,7 +37,10 @@ class TitleGroup(object):
     ]
     optional_attrs = [
         "primary",
-        "presentation"
+        "presentation",
+        "transliteration",  # bool flag to indicate if title is transliteration
+        "disambiguation",   # str to help disambiguate this title from other similar titles (often on other objects)
+        "fromTerm"          # bool flag to indicate if title originated from term (used in topics)
     ]
 
     def __init__(self, serial=None):
@@ -82,6 +85,19 @@ class TitleGroup(object):
             self._primary_title[lang] = ""
 
         return self._primary_title.get(lang)
+
+    def get_title_attr(self, title, lang, attr):
+        """
+        Get attribute `attr` for title `title`.
+        For example, get attribute 'transliteration' for a certain title
+        :param title: str
+        :param lang: en or he
+        :param attr: str
+        :return: value of attribute `attr`
+        """
+        for t in self.titles:
+            if t.get('lang') == lang and t.get('text') == title:
+                return t.get(attr, None)
 
     def all_titles(self, lang=None):
         """
@@ -207,6 +223,7 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
             self.sharedTitle = None
             self.title_group = self.title_group.copy()
             return 1
+
 
 class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     """
@@ -2100,7 +2117,7 @@ class AddressPerek(AddressInteger):
         |\u05e4\u05bc?\u05b6?\u05e8\u05b6?\u05e7(?:\u05d9\u05b4?\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
         )"""
     }
-    
+
 
 class AddressPasuk(AddressInteger):
     section_patterns = {
@@ -2152,7 +2169,7 @@ class AddressHalakhah(AddressInteger):
     """
     section_patterns = {
         "en": r"""(?:(?:[Hh]ala[ck]hah?)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
-        "he": r"""(?:\u05d1? 
+        "he": r"""(?:\u05d1?
             (?:\u05d4\u05bb?\u05dc\u05b8?\u05db(?:\u05b8?\u05d4|\u05d5\u05b9?\u05ea)\s+)			# Halakhah spelled out, with a space after
             |(?:\u05d4\u05dc?(?:["\u05f4'\u05f3](?:['\u05f3\u05db]|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
         )"""
