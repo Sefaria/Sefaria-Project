@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load i18n static %}
 
 {% block content %}
 
@@ -71,6 +72,29 @@
 		</div>
 	</div>
 	{% endif %}
+    <div id="username_change">
+        <label class="control-elem">
+                <span class="int-en">Account Email (This is used for login)</span>
+                <span class="int-he">כתובת אימייל (משמש לכניסה לחשבון)</span>
+        </label>
+        <div id="username_change_display">
+            <input id="email-display" type="text" disabled="disabled" value="{{ user.email }}" />
+            <button id="change-email" type="button" class="button blue">
+                <span class="int-en">Change Email</span>
+                <span class="int-he">החלפת כתובת מייל</span>
+            </button>
+        </div>
+        <div id="username_change_edit" style="display: none">
+            <input id="email" type="text" placeholder="{% trans "New Email" %}" autocomplete="off" />
+            <input id="confirmEmail" type="text" placeholder="{% trans "Confirm New Email" %}" autocomplete="off" />
+            <input id="confirmPassword" type="password" placeholder="{% trans "Password" %}" autocomplete="new-password" />
+            <button id="update-email" type="button" class="button blue">
+                <span class="int-en">Update Email</span>
+                <span class="int-he">עדכון כתובת מייל</span>
+            </button>
+            <span id="errors"></span>
+        </div>
+    </div>
 	</div>
 </div>
 
@@ -123,6 +147,29 @@
                     $("#saveAccountSettings").trigger("click");
                 }
             });
+
+            $("#change-email").click(function () {
+                $("#username_change_display").toggle();
+                $("#username_change_edit").toggle();
+            });
+
+            $("#save-email").click(function(){
+				const user_details = {
+                    email: $("#username_change_edit #email").val(),
+                    confirmEmail: $("#username_change_edit #confirmEmail").val(),
+                    confirmPassword: $("#username_change_edit #confirmPassword").val()
+				};
+
+				$.post("/settings/account/user", {json: JSON.stringify(user_details)}, function(data) {
+					if ("error" in data) {
+						$("#username_change_edit #errors").val(data.error);
+					} else {
+                        $("username_change_display #email-display").val(user_details["email"]);
+                        $("#username_change_display").toggle();
+                        $("#username_change_edit").toggle();
+					}
+				});
+			});
 
 		});
 	</script>

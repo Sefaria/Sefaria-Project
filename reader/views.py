@@ -3164,7 +3164,6 @@ def profile_api(request):
 
 
 @login_required
-@ensure_csrf_cookie
 def account_user_update(request):
     """
     API for user profiles.
@@ -3181,7 +3180,7 @@ def account_user_update(request):
         # some validation on post fields
         if accountUpdate["email"] != accountUpdate["confirmEmail"]:
             error = _("Email fields did not match")
-        if not request.user.check_password(accountUpdate["password"]):
+        if not request.user.check_password(accountUpdate["confirmPassword"]):
             error = _("Incorrect account password for this account")
 
         # get the logged in user
