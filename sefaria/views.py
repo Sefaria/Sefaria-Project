@@ -249,6 +249,8 @@ def title_regex_api(request, titles):
             res["error"] = errors
         resp = jsonResponse(res, cb)
         return resp
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 def bulktext_api(request, refs):
