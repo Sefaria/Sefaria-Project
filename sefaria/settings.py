@@ -121,7 +121,7 @@ MIDDLEWARE = [
     'sefaria.system.middleware.ProfileMiddleware',
     'sefaria.system.middleware.CORSDebugMiddleware',
     'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
-    #'easy_timezones.middleware.EasyTimezoneMiddleware',
+    'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
 ]
@@ -149,7 +149,7 @@ INSTALLED_APPS = (
     'webpack_loader',
     'django_user_agents',
     'rest_framework',
-    #'easy_timezones'
+    'easy_timezones'
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
 )
