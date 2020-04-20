@@ -295,7 +295,7 @@ CACHES = {
 
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "user_testing_israel",
-    "repetition": 0,
+    "repetition": 1,
     "style":      "modal",
     "condition": {
         "returning_only": False,
