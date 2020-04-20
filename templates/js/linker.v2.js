@@ -97,6 +97,8 @@
                 'font-size: 16px;'+
                 'text-align: center;' +
                 'text-decoration: none;' +
+                'margin: 12px 0;' +
+                'padding: 0;' +
             '}' +
             '.en {' +
                 'font-family: "Crimson Text";' +
@@ -169,7 +171,7 @@
                 '    height: 48px;' +
                 '    line-height: 48px;' +
                 '    position: absolute;' +
-                '    top: -5px;' +
+                '    top: 0px;' +
                 '    left: 20px;' +
                 '    cursor: pointer;' +
                 '    color: #999;' +
@@ -199,7 +201,7 @@
                 '<div class="sefaria-powered-by-box">' + poweredByText + ' <div id="sefaria-logo">&nbsp;</div></div>' +
                 (mode == "popup-click" ? 
                 '<span class="sefaria-read-more-button">' +
-                    '<a class = "sefaria-popup-ref" href = "">' + readMoreText + '</a>' +
+                    '<a class = "sefaria-popup-ref" target="_blank" href = "">' + readMoreText + '</a>' +
                 '</span>' : "") + 
             '</div>';
 
@@ -216,7 +218,7 @@
         popUpElem.style.position = "fixed";
         popUpElem.style.overflow = "hidden";
         popUpElem.style.display = "none";
-        popUpElem.style.zIndex = 1000;
+        popUpElem.style.zIndex = 9000;
 
         // Accessibility Whatnot
         popUpElem.setAttribute('role', 'dialog');

@@ -27,12 +27,12 @@ if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
 mesechtot = get_text_titles({"categories": "Bavli"})
 m_title_string = "|".join([re.escape(m) for m in mesechtot])
 mregex = "^(" + m_title_string + ")\s\d"
-print mregex
+print(mregex)
 
 tanach = get_text_titles({"categories": "Tanach"})
 t_title_string = "|".join([re.escape(m) for m in tanach])
 tregex = "^(" + t_title_string + ")\s\d"
-print tregex
+print(tregex)
 
 q = {
 	"type": "quotation",
@@ -46,7 +46,7 @@ tlinks = db.links.find(q)
 
 #for t in tlinks:
 #		print t
-print "Removing " + str(tlinks.count()) + " links."
+print("Removing " + str(tlinks.count()) + " links.")
 
 db.links.remove(q)
 

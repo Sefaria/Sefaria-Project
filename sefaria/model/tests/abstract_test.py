@@ -3,6 +3,7 @@
 import pytest
 
 from sefaria.system.database import db
+from sefaria.system.exceptions import InputError
 import sefaria.model as model
 import sefaria.model.abstract as abstract
 
@@ -11,9 +12,13 @@ import sefaria.model.abstract as abstract
 def setup_module(module):
     global record_classes
     global set_classes
+    global record_to_set
     record_classes = abstract.get_record_classes()
     set_classes = abstract.get_set_classes()
-    print record_classes
+    record_to_set = {
+        set_class.recordClass.__name__: set_class for set_class in set_classes
+    }
+    print(record_classes)
 
 
 class Test_Mongo_Record_Models(object):
@@ -21,7 +26,7 @@ class Test_Mongo_Record_Models(object):
     def test_class_attribute_collection(self):
         for sub in record_classes:
             assert sub.collection
-            assert isinstance(sub.collection, basestring)
+            assert isinstance(sub.collection, str)
 
     def test_class_attribute_required_attrs(self):
         for sub in record_classes:
@@ -29,32 +34,93 @@ class Test_Mongo_Record_Models(object):
             assert len(sub.required_attrs)
             assert "_id" not in sub.required_attrs
 
+    @pytest.mark.parametrize("sub", abstract.get_record_classes())
+    def test_instanciation_load_and_validity(self, sub):
+        m = sub()
+        if m.collection == "term": #remove this line once terms are normalized
+            return
+        res = m.load({})
+        if not res:  # Collection may be empty
+            return
+        assert m._id
+        m._validate()
 
-    def test_instanciation_load_and_validity(self):
-        for sub in record_classes:
-            m = sub()
-            if m.collection == "term": #remove this line once terms are normalized
-                continue
-            res = m.load({})
-            if not res:  # Collection may be empty
-                return
-            assert m._id
-            m._validate()
+    def test_normalize_slug(self):
+        a = abstract.AbstractMongoRecord
+
+        def test_slug(slug, final_slug):
+            new_slug = a.normalize_slug(slug)
+            assert new_slug == final_slug
+
+        test_slug('blah', 'blah')
+        test_slug('blah1', 'blah1')
+        test_slug('bla-h', 'bla-h')
+        test_slug('blah and blah', 'blah-and-blah')
+        test_slug('blah/blah', 'blah-blah')
+        test_slug('blah == בלה', 'blah-בלה')
+
+    @pytest.mark.parametrize("sub", filter(lambda x: x.slug_fields is not None, abstract.get_record_classes()))
+    def test_normalize_slug_field(self, sub):
+        """
+
+        :return:
+        """
+        test_slug = 'test'
+
+        def get_slug(base, slug_field):
+            return abstract.AbstractMongoRecord.normalize_slug('{}{}'.format(base, slug_field))
+        attrs = {  # fill in requirements
+            attr: None for attr in sub.required_attrs
+        }
+        attrs.update({
+            slug_field: get_slug(test_slug, slug_field) for slug_field in sub.slug_fields
+        })
+        inst = sub(attrs)
+        for slug_field in sub.slug_fields:
+            temp_slug = get_slug(test_slug, slug_field)
+            num_records = 1
+            dup_str = ''
+            count = 0
+            while num_records > 0:
+                sub_set = record_to_set[sub.__name__]({slug_field: temp_slug + dup_str})  # delete all
+                count += 1
+                dup_str = str(count)
+                num_records = sub_set.count()
+                sub_set.delete()
+            new_slug = inst.normalize_slug_field(slug_field)
+            assert new_slug == temp_slug
+
+        # check that save doesn't alter slug
+        inst.save()
+        for slug_field in sub.slug_fields:
+            temp_slug = get_slug(test_slug, slug_field)
+            assert getattr(inst, slug_field) == temp_slug
+
+        # check that duplicate slugs are handled correctly
+        inst2 = sub(attrs)
+        inst2.save()
+        for slug_field in sub.slug_fields:
+            temp_slug = get_slug(test_slug, slug_field) + '1'
+            assert getattr(inst2, slug_field) == temp_slug
+
+        # cleanup
+        inst.delete()
+        inst2.delete()
 
     @pytest.mark.deep
-    def test_attr_definitions(self):
+    @pytest.mark.parametrize("record_class", abstract.get_record_classes())
+    def test_attr_definitions(self, record_class):
         """
         As currently written, this examines every record in the mongo db.
         If this test fails, use the validate_model_attr_definitions.py script to diagnose.
         """
-        for record_class in record_classes:
-            class_keys = set(record_class.required_attrs + record_class.optional_attrs + [record_class.id_field])
-            req_class_keys = set(record_class.required_attrs)
-            records = getattr(db, record_class.collection).find()
-            for rec in records:
-                record_keys = set(rec.keys())
-                assert record_keys <= class_keys
-                assert req_class_keys <= record_keys
+        class_keys = set(record_class.required_attrs + record_class.optional_attrs + [record_class.id_field])
+        req_class_keys = set(record_class.required_attrs)
+        records = getattr(db, record_class.collection).find()
+        for rec in records:
+            record_keys = set(rec.keys())
+            assert record_keys <= class_keys, "{} - unhandled keys {}".format(record_class, record_keys - class_keys)
+            assert req_class_keys <= record_keys, "{} - required keys missing: {}".format(record_class, req_class_keys - record_keys)
 
 
 class Test_Mongo_Set_Models(object):

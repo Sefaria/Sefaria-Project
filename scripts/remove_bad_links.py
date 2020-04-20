@@ -5,5 +5,5 @@ for link in links:
     try:
         link.save()
     except:
-        print link.contents()
+        print(link.contents())
         link.delete()

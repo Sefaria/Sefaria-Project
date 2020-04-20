@@ -1,0 +1,21 @@
+{
+  "name": "DafChat",
+  "version": "0.0.1",
+  "description": "An experimental project to match random chevrusas for daf yomi",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Sefaria/dafChat.git"
+  },
+  "dependencies": {
+    "jwt-decode": "^2.2.0",
+    "node-fetch": "^2.6.0",
+    "node-static": "^0.7.10",
+    "os": "0.1.1",
+    "socket.io": "^2.0.0",
+    "sqlite3": "^4.1.1"
+  },
+  "license": "GPL-3.0"
+}

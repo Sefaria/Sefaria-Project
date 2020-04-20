@@ -194,7 +194,7 @@ if __name__ == "__main__":
 
     root = SchemaNode()
     struct = library.get_index("Me'or Einayim").schema['sectionNames'][1:]
-    root.add_primary_titles("Me'or Einayim", u"מאור עיניים")
+    root.add_primary_titles("Me'or Einayim", "מאור עיניים")
     for parsha in parshiot:
         node = JaggedArrayNode()
         term = Term().load({"name": parsha})

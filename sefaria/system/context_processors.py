@@ -77,7 +77,12 @@ def titles_json(request):
 
 @data_only
 def toc(request):
-    return {"toc": library.get_toc(), "toc_json": library.get_toc_json(), "search_toc_json": library.get_search_filter_toc_json()}
+    return {
+        "toc": library.get_toc(),
+        "toc_json": library.get_toc_json(),
+        "search_toc_json": library.get_search_filter_toc_json(),
+        "topic_toc_json": library.get_topic_toc_json()
+    }
 
 
 @data_only
@@ -127,7 +132,7 @@ def user_and_notifications(request):
         "partner_role": profile.partner_role,
         "slug": profile.slug,
         "full_name": profile.full_name,
-        "gravatar_url": profile.gravatar_url,
+        "profile_pic_url": profile.profile_pic_url,
         "following": json.dumps(profile.followees.uids)
     }
 

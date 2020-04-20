@@ -109,6 +109,10 @@ class Footer extends Component {
                   <span className="int-en">Mobile Apps</span>
                   <span className="int-he">ספריא בנייד</span>
               </a>
+              <a href="/daf-yomi" className="outOfAppLink">
+                  <span className="int-en">Daf Yomi</span>
+                  <span className="int-he">דף יומי</span>
+              </a>
               <a href="/torah-tab" className="outOfAppLink">
                   <span className="int-en">Torah Tab</span>
                   <span className="int-he">תורה טאב</span>
@@ -171,6 +175,10 @@ class Footer extends Component {
                   <span className="int-en">Jobs</span>
                   <span className="int-he">דרושים</span>
               </a>
+              <a href="https://store.sefaria.org" className="outOfAppLink">
+                  <span className="int-en">Shop</span>
+                  <span className="int-he">חנות</span>
+              </a>
           </div>
 
           <div className="section last connect">
@@ -180,7 +188,7 @@ class Footer extends Component {
               </div>
               <NewsletterSignUpForm contextName="Footer" />
               <LikeFollowButtons />
-              <div className="social-links">
+              <div className="socialLinks">
                   <a href={fbURL} target="_blank" className="outOfAppLink">
                     <span className="int-en">Facebook</span>
                     <span className="int-he">פייסבוק</span>

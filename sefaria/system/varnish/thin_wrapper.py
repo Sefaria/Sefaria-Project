@@ -1,6 +1,6 @@
 # Varnish wrapper that does not depend on core code.  Used for the multiserver monitor.
 
-from common import manager, secret, purge_url, FRONT_END_URL
+from .common import manager, secret, purge_url, FRONT_END_URL
 from sefaria.utils.util import graceful_exception
 
 import logging

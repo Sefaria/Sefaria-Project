@@ -5,14 +5,14 @@ import os
 def print_out_refs(daf, line, segment, prev_daf, prev_line, prev_segment):
     second = "{} {}:{}:{}".format(title, AddressTalmud.toStr("en", daf+1), line+1, segment+1)
     first = "{} {}:{}:{}".format(title, AddressTalmud.toStr("en", prev_daf+1), prev_line+1, prev_segment+1)
-    print "First: {}".format(first)
-    print "Second: {}\n".format(second)
+    print("First: {}".format(first))
+    print("Second: {}\n".format(second))
 
 
 def delete_same_line_cases(same_line_cases):
     for each_case in same_line_cases:
         ref_to_delete = Ref(each_case)
-        print "Deleting {}'s text...".format(each_case)
+        print("Deleting {}'s text...".format(each_case))
         section_ref = ref_to_delete.section_ref()
         tc = TextChunk(section_ref, lang='he', vtitle="Vilna Edition")
         pos_in_text_arr = ref_to_delete.sections[2] - 1

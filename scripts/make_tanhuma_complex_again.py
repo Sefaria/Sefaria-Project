@@ -17,7 +17,7 @@ def get_parshiot():
     en_he_parshiot = []
     with open("data/tmp/parsha.csv") as parsha_file:
         parshiot = csv.reader(parsha_file)
-        parshiot.next()
+        next(parshiot)
         order = 1
         for row in parshiot:
             (en, he, ref) = row
@@ -32,12 +32,12 @@ def create_schema(en_he_parshiot):
     en_parshiot = []
     book = SchemaNode()
     book.add_title("Midrash Tanchuma", "en", primary=True)
-    book.add_title(u"מדרש תנחומא", "he", primary=True)
+    book.add_title("מדרש תנחומא", "he", primary=True)
     book.key = "midrash_tanhuma"
 
     foreword = JaggedArrayNode()
     foreword.add_title("Foreword", "en", primary=True)
-    foreword.add_title(u"פתח דבר", "he", primary=True)
+    foreword.add_title("פתח דבר", "he", primary=True)
     foreword.key = "foreword"
     foreword.depth = 1
     foreword.sectionNames = ["Paragraph"]
@@ -45,7 +45,7 @@ def create_schema(en_he_parshiot):
 
     intro = JaggedArrayNode()
     intro.add_title("Introduction", "en", primary=True)
-    intro.add_title(u"הקדמה", "he", primary=True)
+    intro.add_title("הקדמה", "he", primary=True)
     intro.key = "intro"
     intro.depth = 1
     intro.sectionNames = ["Paragraph"]
@@ -99,7 +99,7 @@ def remove_sets():
 
 
 def rewriter(ref_str):
-    print ref_str
+    print(ref_str)
     ref = Ref(ref_str)
     new_sec_of_ref = map_(ref, map_array)
     if len(ref.sections) == 3:
@@ -171,7 +171,7 @@ if __name__ == "__main__":
     i = library.get_index("Midrash Tanchuma")
     nodes = i.nodes.children
     for count, node in enumerate(nodes):
-        print node
+        print(node)
         if count < 2 or node._full_title['en'].find("Footnotes") >= 0:
             continue
         new_names = ["Siman", "Paragraph"]

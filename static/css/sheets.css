@@ -436,14 +436,20 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	width: 600px;
 	display: none;
 }
-#inlineTextPreview .en {
-	font-family: "adobe-garamond-pro", Georgia, serif
+
+#sheet #inlineTextPreview .en {
+	font-family: "adobe-garamond-pro", Georgia, serif;
+	font-size: 16px;
 }
 
-#inlineTextPreview .he {
-	font-family: "Taamey Frank", "Times New Roman", serif
+#sheet #inlineTextPreview .he {
+	font-family: "Taamey Frank", "Times New Roman", serif;
+	font-size: 18px;
 }
 
+#sheet.english #inlineTextPreview .he {
+	display: block;
+}
 
 #textPreview .previewLine, #inlineTextPreview .previewLine {
 	display: inline;
@@ -1702,6 +1708,9 @@ line-height: normal;
 	margin-top:10px;
 	width: 300px;
 }
+.interface-hebrew #addmediaDiv .buttonContainer {
+	width: 440px;
+}
 .optionItem a, .optionLink a, .languageToggleOption div a, .layoutToggleOption div a, .sideBySideToggleOption div a {
  color: inherit;
 }
@@ -1985,6 +1994,7 @@ body.hasBannerMessage .sheetsEditNavTop {
 }
 .inlineAddSourceByttons .button {
 	padding: 16px 20px;
+	margin-bottom: 0;
 }
 .sheetsEditNavTop .button {
 	background-color: #212e50;
@@ -2023,8 +2033,8 @@ body.hasBannerMessage .sheetsEditNavTop {
 .blockContainer {
 	display: flex;
 	justify-content: space-between;
+	align-items: center;
 	width:100%;
-
 }
 
 .interface-hebrew .blockContainer{
@@ -2271,28 +2281,38 @@ label[for="sourceSheetShareSelect"] {
 	display: none;
 }
 
-#tags {
-	border: 1px solid rgb(204, 204, 204);
-	background: #ffffff;
-	color: #222222;
-	margin: 0 0 5px 0;
-	padding-left: 10px;
+#sheetsContent #addTag {
+	width: 100%;
+	font-size: 16px;
+	padding: 10px 15px;
     border-radius: 4px;
+	font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+	margin-bottom: 0;
+	border-bottom-right-radius: 0px;
+	border-bottom-left-radius: 0px;
 }
 
-#tags .addTagMsg {
-	font-style: italic;
-	font-size: 16px;
-	float: left;
-	padding-top: 3px;
-    margin: 8px 3px;
+#sheetsContent #addTag::placeholder {
+	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
 	color: #999999;
 }
 
-#tags .addTagMsg .int-he {
-	float: right;
+#tags {
+	border: 1px solid rgb(204, 204, 204);
+	border-top: none;
+	background: #ffffff;
+	color: #222222;
+	margin: 0 0 5px 0;
+	padding: 10px;
+    border-radius: 4px;
+    border-top-right-radius: 0px;
+	border-top-left-radius: 0px;
 }
 
+#sheetsContent #tags input {
+	width: 0px; /* hack tagit to be readonly but allow removings tags */
+}
+	
 #suggestedTags {
 	margin-bottom: 9px;
 }
@@ -2318,11 +2338,6 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
 	margin-left: 5px;
 }
 
-#tags input {
-    font-size: 16px;
-    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-
 .tagit .ui-icon {
     width: 16px;
     height: 16px;
@@ -2334,7 +2349,7 @@ ul.tagit li.tagit-choice .tagit-close .text-icon {
 
 ul.tagit li.tagit-choice {
     color: #666;
-	background-color: #FBFBFA;
+	background-color: #ededec;
 	border-radius: 2px;
 	padding: 5px 15px 5px 5px;
 	margin: 5px 0 0 5px;

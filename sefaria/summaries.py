@@ -6,8 +6,8 @@ Writes to MongoDB Collection: summaries
 """
 from sefaria.system.database import db
 from sefaria.utils.hebrew import hebrew_term
-from model import *
-from model.category import CATEGORY_ORDER, TOP_CATEGORIES, REVERSE_ORDER
+from .model import *
+from .model.category import CATEGORY_ORDER, TOP_CATEGORIES, REVERSE_ORDER
 import logging
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ def update_search_filter_table_of_contents():
 def get_toc_categories(index_obj, for_search=False):
     cats = index_obj.categories[:]
     if cats[0] not in TOP_CATEGORIES:
-        cats.insert(0, u"Other")
+        cats.insert(0, "Other")
     if for_search and getattr(index_obj, "dependence", None) == 'Commentary':
         try:
             cats.remove('Commentary')
@@ -133,25 +133,27 @@ def get_or_make_summary_node(summary, nodes, contents_only=True, make_if_not_fou
 def node_sort_key(a):
     """
     Sort function for texts/categories per below.
+    Return sort key as tuple:  (isString, value)
+
     """
     if "category" in a:
         try:
-            return CATEGORY_ORDER.index(a["category"])
+            return False, CATEGORY_ORDER.index(a["category"])
         except ValueError:
             temp_cat_name = a["category"].replace(" Commentaries", "")
             if temp_cat_name in TOP_CATEGORIES:
-                return CATEGORY_ORDER.index(temp_cat_name) + 0.5
-            return 'zz' + a["category"]
+                return False, CATEGORY_ORDER.index(temp_cat_name) + 0.5
+            return True, 'zz' + a["category"]
     elif "title" in a:
         try:
-            return CATEGORY_ORDER.index(a["title"])
+            return False, CATEGORY_ORDER.index(a["title"])
         except ValueError:
             if "order" in a:
-                return a["order"]
+                return False, a["order"]
             else:
-                return a["title"]
+                return True, a["title"]
 
-    return None
+    return False, 9999
 
 
 def sort_toc_node(node, recur=False):

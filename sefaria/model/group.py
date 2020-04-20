@@ -37,15 +37,16 @@ class Group(abst.AbstractMongoRecord):
         "pinned_sheets",    # list of sheet ids, pinned to top
         "listed",           # Bool, whether to list group publicly
         "moderationStatus", # string status code for moderator-set statuses
-        "tag_order",        # list of strings, display order for sheet tags
+        "pinnedTags",       # list of strings, display order for sheet tags
+        "showTagsByDefault",# Bool, whether to default to opening tags list
         "toc",              # object signaling inclusion in TOC with fields
-                                # `catogories` - list
+                                # `categories` - list
                                 # `title` - string
                                 # `heTitle` - string
                                 # `collectiveTitle` - optional dictionary with `en`, `he`, overiding title display in TOC/Sidebar.
                                 # `desscription` - string
                                 # `heDescription` - string
-                                # These fields will override `name` and `description for display
+                                # These fields will override `name` and `description` for display
     ]
 
     def _normalize(self):
@@ -85,7 +86,8 @@ class Group(abst.AbstractMongoRecord):
                 self._handle_image_change(old, new)
 
     def all_names(self, lang):
-        names = self.primary_name(lang)
+        primary_name = self.primary_name(lang)
+        names = [primary_name] if primary_name else []
 
         if hasattr(self, "toc"):
             names += [self.toc["title"]] if lang == "en" else [self.toc["heTitle"]]
@@ -94,19 +96,20 @@ class Group(abst.AbstractMongoRecord):
         return list(set(names))
 
     def primary_name(self, lang):
-        return [self.name] if (hebrew.is_hebrew(self.name) == (lang == "he")) else []
+        return self.name if (hebrew.is_hebrew(self.name) == (lang == "he")) else None
 
     def contents(self, with_content=False, authenticated=False):
-        from sefaria.sheets import group_sheets, sheet_tag_counts
+        from sefaria.sheets import group_sheets, sheet_topics_counts
         contents = super(Group, self).contents()
         if with_content:
             contents["sheets"]       = group_sheets(self, authenticated)["sheets"]
-            contents["tags"]         = sheet_tag_counts({"group": self.name})
+            contents["topics"]         = sheet_topics_counts({"group": self.name})
             contents["admins"]       = [public_user_data(uid) for uid in contents["admins"]]
             contents["publishers"]   = [public_user_data(uid) for uid in contents["publishers"]]
             contents["members"]      = [public_user_data(uid) for uid in contents["members"]]
             contents["invitations"]  = getattr(self, "invitations", []) if authenticated else []
             contents["pinnedSheets"] = getattr(self, "pinned_sheets", [])
+            contents["pinnedTags"]   = getattr(self, "pinnedTags", [])
         return contents
 
     def listing_contents(self, uid=None):

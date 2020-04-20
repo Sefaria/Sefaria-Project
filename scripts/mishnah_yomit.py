@@ -5,8 +5,8 @@ from sefaria.model import *
 
 #create new terms and categories
 t = Term()
-t.name = u"English Explanation of Mishnah"
-t.add_primary_titles(t.name, u"ביאור אנגלי על המשנה")
+t.name = "English Explanation of Mishnah"
+t.add_primary_titles(t.name, "ביאור אנגלי על המשנה")
 t.save()
 
 c = Category()
@@ -22,12 +22,12 @@ for mishnah in mishnayot:
 
 
 #change index titles and version titles
-pre_new_he = u"ביאור אנגלי על "
+pre_new_he = "ביאור אנגלי על "
 pre_new_en = "English Explanation of "
 indices = library.get_indices_by_collective_title("Mishnah Yomit")
 for i, index in enumerate(indices):
-    print "CHANGING INDEX TITLE for {}".format(index)
-    print index
+    print("CHANGING INDEX TITLE for {}".format(index))
+    print(index)
     index = library.get_index(index)
     mishnah_en = index.base_text_titles[0]
     mishnah_he = library.get_index(mishnah_en).get_title('he')
@@ -42,7 +42,7 @@ for i, index in enumerate(indices):
     new_cat[1] = "English Explanation of Mishnah"
     index.categories = new_cat
     index.save()
-    print "NOW CHANGING VERSION STATE TITLE"
+    print("NOW CHANGING VERSION STATE TITLE")
     index = library.get_index(new_en)
     vs = index.versionSet()
     v = vs[0]
@@ -55,7 +55,7 @@ from sefaria.model.category import TocCategory
 c = Category().load({"path": ["Modern Works", "Mishnah Yomit"]})
 for toc_obj in c.get_toc_object().all_children():
     if isinstance(toc_obj, TocCategory):
-        print toc_obj, toc_obj.get_category_object().can_delete()
+        print(toc_obj, toc_obj.get_category_object().can_delete())
         toc_obj.get_category_object().delete()
 
 library.rebuild(include_toc=True)

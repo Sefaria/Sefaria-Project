@@ -6,8 +6,6 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
 
-from emailusernames.forms import EmailAuthenticationForm
-
 from sefaria.forms import HTMLPasswordResetForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
 
@@ -18,7 +16,6 @@ import sefaria.gauth.views as gauth_views
 import django.contrib.auth.views as django_auth_views
 
 from sefaria.site.urls import site_urlpatterns
-
 
 admin.autodiscover()
 handler500 = 'reader.views.custom_server_error'
@@ -93,6 +90,7 @@ urlpatterns += [
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
     url(r'^api/profile/user_history$', reader_views.profile_get_user_history),
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
+    url(r'^api/profile/upload-photo$', reader_views.profile_upload_photo),
     url(r'^api/profile$', reader_views.profile_api),
     url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api),
     url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
@@ -102,6 +100,7 @@ urlpatterns += [
 
 # Topics
 urlpatterns += [
+    url(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_toc_page),
     url(r'^topics$', reader_views.topics_page),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
 ]
@@ -109,7 +108,7 @@ urlpatterns += [
 # Calendar Redirects
 urlpatterns += [
     url(r'^parashat-hashavua$', reader_views.parashat_hashavua_redirect),
-    url(r'^daf-yomi$', reader_views.daf_yomi_redirect),
+    url(r'^todays-daf-yomi$', reader_views.daf_yomi_redirect),
 ]
 
 # Texts Add / Edit / Translate
@@ -154,6 +153,7 @@ urlpatterns += [
     url(r'^api/shape/(?P<title>.+)$', reader_views.shape_api),
     url(r'^api/preview/(?P<title>.+)$', reader_views.text_preview_api),
     url(r'^api/terms/(?P<name>.+)$', reader_views.terms_api),
+    url(r'^api/calendars/next-read/(?P<parasha>.+)$', reader_views.parasha_next_read_api),
     url(r'^api/calendars/?$', reader_views.calendars_api),
     url(r'^api/name/(?P<name>.+)$', reader_views.name_api),
     url(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
@@ -179,7 +179,7 @@ urlpatterns += [
     url(r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    sheets_views.add_ref_to_sheet_api),
     url(r'^api/sheets/(?P<parasha>.+)/get_aliyot$',                   sheets_views.get_aliyot_by_parasha_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api),
-    url(r'^api/sheets/(?P<sheet_id>\d+)/tags$',                       sheets_views.update_sheet_tags_api),
+    url(r'^api/sheets/(?P<sheet_id>\d+)/topics$',                     sheets_views.update_sheet_topics_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)$',                            sheets_views.sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)\.(?P<node_id>\d+)$',          sheets_views.sheet_node_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/like$',                       sheets_views.like_sheet_api),
@@ -191,6 +191,8 @@ urlpatterns += [
     url(r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', sheets_views.check_sheet_modified_api),
     url(r'^api/sheets/create/(?P<ref>[^/]+)(/(?P<sources>.+))?$',     sheets_views.make_sheet_from_text_api),
     url(r'^api/sheets/tag/(?P<tag>[^/]+)?$',                          sheets_views.sheets_by_tag_api),
+    url(r'^api/v2/sheets/tag/(?P<tag>[^/]+)?$',                       sheets_views.story_form_sheets_by_tag),
+    url(r'^api/v2/sheets/bulk/(?P<sheet_id_list>.+)$',                sheets_views.bulksheet_api),
     url(r'^api/sheets/trending-tags/?$',                              sheets_views.trending_tags_api),
     url(r'^api/sheets/tag-list/?$',                                   sheets_views.tag_list_api),
     url(r'^api/sheets/tag-list/user/(?P<user_id>\d+)?$',              sheets_views.user_tag_list_api),
@@ -225,6 +227,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^api/topics$', reader_views.topics_list_api),
     url(r'^api/topics/(?P<topic>.+)$', reader_views.topics_api),
+    url(r'^api/bulktopics$', reader_views.bulk_topic_api),
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
 ]
 
@@ -293,6 +296,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^random/link$',        reader_views.random_redirect),
     url(r'^random/?$',           reader_views.random_text_page),
+    url(r'^daf-roulette/?$',     reader_views.daf_roulette_redirect)
 ]
 
 # Registration
@@ -342,6 +346,13 @@ urlpatterns += [
 
 ]
 
+# dafroulette.js -
+urlpatterns += [
+    url(r'^dafroulette\.js$', sefaria_views.dafroulette_js)
+]
+
+
+
 urlpatterns += [
     url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),
 ]
@@ -386,6 +397,7 @@ urlpatterns += [
     url(r'^admin/translation-requests-stats', sefaria_views.translation_requests_stats),
     url(r'^admin/sheet-stats', sefaria_views.sheet_stats),
     url(r'^admin/untagged-sheets', sefaria_views.untagged_sheets),
+    url(r'^admin/spam', sefaria_views.spam_dashboard),
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
     url(r'^admin/?', include(admin.site.urls)),
@@ -411,12 +423,15 @@ urlpatterns += [
     url(r'^sheets/(?P<tref>[\d.]+)$', reader_views.catchall, {'sheet': True}),
 ]
 
+# add static files to urls
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+urlpatterns += staticfiles_urlpatterns()
+
 # Catch all to send to Reader
 urlpatterns += [
     url(r'^(?P<tref>[^/]+)/(?P<lang>\w\w)/(?P<version>.*)$', reader_views.old_versions_redirect),
     url(r'^(?P<tref>[^/]+)(/)?$', reader_views.catchall)
 ]
-
 
 if DOWN_FOR_MAINTENANCE:
     # Keep admin accessible

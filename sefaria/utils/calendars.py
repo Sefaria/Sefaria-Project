@@ -6,6 +6,7 @@ Uses MongoDB collections: dafyomi, parshiot
 """
 import datetime
 import p929
+import re
 from django.utils import timezone
 
 import sefaria.model as model
@@ -33,9 +34,9 @@ def daily_929(datetime_obj):
     p = p929.Perek(datetime_obj.date())
     rf = model.Ref("{} {}".format(p.book_name, p.book_chapter))
     display_en = "{} ({})".format(rf.normal(), p.number)
-    display_he = u"{} ({})".format(rf.he_normal(), p.number)
+    display_he = "{} ({})".format(rf.he_normal(), p.number)
     return [{
-        'title' : {'en':'929', 'he': u'929'},
+        'title' : {'en':'929', 'he': '929'},
         'displayValue': {'en':display_en, 'he': display_he},
         'url': rf.url(),
         'ref': rf.normal(),
@@ -50,7 +51,7 @@ def daf_yomi(datetime_obj):
     """
     date_str = datetime_obj.strftime(" %m/ %d/%Y").replace(" 0", "").replace(" ", "")
     daf = db.dafyomi.find_one({"date": date_str})
-    daf_str = [daf["daf"]] if isinstance(daf["daf"], basestring) else daf["daf"]
+    daf_str = [daf["daf"]] if isinstance(daf["daf"], str) else daf["daf"]
     daf_yomi = []
     for d in daf_str:
         rf = model.Ref(d)
@@ -61,7 +62,7 @@ def daf_yomi(datetime_obj):
             displayVal = rf.normal()
             heDisplayVal = rf.he_normal()
         daf_yomi.append({
-            'title': {'en': 'Daf Yomi', 'he': u'דף יומי'},
+            'title': {'en': 'Daf Yomi', 'he': 'דף יומי'},
             'displayValue': {'en': displayVal, 'he': heDisplayVal},
             'url': rf.url(),
             'ref': rf.normal(),
@@ -78,7 +79,7 @@ def daily_mishnayot(datetime_obj):
     for dm in daily_mishnahs:
         rf = model.Ref(dm["ref"])
         mishnah_items.append({
-        'title': {'en': 'Daily Mishnah', 'he': u'משנה יומית'},
+        'title': {'en': 'Daily Mishnah', 'he': 'משנה יומית'},
         'displayValue': {'en': rf.normal(), 'he': rf.he_normal()},
         'url': rf.url(),
         'ref': rf.normal(),
@@ -93,9 +94,9 @@ def daily_rambam(datetime_obj):
     daily_rambam = db.daily_rambam.find_one({"date": {"$eq": datetime_obj}})
     rf = model.Ref(daily_rambam["ref"])
     display_value_en = rf.normal().replace("Mishneh Torah, ","")
-    display_value_he = rf.he_normal().replace(u"משנה תורה, ", u"")
+    display_value_he = rf.he_normal().replace("משנה תורה, ", "")
     return [{
-        'title': {'en': 'Daily Rambam', 'he': u'הרמב"ם היומי'},
+        'title': {'en': 'Daily Rambam', 'he': 'הרמב"ם היומי'},
         'displayValue': {'en': display_value_en, 'he': display_value_he},
         'url': rf.url(),
         'ref': rf.normal(),
@@ -114,9 +115,9 @@ def daily_rambam_three(datetime_obj):
     for rf in database_obj["refs"]:
         rf = model.Ref(rf)
         display_en = rf.normal().replace("Mishneh Torah, ", "")
-        display_he = rf.he_normal().replace(u"משנה תורה, ", u"")
+        display_he = rf.he_normal().replace("משנה תורה, ", "")
         rambam_items.append({
-            "title": {"en": "Daily Rambam (3)", "he": u'הרמב"ם היומי {}'.format(u"(3)")},
+            "title": {"en": "Daily Rambam (3)", "he": 'הרמב"ם היומי {}'.format("(3)")},
             "displayValue": {"en": display_en, "he": display_he},
             "url": rf.url(),
             "ref": rf.normal(),
@@ -143,7 +144,7 @@ def daf_weekly(datetime_obj):
     sunday_obj = datetime.datetime(sunday_obj.year, sunday_obj.month, sunday_obj.day)
 
     daf = db.daf_weekly.find_one({"date": {"$eq": sunday_obj}})
-    daf_str = [daf["daf"]] if isinstance(daf["daf"], basestring) else daf["daf"]
+    daf_str = [daf["daf"]] if isinstance(daf["daf"], str) else daf["daf"]
     daf_weekly_list = []
 
     for d in daf_str:
@@ -155,7 +156,7 @@ def daf_weekly(datetime_obj):
             he_display_val = he_display_val[:-2]  # remove the alef and the space before it
 
         daf_weekly_list.append({
-            "title": {"en": "Daf a Week", "he": u"דף השבוע"},
+            "title": {"en": "Daf a Week", "he": "דף השבוע"},
             "displayValue": {"en": display_val, "he": he_display_val},
             "url": rf.url(),
             "ref": rf.normal(),
@@ -173,7 +174,7 @@ def halakhah_yomit(datetime_obj):
     display_en = rf.normal().replace("Shulchan Arkuh, ", "")
     display_he = rf.he_normal()
     halakha = {
-        "title": {"en": "Halakhah Yomit", "he": u"הלכה יומית"},
+        "title": {"en": "Halakhah Yomit", "he": "הלכה יומית"},
         "displayValue": {"en": display_en, "he": display_he},
         "url": rf.url(),
         "ref": rf.normal(),
@@ -185,15 +186,15 @@ def halakhah_yomit(datetime_obj):
 
 def make_haftarah_by_custom_response_from_calendar_entry(db_haftara, custom, add_custom_to_display):
     shorthands = {
-        "ashkenazi" : {"en": 'A', "he": u'א'},
-        "sephardi": {"en": 'S', "he": u'ס'},
-        "edot hamizrach": {"en": 'EM', "he": u'עמ'}
+        "ashkenazi" : {"en": 'A', "he": 'א'},
+        "sephardi": {"en": 'S', "he": 'ס'},
+        "edot hamizrach": {"en": 'EM', "he": 'עמ'}
     }
     haftarah_objs = []
     for h in db_haftara:
         rf = model.Ref(h)
         haftara = {
-            'title': {'en': 'Haftarah', 'he': u'הפטרה'},
+            'title': {'en': 'Haftarah', 'he': 'הפטרה'},
             'displayValue': {'en': rf.normal(), 'he': rf.he_normal()},
             'url': rf.url(),
             'ref': rf.normal(),
@@ -202,7 +203,7 @@ def make_haftarah_by_custom_response_from_calendar_entry(db_haftara, custom, add
         }
         if add_custom_to_display:
             for lang in haftara['title']:
-                haftara['title'][lang] = u'{} ({})'.format(haftara['title'][lang], shorthands[custom][lang])
+                haftara['title'][lang] = '{} ({})'.format(haftara['title'][lang], shorthands[custom][lang])
         haftarah_objs.append(haftara)
     return haftarah_objs
 
@@ -211,7 +212,7 @@ def make_haftarah_response_from_calendar_entry(db_parasha, custom=None):
     haftarah_objs = []
     if isinstance(db_parasha["haftara"], list): #backwards compatability
         haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha["haftara"], "ashkenazi", False)
-    elif len(db_parasha["haftara"].keys()) == 1 or not len(db_parasha["haftara"].get(custom, [])):
+    elif len(list(db_parasha["haftara"].keys())) == 1 or not len(db_parasha["haftara"].get(custom, [])):
         haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha["haftara"].get("ashkenazi"), "ashkenazi", False)
     elif custom:
         haftarah_objs += make_haftarah_by_custom_response_from_calendar_entry(db_parasha["haftara"].get(custom, []), custom, True)
@@ -224,7 +225,7 @@ def make_haftarah_response_from_calendar_entry(db_parasha, custom=None):
 def make_parashah_response_from_calendar_entry(db_parasha):
     rf = model.Ref(db_parasha["ref"])
     parasha = {
-        'title': {'en': 'Parashat Hashavua', 'he': u'פרשת השבוע'},
+        'title': {'en': 'Parashat Hashavua', 'he': 'פרשת השבוע'},
         'displayValue': {'en': db_parasha["parasha"], 'he': hebrew_parasha_name(db_parasha["parasha"])},
         'url': rf.url(),
         'ref': rf.normal(),
@@ -238,22 +239,40 @@ def aliyah_ref(parasha_db, aliyah):
     assert 1 <= aliyah <= 7
     return model.Ref(parasha_db["aliyot"][aliyah - 1])
 
-def this_weeks_parasha(datetime_obj, diaspora=True):
+def get_parasha(datetime_obj, diaspora=True, parasha=None):
     """
     Returns the upcoming Parasha for datetime.
     """
-    p = db.parshiot.find({"date": {"$gt": datetime_obj}, "diaspora": {'$in': [diaspora, None]}}, limit=1).sort([("date", 1)])
-    p = p.next()
+    query = {"date": {"$gt": datetime_obj}, "diaspora": {'$in': [diaspora, None]}}
+    if parasha is not None:
+        # regex search for potential double parasha. there can be dash before or after name
+        query["parasha"] = re.compile('(?:(?<=^)|(?<=-)){}(?=-|$)'.format(parasha))
+    p = db.parshiot.find(query, limit=1).sort([("date", 1)])
+    p = next(p)
 
     return p
 
 @graceful_exception(logger=logger, return_value=[])
-def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None):
-    parasha_items = []
-    db_parasha = this_weeks_parasha(datetime_obj, diaspora=diaspora)
-
-    parasha_items += make_parashah_response_from_calendar_entry(db_parasha)
-    parasha_items += make_haftarah_response_from_calendar_entry(db_parasha, custom)
+def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None, parasha=None, ret_type='list'):
+    db_parasha = get_parasha(datetime_obj, diaspora=diaspora, parasha=parasha)
+    parasha_item = make_parashah_response_from_calendar_entry(db_parasha)
+    haftarah_item = make_haftarah_response_from_calendar_entry(db_parasha, custom)
+    if ret_type not in {'list', 'dict'}:
+        raise Exception('ret_type parameter must be either "list" or "dict')
+    if ret_type == 'list':
+        parasha_items = parasha_item + haftarah_item
+    elif ret_type == 'dict':
+        from sefaria.utils.util import get_hebrew_date
+        he_date_in_english, he_date_in_hebrew = get_hebrew_date(db_parasha.get('date', None))
+        parasha_items = {
+            'parasha': parasha_item[0],
+            'haftarah': haftarah_item,
+            'date': db_parasha.get('date', None),
+            'he_date': {
+                "en": he_date_in_english,
+                "he": he_date_in_hebrew
+            }
+        }
     return parasha_items
 
 

@@ -30,32 +30,32 @@ for text in texts:
         "Tanach" in index['categories']
         and ("Targum" in index['categories'] or "Commentary" in index['categories'])
     ):
-        print "Skipping " + text["title"]
+        print("Skipping " + text["title"])
         continue
 
     if text['title'] not in text_total:
         text_total[text["title"]] = 0
         text_order.append(text["title"])
-    print text["title"]
+    print(text["title"])
 
     for i in range(len(text['chapter'])):
         chap = i + 1
         ref = text['title'] + " " + str(chap)
-        print ref
+        print(ref)
         try:
             result = add_links_from_text(ref, text['language'], text['chapter'][i], text['_id'], user)
             if result:
                 text_total[text["title"]] += len(result)
-        except Exception, e:
-            print e
+        except Exception as e:
+            print(e)
 
 total = 0
 for text in text_order:
     num = text_total[text]
     index = get_index(text)
     if(index) and "categories" in index:
-        print text.replace(",",";") + "," + str(num) + "," + ",".join(index["categories"])
+        print(text.replace(",",";") + "," + str(num) + "," + ",".join(index["categories"]))
     else:
-        print text.replace(",",";") + "," + str(num)
+        print(text.replace(",",";") + "," + str(num))
     total += num
-print "Total " + str(total)
+print("Total " + str(total))

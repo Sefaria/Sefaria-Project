@@ -61,11 +61,7 @@ class Sheet extends Component {
     // Scrollbars take up spacing, causing the centering of Sheet to be slightly off center
     // compared to the header. This functions sets appropriate padding to compensate.
     var width = Sefaria.util.getScrollbarWidth();
-    if (this.props.interfaceLang == "hebrew") {
-      this.$container.css({paddingRight: width, paddingLeft: 0});
-    } else {
-      this.$container.css({paddingRight: 0, paddingLeft: width});
-    }
+    this.$container.css({paddingRight: 0, paddingLeft: width});
   }
 
   render() {
@@ -311,7 +307,7 @@ class SheetContent extends Component {
                       />
                     </a>
                 </div>
-                <span>by <a href={this.props.authorUrl} onClick={this.openProfile}>{this.props.authorStatement}</a></span>
+                <span>{Sefaria._("by")} <a href={this.props.authorUrl} onClick={this.openProfile}>{this.props.authorStatement}</a></span>
             </div>
 
             {this.props.group && this.props.group != "" ?
@@ -329,6 +325,10 @@ class SheetContent extends Component {
         </div>
         <div className="text">
             <div className="textInner">{sources}</div>
+        </div>
+        <div id="printFooter" style={{display:"none"}}>
+          <span className="int-en">Created with <img src="/static/img/logo.svg" /></span>
+          <span className="int-he">{Sefaria._("Created with")} <img src="/static/img/logo.svg" /></span>
         </div>
       </div>
     )

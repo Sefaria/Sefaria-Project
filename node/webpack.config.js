@@ -43,6 +43,10 @@ var baseConfig = {
                     presets: ['react', 'es2015'],
                     plugins: ['transform-es2015-destructuring', 'transform-object-rest-spread', 'transform-async-to-generator']
                 }
+            },
+            {
+              test: /\.css$/i,
+              use: ['style-loader', 'css-loader'],
             }
         ]
     },

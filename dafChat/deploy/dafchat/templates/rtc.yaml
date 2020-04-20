@@ -1,0 +1,54 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rtc-{{ .Values.deployEnv }}
+  labels:
+    app: rtc-{{ .Values.deployEnv }}
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+  selector:
+    app: rtc-{{ .Values.deployEnv }}
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rtc-{{ .Values.deployEnv }}
+spec:
+  selector:
+    matchLabels:
+      app: rtc-{{ .Values.deployEnv }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: rtc-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: rtc
+    spec:
+      containers:
+        - name: rtc-{{ .Values.deployEnv }}
+          image: "{{ .Values.dafChat.rtc.containerImage }}:{{ .Values.releaseImageTag }}"
+          ports:
+            - containerPort: 8080
+          resources:
+            requests:
+              memory: {{ .Values.dafChat.rtc.resources.request.memory }}
+              cpu: {{ .Values.dafChat.rtc.resources.request.cpu }}
+            limits:
+              memory: {{ .Values.dafChat.rtc.resources.limit.memory }}
+              cpu: {{ .Values.dafChat.rtc.resources.limit.cpu }}
+          env:
+            - name: TURN_SERVER
+              value: coturn-{{ .Values.deployEnv }}
+            - name: TURN_USER
+              value: {{ .Values.dafChat.auth.turnUser }}
+            - name: TURN_SECRET
+              value: {{ .Values.dafChat.auth.turnSecret }}
+...

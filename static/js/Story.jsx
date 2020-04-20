@@ -272,7 +272,7 @@ GroupSheetListStory.propTypes = {
 };
 
 const SheetListStory = (props) => {
-  const lead = props.data.lead || {en: "Sheets", he: "דפים"};
+  const lead = props.data.lead || {en: "Sheets", he: "גליונות"};
 
   return (
     <StoryFrame cls="sheetListStory">
@@ -529,6 +529,7 @@ const SaveLine = (props) => (
             historyObject={props.historyObject || {ref: props.dref, versions: props.versions || {}}}
             toggleSignUpModal={props.toggleSignUpModal}
         />
+      { props.afterChildren ? props.afterChildren : null }
     </div>
 );
 
@@ -538,6 +539,7 @@ SaveLine.propTypes = {
   toggleSignUpModal:    PropTypes.func,
   versions:             PropTypes.object,
   classes:              PropTypes.string,
+  afterChildren:        PropTypes.object,
 };
 
 const ReadMoreLink = ({url}) => <SimpleLinkedBlock classes="learnMoreLink smallText" url={url} en="Read More ›" he="קרא עוד ›"/>;
@@ -545,3 +547,10 @@ const ReadMoreLink = ({url}) => <SimpleLinkedBlock classes="learnMoreLink smallT
 module.exports.Story = Story;
 module.exports.SheetBlock = SheetBlock;
 module.exports.StorySheetList = StorySheetList;
+module.exports.StoryTextListItem = StoryTextListItem;
+module.exports.SaveLine = SaveLine;
+module.exports.StoryTitleBlock = StoryTitleBlock;
+module.exports.ColorBarBox = ColorBarBox;
+module.exports.StoryBodyBlock = StoryBodyBlock;
+module.exports.StoryFrame = StoryFrame;
+module.exports.textPropType = textPropType;

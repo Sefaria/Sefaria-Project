@@ -16,7 +16,7 @@ def construct_names_dict():
         reader = csv.reader(infile)
         for line in reader:
             trac_name = line[0].replace('_', ' ')
-            if names.has_key(trac_name):
+            if trac_name in names:
                 names[trac_name].append(line[2])
             else:
                 names[trac_name] = [line[2]]
@@ -41,7 +41,7 @@ def build_schema(ref_list, chapter_names):
 tractate_names = library.get_indexes_in_category('Bavli')
 chapter_names = construct_names_dict()
 for name in tractate_names:
-    print name
+    print(name)
     tractate = library.get_index(name)
     map_node = tractate.get_alt_structure('Chapters')
     schema_node = build_schema(map_node.refs, chapter_names[name])

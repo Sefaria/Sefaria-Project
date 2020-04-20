@@ -10,7 +10,7 @@
 <div id="register" class="biReady registrationContent static">
     <div class="inner">
         <h1>
-          <span class="int-en">Create Your Account</span>
+          <span class="int-en">Sign Up</span>
           <span class="int-he">צור חשבון</span>
         </h1>
         <form id="register-form" action="{% url "register" %}" method="post" autocomplete="false">
@@ -20,7 +20,7 @@
             <input type="hidden" name="next" value="{{ next }}" />
         {% endif %}
         <button type="submit" class="control-elem button">
-            <span class="int-en">Create Account</span>
+            <span class="int-en">Sign Up</span>
             <span class="int-he">צור חשבון</span>
         </button>
         </form>
@@ -28,6 +28,10 @@
           <span class="int-en">Already have an account? Log in</span>
           <span class="int-he">יש לך חשבון כבר? התחבר</span>
         </a>
+        <p class="registration-links control-elem" href="{% url "login" %}{% if next %}?next={{ next }}{% endif %}">
+          <span class="int-en">By clicking "Sign Up" you agree to our <a href="/terms" target="_blank">Terms of Use</a> & <a href="privacy-policy" target="_blank">Privacy Policy</a></span>
+          <span class="int-he">בלחיצה על "צור חשבון" הנכם מסכימים ל<a href="/terms" target="_blank">תנאי השימוש</a> ו<a href="privacy-policy" target="_blank">מדיניות הפרטיות</a> שלנו</span>
+        </p>
     </div>
 </div>
 {% endblock %}

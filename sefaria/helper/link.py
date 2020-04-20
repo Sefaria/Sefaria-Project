@@ -161,7 +161,7 @@ class AbstractStructureAutoLinker(AbstractAutoLinker):
                 try:
                     text = TextFamily(oref, commentary=0, context=0, pad=False).contents()
                 except AssertionError:
-                    logger.warning(u"Structure node passed to add_commentary_links: {}".format(oref.normal()))
+                    logger.warning("Structure node passed to add_commentary_links: {}".format(oref.normal()))
                     return
 
             if self._default_only and (oref.index_node.key != "default" or getattr(oref.index_node, "default", False) is False):
@@ -369,7 +369,7 @@ def add_links_from_text(oref, lang, text, text_id, user, **kwargs):
             single = add_links_from_text(subrefs[i], lang, text[i], text_id, user, **kwargs)
             links += single
         return links
-    elif isinstance(text, basestring):
+    elif isinstance(text, str):
         """
             Keeps three lists:
             * existingLinks - The links that existed before the text was rescanned
@@ -499,8 +499,8 @@ def create_link_cluster(refs, user, link_type="", attrs=None, exception_pairs=No
                 d.update(attrs)
             try:
                 tracker.add(user, Link, d)
-                print u"Created {} - {}".format(d["refs"][0], d["refs"][1])
+                print("Created {} - {}".format(d["refs"][0], d["refs"][1]))
                 total += 1
             except Exception as e:
-                print u"Exception: {}".format(e)
+                print("Exception: {}".format(e))
     return total

@@ -6,6 +6,34 @@ const humanizeDuration = require('humanize-duration');
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
+    static localeDate(dateString) {
+        // takes dateString (usually generated from Python datetime object) and returns a human readable string depending on interfaceLang
+        const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
+        const dateOptions = {year: 'numeric', month: 'short', day: 'numeric'};
+        return (new Date(dateString)).toLocaleDateString(locale, dateOptions).replace(',', '');  // remove comma from english date
+    }
+    static sign_up_user_testing() {
+      // temporary function to be used in template 'user_testing_israel.html'
+        const validateEmail = function(email) {
+          const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+          return re.test(email);
+        };
+        const email = $('#email-input').val();
+        if (!validateEmail(email)) {
+            alert(email + ' is not a valid email');
+            return;
+        }
+        console.log('Email valid', email);
+        const feedback = {
+          refs: null,
+          type: 'user_testing',
+          url: null,
+          currVersions: null,
+          email: email
+        };
+        const postData = {json: JSON.stringify(feedback)};
+        $.post('/api/send_feedback', postData);
+    }
     static naturalTimePlural(n, singular, plural) {
       return n <= 1 ? singular : plural;
     }
@@ -241,6 +269,12 @@ class Util {
           };
         }
 
+        String.prototype.splitCamelCase = function() {
+              return this.replace(/([A-Z])/g, ' $1')
+                          .trim()
+                          .replace(/^./, str => str.toUpperCase())
+        };
+
         Array.prototype.compare = function(testArr) {
             if (this.length != testArr.length) return false;
             for (var i = 0; i < testArr.length; i++) {
@@ -297,7 +331,7 @@ class Util {
             this.splice(new_index, 0, this.splice(old_index, 1)[0]);
             return this; // for testing purposes
         };
-
+        /*  I highly suspect that these functions work properly. Not worth the slight performance gain. Commenting out for now in case we want to revisit later.
         Array.prototype.insertInOrder = function(element, comparer) {
           // see https://stackoverflow.com/questions/1344500/efficient-way-to-insert-a-number-into-a-sorted-array-of-numbers
           // insert `element` into array so that the array remains sorted, assuming it was sorted to begin with
@@ -324,7 +358,7 @@ class Util {
             case 1: return this.locationOfSorted(element, comparer, pivot, end);
           };
         };
-
+        */
         if (!Array.prototype.fill) {
           Object.defineProperty(Array.prototype, 'fill', {
             value: function(value) {
@@ -598,6 +632,8 @@ class Util {
 
         this.current_lookup_ajax = null;
 
+        this.dropdownAnchorSide = this.options.interfaceLang == "he" ? "right" : "left";
+
         this.$input
             .on("input", this.check.bind(this))
             .keyup(function(e) {
@@ -611,6 +647,7 @@ class Util {
                          .then(d => d.completions)
                          .then(response);
                 },
+                position: {my: this.dropdownAnchorSide + " top", at: this.dropdownAnchorSide + " bottom"},
                 select: (event, ui) => this._lookupAndRoute(ui.item.value),
                 minLength: 3
             });
@@ -764,7 +801,7 @@ Util.RefValidator.prototype = {
         this.$input.autocomplete("disable");
         this.$preview.show();
         this.$preview.html("<div class='en'>" + en.join("") + "</div>" + "<div class='he'>" + he.join("") + "</div>");
-        this.$preview.position({my: "left top", at: "left bottom", of: this.$input, collision: "none" }).width('691px').css('margin-top','20px');
+        this.$preview.position({my: this.dropdownAnchorSide + " top", at: this.dropdownAnchorSide + " bottom", of: this.$input, collision: "none" }).width('691px');
     }.bind(this));
   },
   check: function() {

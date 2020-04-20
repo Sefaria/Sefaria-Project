@@ -7,6 +7,7 @@ import collections
 import logging
 import copy
 import bleach
+import re
 
 #Should we import "from abc import ABCMeta, abstractmethod" and make these explicity abstract?
 #
@@ -29,6 +30,7 @@ class AbstractMongoRecord(object):
     collection = None  # name of MongoDB collection
     id_field = "_id"  # Mongo ID field
     criteria_field = "_id"  # Primary ID used to find existing records
+    slug_fields = None  # If record can be uniquely identified by slug, set this var with the slug fields
     criteria_override_field = None  # If a record type uses a different primary key (such as 'title' for Index records), and the presence of an override field in a save indicates that the primary attribute is changing ("oldTitle" in Index records) then this class attribute has that override field name used.
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
@@ -49,7 +51,7 @@ class AbstractMongoRecord(object):
         if _id is None:
             raise Exception(type(self).__name__ + ".load() expects an _id as an argument. None provided.")
 
-        if isinstance(_id, basestring):
+        if isinstance(_id, str):
             # allow _id as either string or ObjectId
             _id = ObjectId(_id)
         return self.load({"_id": _id})
@@ -81,7 +83,7 @@ class AbstractMongoRecord(object):
         :param bool is_init: Indicates whether this dictionary is initializing (as opposed to updating) an object.  If this is true, the primary keys are tracked from this load, and any change will trigger an 'attributeChange' notification.
         :return: the object
         """
-        for key, value in d.items():
+        for key, value in list(d.items()):
             setattr(self, key, value)
         if is_init and not self.is_new():
             self._set_pkeys()
@@ -128,7 +130,7 @@ class AbstractMongoRecord(object):
                 raise Exception("{} inserted when expecting an update.".format(type(self).__name__))
 
         if self.track_pkeys and not is_new_obj and not override_dependencies:
-            for key, old_value in self.pkeys_orig_values.items():
+            for key, old_value in list(self.pkeys_orig_values.items()):
                 if old_value != getattr(self, key, None):
                     notify(self, "attributeChange", attr=key, old=old_value, new=getattr(self, key))
 
@@ -152,13 +154,13 @@ class AbstractMongoRecord(object):
     def delete(self, force=False):
         if not self.can_delete():
             if force:
-                logger.error(u"Forcing delete of {}.".format(str(self)))
+                logger.error("Forcing delete of {}.".format(str(self)))
             else:
-                logger.error(u"Failed to delete {}.".format(str(self)))
+                logger.error("Failed to delete {}.".format(str(self)))
                 return
 
         if self.is_new():
-            raise InputError(u"Can not delete {} that doesn't exist in database.".format(type(self).__name__))
+            raise InputError("Can not delete {} that doesn't exist in database.".format(type(self).__name__))
 
         notify(self, "delete")
         getattr(db, self.collection).delete_one({"_id": self._id})
@@ -190,6 +192,27 @@ class AbstractMongoRecord(object):
         if kwargs.get("with_string_id", False) and hasattr(self, "_id"):
             d["_id"] = str(self._id)
         return d
+
+    def normalize_slug_field(self, slug_field):
+        """
+        Set the slug (stored in self[slug_field]) using the first available number at the end if duplicates exist
+        """
+        slug = self.normalize_slug(getattr(self, slug_field))
+        dupe_count = 0
+        _id = getattr(self, '_id', None)  # _id is not necessarily set b/c record might not have been saved yet
+        temp_slug = slug
+        while getattr(db, self.collection).find_one({slug_field: temp_slug, "_id": {"$ne": _id}}):
+            dupe_count += 1
+            temp_slug = "{}{}".format(slug, dupe_count)
+        return temp_slug
+
+    @staticmethod
+    def normalize_slug(slug):
+        slug = slug.lower()
+        slug = re.sub(r"[ /]", "-", slug.strip())
+        slug = re.sub(r"[^a-z0-9()\-א-ת]", "", slug)  # parens are for disambiguation on topics
+        slug = re.sub(r"-+", "-", slug)
+        return slug
 
     def _set_pkeys(self):
         if self.track_pkeys:
@@ -238,7 +261,9 @@ class AbstractMongoRecord(object):
         return True
 
     def _normalize(self):
-        pass
+        if self.slug_fields is not None:
+            for slug_field in self.slug_fields:
+                setattr(self, slug_field, self.normalize_slug_field(slug_field))
 
     def _pre_save(self):
         pass
@@ -250,7 +275,7 @@ class AbstractMongoRecord(object):
         all_attrs = self.required_attrs + self.optional_attrs
         for attr in all_attrs:
             val = getattr(self, attr, None)
-            if isinstance(val, basestring):
+            if isinstance(val, str):
                 setattr(self, attr, bleach.clean(val, tags=self.ALLOWED_TAGS, attributes=self.ALLOWED_ATTRS))
 
     def same_record(self, other):
@@ -270,14 +295,15 @@ class AbstractMongoRecord(object):
         return not self.__eq__(other)
 
 
-class AbstractMongoSet(collections.Iterable):
+class AbstractMongoSet(collections.abc.Iterable):
     """
     A set of mongo records from a single collection
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None):
+    def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None, record_kwargs=None):
         self.query = query or {}
+        self.record_kwargs = record_kwargs or {}  # kwargs to pass to record when instantiating
         self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj).sort(sort).skip(page * limit).limit(limit)
         self.hint = hint
         self.limit = limit
@@ -302,7 +328,7 @@ class AbstractMongoSet(collections.Iterable):
         if self.records is None:
             self.records = []
             for rec in self.raw_records:
-                self.records.append(self.recordClass(attrs=rec))
+                self.records.append(self.recordClass(attrs=rec, **self.record_kwargs))
             self.max = len(self.records)
 
     def __len__(self):
@@ -322,7 +348,7 @@ class AbstractMongoSet(collections.Iterable):
             return self.max
         else:
             kwargs = {k: getattr(self, k) for k in ["skip", "limit", "hint"] if getattr(self, k, None)}
-            return getattr(db, self.recordClass.collection).count_documents(self.query, **kwargs)
+            return int(getattr(db, self.recordClass.collection).count_documents(self.query, **kwargs))
 
     def update(self, attrs):
         for rec in self:
@@ -354,12 +380,14 @@ def get_subclasses(c):
     return subclasses
 
 
-def get_record_classes(concrete=True):
+def get_record_classes(concrete=True, dynamic_classes=False):
     sc = get_subclasses(AbstractMongoRecord)
     if concrete:
-        return [s for s in sc if s.collection is not None]
-    else:
-        return sc
+        sc = [s for s in sc if s.collection is not None]
+    if not dynamic_classes:
+        from sefaria.model.lexicon import DictionaryEntry
+        sc = [s for s in sc if not issubclass(s, DictionaryEntry)]
+    return sc
 
 
 def get_set_classes():
@@ -454,20 +482,20 @@ def notify(inst, action, **kwargs):
 
     for arg in actions_reqs[action]:
         if not kwargs.get(arg, None):
-            raise Exception(u"Missing required argument {} in notify {}, {}".format(arg, inst, action))
+            raise Exception("Missing required argument {} in notify {}, {}".format(arg, inst, action))
 
     if action == "attributeChange":
         callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
-        logger.debug(u"Notify: " + unicode(inst) + u"." + kwargs["attr"] + u": " + kwargs["old"] + u" is becoming " + kwargs["new"])
+        logger.debug("Notify: " + str(inst) + "." + kwargs["attr"] + ": " + kwargs["old"] + " is becoming " + kwargs["new"])
     else:
-        logger.debug(u"Notify: " + unicode(inst) + u" is being " + action + u"d.")
+        logger.debug("Notify: " + str(inst) + " is being " + action + "d.")
         callbacks = deps.get((type(inst), action, None), [])
 
     if not callbacks:
         return
 
     for callback in callbacks:
-        logger.debug(u"Notify: Calling " + callback.__name__ + u"() for " + inst.__class__.__name__ + " " + action)
+        logger.debug("Notify: Calling " + callback.__name__ + "() for " + inst.__class__.__name__ + " " + action)
         callback(inst, **kwargs)
 
 
@@ -492,7 +520,7 @@ def cascade(set_class, attr):
     elif len(attrs) == 2:
         def foo(obj, **kwargs):
             for rec in set_class({attr: kwargs["old"]}):
-                new_dict = {k: (v if k != attrs[1] else kwargs["new"]) for k, v in getattr(rec, attrs[0]).items()}
+                new_dict = {k: (v if k != attrs[1] else kwargs["new"]) for k, v in list(getattr(rec, attrs[0]).items())}
                 setattr(rec, attrs[0], new_dict)
                 rec.save()
         return foo

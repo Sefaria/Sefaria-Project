@@ -46,10 +46,10 @@ class RefDataSet(abst.AbstractMongoSet):
 
 
 def process_index_title_change_in_ref_data(indx, **kwargs):
-    print "Cascading Ref Data from {} to {}".format(kwargs['old'], kwargs['new'])
+    print("Cascading Ref Data from {} to {}".format(kwargs['old'], kwargs['new']))
 
     # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
-    from text import re as reg_reg
+    from .text import re as reg_reg
     patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
                 for pattern in text.Ref(indx.title).regex(as_list=True)]
     queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
@@ -59,7 +59,7 @@ def process_index_title_change_in_ref_data(indx, **kwargs):
         try:
             o.save()
         except InputError:
-            logger.warning(u"Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
+            logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
 
 
 def process_index_delete_in_ref_data(indx, **kwargs):

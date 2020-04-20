@@ -13,16 +13,16 @@ def create_terms(titles, he_titles):
         term.name = title
         term.add_primary_titles(title, he_title)
         try:
-            print "Creating term {}".format(term.name)
+            print("Creating term {}".format(term.name))
             term.save()
         except InputError as e:
-            print e.message
+            print(e.message)
 
 def change_collective_titles(titles, he_titles):
     for title, he_title in zip(titles, he_titles):
         index = library.get_index(title)
         index.collective_title = " ".join(title.split(" ")[0:2])
-        print "Changing {}'s collective title to {}".format(title, index.collective_title)
+        print("Changing {}'s collective title to {}".format(title, index.collective_title))
         index.save()
 
 def change_node_titles(title):
@@ -41,7 +41,7 @@ def change_node_titles(title):
         #elif "Mitzvot" in old_title:
         #    new_title = old_title.replace("Mitzvot", "commandments")
         if new_title:
-            print "Changing {} to {}".format(old_title, new_title)
+            print("Changing {} to {}".format(old_title, new_title))
             node.add_title(new_title, 'en', primary=True, replace_primary=True)
     index.save()
 
@@ -69,10 +69,10 @@ def change_all_node_titles(book, new_structure):
         en_title, he_title = new_title.split(" / ")
         he_title = he_title.decode('utf-8')
         if node.primary_title() != en_title:
-            print "Changing {} to {}".format(node.primary_title(), en_title)
+            print("Changing {} to {}".format(node.primary_title(), en_title))
             node.add_title(en_title, 'en', True, True)
         if node.primary_title('he') != he_title:
-            print u"Changing {} to {}".format(node.primary_title('he'), he_title)
+            print("Changing {} to {}".format(node.primary_title('he'), he_title))
             node.add_title(he_title, 'he', True, True)
     index.save()
 
@@ -82,8 +82,8 @@ if __name__ == "__main__":
   'Marganita Tava al Sefer Hamitzvot',
  'Megilat Esther al Sefer Hamitzvot',
  'Hasagot HaRamban al Sefer HaMitzvot']
-    he_titles = [u"קנאת סופרים על ספר המצוות", u"מרגניתא טבא על ספר המצוות", u"מגילת אסתר על ספר המצוות",
-                 u"""השגות הרמב"ן על ספר המצוות"""]
+    he_titles = ["קנאת סופרים על ספר המצוות", "מרגניתא טבא על ספר המצוות", "מגילת אסתר על ספר המצוות",
+                 """השגות הרמב"ן על ספר המצוות"""]
 
     # Create terms for three commentaries
     # Switch collective_titles to these terms
@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
     # Change base and commentary titles
     base_title = "Sefer HaMitzvot LaRambam"
-    new_base_title = ["Sefer HaMitzvot", u"""ספר המצוות"""]
+    new_base_title = ["Sefer HaMitzvot", """ספר המצוות"""]
     change_base_title(base_title, new_base_title)
     change_commentary_titles(titles, he_titles)
 
@@ -127,14 +127,14 @@ if __name__ == "__main__":
     index.save()
 
     # Change commentaries' categories
-    print "Moving texts out of Hasagot HaRamban category..."
+    print("Moving texts out of Hasagot HaRamban category...")
     for title in titles:
         title = title.replace(" al ", " on ").replace("Hamitzvot", "HaMitzvot")
         index = library.get_index(title)
         index.categories = ["Halakhah", "Commentary"]
         index.save()
 
-    print "Refreshing version states, cache, TOC, and deleting empty category Hasagot HaRamban..."
+    print("Refreshing version states, cache, TOC, and deleting empty category Hasagot HaRamban...")
     for title in titles:
         title = title.replace(" al ", " on ").replace("Hamitzvot", "HaMitzvot")
         refresh_version_state(title)

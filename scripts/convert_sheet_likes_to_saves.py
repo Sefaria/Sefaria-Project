@@ -17,7 +17,7 @@ def get_all_sheets(tries=0, page=0):
         except AutoReconnect as e:
             tries += 1
             if tries >= 200:
-                print "Tried: {} times".format(tries)
+                print("Tried: {} times".format(tries))
                 raise e
             time.sleep(5)
             continue
@@ -32,7 +32,7 @@ default_epoch_time = epoch_time(datetime(2017, 12, 1))  # the Sefaria epoch. app
 for sheet in get_all_sheets():
     likes = sheet.get("likes", [])
     if "id" not in sheet:
-        print sheet
+        print(sheet)
         continue
     tref = "Sheet {}".format(sheet["id"])
     if len(likes) > 0:

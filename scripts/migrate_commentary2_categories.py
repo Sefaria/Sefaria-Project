@@ -11,7 +11,7 @@ for i in indexes:
     if len(on_split) == 2:
         commentator = on_split[0]
     else:
-        commentator = u"Rambam"
+        commentator = "Rambam"
 
     if i.title == "Introduction to the Mishnah":
         i.order = [0]
@@ -20,7 +20,7 @@ for i in indexes:
     if i.title == "Introduction to Seder Kodashim":
         i.order = [40.5]
 
-    i.categories = [u"Commentary2", i.categories[1], commentator]
+    i.categories = ["Commentary2", i.categories[1], commentator]
     i.save()
 
 library.rebuild_toc()

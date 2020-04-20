@@ -6,7 +6,7 @@ import json
 import regex as re
 
 def remove_punctuation(text):
-    return re.sub(ur"\p{P}(?<!-)", "", text)
+    return re.sub(r"\p{P}(?<!-)", "", text)
 
 with open("/var/tmp/mishnah_term_coverage.csv", 'wb+') as outfile:
     result_csv = csv.writer(outfile, delimiter=',')
@@ -15,7 +15,7 @@ with open("/var/tmp/mishnah_term_coverage.csv", 'wb+') as outfile:
     for i, mishnah in enumerate(mishnah_texts,1):
         #print "%s) %s" % (i, mishnah.title)
         #capture a word between either of these tags
-        term_regex = re.compile(ur'(?:<i>|<em>)([^<]*?)(?:</i>|</em>)',re.UNICODE)
+        term_regex = re.compile(r'(?:<i>|<em>)([^<]*?)(?:</i>|</em>)',re.UNICODE)
         for chn, chap in enumerate(mishnah.chapter, 1):
             for msn, mish in enumerate(chap, 1):
                 matches = term_regex.findall(mish)
@@ -35,5 +35,5 @@ with open("/var/tmp/mishnah_term_coverage.csv", 'wb+') as outfile:
     for result in sorted(results):
         row = [result.encode('utf-8'), results[result]['in_lexicon'], results[result]['frequency'],  ";".join(results[result]['locations']) if 'locations' in results[result] else '']
         result_csv.writerow(row)
-    print json.dumps(results, sort_keys=True)
+    print(json.dumps(results, sort_keys=True))
 

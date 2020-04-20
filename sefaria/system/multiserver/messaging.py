@@ -1,6 +1,6 @@
 import time
 import redis
-from sefaria.local_settings import MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB
+from sefaria.settings import MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB
 
 import logging
 logger = logging.getLogger("multiserver")
@@ -22,9 +22,9 @@ class MessagingNode(object):
     def _pop_subscription_msg(self):
         m = self.pubsub.get_message()
         if not m:
-            logger.error(u"No subscribe message found")
+            logger.error("No subscribe message found")
         elif m["type"] != "subscribe":
-            logger.error(u"Expecting subscribe message, found: {}".format(m))
+            logger.error("Expecting subscribe message, found: {}".format(m))
 
     def _check_initialization(self):
         if not getattr(self, "redis_client", None) or not getattr(self, "pubsub", None):
