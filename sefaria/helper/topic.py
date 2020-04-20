@@ -327,7 +327,7 @@ def generate_all_topic_links_from_sheets(topic=None):
 def generate_sheet_topic_links():
     from sefaria.system.database import db
     from tqdm import tqdm
-    projection = {"topics": 1}
+    projection = {"topics": 1, "id": 1}
     sheet_list = db.sheets.find({}, projection)
     sheet_links = []
     for sheet in tqdm(sheet_list, desc="getting sheet topic links"):
