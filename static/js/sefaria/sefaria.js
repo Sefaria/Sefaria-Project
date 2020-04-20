@@ -183,6 +183,13 @@ Sefaria = extend(Sefaria, {
     }
     return null;
   },
+  refCategories: function(ref) {
+    // Returns the text categories for `ref`
+    let pRef = Sefaria.parseRef(ref);
+    if ("error" in pRef) { return []; }
+    let index = Sefaria.index(pRef.index);
+    return index && index.categories ? index.categories : [];
+  },
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
     const oref = this.getRefFromCache(ref);

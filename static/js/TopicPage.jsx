@@ -318,7 +318,8 @@ const TopicPage = ({
                               filterFunc={(currFilter, ref) => {
                                 const n = text => !!text ? text.toLowerCase() : '';
                                 currFilter = n(currFilter);
-                                for (let field of ['en', 'he', 'ref']) {
+                                ref[1].categories = Sefaria.refCategories(ref[1].ref).join(" ");
+                                for (let field of ['en', 'he', 'ref', 'categories']) {
                                   if (n(ref[1][field]).indexOf(currFilter) > -1) { return true; }
                                 }
                               }}
