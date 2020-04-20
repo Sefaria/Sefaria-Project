@@ -1,3 +1,3 @@
-from sefaria.model.topic import update_topics
+from sefaria.model.topic_old import update_topics
 
 update_topics()

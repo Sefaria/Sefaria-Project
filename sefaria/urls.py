@@ -100,6 +100,7 @@ urlpatterns += [
 
 # Topics
 urlpatterns += [
+    url(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_toc_page),
     url(r'^topics$', reader_views.topics_page),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
 ]
@@ -152,6 +153,7 @@ urlpatterns += [
     url(r'^api/shape/(?P<title>.+)$', reader_views.shape_api),
     url(r'^api/preview/(?P<title>.+)$', reader_views.text_preview_api),
     url(r'^api/terms/(?P<name>.+)$', reader_views.terms_api),
+    url(r'^api/calendars/next-read/(?P<parasha>.+)$', reader_views.parasha_next_read_api),
     url(r'^api/calendars/?$', reader_views.calendars_api),
     url(r'^api/name/(?P<name>.+)$', reader_views.name_api),
     url(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
@@ -177,7 +179,7 @@ urlpatterns += [
     url(r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    sheets_views.add_ref_to_sheet_api),
     url(r'^api/sheets/(?P<parasha>.+)/get_aliyot$',                   sheets_views.get_aliyot_by_parasha_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api),
-    url(r'^api/sheets/(?P<sheet_id>\d+)/tags$',                       sheets_views.update_sheet_tags_api),
+    url(r'^api/sheets/(?P<sheet_id>\d+)/topics$',                     sheets_views.update_sheet_topics_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)$',                            sheets_views.sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)\.(?P<node_id>\d+)$',          sheets_views.sheet_node_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/like$',                       sheets_views.like_sheet_api),
@@ -189,6 +191,8 @@ urlpatterns += [
     url(r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', sheets_views.check_sheet_modified_api),
     url(r'^api/sheets/create/(?P<ref>[^/]+)(/(?P<sources>.+))?$',     sheets_views.make_sheet_from_text_api),
     url(r'^api/sheets/tag/(?P<tag>[^/]+)?$',                          sheets_views.sheets_by_tag_api),
+    url(r'^api/v2/sheets/tag/(?P<tag>[^/]+)?$',                       sheets_views.story_form_sheets_by_tag),
+    url(r'^api/v2/sheets/bulk/(?P<sheet_id_list>.+)$',                sheets_views.bulksheet_api),
     url(r'^api/sheets/trending-tags/?$',                              sheets_views.trending_tags_api),
     url(r'^api/sheets/tag-list/?$',                                   sheets_views.tag_list_api),
     url(r'^api/sheets/tag-list/user/(?P<user_id>\d+)?$',              sheets_views.user_tag_list_api),
@@ -223,6 +227,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^api/topics$', reader_views.topics_list_api),
     url(r'^api/topics/(?P<topic>.+)$', reader_views.topics_api),
+    url(r'^api/bulktopics$', reader_views.bulk_topic_api),
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
 ]
 

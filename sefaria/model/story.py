@@ -28,23 +28,27 @@ logger = logging.getLogger(__name__)
 class Story(abst.AbstractMongoRecord):
 
     @staticmethod
-    def _sheet_metadata(sheet_id, return_id=False):
+    def sheet_metadata(sheet_id, return_id=False):
         from sefaria.sheets import get_sheet_metadata
         metadata = get_sheet_metadata(sheet_id)
         if not metadata:
             return None
+        return Story.build_sheet_metadata_dict(metadata, sheet_id, return_id=return_id)
 
+    @staticmethod
+    def build_sheet_metadata_dict(metadata, sheet_id, return_id=False):
         d = {
             "sheet_title": strip_tags(metadata["title"]),
             "sheet_summary": strip_tags(metadata["summary"]) if "summary" in metadata else "",
-            "publisher_id": metadata["owner"]
+            "publisher_id": metadata["owner"],
+            "sheet_via": metadata.get("via", None)
         }
         if return_id:
             d["sheet_id"] = sheet_id
         return d
 
     @staticmethod
-    def _publisher_metadata(publisher_id, return_id=False):
+    def publisher_metadata(publisher_id, return_id=False):
         udata = user_profile.public_user_data(publisher_id)
         d = {
             "publisher_name": udata["name"],
@@ -57,6 +61,12 @@ class Story(abst.AbstractMongoRecord):
             d["publisher_id"] = publisher_id
 
         return d
+
+    @staticmethod
+    def sheet_metadata_bulk(sid_list, return_id=False, public=True):
+        from sefaria.sheets import get_sheet_metadata_bulk
+        metadata_list = get_sheet_metadata_bulk(sid_list, public=public)
+        return [Story.build_sheet_metadata_dict(metadata, metadata['id'], return_id) for metadata in metadata_list]
 
     def contents(self, **kwargs):
         c = super(Story, self).contents(with_string_id=True, **kwargs)
@@ -88,16 +98,16 @@ class Story(abst.AbstractMongoRecord):
                 "heRef": oref.he_normal()
             } for oref in orefs]
         if "publisher_id" in d:
-            d.update(self._publisher_metadata(d["publisher_id"]))
+            d.update(self.publisher_metadata(d["publisher_id"]))
 
         if "sheet_id" in d:
-            d.update(self._sheet_metadata(d["sheet_id"]))
+            d.update(self.sheet_metadata(d["sheet_id"]))
 
         if "sheet_ids" in d:
-            d["sheets"] = [self._sheet_metadata(i, return_id=True) for i in d["sheet_ids"]]
+            d["sheets"] = [self.sheet_metadata(i, return_id=True) for i in d["sheet_ids"]]
             if "publisher_id" not in d:
                 for sheet_dict in d["sheets"]:
-                    sheet_dict.update(self._publisher_metadata(sheet_dict["publisher_id"]))
+                    sheet_dict.update(self.publisher_metadata(sheet_dict["publisher_id"]))
 
         if "author_key" in d:
             p = person.Person().load({"key": d["author_key"]})
@@ -925,8 +935,8 @@ class SheetListFactory(AbstractStoryFactory):
 
     @classmethod
     def _get_topic_sheet_ids(cls, topic, k=3, page=0):
-        from sefaria.sheets import get_sheets_by_tag
-        sheets = get_sheets_by_tag(topic, limit=k, proj={"id": 1}, page=page)
+        from sefaria.sheets import get_sheets_by_topic
+        sheets = get_sheets_by_topic(topic.slug, limit=k, proj={"id": 1}, page=page)
         return [s["id"] for s in sheets]
         # sheets = SheetSet({"tags": topic, "status": "public"}, proj={"id": 1}, sort=[("views", -1)], limit=k)
         # return [s.id for s in sheets]
@@ -943,9 +953,12 @@ class SheetListFactory(AbstractStoryFactory):
     def create_parasha_sheets_stories(cls, iteration=1, k=3, **kwargs):
         def _create_parasha_sheet_story(parasha_obj, mustHave=None, **kwargs):
             from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+            from sefaria.helper.topic import get_topic_by_parasha
             cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
-
-            sheet_ids = cls._get_topic_sheet_ids(parasha_obj["parasha"], k=k, page=iteration-1)
+            topic = get_topic_by_parasha(parasha_obj["parasha"])
+            if not topic:
+                return
+            sheet_ids = cls._get_topic_sheet_ids(topic, k=k, page=iteration-1)
             if len(sheet_ids) < k:
                 return
 
@@ -974,8 +987,7 @@ class SheetListFactory(AbstractStoryFactory):
 
     @classmethod
     def generate_topic_story(cls, topic, **kwargs):
-        t = text.Term.normalize(topic)
-        return cls.generate_story(sheet_ids=cls._get_topic_sheet_ids(topic), title={"en": t, "he": hebrew_term(t)}, **kwargs)
+        return cls.generate_story(sheet_ids=cls._get_topic_sheet_ids(topic), title={"en": topic.get_primary_title('en'), "he": topic.get_primary_title('he')}, **kwargs)
 
     @classmethod
     def create_topic_story(cls, topic, **kwargs):
@@ -999,10 +1011,9 @@ class TopicListStoryFactory(AbstractStoryFactory):
     """
     @classmethod
     def _data_object(cls, **kwargs):
-        normal_topics = [text.Term.normalize(topics) for topics in kwargs.get("topics")]
-        # todo: handle possibility of Hebrew terms trending.
+        # todo: handle possibility of Hebrew terms trending. NOAH: I think this may be solved now that we've moved to topics model
         return {
-            "topics": [{"en": topic, "he": hebrew_term(topic)} for topic in normal_topics],
+            "topics": [{"en": topic['en'], "he": topic['he']} for topic in kwargs.get('topics')],
             "title": kwargs.get("title", {"en": "Trending Recently", "he": "נושאים עדכניים"}),
             "lead": kwargs.get("lead", {"en": "Topics", "he": "נושאים"})
         }
@@ -1015,33 +1026,36 @@ class TopicListStoryFactory(AbstractStoryFactory):
     def create_trending_story(cls, **kwargs):
         days = kwargs.get("days", 7)
         from sefaria import sheets
-        topics = [t["tag"] for t in sheets.trending_tags(days=days, ntags=6)]
-        cls.create_shared_story(topics=topics)
+        cls.create_shared_story(topics=sheets.trending_topics(days=days, ntags=6))
+
+    @classmethod
+    def generate_parasha_topics_story(cls, parasha_obj, mustHave, iteration, k, **kwargs):
+        from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
+        from sefaria.helper.topic import get_topic_by_parasha
+        from sefaria.model.topic import Topic
+        page = iteration - 1
+        topic = get_topic_by_parasha(parasha_obj["parasha"])
+        if not topic:
+            return
+        link_set = topic.link_set(_class='intraTopic', page=page, limit=k)
+        related_topics = list(filter(None, [Topic.init(l.topic) for l in link_set]))
+        if len(related_topics) < k:
+            return
+
+        cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
+
+        return cls.generate_story(
+            topics=related_topics,
+            title={"en": "Topics in " + cal["displayValue"]["en"], "he": "נושאים ב" + cal["displayValue"]["he"]},
+            lead={"en": "Weekly Torah Portion", "he": 'פרשת השבוע'},
+            mustHave=mustHave or [],
+            **kwargs
+        )
 
     @classmethod
     def create_parasha_topics_stories(cls, iteration=1, k=6, **kwargs):
         def _create_parasha_topic_story(parasha_obj, mustHave=None, **kwargs):
-            from sefaria.model.topic import get_topics
-            from sefaria.utils.util import titlecase
-            from sefaria.utils.calendars import make_parashah_response_from_calendar_entry
-
-            page = iteration-1
-            topics = get_topics()
-            parasha = text.Term.normalize(titlecase(parasha_obj["parasha"]))
-            topic = topics.get(parasha)
-            related_topics = [t for t,x in topic.related_topics[page*k:page*k+k] if x > 1]
-            if len(related_topics) < k:
-                return
-
-            cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
-
-            cls.generate_story(
-                topics=related_topics,
-                title={"en": "Topics in " + cal["displayValue"]["en"], "he": "נושאים ב" + cal["displayValue"]["he"]},
-                lead={"en": "Weekly Torah Portion", "he": 'פרשת השבוע'},
-                mustHave=mustHave or [],
-                **kwargs
-            ).save()
+            cls.generate_parasha_topics_story(parasha_obj, mustHave, iteration, k, **kwargs).save()
 
         create_israel_and_diaspora_stories(_create_parasha_topic_story, **kwargs)
 
@@ -1063,24 +1077,19 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
 
     @classmethod
     def _data_object(cls, **kwargs):
-        t = kwargs.get("topic")
+        topic = kwargs.get("topic")
         trefs = kwargs.get("refs")
         num = kwargs.get("num", 2)
 
-        t = text.Term.normalize(t)
-
         if not trefs:
-            from . import topic
-            topic_manager = topic.get_topics()
-            topic_obj = topic_manager.get(t)
-            trefs = [pair[0] for pair in topic_obj.sources[:num]]
+            trefs = [link.ref for link in topic.link_set(_class='refTopic', query_kwargs={"is_sheet": False}, limit=num, sort=[("order.pr", -1)])]
 
         normal_refs = [text.Ref(ref).normal() for ref in trefs]
 
         d = {
             "title": {
-                "en": t,
-                "he": hebrew_term(t)
+                "en": topic.get_primary_title('en'),
+                "he": topic.get_primary_title('he')
             },
             "refs": normal_refs
         }
@@ -1097,11 +1106,8 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
 
     @classmethod
     def generate_random_shared_story(cls, **kwargs):
-        from . import topic
-
-        topics_filtered = [x for x in topic.get_topics().list() if x['good_to_promote']]
-        random_topic = random.choice(topics_filtered)['tag']
-
+        from sefaria.helper.topic import get_random_topic
+        random_topic = get_random_topic(good_to_promote=True)
         return cls._generate_shared_story(topic=random_topic, **kwargs)
 
     @classmethod
@@ -1155,10 +1161,10 @@ def create_israel_and_diaspora_stories(create_story_fn, **kwargs):
     :return:
     """
     from django.utils import timezone
-    from sefaria.utils.calendars import this_weeks_parasha
+    from sefaria.utils.calendars import get_parasha
     now = timezone.localtime(timezone.now())
-    il = this_weeks_parasha(now, diaspora=False)
-    da = this_weeks_parasha(now, diaspora=True)
+    il = get_parasha(now, diaspora=False)
+    da = get_parasha(now, diaspora=True)
 
     if da["ref"] == il["ref"]:
         create_story_fn(il, **kwargs)
