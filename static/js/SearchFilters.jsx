@@ -92,9 +92,9 @@ class SearchFilters extends Component {
     this.setState({isExactSearch: newExactSearch});
 
   }
-  _type_button(en, he, total, on_click, active) {
+  _typeButton(en, he, total, on_click, active) {
     // if (!total) { return "" }
-      var total_with_commas = this._add_commas(total);
+      var total = this._addCommas(total);
       var classes = classNames({"search-dropdown-button": 1, active});
 
       return (
@@ -106,7 +106,7 @@ class SearchFilters extends Component {
         </div>
       );
   }
-  _add_commas(number) {
+  _addCommas(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
   render() {
@@ -115,8 +115,8 @@ class SearchFilters extends Component {
 
     var buttons = (
       <div className="type-buttons">
-        {this._type_button("Texts", "טקסטים", this.props.textTotal, this.props.clickTextButton, (this.props.type == "text"))}
-        {this._type_button("Sheets", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, (this.props.type == "sheet"))}
+        {this._typeButton("Texts", "טקסטים", this.props.textTotal, this.props.clickTextButton, (this.props.type == "text"))}
+        {this._typeButton("Sheets", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, (this.props.type == "sheet"))}
       </div>
     );
 
