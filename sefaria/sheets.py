@@ -879,7 +879,7 @@ def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_la
 				new_topic[tag_lang] = new_topic['asTyped']
 			if not use_as_typed or tag_lang == 'en':
 				new_topic['he'] = topic_obj.get_primary_title('he')
-			elif not use_as_typed:
+			if not use_as_typed or tag_lang == 'he':
 				new_topic['en'] = topic_obj.get_primary_title('en')
 
 			if backwards_compat_lang_fields is not None:
