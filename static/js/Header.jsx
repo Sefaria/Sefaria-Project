@@ -118,8 +118,7 @@ class Header extends Component {
         return; //this prevents the icon from flashing on every key stroke.
       }
       if(this.props.interfaceLang === 'english'){
-          const opacity = show ? 0.4 : 0;
-          $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
+          $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"display": show ? "inline" : "none"});
       }
   }
   focusSearch(e) {

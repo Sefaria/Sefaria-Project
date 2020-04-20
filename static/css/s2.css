@@ -391,7 +391,7 @@ input.noselect {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   vertical-align: 6px;
   margin: 0;
-  width: 60px;
+  width: 100px;
 }
 .header .searchFocused .search {
   width: 160px;
@@ -5837,7 +5837,8 @@ h2.splitHeader .he {
 }
 
 .searchBox .keyboardInputInitiator {
-    opacity: 0;
+    display: none;
+    opacity: 0.4;
     width: 16px;
     height: 16px;
     padding: 4px 7px;
@@ -5846,8 +5847,6 @@ h2.splitHeader .he {
 }
 body #keyboardInputMaster {
     opacity: 1;
-    /* top: 53px !important; */
-    /* left:70px !important; */
     background-color: #FBFBFA;
     border: 1px solid #ccc;
     padding: 5px;
