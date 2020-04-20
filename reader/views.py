@@ -2925,12 +2925,11 @@ def topic_page(request, topic):
     topic_obj = Topic.init(topic)
     if topic_obj is None:
         # try to normalize
-        norm_topic = re.sub(r"[ /]", "-", topic.lower().strip())
-        norm_topic = re.sub(r"[^a-z0-9\-]", "", norm_topic)
-        topic_obj = Topic.init(norm_topic)
+        from sefaria.model.abstract import AbstractMongoRecord
+        topic_obj = Topic.init(AbstractMongoRecord.normalize_slug(topic))
         if topic_obj is None:
             raise Http404
-        topic = norm_topic
+        topic = topic_obj.slug
     props = base_props(request)
     props.update({
         "initialMenu": "topics",
