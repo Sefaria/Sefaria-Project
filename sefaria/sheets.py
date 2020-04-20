@@ -907,17 +907,17 @@ def public_tag_list(sort_by="alpha"):
 	"""
 	Returns a list of all public tags, sorted either alphabetically ("alpha") or by popularity ("count")
 	"""
-	tags = defaultdict(int)
+	seen_titles = set()
 	results = []
-
-	unnormalized_tags = sheet_topics_counts({"status": "public"})
+	from sefaria.helper.topic import get_all_topics
+	all_tags = get_all_topics()
 	lang = "he" if sort_by == "alpha-hebrew" else "en"
-	for tag in unnormalized_tags:
-		tags[model.Term.normalize(tag["tag"], lang)] += tag["count"]
-
-	for tag in list(tags.items()):
-		if len(tag[0]):
-			results.append({"tag": tag[0], "count": tag[1]})
+	for tag in all_tags:
+		title = tag.get_primary_title(lang)
+		if title in seen_titles:
+			continue
+		seen_titles.add(title)
+		results.append({"tag": title, "count": getattr(tag, 'numSources', 0)})
 
 	sort_keys =  {
 		"alpha": lambda x: x["tag"],
