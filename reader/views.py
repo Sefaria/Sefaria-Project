@@ -2092,13 +2092,19 @@ def flag_text_api(request, title, lang, version):
 def tag_category_api(request, path=None):
     if request.method == "GET":
         if not path or path == "index":
-            categories = TermSet({"scheme": "Tag Category"})
-
+            categories = TopicSet({"isTopLevelDisplay": True}, sort=[("displayOrder", 1)])
         else:
-            categories = TermSet({"category": path})
+            from sefaria.model.abstract import AbstractMongoRecord
+            slug = AbstractMongoRecord.normalize_slug(path)
+            topic = Topic.init(slug)
+            if not topic:
+                categories = []
+            else:
+                links = topic.link_set(query_kwargs={"linkType": "displays-under", "toTopic": slug})
+                categories = [Topic.init(l.topic) for l in links]
+                categories.sort(key=lambda x: getattr(x, 'displayOrder', 10000))
 
-
-        category_names = [{"tag": category.get_primary_title(), "heTag": category.get_primary_title("he"), } for category in categories]
+        category_names = [{"tag": category.get_primary_title('en'), "heTag": category.get_primary_title("he"), } for category in categories]
         return jsonResponse(category_names)
 
 
@@ -2925,12 +2931,11 @@ def topic_page(request, topic):
     topic_obj = Topic.init(topic)
     if topic_obj is None:
         # try to normalize
-        norm_topic = re.sub(r"[ /]", "-", topic.lower().strip())
-        norm_topic = re.sub(r"[^a-z0-9\-]", "", norm_topic)
-        topic_obj = Topic.init(norm_topic)
+        from sefaria.model.abstract import AbstractMongoRecord
+        topic_obj = Topic.init(AbstractMongoRecord.normalize_slug(topic))
         if topic_obj is None:
             raise Http404
-        topic = norm_topic
+        topic = topic_obj.slug
     props = base_props(request)
     props.update({
         "initialMenu": "topics",

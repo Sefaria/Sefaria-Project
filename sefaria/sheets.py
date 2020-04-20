@@ -879,7 +879,7 @@ def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_la
 				new_topic[tag_lang] = new_topic['asTyped']
 			if not use_as_typed or tag_lang == 'en':
 				new_topic['he'] = topic_obj.get_primary_title('he')
-			elif not use_as_typed:
+			if not use_as_typed or tag_lang == 'he':
 				new_topic['en'] = topic_obj.get_primary_title('en')
 
 			if backwards_compat_lang_fields is not None:
@@ -907,17 +907,17 @@ def public_tag_list(sort_by="alpha"):
 	"""
 	Returns a list of all public tags, sorted either alphabetically ("alpha") or by popularity ("count")
 	"""
-	tags = defaultdict(int)
+	seen_titles = set()
 	results = []
-
-	unnormalized_tags = sheet_topics_counts({"status": "public"})
+	from sefaria.helper.topic import get_all_topics
+	all_tags = get_all_topics()
 	lang = "he" if sort_by == "alpha-hebrew" else "en"
-	for tag in unnormalized_tags:
-		tags[model.Term.normalize(tag["tag"], lang)] += tag["count"]
-
-	for tag in list(tags.items()):
-		if len(tag[0]):
-			results.append({"tag": tag[0], "count": tag[1]})
+	for tag in all_tags:
+		title = tag.get_primary_title(lang)
+		if title in seen_titles:
+			continue
+		seen_titles.add(title)
+		results.append({"tag": title, "count": getattr(tag, 'numSources', 0)})
 
 	sort_keys =  {
 		"alpha": lambda x: x["tag"],
@@ -933,6 +933,9 @@ def get_sheets_by_topic(topic, public=True, uid=None, group=None, proj=None, lim
 	"""
 	Returns all sheets tagged with 'topic'
 	"""
+	# try to normalize for backwards compatibility
+	from sefaria.model.abstract import AbstractMongoRecord
+	topic = AbstractMongoRecord.normalize_slug(topic)
 	query = {"topics.slug": topic} if topic else {"topics": {"$exists": 0}}
 
 	if uid:
