@@ -57,6 +57,7 @@ class Header extends Component {
       }
       this.closeSearchAutocomplete();
       this.showSearch(override[1]);
+      $(ReactDOM.findDOMNode(this)).find("input.search").val(override[1]);
       return true;
     }
     return false;
@@ -70,7 +71,7 @@ class Header extends Component {
           .data( "item.autocomplete", item )
           .toggleClass("search-override", !!override)
           .append(`<img alt="${item.type}" src="/static/icons/${this._type_icon_map[item.type]}">`)
-          .append( $( `<a href="${this.getURLForObject(item.type, item.key)}" role='option' data-value='${item.value}'></a>` ).text( item.label ) )
+          .append( $(`<a href="${this.getURLForObject(item.type, item.key)}" role='option' data-value="${item.value}"></a>` ).text( item.label ) )
           .appendTo( ul );
       }.bind(this)
     });
@@ -97,14 +98,15 @@ class Header extends Component {
         event.preventDefault();
         $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.label);
         $(".ui-state-focus").removeClass("ui-state-focus");
-        $(".ui-menu-item a[data-value='" + ui.item.value + "']").addClass("ui-state-focus");
+        $(`.ui-menu-item a[data-value="${ui.item.value}"]`).parent().addClass("ui-state-focus");
+
       },
       source: (request, response) => Sefaria.getName(request.term)
         .then(d => {
           const comps = d["completion_objects"].map(o => ({value: `${o['title']}${o["type"]==="ref"?"":` (${o["type"]})`}`, label: o["title"], key: o["key"], type: o["type"]}));
           if (comps.length > 0) {
             const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
-            response(comps.concat([{value: q, label: q, type: "search"}]));
+            response(comps.concat([{value: "SEARCH_OVERRIDE", label: q, type: "search"}]));
           } else {
             response([])
           }
@@ -236,7 +238,6 @@ class Header extends Component {
         this.handleRefClick(key);
       }
   }
-
   submitSearch(query) {
     Sefaria.getName(query)
       .then(d => {

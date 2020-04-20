@@ -730,7 +730,6 @@ input.noselect {
   z-index: 1000000 !important;
   font-family: 'Hebrew Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
-
 .header > .ui-autocomplete {
   z-index: 1000 !important;
 }
@@ -757,8 +756,8 @@ input.noselect {
   margin: 0 10px;
   vertical-align: top;
 }
-.ui-autocomplete .ui-menu-item a.ui-state-focus {
-  background: #ddd;
+.ui-autocomplete .ui-menu-item.ui-state-focus {
+  background: #EDEDEC;
 }
 .ui-helper-hidden-accessible {
   display: none;
