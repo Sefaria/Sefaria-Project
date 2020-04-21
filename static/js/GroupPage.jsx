@@ -323,7 +323,11 @@ class GroupPage extends Component {
 
               </div>
             <Footer />
-            </div>: <LoadingMessage />);
+            </div>
+            : 
+            <div className="content groupPage sheetList hasFooter">
+              <LoadingMessage />
+            </div>);
   }
 }
 GroupPage.propTypes = {
