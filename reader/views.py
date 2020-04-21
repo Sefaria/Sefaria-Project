@@ -2221,6 +2221,7 @@ def calendars_api(request):
             diaspora = True if diaspora == "1" else False
             calendars = get_all_calendar_items(datetimeobj, diaspora=diaspora, custom=custom)
             return jsonResponse({"date": datetimeobj.date().isoformat(),
+                                 "time": datetimeobj.time().isoformat(),
                                  "timezone" : zone_name,
                                  "calendar_items": calendars},
                                 callback=request.GET.get("callback", None))
