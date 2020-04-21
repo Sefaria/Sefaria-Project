@@ -320,12 +320,32 @@ Sefaria = extend(Sefaria, {
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null) {
     // todo: fish existing texts out of cache first
     if (refs.length === 0) { return Promise.resolve({}); }
-    let paramStr = '';
+    
+    const MAX_URL_LENGTH = 3800;
+    const hostStr = `${Sefaria.apiHost}/api/bulktext/`;
 
+    let paramStr = '';
     for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar})) {
       paramStr = !!paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
     }
-    return this._ApiPromise(`${Sefaria.apiHost}/api/bulktext/${refs.join("|")}${paramStr.replace(/&/,'?')}`);
+
+    // Split into multipe requests if URL length goes above limit
+    let refStrs = [""];
+    refs.map(ref => {
+      let last = refStrs[refStrs.length-1];
+      if (encodeURI(`${hostStr}${last}|${ref}${paramStr}`).length > MAX_URL_LENGTH) {
+        refStrs.push(ref)
+      } else {
+        refStrs[refStrs.length-1] += last.length ? `|${ref}` : ref;
+      }
+    });
+
+    let promises = refStrs.map(refStr => this._ApiPromise(`${hostStr}${refStr}${paramStr.replace(/&/,'?')}`));
+
+    return Promise.all(promises).then(results => {
+      let combinedResults = {};
+      return Object.assign(combinedResults, ...results);
+    });
   },
   getBulkSheets: function(sheetIds) {
     // todo: fish existing texts out of cache first
