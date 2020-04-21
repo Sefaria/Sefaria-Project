@@ -48,7 +48,7 @@ io.sockets.on('connection', function(socket) {
     var room = Math.random().toString(36).substring(7);
     socket.join(room);
     console.log(`${socket.id} created room ${room}`)
-    socket.emit('created', room, socket.id);
+    socket.emit('created', room, socket.id, pcConfig);
     db.run(`INSERT INTO chatrooms(name, clients, roomStarted) VALUES(?, ?, ?)`, [room, 1, +new Date], function(err) {
       if (err) {
         console.log(err.message);
@@ -65,7 +65,31 @@ io.sockets.on('connection', function(socket) {
 
       const numRows = rows["COUNT(*)"]
       socket.broadcast.emit('return rooms', numRows);
-      socket.emit('route new user', numRows, pcConfig);
+
+
+
+
+      console.log(`${socket.id} searching for a room`)
+      // log('Received request to create or join room ' + room);
+        db.all(`SELECT name name, clients, clients from chatrooms WHERE clients = ? ORDER BY roomStarted`, [1], (err, rows) => {
+          if (err) {
+            return console.error(err.message);
+          }
+          if (rows.length >= 2 || (numRows == 1 && rows.length > 0))  {
+            var row = rows[0];
+            var room = row.name;
+            console.log('Client ID ' + socket.id + ' joined room ' + room);
+
+            io.sockets.in(room).emit('join', room);
+            socket.join(room);
+            socket.emit('joined', room, socket.id, pcConfig);
+            io.sockets.in(room).emit('ready');
+            db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [row.clients+1, room])
+          }
+          else {
+            createNewRoom();
+          }
+        });
 
     });
 
@@ -76,32 +100,6 @@ io.sockets.on('connection', function(socket) {
   socket.on('new room', function() {
     console.log(`${socket.id} searching for a room`)
     createNewRoom();
-  });
-
-  socket.on('create or join', function(joinOverride=false) {
-
-    console.log(`${socket.id} searching for a room`)
-    // log('Received request to create or join room ' + room);
-      db.all(`SELECT name name, clients, clients from chatrooms WHERE clients = ? ORDER BY roomStarted`, [1], (err, rows) => {
-        if (err) {
-          return console.error(err.message);
-        }
-        if (rows.length >= 2 || (joinOverride == true && rows.length > 0))  {
-          var row = rows[0];
-          var room = row.name;
-          console.log('Client ID ' + socket.id + ' joined room ' + room);
-
-          io.sockets.in(room).emit('join', room);
-          socket.join(room);
-          socket.emit('joined', room, socket.id);
-          io.sockets.in(room).emit('ready');
-          db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [row.clients+1, room])
-        }
-        else {
-          createNewRoom();
-        }
-      });
-
   });
 
   socket.on('ipaddr', function() {
