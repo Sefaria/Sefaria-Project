@@ -56,7 +56,7 @@ const SheetsLandingPage = () => (
             heTitle="דפי מקורות"
             heText="בחרו לכם מקורות מארון הספרים היהודי של ספריא והוסיפו הערות, תמונות או סרטונים משלכם."
             heImg="/static/img/sheets-landing-page/sheetspage_headerimage_HEB.png"
-            heImgAlt=""
+            heImgAlt="דפי מקורות"
             heActionURL="/sheets/new?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
             heActionText="בנו דף מקורות"
         />
@@ -151,19 +151,19 @@ const SheetsLandingPage = () => (
                 <Sheet
                     title="כיצד למד הבעל שם טוב את התורה?"
                     link="/sheets/112651?lang=he&utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
-                    author="Yachin Epstein (זושא מגלים את הסיפור החסידי)"
+                    author="יכין אפשטיין (זושא מגלים את הסיפור החסידי)"
                     image="/static/img/sheets-landing-page/yachin.png"
                 />
                 <Sheet
                     title="ילדים רואים את עצמם כאילו יצאו ממצרים"
                     link="/sheets/222661?lang=he&utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
-                    author="Hedva Yechieli"
+                    author="חדוה יחיאלי"
                     image="/static/img/sheets-landing-page/hedva.png"
                 />
                 <Sheet
                     title="מעשה ברבי ישמעאל"
                     link="/sheets/141399?lang=he&utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
-                    author="יורם Yoram גלילי Galili  (בואו נלמד משפט ויושר)"
+                    author="יורם גלילי (בואו נלמד משפט ויושר)"
                     image="/static/img/sheets-landing-page/yoram.png"
                 />
             </SheetList>
@@ -209,10 +209,10 @@ const RemoteLearningPage = () => (
                     white={true}
                     rounded={false}
                     tall={true} 
-                    href="/groups/Seder-on-Sefaria?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    href="/groups/Educator-Newsletters?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/219410?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he="פסח בספריא"
-                    en="Seder on Sefaria"
+                    he="דפי מקורות אקטואליים"
+                    en="Educator Newsletters"
                 />
                 <SimpleButton
                     white={true}
