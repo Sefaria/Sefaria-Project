@@ -2849,23 +2849,49 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   color: #666666;
 }
 
-.staticPage .callToActionButtonWrapper {
-  background: #ffffff;
+.staticPage .staticPageSheetList {
+  padding: 0 0 80px 0;
 }
-.staticPage .callToActionButtonWrapper .button {
-  border-radius: 0;
-  min-height: 78px;
+.staticPage .staticPageSheetList .staticPageSheetItem {
+  padding: 20px 0;
 }
-.staticPage .callToActionButtonWrapper .button span {
-  margin: auto;
+.staticPage .staticPageSheetList .staticPageSheetItem + .staticPageSheetItem {
+  border-top: 1px solid #ccc;
+}
+.staticPage .staticPageSheetList .staticPageSheetItem a {
+  padding-bottom: 20px;
+  display: block;
+  color: #000;
+}
+.staticPage .int-en .staticPageSheetList .staticPageSheetItem a {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 24px;
+}
+.staticPage .int-he .staticPageSheetList .staticPageSheetItem a {
+  font-family: "Heebo", sans-serif;
+  font-size: 24px;
+}
+.staticPage .staticPageSheetList .staticPageSheetItem img {
+  height: 46px;
+  width: 46px;
+  vertical-align: middle;
+}
+.staticPage .staticPageSheetList .staticPageSheetItem .staticPageSheetAuthor {
+  padding: 0 20px;
 }
 
 .staticPage .simpleButtonWrapper {
   width: 33%;
 }
+.staticPage .staticPageHeaderTextBox .simpleButtonWrapper {
+  width: 66%;
+}
 .staticPage .simpleButtonWrapper .button {
   border-radius: 0;
   min-height: 78px;
+}
+.staticPage .simpleButtonWrapper .button.rounded {
+  border-radius: 6px;
 }
 .staticPage .simpleButtonWrapper .button span {
   margin: auto;
@@ -2920,7 +2946,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 .staticPage .feature {
-    padding: 0px 0 80px 0;
+    padding: 0 0 80px 0;
 }
 .staticPage .feature .featureHeader {}
 .staticPage .feature .featureHeader h3 {

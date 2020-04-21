@@ -4,6 +4,9 @@ const {
     NewsletterSignUpForm,
 }                   = require('./Misc');
 const classNames = require('classnames');
+const {
+    StorySheetList
+}                = require('./Story');
 
 /*  Templates:
 
@@ -64,44 +67,44 @@ const SheetsLandingPage = () => (
         <Feature
             enTitle="Organize Sources"
             enText="Sheets let you mix and match sources from our library. Type in a source title and chapter to add it to your sheet, then edit the source to cut it down or customize  the translation. Use sources in any order you wish. "
-            enImg="/static/img/sheets-landing-page/organizesources.png"
+            enImg="/static/img/sheets-landing-page/organizesources.jpg"
             enImgAlt="Organize Sources"
             heTitle="סדרו את המקורות"
             heText="דפי מקורות מאפשרים לכם לבחור ולצרף שלל מקורות מהספרייה שלנו. הקלידו את שם המקור ומספר הפרק כדי להוסיף אותו לדף המקורות שלכם. בשלב הבא תוכלו לערוך ולקצר את המקור, לבחור בתרגום אחר ולארגן את המקורות בסדר הרצוי לכם."
-            heImg="/static/img/sheets-landing-page/organizesources_HEB.png"
+            heImg="/static/img/sheets-landing-page/organizesources_HEB.jpg"
             heImgAlt="סדרו את המקורות"
             borderColor="#004E5F"
         />
         <Feature
             enTitle="Add Your Commentary"
             enText="Make it more than sources. You can easily add your own commentary or texts from outside our library to create something new. You can also add images and videos to enhance your reader’s experience even more. "
-            enImg="/static/img/sheets-landing-page/commentary_sheet.png"
+            enImg="/static/img/sheets-landing-page/commentary_sheet.jpg"
             enImgAlt="Add Your Commentary"
             heTitle="הוסיפו הערות משלכם"
             heText="היצירה שלכם יכולה להיות יותר מרשימת מקורות בלבד. תוכלו בקלות להוסיף הערות, פרשנות והסברים משלכם וכן טקסטים אחרים כדי ליצור משהו חדש. לחוויית לימוד משמעותית יותר תוכלו אפילו להוסיף תמונות וסרטונים."
-            heImg="/static/img/sheets-landing-page/addcommentary_HEB.png"
+            heImg="/static/img/sheets-landing-page/addcommentary_HEB.jpg"
             heImgAlt="הוסיפו הערות משלכם"
             borderColor="#CCB479"
         />
         <Feature
             enTitle="Share Your Work"
             enText="You can share your sheet privately with a link, publicly on our site, or print it out for your class. Make your sheet public and add it to our library of over 200,000 user-created sheets. "
-            enImg="/static/img/sheets-landing-page/shareyoursheets.png"
+            enImg="/static/img/sheets-landing-page/shareyoursheets.jpg"
             enImgAlt="Share Your Work"
             heTitle="שתפו"
             heText="תוכלו לשתף את דף המקורות באופן פרטי בעזרת לינק, להדפיס אותו עבור הכיתה שלכם או להעלות אותו באתר שלנו לתועלת ציבור הגולשים. אתם מוזמנים להוסיף את דף המקורות לספרייה שלנו – תוכלו למצוא בה למעלה מ-200 אלף דפי מקורות שנוצרו על ידי גולשי האתר."
-            heImg="/static/img/sheets-landing-page/shareyoursheets_HEB.png"
+            heImg="/static/img/sheets-landing-page/shareyoursheets_HEB.jpg"
             heImgAlt="שתפו"
             borderColor="#802F3E"
         />
         <Feature
             enTitle="Find Great Resources"
             enText="Browse user-created sheets by topic to research for your next class, learn something new, or to get inspiration for your own sheets. Filter results further by keyword and sort by relevance, views, or creation date."
-            enImg="/static/img/sheets-landing-page/sheetssearch.png"
+            enImg="/static/img/sheets-landing-page/sheetssearch.jpg"
             enImgAlt="Find Great Resources"
             heTitle="אתרו מקורות מעולים"
             heText="כדי להעשיר את השיעור הבא שלכם, ללמוד משהו חדש או לחפש השראה לדף מקורות משלכם, דפדפו לפי נושא בדפי מקורות שיצרו משתמשים אחרים. סננו את התוצאות לפי מילות מפתח או לפי רלוונטיות, תצוגה או תאריך."
-            heImg="/static/img/sheets-landing-page/sheetssearch_HEB.png"
+            heImg="/static/img/sheets-landing-page/sheetssearch_HEB.jpg"
             heImgAlt="אתרו מקורות מעולים"
             borderColor="#5A99B7"
         />
@@ -109,12 +112,70 @@ const SheetsLandingPage = () => (
             en="See what people are making with Sheets"
             he="ראו מה משתמשים אחרים יוצרים בעזרת דפי המקורות שלהם"
         />
-        <SimpleButton
-            he="חפשו עוד לפי נושא"
-            en="Explore More by Topic"
-            href="/topics?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
-            he_href="/topics?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
-        />
+        <EnBlock>
+            <SheetList>
+                <Sheet
+                    title="Creation and Consciousness"
+                    link="/sheets/17566?lang=bi&utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
+                    author="Michael Feuer"
+                    image="/static/img/sheets-landing-page/michael.png"
+                />
+                <Sheet
+                    title="Is Love the Death of Duty? A Tanakh Take on the Game of Thrones Maxim"
+                    link="/sheets/184685?lang=bi&utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
+                    author="Olivia Friedman"
+                    image="/static/img/sheets-landing-page/olivia.png"
+                />
+                <Sheet
+                    title="Practical Torah for Time Management"
+                    link="/sheets/193023?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
+                    author="Loren Berman (Moishe House)"
+                    image="/static/img/sheets-landing-page/loren.png"
+                />
+                <Sheet
+                    title="The Four (Thousand) Questions: Cultivating Question-Asking at Your Pesach Seder"
+                    link="/sheets/9219?lang=bi&utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
+                    author="Dasi Fruchter"
+                    image="/static/img/sheets-landing-page/dasi.png"
+                />
+            </SheetList>
+        </EnBlock>
+        <HeBlock>
+            <SheetList>
+                <Sheet
+                    title="תפילת הדרך"
+                    link="/sheets/216261?lang=he&utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
+                    author="אתר מדרשת"
+                    image="/static/img/sheets-landing-page/midreshet.png"
+                />
+                <Sheet
+                    title="כיצד למד הבעל שם טוב את התורה?"
+                    link="/sheets/112651?lang=he&utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
+                    author="Yachin Epstein (זושא מגלים את הסיפור החסידי)"
+                    image="/static/img/sheets-landing-page/yachin.png"
+                />
+                <Sheet
+                    title="ילדים רואים את עצמם כאילו יצאו ממצרים"
+                    link="/sheets/222661?lang=he&utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
+                    author="Hedva Yechieli"
+                    image="/static/img/sheets-landing-page/hedva.png"
+                />
+                <Sheet
+                    title="מעשה ברבי ישמעאל"
+                    link="/sheets/141399?lang=he&utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
+                    author="יורם Yoram גלילי Galili  (בואו נלמד משפט ויושר)"
+                    image="/static/img/sheets-landing-page/yoram.png"
+                />
+            </SheetList>
+        </HeBlock>
+        <ButtonRow>
+            <SimpleButton
+                he="חפשו עוד לפי נושא"
+                en="Explore More by Topic"
+                href="/topics?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
+                he_href="/topics?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
+            />
+        </ButtonRow>
         <CallToActionFooterWithButton
             href="/sheets/228095?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
             he_href="/sheets/228095?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
@@ -146,6 +207,7 @@ const RemoteLearningPage = () => (
             <ButtonRow>
                 <SimpleButton
                     white={true}
+                    rounded={false}
                     href="/groups/Seder-on-Sefaria?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/219410?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="פסח בספריא"
@@ -153,6 +215,7 @@ const RemoteLearningPage = () => (
                 />
                 <SimpleButton
                     white={true}
+                    rounded={false}
                     href="/groups/A-Jewish-Response-to-Coronavirus?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/227981.5?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="נגיף הקורונה"
@@ -160,6 +223,7 @@ const RemoteLearningPage = () => (
                 />
                 <SimpleButton
                     white={true}
+                    rounded={false}
                     href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/228257?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="עשרת הדיברות ללמידה מרחוק"
@@ -188,6 +252,7 @@ const RemoteLearningPage = () => (
         <ButtonRow>
             <SimpleButton
                 white={true}
+                rounded={false}
                 href="/groups/Webinars-for-Learners?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224909?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="וובינרים"
@@ -195,6 +260,7 @@ const RemoteLearningPage = () => (
             />
             <SimpleButton
                 white={true}
+                rounded={false}
                 href="/groups/Tutorials-for-Learners?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224919?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="מדריך למשתמש המתחיל"
@@ -202,6 +268,7 @@ const RemoteLearningPage = () => (
             />
             <SimpleButton
                 white={true}
+                rounded={false}
                 href="/groups/Sefaria-Student-Course?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/228260?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="הסודות של ספריא"
@@ -231,6 +298,7 @@ const RemoteLearningPage = () => (
         <ButtonRow>
             <SimpleButton
                 white={true}
+                rounded={false}
                 href="/groups/Webinars-for-Educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224909?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="וובינרים"
@@ -238,6 +306,7 @@ const RemoteLearningPage = () => (
             />
             <SimpleButton
                 white={true}
+                rounded={false}
                 href="/groups/Tutorials-for-Educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224923?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="קורס למורים: 'ספריא בכיתה'"
@@ -245,6 +314,7 @@ const RemoteLearningPage = () => (
             />
             <SimpleButton
                 white={true}
+                rounded={false}
                 href="/sheets/187032?lang=bi?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/223245?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="טיפים להוראה עם ספריא"
@@ -263,9 +333,9 @@ const RemoteLearningPage = () => (
             borderColor="#802F3E"
         />
         <ButtonRow>
-            <SimpleButton white={true} href="/linker?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="לינקר דו צדדי" en="Two-Way Linker"/>
-            <SimpleButton white={true} href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria" he="אתרים המופעלים ע”י ספריא" en="Powered by Sefaria"/>
-            <SimpleButton white={true} href="https://github.com/Sefaria/Sefaria-Project/wiki#developers" he="Github גיטהאב" en="GitHub"/>
+            <SimpleButton white={true} rounded={false} href="/linker?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="לינקר דו צדדי" en="Two-Way Linker"/>
+            <SimpleButton white={true} rounded={false} href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria" he="אתרים המופעלים ע”י ספריא" en="Powered by Sefaria"/>
+            <SimpleButton white={true} rounded={false} href="https://github.com/Sefaria/Sefaria-Project/wiki#developers" he="Github גיטהאב" en="GitHub"/>
         </ButtonRow>
         <CallToActionFooterWithNewsletter
             enText="Sign up for our mailing list to get updates in your inbox."
@@ -281,11 +351,11 @@ const StaticPage = ({children}) => (
     </div>
 );
 
-const GreyBox = ({children}) => (
-    <div className="greyBackground">
-        {children}
-    </div>
-);
+const HeBlock = ({children}) => <div className="int-he">{children}</div>;
+const EnBlock = ({children}) => <div className="int-en">{children}</div>;
+
+const GreyBox = ({children}) => <div className="greyBackground">{children}</div>;
+
 const H2Block = ({en, he, classes}) =>
     <div className="staticPageBlockInner">
         <h2 className="staticPageH2">
@@ -318,11 +388,24 @@ const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImg
         <a className="button int-he" href={heActionURL}>{heActionText}</a>
     </div>
  */
+const SheetList = ({children}) =>
+    <div className={"staticPageBlockInner staticPageSheetList"}>
+        {children}
+    </div>;
+
+const Sheet = ({title,link,author,image}) =>
+    <div className="staticPageSheetItem">
+        <a href={link}>{title}</a>
+        <img src={image}/>
+        <span className="staticPageSheetAuthor">{author}</span>
+    </div>;
 
 const CallToActionFooterWithButton = ({href, he_href, enText, heText, enButtonText, heButtonText}) => (
     <div className="staticPageCallToActionFooter">
-        <SimpleInterfaceBlock classes="callToActionText" en={enText} he={heText} />
-        <SimpleButton href={href} he_href={he_href} en={enButtonText} he={heButtonText} white={true}/>
+        <div className="staticPageBlockInner flexContainer">
+            <SimpleInterfaceBlock classes="callToActionText" en={enText} he={heText} />
+            <SimpleButton href={href} he_href={he_href} en={enButtonText} he={heButtonText} white={true}/>
+        </div>
     </div>
 );
 const CallToActionFooterWithNewsletter = ({enText, heText, includeEducatorOption}) => (
@@ -373,12 +456,12 @@ const ButtonRow = ({children}) => (
     </div>
 );
 
-const SimpleButton = ({href, he_href, he, en, white}) => (
+const SimpleButton = ({href, he_href, he, en, white, rounded=true}) => (
     <div className="simpleButtonWrapper">
-        <a href={href} className={classNames({button:1, flexContainer:1, "int-en":1, white: white})}>
+        <a href={href} className={classNames({button:1, flexContainer:1, "int-en":1, white: white, rounded:rounded})}>
             <span className="int-en">{en}</span>
         </a>
-        <a href={he_href || href} className={classNames({button:1, flexContainer:1, "int-he":1, white: white})}>
+        <a href={he_href || href} className={classNames({button:1, flexContainer:1, "int-he":1, white: white, rounded:rounded})}>
             <span className="int-he">{he}</span>
         </a>
     </div>
