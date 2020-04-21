@@ -45,11 +45,10 @@ socket.on('join', function(room) {
   console.log('another user joined room: ' + room);
   Sefaria.track.event("DafRoulette", "Chevruta Match Made", "initator");
   isChannelReady = true;
-  socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room)
+  socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room);
   if (!isStarted) {
-    maybeStart()
+    maybeStart();
   }
-
 });
 
 socket.on('joined', function(room, conf) {
@@ -58,19 +57,19 @@ socket.on('joined', function(room, conf) {
   isChannelReady = true;
   clientRoom = room;
   Sefaria.track.event("DafRoulette", "Chevruta Match Made", "joiner");
-  socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room)
+  socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room);
 });
 
 socket.on('got user name', function(userName, uid) {
   document.getElementById("chevrutaName").innerHTML = userName;
   document.getElementById("chevrutaUID").value = uid;
-})
+});
 
 socket.on('user reported', function(){
   remoteVideo.srcObject = null;
   document.getElementById("reportUser").remove();
   alert("Your chevruta clicked the 'Report User' button. \n\nA report has been sent to the Sefaria administrators.")
-})
+});
 
 ////////////////////////////////////////////////
 
@@ -82,9 +81,7 @@ function sendMessage(message) {
 // This client receives a message
 socket.on('message', function(message) {
   console.log('Client received message:', message);
-  if (message === 'got user media') {
-    maybeStart();
-  } else if (message.type === 'offer') {
+  if (message.type === 'offer') {
     if (!isInitiator && !isStarted) {
       maybeStart();
     }
@@ -112,7 +109,11 @@ navigator.mediaDevices.getUserMedia({
     audio: true,
     video: true
   })
-  .then(gotStream)
+  .then((stream) => {
+    localStream = localVideo.srcObject = stream;
+    socket.emit('how many rooms');
+    console.log('Adding local stream.');
+  })
   .catch(function(e) {
     alert('getUserMedia() error: ' + e.name);
   });
@@ -168,12 +169,6 @@ function reportUser() {
 
 }
 
-function gotStream(stream) {
-  socket.emit('how many rooms');
-  console.log('Adding local stream.');
-  localStream = stream;
-  localVideo.srcObject = stream;
-}
 
 function maybeStart() {
   console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
