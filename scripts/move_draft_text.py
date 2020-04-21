@@ -176,7 +176,7 @@ class ServerTextCopier(object):
         full_url = "{}/{}".format(self._dest_server, url)
         jpayload = json.dumps(payload)
         values = {'json': jpayload, 'apikey': self._apikey}
-        data = urllib.parse.urlencode(values)
+        data = urllib.parse.urlencode(values).encode('utf-8')
         req = urllib.request.Request(full_url, data)
         try:
             response = urllib.request.urlopen(req)
@@ -218,7 +218,7 @@ if __name__ == '__main__':
     try:
         url = os.environ["SLACK_URL"]
         message = json.dumps({'text': 'Upload Complete'})
-        request = urllib.request.Request(url, message)
+        request = urllib.request.Request(url, message.encode('utf-8'))
         urllib.request.urlopen(request)
 
     except KeyError:

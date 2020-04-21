@@ -1,12 +1,12 @@
 var ga;
-if (typeof window !== 'undefined' && typeof window.ga === "function" && typeof window.ga.getAll == "function") {
+if (typeof window !== 'undefined' && typeof window.ga === "function" && typeof window.ga.getAll == "function" && window.ga.getAll().length > 0) {
   ga = window.ga;
   var trackerName = ga.getAll()[0].get("name"); // Google Tag Manager assigns a Tracker Name
   window.onerror = function(msg, url, lineNumber) {
       ga(trackerName + ".send", 'event', 'Javascript Errors',  msg, url + ':' + lineNumber);
   };
 } else {
-  ga = function() {}; // Fail gracefully if we reach one of these methods server side
+  ga = function() {}; // Fail gracefully if we reach one of these methods server side or when GA doesn't load properly
   ga._mock = true;
   var trackerName = "mock";
 }

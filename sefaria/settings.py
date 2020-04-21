@@ -293,15 +293,19 @@ CACHES = {
     }
 }
 
-'''
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "interns-2020-2",
+    "name":       "user_testing_israel",
     "repetition": 1,
     "style":      "modal",
-    "condition": {"logged_in_only": False, "desktop_only": False, "english_only": True, "debug": False}
+    "condition": {
+        "returning_only": False,
+        "desktop_only": False,
+        "english_only": False,
+        "hebrew_only": True,
+        "debug": False
+    }
 }
-'''
-GLOBAL_INTERRUPTING_MESSAGE = None
+# GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab enviornment specific settings from a file which
 # is left out of the repo.
@@ -331,4 +335,3 @@ WEBPACK_LOADER = {
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-

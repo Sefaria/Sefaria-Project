@@ -1112,9 +1112,9 @@ class AbstractTest(object):
         elem.send_keys(Keys.RETURN)
         return self
 
-    def load_sheets(self):
-        self.driver.get(self.base_url + "/sheets")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerSheetsNav")))
+    def load_topics(self):
+        self.driver.get(self.base_url + "/topics")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".topicList")))
         self.set_modal_cookie()
         return self
 

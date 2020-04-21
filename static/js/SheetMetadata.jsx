@@ -1,4 +1,5 @@
 import {
+  InterfaceTextWithFallback,
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuDisplaySettingsButton,
   CategoryAttribution,
@@ -266,31 +267,22 @@ class SheetMetadata extends Component {
                     <div className="tocDetails">
                       {details ? <div className="description" dangerouslySetInnerHTML={ {__html: details} }></div> : null}
                     </div>
-                    {this.props.sheet.tags && this.props.sheet.tags.length > 0 ?
+                    {this.props.sheet.topics && this.props.sheet.topics.length > 0 ?
                     <div className="tagsSection">
                         <h2 className="tagsTitle int-en">Tags</h2>
-                        <div className="sheetTags int-en">
-                          {this.props.sheet.tags.map(function(tag, i) {
-                            return (
-                                <a href={"/sheets/tags/" + tag}
-                                        target="_blank"
-                                        className="sheetTag button"
-                                        key={tag}
-                                        >{tag}</a>
-                            )
-                          }.bind(this))}
-                        </div>
-                       <h2 className="tagsTitle int-he">תוית</h2>
-                       <div className="sheetTags int-he">
-                          {this.props.sheet.tags.map(function(tag, i) {
-                            return (
-                                <a href={"/sheets/tags/" + tag}
-                                        target="_blank"
-                                        className="int-he sheetTag button"
-                                        key={tag}
-                                        >{Sefaria.hebrewTerm(tag)}</a>
-                            )
-                          }.bind(this))}
+                        <h2 className="tagsTitle int-he">תוית</h2>
+
+                        <div className="sheetTags">
+                          {this.props.sheet.topics.map(topic => (
+                              <a href={"/topics/" + topic.slug}
+                                target="_blank"
+                                className="sheetTag button"
+                                key={topic.slug}
+                              >
+                                <InterfaceTextWithFallback en={topic.en} he={topic.he} />
+                              </a>
+                            ))
+                          }
                         </div>
                     </div> : null }
 
