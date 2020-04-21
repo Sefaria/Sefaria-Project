@@ -1206,7 +1206,7 @@ def texts_api(request, tref):
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
         stripItags = bool(int(request.GET.get("stripItags", False)))
-        multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negtive integer (indicating backward)
+        multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
@@ -1251,10 +1251,9 @@ def texts_api(request, tref):
             return jsonResponse(text, cb)
         else:
             # Return list of many sections
-            target_count = int(multiple)
-            assert target_count != 0
-            direction = "next" if target_count > 0 else "prev"
-            target_count = abs(target_count)
+            assert multiple != 0
+            direction = "next" if multiple > 0 else "prev"
+            target_count = abs(multiple)
 
             current = 0
             texts = []
