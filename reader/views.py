@@ -1246,8 +1246,7 @@ def texts_api(request, tref):
             return text
 
         if not multiple or abs(multiple) == 1:
-            text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
-                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+            text = _get_text(oref)
             return jsonResponse(text, cb)
         else:
             # Return list of many sections
@@ -1260,8 +1259,7 @@ def texts_api(request, tref):
             texts = []
 
             while current < target_count:
-                text = _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
-                             alts=alts, wrapLinks=wrapLinks, layer_name=layer_name)
+                text = _get_text(oref)
                 texts += [text]
                 if not text[direction]:
                     break
