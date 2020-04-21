@@ -245,7 +245,8 @@ class SheetSearchFilterPanel extends Component {
           enText={"Filter"}
           heText={"סינון"}
         />
-        <div key={this.state.activeTab} className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
+        {this.props.displayFilters ? 
+        <div key={this.state.activeTab} className="searchFilterBoxes" role="dialog">
           <SearchFilterTabRow
             tabs={[{en: 'Groups', he: 'קבוצות'}, {en: 'Topics', he: 'נושאים'}]}
             activeTab={this.state.activeTab}
@@ -277,6 +278,7 @@ class SheetSearchFilterPanel extends Component {
             </div>
           }
         </div>
+        : null }
       </DropdownModal>
     );
   }
@@ -311,7 +313,8 @@ class TextSearchFilterPanel extends Component {
           enText={"Filter"}
           heText={"סינון"}
         />
-        <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
+        {this.props.displayFilters ? 
+        <div className="searchFilterBoxes" role="dialog">
           <SearchFilterTabRow
             tabs={[{en: 'Titles', he: 'מקורות'}, {en: 'Options', he: 'אופציות'}]}
             activeTab={this.state.activeTab}
@@ -353,6 +356,7 @@ class TextSearchFilterPanel extends Component {
           }
           <div style={{clear: "both"}}/>
         </div>
+        : null }
       </DropdownModal>
     );
   }
