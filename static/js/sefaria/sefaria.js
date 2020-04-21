@@ -183,6 +183,13 @@ Sefaria = extend(Sefaria, {
     }
     return null;
   },
+  refCategories: function(ref) {
+    // Returns the text categories for `ref`
+    let pRef = Sefaria.parseRef(ref);
+    if ("error" in pRef) { return []; }
+    let index = Sefaria.index(pRef.index);
+    return index && index.categories ? index.categories : [];
+  },
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
     const oref = this.getRefFromCache(ref);
@@ -307,12 +314,23 @@ Sefaria = extend(Sefaria, {
     const data = this.getTextFromCache(ref, settings);
     if (data && !("updateFromAPI" in data)) {return Promise.resolve(data);}
 
-    return this._promiseAPI(Sefaria.apiHost + this._textUrl(ref, settings))
+    return this._ApiPromise(Sefaria.apiHost + this._textUrl(ref, settings))
         .then(d => { this._saveText(d, settings); return d; });
   },
-  getBulkText: function(refs) {
+  getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null) {
     // todo: fish existing texts out of cache first
-    return this._promiseAPI(Sefaria.apiHost + "/api/bulktext/" + refs.join("|"))
+    if (refs.length === 0) { return Promise.resolve({}); }
+    let paramStr = '';
+
+    for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar})) {
+      paramStr = !!paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
+    }
+    return this._ApiPromise(`${Sefaria.apiHost}/api/bulktext/${refs.join("|")}${paramStr.replace(/&/,'?')}`);
+  },
+  getBulkSheets: function(sheetIds) {
+    // todo: fish existing texts out of cache first
+    if (sheetIds.length === 0) { return Promise.resolve({}); }
+    return this._ApiPromise(`${Sefaria.apiHost}/api/v2/sheets/bulk/${sheetIds.join("|")}`);
   },
   text: function(ref, settings = null, cb = null) {
     // To be deprecated in favor of `getText`
@@ -658,14 +676,18 @@ Sefaria = extend(Sefaria, {
       return ref ? this.getRefFromCache(ref) : null;
   },
   _lookups: {},
-  _ref_lookups: {},
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
-  getName: function(name, refOnly) {
+  getName: function(name, refOnly = false, limit = undefined) {
     const trimmed_name = name.trim();
+    let params = {};
+    if (refOnly) { params["ref_only"] = 1; }
+    if (limit != undefined) { params["limit"] = limit; }
+    let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
+    queryString = (queryString ? "?" + queryString : "");
     return this._cachedApiPromise({
-        url:   this.apiHost + "/api/name/" + trimmed_name + (refOnly?"?ref_only=1":""),
-        key:   trimmed_name,
-        store: refOnly? this._ref_lookups: this._lookups
+        url:   this.apiHost + "/api/name/" + trimmed_name + queryString,
+        key:   trimmed_name + queryString,
+        store: this._lookups
     });
   },
   _lexiconCompletions: {},
@@ -686,7 +708,18 @@ Sefaria = extend(Sefaria, {
       });
   },
   _lexiconLookups: {},
+  getLexiconWords: function(words, ref) {
+    // Returns Promise which resolve to a list of lexicon entries for the given words
+    ref = typeof ref !== "undefined" ? ref : null;
+    words = typeof words !== "undefined" ? words : "";
+    if (words.length <= 0) { return Promise.resolve([]); }
+
+    const key = ref ? words + "|" + ref : words;
+    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?never_split=1" + (ref?("&lookup_ref="+ref):"");
+    return this._cachedApiPromise({url, key, store: this._lexiconLookups});
+  },
   lexicon: function(words, ref, cb){
+    // Deprecated in favor of getLexiconWords, which returns a Promise.
     // Returns a list of lexicon entries for the given words
     ref = typeof ref !== "undefined" ? ref : null;
     words = typeof words !== "undefined" ? words : "";
@@ -724,7 +757,7 @@ Sefaria = extend(Sefaria, {
             resolve(this._links[ref]);
         } else {
             let url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0";
-            let p = this._promiseAPI(url)
+            let p = this._ApiPromise(url)
                 .then(data => {
                     if ("error" in data) reject(data);
                     this._saveLinkData(ref, data);
@@ -1469,11 +1502,7 @@ Sefaria = extend(Sefaria, {
   getPassages: function(refs) {
       // refs: list of ref strings
       // resolves to dictionary mapping ref to sugya ref
-    return new Promise((resolve, reject) => {
-        let url = Sefaria.apiHost + "/api/passages/" + refs.join("|");
-        let p = this._promiseAPI(url);
-        resolve(p);
-    });
+      return this._ApiPromise(Sefaria.apiHost + "/api/passages/" + refs.join("|"));
   },
   areVersionsEqual(v1, v2) {
     // v1, v2 are `currVersions` objects stored like {en: ven, he: vhe}
@@ -1512,16 +1541,18 @@ Sefaria = extend(Sefaria, {
       }
     });
   },
+    /*
   toggleFollowAPI: (uid, isUnfollow) => {
     return new Promise((resolve, reject) => {
       $.post({
         url: `/api/${isUnfollow ? 'un' : ''}follow/${uid}`
       });
     });
-    return Sefaria._promiseAPI(`/api/${isUnfollow ? 'un' : ''}follow/${uid}`);
+    return Sefaria._ApiPromise(`/api/${isUnfollow ? 'un' : ''}follow/${uid}`);
   },
+  */
   followAPI: (slug, ftype) => {
-    return Sefaria._promiseAPI(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
+    return Sefaria._ApiPromise(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
   },
   messageAPI: (uid, message) => {
     const data = {json: JSON.stringify({recipient: uid, message: message.escapeHtml()})};
@@ -1530,13 +1561,13 @@ Sefaria = extend(Sefaria, {
     });
   },
   getRefSavedHistory: tref => {
-    return Sefaria._promiseAPI(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
+    return Sefaria._ApiPromise(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
   },
   profileAPI: slug => {
-    return Sefaria._promiseAPI(`${Sefaria.apiHost}/api/profile/${slug}`);
+    return Sefaria._ApiPromise(`${Sefaria.apiHost}/api/profile/${slug}`);
   },
   userHistoryAPI: () => {
-    return Sefaria._promiseAPI(Sefaria.apiHost + "/api/profile/user_history?secondary=0");
+    return Sefaria._ApiPromise(Sefaria.apiHost + "/api/profile/user_history?secondary=0");
   },
   saveUserHistory: function(history_item) {
     // history_item contains:
@@ -1603,20 +1634,14 @@ Sefaria = extend(Sefaria, {
   },
   _topicList: null,
   topicList: function(callback) {
-    // Returns data for `topic`.
-    if (this._topicList) {
-      if (callback) { callback(this._topicList); }
-    } else if (callback) {
-      var url = Sefaria.apiHost + "/api/topics"; // TODO separate topic list API
-       Sefaria._api(url, function(data) {
-          this._topicList = data;
-           if (callback) { callback(data); }
-        }.bind(this));
-      }
-    return this._topicList;
+    // Returns promise for all topics list.
+    if (this._topicList) { return Promise.resolve(this._topicList); }
+    return this._ApiPromise(Sefaria.apiHost + "/api/topics?limit=0")
+        .then(d => { this._topicList = d; return d; });
   },
   _tableOfContentsDedications: {},
   _topics: {},
+/*
   topic: function(topic, callback) {
     if (topic in this._topics) {
       var data = this._topics[topic];
@@ -1631,26 +1656,63 @@ Sefaria = extend(Sefaria, {
     }
     return data;
   },
-  getTopic: function(topic) {
+*/
+  getParashaNextRead: function(parasha) {
+    return this._cachedApiPromise({
+      url:   `${this.apiHost}/api/calendars/next-read/${parasha}`,
+      key:   parasha,
+      store: this._parashaNextRead,
+    });
+  },
+  _parashaNextRead: {},
+  getTopic: function(topic, with_links=true, annotate_links=true, with_refs=true, group_related=true) {
       return this._cachedApiPromise({
-          url:   this.apiHost + "/api/topics/" + topic,
+          url:   `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}`,
           key:   topic,
           store: this._topics
     });
   },
-  _topicTocPages: {},
+  _topicTocPages: null,
+  _topicTocCategory: null,
   _initTopicTocPages: function() {
-    this._topicTocPages = this.topic_toc.reduce((a,c) => {a[this._topicTocPageKey(c.name)] = c.children; return a;}, {});
+    this._topicTocPages = this.topic_toc.reduce(this._initTopicTocReducer, {});
     this._topicTocPages[this._topicTocPageKey()] = this.topic_toc.map(({children, ...goodstuff}) => goodstuff);
   },
-  _topicTocPageKey: name => "_" + name,
+  _initTopicTocCategory: function() {
+    this._topicTocCategory = this.topic_toc.reduce(this._initTopicTocCategoryReducer, {});
+  },
+  _initTopicTocReducer: function(a,c) {
+    if (!c.children) { return a; }
+    a[Sefaria._topicTocPageKey(c.slug)] = c.children;
+    for (let sub_c of c.children) {
+      Sefaria._initTopicTocReducer(a, sub_c);
+    }
+    return a;
+  },
+  _initTopicTocCategoryReducer: function(a,c) {
+    if (!c.children) {
+      a[c.slug] = c.parent;
+      return a;
+    }
+    for (let sub_c of c.children) {
+      sub_c.parent = { en: c.en, he: c.he, slug: c.slug };
+      Sefaria._initTopicTocCategoryReducer(a, sub_c);
+    }
+    return a;
+  },
+  _topicTocPageKey: slug => "_" + slug,
+
   topicTocPage: function(parent) {
     const key = this._topicTocPageKey(parent);
-    if (!this._topicTocPages[key]) {
+    if (!this._topicTocPages) {
         this._initTopicTocPages()
     }
     return this._topicTocPages[key]
-
+  },
+  topicTocCategory: function(slug) {
+    // return category english and hebrew for slug
+    if (!this._topicTocCategory) { this._initTopicTocCategory(); }
+    return this._topicTocCategory[slug];
   },
   sheets: {
     _loadSheetByID: {},
@@ -1671,8 +1733,7 @@ Sefaria = extend(Sefaria, {
       return sheet;
     },
     deleteSheetById: function(id) {
-      const url = `/api/sheets/${id}/delete`;
-      return Sefaria._promiseAPI(url);
+      return Sefaria._ApiPromise(`/api/sheets/${id}/delete`);
     },
     _trendingTags: null,
     trendingTags: function(callback) {
@@ -1744,6 +1805,7 @@ Sefaria = extend(Sefaria, {
     },
     getSheetsByTag: function(tag, v2) {
       const url =  Sefaria.apiHost + "/api" + (v2 ? "/v2" : "") + "/sheets/tag/" + tag.replace("#", "%23");
+
       return Sefaria._cachedApiPromise({
           url:  url,
           store: this._sheetsByTag,
@@ -1763,7 +1825,7 @@ Sefaria = extend(Sefaria, {
         if (callback) { callback(sheets); }
       } else {
         const url = Sefaria.apiHost + "/api/sheets/user/" + uid + "/" + sortBy + "/" + numberToRetrieve + "/" + offset;
-        Sefaria._promiseAPI(url).then(data => {
+        Sefaria._ApiPromise(url).then(data => {
           this._userSheets[uid+sortBy+offset+numberToRetrieve] = data.sheets;
           if (callback) { callback(data.sheets); }
         });
@@ -1899,15 +1961,14 @@ Sefaria = extend(Sefaria, {
       // Is there other cases where the cache isn't keyed?   Could refactor _cachedApiPromise for a no key case.
       return (this._groupsList) ?
           Promise.resolve(this._groupsList) :
-          Sefaria._promiseAPI(Sefaria.apiHost + "/api/groups")
+          Sefaria._ApiPromise(Sefaria.apiHost + "/api/groups")
               .then(data => {
                   this._groupsList = data;
                   return data;
               })
   },
   userGroups: function(uid) {
-    const url = `${Sefaria.apiHost}/api/groups/user-groups/${uid}`;
-    return Sefaria._promiseAPI(url);
+    return Sefaria._ApiPromise(`${Sefaria.apiHost}/api/groups/user-groups/${uid}`);
   },
   calendarRef: function(calendarTitle) {
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
@@ -2045,6 +2106,7 @@ Sefaria = extend(Sefaria, {
       //reader panel
       "Search" : "חיפוש",
       "Search Dictionary": "חפש במילון",
+      "Search for": "חיפוש",
       "Search for:": "חיפוש:",
       "Views": "צפיות",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
@@ -2124,6 +2186,13 @@ Sefaria = extend(Sefaria, {
       "Sign\u00A0in": "התחברו",
       "Save": "שמירה",
       "Remove": "הסרה",
+      "Filter": "סינון",
+      "Relevance": 'רלוונטיות',
+      "Chronological": 'כרונולוגי',
+      "Newest": "הכי חדש",
+      "This source is connected to ": "מקור הזה קשור ל-",
+      "by": "על ידי",
+      "Read the Portion": "קראו את הפרשה",
 
       //user stats
       "Torah Tracker" : "לימוד במספרים",
@@ -2180,7 +2249,7 @@ Sefaria = extend(Sefaria, {
     // Ensure that names set in Site Settings are available for translation in JS.
     if (!Sefaria._siteSettings) { return; }
     ["SITE_NAME", "LIBRARY_NAME"].map(key => {
-      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["en"];
+      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["he"];
     });
   },
   _makeBooksDict: function() {
@@ -2195,14 +2264,14 @@ Sefaria = extend(Sefaria, {
   _ajaxObjects: {},   // These are jqXHR objects, which implement the Promise interface
   _api: function(url, callback) {
     // Manage API calls and callbacks to prevent duplicate calls
-    // This method will be deprecated, in favor of _promiseAPI
+    // This method will be deprecated, in favor of _ApiPromise
     //
     if (url in this._ajaxObjects) {
       return this._ajaxObjects[url].then(callback);
     }
-    return this._promiseAPI(url).then(callback);
+    return this._ApiPromise(url).then(callback);
   },
-  _promiseAPI: function(url) {
+  _ApiPromise: function(url) {
     // Uses same _ajaxObjects as _api
     // Use built in Promise logic to handle multiple .then()s
     if (url in this._ajaxObjects) {
@@ -2216,7 +2285,7 @@ Sefaria = extend(Sefaria, {
       // Otherwise, calls Promise(url), caches in store[key], and returns
       return (key in store) ?
           Promise.resolve(store[key]) :
-          Sefaria._promiseAPI(url)
+          Sefaria._ApiPromise(url)
               .then(data => {
                   store[key] = data;
                   return data;
@@ -2237,6 +2306,26 @@ Sefaria = extend(Sefaria, {
         promise: wrappedPromise,
         cancel() { hasCanceled_ = true; },
       };
+  },
+  incrementalPromise: async (fetchResponse, data, increment, setResponse, setCancel) => {
+    /*
+    fetchResponse - func that takes slice of `data` as param and returns promise
+    data - array of input data for fetchResponse
+    increment - int, how many values to send to fetchResponse at a time
+    setResponse - callback to react to send updated results
+    setCancel - function that saves cancel function so it can be called in outside scope
+    */
+    let allResponses = [];
+    let lastEndIndex = 0;
+    while (lastEndIndex <= data.length) {
+      const tempData = data.slice(lastEndIndex, lastEndIndex + increment);
+      const { promise, cancel } = Sefaria.makeCancelable(fetchResponse(tempData));
+      setCancel(cancel);
+      const tempResponses = await promise;
+      allResponses = allResponses.concat(tempResponses);
+      setResponse(allResponses);
+      lastEndIndex = lastEndIndex + increment;
+    }
   }
 });
 

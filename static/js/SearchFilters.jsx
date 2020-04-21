@@ -247,7 +247,7 @@ class SheetSearchFilterPanel extends Component {
         />
         <div key={this.state.activeTab} className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
           <SearchFilterTabRow
-            tabs={[{en: 'Groups', he: 'קבוצות'}, {en: 'Tags', he: 'תויות'}]}
+            tabs={[{en: 'Groups', he: 'קבוצות'}, {en: 'Topics', he: 'נושאים'}]}
             activeTab={this.state.activeTab}
             changeTab={this.changeTab}
           />

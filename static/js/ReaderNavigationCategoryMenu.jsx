@@ -1,8 +1,5 @@
 const {
-  CategoryColorLine,
   CategoryAttribution,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
   TwoOrThreeBox,
   LanguageToggleButton,
 }                = require('./Misc');
@@ -11,6 +8,7 @@ const classNames = require('classnames');
 const PropTypes  = require('prop-types');
 const Sefaria    = require('./sefaria/sefaria');
 const Footer     = require('./Footer');
+const MobileHeader = require('./MobileHeader');
 import Component from 'react-class';
 
 
@@ -60,21 +58,19 @@ class ReaderNavigationCategoryMenu extends Component {
     var nestLevel      = this.props.category == "Commentary" ? 1 : 0;
     var footer         = this.props.compare ? null : <Footer />;
     var navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, noLangToggleInHebrew: 1});
-    var navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
     var contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (<div className={navMenuClasses}>
-              <div className={navTopClasses}>
-                <CategoryColorLine category={categories[0]} />
-                {this.props.hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.navHome} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>)}
-                {this.props.hideNavHeader ? null : (<h2 className="readerNavTopCategory">
-                  <span className="en">{catTitle}</span>
-                  <span className="he">{heCatTitle}</span>
-                </h2>)}
-                {this.props.hideNavHeader ? null :
-                  (this.props.interfaceLang === "hebrew" ?
-                    <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />
-                    : <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />)}
-              </div>
+              <MobileHeader
+                mode={'innerTOC'}
+                hideNavHeader={this.props.hideNavHeader}
+                interfaceLang={this.props.interfaceLang}
+                category={categories[0]}
+                openDisplaySettings={this.props.openDisplaySettings}
+                navHome={this.props.navHome}
+                compare={this.props.compare}
+                catTitle={catTitle}
+                heCatTitle={heCatTitle}
+              />
               <div className={contentClasses}>
                 <div className="contentInner">
                   {this.props.hideNavHeader ? (<h1>
