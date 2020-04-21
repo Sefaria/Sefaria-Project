@@ -476,14 +476,13 @@ class ReaderApp extends Component {
     var histories = [];
     // When the header has a panel open, only look at its content for history
     var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
-    var panels = headerPanel ? [this.state.header] : this.state.panels;
-    var states = [];
+    var states = headerPanel ? [this.state.header] : this.state.panels;
     var moreSidebarModes = ["Sheets", "Notes", "Versions", "Version Open", "About", "WebPages", "extended notes"];
     var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
 
-    for (var i = 0; i < panels.length; i++) {
+    for (var i = 0; i < states.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
-      states[i] = this.clonePanel(panels[i], true);
+      //states[i] = this.clonePanel(panels[i], true);
       if (!states[i]) { debugger; }
       var state = states[i];
       var hist  = {url: ""};
