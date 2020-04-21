@@ -2893,6 +2893,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPage .simpleButtonWrapper .button {
   border-radius: 0;
+  min-height: 47px;
+}
+.staticPage .simpleButtonWrapper .button.tall {
   min-height: 78px;
 }
 .staticPage .simpleButtonWrapper .button.rounded {
@@ -2913,6 +2916,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPageHeaderText {
   font-size: 16px;
   line-height: 22px;
+  padding-bottom: 25px;
 }
 .staticPageHeaderImg img {
   width: 100%;

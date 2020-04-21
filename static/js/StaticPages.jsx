@@ -208,6 +208,7 @@ const RemoteLearningPage = () => (
                 <SimpleButton
                     white={true}
                     rounded={false}
+                    tall={true} 
                     href="/groups/Seder-on-Sefaria?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/219410?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="פסח בספריא"
@@ -216,6 +217,7 @@ const RemoteLearningPage = () => (
                 <SimpleButton
                     white={true}
                     rounded={false}
+                    tall={true}
                     href="/groups/A-Jewish-Response-to-Coronavirus?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/227981.5?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="נגיף הקורונה"
@@ -224,6 +226,7 @@ const RemoteLearningPage = () => (
                 <SimpleButton
                     white={true}
                     rounded={false}
+                    tall={true}
                     href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/228257?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="עשרת הדיברות ללמידה מרחוק"
@@ -253,6 +256,7 @@ const RemoteLearningPage = () => (
             <SimpleButton
                 white={true}
                 rounded={false}
+                tall={true}
                 href="/groups/Webinars-for-Learners?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224909?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="וובינרים"
@@ -261,6 +265,7 @@ const RemoteLearningPage = () => (
             <SimpleButton
                 white={true}
                 rounded={false}
+                tall={true}
                 href="/groups/Tutorials-for-Learners?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224919?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="מדריך למשתמש המתחיל"
@@ -269,6 +274,7 @@ const RemoteLearningPage = () => (
             <SimpleButton
                 white={true}
                 rounded={false}
+                tall={true}
                 href="/groups/Sefaria-Student-Course?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/228260?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="הסודות של ספריא"
@@ -299,6 +305,7 @@ const RemoteLearningPage = () => (
             <SimpleButton
                 white={true}
                 rounded={false}
+                tall={true}
                 href="/groups/Webinars-for-Educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224909?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="וובינרים"
@@ -307,6 +314,7 @@ const RemoteLearningPage = () => (
             <SimpleButton
                 white={true}
                 rounded={false}
+                tall={true}
                 href="/groups/Tutorials-for-Educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224923?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="קורס למורים: 'ספריא בכיתה'"
@@ -315,6 +323,7 @@ const RemoteLearningPage = () => (
             <SimpleButton
                 white={true}
                 rounded={false}
+                tall={true}
                 href="/sheets/187032?lang=bi?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/223245?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="טיפים להוראה עם ספריא"
@@ -333,9 +342,9 @@ const RemoteLearningPage = () => (
             borderColor="#802F3E"
         />
         <ButtonRow>
-            <SimpleButton white={true} rounded={false} href="/linker?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="לינקר דו צדדי" en="Two-Way Linker"/>
-            <SimpleButton white={true} rounded={false} href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria" he="אתרים המופעלים ע”י ספריא" en="Powered by Sefaria"/>
-            <SimpleButton white={true} rounded={false} href="https://github.com/Sefaria/Sefaria-Project/wiki#developers" he="Github גיטהאב" en="GitHub"/>
+            <SimpleButton white={true} tall={true} rounded={false} href="/linker?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="לינקר דו צדדי" en="Two-Way Linker"/>
+            <SimpleButton white={true} tall={true} rounded={false} href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria" he="אתרים המופעלים ע”י ספריא" en="Powered by Sefaria"/>
+            <SimpleButton white={true} tall={true} rounded={false} href="https://github.com/Sefaria/Sefaria-Project/wiki#developers" he="Github גיטהאב" en="GitHub"/>
         </ButtonRow>
         <CallToActionFooterWithNewsletter
             enText="Sign up for our mailing list to get updates in your inbox."
@@ -456,12 +465,12 @@ const ButtonRow = ({children}) => (
     </div>
 );
 
-const SimpleButton = ({href, he_href, he, en, white, rounded=true}) => (
+const SimpleButton = ({href, he_href, he, en, white, rounded=true, tall=false}) => (
     <div className="simpleButtonWrapper">
-        <a href={href} className={classNames({button:1, flexContainer:1, "int-en":1, white: white, rounded:rounded})}>
+        <a href={href} className={classNames({button:1, flexContainer:1, "int-en":1, white: white, tall: tall, rounded:rounded})}>
             <span className="int-en">{en}</span>
         </a>
-        <a href={he_href || href} className={classNames({button:1, flexContainer:1, "int-he":1, white: white, rounded:rounded})}>
+        <a href={he_href || href} className={classNames({button:1, flexContainer:1, "int-he":1, white: white, tall: tall, rounded:rounded})}>
             <span className="int-he">{he}</span>
         </a>
     </div>
