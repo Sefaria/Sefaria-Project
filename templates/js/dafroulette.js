@@ -28,22 +28,10 @@ socket.on('return rooms', function(numRooms) {
   document.getElementById("numberOfChevrutas").innerHTML = numRooms;
 });
 
-
-socket.on('route new user', function(numRooms, conf){
-  document.getElementById("numberOfChevrutas").innerHTML = numRooms;
-  pcConfig = conf;
-  if (numRooms == 1) {
-    socket.emit('create or join', true);
-  }
-
-  else {
-    socket.emit('create or join');
-  }
-})
-
 console.log('Attempted to create or join room');
 
-socket.on('created', function(room) {
+socket.on('created', function(room, conf) {
+  pcConfig = conf;
   console.log('Created room ' + room);
   isInitiator = true;
   clientRoom = room;
@@ -64,7 +52,8 @@ socket.on('join', function(room) {
 
 });
 
-socket.on('joined', function(room) {
+socket.on('joined', function(room, conf) {
+  pcConfig = conf;
   console.log('joined: ' + room);
   isChannelReady = true;
   clientRoom = room;
@@ -184,10 +173,6 @@ function gotStream(stream) {
   console.log('Adding local stream.');
   localStream = stream;
   localVideo.srcObject = stream;
-  sendMessage('got user media');
-  if (isInitiator) {
-    maybeStart();
-  }
 }
 
 function maybeStart() {
@@ -304,13 +289,6 @@ function stop() {
   isStarted = false;
   pc.close();
   pc = null;
-}
-
-function newRoom() {
-  hangup()
-  // socket.emit('new room');
-  socket.emit('create or join');
-  console.log('Attempted to create new room');
 }
 
 {% endautoescape %}
