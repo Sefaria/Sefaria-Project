@@ -233,6 +233,7 @@ const TopicPage = ({
         const textPromise = Sefaria.incrementalPromise(
           inRefs => Sefaria.getBulkText(inRefs.map(x => x.ref), true, 500, 600).then(outRefs => {
             for (let tempRef of inRefs) {
+              // annotate outRefs with `order` and `dataSources` from `topicRefs`
               if (outRefs[tempRef.ref]) {
                 outRefs[tempRef.ref].order = tempRef.order;
                 outRefs[tempRef.ref].dataSources = tempRef.dataSources;
