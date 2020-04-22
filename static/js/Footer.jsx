@@ -11,6 +11,9 @@ class Footer extends Component {
     super(props);
     this.state = {subscribeMessage: null};
   }
+  componentDidMount() {
+      this.setState({isClient: true});
+  }
   trackLanguageClick(language){
     Sefaria.track.setInterfaceLanguage('interface language footer', language);
   }
@@ -43,7 +46,7 @@ class Footer extends Component {
 
     const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
-    let next = (this.props.initialPath) ? this.props.initialPath : ( typeof window === "undefined" ? "/" : (encodeURIComponent(Sefaria.util.currentPath())));
+    let next = (this.props.initialPath) ? this.props.initialPath : ( this.state.isClient ? "/" : (encodeURIComponent(Sefaria.util.currentPath())));
     console.log("next footer:", next);
     return (
       <footer id="footer" className="static sans">
