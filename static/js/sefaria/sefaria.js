@@ -320,7 +320,7 @@ Sefaria = extend(Sefaria, {
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null) {
     // todo: fish existing texts out of cache first
     if (refs.length === 0) { return Promise.resolve({}); }
-    
+
     const MAX_URL_LENGTH = 3800;
     const hostStr = `${Sefaria.apiHost}/api/bulktext/`;
 
@@ -2305,16 +2305,14 @@ Sefaria = extend(Sefaria, {
     setResponse - callback to react to send updated results
     setCancel - function that saves cancel function so it can be called in outside scope
     */
-    let allResponses = [];
     let lastEndIndex = 0;
     while (lastEndIndex <= data.length) {
       const tempData = data.slice(lastEndIndex, lastEndIndex + increment);
       const { promise, cancel } = Sefaria.makeCancelable(fetchResponse(tempData));
       setCancel(cancel);
       const tempResponses = await promise;
-      allResponses = allResponses.concat(tempResponses);
-      setResponse(allResponses);
-      lastEndIndex = lastEndIndex + increment;
+      setResponse(prevResponses => !prevResponses ? tempResponses : prevResponses.concat(tempResponses));
+      lastEndIndex += increment;
     }
   }
 });

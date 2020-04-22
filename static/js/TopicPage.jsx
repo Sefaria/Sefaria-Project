@@ -217,30 +217,43 @@ const TopicPage = ({
         const sheets = Object.values(sheetMap);
         setTopicRefs(refs);
         setTopicSheets(sheets);
+      })());
+      promise.catch((error) => { if (!error.isCanceled) { console.log('TopicPage Error', error); } });
+      return () => {
+        cancel();
+        setTopicData(false);
+        setTopicRefs(false);
+        setTopicSheets(false);
+      }
+    }, [topic]);
 
-        return Promise.all([
-          Sefaria.incrementalPromise(
-            inRefs => Sefaria.getBulkText(inRefs.map(x => x.ref), true, 500, 600).then(outRefs => {
-              for (let tempRef of inRefs) {
-                if (outRefs[tempRef.ref]) {
-                  outRefs[tempRef.ref].order = tempRef.order;
-                  outRefs[tempRef.ref].dataSources = tempRef.dataSources;
-                }
+    useEffect(() => {
+      const { promise, cancel } = Sefaria.makeCancelable((async () => {
+        if (!topicRefs || !topicSheets) { return; }
+        const textPromise = Sefaria.incrementalPromise(
+          inRefs => Sefaria.getBulkText(inRefs.map(x => x.ref), true, 500, 600).then(outRefs => {
+            for (let tempRef of inRefs) {
+              if (outRefs[tempRef.ref]) {
+                outRefs[tempRef.ref].order = tempRef.order;
+                outRefs[tempRef.ref].dataSources = tempRef.dataSources;
               }
-              return Object.entries(outRefs);
-            }),
-            refs, 100, setTextData, newCancel => { textCancel = newCancel; }
-          ),
-          Sefaria.incrementalPromise(
-            inSheets => Sefaria.getBulkSheets(inSheets.map(x => x.sid)).then(outSheets => {
-              for (let tempSheet of inSheets) {
-                if (outSheets[tempSheet.sid]) {
-                  outSheets[tempSheet.sid].order = tempSheet.order;
-                }
+            }
+            return Object.entries(outRefs);
+          }),
+          topicRefs, 100, setTextData, newCancel => { textCancel = newCancel; }
+        );
+        const sheetPromise = Sefaria.incrementalPromise(
+          inSheets => Sefaria.getBulkSheets(inSheets.map(x => x.sid)).then(outSheets => {
+            for (let tempSheet of inSheets) {
+              if (outSheets[tempSheet.sid]) {
+                outSheets[tempSheet.sid].order = tempSheet.order;
               }
-              return Object.values(outSheets)
-            }),
-            sheets, 100, (allSheets) => {
+            }
+            return Object.values(outSheets)
+          }),
+          topicSheets, 100, (getNextSheets) => {
+            setSheetData(prevSheets => {
+              const allSheets = getNextSheets(prevSheets);
               const newAllSheets = [];
               const sheetIdMap = {};  // map id -> index in newAllSheets
               const allSheetsSorted = allSheets.sort((a, b) => sheetSort('Relevance', a, b, {}));
@@ -257,22 +270,22 @@ const TopicPage = ({
                 const ind = sheetIdMap[tempSheet.sheet_via];
                 if (typeof ind != "undefined") { newAllSheets[ind].copies.push(tempSheet); }
               }
-              setSheetData(newAllSheets);
-            }, newCancel => { sheetCancel = newCancel; }
-          ),
-        ]);
+              return newAllSheets;
+            });
+          }, newCancel => { sheetCancel = newCancel; }
+        );
+        await textPromise;
+        await sheetPromise;
       })());
+      promise.catch((error) => { if (!error.isCanceled) { console.log('TopicPage Error', error); } });
       return () => {
         cancel();
         if (textCancel) { textCancel(); }
         if (sheetCancel) { sheetCancel(); }
-        setTopicData(false);
-        setTopicRefs(false);
-        setTopicSheets(false);
         setSheetData(null);
         setTextData(null);
       }
-    }, [topic]);
+    }, [topicRefs, topicSheets]);
     const tabs = [];
     if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources"), id: 'sources'}); }
     if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets"), id: 'sheets'}); }
