@@ -243,40 +243,40 @@ const TopicPage = ({
           }),
           topicRefs, 100, setTextData, newCancel => { textCancel = newCancel; }
         );
-        const sheetPromise = Sefaria.incrementalPromise(
-          inSheets => Sefaria.getBulkSheets(inSheets.map(x => x.sid)).then(outSheets => {
-            for (let tempSheet of inSheets) {
-              if (outSheets[tempSheet.sid]) {
-                outSheets[tempSheet.sid].order = tempSheet.order;
-              }
-            }
-            return Object.values(outSheets)
-          }),
-          topicSheets, 100, (getNextSheets) => {
-            setSheetData(prevSheets => {
-              const allSheets = getNextSheets(prevSheets);
-              const newAllSheets = [];
-              const sheetIdMap = {};  // map id -> index in newAllSheets
-              const allSheetsSorted = allSheets.sort((a, b) => sheetSort('Relevance', a, b, {}));
-              // add all non-copied sheets
-              for (let tempSheet of allSheetsSorted) {
-                if (!tempSheet.sheet_via) {
-                  tempSheet.copies = [];
-                  newAllSheets.push(tempSheet);
-                  sheetIdMap[tempSheet.sheet_id] = newAllSheets.length - 1;
-                }
-              }
-              // aggregate copies to their parents
-              for (let tempSheet of allSheetsSorted) {
-                const ind = sheetIdMap[tempSheet.sheet_via];
-                if (typeof ind != "undefined") { newAllSheets[ind].copies.push(tempSheet); }
-              }
-              return newAllSheets;
-            });
-          }, newCancel => { sheetCancel = newCancel; }
-        );
+        // const sheetPromise = Sefaria.incrementalPromise(
+        //   inSheets => Sefaria.getBulkSheets(inSheets.map(x => x.sid)).then(outSheets => {
+        //     for (let tempSheet of inSheets) {
+        //       if (outSheets[tempSheet.sid]) {
+        //         outSheets[tempSheet.sid].order = tempSheet.order;
+        //       }
+        //     }
+        //     return Object.values(outSheets)
+        //   }),
+        //   topicSheets, 100, (getNextSheets) => {
+        //     setSheetData(prevSheets => {
+        //       const allSheets = getNextSheets(prevSheets);
+        //       const newAllSheets = [];
+        //       const sheetIdMap = {};  // map id -> index in newAllSheets
+        //       const allSheetsSorted = allSheets.sort((a, b) => sheetSort('Relevance', a, b, {}));
+        //       // add all non-copied sheets
+        //       for (let tempSheet of allSheetsSorted) {
+        //         if (!tempSheet.sheet_via) {
+        //           tempSheet.copies = [];
+        //           newAllSheets.push(tempSheet);
+        //           sheetIdMap[tempSheet.sheet_id] = newAllSheets.length - 1;
+        //         }
+        //       }
+        //       // aggregate copies to their parents
+        //       for (let tempSheet of allSheetsSorted) {
+        //         const ind = sheetIdMap[tempSheet.sheet_via];
+        //         if (typeof ind != "undefined") { newAllSheets[ind].copies.push(tempSheet); }
+        //       }
+        //       return newAllSheets;
+        //     });
+        //   }, newCancel => { sheetCancel = newCancel; }
+        // );
         await textPromise;
-        await sheetPromise;
+        // await sheetPromise;
       })());
       promise.catch((error) => { if (!error.isCanceled) { console.log('TopicPage Error', error); } });
       return () => {

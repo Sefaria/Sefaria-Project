@@ -949,9 +949,8 @@ class AbstractTextRecord(object):
 
         for segment in as_array:
             joiner = " " if previous_state is not None else ""
-
             previous_state = accumulator
-            accumulator += joiner + segment
+            accumulator += joiner + self._strip_itags(segment)
 
             cur_len = len(accumulator)
             prev_len = len(previous_state)
