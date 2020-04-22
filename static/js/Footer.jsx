@@ -1,4 +1,5 @@
 const React                    = require('react');
+const PropTypes     = require('prop-types');
 const Sefaria                  = require('./sefaria/sefaria');
 const $                        = require('./sefaria/sefariaJquery');
 const { NewsletterSignUpForm } = require('./Misc');
