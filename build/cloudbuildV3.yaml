@@ -54,7 +54,7 @@ steps:
   # Copy local_settings.py into the chart directory. There is no way to inject this with `helm`
   # https://github.com/helm/helm/issues/3276
   # This can also be resolved by parameterizing all setting variables and passing them in
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.0.2"
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
     dir: k8s-admin/v2
     id: copy_local_settings_file
     entrypoint: cp
@@ -63,7 +63,7 @@ steps:
       - k8s-admin_clone
   
   # Idempotently Install/Upgrade the Helm Release
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.0.2"
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
     id: install_chart
     dir: k8s-admin/v2
     args: ["upgrade", "-i", "${_HELM_RELEASE_NAME}", "./charts/sefaria", "--namespace", "${_TARGET_NAMESPACE}", "--set-string", "deployEnv=${_HELM_RELEASE_NAME_SLUG},releaseSlug=${_HELM_RELEASE_NAME_SLUG},releaseImageTag=$SHORT_SHA,web.replicaCount=${_WEB_REPLICAS}", "--debug"]

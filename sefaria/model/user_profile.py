@@ -284,6 +284,7 @@ class UserProfile(object):
         self.followees = FolloweesSet(self.id)
 
         # Gravatar
+
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
         profile = self.migrateFromOldRecents(profile)

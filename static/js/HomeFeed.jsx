@@ -23,7 +23,7 @@ CategoryLink.propTypes = {
 };
 
 function HomeFeedSidebar({showLibrary}) {
-    return (<div className="homeFeedSidebar">
+    return (<div className="sideColumn">
             <div id="homeLearn" className="section">
                 <div className="sectionInner">
                     <div className="textBox">
@@ -210,8 +210,8 @@ function HomeFeed(props) {
             </div>
         </div>
 
-        <div className="homeFeedColumns">
-            <div className="storyFeed">
+        <div className="columnLayout">
+            <div className="mainColumn">
                 <div className="storyFeedInner">
                 {stories.length ? stories.map((s,i) => Story(s, i, props)) : <LoadingMessage />}
                 </div>
