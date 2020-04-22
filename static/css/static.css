@@ -73,6 +73,13 @@
   margin: 0 0 60px 0;
   height: auto;
 }
+.static h1 div{
+  display: inline-block;
+}
+.static h1 #saveCancelButtons{
+  float: right;
+  position: static;
+}
 .static h1 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
@@ -192,6 +199,7 @@
 }
 .static .inner .button.full{
   width:100%;
+  margin: 10px 0;
 }
 .static img.fullWidth {
   width: 100%;
@@ -1082,6 +1090,10 @@ p.registration-links a:hover{
     border: none;
     margin-bottom: 10px;
 }
+#accountSettingsPage .form-section{
+    margin: 2px auto 20px auto;
+    margin-left: 1px;
+}
 #accountSettingsPage input[disabled="disabled"] {
     background-color: #FBFBFA;
 }
@@ -1092,12 +1104,20 @@ p.registration-links a:hover{
   padding-bottom: 15px;
   font-style: normal;
 }
-#accountSettingsPage #email-edit-errors{
+#accountSettingsPage [id^="email-edit"]{
+  padding: 15px;
+  text-align: center;
   display: block;
   width 100%;
   margin: 10px;
-  background-color: lightcoral;
-  text-align: center;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+}
+#accountSettingsPage #email-edit-errors{
+  color: #CB6158;
+}
+#accountSettingsPage #email-edit-ok{
+  color: #666;
 }
 .interface-hebrew #accountSettingsPage.static.biReady .toggleOption:first-child{
   border-top-right-radius: 4px;

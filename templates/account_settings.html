@@ -6,20 +6,21 @@
 <div id="accountSettingsPage" class="static biReady">
 	<div class="inner">
 	<h1>
-        <span class="int-en">Account Settings</span>
-        <span class="int-he">הגדרות חשבון</span>
-
+        <div>
+            <span class="int-en">Account Settings</span>
+            <span class="int-he">הגדרות חשבון</span>
+        </div>
+        <div id="saveCancelButtons">
+            <a class="button transparent control-elem" href="/my/profile">
+                <span class="int-en">Cancel</span>
+                <span class="int-he">בטל</span>
+            </a>
+            <div id="saveAccountSettings" class="button blue control-elem" tabindex="0" role="button" >
+                <span class="int-en">Save</span>
+                <span class="int-he">שמור</span>
+            </div>
+        </div>
     </h1>
-	<div id="saveCancelButtons">
-		<a class="button transparent control-elem" href="/account">
-			<span class="int-en">Cancel</span>
-			<span class="int-he">בטל</span>
-		</a>
-		<div id="saveAccountSettings" class="button control-elem" tabindex="0" role="button" >
-			<span class="int-en">Save</span>
-			<span class="int-he">שמור</span>
-		</div>
-	</div>
 	<div id="emailNotifications" class="section">
 		<label class="control-elem">
             <span class="int-en">Email Frequency (Maximum)</span>
@@ -72,19 +73,20 @@
 		</div>
 	</div>
 	{% endif %}
-    <div id="username-change">
+    <div id="username-change" class="section">
         <label class="control-elem">
                 <span class="int-en">Account Email (This is used for login)</span>
                 <span class="int-he">כתובת אימייל (משמשת לכניסה לחשבון)</span>
         </label>
-        <div id="username-change-display">
+        <div id="username-change-display" class="form-section">
             <input id="email-display" type="text" disabled="disabled" value="{{ user.email }}" />
             <button id="change-email" type="button" class="button blue full">
                 <span class="int-en">Change Email</span>
                 <span class="int-he">החלפת כתובת מייל</span>
             </button>
+            <span id="email-edit-ok"></span>
         </div>
-        <div id="username-change-edit" style="display: none">
+        <div id="username-change-edit" class="form-section" style="display: none">
             <input id="email" type="text" placeholder="{% trans "New Email" %}" autocomplete="off" />
             <input id="confirmEmail" type="text" placeholder="{% trans "Confirm New Email" %}" autocomplete="off" />
             <input id="confirmPassword" type="password" placeholder="{% trans "Password" %}" autocomplete="new-password" />
@@ -138,7 +140,7 @@
 						if($newLang != $curLang){
 						    Sefaria.track.setInterfaceLanguage("interface language account settings", $newLang);
                         }
-						window.location = "/account";
+						window.location = "/my/profile";
 					}
 				});
 			});
@@ -163,6 +165,7 @@
 					if ("error" in data) {
 						$("#username-change-edit #email-edit-errors").text(data.error);
 					} else {
+					    $("#username-change-display #email-edit-ok").text(Sefaria._("Email was successfully changed!")).show();
                         $("#username-change-display #email-display").val(user_details["email"]);
                         $("#username-change-display").toggle();
                         $("#username-change-edit").toggle();

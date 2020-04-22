@@ -2124,6 +2124,7 @@ Sefaria = extend(Sefaria, {
       "Sign\u00A0in": "התחברו",
       "Save": "שמירה",
       "Remove": "הסרה",
+      "Email was successfully changed!": "כתובת האימייל שונתה בהצלחה!",
 
       //user stats
       "Torah Tracker" : "לימוד במספרים",
