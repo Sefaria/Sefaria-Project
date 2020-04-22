@@ -543,16 +543,6 @@ def rebuild_counts_and_toc(request):
     return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
 '''
 
-@staff_member_required
-def rebuild_topics(request):
-    from sefaria.model.topic_old import update_topics
-    update_topics()
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("topic", "update_topics")
-
-    return HttpResponseRedirect("/topics?m=topics-rebuilt")
-
 
 @staff_member_required
 def reset_varnish(request, tref):

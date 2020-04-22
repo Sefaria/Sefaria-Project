@@ -391,7 +391,7 @@ input.noselect {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   vertical-align: 6px;
   margin: 0;
-  width: 60px;
+  width: 100px;
 }
 .header .searchFocused .search {
   width: 160px;
@@ -730,7 +730,6 @@ input.noselect {
   z-index: 1000000 !important;
   font-family: 'Hebrew Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
-
 .header > .ui-autocomplete {
   z-index: 1000 !important;
 }
@@ -757,8 +756,8 @@ input.noselect {
   margin: 0 10px;
   vertical-align: top;
 }
-.ui-autocomplete .ui-menu-item a.ui-state-focus {
-  background: #ddd;
+.ui-autocomplete .ui-menu-item.ui-state-focus {
+  background: #EDEDEC;
 }
 .ui-helper-hidden-accessible {
   display: none;
@@ -2906,7 +2905,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .sheet_result {
   height: auto;
-  margin: 15px 0;
+  margin: 15px 0 20px 0;
+  padding-bottom: 30px;
 }
 .readerNavMenu .content.sheetList {
   padding: 80px 15px 15px;
@@ -2973,7 +2973,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline;
 }
 .readerSheetsNav .tagsHeader {
-  margin: 50px 0 30px;
+  margin: 50px 0 40px;
   height: auto
 }
 .readerSheetsNav .tagsHeader .actionText {
@@ -4799,7 +4799,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0 0 40px 0;
   height: auto;
 }
-.systemPanel.readerNavMenu h1 .en {
+.systemPanel.readerNavMenu h1 :not(.languageToggle) .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .systemPanel.readerNavMenu h1 .button {
@@ -5113,12 +5113,7 @@ a .button:hover {
     position: relative;
     top: 2px;
 }
-::-webkit-input-placeholder {
-   font-style: italic;
-   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-   color: #666;
-}
-::-moz-placeholder {
+::placeholder {
    font-style: italic;
    font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
    color: #666;
@@ -5128,13 +5123,7 @@ a .button:hover {
    font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
    color: #666;
 }
-.interface-hebrew ::-webkit-input-placeholder {
-  font-style: normal;
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
-  font-size: 18px;
-  color: #666;
-}
-.interface-hebrew ::-moz-placeholder {
+.interface-hebrew ::placeholder {
   font-style: normal;
   font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
   font-size: 18px;
@@ -5250,6 +5239,7 @@ a .button:hover {
 h2.splitHeader {
   margin-bottom: 10px;
   text-align: left;
+  padding-bottom: 40px;
 }
 h2.splitHeader .en {
   font-size: 14px;
@@ -5556,7 +5546,8 @@ h2.splitHeader .he {
 .groupPage .groupMemberListing {
   padding: 24px 0;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  font-size: 20px;
+  font-size: 16px;
+  color: #666;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -5844,19 +5835,19 @@ h2.splitHeader .he {
   opacity: 0.5;
   float: right;
 }
-
 .searchBox .keyboardInputInitiator {
-    opacity: 0;
+    opacity: 0.4;
     width: 16px;
     height: 16px;
     padding: 4px 7px;
     position: initial;
     vertical-align: 0px;
 }
+.header .searchBox .keyboardInputInitiator {
+    display: none;
+}
 body #keyboardInputMaster {
     opacity: 1;
-    /* top: 53px !important; */
-    /* left:70px !important; */
     background-color: #FBFBFA;
     border: 1px solid #ccc;
     padding: 5px;
@@ -5889,10 +5880,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editGroupPageContainerInner {
   position: relative;
 }
-#editGroupPage .int-en {
+#editGroupPage :not(h1) .int-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-#editGroupPage .int-he {
+#editGroupPage :not(h1) .int-he {
   font-family: "Heebo", sans-serif;
 }
 #editGroupPage .field {
@@ -5917,6 +5908,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #editGroupPage .field > label {
   display: block;
   margin-bottom: 15px;
+  color: #666;
 }
 #editGroupPage input,
 #editGroupPage textarea {
@@ -6045,7 +6037,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 #footer a {
   display: block;
-  color: #999;
+  color: #666;
 }
 .interface-hebrew #footer{
   direction: rtl;
@@ -6075,7 +6067,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   text-align: right;
 }
 #footer .section .header {
-  color: #666;
+  color: #000;
   margin-bottom: 18px;
   font-weight: normal;
   font-size: 16px;
@@ -6146,6 +6138,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   display: inline;
   margin: 0 4px;
 }
+#footer .section.connect .socialLinks a {
+  color: #666;
+}
 #footer #socialButtons {
   margin-bottom: 6px;
 }
@@ -6171,6 +6166,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 #footer #siteLanguageToggle #siteLanguageToggleLabel {
   display: block;
   text-transform: uppercase;
+  color: #000;
 }
 #footer a#siteLanguageEnglish,
 #footer a#siteLanguageHebrew {

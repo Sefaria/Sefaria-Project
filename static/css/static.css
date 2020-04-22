@@ -40,11 +40,11 @@
 .static .sans .int-he, .static.sans .int-he  {
   font-family: "Heebo", sans-serif;
 }
-.interface-english .static .int-he {
-  display: none !important;
+.interface-english .static .int-he, .interface-english .static .he {
+  display: none;
 }
-.interface-hebrew .static .int-en {
-  display: none !important;
+.interface-hebrew .static .int-en, .interface-hebrew .static .en {
+  display: none;
 }
 .static h2,
 .static h3,
@@ -920,7 +920,7 @@ p.registration-links a:hover{
 }
 #saveCancelButtons {
   position: absolute;
-  top: 127px;
+  top: 145px;
   right: 0px;
 }
 #saveCancelButtons .button {
@@ -1121,7 +1121,13 @@ p.registration-links a:hover{
   text-decoration: none;
 }
 #peoplePage .author a, #talmudicPeoplePage .author a, #personPage a{
-  color: #666;
+  color: #000;
+  font-size: 18px;
+}
+#peoplePage .author a .int-en, 
+#talmudicPeoplePage .author a .int-en, 
+#personPage a .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #peoplePage .author, #talmudicPeoplePage .author{
   margin-left: 0;
@@ -1143,6 +1149,10 @@ p.registration-links a:hover{
 #peoplePage .authors-row:first-of-type {
   padding-top: 10px;
 }
+#peoplePage h3, #talmudicPeoplePage h3, #talmudicPeoplePage h4{
+  color: #666;
+  font-size: 16px;
+}
 #talmudicPeoplePage .talmudic-generation {
   width: 49%;
   display: inline-block;
@@ -1152,10 +1162,6 @@ p.registration-links a:hover{
   #talmudicPeoplePage .talmudic-generation {
     width: 100%
   }
-}
-#talmudicPeoplePage h4{
-  color: #ccc;
-  padding-bottom: 10px;
 }
 #talmudicPeoplePage p.author{
   padding-bottom: 5px;
@@ -1561,7 +1567,7 @@ p.registration-links a:hover{
   font-size: 14px;
 }
 #edConnect #mailingListEmail {
-  padding: 14px 24px;
+  padding: 16px 24px;
   margin: -4px 8px 0 0;
   width: 240px;
   font-size: 16px;
@@ -2848,7 +2854,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   line-height: 35px;
   color: #666666;
 }
-
 .staticPage .simpleButtonWrapper {
   width: 33%;
 }
