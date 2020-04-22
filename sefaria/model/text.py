@@ -4268,9 +4268,6 @@ class Library(object):
         # Maps, keyed by language, from index key to array of titles
         self._index_title_maps = {lang:{} for lang in self.langs}
 
-        # Maps, keyd by term, from code generated alt titles to primary index title
-        self._generated_to_primary_index_titles = {}
-
         # Maps, keyed by language, from titles to schema nodes
         self._title_node_maps = {lang:{} for lang in self.langs}
 
@@ -4733,11 +4730,8 @@ class Library(object):
                 simple_books = list(map(re.escape, self.citing_title_list(lang)))
             else:
                 simple_books = list(map(re.escape, self.full_title_list(lang, with_terms=with_terms)))
-            generated_book_list = self._full_title_lists.get('all', [])
-            if not generated_book_list:
-                generated_book_list = library.generate_book_list()
-                self._full_title_lists['all'] = generated_book_list
-            simple_book_part = r'|'.join(sorted(simple_books + generated_book_list, key=len, reverse=True))  # Match longer titles first
+            simple_book_part = r'|'.join(sorted(simple_books, key=len, reverse=True))  # Match longer titles first
+
             # re_string += ur'(?:^|[ ([{>,-]+)' if for_js else u''  # Why don't we check for word boundaries internally as well?
             # re_string += ur'(?:\u05d5?(?:\u05d1|\u05de|\u05dc|\u05e9|\u05d8|\u05d8\u05e9)?)' if for_js and lang == "he" else u'' # likewise leading characters in Hebrew?
             # re_string += ur'(' if for_js else
@@ -4748,35 +4742,6 @@ class Library(object):
             self._title_regex_strings[key] = re_string
 
         return re_string
-
-    def all_rambam_titles_regex(self):
-        rambam_re = re.compile('''(?:רמב"ם|משנה תורה)[,\s]*(?:הלכות|הל'|)\s(?P<full_name>(?P<name_one>.+?)(?:\sו(?P<name_two>.+)|$))''')
-        mt = [library.get_index(t) for t in library.get_indexes_in_category('Mishneh Torah')]
-        full_names = [(re.match(rambam_re, t).group('full_name'), ind.get_title('he')) for ind in mt for t in ind.all_titles('he') if re.match(rambam_re, t) and re.match(rambam_re, t)]
-        divided_names_one = [(re.match(rambam_re, t).group('name_one'), ind.get_title('he')) for ind in mt for t in ind.all_titles('he') if re.match(rambam_re, t) and re.match(rambam_re, t).group('name_one')]
-        divided_names_two = [(re.match(rambam_re, t).group('name_two'), ind.get_title('he')) for ind in mt for t in ind.all_titles('he') if re.match(rambam_re, t) and re.match(rambam_re, t).group('name_two')]
-        rambam_book_names_t = list(set(full_names + divided_names_one + divided_names_two))
-        rambam_dict = dict(rambam_book_names_t)
-        # add "mem and nun sofit" options
-        add_list = []
-        for k, v in rambam_dict.items():
-            for word in k.split():
-                if re.search('ם', word) and word != 'יום':
-                    add_list.append((k.replace(word, word.replace('ם', 'ן')), v))
-                elif re.search('ן', word):
-                    add_list.append((k.replace(word, word.replace('ן', 'ם')), v))
-        rambam_dict.update(add_list)
-        rambam_book_names = rambam_dict.keys()
-        self._generated_to_primary_index_titles['rambam'] = rambam_dict
-        self._full_title_lists['rambam'] = rambam_book_names
-        return rambam_book_names, rambam_dict
-
-    def generate_book_list(self):
-        rambam_books = self.all_rambam_titles_regex()[0]
-        rambam = list(map(re.escape, ['רמב"ם ' + rt for rt in rambam_books]))
-        mt = list(map(re.escape, ['משנה תורה ' + rt for rt in rambam_books]))
-        rambam_book_list = rambam + mt
-        return rambam_book_list
 
     #WARNING: Do NOT put the compiled re2 object into redis.  It gets corrupted.
     def all_titles_regex(self, lang="en", with_terms=False, citing_only=False):
@@ -5059,10 +5024,10 @@ class Library(object):
             st = self._wrap_all_refs_in_string(title_nodes, reg, st, lang)
         return st
 
-    def get_multi_title_regex_string(self, title_nodes, lang, for_js=False, anchored=False):
+    def get_multi_title_regex_string(self, titles, lang, for_js=False, anchored=False):
         """
         Capture title has to be true.
-        :param title_nodes: dictionary, keys: titles values: nodes
+        :param titles:
         :param lang:
         :param for_js:
         :param anchored:
@@ -5071,9 +5036,9 @@ class Library(object):
         nodes_by_address_type = defaultdict(list)
         regex_components = []
 
-        for title, node in title_nodes.items():
+        for title in titles:
             try:
-                # node = self.get_schema_node(title, lang)
+                node = self.get_schema_node(title, lang)
                 nodes_by_address_type[tuple(node.addressTypes)] += [(title, node)]
             except AttributeError as e:
                 # This chatter fills up the logs:

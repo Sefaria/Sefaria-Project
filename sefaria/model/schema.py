@@ -3,6 +3,7 @@ import copy
 
 import logging
 from functools import reduce
+from itertools import product
 logger = logging.getLogger(__name__)
 
 try:
@@ -198,10 +199,25 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
 
     def _load_title_group(self):
         if getattr(self, "titles", None):
-            self.title_group.load(serial=self.titles)
+            gen_titles = []
+            if getattr(self, "genTitles", None):
+                gen_titles = self._generate_titles(self.genTitles)
+            self.title_group.load(serial=self.titles + gen_titles)
             del self.__dict__["titles"]
 
         self._process_terms()
+
+    def _generate_titles(self, genTitles):
+
+        """
+        :param genTitles: list of dicts on Index with keys: lang, titleParts where titleParts is a list of lists of parts that should generate an Index alt title
+        :return: list of generated alt titles (list of strings)
+        """
+        titles = []
+        for d in genTitles:
+            title_parts = d['titleParts']  # this is a list of lists that needs to create all the optional titles
+            titles.extend([{'lang': d['lang'], 'text':''.join(x)} for x in product(*title_parts)])
+        return titles
 
     def _process_terms(self):
         # To be called after raw data load
