@@ -2814,7 +2814,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .staticPageCallToActionFooter {
   background-color: #212E50;
   color: white;
-  height: 204px;
 }
 .staticPage .staticPageCallToActionFooter .staticPageBlockInner {
   padding: 60px 0;
@@ -2856,7 +2855,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 
 .staticPage .staticPageSheetList {
-  padding: 0 0 80px 0;
+  padding: 0 0 30px 0;
 }
 .staticPage .staticPageSheetList .staticPageSheetItem {
   padding: 20px 0;
@@ -2936,6 +2935,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 16px;
   line-height: 19px;
 }
+
 .staticPage .feature .featureText {
   font-family: "Roboto", sans-serif;
   font-style: normal;
@@ -2953,9 +2953,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .feature .featureImage img {
   width: 454px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  /* max-width: 100%; */
 }
 .staticPage .feature {
     padding: 0 0 80px 0;
+    background-color: #FBFBFA;
 }
 .staticPage .feature .featureHeader {}
 .staticPage .feature .featureHeader h3 {
@@ -2981,11 +2983,18 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   .staticPage .staticPageHeader {
     padding-top: 40px;
   }
+  .staticPageCallToActionFooter .simpleButtonWrapper,
+  .staticPage .feature .featureImage {
+    padding-top: 30px;
+  }
+
   .staticPageHeaderText {
     margin-bottom: 30px;
   }
   .staticPage .simpleButtonWrapper,
   .staticPage .feature .featureText,
+  .staticPage .feature .featureImage,
+  .staticPage .feature .featureImage img,
   .staticPage .staticPageCallToActionFooter .callToActionText {
     width: 100%;
   }
