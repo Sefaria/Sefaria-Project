@@ -71,7 +71,7 @@ class GroupPage extends Component {
     if (this.props.group == "גיליונות נחמה"){
       let parshaOrder = ["Bereshit", "Noach", "Lech Lecha", "Vayera", "Chayei Sara", "Toldot", "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi", "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah", "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei", "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot", "Kedoshim", "Emor", "Behar", "Bechukotai", "Bamidbar", "Nasso", "Beha'alotcha", "Sh'lach", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masei", "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei", "Ki Tavo", "Nitzavim", "Vayeilech", "Ha'Azinu", "V'Zot HaBerachah"]
       if (this.props.interfaceLang == "english") {
-        parshaOrder = ["English"] + parshaOrder;
+        parshaOrder = ["English"].concat(parshaOrder);
       }
       group.pinnedTags = parshaOrder;
     }
@@ -96,14 +96,14 @@ class GroupPage extends Component {
   }
   sortTags(group) {
      var sortTags = function(a, b) {
-      var ai = group.pinnedTags.indexOf(a.tag);
-      var bi = group.pinnedTags.indexOf(b.tag);
+      var ai = group.pinnedTags.indexOf(a.asTyped);
+      var bi = group.pinnedTags.indexOf(b.asTyped);
       if (ai == -1 && bi == -1) { return 0; }
       if (ai == -1) { return 1; }
       if (bi == -1) { return -1; }
       return  ai < bi ? -1 : 1;
     };
-    group.tags.sort(sortTags);
+    group.topics.sort(sortTags);
   }
   setTab(tab) {
     this.setState({tab: tab});
@@ -178,7 +178,9 @@ class GroupPage extends Component {
   render() {
     var group        = this.state.groupData;
     
-    if (!group) { return <LoadingMessage />; }
+    if (!group) { return <div className="content groupPage sheetList hasFooter">
+                    <LoadingMessage />
+                  </div>; }
 
     var sheets       = group ? group.sheets : null;
     var groupTopicList = group ? group.topics : null;

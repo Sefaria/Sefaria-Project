@@ -33,7 +33,7 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
             response['refs'] = [l.contents() for l in topic_obj.link_set(_class='refTopic')]
     if with_links:
         response['links'] = {}
-        from_topic_set = set()  # duplicates can crop up for symmetric edges b/c of $or query
+        link_dups_by_type = defaultdict(set)  # duplicates can crop up when group_related is true
         if len(intra_links) > 0:
             link_topic_dict = {other_topic.slug: other_topic for other_topic in TopicSet({"$or": [{"slug": link['topic']} for link in intra_links]})}
         else:
@@ -41,15 +41,15 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
         for link in intra_links:
             is_inverse = link['isInverse']
             link_type = library.get_topic_link_type(link['linkType'])
-            if link_type.slug == link_type.inverseSlug:  # symmetric link
-                if link['topic'] in from_topic_set:
-                    continue
-                from_topic_set.add(link['topic'])
             if group_related and link_type.get('groupRelated', is_inverse, False):
                 link_type = library.get_topic_link_type(TopicLinkType.related_type)
+            link_type_slug = link_type.get('slug', is_inverse)
+            if link['topic'] in link_dups_by_type[link_type_slug]:
+                continue
+            link_dups_by_type[link_type_slug].add(link['topic'])
+
             del link['linkType']
             del link['class']
-            link_type_slug = link_type.get('slug', is_inverse)
             if annotate_links:
                 # add display information
                 other_topic = link_topic_dict.get(link['topic'], None)

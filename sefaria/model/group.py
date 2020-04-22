@@ -103,7 +103,7 @@ class Group(abst.AbstractMongoRecord):
         contents = super(Group, self).contents()
         if with_content:
             contents["sheets"]       = group_sheets(self, authenticated)["sheets"]
-            contents["topics"]         = sheet_topics_counts({"group": self.name})
+            contents["topics"]       = sheet_topics_counts({"group": self.name})
             contents["admins"]       = [public_user_data(uid) for uid in contents["admins"]]
             contents["publishers"]   = [public_user_data(uid) for uid in contents["publishers"]]
             contents["members"]      = [public_user_data(uid) for uid in contents["members"]]
