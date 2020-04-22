@@ -50,7 +50,7 @@ $(function() {
     });
     renderFunc(component, container);
     if (footerContainer){
-      renderFunc(React.createElement(SefariaReact.Footer), footerContainer);
+      render(React.createElement(SefariaReact.Footer), footerContainer);
     }
   }
 

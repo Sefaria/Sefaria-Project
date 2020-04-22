@@ -171,7 +171,7 @@ def footer_html(request):
         return {}
     global FOOTER
     if USE_NODE:
-        FOOTER = FOOTER or render_react_component("Footer", {})
+        FOOTER = FOOTER or render_react_component("Footer", {"initialPath": "/"})
         FOOTER = "" if "appLoading" in FOOTER else FOOTER
     else:
         FOOTER = ""

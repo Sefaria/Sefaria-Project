@@ -42,9 +42,8 @@ class Footer extends Component {
 
     const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
-    let currentPath = Sefaria.util.currentPath();
-    let currentPathEncoded = encodeURIComponent(currentPath);
-    let next = currentPathEncoded ? currentPathEncoded : '?home';
+    let next = (this.props.initialPath) ? this.props.initialPath : ( typeof window === "undefined" ? "/" : (encodeURIComponent(Sefaria.util.currentPath())));
+    console.log("next footer:", next);
     return (
       <footer id="footer" className="static sans">
         <div id="footerInner">
@@ -238,6 +237,10 @@ class Footer extends Component {
     );
   }
 }
+
+Footer.propTypes = {
+  initialPath:   PropTypes.string,
+};
 
 
 class LikeFollowButtons extends Component {
