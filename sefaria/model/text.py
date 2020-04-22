@@ -949,9 +949,8 @@ class AbstractTextRecord(object):
 
         for segment in as_array:
             joiner = " " if previous_state is not None else ""
-
             previous_state = accumulator
-            accumulator += joiner + segment
+            accumulator += joiner + self._strip_itags(segment)
 
             cur_len = len(accumulator)
             prev_len = len(previous_state)
@@ -4368,7 +4367,7 @@ class Library(object):
         if not skip_filter_toc:
             self._search_filter_toc = self.get_search_filter_toc(rebuild=True)
         self._search_filter_toc_json = self.get_search_filter_toc_json(rebuild=True)
-
+        self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
         self._category_id_dict = None
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
@@ -4413,8 +4412,8 @@ class Library(object):
         self._toc_tree_is_ready = True
         return self._toc_tree
 
-    def get_topic_toc_json(self):
-        if not self._topic_toc_json:
+    def get_topic_toc_json(self, rebuild=False):
+        if not self._topic_toc_json or rebuild:
             self._topic_toc_json = json.dumps(self.get_topic_toc_json_recursive())
         return self._topic_toc_json
 

@@ -5835,15 +5835,16 @@ h2.splitHeader .he {
   opacity: 0.5;
   float: right;
 }
-
 .searchBox .keyboardInputInitiator {
-    display: none;
     opacity: 0.4;
     width: 16px;
     height: 16px;
     padding: 4px 7px;
     position: initial;
     vertical-align: 0px;
+}
+.header .searchBox .keyboardInputInitiator {
+    display: none;
 }
 body #keyboardInputMaster {
     opacity: 1;
