@@ -79,8 +79,7 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
 });
 
 server.post('/Footer/:cachekey', function(req, res) {
-  var props = JSON.parse(req.body.propsJSON);
-  var html  = ReactDOMServer.renderToStaticMarkup(React.createElement(SefariaReact.Footer(props)));
+  var html  = ReactDOMServer.renderToStaticMarkup(React.createElement(SefariaReact.Footer));
   res.send(html);
 });
 

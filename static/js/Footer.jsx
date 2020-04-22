@@ -46,8 +46,7 @@ class Footer extends Component {
 
     const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
-    let next = (this.props.initialPath) ? this.props.initialPath : ( this.state.isClient ? "/" : (encodeURIComponent(Sefaria.util.currentPath())));
-    console.log("next footer:", next);
+    let next = this.state.isClient ? (encodeURIComponent(Sefaria.util.currentPath())) : "/" ; //try to make sure that a server render of this does not get some weird data in the url that then gets cached
     return (
       <footer id="footer" className="static sans">
         <div id="footerInner">
@@ -241,11 +240,6 @@ class Footer extends Component {
     );
   }
 }
-
-Footer.propTypes = {
-  initialPath:   PropTypes.string,
-};
-
 
 class LikeFollowButtons extends Component {
   componentDidMount() {
