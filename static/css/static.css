@@ -80,6 +80,11 @@
   float: right;
   position: static;
 }
+@media screen and (max-width: 700px) {
+  .static h1 #saveCancelButtons{
+    float: none;
+  }
+}
 .static h1 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
