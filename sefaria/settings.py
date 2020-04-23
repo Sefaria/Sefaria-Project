@@ -295,9 +295,15 @@ CACHES = {
 
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "user_testing_israel",
-    "repetition": 2,
+    "repetition": 1,
     "style":      "modal",
-    "condition": {"returning_only": False, "desktop_only": False, "hebrew_only": True, "debug": False}
+    "condition": {
+        "returning_only": False,
+        "desktop_only": False,
+        "english_only": False,
+        "hebrew_only": True,
+        "debug": False
+    }
 }
 # GLOBAL_INTERRUPTING_MESSAGE = None
 

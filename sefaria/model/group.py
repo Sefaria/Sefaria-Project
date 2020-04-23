@@ -86,7 +86,8 @@ class Group(abst.AbstractMongoRecord):
                 self._handle_image_change(old, new)
 
     def all_names(self, lang):
-        names = self.primary_name(lang)
+        primary_name = self.primary_name(lang)
+        names = [primary_name] if primary_name else []
 
         if hasattr(self, "toc"):
             names += [self.toc["title"]] if lang == "en" else [self.toc["heTitle"]]
@@ -95,14 +96,14 @@ class Group(abst.AbstractMongoRecord):
         return list(set(names))
 
     def primary_name(self, lang):
-        return [self.name] if (hebrew.is_hebrew(self.name) == (lang == "he")) else []
+        return self.name if (hebrew.is_hebrew(self.name) == (lang == "he")) else None
 
     def contents(self, with_content=False, authenticated=False):
-        from sefaria.sheets import group_sheets, sheet_tag_counts
+        from sefaria.sheets import group_sheets, sheet_topics_counts
         contents = super(Group, self).contents()
         if with_content:
             contents["sheets"]       = group_sheets(self, authenticated)["sheets"]
-            contents["tags"]         = sheet_tag_counts({"group": self.name})
+            contents["topics"]       = sheet_topics_counts({"group": self.name})
             contents["admins"]       = [public_user_data(uid) for uid in contents["admins"]]
             contents["publishers"]   = [public_user_data(uid) for uid in contents["publishers"]]
             contents["members"]      = [public_user_data(uid) for uid in contents["members"]]

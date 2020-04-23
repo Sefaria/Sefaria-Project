@@ -121,3 +121,7 @@ static/pagerank.json
 static/sheetrank.json
 
 /random_files
+
+# Miscellaneous #
+#################
+/dafChat/deploy/dafchat/valuesGeneration/_generatedHelmValues.yaml
