@@ -9,6 +9,14 @@ import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import Component      from 'react-class';
 
+// interface text that can fallback to alternate langauge if current language doesn't have content
+const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
+  <span>
+    <span className={classNames({"int-en": 1, "but-text-is-he": !en, italics: isItalics && isItalics.en })}>{en || he}{endContent}</span>
+    <span className={classNames({"int-he": 1, "but-text-is-en": !he, italics: isItalics && isItalics.he })}>{he || en}{endContent}</span>
+  </span>
+);
+
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
 );
@@ -268,7 +276,7 @@ class FilterableList extends Component {
     return this.props.filterFunc(this.state.currFilter, item);
   }
   sortFunc(itemA, itemB) {
-    return this.props.sortFunc(this.state.currSortOption, itemA, itemB);
+    return this.props.sortFunc(this.state.currSortOption, itemA, itemB, this.props.extraData);
   }
   onFilterChange(e) {
     this.setState({currFilter: e.target.value});
@@ -281,13 +289,13 @@ class FilterableList extends Component {
     this.closeSort();
   }
   render() {
-    const { sortOptions, renderItem, renderEmptyList, renderHeader, renderFooter } = this.props;
+    const { sortOptions, renderItem, renderEmptyList, renderHeader, renderFooter, showFilterHeader } = this.props;
     const { loading, currFilter, displaySort, currSortOption, data } = this.state;
-    const newData = data.filter(this.filterFunc).sort(this.sortFunc);
+    const oldDesign = typeof showFilterHeader == 'undefined';
     return (
       <div className="filterable-list">
-        <div className="filter-bar">
-          <div>
+        {oldDesign ? <div className="filter-bar">
+          <div className="filter-bar-inner">
             <ReaderNavigationMenuSearchButton />
             <input
               type="text"
@@ -298,7 +306,7 @@ class FilterableList extends Component {
             />
           </div>
           <div>
-            { sortOptions.length ?
+            { sortOptions.length > 1 ?
               <DropdownModal close={this.closeSort} isOpen={displaySort}>
                 <DropdownButton
                   isOpen={displaySort}
@@ -316,7 +324,37 @@ class FilterableList extends Component {
               : null
             }
           </div>
-        </div>
+        </div> : null }
+        { !oldDesign && showFilterHeader ? (
+          <div className="filter-bar-new">
+            <div className="filter-input">
+              <ReaderNavigationMenuSearchButton />
+              <input
+                type="text"
+                placeholder={Sefaria._("Search")}
+                name="filterableListInput"
+                value={currFilter}
+                onChange={this.onFilterChange}
+              />
+            </div>
+            <div className="filter-sort-wrapper">
+              <span className="systemText">
+                <span className="int-en">Sort by</span>
+                <span className="int-he">מיון לפי</span>
+              </span>
+              { sortOptions.map(option =>(
+                <span
+                  key={option}
+                  className={classNames({'sort-option': 1, noselect: 1, active: currSortOption === option})}
+                  onClick={() => { this.onSortChange(option); }}
+                >
+                  <span className="int-en">{ option }</span>
+                  <span className="int-he">{ Sefaria._(option) }</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : null}
         {
           loading ? <LoadingMessage /> :
           ( data.length ?
@@ -342,38 +380,49 @@ FilterableList.propTypes = {
   renderEmptyList: PropTypes.func,
   renderHeader: PropTypes.func,
   renderFooter: PropTypes.func,
+  showFilterHeader: PropTypes.bool,
+  extraData: PropTypes.object,  // extraData to pass to sort function
 };
 
 class TabView extends Component {
   constructor(props) {
     super(props);
+    const { currTabIndex } = props;
     this.state = {
-      openTabIndex: 0,
+      currTabIndex: (typeof currTabIndex == 'undefined') ? 0 : currTabIndex,
     };
   }
   openTab(index) {
-    this.setState({openTabIndex: index});
+    this.setState({currTabIndex: index});
   }
   onClickTab(e) {
     let target = $(event.target);
     while (!target.attr("data-tab-index")) { target = target.parent(); }
-    const tabIndex = target.attr("data-tab-index");
-    this.openTab(parseInt(tabIndex));
+    const tabIndex = parseInt(target.attr("data-tab-index"));
+    const { onClickArray, setTab, tabs } = this.props;
+    if (onClickArray && onClickArray[tabIndex]) {
+      onClickArray[tabIndex]();
+    } else {
+      this.openTab(tabIndex);
+      setTab && setTab(tabIndex, tabs);
+    }
   }
   renderTab(tab, index) {
+    const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
     return (
-      <div className={classNames({active: this.state.openTabIndex === index, applink: tab.applink})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
+      <div className={classNames({active: currTabIndex === index, justifyright: tab.justifyright})} key={tab.text} data-tab-index={index} onClick={this.onClickTab}>
         {this.props.renderTab(tab, index)}
       </div>
     );
   }
   render() {
+    const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
     return (
       <div className="tab-view">
         <div className="tab-list">
           {this.props.tabs.map(this.renderTab)}
         </div>
-        { React.Children.toArray(this.props.children)[this.state.openTabIndex] }
+        { React.Children.toArray(this.props.children)[currTabIndex] }
       </div>
     );
   }
@@ -381,6 +430,8 @@ class TabView extends Component {
 TabView.propTypes = {
   tabs: PropTypes.array.isRequired,
   renderTab: PropTypes.func.isRequired,
+  currTabIndex: PropTypes.number,  // not required. If passed, TabView will be controlled from outside
+  setTab: PropTypes.func,          // not required. If passed, TabView will be controlled from outside
 };
 
 class DropdownOptionList extends Component {
@@ -412,6 +463,8 @@ class DropdownOptionList extends Component {
   }
 }
 DropdownOptionList.propTypes = {
+  initialTabIndex: PropTypes.number,
+  setTab: PropTypes.func,
   isOpen: PropTypes.bool.isRequired,
   options: PropTypes.array.isRequired,
   currOptionSelected: PropTypes.string.isRequired,
@@ -502,22 +555,15 @@ class GlobalWarningMessage extends Component {
 }
 
 
-class ReaderNavigationMenuSection extends Component {
-  render() {
-    if (!this.props.content) { return null; }
-    let idstr = this.props.enableAnchor ? "navigation-" + this.props.title.toLowerCase() : "";
-    return (
-      <div className="readerNavSection" id={idstr}>
-
-        {this.props.title ? (<h2>
-          <span className="int-en">{this.props.title}</span>
-          <span className="int-he">{this.props.heTitle}</span>
+const ReaderNavigationMenuSection = ({title, heTitle, content, enableAnchor}) => (!content) ? null :
+      <div className="readerNavSection" id={enableAnchor ? "navigation-" + title.toLowerCase() : ""}>
+        {title ? (<h2>
+          <span className="int-en">{title}</span>
+          <span className="int-he">{heTitle}</span>
         </h2>) : null }
-        {this.props.content}
-      </div>
-      );
-  }
-}
+        {content}
+      </div>;
+
 ReaderNavigationMenuSection.propTypes = {
   title:   PropTypes.string,
   heTitle: PropTypes.string,
@@ -938,13 +984,10 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   }
 
   return (
-      <div aria-label={altText} tabIndex="0"
-        className={classes} role="button"
-        style={style} onClick={onClick}
-        onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
+      <ToolTipped {...{ altText, classes, style, onClick }}>
         { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
           <img src="/static/img/star.png" alt={altText}/> }
-      </div>
+      </ToolTipped>
     );
 }
 SaveButton.propTypes = {
@@ -956,6 +999,16 @@ SaveButton.propTypes = {
   tooltip: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 };
+
+
+const ToolTipped = ({ altText, classes, style, onClick, children }) => (
+  <div aria-label={altText} tabIndex="0"
+    className={classes} role="button"
+    style={style} onClick={onClick}
+    onKeyPress={e => {e.charCode == 13 ? onClick(e): null}}>
+    { children }
+  </div>
+);
 
 
 class FollowButton extends Component {
@@ -1124,8 +1177,8 @@ class SheetListing extends Component {
     const slug = !!slugMatch ? slugMatch[1] : '';
     this.props.openProfile(slug, this.props.sheet.ownerName);
   }
-  handleSheetTagClick(tag) {
-    Sefaria.track.event("Tools", "Sheet Tag Click", tag);
+  handleTopicClick(topic) {
+    Sefaria.track.event("Tools", "Topic Click", topic);
   }
   handleSheetDelete() {
     if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
@@ -1154,24 +1207,28 @@ class SheetListing extends Component {
           {viewsIcon}
         </div>
 
-    const sheetTags = sheet.tags.map((tag, i) => {
-      const separator = i == sheet.tags.length -1 ? null : <span className="separator">,</span>;
-      return (<a href={`/sheets/tags/${tag}`}
-                  target="_blank"
-                  className="sheetTag"
-                  key={tag}
-                  onClick={this.handleSheetTagClick.bind(null, tag)}>{Sefaria._v(tag)}{separator}</a>)
+    const topics = sheet.topics.map((topic, i) => {
+      const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
+      return (
+        <a href={`/topics/${topic.slug}`}
+          target="_blank"
+          className="sheetTag"
+          key={topic.slug}
+          onClick={this.handleTopicClick.bind(null, topic.slug)}
+        >
+          <InterfaceTextWithFallback {...topic} />
+          {separator}
+        </a>
+      );
     });
-    const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';
-    const dateOptions = { year: 'numeric', month: 'short', day: 'numeric' };
-    const created = (new Date(sheet.created)).toLocaleDateString(locale, dateOptions).replace(',', '');  // remove comma from english date
+    const created = Sefaria.util.localeDate(sheet.created);
     const underInfo = this.props.infoUnderneath ? [
         sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
         `${sheet.views} ${Sefaria._('Views')}`,
         created,
-        sheet.tags.length ? sheetTags : undefined,
+        sheet.topics.length ? topics : undefined,
         !!sheet.group ? (<a href={`/groups/${sheet.group}`} target="_blank">{sheet.group}</a>) : undefined,
-      ].filter(x => x !== undefined) : [sheetTags];
+      ].filter(x => x !== undefined) : [topics];
 
     return (
       <div className="sheet" key={sheet.sheetUrl}>
@@ -1708,20 +1765,26 @@ CategoryAttribution.defaultProps = {
 };
 
 
-class SheetTagLink extends Component {
+class SheetTopicLink extends Component {
   handleTagClick(e) {
     e.preventDefault();
-    this.props.setSheetTag(this.props.tag);
+    this.props.setSheetTag(this.props.topic.slug);
   }
   render() {
-    return (<a href={`/sheets/tags/${this.props.tag}`} onClick={this.handleTagClick}>
-        <span className="int-en">{this.props.tag}</span>
-        <span className="int-he">{Sefaria.hebrewTerm(this.props.tag)}</span>
-        </a>);
+    const { slug, en, he } = this.props.topic;
+    return (
+      <a href={`/topics/${slug}`} onClick={this.handleTagClick}>
+        <InterfaceTextWithFallback en={en} he={he} />
+      </a>
+    );
   }
 }
-SheetTagLink.propTypes = {
-  tag:   PropTypes.string.isRequired,
+SheetTopicLink.propTypes = {
+  topic:       PropTypes.shape({
+                 en: PropTypes.string.isRequired,
+                 he: PropTypes.string.isRequired,
+                 slug: PropTypes.string.isRequired,
+               }).isRequired,
   setSheetTag: PropTypes.func.isRequired
 };
 
@@ -1923,6 +1986,7 @@ module.exports.DropdownOptionList                        = DropdownOptionList;
 module.exports.FeedbackBox                               = FeedbackBox;
 module.exports.FilterableList                            = FilterableList;
 module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
+module.exports.InterfaceTextWithFallback                 = InterfaceTextWithFallback;
 module.exports.InterruptingMessage                       = InterruptingMessage;
 module.exports.LanguageToggleButton                      = LanguageToggleButton;
 module.exports.Link                                      = Link;
@@ -1945,11 +2009,12 @@ module.exports.SinglePanelNavHeader                      = SinglePanelNavHeader;
 module.exports.SignUpModal                               = SignUpModal;
 module.exports.SheetListing                              = SheetListing;
 module.exports.SheetAccessIcon                           = SheetAccessIcon;
-module.exports.SheetTagLink                              = SheetTagLink;
+module.exports.SheetTopicLink                            = SheetTopicLink;
 module.exports.TabView                                   = TabView;
 module.exports.TextBlockLink                             = TextBlockLink;
 module.exports.TestMessage                               = TestMessage;
 module.exports.ThreeBox                                  = ThreeBox;
 module.exports.ToggleSet                                 = ToggleSet;
+module.exports.ToolTipped                                = ToolTipped;
 module.exports.TwoBox                                    = TwoBox;
 module.exports.TwoOrThreeBox                             = TwoOrThreeBox;

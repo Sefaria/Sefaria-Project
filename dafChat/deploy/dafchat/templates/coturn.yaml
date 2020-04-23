@@ -1,0 +1,65 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: coturn-{{ .Values.deployEnv }}
+  labels:
+    app: coturn-{{ .Values.deployEnv }}
+spec:
+  type: LoadBalancer
+  ports:
+  - name: http
+    port: 3478
+  selector:
+    app: coturn-{{ .Values.deployEnv }}
+---
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: coturn-{{ .Values.deployEnv }}
+spec:
+  selector:
+    matchLabels:
+      app: coturn-{{ .Values.deployEnv }}
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: coturn-{{ .Values.deployEnv }}
+        tier: application
+        deployEnv: "{{ .Values.deployEnv }}"
+        stackRole: coturn
+    spec:
+      containers:
+        - name: coturn-{{ .Values.deployEnv }}
+          image: "{{ .Values.dafChat.coturn.containerImage }}:{{ .Values.releaseImageTag }}"
+          ports:
+            - containerPort: 3478
+          resources:
+            requests:
+              memory: {{ .Values.dafChat.coturn.resources.request.memory }}
+              cpu: {{ .Values.dafChat.coturn.resources.request.cpu }}
+            limits:
+              memory: {{ .Values.dafChat.coturn.resources.limit.memory }}
+              cpu: {{ .Values.dafChat.coturn.resources.limit.cpu }}
+          readinessProbe:
+            tcpSocket:
+              port: 3478
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+          livenessProbe:
+            tcpSocket:
+              port: 3478
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            timeoutSeconds: 3
+          env:
+            - name: TURN_USER
+              value: {{ .Values.dafChat.auth.turnUser }}
+            - name: TURN_SECRET
+              value: {{ .Values.dafChat.auth.turnSecret }}
+            - name: TURN_REALM
+              value: {{ .Values.deployEnv }}
+...

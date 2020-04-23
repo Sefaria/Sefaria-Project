@@ -439,7 +439,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         :return: TimePeriod: First tries to return `compDate`. Deals with ranges and negative values for compDate
         If no compDate, looks at author info
         """
-        author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
         start, end, startIsApprox, endIsApprox = None, None, None, None
 
         if getattr(self, "compDate", None):
@@ -461,13 +460,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 except UnicodeEncodeError as e:
                     pass
 
-        elif author and author.mostAccurateTimePeriod():
-            tp = author.mostAccurateTimePeriod()
-            tpvars = vars(tp)
-            start = tp.start if "start" in tpvars else None
-            end = tp.end if "end" in tpvars else None
-            startIsApprox = tp.startIsApprox if "startIsApprox" in tpvars else None
-            endIsApprox = tp.endIsApprox if "endIsApprox" in tpvars else None
+        else:
+            author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
+            if author and author.mostAccurateTimePeriod():
+                tp = author.mostAccurateTimePeriod()
+                tpvars = vars(tp)
+                start = tp.start if "start" in tpvars else None
+                end = tp.end if "end" in tpvars else None
+                startIsApprox = tp.startIsApprox if "startIsApprox" in tpvars else None
+                endIsApprox = tp.endIsApprox if "endIsApprox" in tpvars else None
 
         if not start is None:
             from sefaria.model.timeperiod import TimePeriod
@@ -948,9 +949,8 @@ class AbstractTextRecord(object):
 
         for segment in as_array:
             joiner = " " if previous_state is not None else ""
-
             previous_state = accumulator
-            accumulator += joiner + segment
+            accumulator += joiner + self._strip_itags(segment)
 
             cur_len = len(accumulator)
             prev_len = len(previous_state)
@@ -1027,14 +1027,14 @@ class AbstractTextRecord(object):
     @staticmethod
     def _find_itags(tag):
         if isinstance(tag, Tag):
-            is_footnote = tag.name == "sup" and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '')[0] == 'footnote'
+            is_footnote = tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             return is_footnote or is_inline_commentator
         return False
 
     @staticmethod
     def _strip_itags(s):
-        soup = BeautifulSoup("<div>{}</div>".format(s), 'html.parser')
+        soup = BeautifulSoup("<div>{}</div>".format(s), 'xml')
         itag_list = soup.find_all(AbstractTextRecord._find_itags)
         for itag in itag_list:
             try:
@@ -1042,7 +1042,7 @@ class AbstractTextRecord(object):
             except AttributeError:
                 pass  # it's an inline commentator
             itag.decompose()
-        return soup.encode_contents().decode('utf-8')[5:-6]  # remove divs added
+        return soup.encode_contents().decode()[5:-6]  # remove divs added
 
     def _get_text_after_modifications(self, text_modification_funcs):
         """
@@ -1998,7 +1998,7 @@ class TextFamily(object):
             self._chunks[language] = c
             text_modification_funcs = []
             if stripItags:
-                text_modification_funcs += [c._strip_itags]
+                text_modification_funcs += [c._strip_itags, lambda x: ' '.join(x.split()).strip()]
             if wrapLinks and c.version_ids():
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.
@@ -2892,6 +2892,18 @@ class Ref(object, metaclass=RefCacheType):
         if getattr(self.index_node, "depth", None) is None:
             return False
         return len(self.sections) == self.index_node.depth
+
+    def is_sheet(self):
+        """
+        Is this Ref a Sheet Ref?
+        ::
+            >>> Ref("Leviticus 15:3").is_sheet()
+            False
+            >>> Ref("Sheet 15").is_sheet()
+            True
+        :return bool:
+        """
+        return self.index.title == 'Sheet'
 
     """ Methods to generate new Refs based on this Ref """
     def _core_dict(self):
@@ -4280,6 +4292,9 @@ class Library(object):
         self._toc = None
         self._toc_json = None
         self._toc_tree = None
+        self._topic_toc_json = None
+        self._topic_link_types = None
+        self._topic_data_sources = None
         self._search_filter_toc = None
         self._search_filter_toc_json = None
         self._category_id_dict = None
@@ -4352,7 +4367,7 @@ class Library(object):
         if not skip_filter_toc:
             self._search_filter_toc = self.get_search_filter_toc(rebuild=True)
         self._search_filter_toc_json = self.get_search_filter_toc_json(rebuild=True)
-
+        self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
         self._category_id_dict = None
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
@@ -4397,6 +4412,60 @@ class Library(object):
         self._toc_tree_is_ready = True
         return self._toc_tree
 
+    def get_topic_toc_json(self, rebuild=False):
+        if not self._topic_toc_json or rebuild:
+            self._topic_toc_json = json.dumps(self.get_topic_toc_json_recursive())
+        return self._topic_toc_json
+
+    def get_topic_toc_json_recursive(self, topic=None, explored=None):
+        from .topic import Topic, TopicSet, IntraTopicLinkSet
+        explored = explored or set()
+        if topic is None:
+            ts = TopicSet({"isTopLevelDisplay": True})
+            children = [t.slug for t in ts]
+            topic_json = {}
+        else:
+            children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
+            topic_json = {
+                "slug": topic.slug,
+                "shouldDisplay": True if len(children) > 0 else topic.should_display(),
+                "en": topic.get_primary_title("en"),
+                "he": topic.get_primary_title("he"),
+                "displayOrder": getattr(topic, "displayOrder", 10000)
+            }
+            explored.add(topic.slug)
+        if len(children) > 0:
+            topic_json['children'] = []
+        for child in children:
+            child_topic = Topic().load({'slug': child})
+            if child_topic is None:
+                logger.warning("While building topic TOC, encountered non-existant topic slug: {}".format(child))
+                continue
+            topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored)]
+        if len(children) > 0:
+            topic_json['children'].sort(key=lambda x: x['displayOrder'])
+        if topic is None:
+            return topic_json['children']
+        return topic_json
+
+    def get_topic_link_type(self, link_type):
+        from .topic import TopicLinkTypeSet
+        if not self._topic_link_types:
+            # pre-populate topic link types
+            self._topic_link_types = {
+                link_type.slug: link_type for link_type in TopicLinkTypeSet()
+            }
+        return self._topic_link_types.get(link_type, None)
+
+    def get_topic_data_source(self, data_source):
+        from .topic import TopicDataSourceSet
+        if not self._topic_data_sources:
+            # pre-populate topic data sources
+            self._topic_data_sources = {
+                data_source.slug: data_source for data_source in TopicDataSourceSet()
+            }
+        return self._topic_data_sources.get(data_source, None)
+
     def get_groups_in_library(self):
         return self._toc_tree.get_groups_in_library()
 
@@ -4429,7 +4498,7 @@ class Library(object):
     def build_full_auto_completer(self):
         from .autospell import AutoCompleter
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_categories=True, include_parasha=True, include_groups=True) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_groups=True) for lang in self.langs
         }
 
         for lang in self.langs:

@@ -1,0 +1,64 @@
+# Builds and deploys based on trigger
+---
+substitutions:
+  _ENV_NAME: asdf
+  _GKE_CLUSTER: cluster-1
+  _GKE_NAMESPACE: sandboxes
+  _GKE_REGION: us-east1-b
+  _IMAGE_TAG: asdf
+  _SEFARIA_HOST: sefaria.org
+  
+steps:
+
+  #
+  # Build Containers
+  ##################
+  # We generate the git short sha using ${_IMAGE_TAG} instead of using the 
+  # built-in variable $SHORT_SHA because the latter is only avalable for triggered builts
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-dafchat-coturn:${_IMAGE_TAG}", "-f", "deploy/coturnServer.dockerfile", "."]
+    id: coturn_container
+    wait_for: [ "-" ]
+  
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-dafchat-rtc:${_IMAGE_TAG}", "-f", "deploy/dafChat.dockerfile", "."]
+    id: rtc_container
+    wait_for: [ "-" ]
+
+  #
+  # Deploy Helm Chart
+  ###################
+
+  # Create the Helm Values file
+  # outputs ./_generatedHelmValues.yaml
+  - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
+    id: generate_helm_values
+    dir: deploy/dafchat/valuesGeneration
+    entrypoint: "bash"
+    args: [ '-c', './generateHelmValues.bash' ]
+    env:
+      - 'IMAGE_NAME_COTURN=gcr.io/${PROJECT_ID}/sefaria-dafchat-coturn'
+      - 'IMAGE_NAME_RTC=gcr.io/${PROJECT_ID}/sefaria-dafchat-rtc'
+      - 'IMAGE_TAG=${_IMAGE_TAG}'
+      - 'DEPLOY_ENV=${_ENV_NAME}'
+      - 'SEFARIA_HOST=${_SEFARIA_HOST}'
+    wait_for: [ "-" ]
+
+  # Idempotently install/upgrade the Helm Release
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.0.2"
+    id: install_chart
+    args: ["upgrade", "-i", "dafchat-${_ENV_NAME}", "./deploy/dafchat", "--namespace", "${_GKE_NAMESPACE}", "-f", "./deploy/dafchat/valuesGeneration/_generatedHelmValues.yaml", "--debug" ]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for:
+      - coturn_container
+      - rtc_container
+      - generate_helm_values
+
+images:
+  - "gcr.io/${PROJECT_ID}/sefaria-dafchat-coturn:${_IMAGE_TAG}"
+  - "gcr.io/${PROJECT_ID}/sefaria-dafchat-rtc:${_IMAGE_TAG}"
+...
