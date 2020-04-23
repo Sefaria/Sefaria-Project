@@ -688,7 +688,7 @@ def profile_url(uid):
 def user_link(uid):
     """Returns a string with an <a> tag linking to a users profile"""
     data = public_user_data(uid)
-    link = "<a href='" + data["profileUrl"] + "' class='userLink inAppLink'>" + data["name"] + "</a>"
+    link = "<a href='" + data["profileUrl"] + "' class='userLink'>" + data["name"] + "</a>"
     return link
 
 

@@ -361,7 +361,7 @@ class GroupSheetListing extends Component {
     return (<div className="sheet userSheet">
                 <div className="groupSheetInner">
                   <div className="groupSheetInnerContent">
-                    <span><a className="sheetTitle inAppLink" href={url}>{title}</a> <SheetAccessIcon sheet={sheet} /></span>
+                    <span><a className="sheetTitle" href={url}>{title}</a> <SheetAccessIcon sheet={sheet} /></span>
                     <div>{sheet.ownerName} · {sheet.views} {Sefaria._('Views')} · {sheet.modified} · <span className="tagString">{topicStr}</span></div>
                   </div>
                   {pinButton}
@@ -458,7 +458,7 @@ class GroupMemberListing extends Component {
     return (
       <div className="groupMemberListing">
         <div className="groupLeft">
-          <a href={this.props.member.profileUrl} className="inAppLink">
+          <a href={this.props.member.profileUrl}>
             <ProfilePic
               url={this.props.member.imageUrl}
               name={this.props.member.name}
@@ -466,7 +466,7 @@ class GroupMemberListing extends Component {
             />
           </a>
 
-          <a href={this.props.member.profileUrl} className="groupMemberListingName inAppLink">
+          <a href={this.props.member.profileUrl} className="groupMemberListingName">
             {this.props.member.name}
           </a>
         </div>

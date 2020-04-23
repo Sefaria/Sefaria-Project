@@ -284,7 +284,7 @@ class UserProfile extends Component {
     if (tab.applink) {
       return (
           <div className="tab">
-            <a href={tab.href} onClick={this.props.handleInAppLinkClick}>
+            <a href={tab.href}>
               <img src={tab.icon} alt={`${tab.text} icon`}/>
               {tab.text}
             </a>

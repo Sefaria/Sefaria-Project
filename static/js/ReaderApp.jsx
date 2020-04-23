@@ -237,7 +237,6 @@ class ReaderApp extends Component {
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("resize", this.setPanelCap);
     this.setPanelCap();
-    $(ReactDOM.findDOMNode(this)).on("click", ".inAppLink", this.handleInAppLinkClick);
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
   }
@@ -1032,13 +1031,36 @@ class ReaderApp extends Component {
     this.replacePanel(n, ref, currVersions);
   }
   handleInAppLinkClick(e) {
-    e.preventDefault();
-    var path = $(e.currentTarget).attr("href");
-    if (path == "texts") {
+    // If a default has been prevented, assume a custom handler is already in palce
+    if (e.isDefaultPrevented()) {
+      return;
+    }
+    // Don't trigger from v1 Sheet Builder which has conflicting CSS
+    if (typeof sjs !== "undefined") {
+      return;
+    }
+    // https://github.com/STRML/react-router-component/blob/master/lib/CaptureClicks.js
+    // Get the <a> element.
+    var el = e.target;
+    while (el && el.nodeName !== 'A') {
+      el = el.parentNode;
+    }
+    // Ignore clicks from non-a elements.
+    if (!el) {
+      return;
+    }
+    // Ignore the click if the element has a target.
+    if (el.target && el.target !== '_self') {
+      return;
+    }
+    let path = el.getAttribute('href');
+    // TODO: Handle links with URL params
+    if (path.indexOf("?") !== -1) {
+      return;
+    }
+    let handled = true;
+    if (path == "/texts") {
       this.showLibrary();
-
-    } else if (path == "/sheets") {
-      this.showSheets();
 
     } else if (path == "/groups") {
       this.showGroups();
@@ -1055,6 +1077,9 @@ class ReaderApp extends Component {
     } else if (path == "/my/notes") {
       this.showMyNotes();
 
+    } else if (path == "/notifications") {
+      this.showNotifications();
+
     } else if (path == "/torahtracker") {
       this.showUserStats();
 
@@ -1067,8 +1092,14 @@ class ReaderApp extends Component {
     } else if (path.match(/\/groups\/.+/)) {
       this.openGroup(path.slice(8).replace(/-/g, " "));
 
-    } else if (Sefaria.isRef(path)) {
-      this.openPanel(Sefaria.humanRef(path));
+    } else if (Sefaria.isRef(path.slice(1))) {
+      this.openPanel(Sefaria.humanRef(path.slice(1)));
+
+    } else {
+      handled = false;
+    }
+    if (handled) {
+      e.preventDefault();
     }
   }
   _getStateAndSetStateForHeaderPanelFuncs(n) {
@@ -1632,8 +1663,8 @@ class ReaderApp extends Component {
       this.setState({panels: [panel]});
     }
   }
-  showSheets() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "sheets"});
+  showNotifications() {
+    this.setStateInHeaderOrSinglePanel({menuOpen: "notifications"});
   }
   showUserStats() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "user_stats"});
@@ -1642,7 +1673,7 @@ class ReaderApp extends Component {
     this.setStateInHeaderOrSinglePanel({menuOpen: "sheets", navigationSheetTag: "My Sheets"});
   }
   showGroups() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "groups"});
+    this.setStateInHeaderOrSinglePanel({menuOpen: "publicGroups"});
   }
   showMyGroups() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "myGroups"});
@@ -1661,7 +1692,6 @@ class ReaderApp extends Component {
     }
   }
   openProfile(slug) {
-    console.log(slug);
     Sefaria.profileAPI(slug).then(profile => {
       this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile });
     });
@@ -1890,7 +1920,7 @@ class ReaderApp extends Component {
     var classes = classNames(classDict);
     return (<div id="readerAppWrap">
               {interruptingMessage}
-              <div className={classes}>
+              <div className={classes} onClick={this.handleInAppLinkClick}>
                 {header}
                 {panels}
                 {sefariaModal}

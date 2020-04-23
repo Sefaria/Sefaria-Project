@@ -162,24 +162,6 @@ class Header extends Component {
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   }
-  showNotifications(e) {
-    e.preventDefault();
-    if (typeof sjs !== "undefined") {
-      window.location = "/notifications";
-      return;
-    }
-    this.props.setCentralState({menuOpen: "notifications"});
-    this.clearSearchBox();
-  }
-  showUpdates() {
-    // todo: not used yet
-    if (typeof sjs !== "undefined") {
-      window.location = "/updates";
-      return;
-    }
-    this.props.setCentralState({menuOpen: "updates"});
-    this.clearSearchBox();
-  }
   showTestMessage() {
     this.props.setCentralState({showTestMessage: true});
   }
@@ -255,20 +237,6 @@ class Header extends Component {
   clearSearchBox() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
   }
-  handleLibraryClick(e) {
-    e.preventDefault();
-    if (typeof sjs !== "undefined") {
-      window.location = "/texts";
-      return;
-    }
-    if (this.state.menuOpen === "home") {
-      return;
-    } else {
-      this.showLibrary();
-    }
-    $(".wrapper").remove();
-    $("#footer").remove();
-  }
   handleRefClick(ref, currVersions) {
     if (this.props.headerMode) {
       window.location.assign("/" + ref);
@@ -332,8 +300,8 @@ class Header extends Component {
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
     var loggedInLinks  = (<div className="accountLinks">
-                            <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses} onClick={this.showNotifications}>{this.state.notificationCount}</a>
-                            <a href="/my/profile" className="my-profile inAppLink"><ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></a>
+                            <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses}>{this.state.notificationCount}</a>
+                            <a href="/my/profile" className="my-profile"><ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks">
                            <a className="login signupLink" href={"/register" + nextParam}>
@@ -354,7 +322,7 @@ class Header extends Component {
     return (<div className="header" role="banner">
               <div className={headerInnerClasses}>
                 <div className="headerNavSection">
-                    <a href="/texts" aria-label={this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 ? "Return to text" : "Open the Sefaria Library Table of Contents" } className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
+                    <a href="/texts" aria-label={this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 ? "Return to text" : "Open the Sefaria Library Table of Contents" } className="library"><i className="fa fa-bars"></i></a>
                     <div id="searchBox" className={searchBoxClasses}>
                       <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                       <input className={inputClasses}
@@ -403,7 +371,6 @@ Header.propTypes = {
   registerAvailableFilters:    PropTypes.func,
   searchInGroup:               PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
-  handleInAppLinkClick:        PropTypes.func,
   headerMesssage:              PropTypes.string,
   panelsOpen:                  PropTypes.number,
   analyticsInitialized:        PropTypes.bool,

@@ -12,7 +12,7 @@ const {
 }                              = require('./Misc');
 
 function CategoryLink({category, showLibrary}) {
-    return ( <a className="sideCatLink refLink inAppLink" href={"/texts/" + category} style={{borderColor: Sefaria.palette.categoryColor(category)}} onClick={()=>{showLibrary(category)}}>
+    return ( <a className="sideCatLink refLink" href={"/texts/" + category} style={{borderColor: Sefaria.palette.categoryColor(category)}} onClick={()=>{showLibrary(category)}}>
                 <span className="int-en">{category}</span>
                 <span className="int-he">{Sefaria.hebrewTerm(category)}</span>
             </a>);

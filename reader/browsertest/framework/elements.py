@@ -418,9 +418,6 @@ class AbstractTest(object):
             print('A <<NoAlertPresentException>> was thrown')
             pass
 
-    def click_explore_sheets(self):
-        self.click_object_by_css_selector('#homeSheets > div > div.textBox > a.inAppLink > div > span.int-en')
-
     def click_source_sheet_img(self):
         self.click_object_by_css_selector('#homeSheets > div > div.imageBox.bordered > a > img')
 

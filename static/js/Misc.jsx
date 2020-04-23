@@ -746,7 +746,7 @@ SimpleLinkedBlock.propTypes = {
 class BlockLink extends Component {
   render() {
     var interfaceClass = this.props.interfaceLink ? 'int-' : '';
-    var cn = {blockLink: 1, inAppLink: this.props.inAppLink};
+    var cn = {blockLink: 1};
     var linkClass = this.props.title.toLowerCase().replace(" ", "-") + "-link";
     cn[linkClass] = 1;
     var classes = classNames(cn);
@@ -762,7 +762,6 @@ BlockLink.propTypes = {
   heTitle:       PropTypes.string,
   target:        PropTypes.string,
   image:         PropTypes.string,
-  inAppLink:     PropTypes.bool,
   interfaceLink: PropTypes.bool
 };
 BlockLink.defaultProps = {
@@ -1109,7 +1108,7 @@ class ProfileListing extends Component {
     return (
       <div className="authorByLine">
         <div className="authorByLineImage">
-          <a href={url} className="inAppLink">
+          <a href={url}>
             <ProfilePic
               len={40}
               url={image}
@@ -1119,7 +1118,7 @@ class ProfileListing extends Component {
         </div>
         <div className="authorByLineText">
           <SimpleLinkedBlock
-            classes="authorName inAppLink"
+            classes="authorName"
             aclasses={smallfonts?"smallText":"systemText"}
             url={url}
             en={name}
@@ -1186,7 +1185,7 @@ class SheetListing extends Component {
     var sheetInfo = this.props.hideAuthor ? null :
         <div className="sheetInfo">
           <div className="sheetUser">
-            <a href={sheet.ownerProfileUrl} target="_blank" className="inAppLink">
+            <a href={sheet.ownerProfileUrl} target={this.props.openInNewTab ? "_blank" : "_self"}>
               <ProfilePic
                 outerStyle={{display: "inline-block"}}
                 name={sheet.ownerName}
@@ -1194,7 +1193,7 @@ class SheetListing extends Component {
                 len={26}
               />
             </a>
-            <a href={sheet.ownerProfileUrl} target="_blank" className="sheetAuthor inAppLink" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
+            <a href={sheet.ownerProfileUrl} target={this.props.openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
           </div>
           {viewsIcon}
         </div>
@@ -1203,7 +1202,7 @@ class SheetListing extends Component {
       const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
       return (
         <a href={`/topics/${topic.slug}`}
-          target="_blank"
+          target={this.props.openInNewTab ? "_blank" : "_self"}
           className="sheetTag"
           key={topic.slug}
           onClick={this.handleTopicClick.bind(null, topic.slug)}
@@ -1219,14 +1218,14 @@ class SheetListing extends Component {
         `${sheet.views} ${Sefaria._('Views')}`,
         created,
         sheet.topics.length ? topics : undefined,
-        !!sheet.group ? (<a href={`/groups/${sheet.group}`} className="inAppLink" target="_blank">{sheet.group}</a>) : undefined,
+        !!sheet.group ? (<a href={`/groups/${sheet.group}`} target={this.props.openInNewTab ? "_blank" : "_self"}>{sheet.group}</a>) : undefined,
       ].filter(x => x !== undefined) : [topics];
 
     return (
       <div className="sheet" key={sheet.sheetUrl}>
         <div className="sheetLeft">
           {sheetInfo}
-          <a href={sheet.sheetUrl} target="_blank" className={"sheetTitle" + (this.props.handleSheetClick ? "" : " inAppLink")} onClick={this.handleSheetClick}>
+          <a href={sheet.sheetUrl} target={this.props.openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={this.handleSheetClick}>
             <img src="/static/img/sheet.svg" className="sheetIcon"/>
             <span className="sheetTitleText">{sheet.title}</span>
           </a>
@@ -1271,6 +1270,7 @@ SheetListing.propTypes = {
   saveable:         PropTypes.bool,
   hideAuthor:       PropTypes.bool,
   infoUnderneath:   PropTypes.bool,
+  openInNewTab:     PropTypes.bool,
 };
 
 

@@ -35,11 +35,11 @@ class SearchSheetResult extends Component {
         const titleIsHe = Sefaria.hebrew.isHebrew(clean_title);
         return (
             <div className='result sheet_result'>
-                <a href={href} className="inAppLink" onClick={this.handleSheetClick}>
+                <a href={href} onClick={this.handleSheetClick}>
                     <div className={classNames({'result-title': 1, 'in-en': !titleIsHe, 'in-he': titleIsHe})}>{clean_title}</div>
                     <div className={snippetClasses} dangerouslySetInnerHTML={snippetMarkup.markup}></div>
                 </a>
-              <a href={s.profile_url} className="inAppLink" onClick={this.handleProfileClick}>
+              <a href={s.profile_url} onClick={this.handleProfileClick}>
                 <div className="version">
                   <ProfilePic
                     url={s.owner_image}

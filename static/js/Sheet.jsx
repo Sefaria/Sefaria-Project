@@ -291,7 +291,7 @@ class SheetContent extends Component {
 
             <div className="authorStatement">
                 <div className="groupListingImageBox imageBox">
-                    <a href={this.props.authorUrl} className="inAppLink">
+                    <a href={this.props.authorUrl}>
                       <ProfilePic
                         url={this.props.authorImage}
                         len={30}
@@ -299,17 +299,17 @@ class SheetContent extends Component {
                       />
                     </a>
                 </div>
-                <span>{Sefaria._("by")} <a href={this.props.authorUrl} className="inAppLink">{this.props.authorStatement}</a></span>
+                <span>{Sefaria._("by")} <a href={this.props.authorUrl}>{this.props.authorStatement}</a></span>
             </div>
 
             {this.props.group && this.props.group != "" ?
                 <div className="groupStatement">
                     <div className="groupListingImageBox imageBox">
-                        <a className="inAppLink" href={"/groups/"+this.props.group}>
+                        <a href={"/groups/"+this.props.group}>
                             <img className="groupListingImage img-circle" src={this.props.groupLogo} alt="Group Logo" />
                         </a>
                     </div>
-                    <a className="inAppLink" href={"/groups/"+this.props.group}>{this.props.group}</a>
+                    <a href={"/groups/"+this.props.group}>{this.props.group}</a>
                 </div>
 
                 : null}
