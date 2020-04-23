@@ -347,7 +347,7 @@ class GroupSheetListing extends Component {
     var url = "/sheets/" + sheet.id;
 
     if (sheet.topics === undefined) { sheet.topics = []; }
-    const topicStr = sheet.topics.map(topic => (<SheetTopicLink setSheetTag={this.props.setSheetTag} topic={topic} key={`${sheet.id}-${topic.slug}`}/>));
+    const topicStr = sheet.topics.map((topic, i) => (<SheetTopicLink setSheetTag={this.props.setSheetTag} topic={topic} key={`${topic.slug}-${i}`}/>));
 
 
     var pinButtonClasses = classNames({groupSheetListingPinButton: 1, pinned: this.props.pinned, active: this.props.isAdmin});

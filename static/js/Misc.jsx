@@ -1204,7 +1204,7 @@ class SheetListing extends Component {
         <a href={`/topics/${topic.slug}`}
           target={this.props.openInNewTab ? "_blank" : "_self"}
           className="sheetTag"
-          key={topic.slug}
+          key={i}
           onClick={this.handleTopicClick.bind(null, topic.slug)}
         >
           <InterfaceTextWithFallback {...topic} />
