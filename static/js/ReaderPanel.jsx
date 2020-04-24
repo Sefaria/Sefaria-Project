@@ -982,7 +982,6 @@ class ReaderPanel extends Component {
       menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
                     toggleSignUpModal={this.props.toggleSignUpModal}
-                    showLibrary={this.props.showLibrary}
       />);
 
     } else if (this.state.menuOpen === "story_editor") {
@@ -1168,7 +1167,6 @@ ReaderPanel.propTypes = {
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
-  showLibrary:                 PropTypes.func,
 };
 
 

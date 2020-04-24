@@ -293,7 +293,6 @@ class Header extends Component {
                           getLicenseMap={this.props.getLicenseMap}
                           translateISOLanguageCode={this.props.translateISOLanguageCode}
                           toggleSignUpModal={this.props.toggleSignUpModal}
-                          showLibrary={this.showLibrary}
                         />) : null;
 
 

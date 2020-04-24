@@ -1063,9 +1063,13 @@ class ReaderApp extends Component {
     if (path.indexOf("?") !== -1) {
       return;
     }
+    
     let handled = true;
     if (path == "/texts") {
       this.showLibrary();
+
+    } else if (path.match(/\/texts\/.+/)) {
+      this.showLibrary(path.slice(7).split("/"));
 
     } else if (path == "/groups") {
       this.showGroups();
