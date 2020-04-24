@@ -28,10 +28,13 @@ socket.on('return rooms', function(numRooms) {
   document.getElementById("numberOfChevrutas").innerHTML = numRooms;
 });
 
-console.log('Attempted to create or join room');
-
-socket.on('created', function(room, conf) {
+socket.on('creds', function(conf) {
+  console.log(pcConfig)
   pcConfig = conf;
+  console.log(pcConfig)
+});
+
+socket.on('created', function(room) {
   console.log('Created room ' + room);
   isInitiator = true;
   clientRoom = room;
@@ -49,8 +52,7 @@ socket.on('join', function(room) {
   maybeStart();
 });
 
-socket.on('joined', function(room, conf) {
-  pcConfig = conf;
+socket.on('joined', function(room) {
   console.log('joined: ' + room);
   isChannelReady = true;
   clientRoom = room;
@@ -186,11 +188,12 @@ window.onbeforeunload = function() {
 /////////////////////////////////////////////////////////
 
 function createPeerConnection() {
+  console.log(pcConfig)
   try {
     if (location.hostname !== 'localhost') {
       pc = new RTCPeerConnection(pcConfig);
     } else {
-      pc = new RTCPeerConnection(null);
+      pc = new RTCPeerConnection(pcConfig);
     }
     pc.onicecandidate = handleIceCandidate;
     pc.onaddstream = handleRemoteStreamAdded;

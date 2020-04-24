@@ -48,7 +48,7 @@ io.sockets.on('connection', function(socket) {
     const room = Math.random().toString(36).substring(7);
     socket.join(room);
     console.log(`${socket.id} created room ${room}`);
-    socket.emit('created', room, socket.id, pcConfig);
+    socket.emit('created', room, socket.id);
     db.run(`INSERT INTO chatrooms(name, clients, roomStarted) VALUES(?, ?, ?)`, [room, 1, +new Date], function(err) {
       if (err) {
         console.log(err.message);
@@ -57,6 +57,8 @@ io.sockets.on('connection', function(socket) {
   }
 
   socket.on('how many rooms', function() {
+
+    socket.emit('creds', pcConfig)
 
     db.get(`SELECT COUNT(*) FROM chatrooms`, (err, rows) => {
       if (err) {
@@ -79,7 +81,7 @@ io.sockets.on('connection', function(socket) {
 
             io.sockets.in(room).emit('join', room);
             socket.join(room);
-            socket.emit('joined', room, socket.id, pcConfig);
+            socket.emit('joined', room, socket.id);
             db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [row.clients+1, room])
           }
           else {
