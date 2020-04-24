@@ -237,6 +237,11 @@ class ReaderApp extends Component {
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("resize", this.setPanelCap);
     this.setPanelCap();
+    if (this.props.headerMode) {
+      // Handle in app links on static pages outside of react container
+      $("a").not($(ReactDOM.findDOMNode(this)).find("a"))
+        .on("click", this.handleInAppLinkClick);
+    }
     // Save all initial panels to recently viewed
     this.state.panels.map(this.saveLastPlace);
   }
