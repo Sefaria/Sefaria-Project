@@ -19,7 +19,7 @@ class SearchState {
     this.appliedFilters   = appliedFilters   || [];
     this.appliedFilterAggTypes = appliedFilterAggTypes || [];
     this.availableFilters = typeof availableFilters === 'undefined' ? [] : availableFilters.map(f => f instanceof FilterNode ? f : new FilterNode(f));
-    this.filterRegistry   = this._recreateRegistry(this.availableFilters);
+    this.filterRegistry   = typeof filterRegistry !== "undefined" ? filterRegistry : this._recreateRegistry(this.availableFilters);
     this.filtersValid     = filtersValid     || false;
     this.orphanFilters    = orphanFilters    || [];
     this.fieldExact       = fieldExact       || SearchState.metadataByType[type].fieldExact;
