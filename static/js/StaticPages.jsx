@@ -58,10 +58,12 @@ const SheetsLandingPage = () => (
             heActionURL="/sheets/new?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
             heActionText="בנו דף מקורות"
         />
-        <H2Block
-            en="Discover new ways to learn & teach"
-            he="גלו דרכים חדשות ללמוד וללמד"
-        />
+        <GreyBox light={true}>
+            <H2Block
+                en="Discover new ways to learn & teach"
+                he="גלו דרכים חדשות ללמוד וללמד"
+            />
+        </GreyBox>
         <Feature
             enTitle="Organize Sources"
             enText="Sheets let you mix and match sources from our library. Type in a source title and chapter to add it to your sheet, then edit the source to cut it down or customize  the translation. Use sources in any order you wish. "
@@ -361,7 +363,7 @@ const StaticPage = ({children}) => (
 const HeBlock = ({children}) => <div className="int-he">{children}</div>;
 const EnBlock = ({children}) => <div className="int-en">{children}</div>;
 
-const GreyBox = ({children}) => <div className="greyBackground">{children}</div>;
+const GreyBox = ({children, light}) => <div className={light ? "lightgreyBackground" : "greyBackground"}>{children}</div>;
 
 const H2Block = ({en, he, classes}) =>
     <div className="staticPageBlockInner">

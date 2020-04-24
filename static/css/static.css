@@ -2777,6 +2777,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 
 /* Static Page Templates */
 
+.staticPage {
+  background-color: #fff;
+}
 .staticPage .staticPageBlockInner {
   width: 800px;
   margin: 0 auto;
@@ -2785,8 +2788,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   /* display: block; */
 }
 .staticPage .blockVerticalPadding {
-  padding-top: 0;
-  padding-bottom: 80px;
+  padding-top: 40px;
+  padding-bottom: 40px;
 }
 .staticPage .flexContainer {
   display: flex;
@@ -2803,7 +2806,10 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   flex-direction: row-reverse;
 }
 .staticPage .greyBackground {
-  background-color: #EDEDEC
+  background-color: #EDEDEC;
+}
+.staticPage .lightgreyBackground {
+  background-color: #FBFBFA;
 }
 .staticPage .staticPageHeader {
   background-color: #212E50;
@@ -2843,7 +2849,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   padding-left: 10px;
 }
 .staticPage .staticPageH2 {
-  padding: 55px 0;
+  padding: 55px 0 10px;
   margin: 0;
 }
 .staticPage .staticPageH2 span.int-en {
@@ -2855,7 +2861,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 
 .staticPage .staticPageSheetList {
-  padding: 0 0 30px 0;
+  padding: 30px 0 0;
 }
 .staticPage .staticPageSheetList .staticPageSheetItem {
   padding: 20px 0;
@@ -2956,7 +2962,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   /* max-width: 100%; */
 }
 .staticPage .feature {
-    padding: 0 0 80px 0;
+    padding: 40px 0;
     background-color: #FBFBFA;
 }
 .staticPage .feature .featureHeader {}
