@@ -267,6 +267,8 @@ def title_regex_api(request, titles):
             res["error"] = errors
         resp = jsonResponse(res, cb)
         return resp
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
 def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None):
     res = {}
@@ -543,16 +545,6 @@ def rebuild_counts_and_toc(request):
     model.refresh_all_states()
     return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
 '''
-
-@staff_member_required
-def rebuild_topics(request):
-    from sefaria.model.topic_old import update_topics
-    update_topics()
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("topic", "update_topics")
-
-    return HttpResponseRedirect("/topics?m=topics-rebuilt")
 
 
 @staff_member_required

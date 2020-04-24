@@ -2434,10 +2434,8 @@ def dictionary_api(request, word):
     if ls:
         for l in ls:
             result.append(l.contents())
-        if len(result):
-            return jsonResponse(result, callback=request.GET.get("callback", None))
-    else:
-        return jsonResponse({"error": "No information found for given word."})
+    
+    return jsonResponse(result, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json

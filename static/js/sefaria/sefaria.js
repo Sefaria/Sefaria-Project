@@ -183,6 +183,13 @@ Sefaria = extend(Sefaria, {
     }
     return null;
   },
+  refCategories: function(ref) {
+    // Returns the text categories for `ref`
+    let pRef = Sefaria.parseRef(ref);
+    if ("error" in pRef) { return []; }
+    let index = Sefaria.index(pRef.index);
+    return index && index.categories ? index.categories : [];
+  },
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
     const oref = this.getRefFromCache(ref);
@@ -313,12 +320,32 @@ Sefaria = extend(Sefaria, {
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null) {
     // todo: fish existing texts out of cache first
     if (refs.length === 0) { return Promise.resolve({}); }
-    let paramStr = '';
 
+    const MAX_URL_LENGTH = 3800;
+    const hostStr = `${Sefaria.apiHost}/api/bulktext/`;
+
+    let paramStr = '';
     for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar})) {
       paramStr = !!paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
     }
-    return this._ApiPromise(`${Sefaria.apiHost}/api/bulktext/${refs.join("|")}${paramStr.replace(/&/,'?')}`);
+
+    // Split into multipe requests if URL length goes above limit
+    let refStrs = [""];
+    refs.map(ref => {
+      let last = refStrs[refStrs.length-1];
+      if (encodeURI(`${hostStr}${last}|${ref}${paramStr}`).length > MAX_URL_LENGTH) {
+        refStrs.push(ref)
+      } else {
+        refStrs[refStrs.length-1] += last.length ? `|${ref}` : ref;
+      }
+    });
+
+    let promises = refStrs.map(refStr => this._ApiPromise(`${hostStr}${refStr}${paramStr.replace(/&/,'?')}`));
+
+    return Promise.all(promises).then(results => {
+      let combinedResults = {};
+      return Object.assign(combinedResults, ...results);
+    });
   },
   getBulkSheets: function(sheetIds) {
     // todo: fish existing texts out of cache first
@@ -710,36 +737,6 @@ Sefaria = extend(Sefaria, {
     const key = ref ? words + "|" + ref : words;
     let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?never_split=1" + (ref?("&lookup_ref="+ref):"");
     return this._cachedApiPromise({url, key, store: this._lexiconLookups});
-  },
-  lexicon: function(words, ref, cb){
-    // Deprecated in favor of getLexiconWords, which returns a Promise.
-    // Returns a list of lexicon entries for the given words
-    ref = typeof ref !== "undefined" ? ref : null;
-    words = typeof words !== "undefined" ? words : "";
-    const cache_key = ref ? words + "|" + ref : words;
-    /*if (typeof ref != 'undefined'){
-      cache_key += "|" + ref
-    }*/
-    if (!cb) {
-      return this._lexiconLookups[cache_key] || [];
-    }
-    if (cache_key in this._lexiconLookups) {
-        /*console.log("data from cache: ", this._lexiconLookups[cache_key]);*/
-        cb(this._lexiconLookups[cache_key]);
-    } else if (words.length > 0) {
-      var url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?never_split=1";
-      if(ref){
-        url+="&lookup_ref="+ref;
-      }
-      //console.log(url);
-      this._api(url, function(data) {
-        this._lexiconLookups[cache_key] = ("error" in data) ? [] : data;
-        //console.log("state changed from ajax: ", data);
-        cb(this._lexiconLookups[cache_key]);
-      }.bind(this));
-    } else {
-        return cb([]);
-    }
   },
   _links: {},
   getLinks: function(ref) {
@@ -2311,16 +2308,14 @@ Sefaria = extend(Sefaria, {
     setResponse - callback to react to send updated results
     setCancel - function that saves cancel function so it can be called in outside scope
     */
-    let allResponses = [];
     let lastEndIndex = 0;
     while (lastEndIndex <= data.length) {
       const tempData = data.slice(lastEndIndex, lastEndIndex + increment);
       const { promise, cancel } = Sefaria.makeCancelable(fetchResponse(tempData));
       setCancel(cancel);
       const tempResponses = await promise;
-      allResponses = allResponses.concat(tempResponses);
-      setResponse(allResponses);
-      lastEndIndex = lastEndIndex + increment;
+      setResponse(prevResponses => !prevResponses ? tempResponses : prevResponses.concat(tempResponses));
+      lastEndIndex += increment;
     }
   }
 });
