@@ -38,10 +38,6 @@ socket.on('created', function(room) {
   clientRoom = room;
 });
 
-socket.on('full', function(room) {
-  console.log('Room ' + room + ' is full');
-});
-
 socket.on('join', function(room) {
   console.log('another user joined room: ' + room);
   Sefaria.track.event("DafRoulette", "Chevruta Match Made", "initator");

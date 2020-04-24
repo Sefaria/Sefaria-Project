@@ -80,8 +80,8 @@ io.sockets.on('connection', function(socket) {
             const room = row.name;
             console.log('Client ID ' + socket.id + ' joined room ' + room);
 
-            io.sockets.in(room).emit('join', room);
             socket.join(room);
+            socket.to(room).emit('join', room);
             socket.emit('joined', room, socket.id);
             db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [row.clients+1, room])
           }
