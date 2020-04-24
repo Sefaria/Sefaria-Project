@@ -4833,7 +4833,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .profile-page .profile-pic .profile-pic-button {
   position: absolute;
 }
-
 .profile-pic-cropper-modal {
   max-width: unset !important;
   max-height: unset !important;
@@ -6678,6 +6677,12 @@ span.purim-emoji img{
   padding: 10px 0;
   margin: 0 30px 0 0;
   cursor: pointer;
+}
+.tab-view .tab-list .tab a {
+  color: inherit;
+}
+.tab-view .tab-list .tab a:hover {
+  text-decoration: none;
 }
 .tab-view .tab-list .active .tab {
   border-bottom: 4px solid #CCC;
