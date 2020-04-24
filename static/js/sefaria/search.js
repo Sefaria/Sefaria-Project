@@ -4,21 +4,6 @@ const FilterNode = require('./FilterNode');
 const SearchState = require('./searchState');
 
 
-class HackyQueryAborter{
-    /*Used to abort multiple ajax queries. Stand-in until AbortController is no longer experimental. At that point
-    * we'll want to replace our ajax queries with fetch*/
-    constructor() {
-        this._queryList = [];
-    }
-    addQuery(ajaxQuery) {
-        this._queryList.push(ajaxQuery);
-    }
-    abort() {
-        this._queryList.map(ajaxQuery => ajaxQuery.abort());
-    }
-}
-
-
 class Search {
     constructor(searchIndexText, searchIndexSheet) {
       this.searchIndexText = searchIndexText;
@@ -31,7 +16,6 @@ class Search {
       this.sefariaSheetsResult = null;
       this.buckets = [];
       this.queryAborter = new HackyQueryAborter();
-      // this.dictaSearchUrl = 'http://34.206.201.228';
       this.dictaSearchUrl = 'https://sefaria.loadbalancer.dicta.org.il';
     }
     cache(key, result) {
@@ -239,7 +223,6 @@ class Search {
             return queue.length;
 
         // return whole queue if the last item in queue is equal to minValue
-
         if (Math.abs(queue[queue.length - 1][sortType] - minValue) <= 0.001 ) // float comparison
             return queue.length;
 
@@ -247,12 +230,6 @@ class Search {
         return (pivot >= 0) ? pivot : 0;
     }
     mergeQueries(addAggregations, sortType, filters) {
-        // function getPivot(queue, minValue, lastSeen, total) {
-        //     if (lastSeen + 1 >= total)
-        //         return queue.length;
-        //     let pivot = queue.findIndex(x => x[sortType] > minValue);
-        //     return (pivot >= 0) ? pivot : queue.length  //lastIndex returns -1 if value is not found -> then return the entire list
-        // }
         let result = {hits: {}};
         if(addAggregations) {
 
@@ -318,8 +295,6 @@ class Search {
             }
 
             const lastScore = Math.min(sefariaHits[sefariaHits.length-1][sortType], dictaHits[dictaHits.length-1][sortType]);
-            //const sefariaPivot = getPivot(sefariaHits, lastScore, this.sefariaQueryQueue.lastSeen, this.sefariaQueryQueue.hits.total);
-            //const dictaPivot = getPivot(dictaHits, lastScore, this.dictaQueryQueue.lastSeen, this.dictaQueryQueue.hits.total);
             const sefariaPivot = this.getPivot(sefariaHits, lastScore, sortType);
             const dictaPivot = this.getPivot(dictaHits, lastScore, sortType);
 
@@ -329,21 +304,9 @@ class Search {
             dictaHits = dictaHits.slice(0, dictaPivot);
             finalHits = dictaHits.concat(sefariaHits).sort((i, j) => i[sortType] - j[sortType]);
         }
-        // if (sortType !== "score")
-        //     finalHits.reverse();
+
         result.hits.hits = finalHits;
         return result;
-
-        // if(this.queryDictaFlag) {
-        //     this.sefariaQueryQueue.hits.total += this.dictaQueryQueue.hits.total;
-        //
-        //     let sefariaHits = this.sefariaQueryQueue.hits.hits.filter(x => !("Tanakh" in x._source.categories));
-        // else {
-        //         sefariaHits = this.sefariaQueryQueue.hits.hits;
-        //      }
-        //     // newHits = this.dictaQueryQueue.hits.hits.concat(newHits);
-        //     // this.sefariaQueryQueue.hits.hits = newHits;
-        // }
     }
     execute_query(args) {
         /* args can contain
@@ -377,39 +340,22 @@ class Search {
 
         let queryAborter = new HackyQueryAborter();
         this.queryAborter = queryAborter;
-        /*
-        return $.ajax({
-            url: `${Sefaria.apiHost}/api/search-wrapper`,
-            type: 'POST',
-            data: req,
-            contentType: "application/json; charset=utf-8",
-            crossDomain: true,
-            processData: false,
-            dataType: 'json',
-            success: function(data) {
-                this.cache(req, data);
-                args.success(data);
-            }.bind(this),
-            error: args.error
-        });
-         */
-        // const sortType = (args.)
+
         const updateAggreagations = (args.aggregationsToUpdate.length > 0);
         if (this.queryDictaFlag) {
             Promise.all([
-            this.sefariaQuery(args, updateAggreagations, queryAborter),
-            this.dictaQuery(args, updateAggreagations, queryAborter),
-            this.dictaBooksQuery(args, queryAborter)
-        ]).then(() => {
-            if (args.type === "sheet") {
-                args.success(this.sefariaSheetsResult);
-            }
-            else {
-                const sortType = (args.sort_type === 'relevance') ? 'score' : 'comp_date';
-                args.success(this.mergeQueries(updateAggreagations, sortType, args.applied_filters));
-            }
-        }).catch(x => console.log(x));
-        // }).catch(args.error);
+                this.sefariaQuery(args, updateAggreagations, queryAborter),
+                this.dictaQuery(args, updateAggreagations, queryAborter),
+                this.dictaBooksQuery(args, queryAborter)
+            ]).then(() => {
+                if (args.type === "sheet") {
+                   args.success(this.sefariaSheetsResult);
+                }
+                else {
+                    const sortType = (args.sort_type === 'relevance') ? 'score' : 'comp_date';
+                    args.success(this.mergeQueries(updateAggreagations, sortType, args.applied_filters));
+                }
+            }).catch(x => console.log(x));
         }
         else {
             this.sefariaQuery(args, updateAggreagations, queryAborter)
@@ -671,6 +617,21 @@ class Search {
         );
       });
       return { availableFilters, registry: {}, orphans: [] };
+    }
+}
+
+
+class HackyQueryAborter{
+    /*Used to abort multiple ajax queries. Stand-in until AbortController is no longer experimental. At that point
+    * we'll want to replace our ajax queries with fetch*/
+    constructor() {
+        this._queryList = [];
+    }
+    addQuery(ajaxQuery) {
+        this._queryList.push(ajaxQuery);
+    }
+    abort() {
+        this._queryList.map(ajaxQuery => ajaxQuery.abort());
     }
 }
 

@@ -135,51 +135,6 @@ class SearchResultList extends Component {
       return props[`${type}SearchState`];
     }
 
-    _loadRemainder(type, last, total, currentHits) {
-    // Having loaded "last" results, and with "total" results to load, load the rest, this.backgroundQuerySize at a time
-      if (last >= total || last >= this.maxResultSize) {
-        this.updateRunningQuery(type, null, false);
-        this.state.moreToLoad[type] = false;
-        this.setState({moreToLoad: this.state.moreToLoad});
-        return;
-      }
-
-      let size = this.backgroundQuerySize;
-      if (last + size > this.maxResultSize) {
-        size = this.maxResultSize - last;
-      }
-
-      const searchState = this._getSearchState(type);
-      const { field, sortType, fieldExact, appliedFilters, appliedFilterAggTypes } = searchState;
-      const query_props = {
-        query: this.props.query,
-        type,
-        size,
-        start: last,
-        field,
-        sort_type: sortType,
-        applied_filters: appliedFilters,
-        appliedFilterAggTypes,
-        aggregationsToUpdate: [],
-        exact: fieldExact === field,
-        error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
-        success: data => {
-          var nextHits = currentHits.concat(data.hits.hits);
-          if (type === "text") {
-            nextHits = Sefaria.search.process_text_hits(nextHits);
-          }
-
-          this.state.hits[type] = nextHits;
-
-          this.setState({hits: this.state.hits});
-          this._loadRemainder(type, last + nextHits.length, total, nextHits);
-        }
-      };
-
-      const runningLoadRemainderQuery = Sefaria.search.execute_query(query_props);
-      this.updateRunningQuery(type, runningLoadRemainderQuery, true);
-    }
-
     _executeAllQueries(props) {
       this.types.forEach(t => this._executeQuery(props, t));
     }
@@ -246,6 +201,51 @@ class SearchResultList extends Component {
       });
 
       this.updateRunningQuery(type, runningQuery, false);
+    }
+
+    _loadRemainder(type, last, total, currentHits) {
+    // Having loaded "last" results, and with "total" results to load, load the rest, this.backgroundQuerySize at a time
+      if (last >= total || last >= this.maxResultSize) {
+        this.updateRunningQuery(type, null, false);
+        this.state.moreToLoad[type] = false;
+        this.setState({moreToLoad: this.state.moreToLoad});
+        return;
+      }
+
+      let size = this.backgroundQuerySize;
+      if (last + size > this.maxResultSize) {
+        size = this.maxResultSize - last;
+      }
+
+      const searchState = this._getSearchState(type);
+      const { field, sortType, fieldExact, appliedFilters, appliedFilterAggTypes } = searchState;
+      const query_props = {
+        query: this.props.query,
+        type,
+        size,
+        start: last,
+        field,
+        sort_type: sortType,
+        applied_filters: appliedFilters,
+        appliedFilterAggTypes,
+        aggregationsToUpdate: [],
+        exact: fieldExact === field,
+        error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
+        success: data => {
+          var nextHits = currentHits.concat(data.hits.hits);
+          if (type === "text") {
+            nextHits = Sefaria.search.process_text_hits(nextHits);
+          }
+
+          this.state.hits[type] = nextHits;
+
+          this.setState({hits: this.state.hits});
+          this._loadRemainder(type, last + nextHits.length, total, nextHits);
+        }
+      };
+
+      const runningLoadRemainderQuery = Sefaria.search.execute_query(query_props);
+      this.updateRunningQuery(type, runningLoadRemainderQuery, true);
     }
 
     _handle_error(jqXHR, textStatus, errorThrown) {
