@@ -67,6 +67,7 @@ io.sockets.on('connection', function(socket) {
 
       let numRows = rows["COUNT(*)"];
       socket.broadcast.emit('return rooms', numRows);
+      socket.emit('return rooms', numRows);
 
       // log('Received request to create or join room ' + room);
         db.all(`SELECT name, clients from chatrooms WHERE clients = 1 ORDER BY roomStarted`, [], (err, rows) => {

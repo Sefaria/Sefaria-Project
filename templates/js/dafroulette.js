@@ -29,9 +29,7 @@ socket.on('return rooms', function(numRooms) {
 });
 
 socket.on('creds', function(conf) {
-  console.log(pcConfig)
   pcConfig = conf;
-  console.log(pcConfig)
 });
 
 socket.on('created', function(room) {
@@ -188,12 +186,11 @@ window.onbeforeunload = function() {
 /////////////////////////////////////////////////////////
 
 function createPeerConnection() {
-  console.log(pcConfig)
   try {
     if (location.hostname !== 'localhost') {
       pc = new RTCPeerConnection(pcConfig);
     } else {
-      pc = new RTCPeerConnection(pcConfig);
+      pc = new RTCPeerConnection(null);
     }
     pc.onicecandidate = handleIceCandidate;
     pc.onaddstream = handleRemoteStreamAdded;
