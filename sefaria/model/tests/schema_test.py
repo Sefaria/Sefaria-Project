@@ -274,9 +274,10 @@ def test_nodes_missing_content():
     assert len(result[1]) == 3
     test_index.delete()
 
+
 class TestTitleGroup():
 
     def test_duplicate_titles(self):
-        tg = TitleGroup([{'lang': 'en', 'text':'ab', 'primary': True}, {'lang': 'he', 'text':'אב', 'primary': True}], [{'lang': 'en', 'parts': [['a'], ['b', 'c']]}])
+        tg = TitleGroup([{'lang': 'en', 'text':'ab', 'primary': True}, {'lang': 'he', 'text': 'אב', 'primary': True}], [{'lang': 'en', 'parts': [['a'], ['b', 'c']]}, {'lang': 'he', 'parts': [['א'], ['ב']]}])
         assert tg.titles == [{'lang': 'en', 'text': 'ab', 'primary': True}, {'lang': 'he', 'text': 'אב', 'primary': True}, {'lang': 'en', 'text': 'ac'}]
         tg.validate()

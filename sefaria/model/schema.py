@@ -72,12 +72,12 @@ class TitleGroup(object):
         """
         if not self._all_titles:
             titles = self._titles
-            set_titles = {(d['lang'], d['text']) for d in self._titles}
+            set_titles = {(t['lang'], t['text']) for t in self._titles}
             for d in self._title_parts:
                 parts = d['parts']  # this is a list of lists that needs to create all the optional titles
                 gen_titles = {(d['lang'], ''.join(x)) for x in product(*parts)}
                 set_tupls = gen_titles.difference(set_titles)
-                titles.extend([{'lang': d[0], 'text': d[1]} for d in list(set_tupls)])
+                titles.extend([{'lang': t[0], 'text': t[1]} for t in list(set_tupls)])
             self._all_titles = titles
         return self._all_titles
 
@@ -175,10 +175,10 @@ class TitleGroup(object):
 
             old_primary = self.primary_title(lang)
             self._titles = [t for t in self._titles if t["lang"] != lang or not t.get("primary")]
-            self.titles.append({"text": old_primary, "lang": lang})
+            self._titles.append({"text": old_primary, "lang": lang})
             self._primary_title[lang] = None
 
-        self.titles.append(d)
+        self._titles.append(d)
         return self
 
 
