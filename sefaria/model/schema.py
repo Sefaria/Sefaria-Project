@@ -44,11 +44,12 @@ class TitleGroup(object):
         "fromTerm"          # bool flag to indicate if title originated from term (used in topics)
     ]
 
-    def __init__(self, serial=None):
-        self.titles = []
+    def __init__(self, serial_titles=None, serial_title_parts=None):
+        self._titles = []
+        self._title_parts = []
+        self._all_titles = []
         self._primary_title = {}
-        if serial:
-            self.load(serial)
+        self.load(serial_titles, serial_title_parts)
 
     def validate(self):
         for lang in self.langs:
@@ -64,9 +65,29 @@ class TitleGroup(object):
         if not all(ord(c) < 128 for c in self.primary_title("en")):
             raise InputError("Primary English title may not contain non-ascii characters")
 
-    def load(self, serial=None):
-        if serial:
-            self.titles = serial
+    def get_titles(self):
+
+        """
+        :return: list of all titles: generated and explicit
+        """
+        if not self._all_titles:
+            titles = self._titles
+            set_titles = {(d['lang'], d['text']) for d in self._titles}
+            for d in self._title_parts:
+                parts = d['parts']  # this is a list of lists that needs to create all the optional titles
+                gen_titles = {(d['lang'], ''.join(x)) for x in product(*parts)}
+                set_tupls = gen_titles.difference(set_titles)
+                titles.extend([{'lang': d[0], 'text': d[1]} for d in list(set_tupls)])
+            self._all_titles = titles
+        return self._all_titles
+
+    titles = property(get_titles)
+
+    def load(self, serial_titles=None, serial_title_parts=None):
+        if serial_titles:
+            self._titles = serial_titles
+        if serial_title_parts:
+            self._title_parts = serial_title_parts
 
     def copy(self):
         return self.__class__(copy.deepcopy(self.titles))
@@ -115,7 +136,8 @@ class TitleGroup(object):
         return [t for t in self.all_titles(lang) if t != self.primary_title(lang)]
 
     def remove_title(self, text, lang):
-        self.titles = [t for t in self.titles if not (t["lang"] == lang and t["text"] == text)]
+        # note: removes ONLY titles from self._titles and not a generated title from self._title_parts
+        self._titles = [t for t in self._titles if not (t["lang"] == lang and t["text"] == text)]
         return self
 
     def add_title(self, text, lang, primary=False, replace_primary=False, presentation="combined"):
@@ -133,7 +155,7 @@ class TitleGroup(object):
         if any([t for t in self.titles if t["text"] == text and t["lang"] == lang]):  #already there
             if not replace_primary:
                 return
-            else:  #update this title as primary: remove it, then re-add below
+            else:  # update this title as primary: remove it, then re-add below
                 self.remove_title(text, lang)
         d = {
                 "text": text,
@@ -152,7 +174,7 @@ class TitleGroup(object):
                 raise IndexSchemaError("Node {} already has a primary title.".format(self.primary_title()))
 
             old_primary = self.primary_title(lang)
-            self.titles = [t for t in self.titles if t["lang"] != lang or not t.get("primary")]
+            self._titles = [t for t in self._titles if t["lang"] != lang or not t.get("primary")]
             self.titles.append({"text": old_primary, "lang": lang})
             self._primary_title[lang] = None
 
@@ -199,25 +221,12 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
 
     def _load_title_group(self):
         if getattr(self, "titles", None):
-            gen_titles = []
-            if getattr(self, "genTitles", None):
-                gen_titles = self._generate_titles(self.genTitles)
-            self.title_group.load(serial=self.titles + gen_titles)
+            self.title_group.load(serial_titles=self.titles, serial_title_parts = getattr(self, "titleParts", None))
             del self.__dict__["titles"]
+            if getattr(self, "titleParts", None):
+                del self.__dict__["titleParts"]
 
         self._process_terms()
-
-    def _generate_titles(self, genTitles):
-
-        """
-        :param genTitles: list of dicts on Index with keys: lang, titleParts where titleParts is a list of lists of parts that should generate an Index alt title
-        :return: list of generated alt titles (list of strings)
-        """
-        titles = []
-        for d in genTitles:
-            title_parts = d['titleParts']  # this is a list of lists that needs to create all the optional titles
-            titles.extend([{'lang': d['lang'], 'text':''.join(x)} for x in product(*title_parts)])
-        return titles
 
     def _process_terms(self):
         # To be called after raw data load

@@ -2,6 +2,7 @@
 
 import pytest
 from sefaria.model import *
+from sefaria.model.schema import TitleGroup
 import re
 from sefaria.system.exceptions import InputError, BookNameError
 
@@ -272,3 +273,10 @@ def test_nodes_missing_content():
     assert result[0] is False
     assert len(result[1]) == 3
     test_index.delete()
+
+class TestTitleGroup():
+
+    def test_duplicate_titles(self):
+        tg = TitleGroup([{'lang': 'en', 'text':'ab', 'primary': True}, {'lang': 'he', 'text':'אב', 'primary': True}], [{'lang': 'en', 'parts': [['a'], ['b', 'c']]}])
+        assert tg.titles == [{'lang': 'en', 'text': 'ab', 'primary': True}, {'lang': 'he', 'text': 'אב', 'primary': True}, {'lang': 'en', 'text': 'ac'}]
+        tg.validate()
