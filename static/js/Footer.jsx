@@ -1,4 +1,5 @@
 const React                    = require('react');
+const PropTypes     = require('prop-types');
 const Sefaria                  = require('./sefaria/sefaria');
 const $                        = require('./sefaria/sefariaJquery');
 const { NewsletterSignUpForm } = require('./Misc');
@@ -9,6 +10,9 @@ class Footer extends Component {
   constructor(props) {
     super(props);
     this.state = {subscribeMessage: null};
+  }
+  componentDidMount() {
+      this.setState({isClient: true});
   }
   trackLanguageClick(language){
     Sefaria.track.setInterfaceLanguage('interface language footer', language);
@@ -42,9 +46,7 @@ class Footer extends Component {
 
     const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
-    let currentPath = Sefaria.util.currentPath();
-    let currentPathEncoded = encodeURIComponent(currentPath);
-    let next = currentPathEncoded ? currentPathEncoded : '?home';
+    let next = this.state.isClient ? (encodeURIComponent(Sefaria.util.currentPath())) : "/" ; //try to make sure that a server render of this does not get some weird data in the url that then gets cached
     return (
       <footer id="footer" className="static sans">
         <div id="footerInner">
@@ -188,37 +190,39 @@ class Footer extends Component {
               </div>
               <NewsletterSignUpForm contextName="Footer" />
               <LikeFollowButtons />
-              <a href={fbURL} target="_blank" className="outOfAppLink">
-                <span className="int-en">Facebook</span>
-                <span className="int-he">פייסבוק</span>
-              </a>
-              &bull;
-              <a href="https://twitter.com/SefariaProject" target="_blank" className="outOfAppLink">
-                <span className="int-en">Twitter</span>
-                <span className="int-he">טוויטר</span>
+              <div className="socialLinks">
+                  <a href={fbURL} target="_blank" className="outOfAppLink">
+                    <span className="int-en">Facebook</span>
+                    <span className="int-he">פייסבוק</span>
+                  </a>
+                  &bull;
+                  <a href="https://twitter.com/SefariaProject" target="_blank" className="outOfAppLink">
+                    <span className="int-en">Twitter</span>
+                    <span className="int-he">טוויטר</span>
 
-              </a>
-              <br />
-              <a href="https://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
-                  <span className="int-en">YouTube</span>
-                  <span className="int-he">יוטיוב</span>
-              </a>
-              &bull;
-              <a href={blgURL} target="_blank" className="outOfAppLink">
-                  <span className="int-en">Blog</span>
-                  <span className="int-he">בלוג</span>
-              </a>
-              <br />
-              <a href="https://www.instagram.com/sefariaproject/" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Instagram</span>
-                  <span className="int-he">אינסטגרם</span>
+                  </a>
+                  <br />
+                  <a href="https://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
+                      <span className="int-en">YouTube</span>
+                      <span className="int-he">יוטיוב</span>
+                  </a>
+                  &bull;
+                  <a href={blgURL} target="_blank" className="outOfAppLink">
+                      <span className="int-en">Blog</span>
+                      <span className="int-he">בלוג</span>
+                  </a>
+                  <br />
+                  <a href="https://www.instagram.com/sefariaproject/" target="_blank" className="outOfAppLink">
+                      <span className="int-en">Instagram</span>
+                      <span className="int-he">אינסטגרם</span>
 
-              </a>
-              &bull;
-              <a href="mailto:hello@sefaria.org" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Email</span>
-                  <span className="int-he">דוא&quot;ל</span>
-              </a>
+                  </a>
+                  &bull;
+                  <a href="mailto:hello@sefaria.org" target="_blank" className="outOfAppLink">
+                      <span className="int-en">Email</span>
+                      <span className="int-he">דוא&quot;ל</span>
+                  </a>
+              </div>
               <div id="siteLanguageToggle">
                   <div id="siteLanguageToggleLabel">
                       <span className="int-en">Site Language</span>
@@ -238,7 +242,6 @@ class Footer extends Component {
     );
   }
 }
-
 
 class LikeFollowButtons extends Component {
   componentDidMount() {

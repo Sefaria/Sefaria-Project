@@ -266,7 +266,60 @@ def title_regex_api(request, titles):
             res["error"] = errors
         resp = jsonResponse(res, cb)
         return resp
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
+def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None):
+    res = {}
+    for tref in refs:
+        try:
+            oref = model.Ref(tref)
+            lang = "he" if is_hebrew(tref) else "en"
+            if useTextFamily:
+                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False)
+                he = text_fam.he
+                en = text_fam.text
+                res[tref] = {
+                    'he': he,
+                    'en': en,
+                    'lang': lang,
+                    'ref': oref.normal(),
+                    'primary_category': text_fam.contents()['primary_category'],
+                    'heRef': oref.he_normal(),
+                    'url': oref.url()
+                }
+            else:
+                he_tc = model.TextChunk(oref, "he")
+                en_tc = model.TextChunk(oref, "en")
+                if as_sized_string:
+                    kwargs = {}
+                    if min_char:
+                        kwargs['min_char'] = min_char
+                    if max_char:
+                        kwargs['max_char'] = max_char
+                    he_text = he_tc.as_sized_string(**kwargs)
+                    en_text = en_tc.as_sized_string(**kwargs)
+                else:
+                    he = he_tc.text
+                    en = en_tc.text
+                    # these could be flattened on the client, if need be.
+                    he_text = he if isinstance(he, str) else JaggedTextArray(he).flatten_to_string()
+                    en_text = en if isinstance(en, str) else JaggedTextArray(en).flatten_to_string()
+
+                res[tref] = {
+                    'he': he_text,
+                    'en': en_text,
+                    'lang': lang,
+                    'ref': oref.normal(),
+                    'heRef': oref.he_normal(),
+                    'url': oref.url()
+                }
+        except (InputError, ValueError, AttributeError, KeyError) as e:
+            # referer = request.META.get("HTTP_REFERER", "unknown page")
+            # This chatter fills up the logs.  todo: put in it's own file
+            # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
+            res[tref] = {"error": 1}
+    return res
 
 def bulktext_api(request, refs):
     """
@@ -277,42 +330,11 @@ def bulktext_api(request, refs):
     """
     if request.method == "GET":
         cb = request.GET.get("callback", None)
-        useTextFamily = request.GET.get("useTextFamily", None)
         refs = set(refs.split("|"))
-        res = {}
-        for tref in refs:
-            try:
-                oref = model.Ref(tref)
-                lang = "he" if is_hebrew(tref) else "en"
-                if useTextFamily:
-                    text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False)
-                    he = text_fam.he
-                    en = text_fam.text
-                    res[tref] = {
-                        'he': he,
-                        'en': en,
-                        'lang': lang,
-                        'ref': oref.normal(),
-                        'primary_category': text_fam.contents()['primary_category'],
-                        'heRef': oref.he_normal(),
-                        'url': oref.url()
-                    }
-                else:
-                    he = model.TextChunk(oref, "he").text
-                    en = model.TextChunk(oref, "en").text
-                    res[tref] = {
-                        'he': he if isinstance(he, str) else JaggedTextArray(he).flatten_to_string(),  # these could be flattened on the client, if need be.
-                        'en': en if isinstance(en, str) else JaggedTextArray(en).flatten_to_string(),
-                        'lang': lang,
-                        'ref': oref.normal(),
-                        'heRef': oref.he_normal(),
-                        'url': oref.url()
-                    }
-            except (InputError, ValueError, AttributeError, KeyError) as e:
-                # referer = request.META.get("HTTP_REFERER", "unknown page")
-                # This chatter fills up the logs.  todo: put in it's own file
-                # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
-                res[tref] = {"error": 1}
+        g = lambda x: request.GET.get(x, None)
+        min_char = int(g("minChar")) if g("minChar") else None
+        max_char = int(g("maxChar")) if g("maxChar") else None
+        res = bundle_many_texts(refs, g("useTextFamily"), g("asSizedString"), min_char, max_char)
         resp = jsonResponse(res, cb)
         return resp
 
@@ -522,16 +544,6 @@ def rebuild_counts_and_toc(request):
     model.refresh_all_states()
     return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
 '''
-
-@staff_member_required
-def rebuild_topics(request):
-    from sefaria.model.topic import update_topics
-    update_topics()
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("topic", "update_topics")
-
-    return HttpResponseRedirect("/topics?m=topics-rebuilt")
 
 
 @staff_member_required
