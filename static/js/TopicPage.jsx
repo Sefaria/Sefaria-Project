@@ -123,21 +123,13 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
                       onClose={onClose} />
                     <TwoOrThreeBox content={topicBlocks} width={width} />
                 </div>
+                {footer}
             </div>
         </div>
     );
 };
 
-/*
-<div className="readerNavTop search">
-  <CategoryColorLine category="Other" />
-  <ReaderNavigationMenuSearchButton onClick={navHome} />
-  <div className='sefariaLogo'><img src="/static/img/logo.svg" alt="Sefaria Logo" /></div>
-  {interfaceLang !== "hebrew" ?
-    <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} />
-    : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> }
-</div>
-*/
+
 const TopicHeader = ({
   topic, topicData, multiPanel, interfaceLang, isCat, setNavTopic, hideNavHeader,
   onClose, openDisplaySettings, openSearch
@@ -184,6 +176,7 @@ const TopicHeader = ({
        :""}
     </div>
 );}
+
 
 const TopicPage = ({
   tab, topic, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel,
@@ -386,7 +379,6 @@ const TopicPage = ({
           </div>
       </div>;
 };
-
 TopicPage.propTypes = {
   tab:                 PropTypes.string.isRequired,
   topic:               PropTypes.string.isRequired,
@@ -402,6 +394,7 @@ TopicPage.propTypes = {
   openDisplaySettings: PropTypes.func,
   toggleSignUpModal:   PropTypes.func,
 };
+
 
 const TopicPageTab = ({ data, renderItem, classes, sortOptions, sortFunc, filterFunc, extraData, showFilterHeader }) => (
   <div className="story topicTabContents">
@@ -422,6 +415,7 @@ const TopicPageTab = ({ data, renderItem, classes, sortOptions, sortFunc, filter
     }
   </div>
 );
+
 
 const TextPassage = ({text, toggleSignUpModal, topicTitle, interfaceLang}) => {
     if (!text.ref) { return null; }
@@ -451,6 +445,7 @@ TextPassage.propTypes = {
   toggleSignUpModal:  PropTypes.func
 };
 
+
 const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => (
   <Link className="relatedTopic" href={`/topics/${isCategory ? 'category/' : ''}${topic}`}
     onClick={onClick.bind(null, topic, topicTitle)} key={topic}
@@ -468,6 +463,7 @@ TopicLink.propTypes = {
   clearAndSetTopic: PropTypes.func.isRequired,
   isTransliteration: PropTypes.object,
 };
+
 
 const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, interfaceLang, setNavTopic }) => {
   const [showMoreMap, setShowMoreMap] = useState({});
@@ -555,6 +551,7 @@ TopicSideColumn.propTypes = {
   topicData: PropTypes.object,
   clearAndSetTopic: PropTypes.func.isRequired,
 };
+
 
 const ReadingsComponent = ({ parashaData, tref }) => (
   <div className="readings link-section">
