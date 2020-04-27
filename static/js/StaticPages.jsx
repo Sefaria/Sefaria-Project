@@ -24,10 +24,11 @@ const RemoteLearningPage = () => (
             <H2Block en="Browse our Latest Resources" he="מקורות בספריא" />
             <ButtonRow>
                 <SimpleButton
-                    href="/groups/Seder-on-Sefaria?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    href="/groups/Educator-Newsletters?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/219410?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he="פסח בספריא"
-                    en="Seder on Sefaria"/>
+                    he="דפי מקורות אקטואליים"
+                    en="Educator Newsletters"
+                />
                 <SimpleButton
                     href="/groups/A-Jewish-Response-to-Coronavirus?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/227981.5?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
