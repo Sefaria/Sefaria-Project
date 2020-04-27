@@ -22,9 +22,11 @@ const {
   FilterableList,
   ToolTipped,
 }                         = require('./Misc');
-const Footer     = require('./Footer');
+const Footer              = require('./Footer');
+
 
 const norm_hebrew_ref = tref => tref.replace(/[׳״]/g, '');
+
 
 const refSort = (currSortOption, a, b, { interfaceLang }) => {
   a = a[1]; b = b[1];
@@ -50,6 +52,7 @@ const refSort = (currSortOption, a, b, { interfaceLang }) => {
     else { return (b.order.numDatasource * b.order.tfidf) - (a.order.numDatasource * a.order.tfidf); }
   }
 };
+
 
 const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
   if (!a.order && !b.order) { return 0; }
@@ -77,6 +80,7 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
   }
 };
 
+
 const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang, openDisplaySettings, openSearch, onClose}) => {
     const [topicData, setTopicData] = useState(false);   // For root topic
     const [subtopics, setSubtopics] = useState([]);
@@ -92,7 +96,31 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
 
     let topicBlocks = subtopics
       .filter(t => t.shouldDisplay !== false)
-      .sort((a, b) => (0+(a.slug === topic)) - (0+(b.slug === topic)))
+      .sort((a, b) => {
+        // Don't use display order intended for top level a category level. Bandaid for unclear semantics on displayOrder.
+        const [aDisplayOrder, bDisplayOrder] = [a, b].map(x => Sefaria.isTopicTopLevel(x.slug) ? 10000 : x.displayOrder);
+
+        // Sort alphabetically according to interface lang in absense of display order
+        if (aDisplayOrder === bDisplayOrder) {
+          const stripInitialPunctuation = str => str.replace(/^["#]/, "");
+          const [aAlpha, bAlpha] = [a, b].map(x => {
+            if (interfaceLang === "hebrew") {
+              return (x.he.length) ?
+                stripInitialPunctuation(x.he) :
+               "תתת" + stripInitialPunctuation(x.en);
+            } else {
+              return (x.en.length) ?
+                stripInitialPunctuation(x.en) :
+                stripInitialPunctuation(x.he)
+            }
+          });
+
+          return aAlpha < bAlpha ? -1 : 1;
+        }
+
+        return aDisplayOrder - bDisplayOrder;
+
+      })
       .map((t,i) => {
       const { slug, children, en, he } = t;
       const openTopic = e => {
