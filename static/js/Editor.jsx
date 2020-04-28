@@ -3,7 +3,7 @@ import {jsx} from 'slate-hyperscript'
 import {withHistory} from 'slate-history'
 import {Editor, createEditor, Range, Node, Transforms, Path} from 'slate'
 import {Slate, Editable, ReactEditor, withReact, useSlate} from 'slate-react'
-
+import isHotkey from 'is-hotkey'
 
 import Sefaria from './sefaria/sefaria';
 
@@ -31,6 +31,13 @@ const voidElements = [
     "GroupStatement",
     "SheetMedia",
 ];
+
+
+const HOTKEYS = {
+  'mod+b': 'bold',
+  'mod+i': 'italic',
+  'mod+u': 'underline',
+}
 
 const ELEMENT_TAGS = {
     A: el => ({type: 'link', url: el.getAttribute('href'), ref: el.getAttribute('data-ref')}),
@@ -1357,6 +1364,17 @@ const SefariaEditor = (props) => {
     };
     const onKeyDown = event => {
         // add ref on space if end of line
+        console.log(event.key)
+
+
+        for (const hotkey in HOTKEYS) {
+          if (isHotkey(hotkey, event)) {
+            event.preventDefault()
+            const format = HOTKEYS[hotkey]
+            toggleFormat(editor, format)
+          }
+        }
+
         if (event.key == " ") {
             getRefInText(editor).then(query =>{
               if (query["is_ref"]){
