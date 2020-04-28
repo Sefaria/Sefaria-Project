@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 const $          = require('./sefaria/sefariaJquery');
 
 
@@ -26,8 +26,6 @@ function useDebounce(value, delay) {
 
   return debouncedValue;
 }
-
-
 
 function usePaginatedScroll(scrollable_element_ref, url, setter) {
   const [page, setPage] = useState(0);
@@ -60,5 +58,47 @@ function usePaginatedScroll(scrollable_element_ref, url, setter) {
   }, [page]);
 }
 
+function usePaginatedLoad(fetchData, setter, numPages) {
+  /*
+  calls `fetchData` for pages 0 to numPages - 1 and passes returns values to `setter`
+  fetchData: (page) => Promise().then(data => {}). Given integer `page` returns promise
+  setter: (data) => null. Sets paginated data on component
+  numPages: int. total number of pages to load
+  */
+
+  const [page, setPage] = useState(0);
+
+  useEffect(() => {
+    if (numPages == 0) { return; }
+    fetchData(page).then(data => {
+      setter(data);
+      if (page === numPages - 1) { return; }
+      setPage(prevPage => prevPage + 1);
+    })
+  }, [page, numPages]);
+}
+
+function useIncrementalLoad(fetchData, input, pageSize, setter) {
+  /*
+  Loads all items in `input` in `pageSize` chunks.
+  Each input chunk is passed to `fetchData`
+  fetchData: (data) => Promise(). Takes subarray from `input` and returns promise.
+  input: array of input data for `fetchData`
+  pageSize: int, chunk size
+  setter: (data) => null. Sets paginated data on component.
+  */
+  const [fetchDataByPage, numPages] = useMemo(() => {
+    const fetchDataByPage = page => {
+      const pagedInput = input.slice(page*pageSize, (page+1)*pageSize);
+      return fetchData(pagedInput);
+    };
+    const numPages = !input ? 0 : Math.ceil(input.length/pageSize);
+    return [fetchDataByPage, numPages];
+  }, [input]);
+  usePaginatedLoad(fetchDataByPage, setter, numPages);
+}
+
 module.exports.usePaginatedScroll               = usePaginatedScroll;
 module.exports.useDebounce                      = useDebounce;
+module.exports.usePaginatedLoad                 = usePaginatedLoad;
+module.exports.useIncrementalLoad               = useIncrementalLoad;

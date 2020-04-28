@@ -252,6 +252,9 @@ class FilterableList extends Component {
     this._isMounted = true;
     this.load();
   }
+  componentDidUpdate(prevProps) {
+    if (prevProps.getData !== this.props.getData) { this.load(); }
+  }
   componentWillUnmount() {
     this._isMounted = false;
   }
@@ -1375,7 +1378,7 @@ function NewsletterSignUpForm(props) {
           onKeyUp={handleSubscribeKeyUp} />
       </span>
       <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} />
-      {includeEducatorOption ? 
+      {includeEducatorOption ?
         <div className="newsletterEducatorOption">
           <span className="int-en">
             <input
