@@ -1637,6 +1637,37 @@ def add_gens_to_rabs():
             # t.save()
 
 
+def set_top_holidays():
+    top_holidays = [
+        "shabbat",
+        "rosh-chodesh",
+        "rosh-hashanah",
+        "yom-kippur",
+        "sukkot",
+        "shemini-atzeret",
+        "simchat-torah",
+        "chanukah",
+        "tu-bshvat",
+        "purim",
+        "passover",
+        "shavuot",
+        "tisha-bav",
+    ]
+    current_slugs = IntraTopicLinkSet({"linkType": "displays-under", "toTopic": "holidays"}).distinct("fromTopic")
+    current_topics = TopicSet({"slug": {"$in": current_slugs}})
+    for topic in current_topics:
+        if topic.slug == "holidays":
+            continue
+        if hasattr(t, "displayOrder"):
+            del topic.displayOrder
+            topic.save()
+
+    for i, slug in enumerate(top_holidays):
+        topic = Topic.init(slug)
+        topic.displayOrder = i
+        topic.save()
+
+
 def merge_rav_nataf():
     with open('data/Analyze Ambiguous Topics - Resolve merges.csv', 'r') as fin:
         c = csv.DictReader(fin)
