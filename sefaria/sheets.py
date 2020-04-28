@@ -206,6 +206,7 @@ def sheet_to_dict(sheet):
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
 		"created": sheet.get("dateCreated", None),
 		"topics": add_langs_to_topics(sheet.get("topics", [])),
+		"tags": [t['asTyped'] for t in sheet.get("topics", [])],  # for backwards compatibility with mobile
 		"options": sheet["options"] if "options" in sheet else [],
 	}
 	return sheet_dict

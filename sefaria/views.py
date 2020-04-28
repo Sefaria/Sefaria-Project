@@ -270,6 +270,7 @@ def title_regex_api(request, titles):
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
 
+
 def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None):
     res = {}
     for tref in refs:

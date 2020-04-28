@@ -1,10 +1,13 @@
 import pytest
-from sefaria.model.topic import Topic, TopicSet, IntraTopicLink, RefTopicLink, TopicLinkHelper
+from sefaria.model.topic import Topic, TopicSet, IntraTopicLink, RefTopicLink, TopicLinkHelper, IntraTopicLinkSet, RefTopicLinkSet
 from sefaria.model.text import Ref
 from sefaria.system.database import db
 
 
 def make_topic(slug):
+    ts = TopicSet({'slug': slug})
+    if ts.count() > 0:
+        ts.delete()
     t = Topic({'slug': slug, 'titles': [{'text': slug, 'primary': True, 'lang': 'en'}]})
     t.save()
     return t
@@ -22,6 +25,21 @@ def make_rt_link(a, tref):
     return l
 
 
+def clean_links(a):
+    """
+    Remove any existing links to `a` in the db
+    :param a:
+    :return:
+    """
+    ls = RefTopicLinkSet({'toTopic': a})
+    if ls.count() > 0:
+        ls.delete()
+
+    ls = IntraTopicLinkSet({"$or": [{"fromTopic": a}, {"toTopic": a}]})
+    if ls.count() > 0:
+        ls.delete()
+
+
 @pytest.fixture(scope='module')
 def topic_graph():
     isa_links = [
@@ -32,7 +50,9 @@ def topic_graph():
         (6, 5),
     ]
     trefs = [r.normal() for r in Ref('Genesis 1:1-10').range_list()]
-
+    for a, b in isa_links:
+        clean_links(str(a))
+        clean_links(str(b))
     graph = {
         'topics': {
             str(i): make_topic(str(i)) for i in range(1, 10)

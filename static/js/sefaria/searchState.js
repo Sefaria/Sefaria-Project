@@ -147,6 +147,7 @@ SearchState.metadataByType = {
     fieldBroad: 'naive_lemmatizer',
     field: 'naive_lemmatizer',
     aggregation_field_array: ['path'],
+    aggregation_field_lang_suffix_array: [null],
     build_and_apply_filters: 'buildAndApplyTextFilters',  // func name from Search.js
     sortType: 'relevance',
     sortTypeArray: [  // this array defines the sort options available for each search type
@@ -172,7 +173,8 @@ SearchState.metadataByType = {
     fieldExact: null,
     fieldBroad: null,
     field: 'content',
-    aggregation_field_array: ['group', 'tags'],
+    aggregation_field_array: ['group', 'topics'],
+    aggregation_field_lang_suffix_array: [null, {'english': '_en.keyword', 'hebrew': '_he.keyword'}],
     build_and_apply_filters: 'buildAndApplySheetFilters',  // func name from Search.js
     sortType: 'relevance',
     sortTypeArray: [

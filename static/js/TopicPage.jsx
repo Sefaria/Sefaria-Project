@@ -26,6 +26,7 @@ import Footer from './Footer';
 
 const norm_hebrew_ref = tref => tref.replace(/[׳״]/g, '');
 
+
 const refSort = (currSortOption, a, b, { interfaceLang }) => {
   a = a[1]; b = b[1];
   if (!a.order && !b.order) { return 0; }
@@ -50,6 +51,7 @@ const refSort = (currSortOption, a, b, { interfaceLang }) => {
     else { return (b.order.numDatasource * b.order.tfidf) - (a.order.numDatasource * a.order.tfidf); }
   }
 };
+
 
 const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
   if (!a.order && !b.order) { return 0; }
@@ -77,6 +79,7 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
   }
 };
 
+
 const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang, openDisplaySettings, openSearch, onClose}) => {
     const [topicData, setTopicData] = useState(false);   // For root topic
     const [subtopics, setSubtopics] = useState([]);
@@ -92,7 +95,31 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
 
     let topicBlocks = subtopics
       .filter(t => t.shouldDisplay !== false)
-      .sort((a, b) => (0+(a.slug === topic)) - (0+(b.slug === topic)))
+      .sort((a, b) => {
+        // Don't use display order intended for top level a category level. Bandaid for unclear semantics on displayOrder.
+        const [aDisplayOrder, bDisplayOrder] = [a, b].map(x => Sefaria.isTopicTopLevel(x.slug) ? 10000 : x.displayOrder);
+
+        // Sort alphabetically according to interface lang in absense of display order
+        if (aDisplayOrder === bDisplayOrder) {
+          const stripInitialPunctuation = str => str.replace(/^["#]/, "");
+          const [aAlpha, bAlpha] = [a, b].map(x => {
+            if (interfaceLang === "hebrew") {
+              return (x.he.length) ?
+                stripInitialPunctuation(x.he) :
+               "תתת" + stripInitialPunctuation(x.en);
+            } else {
+              return (x.en.length) ?
+                stripInitialPunctuation(x.en) :
+                stripInitialPunctuation(x.he)
+            }
+          });
+
+          return aAlpha < bAlpha ? -1 : 1;
+        }
+
+        return aDisplayOrder - bDisplayOrder;
+
+      })
       .map((t,i) => {
       const { slug, children, en, he } = t;
       const openTopic = e => {
@@ -123,21 +150,13 @@ const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, mult
                       onClose={onClose} />
                     <TwoOrThreeBox content={topicBlocks} width={width} />
                 </div>
+                {footer}
             </div>
         </div>
     );
 };
 
-/*
-<div className="readerNavTop search">
-  <CategoryColorLine category="Other" />
-  <ReaderNavigationMenuSearchButton onClick={navHome} />
-  <div className='sefariaLogo'><img src="/static/img/logo.svg" alt="Sefaria Logo" /></div>
-  {interfaceLang !== "hebrew" ?
-    <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} />
-    : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> }
-</div>
-*/
+
 const TopicHeader = ({
   topic, topicData, multiPanel, interfaceLang, isCat, setNavTopic, hideNavHeader,
   onClose, openDisplaySettings, openSearch
@@ -184,6 +203,7 @@ const TopicHeader = ({
        :""}
     </div>
 );}
+
 
 const TopicPage = ({
   tab, topic, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel,
@@ -386,7 +406,6 @@ const TopicPage = ({
           </div>
       </div>;
 };
-
 TopicPage.propTypes = {
   tab:                 PropTypes.string.isRequired,
   topic:               PropTypes.string.isRequired,
@@ -402,6 +421,7 @@ TopicPage.propTypes = {
   openDisplaySettings: PropTypes.func,
   toggleSignUpModal:   PropTypes.func,
 };
+
 
 const TopicPageTab = ({ data, renderItem, classes, sortOptions, sortFunc, filterFunc, extraData, showFilterHeader }) => (
   <div className="story topicTabContents">
@@ -422,6 +442,7 @@ const TopicPageTab = ({ data, renderItem, classes, sortOptions, sortFunc, filter
     }
   </div>
 );
+
 
 const TextPassage = ({text, toggleSignUpModal, topicTitle, interfaceLang}) => {
     if (!text.ref) { return null; }
@@ -451,6 +472,7 @@ TextPassage.propTypes = {
   toggleSignUpModal:  PropTypes.func
 };
 
+
 const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => (
   <Link className="relatedTopic" href={`/topics/${isCategory ? 'category/' : ''}${topic}`}
     onClick={onClick.bind(null, topic, topicTitle)} key={topic}
@@ -468,6 +490,7 @@ TopicLink.propTypes = {
   clearAndSetTopic: PropTypes.func.isRequired,
   isTransliteration: PropTypes.object,
 };
+
 
 const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, interfaceLang, setNavTopic }) => {
   const [showMoreMap, setShowMoreMap] = useState({});
@@ -555,6 +578,7 @@ TopicSideColumn.propTypes = {
   topicData: PropTypes.object,
   clearAndSetTopic: PropTypes.func.isRequired,
 };
+
 
 const ReadingsComponent = ({ parashaData, tref }) => (
   <div className="readings link-section">

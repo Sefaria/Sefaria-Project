@@ -256,4 +256,10 @@ function handleRemoteHangup() {
   location.reload();
 }
 
+setInterval(function(){
+    if (isStarted && !remoteStream) {
+      location.reload();
+    }
+}, 5000);
+
 {% endautoescape %}

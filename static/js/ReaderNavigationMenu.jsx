@@ -259,7 +259,7 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
               { topUserData }
               <ReaderNavigationMenuSection title="Texts" heTitle="טקסטים" content={categoriesBlock} />
               { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} /> : null }
-              <ReaderNavigationMenuSection title="Topics" heTitle="נושאים" content={topicsBlock} />
+              { Sefaria.topicTocPage().length ? <ReaderNavigationMenuSection title="Topics" heTitle="נושאים" content={topicsBlock} /> : null }
               { !compare ? (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) : null }
               { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Support Sefaria" heTitle="תמכו בספריא" content={donation} /> : null }
               { multiPanel ? null : siteLinks }
