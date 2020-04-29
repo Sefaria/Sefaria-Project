@@ -23,8 +23,8 @@ class Search {
            this._cache[key] = result;
         }
         if (!this._cache[key]) {
-            console.log("Cache miss");
-            console.log(key);
+            //console.log("Cache miss");
+            //console.log(key);
         }
         return this._cache[key];
     }
@@ -316,6 +316,7 @@ class Search {
          type: "sheet" or "text"
          applied_filters: filter query by these filters
          appliedFilterAggTypes: array of same len as applied_filters giving aggType for each filter
+         aggregationsToUpdate
          field: field to query in elastic_search
          sort_type: See SearchState.metadataByType for possible sort types
          exact: if query is exact
@@ -325,7 +326,7 @@ class Search {
         if (!args.query) {
             return;
         }
-        console.log("*** ", args.query);
+        //console.log("*** ", args.query);
         let isQueryStart = !(args.start);
         if (isQueryStart) // don't touch these parameters if not a text search
         {
@@ -349,22 +350,28 @@ class Search {
                 this.dictaBooksQuery(args, queryAborter)
             ]).then(() => {
                 if (args.type === "sheet") {
-                   args.success(this.sefariaSheetsResult);
+                    this._cacheQuery(args, this.sefariaSheetsResult);
+                    args.success(this.sefariaSheetsResult);
                 }
                 else {
                     const sortType = (args.sort_type === 'relevance') ? 'score' : 'comp_date';
-                    args.success(this.mergeQueries(updateAggreagations, sortType, args.applied_filters));
+                    const mergedQueries = this.mergeQueries(updateAggreagations, sortType, args.applied_filters); 
+                    this._cacheQuery(args, mergedQueries);
+                    args.success(mergedQueries);
                 }
             }).catch(x => console.log(x));
         }
         else {
             this.sefariaQuery(args, updateAggreagations, queryAborter)
                 .then(() => {
-                    if (args.type === "sheet")
+                    if (args.type === "sheet") {
+                        this._cacheQuery(args, this.sefariaSheetsResult);
                         args.success(this.sefariaSheetsResult);
-                    else
+                    } else {
+                        this._cacheQuery(args, this.sefariaQueryQueue);
                         args.success(this.sefariaQueryQueue);
-                    })
+                    }
+                })
         }
 
         return queryAborter;
@@ -423,6 +430,21 @@ class Search {
         return new_hit_list[0];
       });
       return newHits;
+    }
+    getCachedQuery(args) {
+        const cacheKey = this._queryCacheKey(args);
+        return this.cache(cacheKey);
+    }
+    _cacheQuery(args, results) {
+        const cacheKey = this._queryCacheKey(args);
+        results = Sefaria.util.clone(results);
+        if (args.type == "text") {
+            results.hits.hits = this.process_text_hits(results.hits.hits);
+        }
+        this.cache(cacheKey, results);
+    }
+    _queryCacheKey(args) {
+        return "query|" + this.sortedJSON(args);
     }
     buildFilterTree(aggregation_buckets, appliedFilters) {
       //returns object w/ keys 'availableFilters', 'registry'

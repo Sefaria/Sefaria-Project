@@ -39,6 +39,16 @@ class SearchResultList extends Component {
         displayFilters: false,
         displaySort:    false,
       }
+
+      // Restore hits and total from cache so they are available for immediate render
+      this.types.map(t => {
+        const args = this._getQueryArgs(props, t);
+        const cachedQuery = Sefaria.search.getCachedQuery(args);
+        if (cachedQuery) {
+          this.state.hits[t] = cachedQuery.hits.hits;
+          this.state.totals[t] = cachedQuery.hits.total;
+        }
+      });
     }
 
     updateRunningQuery(type, ajax, isLoadingRemainder) {
@@ -146,28 +156,20 @@ class SearchResultList extends Component {
           return;
       }
       this._abortRunningQuery(type);
+
+      let args = this._getQueryArgs(props, type);
+
       // If there are no available filters yet, don't apply filters.  Split into two queries:
       // 1) Get all potential filters and counts
       // 2) Apply filters (Triggered from componentWillReceiveProps)
+
+      const request_applied = args.applied_filters;
       const searchState = this._getSearchState(type, props);
-      const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
-      const request_applied = filtersValid && appliedFilters;
-      const isCompletionStep = request_applied || appliedFilters.length === 0;
+      const { appliedFilters, appliedFilterAggTypes } = searchState;
       const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[type];
-      const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
-      const justUnapplied = uniqueAggTypes.indexOf(this.lastAppliedAggType[type]) === -1; // if you just unapplied an aggtype filter completely, make sure you rerequest that aggType's filters also in case they were deleted
-      const aggregationsToUpdate = filtersValid && aggregation_field_array.length === 1 ? [] : aggregation_field_array.filter( a => justUnapplied || a !== this.lastAppliedAggType[type]);
-      const runningQuery = Sefaria.search.execute_query({
-          query: props.query,
-          type,
-          applied_filters: request_applied,
-          appliedFilterAggTypes,
-          aggregationsToUpdate,
-          size: this.initialQuerySize,
-          field,
-          sort_type: sortType,
-          exact: fieldExact === field,
-          success: data => {
+      const isCompletionStep = request_applied || searchState.appliedFilters.length === 0;
+
+      args.success = data => {
               this.updateRunningQuery(type, null, false);
               const hitArray = type === 'text' ? Sefaria.search.process_text_hits(data.hits.hits) : data.hits.hits;  // TODO need if statement? or will there be similar processing done on sheets?
               this.setState({
@@ -185,22 +187,50 @@ class SearchResultList extends Component {
                 for (let aggregation of aggregation_field_array) {
                   if (!!data.aggregations[aggregation]) {
                     const { buckets } = data.aggregations[aggregation];
-                    const { availableFilters: tempAvailable, registry: tempRegistry, orphans: tempOrphans } = Sefaria.search[build_and_apply_filters](buckets, appliedFilters, appliedFilterAggTypes, aggregation);
+                    const { 
+                      availableFilters: tempAvailable, 
+                      registry: tempRegistry, 
+                      orphans: tempOrphans 
+                    } = Sefaria.search[build_and_apply_filters](buckets, appliedFilters, appliedFilterAggTypes, aggregation);
                     availableFilters.push(...tempAvailable);  // array concat
                     registry = extend(registry, tempRegistry);
                     orphans.push(...tempOrphans);
                   }
                 }
-                this.props.registerAvailableFilters(type, availableFilters, registry, orphans, aggregationsToUpdate);
+                this.props.registerAvailableFilters(type, availableFilters, registry, orphans, args.aggregationsToUpdate);
               }
               if(isCompletionStep) {
                   this._loadRemainder(type, hitArray.length, data.hits.total, hitArray);
               }
-          },
-          error: this._handle_error
-      });
+          }
+      args.error = this._handle_error;
 
+      const runningQuery = Sefaria.search.execute_query(args);
       this.updateRunningQuery(type, runningQuery, false);
+    }
+
+    _getQueryArgs(props, type) {
+      props = props || this.props;
+
+      const searchState = this._getSearchState(type, props);
+      const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
+      const request_applied = filtersValid && appliedFilters;
+      const { aggregation_field_array } = SearchState.metadataByType[type];
+      const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
+      const justUnapplied = uniqueAggTypes.indexOf(this.lastAppliedAggType[type]) === -1; // if you just unapplied an aggtype filter completely, make sure you rerequest that aggType's filters also in case they were deleted
+      const aggregationsToUpdate = filtersValid && aggregation_field_array.length === 1 ? [] : aggregation_field_array.filter( a => justUnapplied || a !== this.lastAppliedAggType[type]);
+
+      return {
+        query: props.query,
+        type,
+        applied_filters: request_applied,
+        appliedFilterAggTypes,
+        aggregationsToUpdate,
+        size: this.initialQuerySize,
+        field,
+        sort_type: sortType,
+        exact: fieldExact === field,
+      };
     }
 
     _loadRemainder(type, last, total, currentHits) {
@@ -292,7 +322,7 @@ class SearchResultList extends Component {
         var results = [];
 
         if (tab == "text") {
-          results = this.state.hits.text.slice(0,this.state.displayedUntil["text"]).filter(result => !!result._source.version).map(result =>
+          results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).filter(result => !!result._source.version).map(result =>
             <SearchTextResult
                 data={result}
                 query={this.props.query}
@@ -310,7 +340,7 @@ class SearchResultList extends Component {
         var loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);
         var noResultsMessage = (<LoadingMessage message="0 results." heMessage="0 תוצאות." />);
 
-        var queryFullyLoaded      = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
+        var queryFullyLoaded = !this.state.moreToLoad[tab] && !this.state.isQueryRunning[tab];
         var haveResults      = !!results.length;
         results              = haveResults ? results : noResultsMessage;
         var searchFilters    = (<SearchFilters
@@ -334,6 +364,8 @@ class SearchResultList extends Component {
                                   toggleSortView={this.toggleSortView}
                                   closeFilterView={this.closeFilterView}
                                   closeSortView={this.closeSortView}/>);
+        //console.log(this.state);
+        //debugger;
         return (
           <div>
             { searchFilters }

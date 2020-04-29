@@ -40,7 +40,7 @@ class SearchTextResult extends Component {
             event.preventDefault();
             const s = this.props.data._source;
             const textHighlights = this.getHighlights();
-            console.log(textHighlights);
+            //console.log(textHighlights);
             Sefaria.track.event("Search", "Search Result Text Click", `${this.props.query} - ${s.ref}/${s.version}/${s.lang}`);
             this.props.onResultClick(s.ref, {[s.lang]: s.version}, { textHighlights });
         }

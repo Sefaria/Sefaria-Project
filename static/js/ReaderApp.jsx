@@ -250,6 +250,8 @@ class ReaderApp extends Component {
     window.removeEventListener("resize", this.setPanelCap);
   }
   componentDidUpdate(prevProps, prevState) {
+    $(".content").off("scroll").on("scroll", this.setScrollPositionInHistory); // when .content may have rerendered
+    
     if (this.justPopped) {
       //console.log("Skipping history update - just popped")
       this.justPopped = false;
@@ -866,7 +868,6 @@ class ReaderApp extends Component {
     $("title").html(hist.title);
     this.replaceHistory = false;
 
-    $(".content").on("scroll", this.setScrollPositionInHistory); // when .content may have rerendered
     this.setPaddingForScrollbar() // Called here to save duplicate calls to shouldHistoryUpdate
   }
   makePanelState(state) {
