@@ -959,6 +959,7 @@ ReaderNavigationMenuDisplaySettingsButton.propTypes = {
 function InterfaceLanguageMenu({currentLang}){
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
+  const languages = ['english', 'hebrew'];
 
   const getCurrentPage = () => {
     return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
@@ -998,7 +999,7 @@ function InterfaceLanguageMenu({currentLang}){
             <span className="int-en">Site Language</span>
             <span className="int-he">שפת האתר</span>
           </div>
-          <div className="interfaceLinks-options">
+          <div className={`interfaceLinks-options ${currentLang}`}>
             <a className={`interfaceLinks-option int-bi ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
             <a className={`interfaceLinks-option int-bi ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
           </div>

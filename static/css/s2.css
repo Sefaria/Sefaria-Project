@@ -518,6 +518,15 @@ input.noselect {
 .interface-hebrew .header .interfaceLinks .interfaceLinks-header{
   font-family: "Heebo", sans-serif;
 }
+.interfaceLinks-options{
+  display: flex;
+}
+.interfaceLinks-options.english{
+  flex-direction: column-reverse;
+}
+.interfaceLinks-options.hebrew{
+  flex-direction: column;
+}
 .header .interfaceLinks .interfaceLinks-option{
   display: flex;
   text-decoration: none;
