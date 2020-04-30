@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 const $          = require('./sefaria/sefariaJquery');
 
 
@@ -58,28 +58,49 @@ function usePaginatedScroll(scrollable_element_ref, url, setter) {
   }, [page]);
 }
 
-function usePaginatedLoad(fetchData, setter, numPages) {
+// based off of https://juliangaramendy.dev/use-promise-subscription/
+function usePromise(promiseOrFunction, defaultValue, cancelArray) {
+  const [state, setState] = useState({ value: defaultValue, error: null, isPending: true });
+
+  React.useEffect(() => {
+    const promise = (typeof promiseOrFunction === 'function')
+      ? promiseOrFunction()
+      : promiseOrFunction
+
+    let isSubscribed = true
+    promise
+      .then(value => isSubscribed ? setState({ value, error: null, isPending: false }) : setState({error: {isCanceled: true}}))
+      .catch(error => isSubscribed ? setState({ value: defaultValue, error, isPending: false }) : setState({error: {isCanceled: true}}));
+
+    return () => (isSubscribed = false);
+  }, [promiseOrFunction, defaultValue].concat(cancelArray))
+
+  const { value, error, isPending } = state;
+  return [value, error, isPending];
+}
+
+function usePaginatedLoad(fetchData, setter, numPages, cancelArray) {
   /*
   calls `fetchData` for pages 0 to numPages - 1 and passes returns values to `setter`
   fetchData: (page) => Promise().then(data => {}). Given integer `page` returns promise
   setter: (data) => null. Sets paginated data on component
   numPages: int. total number of pages to load
   */
-
   const [page, setPage] = useState(0);
-
+  const fetchPage = useCallback(() => fetchData(page), [page, fetchData]);
+  const [value, error, isPending] = usePromise(fetchPage, false, cancelArray);
   useEffect(() => {
-    if (numPages == 0) { return; }
-    fetchData(page).then(data => {
-      setter(data);
-      if (page === numPages - 1) { return; }
-      setPage(prevPage => prevPage + 1);
-    })
-  }, [page, numPages]);
+    if (error && error.isCanceled) { console.log('CANCEL', value, page, numPages);}
+    if (page === numPages - 1 || numPages === 0 || error) { return; }
+    setter(value);
+    setPage(prevPage => prevPage + 1);
+
+  }, [value, error]);
 }
 
-function useIncrementalLoad(fetchData, input, pageSize, setter) {
+function useIncrementalLoad(fetchData, input, pageSize, setter, cancelArray) {
   /*
+  TODO: make default value a parameter. Deal with issues where you end up with empty array of content
   Loads all items in `input` in `pageSize` chunks.
   Each input chunk is passed to `fetchData`
   fetchData: (data) => Promise(). Takes subarray from `input` and returns promise.
@@ -88,17 +109,20 @@ function useIncrementalLoad(fetchData, input, pageSize, setter) {
   setter: (data) => null. Sets paginated data on component.
   */
   const [fetchDataByPage, numPages] = useMemo(() => {
-    const fetchDataByPage = page => {
+    const fetchDataByPage = (page) => {
+      if (!input) { return Promise.reject({error: "input not array"}); }
       const pagedInput = input.slice(page*pageSize, (page+1)*pageSize);
       return fetchData(pagedInput);
     };
     const numPages = !input ? 0 : Math.ceil(input.length/pageSize);
     return [fetchDataByPage, numPages];
   }, [input]);
-  usePaginatedLoad(fetchDataByPage, setter, numPages);
+  useEffect(() => () => setter(false), cancelArray);
+  usePaginatedLoad(fetchDataByPage, setter, numPages, cancelArray);
 }
 
 module.exports.usePaginatedScroll               = usePaginatedScroll;
 module.exports.useDebounce                      = useDebounce;
 module.exports.usePaginatedLoad                 = usePaginatedLoad;
 module.exports.useIncrementalLoad               = useIncrementalLoad;
+module.exports.usePromise                       = usePromise;

@@ -267,8 +267,9 @@ const TopicPage = ({
     useIncrementalLoad(
       fetchBulkText,
       topicRefs,
-      10,
-      data => setTextData(prev => !prev ? data : [...prev, ...data])
+      2,
+      data => setTextData(prev => (!prev || data === false) ? data : [...prev, ...data]),
+      [topic]
     );
 
     const tabs = [];
