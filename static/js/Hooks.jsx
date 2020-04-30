@@ -64,7 +64,7 @@ function usePromise(promiseOrFunction, defaultValue, cancelArray) {
   const [isCanceled, setIsCanceled] = useState(false);
   useEffect(() => () => setIsCanceled(true), cancelArray);
   useEffect(() => {
-    console.log('rerunning promise', isCanceled);
+    console.log('usePromise rerunning promise', isCanceled);
     if (!isCanceled) {
       const promise = (typeof promiseOrFunction === 'function')
         ? promiseOrFunction()
@@ -72,7 +72,7 @@ function usePromise(promiseOrFunction, defaultValue, cancelArray) {
 
       promise
         .then(async (value) => {
-          await new Promise(resolve => setTimeout(resolve, 2000));  // TODO
+          //await new Promise(resolve => setTimeout(resolve, 2000));  // TODO
           (!isCanceled) ? setState({ value, error: null, isPending: false }) : setState({error: {isCanceled: true}});
         })
         .catch(error => (!isCanceled) ? setState({ value: defaultValue, error, isPending: false }) : setState({error: {isCanceled: true}}));
@@ -92,16 +92,17 @@ function usePaginatedLoad(fetchData, setter, numPages, cancelArray) {
   setter: (data) => null. Sets paginated data on component
   numPages: int. total number of pages to load
   */
-  useEffect(() => () => {
-    console.log('DELETE');
-    setter(false);
-  }, cancelArray);
   const [page, setPage] = useState(0);
+  useEffect(() => () => {
+    console.log('usePaginatedLoad RESET');
+    setter(false);
+    setPage(0);
+  }, cancelArray);
   const fetchPage = useCallback(() => fetchData(page), [page, fetchData]);
   const [value, error, isPending] = usePromise(fetchPage, false, cancelArray);
   useEffect(() => {
-    if (error && error.isCanceled) { console.log('CANCEL', value, page, numPages);}
-    if (error) { console.log('ERROR', error); return; }
+    if (error && error.isCanceled) { console.log('usePaginatedLoad CANCEL', value, page, numPages);}
+    if (error) { console.log('usePaginatedLoad ERROR', error); return; }
     setter(value);
     if (page === numPages - 1 || numPages === 0) { return; }
     setPage(prevPage => prevPage + 1);
@@ -121,9 +122,10 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, cancelArray) {
   */
   const [fetchDataByPage, numPages] = useMemo(() => {
     const fetchDataByPage = (page) => {
+      console.log('fetchDataByPage', page, input.length);
       if (!input) { return Promise.reject({error: "input not array", input}); }
       const pagedInput = input.slice(page*pageSize, (page+1)*pageSize);
-      console.log('pagedInput', pagedInput, page);
+      console.log('fetchDataByPage pagedInput', pagedInput, page);
       return fetchData(pagedInput);
     };
     const numPages = !input ? 0 : 2 // TODO Math.ceil(input.length/pageSize);
