@@ -61,20 +61,23 @@ function usePaginatedScroll(scrollable_element_ref, url, setter) {
 // based off of https://juliangaramendy.dev/use-promise-subscription/
 function usePromise(promiseOrFunction, defaultValue, cancelArray) {
   const [state, setState] = useState({ value: defaultValue, error: null, isPending: true });
-
-  React.useEffect(() => {
+  const [isCanceled, setIsCanceled] = useState(false);
+  useEffect(() => () => setIsCanceled(true), cancelArray);
+  useEffect(() => {
     const promise = (typeof promiseOrFunction === 'function')
       ? promiseOrFunction()
       : promiseOrFunction
 
     let isSubscribed = true
     promise
-      .then(value => isSubscribed ? setState({ value, error: null, isPending: false }) : setState({error: {isCanceled: true}}))
-      .catch(error => isSubscribed ? setState({ value: defaultValue, error, isPending: false }) : setState({error: {isCanceled: true}}));
+      .then(async (value) => {
+        await new Promise(resolve => setTimeout(resolve, 2000));  // TODO
+        (!isCanceled) ? setState({ value, error: null, isPending: false }) : setState({error: {isCanceled: true}});
+      })
+      .catch(error => (!isCanceled) ? setState({ value: defaultValue, error, isPending: false }) : setState({error: {isCanceled: true}}));
 
     return () => (isSubscribed = false);
-  }, [promiseOrFunction, defaultValue].concat(cancelArray))
-
+  }, [promiseOrFunction, defaultValue, isCanceled].concat(cancelArray))
   const { value, error, isPending } = state;
   return [value, error, isPending];
 }
@@ -91,8 +94,9 @@ function usePaginatedLoad(fetchData, setter, numPages, cancelArray) {
   const [value, error, isPending] = usePromise(fetchPage, false, cancelArray);
   useEffect(() => {
     if (error && error.isCanceled) { console.log('CANCEL', value, page, numPages);}
-    if (page === numPages - 1 || numPages === 0 || error) { return; }
+    if (error) { return; }
     setter(value);
+    if (page === numPages - 1 || numPages === 0) { return; }
     setPage(prevPage => prevPage + 1);
 
   }, [value, error]);
@@ -110,11 +114,11 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, cancelArray) {
   */
   const [fetchDataByPage, numPages] = useMemo(() => {
     const fetchDataByPage = (page) => {
-      if (!input) { return Promise.reject({error: "input not array"}); }
+      if (!input) { return Promise.reject({error: "input not array", input}); }
       const pagedInput = input.slice(page*pageSize, (page+1)*pageSize);
       return fetchData(pagedInput);
     };
-    const numPages = !input ? 0 : Math.ceil(input.length/pageSize);
+    const numPages = !input ? 0 : 2 // TODO Math.ceil(input.length/pageSize);
     return [fetchDataByPage, numPages];
   }, [input]);
   useEffect(() => () => setter(false), cancelArray);
