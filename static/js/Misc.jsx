@@ -1,5 +1,5 @@
 //const React      = require('react');
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 const ReactDOM   = require('react-dom');
 const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
@@ -954,6 +954,62 @@ ReaderNavigationMenuDisplaySettingsButton.propTypes = {
   onClick: PropTypes.func,
   placeholder: PropTypes.bool,
 };
+
+
+function InterfaceLanguageMenu({currentLang}){
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef(null);
+
+  const getCurrentPage = () => {
+    return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
+  }
+  const handleClick = (e) => {
+    e.stopPropagation();
+    setIsOpen(isOpen => !isOpen);
+  }
+  const handleHideDropdown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+          setIsOpen(false);
+      }
+  };
+  const handleClickOutside = (event: Event) => {
+      if (
+          wrapperRef.current &&
+          !wrapperRef.current.contains(event.target)
+      ) {
+          setIsOpen(false);
+      }
+  };
+
+  useEffect(() => {
+      document.addEventListener('keydown', handleHideDropdown, true);
+      document.addEventListener('click', handleClickOutside, true);
+      return () => {
+          document.removeEventListener('keydown', handleHideDropdown, true);
+          document.removeEventListener('click', handleClickOutside, true);
+      };
+  }, []);
+
+  return (
+      <div className={`interfaceLinks ${currentLang}`} ref={wrapperRef}>
+        <a className="interfaceLinks-button" onClick={handleClick}><img src="static/icons/globe-wire.svg"/></a>
+        <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
+          <div className="interfaceLinks-header">
+            <span className="int-en">Site Language</span>
+            <span className="int-he">שפת האתר</span>
+          </div>
+          <div className="interfaceLinks-options">
+            <a className={`interfaceLinks-option int-bi ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
+            <a className={`interfaceLinks-option int-bi ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+          </div>
+        </div>
+      </div>
+  );
+}
+
+InterfaceLanguageMenu.propTypes = {
+  currentLang: PropTypes.string
+}
 
 // const [mounted, setMounted] = React.useState(true);
 // useEffect(() => {return () => {setMounted(false)}}, []);
@@ -2018,3 +2074,4 @@ module.exports.ToggleSet                                 = ToggleSet;
 module.exports.ToolTipped                                = ToolTipped;
 module.exports.TwoBox                                    = TwoBox;
 module.exports.TwoOrThreeBox                             = TwoOrThreeBox;
+module.exports.InterfaceLanguageMenu                     = InterfaceLanguageMenu;
