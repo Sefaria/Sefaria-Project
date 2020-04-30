@@ -967,12 +967,12 @@ function InterfaceLanguageMenu({currentLang}){
     e.stopPropagation();
     setIsOpen(isOpen => !isOpen);
   }
-  const handleHideDropdown = (event: KeyboardEvent) => {
+  const handleHideDropdown = (event) => {
       if (event.key === 'Escape') {
           setIsOpen(false);
       }
   };
-  const handleClickOutside = (event: Event) => {
+  const handleClickOutside = (event) => {
       if (
           wrapperRef.current &&
           !wrapperRef.current.contains(event.target)
