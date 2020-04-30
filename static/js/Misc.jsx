@@ -991,7 +991,7 @@ function InterfaceLanguageMenu({currentLang}){
   }, []);
 
   return (
-      <div className={`interfaceLinks ${currentLang}`} ref={wrapperRef}>
+      <div className="interfaceLinks" ref={wrapperRef}>
         <a className="interfaceLinks-button" onClick={handleClick}><img src="static/icons/globe-wire.svg"/></a>
         <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
           <div className="interfaceLinks-header">
