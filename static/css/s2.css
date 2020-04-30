@@ -520,11 +520,6 @@ input.noselect {
 }
 .interfaceLinks-options{
   display: flex;
-}
-.interfaceLinks-options.english{
-  flex-direction: column-reverse;
-}
-.interfaceLinks-options.hebrew{
   flex-direction: column;
 }
 .header .interfaceLinks .interfaceLinks-option{
@@ -547,6 +542,9 @@ input.noselect {
   font-size: 16px;
   font-style: normal;
   padding: 0 16px;
+}
+.header .interfaceLinks .interfaceLinks-option.active{
+  order: -1;
 }
 .header .interfaceLinks .interfaceLinks-option.active::before{
   content: "\f00c";

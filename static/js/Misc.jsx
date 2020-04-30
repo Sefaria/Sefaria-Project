@@ -959,7 +959,6 @@ ReaderNavigationMenuDisplaySettingsButton.propTypes = {
 function InterfaceLanguageMenu({currentLang}){
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
-  const languages = ['english', 'hebrew'];
 
   const getCurrentPage = () => {
     return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
