@@ -321,7 +321,6 @@ input.noselect {
   z-index: 1001;
   box-sizing: border-box;
   padding: 0 30px;
-  /*overflow: hidden;*/
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -543,7 +542,22 @@ input.noselect {
 .header .interfaceLinks .interfaceLinks-option.active::before{
   content: "\f00c";
   padding: 0 8px;
-  /*content: "\2714";*/
+}
+@media screen and (max-width: 700px) {
+  .header .interfaceLinks {
+    display: none;
+  }
+  .header .accountLinks .login{
+    padding: 5px 5px;
+  }
+  .header .accountLinks{
+    -webkit-margin-end: 0px;
+    -moz-margin-end: 0px;
+    margin-inline-end: 0px;
+  }
+  .header .login:first-child{
+    margin:auto;
+  }
 }
 .header .my-profile, .header .notifications {
   display: inline-block;
