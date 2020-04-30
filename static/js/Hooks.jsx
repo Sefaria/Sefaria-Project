@@ -60,7 +60,7 @@ function usePaginatedScroll(scrollable_element_ref, url, setter) {
 
 // based off of https://juliangaramendy.dev/use-promise-subscription/
 function usePromise(promiseOrFunction, defaultValue, cancelArray) {
-  const [state, setState] = useState({ value: defaultValue, error: null, isPending: true });
+  const [state, setState] = useState({ value: defaultValue, error: null });
   const [isCanceled, setIsCanceled] = useState(false);
   useEffect(() => () => setIsCanceled(true), cancelArray);
   useEffect(() => {
@@ -72,17 +72,17 @@ function usePromise(promiseOrFunction, defaultValue, cancelArray) {
 
       promise
         .then(async (value) => {
-          //await new Promise(resolve => setTimeout(resolve, 2000));  // TODO
-          (!isCanceled) ? setState({ value, error: null, isPending: false }) : setState({error: {isCanceled: true}});
+          await new Promise(resolve => setTimeout(resolve, 4000));  // TODO
+          setState({ value, error: null });
         })
-        .catch(error => (!isCanceled) ? setState({ value: defaultValue, error, isPending: false }) : setState({error: {isCanceled: true}}));
+        .catch(error => setState({ value: defaultValue, error }));
     }
     return () => {
       setIsCanceled(false);
     };
-  }, [promiseOrFunction, defaultValue, isCanceled]);
-  const { value, error, isPending } = state;
-  return [value, error, isPending];
+  }, [promiseOrFunction, defaultValue]);
+  const { value, error } = state;
+  return [value, error, isCanceled];
 }
 
 function usePaginatedLoad(fetchData, setter, numPages, cancelArray) {
@@ -99,10 +99,10 @@ function usePaginatedLoad(fetchData, setter, numPages, cancelArray) {
     setPage(0);
   }, cancelArray);
   const fetchPage = useCallback(() => fetchData(page), [page, fetchData]);
-  const [value, error, isPending] = usePromise(fetchPage, false, cancelArray);
+  const [value, error, isCanceled] = usePromise(fetchPage, false, cancelArray);
   useEffect(() => {
-    if (error && error.isCanceled) { console.log('usePaginatedLoad CANCEL', value, page, numPages);}
-    if (error) { console.log('usePaginatedLoad ERROR', error); return; }
+    if (isCanceled) { console.log('usePaginatedLoad CANCEL', value, page, numPages);}
+    if (error || isCanceled) { console.log('usePaginatedLoad ERROR', error); return; }
     setter(value);
     if (page === numPages - 1 || numPages === 0) { return; }
     setPage(prevPage => prevPage + 1);
