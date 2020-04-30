@@ -369,7 +369,7 @@ class TitleTrie(datrie.Trie):
         for (title, snode), norm_title in zip(tnd_items, normal_titles):
             self[norm_title] = {
                 "title": title,
-                "key": snode.full_title(self.lang),
+                "key": snode.full_title("en"),
                 "type": "ref",
                 "is_primary": title == snode.full_title(self.lang)
             }
