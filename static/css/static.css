@@ -73,19 +73,30 @@
   margin: 0 0 60px 0;
   height: auto;
 }
-.static h1 div{
-  display: inline-block;
+.static h1.header-with-buttons{
+  display: flex;
+  justify-content: space-between;
 }
-.static h1 #saveCancelButtons{
+.static h1 > div:first-child{
+  margin-inline-end: auto;
+  margin-inline-start: 33%;
+}
+/*.static h1 #saveCancelButtons{
   float: right;
   position: static;
-}
+}*/
 @media screen and (max-width: 700px) {
   .static h1 #saveCancelButtons{
     float: none;
   }
-  .static h1 > div{
-    display: block;
+  .static h1 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .static h1 > div:first-child{
+    margin-inline-end: auto;
+    margin-inline-start: auto;
   }
 }
 .static h1 .int-en {
@@ -133,6 +144,7 @@
   color: #666;
   font-size: 14px;
   background-color: white;
+  -webkit-appearance: none;
 }
 .static a {
   color: #333;
@@ -937,13 +949,14 @@ p.registration-links a:hover{
 #editProfilePage .inner {
   position: relative;
 }
-#saveCancelButtons {
+/*#saveCancelButtons {
   position: absolute;
   top: 145px;
   right: 0px;
-}
+}*/
 #saveCancelButtons .button {
   padding: 10px 16px;
+  font-weight: normal;
 }
 #editProfilePage #profileBox,
 #editProfilePage #contactBox,
