@@ -64,20 +64,23 @@ function usePromise(promiseOrFunction, defaultValue, cancelArray) {
   const [isCanceled, setIsCanceled] = useState(false);
   useEffect(() => () => setIsCanceled(true), cancelArray);
   useEffect(() => {
-    const promise = (typeof promiseOrFunction === 'function')
-      ? promiseOrFunction()
-      : promiseOrFunction
+    console.log('rerunning promise', isCanceled);
+    if (!isCanceled) {
+      const promise = (typeof promiseOrFunction === 'function')
+        ? promiseOrFunction()
+        : promiseOrFunction
 
-    let isSubscribed = true
-    promise
-      .then(async (value) => {
-        await new Promise(resolve => setTimeout(resolve, 2000));  // TODO
-        (!isCanceled) ? setState({ value, error: null, isPending: false }) : setState({error: {isCanceled: true}});
-      })
-      .catch(error => (!isCanceled) ? setState({ value: defaultValue, error, isPending: false }) : setState({error: {isCanceled: true}}));
-
-    return () => (isSubscribed = false);
-  }, [promiseOrFunction, defaultValue, isCanceled].concat(cancelArray))
+      promise
+        .then(async (value) => {
+          await new Promise(resolve => setTimeout(resolve, 2000));  // TODO
+          (!isCanceled) ? setState({ value, error: null, isPending: false }) : setState({error: {isCanceled: true}});
+        })
+        .catch(error => (!isCanceled) ? setState({ value: defaultValue, error, isPending: false }) : setState({error: {isCanceled: true}}));
+    }
+    return () => {
+      setIsCanceled(false);
+    };
+  }, [promiseOrFunction, defaultValue, isCanceled]);
   const { value, error, isPending } = state;
   return [value, error, isPending];
 }
@@ -89,12 +92,16 @@ function usePaginatedLoad(fetchData, setter, numPages, cancelArray) {
   setter: (data) => null. Sets paginated data on component
   numPages: int. total number of pages to load
   */
+  useEffect(() => () => {
+    console.log('DELETE');
+    setter(false);
+  }, cancelArray);
   const [page, setPage] = useState(0);
   const fetchPage = useCallback(() => fetchData(page), [page, fetchData]);
   const [value, error, isPending] = usePromise(fetchPage, false, cancelArray);
   useEffect(() => {
     if (error && error.isCanceled) { console.log('CANCEL', value, page, numPages);}
-    if (error) { return; }
+    if (error) { console.log('ERROR', error); return; }
     setter(value);
     if (page === numPages - 1 || numPages === 0) { return; }
     setPage(prevPage => prevPage + 1);
@@ -116,12 +123,12 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, cancelArray) {
     const fetchDataByPage = (page) => {
       if (!input) { return Promise.reject({error: "input not array", input}); }
       const pagedInput = input.slice(page*pageSize, (page+1)*pageSize);
+      console.log('pagedInput', pagedInput, page);
       return fetchData(pagedInput);
     };
     const numPages = !input ? 0 : 2 // TODO Math.ceil(input.length/pageSize);
     return [fetchDataByPage, numPages];
   }, [input]);
-  useEffect(() => () => setter(false), cancelArray);
   usePaginatedLoad(fetchDataByPage, setter, numPages, cancelArray);
 }
 
@@ -130,3 +137,15 @@ module.exports.useDebounce                      = useDebounce;
 module.exports.usePaginatedLoad                 = usePaginatedLoad;
 module.exports.useIncrementalLoad               = useIncrementalLoad;
 module.exports.usePromise                       = usePromise;
+
+/*
+Seder
+
+Genesis 15:13-14
+Genesis 40:11-14
+
+Passover
+
+Exodus 13:3
+Exodus 12:8-19
+*/

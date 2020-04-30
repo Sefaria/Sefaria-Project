@@ -268,7 +268,10 @@ const TopicPage = ({
       fetchBulkText,
       topicRefs,
       1,  // TODO
-      data => setTextData(prev => (!prev || data === false) ? data : [...prev, ...data]),
+      data => setTextData(prev => {
+        console.log('Set data', prev, data);
+        return (!prev || data === false) ? data : [...prev, ...data];
+      }),
       [topic]
     );
 
