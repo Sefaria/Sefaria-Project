@@ -58,59 +58,8 @@ function usePaginatedScroll(scrollable_element_ref, url, setter) {
   }, [page]);
 }
 
-// based off of https://juliangaramendy.dev/use-promise-subscription/
-function usePromise(promiseOrFunction, defaultValue, cancelArray) {
-  const [state, setState] = useState({ value: defaultValue, error: null });
-  const [isCanceled, setIsCanceled] = useState(false);
-  useEffect(() => () => setIsCanceled(true), cancelArray);
-  useEffect(() => {
-    console.log('usePromise rerunning promise', isCanceled);
-    if (!isCanceled) {
-      const promise = (typeof promiseOrFunction === 'function')
-        ? promiseOrFunction()
-        : promiseOrFunction
 
-      promise
-        .then(async (value) => {
-          await new Promise(resolve => setTimeout(resolve, 4000));  // TODO
-          setState({ value, error: null });
-        })
-        .catch(error => setState({ value: defaultValue, error }));
-    }
-    return () => {
-      setIsCanceled(false);
-    };
-  }, [promiseOrFunction, defaultValue]);
-  const { value, error } = state;
-  return [value, error, isCanceled];
-}
-
-function usePaginatedLoad(fetchData, setter, numPages, cancelArray) {
-  /*
-  calls `fetchData` for pages 0 to numPages - 1 and passes returns values to `setter`
-  fetchData: (page) => Promise().then(data => {}). Given integer `page` returns promise
-  setter: (data) => null. Sets paginated data on component
-  numPages: int. total number of pages to load
-  */
-  const [page, setPage] = useState(0);
-  useEffect(() => () => {
-    console.log('usePaginatedLoad RESET');
-    setter(false);
-    setPage(0);
-  }, cancelArray);
-  const fetchPage = useCallback(() => fetchData(page), [page, fetchData]);
-  const [value, error, isCanceled] = usePromise(fetchPage, false, cancelArray);
-  useEffect(() => {
-    if (isCanceled) { console.log('usePaginatedLoad CANCEL', value, page, numPages);}
-    if (error || isCanceled) { console.log('usePaginatedLoad ERROR', error); return; }
-    setter(value);
-    if (page === numPages - 1 || numPages === 0) { return; }
-    setPage(prevPage => prevPage + 1);
-
-  }, [value, error]);
-}
-
-function useIncrementalLoad(fetchData, input, pageSize, setter, cancelArray) {
+function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement) {
   /*
   TODO: make default value a parameter. Deal with issues where you end up with empty array of content
   Loads all items in `input` in `pageSize` chunks.
@@ -120,6 +69,19 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, cancelArray) {
   pageSize: int, chunk size
   setter: (data) => null. Sets paginated data on component.
   */
+  const [page, setPage] = useState(0);
+  const [isCanceled, setCanceled] = useState({});
+  const [valueQueue, setValueQueue] = useState(null);
+
+  useEffect(() => {
+      setCanceled(d => { d[identityElement] = false; return Object.assign({}, d);});
+      return () => {
+        console.log('useIncrementalLoad RESET');
+        setCanceled(d => { d[identityElement] = true; return Object.assign({}, d);});
+        setter(false);
+        setPage(0);
+  }}, [identityElement]);
+
   const [fetchDataByPage, numPages] = useMemo(() => {
     const fetchDataByPage = (page) => {
       console.log('fetchDataByPage', page, input.length);
@@ -128,17 +90,40 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, cancelArray) {
       console.log('fetchDataByPage pagedInput', pagedInput, page);
       return fetchData(pagedInput);
     };
-    const numPages = !input ? 0 : 2 // TODO Math.ceil(input.length/pageSize);
+    const numPages = !input ? 0 : 2;  // TODO Math.ceil(input.length/pageSize);
     return [fetchDataByPage, numPages];
   }, [input]);
-  usePaginatedLoad(fetchDataByPage, setter, numPages, cancelArray);
+
+  const fetchPage = useCallback(() => fetchDataByPage(page), [page, fetchDataByPage]);
+  const setResult = useCallback((id_elem, val) => {
+            debugger;
+            if (isCanceled[id_elem]) { return; }
+            setter(val);
+            setValueQueue(null);
+            if (page === numPages - 1 || numPages === 0) { return; }
+            setPage(prevPage => prevPage + 1);
+        }, [isCanceled, setter, numPages, page, identityElement]);
+
+  useEffect(() => {
+    if(valueQueue) {
+      setResult(...valueQueue);
+    }
+  }, [valueQueue, setResult]);
+
+  useEffect(() => {
+      fetchPage()
+        .then(async (val, err) => {
+            await new Promise(resolve => setTimeout(resolve, 4000));  // TODO
+            return val;
+        })
+        .then((val) => setValueQueue([identityElement, val]));
+  }, [fetchPage]);
+
 }
 
 module.exports.usePaginatedScroll               = usePaginatedScroll;
 module.exports.useDebounce                      = useDebounce;
-module.exports.usePaginatedLoad                 = usePaginatedLoad;
 module.exports.useIncrementalLoad               = useIncrementalLoad;
-module.exports.usePromise                       = usePromise;
 
 /*
 Seder

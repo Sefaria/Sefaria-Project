@@ -272,7 +272,7 @@ const TopicPage = ({
         console.log('Set data', prev, data);
         return (!prev || data === false) ? data : [...prev, ...data];
       }),
-      [topic]
+      topic
     );
 
     const tabs = [];
