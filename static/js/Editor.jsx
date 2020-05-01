@@ -235,7 +235,7 @@ function renderSheetItem(source) {
             return content
         }
         case 'outsideText': {
-            const lang = Sefaria.hebrew.isHebrew(source.outsideText) ? 'he' : 'en';
+            const lang = Sefaria.hebrew.isHebrew(source.outsideText) && source.outsideText.length > 0 ? 'he' : 'en';
 
             const content = (
                 {
@@ -1030,8 +1030,11 @@ const insertSource = (editor, ref) => {
             }]
         };
         addItemToSheet(editor, fragment, "bottom");
-        Editor.deleteBackward(editor, { unit: 'line' })
-        Editor.deleteBackward(editor, { unit: 'character' })
+
+        const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")[1];
+        console.log(closestSheetItem)
+
+        Transforms.removeNodes(editor, { at: closestSheetItem })
         Transforms.move(editor, { unit: 'block', distance: 8 })
 
     });
@@ -1363,9 +1366,6 @@ const SefariaEditor = (props) => {
 
     };
     const onKeyDown = event => {
-        // add ref on space if end of line
-        console.log(event.key)
-
 
         for (const hotkey in HOTKEYS) {
           if (isHotkey(hotkey, event)) {
@@ -1375,6 +1375,7 @@ const SefariaEditor = (props) => {
           }
         }
 
+        // add ref on space if end of line
         if (event.key == " ") {
             getRefInText(editor).then(query =>{
               if (query["is_ref"]){
