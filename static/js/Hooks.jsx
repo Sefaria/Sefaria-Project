@@ -67,12 +67,18 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement)
   fetchData: (data) => Promise(). Takes subarray from `input` and returns promise.
   input: array of input data for `fetchData`
   pageSize: int, chunk size
-  setter: (data) => null. Sets paginated data on component.
+  setter: (data) => null. Sets paginated data on component.  setter(false) clears data.
+  identityElement: a string identifying a invocation of this effect.  When it changes, pagination and processing will restart.  Old calls in processes will be dropped on landing.
   */
   const [page, setPage] = useState(0);
-  const [isCanceled, setCanceled] = useState({});
+  const [isCanceled, setCanceled] = useState({});    // dict {idElem: Bool}
   const [valueQueue, setValueQueue] = useState(null);
 
+  // When identityElement changes:
+  // Set current identityElement to not canceled
+  // Sets previous identityElement to canceled.
+  //    Removes old items by calling setter(false);
+  //    Resets page to 0
   useEffect(() => {
       setCanceled(d => { d[identityElement] = false; return Object.assign({}, d);});
       return () => {
@@ -82,6 +88,7 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement)
         setPage(0);
   }}, [identityElement]);
 
+  // When input changes, creates function to fetch data by page, computes number of pages
   const [fetchDataByPage, numPages] = useMemo(() => {
     const fetchDataByPage = (page) => {
       console.log('fetchDataByPage', page, input.length);
@@ -90,33 +97,39 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement)
       console.log('fetchDataByPage pagedInput', pagedInput, page);
       return fetchData(pagedInput);
     };
-    const numPages = !input ? 0 : 2;  // TODO Math.ceil(input.length/pageSize);
+    // const numPages = !input ? 0 : 2;
+    const numPages = Math.ceil(input.length/pageSize);
     return [fetchDataByPage, numPages];
   }, [input]);
 
   const fetchPage = useCallback(() => fetchDataByPage(page), [page, fetchDataByPage]);
+
+  // make sure value setting callback and page procession get short circuited when id_elem has been canceled
+  // clear value queue on success
   const setResult = useCallback((id_elem, val) => {
-            debugger;
-            if (isCanceled[id_elem]) { return; }
+            if (isCanceled[id_elem]) { setValueQueue(null); return; }
             setter(val);
             setValueQueue(null);
             if (page === numPages - 1 || numPages === 0) { return; }
             setPage(prevPage => prevPage + 1);
         }, [isCanceled, setter, numPages, page, identityElement]);
 
+  // Make sure that current value is processed with latest setResult function
+  // if this is called from within the fetchPage effect, it will have stale canceled data
   useEffect(() => {
     if(valueQueue) {
       setResult(...valueQueue);
     }
   }, [valueQueue, setResult]);
 
+  // Put value returned and originating identity element into value queue
   useEffect(() => {
       fetchPage()
-        .then(async (val, err) => {
-            await new Promise(resolve => setTimeout(resolve, 4000));  // TODO
-            return val;
-        })
-        .then((val) => setValueQueue([identityElement, val]));
+        //.then(async (val, err) => {
+        //    await new Promise(resolve => setTimeout(resolve, 4000));  // TODO
+        //    return val;
+        //})
+        .then((val, err) => setValueQueue([identityElement, val]));
   }, [fetchPage]);
 
 }

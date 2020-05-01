@@ -267,7 +267,7 @@ const TopicPage = ({
     useIncrementalLoad(
       fetchBulkText,
       topicRefs,
-      1,  // TODO
+      70,  // TODO
       data => setTextData(prev => {
         console.log('Set data', prev, data);
         return (!prev || data === false) ? data : [...prev, ...data];
