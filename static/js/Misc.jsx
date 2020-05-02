@@ -237,143 +237,118 @@ ProfilePic.propTypes = {
 };
 
 
-class FilterableList extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      currFilter: '',
-      currSortOption: props.sortOptions[0],
-      displaySort: false,
-      loading: true,
-      data: [],
-    };
-  }
-  componentDidMount() {
-    this._isMounted = true;
-    this.load();
-  }
-  componentDidUpdate(prevProps) {
-    if (prevProps.getData !== this.props.getData) { this.load(); }
-  }
-  componentWillUnmount() {
-    this._isMounted = false;
-  }
-  load(ignoreCache) {
-    this.props.getData(ignoreCache).then(data => {
-      if (this._isMounted) {
-        this.setState({ loading: false, data });
+const FilterableList = ({
+  filterFunc, sortFunc, renderItem, sortOptions, getData, renderEmptyList,
+  renderHeader, renderFooter, showFilterHeader, extraData, ignoreCache
+}) => {
+  const [filter, setFilter] = useState('');
+  const [sortOption, setSortOption] = useState(sortOptions[0]);
+  const [displaySort, setDisplaySort] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState([]);
+  useEffect(() => {
+    let isMounted = true;
+    getData(ignoreCache).then(data => {
+      if (isMounted) {
+        setLoading(false);
+        setData(data);
       }
     });
-  }
-  reload() {
-    this.setState({ loading: true, data: [] }, () => this.load(true));
-  }
-  closeSort() {
-    this.setState({ displaySort: false });
-  }
-  toggleSort() {
-    this.setState({ displaySort: !this.state.displaySort });
-  }
-  filterFunc(item) {
-    if (!this.state.currFilter) { return true; }
-    return this.props.filterFunc(this.state.currFilter, item);
-  }
-  sortFunc(itemA, itemB) {
-    return this.props.sortFunc(this.state.currSortOption, itemA, itemB, this.props.extraData);
-  }
-  onFilterChange(e) {
-    this.setState({currFilter: e.target.value});
-  }
-  onSortChange(sortOption) {
-    if (sortOption === this.props.currSortOption) {
-      return;
-    }
-    this.setState({currSortOption: sortOption});
-    this.closeSort();
-  }
-  render() {
-    const { sortOptions, renderItem, renderEmptyList, renderHeader, renderFooter, showFilterHeader } = this.props;
-    const { loading, currFilter, displaySort, currSortOption, data } = this.state;
-    const oldDesign = typeof showFilterHeader == 'undefined';
-    return (
-      <div className="filterable-list">
-        {oldDesign ? <div className="filter-bar">
-          <div className="filter-bar-inner">
+    return () => {
+      setLoading(true);
+      setData([]);
+      isMounted = false;
+    };
+  }, [getData, ignoreCache]);
+  const onSortChange = newSortOption => {
+    if (newSortOption === sortOption) { return; }
+    setSortOption(sortOption);
+    setDisplaySort(false);
+  };
+  const oldDesign = typeof showFilterHeader == 'undefined';
+  return (
+    <div className="filterable-list">
+      {oldDesign ? <div className="filter-bar">
+        <div className="filter-bar-inner">
+          <ReaderNavigationMenuSearchButton />
+          <input
+            type="text"
+            placeholder={Sefaria._("Search")}
+            name="filterableListInput"
+            value={currFilter}
+            onChange={e => setFilter(e.target.value)}
+          />
+        </div>
+        <div>
+          { sortOptions.length > 1 ?
+            <DropdownModal close={()=>setDisplaySort(false)} isOpen={displaySort}>
+              <DropdownButton
+                isOpen={displaySort}
+                toggle={()=>setDisplaySort(prev => !prev)}
+                enText={"Sort"}
+                heText={"מיון"}
+              />
+              <DropdownOptionList
+                isOpen={displaySort}
+                options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option)}))}
+                currOptionSelected={currSortOption}
+                handleClick={onSortChange}
+              />
+            </DropdownModal>
+            : null
+          }
+        </div>
+      </div> : null }
+      { !oldDesign && showFilterHeader ? (
+        <div className="filter-bar-new">
+          <div className="filter-input">
             <ReaderNavigationMenuSearchButton />
             <input
               type="text"
               placeholder={Sefaria._("Search")}
               name="filterableListInput"
               value={currFilter}
-              onChange={this.onFilterChange}
+              onChange={e => setFilter(e.target.value)}
             />
           </div>
-          <div>
-            { sortOptions.length > 1 ?
-              <DropdownModal close={this.closeSort} isOpen={displaySort}>
-                <DropdownButton
-                  isOpen={displaySort}
-                  toggle={this.toggleSort}
-                  enText={"Sort"}
-                  heText={"מיון"}
-                />
-                <DropdownOptionList
-                  isOpen={displaySort}
-                  options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option)}))}
-                  currOptionSelected={currSortOption}
-                  handleClick={this.onSortChange}
-                />
-              </DropdownModal>
-              : null
-            }
-          </div>
-        </div> : null }
-        { !oldDesign && showFilterHeader ? (
-          <div className="filter-bar-new">
-            <div className="filter-input">
-              <ReaderNavigationMenuSearchButton />
-              <input
-                type="text"
-                placeholder={Sefaria._("Search")}
-                name="filterableListInput"
-                value={currFilter}
-                onChange={this.onFilterChange}
-              />
-            </div>
-            <div className="filter-sort-wrapper">
-              <span className="systemText">
-                <span className="int-en">Sort by</span>
-                <span className="int-he">מיון לפי</span>
+          <div className="filter-sort-wrapper">
+            <span className="systemText">
+              <span className="int-en">Sort by</span>
+              <span className="int-he">מיון לפי</span>
+            </span>
+            { sortOptions.map(option =>(
+              <span
+                key={option}
+                className={classNames({'sort-option': 1, noselect: 1, active: currSortOption === option})}
+                onClick={() => onSortChange(option)}
+              >
+                <span className="int-en">{ option }</span>
+                <span className="int-he">{ Sefaria._(option) }</span>
               </span>
-              { sortOptions.map(option =>(
-                <span
-                  key={option}
-                  className={classNames({'sort-option': 1, noselect: 1, active: currSortOption === option})}
-                  onClick={() => { this.onSortChange(option); }}
-                >
-                  <span className="int-en">{ option }</span>
-                  <span className="int-he">{ Sefaria._(option) }</span>
-                </span>
-              ))}
-            </div>
+            ))}
           </div>
-        ) : null}
-        {
-          loading ? <LoadingMessage /> :
-          ( data.length ?
-            (
-              <div className="filter-content">
-                { !!renderHeader ? renderHeader() : null }
-                { data.filter(this.filterFunc).sort(this.sortFunc).map(renderItem) }
-                { !!renderFooter ? renderFooter() : null }
-              </div>
-            ) : ( !!renderEmptyList ? renderEmptyList() : null )
-          )
-        }
-      </div>
-    )
-  }
-}
+        </div>
+      ) : null}
+      {
+        loading ? <LoadingMessage /> :
+        ( data.length ?
+          (
+            <div className="filter-content">
+              { !!renderHeader ? renderHeader() : null }
+              {
+                data
+                .filter(item => !filter ? true : filterFunc(filter, item))
+                .sort((a, b) => sortFunc(sortOption, a, b, extraData))
+                .map(renderItem)
+              }
+              { !!renderFooter ? renderFooter() : null }
+            </div>
+          ) : ( !!renderEmptyList ? renderEmptyList() : null )
+        )
+      }
+    </div>
+  );
+};
 FilterableList.propTypes = {
   filterFunc:  PropTypes.func.isRequired,
   sortFunc:    PropTypes.func.isRequired,
