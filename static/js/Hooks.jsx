@@ -61,7 +61,7 @@ function usePaginatedScroll(scrollable_element_ref, url, setter) {
 
 function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement) {
   /*
-  TODO: make default value a parameter. Deal with issues where you end up with empty array of content
+  TODO: make default value a parameter
   Loads all items in `input` in `pageSize` chunks.
   Each input chunk is passed to `fetchData`
   fetchData: (data) => Promise(). Takes subarray from `input` and returns promise.
@@ -82,7 +82,6 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement)
   useEffect(() => {
       setCanceled(d => { d[identityElement] = false; return Object.assign({}, d);});
       return () => {
-        console.log('useIncrementalLoad RESET');
         setCanceled(d => { d[identityElement] = true; return Object.assign({}, d);});
         setter(false);
         setPage(0);
@@ -91,13 +90,10 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement)
   // When input changes, creates function to fetch data by page, computes number of pages
   const [fetchDataByPage, numPages] = useMemo(() => {
     const fetchDataByPage = (page) => {
-      console.log('fetchDataByPage', page, input.length);
       if (!input) { return Promise.reject({error: "input not array", input}); }
       const pagedInput = input.slice(page*pageSize, (page+1)*pageSize);
-      console.log('fetchDataByPage pagedInput', pagedInput, page);
       return fetchData(pagedInput);
     };
-    // const numPages = !input ? 0 : 2;
     const numPages = Math.ceil(input.length/pageSize);
     return [fetchDataByPage, numPages];
   }, [input]);
@@ -125,10 +121,6 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement)
   // Put value returned and originating identity element into value queue
   useEffect(() => {
       fetchPage()
-        //.then(async (val, err) => {
-        //    await new Promise(resolve => setTimeout(resolve, 4000));  // TODO
-        //    return val;
-        //})
         .then((val, err) => setValueQueue([identityElement, val]));
   }, [fetchPage]);
 
@@ -137,15 +129,3 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement)
 module.exports.usePaginatedScroll               = usePaginatedScroll;
 module.exports.useDebounce                      = useDebounce;
 module.exports.useIncrementalLoad               = useIncrementalLoad;
-
-/*
-Seder
-
-Genesis 15:13-14
-Genesis 40:11-14
-
-Passover
-
-Exodus 13:3
-Exodus 12:8-19
-*/
