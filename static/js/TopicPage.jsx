@@ -45,6 +45,17 @@ const fetchBulkText = inRefs =>
   }
 );
 
+const fetchBulkSheet = inSheets =>
+    Sefaria.getBulkSheets(inSheets.map(x => x.sid)).then(outSheets => {
+    for (let tempSheet of inSheets) {
+      if (outSheets[tempSheet.sid]) {
+        outSheets[tempSheet.sid].order = tempSheet.order;
+      }
+    }
+    return Object.values(outSheets);
+  }
+);
+
 const refSort = (currSortOption, a, b, { interfaceLang }) => {
   a = a[1]; b = b[1];
   if (!a.order && !b.order) { return 0; }
@@ -267,11 +278,16 @@ const TopicPage = ({
     useIncrementalLoad(
       fetchBulkText,
       topicRefs,
-      70,  // TODO
-      data => setTextData(prev => {
-        console.log('Set data', prev, data);
-        return (!prev || data === false) ? data : [...prev, ...data];
-      }),
+      70,
+      data => setTextData(prev => (!prev || data === false) ? data : [...prev, ...data]),
+      topic
+    );
+
+    useIncrementalLoad(
+      fetchBulkSheet,
+      topicSheets,
+      70,
+      data => setSheetData(prev => (!prev || data === false) ? data : [...prev, ...data]),
       topic
     );
 
