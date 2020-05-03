@@ -219,7 +219,7 @@ msgstr "מקורות לפי נושא בספריא"
 #| "Jewish texts."
 msgid ""
 "Explore %(topic)s on Sefaria, drawing from our library of Jewish texts. "
-msgstr "סיירו בין אלפי דפי מקורות פומביים השאובים מאוצר הספרות של ספריא"
+msgstr "מקורות בנושא %(topic)s השאובים ממאגר המקורות של ספריא"
 
 #: reader/views.py:3226 reader/views.py:3312
 msgid "You must be logged in to update your profile."
@@ -892,7 +892,7 @@ msgstr "כתבו תקציר המסביר אודות דף המקורות שיצר
 
 #: templates/sheets.html:1022
 msgid "Add Tags..."
-msgstr ""
+msgstr "הוספת תיוג"
 
 #: templates/sheets.html:1050
 msgid "None"
