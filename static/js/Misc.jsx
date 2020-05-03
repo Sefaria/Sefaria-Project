@@ -1,10 +1,11 @@
 //const React      = require('react');
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 const ReactDOM   = require('react-dom');
 const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
 const classNames = require('classnames');
 const PropTypes  = require('prop-types');
+const { usePaginatedDisplay } = require('./Hooks');
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import Component      from 'react-class';
@@ -237,140 +238,123 @@ ProfilePic.propTypes = {
 };
 
 
-class FilterableList extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      currFilter: '',
-      currSortOption: props.sortOptions[0],
-      displaySort: false,
-      loading: true,
-      data: [],
-    };
-  }
-  componentDidMount() {
-    this._isMounted = true;
-    this.load();
-  }
-  componentWillUnmount() {
-    this._isMounted = false;
-  }
-  load(ignoreCache) {
-    this.props.getData(ignoreCache).then(data => {
-      if (this._isMounted) {
-        this.setState({ loading: false, data });
+const FilterableList = ({
+  filterFunc, sortFunc, renderItem, sortOptions, getData, renderEmptyList,
+  renderHeader, renderFooter, showFilterHeader, extraData, ignoreCache,
+  scrollableElement, pageSize, bottomMargin,
+}) => {
+  const [filter, setFilter] = useState('');
+  const [sortOption, setSortOption] = useState(sortOptions[0]);
+  const [displaySort, setDisplaySort] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [rawData, setRawData] = useState([]);
+  const [displayData, setDisplayData] = useState([]);
+  useEffect(() => {
+    let isMounted = true;
+    // TODO this trick only works the first time. every time after that ignoreCache is defined
+    getData(typeof ignoreCache != "undefined").then(data => {
+      if (isMounted) {
+        setLoading(false);
+        setRawData(data);
       }
     });
-  }
-  reload() {
-    this.setState({ loading: true, data: [] }, () => this.load(true));
-  }
-  closeSort() {
-    this.setState({ displaySort: false });
-  }
-  toggleSort() {
-    this.setState({ displaySort: !this.state.displaySort });
-  }
-  filterFunc(item) {
-    if (!this.state.currFilter) { return true; }
-    return this.props.filterFunc(this.state.currFilter, item);
-  }
-  sortFunc(itemA, itemB) {
-    return this.props.sortFunc(this.state.currSortOption, itemA, itemB, this.props.extraData);
-  }
-  onFilterChange(e) {
-    this.setState({currFilter: e.target.value});
-  }
-  onSortChange(sortOption) {
-    if (sortOption === this.props.currSortOption) {
-      return;
-    }
-    this.setState({currSortOption: sortOption});
-    this.closeSort();
-  }
-  render() {
-    const { sortOptions, renderItem, renderEmptyList, renderHeader, renderFooter, showFilterHeader } = this.props;
-    const { loading, currFilter, displaySort, currSortOption, data } = this.state;
-    const oldDesign = typeof showFilterHeader == 'undefined';
-    return (
-      <div className="filterable-list">
-        {oldDesign ? <div className="filter-bar">
-          <div className="filter-bar-inner">
+    return () => {
+      setLoading(true);
+      isMounted = false;
+    };
+  }, [getData, ignoreCache]);
+  useEffect(() => {
+    setDisplayData(
+      rawData
+      .filter(item => !filter ? true : filterFunc(filter, item))
+      .sort((a, b) => sortFunc(sortOption, a, b, extraData))
+    );
+  }, [rawData, filter, sortOption, extraData]);
+  const dataUpToPage = usePaginatedDisplay(scrollableElement, displayData, pageSize, bottomMargin);
+  const onSortChange = newSortOption => {
+    if (newSortOption === sortOption) { return; }
+    setSortOption(newSortOption);
+    setDisplaySort(false);
+  };
+  const oldDesign = typeof showFilterHeader == 'undefined';
+  return (
+    <div className="filterable-list">
+      {oldDesign ? <div className="filter-bar">
+        <div className="filter-bar-inner">
+          <ReaderNavigationMenuSearchButton />
+          <input
+            type="text"
+            placeholder={Sefaria._("Search")}
+            name="filterableListInput"
+            value={filter}
+            onChange={e => setFilter(e.target.value)}
+          />
+        </div>
+        <div>
+          { sortOptions.length > 1 ?
+            <DropdownModal close={()=>setDisplaySort(false)} isOpen={displaySort}>
+              <DropdownButton
+                isOpen={displaySort}
+                toggle={()=>setDisplaySort(prev => !prev)}
+                enText={"Sort"}
+                heText={"מיון"}
+              />
+              <DropdownOptionList
+                isOpen={displaySort}
+                options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option)}))}
+                currOptionSelected={sortOption}
+                handleClick={onSortChange}
+              />
+            </DropdownModal>
+            : null
+          }
+        </div>
+      </div> : null }
+      { !oldDesign && showFilterHeader ? (
+        <div className="filter-bar-new">
+          <div className="filter-input">
             <ReaderNavigationMenuSearchButton />
             <input
               type="text"
               placeholder={Sefaria._("Search")}
               name="filterableListInput"
-              value={currFilter}
-              onChange={this.onFilterChange}
+              value={filter}
+              onChange={e => setFilter(e.target.value)}
             />
           </div>
-          <div>
-            { sortOptions.length > 1 ?
-              <DropdownModal close={this.closeSort} isOpen={displaySort}>
-                <DropdownButton
-                  isOpen={displaySort}
-                  toggle={this.toggleSort}
-                  enText={"Sort"}
-                  heText={"מיון"}
-                />
-                <DropdownOptionList
-                  isOpen={displaySort}
-                  options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option)}))}
-                  currOptionSelected={currSortOption}
-                  handleClick={this.onSortChange}
-                />
-              </DropdownModal>
-              : null
-            }
-          </div>
-        </div> : null }
-        { !oldDesign && showFilterHeader ? (
-          <div className="filter-bar-new">
-            <div className="filter-input">
-              <ReaderNavigationMenuSearchButton />
-              <input
-                type="text"
-                placeholder={Sefaria._("Search")}
-                name="filterableListInput"
-                value={currFilter}
-                onChange={this.onFilterChange}
-              />
-            </div>
-            <div className="filter-sort-wrapper">
-              <span className="systemText">
-                <span className="int-en">Sort by</span>
-                <span className="int-he">מיון לפי</span>
+          <div className="filter-sort-wrapper">
+            <span className="systemText">
+              <span className="int-en">Sort by</span>
+              <span className="int-he">מיון לפי</span>
+            </span>
+            { sortOptions.map(option =>(
+              <span
+                key={option}
+                className={classNames({'sort-option': 1, noselect: 1, active: sortOption === option})}
+                onClick={() => onSortChange(option)}
+              >
+                <span className="int-en">{ option }</span>
+                <span className="int-he">{ Sefaria._(option) }</span>
               </span>
-              { sortOptions.map(option =>(
-                <span
-                  key={option}
-                  className={classNames({'sort-option': 1, noselect: 1, active: currSortOption === option})}
-                  onClick={() => { this.onSortChange(option); }}
-                >
-                  <span className="int-en">{ option }</span>
-                  <span className="int-he">{ Sefaria._(option) }</span>
-                </span>
-              ))}
-            </div>
+            ))}
           </div>
-        ) : null}
-        {
-          loading ? <LoadingMessage /> :
-          ( data.length ?
-            (
-              <div className="filter-content">
-                { !!renderHeader ? renderHeader() : null }
-                { data.filter(this.filterFunc).sort(this.sortFunc).map(renderItem) }
-                { !!renderFooter ? renderFooter() : null }
-              </div>
-            ) : ( !!renderEmptyList ? renderEmptyList() : null )
-          )
-        }
-      </div>
-    )
-  }
-}
+        </div>
+      ) : null}
+      {
+        loading ? <LoadingMessage /> :
+        ( dataUpToPage.length ?
+          (
+            <div className="filter-content">
+              { !!renderHeader ? renderHeader() : null }
+              { dataUpToPage.map(renderItem) }
+              { !!renderFooter ? renderFooter() : null }
+            </div>
+          ) : ( !!renderEmptyList ? renderEmptyList() : null )
+        )
+      }
+    </div>
+  );
+};
 FilterableList.propTypes = {
   filterFunc:  PropTypes.func.isRequired,
   sortFunc:    PropTypes.func.isRequired,
@@ -1375,7 +1359,7 @@ function NewsletterSignUpForm(props) {
           onKeyUp={handleSubscribeKeyUp} />
       </span>
       <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} />
-      {includeEducatorOption ? 
+      {includeEducatorOption ?
         <div className="newsletterEducatorOption">
           <span className="int-en">
             <input
