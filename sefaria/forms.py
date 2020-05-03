@@ -101,12 +101,12 @@ class SefariaNewUserForm(EmailUserCreationForm):
 
         return user
 
-class NewUserFormAPI(SefariaNewUserForm):
+class SefariaNewUserFormAPI(SefariaNewUserForm):
 
     mobile_app_key = forms.CharField(widget=forms.HiddenInput())
 
     def __init__(self, *args, **kwargs):
-        super(NewUserForm, self).__init__(*args, **kwargs)
+        super(SefariaNewUserForm, self).__init__(*args, **kwargs)
         # don't require captcha on API form
         # instead, require that the correct app_key is sent
         self.fields.pop('captcha')
