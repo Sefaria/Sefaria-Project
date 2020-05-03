@@ -59,11 +59,18 @@ function usePaginatedScroll(scrollable_element_ref, url, setter) {
 }
 
 function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMargin) {
+  /*
+  listens until user is scrolled within `bottomMargin` of `scrollable_element_ref`
+  when this happens, show `pageSize` more elements from `input`
+  */
   const [page, setPage] = useState(0);
   const [loadedToEnd, setLoadedToEnd] = useState(false);
   const [inputUpToPage, setInputUpToPage] = useState([]);
   useEffect(() => () => {
     setInputUpToPage(prev => {
+      // use `setInputUpToPage` to get access to previous value
+      // input changes because of useIncrementalLoad even though inputUpToPage may not change
+      // as long as inputUpToPage is the same element by element, dont reset page to 0
       if (!inputUpToPage && !!prev) { setPage(0); }
       else if (!inputUpToPage.elementsAreEqual(prev)) { setPage(0); }
       return prev;
@@ -87,6 +94,7 @@ function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMarg
   }, [scrollable_element_ref && scrollable_element_ref.current, loadedToEnd]);
   useEffect(() => {
     setInputUpToPage(prev => {
+      // decide whether or not inputUpToPage has changed. if it's the same element-by-element to `prev`, return `prev`
       const next = input.slice(0, pageSize*(page+1));
       if (!next.elementsAreEqual(prev)) { return next; }
       return prev;
