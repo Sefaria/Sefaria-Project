@@ -245,6 +245,7 @@ const TopicPage = ({
     const [textData, setTextData] = useState(null);
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
+    const scrollableElement = useRef();
     let textCancel, sheetCancel;
     const clearAndSetTopic = (topic, topicTitle) => {setTopicData(false); setTopic(topic, topicTitle)};
     useEffect(() => {
@@ -311,7 +312,7 @@ const TopicPage = ({
     }, [tabIndex]);
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
-        <div className="content hasFooter noOverflowX">
+        <div className="content hasFooter noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic} onClose={onClose} openSearch={openSearch} openDisplaySettings={openDisplaySettings} hideNavHeader={hideNavHeader}/>
@@ -330,6 +331,7 @@ const TopicPage = ({
                         >
                           { !!topicRefs.length ? (
                             <TopicPageTab
+                              scrollableElement={scrollableElement}
                               showFilterHeader={showFilterHeader}
                               data={textData}
                               sortOptions={['Relevance', 'Chronological']}
@@ -357,6 +359,7 @@ const TopicPage = ({
                           }
                           { !!topicSheets.length ? (
                             <TopicPageTab
+                              scrollableElement={scrollableElement}
                               showFilterHeader={showFilterHeader}
                               data={sheetData}
                               classes={"storySheetList"}
@@ -407,13 +410,19 @@ TopicPage.propTypes = {
 };
 
 
-const TopicPageTab = ({ data, renderItem, classes, sortOptions, sortFunc, filterFunc, extraData, showFilterHeader }) => {
+const TopicPageTab = ({
+  data, renderItem, classes, sortOptions, sortFunc, filterFunc, extraData,
+  showFilterHeader, scrollableElement
+}) => {
   const getData = useCallback(() => Promise.resolve(data), [data]);
   return (
     <div className="story topicTabContents">
       {!!data ?
         <div className={classes}>
           <FilterableList
+            pageSize={10}
+            bottomMargin={400}
+            scrollableElement={scrollableElement}
             showFilterHeader={showFilterHeader}
             filterFunc={filterFunc}
             sortFunc={sortFunc}

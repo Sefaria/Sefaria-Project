@@ -58,6 +58,45 @@ function usePaginatedScroll(scrollable_element_ref, url, setter) {
   }, [page]);
 }
 
+function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMargin) {
+  const [page, setPage] = useState(0);
+  const [loadedToEnd, setLoadedToEnd] = useState(false);
+  const [inputUpToPage, setInputUpToPage] = useState([]);
+  useEffect(() => () => {
+    setInputUpToPage(prev => {
+      if (!inputUpToPage && !!prev) { setPage(0); }
+      else if (!inputUpToPage.elementsAreEqual(prev)) { setPage(0); }
+      return prev;
+    });
+    setLoadedToEnd(false);
+  }, [scrollable_element_ref && scrollable_element_ref.current, input]);
+  const numPages = useMemo(() => Math.ceil(input.length/pageSize), [input, pageSize]);
+  useEffect(() => {
+    if (!scrollable_element_ref) { return; }
+    const scrollable_element = $(scrollable_element_ref.current);
+    const handleScroll = () => {
+      if (loadedToEnd) { return; }
+      if (scrollable_element.scrollTop() + scrollable_element.innerHeight() + bottomMargin >= scrollable_element[0].scrollHeight) {
+        setPage(prevPage => prevPage + 1);
+      }
+    };
+    scrollable_element.on("scroll", handleScroll);
+    return () => {
+      scrollable_element.off("scroll", handleScroll);
+    }
+  }, [scrollable_element_ref && scrollable_element_ref.current, loadedToEnd]);
+  useEffect(() => {
+    setInputUpToPage(prev => {
+      const next = input.slice(0, pageSize*(page+1));
+      if (!next.elementsAreEqual(prev)) { return next; }
+      return prev;
+    });
+  }, [page, input, pageSize]);
+  useEffect(() => {
+    if (page >= numPages) { setLoadedToEnd(true); }
+  }, [page, numPages]);
+  return inputUpToPage;
+}
 
 function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement) {
   /*
@@ -127,5 +166,6 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement)
 }
 
 module.exports.usePaginatedScroll               = usePaginatedScroll;
+module.exports.usePaginatedDisplay              = usePaginatedDisplay;
 module.exports.useDebounce                      = useDebounce;
 module.exports.useIncrementalLoad               = useIncrementalLoad;

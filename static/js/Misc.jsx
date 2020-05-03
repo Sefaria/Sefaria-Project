@@ -1,10 +1,11 @@
 //const React      = require('react');
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 const ReactDOM   = require('react-dom');
 const $          = require('./sefaria/sefariaJquery');
 const Sefaria    = require('./sefaria/sefaria');
 const classNames = require('classnames');
 const PropTypes  = require('prop-types');
+const { usePaginatedDisplay } = require('./Hooks');
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import Component      from 'react-class';
@@ -239,30 +240,40 @@ ProfilePic.propTypes = {
 
 const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, renderEmptyList,
-  renderHeader, renderFooter, showFilterHeader, extraData, ignoreCache
+  renderHeader, renderFooter, showFilterHeader, extraData, ignoreCache,
+  scrollableElement, pageSize, bottomMargin,
 }) => {
   const [filter, setFilter] = useState('');
   const [sortOption, setSortOption] = useState(sortOptions[0]);
   const [displaySort, setDisplaySort] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [data, setData] = useState([]);
+  const [rawData, setRawData] = useState([]);
+  const [displayData, setDisplayData] = useState([]);
   useEffect(() => {
     let isMounted = true;
-    getData(ignoreCache).then(data => {
+    // TODO this trick only works the first time. every time after that ignoreCache is defined
+    getData(typeof ignoreCache != "undefined").then(data => {
       if (isMounted) {
         setLoading(false);
-        setData(data);
+        setRawData(data);
       }
     });
     return () => {
       setLoading(true);
-      setData([]);
       isMounted = false;
     };
   }, [getData, ignoreCache]);
+  useEffect(() => {
+    setDisplayData(
+      rawData
+      .filter(item => !filter ? true : filterFunc(filter, item))
+      .sort((a, b) => sortFunc(sortOption, a, b, extraData))
+    );
+  }, [rawData, filter, sortOption, extraData]);
+  const dataUpToPage = usePaginatedDisplay(scrollableElement, displayData, pageSize, bottomMargin);
   const onSortChange = newSortOption => {
     if (newSortOption === sortOption) { return; }
-    setSortOption(sortOption);
+    setSortOption(newSortOption);
     setDisplaySort(false);
   };
   const oldDesign = typeof showFilterHeader == 'undefined';
@@ -275,7 +286,7 @@ const FilterableList = ({
             type="text"
             placeholder={Sefaria._("Search")}
             name="filterableListInput"
-            value={currFilter}
+            value={filter}
             onChange={e => setFilter(e.target.value)}
           />
         </div>
@@ -291,7 +302,7 @@ const FilterableList = ({
               <DropdownOptionList
                 isOpen={displaySort}
                 options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option)}))}
-                currOptionSelected={currSortOption}
+                currOptionSelected={sortOption}
                 handleClick={onSortChange}
               />
             </DropdownModal>
@@ -307,7 +318,7 @@ const FilterableList = ({
               type="text"
               placeholder={Sefaria._("Search")}
               name="filterableListInput"
-              value={currFilter}
+              value={filter}
               onChange={e => setFilter(e.target.value)}
             />
           </div>
@@ -319,7 +330,7 @@ const FilterableList = ({
             { sortOptions.map(option =>(
               <span
                 key={option}
-                className={classNames({'sort-option': 1, noselect: 1, active: currSortOption === option})}
+                className={classNames({'sort-option': 1, noselect: 1, active: sortOption === option})}
                 onClick={() => onSortChange(option)}
               >
                 <span className="int-en">{ option }</span>
@@ -331,16 +342,11 @@ const FilterableList = ({
       ) : null}
       {
         loading ? <LoadingMessage /> :
-        ( data.length ?
+        ( dataUpToPage.length ?
           (
             <div className="filter-content">
               { !!renderHeader ? renderHeader() : null }
-              {
-                data
-                .filter(item => !filter ? true : filterFunc(filter, item))
-                .sort((a, b) => sortFunc(sortOption, a, b, extraData))
-                .map(renderItem)
-              }
+              { dataUpToPage.map(renderItem) }
               { !!renderFooter ? renderFooter() : null }
             </div>
           ) : ( !!renderEmptyList ? renderEmptyList() : null )
