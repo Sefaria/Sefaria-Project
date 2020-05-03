@@ -114,7 +114,7 @@ class TopicPageAll extends Component {
                         { hasFilter ? null :
                           <h2>
                             <span className="int-en">Most Used</span>
-                            <span className="int-he">הכי בשימוש</span>
+                            <span className="int-he">בשימוש נפוץ</span>
                           </h2>
                         }
                         <TwoOrThreeBox content={topicList} width={this.props.width} />
