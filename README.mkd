@@ -21,19 +21,49 @@ First clone the Sefaria-Project repository to a directory on your computer, then
 
 *Note: if you are a developer that might want to contribute code to Sefaria, we suggest first making a fork of this respository by clicking the "Fork" button above when logged in to GitHub.*
 
+*Note for macOS users: Install `Homebrew`*
+
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+    
 #### Install Python
-Most UNIX systems come with a python interpreter pre-installed. 
-##### For Windows:
 
-Go to the [Python Download Page](https://www.python.org/download/releases/2.7.6) and download and install python.
-Add the python directory to your OS' PATH variable. See [here](https://docs.python.org/2/using/windows.html)
+##### Linux and macOS
+Most UNIX systems come with a python interpreter pre-installed. However, this is generally still Python 2. The recommended way to get Python 3, and not mess up any software the OS is dependant on, is by using Pyenv. You can use the instructions [here](https://github.com/pyenv/pyenv#installation) and also [here](https://opensource.com/article/19/5/python-3-default-mac#what-we-should-do).
 
-#### (Optional) Install virtualenv:
-*Note: You can perform this step from anywhere in your command line, but it might be easier and tidier to run this step from the root of your project directory that you just cloned. e.g `~/web-projecs/Sefaria-Project $`*
+In a later step we can configure virtual environments to work with Pyenv so you can completely isolate your Sefaria stack. 
 
+##### Windows:
+The Pyenv repository above also has recommendations for Windows.
+
+In order to just plain install Python:
+- Read the [Official Python documentation on Windows](https://docs.python.org/3.7/using/windows.html) 
+- Go to the [Python Download Page](https://www.python.org/downloads/release/python-375/) and download and install python.
+- Add the python directory to your OS' PATH variable if the installer has not done so. 
+
+#### Install virtualenv (Recommended, but optional):
 If you work on many Python projects, you may want to keep Sefaria's python installation separate using Virtualenv.  If you're happy having Sefaria requirements in your main Python installation, skip this step.
 
+##### Use With Pyenv (Recommended)
+You can use virtualenv functionality while also using Pyenv, this allows you to further isolate you code and requirements from other projects. 
+
+###### Unix & Windows
+Instructions [here](https://github.com/pyenv/pyenv-virtualenv#installing-as-a-pyenv-plugin).
+###### macOS:
+Instructions [here](https://github.com/pyenv/pyenv-virtualenv#installing-with-homebrew-for-macos-users).
+
+Create [a pyenv virtualenv](https://github.com/pyenv/pyenv-virtualenv#using-pyenv-virtualenv-with-pyenv). 
+
+In your Sefaria directory, run `pyenv local`. This will create a `.python-version` listing ust the version number of the python you created it from. You can then modify it to point at the coorect virtualenv path (e.g. `3.7.5/envs/sefaria-venv
+`). This should also serve to activate the virtualenv whenever you are in the Sefaria directory. 
+
+*Note: If you are using an IDE like PyCharm, you can (and should) configure the interpreter options on your Sefaria-Project to point to the python executable of this virtualenv (e.g. `~/.pyenv/versions/3.7.5/envs/sefaria-venv/bin/python3.7`)
+
+##### Classic virtualenv
 Install [virtualenv](http://pypi.python.org/pypi/virtualenv) then enter these commands:
+
+*Note: You may need to install Pip (see below) first in order to install virtualenv*
+
+*Note: You can perform this step from anywhere in your command line, but it might be easier and tidier to run this step from the root of your project directory that you just cloned. e.g `~/web-projecs/Sefaria-Project $`*
 
     virtualenv venv --distribute
     source venv/bin/activate
@@ -41,13 +71,18 @@ Install [virtualenv](http://pypi.python.org/pypi/virtualenv) then enter these co
 Now you should see `(venv)` in front of your command prompt. The second command sets your shell to use the Python virtual environment that you've just created. This is something that you have to run everytime you open a new shell and want to run the Sefaria demo. You can always tell if you're in the virtual environment by checking if `(venv)` is at the beginning of your command prompt. 
     
 #### Pip: 
+##### Unix 
 If you don't already have it in your Python installation, install [pip](https://pip.pypa.io/en/stable/installing/). Then use it to install the required Python packages.
+
+##### Windows 
+Use instructions [here](http://www.tylerbutler.com/2012/05/how-to-install-python-pip-and-virtualenv-on-windows-with-powershell/) and then make sure that the scripts sub folder of the python installation directory is also in PATH.
+
 
 *Note: this step (and **most** of the following command line instructions) must be run from the Sefaria-Project root directory*
 
 	pip install -r requirements.txt
 
-If you are not using virtualenv, run it with sudo: `sudo pip install -r requirements.txt`
+If you are not using virtualenv, you may have to run it with sudo: `sudo pip install -r requirements.txt`
 
 If you see an error about a missing 'python.h' file, you'll need to install the Python development libraries. 
 
@@ -61,13 +96,11 @@ If you see an error about a missing 'python.h' file, you'll need to install the 
 
 After installing the Python development libraries, run `pip install -r requirements.txt` again.
 
-On Windows systems, use instructions [here](http://www.tylerbutler.com/2012/05/how-to-install-python-pip-and-virtualenv-on-windows-with-powershell/) and then make sure that the scripts sub folder of the python installation directory is also in PATH.
-
 #### Install gettext
 
 `gettext` is a GNU utility that Django uses to manage localizations.
 
-##### On Mac:
+##### On macOS:
 
     brew install gettext
     
