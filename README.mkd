@@ -51,11 +51,11 @@ If you are not using virtualenv, run it with sudo: `sudo pip install -r requirem
 
 If you see an error about a missing 'python.h' file, you'll need to install the Python development libraries. 
 
-On Debian systems: 
+##### On Debian systems: 
 
     sudo apt-get install python-dev libpq-dev
 
-On Fedora systems:
+##### On Fedora systems:
 
     sudo dnf install python2-devel libpq-devel
 
@@ -67,13 +67,19 @@ On Windows systems, use instructions [here](http://www.tylerbutler.com/2012/05/h
 
 `gettext` is a GNU utility that Django uses to manage localizations.
 
-On Mac:
+##### On Mac:
 
     brew install gettext
+    
+    
+On some macOS systems `gettext` will atill not run after installation and `django manage.py makemessages` will fail. In such a case, one easy solution is to run (replace x's with your gettext version number):
+    
+    export TEMP_PATH=$PATH
+    export PATH=$PATH:/usr/local/Cellar/gettext/0.xx.x/bin
 
-On Debian systems
+##### On Debian systems
 
-    sudo apt-get install gettext
+    `sudo apt-get install gettext`
 
 #### Create a local settings file:
 
