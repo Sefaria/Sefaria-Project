@@ -27,12 +27,12 @@ First clone the Sefaria-Project repository to a directory on your computer, then
     
 #### 1) Install Python
 
-##### Linux and macOS
+###### Linux and macOS
 Most UNIX systems come with a python interpreter pre-installed. However, this is generally still Python 2. The recommended way to get Python 3, and not mess up any software the OS is dependant on, is by using Pyenv. You can use the instructions [here](https://github.com/pyenv/pyenv#installation) and also [here](https://opensource.com/article/19/5/python-3-default-mac#what-we-should-do).
 
 In a later step we can configure virtual environments to work with Pyenv so you can completely isolate your Sefaria stack. 
 
-##### Windows:
+###### Windows:
 The Pyenv repository above also has recommendations for Windows.
 
 In order to just plain install Python:
@@ -71,10 +71,10 @@ Install [virtualenv](http://pypi.python.org/pypi/virtualenv) then enter these co
 Now you should see `(venv)` in front of your command prompt. The second command sets your shell to use the Python virtual environment that you've just created. This is something that you have to run everytime you open a new shell and want to run the Sefaria demo. You can always tell if you're in the virtual environment by checking if `(venv)` is at the beginning of your command prompt. 
     
 #### 3) Pip: 
-##### Unix 
+###### Unix 
 If you don't already have it in your Python installation, install [pip](https://pip.pypa.io/en/stable/installing/). Then use it to install the required Python packages.
 
-##### Windows 
+###### Windows 
 Use instructions [here](http://www.tylerbutler.com/2012/05/how-to-install-python-pip-and-virtualenv-on-windows-with-powershell/) and then make sure that the scripts sub folder of the python installation directory is also in PATH.
 
 
@@ -86,11 +86,11 @@ If you are not using virtualenv, you may have to run it with sudo: `sudo pip ins
 
 If you see an error about a missing 'python.h' file, you'll need to install the Python development libraries. 
 
-##### On Debian systems: 
+###### On Debian systems: 
 
     sudo apt-get install python-dev libpq-dev
 
-##### On Fedora systems:
+###### On Fedora systems:
 
     sudo dnf install python2-devel libpq-devel
 
@@ -100,7 +100,7 @@ After installing the Python development libraries, run `pip install -r requireme
 
 `gettext` is a GNU utility that Django uses to manage localizations.
 
-##### On macOS:
+###### On macOS:
 
     brew install gettext
     
@@ -110,7 +110,7 @@ On some macOS systems `gettext` will atill not run after installation and `djang
     export TEMP_PATH=$PATH
     export PATH=$PATH:/usr/local/Cellar/gettext/0.xx.x/bin
 
-##### On Debian systems
+###### On Debian systems
 
     sudo apt-get install gettext
 
