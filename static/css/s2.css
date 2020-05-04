@@ -505,7 +505,7 @@ input.noselect {
 }
 .header .interfaceLinks .interfaceLinks-header{
   font-style: normal;
-  font-weight: 300;
+  font-weight: normal;
   font-size: 13px;
   line-height: 18px;
   color: #999999;
@@ -521,7 +521,7 @@ input.noselect {
 .interfaceLinks-options{
   display: flex;
   flex-direction: column;
-  margin-top: 4px;
+  margin-top: 4px 0;
 }
 .header .interfaceLinks .interfaceLinks-option{
   display: flex;
