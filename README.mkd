@@ -25,7 +25,7 @@ First clone the Sefaria-Project repository to a directory on your computer, then
 
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     
-#### Install Python
+#### 1) Install Python
 
 ##### Linux and macOS
 Most UNIX systems come with a python interpreter pre-installed. However, this is generally still Python 2. The recommended way to get Python 3, and not mess up any software the OS is dependant on, is by using Pyenv. You can use the instructions [here](https://github.com/pyenv/pyenv#installation) and also [here](https://opensource.com/article/19/5/python-3-default-mac#what-we-should-do).
@@ -40,7 +40,7 @@ In order to just plain install Python:
 - Go to the [Python Download Page](https://www.python.org/downloads/release/python-375/) and download and install python.
 - Add the python directory to your OS' PATH variable if the installer has not done so. 
 
-#### Install virtualenv (Recommended, but optional):
+#### 2) Install virtualenv (Recommended, but optional):
 If you work on many Python projects, you may want to keep Sefaria's python installation separate using Virtualenv.  If you're happy having Sefaria requirements in your main Python installation, skip this step.
 
 ##### Use With Pyenv (Recommended)
@@ -70,7 +70,7 @@ Install [virtualenv](http://pypi.python.org/pypi/virtualenv) then enter these co
 
 Now you should see `(venv)` in front of your command prompt. The second command sets your shell to use the Python virtual environment that you've just created. This is something that you have to run everytime you open a new shell and want to run the Sefaria demo. You can always tell if you're in the virtual environment by checking if `(venv)` is at the beginning of your command prompt. 
     
-#### Pip: 
+#### 3) Pip: 
 ##### Unix 
 If you don't already have it in your Python installation, install [pip](https://pip.pypa.io/en/stable/installing/). Then use it to install the required Python packages.
 
@@ -96,7 +96,7 @@ If you see an error about a missing 'python.h' file, you'll need to install the 
 
 After installing the Python development libraries, run `pip install -r requirements.txt` again.
 
-#### Install gettext
+#### 4) Install gettext
 
 `gettext` is a GNU utility that Django uses to manage localizations.
 
@@ -105,16 +105,16 @@ After installing the Python development libraries, run `pip install -r requireme
     brew install gettext
     
     
-On some macOS systems `gettext` will atill not run after installation and `django manage.py makemessages` will fail. In such a case, one easy solution is to run (replace x's with your gettext version number):
+On some macOS systems `gettext` will atill not run after installation and `django manage.py makemessages` will fail. In such a case, one easy solution is to run (replace x's with your gettext version number) before running functions that invoke gettext:
     
     export TEMP_PATH=$PATH
     export PATH=$PATH:/usr/local/Cellar/gettext/0.xx.x/bin
 
 ##### On Debian systems
 
-    `sudo apt-get install gettext`
+    sudo apt-get install gettext
 
-#### Create a local settings file:
+#### 5) Create a local settings file:
 
 *Note: this step must be run from the Sefaria-Project root directory*
 
@@ -126,19 +126,25 @@ Replace the placeholder values with those matching your environment. For the mos
 
 You can name your local database (`sefaria` will be the default created by `mongorestore` below). You can leave `SEFARIA_DB_USER` ad `SEFARIA_DB_PASSWORD` blank if you don't need to run authentication on Mongo.
 
-#### Create a log directory:
+#### 6) Create a log directory:
 Create a directory called `log` under the project folder. To do this, run `mkdir log` from the project's root directory.
 Make sure that the server user has write access to it by using a command such as `chmod 777 log`.
 
-#### Get Mongo running:
+#### 7) Get Mongo running:
 
 If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/installation/). Our current data dump requires MongoDB version 2.6 or later. After installing Mongo, run the mongo daemon with:
 
     sudo mongod
+    
+or user your os service manager to have it start on startup
 
-#### Put some texts in your database:
+#### 8) Put some texts in your database:
 
-We make a MongoDB dump of our database is available download. The complete dump is available at https://storage.googleapis.com/sefaria-mongo-backup/dump.tar.gz . The complete dump includes a `history` collections which includes a complete revision history of every text our library. For many applications this data is not relevant. A small dump which exclude `history` is available at: https://storage.googleapis.com/sefaria-mongo-backup/dump_small.tar.gz . We recommend using the smaller dump unless you're specifically interested in texts revision history within Sefaria.
+We make a MongoDB dump of our database is available download. 
+
+The recommended dump (which is of a manageable size) is available [here](https://storage.googleapis.com/sefaria-mongo-backup/dump_small.tar.gz). 
+
+A complete dump is also available [here](https://storage.googleapis.com/sefaria-mongo-backup/dump.tar.gz). The complete dump includes the `history` collections which contains a complete revision history of every text our library. For many applications this data is not relevant. We recommend using the smaller dump unless you're specifically interested in texts revision history within Sefaria.
 
 Once you've download and unzipped this content, from the parent directory which contains `dump` run:
 
@@ -148,7 +154,7 @@ This will create (or overwrite) a mongo database called `sefaria`.
 
 If you have used `dump_small.tar.gz`, use the mongo client shell, or a GUI you have installed to create an empty collection inside the `sefaria` database called `history`.
 
-#### Set up Django's local server
+#### 9) Set up Django's local server
 
 Sefaria is using Google's reCAPTCHA to verify the user is not a bot. For a deployment you should register and use your own reCAPTCHA keys (https://pypi.org/project/django-recaptcha/#installation).
 For local development the default test keys would suffice. The warning can be suprassed by adding the following to the settings file:
@@ -161,26 +167,28 @@ Django auth features run on a separate database. To init this database and set u
 
     python manage.py migrate
     
-#### Run the development server:
 
-    python manage.py runserver
-
-You can also make it publicly available by specifying 0.0.0.0 for the host:
-
-    python manage.py runserver 0.0.0.0:8000
-
-#### Get Node:
+#### 10) Install Node:
 
 *Note: Older versions of `Node` and `npm` ran into a file name length limit on Windows OS. This problem should be mitigated in newer versions on Windows 10.*
 
-Node is now required to run the site because we are using [Webpack](https://webpack.js.org/) to bundle our javascript. To install node and npm, see [here](https://nodejs.org/en/download/). 
+Node is now required to run the site. Even if you choose to have js run only on the client, we are also using [Webpack](https://webpack.js.org/) to bundle our javascript. 
 
-For the common Linux distributions such as Debian, Ubuntu and Linux Mint, you are better off following the instructions [here](https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions). They will install both Node and npm. 
+Instaling Node and npm fro mthe main installers on Node's homepage may cause permission issues. For that reason it is recommended to use one of the alternative methods (with a preference to a version manager like nvm) listed [here](https://nodejs.org/en/download/package-manager/):
+
+###### Debian, Ubuntu and Linux Mint 
+You are better off using `apt-get nodejs` or following the instructions [here](https://github.com/nodesource/distributions/blob/master/README.md). They will install both Node and npm. 
+
+###### macOS
+use `brew install node` or [`nvm`](https://nodejs.org/en/download/package-manager/#nvm)
+
 
 Now download the required Javascript libraries and install some global tools for development with the `setup` script (from the project root).
 
     npm install
-    sudo npm run setup
+    npm run setup
+    
+If the second command fails, you may have to install using `sudo npm run setup`
 
 The following environment variables, defined in `./node/local_settings.js`, can be set to configure the node instance:
 
@@ -191,10 +199,8 @@ The following environment variables, defined in `./node/local_settings.js`, can 
 | `NODEJS_PORT` | `3000` | The port to be used by the NodeJs service |
 | `DEBUG` | `false` | Determines whether the NodeJs service should run in debug mode | 
 
-Create a local settings file for node and tell it what port to run on and where to find the Django server. The port should match the `NODE_HOST` variable set in Django's `local_settings.py`.
+These variables can be set via command line explicitly, or set up to be defined when your machine's shell runs or set up in your IDE settings for running the node server. 
 
-    cp node/local_settings_example.json node/local_settings.json
-    vim node/local_settings.json
     
 #### Run Webpack
 
@@ -219,13 +225,23 @@ You also need to set
 
     USE_NODE = True
     
-in Django's `local_settings.py`. To run webpack with server-side rendering, use:
+in Django's `local_settings.py`. 
+
+To run webpack with server-side rendering, use:
 
     npm run build
     
 or
 
     npm run watch
+    
+#### 11) Run the development server:
+
+    python manage.py runserver
+
+You can also make it publicly available by specifying 0.0.0.0 for the host:
+
+    python manage.py runserver 0.0.0.0:8000    
 
 ## Command Line Interface
 
