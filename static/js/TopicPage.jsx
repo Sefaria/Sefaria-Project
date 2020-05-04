@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 const PropTypes           = require('prop-types');
 const classNames          = require('classnames');
 const Sefaria             = require('./sefaria/sefaria');
@@ -23,10 +23,38 @@ const {
   ToolTipped,
 }                         = require('./Misc');
 const Footer              = require('./Footer');
+const { useIncrementalLoad }   = require('./Hooks');
+
 
 
 const norm_hebrew_ref = tref => tref.replace(/[׳״]/g, '');
 
+const fetchBulkText = inRefs =>
+  Sefaria.getBulkText(
+    inRefs.map(x => x.ref),
+    true, 500, 600
+  ).then(outRefs => {
+    for (let tempRef of inRefs) {
+      // annotate outRefs with `order` and `dataSources` from `topicRefs`
+      if (outRefs[tempRef.ref]) {
+        outRefs[tempRef.ref].order = tempRef.order;
+        outRefs[tempRef.ref].dataSources = tempRef.dataSources;
+      }
+    }
+    return Object.entries(outRefs);
+  }
+);
+
+const fetchBulkSheet = inSheets =>
+    Sefaria.getBulkSheets(inSheets.map(x => x.sid)).then(outSheets => {
+    for (let tempSheet of inSheets) {
+      if (outSheets[tempSheet.sid]) {
+        outSheets[tempSheet.sid].order = tempSheet.order;
+      }
+    }
+    return Object.values(outSheets);
+  }
+);
 
 const refSort = (currSortOption, a, b, { interfaceLang }) => {
   a = a[1]; b = b[1];
@@ -205,7 +233,6 @@ const TopicHeader = ({
     </div>
 );}
 
-
 const TopicPage = ({
   tab, topic, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel,
   hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings,
@@ -218,6 +245,7 @@ const TopicPage = ({
     const [textData, setTextData] = useState(null);
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
+    const scrollableElement = useRef();
     let textCancel, sheetCancel;
     const clearAndSetTopic = (topic, topicTitle) => {setTopicData(false); setTopic(topic, topicTitle)};
     useEffect(() => {
@@ -248,66 +276,22 @@ const TopicPage = ({
       }
     }, [topic]);
 
-    useEffect(() => {
-      if (!topicRefs || !topicSheets) { return; }
-      const { promise, cancel } = Sefaria.makeCancelable((async () => {
-        const textPromise = Sefaria.incrementalPromise(
-          inRefs => Sefaria.getBulkText(inRefs.map(x => x.ref), true, 500, 600).then(outRefs => {
-            for (let tempRef of inRefs) {
-              // annotate outRefs with `order` and `dataSources` from `topicRefs`
-              if (outRefs[tempRef.ref]) {
-                outRefs[tempRef.ref].order = tempRef.order;
-                outRefs[tempRef.ref].dataSources = tempRef.dataSources;
-              }
-            }
-            return Object.entries(outRefs);
-          }),
-          topicRefs, 100, setTextData, newCancel => { textCancel = newCancel; }
-        );
-        const sheetPromise = Sefaria.incrementalPromise(
-          inSheets => Sefaria.getBulkSheets(inSheets.map(x => x.sid)).then(outSheets => {
-            for (let tempSheet of inSheets) {
-              if (outSheets[tempSheet.sid]) {
-                outSheets[tempSheet.sid].order = tempSheet.order;
-              }
-            }
-            return Object.values(outSheets)
-          }),
-          topicSheets, 100, (getNextSheets) => {
-            setSheetData(prevSheets => {
-              const allSheets = getNextSheets(prevSheets);
-              const newAllSheets = [];
-              const sheetIdMap = {};  // map id -> index in newAllSheets
-              const allSheetsSorted = allSheets.sort((a, b) => sheetSort('Relevance', a, b, {}));
-              // add all non-copied sheets
-              for (let tempSheet of allSheetsSorted) {
-                if (!tempSheet.sheet_via) {
-                  tempSheet.copies = [];
-                  newAllSheets.push(tempSheet);
-                  sheetIdMap[tempSheet.sheet_id] = newAllSheets.length - 1;
-                }
-              }
-              // aggregate copies to their parents
-              for (let tempSheet of allSheetsSorted) {
-                const ind = sheetIdMap[tempSheet.sheet_via];
-                if (typeof ind != "undefined") { newAllSheets[ind].copies.push(tempSheet); }
-              }
-              return newAllSheets;
-            });
-          }, newCancel => { sheetCancel = newCancel; }
-        );
-        await textPromise;
-        await sheetPromise;
-      })());
-      promise.catch((error) => { if (!error.isCanceled) { console.log('TopicPage Error', error); } });
-      return () => {
-        cancel();
-        if (textCancel) { textCancel(); }
-        if (sheetCancel) { sheetCancel(); }
-        setSheetData(null);
-        setTextData(null);
-      }
-    }, [topicRefs, topicSheets]);
+    useIncrementalLoad(
+      fetchBulkText,
+      topicRefs,
+      70,
+      data => setTextData(prev => (!prev || data === false) ? data : [...prev, ...data]),
+      topic
+    );
+
+    useIncrementalLoad(
+      fetchBulkSheet,
+      topicSheets,
+      70,
+      data => setSheetData(prev => (!prev || data === false) ? data : [...prev, ...data]),
+      topic
+    );
+
     const tabs = [];
     if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources"), id: 'sources'}); }
     if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets"), id: 'sheets'}); }
@@ -328,7 +312,7 @@ const TopicPage = ({
     }, [tabIndex]);
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
-        <div className="content hasFooter noOverflowX">
+        <div className="content hasFooter noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic} onClose={onClose} openSearch={openSearch} openDisplaySettings={openDisplaySettings} hideNavHeader={hideNavHeader}/>
@@ -347,6 +331,7 @@ const TopicPage = ({
                         >
                           { !!topicRefs.length ? (
                             <TopicPageTab
+                              scrollableElement={scrollableElement}
                               showFilterHeader={showFilterHeader}
                               data={textData}
                               sortOptions={['Relevance', 'Chronological']}
@@ -374,6 +359,7 @@ const TopicPage = ({
                           }
                           { !!topicSheets.length ? (
                             <TopicPageTab
+                              scrollableElement={scrollableElement}
                               showFilterHeader={showFilterHeader}
                               data={sheetData}
                               classes={"storySheetList"}
@@ -424,25 +410,34 @@ TopicPage.propTypes = {
 };
 
 
-const TopicPageTab = ({ data, renderItem, classes, sortOptions, sortFunc, filterFunc, extraData, showFilterHeader }) => (
-  <div className="story topicTabContents">
-    {!!data ?
-      <div className={classes}>
-        <FilterableList
-          showFilterHeader={showFilterHeader}
-          filterFunc={filterFunc}
-          sortFunc={sortFunc}
-          renderItem={renderItem}
-          renderEmptyList={()=>null}
-          renderHeader={()=>null}
-          sortOptions={sortOptions}
-          extraData={extraData}
-          getData={()=> Promise.resolve(data)}
-        />
-      </div> : <LoadingMessage />
-    }
-  </div>
-);
+const TopicPageTab = ({
+  data, renderItem, classes, sortOptions, sortFunc, filterFunc, extraData,
+  showFilterHeader, scrollableElement
+}) => {
+  const getData = useCallback(() => Promise.resolve(data), [data]);
+  return (
+    <div className="story topicTabContents">
+      {!!data ?
+        <div className={classes}>
+          <FilterableList
+            pageSize={20}
+            bottomMargin={800}
+            scrollableElement={scrollableElement}
+            showFilterHeader={showFilterHeader}
+            filterFunc={filterFunc}
+            sortFunc={sortFunc}
+            renderItem={renderItem}
+            renderEmptyList={()=>null}
+            renderHeader={()=>null}
+            sortOptions={sortOptions}
+            extraData={extraData}
+            getData={getData}
+          />
+        </div> : <LoadingMessage />
+      }
+    </div>
+  );
+}
 
 
 const TextPassage = ({text, toggleSignUpModal, topicTitle, interfaceLang}) => {

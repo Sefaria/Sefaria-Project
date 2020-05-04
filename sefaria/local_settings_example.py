@@ -31,8 +31,17 @@ DATABASES = {
     }
 }"""
 
+# Map domain to an interface language that the domain should be pinned to.
+# Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
+DOMAIN_LANGUAGES = {
+    "http://hebrew.example.org": "hebrew",
+    "http://english.example.org": "english",
+}
+
 
 ################ These are things you can change! ###########################################################################
+#SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+
 ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
 
 ADMINS = (
@@ -142,13 +151,6 @@ SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting t
 
 # DafRoulette server
 RTC_SERVER = '' # Root URL/IP of the server
-
-# Map domain to an interface language that the domain should be pinned to.
-# Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
-DOMAIN_LANGUAGES = {
-    "http://hebrew.example.org": "hebrew",
-    "http://english.example.org": "english",
-}
 
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
