@@ -7,6 +7,7 @@ static_pages = [];
 
 site_urlpatterns = [
     url(r'^$', reader_views.home, name="home"),
+    url(r'^healthz/?$', reader_views.application_health_api_nonlibrary),
     # url(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
 ]
 
