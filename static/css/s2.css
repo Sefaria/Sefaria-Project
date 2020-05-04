@@ -452,7 +452,7 @@ input.noselect {
   -moz-margin-end: 20px;
   margin-inline-end: 20px;
 }
-.header .accountLinks a:last-child{
+.header .accountLinks.anon a:last-child{
   background: #FFFFFF;
   border: 1px solid #EDEDEC;
   box-sizing: border-box;
@@ -521,12 +521,13 @@ input.noselect {
 .interfaceLinks-options{
   display: flex;
   flex-direction: column;
+  margin-top: 4px;
 }
 .header .interfaceLinks .interfaceLinks-option{
   display: flex;
   text-decoration: none;
   font-style: normal;
-  font-weight: lighter;
+  font-weight: normal;
   font-size: 16px;
   line-height: 23px;
   text-align: right;
@@ -537,11 +538,11 @@ input.noselect {
 .header .interfaceLinks .interfaceLinks-option::before{
   content: "";
   font-family:FontAwesome;
-  color: #666666;
+  color: #999;
   font-weight: normal;
-  font-size: 16px;
+  font-size: 13px;
   font-style: normal;
-  padding: 0 16px;
+  padding: 0 15px;
 }
 .header .interfaceLinks .interfaceLinks-option.active{
   order: -1;
