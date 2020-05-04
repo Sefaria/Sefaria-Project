@@ -623,7 +623,7 @@ $(function() {
 			{name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript']},
 			{name: "justify", items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
 			{name: 'paragraph', items: ['NumberedList', 'BulletedList']},
-			{name: 'styles', items: ['Font', 'FontSize']},
+			// {name: 'styles', items: ['Font', 'FontSize']},
 			{name: 'colors', items: ['TextColor', 'BGColor']},
 			{name: 'links', items: ['Link', 'Unlink']},
 			{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']},
@@ -2172,7 +2172,7 @@ sjs.sheetTagger = {
 							topics.push(obj.title);
 							if (!(obj.title in sjs.sheetTagger.tagSlugs)) {
 								// Cache slug / title pair, but don't overwrite so more popular slug is kept in case of collision
-								sjs.sheetTagger.tagSlugs[obj.title] = obj.key;								
+								sjs.sheetTagger.tagSlugs[obj.title] = obj.key;
 							}
 						}
 					});
@@ -2181,7 +2181,7 @@ sjs.sheetTagger = {
 				.then(response);
 			},
 			position: {my: dropdownAnchorSide + " top", at: dropdownAnchorSide + " bottom"},
-			select: function(event, ui) { 
+			select: function(event, ui) {
 				sjs.sheetTagger.addTagFromInput(ui.item.value);
 			},
 			minLength: 3
