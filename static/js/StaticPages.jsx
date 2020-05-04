@@ -178,7 +178,7 @@ const SheetsLandingPage = () => (
         </ButtonRow>
         <CallToActionFooterWithButton
             href="/sheets/228095?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
-            he_href="/sheets/228095?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
+            he_href="/sheets/226003?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
             enText="Start creating a sheet today."
             heText="צרו דף מקורות היום"
             enButtonText="How to Create a Sheet"
@@ -208,7 +208,7 @@ const RemoteLearningPage = () => (
                 <SimpleButton
                     white={true}
                     rounded={false}
-                    tall={true} 
+                    tall={true}
                     href="/groups/Educator-Newsletters?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/219410?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="דפי מקורות אקטואליים"

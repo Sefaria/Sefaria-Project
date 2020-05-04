@@ -28,17 +28,14 @@ socket.on('return rooms', function(numRooms) {
   document.getElementById("numberOfChevrutas").innerHTML = numRooms;
 });
 
-console.log('Attempted to create or join room');
-
-socket.on('created', function(room, conf) {
+socket.on('creds', function(conf) {
   pcConfig = conf;
+});
+
+socket.on('created', function(room) {
   console.log('Created room ' + room);
   isInitiator = true;
   clientRoom = room;
-});
-
-socket.on('full', function(room) {
-  console.log('Room ' + room + ' is full');
 });
 
 socket.on('join', function(room) {
@@ -49,8 +46,7 @@ socket.on('join', function(room) {
   maybeStart();
 });
 
-socket.on('joined', function(room, conf) {
-  pcConfig = conf;
+socket.on('joined', function(room) {
   console.log('joined: ' + room);
   isChannelReady = true;
   clientRoom = room;
@@ -259,5 +255,11 @@ function handleRemoteHangup() {
   console.log('Session terminated.');
   location.reload();
 }
+
+setInterval(function(){
+    if (isStarted && !remoteStream) {
+      location.reload();
+    }
+}, 5000);
 
 {% endautoescape %}

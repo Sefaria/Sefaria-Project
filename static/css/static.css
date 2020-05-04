@@ -2851,6 +2851,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .staticPageH2 {
   padding: 55px 0 10px;
   margin: 0;
+  width: 35%;
 }
 .staticPage .staticPageH2 span.int-en {
   font-style: normal;
@@ -2988,6 +2989,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   }
   .staticPage .staticPageHeader {
     padding-top: 40px;
+  }
+  .staticPage .staticPageH2 {
+    width: 100%;
   }
   .staticPageCallToActionFooter .simpleButtonWrapper,
   .staticPage .feature .featureImage {
