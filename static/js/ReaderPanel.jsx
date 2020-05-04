@@ -1297,7 +1297,12 @@ class ReaderControls extends Component {
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          {this.props.sheet && Sefaria._uid == this.props.sheet.owner ? <button id="sheetEditToggle" onClick={() => this.props.toggleSheetEditMode(this.props.editSheet)}>{this.props.editSheet == true ? "View" : "Edit"}</button> : null }
+          {this.props.sheet && Sefaria._uid == this.props.sheet.owner ?
+              <button id="sheetEditToggle" onClick={() => this.props.toggleSheetEditMode(this.props.editSheet)}>
+                {this.props.editSheet == true ? <i className="editNoteButton fa fa-eye" title="Edit Note"></i>:<i className="editNoteButton fa fa-pencil" title="Edit Note"></i>}
+                {this.props.editSheet == true ? "View" : "Edit"}
+              </button>
+            : null }
           <SaveButton
             historyObject={this.props.historyObject}
             tooltip={true}

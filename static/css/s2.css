@@ -7810,14 +7810,19 @@ body .homeFeedWrapper.userStats {
 }
 
 #sheetEditToggle {
-  padding: 0 10px;
-  margin: 15px 0 0;
+  padding: 0 8px 0 0;
+  margin: 15px 0 0 -70px;
+  width: 70px;
   height: 30px;
   background: #fff;
   border: #ccc solid 1px;
   font-family: inherit;
   box-sizing: border-box;
   border-radius: 6px;
+}
+
+#sheetEditToggle i {
+  margin: 5px;
 }
 
 .hoverMenu {
