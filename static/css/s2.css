@@ -488,7 +488,6 @@ input.noselect {
   z-index: 1;
   position: absolute;
   width: 150px;
-  height: 116px;
   background: #FBFBFA;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
@@ -521,7 +520,7 @@ input.noselect {
 .interfaceLinks-options{
   display: flex;
   flex-direction: column;
-  margin-top: 4px 0;
+  padding: 4px 0;
 }
 .header .interfaceLinks .interfaceLinks-option{
   display: flex;
