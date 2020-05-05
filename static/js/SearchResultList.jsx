@@ -32,7 +32,7 @@ class SearchResultList extends Component {
         isQueryRunning: this._typeObjDefault(false),
         moreToLoad:     this._typeObjDefault(true),
         totals:         this._typeObjDefault(0),
-        displayedUntil: this._typeObjDefault(50),
+        pagesLoaded:    this._typeObjDefault(0),
         hits:           this._typeObjDefault([]),
         error:          false,
         showOverlay:    false,
@@ -50,72 +50,41 @@ class SearchResultList extends Component {
         }
       });
     }
-
-    updateRunningQuery(type, ajax, isLoadingRemainder) {
+    updateRunningQuery(type, ajax) {
       this.state.runningQueries[type] = ajax;
-      this.state.isQueryRunning[type] = !!ajax && !isLoadingRemainder;
-      this.setState({
-        runningQueries: this.state.runningQueries,
-        isQueryRunning: this.state.isQueryRunning
-      });
+      this.state.isQueryRunning[type] = !!ajax;
+      this.setState(this.state);
     }
-
     updateLastAppliedAggType(aggType) {
       this.lastAppliedAggType[this.props.tab] = aggType;
     }
-
     _typeObjDefault(defaultValue) {
       // es6 version of dict comprehension...
       return this.types.reduce((obj, k) => { obj[k] = defaultValue; return obj; }, {});
     }
-
     _abortRunningQueries() {
       this.types.forEach(t => this._abortRunningQuery(t));
     }
-
     _abortRunningQuery(type) {
       if(this.state.runningQueries[type]) {
           this.state.runningQueries[type].abort();  //todo: make work with promises
       }
-      this.updateRunningQuery(type, null, false);
+      this.updateRunningQuery(type, null);
     }
-
     componentDidMount() {
         this._executeAllQueries();
-        $(ReactDOM.findDOMNode(this)).closest(".content").bind("scroll", this.handleScroll);
+        $(ReactDOM.findDOMNode(this)).closest(".content").on("scroll.infiteScroll", this.handleScroll);
     }
-
     componentWillUnmount() {
         this._abortRunningQueries();  // todo: make this work w/ promises
-        $(ReactDOM.findDOMNode(this)).closest(".content").unbind("scroll", this.handleScroll);
+        $(ReactDOM.findDOMNode(this)).closest(".content").off("scroll.infiniteScroll", this.handleScroll);
     }
-
-    handleScroll() {
-      var tab = this.props.tab;
-      if (this.state.displayedUntil[tab] >= this.state.totals[tab]) { return; }
-      var $scrollable = $(ReactDOM.findDOMNode(this)).closest(".content");
-      var margin = 100;
-      if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
-        this._extendResultsDisplayed();
-      }
-    }
-
-    _extendResultsDisplayed() {
-      const { tab } = this.props;
-      this.state.displayedUntil[tab] += this.resultDisplayStep;
-      if (this.state.displayedUntil[tab] >= this.state.totals[tab]) {
-        this.state.displayedUntil[tab] = this.state.totals[tab];
-      }
-      this.setState({ displayedUntil: this.state.displayedUntil });
-    }
-
     componentWillReceiveProps(newProps) {
       if(this.props.query != newProps.query) {
         this.setState({
           totals: this._typeObjDefault(0),
           hits: this._typeObjDefault([]),
           moreToLoad: this._typeObjDefault(true),
-          displayedUntil: this._typeObjDefault(50),
           displayFilters: false,
           displaySort: false,
           showOverlay: false
@@ -129,14 +98,25 @@ class SearchResultList extends Component {
         })
       }
     }
+    handleScroll() {
+      var tab = this.props.tab;
 
+      if (!this.state.moreToLoad[tab]) { return; }
+      if (this.state.runningQueries[tab]) { return; }
+
+      var $scrollable = $(ReactDOM.findDOMNode(this)).closest(".content");
+      var margin = 300;
+
+      if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
+        this._loadNextPage(tab);
+      }
+    }
     _shouldUpdateQuery(oldProps, newProps, type) {
       const oldSearchState = this._getSearchState(type, oldProps);
       const newSearchState = this._getSearchState(type, newProps);
       return !oldSearchState.isEqual({ other: newSearchState, fields: ['appliedFilters', 'field', 'sortType'] }) ||
         ((oldSearchState.filtersValid !== newSearchState.filtersValid) && oldSearchState.appliedFilters.length > 0);  // Execute a second query to apply filters after an initial query which got available filters
     }
-
     _getSearchState(type, props) {
       props = props || this.props;
       if (!props.query) {
@@ -144,11 +124,9 @@ class SearchResultList extends Component {
       }
       return props[`${type}SearchState`];
     }
-
     _executeAllQueries(props) {
       this.types.forEach(t => this._executeQuery(props, t));
     }
-
     _executeQuery(props, type) {
       //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
       props = props || this.props;
@@ -167,15 +145,17 @@ class SearchResultList extends Component {
       const searchState = this._getSearchState(type, props);
       const { appliedFilters, appliedFilterAggTypes } = searchState;
       const { aggregation_field_array, build_and_apply_filters } = SearchState.metadataByType[type];
-      const isCompletionStep = request_applied || searchState.appliedFilters.length === 0;
 
       args.success = data => {
-              this.updateRunningQuery(type, null, false);
+              this.updateRunningQuery(type, null);
               const hitArray = type === 'text' ? Sefaria.search.process_text_hits(data.hits.hits) : data.hits.hits;  // TODO need if statement? or will there be similar processing done on sheets?
-              this.setState({
+              let state = {
                 hits: extend(this.state.hits, {[type]: hitArray}),
                 totals: extend(this.state.totals, {[type]: data.hits.total}),
-              });
+                pagesLoaded: extend(this.state.pagesLoaded, {[type]: 1}),
+                moreToLoad: extend(this.state.moreToLoad, {[type]: data.hits.total > this.initialQuerySize})
+              };
+              this.setState(state);
               const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
               const query_label = props.query + filter_label;
               Sefaria.track.event("Search", `Query: ${type}`, query_label, data.hits.total);
@@ -199,16 +179,12 @@ class SearchResultList extends Component {
                 }
                 this.props.registerAvailableFilters(type, availableFilters, registry, orphans, args.aggregationsToUpdate);
               }
-              if(isCompletionStep) {
-                  this._loadRemainder(type, hitArray.length, data.hits.total, hitArray);
-              }
           }
       args.error = this._handle_error;
 
       const runningQuery = Sefaria.search.execute_query(args);
-      this.updateRunningQuery(type, runningQuery, false);
+      this.updateRunningQuery(type, runningQuery);
     }
-
     _getQueryArgs(props, type) {
       props = props || this.props;
 
@@ -232,52 +208,29 @@ class SearchResultList extends Component {
         exact: fieldExact === field,
       };
     }
-
-    _loadRemainder(type, last, total, currentHits) {
-    // Having loaded "last" results, and with "total" results to load, load the rest, this.backgroundQuerySize at a time
-      if (last >= total || last >= this.maxResultSize) {
-        this.updateRunningQuery(type, null, false);
-        this.state.moreToLoad[type] = false;
-        this.setState({moreToLoad: this.state.moreToLoad});
-        return;
-      }
-
-      let size = this.backgroundQuerySize;
-      if (last + size > this.maxResultSize) {
-        size = this.maxResultSize - last;
-      }
-
-      const searchState = this._getSearchState(type);
-      const { field, sortType, fieldExact, appliedFilters, appliedFilterAggTypes } = searchState;
-      const query_props = {
-        query: this.props.query,
-        type,
-        size,
-        start: last,
-        field,
-        sort_type: sortType,
-        applied_filters: appliedFilters,
-        appliedFilterAggTypes,
-        aggregationsToUpdate: [],
-        exact: fieldExact === field,
-        error: function() {  console.log("Failure in SearchResultList._loadRemainder"); },
-        success: data => {
-          var nextHits = currentHits.concat(data.hits.hits);
+    _loadNextPage(type) {
+      const args = this._getQueryArgs(this.props, type);
+      args.start = this.state.pagesLoaded[type] * this.initialQuerySize;
+      args.error = () => console.log("Failure in SearchResultList._loadNextPage");
+      args.success =  data => {
+          var nextHits = this.state.hits[type].concat(data.hits.hits);
           if (type === "text") {
             nextHits = Sefaria.search.process_text_hits(nextHits);
           }
 
           this.state.hits[type] = nextHits;
+          this.state.pagesLoaded[type] += 1;
+          if (this.state.pagesLoaded[type] * this.initialQuerySize >= this.state.totals[type] ) {
+            this.state.moreToLoad[type] = false;
+          }
 
-          this.setState({hits: this.state.hits});
-          this._loadRemainder(type, last + nextHits.length, total, nextHits);
-        }
-      };
+          this.setState(this.state);
+          this.updateRunningQuery(type, null);
+        };
 
-      const runningLoadRemainderQuery = Sefaria.search.execute_query(query_props);
-      this.updateRunningQuery(type, runningLoadRemainderQuery, true);
+      const runningNextPageQuery = Sefaria.search.execute_query(args);
+      this.updateRunningQuery(type, runningNextPageQuery, false);
     }
-
     _handle_error(jqXHR, textStatus, errorThrown) {
         if (textStatus == "abort") {
             // Abort is immediately followed by new query, above.  Worried there would be a race if we call updateCurrentQuery(null) from here
@@ -285,7 +238,7 @@ class SearchResultList extends Component {
             return;
         }
         this.setState({error: true});
-        this.updateRunningQuery(null, null, false);
+        this.updateRunningQuery(null, null);
     }
     showSheets() {
       this.props.updateTab('sheet');
@@ -322,7 +275,7 @@ class SearchResultList extends Component {
         var results = [];
 
         if (tab == "text") {
-          results = this.state.hits.text.slice(0, this.state.displayedUntil["text"]).filter(result => !!result._source.version).map(result =>
+          results = this.state.hits.text.filter(result => !!result._source.version).map(result =>
             <SearchTextResult
                 data={result}
                 query={this.props.query}
@@ -330,7 +283,7 @@ class SearchResultList extends Component {
                 onResultClick={this.props.onResultClick} />);
 
         } else if (tab == "sheet") {
-          results = this.state.hits.sheet.slice(0, this.state.displayedUntil["sheet"]).map(result =>
+          results = this.state.hits.sheet.map(result =>
               <SearchSheetResult
                     data={result}
                     query={this.props.query}
@@ -370,7 +323,8 @@ class SearchResultList extends Component {
           <div>
             { searchFilters }
             <div className={this.state.showOverlay ? "searchResultsOverlay" : ""}>
-              { queryFullyLoaded || haveResults ? results : loadingMessage }
+              { queryFullyLoaded || haveResults ? results : null }
+              { this.state.isQueryRunning[tab] ? loadingMessage : null }
             </div>
           </div>
         );

@@ -250,7 +250,7 @@ class ReaderApp extends Component {
     window.removeEventListener("resize", this.setPanelCap);
   }
   componentDidUpdate(prevProps, prevState) {
-    $(".content").off("scroll").on("scroll", this.setScrollPositionInHistory); // when .content may have rerendered
+    $(".content").off("scroll.scrollPosition").on("scroll.scrollPosition", this.setScrollPositionInHistory); // when .content may have rerendered
     
     if (this.justPopped) {
       //console.log("Skipping history update - just popped")
@@ -488,7 +488,7 @@ class ReaderApp extends Component {
 
     for (var i = 0; i < states.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
-      //states[i] = this.clonePanel(panels[i], true);
+      states[i] = this.clonePanel(states[i], true);
       if (!states[i]) { debugger; }
       var state = states[i];
       var hist  = {url: ""};
