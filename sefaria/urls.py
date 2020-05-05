@@ -6,7 +6,9 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
 
-from sefaria.forms import HTMLPasswordResetForm, SefariaLoginForm
+from emailusernames.forms import EmailAuthenticationForm
+
+from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
 
 import reader.views as reader_views
@@ -92,6 +94,7 @@ urlpatterns += [
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/upload-photo$', reader_views.profile_upload_photo),
     url(r'^api/profile$', reader_views.profile_api),
+    url(r'settings/account/user$', reader_views.account_user_update),
     url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api),
     url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
     url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
@@ -304,8 +307,8 @@ urlpatterns += [
     url(r'^login/?$', django_auth_views.LoginView.as_view(authentication_form=SefariaLoginForm), name='login'),
     url(r'^register/?$', sefaria_views.register, name='register'),
     url(r'^logout/?$', django_auth_views.LogoutView.as_view(), name='logout'),
-    url(r'^password/reset/?$', django_auth_views.PasswordResetView.as_view(email_template_name='registration/password_reset_email.txt', html_email_template_name='registration/password_reset_email.html'), name='password_reset'),
-    url(r'^password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', django_auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    url(r'^password/reset/?$', django_auth_views.PasswordResetView.as_view(form_class=SefariaPasswordResetForm, email_template_name='registration/password_reset_email.txt', html_email_template_name='registration/password_reset_email.html'), name='password_reset'),
+    url(r'^password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', django_auth_views.PasswordResetConfirmView.as_view(form_class=SefariaSetPasswordForm), name='password_reset_confirm'),
     url(r'^password/reset/complete/$', django_auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     url(r'^password/reset/done/$', django_auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     url(r'^api/register/$', sefaria_views.register_api),
@@ -399,6 +402,7 @@ urlpatterns += [
     url(r'^admin/spam', sefaria_views.spam_dashboard),
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
+
     url(r'^admin/?', include(admin.site.urls)),
 ]
 

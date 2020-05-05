@@ -348,8 +348,14 @@ def put_sheet_mapping(index_name):
             'tags': {
                 'type': 'keyword'
             },
-            'topics': {
-                'type': 'keyword'
+            "topics_en": {
+                "type": "keyword"
+            },
+            "topics_he": {
+                "type": "keyword"
+            },
+            "topic_slugs": {
+                "type": "keyword"
             },
             'owner_image': {
                 'type': 'keyword'

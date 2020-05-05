@@ -293,6 +293,7 @@ CACHES = {
     }
 }
 
+"""
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "user_testing_israel",
     "repetition": 1,
@@ -305,7 +306,8 @@ GLOBAL_INTERRUPTING_MESSAGE = {
         "debug": False
     }
 }
-# GLOBAL_INTERRUPTING_MESSAGE = None
+"""
+GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab enviornment specific settings from a file which
 # is left out of the repo.

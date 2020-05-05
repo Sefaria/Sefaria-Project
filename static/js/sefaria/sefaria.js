@@ -1691,7 +1691,6 @@ Sefaria = extend(Sefaria, {
     return a;
   },
   _topicTocPageKey: slug => "_" + slug,
-
   topicTocPage: function(parent) {
     const key = this._topicTocPageKey(parent);
     if (!this._topicTocPages) {
@@ -1703,6 +1702,10 @@ Sefaria = extend(Sefaria, {
     // return category english and hebrew for slug
     if (!this._topicTocCategory) { this._initTopicTocCategory(); }
     return this._topicTocCategory[slug];
+  },
+  isTopicTopLevel: function(slug) {
+    // returns true is `slug` is part of the top level of topic toc
+    return Sefaria.topic_toc.filter(x => x.slug == slug).length > 0;
   },
   sheets: {
     _loadSheetByID: {},
@@ -2176,6 +2179,7 @@ Sefaria = extend(Sefaria, {
       "Sign\u00A0in": "התחברו",
       "Save": "שמירה",
       "Remove": "הסרה",
+      "Email was successfully changed!": "כתובת האימייל שונתה בהצלחה!",
       "Filter": "סינון",
       "Relevance": 'רלוונטיות',
       "Chronological": 'כרונולוגי',
