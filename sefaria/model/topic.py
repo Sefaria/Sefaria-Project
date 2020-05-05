@@ -384,6 +384,11 @@ class RefTopicLink(abst.AbstractMongoRecord):
                 raise DuplicateRecordError("Duplicate ref topic link for linkType '{}', ref '{}', toTopic '{}', dataSource '{}'".format(
                 self.linkType, self.ref, self.toTopic, getattr(self, 'dataSource', 'N/A')))
 
+    def contents(self, **kwargs):
+        d = super(RefTopicLink, self).contents(**kwargs)
+        d['topic'] = d['toTopic']
+        d.pop('toTopic')
+        return d
 
 class TopicLinkSetHelper(object):
 

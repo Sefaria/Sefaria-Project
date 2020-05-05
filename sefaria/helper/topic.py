@@ -85,7 +85,7 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
         new_refs = []
         for link in response['refs']:
             del link['class']
-            del link['toTopic']
+            del link['topic']
             temp_subset_refs = subset_ref_map.keys() & set(link.get('expandedRefs', []))
             for seg_ref in temp_subset_refs:
                 for index in subset_ref_map[seg_ref]:
@@ -199,6 +199,12 @@ def recommend_topics(refs: list) -> list:
         })
 
     return sorted(recommend_topics, key=lambda x: x["count"], reverse=True)
+
+
+def get_topics_for_ref(tref):
+    oref = Ref(tref)
+    ref_links = RefTopicLinkSet({"expandedRefs": oref.normal()})
+    return [l.contents() for l in ref_links]
 
 
 """
