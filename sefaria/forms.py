@@ -29,7 +29,7 @@ class SefariaLoginForm(EmailAuthenticationForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': _("Password")}))
 
 
-class NewUserForm(EmailUserCreationForm):
+class SefariaNewUserForm(EmailUserCreationForm):
     email = forms.EmailField(max_length=75, widget=forms.EmailInput(attrs={'placeholder': _("Email Address"), 'autocomplete': 'off'}))
     first_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("First Name"), 'autocomplete': 'off'}))
     last_name = forms.CharField(widget=forms.TextInput(attrs={'placeholder': _("Last Name"), 'autocomplete': 'off'}))
@@ -74,7 +74,7 @@ class NewUserForm(EmailUserCreationForm):
             seed_group = Group.objects.get(name=SEED_GROUP)
             user.groups.remove(seed_group)
         else:
-            user = super(NewUserForm, self).save(commit=False)
+            user = super(SefariaNewUserForm, self).save(commit=False)
 
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
@@ -101,12 +101,12 @@ class NewUserForm(EmailUserCreationForm):
 
         return user
 
-class NewUserFormAPI(NewUserForm):
+class SefariaNewUserFormAPI(SefariaNewUserForm):
 
     mobile_app_key = forms.CharField(widget=forms.HiddenInput())
 
     def __init__(self, *args, **kwargs):
-        super(NewUserForm, self).__init__(*args, **kwargs)
+        super(SefariaNewUserForm, self).__init__(*args, **kwargs)
         # don't require captcha on API form
         # instead, require that the correct app_key is sent
         self.fields.pop('captcha')

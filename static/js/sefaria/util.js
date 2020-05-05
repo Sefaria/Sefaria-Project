@@ -325,6 +325,15 @@ class Util {
             return true;
         };
 
+        Array.prototype.elementsAreEqual = function (testArr) {
+          // uses Object.is() to determine is elements point to same objects even if outer array is different
+          if (!testArr || (this.length != testArr.length)) return false;
+          for (var i = 0; i < testArr.length; i++) {
+              if (!Object.is(this[i], testArr[i])) return false;
+          }
+          return true;
+        }
+
         Array.prototype.pad = function(s,v) {
             var l = Math.abs(s) - this.length;
             var a = [].concat(this);

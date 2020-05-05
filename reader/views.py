@@ -4386,6 +4386,9 @@ def application_health_api(request):
     else:
         return http.HttpResponse("Unhealthy", status="500")
 
+def application_health_api_nonlibrary(request):
+    return http.HttpResponse("Healthy", status="200")
+
 @login_required
 def daf_roulette_redirect(request):
 
