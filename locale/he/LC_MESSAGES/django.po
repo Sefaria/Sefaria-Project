@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-23 11:43-0300\n"
+"POT-Creation-Date: 2020-03-08 16:41-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -41,7 +41,7 @@ msgstr "צאו למסע בעקבות 3000 שנה של טקסטים יהודיי�
 #: reader/views.py:492
 #| msgid "Sefaria Source Sheets"
 msgid "Sefaria Source Sheet"
-msgstr "דפי המקורות בספריא"
+msgstr "דף המקורות בספריא"
 
 #: reader/views.py:494
 #| msgid "A source sheet created with Sefaria's Source Sheet Builder."
@@ -168,7 +168,7 @@ msgstr ""
 
 #: reader/views.py:891
 msgid "User Stats"
-msgstr ""
+msgstr "סטטיסטיקות משתמשים"
 
 #: reader/views.py:896
 msgid "Sefaria Account"
@@ -212,13 +212,13 @@ msgstr "ספריא"
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr "מקורות לפי נושא בספריא"
 
-#: reader/views.py:2951
+#: reader/views.py:2935
 #, python-format
 msgid ""
 "Explore %(topic)s on Sefaria, drawing from our library of Jewish texts. "
-msgstr "סיירו %(topic)s בספריא, שמבוסס על הספרייה שלנו של טקסטים יהודיים. "
+msgstr "מקורות בנושא %(topic)s השאובים ממאגר המקורות של ספריא"
 
-#: reader/views.py:3226 reader/views.py:3254 reader/views.py:3350
+#: reader/views.py:3210 reader/views.py:3296
 msgid "You must be logged in to update your profile."
 msgstr "הנכם צריכים להיות מחוברים כדי לערוך את הפרופיל שלכם."
 
@@ -231,11 +231,12 @@ msgid "Incorrect account password for this account"
 msgstr "סיסמא לא נכונה לשם המשתמש הזה"
 
 #: reader/views.py:3305
+#: reader/views.py:3267
 #| msgid "You must be logged in to update your profile."
 msgid "You must be logged in to update your profile photo."
-msgstr "הנכם צריכים להיות מחוברים כדי לערוך את הפרופיל שלכם."
+msgstr "הנכם צריכים להיות מחוברים כדי לערוך את תמונת הפרופיל שלכם."
 
-#: reader/views.py:4246 reader/views.py:4249
+#: reader/views.py:4183 reader/views.py:4186
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr "אודות %(name)s. יצירות שחוברו, ביוגרפיה, תאריכים ועוד"
@@ -269,7 +270,23 @@ msgstr "משתמש עם כתובת האימייל לעיל כבר קיים"
 
 #: sefaria/forms.py:117
 msgid "Incorrect mobile_app_key provided"
-msgstr ""
+msgstr "מפתח איות נייד לא תקין"
+
+#: sefaria/forms.py:128
+msgid "New password"
+msgstr "סיסמא חדשה"
+
+#: sefaria/forms.py:129
+msgid "Enter New Password"
+msgstr "בחרו סיסמא חדשה"
+
+#: sefaria/forms.py:134
+msgid "New password confirmation"
+msgstr "אימות סיסמא חדשה"
+
+#: sefaria/forms.py:136
+msgid "Repeat New Password"
+msgstr "הקלידו שוב סיסמא חדשה"
 
 #: sefaria/model/group.py:74
 msgid ""
@@ -281,15 +298,13 @@ msgstr "קבוצות פומביות חייבות לכלול תמונת קבוצ�
 msgid "Public Groups are required to have at least 3 public sheets."
 msgstr "קבוצות פומביות חייבות לכלול לפחות 3 דפי מקורות פומביים"
 
-#: sefaria/model/user_profile.py:244
-msgid "A user with that email already exists"
-msgstr "משתמש עם כתובת האימייל לעיל כבר קיים"
 
 #: sefaria/model/user_profile.py:249
 msgid "The email address is not valid."
 msgstr "כתובת האימייל הזו אינה תקינה"
 
 #: sefaria/views.py:156 sefaria/views.py:191 templates/static/app.html:383
+#: sefaria/views.py:157 sefaria/views.py:192 templates/static/app.html:383
 #: templates/static/aramaic-translation-contest.html:189
 #: templates/static/educators.html:389 templates/static/educators.html:411
 #: templates/static/home.html:392 templates/static/mobile.html:383
@@ -897,7 +912,7 @@ msgstr "כתבו תקציר המסביר אודות דף המקורות שיצר
 
 #: templates/sheets.html:1022
 msgid "Add Tags..."
-msgstr ""
+msgstr "הוספת תיוג"
 
 #: templates/sheets.html:1050
 msgid "None"
@@ -1021,7 +1036,7 @@ msgstr "הדף היומי | ספריא"
 
 #: templates/static/daf-yomi.html:6
 msgid "Learn the Talmud each day with Daf Yomi on Sefaria."
-msgstr "לימוד התלמוד, דף ביום עם ספריא"
+msgstr "לימוד יומי של התלמוד בספריא"
 
 #: templates/static/dafroulette.html:4
 msgid "DafRoulette"
@@ -1109,7 +1124,7 @@ msgid "Sefaria Mobile Apps"
 msgstr "ספריא בנייד"
 
 #: templates/static/mobile.html:6
-#| msgid "Downland the free Sefaria Apps for iOS and Android."
+#| msgid "Download the free Sefaria App for iOS and Android."
 msgid "Download the free Sefaria Apps for iOS and Android."
 msgstr "הורידו את האפליקציות החינמיות של ספריא לאייפון ולאנדרואיד"
 
@@ -1128,7 +1143,7 @@ msgstr "למידה מרחוק בספריא"
 
 #: templates/static/remote-learning.html:6
 msgid "Resources for teaching and learning virtually."
-msgstr ""
+msgstr "משאבים ללימוד ולמידה מרחוק באופן מקוון"
 
 #: templates/static/sefaria-community-translation.html:4
 msgid "About Sefaria Community Translations"
@@ -1252,15 +1267,15 @@ msgstr "קשרי מורה-תלמיד בתלמוד"
 
 #: templates/timeline.html:4 templates/timeline.html:6
 msgid "Timeline"
-msgstr ""
+msgstr "קו זמן"
 
 #: templates/unique_words_viz.html:7
 msgid "Unique Words used by Biblical Commentators"
-msgstr ""
+msgstr "מילים יחידאיות בשימוש מפרשי מקרא"
 
 #: templates/unique_words_viz.html:9
 msgid "Explore how unique and verbose biblical commentators were."
-msgstr ""
+msgstr "צפו בייחוד הלשוני של מפרשי המקרא"
 
 #: templates/visual_library.html:4
 msgid "Visualizing the Sefaria Library"
@@ -1312,36 +1327,43 @@ msgstr ""
 #~ msgid "Receive important announcements"
 #~ msgstr "אני מסכימ/ה לקבל עדכונים חשובים"
 
+#, python-format
 #~ msgid "%d year"
 #~ msgid_plural "%d years"
 #~ msgstr[0] "%d שנה"
 #~ msgstr[1] "%d שנים"
 
+#, python-format
 #~ msgid "%d month"
 #~ msgid_plural "%d months"
 #~ msgstr[0] "%d חודש"
 #~ msgstr[1] "%d חודשים"
 
+#, python-format
 #~ msgid "%d week"
 #~ msgid_plural "%d weeks"
 #~ msgstr[0] "%d שבוע"
 #~ msgstr[1] "%d שבועות"
 
+#, python-format
 #~ msgid "%d day"
 #~ msgid_plural "%d days"
 #~ msgstr[0] "%d יום"
 #~ msgstr[1] "%d ימים"
 
+#, python-format
 #~ msgid "%d hour"
 #~ msgid_plural "%d hours"
 #~ msgstr[0] "%d שעה"
 #~ msgstr[1] "%d שעות"
 
+#, python-format
 #~ msgid "%d minute"
 #~ msgid_plural "%d minutes"
 #~ msgstr[0] "%d דקה"
 #~ msgstr[1] "%d דקות"
 
+#, python-format
 #~ msgid "%d second"
 #~ msgid_plural "%d seconds"
 #~ msgstr[0] "%d שנייה"
@@ -1349,6 +1371,9 @@ msgstr ""
 
 #~ msgid "now"
 #~ msgstr "כעת"
+
+#~ msgid "Downland the free Sefaria Apps for iOS and Android."
+#~ msgstr "הורידו את האפליקציות החינמיות של ספריא לאייפון ולאנדרואיד"
 
 #~ msgid ""
 #~ "A source sheet by %(sheet.owner|user_name)s created with Sefaria's Source "

@@ -4434,7 +4434,7 @@ class Library(object):
                 "displayOrder": getattr(topic, "displayOrder", 10000)
             }
             explored.add(topic.slug)
-        if len(children) > 0:
+        if len(children) > 0 or topic is None:  # make sure root gets children no matter what
             topic_json['children'] = []
         for child in children:
             child_topic = Topic().load({'slug': child})

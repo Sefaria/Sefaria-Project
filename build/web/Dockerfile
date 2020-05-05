@@ -14,7 +14,7 @@ ENV DEBUG       false
 
 COPY . /app/
 WORKDIR /app/
-RUN mkdir -p /app/log && mkdir -p /app/sefaria && touch /app/dev-db.sqlite
+RUN mkdir -p /app/log && mkdir -p /app/sefaria && mkdir -p /log && touch /app/dev-db.sqlite
 
 RUN apt-get update && apt-get install --yes npm  && apt-get clean
 RUN pip3 install --no-cache-dir -r /app/requirements.txt
