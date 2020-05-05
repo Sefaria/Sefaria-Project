@@ -4,7 +4,7 @@ django.setup()
 from sefaria.helper.schema import *
 
 root = SchemaNode()
-root.add_primary_titles("Netzach Yisrael", u"נצח ישראל")
+root.add_primary_titles("Netzach Yisrael", "נצח ישראל")
 intro = JaggedArrayNode()
 intro.add_structure(["Paragraph"])
 intro.add_shared_term("Introduction")

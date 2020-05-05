@@ -234,6 +234,10 @@ class ConnectionsPanel extends Component {
     if (typeof(srefs) == "object" && srefs.length == 1) {
       srefs = Sefaria.splitRangingRef(srefs[0]);
     }
+    if (srefs.length == 1 && (Sefaria.sectionRef(srefs[0]) == srefs[0])) {
+        const oref = Sefaria.ref(srefs[0]);
+        srefs = Sefaria.makeSegments(oref).map(segment => segment.ref)
+    }
     return(srefs)
   }
   showSheetNodeConnectionTools(ref,mode) {
@@ -771,7 +775,7 @@ class WebPagesList extends Component {
     const linkerMessage = Sefaria._siteSettings.TORAH_SPECIFIC ? 
               <div className="webpagesLinkerMessage sans">
                 <span className="int-en">Sites that are listed here use the <a href="/linker">Sefaria Linker</a>.</span>
-                <span className="int-he">אתרים המפורטים כאן משתמשים <a href="/linker">במרשת ההפניות</a>.</span>
+                <span className="int-he">אתרים המפורטים כאן משתמשים <a href="/linker">במרשתת ההפניות</a>.</span>
               </div> : null; 
 
     return <div className="webpageList">

@@ -1,6 +1,6 @@
-from varnish import VarnishManager
-from urlparse import urlparse
-from httplib import HTTPConnection
+from varnishadm import VarnishManager
+from urllib.parse import urlparse
+from http.client import HTTPConnection
 from sefaria.local_settings import VARNISH_ADM_ADDR, VARNISH_HOST, VARNISH_FRNT_PORT, VARNISH_SECRET, FRONT_END_URL
 
 from sefaria.utils.util import graceful_exception
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 with open (VARNISH_SECRET, "r") as sfile:
     secret=sfile.read().replace('\n', '')
-manager = VarnishManager([VARNISH_ADM_ADDR])
+manager = VarnishManager((VARNISH_ADM_ADDR,), secret)
 
 
 # PyPi version of python-varnish has broken purge function.  We use this instead.
@@ -29,8 +29,8 @@ def purge_url(url):
                        {'Host': url.hostname})
     response = connection.getresponse()
     if response.status != 200:
-        logger.error(u'Purge of {}{} on host {} failed with status: {}'.format(path,
-                                                                                  u"?" + url.query if url.query else u'',
+        logger.error('Purge of {}{} on host {} failed with status: {}'.format(path,
+                                                                                  "?" + url.query if url.query else '',
                                                                                   url.hostname,
                                                                                   response.status))
     return response

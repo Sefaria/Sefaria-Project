@@ -6,7 +6,7 @@ import json
 import re
 import bleach
 from datetime import datetime, timedelta
-from urlparse import urlparse
+from urllib.parse import urlparse
 from collections import defaultdict
 from random import choice
 from webpack_loader import utils as webpack_utils
@@ -36,8 +36,8 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
-from sefaria.forms import NewUserForm, NewUserFormAPI
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
+from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.group import GroupSet
 from sefaria.model.translation_request import count_completed_translation_requests
@@ -55,6 +55,7 @@ from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_t
 from sefaria.model import *
 from sefaria.system.multiserver.coordinator import server_coordinator
 
+
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
 
@@ -63,33 +64,28 @@ logger = logging.getLogger(__name__)
 
 
 def process_register_form(request, auth_method='session'):
-    form = NewUserForm(request.POST) if auth_method == 'session' else NewUserFormAPI(request.POST)
+    form = SefariaNewUserForm(request.POST) if auth_method == 'session' else SefariaNewUserFormAPI(request.POST)
     token_dict = None
     if form.is_valid():
-        try:
-            with transaction.atomic():
-                new_user = form.save()
-                user = authenticate(email=form.cleaned_data['email'],
-                                    password=form.cleaned_data['password1'])
-                p = UserProfile(id=user.id)
-                p.assign_slug()
-                p.join_invited_groups()
-                if PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE:
-                    p.add_partner_group_by_email()
-                if hasattr(request, "interfaceLang"):
-                    p.settings["interface_language"] = request.interfaceLang
+        with transaction.atomic():
+            new_user = form.save()
+            user = authenticate(email=form.cleaned_data['email'],
+                                password=form.cleaned_data['password1'])
+            p = UserProfile(id=user.id)
+            p.assign_slug()
+            p.join_invited_groups()
+            if PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE:
+                p.add_partner_group_by_email()
+            if hasattr(request, "interfaceLang"):
+                p.settings["interface_language"] = request.interfaceLang
 
-                p.save()
-        except Exception:
-            return {
-                "error": "something went wrong"
-            }
+            p.save()
         if auth_method == 'session':
             auth_login(request, user)
         elif auth_method == 'jwt':
             token_dict = TokenObtainPairSerializer().validate({"username": form.cleaned_data['email'], "password": form.cleaned_data['password1']})
     return {
-        k: v[0] if len(v) > 0 else unicode(v) for k, v in form.errors.items()
+        k: v[0] if len(v) > 0 else str(v) for k, v in list(form.errors.items())
     }, token_dict, form
 
 
@@ -125,9 +121,10 @@ def register(request):
                 return HttpResponseRedirect(next)
     else:
         if request.GET.get('educator', ''):
-            form = NewUserForm(initial={'subscribe_educator': True})
+            form = SefariaNewUserForm(initial={'subscribe_educator': True})
         else:
-            form = NewUserForm()
+            form = SefariaNewUserForm()
+
     return render(request, "registration/register.html", {'form': form, 'next': next})
 
 
@@ -179,6 +176,10 @@ def generate_feedback(request):
         to_email = "corrections@sefaria.org"
         subject = "Correction from website - " + ' / '.join(refs)
         message_html = msg + "\n\n" + "refs: " + ' / '.join(refs) + "\n" + "versions: " + str(versions) + "\n\n" + "URL: " + url
+    elif fb_type == "user_testing":
+        to_email = "gabriel@sefaria.org"
+        subject = "User Testing Sign Up"
+        message_html = "Hi! I want to sign up for user testing!"
     else:
         to_email = "hello@sefaria.org"
         subject = "Feedback from website - " + fb_type.replace("_"," ")
@@ -214,6 +215,22 @@ def sefaria_js(request):
 
     return render(request, "js/sefaria.js", attrs, content_type= "text/javascript")
 
+def dafroulette_js(request):
+    """
+    Javascript for dafroulette [required to pass server attribute].
+    """
+    client_user = UserProfile(id=request.user.id)
+
+    attrs = {
+        "rtc_server": RTC_SERVER,
+        "client_name": client_user.first_name + " " + client_user.last_name,
+        "client_uid": client_user.id
+    }
+
+
+    return render(request, "js/dafroulette.js", attrs, content_type="text/javascript")
+
+
 
 def linker_js(request, linker_version=None):
     """
@@ -245,12 +262,66 @@ def title_regex_api(request, titles):
             except (AttributeError, AssertionError) as e:
                 # There are normal errors here, when a title matches a schema node, the chatter fills up the logs.
                 # logger.warning(u"Library._build_ref_from_string() failed to create regex for: {}.  {}".format(title, e))
-                errors.append(u"{} : {}".format(title, e))
+                errors.append("{} : {}".format(title, e))
         if len(errors):
             res["error"] = errors
         resp = jsonResponse(res, cb)
         return resp
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
+
+def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char=None, max_char=None):
+    res = {}
+    for tref in refs:
+        try:
+            oref = model.Ref(tref)
+            lang = "he" if is_hebrew(tref) else "en"
+            if useTextFamily:
+                text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False)
+                he = text_fam.he
+                en = text_fam.text
+                res[tref] = {
+                    'he': he,
+                    'en': en,
+                    'lang': lang,
+                    'ref': oref.normal(),
+                    'primary_category': text_fam.contents()['primary_category'],
+                    'heRef': oref.he_normal(),
+                    'url': oref.url()
+                }
+            else:
+                he_tc = model.TextChunk(oref, "he")
+                en_tc = model.TextChunk(oref, "en")
+                if as_sized_string:
+                    kwargs = {}
+                    if min_char:
+                        kwargs['min_char'] = min_char
+                    if max_char:
+                        kwargs['max_char'] = max_char
+                    he_text = he_tc.as_sized_string(**kwargs)
+                    en_text = en_tc.as_sized_string(**kwargs)
+                else:
+                    he = he_tc.text
+                    en = en_tc.text
+                    # these could be flattened on the client, if need be.
+                    he_text = he if isinstance(he, str) else JaggedTextArray(he).flatten_to_string()
+                    en_text = en if isinstance(en, str) else JaggedTextArray(en).flatten_to_string()
+
+                res[tref] = {
+                    'he': he_text,
+                    'en': en_text,
+                    'lang': lang,
+                    'ref': oref.normal(),
+                    'heRef': oref.he_normal(),
+                    'url': oref.url()
+                }
+        except (InputError, ValueError, AttributeError, KeyError) as e:
+            # referer = request.META.get("HTTP_REFERER", "unknown page")
+            # This chatter fills up the logs.  todo: put in it's own file
+            # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
+            res[tref] = {"error": 1}
+    return res
 
 def bulktext_api(request, refs):
     """
@@ -261,42 +332,11 @@ def bulktext_api(request, refs):
     """
     if request.method == "GET":
         cb = request.GET.get("callback", None)
-        useTextFamily = request.GET.get("useTextFamily", None)
         refs = set(refs.split("|"))
-        res = {}
-        for tref in refs:
-            try:
-                oref = model.Ref(tref)
-                lang = "he" if is_hebrew(tref) else "en"
-                if useTextFamily:
-                    text_fam = model.TextFamily(oref, commentary=0, context=0, pad=False)
-                    he = text_fam.he
-                    en = text_fam.text
-                    res[tref] = {
-                        'he': he,
-                        'en': en,
-                        'lang': lang,
-                        'ref': oref.normal(),
-                        'primary_category': text_fam.contents()['primary_category'],
-                        'heRef': oref.he_normal(),
-                        'url': oref.url()
-                    }
-                else:
-                    he = model.TextChunk(oref, "he").text
-                    en = model.TextChunk(oref, "en").text
-                    res[tref] = {
-                        'he': he if isinstance(he, basestring) else JaggedTextArray(he).flatten_to_string(),  # these could be flattened on the client, if need be.
-                        'en': en if isinstance(en, basestring) else JaggedTextArray(en).flatten_to_string(),
-                        'lang': lang,
-                        'ref': oref.normal(),
-                        'heRef': oref.he_normal(),
-                        'url': oref.url()
-                    }
-            except (InputError, ValueError, AttributeError, KeyError) as e:
-                # referer = request.META.get("HTTP_REFERER", "unknown page")
-                # This chatter fills up the logs.  todo: put in it's own file
-                # logger.warning(u"Linker failed to parse {} from {} : {}".format(tref, referer, e))
-                res[tref] = {"error": 1}
+        g = lambda x: request.GET.get(x, None)
+        min_char = int(g("minChar")) if g("minChar") else None
+        max_char = int(g("maxChar")) if g("maxChar") else None
+        res = bundle_many_texts(refs, g("useTextFamily"), g("asSizedString"), min_char, max_char)
         resp = jsonResponse(res, cb)
         return resp
 
@@ -425,7 +465,7 @@ def reset_cached_api(request, apiurl):
         #mod = import_module(".".join(match.view_name.split(".")[:-1])) Dont actually need this, resolve gets us the func itself
         #func = mod.__getattribute__(match.func.func_name)
 
-        if "django_cache" in match.func.func_dict:
+        if "django_cache" in match.func.__dict__:
             api_view = undecorated(match.func)
             redecorated_api_view = scache.django_cache(action="reset")(api_view)
             redecorated_api_view(request, *match.args, **match.kwargs)
@@ -435,10 +475,10 @@ def reset_cached_api(request, apiurl):
             raise Http404("API not in cache")
 
     except Resolver404 as re:
-        logger.warn(u"Attempted to reset invalid url")
+        logger.warn("Attempted to reset invalid url")
         raise Http404()
     except Exception as e:
-        logger.warn(u"Unable to reset cache for {}".format(apiurl))
+        logger.warn("Unable to reset cache for {}".format(apiurl))
         raise Http404()
 
 
@@ -506,16 +546,6 @@ def rebuild_counts_and_toc(request):
     model.refresh_all_states()
     return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
 '''
-
-@staff_member_required
-def rebuild_topics(request):
-    from sefaria.model.topic import update_topics
-    update_topics()
-
-    if MULTISERVER_ENABLED:
-        server_coordinator.publish_event("topic", "update_topics")
-
-    return HttpResponseRedirect("/topics?m=topics-rebuilt")
 
 
 @staff_member_required
@@ -613,7 +643,7 @@ def export_all(request):
     try:
         start_export_all()
         resp = {"status": "ok"}
-    except Exception, e:
+    except Exception as e:
         resp = {"error": str(e)}
     resp["time"] = (datetime.now()-start).seconds
     return jsonResponse(resp)
@@ -622,7 +652,7 @@ def export_all(request):
 @staff_member_required
 def cause_error(request):
     resp = {}
-    logger.error(u"This is a simple error")
+    logger.error("This is a simple error")
     try:
         erorr = excepting
     except Exception as e:
@@ -657,9 +687,9 @@ def list_contest_results(request):
         user_requests[request.completer] += 1
         total_points += points
 
-    results += "%d participants completed %d requests<br><br>" % (len(user_requests.keys()), total_requests)
+    results += "%d participants completed %d requests<br><br>" % (len(list(user_requests.keys())), total_requests)
 
-    for user in user_points.keys():
+    for user in list(user_points.keys()):
         profile = model.user_profile.UserProfile(id=user)
         results += "%s: completed %d requests for %d points (%s)<br>" % (profile.full_name, user_requests[user], user_points[user], profile.email)
         lottery += ([user] * user_points[user])
@@ -720,7 +750,7 @@ def untagged_sheets(request):
 
     for sheet in sheets:
         html += "<li><a href='/sheets/%d' target='_blank'>%s</a></li>" % (sheet["id"], strip_tags(sheet["title"]))
-    html += u"<br><a href='/admin/untagged-sheets?page=%d'>More ›</a>" % (page + 1)
+    html += "<br><a href='/admin/untagged-sheets?page=%d'>More ›</a>" % (page + 1)
 
     return HttpResponse("<html><h1>Untagged Public Sheets</h1><ul>" + html + "</ul></html>")
 
@@ -742,7 +772,7 @@ def spam_dashboard(request):
 
         for spammer in spammers:
             try:
-                spammer_account = User.objects.get(id=spammer["owner"])
+                spammer_account = User.objects.get(id=spammer)
                 spammer_account.is_active = False
                 spammer_account.save()
             except:
@@ -819,7 +849,7 @@ def core_link_stats(request):
 def run_tests(request):
     # This was never fully developed, methinks
     from subprocess import call
-    from local_settings import DEBUG
+    from .local_settings import DEBUG
     if not DEBUG:
         return
     call(["/var/bin/run_tests.sh"])
@@ -875,14 +905,14 @@ def bulk_download_versions_api(request):
     with zipfile.ZipFile(file_like_object, "a", zipfile.ZIP_DEFLATED) as zfile:
         for version in vs:
             filebytes = _get_text_version_file(format, version.title, version.language, version.versionTitle)
-            name = u'{} - {} - {}.{}'.format(version.title, version.language, version.versionTitle, format).encode('utf-8')
-            if isinstance(filebytes, unicode):
+            name = '{} - {} - {}.{}'.format(version.title, version.language, version.versionTitle, format).encode('utf-8')
+            if isinstance(filebytes, str):
                 filebytes = filebytes.encode('utf-8')
             zfile.writestr(name, filebytes)
 
     content = file_like_object.getvalue()
     response = HttpResponse(content, content_type="application/zip")
-    filename = u"{}-{}-{}-{}.zip".format(filter(str.isalnum, str(title_pattern)), filter(str.isalnum, str(version_title_pattern)), language, format).encode('utf-8')
+    filename = "{}-{}-{}-{}.zip".format(list(filter(str.isalnum, str(title_pattern))), list(filter(str.isalnum, str(version_title_pattern))), language, format).encode('utf-8')
     response["Content-Disposition"] = 'attachment; filename="{}"'.format(filename)
     return response
 
@@ -947,7 +977,7 @@ def text_upload_api(request):
             import_versions_from_stream(f, [1], request.user.id)
             message += "Imported: {}.  ".format(f.name)
         except Exception as e:
-            return jsonResponse({"error": e.message, "message": message})
+            return jsonResponse({"error": str(e), "message": message})
 
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
@@ -960,9 +990,9 @@ def compare(request, secRef=None, lang=None, v1=None, v2=None):
             secRef = secRef.section_ref()
         secRef = secRef.normal()
     if v1:
-        v1 = v1.replace(u"_", u" ")
+        v1 = v1.replace("_", " ")
     if v2:
-        v2 = v2.replace(u"_", u" ")
+        v2 = v2.replace("_", " ")
 
     return render(request,'compare.html', {"JSON_PROPS": json.dumps({
         'secRef': secRef,

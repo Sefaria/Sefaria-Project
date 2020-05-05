@@ -15,14 +15,14 @@ for sheet in sheets:
     if "status" in sheet and sheet["status"] == "public":
         public_authors[owner] += sheet.get("views",0)
 
-sorted_authors        = sorted(authors.iteritems(), key=lambda x: -x[1])
-sorted_public_authors = sorted(public_authors.iteritems(), key=lambda x: -x[1])
+sorted_authors        = sorted(iter(authors.items()), key=lambda x: -x[1])
+sorted_public_authors = sorted(iter(public_authors.items()), key=lambda x: -x[1])
 
-print "Most Popular Public Sheet Authors"
+print("Most Popular Public Sheet Authors")
 for author in sorted_public_authors[:10]:
     profile = UserProfile(id=author[0])
-    print "%s: %d views - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug)
-print "Most Popular Total Sheet Authors"
+    print("%s: %d views - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug))
+print("Most Popular Total Sheet Authors")
 for author in sorted_authors[:10]:
     profile = UserProfile(id=author[0])
-    print "%s: %d views - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug)
+    print("%s: %d views - www.sefaria.org/profile/%s" % (profile.full_name, author[1], profile.slug))

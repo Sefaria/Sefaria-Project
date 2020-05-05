@@ -5,9 +5,9 @@ Custom Sefaria Tags for Django Templates
 import json
 import re
 import dateutil.parser
-import urllib
+import urllib.request, urllib.parse, urllib.error
 import math
-from urlparse import urlparse
+from urllib.parse import urlparse
 from datetime import datetime
 from django import template
 from django.template.defaultfilters import stringfilter
@@ -126,9 +126,9 @@ def version_link(v):
 		try:
 			section_ref = v.get_index().nodes.first_leaf().first_section_ref()
 		except:  # Better if we knew how this may fail...
-			return mark_safe(u'<a href="/{}.1/{}/{}">{}</a>'.format(v.title, v.language, urllib.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle))
+			return mark_safe('<a href="/{}.1/{}/{}">{}</a>'.format(v.title, v.language, urllib.parse.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle))
 
-	link = u'<a href="/{}/{}/{}">{}</a>'.format(section_ref.url(), v.language, urllib.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle)
+	link = '<a href="/{}/{}/{}">{}</a>'.format(section_ref.url(), v.language, urllib.parse.quote(v.versionTitle.replace(" ", "_").encode("utf-8")), v.versionTitle)
 	return mark_safe(link)
 
 
@@ -143,7 +143,7 @@ def text_toc_link(indx):
 
 	en = indx.nodes.primary_title("en")
 	he = indx.nodes.primary_title("he")
-	link = u'<a href="/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(indx.title, en, he)
+	link = '<a href="/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(indx.title, en, he)
 	return mark_safe(link)
 
 
@@ -152,7 +152,7 @@ def person_link(person):
 	"""
 	Return an <a> tag linking to a person page.
 	"""
-	link = u'<a href="/person/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(person.key, person.primary_name("en"), person.primary_name("he"))
+	link = '<a href="/person/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(person.key, person.primary_name("en"), person.primary_name("he"))
 	return mark_safe(link)
 
 
@@ -171,14 +171,14 @@ def version_source_link(v):
 	Return an <a> tag linking to the versionSource, or to a Google Search for the source.
 	"""
 	if " " in v.versionSource or "." not in v.versionSource:
-		href       = "https://www.google.com/search?q=" + urllib.quote(v.versionSource.encode('utf8'))
+		href       = "https://www.google.com/search?q=" + urllib.parse.quote(v.versionSource.encode('utf8'))
 		val        = v.versionSource
 	else:
 		parsed_uri = urlparse( v.versionSource )
 		href       = v.versionSource
 		val        = parsed_uri.netloc
 
-	link = u'<a class="versionSource" href="{}" target="_blank">{}</a>'.format(href, val)
+	link = '<a class="versionSource" href="{}" target="_blank">{}</a>'.format(href, val)
 	return mark_safe(link)
 
 
@@ -293,7 +293,7 @@ def discussion_link(discussion):
 
 	:param discussion is either a Layer object or a urlkey for a Layer object.
 	"""
-	if isinstance(discussion, basestring):
+	if isinstance(discussion, str):
 		discussion = m.Layer().load({"urlkey": discussion})
 		if not discussion:
 			return mark_safe("[discusion not found]")
@@ -354,7 +354,7 @@ def trim_title(value):
 	safe = safe.replace("Shulchan Arukh, ", "")
 	safe = safe.replace("Jerusalem Talmud ", "")
 
-	safe = safe.replace(u"משנה תורה, ", "")
+	safe = safe.replace("משנה תורה, ", "")
 
 	return mark_safe(safe)
 

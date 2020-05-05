@@ -22,10 +22,10 @@ from sefaria.utils.hebrew import is_hebrew
 
 class WorkflowyParser(object):
 
-    title_lang_delim = ur"/"
-    alt_title_delim = ur"|"
-    comment_delim = ur'#'
-    categories_delim = u"%"
+    title_lang_delim = r"/"
+    alt_title_delim = r"|"
+    comment_delim = r'#'
+    categories_delim = "%"
 
     def __init__(self, schema_file, term_scheme=None, c_index=False, c_version=False, delims=None):
         self._schema_outline_file = schema_file
@@ -34,7 +34,7 @@ class WorkflowyParser(object):
         self._c_version = c_version
         tree = ET.parse(self._schema_outline_file)
         self.outline = tree.getroot().find("./body/outline")
-        self.comment_strip_re = re.compile(ur"</b>|<b>|"+self.comment_delim+".*"+self.comment_delim, re.UNICODE)
+        self.comment_strip_re = re.compile(r"</b>|<b>|"+self.comment_delim+".*"+self.comment_delim, re.UNICODE)
         self.parsed_schema = None
         self.version_info = None
         if delims:
@@ -53,21 +53,21 @@ class WorkflowyParser(object):
         self.parsed_schema = schema_root
         schema_root.validate()
         if self._c_index:
-            print "Saving Index record"
+            print("Saving Index record")
             idx = self.create_index_from_schema(categories)
             if self._c_version:
-                print "Creating Version Record"
+                print("Creating Version Record")
                 self.create_version_from_outline_notes()
             else:
-                print "No Text, Creating Default Empty Version Record"
+                print("No Text, Creating Default Empty Version Record")
                 self.create_version_default(idx)
         else:
-            print pprint.pprint(schema_root.serialize())
+            print(pprint.pprint(schema_root.serialize()))
 
 
     # object tree of each with jagged array nodes at the lowest level (recursive)
     def build_index_schema(self, element):
-        if self._term_scheme and isinstance(self._term_scheme, basestring):
+        if self._term_scheme and isinstance(self._term_scheme, str):
             self.create_term_scheme()
         # either type of node:
         ja_sections = self.parse_implied_depth(element)
@@ -107,7 +107,7 @@ class WorkflowyParser(object):
             return None
         # print title
         #title = re.sub(ur"</b>|<b>|#.*#|'", u"", title)
-        title = self.comment_strip_re.sub(u"", title)
+        title = self.comment_strip_re.sub("", title)
         spl_title = title.split(self.title_lang_delim)
         titles = {}
         if len(spl_title) == 2:
@@ -144,7 +144,7 @@ class WorkflowyParser(object):
         return n
 
     def extract_categories_from_title(self):
-        category_pattern = self.categories_delim+ur"(.*)"+self.categories_delim
+        category_pattern = self.categories_delim+r"(.*)"+self.categories_delim
         title = self.outline.get("text")
         category_str = re.search(category_pattern, title)
         if category_str:
@@ -154,8 +154,8 @@ class WorkflowyParser(object):
         return None
 
     def parse_implied_depth(self, element):
-        ja_depth_pattern = ur"\[(\d)\]$"
-        ja_sections_pattern = ur"\[(.*)\]$"
+        ja_depth_pattern = r"\[(\d)\]$"
+        ja_sections_pattern = r"\[(.*)\]$"
         title_str = element.get('text').strip()
 
         depth_match = re.search(ja_depth_pattern, title_str)
@@ -203,7 +203,7 @@ class WorkflowyParser(object):
 
     def create_term_scheme(self):
         if not TermScheme().load({"name": self._term_scheme}):
-            print "Creating Term Scheme object"
+            print("Creating Term Scheme object")
             ts = TermScheme()
             ts.name = self._term_scheme
             ts.save()
@@ -212,7 +212,7 @@ class WorkflowyParser(object):
     def create_shared_term_for_scheme(self, title_group):
         #TODO: This might be a silly method, since for most cases we do not want to blindly create terms from ALL thre nodes of a schema
         if not Term().load({"name": title_group.primary_title()}):
-            print "Creating Shared Term for Scheme from outline"
+            print("Creating Shared Term for Scheme from outline")
             term = Term()
             term.name = title_group.primary_title()
             term.scheme = self._term_scheme.name
@@ -280,7 +280,7 @@ if __name__ == '__main__':
     parser.add_argument("-v", "--create_version", action="store_true", help="Optional argument to create a version from the notes on the outline. Requires an existing Index or one to be created")
     parser.add_argument("-d", "--delim", help="Optional argument for other delimiters")
     args = parser.parse_args()
-    print args
+    print(args)
     wfparser = WorkflowyParser(args.outline_file, args.term_scheme, args.create_index, args.create_version, args.delim)
     wfparser.parse()
 

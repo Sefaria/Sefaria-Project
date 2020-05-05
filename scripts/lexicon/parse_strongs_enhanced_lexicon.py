@@ -81,7 +81,7 @@ class WLCStrongParser(object):
                     if s_num == word_list[word]['strong_n']:
                         word_list[word]['list_occur'] +=1
                     else:
-                        raise Exception(u'double word {} but not same numbers'.format(word.encode('utf-8')))
+                        raise Exception('double word {} but not same numbers'.format(word.encode('utf-8')))
                 else:
                     word_list[word] = {'strong_n': s_num, 'list_occur': 1, 'found_in_wlc': False, 'found_word_form': False}
         return word_list
@@ -101,7 +101,7 @@ class WLCStrongParser(object):
 
     def parse_forms_in_books(self):
         for book in self.hebmorph_shorthands:
-            print book
+            print(book)
             word_form_book_parser = WLCStrongWordFormBookParser(self, book)
             word_form_book_parser.iterate_over_text(self.compare_mode)
         if self.compare_mode:
@@ -132,9 +132,9 @@ class WLCStrongWordFormBookParser(object):
         self.book = book
         self.xml_book_name = self.parent_parser.hebmorph_shorthands[self.book]
         self.namespace = {'strong': 'http://www.bibletechnologies.net/2003/OSIS/namespace'}
-        self.strip_cantillation_vowel_regex = re.compile(ur"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
-        self.strip_cantillation_regex = re.compile(ur"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
-        self.strong_num_regex = re.compile(ur"[0-9]+")
+        self.strip_cantillation_vowel_regex = re.compile(r"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
+        self.strip_cantillation_regex = re.compile(r"[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]", re.UNICODE)
+        self.strong_num_regex = re.compile(r"[0-9]+")
         xmlp = ET.parse(self.parent_parser.get_morphhb_file(self.xml_book_name + '.xml'))
         self.xml_contents = xmlp.getroot().find("strong:osisText/strong:div[@type='book']", self.namespace)
 
@@ -208,7 +208,7 @@ class WLCStrongWordFormBookParser(object):
 
     def _strip_wlc_morph_notation(self, word_text):
         #strip the slash that denotes a morphological separator
-        return re.sub(ur"\u002f", "", word_text)
+        return re.sub(r"\u002f", "", word_text)
 
     def _make_consonantal_text(self, word_text):
         return self._make_derived_text(word_text, self.strip_cantillation_vowel_regex)
@@ -239,15 +239,15 @@ class StrongHebrewGLexiconXMLParser(object):
     arc_stems = ["P'al","peal","peil","hithpeel","pael","ithpaal","hithpaal","aphel","haphel","saphel","shaphel","hophal","ithpeel","hishtaphel","ishtaphel","hithaphel","polel","","ithpoel","hithpolel","hithpalpel","hephal","tiphel","poel","palpel","ithpalpel","ithpolel","ittaphal"]
 
     def __init__(self):
-        self.heb_stem_regex = re.compile(ur'^\(('+"|".join(self.heb_stems)+')\)', re.IGNORECASE)
-        self.arc_stem_regex = re.compile(ur'^\(('+"|".join(self.arc_stems)+')\)', re.IGNORECASE)
+        self.heb_stem_regex = re.compile(r'^\(('+"|".join(self.heb_stems)+')\)', re.IGNORECASE)
+        self.arc_stem_regex = re.compile(r'^\(('+"|".join(self.arc_stems)+')\)', re.IGNORECASE)
         self.dictionary_xml = ET.parse('%s/%s' % (self.data_dir, self.filename))
         self.namespace = {'strong': 'http://www.bibletechnologies.net/2003/OSIS/namespace', 'lang':'http://www.w3.org/XML/1998/namespace'}
         self.entries_xml = self.dictionary_xml.getroot().findall(".//*[@type='entry']", self.namespace)
         self.entries = []
 
     def parse_contents(self):
-        print "BEGIN PARSING"
+        print("BEGIN PARSING")
         self._make_lexicon_obj()
         for entry in self.entries_xml:
             le = self._make_dictionary_entry(entry)
@@ -302,7 +302,7 @@ class StrongHebrewGLexiconXMLParser(object):
                 break
 
     def _parse_item_depth(self, def_item):
-        depth_re = re.compile(ur"^([^)]+?)\)", re.UNICODE)
+        depth_re = re.compile(r"^([^)]+?)\)", re.UNICODE)
         match = depth_re.search(def_item)
         depth = len(match.group())-1 if match else 1
         return {'depth': depth, 'value': depth_re.sub('', def_item,1).strip()}
@@ -332,7 +332,7 @@ class StrongHebrewGLexiconXMLParser(object):
 
 """ The main function, runs when called from the CLI"""
 if __name__ == '__main__':
-    print "INIT LEXICON"
+    print("INIT LEXICON")
     #os.chdir(os.path.dirname(sys.argv[0]))
     parser = argparse.ArgumentParser()
     parser.add_argument("-l", "--lexicon", help="Parse lexicon",
@@ -343,11 +343,11 @@ if __name__ == '__main__':
 
 
     if args.lexicon:
-        print "parse lexicon"
+        print("parse lexicon")
         strongparser = StrongHebrewGLexiconXMLParser()
         strongparser.parse_contents()
     if args.wordform:
-        print 'parsing word forms from wlc'
+        print('parsing word forms from wlc')
         wordformparser = WLCStrongParser()
         wordformparser.parse_forms_in_books()
 

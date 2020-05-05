@@ -70,13 +70,13 @@ def read(name):
 class OfflineTextIndexer(object):
     @staticmethod
     def get_section_ref(segment_ref):
-        return re.sub(ur":[^:]+$", u'', segment_ref)
+        return re.sub(r":[^:]+$", '', segment_ref)
 
     @classmethod
     def index_section(cls, title, section_ref, section_text):
         if not section_ref:
             return
-        ref_part = re.sub(ur'^{}'.format(re.escape(title)), u'', section_ref)
+        ref_part = re.sub(r'^{}'.format(re.escape(title)), '', section_ref)
         cls.ref_num_2_full_name.append(section_ref)
         cls.ref_num_2_part.append(ref_part)
         add_words(section_text,cls.words_2_ref_nums, cls.ref_num)
@@ -93,17 +93,17 @@ class OfflineTextIndexer(object):
         if section_ref != cls.curr_section:
             cls.index_section(cls.curr_title, cls.section_ref, cls.curr_section_text)
             cls.curr_section = section_ref
-            cls.curr_section_text = u""
+            cls.curr_section_text = ""
         cls.curr_section_text += text
 
     @classmethod
     def parse_lib_to_json(cls, start, end):
-        print('parse_lib', start, end)
+        print(('parse_lib', start, end))
         cls.ref_num_min_N_title = [] # min ref_num of each book.title [[min_ref_num, book_title], ...]
         cls.ref_num = 0 # absolute index num for all refs
         cls.curr_title = None
         cls.curr_section = None
-        cls.curr_section_text = u""
+        cls.curr_section_text = ""
         # only used for debuging (
         cls.ref_num_2_full_name = []
 
@@ -119,11 +119,11 @@ class OfflineTextIndexer(object):
 
         indexes = library.all_index_records()
         indexes = indexes[start:end]
-        print("Running on {} indexes".format(len(indexes)))
+        print(("Running on {} indexes".format(len(indexes))))
         last_time = time.time()
         for i, index in enumerate(indexes):
             title = index.title
-            print(i, str(dt.now().time()), index.title, time.time() - last_time)
+            print((i, str(dt.now().time()), index.title, time.time() - last_time))
             last_time = time.time()
             sys.stdout.flush()
             ref_num_min_N_title.append((ref_num, title,))
@@ -131,22 +131,22 @@ class OfflineTextIndexer(object):
                 section_refs = index.all_section_refs()
                 for section_ref in section_refs:
                     # remove the title from the section_ref
-                    ref_part = re.sub(ur'^{}'.format(re.escape(title)), u'', section_ref.normal())
+                    ref_part = re.sub(r'^{}'.format(re.escape(title)), '', section_ref.normal())
                     ref_num_2_full_name.append(section_ref.normal())
                     ref_num_2_part.append(ref_part)
                     add_words(section_ref, words_2_ref_nums, ref_num)
                     ref_num += 1
             except InputError as e:
-                print('ERROR', e)
+                print(('ERROR', e))
         print('saving to json...')
         save(REF_NUM_MIN_N_TITLE, ref_num_min_N_title)
         save(REF_NUM_2_PART, ref_num_2_part)
 
 
         # convert sets to lists for json
-        words_2_ref_nums = {key: sorted(list(value)) for key, value in words_2_ref_nums.iteritems()}
+        words_2_ref_nums = {key: sorted(list(value)) for key, value in words_2_ref_nums.items()}
         save(WORDS_2_REF_NUMS, words_2_ref_nums)
-        save(_ONLY_WORDS_LIST, words_2_ref_nums.keys())
+        save(_ONLY_WORDS_LIST, list(words_2_ref_nums.keys()))
 
 
 def add_words(ref, words_2_ref_nums, index_num):
@@ -159,20 +159,20 @@ def add_words(ref, words_2_ref_nums, index_num):
 def get_words(text):
     #print(text)
     #TODO: more work can prob be done here in this func
-    text = re.sub(ur'<[^>]+>', u' ', text)
-    text = re.sub(ur'\([^)]+\)', u' ', text)
-    text = re.sub(ur'\[[^\]]+\]', u' ', text)
-    text = re.sub(ur'[\u05be\s+\.\-;:,?!{}]', u' ', text) # convert dashs/dots/etc to space
+    text = re.sub(r'<[^>]+>', ' ', text)
+    text = re.sub(r'\([^)]+\)', ' ', text)
+    text = re.sub(r'\[[^\]]+\]', ' ', text)
+    text = re.sub(r'[\u05be\s+\.\-;:,?!{}]', ' ', text) # convert dashs/dots/etc to space
     #text = re.sub(ur'[\u0591-\u05C7\u05f3\u05f4]', '', text)
     #text = re.sub(ur'[\u0591-\u05c7]', '', text)
 
-    text = re.sub(ur'([^\u05d0-\u05eaA-Za-z0-9\s])', u'', text) # remove non-regular chars
+    text = re.sub(r'([^\u05d0-\u05eaA-Za-z0-9\s])', '', text) # remove non-regular chars
     text = text.lower()
     # bf_text = text
-    text = text.replace(u' \u05d5', u' ')
+    text = text.replace(' \u05d5', ' ')
 
     words = text.split()
-    words = set(words) - set([u''])
+    words = set(words) - set([''])
     # print('diff')
     # print(' '.join(words - set(bf_text.split(' '))))
     # print(' '.join(set(bf_text.split(' ')) - words))
@@ -211,14 +211,14 @@ def get_connection(rm_old=False):
 
     try:
         conn = sqlite3.connect(db_file)
-        print('sql version', sqlite3.version)
+        print(('sql version', sqlite3.version))
     except (sqlite3.Error,) as e:
         raise e
     return conn
 
 def convert_to_josh_packets(words_2_ref_nums):
     #return {word: [] for word in words_2_ref_nums.keys()} # WORDS ONLY
-    ref_num_count = max([max(x) for x in words_2_ref_nums.values()])
+    ref_num_count = max([max(x) for x in list(words_2_ref_nums.values())])
     PACKET_SIZE = 24  # 24 + 8 bit for location == 32 bits == 4 bytes
     PACKET_INDEXING_BITS = 8
     chunk_size = 200
@@ -229,15 +229,15 @@ def convert_to_josh_packets(words_2_ref_nums):
             break
         else:
             chunk_size *= 2
-            print('TOO MANY PACKETS (only have 8 bits) NEED TO RAISE CHUNK SIZE to: ', chunk_size)
+            print(('TOO MANY PACKETS (only have 8 bits) NEED TO RAISE CHUNK SIZE to: ', chunk_size))
 
-    print('chunk_size', chunk_size, 'chunk_count', chunk_count, 'packet_count', packet_count)
+    print(('chunk_size', chunk_size, 'chunk_count', chunk_count, 'packet_count', packet_count))
     words_2_packets = {}
     TEST_WORD = 'threefour'
 
-    print('total_words', len(words_2_ref_nums))
+    print(('total_words', len(words_2_ref_nums)))
     words_done = 0
-    for word, ref_nums in words_2_ref_nums.iteritems():
+    for word, ref_nums in words_2_ref_nums.items():
         #if word != TEST_WORD: continue
         packets = []
 
@@ -260,7 +260,7 @@ def convert_to_josh_packets(words_2_ref_nums):
         words_2_packets[word] = packets
         words_done += 1
         if words_done % 100000 == 0:
-            print(words_done, 1.0*words_done/len(words_2_ref_nums), str(dt.now().time()),)
+            print((words_done, 1.0*words_done/len(words_2_ref_nums), str(dt.now().time()),))
 
         #packet looks like: [0, '0010010000000000']  (the first index for the packet.. meaninbg a 1 shows up in the first 24 bits)
         #                    ^ bit number
@@ -277,14 +277,14 @@ def store(conn, data, table_name, two_cols=None, value_type_text=None, split_tup
     if value_type_text:
         data = {i: value for i, value in enumerate(data)}
         if split_tup:
-            values = [(str(v[0]), str(v[1])) for k, v in data.iteritems()]
+            values = [(str(v[0]), str(v[1])) for k, v in data.items()]
         else:
-            values = [(str(v),) for k, v in data.iteritems()]
+            values = [(str(v),) for k, v in data.items()]
         value_type = 'TEXT'
     else:
         value_type = 'BLOB'
         values = []
-        for _id, ref_nums in data.iteritems():
+        for _id, ref_nums in data.items():
             a = array.array('I', ref_nums)
             b = buffer(a.tostring())
             #print('ab', a.tostring())
@@ -324,30 +324,30 @@ def store(conn, data, table_name, two_cols=None, value_type_text=None, split_tup
 ###### GETTING data:
 def get_from_word_2_ref(word, words_2_ref_nums, ref_num_min_N_title, ref_num_2_part, ref_num_2_full_name):
     ref_nums = words_2_ref_nums.get(word, [])
-    print('ref_nums', ref_nums)
+    print(('ref_nums', ref_nums))
     ref_strs = []
     for ref_num in ref_nums:
         for ref_num_min, temp_title in ref_num_min_N_title:
             if ref_num_min > ref_num:
                 break
             title = temp_title
-        full_ref_str = u'{}{}'.format(title, ref_num_2_part[ref_num])
-        print(u'full_ref_str', ref_num, full_ref_str)
+        full_ref_str = '{}{}'.format(title, ref_num_2_part[ref_num])
+        print(('full_ref_str', ref_num, full_ref_str))
 
 
         ref_strs.append(full_ref_str); continue
         #TODO: test weird part refs and make more complete and test that word always shows up in texts
         if full_ref_str != ref_num_2_full_name[ref_num]:
-            print('DIFF:',)
-            print('try', full_ref_str)
-            print('real', ref_num_2_full_name[ref_num])
+            print(('DIFF:',))
+            print(('try', full_ref_str))
+            print(('real', ref_num_2_full_name[ref_num]))
         else:
             #print('same', full_ref_str)
             ref_strs.append(full_ref_str)
 
     for r in ref_strs:
         full_text = ' '.join(Ref(r).text('en').text)
-        print('text from ref search', r, word in full_text)# full_text.replace(word, '_____' + word + '_____'))
+        print(('text from ref search', r, word in full_text))# full_text.replace(word, '_____' + word + '_____'))
 
     return ref_strs
 
@@ -359,15 +359,15 @@ def make_little_endian(blob):
     #hex_str = struct.unpack_from('>8s', blob)
     #print(hex_str)
     hex_str = str(blob).encode("hex")
-    print('pre little endain', hex_str)
+    print(('pre little endain', hex_str))
     new_hex = []
     for byte_i in range(0, len(hex_str), 8):
         hex_byte_str = hex_str[byte_i:byte_i + 8]
-        print('hbs', byte_i, hex_byte_str, hex_str)
+        print(('hbs', byte_i, hex_byte_str, hex_str))
         for i in range(len(hex_byte_str), len(hex_byte_str) - 8, -2):
             new_hex.append(hex_byte_str[i - 2:i])
     new_hex = ''.join(new_hex)
-    print('new_hex', new_hex)
+    print(('new_hex', new_hex))
     return new_hex
 
 def search_in_ref(ref, query):
@@ -392,7 +392,7 @@ def get_from_db(word):
 
     chunk_size = int(hex_str[0:8], 16)
     PACKET_SIZE = int(hex_str[8:16], 16) # 3 * 8 # 3 bytes of bits * 8bits per byte
-    print(_id, blob, hex_str, len(hex_str), chunk_size, PACKET_SIZE) # 200, 24 ... this looks correct
+    print((_id, blob, hex_str, len(hex_str), chunk_size, PACKET_SIZE)) # 200, 24 ... this looks correct
     ##
 
     sql = 'SELECT * from {} where _id like ?'.format(WORDS_2_REF_NUMS)
@@ -414,7 +414,7 @@ def get_from_db(word):
                 if bit == '1':
                     chunk_start_num = (packet_index * PACKET_SIZE + bit_index) * chunk_size
                     chunk_start_nums.append(chunk_start_num)
-                    print(index, packet, packet_index, packet_bits, chunk_start_num)
+                    print((index, packet, packet_index, packet_bits, chunk_start_num))
 
         title_id = -1
         for chunk_start_num in chunk_start_nums:
@@ -431,7 +431,7 @@ def get_from_db(word):
                     rows = cur.fetchall()
                     title_id, title = rows[0]
 
-                ref_str = u'{}{}'.format(title, part)
+                ref_str = '{}{}'.format(title, part)
                 try:
                     r = Ref(ref_str)
                     result = search_in_ref(r, word)
@@ -439,8 +439,8 @@ def get_from_db(word):
                         ref_results.append(r)
                         # print result
                 except InputError as e:
-                    print('ERROR parsing ref', e)
-    print('Found {} results for {}'.format(len(ref_results), word))
+                    print(('ERROR parsing ref', e))
+    print(('Found {} results for {}'.format(len(ref_results), word)))
     return ref_results
 
 

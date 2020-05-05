@@ -9,8 +9,8 @@ from random import sample, shuffle
 from sefaria.model import *
 # noinspection PyUnresolvedReferences
 from sefaria.system.database import db
-import summaries
-from utils.talmud import section_to_daf
+from . import summaries
+from .utils.talmud import section_to_daf
 
 
 def next_untranslated_ref_in_text(text, section=None, enCounts=None, tryNext=True):
@@ -76,7 +76,7 @@ def random_untranslated_ref_in_text(text, skip=None):
 
 	enCounts = mark_locked(text, state.var("en", "availableTexts"))
 
-	options = range(len(state.var("he", "availableTexts")))
+	options = list(range(len(state.var("he", "availableTexts"))))
 	shuffle(options)
 	if skip:
 		options = [x for x in options if x != skip]

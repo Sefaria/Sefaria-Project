@@ -11,9 +11,9 @@ if __name__ == "__main__":
     assert echad_mi_yodeya.get_titles('en')[0] in acceptable_titles
     for grandchild in node.children:
         if grandchild.get_titles('en')[0] not in acceptable_titles:
-            print "Removing {}".format(grandchild)
+            print("Removing {}".format(grandchild))
             remove_branch(grandchild)
 
-    print "Changing order in Nirtzah"
+    print("Changing order in Nirtzah")
     reorder_children(node, ["Chad Gadya", "Echad Mi Yodea"])
 

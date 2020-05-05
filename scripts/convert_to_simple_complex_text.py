@@ -60,7 +60,7 @@ if __name__ == '__main__':
     parser.add_argument("title", help="title of existing index record")
     parser.add_argument("mapping_file", help="title of existing index record")
     args = parser.parse_args()
-    print args
+    print(args)
     with open(args.mapping_file, 'rb') as csvfile:
         mapping_csv = csv.reader(csvfile, delimiter='\t')
         mappings = []

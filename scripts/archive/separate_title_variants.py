@@ -16,9 +16,9 @@ for index in indices:
             en.append(variant)
 
     if set(index.titleVariants) != set(en):
-        print index.title
-        print index.titleVariants
-        print en
+        print(index.title)
+        print(index.titleVariants)
+        print(en)
         
     index.titleVariants   = list(set(en))
     index.heTitleVariants = list(set(he))

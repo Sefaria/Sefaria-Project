@@ -19,7 +19,7 @@ i = library.get_index("Ben Ish Hai")
 
 intro = JaggedArrayNode(index=i)
 intro.add_title("Introduction", "en", primary=True)
-intro.add_title(u"הקדמה", "he", primary=True)
+intro.add_title("הקדמה", "he", primary=True)
 intro.key = "intro"
 intro.depth = 1
 intro.sectionNames = ["Paragraph"]

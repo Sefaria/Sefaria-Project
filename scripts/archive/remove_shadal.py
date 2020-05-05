@@ -46,7 +46,7 @@ for version in versions:
 
 links = db.links.find({"refs": {"$regex": "^Shadal on "}})
 for link in links:
-	parsed = map(parse_ref, link["refs"])
+	parsed = list(map(parse_ref, link["refs"]))
 	remove = True
 	for p in parsed:
 		if (p.get("book", None) == "Shadal on Genesis" 

@@ -27,7 +27,7 @@ class LexiconBox extends Component {
     // console.log("component will receive props: ", nextProps.selectedWords);
     if (!nextProps.selectedWords) {
       this.clearLookups();
-    } else if (this.props.selectedWords != nextProps.selectedWords) {
+    } else if (this.props.selectedWords !== nextProps.selectedWords) {
       this.clearLookups();
       this.getLookups(nextProps.selectedWords, nextProps.oref);
     }
@@ -48,18 +48,18 @@ class LexiconBox extends Component {
     if(this.shouldActivate(words)) {
       let ref = oref ? oref.ref : undefined;
       // console.log('getting data: ', words, oref.ref);
-      Sefaria.lexicon(words, ref, function(data) {
+      Sefaria.getLexiconWords(words, ref).then(data => {
         this.setState({
           loaded: true,
           entries: data
         });
 
-        var action = (data.length == 0)? "Open No Result": "Open";
+        let action = (data.length === 0)? "Open No Result": "Open";
         action += oref ? " / " + oref.categories.join("/") + "/" + oref.book : "";
         Sefaria.track.event("Lexicon", action, words);
 
         // console.log('gotten data from Sefaria.js, state re-set: ', this, data);
-      }.bind(this));
+      });
     }
   }
   shouldActivate(selectedWords){

@@ -39,7 +39,7 @@ def dep_counts(name):
         'history title match commentee': history.HistorySet({"title": {"$regex": commentee_title_pattern}}).count(),
     }
 
-    for pname, pattern in ref_patterns.items():
+    for pname, pattern in list(ref_patterns.items()):
         ret.update({
             'note match ' + pname: note.NoteSet({"ref": {"$regex": pattern}}).count(),
             'link match ' + pname: link.LinkSet({"refs": {"$regex": pattern}}).count(),
@@ -51,6 +51,6 @@ def dep_counts(name):
 
 
 for ind in indices:
-    print
-    print ind.title
-    print pp.pprint(dep_counts(ind.title))
+    print()
+    print(ind.title)
+    print(pp.pprint(dep_counts(ind.title)))

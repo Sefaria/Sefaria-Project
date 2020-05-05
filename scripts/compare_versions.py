@@ -71,7 +71,7 @@ class ComparisonTest:
     Parent class for testing classes.
     """
 
-    name = u'Comparison Test'
+    name = 'Comparison Test'
     depth = Ref.is_segment_level
 
     def __init__(self, book, language, versions):
@@ -112,12 +112,12 @@ class ComparisonTest:
         try:
             result = self.test_results[reference]
         except KeyError:
-            output_file.write(u' ')
+            output_file.write(' ')
             return
         if result.passed:
-            output_file.write(u'passed')
+            output_file.write('passed')
         else:
-            output_file.write(u'{}'.format(result.diff))
+            output_file.write('{}'.format(result.diff))
 
     def run_test_series(self):
         """
@@ -180,8 +180,8 @@ class TestSuite:
         Writes the HTML header to output file.
         """
 
-        self.output.write(u'<!DOCTYPE html>\n<html><meta charset="utf-8">\n<body>\n<table>\n')
-        self.output.write(u'<style type="text/css">\
+        self.output.write('<!DOCTYPE html>\n<html><meta charset="utf-8">\n<body>\n<table>\n')
+        self.output.write('<style type="text/css">\
         table.diff {font-family:Courier; border:medium;}\
         .diff_header {background-color:#e0e0e0}\
         td.diff_header {text-align:right}\
@@ -190,25 +190,25 @@ class TestSuite:
         .diff_chg {background-color:#ffff77}\
         .diff_sub {background-color:#ffaaaa}\
     </style>')
-        self.output.write(u'<table class="diff" summary="Legends">\
+        self.output.write('<table class="diff" summary="Legends">\
         <tr> <th colspan="2"> Legends </th> </tr>\
         <tr> <td> <table border="" summary="Colors">\
                       <tr><th> Colors </th> </tr>\
                       <tr><td class="diff_add">&nbsp;Added to Vilna Mishna&nbsp;</td></tr>\
                       <tr><td class="diff_sub">Missing from Vilna Mishna</td> </tr>\
                   </table>')
-        self.output.write(u'<tr>')
-        self.output.write(u'<td>Reference</td>')
+        self.output.write('<tr>')
+        self.output.write('<td>Reference</td>')
         for test in self.tests:
-            self.output.write(u'<td>{}</td>'.format(test.name))
-        self.output.write(u'</tr>')
+            self.output.write('<td>{}</td>'.format(test.name))
+        self.output.write('</tr>')
 
     def html_footer(self):
         """
         Writes the HTML footer to output file
         """
 
-        self.output.write(u'</table>\n</body>\n</html>')
+        self.output.write('</table>\n</body>\n</html>')
 
     def write_results(self, finished_tests, reference):
         """
@@ -218,28 +218,28 @@ class TestSuite:
         """
 
         if self.html:
-            self.output.write(u'<tr><td>')
-            self.output.write(u'<a href="http://draft.sefaria.org/{}">'.format(reference.replace(u' ', u'_')))
-            self.output.write(u'{}'.format(reference))
-            self.output.write(u'</a></td>')
+            self.output.write('<tr><td>')
+            self.output.write('<a href="http://draft.sefaria.org/{}">'.format(reference.replace(' ', '_')))
+            self.output.write('{}'.format(reference))
+            self.output.write('</a></td>')
 
         else:
-            self.output.write(u'{},'.format(reference))
+            self.output.write('{},'.format(reference))
 
         for test in finished_tests:
 
             if self.html:
-                self.output.write(u'<td>')
+                self.output.write('<td>')
                 test.output_result(reference, self.output)
-                self.output.write(u'</td>')
+                self.output.write('</td>')
             else:
                 test.output_result(reference, self.output)
-                self.output.write(u',')
+                self.output.write(',')
 
         if self.html:
-            self.output.write(u'</tr>')
+            self.output.write('</tr>')
         else:
-            self.output.write(u'\n')
+            self.output.write('\n')
 
         if not Ref(reference).is_segment_level():
             for ref in Ref(reference).all_subrefs():
@@ -257,7 +257,7 @@ class TestSuite:
 
             if self.new_file:
                 script_dir = os.path.dirname(os.path.dirname(__file__))
-                rel_path = u'data/test_results/{}.html'.format(book)
+                rel_path = 'data/test_results/{}.html'.format(book)
                 abs_file_path = os.path.join(script_dir, rel_path)
                 self.output = codecs.open(abs_file_path, 'w', 'utf-8')
                 self.html_header()
@@ -284,7 +284,7 @@ class CompareNumberOfSegments(ComparisonTest):
     Compares number of Segments between two versions.
     """
 
-    name = u'Mishna Count Test'
+    name = 'Mishna Count Test'
     depth = Ref.is_section_level
 
     def run_test(self, ref, max_diff=0):
@@ -309,7 +309,7 @@ class CompareNumberOfWords(ComparisonTest):
     Compares number of words in a mishna from two parallel versions
     """
 
-    name = u'Word Comparison Test'
+    name = 'Word Comparison Test'
 
     def run_test(self, mishna, max_diff=0):
         """
@@ -337,7 +337,7 @@ class CompareStrings(ComparisonTest):
     Strips strings of anything not a hebrew letter or a single space, then checks if strings are identical
     """
 
-    name = u'Exact String Match Test'
+    name = 'Exact String Match Test'
 
     def run_test(self, reference):
 
@@ -349,8 +349,8 @@ class CompareStrings(ComparisonTest):
         v2 = TextChunk(reference, self.language, self.v2).text
 
         # remove multiple spaces
-        v1 = re.sub(u' +', u' ', v1)
-        v2 = re.sub(u' +', u' ', v2)
+        v1 = re.sub(' +', ' ', v1)
+        v2 = re.sub(' +', ' ', v2)
 
         if v1 == v2:
             result.passed = True

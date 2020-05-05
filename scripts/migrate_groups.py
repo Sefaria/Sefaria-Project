@@ -8,7 +8,7 @@ groups = DjangoGroup.objects.all()
 for dgroup in groups:
 	if dgroup.name in skip:
 		continue
-	print dgroup.name
+	print(dgroup.name)
 	admins = [u.id for u in dgroup.user_set.all()]
 	group = Group().load({"name": dgroup.name})
 	fields = {

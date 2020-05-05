@@ -6,18 +6,18 @@ from sefaria.model import *
 class Test_Lexicon_Lookup(object):
 
     def test_bible_lookup(self):
-        word = u"תִּשְׁמֹ֑רוּ"
+        word = "תִּשְׁמֹ֑רוּ"
         lookup_ref = "Leviticus 19.3"
         #["lookup_ref", "never_split", "always_split"]
         results = LexiconLookupAggregator.lexicon_lookup(word)
         results2 = LexiconLookupAggregator.lexicon_lookup(word, **{"lookup_ref": lookup_ref})
         results3 = LexiconLookupAggregator.lexicon_lookup(word, **{"always_split": 1})
         assert results.count() == 1
-        assert results[0].headword == u"שָׁמַר"
+        assert results[0].headword == "שָׁמַר"
         assert results2.count() == 1
         assert results3.count() == 1
 
-        word2 = u"עִוֵּ֔ר"
+        word2 = "עִוֵּ֔ר"
         results = LexiconLookupAggregator.lexicon_lookup(word2)
         assert results.count() == 2
 
@@ -31,7 +31,7 @@ class Test_Lexicon_Lookup(object):
         results2 = LexiconLookupAggregator.lexicon_lookup(word, **{"lookup_ref": lookup_ref})
         results3 = LexiconLookupAggregator.lexicon_lookup(word, **{"always_split": 1})
         assert results.count() == 1
-        assert results[0].headword == u"מעשר שני"
+        assert results[0].headword == "מעשר שני"
         assert results2.count() == 1
         assert results3.count() == 1
 
@@ -76,9 +76,9 @@ class Test_Lexicon_Save(object):
         }
         l = JastrowDictionaryEntry(entry)
         l.save()
-        print l.content["senses"][0]["definition"]
-        assert l.content["senses"][0]["definition"] == u""" as numeral letter, <i>one</i>, as <span dir="rtl">אות א׳</span> = <span dir="rtl">אות אחת</span> one letter. <a class="refLink" data-ref="Shabbat 104a" href="/Shabbat.104a">Sabb. 104ᵃ</a>; a. fr. [Editions and Mss. vary, according to space, between the full numeral and the numeral letter, <a class="refLink" data-ref="Jastrow, א׳ 1" dir="rtl" href="/Jastrow,_א׳.1">א׳</a> for <span dir="rtl">אחד</span>, <span dir="rtl">אחת</span>; <a class="refLink" data-ref="Jastrow, ב׳ 1" dir="rtl" href="/Jastrow,_ב׳.1">ב׳</a> for <a class="refLink" data-ref="Jastrow, שְׁנַיִם 1" dir="rtl" href="/Jastrow,_שְׁנַיִם.1">שנים</a>, <span dir="rtl">שתים</span>, <a class="refLink" data-ref="Jastrow, שתי 1" dir="rtl" href="/Jastrow,_שתי.1">שתי</a> &amp;c.]"""
-        assert l.content["senses"][1]["definition"] == u'Seemingly ok definition... <a>Click me</a>'
+        print(l.content["senses"][0]["definition"])
+        assert l.content["senses"][0]["definition"] == """ as numeral letter, <i>one</i>, as <span dir="rtl">אות א׳</span> = <span dir="rtl">אות אחת</span> one letter. <a class="refLink" data-ref="Shabbat 104a" href="/Shabbat.104a">Sabb. 104ᵃ</a>; a. fr. [Editions and Mss. vary, according to space, between the full numeral and the numeral letter, <a class="refLink" data-ref="Jastrow, א׳ 1" dir="rtl" href="/Jastrow,_א׳.1">א׳</a> for <span dir="rtl">אחד</span>, <span dir="rtl">אחת</span>; <a class="refLink" data-ref="Jastrow, ב׳ 1" dir="rtl" href="/Jastrow,_ב׳.1">ב׳</a> for <a class="refLink" data-ref="Jastrow, שְׁנַיִם 1" dir="rtl" href="/Jastrow,_שְׁנַיִם.1">שנים</a>, <span dir="rtl">שתים</span>, <a class="refLink" data-ref="Jastrow, שתי 1" dir="rtl" href="/Jastrow,_שתי.1">שתי</a> &amp;c.]"""
+        assert l.content["senses"][1]["definition"] == 'Seemingly ok definition... <a>Click me</a>'
         l.delete()
 
 

@@ -49,7 +49,7 @@ MEDIA_URL = ''
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/home/media/media.lawrence.com/static/"
-STATIC_ROOT = ''
+STATIC_ROOT = '/app/static-collected'
 
 # URL prefix for static files.
 # Example: "http://media.lawrence.com/static/"
@@ -293,6 +293,21 @@ CACHES = {
     }
 }
 
+"""
+GLOBAL_INTERRUPTING_MESSAGE = {
+    "name":       "user_testing_israel",
+    "repetition": 1,
+    "style":      "modal",
+    "condition": {
+        "returning_only": False,
+        "desktop_only": False,
+        "english_only": False,
+        "hebrew_only": True,
+        "debug": False
+    }
+}
+"""
+GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab enviornment specific settings from a file which
 # is left out of the repo.
@@ -320,3 +335,5 @@ WEBPACK_LOADER = {
 
 }
 DATA_UPLOAD_MAX_MEMORY_SIZE = 24000000
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))

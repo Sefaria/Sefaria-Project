@@ -34,5 +34,5 @@ for sheet in sheets:
 			unknown_sources += 1
 			unknown_sheets.add(sheet["id"])
 
-print "***"
-print "%d refs \n%d comments \n%d outsideBiTexts \n%d outsideTexts \n%d Media \n%d unknowns" % (ref_sources,comment_sources,outsideBiText_sources,outsideText_sources,media_sources,unknown_sources)
+print("***")
+print("%d refs \n%d comments \n%d outsideBiTexts \n%d outsideTexts \n%d Media \n%d unknowns" % (ref_sources,comment_sources,outsideBiText_sources,outsideText_sources,media_sources,unknown_sources))

@@ -11,7 +11,7 @@ GroupSet().delete()
 
 groups = Group.objects.all()
 for group in groups:
-    print group.name
+    print(group.name)
     base = "http://www.sefaria.org/static/partner/"
     path = group.name.replace(" ", "_")
     newGroup = NewGroup({

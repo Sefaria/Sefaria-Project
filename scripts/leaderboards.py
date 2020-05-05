@@ -61,7 +61,7 @@ def update_top_contributors(days=None):
             db[collection].save(doc)
     
     # Add points for those who only have sheet points
-    for s in sheet_points.items():
+    for s in list(sheet_points.items()):
         if s[1]:
             doc = {
                 "_id": s[0], 

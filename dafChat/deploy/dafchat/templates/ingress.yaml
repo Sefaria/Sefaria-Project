@@ -1,0 +1,39 @@
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata: 
+  name: coturn-{{ .Values.deployEnv }}
+  annotations:
+    networking.gke.io/managed-certificates: coturn-{{ .Values.deployEnv }},rtc-{{ .Values.deployEnv }}
+spec:
+  rules: 
+    - host: coturn.{{ .Values.dafChat.sefariaHost }}
+      http:
+        paths:
+          - backend:
+              serviceName: coturn-{{ .Values.deployEnv }}
+              servicePort: 3478
+    - host: rtc.{{ .Values.dafChat.sefariaHost }}
+      http:
+        paths:
+          - backend:
+              serviceName: rtc-{{ .Values.deployEnv }}
+              servicePort: 80
+---
+# For each ingress, provision a certificate
+apiVersion: networking.gke.io/v1beta1
+kind: ManagedCertificate
+metadata: 
+  name: coturn-{{ .Values.deployEnv }}
+spec: 
+  domains:
+    - coturn.{{ .Values.dafChat.sefariaHost }}
+---
+apiVersion: networking.gke.io/v1beta1
+kind: ManagedCertificate
+metadata: 
+  name: rtc-{{ .Values.deployEnv }}
+spec: 
+  domains:
+    - rtc.{{ .Values.dafChat.sefariaHost }}
+...

@@ -7,7 +7,7 @@ from sefaria.model import *
 from sefaria.system.database import db
 
 if len(argv) == 1:
-	print "You need to enter a user ID"
+	print("You need to enter a user ID")
 	quit()
 
 script, userID = argv
@@ -26,4 +26,4 @@ for sheet in sheets:
 			comments += 1
 
 
-print "%d comments\n%d views" % (comments, views)
+print("%d comments\n%d views" % (comments, views))

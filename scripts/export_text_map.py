@@ -32,13 +32,13 @@ with open("../tmp/text_map.csv", 'wb') as csvfile:
 	for i in indexes:
 		order         = getattr(i, "order", [])
 		sectionNames  = getattr(i, "sectionNames", [])
-		section       = ".".join([unicode(x) for x in order])
+		section       = ".".join([str(x) for x in order])
 		title         = getattr(i, "title")
 		heTitle       = getattr(i, "heTitle", "")
 		titleVariants = ", ".join(getattr(i, "titleVariants"))
 		categories    = ", ".join(getattr(i, "categories"))
 		textStructure = ", ".join(sectionNames)
-		length        = unicode(getattr(i, "length", ""))
+		length        = str(getattr(i, "length", ""))
 
 		row = [
 			"",

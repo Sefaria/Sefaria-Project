@@ -3,6 +3,7 @@ const {
   GlobalWarningMessage,
   TestMessage,
   ProfilePic,
+  InterfaceLanguageMenu
 }                = require('./Misc');
 const React      = require('react');
 const PropTypes  = require('prop-types');
@@ -21,11 +22,20 @@ class Header extends Component {
     this.state = props.initialState;
     this._searchOverridePre = Sefaria._('Search for') +': "';
     this._searchOverridePost = '"';
+    this._type_icon_map = {
+      "Group": "iconmonstr-share-6.svg",
+      "Person": "iconmonstr-pen-17.svg",
+      "TocCategory": "iconmonstr-view-6.svg",
+      "Topic": "iconmonstr-hashtag-1.svg",
+      "ref": "iconmonstr-book-15.svg",
+      "search": "iconmonstr-magnifier-2.svg",
+      "Term": "iconmonstr-script-2.svg",
+    }
   }
   componentDidMount() {
     this.initAutocomplete();
     window.addEventListener('keydown', this.handleFirstTab);
-    if (this.state.menuOpen == "search" && this.state.searchQuery === null) {
+    if (this.state.menuOpen === "search" && this.state.searchQuery === null) {
       // If this is an empty search page, comically, lazily make it full
       this.props.showSearch("Search");
     }
@@ -39,35 +49,68 @@ class Header extends Component {
   _searchOverrideRegex() {
     return RegExp(`^${RegExp.escape(this._searchOverridePre)}(.*)${RegExp.escape(this._searchOverridePost)}`);
   }
+  // Returns true if override is caught.
+  catchSearchOverride(query) {
+    const override = query.match(this._searchOverrideRegex());
+    if (override) {
+      if (Sefaria.site) {
+        Sefaria.track.event("Search", "Search Box Navigation - Book Override", override[1]);
+      }
+      this.closeSearchAutocomplete();
+      this.showSearch(override[1]);
+      $(ReactDOM.findDOMNode(this)).find("input.search").val(override[1]);
+      return true;
+    }
+    return false;
+  }
   initAutocomplete() {
     $.widget( "custom.sefaria_autocomplete", $.ui.autocomplete, {
-      _renderItem: function( ul, item) {
-        var override = item.label.match(this._searchOverrideRegex());
+      _renderItem: function(ul, item) {
+        const override = item.label.match(this._searchOverrideRegex());
         return $( "<li></li>" )
           .addClass('ui-menu-item')
           .data( "item.autocomplete", item )
           .toggleClass("search-override", !!override)
-          .append( $( "<a role='option' data-value='" + item.value + "'></a>" ).text( item.label ) )
+          .append(`<img alt="${item.type}" src="/static/icons/${this._type_icon_map[item.type]}">`)
+          .append( $(`<a href="${this.getURLForObject(item.type, item.key)}" role='option' data-type-key="${item.type}-${item.key}"></a>` ).text( item.label ) )
           .appendTo( ul );
       }.bind(this)
     });
-    var anchorSide = this.props.interfaceLang == "hebrew" ? "right+" : "left-";
+    const anchorSide = this.props.interfaceLang === "hebrew" ? "right+" : "left-";
+    const sideGap = this.props.interfaceLang === "hebrew" ? 38 : 40;
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
-      position: {my: anchorSide + "12 top+17", at: anchorSide + "0 bottom"},
+      position: {my: anchorSide + sideGap + " top+18", at: anchorSide + "0 bottom"},
       minLength: 3,
+      open: function($event, ui) {
+          const $widget = $("ul.ui-autocomplete");
+          $(".readerApp > .header").append($widget);
+      },
       select: ( event, ui ) => {
-        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.value);  // This will disappear when the next line executes, but the eye can sometimes catch it.
-        this.submitSearch(ui.item.value);
+        event.preventDefault();
+
+        if (this.catchSearchOverride(ui.item.label)) {
+          return false;
+        }
+
+        this.redirectToObject(ui.item.type, ui.item.key);
         return false;
       },
-      focus: function( event, ui ) {
+      focus: ( event, ui ) => {
+        event.preventDefault();
+        $(ReactDOM.findDOMNode(this)).find("input.search").val(ui.item.label);
         $(".ui-state-focus").removeClass("ui-state-focus");
-        $(".ui-menu-item a[data-value='" + ui.item.value + "']").addClass("ui-state-focus");
+        $(`.ui-menu-item a[data-type-key="${ui.item.type}-${ui.item.key}"]`).parent().addClass("ui-state-focus");
       },
       source: (request, response) => Sefaria.getName(request.term)
         .then(d => {
-          if (d["completions"].length > 0) {
-            response(d["completions"].concat([`${this._searchOverridePre}${request.term}${this._searchOverridePost}`]))
+          const comps = d["completion_objects"].map(o => ({
+            value: `${o['title']}${o["type"] === "ref" ? "" :` (${o["type"]})`}`,
+            label: o["title"], 
+            key:   o["key"], 
+            type:  o["type"]}));
+          if (comps.length > 0) {
+            const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
+            response(comps.concat([{value: "SEARCH_OVERRIDE", label: q, type: "search"}]));
           } else {
             response([])
           }
@@ -75,16 +118,32 @@ class Header extends Component {
     });
   }
   showVirtualKeyboardIcon(show){
-      if(document.getElementById('keyboardInputMaster')){//if keyboard is open, ignore.
+      if(document.getElementById('keyboardInputMaster')){ //if keyboard is open, ignore.
         return; //this prevents the icon from flashing on every key stroke.
       }
-      if(this.props.interfaceLang == 'english'){
-          var opacity = show ? 0.4 : 0;
-          $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
+      if(this.props.interfaceLang === 'english'){
+          $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"display": show ? "inline" : "none"});
       }
   }
+  focusSearch(e) {
+    const parent = document.getElementById('searchBox');
+    this.setState({searchFocused: true});
+    this.showVirtualKeyboardIcon(true);
+  }
+  blurSearch(e) {
+    // check that you're actually focusing in on element outside of searchBox
+    // see 2nd answer https://stackoverflow.com/questions/12092261/prevent-firing-the-blur-event-if-any-one-of-its-children-receives-focus/47563344
+    const parent = document.getElementById('searchBox');
+    if (!parent.contains(e.relatedTarget)) {
+      if (!document.getElementById('keyboardInputMaster')) {
+        // if keyboard is open, don't just close it and don't close search
+        this.setState({searchFocused: false});
+      }
+      this.showVirtualKeyboardIcon(false);
+    }
+  }
   showDesktop() {
-    if (this.props.panelsOpen == 0) {
+    if (this.props.panelsOpen === 0) {
       const { last_place } = Sefaria;
       if (last_place && last_place.length) {
         this.handleRefClick(last_place[0].ref, last_place[0].versions);
@@ -142,61 +201,74 @@ class Header extends Component {
   hideTestMessage() {
     this.props.setCentralState({showTestMessage: false});
   }
-  submitSearch(query) {
-    var override = query.match(this._searchOverrideRegex());
-    if (override) {
-      if (Sefaria.site) { Sefaria.track.event("Search", "Search Box Navigation - Book Override", override[1]); }
-      this.closeSearchAutocomplete();
-      this.showSearch(override[1]);
-      return;
+  getURLForObject(type, key) {
+    if (type === "Person") {
+      return `/person/${key}`;
+    } else if (type === "Group") {
+      return `/groups/${key.replace(/ /g,"-")}`;
+    } else if (type === "TocCategory") {
+      return `/texts/${key.join('/')}`;
+    } else if (type === "Topic") {
+      return `/topics/${key}`;
+    } else if (type === "ref") {
+      return `/${key.replace(/ /g, '_')}`;
     }
-
-    Sefaria.getName(query)
-        .then(d => {
-      // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-      if (Sefaria.isACaseVariant(query, d)) {
-        this.submitSearch(Sefaria.repairCaseVariant(query, d));
-        return;
-      }
-
-      if (d["is_ref"]) {
-        var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
-        Sefaria.track.event("Search", action, query);
+  }
+  showObject(type, key) {
+    window.location = this.getURLForObject(type, key);
+  }
+  redirectToObject(type, key) {
+      if (type === "Person") {
+        Sefaria.track.event("Search", "Search Box Navigation - Person", key);
+        this.closeSearchAutocomplete();
+        this.showObject(type, key);
+      } else if (type === "Group") {
+        Sefaria.track.event("Search", "Search Box Navigation - Group", key);
+        this.closeSearchAutocomplete();
+        this.showObject(type, key);
+      } else if (type === "TocCategory") {
+        Sefaria.track.event("Search", "Search Box Navigation - Category", key);
+        this.closeSearchAutocomplete();
+        this.showLibrary(key);  // "key" holds the category path
+      } else if (type === "Topic") {
+        Sefaria.track.event("Search", "Search Box Navigation - Topic", key);
+        this.closeSearchAutocomplete();
+        this.showObject(type, key);
+      } else if (type === "ref") {
+        Sefaria.track.event("Search", "Search Box Navigation - Book", key);
+        this.closeSearchAutocomplete();
         this.clearSearchBox();
-        this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
-      } else if (d["type"] === "Person") {
-        Sefaria.track.event("Search", "Search Box Navigation - Person", query);
-        this.closeSearchAutocomplete();
-        this.showPerson(d["key"]);
-      } else if (d["type"] === "Group") {
-        Sefaria.track.event("Search", "Search Box Navigation - Group", query);
-        this.closeSearchAutocomplete();
-        this.showGroup(d["key"]);
-      } else if (d["type"] === "TocCategory") {
-        Sefaria.track.event("Search", "Search Box Navigation - Category", query);
-        this.closeSearchAutocomplete();
-        this.showLibrary(d["key"]);  // "key" holds the category path
-      } else {
-        Sefaria.track.event("Search", "Search Box Search", query);
-        this.closeSearchAutocomplete();
-        this.showSearch(query);
+        this.handleRefClick(key);
       }
-    });
+  }
+  submitSearch(query) {
+    Sefaria.getName(query)
+      .then(d => {
+        // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+        if (Sefaria.isACaseVariant(query, d)) {
+          this.submitSearch(Sefaria.repairCaseVariant(query, d));
+          return;
+        }
+
+        if (d["is_ref"]) {
+          var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
+          Sefaria.track.event("Search", action, query);
+          this.clearSearchBox();
+          this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+        } else if (d["type"] === "Person" || d["type"] === "Group" || d["type"] === "TocCategory") {
+          this.redirectToObject(d["type"], d["key"]);
+        } else {
+          Sefaria.track.event("Search", "Search Box Search", query);
+          this.closeSearchAutocomplete();
+          this.showSearch(query);
+        }
+      });
   }
   closeSearchAutocomplete() {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   }
   clearSearchBox() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
-  }
-  showPerson(key) {
-    //todo: move people into React
-    window.location = "/person/" + key;
-  }
-  showGroup(key) {
-    //todo: move people into React
-    key = key.replace(" ","-");
-    window.location = "/groups/" + key;
   }
   handleLibraryClick(e) {
     e.preventDefault();
@@ -206,7 +278,7 @@ class Header extends Component {
     }
     if (this.state.menuOpen === "home") {
       return;
-    } else if (this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0) {
+    } else if (this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 && !this.state.navigationTopicCategory) {
       this.showDesktop();
     } else {
       this.showLibrary();
@@ -222,15 +294,14 @@ class Header extends Component {
     this.props.onRefClick(ref, currVersions);
   }
   handleSearchKeyUp(event) {
-    if (event.keyCode === 13) {
-      var query = $(event.target).val();
-      if (query) {
-        this.submitSearch(query);
-      }
-    }
+    if (event.keyCode !== 13 || $(".ui-state-focus").length > 0) { return; }
+    const query = $(event.target).val();
+    if (!query) { return; }
+    if (this.catchSearchOverride(query)) { return; }
+    this.submitSearch(query);
   }
   handleSearchButtonClick(event) {
-    var query = $(ReactDOM.findDOMNode(this)).find(".search").val();
+    const query = $(ReactDOM.findDOMNode(this)).find(".search").val();
     if (query) {
       this.submitSearch(query);
     } else {
@@ -256,6 +327,7 @@ class Header extends Component {
                           setDefaultOption={this.props.setDefaultOption}
                           onQueryChange={this.props.onQueryChange}
                           updateSearchTab={this.props.updateSearchTab}
+                          updateTopicsTab={this.props.updateTopicsTab}
                           updateSearchFilter={this.props.updateSearchFilter}
                           updateSearchOptionField={this.props.updateSearchOptionField}
                           updateSearchOptionSort={this.props.updateSearchOptionSort}
@@ -282,33 +354,34 @@ class Header extends Component {
                             <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses} onClick={this.showNotifications}>{this.state.notificationCount}</a>
                             <a href="/my/profile" className="my-profile" onClick={this.openMyProfile}><ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></a>
                          </div>);
-    var loggedOutLinks = (<div className="accountLinks">
+    var loggedOutLinks = (<div className="accountLinks anon">
+                          <a className="login loginLink" href={"/login" + nextParam}>
+                             <span className="int-en">Log in</span>
+                             <span className="int-he">התחבר</span>
+                           </a>
                            <a className="login signupLink" href={"/register" + nextParam}>
                              <span className="int-en">Sign up</span>
                              <span className="int-he">הרשם</span>
                            </a>
-                           <a className="login loginLink" href={"/login" + nextParam}>
-                             <span className="int-en">Log in</span>
-                             <span className="int-he">התחבר</span>
-                           </a>
                          </div>);
     // Header should not show box-shadow over panels that have color line
-    var hasColorLine = ["sheets", "sheets meta"];
-    var hasBoxShadow = (!!this.state.menuOpen && hasColorLine.indexOf(this.state.menuOpen) == -1);
-    var headerInnerClasses = classNames({headerInner: 1, boxShadow: hasBoxShadow});
-    var inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang == "english", hebrewSearch: this.props.interfaceLang == "hebrew"});
+    const hasColorLine = ["sheets", "sheets meta"];
+    const hasBoxShadow = (!!this.state.menuOpen && hasColorLine.indexOf(this.state.menuOpen) === -1);
+    const headerInnerClasses = classNames({headerInner: 1, boxShadow: hasBoxShadow});
+    const inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang === "english", hebrewSearch: this.props.interfaceLang === "hebrew"});
+    const searchBoxClasses = classNames({searchBox: 1, searchFocused: this.state.searchFocused});
     return (<div className="header" role="banner">
               <div className={headerInnerClasses}>
                 <div className="headerNavSection">
                     <a href="/texts" aria-label={this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 ? "Return to text" : "Open the Sefaria Library Table of Contents" } className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
-                    <div  className="searchBox">
+                    <div id="searchBox" className={searchBoxClasses}>
                       <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                       <input className={inputClasses}
                              id="searchInput"
                              placeholder={Sefaria._("Search")}
                              onKeyUp={this.handleSearchKeyUp}
-                             onFocus={this.showVirtualKeyboardIcon.bind(this, true)}
-                             onBlur={this.showVirtualKeyboardIcon.bind(this, false)}
+                             onFocus={this.focusSearch}
+                             onBlur={this.blurSearch}
                              maxLength={75}
                       title={Sefaria._("Search for Texts or Keywords Here")}/>
                     </div>
@@ -321,6 +394,7 @@ class Header extends Component {
                 <div className="headerLinksSection">
                   { headerMessage }
                   { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
+                  { !Sefaria.loggedIn ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
                 </div>
               </div>
               { viewContent ?

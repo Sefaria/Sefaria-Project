@@ -23,7 +23,7 @@ CategoryLink.propTypes = {
 };
 
 function HomeFeedSidebar({showLibrary}) {
-    return (<div className="homeFeedSidebar">
+    return (<div className="sideColumn">
             <div id="homeLearn" className="section">
                 <div className="sectionInner">
                     <div className="textBox">
@@ -44,7 +44,7 @@ function HomeFeedSidebar({showLibrary}) {
                         <CategoryLink category={"Halakhah"} showLibrary={showLibrary} />
                     </div>
                     <a href="/texts" className="button white fillWidth control-elem" onClick={showLibrary}>
-                        <i class="fa fa-bars"></i>
+                        <i className="fa fa-bars"></i>
                         <span className="int-en">Browse the Library</span>
                         <span className="int-he">עיינו בספריה הוירטואלית</span>
                     </a>
@@ -193,7 +193,7 @@ function HomeFeed(props) {
   return (
     <div className="homeFeedWrapper">
       <div className="content hasFooter" ref={scrollable_element}>
-        
+        <div className="contentInner">
         <div id="homeCover">
             <video id="homeVideo" poster="/static/img/home-video-narrow.jpg" preload="auto" autoPlay={true} loop="loop" muted="muted" volume="0">
                 <source src="/static/img/home-video-narrow.webm" type="video/webm" />
@@ -210,13 +210,14 @@ function HomeFeed(props) {
             </div>
         </div>
 
-        <div className="homeFeedColumns">
-            <div className="storyFeed">
+        <div className="columnLayout">
+            <div className="mainColumn">
                 <div className="storyFeedInner">
                 {stories.length ? stories.map((s,i) => Story(s, i, props)) : <LoadingMessage />}
                 </div>
             </div>
             <HomeFeedSidebar showLibrary={props.showLibrary} />
+        </div>
         </div>
       </div>
     </div>);

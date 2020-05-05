@@ -37,7 +37,6 @@ class SearchPage extends Component {
                           initialQuery = { this.props.query }
                           updateQuery = { this.props.onQueryChange } />
                       </div>
-                      <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                     </div>)}
                   <div className={contentClasses}>
                     <div className="contentInner">
@@ -47,6 +46,7 @@ class SearchPage extends Component {
                           </h1>
                           <div className="searchContent" style={style}>
                               <SearchResultList
+                                interfaceLang={this.props.interfaceLang}
                                 query={this.props.query}
                                 tab={this.props.tab}
                                 textSearchState={this.props.textSearchState}
@@ -68,6 +68,7 @@ class SearchPage extends Component {
     }
 }
 SearchPage.propTypes = {
+    interfaceLang:            PropTypes.oneOf(["english", "hebrew"]),
     query:                    PropTypes.string,
     tab:                      PropTypes.oneOf(["text", "sheet"]),
     textSearchState:          PropTypes.object,

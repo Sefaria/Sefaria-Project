@@ -19,8 +19,8 @@ class LaazRashiParser(object):
         self.input_rows = self.parse_input(self.talmud_data_file)
         self.input_rows += self.parse_input(self.bible_data_file)
         self.entries = {}
-        control_talmud = range(1, 2463)
-        control_bible = range(3001, 4383)
+        control_talmud = list(range(1, 2463))
+        control_bible = list(range(3001, 4383))
         self.control = control_talmud + control_bible
 
 
@@ -53,19 +53,19 @@ class LaazRashiParser(object):
 
 
     def parse_contents(self):
-        print "BEGIN PARSING"
+        print("BEGIN PARSING")
         self._make_lexicon_obj()
         for entry_row in self.input_rows:
             entry = self._make_dictionary_entry(entry_row)
             self._make_word_form(entry)
-        print self.control
+        print(self.control)
 
 
 
     def _make_dictionary_entry(self, input_row):
         _current_entry = {}
-        he_regex = re.compile(ur"[\u0591-\u05ff]+", re.UNICODE)
-        parts = unicode(input_row.strip('\n$').strip(), 'utf-8').split('@')
+        he_regex = re.compile(r"[\u0591-\u05ff]+", re.UNICODE)
+        parts = str(input_row.strip('\n$').strip(), 'utf-8').split('@')
         num_parts = len(parts)
         all_full = all(len(x) > 0 for x in parts[:-1])
         #print parts[0]
@@ -129,11 +129,11 @@ class LaazRashiParser(object):
 
 """ The main function, runs when called from the CLI"""
 if __name__ == '__main__':
-    print "INIT LEXICON"
+    print("INIT LEXICON")
     #os.chdir(os.path.dirname(sys.argv[0]))
     parser = argparse.ArgumentParser()
     args = parser.parse_args()
-    print "parse lexicon"
+    print("parse lexicon")
     parser = LaazRashiParser()
     parser.parse_contents()
 

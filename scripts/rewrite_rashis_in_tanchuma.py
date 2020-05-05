@@ -6,7 +6,7 @@ from sefaria.tracker import *
 from sefaria.helper.schema import *
 import csv
 import codecs
-import cStringIO
+import io
 
 
 
@@ -18,7 +18,7 @@ class UnicodeWriter:
 
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
         # Redirect output to a queue
-        self.queue = cStringIO.StringIO()
+        self.queue = io.StringIO()
         self.writer = csv.writer(self.queue, dialect=dialect, **kwds)
         self.stream = f
         self.encoder = codecs.getincrementalencoder(encoding)()
@@ -102,7 +102,7 @@ def execute():
     assert len(lines) == len(info)
 
     for count, line in enumerate(lines):
-        print count
+        print(count)
         line = line.decode('utf-8')
         other_ref, vtitle = info[count]
         # modify_text(15399, Ref(other_ref), vtitle, 'en', line.strip())
@@ -138,16 +138,16 @@ def write():
                 not_found_arr += not_found
                 if found:
                     try:
-                        print "writing... {}".format(other_ref.normal())
+                        print("writing... {}".format(other_ref.normal()))
                         writer.writerow([other_ref.normal(), vtitle])
                         text_results.write(text+"\n")
                     except:
-                        print other_ref
+                        print(other_ref)
 
     #print "INPUT ERRORS = {}".format(input_errors)
-    print "NOT FOUND BAD REF = {}".format(len(not_found_arr))
+    print("NOT FOUND BAD REF = {}".format(len(not_found_arr)))
     for each in not_found_arr:
-        print each
+        print(each)
     results.close()
 
 if __name__ == "__main__":

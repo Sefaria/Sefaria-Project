@@ -8,7 +8,7 @@ from sefaria.model import *
 from sefaria.helper.text import *
 from sefaria.helper.link import *
 
-strip_cantillation_vowel_regex = re.compile(ur"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
+strip_cantillation_vowel_regex = re.compile(r"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
 
 mishnah_books = library.get_indexes_in_category('Mishnah', full_records=True)
 mishnah_books = sorted(mishnah_books, key=lambda k: k.order[0])
@@ -26,7 +26,7 @@ def print_texts(filename, index_set, version_title, language, break_lowest_level
                 filep.write('#{}#\n'.format(chnum))
                 verses = ''
                 for verse in chapter:
-                    verses+=re.sub(ur"\s{2,}", ur" ", strip_cantillation_vowel_regex.sub('', verse)).strip()
+                    verses+=re.sub(r"\s{2,}", r" ", strip_cantillation_vowel_regex.sub('', verse)).strip()
                     if break_lowest_level:
                         verses+='\n'
                 filep.write('{}\n'.format(verses.encode('utf-8')))

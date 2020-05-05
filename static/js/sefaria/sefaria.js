@@ -1,12 +1,12 @@
-var extend     = require('extend'),
-    param      = require('querystring').stringify,
-    Search     = require('./search'),
-    palette    = require('./palette'),
-    Track      = require('./track'),
-    Hebrew     = require('./hebrew'),
-    Util       = require('./util'),
-    $          = require('./sefariaJquery');
-                 require('babel-polyfill');
+const   extend     = require('extend'),
+        param      = require('querystring').stringify,
+        Search     = require('./search'),
+        palette    = require('./palette'),
+        Track      = require('./track'),
+        Hebrew     = require('./hebrew'),
+        Util       = require('./util'),
+        $          = require('./sefariaJquery');
+                     require('babel-polyfill');
 
 
 let Sefaria = Sefaria || {
@@ -183,6 +183,13 @@ Sefaria = extend(Sefaria, {
     }
     return null;
   },
+  refCategories: function(ref) {
+    // Returns the text categories for `ref`
+    let pRef = Sefaria.parseRef(ref);
+    if ("error" in pRef) { return []; }
+    let index = Sefaria.index(pRef.index);
+    return index && index.categories ? index.categories : [];
+  },
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
     const oref = this.getRefFromCache(ref);
@@ -307,8 +314,43 @@ Sefaria = extend(Sefaria, {
     const data = this.getTextFromCache(ref, settings);
     if (data && !("updateFromAPI" in data)) {return Promise.resolve(data);}
 
-    return this._promiseAPI(Sefaria.apiHost + this._textUrl(ref, settings))
+    return this._ApiPromise(Sefaria.apiHost + this._textUrl(ref, settings))
         .then(d => { this._saveText(d, settings); return d; });
+  },
+  getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null) {
+    // todo: fish existing texts out of cache first
+    if (refs.length === 0) { return Promise.resolve({}); }
+
+    const MAX_URL_LENGTH = 3800;
+    const hostStr = `${Sefaria.apiHost}/api/bulktext/`;
+
+    let paramStr = '';
+    for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar})) {
+      paramStr = !!paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
+    }
+
+    // Split into multipe requests if URL length goes above limit
+    let refStrs = [""];
+    refs.map(ref => {
+      let last = refStrs[refStrs.length-1];
+      if (encodeURI(`${hostStr}${last}|${ref}${paramStr}`).length > MAX_URL_LENGTH) {
+        refStrs.push(ref)
+      } else {
+        refStrs[refStrs.length-1] += last.length ? `|${ref}` : ref;
+      }
+    });
+
+    let promises = refStrs.map(refStr => this._ApiPromise(`${hostStr}${refStr}${paramStr.replace(/&/,'?')}`));
+
+    return Promise.all(promises).then(results => {
+      let combinedResults = {};
+      return Object.assign(combinedResults, ...results);
+    });
+  },
+  getBulkSheets: function(sheetIds) {
+    // todo: fish existing texts out of cache first
+    if (sheetIds.length === 0) { return Promise.resolve({}); }
+    return this._ApiPromise(`${Sefaria.apiHost}/api/v2/sheets/bulk/${sheetIds.join("|")}`);
   },
   text: function(ref, settings = null, cb = null) {
     // To be deprecated in favor of `getText`
@@ -523,6 +565,7 @@ Sefaria = extend(Sefaria, {
       this._refmap[refkey] = contextKey;
     }
   },
+    /*  Not used?
   _splitSpanningText: function(data) {
     // Returns an array of section level data, corresponding to spanning `data`.
     // Assumes `data` includes context.
@@ -539,6 +582,9 @@ Sefaria = extend(Sefaria, {
       section.he         = he[i];
     }
   },
+     */
+
+    /* not used?
   _wrapRefs: function(data) {
     // Wraps citations found in text of data
     if (!data.text) { return data; }
@@ -548,9 +594,8 @@ Sefaria = extend(Sefaria, {
       data.text = data.text.map(Sefaria.wrapRefLinks);
     }
     return data;
-  },
+  }, */
   _index: {}, // Cache for text index records
-  _translateTerms: {},
    index: function(text, index) {
     if (!index) {
       return this._index[text];
@@ -561,14 +606,11 @@ Sefaria = extend(Sefaria, {
     }
   },
   _shape: {}, // Cache for shape records
-  shape:  function(title, cb) {
-    if (title in this._shape) {
-        return this._shape[title];
-    }
-    var url = Sefaria.apiHost + "/api/shape/" + title;
-    return this._api(url, function(data) {
-      if (cb) { cb(data); }
-      Sefaria._shape[title] = data;
+  getShape: function(title) {
+    return this._cachedApiPromise({
+        url:   this.apiHost + "/api/shape/" + title,
+        key:   title,
+        store: this._shape
     });
   },
   _cacheIndexFromToc: function(toc) {
@@ -584,57 +626,17 @@ Sefaria = extend(Sefaria, {
       }
     }
   },
-  _cacheHebrewTerms: function(terms) {
-      Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
-  },
   _indexDetails: {},
-  /* hasIndexDetails: title => {title in this._indexDetails}, */
   getIndexDetails: function(title) {
-    return new Promise((resolve, reject) => {
-        var details = title in this._indexDetails ? this._indexDetails[title] : null;
-        if (details) {
-          resolve(details);
-        } else {
-            var url = Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1";
-            this._api(url, data => {
-                Sefaria._indexDetails[title] = data;
-                resolve(data);
-            });
-        }
+    return this._cachedApiPromise({
+        url:   Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1",
+        key:   title,
+        store: this._indexDetails
     });
   },
-/*  indexDetails: function(title, cb) {
-    // Returns detailed index record for `title` which includes info like author and description
-    console.log("The indexDetails method is deprecated.  Please use getIndexDetails.");
-    var details = title in this._indexDetails ? this._indexDetails[title] : null;
-    if (details) {
-      if (cb) {cb(details)}
-      return details;
-    }
-    var url = Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1";
-    this._api(url, function(data) {
-      if (cb) { cb(data); }
-      Sefaria._indexDetails[title] = data;
-    });
-    return details;
-  }, */
   titleIsTorah: function(title){
       let torah_re = /^(Genesis|Exodus|Leviticus|Numbers|Deuteronomy)/;
       return torah_re.test(title)
-  },
-  _titleVariants: {},
-  normalizeTitle: function(title, callback) {
-    if (title in this._titleVariants) {
-        callback(this._titleVariants[title]);
-    }
-    else {
-        this._api("/api/v2/index/" + title, function(data) {
-          for (var i = 0; i < data.titleVariants.length; i++) {
-            Sefaria._titleVariants[data.titleVariants[i]] = data.title;
-          }
-          callback(data.title);
-        });
-    }
   },
   postSegment: function(ref, versionTitle, language, text, success, error) {
     if (!versionTitle || !language) { return; }
@@ -694,47 +696,20 @@ Sefaria = extend(Sefaria, {
       return ref ? this.getRefFromCache(ref) : null;
   },
   _lookups: {},
-  _ref_lookups: {},
-
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
-  getName: function(name, refOnly) {
+  getName: function(name, refOnly = false, limit = undefined) {
     const trimmed_name = name.trim();
-    const cache = refOnly? this._ref_lookups: this._lookups;
-    if (trimmed_name in cache) {
-        return Promise.resolve(cache[trimmed_name]);
-    }
-    return this._promiseAPI(Sefaria.apiHost + "/api/name/" + trimmed_name + (refOnly?"?ref_only=1":""))
-        .then(data => {cache[trimmed_name] = data; return data;})
+    let params = {};
+    if (refOnly) { params["ref_only"] = 1; }
+    if (limit != undefined) { params["limit"] = limit; }
+    let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
+    queryString = (queryString ? "?" + queryString : "");
+    return this._cachedApiPromise({
+        url:   this.apiHost + "/api/name/" + trimmed_name + queryString,
+        key:   trimmed_name + queryString,
+        store: this._lookups
+    });
   },
-
-  // lookupRef: function(n, c, e)  { return this.lookup(n,c,e,true);},
-  /* lookup: function(name, callback, onError, refOnly) {
-    // Deprecated in favor of getName
-
-    //  * name - string to lookup
-    //  * callback - callback function, takes one argument, a data object
-    //  * onError - callback
-    //  * refOnly - if True, only search for titles, otherwise search for People and Categories as well.
-
-    name = name.trim();
-    var cache = refOnly? this._ref_lookups: this._lookups;
-    onError = onError || function() {};
-    if (name in cache) {
-        callback(cache[name]);
-        return null;
-    }
-    else {
-        return $.ajax({
-          dataType: "json",
-          url: Sefaria.apiHost + "/api/name/" + name + (refOnly?"?ref_only=1":""),
-          error: onError,
-          success: function(data) {
-              cache[name] = data;
-              callback(data);
-          }.bind(this)
-        });
-    }
-  }, */
   _lexiconCompletions: {},
   lexiconCompletion: function(word, lexicon, callback) {
       word = word.trim();
@@ -753,41 +728,17 @@ Sefaria = extend(Sefaria, {
       });
   },
   _lexiconLookups: {},
-  lexicon: function(words, ref, cb){
-    // Returns a list of lexicon entries for the given words
+  getLexiconWords: function(words, ref) {
+    // Returns Promise which resolve to a list of lexicon entries for the given words
     ref = typeof ref !== "undefined" ? ref : null;
     words = typeof words !== "undefined" ? words : "";
-    const cache_key = ref ? words + "|" + ref : words;
-    /*if (typeof ref != 'undefined'){
-      cache_key += "|" + ref
-    }*/
-    if (!cb) {
-      return this._lexiconLookups[cache_key] || [];
-    }
-    if (cache_key in this._lexiconLookups) {
-        /*console.log("data from cache: ", this._lexiconLookups[cache_key]);*/
-        cb(this._lexiconLookups[cache_key]);
-    } else if (words.length > 0) {
-      var url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?never_split=1";
-      if(ref){
-        url+="&lookup_ref="+ref;
-      }
-      //console.log(url);
-      this._api(url, function(data) {
-        this._lexiconLookups[cache_key] = ("error" in data) ? [] : data;
-        //console.log("state changed from ajax: ", data);
-        cb(this._lexiconLookups[cache_key]);
-      }.bind(this));
-    } else {
-        return cb([]);
-    }
+    if (words.length <= 0) { return Promise.resolve([]); }
+
+    const key = ref ? words + "|" + ref : words;
+    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?never_split=1" + (ref?("&lookup_ref="+ref):"");
+    return this._cachedApiPromise({url, key, store: this._lexiconLookups});
   },
   _links: {},
-  /*
-  hasLinks: function(ref) {
-      return ref in this._links;
-  },
-  */
   getLinks: function(ref) {
     // When there is an error in the returned data, this calls `reject` rather than returning empty.
     return new Promise((resolve, reject) => {
@@ -796,7 +747,7 @@ Sefaria = extend(Sefaria, {
             resolve(this._links[ref]);
         } else {
             let url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0";
-            let p = this._promiseAPI(url)
+            let p = this._ApiPromise(url)
                 .then(data => {
                     if ("error" in data) reject(data);
                     this._saveLinkData(ref, data);
@@ -810,31 +761,6 @@ Sefaria = extend(Sefaria, {
     ref = Sefaria.humanRef(ref);
     return ref in this._links ? this._links[ref] : [];
   },
-  /*
-  links: function(ref, cb) {
-    // Returns a list of links known for `ref`.
-    // WARNING: calling this function with spanning refs can cause bad state in cache.
-    // When processing links for "Genesis 2:4-4:4", a link to the entire chapter "Genesis 3" will be split and stored with that key.
-    // The data for "Genesis 3" then represents only links to the entire chapter, not all links within the chapter.
-    // Fixing this generally on the client side requires more understanding of ref logic.
-    console.log("Method Sefaria.links() is deprecated in favor of Sefaria.getLinks()");
-    ref = Sefaria.humanRef(ref);
-    if (!cb) {
-      return this._links[ref] || [];
-    }
-    if (ref in this._links) {
-      cb(this._links[ref]);
-    } else {
-       const url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0&with_sheet_links=1";
-       this._api(url, function(data) {
-          if ("error" in data) {
-            return;
-          }
-          this._saveLinkData(ref, data);
-          cb(data);
-        }.bind(this));
-    }
-  }, */
   _saveLinkData: function(ref, data) {
     ref = Sefaria.humanRef(ref);
     const l = this._saveLinksByRef(data);
@@ -1060,20 +986,6 @@ Sefaria = extend(Sefaria, {
   linkSummaryBookSortHebrew: function(category, a, b) {
     return Sefaria.linkSummaryBookSort(category, a, b, true);
   },
-  /*
-  flatLinkSummary: function(ref) {
-    // Returns an array containing texts and categories with counts for ref
-    var summary = Sefaria.linkSummary(ref);
-    var booksByCat = summary.map(function(cat) {
-      return cat.books.map(function(book) {
-        return book;
-      });
-    });
-    var books = [];
-    books = books.concat.apply(books, booksByCat);
-    return books;
-  },
-  */
   commentarySectionRef: function(commentator, baseRef) {
     // Given a commentator name and a baseRef, return a ref to the commentary which spans the entire baseRef
     // E.g. ("Rashi", "Genesis 3") -> "Rashi on Genesis 3"
@@ -1250,9 +1162,9 @@ Sefaria = extend(Sefaria, {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
     var ref = Sefaria.normRefList(refs);
     refs.map(r => {
-      // Also include webpages linked at section level. Deduped below. 
+      // Also include webpages linked at section level. Deduped below.
       if (r.indexOf(":") !== -1) {
-        refs.push(r.slice(0, r.lastIndexOf(":"))); 
+        refs.push(r.slice(0, r.lastIndexOf(":")));
       }
     }, this);
 
@@ -1580,11 +1492,7 @@ Sefaria = extend(Sefaria, {
   getPassages: function(refs) {
       // refs: list of ref strings
       // resolves to dictionary mapping ref to sugya ref
-    return new Promise((resolve, reject) => {
-        let url = Sefaria.apiHost + "/api/passages/" + refs.join("|");
-        let p = this._promiseAPI(url);
-        resolve(p);
-    });
+      return this._ApiPromise(Sefaria.apiHost + "/api/passages/" + refs.join("|"));
   },
   areVersionsEqual(v1, v2) {
     // v1, v2 are `currVersions` objects stored like {en: ven, he: vhe}
@@ -1623,16 +1531,18 @@ Sefaria = extend(Sefaria, {
       }
     });
   },
+    /*
   toggleFollowAPI: (uid, isUnfollow) => {
     return new Promise((resolve, reject) => {
       $.post({
         url: `/api/${isUnfollow ? 'un' : ''}follow/${uid}`
       });
     });
-    return Sefaria._promiseAPI(`/api/${isUnfollow ? 'un' : ''}follow/${uid}`);
+    return Sefaria._ApiPromise(`/api/${isUnfollow ? 'un' : ''}follow/${uid}`);
   },
+  */
   followAPI: (slug, ftype) => {
-    return Sefaria._promiseAPI(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
+    return Sefaria._ApiPromise(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
   },
   messageAPI: (uid, message) => {
     const data = {json: JSON.stringify({recipient: uid, message: message.escapeHtml()})};
@@ -1641,13 +1551,13 @@ Sefaria = extend(Sefaria, {
     });
   },
   getRefSavedHistory: tref => {
-    return Sefaria._promiseAPI(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
+    return Sefaria._ApiPromise(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
   },
   profileAPI: slug => {
-    return Sefaria._promiseAPI(`${Sefaria.apiHost}/api/profile/${slug}`);
+    return Sefaria._ApiPromise(`${Sefaria.apiHost}/api/profile/${slug}`);
   },
   userHistoryAPI: () => {
-    return Sefaria._promiseAPI(Sefaria.apiHost + "/api/profile/user_history?secondary=0");
+    return Sefaria._ApiPromise(Sefaria.apiHost + "/api/profile/user_history?secondary=0");
   },
   saveUserHistory: function(history_item) {
     // history_item contains:
@@ -1714,20 +1624,14 @@ Sefaria = extend(Sefaria, {
   },
   _topicList: null,
   topicList: function(callback) {
-    // Returns data for `topic`.
-    if (this._topicList) {
-      if (callback) { callback(this._topicList); }
-    } else if (callback) {
-      var url = Sefaria.apiHost + "/api/topics"; // TODO separate topic list API
-       Sefaria._api(url, function(data) {
-          this._topicList = data;
-           if (callback) { callback(data); }
-        }.bind(this));
-      }
-    return this._topicList;
+    // Returns promise for all topics list.
+    if (this._topicList) { return Promise.resolve(this._topicList); }
+    return this._ApiPromise(Sefaria.apiHost + "/api/topics?limit=0")
+        .then(d => { this._topicList = d; return d; });
   },
   _tableOfContentsDedications: {},
   _topics: {},
+/*
   topic: function(topic, callback) {
     if (topic in this._topics) {
       var data = this._topics[topic];
@@ -1741,6 +1645,67 @@ Sefaria = extend(Sefaria, {
       }.bind(this));
     }
     return data;
+  },
+*/
+  getParashaNextRead: function(parasha) {
+    return this._cachedApiPromise({
+      url:   `${this.apiHost}/api/calendars/next-read/${parasha}`,
+      key:   parasha,
+      store: this._parashaNextRead,
+    });
+  },
+  _parashaNextRead: {},
+  getTopic: function(topic, with_links=true, annotate_links=true, with_refs=true, group_related=true) {
+      return this._cachedApiPromise({
+          url:   `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}`,
+          key:   topic,
+          store: this._topics
+    });
+  },
+  _topicTocPages: null,
+  _topicTocCategory: null,
+  _initTopicTocPages: function() {
+    this._topicTocPages = this.topic_toc.reduce(this._initTopicTocReducer, {});
+    this._topicTocPages[this._topicTocPageKey()] = this.topic_toc.map(({children, ...goodstuff}) => goodstuff);
+  },
+  _initTopicTocCategory: function() {
+    this._topicTocCategory = this.topic_toc.reduce(this._initTopicTocCategoryReducer, {});
+  },
+  _initTopicTocReducer: function(a,c) {
+    if (!c.children) { return a; }
+    a[Sefaria._topicTocPageKey(c.slug)] = c.children;
+    for (let sub_c of c.children) {
+      Sefaria._initTopicTocReducer(a, sub_c);
+    }
+    return a;
+  },
+  _initTopicTocCategoryReducer: function(a,c) {
+    if (!c.children) {
+      a[c.slug] = c.parent;
+      return a;
+    }
+    for (let sub_c of c.children) {
+      sub_c.parent = { en: c.en, he: c.he, slug: c.slug };
+      Sefaria._initTopicTocCategoryReducer(a, sub_c);
+    }
+    return a;
+  },
+  _topicTocPageKey: slug => "_" + slug,
+  topicTocPage: function(parent) {
+    const key = this._topicTocPageKey(parent);
+    if (!this._topicTocPages) {
+        this._initTopicTocPages()
+    }
+    return this._topicTocPages[key]
+  },
+  topicTocCategory: function(slug) {
+    // return category english and hebrew for slug
+    if (!this._topicTocCategory) { this._initTopicTocCategory(); }
+    return this._topicTocCategory[slug];
+  },
+  isTopicTopLevel: function(slug) {
+    // returns true is `slug` is part of the top level of topic toc
+    return Sefaria.topic_toc.filter(x => x.slug == slug).length > 0;
   },
   sheets: {
     _loadSheetByID: {},
@@ -1761,8 +1726,7 @@ Sefaria = extend(Sefaria, {
       return sheet;
     },
     deleteSheetById: function(id) {
-      const url = `/api/sheets/${id}/delete`;
-      return Sefaria._promiseAPI(url);
+      return Sefaria._ApiPromise(`/api/sheets/${id}/delete`);
     },
     _trendingTags: null,
     trendingTags: function(callback) {
@@ -1832,6 +1796,15 @@ Sefaria = extend(Sefaria, {
         }
       return sheets;
     },
+    getSheetsByTag: function(tag, v2) {
+      const url =  Sefaria.apiHost + "/api" + (v2 ? "/v2" : "") + "/sheets/tag/" + tag.replace("#", "%23");
+
+      return Sefaria._cachedApiPromise({
+          url:  url,
+          store: this._sheetsByTag,
+          key:   tag,
+        });
+    },
     _userSheets: {},
     userSheets: function(uid, callback, sortBy, offset, numberToRetrieve, ignoreCache) {
       // Returns a list of source sheets belonging to `uid`
@@ -1845,7 +1818,7 @@ Sefaria = extend(Sefaria, {
         if (callback) { callback(sheets); }
       } else {
         const url = Sefaria.apiHost + "/api/sheets/user/" + uid + "/" + sortBy + "/" + numberToRetrieve + "/" + offset;
-        Sefaria._promiseAPI(url).then(data => {
+        Sefaria._ApiPromise(url).then(data => {
           this._userSheets[uid+sortBy+offset+numberToRetrieve] = data.sheets;
           if (callback) { callback(data.sheets); }
         });
@@ -1971,41 +1944,32 @@ Sefaria = extend(Sefaria, {
     }
   },
   _groups: {},
-  groups: function(group, sortBy, callback) {
-    // Returns data for an individual group
-    var groupObj = this._groups[group];
-    if (groupObj) {
-      if (callback) { callback(groupObj); }
-    } else if (callback) {
-      var url = Sefaria.apiHost + "/api/groups/" + group;
-       Sefaria._api(url, function(data) {
-           this._groups[group] = data;
-           callback(data);
-        }.bind(this));
-      }
-    return groupObj;
+  getGroup: function(key) {
+      const url = Sefaria.apiHost + "/api/groups/" + key;
+      const store = this._groups;
+      return this._cachedApiPromise({url, key, store});
   },
   _groupsList: null,
-  groupsList: function(callback) {
-    // Returns list of public and private groups
-    if (this._groupsList) {
-      if (callback) { callback(this._groupsList); }
-    } else if (callback) {
-      var url = Sefaria.apiHost + "/api/groups";
-       Sefaria._api(url, function(data) {
-          this._groupsList = data;
-           if (callback) { callback(data); }
-        }.bind(this));
-      }
-    return this._groupsList;
+  getGroupsList: function() {
+      // Is there other cases where the cache isn't keyed?   Could refactor _cachedApiPromise for a no key case.
+      return (this._groupsList) ?
+          Promise.resolve(this._groupsList) :
+          Sefaria._ApiPromise(Sefaria.apiHost + "/api/groups")
+              .then(data => {
+                  this._groupsList = data;
+                  return data;
+              })
   },
   userGroups: function(uid) {
-    const url = `${Sefaria.apiHost}/api/groups/user-groups/${uid}`;
-    return Sefaria._promiseAPI(url);
+    return Sefaria._ApiPromise(`${Sefaria.apiHost}/api/groups/user-groups/${uid}`);
   },
   calendarRef: function(calendarTitle) {
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
     return cal.length ? cal[0].ref : null;
+  },
+  _translateTerms: {},
+  _cacheHebrewTerms: function(terms) {
+      Sefaria._translateTerms = extend(terms, Sefaria._translateTerms);
   },
   hebrewTerm: function(name) {
     // Returns a string translating `name` into Hebrew.
@@ -2050,7 +2014,6 @@ Sefaria = extend(Sefaria, {
       " & ": " | ",
       "My Source Sheets" : "דפי המקורות שלי",
       "Public Source Sheets":"דפי מקורות פומביים",
-      "Public Groups": "קבוצות",
       "History": "היסטוריה",
       "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
       "Public Domain": "רשיון בנחלת הכלל",
@@ -2088,52 +2051,55 @@ Sefaria = extend(Sefaria, {
       "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
       "Pinned Sheet" : "דף מקורות נעוץ",
       "Pin Sheet" : "נעיצת דף מקורות",
+      "Created with": 'נוצר עבורך ע"י',
 
       //stuff moved from sheets.js
       "Loading..." : "טוען...",
-        "Saving..." : "שומר...",
-        "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
-        "קיימים שינויים בלתי שמורים בדף המקורות. השתמשו בכפתור השמירה לפני עזיבת הדף.",
-        "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.":
-        "קיימים שינויים בלתי שמורים בדף המקורות. אנא חכו שפעולת השמירה האוטומטית תסתיים.",
-        "Are you sure you want to delete this sheet? There is no way to undo this action.":
-        "מחיקת דף מקורות היא פעולה בלתי הפיכה. האם אתם בטוחים?",
-        "Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.":
-        "לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
-        //"Untitled Source Sheet": "דף מקורות ללא שם",
-        "Like": "אהבתי",
-        "Unlike": "ביטול סימון אהבתי",
-        "No one has liked this sheet yet. Will you be the first?":
-        "אף אחד עדיין לא אהב את דף המקורות הזה. תרצו להיות ראשונים?",
-        "1 Person Likes This Sheet": "אדם אחד אהב את דף המקורות",
-        " People Like This Sheet": " אנשים אהבו את דף המקורות",
-        "Tags Saved": "תוית נשמרה",
-        "Assignments allow you to create a template that your students can fill out on their own.":
-        "מטלות מאפשרות ליצור דף בסיס שתלמידים יכולים להשתמש בו כדי למלא וליצור את העבודה שלהם.",
-        "Students can complete their assignment at this link:":
-        "תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:",
-        "Reset text of Hebrew, English or both?": "האם לאפס את התוכן של המקור בעברית, אנגלית או הכל?",
-        "Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו",
-        "Looking up Connections..." : "מחפש קישורים...",
-        "No connections known for this source.": "למקור הזה אין קשרים ידועים",
-        "Edit Source title" : "עריכת כותרת",
-        "Add Source Below" : "הוספת מקור מתחת",
-        "Add Comment": "הוספת תגובה",
-        "Add All Connections": "הוספת כל המקורות הקשורים",
-        "Reset Source Text": "איפוס טקסט מקור",
-        "Copy to Sheet" : "העתקה לדף מקורות",
-        "Change Source Layout/Language": "שינוי שפת/עימוד מקור",
-        "Move Source Up": "הזזת מקור מעלה",
-        "Move Source Down": "הזזת מקור מטה",
-        "Outdent Source": "הזחת מקור החוצה",
-        "Indent Source": "הזחת מקור פנימה",
-        "Remove": "הסרת מקור",
-        "Create New" : "יצירת חדש",
-        "Close" : "סגירה",
+      "Saving..." : "שומר...",
+      "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
+      "קיימים שינויים בלתי שמורים בדף המקורות. השתמשו בכפתור השמירה לפני עזיבת הדף.",
+      "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.":
+      "קיימים שינויים בלתי שמורים בדף המקורות. אנא חכו שפעולת השמירה האוטומטית תסתיים.",
+      "Are you sure you want to delete this sheet? There is no way to undo this action.":
+      "מחיקת דף מקורות היא פעולה בלתי הפיכה. האם אתם בטוחים?",
+      "Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.":
+      "לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
+      //"Untitled Source Sheet": "דף מקורות ללא שם",
+      "Like": "אהבתי",
+      "Unlike": "ביטול סימון אהבתי",
+      "No one has liked this sheet yet. Will you be the first?":
+      "אף אחד עדיין לא אהב את דף המקורות הזה. תרצו להיות ראשונים?",
+      "1 Person Likes This Sheet": "אדם אחד אהב את דף המקורות",
+      " People Like This Sheet": " אנשים אהבו את דף המקורות",
+      "Tags Saved": "תוית נשמרה",
+      "Assignments allow you to create a template that your students can fill out on their own.":
+      "מטלות מאפשרות ליצור דף בסיס שתלמידים יכולים להשתמש בו כדי למלא וליצור את העבודה שלהם.",
+      "Students can complete their assignment at this link:":
+      "תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:",
+      "Reset text of Hebrew, English or both?": "האם לאפס את התוכן של המקור בעברית, אנגלית או הכל?",
+      "Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו",
+      "Looking up Connections..." : "מחפש קישורים...",
+      "No connections known for this source.": "למקור הזה אין קשרים ידועים",
+      "Edit Source title" : "עריכת כותרת",
+      "Add Source Below" : "הוספת מקור מתחת",
+      "Add Comment": "הוספת תגובה",
+      "Add All Connections": "הוספת כל המקורות הקשורים",
+      "Reset Source Text": "איפוס טקסט מקור",
+      "Copy to Sheet" : "העתקה לדף מקורות",
+      "Change Source Layout/Language": "שינוי שפת/עימוד מקור",
+      "Move Source Up": "הזזת מקור מעלה",
+      "Move Source Down": "הזזת מקור מטה",
+      "Outdent Source": "הזחת מקור החוצה",
+      "Indent Source": "הזחת מקור פנימה",
+      "Remove": "הסרת מקור",
+      "Create New" : "יצירת חדש",
+      "Close" : "סגירה",
+      "by": "", // by line on sheets in reader, left blank
 
       //reader panel
       "Search" : "חיפוש",
       "Search Dictionary": "חפש במילון",
+      "Search for": "חיפוש",
       "Search for:": "חיפוש:",
       "Views": "צפיות",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
@@ -2168,7 +2134,8 @@ Sefaria = extend(Sefaria, {
       "Italian": "איטלקית",
       "Polish": "פולנית",
       "Russian": "רוסית",
-
+      "Esparanto": "אספרנטו",
+      "Persian": "פרסי",
       "On": "הצג",
       "Off": "הסתר",
       "Show Parasha Aliyot": "עליות לתורה מוצגות",
@@ -2212,6 +2179,14 @@ Sefaria = extend(Sefaria, {
       "Sign\u00A0in": "התחברו",
       "Save": "שמירה",
       "Remove": "הסרה",
+      "Email was successfully changed!": "כתובת האימייל שונתה בהצלחה!",
+      "Filter": "סינון",
+      "Relevance": 'רלוונטיות',
+      "Chronological": 'כרונולוגי',
+      "Newest": "הכי חדש",
+      "This source is connected to ": "מקור הזה קשור ל-",
+      "by": "על ידי",
+      "Read the Portion": "קראו את הפרשה",
 
       //user stats
       "Torah Tracker" : "לימוד במספרים",
@@ -2268,7 +2243,7 @@ Sefaria = extend(Sefaria, {
     // Ensure that names set in Site Settings are available for translation in JS.
     if (!Sefaria._siteSettings) { return; }
     ["SITE_NAME", "LIBRARY_NAME"].map(key => {
-      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["en"];
+      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["he"];
     });
   },
   _makeBooksDict: function() {
@@ -2283,14 +2258,14 @@ Sefaria = extend(Sefaria, {
   _ajaxObjects: {},   // These are jqXHR objects, which implement the Promise interface
   _api: function(url, callback) {
     // Manage API calls and callbacks to prevent duplicate calls
-    // This method will be deprecated, in favor of _promiseAPI
+    // This method will be deprecated, in favor of _ApiPromise
     //
     if (url in this._ajaxObjects) {
       return this._ajaxObjects[url].then(callback);
     }
-    return this._promiseAPI(url).then(callback);
+    return this._ApiPromise(url).then(callback);
   },
-  _promiseAPI: function(url) {
+  _ApiPromise: function(url) {
     // Uses same _ajaxObjects as _api
     // Use built in Promise logic to handle multiple .then()s
     if (url in this._ajaxObjects) {
@@ -2298,6 +2273,17 @@ Sefaria = extend(Sefaria, {
     }
     this._ajaxObjects[url] = $.getJSON(url).always(_ => {delete this._ajaxObjects[url];});
     return this._ajaxObjects[url];
+  },
+  _cachedApiPromise: function({url, key, store}) {
+      // Checks store[key].  Resolves to this value, if present.
+      // Otherwise, calls Promise(url), caches in store[key], and returns
+      return (key in store) ?
+          Promise.resolve(store[key]) :
+          Sefaria._ApiPromise(url)
+              .then(data => {
+                  store[key] = data;
+                  return data;
+              })
   },
   //  https://reactjs.org/blog/2015/12/16/ismounted-antipattern.html
   makeCancelable: (promise) => {
@@ -2314,6 +2300,24 @@ Sefaria = extend(Sefaria, {
         promise: wrappedPromise,
         cancel() { hasCanceled_ = true; },
       };
+  },
+  incrementalPromise: async (fetchResponse, data, increment, setResponse, setCancel) => {
+    /*
+    fetchResponse - func that takes slice of `data` as param and returns promise
+    data - array of input data for fetchResponse
+    increment - int, how many values to send to fetchResponse at a time
+    setResponse - callback to react to send updated results
+    setCancel - function that saves cancel function so it can be called in outside scope
+    */
+    let lastEndIndex = 0;
+    while (lastEndIndex <= data.length) {
+      const tempData = data.slice(lastEndIndex, lastEndIndex + increment);
+      const { promise, cancel } = Sefaria.makeCancelable(fetchResponse(tempData));
+      setCancel(cancel);
+      const tempResponses = await promise;
+      setResponse(prevResponses => !prevResponses ? tempResponses : prevResponses.concat(tempResponses));
+      lastEndIndex += increment;
+    }
   }
 });
 

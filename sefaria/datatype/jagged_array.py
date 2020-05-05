@@ -10,6 +10,10 @@ jagged_array.py: a sparse array of arrays
 # Potentially problematic methods marked with '#warning, writes!'
 
 import re
+from functools import reduce
+from itertools import zip_longest
+import logging
+logger = logging.getLogger(__name__)
 
 
 class JaggedArray(object):
@@ -50,7 +54,7 @@ class JaggedArray(object):
             raise IndexError
 
         first_diff_index = 0
-        for i in xrange(N):
+        for i in range(N):
             if indexes1[i] != indexes2[i]:
                 first_diff_index = i
                 break
@@ -84,7 +88,7 @@ class JaggedArray(object):
             raise IndexError
 
         first_diff_index = 0
-        for i in xrange(N):
+        for i in range(N):
             if indexes1[i] != indexes2[i]:
                 first_diff_index = i
                 break
@@ -100,7 +104,7 @@ class JaggedArray(object):
             #recurse
             distance = 0
             temp_start_index = indexes1[:]
-            for i in xrange(indexes1[first_diff_index],indexes2[first_diff_index]+1):
+            for i in range(indexes1[first_diff_index],indexes2[first_diff_index]+1):
                 is_zero_len_section = False
 
                 if indexes2[first_diff_index] == i:
@@ -111,7 +115,7 @@ class JaggedArray(object):
 
                     temp_subarray_indexes = indexes1[:first_diff_index+1]
                     temp_subarray_indexes[first_diff_index] = i
-                    for j in xrange(first_diff_index+1,N):
+                    for j in range(first_diff_index+1,N):
                         temp_subarray_len = self.sub_array_length(temp_subarray_indexes)
                         if temp_subarray_len == 0 or temp_subarray_len is None:  # it's None when you try to index past list end
                             is_zero_len_section = True
@@ -124,7 +128,7 @@ class JaggedArray(object):
                     distance += self.distance(temp_start_index,temp_end_index) + 1  # + 1 to include the current seg
                 temp_start_index[first_diff_index] = i + 1
                 # set all indexes greater than first_diff_index to zero because you've moved on to the next section
-                for j in xrange(first_diff_index+1,N):
+                for j in range(first_diff_index+1,N):
                     temp_start_index[j] = 0
 
             return distance - 1  # - 1 to not include the first seg in the sequence
@@ -153,8 +157,9 @@ class JaggedArray(object):
     def sub_array_length(self, indexes=None, until_last_nonempty=False):
         """
         :param indexes:  a list of 0 based indexes, for digging len(indexes) levels into the array
-        :param until_last_nonempty_section: True if you want to return the length of the last of the last nonempty (super-section, section, segment)
+        :param until_last_nonempty_section: True if you want to return the length of the last nonempty (super-section, section, segment)
         :return: The length of the array at the provided index
+            If indexes are beyond end of book, return None   # Is this best?
         """
         if indexes is None:
             indexes = []
@@ -173,7 +178,7 @@ class JaggedArray(object):
                 result = curr_result
             else:
                 result = len(a)
-        except TypeError:
+        except TypeError as e:
             result = 0
         return result
 
@@ -255,7 +260,7 @@ class JaggedArray(object):
             starting_points = []
 
         #at the lowest level, we will have either strings or ints indicating text existence or not.
-        if isinstance(counts_map, (int, basestring)):
+        if isinstance(counts_map, (int, str)):
             return bool(counts_map)
 
         #otherwise iterate through the sections
@@ -343,7 +348,7 @@ class JaggedArray(object):
             return self.depth(_cur=self._store, deep=deep)
         if not isinstance(_cur, list):
             return 0
-        elif len(_cur) > 0 and (deep or all(map(lambda y: isinstance(y, list), _cur))):
+        elif len(_cur) > 0 and (deep or all([isinstance(y, list) for y in _cur])):
             return 1 + max([self.depth(y, deep=deep) for y in _cur])
         else:
             return 1
@@ -359,14 +364,17 @@ class JaggedArray(object):
         """
         Trims a JA to the specifications of start_indexes and end_indexes
         This works on simple Refs and range refs of unlimited depth and complexity.
-        :param txt:
+        :param start_indexes: List of zero-based indexes
+        :param end_indexes: List of zero-based indexes
         :return: List|String depending on depth of Ref
         """
         if not end_indexes:
             end_indexes = start_indexes
 
         assert len(start_indexes) == len(end_indexes)
-        assert len(start_indexes) <= self.depth
+        if len(start_indexes) > self.get_depth():
+            return self.__class__([])
+
         range_index = len(start_indexes)
 
         for i in range(0, len(start_indexes)):
@@ -429,7 +437,7 @@ class JaggedArray(object):
         if depth < terminal_depth:
             for i,elem in enumerate(_cur):
                 if not isinstance(_cur[i], list):
-                    if isinstance(_cur[i], basestring) and not len(_cur[i].strip()):
+                    if isinstance(_cur[i], str) and not len(_cur[i].strip()):
                         _cur[i] = []
                     else:
                         for _ in range(depth, terminal_depth):
@@ -453,7 +461,7 @@ class JaggedArray(object):
 
         new_text = []
         for segment in _cur:
-            if isinstance(segment, basestring):
+            if isinstance(segment, str):
                 new_text.append([segment])
             elif isinstance(segment, list):
                 new_text.append(self._upsize(segment))
@@ -477,7 +485,7 @@ class JaggedArray(object):
         new_text = []
         for segment in _cur:
             # Assumes segments are of uniform type, either all strings or all lists
-            if isinstance(segment, basestring):
+            if isinstance(segment, str):
                 return " ".join(_cur)
             elif isinstance(segment, list):
                 new_text.append(self._downsize(segment))
@@ -548,17 +556,20 @@ class JaggedArray(object):
                 flat += [[[i+1], el]]
         return flat
 
-
     def last_index(self, depth):
+        """
+        Return indicies of the last populated element of this JaggedArray.
+        :param depth: Return indicies only to this depth
+        :return: Array of 0 based indexes
+        """
         if depth > self.get_depth():
             depth = self.get_depth()
         res = []
         next = self
         for _ in range(depth):
-            try:
-                res += [len(next.array()) - 1]
-                next = next.subarray(res[-1:])
-            except IndexError:
+            res += [len(next.array()) - 1]
+            next = next.subarray(res[-1:])
+            if next.array() == []:
                 # For sparse texts that end before the array ends
                 return self.prev_index(res)
         return res
@@ -596,8 +607,8 @@ class JaggedTextArray(JaggedArray):
 
     def _wcnt(self, jta):
         """ Returns the number of words in an undecorated jagged array """
-        if isinstance(jta, basestring):
-            return len(re.split(ur"[\s\u05be]+", jta.strip()))
+        if isinstance(jta, str):
+            return len(re.split(r"[\s\u05be]+", jta.strip()))
         elif isinstance(jta, list):
             return sum([self._wcnt(i) for i in jta])
         else:
@@ -611,7 +622,7 @@ class JaggedTextArray(JaggedArray):
 
     def _ccnt(self, jta):
         """ Returns the number of characters in an undecorated jagged array """
-        if isinstance(jta, basestring):
+        if isinstance(jta, str):
             return len(jta)
         elif isinstance(jta, list):
             return sum([self._ccnt(i) for i in jta])
@@ -622,7 +633,7 @@ class JaggedTextArray(JaggedArray):
         """ Returns the jagged array but with each terminal string processed by func"""
         if _cur is None:
             return self.modify_by_function(func, _cur=self._store)
-        if isinstance(_cur, basestring):
+        if isinstance(_cur, str):
             return func(_cur)
         elif isinstance(_cur, list):
             return [self.modify_by_function(func, i) for i in _cur]
@@ -631,7 +642,7 @@ class JaggedTextArray(JaggedArray):
         # Flatten deep jagged array to flat array
 
         if _cur is None:
-            if isinstance(self._store, basestring):
+            if isinstance(self._store, str):
                 return [self._store]
             return self.flatten_to_array(_cur=self._store)
 
@@ -640,10 +651,10 @@ class JaggedTextArray(JaggedArray):
             if isinstance(el, list):
                 flat += self.flatten_to_array(el)
             else:
-                flat += [unicode(el)]
+                flat += [str(el)]
         return flat
 
-    def flatten_to_string(self, joiner=u" "):
+    def flatten_to_string(self, joiner=" "):
         return joiner.join(self.flatten_to_array())
 
     #warning, writes!
@@ -679,7 +690,7 @@ class JaggedTextArray(JaggedArray):
             for i in range(min(len(_self_cur), len(_other_cur))):
                 if self.overlaps(_self_cur=_self_cur[i], _other_cur=_other_cur[i]):
                     return True
-        if isinstance(_self_cur, basestring) and isinstance(_other_cur, basestring):
+        if isinstance(_self_cur, str) and isinstance(_other_cur, str):
             if _self_cur and _other_cur:
                 return True
         return False
@@ -723,7 +734,7 @@ class JaggedIntArray(JaggedArray):
         # If both are lists, recur on each pair of values
         # map results in None value when element not present
         if isinstance(a, list) and isinstance(b, list):
-            return [JaggedIntArray._add(a2, b2) for a2, b2 in map(None, a, b)]
+            return [JaggedIntArray._add(a2, b2) for a2, b2 in zip_longest(a, b)]
 
         raise Exception("JaggedIntArray._add() reached a condition it shouldn't have reached")
 

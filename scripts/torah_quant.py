@@ -32,7 +32,7 @@ def export_stats_by_ref(refs, filename):
                          ])
 
         for ref in refs:
-            print ref
+            print(ref)
             oRef = Ref(ref)
             text = oRef.text(lang="he", vtitle="Tanach with Text Only")
             writer.writerow([

@@ -1,4 +1,4 @@
-from urlparse import urlparse
+from urllib.parse import urlparse
 
 from sefaria.system.database import db
 
@@ -13,10 +13,10 @@ for link in links:
         continue
     sites.add(olink.netloc)
 
-print "\n********* {} sites ***********\n".format(len(sites))
+print("\n********* {} sites ***********\n".format(len(sites)))
 for site in list(sites):
-    print site
+    print(site)
 
-print "\n******** {} not sites **********\n".format(len(not_sites))
+print("\n******** {} not sites **********\n".format(len(not_sites)))
 for site in list(not_sites):
-    print site
+    print(site)

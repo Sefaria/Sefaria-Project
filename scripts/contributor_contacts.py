@@ -23,7 +23,7 @@ for uid in users:
     tags =  ", ".join(tags)
     out += "%s\t%s\t%s\t%s\n" % (user.first_name, user.last_name, user.email, tags)
 
-print out
+print(out)
 
 f = open('../tmp/contacts.csv', 'w+')
 f.write(out)

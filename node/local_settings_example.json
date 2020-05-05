@@ -1,6 +1,0 @@
-{
-    "_comment": "Copy this file to `local_settings.json`",
-    "DJANGO_HOST": "http://localhost:8000",
-    "PORT": 4040,
-    "DEBUG": true
-}

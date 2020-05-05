@@ -31,8 +31,17 @@ DATABASES = {
     }
 }"""
 
+# Map domain to an interface language that the domain should be pinned to.
+# Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
+DOMAIN_LANGUAGES = {
+    "http://hebrew.example.org": "hebrew",
+    "http://english.example.org": "english",
+}
+
 
 ################ These are things you can change! ###########################################################################
+#SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+
 ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
 
 ADMINS = (
@@ -82,7 +91,7 @@ MAINTENANCE_MESSAGE = ""
 GLOBAL_WARNING = False
 GLOBAL_WARNING_MESSAGE = ""
 
-GLOBAL_INTERRUPTING_MESSAGE = None
+# GLOBAL_INTERRUPTING_MESSAGE = None
 """
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "messageName",
@@ -116,6 +125,7 @@ SEFARIA_DB = 'sefaria'
 # Leave user and password blank if not using Mongo Auth
 SEFARIA_DB_USER = ''
 SEFARIA_DB_PASSWORD = ''
+APSCHEDULER_NAME = "apscheduler"
 
 # ElasticSearch server
 SEARCH_HOST = "http://localhost:9200"
@@ -133,17 +143,14 @@ SEARCH_INDEX_NAME_MERGED = 'merged'
 USE_NODE = False
 NODE_HOST = "http://localhost:4040"
 NODE_TIMEOUT = 10
-NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
+# NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
 
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
 
-# Map domain to an interface language that the domain should be pinned to.
-# Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
-DOMAIN_LANGUAGES = {
-    "http://hebrew.example.org": "hebrew",
-    "http://english.example.org": "english",
-}
+
+# DafRoulette server
+RTC_SERVER = '' # Root URL/IP of the server
 
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'

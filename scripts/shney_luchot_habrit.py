@@ -15,7 +15,7 @@ def create_ref_map(refs_map, file):
 
 def get_section_segment(ref):
     if "-" in ref:
-        print "Range: {}".format(ref)
+        print("Range: {}".format(ref))
         segment = None
         section = " ".join(ref.split()[0:-1])
     else:
@@ -53,7 +53,7 @@ def get_text_for_source_refs(ref_map, draft_text, prod_text):
                 if segment <= len(prod_section_text):
                     prod_segment_text = prod_section_text[segment-1]
                     match_segment = find_prod_in_draft(prod_segment_text, draft_section_text)
-                    match = u"{} {}".format(draft_section_ref, match_segment)
+                    match = "{} {}".format(draft_section_ref, match_segment)
                 else:
                     match = draft_section_ref
             if not match:
@@ -78,7 +78,7 @@ def find_prod_in_draft(prod_segment, draft_section):
         elif ratio == max_ratio:
             max_finds.append(i)
     if len(max_finds) > 1:
-        print "too many"
+        print("too many")
     return max_finds[0] + 1
 
 
@@ -93,7 +93,7 @@ def load_csv(dict_refs_to_text, file):
             if not start:
                 continue
             section = " ".join(row[0].split()[0:-1])
-            if section not in dict_refs_to_text.keys():
+            if section not in list(dict_refs_to_text.keys()):
                 dict_refs_to_text[section] = []
             dict_refs_to_text[section].append(row[1])
 
@@ -105,14 +105,14 @@ def replace_source(orig_ref, new_ref):
         return
     for sheet in sheets:
         for source_n, source in enumerate(sheet['sources']):
-            if 'ref' in source.keys() and source['ref'] == orig_ref:
-                print "Changing sheet...{}".format(sheet["id"])
-                print "{}".format(new_ref)
+            if 'ref' in list(source.keys()) and source['ref'] == orig_ref:
+                print("Changing sheet...{}".format(sheet["id"]))
+                print("{}".format(new_ref))
                 sheet["sources"][source_n]['ref'] = new_ref
                 try:
                     sheet["sources"][source_n]['heRef'] = Ref(new_ref).he_normal()
                 except InputError as e:
-                    print e.message
+                    print(e.message)
         db.sheets.save(sheet)
 
 
