@@ -4672,6 +4672,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   padding: 20px 34px;
 }
+.toolsButton.topicButton {
+  padding: 20px 27px;
+  flex-direction: column;
+}
 .toolsButton:last-child {
   border-bottom: 1px solid #E5E5E5;
 }

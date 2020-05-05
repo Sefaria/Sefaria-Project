@@ -107,7 +107,10 @@ def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
         'en': topic.title_is_transliteration(link["title"]['en'], 'en'),
         'he': topic.title_is_transliteration(link["title"]['he'], 'he')
     }
-    link['description'] = getattr(topic, 'description', {})
+    if getattr(topic, "description_published", False):
+        link['description'] = getattr(topic, 'description', {})
+    else:
+        link['description'] = {}
     if not topic.should_display():
         link['shouldDisplay'] = False
     link['order'] = link.get('order', None) or {}

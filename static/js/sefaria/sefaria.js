@@ -1199,12 +1199,21 @@ Sefaria = extend(Sefaria, {
   },
   topicsByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
-    const topics = refs.reduce(
-      (accum, curr) =>
-        this._refTopicLinks[curr] ? accum.concat(this._refTopicLinks[curr]) : accum
-      , []
-    );
-    return topics;
+    const topicsObj = {};
+    for (let r of refs) {
+      const tempTopicList = this._refTopicLinks[r];
+      if (!tempTopicList) { continue; }
+      for (let tempTopic of tempTopicList) {
+        if (!topicsObj[tempTopic.topic]) {
+          tempTopic.order = tempTopic.order || {};
+          tempTopic.order.count = 1;
+          topicsObj[tempTopic.topic] = tempTopic;
+        } else {
+          topicsObj[tempTopic.topic].order.count += 1;
+        }
+      }
+    }
+    return Object.values(topicsObj).sort((a, b) => b.order.count - a.order.count);
   },
   _related: {},
   related: function(ref, callback) {

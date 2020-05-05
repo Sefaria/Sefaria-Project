@@ -291,7 +291,9 @@ class ConnectionsPanel extends Component {
                     toggleSignUpModal = {this.props.toggleSignUpModal}
                     sheetsCount={Sefaria.sheets.sheetsTotalCount(this.props.srefs)}
                     notesCount={Sefaria.notesTotalCount(this.props.srefs)}
-                    webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length} />
+                    webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length}
+                    topicsCount={Sefaria.topicsByRef(this.props.srefs).length}
+                  />
                   </div>);
 
     } else if (this.props.mode === "ConnectionsList") {
@@ -565,7 +567,7 @@ class ResourcesList extends Component {
               : null }
               <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
               <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
-              <ToolsButton en="Topic" he="נושאים" image="hashtag-icon.svg" count={this.props.topicsCount} onClick={() => this.props.setConnectionsMode("Topics")} />
+              <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={this.props.topicsCount} onClick={() => this.props.setConnectionsMode("Topics")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
@@ -738,15 +740,35 @@ PublicSheetsList.propTypes = {
 const TopicList = ({ srefs, interfacelang }) => (
   <div>
     {
-      Sefaria.topicsByRef(srefs).map(topic => (<TopicListItem key={topic.topic} topic={topic} />))
+      Sefaria.topicsByRef(srefs).length ? Sefaria.topicsByRef(srefs).map(
+        topic => (<TopicListItem key={topic.topic} topic={topic} />
+      )) : (
+        <div className="webpageList empty">
+          <LoadingMessage
+            message={"No topics known here."}
+            heMessage={"אין נושאים ידועים."}
+          />
+        </div>
+      )
     }
   </div>
 );
 
 const TopicListItem = ({ topic }) => (
-  <div>
-    {topic.title.en}
-  </div>
+  <a href={`/topics/${topic.topic}`} className="toolsButton topicButton" onClick={()=>{}}>
+    <span className="contentText">
+      <span className="int-en">{topic.title.en}</span>
+      <span className="int-he">{topic.title.he}</span>
+    </span>
+    {
+      topic.description ? (
+        <span className="smallText">
+          <span className="int-en">{topic.description.en}</span>
+          <span className="int-he">{topic.description.he}</span>
+        </span>
+      ) : null
+    }
+  </a>
 );
 
 class WebPagesList extends Component {
