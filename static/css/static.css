@@ -2853,7 +2853,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   margin: 0;
   width: 35%;
 }
-.staticPage .staticPageH2 span.int-en {
+.staticPage .staticPageH2 span {
   font-style: normal;
   font-weight: 500;
   font-size: 30px;
@@ -2921,6 +2921,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPageHeaderText {
   font-size: 16px;
+  max-width: 280px;
   line-height: 22px;
   padding-bottom: 25px;
 }
@@ -2932,7 +2933,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   padding: 50px 0;
 }
 .staticPageAbout h2 {
-  font-size:22px;
+  font-size: 22px;
   font-weight: 500;
   color: #666;
   line-height: 26px;
@@ -2990,6 +2991,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   .staticPage .staticPageHeader {
     padding-top: 40px;
   }
+  .staticPage .staticPageHeaderText {
+    max-width: 100%;
+  }
   .staticPage .staticPageH2 {
     width: 100%;
   }
@@ -2997,9 +3001,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   .staticPage .feature .featureImage {
     padding-top: 30px;
   }
-
-  .staticPageHeaderText {
-    margin-bottom: 30px;
+  .staticPage .staticPageHeader .staticPageHeaderImg {
+    margin-top: 20px;
   }
   .staticPage .simpleButtonWrapper,
   .staticPage .feature .featureText,
