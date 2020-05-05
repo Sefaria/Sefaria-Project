@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-08 16:41-0300\n"
+"POT-Creation-Date: 2020-05-05 07:06-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -39,12 +39,10 @@ msgid "Explore 3,000 years of Jewish texts in Hebrew and English translation."
 msgstr "צאו למסע בעקבות 3000 שנה של טקסטים יהודיים, בעברית ובתרגום לאנגלית"
 
 #: reader/views.py:492
-#| msgid "Sefaria Source Sheets"
 msgid "Sefaria Source Sheet"
 msgstr "דף המקורות בספריא"
 
 #: reader/views.py:494
-#| msgid "A source sheet created with Sefaria's Source Sheet Builder."
 msgid "A source sheet created with Sefaria's Source Sheet Builder"
 msgstr "דף מקורות בנוי בעזרת מחולל דפי המקורות של ספריא"
 
@@ -187,7 +185,6 @@ msgid "Topics"
 msgstr "נושאים"
 
 #: reader/views.py:969
-#| msgid "Source Sheets"
 msgid "Source Sheet"
 msgstr "דף מקורות"
 
@@ -212,13 +209,13 @@ msgstr "ספריא"
 msgid "Explore Jewish Texts by Topic on Sefaria"
 msgstr "מקורות לפי נושא בספריא"
 
-#: reader/views.py:2935
+#: reader/views.py:2951
 #, python-format
 msgid ""
 "Explore %(topic)s on Sefaria, drawing from our library of Jewish texts. "
 msgstr "מקורות בנושא %(topic)s השאובים ממאגר המקורות של ספריא"
 
-#: reader/views.py:3210 reader/views.py:3296
+#: reader/views.py:3226 reader/views.py:3254 reader/views.py:3350
 msgid "You must be logged in to update your profile."
 msgstr "הנכם צריכים להיות מחוברים כדי לערוך את הפרופיל שלכם."
 
@@ -231,12 +228,10 @@ msgid "Incorrect account password for this account"
 msgstr "סיסמא לא נכונה לשם המשתמש הזה"
 
 #: reader/views.py:3305
-#: reader/views.py:3267
-#| msgid "You must be logged in to update your profile."
 msgid "You must be logged in to update your profile photo."
 msgstr "הנכם צריכים להיות מחוברים כדי לערוך את תמונת הפרופיל שלכם."
 
-#: reader/views.py:4183 reader/views.py:4186
+#: reader/views.py:4246 reader/views.py:4249
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr "אודות %(name)s. יצירות שחוברו, ביוגרפיה, תאריכים ועוד"
@@ -298,12 +293,15 @@ msgstr "קבוצות פומביות חייבות לכלול תמונת קבוצ�
 msgid "Public Groups are required to have at least 3 public sheets."
 msgstr "קבוצות פומביות חייבות לכלול לפחות 3 דפי מקורות פומביים"
 
+#: sefaria/model/user_profile.py:244
+#| msgid "A user with that email already exists."
+msgid "A user with that email already exists"
+msgstr "משתמש עם כתובת האימייל לעיל כבר קיים"
 
 #: sefaria/model/user_profile.py:249
 msgid "The email address is not valid."
 msgstr "כתובת האימייל הזו אינה תקינה"
 
-#: sefaria/views.py:156 sefaria/views.py:191 templates/static/app.html:383
 #: sefaria/views.py:157 sefaria/views.py:192 templates/static/app.html:383
 #: templates/static/aramaic-translation-contest.html:189
 #: templates/static/educators.html:389 templates/static/educators.html:411
@@ -1030,7 +1028,6 @@ msgstr ""
 "במקומות אחרים בדפוס או בצורה מקוונת"
 
 #: templates/static/daf-yomi.html:4
-#| msgid " | Sefaria"
 msgid "Daf Yomi | Sefaria"
 msgstr "הדף היומי | ספריא"
 
@@ -1124,7 +1121,6 @@ msgid "Sefaria Mobile Apps"
 msgstr "ספריא בנייד"
 
 #: templates/static/mobile.html:6
-#| msgid "Download the free Sefaria App for iOS and Android."
 msgid "Download the free Sefaria Apps for iOS and Android."
 msgstr "הורידו את האפליקציות החינמיות של ספריא לאייפון ולאנדרואיד"
 
@@ -1137,7 +1133,6 @@ msgid "Privacy Policy"
 msgstr "מדיניות פרטיות"
 
 #: templates/static/remote-learning.html:4
-#| msgid "Log in to Sefaria"
 msgid "Remote Learning | Sefaria"
 msgstr "למידה מרחוק בספריא"
 
@@ -1316,7 +1311,6 @@ msgstr ""
 
 #~ msgid "Sheets"
 #~ msgstr "דפי מקורות"
-
 
 #~ msgid "The Sefaria Library"
 #~ msgstr "תוכן העניינים של ספריא"
