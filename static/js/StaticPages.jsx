@@ -168,7 +168,7 @@ const SheetsLandingPage = () => (
                 />
             </SheetList>
         </HeBlock>
-        <ButtonRow>
+        <ButtonRow white={true}>
             <SimpleButton
                 he="חפשו עוד לפי נושא"
                 en="Explore More by Topic"
@@ -457,12 +457,12 @@ const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heIm
     </div>
 );
 
-const ButtonRow = ({children, light}) => (
-    <GreyBox light={light}>
-        <div className="staticPageBlockInner blockVerticalPadding flexContainer">
-            {children}
-        </div>
-    </GreyBox>
+const ButtonRow = ({children, light, white}) => (
+    white
+        ? <div className="staticPageBlockInner blockVerticalPadding flexContainer">{children}</div>
+        : <GreyBox light={light}>
+            <div className="staticPageBlockInner blockVerticalPadding flexContainer">{children}</div>
+          </GreyBox>
 );
 
 const SimpleButton = ({href, he_href, he, en, white, rounded=true, tall=false}) => (
