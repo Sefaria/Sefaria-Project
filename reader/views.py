@@ -2993,7 +2993,8 @@ def topic_ref_api(request, tref):
     """
     API to get RefTopicLinks
     """
-    response = get_topics_for_ref(tref)
+    annotate = bool(int(request.GET.get("annotate", False)))
+    response = get_topics_for_ref(tref, annotate)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 

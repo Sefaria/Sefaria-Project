@@ -1,5 +1,5 @@
 import re
-from typing import Optional
+from typing import Optional, Union
 from collections import defaultdict
 from functools import cmp_to_key
 from sefaria.model import *
@@ -51,23 +51,7 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
             del link['linkType']
             del link['class']
             if annotate_links:
-                # add display information
-                other_topic = link_topic_dict.get(link['topic'], None)
-                if other_topic is None:
-                    logger.warning("Topic slug {} doesn't exist. Linked to {}".format(link['topic'], topic))
-                    continue
-                link["title"] = {
-                    "en": other_topic.get_primary_title('en'),
-                    "he": other_topic.get_primary_title('he')
-                }
-                link['titleIsTransliteration'] = {
-                    'en': other_topic.title_is_transliteration(link["title"]['en'], 'en'),
-                    'he': other_topic.title_is_transliteration(link["title"]['he'], 'he')
-                }
-                if not other_topic.should_display():
-                    link['shouldDisplay'] = False
-                link['order'] = link.get('order', None) or {}
-                link['order']['numSources'] = getattr(other_topic, 'numSources', 0)
+                link = annotate_topic_link(link, link_topic_dict)
             if link_type_slug in response['links']:
                 response['links'][link_type_slug]['links'] += [link]
             else:
@@ -107,6 +91,27 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
 
         response['refs'] = new_refs
     return response
+
+
+def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
+    # add display information
+    other_topic = link_topic_dict.get(link['topic'], None)
+    if other_topic is None:
+        logger.warning(f"Topic slug {link['topic']} doesn't exist")
+        return None
+    link["title"] = {
+        "en": other_topic.get_primary_title('en'),
+        "he": other_topic.get_primary_title('he')
+    }
+    link['titleIsTransliteration'] = {
+        'en': other_topic.title_is_transliteration(link["title"]['en'], 'en'),
+        'he': other_topic.title_is_transliteration(link["title"]['he'], 'he')
+    }
+    if not other_topic.should_display():
+        link['shouldDisplay'] = False
+    link['order'] = link.get('order', None) or {}
+    link['order']['numSources'] = getattr(other_topic, 'numSources', 0)
+    return link
 
 
 def get_all_topics(limit=1000):
@@ -201,10 +206,18 @@ def recommend_topics(refs: list) -> list:
     return sorted(recommend_topics, key=lambda x: x["count"], reverse=True)
 
 
-def get_topics_for_ref(tref):
+def get_topics_for_ref(tref, annotate=False):
     oref = Ref(tref)
     ref_links = RefTopicLinkSet({"expandedRefs": oref.normal()})
-    return [l.contents() for l in ref_links]
+    serialized = [l.contents() for l in ref_links]
+    if annotate:
+        if len(serialized) > 0:
+            link_topic_dict = {topic.slug: topic for topic in TopicSet({"$or": [{"slug": link['topic']} for link in serialized]})}
+        else:
+            link_topic_dict = {}
+        serialized = [annotate_topic_link(link, link_topic_dict) for link in serialized]
+
+    return serialized
 
 
 """
