@@ -204,37 +204,39 @@ const RemoteLearningPage = () => (
         />
         <GreyBox>
             <H2Block en="Browse our Latest Resources" he="מקורות בספריא" />
-            <ButtonRow>
-                <SimpleButton
-                    white={true}
-                    rounded={false}
-                    tall={true}
-                    href="/groups/Educator-Newsletters?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he_href="/sheets/219410?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he="דפי מקורות אקטואליים"
-                    en="Educator Newsletters"
-                />
-                <SimpleButton
-                    white={true}
-                    rounded={false}
-                    tall={true}
-                    href="/groups/A-Jewish-Response-to-Coronavirus?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he_href="/sheets/227981.5?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he="נגיף הקורונה"
-                    en="A Jewish Response to COVID-19"
-                />
-                <SimpleButton
-                    white={true}
-                    rounded={false}
-                    tall={true}
-                    href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he_href="/sheets/228257?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                    he="עשרת הדיברות ללמידה מרחוק"
-                    en="Online Learning Resources"
-                />
-            </ButtonRow>
         </GreyBox>
-        <H2Block en="Resources for Everyone" he="לומדים עם ספריא" />
+        <ButtonRow>
+            <SimpleButton
+                white={true}
+                rounded={false}
+                tall={true}
+                href="/groups/Educator-Newsletters?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he_href="/sheets/219410?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he="דפי מקורות אקטואליים"
+                en="Educator Newsletters"
+            />
+            <SimpleButton
+                white={true}
+                rounded={false}
+                tall={true}
+                href="/groups/A-Jewish-Response-to-Coronavirus?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he_href="/sheets/227981.5?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he="נגיף הקורונה"
+                en="A Jewish Response to COVID-19"
+            />
+            <SimpleButton
+                white={true}
+                rounded={false}
+                tall={true}
+                href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he_href="/sheets/228257?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                he="עשרת הדיברות ללמידה מרחוק"
+                en="Online Learning Resources"
+            />
+        </ButtonRow>
+        <GreyBox light={true}>
+            <H2Block en="Resources for Everyone" he="לומדים עם ספריא" />
+        </GreyBox>
         <Feature
             enTitle="Learners"
             enText="Whether you’re a pro, or a new user, Sefaria has resources to help your virtual study thrive. Join a Sefaria 101 webinar, browse our tutorials, or sign up for the online student training course to up your skills on all things Sefaria. <a href='/register?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>Create a free account</a> to track your learning, save texts, and follow users creating things that interest you."
@@ -252,7 +254,7 @@ const RemoteLearningPage = () => (
             heImgAlt=""
             borderColor="#004E5F"
         />
-        <ButtonRow>
+        <ButtonRow light={true}>
             <SimpleButton
                 white={true}
                 rounded={false}
@@ -287,11 +289,7 @@ const RemoteLearningPage = () => (
             enImg="/static/img/distance-learning-landing-page/remotelearningpage_educators.png"
             enImgAlt="Source Sheet - Teaching with Sefaria Online"
             heTitle="מורים ואנשי הוראה"
-            heText={"צוות ספריא תומך בהוראה דיגיטלית ובהוראה מרחוק. למדו בעזרת החומרים שצוות החינוך שלנו יצר עבורכם- "
-                + "<a href='/educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>"
-                + "כיצד ללמד עם ספריא"
-                + "</a>"
-                + ", בכיתה ומחוצה לה. "
+            heText={"צוות ספריא תומך בהוראה דיגיטלית ובהוראה מרחוק. למדו בעזרת החומרים שצוות החינוך שלנו יצר עבורכם, בכיתה ומחוצה לה. "
                 + "<a href='/register?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning'>"
                 + "צרו חשבון משתמש"
                 + "</a>"
@@ -301,7 +299,7 @@ const RemoteLearningPage = () => (
             heImgAlt=""
             borderColor="#CCB479"
         />
-        <ButtonRow>
+        <ButtonRow light={true}>
             <SimpleButton
                 white={true}
                 rounded={false}
@@ -341,7 +339,7 @@ const RemoteLearningPage = () => (
             heImgAlt=""
             borderColor="#802F3E"
         />
-        <ButtonRow>
+        <ButtonRow light={true}>
             <SimpleButton white={true} tall={true} rounded={false} href="/linker?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning" he="לינקר דו צדדי" en="Two-Way Linker"/>
             <SimpleButton white={true} tall={true} rounded={false} href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria" he="אתרים המופעלים ע”י ספריא" en="Powered by Sefaria"/>
             <SimpleButton white={true} tall={true} rounded={false} href="https://github.com/Sefaria/Sefaria-Project/wiki#developers" he="Github גיטהאב" en="GitHub"/>
@@ -459,10 +457,12 @@ const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heIm
     </div>
 );
 
-const ButtonRow = ({children}) => (
-    <div className="staticPageBlockInner blockVerticalPadding flexContainer">
-        {children}
-    </div>
+const ButtonRow = ({children, light}) => (
+    <GreyBox light={light}>
+        <div className="staticPageBlockInner blockVerticalPadding flexContainer">
+            {children}
+        </div>
+    </GreyBox>
 );
 
 const SimpleButton = ({href, he_href, he, en, white, rounded=true, tall=false}) => (

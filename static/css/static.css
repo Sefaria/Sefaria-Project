@@ -2811,6 +2811,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .lightgreyBackground {
   background-color: #FBFBFA;
 }
+
 .staticPage .staticPageHeader {
   background-color: #212E50;
   padding: 70px 0 0 0;
@@ -3010,6 +3011,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   .staticPage .feature .featureImage img,
   .staticPage .staticPageCallToActionFooter .callToActionText {
     width: 100%;
+  }
+  .staticPage .staticPageCallToActionFooter .callToActionText {
+    padding-bottom: 20px;
   }
 }
 
