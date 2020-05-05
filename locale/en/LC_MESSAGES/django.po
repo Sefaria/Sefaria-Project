@@ -3,12 +3,11 @@
 # This file is distributed under the same license as the PACKAGE package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
-#: templates/timeline.html:6
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-03 05:57-0300\n"
+"POT-Creation-Date: 2020-05-05 07:06-0300\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -207,15 +206,23 @@ msgid ""
 "Explore %(topic)s on Sefaria, drawing from our library of Jewish texts. "
 msgstr ""
 
-#: reader/views.py:3226 reader/views.py:3312
+#: reader/views.py:3226 reader/views.py:3254 reader/views.py:3350
 msgid "You must be logged in to update your profile."
 msgstr ""
 
-#: reader/views.py:3267
+#: reader/views.py:3264
+msgid "Email fields did not match"
+msgstr ""
+
+#: reader/views.py:3266
+msgid "Incorrect account password for this account"
+msgstr ""
+
+#: reader/views.py:3305
 msgid "You must be logged in to update your profile photo."
 msgstr ""
 
-#: reader/views.py:4208 reader/views.py:4211
+#: reader/views.py:4246 reader/views.py:4249
 #, python-format
 msgid "Learn about %(name)s - works written, biographies, dates and more."
 msgstr ""
@@ -227,7 +234,7 @@ msgstr ""
 msgid "Email Address"
 msgstr ""
 
-#: sefaria/forms.py:29 sefaria/forms.py:36
+#: sefaria/forms.py:29 sefaria/forms.py:36 templates/account_settings.html:92
 msgid "Password"
 msgstr ""
 
@@ -277,6 +284,14 @@ msgstr ""
 msgid "Public Groups are required to have at least 3 public sheets."
 msgstr ""
 
+#: sefaria/model/user_profile.py:244
+msgid "A user with that email already exists"
+msgstr ""
+
+#: sefaria/model/user_profile.py:249
+msgid "The email address is not valid."
+msgstr ""
+
 #: sefaria/views.py:157 sefaria/views.py:192 templates/static/app.html:383
 #: templates/static/aramaic-translation-contest.html:189
 #: templates/static/educators.html:389 templates/static/educators.html:411
@@ -291,6 +306,14 @@ msgstr ""
 
 #: templates/500.html:4
 msgid "Internal Server Error"
+msgstr ""
+
+#: templates/account_settings.html:90
+msgid "New Email"
+msgstr ""
+
+#: templates/account_settings.html:91
+msgid "Confirm New Email"
 msgstr ""
 
 #: templates/activity.html:7
@@ -1164,7 +1187,7 @@ msgstr ""
 msgid "Student-Teacher Relationships in the Talmud"
 msgstr ""
 
-#: templates/timeline.html:4
+#: templates/timeline.html:4 templates/timeline.html:6
 msgid "Timeline"
 msgstr ""
 
