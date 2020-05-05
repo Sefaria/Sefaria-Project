@@ -95,22 +95,23 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
 
 def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
     # add display information
-    other_topic = link_topic_dict.get(link['topic'], None)
-    if other_topic is None:
+    topic = link_topic_dict.get(link['topic'], None)
+    if topic is None:
         logger.warning(f"Topic slug {link['topic']} doesn't exist")
         return None
     link["title"] = {
-        "en": other_topic.get_primary_title('en'),
-        "he": other_topic.get_primary_title('he')
+        "en": topic.get_primary_title('en'),
+        "he": topic.get_primary_title('he')
     }
     link['titleIsTransliteration'] = {
-        'en': other_topic.title_is_transliteration(link["title"]['en'], 'en'),
-        'he': other_topic.title_is_transliteration(link["title"]['he'], 'he')
+        'en': topic.title_is_transliteration(link["title"]['en'], 'en'),
+        'he': topic.title_is_transliteration(link["title"]['he'], 'he')
     }
-    if not other_topic.should_display():
+    link['description'] = getattr(topic, 'description', {})
+    if not topic.should_display():
         link['shouldDisplay'] = False
     link['order'] = link.get('order', None) or {}
-    link['order']['numSources'] = getattr(other_topic, 'numSources', 0)
+    link['order']['numSources'] = getattr(topic, 'numSources', 0)
     return link
 
 
@@ -208,7 +209,8 @@ def recommend_topics(refs: list) -> list:
 
 def get_topics_for_ref(tref, annotate=False):
     oref = Ref(tref)
-    ref_links = RefTopicLinkSet({"expandedRefs": oref.normal()})
+    regex_list = oref.regex(as_list=True)
+    ref_links = RefTopicLinkSet({"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]})
     serialized = [l.contents() for l in ref_links]
     if annotate:
         if len(serialized) > 0:
@@ -216,7 +218,9 @@ def get_topics_for_ref(tref, annotate=False):
         else:
             link_topic_dict = {}
         serialized = [annotate_topic_link(link, link_topic_dict) for link in serialized]
-
+    for link in serialized:
+        link['anchorRef'] = link['ref']
+        del link['ref']
     return serialized
 
 

@@ -1190,6 +1190,22 @@ Sefaria = extend(Sefaria, {
       return (a.linkerHits > b.linkerHits) ? -1 : 1
     });
   },
+  _refTopicLinks: {},
+  _saveTopicByRef: function(ref, data) {
+    ref = Sefaria.humanRef(ref);
+    const split = this._saveItemsByRef(data, this._refTopicLinks);
+    this._refTopicLinks[ref] = data;
+    return split;
+  },
+  topicsByRef: function(refs) {
+    refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
+    const topics = refs.reduce(
+      (accum, curr) =>
+        this._refTopicLinks[curr] ? accum.concat(this._refTopicLinks[curr]) : accum
+      , []
+    );
+    return topics;
+  },
   _related: {},
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.
@@ -1218,6 +1234,7 @@ Sefaria = extend(Sefaria, {
           notes: this._saveNoteData(ref, data.notes),
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
+          topics: this._saveTopicByRef(ref, data.topics),
       };
 
        // Build split related data from individual split data arrays
@@ -1225,7 +1242,7 @@ Sefaria = extend(Sefaria, {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: [], webpages: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], topics: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }
