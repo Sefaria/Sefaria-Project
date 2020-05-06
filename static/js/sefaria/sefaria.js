@@ -1206,16 +1206,14 @@ Sefaria = extend(Sefaria, {
       for (let tempTopic of tempTopicList) {
         if (!topicsObj[tempTopic.topic]) {
           tempTopic.order = tempTopic.order || {};
-          tempTopic.dataSources = {[tempTopic.dataSource.slug]: tempTopic.dataSource};
-          tempTopic.order.count = 1;
+          tempTopic.dataSources = {};
           topicsObj[tempTopic.topic] = tempTopic;
-        } else {
-          topicsObj[tempTopic.topic].order.count += 1;
-          topicsObj[tempTopic.topic].dataSources[tempTopic.dataSource.slug] = tempTopic.dataSource;
         }
+        // aggregate dataSources for display in tooltip
+        topicsObj[tempTopic.topic].dataSources[tempTopic.dataSource.slug] = tempTopic.dataSource;
       }
     }
-    return Object.values(topicsObj).sort((a, b) => b.order.count - a.order.count);
+    return Object.values(topicsObj).sort((a, b) => b.order.pr - a.order.pr);
   },
   _related: {},
   related: function(ref, callback) {
