@@ -39,7 +39,7 @@ class Test_Mongo_Record_Models(object):
         m = sub()
         if m.collection == "term": #remove this line once terms are normalized
             return
-        res = m.load({})
+        res = m.load({} if sub.sub_collection_query is None else sub.sub_collection_query)
         if not res:  # Collection may be empty
             return
         assert m._id

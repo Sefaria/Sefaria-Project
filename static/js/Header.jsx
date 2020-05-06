@@ -3,6 +3,7 @@ const {
   GlobalWarningMessage,
   TestMessage,
   ProfilePic,
+  InterfaceLanguageMenu
 }                = require('./Misc');
 const React      = require('react');
 const PropTypes  = require('prop-types');
@@ -305,14 +306,14 @@ class Header extends Component {
                             <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses}>{this.state.notificationCount}</a>
                             <a href="/my/profile" className="my-profile"><ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></a>
                          </div>);
-    var loggedOutLinks = (<div className="accountLinks">
+    var loggedOutLinks = (<div className="accountLinks anon">
+                          <a className="login loginLink" href={"/login" + nextParam}>
+                             <span className="int-en">Log in</span>
+                             <span className="int-he">התחבר</span>
+                           </a>
                            <a className="login signupLink" href={"/register" + nextParam}>
                              <span className="int-en">Sign up</span>
                              <span className="int-he">הרשם</span>
-                           </a>
-                           <a className="login loginLink" href={"/login" + nextParam}>
-                             <span className="int-en">Log in</span>
-                             <span className="int-he">התחבר</span>
                            </a>
                          </div>);
     // Header should not show box-shadow over panels that have color line
@@ -345,6 +346,7 @@ class Header extends Component {
                 <div className="headerLinksSection">
                   { headerMessage }
                   { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
+                  { !Sefaria.loggedIn ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
                 </div>
               </div>
               { viewContent ?

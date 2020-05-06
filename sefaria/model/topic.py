@@ -267,6 +267,7 @@ class TopicLinkHelper(object):
 
 class IntraTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
+    sub_collection_query = {"class": "intraTopic"}
     required_attrs = TopicLinkHelper.required_attrs + ['fromTopic']
     optional_attrs = TopicLinkHelper.optional_attrs
     valid_links = []
@@ -360,6 +361,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 
 class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
+    sub_collection_query = {"class": "refTopic"}
     required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']  # is_sheet  and expandedRef attrs are defaulted automatically in normalize
     optional_attrs = TopicLinkHelper.optional_attrs + ['text']
 

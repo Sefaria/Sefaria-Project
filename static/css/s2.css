@@ -321,7 +321,6 @@ input.noselect {
   z-index: 1001;
   box-sizing: border-box;
   padding: 0 30px;
-  overflow: hidden;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -347,6 +346,7 @@ input.noselect {
   display: flex;
   justify-content: flex-end;
   min-width: 40%;
+  align-items: center;
 }
 .header .header-nav{
   margin-top: 1px;
@@ -412,7 +412,9 @@ input.noselect {
   width: 92px;
 }
 .header .login:first-child{
-  margin: auto 30px;
+  -webkit-margin-end: 0px;
+  -moz-margin-end: 0px;
+  margin-inline-end: 0px;
 }
 .header .notifications {
   margin: 0 17px;
@@ -446,6 +448,123 @@ input.noselect {
   font-size: 16px;
   margin-top: 2px;
   color: #666;
+  -webkit-margin-end: 20px;
+  -moz-margin-end: 20px;
+  margin-inline-end: 20px;
+}
+.header .accountLinks.anon a:last-child{
+  background: #FFFFFF;
+  border: 1px solid #EDEDEC;
+  box-sizing: border-box;
+  border-radius: 6px;
+}
+.header .interfaceLinks{
+  display: block;
+  align-items: center;
+  margin-top: 2px;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+}
+.header .interfaceLinks img{
+  height: 18px;
+  width: 18px;
+  vertical-align: middle;
+  -webkit-margin-end: 5px;
+  -moz-margin-end: 5px;
+  margin-inline-end: 5px;
+}
+.header .interfaceLinks a.interfaceLinks-button::after{
+  display: inline-block;
+  background-image: url("/static/icons/chevron-down.svg");
+  height: 10px;
+  width: 10px;
+  vertical-align: middle;
+  content: "";
+}
+.header .interfaceLinks .interfaceLinks-menu{
+  top: 35px;
+  position: absolute;
+  z-index: 1;
+  position: absolute;
+  width: 150px;
+  background: #FBFBFA;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  display: none;
+}
+.header .interfaceLinks .interfaceLinks-menu.open{
+  display: block;
+}
+.interface-english .header .interfaceLinks .interfaceLinks-menu{
+  right: 0px;
+}
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu{
+  left: 0px;
+}
+.header .interfaceLinks .interfaceLinks-header{
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 18px;
+  color: #999999;
+  padding: 12px;
+  border-bottom: 1px solid #CCCCCC;
+}
+.interface-english .header .interfaceLinks .interfaceLinks-header{
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+}
+.interface-hebrew .header .interfaceLinks .interfaceLinks-header{
+  font-family: "Heebo", sans-serif;
+}
+.interfaceLinks-options{
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+}
+.header .interfaceLinks .interfaceLinks-option{
+  display: flex;
+  text-decoration: none;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 23px;
+  text-align: right;
+  color: #666666;
+  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
+  padding: 5px;
+}
+.header .interfaceLinks .interfaceLinks-option::before{
+  content: "";
+  font-family:FontAwesome;
+  color: #999;
+  font-weight: normal;
+  font-size: 13px;
+  font-style: normal;
+  padding: 0 15px;
+}
+.header .interfaceLinks .interfaceLinks-option.active{
+  order: -1;
+}
+.header .interfaceLinks .interfaceLinks-option.active::before{
+  content: "\f00c";
+  padding: 0 8px;
+}
+@media screen and (max-width: 700px) {
+  .header .interfaceLinks {
+    display: none;
+  }
+  .header .accountLinks .login{
+    padding: 5px 5px;
+  }
+  .header .accountLinks{
+    -webkit-margin-end: 0px;
+    -moz-margin-end: 0px;
+    margin-inline-end: 0px;
+  }
+  .header .login:first-child{
+    margin:auto;
+  }
 }
 .header .my-profile, .header .notifications {
   display: inline-block;
@@ -478,6 +597,7 @@ input.noselect {
   color: #666;
   display: inline-block;
   line-height: 1;
+  padding: 8px 15px;
 }
 .header .login .en {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;

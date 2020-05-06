@@ -860,6 +860,7 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "search" && this.state.searchQuery) {
       menu = (<SearchPage
                     key={"searchPage"}
+                    interfaceLang={this.props.interfaceLang}
                     query={this.state.searchQuery}
                     tab={this.state.searchTab}
                     textSearchState={this.state.textSearchState}

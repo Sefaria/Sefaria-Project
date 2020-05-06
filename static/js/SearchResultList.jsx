@@ -127,6 +127,15 @@ class SearchResultList extends Component {
     _executeAllQueries(props) {
       this.types.forEach(t => this._executeQuery(props, t));
     }
+    _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type, interfaceLang) {
+      const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
+      const justUnapplied = uniqueAggTypes.indexOf(this.lastAppliedAggType[type]) === -1; // if you just unapplied an aggtype filter completely, make sure you rerequest that aggType's filters also in case they were deleted
+      if (filtersValid && aggregation_field_array.length === 1) { return []; }
+      return Sefaria.util
+      .zip(aggregation_field_array, aggregation_field_lang_suffix_array)
+      .filter(([agg, _]) => justUnapplied || agg !== this.lastAppliedAggType[type])        // remove lastAppliedAggType
+      .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[interfaceLang] : ''}`);  // add suffix based on interfaceLang to filter, if present in suffix_map
+    }
     _executeQuery(props, type) {
       //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
       props = props || this.props;
@@ -148,6 +157,7 @@ class SearchResultList extends Component {
 
       args.success = data => {
               this.updateRunningQuery(type, null);
+
               const hitArray = type === 'text' ? Sefaria.search.process_text_hits(data.hits.hits) : data.hits.hits;  // TODO need if statement? or will there be similar processing done on sheets?
               let state = {
                 hits: extend(this.state.hits, {[type]: hitArray}),
@@ -164,7 +174,7 @@ class SearchResultList extends Component {
                 let availableFilters = [];
                 let registry = {};
                 let orphans = [];
-                for (let aggregation of aggregation_field_array) {
+                for (let aggregation of args.aggregationsToUpdate) {
                   if (!!data.aggregations[aggregation]) {
                     const { buckets } = data.aggregations[aggregation];
                     const { 
@@ -191,10 +201,10 @@ class SearchResultList extends Component {
       const searchState = this._getSearchState(type, props);
       const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
       const request_applied = filtersValid && appliedFilters;
-      const { aggregation_field_array } = SearchState.metadataByType[type];
+      const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[type];
       const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
       const justUnapplied = uniqueAggTypes.indexOf(this.lastAppliedAggType[type]) === -1; // if you just unapplied an aggtype filter completely, make sure you rerequest that aggType's filters also in case they were deleted
-      const aggregationsToUpdate = filtersValid && aggregation_field_array.length === 1 ? [] : aggregation_field_array.filter( a => justUnapplied || a !== this.lastAppliedAggType[type]);
+      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type, props.interfaceLang);
 
       return {
         query: props.query,
@@ -331,6 +341,7 @@ class SearchResultList extends Component {
     }
 }
 SearchResultList.propTypes = {
+  interfaceLang:            PropTypes.oneOf(['english', 'hebrew']),
   query:                    PropTypes.string,
   tab:                      PropTypes.oneOf(["text", "sheet"]),
   textSearchState:          PropTypes.object,

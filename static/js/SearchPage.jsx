@@ -46,6 +46,7 @@ class SearchPage extends Component {
                           </h1>
                           <div className="searchContent" style={style}>
                               <SearchResultList
+                                interfaceLang={this.props.interfaceLang}
                                 query={this.props.query}
                                 tab={this.props.tab}
                                 textSearchState={this.props.textSearchState}
@@ -66,6 +67,7 @@ class SearchPage extends Component {
     }
 }
 SearchPage.propTypes = {
+    interfaceLang:            PropTypes.oneOf(["english", "hebrew"]),
     query:                    PropTypes.string,
     tab:                      PropTypes.oneOf(["text", "sheet"]),
     textSearchState:          PropTypes.object,

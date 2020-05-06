@@ -6,6 +6,7 @@ import sys
 import json
 import csv
 from datetime import datetime
+from django.utils.translation import ugettext as _, ungettext_lazy
 from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError
@@ -13,6 +14,7 @@ from functools import reduce
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User
+    from emailusernames.utils import get_user, user_exists
     from django.core.mail import EmailMultiAlternatives
     from django.template.loader import render_to_string
     from django.core.validators import URLValidator, EmailValidator
@@ -216,6 +218,44 @@ class UserHistorySet(abst.AbstractMongoSet):
 
     def hits(self):
         return reduce(lambda agg,o: agg + getattr(o, "num_times_read", 1), self, 0)
+
+
+"""
+Wrapper class for operations on the user object. Currently only for changing primary email.
+"""
+class UserWrapper(object):
+    def __init__(self, email=None):
+        self.user = get_user(email)
+        self._errors = []
+
+    def set_email(self, new_email):
+        self.email = new_email
+        self._errors = []
+
+    def validate(self):
+        return not self.errors()
+
+    def errors(self):
+        if len(self._errors):
+            return self._errors[0]
+        if user_exists(self.email):
+            u = get_user(self.email)
+            if u.id != self.user.id:
+                self._errors.append(_("A user with that email already exists"))
+        email_val = EmailValidator()
+        try:
+            email_val(self.email)
+        except ValidationError as e:
+            self._errors.append(_("The email address is not valid."))
+        return self._errors[0] if len(self._errors) else None
+
+    def save(self):
+        if self.validate():
+            self.user.email = self.email
+            self.user.username = self.email #this is to conform with our username-as-email library, which doesnt really take care of itself properly as advertised
+            self.user.save()
+        else:
+            raise ValueError(self.errors())
 
 
 class UserProfile(object):

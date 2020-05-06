@@ -28,6 +28,7 @@ class AbstractMongoRecord(object):
     "collection" attribute is set on subclass
     """
     collection = None  # name of MongoDB collection
+    sub_collection_query = None  # dict with key/values for docs in `collection` that can be instantiated with this model (e.g. used in RefTopicLink)
     id_field = "_id"  # Mongo ID field
     criteria_field = "_id"  # Primary ID used to find existing records
     slug_fields = None  # If record can be uniquely identified by slug, set this var with the slug fields
