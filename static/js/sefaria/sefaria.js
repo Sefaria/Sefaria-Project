@@ -1206,10 +1206,12 @@ Sefaria = extend(Sefaria, {
       for (let tempTopic of tempTopicList) {
         if (!topicsObj[tempTopic.topic]) {
           tempTopic.order = tempTopic.order || {};
+          tempTopic.dataSources = {[tempTopic.dataSource.slug]: tempTopic.dataSource};
           tempTopic.order.count = 1;
           topicsObj[tempTopic.topic] = tempTopic;
         } else {
           topicsObj[tempTopic.topic].order.count += 1;
+          topicsObj[tempTopic.topic].dataSources[tempTopic.dataSource.slug] = tempTopic.dataSource;
         }
       }
     }
@@ -2211,6 +2213,7 @@ Sefaria = extend(Sefaria, {
       "Chronological": 'כרונולוגי',
       "Newest": "הכי חדש",
       "This source is connected to ": "מקור הזה קשור ל-",
+      "This topic is connected to ": "נושא הזה קשור ל-",
       "by": "על ידי",
       "Read the Portion": "קראו את הפרשה",
 

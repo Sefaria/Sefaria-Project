@@ -224,6 +224,11 @@ def get_topics_for_ref(tref, annotate=False):
     for link in serialized:
         link['anchorRef'] = link['ref']
         del link['ref']
+        if link.get('dataSource', None):
+            data_source_slug = link['dataSource']
+            data_source = library.get_topic_data_source(data_source_slug)
+            link['dataSource'] = data_source.displayName
+            link['dataSource']['slug'] = data_source_slug
     return serialized
 
 

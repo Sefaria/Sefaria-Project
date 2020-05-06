@@ -7,6 +7,7 @@ const {
   SheetListing,
   Note,
   FeedbackBox,
+  ToolTipped,
 }                            = require('./Misc');
 const {
   CategoryFilter,
@@ -737,12 +738,19 @@ PublicSheetsList.propTypes = {
   connectedSheet: PropTypes.string,
 };
 
-const TopicList = ({ srefs, interfacelang }) => (
+const TopicList = ({ srefs, interfaceLang }) => (
   <div>
     {
       Sefaria.topicsByRef(srefs).length ? Sefaria.topicsByRef(srefs).map(
-        topic => (<TopicListItem key={topic.topic} topic={topic} />
-      )) : (
+        topic => (
+          <TopicListItem
+            key={topic.topic}
+            topic={topic}
+            interfaceLang={interfaceLang}
+            srefs={srefs}
+          />
+        )
+      ) : (
         <div className="webpageList empty">
           <LoadingMessage
             message={"No topics known here."}
@@ -754,22 +762,34 @@ const TopicList = ({ srefs, interfacelang }) => (
   </div>
 );
 
-const TopicListItem = ({ topic }) => (
-  <a href={`/topics/${topic.topic}`} className="toolsButton topicButton" onClick={()=>{}}>
-    <span className="contentText">
-      <span className="int-en">{topic.title.en}</span>
-      <span className="int-he">{topic.title.he}</span>
-    </span>
-    {
-      topic.description ? (
-        <span className="smallText">
-          <span className="int-en">{topic.description.en}</span>
-          <span className="int-he">{topic.description.he}</span>
+const TopicListItem = ({ topic, interfaceLang, srefs }) => {
+  let dataSourceText = '';
+  const langKey = interfaceLang === 'english' ? 'en' : 'he';
+  if (!!topic.dataSources && Object.values(topic.dataSources).length > 0) {
+    dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(srefs[0])}" ${Sefaria._('by')} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
+  }
+  return (
+    <a href={`/topics/${topic.topic}`} className="toolsButton topicButton" onClick={()=>{}}>
+      <span className="topicButtonTitle">
+        <span className="contentText">
+          <span className="int-en">{topic.title.en}</span>
+          <span className="int-he">{topic.title.he}</span>
         </span>
-      ) : null
-    }
-  </a>
-);
+        <ToolTipped altText={dataSourceText} classes={"saveButton tooltip-toggle three-dots-button"}>
+          <img src="/static/img/three-dots.svg" alt={dataSourceText}/>
+        </ToolTipped>
+      </span>
+      {
+        topic.description ? (
+          <span className="smallText">
+            <span className="int-en">{topic.description.en}</span>
+            <span className="int-he">{topic.description.he}</span>
+          </span>
+        ) : null
+      }
+    </a>
+  );
+}
 
 class WebPagesList extends Component {
   // List of web pages for a ref in the sidebar

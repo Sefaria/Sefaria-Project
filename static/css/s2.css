@@ -3266,7 +3266,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: auto;
   right: -50px;
 }
-.mainColumn .saveButton.tooltip-toggle.three-dots-button {
+.saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
   margin-bottom: 13px;
   padding: 0;
@@ -4675,6 +4675,24 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .toolsButton.topicButton {
   padding: 20px 27px;
   flex-direction: column;
+}
+.topicButton .topicButtonTitle {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.topicButton .saveButton.tooltip-toggle.three-dots-button {
+  margin-bottom: 0;
+}
+.topicButton .three-dots-button.tooltip-toggle::before {
+  transform: none;
+  left: unset;
+  right: 30px;
+}
+.interface-hebrew .topicButton .three-dots-button.tooltip-toggle::before {
+  right: unset;
+  left: 30px;
+  text-align: right;
 }
 .toolsButton:last-child {
   border-bottom: 1px solid #E5E5E5;
