@@ -886,7 +886,7 @@ class ReaderApp extends Component {
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
       menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories:    state.navigationCategories    || [],
-      navigationTopicCategory:        state.navigationTopicCategory   || "",
+      navigationTopicCategory: state.navigationTopicCategory || "",
       navigationSheetTag:      state.sheetsTag               || null,
       navigationGroupTag:      state.navigationGroupTag      || null,
       sheet:                   state.sheet                   || null,
@@ -1653,7 +1653,8 @@ class ReaderApp extends Component {
     const sheetSearchState = (!!this.state.header && !!this.state.header.searchStateSheet) ? this.state.header.searchStateSheet.update({ filtersValid: false }) : new SearchState({ type: 'sheet' });
 
     if (this.props.multiPanel) {
-      panel = this.makePanelState({mode: "Header", menuOpen: "search", searchQuery, textSearchState, sheetSearchState });
+      const searchTab = !!this.state.header ? this.state.header.searchTab : "text";
+      panel = this.makePanelState({mode: "Header", menuOpen: "search", searchQuery, searchTab, textSearchState, sheetSearchState });
       this.setState({header: panel, panels: []});
     } else {
       panel = this.makePanelState({menuOpen: "search", searchQuery, textSearchState, sheetSearchState });
