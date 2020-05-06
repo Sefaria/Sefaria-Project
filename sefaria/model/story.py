@@ -1013,7 +1013,7 @@ class TopicListStoryFactory(AbstractStoryFactory):
     def _data_object(cls, **kwargs):
         # todo: handle possibility of Hebrew terms trending. NOAH: I think this may be solved now that we've moved to topics model
         return {
-            "topics": [{"en": topic['en'], "he": topic['he']} for topic in kwargs.get('topics')],
+            "topics": [{"en": topic['en'], "he": topic['he'], "slug": topic["slug"]} for topic in kwargs.get('topics')],
             "title": kwargs.get("title", {"en": "Trending Recently", "he": "נושאים עדכניים"}),
             "lead": kwargs.get("lead", {"en": "Topics", "he": "נושאים"})
         }
@@ -1091,6 +1091,7 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
                 "en": topic.get_primary_title('en'),
                 "he": topic.get_primary_title('he')
             },
+            "slug": topic.slug,
             "refs": normal_refs
         }
 
