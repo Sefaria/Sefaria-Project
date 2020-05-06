@@ -32,20 +32,22 @@ class MultiServerMonitor(MessagingNode):
         :return:
         """
         msg = self.pubsub.get_message()
+        print(msg)
         if not msg:
             return
+        channel = msg["channel"].decode("utf-8")
 
         if msg["type"] != "message":
             logger.error("Surprising redis message type: {}".format(msg))
 
-        elif msg["channel"] == MULTISERVER_REDIS_EVENT_CHANNEL:
+        elif channel == MULTISERVER_REDIS_EVENT_CHANNEL:
             data = json.loads(msg["data"])
             self._process_event(data)
-        elif msg["channel"] == MULTISERVER_REDIS_CONFIRM_CHANNEL:
+        elif channel == MULTISERVER_REDIS_CONFIRM_CHANNEL:
             data = json.loads(msg["data"])
             self._process_confirm(data)
         else:
-            logger.error("Surprising redis message channel: {}".format(msg["channel"]))
+            logger.error("Surprising redis message channel: {}".format(channel))
 
         # There may be more than one message waiting
         self.process_messages()
