@@ -407,7 +407,7 @@ class Search {
         sort_score_missing: score_missing,
       };
     }
-    process_text_hits(hits) {
+    mergeTextResultsVersions(hits) {
       var newHits = [];
       var newHitsObj = {};  // map ref -> index in newHits
       const alreadySeenIds = {};  // for some reason there are duplicates in the `hits` array. This needs to be dealth with. This is a patch.
@@ -438,9 +438,6 @@ class Search {
     _cacheQuery(args, results) {
         const cacheKey = this._queryCacheKey(args);
         results = Sefaria.util.clone(results);
-        if (args.type == "text") {
-            results.hits.hits = this.process_text_hits(results.hits.hits);
-        }
         this.cache(cacheKey, results);
     }
     _queryCacheKey(args) {
