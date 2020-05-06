@@ -127,7 +127,7 @@ class Util {
 
 
     static cleanHTML(html) {
-        html = html.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ');
+        html = html.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ').replace(new RegExp ("(\\n)+$", 'gm'), '');
         var clean = sanitizeHtml(html, {
             allowedTags: ['blockquote', 'p', 'a', 'ul', 'ol',
                 'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike', 'hr', 'br', 'div',

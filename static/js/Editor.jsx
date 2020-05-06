@@ -882,7 +882,7 @@ const withSefariaSheet = editor => {
       //anything pasted into an he or en will be treated as text content
       if (node.type == "he" || node.type == "en") {
         for (const [child, childPath] of Node.children(editor, path)) {
-          if (child.type != "paragraph") {
+          if (child.type != "paragraph" && !child.text) {
             Transforms.unwrapNodes(editor, { at: childPath })
             return
           }
