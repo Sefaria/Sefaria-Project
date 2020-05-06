@@ -32,7 +32,6 @@ class MultiServerMonitor(MessagingNode):
         :return:
         """
         msg = self.pubsub.get_message()
-        print(msg)
         if not msg:
             return
         channel = msg["channel"].decode("utf-8")
