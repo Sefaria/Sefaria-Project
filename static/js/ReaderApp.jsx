@@ -8,7 +8,8 @@ const ReaderPanel   = require('./ReaderPanel');
 const $             = require('./sefaria/sefariaJquery');
 const EditGroupPage = require('./EditGroupPage');
 const {
-  RemoteLearningPage
+  RemoteLearningPage,
+  SheetsLandingPage
 }                   = require('./StaticPages');
 const Footer        = require('./Footer');
 const SearchState   = require('./sefaria/searchState');
@@ -1917,3 +1918,4 @@ module.exports.sefariaSetup         = Sefaria.setup;
 module.exports.unpackDataFromProps  = Sefaria.unpackDataFromProps;
 module.exports.EditGroupPage        = EditGroupPage;
 module.exports.RemoteLearningPage   = RemoteLearningPage;
+module.exports.SheetsLandingPage = SheetsLandingPage;
