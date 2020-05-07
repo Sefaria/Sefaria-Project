@@ -846,20 +846,24 @@ const withSefariaSheet = editor => {
             return
           }
           if (child.hasOwnProperty('text')) {
-            console.log(child)
-            Transforms.wrapNodes(editor,
-              {
+
+            const fragmentText = child.text
+
+            const fragment = {
                   type: "SheetItem",
                   children: [{
                       type: "SheetOutsideText",
                       node: editor.children[0].nextNode,
                       children: [{
                           type: "paragraph",
-                          children: [child]
+                          children: [{text: fragmentText}]
                       }],
                   }]
-              }                            ,{ at: childPath })
-              console.log(childPath)
+              }
+
+            Transforms.delete(editor, {at: childPath});
+            Transforms.insertNodes(editor, fragment, { at: childPath });
+
             return
 
           }
