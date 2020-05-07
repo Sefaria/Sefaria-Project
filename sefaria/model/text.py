@@ -4201,6 +4201,11 @@ class Ref(object, metaclass=RefCacheType):
         from . import LinkSet
         return LinkSet(self)
 
+    def topiclinkset(self):
+        from . import RefTopicLinkSet
+        regex_list = self.regex(as_list=True)
+        return RefTopicLinkSet({"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]})
+
     def autolinker(self, **kwargs):
         """
         Returns the class best suited to perform auto linking,

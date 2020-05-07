@@ -211,10 +211,7 @@ def recommend_topics(refs: list) -> list:
 
 
 def get_topics_for_ref(tref, annotate=False):
-    oref = Ref(tref)
-    regex_list = oref.regex(as_list=True)
-    ref_links = RefTopicLinkSet({"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]})
-    serialized = [l.contents() for l in ref_links]
+    serialized = [l.contents() for l in Ref(tref).topiclinkset()]
     if annotate:
         if len(serialized) > 0:
             link_topic_dict = {topic.slug: topic for topic in TopicSet({"$or": [{"slug": link['topic']} for link in serialized]})}
