@@ -141,7 +141,6 @@ class SearchFilters extends Component {
         isExactSearch={this.props.searchState.fieldExact === this.props.searchState.field}
         handleFocusCategory={this.handleFocusCategory}
         resetOpenedCategoryBooks={this.resetOpenedCategoryBooks}
-        updateLastAppliedAggType={this.props.updateLastAppliedAggType}
       /> :
       <SheetSearchFilterPanel
         toggleFilterView={this.props.toggleFilterView}
@@ -149,7 +148,6 @@ class SearchFilters extends Component {
         updateAppliedFilter={this.props.updateAppliedFilter}
         availableFilters={this.props.searchState.availableFilters}
         closeBox={this.props.closeFilterView}
-        updateLastAppliedAggType={this.props.updateLastAppliedAggType}
       />
     );
 
@@ -185,9 +183,8 @@ SearchFilters.propTypes = {
   updateAppliedFilter:  PropTypes.func,
   updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort: PropTypes.func,
-  updateLastAppliedAggType: PropTypes.func,
   isQueryRunning:       PropTypes.bool,
-  type:            PropTypes.string,
+  type:                 PropTypes.string,
   clickTextButton:      PropTypes.func,
   clickSheetButton:     PropTypes.func,
   showResultsOverlay:   PropTypes.func,
@@ -259,7 +256,6 @@ class SheetSearchFilterPanel extends Component {
                     filter={filter}
                     isInFocus={false}
                     updateSelected={this.props.updateAppliedFilter}
-                    updateLastAppliedAggType={this.props.updateLastAppliedAggType}
                     closeBox={this.props.closeBox}
                     key={filter.aggKey}
                   />
@@ -271,7 +267,6 @@ class SheetSearchFilterPanel extends Component {
                 <SearchTagFilter
                   filter={filter}
                   updateSelected={this.props.updateAppliedFilter}
-                  updateLastAppliedAggType={this.props.updateLastAppliedAggType}
                   key={filter.aggKey}
                 />
               ))}
@@ -289,7 +284,6 @@ SheetSearchFilterPanel.propTypes = {
   updateAppliedFilter: PropTypes.func.isRequired,
   availableFilters:    PropTypes.array.isRequired,
   closeBox:            PropTypes.func.isRequired,
-  updateLastAppliedAggType: PropTypes.func.isRequired,
 };
 
 class TextSearchFilterPanel extends Component {
@@ -329,7 +323,6 @@ class TextSearchFilterPanel extends Component {
                       isInFocus={this.props.openedCategory === filter}
                       focusCategory={this.props.handleFocusCategory}
                       updateSelected={this.props.updateAppliedFilter}
-                      updateLastAppliedAggType={this.props.updateLastAppliedAggType}
                       closeBox={this.props.closeBox}
                       key={filter.aggKey}/>);
               })}
@@ -341,7 +334,6 @@ class TextSearchFilterPanel extends Component {
                   openedCategory={this.props.openedCategory}
                   resetOpenedCategoryBooks={this.props.resetOpenedCategoryBooks}
                   updateSelected={this.props.updateAppliedFilter}
-                  updateLastAppliedAggType={this.props.updateLastAppliedAggType}
                   key={filter.aggKey}/>
               ))}
               </div>
@@ -372,7 +364,6 @@ TextSearchFilterPanel.propTypes = {
   toggleExactSearch:   PropTypes.func,
   closeBox:            PropTypes.func,
   handleFocusCategory: PropTypes.func,
-  updateLastAppliedAggType: PropTypes.func.isRequired,
 };
 
 
@@ -467,8 +458,6 @@ class SearchTagFilter extends Component {
     }
   }
   handleClick(evt) {
-    //evt.preventDefault();
-    this.props.updateLastAppliedAggType(this.props.filter.aggType);
     this.props.updateSelected(this.props.filter, 'tags')
   }
   handleKeyPress(e) {
@@ -496,7 +485,6 @@ class SearchTagFilter extends Component {
 }
 SearchTagFilter.propTypes = {
   updateSelected: PropTypes.func.isRequired,
-  updateLastAppliedAggType: PropTypes.func.isRequired,
   filter:         PropTypes.object.isRequired,
 }
 
@@ -535,8 +523,6 @@ class SearchFilter extends Component {
 
   }
   handleFilterClick(evt) {
-    //evt.preventDefault();
-    this.props.updateLastAppliedAggType(this.props.filter.aggType);
     this.props.updateSelected(this.props.filter)
   }
   handleFocusCategory() {
@@ -607,7 +593,6 @@ SearchFilter.propTypes = {
   filter:         PropTypes.object.isRequired,
   isInFocus:      PropTypes.bool,
   updateSelected: PropTypes.func.isRequired,
-  updateLastAppliedAggType: PropTypes.func.isRequired,
   focusCategory:  PropTypes.func,
 };
 

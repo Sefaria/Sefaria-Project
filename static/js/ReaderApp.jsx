@@ -1181,10 +1181,10 @@ class ReaderApp extends Component {
     } else {
       filterNode.setUnselected(true);
     }
+    const update = Sefaria.search.getAppliedSearchFilters(searchState.availableFilters)
+    update["lastAppliedAggType"] = filterNode.aggType;
     tempSetState({
-      [searchStateName]: searchState.update(
-        Sefaria.search.getAppliedSearchFilters(searchState.availableFilters)
-      )
+      [searchStateName]: searchState.update(update)
     });
   }
   updateSearchOptionFieldInHeader(type, field) {

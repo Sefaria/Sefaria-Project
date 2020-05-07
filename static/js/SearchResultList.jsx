@@ -19,7 +19,7 @@ class SearchResultList extends Component {
     constructor(props) {
       super(props);
       this.types = ['text', 'sheet'];
-      this.querySize = 100;
+      this.querySize = {"text": 100, "sheet": 20};
       this.updateAppliedFilterByTypeMap      = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedFilter.bind(null, k);      return obj; }, {});
       this.updateAppliedOptionFieldByTypeMap = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedOptionField.bind(null, k); return obj; }, {});
       this.updateAppliedOptionSortByTypeMap  = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedOptionSort.bind(null, k);  return obj; }, {});
@@ -48,8 +48,11 @@ class SearchResultList extends Component {
           this.state.hits[t] = this.state.hits[t].concat(cachedQuery.hits.hits);
           this.state.totals[t] = cachedQuery.hits.total;
           this.state.pagesLoaded[t] += 1;
-          args.start = this.state.pagesLoaded[t] * this.querySize;
-          args.aggregationsToUpdate = [];
+          args.start = this.state.pagesLoaded[t] * this.querySize[t];
+          if (t === "text") {
+            // Since texts only have one filter type, aggregations are only requested once on first page
+            args.aggregationsToUpdate = [];
+          }
           cachedQuery = Sefaria.search.getCachedQuery(args);
         }
       });
@@ -137,14 +140,18 @@ class SearchResultList extends Component {
     _executeAllQueries(props) {
       this.types.forEach(t => this._executeQuery(props, t));
     }
-    _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type, interfaceLang) {
-      const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
-      const justUnapplied = uniqueAggTypes.indexOf(this.lastAppliedAggType[type]) === -1; // if you just unapplied an aggtype filter completely, make sure you rerequest that aggType's filters also in case they were deleted
+    _getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, lastAppliedAggType, type, interfaceLang) {
+      // If there is only on possible filter (i.e. path for text) and filters are valid, no need to request again for any filter interactions
       if (filtersValid && aggregation_field_array.length === 1) { return []; }
+
+      // If you just unapplied an aggtype filter completely, make sure you rerequest that aggType's filters also in case they were deleted
+      const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
+      const justUnapplied = uniqueAggTypes.indexOf(lastAppliedAggType) === -1; 
+      
       return Sefaria.util
-      .zip(aggregation_field_array, aggregation_field_lang_suffix_array)
-      .filter(([agg, _]) => justUnapplied || agg !== this.lastAppliedAggType[type])        // remove lastAppliedAggType
-      .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[interfaceLang] : ''}`);  // add suffix based on interfaceLang to filter, if present in suffix_map
+        .zip(aggregation_field_array, aggregation_field_lang_suffix_array)
+        .filter(([agg, _]) => justUnapplied || agg !== lastAppliedAggType)        // remove lastAppliedAggType
+        .map(([agg, suffix_map]) => `${agg}${suffix_map ? suffix_map[interfaceLang] : ''}`); // add suffix based on interfaceLang to filter, if present in suffix_map
     }
     _executeQuery(props, type) {
       //This takes a props object, so as to be able to handle being called from componentWillReceiveProps with newProps
@@ -172,7 +179,7 @@ class SearchResultList extends Component {
                   hits: extend(this.state.hits, {[type]: data.hits.hits}),
                   totals: extend(this.state.totals, {[type]: data.hits.total}),
                   pagesLoaded: extend(this.state.pagesLoaded, {[type]: 1}),
-                  moreToLoad: extend(this.state.moreToLoad, {[type]: data.hits.total > this.querySize})
+                  moreToLoad: extend(this.state.moreToLoad, {[type]: data.hits.total > this.querySize[type]})
                 };
                 this.setState(state);
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
@@ -209,12 +216,10 @@ class SearchResultList extends Component {
       props = props || this.props;
 
       const searchState = this._getSearchState(type, props);
-      const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes } = searchState;
+      const { field, fieldExact, sortType, filtersValid, appliedFilters, appliedFilterAggTypes, lastAppliedAggType } = searchState;
       const request_applied = filtersValid && appliedFilters;
       const { aggregation_field_array,  aggregation_field_lang_suffix_array } = SearchState.metadataByType[type];
-      const uniqueAggTypes = [...(new Set(appliedFilterAggTypes))];
-      const justUnapplied = uniqueAggTypes.indexOf(this.lastAppliedAggType[type]) === -1; // if you just unapplied an aggtype filter completely, make sure you rerequest that aggType's filters also in case they were deleted
-      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, type, props.interfaceLang);
+      const aggregationsToUpdate = this._getAggsToUpdate(filtersValid, aggregation_field_array, aggregation_field_lang_suffix_array, appliedFilterAggTypes, lastAppliedAggType, type, props.interfaceLang);
 
       return {
         query: props.query,
@@ -222,22 +227,23 @@ class SearchResultList extends Component {
         applied_filters: request_applied,
         appliedFilterAggTypes,
         aggregationsToUpdate,
-        size: this.querySize,
+        size: this.querySize[type],
         field,
         sort_type: sortType,
         exact: fieldExact === field,
       };
     }
     _loadNextPage(type) {
+      console.log("load next page")
       const args = this._getQueryArgs(this.props, type);
-      args.start = this.state.pagesLoaded[type] * this.querySize;
+      args.start = this.state.pagesLoaded[type] * this.querySize[type];
       args.error = () => console.log("Failure in SearchResultList._loadNextPage");
       args.success =  data => {
           var nextHits = this.state.hits[type].concat(data.hits.hits);
 
           this.state.hits[type] = nextHits;
           this.state.pagesLoaded[type] += 1;
-          if (this.state.pagesLoaded[type] * this.querySize >= this.state.totals[type] ) {
+          if (this.state.pagesLoaded[type] * this.querySize[type] >= this.state.totals[type] ) {
             this.state.moreToLoad[type] = false;
           }
 
