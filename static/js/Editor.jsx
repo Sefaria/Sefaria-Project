@@ -655,7 +655,7 @@ const isWholeSheetItemSelected = (editor) => {
     Path.compare(currentSheetItem[1].concat(lastNodeInSheetItem[1]), focus.path) == 0 &&
     Path.compare(currentSheetItem[1].concat(firstNodeInSheetItem[1]), anchor.path) == 0
   ) {
-    return true
+    return currentSheetItem[1]
   }
 
   else {return false}
@@ -845,11 +845,25 @@ const withSefariaSheet = editor => {
                             ,{ at: childPath })
             return
           }
-        }
-        if (node.children.length == 1) {
-          // console.log(node.children[0])
-        }
+          if (child.hasOwnProperty('text')) {
+            console.log(child)
+            Transforms.wrapNodes(editor,
+              {
+                  type: "SheetItem",
+                  children: [{
+                      type: "SheetOutsideText",
+                      node: editor.children[0].nextNode,
+                      children: [{
+                          type: "paragraph",
+                          children: [child]
+                      }],
+                  }]
+              }                            ,{ at: childPath })
+              console.log(childPath)
+            return
 
+          }
+        }
       }
 
 
@@ -987,7 +1001,6 @@ const insertMedia = (editor, mediaUrl) => {
 const insertSource = (editor, ref) => {
 
     const currentNode = getClosestSheetElement(editor, editor.selection.focus.path, "SheetOutsideText")
-    console.log(currentNode)
     Transforms.setNodes(editor, { loading: true }, {at: currentNode[1]});
 
     Sefaria.getText(ref).then(text => {
@@ -1032,7 +1045,6 @@ const insertSource = (editor, ref) => {
         addItemToSheet(editor, fragment, "bottom");
 
         const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")[1];
-        console.log(closestSheetItem)
 
         Transforms.removeNodes(editor, { at: closestSheetItem })
         Transforms.move(editor, { unit: 'block', distance: 8 })
@@ -1298,7 +1310,7 @@ const SefariaEditor = (props) => {
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
-    const [nodeLoading, setNodeLoading] = useState(null)
+    const [fullSheetItemSelectedPath, setFullSheetItemSelectedPath] = useState(null);
 
     useEffect(
         () => {
@@ -1330,7 +1342,7 @@ const SefariaEditor = (props) => {
     }
 
     function onChange(value) {
-        if (isWholeSheetItemSelected(editor)) {console.log("whole sheet item selected")}
+        setFullSheetItemSelectedPath(isWholeSheetItemSelected(editor));
 
         if (currentDocument !== value) {
             setCurrentDocument(value);
@@ -1374,6 +1386,13 @@ const SefariaEditor = (props) => {
             toggleFormat(editor, format)
           }
         }
+
+        if (fullSheetItemSelectedPath && (event.key == "Backspace" || event.key == "Delete")) {
+          event.preventDefault();
+          Transforms.delete(editor, {at: fullSheetItemSelectedPath});
+        }
+
+
 
         // add ref on space if end of line
         if (event.key == " ") {
