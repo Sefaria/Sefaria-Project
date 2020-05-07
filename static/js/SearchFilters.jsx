@@ -221,7 +221,7 @@ class SheetSearchFilterPanel extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      activeTab: 'Groups',
+      activeTab: 'Topics',
     }
   }
   changeTab(tab) {
@@ -245,7 +245,7 @@ class SheetSearchFilterPanel extends Component {
         {this.props.displayFilters ? 
         <div key={this.state.activeTab} className="searchFilterBoxes" role="dialog">
           <SearchFilterTabRow
-            tabs={[{en: 'Groups', he: 'קבוצות'}, {en: 'Topics', he: 'נושאים'}]}
+            tabs={[ {en: 'Topics', he: 'נושאים'}, {en: 'Groups', he: 'קבוצות'}]}
             activeTab={this.state.activeTab}
             changeTab={this.changeTab}
           />
