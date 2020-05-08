@@ -101,6 +101,10 @@ class LanguageCookieMiddleware(MiddlewareMixin):
     Allows one domain to set a cookie on another. 
     """
     def process_request(self, request):
+        excluded = ('/linker.js', "/api/", "/interface/", "/apple-app-site-association", STATIC_URL)
+        if any([request.path.startswith(start) for start in excluded]):
+            return # Save looking up a UserProfile, or redirecting when not needed
+
         lang = current_domain_lang(request)
         if "set-language-cookie" in request.GET and lang:
             params = request.GET.copy()
