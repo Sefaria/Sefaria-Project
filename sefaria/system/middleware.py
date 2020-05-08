@@ -13,6 +13,7 @@ from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code
+from sefaria.system.database import db
 from django.utils.deprecation import MiddlewareMixin
 
 class LocationSettingsMiddleware(MiddlewareMixin):
@@ -43,8 +44,8 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
         # Our logic for setting interface lang checks (1) User profile, (2) cookie, (3) geolocation, (4) HTTP language code
         interface = None
         if request.user.is_authenticated and not interface:
-            profile = UserProfile(id=request.user.id)
-            interface = profile.settings["interface_language"] if "interface_language" in profile.settings else interface 
+            profile = db.profiles.find_one({id: request.user.id}, {"settings.interface_language": 1})
+            interface = profile["settings"]["interface_language"] if (profile and "settings" in profile and "interface_language" in profile["settings"]) else interface
         if not interface: 
             # Pull language setting from cookie, location (set by Cloudflare) or Accept-Lanugage header or default to english
             interface = request.COOKIES.get('interfaceLang') or request.META.get("HTTP_CF_IPCOUNTRY") or request.LANGUAGE_CODE or 'english'
@@ -111,9 +112,7 @@ class LanguageCookieMiddleware(MiddlewareMixin):
             response = redirect(domain + request.path + params_string)
             response.set_cookie("interfaceLang", lang)
             if request.user.is_authenticated:
-                p = UserProfile(id=request.user.id)
-                p.settings["interface_language"] = lang
-                p.save()
+                db.profiles.update_one({id: request.user.id}, {"$set": {"settings.interface_language": lang}})
             return response
 
 
