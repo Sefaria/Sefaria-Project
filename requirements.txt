@@ -53,3 +53,4 @@ convertdate
 ipython
 tqdm
 gevent
+django-debug-toolbar # not used in prod
