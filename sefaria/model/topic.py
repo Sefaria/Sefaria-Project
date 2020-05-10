@@ -252,6 +252,7 @@ class TopicLinkHelper(object):
         'generatedBy',
         'order'
     ]
+    generated_by_sheets = "sheet-topic-aggregator"
 
     @staticmethod
     def init_by_class(topic_link, context_slug=None):
