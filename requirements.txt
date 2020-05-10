@@ -52,3 +52,4 @@ lxml
 convertdate
 ipython
 tqdm
+gevent

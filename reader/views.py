@@ -3316,13 +3316,13 @@ def profile_upload_photo(request):
         return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
     if request.method == "POST":
         from PIL import Image
-        from io import StringIO
+        from io import BytesIO
         from sefaria.utils.util import epoch_time
         now = epoch_time()
 
         def get_resized_file(image, size):
             resized_image = image.resize(size, resample=Image.LANCZOS)
-            resized_image_file = StringIO()
+            resized_image_file = BytesIO()
             resized_image.save(resized_image_file, format="PNG")
             resized_image_file.seek(0)
             return resized_image_file
