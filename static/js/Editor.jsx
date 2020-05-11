@@ -483,26 +483,26 @@ const Element = ({attributes, children, element}) => {
     switch (element.type) {
         case 'SheetItem':
             return (
-                <div className="sheetItem segment" {...attributes}>
+                <div className="sheetItem" {...attributes}>
                     {children}
                 </div>
             );
         case 'SheetSource':
             return (
-                <div className="SheetSource" {...attributes} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
+                <div className="SheetSource segment" {...attributes} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
                     {children}
                 </div>
             );
 
         case 'SheetComment':
             return (
-                <div className="SheetComment" {...attributes}>
+                <div className="SheetComment segment" {...attributes}>
                     {children}
                 </div>
             );
 
         case 'SheetOutsideText':
-                const classes = `SheetOutsideText ${element.lang}`;
+                const classes = `SheetOutsideText segment ${element.lang}`;
                 return (
                 <div className={classes} {...attributes}>
                     {element.loading ? <div className="sourceLoader"></div> : null}
@@ -512,7 +512,7 @@ const Element = ({attributes, children, element}) => {
 
         case 'SheetOutsideBiText':
             return (
-                <div className="SheetOutsideBiText" {...attributes}>
+                <div className="SheetOutsideBiText segment" {...attributes}>
                     {children}
                 </div>
             );
@@ -538,7 +538,7 @@ const Element = ({attributes, children, element}) => {
             }
 
             return (
-                <div className="SheetMetaDataBox" {...attributes}>
+                <div className="SheetMetaDataBox segment" {...attributes}>
                     {children}
                 </div>
             );
