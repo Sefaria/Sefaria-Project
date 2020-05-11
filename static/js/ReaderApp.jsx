@@ -8,11 +8,11 @@ import ReaderPanel from './ReaderPanel';
 import $ from './sefaria/sefariaJquery';
 import EditGroupPage from './EditGroupPage';
 import Footer from './Footer';
+import SearchState from './sefaria/searchState';
 import {
-  SearchState,
+  RemoteLearningPage,
   SheetsLandingPage,
-} from './sefaria/searchState';
-import RemoteLearningPage from './StaticPages';
+} from './StaticPages';
 import {
   SignUpModal,
   InterruptingMessage,
