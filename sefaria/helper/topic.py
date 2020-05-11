@@ -579,7 +579,7 @@ def calculate_other_ref_scores(ref_topic_map):
 
 
 def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
-    other_ref_topic_links = list(RefTopicLinkSet({"is_sheet": False, "generated_by": {"$ne": TopicLinkHelper.generated_by_sheets}}))
+    other_ref_topic_links = list(RefTopicLinkSet({"is_sheet": False, "generatedBy": {"$ne": TopicLinkHelper.generated_by_sheets}}))
     ref_topic_links = other_ref_topic_links + sheet_source_links
 
     topic_tref_score_map, ref_topic_map = calculate_mean_tfidf(ref_topic_links)
@@ -679,7 +679,7 @@ def update_intra_topic_link_orders(sheet_related_links):
 
     uncats = Topic.get_uncategorized_slug_set()
     topic_link_dict = defaultdict(lambda: defaultdict(lambda: []))
-    other_related_links = IntraTopicLinkSet({"generated_by": {"$ne": TopicLinkHelper.generated_by_sheets}})
+    other_related_links = IntraTopicLinkSet({"generatedBy": {"$ne": TopicLinkHelper.generated_by_sheets}})
     for link in tqdm(chain(other_related_links, sheet_related_links), desc="update intra orders"):
         if link.fromTopic in uncats or link.toTopic in uncats:
             continue
@@ -768,6 +768,11 @@ def recalculate_secondary_topic_data():
     # now that we've gathered all the new links, delete old ones and insert new ones
     RefTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
     IntraTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
+    print(f"Num Ref Links {len(all_ref_links)}")
+    print(f"Num Intra Links {len(related_links)}")
+    print(f"Num to Update {len(list(filter(lambda x: getattr(x, '_id', False), all_ref_links + related_links)))}")
+    print(f"Num to Insert {len(list(filter(lambda x: not getattr(x, '_id', False), all_ref_links + related_links)))}")
+
     db.topic_links.bulk_write([
         UpdateOne({"_id": l._id}, {"$set": {"order": l.order}})
         if getattr(l, "_id", False) else
