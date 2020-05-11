@@ -8,7 +8,10 @@ import ReaderPanel from './ReaderPanel';
 import $ from './sefaria/sefariaJquery';
 import EditGroupPage from './EditGroupPage';
 import Footer from './Footer';
-import SearchState from './sefaria/searchState';
+import {
+  SearchState,
+  SheetsLandingPage,
+} from './sefaria/searchState';
 import RemoteLearningPage from './StaticPages';
 import {
   SignUpModal,
@@ -1916,4 +1919,5 @@ export {
   unpackDataFromProps,
   EditGroupPage,
   RemoteLearningPage,
+  SheetsLandingPage,
 };

@@ -3248,6 +3248,44 @@ def profile_api(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@login_required
+@csrf_protect
+def account_user_update(request):
+    """
+    API for user profiles.
+    """
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to update your profile.")})
+
+    if request.method == "POST":
+        accountJSON = request.POST.get("json")
+        if not accountJSON:
+            return jsonResponse({"error": "No post JSON."})
+        accountUpdate = json.loads(accountJSON)
+        error = None
+        # some validation on post fields
+        if accountUpdate["email"] != accountUpdate["confirmEmail"]:
+            error = _("Email fields did not match")
+        elif not request.user.check_password(accountUpdate["confirmPassword"]):
+            error = _("Incorrect account password for this account")
+        else:
+            # get the logged in user
+            uuser = UserWrapper(request.user.email)
+            try:
+                uuser.set_email(accountUpdate["email"])
+                uuser.save()
+            except Exception as e:
+                error = uuser.errors()
+
+        if not error:
+            return jsonResponse({"status": "ok"})
+        else:
+            return jsonResponse({"error": error})
+
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+
 @catch_error_as_json
 def profile_get_api(request, slug):
     if request.method == "GET":
@@ -3271,13 +3309,13 @@ def profile_upload_photo(request):
         return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
     if request.method == "POST":
         from PIL import Image
-        from io import StringIO
+        from io import BytesIO
         from sefaria.utils.util import epoch_time
         now = epoch_time()
 
         def get_resized_file(image, size):
             resized_image = image.resize(size, resample=Image.LANCZOS)
-            resized_image_file = StringIO()
+            resized_image_file = BytesIO()
             resized_image.save(resized_image_file, format="PNG")
             resized_image_file.seek(0)
             return resized_image_file

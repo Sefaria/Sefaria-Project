@@ -233,7 +233,7 @@ class SearchResultList extends Component {
                 let availableFilters = [];
                 let registry = {};
                 let orphans = [];
-                for (let aggregation of aggregation_field_array) {
+                for (let aggregation of aggregationsToUpdate) {
                   if (!!data.aggregations[aggregation]) {
                     const { buckets } = data.aggregations[aggregation];
                     const { availableFilters: tempAvailable, registry: tempRegistry, orphans: tempOrphans } = Sefaria.search[build_and_apply_filters](buckets, appliedFilters, appliedFilterAggTypes, aggregation);

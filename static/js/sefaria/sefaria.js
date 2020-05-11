@@ -2182,6 +2182,7 @@ Sefaria = extend(Sefaria, {
       "Sign\u00A0in": "התחברו",
       "Save": "שמירה",
       "Remove": "הסרה",
+      "Email was successfully changed!": "כתובת האימייל שונתה בהצלחה!",
       "Filter": "סינון",
       "Relevance": 'רלוונטיות',
       "Chronological": 'כרונולוגי',

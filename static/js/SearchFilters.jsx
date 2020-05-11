@@ -234,7 +234,7 @@ class SheetSearchFilterPanel extends Component {
   }
   render() {
     const groupFilters = this.props.availableFilters.filter(filter => filter.aggType === 'group');
-    const tagFilters = this.props.availableFilters.filter(filter => filter.aggType === 'tags');
+    const tagFilters = this.props.availableFilters.filter(filter => filter.aggType.match(/^topics/));
 
 
     return (

@@ -73,6 +73,32 @@
   margin: 0 0 60px 0;
   height: auto;
 }
+.static h1.header-with-buttons{
+  display: flex;
+  justify-content: space-between;
+}
+.static h1 > div:first-child{
+  margin-inline-end: auto;
+  margin-inline-start: 33%;
+}
+/*.static h1 #saveCancelButtons{
+  float: right;
+  position: static;
+}*/
+@media screen and (max-width: 700px) {
+  .static h1 #saveCancelButtons{
+    float: none;
+  }
+  .static h1 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .static h1 > div:first-child{
+    margin-inline-end: auto;
+    margin-inline-start: auto;
+  }
+}
 .static h1 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
@@ -118,6 +144,7 @@
   color: #666;
   font-size: 14px;
   background-color: white;
+  -webkit-appearance: none;
 }
 .static a {
   color: #333;
@@ -189,6 +216,10 @@
   background-color: #212E50;
   border: 1px solid #212E50;
   color: white;
+}
+.static .inner .button.full{
+  width:100%;
+  margin: 10px 0;
 }
 .static img.fullWidth {
   width: 100%;
@@ -918,13 +949,14 @@ p.registration-links a:hover{
 #editProfilePage .inner {
   position: relative;
 }
-#saveCancelButtons {
+/*#saveCancelButtons {
   position: absolute;
   top: 145px;
   right: 0px;
-}
+}*/
 #saveCancelButtons .button {
   padding: 10px 16px;
+  font-weight: normal;
 }
 #editProfilePage #profileBox,
 #editProfilePage #contactBox,
@@ -1071,7 +1103,43 @@ p.registration-links a:hover{
 #accountSettingsPage .toggleSet {
   width: 100%;
 }
-
+#accountSettingsPage input {
+    width: 100%;
+    color: #999;
+    box-sizing: border-box;
+    padding: 15px 12px;
+    border: none;
+    margin-bottom: 10px;
+}
+#accountSettingsPage .form-section{
+    margin: 2px auto 20px auto;
+    margin-left: 1px;
+}
+#accountSettingsPage input[disabled="disabled"] {
+    background-color: #FBFBFA;
+}
+#accountSettingsPage input::placeholder{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+  color: #999;
+  padding-bottom: 15px;
+  font-style: normal;
+}
+#accountSettingsPage [id^="email-edit"]{
+  padding: 15px;
+  text-align: center;
+  display: block;
+  width 100%;
+  margin: 10px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+}
+#accountSettingsPage #email-edit-errors{
+  color: #CB6158;
+}
+#accountSettingsPage #email-edit-ok{
+  color: #666;
+}
 .interface-hebrew #accountSettingsPage.static.biReady .toggleOption:first-child{
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
@@ -2777,6 +2845,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 
 /* Static Page Templates */
 
+.staticPage {
+  background-color: #fff;
+}
 .staticPage .staticPageBlockInner {
   width: 800px;
   margin: 0 auto;
@@ -2785,8 +2856,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   /* display: block; */
 }
 .staticPage .blockVerticalPadding {
-  padding-top: 0;
-  padding-bottom: 80px;
+  padding-top: 40px;
+  padding-bottom: 40px;
 }
 .staticPage .flexContainer {
   display: flex;
@@ -2803,8 +2874,12 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   flex-direction: row-reverse;
 }
 .staticPage .greyBackground {
-  background-color: #EDEDEC
+  background-color: #EDEDEC;
 }
+.staticPage .lightgreyBackground {
+  background-color: #FBFBFA;
+}
+
 .staticPage .staticPageHeader {
   background-color: #212E50;
   padding: 70px 0 0 0;
@@ -2814,7 +2889,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .staticPageCallToActionFooter {
   background-color: #212E50;
   color: white;
-  height: 204px;
 }
 .staticPage .staticPageCallToActionFooter .staticPageBlockInner {
   padding: 60px 0;
@@ -2844,22 +2918,63 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   padding-left: 10px;
 }
 .staticPage .staticPageH2 {
-  padding: 55px 0;
+  padding: 55px 0 10px;
   margin: 0;
+  width: 35%;
 }
-.staticPage .staticPageH2 span.int-en {
+.staticPage .staticPageH2 span {
   font-style: normal;
   font-weight: 500;
   font-size: 30px;
   line-height: 35px;
   color: #666666;
 }
+
+.staticPage .staticPageSheetList {
+  padding: 30px 0 0;
+}
+.staticPage .staticPageSheetList .staticPageSheetItem {
+  padding: 20px 0;
+}
+.staticPage .staticPageSheetList .staticPageSheetItem + .staticPageSheetItem {
+  border-top: 1px solid #ccc;
+}
+.staticPage .staticPageSheetList .staticPageSheetItem a {
+  padding-bottom: 20px;
+  display: block;
+  color: #000;
+}
+.staticPage .int-en .staticPageSheetList .staticPageSheetItem a {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 24px;
+}
+.staticPage .int-he .staticPageSheetList .staticPageSheetItem a {
+  font-family: "Heebo", sans-serif;
+  font-size: 24px;
+}
+.staticPage .staticPageSheetList .staticPageSheetItem img {
+  height: 46px;
+  width: 46px;
+  vertical-align: middle;
+}
+.staticPage .staticPageSheetList .staticPageSheetItem .staticPageSheetAuthor {
+  padding: 0 20px;
+}
 .staticPage .simpleButtonWrapper {
   width: 33%;
 }
+.staticPage .staticPageHeaderTextBox .simpleButtonWrapper {
+  width: 66%;
+}
 .staticPage .simpleButtonWrapper .button {
   border-radius: 0;
+  min-height: 47px;
+}
+.staticPage .simpleButtonWrapper .button.tall {
   min-height: 78px;
+}
+.staticPage .simpleButtonWrapper .button.rounded {
+  border-radius: 6px;
 }
 .staticPage .simpleButtonWrapper .button span {
   margin: auto;
@@ -2875,7 +2990,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPageHeaderText {
   font-size: 16px;
+  max-width: 280px;
   line-height: 22px;
+  padding-bottom: 25px;
 }
 .staticPageHeaderImg img {
   width: 100%;
@@ -2885,7 +3002,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   padding: 50px 0;
 }
 .staticPageAbout h2 {
-  font-size:22px;
+  font-size: 22px;
   font-weight: 500;
   color: #666;
   line-height: 26px;
@@ -2895,6 +3012,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 16px;
   line-height: 19px;
 }
+
 .staticPage .feature .featureText {
   font-family: "Roboto", sans-serif;
   font-style: normal;
@@ -2912,9 +3030,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .feature .featureImage img {
   width: 454px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  /* max-width: 100%; */
 }
 .staticPage .feature {
-    padding: 0px 0 80px 0;
+    padding: 40px 0;
+    background-color: #FBFBFA;
 }
 .staticPage .feature .featureHeader {}
 .staticPage .feature .featureHeader h3 {
@@ -2940,13 +3060,28 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   .staticPage .staticPageHeader {
     padding-top: 40px;
   }
-  .staticPageHeaderText {
-    margin-bottom: 30px;
+  .staticPage .staticPageHeaderText {
+    max-width: 100%;
+  }
+  .staticPage .staticPageH2 {
+    width: 100%;
+  }
+  .staticPageCallToActionFooter .simpleButtonWrapper,
+  .staticPage .feature .featureImage {
+    padding-top: 30px;
+  }
+  .staticPage .staticPageHeader .staticPageHeaderImg {
+    margin-top: 20px;
   }
   .staticPage .simpleButtonWrapper,
   .staticPage .feature .featureText,
+  .staticPage .feature .featureImage,
+  .staticPage .feature .featureImage img,
   .staticPage .staticPageCallToActionFooter .callToActionText {
     width: 100%;
+  }
+  .staticPage .staticPageCallToActionFooter .callToActionText {
+    padding-bottom: 20px;
   }
 }
 
