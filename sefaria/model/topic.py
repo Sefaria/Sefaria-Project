@@ -207,6 +207,20 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                 title += f' ({disambig_text})'
         return title
 
+    def get_titles(self, lang=None, with_disambiguation=True):
+        if with_disambiguation:
+            titles = []
+            for title in self.get_titles_object():
+                if not (lang is None or lang == title['lang']):
+                    continue
+                text = title['text']
+                disambig_text = title.get('disambiguation', None)
+                if disambig_text:
+                    text += f' ({disambig_text})'
+                titles += [text]
+            return titles
+        return super(Topic, self).get_titles(lang)
+
     def get_property(self, property):
         properties = getattr(self, 'properties', {})
         if property not in properties:
