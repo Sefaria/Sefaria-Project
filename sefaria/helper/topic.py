@@ -1,6 +1,6 @@
 import re
 from tqdm import tqdm
-from pymongo import UpdateOne
+from pymongo import UpdateOne, InsertOne
 from typing import Optional, Union
 from collections import defaultdict
 from functools import cmp_to_key
@@ -307,10 +307,6 @@ def generate_all_topic_links_from_sheets(topic=None):
                   zip(related_topics_to_tref.keys(), numerator_list, owner_counts)]
         # transform data to more convenient format
         oref = Ref(tref)
-        if tref == "Genesis 12:1":
-            topic_scores.sort(key=lambda x: x[1])
-            for slug, yo, owners in topic_scores:
-                print(f"{yo} - {slug} - {owners} - {topic_idf_dict[slug]}")
         for slug, _, owners in filter(lambda x: x[1] >= TFIDF_CUTOFF and x[2] >= OWNER_THRESH, topic_scores):
             raw_topic_ref_links[slug] += [(oref, owners)]
 
@@ -368,8 +364,8 @@ def generate_all_topic_links_from_sheets(topic=None):
 
 
 def generate_sheet_topic_links():
-    projection = {"topics": 1, "id": 1}
-    sheet_list = db.sheets.find({}, projection)
+    projection = {"topics": 1, "id": 1, "status": 1}
+    sheet_list = db.sheets.find({"status": "public"}, projection)
     sheet_links = []
     for sheet in tqdm(sheet_list, desc="getting sheet topic links"):
         if sheet.get('id', None) is None:
@@ -699,7 +695,7 @@ def update_intra_topic_link_orders(sheet_related_links):
     def link_id(temp_link):
         return f"{temp_link.fromTopic}|{temp_link.toTopic}|{temp_link.linkType}"
 
-    updated_related_link_dict = defaultdict(lambda: {'order': {}})
+    updated_related_link_dict = {}
     for topic_slug, topic_links in topic_link_dict.items():
         for other_topic_slug, link_list in topic_links.items():
             other_topic_links = topic_link_dict.get(other_topic_slug, None)
@@ -772,6 +768,10 @@ def recalculate_secondary_topic_data():
     # now that we've gathered all the new links, delete old ones and insert new ones
     RefTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
     IntraTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
-    db.topic_links.insert_many(all_ref_links + related_links, ordered=False)
-
+    db.topic_links.bulk_write([
+        UpdateOne({"_id": l._id}, {"$set": {"order": l.order}})
+        if getattr(l, "_id", False) else
+        InsertOne(l.contents(for_db=True))
+        for l in (all_ref_links + related_links)
+    ])
     add_num_sources_to_topics()

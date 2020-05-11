@@ -332,7 +332,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 
     def contents(self, **kwargs):
         d = super(IntraTopicLink, self).contents(**kwargs)
-        if self.context_slug is not None:
+        if not (self.context_slug is None or kwargs.get('for_db', False)):
             d['isInverse'] = self.is_inverse
             d['topic'] = self.topic
             del d['toTopic']
@@ -387,8 +387,9 @@ class RefTopicLink(abst.AbstractMongoRecord):
 
     def contents(self, **kwargs):
         d = super(RefTopicLink, self).contents(**kwargs)
-        d['topic'] = d['toTopic']
-        d.pop('toTopic')
+        if not kwargs.get('for_db', False):
+            d['topic'] = d['toTopic']
+            d.pop('toTopic')
         return d
 
 class TopicLinkSetHelper(object):
