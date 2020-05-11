@@ -1210,11 +1210,14 @@ def texts_api(request, tref):
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
+            text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
+                                      commentary=commentary, context=context, pad=pad, alts=alts,
+                                      wrapLinks=wrapLinks, stripItags=stripItags)
             try:
-                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks, stripItags=stripItags).contents()
+                text = TextFamily(oref, **text_family_kwargs).contents()
             except AttributeError as e:
                 oref = oref.default_child_ref()
-                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks, stripItags=stripItags).contents()
+                text = TextFamily(oref, **text_family_kwargs).contents()
             except NoVersionFoundError as e:
                 return {"error": str(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}
 
