@@ -7936,9 +7936,19 @@ body .homeFeedWrapper.userStats {
   height: 30px;
   background: #fff;
   border: #ccc solid 1px;
-  font-family: inherit;
+  color: #666;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
   box-sizing: border-box;
   border-radius: 6px;
+}
+
+#sheetEditToggle img {
+  height: 13px;
+  margin: 0px 5px 0 0;
+  top: 2px;
+  position: relative;
+  filter: invert(67%) sepia(32%) saturate(0%) hue-rotate(54deg) brightness(85%) contrast(91%); /* #999 */
 }
 
 #sheetEditToggle i {
