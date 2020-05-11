@@ -3603,51 +3603,53 @@ class Ref(object, metaclass=RefCacheType):
             [Ref('Shabbat 13b:3-50'), Ref('Shabbat 14a'), Ref('Shabbat 14b:1-3')]
 
         """
-        if self.index_node.depth == 1 or not self.is_spanning():
-            self._spanned_refs = [self]
+        if not self._spanned_refs or True:
 
-        else:
-            start, end = self.sections[self.range_index()], self.toSections[self.range_index()]
-            ref_depth = len(self.sections)
-            to_ref_depth = len(self.toSections)
+            if self.index_node.depth == 1 or not self.is_spanning():
+                self._spanned_refs = [self]
 
-            refs = []
-            for n in range(start, end + 1):
-                d = self._core_dict()
-                if n == start:
-                    d["toSections"] = self.sections[0:self.range_index() + 1]
+            else:
+                start, end = self.sections[self.range_index()], self.toSections[self.range_index()]
+                ref_depth = len(self.sections)
+                to_ref_depth = len(self.toSections)
 
-                    for i in range(self.range_index() + 1, ref_depth):
-                        d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]],until_lnonempty=True)]
-                elif n == end:
-                    d["sections"] = self.toSections[0:self.range_index() + 1]
-                    for _ in range(self.range_index() + 1, to_ref_depth):
-                        d["sections"] += [1]
-                else:
-                    d["sections"] = self.sections[0:self.range_index()] + [n]
-                    d["toSections"] = self.sections[0:self.range_index()] + [n]
+                refs = []
+                for n in range(start, end + 1):
+                    d = self._core_dict()
+                    if n == start:
+                        d["toSections"] = self.sections[0:self.range_index() + 1]
 
-                    '''  If we find that we need to expand inner refs, add this arg.
-                    # It will require handling on cached ref and passing on the recursive call below.
-                    if expand_middle:
                         for i in range(self.range_index() + 1, ref_depth):
+                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]],until_last_nonempty=True)]
+                    elif n == end:
+                        d["sections"] = self.toSections[0:self.range_index() + 1]
+                        for _ in range(self.range_index() + 1, to_ref_depth):
                             d["sections"] += [1]
-                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
-                    '''
+                    else:
+                        d["sections"] = self.sections[0:self.range_index()] + [n]
+                        d["toSections"] = self.sections[0:self.range_index()] + [n]
 
-                if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
-                    try:
-                        refs.append(Ref(_obj=d))
-                    except InputError:
-                        pass
+                        '''  If we find that we need to expand inner refs, add this arg.
+                        # It will require handling on cached ref and passing on the recursive call below.
+                        if expand_middle:
+                            for i in range(self.range_index() + 1, ref_depth):
+                                d["sections"] += [1]
+                                d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                        '''
 
-            if self.range_depth() == 2:
-                self._spanned_refs = refs
-            if self.range_depth() > 2: #recurse
-                expanded_refs = []
-                for ref in refs:
-                    expanded_refs.extend(ref.split_spanning_ref())
-                self._spanned_refs = expanded_refs
+                    if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
+                        try:
+                            refs.append(Ref(_obj=d))
+                        except InputError:
+                            pass
+
+                if self.range_depth() == 2:
+                    self._spanned_refs = refs
+                if self.range_depth() > 2: #recurse
+                    expanded_refs = []
+                    for ref in refs:
+                        expanded_refs.extend(ref.split_spanning_ref())
+                    self._spanned_refs = expanded_refs
 
         return self._spanned_refs
 
