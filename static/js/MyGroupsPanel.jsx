@@ -59,8 +59,9 @@ function MyGroupsPanel({multiPanel, navHome}) {
 }
 MyGroupsPanel.propTypes = {};
 
+
 function PublicGroupsPanel({multiPanel, navHome}) {
-  const [groupsList, setGroupsList] = useState(null);
+  const [groupsList, setGroupsList] = useState(Sefaria.getGroupsListFromCache());
   useEffect(() => {
     Sefaria.getGroupsList()
         .then(d => setGroupsList(d));
@@ -92,7 +93,7 @@ function PublicGroupsPanel({multiPanel, navHome}) {
           </center> : null}
 
           <div className="groupsList">
-            { groupsList ?
+            { !!groupsList ?
                 (groupsList.public.length ?
                   groupsList.public.map(function(item) {
                     return <GroupListing data={item} key={item.name} />

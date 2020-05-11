@@ -1965,16 +1965,16 @@ Sefaria = extend(Sefaria, {
       const store = this._groups;
       return this._cachedApiPromise({url, key, store});
   },
-  _groupsList: null,
+  _groupsList: {},
   getGroupsList: function() {
-      // Is there other cases where the cache isn't keyed?   Could refactor _cachedApiPromise for a no key case.
-      return (this._groupsList) ?
-          Promise.resolve(this._groupsList) :
-          Sefaria._ApiPromise(Sefaria.apiHost + "/api/groups")
-              .then(data => {
-                  this._groupsList = data;
-                  return data;
-              })
+      return this._cachedApiPromise({
+        url: Sefaria.apiHost + "/api/groups",
+        key: "list",
+        store: Sefaria._groupsList
+      });
+  },
+  getGroupsListFromCache() {
+    return Sefaria._groupsList.list;
   },
   userGroups: function(uid) {
     return Sefaria._ApiPromise(`${Sefaria.apiHost}/api/groups/user-groups/${uid}`);
