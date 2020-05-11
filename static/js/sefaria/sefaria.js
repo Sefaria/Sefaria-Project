@@ -1561,8 +1561,13 @@ Sefaria = extend(Sefaria, {
       store: Sefaria._profiles
     });
   },
+  _userHistory: {},
   userHistoryAPI: () => {
-    return Sefaria._ApiPromise(Sefaria.apiHost + "/api/profile/user_history?secondary=0");
+    return Sefaria._cachedApiPromise({
+      url: Sefaria.apiHost + "/api/profile/user_history?secondary=0",
+      key: "history",
+      store: Sefaria._userHistory
+    });
   },
   saveUserHistory: function(history_item) {
     // history_item contains:
@@ -1574,7 +1579,13 @@ Sefaria = extend(Sefaria, {
     if (Sefaria._uid) {
         $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1",
               {user_history: JSON.stringify(history_item_array)},
-              data => { /*console.log("sync resp", data)*/ } );
+              data => { 
+                //console.log("sync resp", data)
+                if ("history" in Sefaria._userHistory) {
+                  // If full user history has already been loaded into cache, then modify cache to keep it up to date
+                  Sefaria._userHistory.history.splice(0,0, data.created[0]);
+                }
+              } );
     } else {
       // we need to get the heRef for each history item
       Promise.all(history_item_array.filter(x=>!x.secondary).map(h => new Promise((resolve, reject) => {

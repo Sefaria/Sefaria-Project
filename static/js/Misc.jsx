@@ -605,8 +605,8 @@ class TextBlockLink extends Component {
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
-              <span className={elang} data-ref-child={true}>{title}{!!sheetOwner ? (<i className="byLine">{byLine}</i>) : null}</span>
-              <span className={hlang} data-ref-child={true}>{heTitle}{!!sheetOwner ? (<i className="byLine">{byLine}</i>) : null}</span>
+              <span className={elang} data-ref-child={true}>{title}{!!sheetOwner ? (<i className="byLine" data-ref-child={true}>{byLine}</i>) : null}</span>
+              <span className={hlang} data-ref-child={true}>{heTitle}{!!sheetOwner ? (<i className="byLine" data-ref-child={true}>{byLine}</i>) : null}</span>
             </div>
           </div>
           <div className="sideColorRight">
