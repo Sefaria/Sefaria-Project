@@ -198,26 +198,36 @@ function renderSheetItem(source) {
                     node: source.node,
                     children: [
                         {
-                            type: "TextRef",
-                            ref: source.ref,
-                            refText: source.heRef,
-                            lang: "he",
-                            children: [{text: source.heRef}]
-                        },
-                        {
                             type: "he",
-                            children: parseSheetItemHTML(source.text.he)
+                            children:  [
+                              {
+                                  type: "TextRef",
+                                  ref: source.ref,
+                                  refText: source.heRef,
+                                  lang: "he",
+                                  children: [{text: source.heRef}]
+                              },
+                              {
+                                type: "SourceContentText",
+                                children: parseSheetItemHTML(source.text.he)
+                              }
+                            ]
                         },
                         {
-                            type: "TextRef",
-                            ref: source.ref,
-                            refText: source.ref,
-                            lang: "en",
-                            children: [{text: source.ref}]
-                        },
-                        {
-                            type: "en",
-                            children: parseSheetItemHTML(source.text.en)
+                          type: "en",
+                          children:  [
+                            {
+                                type: "TextRef",
+                                ref: source.ref,
+                                refText: source.ref,
+                                lang: "en",
+                                children: [{text: source.ref}]
+                            },
+                            {
+                              type: "SourceContentText",
+                              children: parseSheetItemHTML(source.text.en)
+                            }
+                          ]
                         }
                     ]
                 }
@@ -485,6 +495,7 @@ const Element = ({attributes, children, element}) => {
             return (
                 <div className="sheetItem" {...attributes}>
                     {children}
+                <div className="clearFix"></div>
                 </div>
             );
         case 'SheetSource':
@@ -594,9 +605,11 @@ const Element = ({attributes, children, element}) => {
             );
         case 'TextRef':
             return (
-                <div className={element.lang}>
                     <div className="ref">{children}</div>
-                </div>
+            )
+        case 'SourceContentText':
+            return (
+              <div className="sourceContentText">{children}</div>
             )
         case 'paragraph':
             return (
@@ -897,8 +910,22 @@ const withSefariaSheet = editor => {
 
       }
 
-      //anything pasted into an he or en will be treated as text content
+      //only allow TextRef & SourceContentText in he or en
+      // if extra -- merge it with the previous element
       if (node.type == "he" || node.type == "en") {
+          if (node.children && node.children.length > 2) {
+          for (const [child, childPath] of Node.children(editor, path)) {
+              if (!["SourceContentText", "TextRef"].includes(child.type)) {
+                [prev, prevPath] = Editor.previous(editor, { at: childPath });
+                Transforms.mergeNodes(editor, { at: childPath})
+                return
+              }
+            }
+          }
+      }
+
+      // Anything pasted into SourceContentText will be treated as text
+      if (node.type == "SourceContentText") {
         for (const [child, childPath] of Node.children(editor, path)) {
           if (child.type != "paragraph" && !child.text) {
             Transforms.unwrapNodes(editor, { at: childPath })
@@ -914,17 +941,17 @@ const withSefariaSheet = editor => {
 
 
       // if extra content is in sheet source -- merge it with the previous element
-      if (node.type == "SheetSource") {
-          if (node.children && node.children.length > 4) {
-          for (const [child, childPath] of Node.children(editor, path)) {
-              if (!["en", "he", "TextRef"].includes(child.type)) {
-                [prev, prevPath] = Editor.previous(editor, { at: childPath });
-                Transforms.mergeNodes(editor, { at: childPath})
-                return
-              }
-            }
-          }
-      }
+      // if (node.type == "SheetSource") {
+      //     if (node.children && node.children.length > 4) {
+      //     for (const [child, childPath] of Node.children(editor, path)) {
+      //         if (!["en", "he", "TextRef"].includes(child.type)) {
+      //           [prev, prevPath] = Editor.previous(editor, { at: childPath });
+      //           Transforms.mergeNodes(editor, { at: childPath})
+      //           return
+      //         }
+      //       }
+      //     }
+      // }
 
 
       // Fall back to the original `normalizeNode` to enforce other constraints.
@@ -1021,29 +1048,38 @@ const insertSource = (editor, ref) => {
                 title: null,
                 children: [
                     {
-                        type: "TextRef",
-                        ref: text.ref,
-                        refText: text.heRef,
-                        lang: "he",
-                        children: [{text: text.heRef}]
-                    },
-                    {
                         type: "he",
-                        children: parseSheetItemHTML(heText)
+                        children:  [
+                          {
+                              type: "TextRef",
+                              ref: text.ref,
+                              refText: text.heRef,
+                              lang: "he",
+                              children: [{text: text.heRef}]
+                          },
+                          {
+                            type: "SourceContentText",
+                            children: parseSheetItemHTML(heText)
+                          }
+                        ]
                     },
                     {
-                        type: "TextRef",
-                        ref: text.ref,
-                        refText: text.ref,
-                        lang: "en",
-                        children: [{text: text.ref}]
-                    },
-                    {
-                        type: "en",
-                        children: parseSheetItemHTML(enText)
+                      type: "en",
+                      children:  [
+                        {
+                            type: "TextRef",
+                            ref: text.ref,
+                            refText: text.ref,
+                            lang: "en",
+                            children: [{text: text.ref}]
+                        },
+                        {
+                          type: "SourceContentText",
+                          children: parseSheetItemHTML(enText)
+                        }
+                      ]
                     }
                 ]
-
             }]
         };
         addItemToSheet(editor, fragment, "bottom");
@@ -1244,8 +1280,8 @@ function saveSheetContent(doc, lastModified) {
                     "ref": sheetItem.ref,
                     "heRef": sheetItem.heRef,
                     "text": {
-                        "en": enBlock ? serialize(enBlock) : "...",
-                        "he": heBlock ? serialize(heBlock) : "...",
+                        "en": enBlock ? serialize(enBlock.children[1]) : "...",
+                        "he": heBlock ? serialize(heBlock.children[1]) : "...",
                     },
                     "node": sheetItem.node,
                 };
