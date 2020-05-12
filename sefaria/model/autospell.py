@@ -20,7 +20,7 @@ try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
 except ImportError:
-    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
+    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
 letter_scope = "\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeffabcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*()'&? \""

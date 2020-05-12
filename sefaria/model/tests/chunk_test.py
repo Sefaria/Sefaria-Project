@@ -45,7 +45,7 @@ def test_text_index_map():
     r = Ref("Ramban on Genesis 48-50")
     tc = TextChunk(r,"he")
     ind_list, ref_list, total_len = tc.text_index_map()
-    assert ref_list[-1] == Ref('Ramban on Genesis 49:33:2')
+    assert ref_list[-1] == Ref('Ramban on Genesis 49:33:3')
 
 
 

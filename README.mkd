@@ -10,7 +10,7 @@ For general discussion questions about the project, please email [hello@sefaria.
 
 If you find textual problems in our library please email [corrections@sefaria.org](mailto:corrections@sefaria.org).
 
-You can post bugs or request/discuss features on [GitHub Issues](https://github.com/blockspeiser/Sefaria-Project/issues?direction=desc&page=1&sort=created&state=open). Tackling an issue marked as a "Starter Project" is a good way to sink your teeth into Sefaria.
+You can post bugs or request/discuss features on [GitHub Issues](https://github.com/sefaria/Sefaria-Project/issues?direction=desc&page=1&sort=created&state=open). Tackling an issue marked as a "Starter Project" is a good way to sink your teeth into Sefaria.
 
 If you're interested in working on a project you see listed here, please email the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
 
