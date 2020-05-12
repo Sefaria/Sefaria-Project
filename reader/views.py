@@ -1894,16 +1894,24 @@ def all_notes_api(request):
 def related_api(request, tref):
     """
     Single API to bundle available content related to `tref`.
+
+    Cases:
+    * logged in && private=true   :
+    * logged in && private=false  :
+    * logged out && private=true  :
+    * logged out && private=false :
+
     """
     oref = model.Ref(tref)
-    if request.GET.get("private", False) and request.user.is_authenticated:
-        response = {
-            "sheets": get_sheets_for_ref(tref, uid=request.user.id),
-            "notes": get_notes(oref, uid=request.user.id, public=False)
-        }
-    elif request.GET.get("private", False) and not request.user.is_authenticated:
-        response = {"error": "You must be logged in to access private content."}
-    else:
+    if request.GET.get("private", False):
+        if request.user.is_authenticated:
+            response = {
+                "sheets": get_sheets_for_ref(tref, uid=request.user.id),
+                "notes": get_notes(oref, uid=request.user.id, public=False)
+            }
+        else:
+            response = {"error": "You must be logged in to access private content."}
+    else: # request public
         response = {
             "links": get_links(tref, with_text=False, with_sheet_links=request.GET.get("with_sheet_links", False)),
             "sheets": [],
