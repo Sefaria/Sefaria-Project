@@ -3,6 +3,7 @@ import {
   GlobalWarningMessage,
   TestMessage,
   ProfilePic,
+  InterfaceLanguageMenu,
 } from './Misc';
 import React  from 'react';
 import PropTypes  from 'prop-types';
