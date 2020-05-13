@@ -492,8 +492,9 @@ function transformSheetJsonToDraft(sheet) {
 const Element = ({attributes, children, element}) => {
     switch (element.type) {
         case 'SheetItem':
+            const sheetItemClasses = `sheetItem ${Node.string(element) ? '':'empty'}`;
             return (
-                <div className="sheetItem" {...attributes}>
+                <div className={sheetItemClasses} {...attributes}>
                     {children}
                 <div className="clearFix"></div>
                 </div>
@@ -513,9 +514,9 @@ const Element = ({attributes, children, element}) => {
             );
 
         case 'SheetOutsideText':
-                const classes = `SheetOutsideText segment ${element.lang}`;
+                const SheetOutsideTextClasses = `SheetOutsideText segment ${element.lang}`;
                 return (
-                <div className={classes} {...attributes}>
+                <div className={SheetOutsideTextClasses} {...attributes}>
                     {element.loading ? <div className="sourceLoader"></div> : null}
                     {children}
                 </div>
@@ -1358,6 +1359,7 @@ function saveSheetContent(doc, lastModified) {
 }
 
 
+
 const SefariaEditor = (props) => {
     const sheet = props.data;
     const initValue = transformSheetJsonToDraft(sheet);
@@ -1467,7 +1469,6 @@ const SefariaEditor = (props) => {
             <Editable
                 renderLeaf={props => <Leaf {...props} />}
                 renderElement={renderElement}
-                placeholder="Enter a title…"
                 spellCheck
                 onKeyDown={onKeyDown}
                 onDOMBeforeInput={beforeInput}

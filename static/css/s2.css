@@ -6684,6 +6684,15 @@ span.purim-emoji img{
 .sheetContent .media .mediaCaption.enOnly .he {
   display: none;
 }
+.sheetItem:only-of-type.empty .SheetOutsideText:after {
+  content: "Write some text or type a citation (ex. 'Genesis 1:1-5') ";
+  color: #999;
+  position: relative;
+  top: -45px;
+  pointer-events: none;
+  margin-bottom: -45px;
+
+}
 .oldSheetNotice,
 .oldSheetNotice a,
 .editSheetNotice,
