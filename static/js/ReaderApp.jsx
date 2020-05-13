@@ -295,7 +295,7 @@ class ReaderApp extends Component {
     this.updateHistoryState(this.replaceHistory);
   }
   handlePopState(event) {
-    var state = event.state.readerAppState;
+    var state = event.state;
     // console.log("Pop - " + window.location.pathname);
     // console.log(event.state);
     if (state) {
@@ -317,7 +317,7 @@ class ReaderApp extends Component {
         state.header = this.makePanelState({"mode": "Header"});
       }
       this.setState(state, () => {
-        if (event.state.scrollPosition) {
+        if (state.scrollPosition) {
           console.log("scroll restoration", event.state.scrollPosition);
           $(".content").scrollTop(event.state.scrollPosition)
             .trigger("scroll");
@@ -390,10 +390,9 @@ class ReaderApp extends Component {
   shouldHistoryUpdate() {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
-
     if (!history.state
         || (!history.state.panels && !history.state.header)
-        || (!history.state.panels && this.state.panels)
+        || (!history.state.panels && !!this.state.panels)
         || (history.state.panels && (history.state.panels.length !== this.state.panels.length))
         || (history.state.header && (history.state.header.menuOpen !== this.state.header.menuOpen))
       ) {
@@ -415,13 +414,13 @@ class ReaderApp extends Component {
       // Cycle through each panel, compare previous state to next state, looking for differences
       const prev  = prevPanels[i];
       const next  = nextPanels[i];
-      if (!prev || ! next) { return true; }
+      if (!prev || !next) { return true; }
       // history does not preserve custom objects
       const prevTextSearchState = new SearchState(prev.textSearchState);
       const prevSheetSearchState = new SearchState(prev.sheetSearchState);
       const nextTextSearchState = new SearchState(next.textSearchState);
       const nextSheetSearchState = new SearchState(next.sheetSearchState);
-
+      
       if ((prev.mode !== next.mode) ||
           (prev.menuOpen !== next.menuOpen) ||
           (prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef) ||
@@ -440,6 +439,8 @@ class ReaderApp extends Component {
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
           (prev.topicsTab != next.topicsTab) ||
+          (prev.showMoreTexts !== next.showMoreTexts) ||
+          (prev.showMoreTopics !== next.showMoreTopics) ||
           (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
@@ -447,6 +448,7 @@ class ReaderApp extends Component {
 
           {
          return true;
+
       } else if (prev.navigationCategories !== next.navigationCategories) {
         // Handle array comparison, !== could mean one is null or both are arrays
         if (!prev.navigationCategories || !next.navigationCategories) {
@@ -753,8 +755,8 @@ class ReaderApp extends Component {
         url += "&aliyot=" + histories[0].aliyot;
     }
     hist = (headerPanel)
-        ? {state: {readerAppState: {header: states[0]}}, url: url, title: title}
-        : {state: {readerAppState: {panels: states}}, url: url, title: title};
+        ? {state: {header: states[0]}, url: url, title: title}
+        : {state: {panels: states}, url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
       if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") || (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections")) {
         if (i == 1) {
@@ -855,9 +857,10 @@ class ReaderApp extends Component {
       currentUrl += window.location.hash;
       hist.url += window.location.hash;
     }
+    
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      //console.log("Replace History - " + hist.url);
+      console.log("Replace History - " + hist.url);
       if (currentUrl != hist.url) { this.checkScrollIntentAndTrack(); }
       //console.log(hist);
     } else {
@@ -889,6 +892,8 @@ class ReaderApp extends Component {
       menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories:    state.navigationCategories    || [],
       navigationTopicCategory: state.navigationTopicCategory || "",
+      showMoreTexts:           state.showMoreTexts           || Sefaria.toc.length < 9,
+      showMoreTopics:          state.showMoreTopics          || false,
       navigationSheetTag:      state.sheetsTag               || null,
       navigationGroupTag:      state.navigationGroupTag      || null,
       sheet:                   state.sheet                   || null,
@@ -1411,6 +1416,7 @@ class ReaderApp extends Component {
     this.state.defaultVersions[indexTitle][language] = versionTitle;  // Does this need a setState?  I think not.
   }
   setHeaderState(state, replaceHistory, cb) {
+    this.replaceHistory  = Boolean(replaceHistory);
     this.state.header = extend(this.state.header, state);
     this.setState({header: this.state.header}, cb);
   }

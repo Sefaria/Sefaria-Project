@@ -63,7 +63,7 @@ function usePaginatedScroll(scrollable_element_ref, url, setter, pagesPreLoaded 
     if (isFirstRender.current) {
       isFirstRender.current = false;
     }
-  })
+  }, [])
 }
 
 function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMargin) {

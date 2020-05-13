@@ -22,13 +22,13 @@ const ReaderNavigationCategoryMenu = require('./ReaderNavigationCategoryMenu');
 const Footer                       = require('./Footer');
 
 // The Navigation menu for browsing and searching texts, plus some site links.
-const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNavTopic, setTopic, setOption, onClose, openNav, openSearch,
-          toggleLanguage, openMenu, onTextClick, onRecentClick, handleClick, openDisplaySettings, toggleSignUpModal,
-          hideHeader, hideNavHeader, multiPanel, home, compare, interfaceLang}) => {
+const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNavTopic, 
+        setTopic, setOption, onClose, openNav, openSearch, showMoreTexts, setMoreTexts, 
+        showMoreTopics, setMoreTopics, toggleLanguage, openMenu, onTextClick, 
+        onRecentClick, handleClick, openDisplaySettings, toggleSignUpModal,
+        hideHeader, hideNavHeader, multiPanel, home, compare, interfaceLang}) => {
 
   const [width, setWidth] = useState(1000);
-  const [showMore, setShowMore] = useState(Sefaria.toc.length < 9);
-  const [showMoreTopics, setShowMoreTopics] = useState(false);
 
   const ref = useRef(null);
   useEffect(() => {
@@ -47,13 +47,13 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
     openNav();
   };
 
-  const enableShowMore = (event) => {
+  const enableShowMoreTexts = (event) => {
     event.preventDefault();
-    setShowMore(true);
+    setMoreTexts(true);
   };
   const enableShowMoreTopics = (event) => {
     event.preventDefault();
-    setShowMoreTopics(true);
+    setMoreTopics(true);
   };
 
   const openSaved = () => (Sefaria._uid) ? openMenu("saved") : toggleSignUpModal();
@@ -111,12 +111,12 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
               </a>
             );
   });
-  const more = (<a href="#" className="readerNavCategory readerNavMore" onClick={enableShowMore}>
+  const more = (<a href="#" className="readerNavCategory readerNavMore" onClick={enableShowMoreTexts}>
                   <span className="int-en">More<img src="/static/img/arrow-right.png" alt="" /></span>
                   <span className="int-he">עוד<img src="/static/img/arrow-left.png" alt="" /></span>
               </a>);
   const nCats  = width < 500 ? 9 : 8;
-  categoriesBlock = showMore ? categoriesBlock : categoriesBlock.slice(0, nCats).concat(more);
+  categoriesBlock = showMoreTexts ? categoriesBlock : categoriesBlock.slice(0, nCats).concat(more);
   categoriesBlock = (<div className="readerNavCategories"><TwoOrThreeBox content={categoriesBlock} width={width} /></div>);
 
 
@@ -267,29 +267,30 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
         </div>);
 };
 ReaderNavigationMenu.propTypes = {
-  categories:        PropTypes.array.isRequired,
-  topic:            PropTypes.string.isRequired,
-  settings:          PropTypes.object.isRequired,
-  setCategories:     PropTypes.func.isRequired,
+  categories:          PropTypes.array.isRequired,
+  topic:               PropTypes.string.isRequired,
+  settings:            PropTypes.object.isRequired,
+  setCategories:       PropTypes.func.isRequired,
   setNavTopic:         PropTypes.func.isRequired,
-  setOption:         PropTypes.func.isRequired,
-  onClose:           PropTypes.func.isRequired,
-  openNav:           PropTypes.func.isRequired,
-  openSearch:        PropTypes.func.isRequired,
-  openMenu:          PropTypes.func.isRequired,
-  onTextClick:       PropTypes.func.isRequired,
-  onRecentClick:     PropTypes.func.isRequired,
-  handleClick:       PropTypes.func.isRequired,
-  toggleSignUpModal: PropTypes.func.isRequired,
+  setOption:           PropTypes.func.isRequired,
+  onClose:             PropTypes.func.isRequired,
+  openNav:             PropTypes.func.isRequired,
+  openSearch:          PropTypes.func.isRequired,
+  openMenu:            PropTypes.func.isRequired,
+  onTextClick:         PropTypes.func.isRequired,
+  onRecentClick:       PropTypes.func.isRequired,
+  handleClick:         PropTypes.func.isRequired,
+  toggleSignUpModal:   PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func,
-  toggleLanguage:    PropTypes.func,
-  hideNavHeader:     PropTypes.bool,
-  hideHeader:        PropTypes.bool,
-  multiPanel:        PropTypes.bool,
-  home:              PropTypes.bool,
-  compare:           PropTypes.bool,
-  interfaceLang:     PropTypes.string,
+  toggleLanguage:      PropTypes.func,
+  hideNavHeader:       PropTypes.bool,
+  hideHeader:          PropTypes.bool,
+  multiPanel:          PropTypes.bool,
+  home:                PropTypes.bool,
+  compare:             PropTypes.bool,
+  interfaceLang:       PropTypes.string,
 };
+
 
 const TocLink = ({en, he, img, alt, href, resourcesLink, outOfAppLink, classes, onClick}) =>
     <a className={(resourcesLink?"resourcesLink ":"") + (outOfAppLink?"outOfAppLink ":"") + classes} href={href} onClick={onClick}>
@@ -298,8 +299,8 @@ const TocLink = ({en, he, img, alt, href, resourcesLink, outOfAppLink, classes, 
         <span className="int-he">{he}</span>
     </a>;
 
-const Dedication = () => {
 
+const Dedication = () => {
     //Get the local date 6 hours from now (so that dedication changes at 6pm local time
     let dedDate = new Date();
     dedDate.setHours(dedDate .getHours() + 6);

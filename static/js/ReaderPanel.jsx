@@ -429,6 +429,14 @@ class ReaderPanel extends Component {
   setNavigationTopic(topic, topicTitle) {
     this.conditionalSetState({menuOpen: 'navigation', navigationTopicCategory: topic, navigationTopicTitle: topicTitle, navigationTopic: null, topicTitle: null});
   }
+  setMoreTexts(val) {
+    this.replaceHistory = true;
+    this.conditionalSetState({showMoreTexts: val});
+  }
+  setMoreTopics(val) {
+    this.replaceHistory = true;
+    this.conditionalSetState({showMoreTopics: val});
+  }
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
   }
@@ -762,10 +770,14 @@ class ReaderPanel extends Component {
                     multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
                     topic={this.state.navigationTopicCategory || ""}
+                    showMoreTexts={this.state.showMoreTexts}
+                    showMoreTopics={this.state.showMoreTopics}
                     settings={this.state.settings}
                     setCategories={this.setNavigationCategories}
                     setNavTopic={this.setNavigationTopic}
                     setTopic={this.setTopic}
+                    setMoreTexts={this.setMoreTexts}
+                    setMoreTopics={this.setMoreTopics}
                     setOption={this.setOption}
                     toggleLanguage={this.toggleLanguage}
                     onClose={this.onClose}
