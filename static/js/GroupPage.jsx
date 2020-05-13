@@ -51,6 +51,9 @@ class GroupPage extends Component {
       }
     }
   }
+  onDataChange() {
+    this.setState({groupData: Sefaria._groups[this.props.group]});
+  }
   sortSheetData(group) {
     // Warning: This sorts the sheets within the cached group item in sefaria.js
     if (!group.sheets) { return; }
@@ -312,16 +315,17 @@ class GroupPage extends Component {
 
                   {this.state.tab == "members" ?
                     <div>
-                     {isAdmin ? <GroupInvitationBox groupName={this.props.group} onDataChange={this.onDataLoad}/> : null }
-                     { members.map(function(member) {
-                      return <GroupMemberListing
+                     {isAdmin ? <GroupInvitationBox groupName={this.props.group} onDataChange={this.onDataChange}/> : null }
+                     { members.map(function (member, i) {
+                        return <GroupMemberListing
                                 member={member}
                                 isAdmin={isAdmin}
                                 isSelf={member.uid == Sefaria._uid}
                                 groupName={this.props.group}
-                                onDataChange={this.onDataLoad}
-                                key={member.uid} />;
-                     }.bind(this)) }
+                                onDataChange={this.onDataChange }
+                                key={i} />
+                        }.bind(this) )
+                      }
                     </div>
                   : null }
 
@@ -491,7 +495,7 @@ GroupMemberListing.propTypes ={
   isAdmin:      PropTypes.bool,
   isSelf:       PropTypes.bool,
   groupName:    PropTypes.string,
-  onDataChange: PropTypes.func,
+  onDataChange: PropTypes.func.isRequired,
 };
 
 

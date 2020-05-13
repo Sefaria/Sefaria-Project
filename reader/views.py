@@ -1206,15 +1206,18 @@ def texts_api(request, tref):
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
         stripItags = bool(int(request.GET.get("stripItags", False)))
-        multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negtive integer (indicating backward)
+        multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
+            text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
+                                      commentary=commentary, context=context, pad=pad, alts=alts,
+                                      wrapLinks=wrapLinks, stripItags=stripItags)
             try:
-                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks, stripItags=stripItags).contents()
+                text = TextFamily(oref, **text_family_kwargs).contents()
             except AttributeError as e:
                 oref = oref.default_child_ref()
-                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks, stripItags=stripItags).contents()
+                text = TextFamily(oref, **text_family_kwargs).contents()
             except NoVersionFoundError as e:
                 return {"error": str(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}
 
@@ -1251,10 +1254,9 @@ def texts_api(request, tref):
             return jsonResponse(text, cb)
         else:
             # Return list of many sections
-            target_count = int(multiple)
-            assert target_count != 0
-            direction = "next" if target_count > 0 else "prev"
-            target_count = abs(target_count)
+            assert multiple != 0
+            direction = "next" if multiple > 0 else "prev"
+            target_count = abs(multiple)
 
             current = 0
             texts = []
@@ -3305,13 +3307,13 @@ def profile_upload_photo(request):
         return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
     if request.method == "POST":
         from PIL import Image
-        from io import StringIO
+        from io import BytesIO
         from sefaria.utils.util import epoch_time
         now = epoch_time()
 
         def get_resized_file(image, size):
             resized_image = image.resize(size, resample=Image.LANCZOS)
-            resized_image_file = StringIO()
+            resized_image_file = BytesIO()
             resized_image.save(resized_image_file, format="PNG")
             resized_image_file.seek(0)
             return resized_image_file
