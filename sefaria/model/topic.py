@@ -77,18 +77,22 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-    def get_leaf_nodes(self, linkType='is-a'):
+    def get_leaf_nodes(self, linkType='is-a', explored_set=None):
+        explored_set = explored_set or set()
         leaves = []
         children = [l.fromTopic for l in IntraTopicLinkSet({"toTopic": self.slug, "linkType": linkType})]
         if len(children) == 0:
             return [self]
         else:
             for slug in children:
+                if slug in explored_set:
+                    continue
                 child_topic = Topic.init(slug)
+                explored_set.add(slug)
                 if child_topic is None:
                     logger.warning(f"{slug} is None")
                     continue
-                leaves += child_topic.get_leaf_nodes(linkType)
+                leaves += child_topic.get_leaf_nodes(linkType, explored_set)
         return leaves
 
     def has_types(self, search_slug_set):
