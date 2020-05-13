@@ -1914,7 +1914,7 @@ def related_api(request, tref):
     else: # request public
         response = {
             "links": get_links(tref, with_text=False, with_sheet_links=request.GET.get("with_sheet_links", False)),
-            "sheets": [],
+            "sheets": get_sheets_for_ref(tref), # This hits Postgres
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
         }
