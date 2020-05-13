@@ -437,7 +437,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
   }
   return (
     <div className="profile-summary">
-      <div className="summary-column start">
+      <div className="summary-column profile-summary-content start">
         <div className="title pageTitle">
           <span className="int-en">{p.full_name}</span>
           <span className="int-he">{p.full_name}</span>

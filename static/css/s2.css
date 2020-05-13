@@ -7064,7 +7064,7 @@ span.purim-emoji img{
 .profile-page .groupListing + .groupListing {
   border-top: 0;
 }
-.profile-page .profile-summary a {
+.profile-page .profile-summary-content a {
   color: inherit;
 }
 .profile-page .profile-summary a.logoutLink {

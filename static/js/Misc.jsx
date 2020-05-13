@@ -51,16 +51,13 @@ class ProfilePic extends Component {
       reader.readAsDataURL(e.target.files[0]);
     }
   }
-
   // If you setState the crop in here you should return false.
   onImageLoaded(image) {
     this.imageRef = image;
   }
-
   onCropComplete(crop) {
     this.makeClientCrop(crop);
   }
-
   onCropChange(crop, percentCrop) {
     // You could also use percentCrop:
     // this.setState({ crop: percentCrop });
@@ -75,7 +72,6 @@ class ProfilePic extends Component {
       this.setState({ crop });
     }
   }
-
   async makeClientCrop(crop) {
     if (this.imageRef && crop.width && crop.height) {
       const croppedImageBlob = await this.getCroppedImg(
@@ -87,7 +83,6 @@ class ProfilePic extends Component {
       this.setState({ croppedImageBlob });
     }
   }
-
   getCroppedImg(image, crop, fileName) {
     const canvas = document.createElement("canvas");
     const scaleX = image.naturalWidth / image.width;
@@ -138,7 +133,7 @@ class ProfilePic extends Component {
         throw new Error(response.error);
       } else {
         this.closePopup({ cb: () => {
-          //this.props.openProfile(Sefaria.slug, Sefaria.full_name);  // reload
+          window.location = "/profile/" + Sefaria.slug; // reload to get update
           return;
         }});
       }
@@ -148,7 +143,6 @@ class ProfilePic extends Component {
     }
     this.setState({ uploading: false, errored });
   }
-
   render() {
     const { name, url, len, hideOnDefault, showButtons, outerStyle } = this.props;
     const { showDefault, src, crop, error, uploading, isFirstCropChange } = this.state;
@@ -209,12 +203,12 @@ class ProfilePic extends Component {
                   </div>
                   <div className="profile-pic-cropper-button-row">
                     <a href="#" className="resourcesLink profile-pic-cropper-button" onClick={this.closePopup}>
-                      <span className="en">Cancel</span>
-                      <span className="he">בטל</span>
+                      <span className="int-en">Cancel</span>
+                      <span className="int-he">בטל</span>
                     </a>
                     <a href="#" className="resourcesLink blue profile-pic-cropper-button" onClick={this.upload}>
-                      <span className="en">Save</span>
-                      <span className="he">שמור</span>
+                      <span className="int-en">Save</span>
+                      <span className="int-he">שמור</span>
                     </a>
                   </div>
                 </div>
