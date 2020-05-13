@@ -735,7 +735,7 @@ async function getRefInText(editor) {
 
 
 const withSefariaSheet = editor => {
-    const {isVoid, normalizeNode} = editor;
+    const {insertData, isVoid, normalizeNode} = editor;
 
     editor.isVoid = element => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
@@ -766,6 +766,23 @@ const withSefariaSheet = editor => {
         })
 
     };
+
+
+    editor.insertData = data => {
+      const text = data.getData('text/plain')
+
+      const pastedMediaLink = parseMediaLink(text);
+
+      if (pastedMediaLink) {
+        event.preventDefault();
+        insertMedia(editor, pastedMediaLink)
+
+      }
+      else {
+        insertData(data)
+      }
+    };
+
 
     editor.normalizeNode = entry => {
       const [node, path] = entry;
@@ -980,9 +997,9 @@ const parseMediaLink = (url) => {
   } else if (url.match(/^https?:\/\/(www\.)?.+\.(mp3)$/i) != null) {
     return url;
   } else if (url.match(/^https?:\/\/(www\.|m\.)?soundcloud\.com\/[\w\-\.]+\/[\w\-\.]+\/?/i) != null) {
-    return "soundcloud";
+    return 'https://w.soundcloud.com/player/?url='+ url + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false';
   } else {
-    return 'https://w.soundcloud.com/player/?url='+ url + '&amp;color=ff5500&amp;auto_play=false&amp;hide_related=true&amp;show_comments=false&amp;show_user=true&amp;show_reposts=false'
+    return
   }
 }
 
@@ -1402,21 +1419,6 @@ const SefariaEditor = (props) => {
         }
     };
 
-    const onPaste = event => {
-
-      //// TODO: Add code to adjust node if node already exists in sheet
-      console.log(sheetNodes)
-      ////
-      const mediaUrl = event.clipboardData.getData('Text');
-      const pastedMediaLink = parseMediaLink(mediaUrl);
-
-      if (pastedMediaLink) {
-        event.preventDefault();
-        insertMedia(editor, pastedMediaLink)
-
-      }
-
-    };
     const onKeyDown = event => {
 
         for (const hotkey in HOTKEYS) {
@@ -1468,7 +1470,6 @@ const SefariaEditor = (props) => {
                 placeholder="Enter a title…"
                 spellCheck
                 onKeyDown={onKeyDown}
-                onPaste={onPaste}
                 onDOMBeforeInput={beforeInput}
             />
         </Slate>
