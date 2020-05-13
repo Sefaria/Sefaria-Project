@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 const $          = require('./sefaria/sefariaJquery');
 
 
@@ -27,10 +27,11 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
-function usePaginatedScroll(scrollable_element_ref, url, setter) {
-  const [page, setPage] = useState(0);
-  const [nextPage, setNextPage] = useState(1);
+function usePaginatedScroll(scrollable_element_ref, url, setter, pagesPreLoaded = 0) {
+  const [page, setPage] = useState(pagesPreLoaded > 0 ? pagesPreLoaded - 1 : 0);
+  const [nextPage, setNextPage] = useState(pagesPreLoaded > 0 ? pagesPreLoaded : 1);
   const [loadedToEnd, setLoadedToEnd] = useState(false);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     const scrollable_element = $(scrollable_element_ref.current);
@@ -46,6 +47,7 @@ function usePaginatedScroll(scrollable_element_ref, url, setter) {
   }, [scrollable_element_ref.current, loadedToEnd, page, nextPage]);
 
   useEffect(() => {
+    if (pagesPreLoaded > 0 && isFirstRender.current) { return; }
     const paged_url = url + "&page=" + page;
     $.getJSON(paged_url, (data) => {
       setter(data);
@@ -56,6 +58,12 @@ function usePaginatedScroll(scrollable_element_ref, url, setter) {
       }
     });
   }, [page]);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+    }
+  })
 }
 
 function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMargin) {

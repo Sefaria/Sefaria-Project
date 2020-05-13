@@ -1647,6 +1647,10 @@ Sefaria = extend(Sefaria, {
   },
   _tableOfContentsDedications: {},
   _topics: {},
+  _stories: {
+    stories: [],
+    page: 0
+  },
 /*
   topic: function(topic, callback) {
     if (topic in this._topics) {

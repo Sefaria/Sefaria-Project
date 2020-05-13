@@ -177,13 +177,18 @@ function HomeFeedSidebar() {
 
 function HomeFeed(props) {
   const {interfaceLang, toggleSignUpModal, onlySharedStories} = props;
-  const [stories, setStories] = useState([]);
+  const [stories, setStories] = useState(Sefaria._stories.stories);
   const scrollable_element = useRef();
 
   usePaginatedScroll(
-      scrollable_element,
-      "/api/stories?" + (onlySharedStories ? "shared_only=1" : ""),
-      data => setStories(prev => ([...prev, ...data.stories]))
+    scrollable_element,
+    "/api/stories?" + (onlySharedStories ? "shared_only=1" : ""),
+    data => {
+      Sefaria._stories.stories = Sefaria._stories.stories.concat(data.stories);
+      Sefaria._stories.page = data.page + 1;
+      setStories(Sefaria._stories.stories)
+    },
+    Sefaria._stories.page
   );
 
   return (
