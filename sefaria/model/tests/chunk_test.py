@@ -7,7 +7,6 @@ import re
 from sefaria.utils.util import list_depth
 
 
-
 def test_text_index_map():
     r = Ref("Shabbat 8b")
     tc = TextChunk(r,"he")
@@ -46,9 +45,6 @@ def test_text_index_map():
     tc = TextChunk(r,"he")
     ind_list, ref_list, total_len = tc.text_index_map()
     assert ref_list[-1] == Ref('Ramban on Genesis 49:33:3')
-
-
-
 
 
     #test depth 2 with empty segments
@@ -140,6 +136,15 @@ def test_commentary_chunks():
     rang = TextChunk(Ref("Rashi on Exodus 4:1-10"), lang="he")
     assert rang.text[-1] == verse.text
     assert span.text[-1][-1] == verse.text
+
+
+def test_default_in_family():
+    r = Ref('Shulchan Arukh, Even HaEzer')
+    f = TextFamily(r)
+    assert isinstance(f.text, list)
+    assert isinstance(f.he, list)
+    assert len(f.text) > 0
+    assert len(f.he) > 0
 
 
 def test_spanning_family():
