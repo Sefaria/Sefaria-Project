@@ -342,7 +342,7 @@ Sefaria = extend(Sefaria, {
 
     let promises = refStrs.map(refStr => this._ApiPromise(`${hostStr}${refStr}${paramStr.replace(/&/,'?')}`));
 
-    return Promise.all(promises).then(results => ({...results}));
+    return Promise.all(promises).then(results => Object.assign({}, ...results));
   },
   getBulkSheets: function(sheetIds) {
     // todo: fish existing texts out of cache first
