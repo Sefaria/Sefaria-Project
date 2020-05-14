@@ -35,7 +35,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
     Determines Interface and Content Language settings for each request.
     """
     def process_request(self, request):
-        excluded = ('/linker.js', "/api/", "/interface/", "/apple-app-site-association", STATIC_URL)
+        excluded = ('/healthz', '/linker.js', "/api/", "/interface/", "/apple-app-site-association", STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
             return # Save looking up a UserProfile, or redirecting when not needed
 
@@ -101,7 +101,7 @@ class LanguageCookieMiddleware(MiddlewareMixin):
     Allows one domain to set a cookie on another. 
     """
     def process_request(self, request):
-        excluded = ('/linker.js', "/api/", "/apple-app-site-association", STATIC_URL)
+        excluded = ('/healthz', '/linker.js', "/api/", "/apple-app-site-association", STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
             return # Save looking up a UserProfile, or redirecting when not needed
 
