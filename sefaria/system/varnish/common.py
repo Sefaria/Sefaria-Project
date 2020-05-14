@@ -10,12 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 with open (VARNISH_SECRET, "r") as sfile:
-    secret=sfile.read().replace('\n', '')
+    secret=sfile.read().replace('\n', '').encode("utf-8")
 manager = VarnishManager((VARNISH_ADM_ADDR,), secret)
 
 
 # PyPi version of python-varnish has broken purge function.  We use this instead.
 # Derived from https://github.com/justquick/python-varnish/blob/master/varnish.py
+# todo: move to the python-varnish that we maintain
 @graceful_exception(logger=logger, return_value=None)
 def purge_url(url):
     """
