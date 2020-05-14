@@ -96,8 +96,7 @@ class ServerCoordinator(MessagingNode):
         host = socket.gethostname()
         pid = os.getpid()
 
-        initial_msg_data = msg["data"].decode("utf-8")
-        data = json.loads(initial_msg_data)
+        data = json.loads(msg["data"])
 
         obj = locals()[data["obj"]]
         method = getattr(obj, data["method"])
@@ -126,7 +125,7 @@ class ServerCoordinator(MessagingNode):
 
         # Send confirmation
         msg_data = json.dumps(confirm_msg)
-        logger.info("Sending confirm from {}:{} - {}".format(host, pid, initial_msg_data))
+        logger.info("Sending confirm from {}:{} - {}".format(host, pid, msg["data"]))
         self.redis_client.publish(MULTISERVER_REDIS_CONFIRM_CHANNEL, msg_data)
 
 
