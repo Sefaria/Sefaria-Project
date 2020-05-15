@@ -56,7 +56,9 @@ io.sockets.on('connection', function(socket) {
     });
   }
 
-  socket.on('how many rooms', function() {
+  socket.on('how many rooms', function(uid, chevrutaUid) {
+    console.log(uid)
+    console.log(chevrutaUid)
 
     socket.emit('creds', pcConfig)
 
@@ -115,8 +117,9 @@ io.sockets.on('connection', function(socket) {
   socket.on('bye', function(room){
     console.log(`bye received from ${socket.id} for room ${room}`);
     db.run(`DELETE FROM chatrooms WHERE name=?`, room);
-    socket.leave(room);
     socket.to(room).emit('message', 'bye');
+    socket.emit('byeReceived');
+    socket.leave(room);
   });
 
   socket.on('send user info', function(userName, uid, room) {

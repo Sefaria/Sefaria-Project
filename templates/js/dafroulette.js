@@ -58,6 +58,7 @@ socket.on('joined', function(room) {
 socket.on('got user name', function(userName, uid) {
   document.getElementById("chevrutaName").innerHTML = userName;
   document.getElementById("chevrutaUID").value = uid;
+  localStorage.setItem('lastChevrutaID', uid);
 });
 
 socket.on('user reported', function(){
@@ -66,16 +67,22 @@ socket.on('user reported', function(){
   alert("Your chevruta clicked the 'Report User' button. \n\nA report has been sent to the Sefaria administrators.")
 });
 
+socket.on('byeReceived', function(){
+  location.reload();
+});
+
+
+
 ////////////////////////////////////////////////
 
 function sendMessage(message) {
-  console.log('Client sending message: ', message);
+  // console.log('Client sending message: ', message);
   socket.emit('message', message);
 }
 
 // This client receives a message
 socket.on('message', function(message) {
-  console.log('Client received message:', message);
+  // console.log('Client received message:', message);
   if (message.type === 'offer') {
     if (!isInitiator && !isStarted) {
       maybeStart();
@@ -106,7 +113,7 @@ navigator.mediaDevices.getUserMedia({
   })
   .then((stream) => {
     localStream = localVideo.srcObject = stream;
-    socket.emit('how many rooms');
+    socket.emit('how many rooms', {{ client_uid }}, localStorage.getItem('lastChevrutaID'));
     console.log('Adding local stream.');
   })
   .catch(function(e) {
@@ -126,7 +133,7 @@ function addAdditionalHTML() {
 
 function getNewChevruta() {
   Sefaria.track.event("DafRoulette", "New Chevruta Click", "");
-  location.reload();
+  socket.emit('bye', clientRoom);
 }
 
 
@@ -191,6 +198,7 @@ function createPeerConnection() {
     pc.onicecandidate = handleIceCandidate;
     pc.onaddstream = handleRemoteStreamAdded;
     pc.onremovestream = handleRemoteStreamRemoved;
+    pc.oniceconnectionstatechange = handleIceConnectionChange;
     console.log('Created RTCPeerConnnection');
   } catch (e) {
     console.log('Failed to create PeerConnection, exception: ' + e.message);
@@ -200,7 +208,7 @@ function createPeerConnection() {
 }
 
 function handleIceCandidate(event) {
-  console.log('icecandidate event: ', event);
+  // console.log('icecandidate event: ', event);
   if (event.candidate) {
     sendMessage({
       type: 'candidate',
@@ -232,7 +240,7 @@ function doAnswer() {
 
 function setLocalAndSendMessage(sessionDescription) {
   pc.setLocalDescription(sessionDescription);
-  console.log('setLocalAndSendMessage sending message', sessionDescription);
+  // console.log('setLocalAndSendMessage sending message', sessionDescription);
   sendMessage(sessionDescription);
 }
 
@@ -250,16 +258,16 @@ function handleRemoteStreamRemoved(event) {
   console.log('Remote stream removed. Event: ', event);
 }
 
-function handleRemoteHangup() {
-  socket.emit('bye', clientRoom);
-  console.log('Session terminated.');
-  location.reload();
+function handleIceConnectionChange(event) {
+  if (pc.iceConnectionState == "disconnected" || pc.iceConnectionState == "failed") {
+    socket.emit('bye', clientRoom);
+  }
+  console.log(pc.iceConnectionState);
 }
 
-setInterval(function(){
-    if (isStarted && !remoteStream) {
-      location.reload();
-    }
-}, 5000);
+function handleRemoteHangup() {
+  console.log('Session terminated.');
+  // location.reload();
+}
 
 {% endautoescape %}
