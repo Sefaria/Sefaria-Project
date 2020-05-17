@@ -143,13 +143,10 @@ class VersionBlock extends Component {
   }
   makeVersionTitle(){
     if(this.props.version.merged){
-      console.log("merged");
       return Sefaria._("Merged from") + " " + Array.from(new Set(this.props.version.sources)).join(", ");
     }else if(Sefaria.interfaceLang=="english" || !this.props.version.versionTitleInHebrew){
-      console.log("First else", Sefaria.interfaceLang, this.props.version);
       return this.props.version.versionTitle;
     }else{
-      console.log("else", this.props.version);
       return this.props.version.versionTitleInHebrew;
     }
   }
