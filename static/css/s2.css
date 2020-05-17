@@ -2009,11 +2009,6 @@ a.readerNavCategory {
   color: #999;
   font-style: italic;
 }
-.readerTextTableOfContents .currentVersionBox .versionSelect {
-  width: 80%;
-  max-width: 300px;
-  margin: 20px auto 5px;
-}
 .readerTextTableOfContents .tocDetails a {
   color: #999;
 }
@@ -2350,16 +2345,33 @@ a.readerNavCategory {
   color: #999;
   padding: 10px 0;
 }
+.versionBlock{
+  display: flex;
+  flex-flow: column;
+}
 .readerTextTableOfContents .versionBlock {
   padding: 0 30px;
   margin: 25px 0;
   box-sizing: border-box;
   cursor: pointer;
+  text-align: center;
 }
 .versionBlock .versionTitle {
   font-size: 18px;
   color: #000;
-  unicode-bidi: plaintext;
+  /*unicode-bidi: plaintext;*/
+}
+.versionBlock .versionTitle .versionEditIcon{
+  display: none;
+}
+.versionBlock .versionTitle .versionEditIcon.enabled{
+  display: inline-block;
+}
+.versionBlock .versionSelect{
+  margin: 10px 0;
+}
+.readerTextTableOfContents .versionBlock .versionSelect, .aboutBox .versionBlock .versionSelect{
+  display: none;
 }
 .versionBlock a {
   color: #999;
@@ -2367,29 +2379,93 @@ a.readerNavCategory {
 .versionBlock .versionNotes a {
   color: #000;
 }
+.versionBlock .versionNotes span{
+  font-family: "Frank Ruhl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
 .versionBlock .versionDetails {
   display: inline-block;
   font-size: 12px;
   font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
   padding-top: 10px;
+  display: flex;
+  flex-flow: row;
+  justify-content: space-between;
 }
-.versionBlock .versionDetails .separator {
-  margin: 0 3px;
+.readerTextTableOfContents .versionBlock .versionDetails{
+  text-align: center;
+}
+.versionBlock .versionDetails .versionDetailsInformation{
+  display: flex;
+  flex-flow: column;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation{
+  margin: auto;
+  flex-flow: row;
+  justify-content: space-around;
+}
+.versionBlock .versionDetails .versionDetailsImage{
+  margin-top: 5px;
+}
+.versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement{
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 20px;
+  color: #999999;
+}
+.versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionBuyLink a{
+  color: #000000;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement{
+  margin: 0 2px;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement::after{
+  content: "•";
+  margin-inline-start: 4px;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionHistoryLink::after{
+  content: "›";
+}
+.versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover{
+  text-decoration: none;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsLabel{
+  display: none;
+}
+.versionBlock .versionDetails .versionBuyImage .versionDetailsImageLink img{
+  height: 100px;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionBuyImage, .readerTextTableOfContents .versionBlock .versionDetails .versionBuyLink{
+  display: none;
+}
+.versionBlock .versionDetails .n-a{
+  display: none;
 }
 .versionBlock .versionTitle:hover {
   text-decoration: underline;
 }
 .versionBlock .versionNotes {
-  padding-top: 10px;
-  color: #666;
+  font-family: Adobe Garamond Pro;
+  font-style: normal;
+  font-weight: normal;
   font-size: 18px;
-  text-align: start;
+  line-height: 22px;
+  color: #666666;
+  margin-top: 10px;
 }
 .versionBlock .versionEditIcon {
   margin: 0 7px;
   vertical-align: 1px;
 }
+.versionBlock .versionExtendedNotesLinks{
+  font-style: italic;
+}
+.versionBlock .versionExtendedNotesLinks.no-notes{
+  display: none;
+}
+
 .modTools {
   width: 50%;
   margin: 0 auto;
@@ -6350,35 +6426,33 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .aboutBox .aboutTitle {
   padding: 10px 0 15px 0;
-  font-size: 30px;
-  color: black;
   display: inline-block;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 29px;
+  color: #000000;
 }
 .aboutBox .aboutSubtitle {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: italic;
+  font-weight: normal;
   font-size: 18px;
-  color: #666;
+  line-height: 22px;
+  color: #666666;
 }
 .aboutBox .aboutSubtitle .he {
   font-style: normal;
 }
 .aboutBox .aboutDesc {
   padding: 15px 0 30px 0;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: normal;
   font-size: 18px;
-}
-.aboutBox .versionNotes {
-  padding-bottom: 15px;
-  font-size: 15px;
-  color: #666;
-}
-.aboutBox .versionDetails,
-.versionsBox .versionDetails {
-  font-size: 13px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
-  padding-bottom: 5px;
-  text-align: left;
-  line-height: 150%;
+  line-height: 22px;
+  color: #000000;
 }
 .readerApp.interface-hebrew .aboutBox .versionDetails,
 .readerApp.interface-hebrew .versionsBox .versionDetails {
@@ -6433,13 +6507,13 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .versionsBox .versionLanguage {
   padding-bottom: 15px;
-  text-transform: uppercase;
-  font-size: 16px;
-  color: #666;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
-  padding-left: 20px;
-  padding-right: 20px;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  color: #666666;
 }
 .interface-hebrew .versionsBox .versionLanguage {
   font-family: "Heebo", sans-serif;
@@ -6451,28 +6525,32 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #999;
 }
 .versionsBox a.selectButton {
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
   color: #000;
   box-shadow: 0 1px 2px #999;
-  padding: 5px 8px;
-  text-transform: uppercase;
+  padding: 6px 8px;
   background-color: white;
   border-radius: 4px;
-  line-height: 24px;
+  line-height: 18px;
 }
 .versionsBox a.selectButton.currSelectButton {
-  color: #fff;
   background-color: #212E50;
   text-decoration: none;
   cursor: default;
+  line-height: 20px;
+  color: #FFFFFF;
 }
 .versionsTextList .topFiltersInner .uppercase {
   text-transform: none;
 }
 .versionsBox .versionBlock {
-  padding: 20px;
+  padding: 20px 0;
   border-top: solid 1px #CCC;
 }
-.versionsBox .versionBlock .versionTitle a {
+.versionBlock .versionTitle a {
   color: black;
 }
 .interface-hebrew .versionsBox .versionLanguage {

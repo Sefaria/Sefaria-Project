@@ -23,7 +23,7 @@ class VersionBlock extends Component {
       "purchaseInformationURL",
 
     ];
-    var s = {
+    let s = {
       editing: false,
       error: null,
       originalVersionTitle: props.version["versionTitle"]
@@ -33,6 +33,7 @@ class VersionBlock extends Component {
   }
   onVersionTitleClick(e) {
     e.preventDefault();
+    if (!this.props.openVersionInSidebar && !this.props.openVersionInReader) return;
     if (this.props.firstSectionRef) {
       window.location = `/${this.props.firstSectionRef}?v${this.props.version.language}=${this.props.version.versionTitle.replace(/\s/g,'_')}`;
     } else {
@@ -60,9 +61,8 @@ class VersionBlock extends Component {
   }
 
   saveVersionUpdate(event) {
-    var v = this.props.version;
-
-    var payloadVersion = {};
+    const v = this.props.version;
+    let payloadVersion = {};
     this.updateableVersionAttributes.forEach(function(attr) {
       if (this.state[attr] || this.state[attr] != this.props.version[attr]) {
         payloadVersion[attr] = this.state[attr];
@@ -93,8 +93,8 @@ class VersionBlock extends Component {
   deleteVersion() {
     if (!confirm("Are you sure you want to delete this text version?")) { return; }
 
-    var title = this.props.title;
-    var url = "/api/texts/" + title + "/" + this.props.version.language + "/" + this.props.version.versionTitle;
+    const title = this.props.title;
+    const url = "/api/texts/" + title + "/" + this.props.version.language + "/" + this.props.version.versionTitle;
 
     $.ajax({
       url: url,
@@ -112,7 +112,11 @@ class VersionBlock extends Component {
     });
   }
   openEditor() {
-    this.setState({editing:true});
+    if(Sefaria.is_moderator){
+      this.setState({editing:true});
+    }else{
+      return;
+    }
   }
   closeEditor() {
     this.setState({editing:false});
@@ -137,14 +141,58 @@ class VersionBlock extends Component {
     const versionLink = nonSelectedVersionParams == "" ? null : `/${Sefaria.normRef(this.props.currentRef)}${nonSelectedVersionParams}&v${versionParam}=${this.props.version.versionTitle.replace(/\s/g,'_')}${withParam}`.replace("&","?");
     return versionLink;
   }
+  makeVersionTitle(){
+    if(this.props.version.merged){
+      console.log("merged");
+      return Sefaria._("Merged from") + " " + Array.from(new Set(this.props.version.sources)).join(", ");
+    }else if(Sefaria.interfaceLang=="english" || !this.props.version.versionTitleInHebrew){
+      console.log("First else", Sefaria.interfaceLang, this.props.version);
+      return this.props.version.versionTitle;
+    }else{
+      console.log("else", this.props.version);
+      return this.props.version.versionTitleInHebrew;
+    }
+  }
+  makeLicenseLink(){
+    const license_map = this.props.getLicenseMap();
+    return (this.props.version.license in license_map) ? license_map[this.props.version.license] : "#";
+  }
+  makeSelectVersionLanguage(){
+    const langMap = {
+      "en": "Translation",
+      "he" : "Version"
+    }
+    let voc = langMap[this.props.version.language] || "Translation";
+    return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("Select "+ voc);
+  }
+  makeDigitizedByLanguage(){
+    if(this.props.version.digitizedBySefaria){
+      return ["versions-box", "about-box"].includes(this.props.rendermode) ? Sefaria._("Sefaria") : Sefaria._("Digitized by Sefaria");
+    }else {
+      return "";
+    }
+  }
+  hasExtendedNotes(){
+    return !!(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew);
+  }
+  makeVersionDetailsClassNames(attrClass, attrToExist = null){
+    return {"versionDetailsElement": 1, [attrClass]: 1, "n-a": (attrToExist ? !this.props.version[attrToExist] : 0)}
+  }
+  makeImageLink(){
+    return !!this.props.version.purchaseInformationURL ? this.props.version.purchaseInformationURL : this.props.version.versionSource;
+  }
+  makeImageSrc(){
+    return (["versions-box", "about-box"].includes(this.props.rendermode) && !!this.props.version.purchaseInformationImage) ? this.props.version.purchaseInformationImage : "data:,";
+  }
+
   render() {
-    var v = this.props.version;
+    const v = this.props.version;
 
-    if (this.state.editing) {
+    if (this.state.editing && Sefaria.is_moderator) {
       // Editing View
-      var close_icon = (Sefaria.is_moderator)?<i className="fa fa-times-circle" aria-hidden="true" onClick={this.closeEditor}/>:"";
+      let close_icon = (Sefaria.is_moderator)?<i className="fa fa-times-circle" aria-hidden="true" onClick={this.closeEditor}/>:"";
 
-      var licenses = Object.keys(this.props.getLicenseMap());
+      let licenses = Object.keys(this.props.getLicenseMap());
       licenses = licenses.includes(v.license) ? licenses : [v.license].concat(licenses);
 
       return (
@@ -196,88 +244,85 @@ class VersionBlock extends Component {
           </div>
         </div>
       );
-    } else {
-      // Presentation View
-      var license = this.props.getLicenseMap()[v.license]?<a href={this.props.getLicenseMap()[v.license]} target="_blank">{Sefaria._(v.license)}</a>:v.license;
-      var digitizedBySefaria = v.digitizedBySefaria
-          ? <a className="versionDigitizedBySefaria" href="/digitized-by-sefaria">{Sefaria._("Digitized by Sefaria")}</a> : "";
-      var licenseLine = "";
-      if (v.license && v.license != "unknown") {
-        licenseLine =
-          <span className="versionLicense">
-            {license}
-            {digitizedBySefaria?" - ":""}{digitizedBySefaria}
-          </span>
-        ;
-      }
-      var edit_icon = (Sefaria.is_moderator && !this.props.openVersionInSidebar)?<i className="fa fa-pencil versionEditIcon" aria-hidden="true" onClick={this.openEditor}/>:"";
-
-      var versionNotes = "";
-      if (this.props.showNotes) {
-        if (Sefaria.interfaceLang=="english" && !!(v.versionNotes)) {
-          versionNotes = v.versionNotes;
-        }
-        else if (Sefaria.interfaceLang=="hebrew" && !!(v.versionNotesInHebrew)) {
-          versionNotes = v.versionNotesInHebrew;
-        }
-      }
-
-      const versionTitle = (Sefaria.interfaceLang=="english" || v.versionTitleInHebrew==="") ? v.versionTitle : v.versionTitleInHebrew;
-      const selectButtonClasses = classNames({selectButton: 1, currSelectButton: this.props.isCurrent});
-
-      const versionSidebarLink = this.makeVersionLink('side');
-      const versionReaderLink = this.makeVersionLink(this.props.version.language);
-
-      let versionBlockRes = (
+    }
+    else {
+      return (
         <div className = "versionBlock">
-          {!!this.props.openVersionInSidebar || !!this.props.openVersionInReader ?
-            <div>
-              <a className="versionTitle"
-                href={versionSidebarLink}
-                onClick={this.onVersionTitleClick}>
-                {versionTitle}
-              </a>
-              {edit_icon}
-            </div> :
             <div className="versionTitle">
-              {this.props.version.merged ? `Merged from ${Array.from(new Set(this.props.version.sources)).join(", ")}` : versionTitle}
-            </div>
-          }
-          {versionNotes ? <div className="versionNotes">
-            <span dangerouslySetInnerHTML={ {__html: versionNotes} } />
-            {(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew) ? <span className="extendedNotesLinks">
-              &nbsp;<a onClick={this.openExtendedNotes} href={`/${this.props.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
-              <i>{Sefaria.interfaceLang === "english" ? "Read More" : "קרא עוד"}</i>
+              <a href={this.makeVersionLink('side')} onClick={this.onVersionTitleClick}>
+                {this.makeVersionTitle()}
               </a>
-            </span> : ""}
-          </div> : ""}
+              <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "version-list") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
+            </div>
+            <div className="versionSelect">
+              <a className={`selectButton ${this.props.isCurrent ? "currSelectButton": ""}`}
+                   href={this.makeVersionLink(v.language)}
+                   onClick={this.onSelectVersionClick}>
+                  {this.makeSelectVersionLanguage()}
+              </a>
+            </div>
+            <div className="versionNotes">
+              <span className="int-en" dangerouslySetInnerHTML={ {__html: v.versionNotes} } />
+              <span className="int-he" dangerouslySetInnerHTML={ {__html: v.versionNotesInHebrew} } />
+              <span className={`versionExtendedNotesLinks ${this.hasExtendedNotes() ? "": "no-notes"}`}>
+                <a onClick={this.openExtendedNotes} href={`/${this.props.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
+                  {Sefaria._("Read More")}
+                </a>
+              </span>
+            </div>
           { !v.merged ?
             <div className="versionDetails">
-              {!!this.props.openVersionInReader ?
-                <a className={selectButtonClasses} href={versionReaderLink} onClick={this.onSelectVersionClick}>
-                  {this.props.isCurrent ? Sefaria._("Current") : Sefaria._("Select")}
-                </a> : null}
-              {this.props.openVersionInReader ? <span className="separator">&#8226;</span>: null}
-              <a className="versionSource" target="_blank" href={v.versionSource}>
-              { Sefaria.util.parseURL(v.versionSource).host }
-              </a>
-              {licenseLine ? <span className="separator">&#8226;</span>: null}
-              {licenseLine}
-              {this.props.showHistory ? <span className="separator">&#8226;</span>: null}
-              {this.props.showHistory ? <a className="versionHistoryLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`}>{Sefaria._("History") + " "}&#xfeff;›</a>:""}
+              <div className="versionDetailsInformation">
+                <div className={classNames(this.makeVersionDetailsClassNames("versionSource", "versionSource"))}>
+                  <span className="versionDetailsLabel">
+                    {`${Sefaria._("Source")}: `}
+                  </span>
+                  <a className="versionDetailsLink" href={v.versionSource} target="_blank">
+                    { Sefaria.util.parseURL(v.versionSource).host.replace("www.", "") }
+                  </a>
+                </div>
+                <div className={classNames(this.makeVersionDetailsClassNames("versionDigitizedBySefaria", "digitizedBySefaria"))}>
+                  <span className="versionDetailsLabel">
+                    {`${Sefaria._("Digitization")}: `}
+                  </span>
+                  <a className="versionDetailsLink" href="/digitized-by-sefaria" target="_blank">
+                    {this.makeDigitizedByLanguage()}
+                  </a>
+                </div>
+                <div className={classNames(this.makeVersionDetailsClassNames("versionLicense", "license"))}>
+                  <span className="versionDetailsLabel">
+                    {`${Sefaria._("License")}: `}
+                  </span>
+                  <a className="versionDetailsLink" href={this.makeLicenseLink()} target="_blank">
+                    {Sefaria._(v.license)}
+                  </a>
+                </div>
+                <div className={classNames(this.makeVersionDetailsClassNames("versionHistoryLink"))}>
+                   <a className="versionDetailsLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`} target="_blank">
+                     {Sefaria._("Revision History")}
+                   </a>
+                </div>
+                <div className={classNames(this.makeVersionDetailsClassNames("versionBuyLink", "purchaseInformationURL"))}>
+                   <a className="versionDetailsLink" href={v.purchaseInformationURL} target="_blank">
+                    {Sefaria._("Buy in Print")}
+                   </a>
+                </div>
+              </div>
+              <div className="versionDetailsImage">
+                <div className={classNames(this.makeVersionDetailsClassNames("versionBuyImage", "purchaseInformationImage"))}>
+                  <a className="versionDetailsLink versionDetailsImageLink" href={this.makeImageLink()} target="_blank">
+                    <img className="versionImage" src={this.makeImageSrc()} alt={Sefaria._("Buy Now")} />
+                  </a>
+                </div>
+              </div>
             </div> : null
           }
         </div>
       );
 
-      if(this.props.sidebarDisplay && !this.props.version.merged && this.props.version.purchaseInformationURL){
-        return (<VersionBuyButton
-              image={this.props.version.purchaseInformationImage}
-              url={this.props.version.purchaseInformationURL} >{versionBlockRes}</VersionBuyButton>);
-      }else{
-        return versionBlockRes;
-      }
-
+      /*
+      <span className="separator">&#8226;</span> ›
+      */
     }
 
   }
@@ -297,6 +342,7 @@ VersionBlock.propTypes = {
   openVersion:     PropTypes.func,
   viewExtendedNotes: PropTypes.func,
   sidebarDisplay: PropTypes.bool,
+  rendermode:     PropTypes.string,
 };
 VersionBlock.defaultProps = {
   showHistory: true,
