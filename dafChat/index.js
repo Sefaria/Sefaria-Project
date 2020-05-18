@@ -6,8 +6,8 @@ const jwt_decode = require('jwt-decode');
 const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('./db/chatrooms.db');
 db.run(`DROP TABLE IF EXISTS "chatrooms"`);
-db.run(`CREATE TABLE IF NOT EXISTS "chatrooms" ("name"	TEXT UNIQUE, "clients"	INTEGER DEFAULT 0, "roomStarted"	INTEGER, PRIMARY KEY("name"));`)
 console.log('creating and clearing db');
+db.run(`CREATE TABLE IF NOT EXISTS "chatrooms" ("name"	TEXT UNIQUE, "clients"	INTEGER DEFAULT 0, "roomStarted"	INTEGER, PRIMARY KEY("name"));`)
 const os = require('os');
 
 const nodeStatic = require('node-static');
@@ -46,13 +46,14 @@ io.sockets.on('connection', function(socket) {
 
   function createNewRoom(uid) {
     const room = Math.random().toString(36).substring(7);
-    socket.join(room);
-    // console.log(`${socket.id} created room ${room}`);
-    socket.emit('created', room, socket.id);
-    db.run(`INSERT INTO chatrooms(name, clients, roomStarted) VALUES(?, ?, ?)`, [room, uid, +new Date], function(err) {
-      if (err) {
-        console.log(err.message);
-      }
+    socket.join(room, () => {
+      console.log(`${socket.id} created room ${room}`);
+      socket.emit('created', room, socket.id);
+      db.run(`INSERT INTO chatrooms(name, clients, roomStarted) VALUES(?, ?, ?)`, [room, uid, +new Date], function(err) {
+        if (err) {
+          console.log(err.message);
+        }
+      });
     });
   }
 
@@ -67,8 +68,7 @@ io.sockets.on('connection', function(socket) {
       let numRows = rows["COUNT(*)"];
       socket.broadcast.emit('return rooms', numRows);
       socket.emit('return rooms', numRows);
-
-      // log('Received request to create or join room ' + room);
+        console.log('trying to find a room...')
         db.all(`SELECT name, clients from chatrooms WHERE clients != 0 ORDER BY roomStarted`, [], (err, rows) => {
 
           if (err) {
@@ -83,17 +83,17 @@ io.sockets.on('connection', function(socket) {
               foundRoom = true;
             }
             else if (rows[rowIndex].clients == lastChevrutaID) {
-              console.log('same chevrusa as last time')
+              console.log('Client ID ' + socket.id + 'matched w/ the same chevrusa as last time')
               rowIndex++;
             }
             else {
               const room = rows[rowIndex].name;
-              // console.log('Client ID ' + socket.id + ' joined room ' + room);
-
-              socket.join(room);
-              socket.to(room).emit('join', room);
-              socket.emit('joined', room, socket.id);
-              db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
+              console.log(socket.id +' attempting to join room: '+ room)
+              socket.join(room, () => {
+                console.log('Client ID ' + socket.id + ' joined room ' + room);
+                io.to(room).emit('join', room);
+                db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
+              });
               foundRoom = true;
             }
           }
@@ -117,10 +117,12 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('bye', function(room){
-    // console.log(`bye received from ${socket.id} for room ${room}`);
-    db.run(`DELETE FROM chatrooms WHERE name=?`, room);
-    socket.to(room).emit('message', 'bye');
-    socket.emit('byeReceived');
+    socket.leave(room, () => {
+      console.log(`bye received from ${socket.id} for room ${room}`);
+      db.run(`DELETE FROM chatrooms WHERE name=?`, room);
+      io.to(room).emit('message', 'bye');
+      socket.emit('byeReceived');
+    });
   });
 
   socket.on('send user info', function(userName, uid, room) {
