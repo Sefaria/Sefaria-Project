@@ -39,18 +39,10 @@ socket.on('created', function(room) {
 });
 
 socket.on('join', function(room) {
-  console.log('another user joined room: ' + room);
-  Sefaria.track.event("DafRoulette", "Chevruta Match Made", "initator");
-  isChannelReady = true;
-  socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room);
-  maybeStart();
-});
-
-socket.on('joined', function(room) {
-  console.log('joined: ' + room);
-  isChannelReady = true;
+  console.log('user joined room: ' + room);
+  Sefaria.track.event("DafRoulette", "Chevruta Match Made");
   clientRoom = room;
-  Sefaria.track.event("DafRoulette", "Chevruta Match Made", "joiner");
+  isChannelReady = true;
   socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room);
   maybeStart();
 });
@@ -129,7 +121,7 @@ navigator.mediaDevices.getUserMedia({
 
 function addAdditionalHTML() {
   const newRoomButton = document.createElement('div');
-  newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()">New Person</button>';
+  newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()"><span class="int-en">New Person</span><span class="int-he">ממתין לחברותא</span></button>';
   document.getElementById("buttonContainer").appendChild(newRoomButton)
 
   const iframe = document.createElement('iframe');
