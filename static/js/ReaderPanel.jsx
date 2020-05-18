@@ -355,6 +355,9 @@ class ReaderPanel extends Component {
           this.conditionalSetState({
               editSheet: true
           })
+          if (this.props.hasSidebar) {
+            this.props.closeConnectionPanel(this.props.panelPosition)
+          }
       }
 
   }

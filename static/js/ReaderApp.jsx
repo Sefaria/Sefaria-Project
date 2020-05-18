@@ -992,6 +992,11 @@ class ReaderApp extends Component {
       $(curPanel).find(':focusable').first().focus();
     }
   }
+  closeConnectionPanel(n) {
+    if (this.state.panels.length > n+1  && this.state.panels[n+1].mode === "Connections") {
+      this.closePanel(n+1);
+    }
+  }
   handleCitationClick(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
     if (this.state.panels.length > n+1  && this.state.panels[n+1].mode === "Connections") {
@@ -1751,6 +1756,7 @@ class ReaderApp extends Component {
       var style                          = (this.state.layoutOrientation=="ltr")?{width: width + unit, left: offset + unit}:{width: width + unit, right: offset + unit};
       var onSegmentClick                 = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick                = this.handleCitationClick.bind(null, i);
+      var onCloseConnectionClick         = this.closeConnectionPanel.bind(null,i);
       var onSearchResultClick            = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
@@ -1789,6 +1795,7 @@ class ReaderApp extends Component {
                       multiPanel={this.props.multiPanel}
                       onSegmentClick={onSegmentClick}
                       onCitationClick={onCitationClick}
+                      closeConnectionPanel={onCloseConnectionClick}
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
                       onRecentClick={this.handleRecentClick}
