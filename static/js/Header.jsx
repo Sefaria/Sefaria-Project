@@ -67,10 +67,13 @@ class Header extends Component {
     $.widget( "custom.sefaria_autocomplete", $.ui.autocomplete, {
       _renderItem: function(ul, item) {
         const override = item.label.match(this._searchOverrideRegex());
+        const is_hebrew = Sefaria.hebrew.isHebrew(item.label);
         return $( "<li></li>" )
           .addClass('ui-menu-item')
           .data( "item.autocomplete", item )
           .toggleClass("search-override", !!override)
+          .toggleClass("hebrew-result", !!is_hebrew)
+          .toggleClass("english-result", !is_hebrew)
           .append(`<img alt="${item.type}" src="/static/icons/${this._type_icon_map[item.type]}">`)
           .append( $(`<a href="${this.getURLForObject(item.type, item.key)}" role='option' data-type-key="${item.type}-${item.key}"></a>` ).text( item.label ) )
           .appendTo( ul );

@@ -44,20 +44,19 @@ io.sockets.on('connection', function(socket) {
     socket.to(roomId).emit('message', message);
   });
 
-  function createNewRoom() {
+  function createNewRoom(uid) {
     const room = Math.random().toString(36).substring(7);
     socket.join(room);
-    console.log(`${socket.id} created room ${room}`);
+    // console.log(`${socket.id} created room ${room}`);
     socket.emit('created', room, socket.id);
-    db.run(`INSERT INTO chatrooms(name, clients, roomStarted) VALUES(?, ?, ?)`, [room, 1, +new Date], function(err) {
+    db.run(`INSERT INTO chatrooms(name, clients, roomStarted) VALUES(?, ?, ?)`, [room, uid, +new Date], function(err) {
       if (err) {
         console.log(err.message);
       }
     });
   }
 
-  socket.on('how many rooms', function() {
-
+  socket.on('how many rooms', function(uid, lastChevrutaID) {
     socket.emit('creds', pcConfig)
 
     db.get(`SELECT COUNT(*) FROM chatrooms`, (err, rows) => {
@@ -70,31 +69,36 @@ io.sockets.on('connection', function(socket) {
       socket.emit('return rooms', numRows);
 
       // log('Received request to create or join room ' + room);
-        db.all(`SELECT name, clients from chatrooms WHERE clients = 1 ORDER BY roomStarted`, [], (err, rows) => {
+        db.all(`SELECT name, clients from chatrooms WHERE clients != 0 ORDER BY roomStarted`, [], (err, rows) => {
+
           if (err) {
             return console.error(err.message);
           }
-          // If there's two+ rooms || there's only one room and it has one person
-          if (rows.length >= 2 || (numRows === 1 && rows.length > 0))  {
-            const row = rows[0];
-            const room = row.name;
-            console.log('Client ID ' + socket.id + ' joined room ' + room);
+          let foundRoom = false;
+          let rowIndex = 0;
 
-            socket.join(room);
-            socket.to(room).emit('join', room);
-            socket.emit('joined', room, socket.id);
-            db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [row.clients+1, room])
-          }
-          else {
-            createNewRoom();
+          while (foundRoom == false) {
+            if (rows.length == rowIndex) {
+              createNewRoom(uid);
+              foundRoom = true;
+            }
+            else if (rows[rowIndex].clients == lastChevrutaID) {
+              console.log('same chevrusa as last time')
+              rowIndex++;
+            }
+            else {
+              const room = rows[rowIndex].name;
+              // console.log('Client ID ' + socket.id + ' joined room ' + room);
+
+              socket.join(room);
+              socket.to(room).emit('join', room);
+              socket.emit('joined', room, socket.id);
+              db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
+              foundRoom = true;
+            }
           }
         });
     });
-  });
-
-  socket.on('new room', function() {
-    console.log(`${socket.id} searching for a room`);
-    createNewRoom();
   });
 
   socket.on('ipaddr', function() {
@@ -113,10 +117,10 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('bye', function(room){
-    console.log(`bye received from ${socket.id} for room ${room}`);
+    // console.log(`bye received from ${socket.id} for room ${room}`);
     db.run(`DELETE FROM chatrooms WHERE name=?`, room);
-    socket.leave(room);
     socket.to(room).emit('message', 'bye');
+    socket.emit('byeReceived');
   });
 
   socket.on('send user info', function(userName, uid, room) {
