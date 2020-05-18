@@ -59,6 +59,7 @@ socket.on('got user name', function(userName, uid) {
   document.getElementById("chevrutaName").innerHTML = userName;
   document.getElementById("chevrutaUID").value = uid;
   localStorage.setItem('lastChevrutaID', uid);
+  localStorage.setItem('lastChevrutaTimeStamp', Date.now());
 });
 
 socket.on('user reported', function(){
@@ -113,6 +114,11 @@ navigator.mediaDevices.getUserMedia({
   })
   .then((stream) => {
     localStream = localVideo.srcObject = stream;
+
+    // if it's been >5 minutes since user last matched w/ a chevruta allow for any potential match
+    if (Date.now() - localStorage.getItem('lastChevrutaTimeStamp') > 300000) {
+      localStorage.setItem('lastChevrutaID', null);
+    }
     socket.emit('how many rooms', {{ client_uid }}, localStorage.getItem('lastChevrutaID'));
     console.log('Adding local stream.');
   })
@@ -143,7 +149,6 @@ function reportUser() {
 
   const uid = document.getElementById("chevrutaUID").value;
   const username = document.getElementById("chevrutaName").innerHTML;
-  console.log(uid, username)
 
   var feedback = {
       type: "daf_roulette_report",
@@ -169,13 +174,13 @@ function reportUser() {
 }
 
 function maybeStart() {
-  console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
+  // console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
   if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
-    console.log('>>>>>> creating peer connection');
+    // console.log('>>>>>> creating peer connection');
     createPeerConnection();
     pc.addStream(localStream);
     isStarted = true;
-    console.log('isInitiator', isInitiator);
+    // console.log('isInitiator', isInitiator);
     if (isInitiator) {
       doCall();
     }
@@ -266,8 +271,7 @@ function handleIceConnectionChange(event) {
 }
 
 function handleRemoteHangup() {
-  console.log('Session terminated.');
-  // location.reload();
+  location.reload();
 }
 
 {% endautoescape %}
