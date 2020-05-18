@@ -69,6 +69,7 @@ socket.on('user reported', function(){
 });
 
 socket.on('byeReceived', function(){
+  window.onbeforeunload = null;
   location.reload();
 });
 
@@ -271,6 +272,7 @@ function handleIceConnectionChange(event) {
 }
 
 function handleRemoteHangup() {
+  window.onbeforeunload = null;
   location.reload();
 }
 
