@@ -129,7 +129,7 @@ navigator.mediaDevices.getUserMedia({
 
 function addAdditionalHTML() {
   const newRoomButton = document.createElement('div');
-  newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()">New Person</button>';
+  newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()"><span class="int-en">New Person</span><span class="int-he">ממתין לחברותא</span></button>';
   document.getElementById("buttonContainer").appendChild(newRoomButton)
 
   const iframe = document.createElement('iframe');
