@@ -401,6 +401,7 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Topics") {
       content = (
         <TopicList
+          contentLang={this.props.contentLang}
           srefs={this.props.srefs}
           interfaceLang={this.props.interfaceLang}
         />
@@ -738,10 +739,19 @@ PublicSheetsList.propTypes = {
   connectedSheet: PropTypes.string,
 };
 
-const TopicList = ({ srefs, interfaceLang }) => (
-  <div>
+const TopicList = ({ srefs, interfaceLang, contentLang }) => (
+  <div className={`topicList ${contentLang === 'english' ? 'topicsEn' : 'topicsHe'}`}>
     {
-      Sefaria.topicsByRef(srefs).length ? Sefaria.topicsByRef(srefs).map(
+      Sefaria.topicsByRef(srefs) === null ? (
+        <LoadingMessage />
+      ) : Sefaria.topicsByRef(srefs).length === 0 ? (
+        <div className="webpageList empty">
+          <LoadingMessage
+            message={"No topics known here."}
+            heMessage={"אין נושאים ידועים."}
+          />
+        </div>
+      ) : Sefaria.topicsByRef(srefs).map(
         topic => (
           <TopicListItem
             key={topic.topic}
@@ -750,13 +760,6 @@ const TopicList = ({ srefs, interfaceLang }) => (
             srefs={srefs}
           />
         )
-      ) : (
-        <div className="webpageList empty">
-          <LoadingMessage
-            message={"No topics known here."}
-            heMessage={"אין נושאים ידועים."}
-          />
-        </div>
       )
     }
   </div>
@@ -772,18 +775,18 @@ const TopicListItem = ({ topic, interfaceLang, srefs }) => {
     <a href={`/topics/${topic.topic}`} className="toolsButton topicButton" onClick={()=>{}}>
       <span className="topicButtonTitle">
         <span className="contentText">
-          <span className="int-en">{topic.title.en}</span>
-          <span className="int-he">{topic.title.he}</span>
+          <span className="en">{topic.title.en}</span>
+          <span className="he">{topic.title.he}</span>
         </span>
         <ToolTipped altText={dataSourceText} classes={"saveButton tooltip-toggle three-dots-button"}>
           <img src="/static/img/three-dots.svg" alt={dataSourceText}/>
         </ToolTipped>
       </span>
       {
-        topic.description ? (
+        topic.description && (topic.description.en || topic.description.he) ? (
           <span className="smallText">
-            <span className="int-en">{topic.description.en}</span>
-            <span className="int-he">{topic.description.he}</span>
+            <span className="en">{topic.description.en}</span>
+            <span className="he">{topic.description.he}</span>
           </span>
         ) : null
       }

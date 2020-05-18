@@ -1197,9 +1197,11 @@ Sefaria = extend(Sefaria, {
   topicsByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
     const topicsObj = {};
+    let resultLoaded = false;  // _refTopicLinks will have an empty array for ref if ref's topics were loaded
     for (let r of refs) {
       const tempTopicList = this._refTopicLinks[r];
       if (!tempTopicList) { continue; }
+      resultLoaded = true;
       for (let tempTopic of tempTopicList) {
         if (!topicsObj[tempTopic.topic]) {
           tempTopic.order = tempTopic.order || {};
@@ -1210,6 +1212,7 @@ Sefaria = extend(Sefaria, {
         topicsObj[tempTopic.topic].dataSources[tempTopic.dataSource.slug] = tempTopic.dataSource;
       }
     }
+    if (!resultLoaded) { return null ;}
     return Object.values(topicsObj).sort((a, b) => b.order.pr - a.order.pr);
   },
   _related: {},
