@@ -2422,7 +2422,7 @@ a.readerNavCategory {
   color: #999999;
 }
 .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionBuyLink a{
-  color: #000000;
+  color: #18345D;
 }
 .readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement{
   margin: 0 2px;
@@ -6535,7 +6535,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
-  color: #000;
+  color: #666666;
   box-shadow: 0 1px 2px #999;
   padding: 6px 8px;
   background-color: white;
