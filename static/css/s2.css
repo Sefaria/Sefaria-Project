@@ -404,6 +404,12 @@ input.noselect {
   border-top: solid 1px #ccc;
   padding-top: 12px;
 }
+.ui-autocomplete .ui-menu-item.hebrew-result a {
+  direction: rtl;
+}
+.ui-autocomplete .ui-menu-item.english-result a {
+  direction: ltr;
+}
 .header .home {
   margin-top: 1px;
 }
