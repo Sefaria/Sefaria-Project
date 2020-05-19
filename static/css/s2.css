@@ -4679,9 +4679,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topicList.topicsEn {
   direction: ltr;
 }
-.topicList .loadingMessage {
-  padding: 20px 34px;
-}
 .toolsButton.topicButton {
   flex-direction: column;
   letter-spacing: unset;

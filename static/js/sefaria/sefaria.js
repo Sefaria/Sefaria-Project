@@ -1215,6 +1215,10 @@ Sefaria = extend(Sefaria, {
     if (!resultLoaded) { return null ;}
     return Object.values(topicsObj).sort((a, b) => b.order.pr - a.order.pr);
   },
+  topicsByRefCount: function(refs) {
+    const topics = Sefaria.topicsByRef(refs);
+    return topics && topics.length;
+  },
   _related: {},
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.

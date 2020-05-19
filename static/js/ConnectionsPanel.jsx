@@ -293,7 +293,7 @@ class ConnectionsPanel extends Component {
                     sheetsCount={Sefaria.sheets.sheetsTotalCount(this.props.srefs)}
                     notesCount={Sefaria.notesTotalCount(this.props.srefs)}
                     webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length}
-                    topicsCount={Sefaria.topicsByRef(this.props.srefs).length}
+                    topicsCount={Sefaria.topicsByRefCount(this.props.srefs)}
                   />
                   </div>);
 
@@ -739,31 +739,39 @@ PublicSheetsList.propTypes = {
   connectedSheet: PropTypes.string,
 };
 
-const TopicList = ({ srefs, interfaceLang, contentLang }) => (
-  <div className={`topicList ${contentLang === 'english' ? 'topicsEn' : 'topicsHe'}`}>
-    {
-      Sefaria.topicsByRef(srefs) === null ? (
-        <LoadingMessage />
-      ) : Sefaria.topicsByRef(srefs).length === 0 ? (
-        <div className="webpageList empty">
-          <LoadingMessage
-            message={"No topics known here."}
-            heMessage={"אין נושאים ידועים."}
-          />
-        </div>
-      ) : Sefaria.topicsByRef(srefs).map(
-        topic => (
-          <TopicListItem
-            key={topic.topic}
-            topic={topic}
-            interfaceLang={interfaceLang}
-            srefs={srefs}
-          />
+const TopicList = ({ srefs, interfaceLang, contentLang }) => {
+  // segment ref topicList can be undefined even if loaded
+  // but section ref topicList is null when loading and array when loaded
+  const sectionRef = Sefaria.getRefFromCache(srefs[0]).sectionRef;
+  const topics = Sefaria.topicsByRef(srefs)
+  return (
+    <div className={`topicList ${contentLang === 'hebrew' ? 'topicsHe' : 'topicsEn'}`}>
+      {
+        Sefaria.topicsByRef(sectionRef) === null ? (
+          <div className="webpageList empty">
+            <LoadingMessage />
+          </div>
+        ) : (!topics || !topics.length) ? (
+          <div className="webpageList empty">
+            <LoadingMessage
+              message={"No topics known here."}
+              heMessage={"אין נושאים ידועים."}
+            />
+          </div>
+        ) : topics.map(
+          topic => (
+            <TopicListItem
+              key={topic.topic}
+              topic={topic}
+              interfaceLang={interfaceLang}
+              srefs={srefs}
+            />
+          )
         )
-      )
-    }
-  </div>
-);
+      }
+    </div>
+  );
+}
 
 const TopicListItem = ({ topic, interfaceLang, srefs }) => {
   let dataSourceText = '';
