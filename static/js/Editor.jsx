@@ -1,7 +1,7 @@
 import React, {useCallback, useMemo, useState, useEffect, useRef} from 'react';
 import {jsx} from 'slate-hyperscript'
 import {withHistory} from 'slate-history'
-import {Editor, createEditor, Range, Node, Transforms, Path} from 'slate'
+import {Editor, createEditor, Range, Node, Transforms, Path, Text} from 'slate'
 import {Slate, Editable, ReactEditor, withReact, useSlate} from 'slate-react'
 import isHotkey from 'is-hotkey'
 
@@ -118,7 +118,7 @@ export const deserialize = el => {
         parent = el.childNodes[0]
     }
 
-    const children = Array.from(parent.childNodes).map(deserialize);
+    const children = Array.from(parent.childNodes).map(deserialize).flat();
 
 
     if (el.nodeName === 'BODY') {
@@ -131,11 +131,9 @@ export const deserialize = el => {
     }
 
     if (TEXT_TAGS[nodeName]) {
-        const attrs = TEXT_TAGS[nodeName](el);
-        return children.map(child => jsx('text', attrs, child))
+      const attrs = TEXT_TAGS[nodeName](el);
+      return children.map(child => jsx('text', attrs, ((typeof child === "string" || Text.isText(child)) ? child : Node.string(child))))
     }
-
-
     return children
 };
 
