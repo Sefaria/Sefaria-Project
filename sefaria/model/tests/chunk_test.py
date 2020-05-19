@@ -486,7 +486,7 @@ def test_strip_itags():
         "title": "Hadran",
         "versionSource": "http://foobar.com",
         "versionTitle": "Hadran Test",
-        "chapter": ['Cool text <sup>1</sup><i class="footnote yo">well, not that cool</i>',
+        "chapter": ['Cool text <sup>1</sup><i class="footnote">well, not that cool</i>',
                     'Silly text <sup>1</sup><i class="footnote">See <i>cool text</i></i>',
                     'More text <i data-commentator="Boring comment" data-order="1"></i> and yet more']
     }).save()
@@ -508,7 +508,4 @@ def test_strip_itags():
     test_modified_text = v._get_text_after_modifications([])
     for m, t in zip(v.chapter, test_modified_text):
         assert m == t
-
-    text = '<i></i>Lo, his spirit.'
-    assert TextChunk._strip_itags(text) == text
 

@@ -124,13 +124,6 @@ def pagerank(g, s=0.85, tolerance=0.00001, maxiter=100, verbose=False, normalize
     return {k: v for k, v in zip([x[0] for x in g], pr_list)}
 
 
-def has_intersection(a, b):
-    for temp_a in a:
-        if temp_a in b:
-            return True
-    return False
-
-
 def init_pagerank_graph(ref_list=None):
     """
     :param ref_list: optional list of refs to use instead of using all links. link graph is built from all links to these refs
@@ -192,7 +185,8 @@ def init_pagerank_graph(ref_list=None):
         link_list = []
         ref_list_seg_set = {rr.normal() for r in ref_list for rr in r.all_segment_refs()}
         for oref in ref_list:
-            link_list += list(filter(lambda x: has_intersection(x.expandedRefs0, ref_list_seg_set) and has_intersection(x.expandedRefs1, ref_list_seg_set), oref.linkset()))
+            link_list += list(filter(lambda x: len(set(x.expandedRefs0) & ref_list_seg_set) > 0 and len(
+                set(x.expandedRefs1) & ref_list_seg_set) > 0, oref.linkset()))
         len_all_links = len(link_list)
         all_links = LinkSet()
         all_links.records = link_list
@@ -259,7 +253,7 @@ def pagerank_rank_ref_list(ref_list, normalize=False):
     # make unique
     ref_list = [v for k, v in {r.normal(): r for r in ref_list}.items()]
     graph, all_ref_cat_counts = init_pagerank_graph(ref_list)
-    pr = pagerank(list(graph.items()), 0.85, verbose=False, tolerance=0.00005, normalize=normalize)
+    pr = pagerank(list(graph.items()), 0.85, verbose=True, tolerance=0.00005, normalize=normalize)
 
     if not normalize:
         # remove lowest pr value which just means it quoted at least one source but was never quoted

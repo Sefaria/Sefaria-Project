@@ -1027,14 +1027,14 @@ class AbstractTextRecord(object):
     @staticmethod
     def _find_itags(tag):
         if isinstance(tag, Tag):
-            is_footnote = tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
+            is_footnote = tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             return is_footnote or is_inline_commentator
         return False
 
     @staticmethod
     def _strip_itags(s):
-        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
+        soup = BeautifulSoup("<div>{}</div>".format(s), 'xml')
         itag_list = soup.find_all(AbstractTextRecord._find_itags)
         for itag in itag_list:
             try:
@@ -1042,7 +1042,7 @@ class AbstractTextRecord(object):
             except AttributeError:
                 pass  # it's an inline commentator
             itag.decompose()
-        return soup.root.encode_contents().decode()  # remove divs added
+        return soup.encode_contents().decode()[5:-6]  # remove divs added
 
     def _get_text_after_modifications(self, text_modification_funcs):
         """
@@ -4198,11 +4198,6 @@ class Ref(object, metaclass=RefCacheType):
         """
         from . import LinkSet
         return LinkSet(self)
-
-    def topiclinkset(self):
-        from . import RefTopicLinkSet
-        regex_list = self.regex(as_list=True)
-        return RefTopicLinkSet({"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]})
 
     def autolinker(self, **kwargs):
         """

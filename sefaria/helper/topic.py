@@ -1,13 +1,8 @@
 import re
-from tqdm import tqdm
-from pymongo import UpdateOne, InsertOne
-from typing import Optional, Union
+from typing import Optional
 from collections import defaultdict
 from functools import cmp_to_key
 from sefaria.model import *
-from sefaria.system.exceptions import InputError
-from sefaria.model.topic import TopicLinkHelper
-from sefaria.system.database import db
 import logging
 
 logger = logging.getLogger(__name__)
@@ -56,7 +51,23 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
             del link['linkType']
             del link['class']
             if annotate_links:
-                link = annotate_topic_link(link, link_topic_dict)
+                # add display information
+                other_topic = link_topic_dict.get(link['topic'], None)
+                if other_topic is None:
+                    logger.warning("Topic slug {} doesn't exist. Linked to {}".format(link['topic'], topic))
+                    continue
+                link["title"] = {
+                    "en": other_topic.get_primary_title('en'),
+                    "he": other_topic.get_primary_title('he')
+                }
+                link['titleIsTransliteration'] = {
+                    'en': other_topic.title_is_transliteration(link["title"]['en'], 'en'),
+                    'he': other_topic.title_is_transliteration(link["title"]['he'], 'he')
+                }
+                if not other_topic.should_display():
+                    link['shouldDisplay'] = False
+                link['order'] = link.get('order', None) or {}
+                link['order']['numSources'] = getattr(other_topic, 'numSources', 0)
             if link_type_slug in response['links']:
                 response['links'][link_type_slug]['links'] += [link]
             else:
@@ -74,7 +85,7 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
         new_refs = []
         for link in response['refs']:
             del link['class']
-            del link['topic']
+            del link['toTopic']
             temp_subset_refs = subset_ref_map.keys() & set(link.get('expandedRefs', []))
             for seg_ref in temp_subset_refs:
                 for index in subset_ref_map[seg_ref]:
@@ -96,31 +107,6 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
 
         response['refs'] = new_refs
     return response
-
-
-def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
-    # add display information
-    topic = link_topic_dict.get(link['topic'], None)
-    if topic is None:
-        logger.warning(f"Topic slug {link['topic']} doesn't exist")
-        return None
-    link["title"] = {
-        "en": topic.get_primary_title('en'),
-        "he": topic.get_primary_title('he')
-    }
-    link['titleIsTransliteration'] = {
-        'en': topic.title_is_transliteration(link["title"]['en'], 'en'),
-        'he': topic.title_is_transliteration(link["title"]['he'], 'he')
-    }
-    if getattr(topic, "description_published", False):
-        link['description'] = getattr(topic, 'description', {})
-    else:
-        link['description'] = {}
-    if not topic.should_display():
-        link['shouldDisplay'] = False
-    link['order'] = link.get('order', None) or {}
-    link['order']['numSources'] = getattr(topic, 'numSources', 0)
-    return link
 
 
 def get_all_topics(limit=1000):
@@ -149,6 +135,8 @@ def sort_refs_by_relevance(a, b):
 
 
 def get_random_topic(good_to_promote=True) -> Optional[Topic]:
+    from sefaria.system.database import db
+
     query = {"good_to_promote": True} if good_to_promote else {}
     random_topic_dict = list(db.topics.aggregate([
         {"$match": query},
@@ -161,6 +149,9 @@ def get_random_topic(good_to_promote=True) -> Optional[Topic]:
 
 
 def get_random_topic_source(topic:Topic) -> Optional[Ref]:
+    from sefaria.system.database import db
+    from sefaria.system.exceptions import InputError
+
     random_source_dict = list(db.topic_links.aggregate([
         {"$match": {"toTopic": topic.slug, 'linkType': 'about', 'class': 'refTopic', 'is_sheet': False, 'order.pr': {'$gt': 0}}},
         {"$sample": {"size": 1}}
@@ -181,6 +172,7 @@ def get_bulk_topics(topic_list: list) -> TopicSet:
 
 def recommend_topics(refs: list) -> list:
     """Returns a list of topics recommended for the list of string refs"""
+    from sefaria.system.exceptions import InputError
 
     seg_refs = []
     for tref in refs:
@@ -209,25 +201,6 @@ def recommend_topics(refs: list) -> list:
     return sorted(recommend_topics, key=lambda x: x["count"], reverse=True)
 
 
-def get_topics_for_ref(tref, annotate=False):
-    serialized = [l.contents() for l in Ref(tref).topiclinkset()]
-    if annotate:
-        if len(serialized) > 0:
-            link_topic_dict = {topic.slug: topic for topic in TopicSet({"$or": [{"slug": link['topic']} for link in serialized]})}
-        else:
-            link_topic_dict = {}
-        serialized = [annotate_topic_link(link, link_topic_dict) for link in serialized]
-    for link in serialized:
-        link['anchorRef'] = link['ref']
-        del link['ref']
-        if link.get('dataSource', None):
-            data_source_slug = link['dataSource']
-            data_source = library.get_topic_data_source(data_source_slug)
-            link['dataSource'] = data_source.displayName
-            link['dataSource']['slug'] = data_source_slug
-    return serialized
-
-
 """
     SECONDARY TOPIC DATA GENERATION
 """
@@ -237,17 +210,12 @@ def generate_all_topic_links_from_sheets(topic=None):
     """
     Processes all public source sheets to create topic links.
     """
+    from sefaria.system.database import db
     from sefaria.recommendation_engine import RecommendationEngine
+    from tqdm import tqdm
     from statistics import mean, stdev
-    import math
 
-    OWNER_THRESH = 3
-    TFIDF_CUTOFF = 0.15
-    STD_DEV_CUTOFF = 2
-
-    all_related_topics = defaultdict(lambda: defaultdict(set))
-    all_related_refs = defaultdict(lambda: defaultdict(lambda: defaultdict(float)))
-    topic_ref_counts = defaultdict(lambda: defaultdict(int))
+    all_topics = {}
     # ignore sheets that are copies or were assignments
     query = {"status": "public", "viaOwner": {"$exists": 0}, "assignment_id": {"$exists": 0}}
     if topic:
@@ -258,28 +226,32 @@ def generate_all_topic_links_from_sheets(topic=None):
         sheet_topics = sheet.get("topics", [])
         for topic_dict in sheet_topics:
             slug = topic_dict['slug']
+            if slug not in all_topics:
+                all_topics[slug] = {
+                                "topic": slug,
+                                "sources_dict": defaultdict(set),
+                                "related_topics_dict": defaultdict(set)
+                            }
             for tref in sheet.get("includedRefs", []):
                 try:
                     oref = Ref(tref)
                     for sub_oref in oref.range_list():
-                        value = all_related_refs[sub_oref.normal()][slug].get(sheet['owner'], 0)
-                        all_related_refs[sub_oref.normal()][slug][sheet['owner']] = max(1/len(sheet_topics), value)
-                        topic_ref_counts[slug][sub_oref.normal()] += 1
+                        all_topics[slug]["sources_dict"][sub_oref.normal()].add(sheet['owner'])
                 except:
                     continue
             for related_topic_dict in sheet_topics:
                 if slug != related_topic_dict['slug']:
-                    all_related_topics[slug][related_topic_dict['slug']].add(sheet['owner'])
+                    all_topics[slug]["related_topics_dict"][related_topic_dict['slug']].add(sheet['owner'])
 
     already_created_related_links = {}
     related_links = []
     source_links = []
-    for slug, related_topics_to_slug in tqdm(all_related_topics.items(), desc="creating sheet related topic links"):
+    for slug, blob in tqdm(all_topics.items(), desc="creating sheet topic links"):
         if topic is not None and slug != topic:
             continue
 
         # filter related topics with less than 2 users who voted for it
-        related_topics = [related_topic for related_topic in related_topics_to_slug.items() if len(related_topic[1]) >= 2]
+        related_topics = [related_topic for related_topic in blob['related_topics_dict'].items() if len(related_topic[1]) >= 2]
         for related_topic, user_votes in related_topics:
             if related_topic == slug:
                 continue
@@ -292,26 +264,17 @@ def generate_all_topic_links_from_sheets(topic=None):
                 'b': slug,
                 'user_votes': len(user_votes)
             }]
-    topic_idf_dict = {slug: math.log2(len(all_related_refs) / len(ref_dict)) for slug, ref_dict in topic_ref_counts.items()}
-    raw_topic_ref_links = defaultdict(list)
-    for tref, related_topics_to_tref in tqdm(all_related_refs.items(), desc="creating sheet related ref links"):
-        # filter sources with less than 3 users who added it and tfidf of at least 0.15
-        numerator_list = []
-        owner_counts = []
-        for slug, owner_map in related_topics_to_tref.items():
-            numerator = sum(owner_map.values())
-            owner_counts += [len(owner_map)]
-            numerator_list += [numerator]
-        denominator = sum(numerator_list)
-        topic_scores = [(slug, (numerator / denominator) * topic_idf_dict[slug], owners) for slug, numerator, owners in
-                  zip(related_topics_to_tref.keys(), numerator_list, owner_counts)]
-        # transform data to more convenient format
-        oref = Ref(tref)
-        for slug, _, owners in filter(lambda x: x[1] >= TFIDF_CUTOFF and x[2] >= OWNER_THRESH, topic_scores):
-            raw_topic_ref_links[slug] += [(oref, owners)]
+        # filter sources with less than 3 users who added it
+        sources = [source for source in blob['sources_dict'].items() if len(source[1]) >= 3]
 
-    for slug, sources in tqdm(raw_topic_ref_links.items()):
+        # transform data to more convenient format
+        temp_sources = []
+        for source in sources:
+            temp_sources += [(Ref(source[0]), len(source[1]))]
+        sources = temp_sources
+
         # cluster refs that are close to each other and break up clusters where counts differ by more than 2 standard deviations
+        STD_DEV_CUTOFF = 2
         temp_sources = []
         if len(sources) == 0:
             continue
@@ -353,19 +316,19 @@ def generate_all_topic_links_from_sheets(topic=None):
                 }]
 
     if not topic:
-        related_links = calculate_tfidf_related_sheet_links(related_links)
+        final_related_links = calculate_tfidf_related_sheet_links(related_links)
         sheet_links = generate_sheet_topic_links()
-
-        # convert to objects
-        source_links = [RefTopicLink(l) for l in source_links]
-        related_links = [IntraTopicLink(l) for l in related_links]
-        sheet_links = [RefTopicLink(l) for l in sheet_links]
-        return source_links, related_links, sheet_links
+        # now that we've gathered all the new links, delete old ones and insert new ones
+        RefTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
+        IntraTopicLinkSet({"generatedBy": "sheet-topic-aggregator"}).delete()
+        db.topic_links.insert_many(sheet_links + source_links + final_related_links, ordered=False)
 
 
 def generate_sheet_topic_links():
-    projection = {"topics": 1, "id": 1, "status": 1}
-    sheet_list = db.sheets.find({"status": "public"}, projection)
+    from sefaria.system.database import db
+    from tqdm import tqdm
+    projection = {"topics": 1, "id": 1}
+    sheet_list = db.sheets.find({}, projection)
     sheet_links = []
     for sheet in tqdm(sheet_list, desc="getting sheet topic links"):
         if sheet.get('id', None) is None:
@@ -385,9 +348,10 @@ def generate_sheet_topic_links():
             }]
     return sheet_links
 
-
 def calculate_tfidf_related_sheet_links(related_links):
     import math
+    from tqdm import tqdm
+    from sefaria.system.database import db
 
     MIN_SCORE_THRESH = 0.1  # min tfidf score that will be saved in db
 
@@ -464,16 +428,19 @@ def tokenize_words_for_tfidf(text, stopwords):
     return words
 
 
-def calculate_mean_tfidf(ref_topic_links):
+def calculate_mean_tfidf():
     import math
+    from sefaria.system.exceptions import InputError
+    from tqdm import tqdm
     with open('data/hebrew_stopwords.txt', 'r') as fin:
         stopwords = set()
         for line in fin:
             stopwords.add(line.strip())
-
+    ref_topic_links = RefTopicLinkSet({"is_sheet": False})
     ref_topic_map = defaultdict(list)
     ref_words_map = {}
-    for l in tqdm(ref_topic_links, total=len(ref_topic_links), desc='process text'):
+    total = ref_topic_links.count()
+    for l in tqdm(ref_topic_links, total=total, desc='process text'):
         ref_topic_map[l.toTopic] += [l.ref]
         if l.ref not in ref_words_map:
             try:
@@ -529,7 +496,9 @@ def calculate_mean_tfidf(ref_topic_links):
 
 
 def calculate_pagerank_scores(ref_topic_map):
+    from sefaria.system.exceptions import InputError
     from sefaria.pagesheetrank import pagerank_rank_ref_list
+    from tqdm import tqdm
     pr_map = {}
     pr_seg_map = {}  # keys are (topic, seg_tref). used for sheet relevance
     for topic, ref_list in tqdm(ref_topic_map.items(), desc='calculate pr'):
@@ -548,6 +517,9 @@ def calculate_pagerank_scores(ref_topic_map):
 
 
 def calculate_other_ref_scores(ref_topic_map):
+    from sefaria.system.exceptions import InputError
+    from tqdm import tqdm
+
     LANGS_CHECKED = ['en', 'he']
     num_datasource_map = {}
     langs_available = {}
@@ -578,13 +550,17 @@ def calculate_other_ref_scores(ref_topic_map):
     return num_datasource_map, langs_available, comp_date_map, order_id_map
 
 
-def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
-    other_ref_topic_links = list(RefTopicLinkSet({"is_sheet": False, "generatedBy": {"$ne": TopicLinkHelper.generated_by_sheets}}))
-    ref_topic_links = other_ref_topic_links + sheet_source_links
+def update_ref_topic_link_orders():
+    from tqdm import tqdm
+    from sefaria.system.database import db
+    from sefaria.system.exceptions import InputError
+    from pymongo import UpdateOne
 
-    topic_tref_score_map, ref_topic_map = calculate_mean_tfidf(ref_topic_links)
+    topic_tref_score_map, ref_topic_map = calculate_mean_tfidf()
     num_datasource_map, langs_available, comp_date_map, order_id_map = calculate_other_ref_scores(ref_topic_map)
     pr_map, pr_seg_map = calculate_pagerank_scores(ref_topic_map)
+    ref_topic_links = RefTopicLinkSet()
+    total = ref_topic_links.count()
     sheet_cache = {}
     intra_topic_link_cache = {}
 
@@ -643,9 +619,8 @@ def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
             'titleLanguage': title_lang
         }
 
-    all_ref_topic_links_updated = []
-    all_ref_topic_links = sheet_topic_links + ref_topic_links
-    for l in tqdm(all_ref_topic_links, desc='update link orders'):
+    updates = []
+    for l in tqdm(ref_topic_links, total=total, desc='update link orders'):
         if l.is_sheet:
             setattr(l, 'order', get_sheet_order(l.toTopic, int(l.ref.replace("Sheet ", ""))))
         else:
@@ -664,27 +639,34 @@ def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
             except KeyError:
                 print("KeyError", key)
                 continue
-        all_ref_topic_links_updated += [l]
+        updates += [{'order': l.order, '_id': l._id}]
+    db.topic_links.bulk_write([
+        UpdateOne({"_id": l['_id']}, {"$set": {"order": l['order']}}) for l in updates
+    ])
 
-    return all_ref_topic_links_updated
 
-
-def update_intra_topic_link_orders(sheet_related_links):
+def update_intra_topic_link_orders():
     """
     add relevance order to intra topic links in sidebar
     :return:
     """
     import math
-    from itertools import chain
+    from tqdm import tqdm
+    from sefaria.system.database import db
+    from pymongo import UpdateOne
 
     uncats = Topic.get_uncategorized_slug_set()
-    topic_link_dict = defaultdict(lambda: defaultdict(lambda: []))
-    other_related_links = IntraTopicLinkSet({"generatedBy": {"$ne": TopicLinkHelper.generated_by_sheets}})
-    for link in tqdm(chain(other_related_links, sheet_related_links), desc="update intra orders"):
-        if link.fromTopic in uncats or link.toTopic in uncats:
+    ts = TopicSet()
+    topic_link_dict = {}
+    for topic in tqdm(ts, total=ts.count(), desc="update intra orders"):
+        if topic.slug in uncats:
             continue
-        topic_link_dict[link.fromTopic][link.toTopic] += [{'link': link, 'dir': 'to'}]
-        topic_link_dict[link.toTopic][link.fromTopic] += [{'link': link, 'dir': 'from'}]
+        topic_links = IntraTopicLinkSet({"$or": [{"toTopic": topic.slug}, {"fromTopic": topic.slug}]})
+        topic_links_by_slug = defaultdict(list)
+        for link in topic_links:
+            is_inverse = link.toTopic == topic.slug
+            topic_links_by_slug[link.fromTopic if is_inverse else link.toTopic] += [{'link': link, 'dir': 'from' if is_inverse else 'to'}]
+        topic_link_dict[topic.slug] = topic_links_by_slug
 
     # idf
     idf_dict = {}
@@ -692,10 +674,7 @@ def update_intra_topic_link_orders(sheet_related_links):
     for topic_slug, topic_links in topic_link_dict.items():
         idf_dict[topic_slug] = 0 if len(topic_links) == 0 else math.log2(N/len(topic_links))
 
-    def link_id(temp_link):
-        return f"{temp_link.fromTopic}|{temp_link.toTopic}|{temp_link.linkType}"
-
-    updated_related_link_dict = {}
+    update_dict = defaultdict(lambda: {'order': {}})
     for topic_slug, topic_links in topic_link_dict.items():
         for other_topic_slug, link_list in topic_links.items():
             other_topic_links = topic_link_dict.get(other_topic_slug, None)
@@ -703,19 +682,14 @@ def update_intra_topic_link_orders(sheet_related_links):
                 continue
             in_common = len(topic_links.keys() & other_topic_links.keys())
             for link_dict in link_list:
-                link = link_dict['link']
-                temp_order = getattr(link, 'order', {})
+                new_order = getattr(link_dict['link'], 'order', {})
+                update_dict[link_dict['link']._id]['order'].update(new_order)
                 tfidf = in_common * idf_dict[other_topic_slug]
-                temp_order[f"{link_dict['dir']}Tfidf"] = tfidf
-                lid = link_id(link_dict['link'])
-                if lid in updated_related_link_dict:
-                    curr_order = getattr(updated_related_link_dict[lid], 'order', {})
-                    temp_order.update(curr_order)
-                else:
-                    updated_related_link_dict[lid] = link
-                updated_related_link_dict[lid].order = temp_order
+                update_dict[link_dict['link']._id]['order'][link_dict['dir'] + 'Tfidf'] = tfidf
 
-    return list(updated_related_link_dict.values())
+    db.topic_links.bulk_write([
+        UpdateOne({"_id": l[0]}, {"$set": l[1]}) for l in update_dict.items()
+    ])
 
 
 def get_top_topic(sheet):
@@ -749,11 +723,13 @@ def get_top_topic(sheet):
         max_topic_slug = max(scores, key=scores.get)
     else:
         return None
-    top_topic = Topic.init(max_topic_slug)
+    top_topic = Topic.init(max_topic_slug)  # Topic(db.topics.find_one({"slug": max_topic}))  #
     return top_topic
 
 
 def add_num_sources_to_topics():
+    from sefaria.system.database import db
+    from pymongo import UpdateOne
     updates = [{"numSources": RefTopicLinkSet({"toTopic": t.slug}).count(), "_id": t._id} for t in TopicSet()]
     db.topics.bulk_write([
         UpdateOne({"_id": t['_id']}, {"$set": {"numSources": t['numSources']}}) for t in updates
@@ -761,22 +737,7 @@ def add_num_sources_to_topics():
 
 
 def recalculate_secondary_topic_data():
-    sheet_source_links, sheet_related_links, sheet_topic_links = generate_all_topic_links_from_sheets()
-    related_links = update_intra_topic_link_orders(sheet_related_links)
-    all_ref_links = update_ref_topic_link_orders(sheet_source_links, sheet_topic_links)
-
-    # now that we've gathered all the new links, delete old ones and insert new ones
-    RefTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
-    IntraTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
-    print(f"Num Ref Links {len(all_ref_links)}")
-    print(f"Num Intra Links {len(related_links)}")
-    print(f"Num to Update {len(list(filter(lambda x: getattr(x, '_id', False), all_ref_links + related_links)))}")
-    print(f"Num to Insert {len(list(filter(lambda x: not getattr(x, '_id', False), all_ref_links + related_links)))}")
-
-    db.topic_links.bulk_write([
-        UpdateOne({"_id": l._id}, {"$set": {"order": l.order}})
-        if getattr(l, "_id", False) else
-        InsertOne(l.contents(for_db=True))
-        for l in (all_ref_links + related_links)
-    ])
+    generate_all_topic_links_from_sheets()
+    update_intra_topic_link_orders()
+    update_ref_topic_link_orders()
     add_num_sources_to_topics()
