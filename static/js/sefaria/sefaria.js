@@ -1247,7 +1247,7 @@ Sefaria = extend(Sefaria, {
           notes: this._saveNoteData(ref, data.notes),
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
-          topics: this._saveTopicByRef(ref, data.topics),
+          topics: this._saveTopicByRef(ref, data.topics || []),
       };
 
        // Build split related data from individual split data arrays
