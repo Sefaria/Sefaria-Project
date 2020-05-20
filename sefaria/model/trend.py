@@ -64,9 +64,10 @@ class DateRange(object):
     @classmethod
     def this_hebrew_year(cls):
         #todo: improve me!
-        return cls("this_hebrew_year", datetime(2018, 9, 10), datetime(2019, 9, 29))
+        return cls("this_hebrew_year", datetime(2019, 9, 30), datetime(2020, 9, 18))
 
-#       "5780": DateRange(datetime(2019, 9, 30), datetime(2020, 9, 18))
+        # last year
+        #return cls("this_hebrew_year", datetime(2018, 9, 10), datetime(2019, 9, 29))
 
     def needs_clause(self):
         return self.start or self.end
