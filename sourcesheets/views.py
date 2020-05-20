@@ -62,7 +62,7 @@ def new_sheet(request):
 	if editor == '0':
 		sheet = {
 				'status': 'unlisted',
-				'title': 'New Source Sheet',
+				'title': '',
 				'sources': [
 					{
 						"outsideText": "",
