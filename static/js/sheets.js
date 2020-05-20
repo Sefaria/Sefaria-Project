@@ -2156,7 +2156,7 @@ sjs.sheetTagger = {
 				// Don't allow # or @ in tags
 				return false;
 			}
-			if (e.keyCode == 13 || e.keyCode == 188) {
+			if (e.keyCode == 13 || e.key == ",") {
 				// Let enter or , trigger enter
 				sjs.sheetTagger.addTagFromInput($("#addTag").val());
 				return false;

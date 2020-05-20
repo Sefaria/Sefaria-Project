@@ -474,7 +474,7 @@ class ReaderApp extends Component {
     var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
     var panels = headerPanel ? [this.state.header] : this.state.panels;
     var states = [];
-    var moreSidebarModes = ["Sheets", "Notes", "Versions", "Version Open", "About", "WebPages", "extended notes"];
+    const moreSidebarModes = new Set(["Sheets", "Notes", "Versions", "Version Open", "About", "WebPages", "extended notes", "Topics"]);
     var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
 
     for (var i = 0; i < panels.length; i++) {
@@ -661,7 +661,7 @@ class ReaderApp extends Component {
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in moreSidebarModes ? [state.connectionsMode] : ["all"]);
+                          (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
@@ -674,7 +674,7 @@ class ReaderApp extends Component {
       } else if (state.mode === "TextAndConnections") {
         var ref       = Sefaria.normRefList(state.highlightedRefs);
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in moreSidebarModes ? [state.connectionsMode] : ["all"]);
+                          (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
@@ -699,13 +699,13 @@ class ReaderApp extends Component {
         hist.title = state.sheet.title.stripHtml();
         var sheetURLSlug = state.highlightedNodes ? state.sheet.id + "." + state.highlightedNodes : state.sheet.id;
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in moreSidebarModes ? [state.connectionsMode] : ["all"]);
+                          (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         hist.url = i == 0 ? "sheets/"+ sheetURLSlug : "sheet&s="+ sheetURLSlug;
         hist.mode     = "Sheet"
       } else if (state.mode === "SheetAndConnections") {
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in moreSidebarModes ? [state.connectionsMode] : ["all"]);
+                          (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];

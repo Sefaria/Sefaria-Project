@@ -404,6 +404,12 @@ input.noselect {
   border-top: solid 1px #ccc;
   padding-top: 12px;
 }
+.ui-autocomplete .ui-menu-item.hebrew-result a {
+  direction: rtl;
+}
+.ui-autocomplete .ui-menu-item.english-result a {
+  direction: ltr;
+}
 .header .home {
   margin-top: 1px;
 }
@@ -3266,12 +3272,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: auto;
   right: -50px;
 }
-.mainColumn .saveButton.tooltip-toggle.three-dots-button {
+.saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
   margin-bottom: 13px;
-  padding: 0;
-  width: 22px;
-  height: 20px;
+  padding: 0 6px;  /* HACK: setting width and height to equal values doesn't make this circular, but this does! */
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3282,9 +3287,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 10px;
   margin-top: 0;
 }
-.topicPanel .three-dots-button {
+.topicPanel .mainColumn .saveLine .saveButton.three-dots-button {
   margin-left: 10px;
   margin-right: 0;
+  margin-bottom: 13px;
+  padding-bottom: 0;
 }
 .interface-hebrew .topicPanel .three-dots-button {
   margin-left: 0px;
@@ -4671,6 +4678,71 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 16px;
   letter-spacing: 1px;
   padding: 20px 34px;
+}
+.topicList.topicsHe {
+  direction: rtl;
+}
+.topicList.topicsEn {
+  direction: ltr;
+}
+.toolsButton.topicButton {
+  flex-direction: column;
+  letter-spacing: unset;
+}
+.topicButton .topicButtonTitle {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  text-align: left;
+}
+.topicButton .topicButtonTitle .he {
+  text-align: right;
+}
+.topicButton .contentText .en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.topicButtonTitle .he {
+  font-size: 122%;
+}
+.topicButton .saveButton.tooltip-toggle.three-dots-button {
+  margin-bottom: 0;
+  margin-left: 30px;
+}
+.topicsHe .topicButton .saveButton.tooltip-toggle.three-dots-button {
+  margin-right: 30px;
+  margin-left: 0;
+}
+.topicButton .three-dots-button.tooltip-toggle::before {
+  transform: none;
+  left: unset;
+  right: 30px;
+  width: 180px;
+}
+.topicsHe .topicButton .three-dots-button.tooltip-toggle::before {
+  right: unset;
+  left: 30px;
+  text-align: right;
+}
+.topicButton .smallText {
+  margin-top: 10px;
+  line-height: 18px;
+  font-size: 18px;
+  text-align: left;
+}
+.topicButton .smallText .en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  color: #999;
+}
+.topicButton .smallText .he {
+  font-family: "Heebo", sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  color: #999;
+}
+.topicsHe .topicButton .smallText {
+  text-align: right;
 }
 .toolsButton:last-child {
   border-bottom: 1px solid #E5E5E5;
