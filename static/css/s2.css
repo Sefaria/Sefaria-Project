@@ -6553,7 +6553,7 @@ span.purim-emoji img{
   margin: 0 0 1em 0;
 }
 .segmentNumber.sheetSegmentNumber {
-  display: block;
+  display: none;
   position: relative;
 }
 .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,

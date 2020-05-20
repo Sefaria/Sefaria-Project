@@ -2041,7 +2041,7 @@ const GroupStatement = (props) => (
             </a>
           </div>
           <a href={"/groups/" + props.group}>{props.children ? props.children : props.group}</a>
-        </div> : <span contentEditable={false} style={{ userSelect: 'none' }}>{props.children ? props.children : null /*required for slate.js*/}</span>
+        </div> : null
 )
 
 GroupStatement.propTypes = {
