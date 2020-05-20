@@ -2021,7 +2021,7 @@ SheetTitle.propTypes = {
 };
 
 const SheetAuthorStatement = (props) => (
-    <div className="authorStatement">
+    <div className="authorStatement" contentEditable={false} style={{ userSelect: 'none' }}>
           {props.children}
     </div>
 )
@@ -2034,14 +2034,14 @@ SheetAuthorStatement.propTypes = {
 
 const GroupStatement = (props) => (
     props.group && props.group != "" ?
-        <div className="groupStatement">
+        <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none' }}>
           <div className="groupListingImageBox imageBox">
             <a href={"/groups/" + props.group}>
               <img className="groupListingImage img-circle" src={props.groupLogo} alt="Group Logo"/>
             </a>
           </div>
           <a href={"/groups/" + props.group}>{props.children ? props.children : props.group}</a>
-        </div> : <span>{props.children ? props.children : null /*required for slate.js*/}</span>
+        </div> : <span contentEditable={false} style={{ userSelect: 'none' }}>{props.children ? props.children : null /*required for slate.js*/}</span>
 )
 
 GroupStatement.propTypes = {

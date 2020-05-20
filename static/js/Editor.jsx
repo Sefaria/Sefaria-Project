@@ -28,7 +28,6 @@ const sheet_item_els = {
 
 const voidElements = [
     "ProfilePic",
-    "GroupStatement",
     "SheetMedia",
 ];
 
@@ -604,7 +603,7 @@ const Element = ({attributes, children, element}) => {
             );
         case 'TextRef':
             return (
-                    <div className="ref">{children}</div>
+                    <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{children}</div>
             )
         case 'SourceContentText':
             return (
@@ -844,21 +843,23 @@ const withSefariaSheet = editor => {
       }
 
       // prevent any edits to username
-      if (node.type == "byline") {
-        const currentText = Node.string(node);
-        if (currentText != `by ${node.owner}`) {
-          const fragment = {
-            type: "byline",
-            owner: node.owner,
-            children: [
-              {text: "by "},
-              {type: "link", url: node.owner, children: [{text: node.owner}]},
-            ]
-          }
-          Transforms.delete(editor, {at: path});
-          Transforms.insertNodes(editor, fragment, { at: path });
-        }
-      }
+      // if (node.type == "byline") {
+      //   const currentText = Node.string(node);
+      //   if (currentText != `by ${node.owner}`) {
+      //     const fragment = {
+      //       type: "byline",
+      //       owner: node.owner,
+      //       children: [
+      //         {text: "by "},
+      //         {type: "link", url: node.owner, children: [{text: node.owner}]},
+      //       ]
+      //     }
+      //     Transforms.delete(editor, {at: path});
+      //     Transforms.insertNodes(editor, fragment, { at: path });
+      //     Transforms.move(editor, { unit: 'block', distance: 2 })
+      //
+      //   }
+      // }
 
 
 
