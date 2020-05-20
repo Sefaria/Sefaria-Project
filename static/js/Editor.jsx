@@ -308,10 +308,10 @@ function parseSheetItemHTML(rawhtml) {
 const defaultSheetTitle = (title) => {
     return {
         type: 'SheetTitle',
-        title: title ? title : "New Source Sheet",
+        title: title ? title : "",
         children: [
             {
-                text: title ? title : "New Source Sheet",
+                text: title ? title : "",
             }
 
         ]
@@ -599,7 +599,7 @@ const Element = ({attributes, children, element}) => {
             );
         case 'SheetTitle':
             return (
-                <SheetTitle title={element.title}>{children}</SheetTitle>
+                <SheetTitle empty={Node.string(element) ? false:true} title={element.title}>{children}</SheetTitle>
             );
         case 'TextRef':
             return (
@@ -806,7 +806,7 @@ const withSefariaSheet = editor => {
           if (node.children.length < 3) {
               const editorSheetMeta = editor.children[0];
               const newMetaBox = defaultsheetMetaDataBox(
-                  defaultSheetTitle("New Sheet Title"),
+                  defaultSheetTitle(""),
                   defaultSheetAuthorStatement(editorSheetMeta['authorUrl'], editorSheetMeta['authorStatement'], editorSheetMeta['authorImage']),
                   defaultSheetGroupStatement(editorSheetMeta['group'], editorSheetMeta['groupLogo'])
               );
@@ -825,12 +825,12 @@ const withSefariaSheet = editor => {
       }
 
       // Replaces blank sheettitle with "Untitled Sheet"
-      if (node.type == "SheetTitle") {
-        const currentText = Node.string(node);
-        if (currentText == "") {
-          Transforms.insertText(editor, "Untitled Sheet ", {at: path})
-        }
-      }
+      // if (node.type == "SheetTitle") {
+      //   const currentText = Node.string(node);
+      //   if (currentText == "") {
+      //     Transforms.insertText(editor, "Untitled Sheet ", {at: path})
+      //   }
+      // }
 
 
 
@@ -1338,7 +1338,6 @@ function saveSheetContent(doc, lastModified) {
         }
 
     });
-
     let sheet = {
         status: doc.status,
         group: doc.group,
@@ -1348,7 +1347,7 @@ function saveSheetContent(doc, lastModified) {
         summary: doc.summary,
         options: doc.options,
         tags: doc.tags,
-        title: sheetTitle,
+        title: sheetTitle == "" ? "Untitled Source Sheet" : sheetTitle,
         sources: sources.filter(x => !!x),
         nextNode: doc.nextNode,
     };

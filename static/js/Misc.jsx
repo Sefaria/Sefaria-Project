@@ -2012,7 +2012,7 @@ class CookiesNotification extends Component {
 }
 
 const SheetTitle = (props) => (
-        <div className="title" role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
+        <div className={`title ${props.empty ? 'empty': ''}`} role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
             {props.children? props.children : props.title.stripHtmlKeepLineBreaks()}
         </div>
     )

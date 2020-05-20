@@ -5514,6 +5514,13 @@ h2.splitHeader .he {
 .tocTop .groupListingImageBox {
   background-color: transparent;
 }
+.sheetMetaDataBox .title.empty:before {
+  content: "Untitled Source Sheet";
+  color: #999;
+  position: relative;
+  pointer-events: none;
+
+}
 .groupListingImage {
   height: 100%;
   width: 100%;
@@ -6697,7 +6704,6 @@ span.purim-emoji img{
   top: -45px;
   pointer-events: none;
   margin-bottom: -45px;
-
 }
 .oldSheetNotice,
 .oldSheetNotice a,
