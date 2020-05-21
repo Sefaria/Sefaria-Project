@@ -102,7 +102,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   color: #000;
 }
 .chapterText .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "Times New Roman", serif;
   font-size: 22px;
   font-weight: normal;
   text-transform: uppercase;
@@ -134,7 +134,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
 .contentText .int-he,
 .contentText .he,
 .contentText.he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "Times New Roman", serif;
   font-size: 18px;
   font-weight: normal;
   color: #000;
@@ -147,7 +147,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
 @font-face {
   /* English content text that may contain Hebrew characters */
   font-family: 'Hebrew Text Font';
-  src: local('Frank Ruehl Libre'), url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('Times New Roman');
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('adobe-garamond-pro');
   unicode-range: U+0590-05FF, U+25CC;
 }
 @font-face {
@@ -2367,6 +2367,9 @@ a.readerNavCategory {
   color: #000;
   /*unicode-bidi: plaintext;*/
 }
+.versionBlock .versionTitle a{
+  font-family: "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
 .versionBlock .versionTitle .versionEditIcon{
   display: none;
 }
@@ -2383,17 +2386,22 @@ a.readerNavCategory {
   color: #999;
 }
 .versionBlock .versionNotes a {
-  color: #000;
+  font-family: "Frank Ruhl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: 22px;
+  color: #666666;
+  text-decoration: underline;
 }
 .versionBlock .versionNotes span{
-  font-family: "Frank Ruhl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .versionBlock .versionDetails {
   display: inline-block;
   font-size: 12px;
   font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
-  padding-top: 10px;
   display: flex;
   flex-flow: row;
   justify-content: space-between;
@@ -2414,7 +2422,7 @@ a.readerNavCategory {
   margin-top: 5px;
 }
 .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement{
-  font-family: Roboto;
+  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;;
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -2446,20 +2454,20 @@ a.readerNavCategory {
 .readerTextTableOfContents .versionBlock .versionDetails .versionBuyImage, .readerTextTableOfContents .versionBlock .versionDetails .versionBuyLink{
   display: none;
 }
-.versionBlock .versionDetails .n-a{
+.versionBlock .versionDetails .n-a, .versionBlock .n-a{
   display: none;
 }
 .versionBlock .versionTitle:hover {
   text-decoration: underline;
 }
 .versionBlock .versionNotes {
-  font-family: Adobe Garamond Pro;
+  font-family: "Frank Ruhl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
   font-size: 18px;
   line-height: 22px;
   color: #666666;
-  margin-top: 10px;
+  margin: 10px 0;
 }
 .versionBlock .versionEditIcon {
   margin: 0 7px;
@@ -4189,7 +4197,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 30px 30px 80px 30px;
 }
 .textList.fullPanel .texts {
-  padding: 50px 40px 80px 40px;
+  padding: 40px 40px 80px 40px;
 }
 .textListTop {
   position: absolute;
@@ -6531,7 +6539,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #999;
 }
 .versionsBox a.selectButton {
-  font-family: Roboto;
+  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -6555,6 +6563,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .versionsBox .versionBlock {
   padding: 20px 0;
   border-top: solid 1px #CCC;
+}
+.versionBlock .versionTitle .he{
+
 }
 .versionBlock .versionTitle a {
   color: black;

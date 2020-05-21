@@ -143,11 +143,20 @@ class VersionBlock extends Component {
   }
   makeVersionTitle(){
     if(this.props.version.merged){
-      return Sefaria._("Merged from") + " " + Array.from(new Set(this.props.version.sources)).join(", ");
+      return {"className": "", "text": Sefaria._("Merged from") + " " + Array.from(new Set(this.props.version.sources)).join(", ")};
     }else if(Sefaria.interfaceLang=="english" || !this.props.version.versionTitleInHebrew){
-      return this.props.version.versionTitle;
+      return {"className":"", "text":this.props.version.versionTitle};
     }else{
-      return this.props.version.versionTitleInHebrew;
+      return {"className": "he", "text": this.props.version.versionTitleInHebrew};
+    }
+  }
+  makeVersionNotes(){
+    if(Sefaria.interfaceLang=="english" && !!this.props.version.versionNotes){
+      return this.props.version.versionNotes;
+    }else if(Sefaria.interfaceLang=="hebrew" && !!this.props.version.versionNotesInHebrew){
+      return this.props.version.versionNotesInHebrew;
+    }else{
+      return null;
     }
   }
   makeLicenseLink(){
@@ -172,8 +181,11 @@ class VersionBlock extends Component {
   hasExtendedNotes(){
     return !!(this.props.version.extendedNotes || this.props.version.extendedNotesHebrew);
   }
-  makeVersionDetailsClassNames(attrClass, attrToExist = null){
-    return {"versionDetailsElement": 1, [attrClass]: 1, "n-a": (attrToExist ? !this.props.version[attrToExist] : 0)}
+  makeAttrClassNames(extraClassNames, attrToExist = null, attrIsMultilingual = false){
+    if(attrIsMultilingual && Sefaria.interfaceLang != "english"){
+      attrToExist = attrToExist+"In"+Sefaria.interfaceLang.toFirstCapital();
+    }
+    return {...extraClassNames, "n-a": (attrToExist ? !this.props.version[attrToExist] : 0)}
   }
   makeImageLink(){
     return !!this.props.version.purchaseInformationURL ? this.props.version.purchaseInformationURL : this.props.version.versionSource;
@@ -184,6 +196,8 @@ class VersionBlock extends Component {
 
   render() {
     const v = this.props.version;
+    const vtitle = this.makeVersionTitle();
+    const vnotes = this.makeVersionNotes();
 
     if (this.state.editing && Sefaria.is_moderator) {
       // Editing View
@@ -246,8 +260,8 @@ class VersionBlock extends Component {
       return (
         <div className = "versionBlock">
             <div className="versionTitle">
-              <a href={this.makeVersionLink('side')} onClick={this.onVersionTitleClick}>
-                {this.makeVersionTitle()}
+              <a className={vtitle["className"]} href={this.makeVersionLink('side')} onClick={this.onVersionTitleClick}>
+                {vtitle["text"]}
               </a>
               <i className={`fa fa-pencil versionEditIcon ${(Sefaria.is_moderator && this.props.rendermode == "version-list") ? "enabled" : ""}`} aria-hidden="true" onClick={this.openEditor}/>
             </div>
@@ -258,10 +272,9 @@ class VersionBlock extends Component {
                   {this.makeSelectVersionLanguage()}
               </a>
             </div>
-            <div className="versionNotes">
-              <span className="int-en" dangerouslySetInnerHTML={ {__html: v.versionNotes} } />
-              <span className="int-he" dangerouslySetInnerHTML={ {__html: v.versionNotesInHebrew} } />
-              <span className={`versionExtendedNotesLinks ${this.hasExtendedNotes() ? "": "no-notes"}`}>
+            <div className={classNames(this.makeAttrClassNames({"versionNotes": 1}, "versionNotes", true))}>
+              <span className="" dangerouslySetInnerHTML={ {__html: vnotes} } />
+              <span className={`versionExtendedNotesLinks ${this.hasExtendedNotes() ? "": "n-a"}`}>
                 <a onClick={this.openExtendedNotes} href={`/${this.props.title}/${this.props.version.language}/${this.props.version.versionTitle}/notes`}>
                   {Sefaria._("Read More")}
                 </a>
@@ -270,7 +283,7 @@ class VersionBlock extends Component {
           { !v.merged ?
             <div className="versionDetails">
               <div className="versionDetailsInformation">
-                <div className={classNames(this.makeVersionDetailsClassNames("versionSource", "versionSource"))}>
+                <div className={classNames(this.makeAttrClassNames({"versionSource": 1, "versionDetailsElement": 1}, "versionSource"))}>
                   <span className="versionDetailsLabel">
                     {`${Sefaria._("Source")}: `}
                   </span>
@@ -278,7 +291,7 @@ class VersionBlock extends Component {
                     { Sefaria.util.parseURL(v.versionSource).host.replace("www.", "") }
                   </a>
                 </div>
-                <div className={classNames(this.makeVersionDetailsClassNames("versionDigitizedBySefaria", "digitizedBySefaria"))}>
+                <div className={classNames(this.makeAttrClassNames({"versionDigitizedBySefaria": 1, "versionDetailsElement": 1}, "digitizedBySefaria"))}>
                   <span className="versionDetailsLabel">
                     {`${Sefaria._("Digitization")}: `}
                   </span>
@@ -286,7 +299,7 @@ class VersionBlock extends Component {
                     {this.makeDigitizedByLanguage()}
                   </a>
                 </div>
-                <div className={classNames(this.makeVersionDetailsClassNames("versionLicense", "license"))}>
+                <div className={classNames(this.makeAttrClassNames({"versionLicense": 1, "versionDetailsElement": 1}, "license" ))}>
                   <span className="versionDetailsLabel">
                     {`${Sefaria._("License")}: `}
                   </span>
@@ -294,19 +307,19 @@ class VersionBlock extends Component {
                     {Sefaria._(v.license)}
                   </a>
                 </div>
-                <div className={classNames(this.makeVersionDetailsClassNames("versionHistoryLink"))}>
+                <div className={classNames(this.makeAttrClassNames({"versionHistoryLink": 1, "versionDetailsElement": 1}, null))}>
                    <a className="versionDetailsLink" href={`/activity/${Sefaria.normRef(this.props.currentRef)}/${v.language}/${v.versionTitle && v.versionTitle.replace(/\s/g,"_")}`} target="_blank">
                      {Sefaria._("Revision History")}
                    </a>
                 </div>
-                <div className={classNames(this.makeVersionDetailsClassNames("versionBuyLink", "purchaseInformationURL"))}>
+                <div className={classNames(this.makeAttrClassNames({"versionBuyLink": 1, "versionDetailsElement": 1}, "purchaseInformationURL"))}>
                    <a className="versionDetailsLink" href={v.purchaseInformationURL} target="_blank">
                     {Sefaria._("Buy in Print")}
                    </a>
                 </div>
               </div>
               <div className="versionDetailsImage">
-                <div className={classNames(this.makeVersionDetailsClassNames("versionBuyImage", "purchaseInformationImage"))}>
+                <div className={classNames(this.makeAttrClassNames({"versionBuyImage": 1, "versionDetailsElement": 1} , "purchaseInformationImage"))}>
                   <a className="versionDetailsLink versionDetailsImageLink" href={this.makeImageLink()} target="_blank">
                     <img className="versionImage" src={this.makeImageSrc()} alt={Sefaria._("Buy Now")} />
                   </a>
@@ -316,12 +329,7 @@ class VersionBlock extends Component {
           }
         </div>
       );
-
-      /*
-      <span className="separator">&#8226;</span> ›
-      */
     }
-
   }
 }
 VersionBlock.propTypes = {
@@ -347,34 +355,6 @@ VersionBlock.defaultProps = {
   sidebarDisplay: false
 };
 
-
-const VersionBuyButton = ({children, image, url}) => (
-    <div className="version-with-buy-button">
-      <div className="version-text-image">
-        {children}
-        <div className="version-with-buy-button-image">
-          <img
-            className="buy-img"
-            src={image}
-            alt="Buy Now"
-          />
-        </div>
-      </div>
-      <div className="version-with-buy-button-link">
-        <a className="button" href={url} target="_blank">
-          <span className="int-en">Buy Now</span>
-          <span className="int-he">לקניית הספר</span>
-        </a>
-      </div>
-    </div>
-);
-
-VersionBuyButton.propTypes = {
-  title: PropTypes.string,
-  heTitle: PropTypes.string,
-  image: PropTypes.string,
-  url: PropTypes.string,
-};
 
 module.exports = VersionBlock;
 
