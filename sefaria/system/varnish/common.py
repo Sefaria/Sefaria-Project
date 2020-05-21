@@ -1,4 +1,4 @@
-from varnishadm import VarnishManager
+import subprocess
 from urllib.parse import urlparse
 from http.client import HTTPConnection
 from sefaria.local_settings import VARNISH_ADM_ADDR, VARNISH_HOST, VARNISH_FRNT_PORT, VARNISH_SECRET, FRONT_END_URL
@@ -9,14 +9,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-with open (VARNISH_SECRET, "r") as sfile:
-    secret=sfile.read().replace('\n', '').encode("utf-8")
-manager = VarnishManager((VARNISH_ADM_ADDR,), secret)
+@graceful_exception(logger=logger, return_value=None)
+def ban_url(url):
+    args = ["varnishadm", "-T", VARNISH_ADM_ADDR, "-S", VARNISH_SECRET, "ban", "obj.http.url", "'~'", "'{}'".format(url)]
+    subprocess.run(args, check=True)
 
 
-# PyPi version of python-varnish has broken purge function.  We use this instead.
-# Derived from https://github.com/justquick/python-varnish/blob/master/varnish.py
-# todo: move to the python-varnish that we maintain
 @graceful_exception(logger=logger, return_value=None)
 def purge_url(url):
     """
