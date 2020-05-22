@@ -23,7 +23,7 @@ RUN apt-get update && apt-get install -y curl gnupg && \
     apt-get install -y debian-archive-keyring gettext-base && \
     apt-get install -y apt-transport-https
 
-COPY varnishcache_varnish41.list /etc/apt/sources.list.d/varnishcache_varnish41.list
+COPY build/web/varnishcache_varnish41.list /etc/apt/sources.list.d/varnishcache_varnish41.list
 
 RUN apt-get update && apt-get install --yes npm varnish && apt-get clean
 RUN pip3 install --no-cache-dir -r /app/requirements.txt
