@@ -18,7 +18,6 @@ django-redis
 django_mobile
 roman
 p929
-git+https://github.com/Sefaria/python-varnishadm.git
 geojson
 django-recaptcha
 unicodecsv
