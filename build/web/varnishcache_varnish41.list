@@ -1,2 +1,0 @@
-deb https://packagecloud.io/varnishcache/varnish41/debian/ jessie main
-deb-src https://packagecloud.io/varnishcache/varnish41/debian/ jessie main
