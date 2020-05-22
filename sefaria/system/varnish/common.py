@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 @graceful_exception(logger=logger, return_value=None)
 def ban_url(url):
-    args = ["varnishadm", "-T", VARNISH_ADM_ADDR, "-S", VARNISH_SECRET, "ban", "obj.http.url", "'~'", "'{}'".format(url)]
+    args = ["varnishadm", "-T", VARNISH_ADM_ADDR, "-S", VARNISH_SECRET, "ban", "'obj.http.url ~ {}'".format(url)]
     subprocess.run(args, check=True)
 
 
