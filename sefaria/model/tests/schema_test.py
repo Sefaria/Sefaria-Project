@@ -5,6 +5,7 @@ from sefaria.model import *
 from sefaria.model.schema import TitleGroup
 import re
 from sefaria.system.exceptions import InputError, BookNameError
+from sefaria.system.database import db
 
 
 
@@ -268,6 +269,13 @@ def test_nodes_missing_content():
     chunk = Ref('Test text, mid1, leaf1').text('en', 'test version')
     chunk.text = ['Lorem ipsum']
     chunk.save()
+
+    # add titleParts
+    # db.index.update_one({"title": test_index.title}, {"$set": {"schema.titleParts":  [{'lang': 'en', 'parts': [['a'], ['b', 'c']]}, {'lang': 'he', 'parts': [['א'], ['ב']]}]}})
+    library.refresh_index_record_in_cache(test_index)
+    test_index = library.get_index("Test text") #), reload=True)
+    test_index.save()
+    # assert test_index.all_titles() == []
 
     result = test_index.nodes.nodes_missing_content()
     assert result[0] is False

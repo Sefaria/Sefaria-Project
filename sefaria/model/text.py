@@ -4269,7 +4269,7 @@ class Library(object):
         self._index_title_maps = {lang:{} for lang in self.langs}
 
         # Maps, keyed by language, from titles to schema nodes
-        self._title_node_maps = {lang:{} for lang in self.langs}
+        self._title_node_maps = {lang: {} for lang in self.langs}
 
         # Lists of full titles, keys are string generated from a combination of language code and "terms".  See method `full_title_list()`
         # Contains a list of only those titles from which citations are recognized in the auto-linker. Keyed by "citing-<lang>"

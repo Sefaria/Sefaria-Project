@@ -41,7 +41,7 @@ def to_add_to_mongo(endParts, title_type = None, comentators_name = []):
         gen_titles = [
         {
             "lang": "he",
-            "titleParts": [
+            "parts": [
                 [
                     "רמב\"ם",
                     "משנה תורה"
@@ -100,11 +100,11 @@ def to_add_to_mongo(endParts, title_type = None, comentators_name = []):
                 ]
             }
         ]
-        gen_titles[0]["titleParts"].insert(0, comentators_name)
-    gen_titles[0]["titleParts"].append(endParts)
+        gen_titles[0]["parts"].insert(0, comentators_name)
+    gen_titles[0]["parts"].append(endParts)
     return str(gen_titles)
 
 if __name__ == "__main__":
-    test(assertyes=True)
-    print('"genTitles" :' + to_add_to_mongo(['בכורות'], title_type='rambam') + ',')
+    test(assertyes=False)
+    # print('"titleParts" :' + to_add_to_mongo(['מאכ"א'], title_type='rambam') + ',')
     # print('"genTitles" :' + to_add_to_mongo(['שמות'], comentators_name=['רש"י']) + ',')

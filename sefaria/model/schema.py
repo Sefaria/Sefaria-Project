@@ -204,6 +204,10 @@ class AbstractTitledObject(object):
     def get_titles_object(self):
         return getattr(self.title_group, "titles", None)
 
+    def get_db_titles(self):
+        # this is for the distinction between the titles on the index and the generated titles from titleParts
+        return getattr(self.title_group, "_titles", None)
+
     def get_titles(self, lang=None):
         return self.title_group.all_titles(lang)
 
@@ -855,7 +859,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
             if self.sharedTitle:
                 d["sharedTitle"] = self.sharedTitle
             if not self.sharedTitle or kwargs.get("expand_shared"):
-                d["titles"] = self.get_titles_object()
+                d["titles"] = self.get_titles_object()  #                d["titles"] = self.get_db_titles()  #
         if kwargs.get("expand_titles"):
             d["title"] = self.title_group.primary_title("en")
             d["heTitle"] = self.title_group.primary_title("he")
