@@ -733,9 +733,6 @@ def index_from_queue():
             TextIndexer.index_ref(index_name_merged, Ref(item["ref"]), None, item["lang"], True)
             db.index_queue.remove(item)
         except Exception as e:
-            import sys
-            reload(sys)
-            sys.setdefaultencoding("utf-8")
             logging.error("Error indexing from queue ({} / {} / {}) : {}".format(item["ref"], item["version"], item["lang"], e))
 
 

@@ -53,7 +53,7 @@ from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES,
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
-from sefaria.helper.topic import get_topic, get_all_topics
+from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref
 from django.utils.html import strip_tags
 
 
@@ -201,7 +201,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "Web Pages", "extended notes"):
+            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "WebPages", "extended notes", "Topics"):
                 panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
@@ -1897,8 +1897,8 @@ def related_api(request, tref):
     """
     Single API to bundle available content related to `tref`.
     """
-    oref = model.Ref(tref)
     if request.GET.get("private", False) and request.user.is_authenticated:
+        oref = model.Ref(tref)
         response = {
             "sheets": get_sheets_for_ref(tref, uid=request.user.id),
             "notes": get_notes(oref, uid=request.user.id, public=False)
@@ -1911,6 +1911,7 @@ def related_api(request, tref):
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
+            "topics": get_topics_for_ref(tref, annotate=True),
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
@@ -2986,6 +2987,16 @@ def topics_api(request, topic):
     group_related = bool(int(request.GET.get("group_related", False)))
     with_refs = bool(int(request.GET.get("with_refs", False)))
     response = get_topic(topic, with_links, annotate_links, with_refs, group_related)
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
+def topic_ref_api(request, tref):
+    """
+    API to get RefTopicLinks
+    """
+    annotate = bool(int(request.GET.get("annotate", False)))
+    response = get_topics_for_ref(tref, annotate)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
