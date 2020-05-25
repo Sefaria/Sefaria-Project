@@ -18,6 +18,13 @@ body:not(.user-is-tabbing) *:focus {
 /*
 Style Guide Font Hierarchy
 https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
+
+font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+
+font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+
 */
 .int-he {
   font-family: "Heebo", sans-serif;
@@ -145,14 +152,14 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
 /* end Style Guide */
 
 @font-face {
-  /* English content text that may contain Hebrew characters */
-  font-family: 'Hebrew Text Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('adobe-garamond-pro');
+  /* Mixed Hebrew - English content text */
+  font-family: 'HebrewInEnglish Text Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
   unicode-range: U+0590-05FF, U+25CC;
 }
 @font-face {
-  /* English system text that may contain Hebrew characters */
-  font-family: 'Hebrew System Font';
+  /* Mixed Hebrew - English system text */
+  font-family: 'HebrewInEnglish System Font';
   src: local('Heebo'), local('Roboto');
   unicode-range: U+0590-05FF;
 }
@@ -397,7 +404,7 @@ input.noselect {
   width: 160px;
 }
 .header .search.hebrewSearch {
-  font-family: 'Hebrew Text Font', serif;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
 }
 .ui-autocomplete .ui-menu-item.search-override {
@@ -854,7 +861,7 @@ input.noselect {
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   z-index: 1000000 !important;
-  font-family: 'Hebrew Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .header > .ui-autocomplete {
   z-index: 1000 !important;
@@ -930,7 +937,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
   width: 100%;
@@ -986,7 +993,7 @@ input.noselect {
   font-size: inherit;
 }
 .readerPanel .he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   direction: rtl;
   text-align: right;
 }
@@ -1168,7 +1175,7 @@ input.noselect {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerNavTop .readerNavTopCategory .he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerNavTop.search {
 }
@@ -1353,10 +1360,10 @@ input.noselect {
   color: #000;
 }
 .topicPanel .sideColumn .sideList a .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicPanel .sideColumn .sideList a .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicPanel .sideColumn .topicCategory {
   margin-bottom: 30px;
@@ -1365,7 +1372,7 @@ input.noselect {
   font-size: 24px;
 }
 .topicPanel .story .storySheetList .pageTitle .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 29px;
 }
 .topicPanel .authorOrganizationsystemText {
@@ -1376,20 +1383,20 @@ input.noselect {
   font-size: 24px;
 }
 .story .storyTitle .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 29px;
 }
 .topicPanel .pageTitle h1 span {
   font-size: 30px;
 }
 .topicPanel .pageTitle h1 .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 36px;
 }
 .pageTitle .topicTitleInHe .but-text-is-he {
   color: #888;
   font-size: 20px;
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicPanel .topicCategory {
   margin: 0 0 15px 0;
@@ -1399,7 +1406,7 @@ input.noselect {
   text-align: center;
 }
 .readerTocTopics .topicTitle .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerTocTopics .topicDescription.systemText .int-en,
 .readerTocTopics .topicDescription.systemText .int-he {
@@ -1447,7 +1454,7 @@ input.noselect {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicPanel .resourcesLink.blue .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   margin-bottom: -3px;
 }
 h1 .languageToggle {
@@ -1464,7 +1471,7 @@ h1 .languageToggle {
   cursor: pointer;
 }
 h1 div.languageToggle .en {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-weight: normal;
 }
 h1 .languageToggle .he {
@@ -1472,7 +1479,7 @@ h1 .languageToggle .he {
   font-size: 22px;
 }
 .readerNavMenu h1 .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";  /* fallback on Hebrew if Hebrew in text */
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Taamey Frank";  /* fallback on Hebrew if Hebrew in text */
 }
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
@@ -2025,7 +2032,7 @@ a.readerNavCategory {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerTextTableOfContents .tocDetail .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerTextTableOfContents .tocDetails .description {
   margin: 6px 0 16px;
@@ -2368,7 +2375,7 @@ a.readerNavCategory {
   /*unicode-bidi: plaintext;*/
 }
 .versionBlock .versionTitle a{
-  font-family: "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .versionBlock .versionTitle .versionEditIcon{
   display: none;
@@ -2386,7 +2393,7 @@ a.readerNavCategory {
   color: #999;
 }
 .versionBlock .versionNotes a {
-  font-family: "Frank Ruhl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
   font-size: 18px;
@@ -2395,7 +2402,7 @@ a.readerNavCategory {
   text-decoration: underline;
 }
 .versionBlock .versionNotes span{
-  font-family: "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .versionBlock .versionDetails {
   display: inline-block;
@@ -2461,7 +2468,7 @@ a.readerNavCategory {
   text-decoration: underline;
 }
 .versionBlock .versionNotes {
-  font-family: "Frank Ruhl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
   font-size: 18px;
@@ -2624,7 +2631,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 30px;
 }
 .searchContentFrame h1.hebrewQuery {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 30px;
 }
 .searchContent {
@@ -3031,7 +3038,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .text_result .result-title .int-he,
 .searchContent .sheet_result .result-title .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 22px;
 }
 .searchContent .text_result .result-title .int-en,
@@ -3208,7 +3215,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerSheetsNav .tagsList .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .interface-english .readerPanel .readerNavMenu .tagsList .gridBox {
   direction: ltr;
@@ -5405,13 +5412,13 @@ a .button:hover {
 }
 .interface-hebrew ::placeholder {
   font-style: normal;
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
   color: #666;
 }
 .interface-hebrew :-ms-input-placeholder {
   font-style: normal;
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
   color: #666;
 }
@@ -5747,7 +5754,7 @@ h2.splitHeader .he {
   font-size: 18px;
 }
 .groupPage .groupDescription .he .dedication {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 20px;
 }
 .groupPage .tabs {
@@ -5954,10 +5961,10 @@ h2.splitHeader .he {
   min-height: 500px;
 }
 .topicsPanel .content .topicList .navButton .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Taamey Frank";
 }
 .topicsPanel .content .topicList .navButton .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicsPanel .trendingTopics {
   margin-bottom: 40px;
@@ -6605,7 +6612,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #999;
 }
 .versionsBox a.selectButton {
-  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -7659,7 +7666,7 @@ body .homeFeedWrapper .content {
   font-weight: 400;
 }
 .sideColumn .sideCatLink .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 22px;
   font-weight: normal;
   text-transform: uppercase;
@@ -8057,7 +8064,7 @@ body .homeFeedWrapper.userStats {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .hebrew .userStats .blockLink .he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 
 .userStatModeChooser {

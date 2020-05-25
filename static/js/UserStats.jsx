@@ -284,7 +284,7 @@ const CategoryBars = ({user_cats, site_cats}) => {
             .attr("transform", d => `translate(${margin.left}, ${y(d.cat)})`);
 
         groups.append("text")
-            .attr("font-family", (Sefaria.interfaceLang === "english" ? '"Frank Ruehl Libre",  "adobe-garamond-pro", "Crimson Text", Georgia, serif' : '"Heebo", sans-serif'))
+            .attr("font-family", (Sefaria.interfaceLang === "english" ? '"Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif' : '"Heebo", sans-serif'))
             .attr("text-anchor", "start")
             .attr("x", d => Sefaria.interfaceLang === "hebrew" ? width - margin.right : null)
             .attr("letter-spacing", Sefaria.interfaceLang === "english" ? 1.5 : null)
