@@ -50,11 +50,13 @@ class VersionsBox extends Component {
     this.props.setConnectionsMode("Version Open");
     this.props.setFilter(versionTitle);
   };
-  sortVersionsByActiveLang(){
+  sortVersionsByActiveLang(prioritize=null){
     const standard_langs = ["en", "he"];
     return Object.keys(this.state.versionLangMap).sort(
       (a, b) => {
-        if      (a === this.props.mainVersionLanguage.slice(0,2)) {return -1;}
+        if      (!!prioritize && a === prioritize)                {return -1;}
+        else if (!!prioritize && b === prioritize)                {return 1;}
+        else if (a === this.props.mainVersionLanguage.slice(0,2)) {return -1;}
         else if (b === this.props.mainVersionLanguage.slice(0,2)) {return  1;}
         else if (a in standard_langs && !(b in standard_langs))   {return -1;}
         else if (b in standard_langs && !(a in standard_langs))   {return  1;}
@@ -72,7 +74,7 @@ class VersionsBox extends Component {
         </div>
       );
     }
-    const versionLangs = this.sortVersionsByActiveLang();
+    const versionLangs = this.sortVersionsByActiveLang("en");
     const currVersions = {};
     for (let vlang in this.props.currObjectVersions) {
       const tempV = this.props.currObjectVersions[vlang];
