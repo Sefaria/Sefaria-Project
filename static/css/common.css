@@ -535,7 +535,7 @@ body.hebrew #talmudicPeoplePage #textTocLink {
 }
 #browserPreview .segment .he {
   font-size: 130%;
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   text-align: right;
   direction: rtl;
 }
