@@ -1705,16 +1705,6 @@ def links_api(request, link_id_or_ref=None):
     Currently also handles post notes.
     #TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
     """
-    if request.method == "GET":
-        callback=request.GET.get("callback", None)
-        if link_id_or_ref is None:
-            return jsonResponse({"error": "Missing text identifier"}, callback)
-        #The Ref instanciation is just to validate the Ref and let an error bubble up.
-        #TODO is there are better way to validate the ref from GET params?
-        model.Ref(link_id_or_ref)
-        with_text = int(request.GET.get("with_text", 1))
-        with_sheet_links = int(request.GET.get("with_sheet_links", 0))
-        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
     def _internal_do_post(request, link, uid, **kwargs):
         func = tracker.update if "_id" in link else tracker.add
@@ -1732,6 +1722,17 @@ def links_api(request, link_id_or_ref=None):
     def _internal_do_delete(request, link_id_or_ref, uid):
         obj = tracker.delete(uid, model.Link, link_id_or_ref, callback=revarnish_link)
         return obj
+
+    if request.method == "GET":
+        callback=request.GET.get("callback", None)
+        if link_id_or_ref is None:
+            return jsonResponse({"error": "Missing text identifier"}, callback)
+        #The Ref instanciation is just to validate the Ref and let an error bubble up.
+        #TODO is there are better way to validate the ref from GET params?
+        model.Ref(link_id_or_ref)
+        with_text = int(request.GET.get("with_text", 1))
+        with_sheet_links = int(request.GET.get("with_sheet_links", 0))
+        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
