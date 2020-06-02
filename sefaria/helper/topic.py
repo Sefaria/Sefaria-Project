@@ -219,7 +219,9 @@ def get_topics_for_ref(tref, annotate=False):
         serialized = [annotate_topic_link(link, link_topic_dict) for link in serialized]
     for link in serialized:
         link['anchorRef'] = link['ref']
+        link['anchorRefExpanded'] = link['expandedRefs']
         del link['ref']
+        del link['expandedRefs']
         if link.get('dataSource', None):
             data_source_slug = link['dataSource']
             data_source = library.get_topic_data_source(data_source_slug)
