@@ -304,11 +304,11 @@ const ConnectionButtons = ({connection, onTextClick, onConnectionDelete}) =>{
       <div className={`connection-buttons ${Sefaria.is_moderator ? "moderator" : ""}`}>
         <a className="connection-button panel-open-link" onClick={openLinkInTab}>
           <span className="int-en">Open</span>
-          <span className="int-he">פתיחה בלשונית</span>
+          <span className="int-he">פתיחה</span>
         </a>
         <a className="connection-button delete-link" onClick={deleteLink}>
           <span className="int-en">Remove</span>
-          <span className="int-he">מחיקה</span>
+          <span className="int-he">מחיקת קישור</span>
         </a>
       </div>
   );
