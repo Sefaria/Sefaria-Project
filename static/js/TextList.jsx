@@ -222,16 +222,15 @@ class TextList extends Component {
                                       basetext={false}
                                       textHighlights={link.highlightedWords || null}
                                       inlineReference={link.inline_reference || null}
-                                      onRangeClick={this.props.onTextClick}
                                       onCitationClick={this.props.onCitationClick}
                                       onNavigationClick={this.props.onNavigationClick}
                                       onCompareClick={this.props.onCompareClick}
                                       onOpenConnectionsClick={this.props.onOpenConnectionsClick} />
-                                      {Sefaria.is_moderator || Sefaria.is_editor ?
-                                      <EditorLinkOptions
-                                        _id={link._id}
-                                        onDataChange={ this.onDataChange } />
-                                      : null}
+                                      <ConnectionButtons
+                                        connection={link}
+                                        onTextClick={this.props.onTextClick}
+                                        onConnectionDelete={this.onDataChange}
+                                      />
                                   </div>);
 
                         }
@@ -275,24 +274,17 @@ TextList.propTypes = {
   checkVisibleSegments:    PropTypes.func.isRequired,
 };
 
-
-class EditorLinkOptions extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {collapsed: false};
-  }
-  expand() {
-    this.setState({collapsed: false});
-  }
-  deleteLink () {
+const ConnectionButtons = ({connection, onTextClick, onConnectionDelete}) =>{
+  const deleteLink = () => {
+    if(!Sefaria.is_moderator) return;
     if (confirm("Are you sure you want to delete this connection?")) {
-      var url = "/api/links/" + this.props._id;
+      const url = "/api/links/" + connection._id;
       $.ajax({
         type: "delete",
         url: url,
         success: function() {
           Sefaria.clearLinks();
-          this.props.onDataChange();
+          onConnectionDelete();
           alert("Connection deleted.");
         }.bind(this),
         error: function () {
@@ -301,23 +293,28 @@ class EditorLinkOptions extends Component {
       });
     }
   }
-  render () {
-    if (this.state.collapsed) {
-      return <div className="editorLinkOptions" onClick={this.expand}><i className="fa fa-cog"></i></div>
+  const openLinkInTab = () => {
+    if (onTextClick) {
+      //Click on the body of the TextRange itself from TextList
+      onTextClick(connection.sourceRef);
+      Sefaria.track.event("Reader", "Click Text from TextList", connection.sourceRef);
     }
-
-    return <div className="editorLinkOptions sans">
-      <div className="editorLinkOptionsDelete" onClick={this.deleteLink}>
-        <span className="int-en">Remove</span>
-        <span className="int-he">מחק</span>
-      </div>
-    </div>
   }
+  return(
+      <div className={`connection-buttons ${Sefaria.is_moderator ? "moderator" : ""}`}>
+        <a className="connection-button panel-open-link" onClick={openLinkInTab}>
+          <span className="int-en">Open</span>
+          <span className="int-he">פתיחה בלשונית</span>
+        </a>
+        <a className="connection-button delete-link" onClick={deleteLink}>
+          <span className="int-en">Remove</span>
+          <span className="int-he">מחיקה</span>
+        </a>
+      </div>
+  );
 }
-EditorLinkOptions.propTypes = {
-  _id:          PropTypes.string.isRequired,
-  onDataChange: PropTypes.func
-};
+
+
 
 
 module.exports = TextList;

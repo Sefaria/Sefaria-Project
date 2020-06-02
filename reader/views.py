@@ -1733,7 +1733,6 @@ def links_api(request, link_id_or_ref=None):
         obj = tracker.delete(uid, model.Link, link_id_or_ref, callback=revarnish_link)
         return obj
 
-    # delegate according to single/multiple objects posted
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
         if not key:
@@ -1743,11 +1742,13 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": "Unrecognized API key."})
         uid = apikey["uid"]
         kwargs = {"method": "API"}
+        user = User.objects.get(id=apikey["uid"])
     else:
+        user = request.user
         uid = request.user.id
         kwargs = {}
         _internal_do_post = csrf_protect(_internal_do_post)
-        _internal_do_delete = csrf_protect(_internal_do_delete)
+        _internal_do_delete = staff_member_required(csrf_protect(_internal_do_delete))
 
     if request.method == "POST":
         j = request.POST.get("json")
@@ -1777,6 +1778,8 @@ def links_api(request, link_id_or_ref=None):
     if request.method == "DELETE":
         if not link_id_or_ref:
             return jsonResponse({"error": "No link id given for deletion."})
+        if not user.is_staff:
+            return jsonResponse({"error": "Only Sefaria Moderators can delete links."})
         retval = _internal_do_delete(request, link_id_or_ref, uid)
 
         return jsonResponse(retval)

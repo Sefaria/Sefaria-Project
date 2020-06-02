@@ -4381,8 +4381,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textList .texts .textRange {
   font-size: 1.8em;
-  padding: 16px 0;
-  margin: 12px 0;
+  padding-top: 16px;
+  margin-top: 12px;
   cursor: pointer;
   position: relative;
 }
@@ -4646,28 +4646,54 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textListTextRangeBox {
   position: relative;
 }
-.textListTextRangeBox:hover .editorLinkOptions {
-  display: block;
+.textListTextRangeBox .textRange{
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
-.editorLinkOptions {
-  display: none;
+.textListTextRangeBox .connection-buttons{
+  margin-bottom: 28px;
+}
+.textListTextRangeBox .connection-buttons .connection-button.delete-link{
+  display:none;
+}
+.textListTextRangeBox .connection-buttons.moderator .connection-button.delete-link{
+  display:revert;
+}
+.textListTextRangeBox .connection-buttons .connection-button{
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 15px;
+  color: #999999;
+  margin-inline-end: 15px;
+  text-decoration: none;
   cursor: pointer;
-  font-size: 14px;
-  color: #999;
-  letter-spacing: 1px;
-  margin: -20px 0 10px;
 }
-.interface-hebrew .editorLinkOptions {
-  left: auto;
-  right: 0;
+.textListTextRangeBox .connection-buttons .connection-button .int-en{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.editorLinkOptions > div:hover {
-  text-decoration: underline;
+.textListTextRangeBox .connection-buttons .connection-button .int-he{
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toolsMessage {
   margin: 130px 0;
   text-align: center;
   font-size: 18px;
+}
+.textListTextRangeBox .connection-buttons .connection-button::before{
+  margin-inline-end: 5px;
+  width: 13px;
+  height: 13px;
+  font-size: 13px;
+  line-height: 15px;
+  color: #999999;
+  vertical-align: middle;
+}
+.textListTextRangeBox .connection-buttons .panel-open-link::before{
+  content: url("/static/icons/open-panel.svg");
+}
+.textListTextRangeBox .connection-buttons .delete-link::before{
+  content: url("/static/icons/remove-connection.svg");
 }
 .toolsButton {
   display: flex;
