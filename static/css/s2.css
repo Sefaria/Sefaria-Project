@@ -4751,11 +4751,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textListTextRangeBox .connection-buttons{
   margin-bottom: 28px;
 }
-.textListTextRangeBox .connection-buttons .connection-button.delete-link{
+.textListTextRangeBox .connection-buttons.access-user .connection-button.delete-link{
   display:none;
-}
-.textListTextRangeBox .connection-buttons.moderator .connection-button.delete-link{
-  display:revert;
 }
 .textListTextRangeBox .connection-buttons .connection-button{
   font-style: normal;

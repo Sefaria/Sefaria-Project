@@ -301,7 +301,7 @@ const ConnectionButtons = ({connection, onTextClick, onConnectionDelete}) =>{
     }
   }
   return(
-      <div className={`connection-buttons ${Sefaria.is_moderator ? "moderator" : ""}`}>
+      <div className={`connection-buttons access-${Sefaria.is_moderator ? "moderator" : "user"}`}>
         <a className="connection-button panel-open-link" onClick={openLinkInTab}>
           <span className="int-en">Open</span>
           <span className="int-he">פתיחה</span>
