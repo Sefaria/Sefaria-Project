@@ -86,7 +86,7 @@ class Hebrew {
       }
     }
 
-    return (heCount >= enCount);
+    return (heCount > enCount);
   }
   static containsHebrew(text) {
     // Returns true if there are any Hebrew characters in text

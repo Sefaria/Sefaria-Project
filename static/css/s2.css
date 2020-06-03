@@ -8154,7 +8154,10 @@ body .homeFeedWrapper.userStats {
 
 #sheetEditToggle {
   padding: 0 8px 0 0;
-  margin: 15px 0 0 -70px;
+  margin-top: 15px;
+  margin-inline-end: 0;
+  margin-bottom: 0;
+  margin-inline-start: -70px;
   width: 70px;
   height: 30px;
   background: #fff;
