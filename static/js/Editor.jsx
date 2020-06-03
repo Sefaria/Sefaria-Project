@@ -1052,8 +1052,8 @@ const insertSource = (editor, ref) => {
     Transforms.setNodes(editor, { loading: true }, {at: currentNode[1]});
 
     Sefaria.getText(ref).then(text => {
-        const enText = Array.isArray(text.text) ? text.text.flat(Infinity).join(" ") : text.text;
-        const heText = Array.isArray(text.text) ? text.he.flat(Infinity).join(" ") : text.he;
+        const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
+        const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
 
         const fragment = {
             type: "SheetItem",
