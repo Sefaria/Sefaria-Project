@@ -4383,8 +4383,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 1.8em;
   padding-top: 16px;
   margin-top: 12px;
-  cursor: pointer;
   position: relative;
+  cursor: text;
+}
+.textList .texts .textRange .segment{
+  cursor: text;
 }
 .textListTextRangeBox {
   border-bottom: 1px solid #eee;
