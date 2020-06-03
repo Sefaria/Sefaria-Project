@@ -775,7 +775,7 @@ const TopicListItem = ({ topic, interfaceLang, srefs }) => {
     dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(srefs[0])}" ${Sefaria._('by')} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
   return (
-    <a href={`/topics/${topic.topic}`} className="toolsButton topicButton" onClick={()=>{}}>
+    <a href={`/topics/${topic.topic}`} className="toolsButton topicButton" target="_blank">
       <span className="topicButtonTitle">
         <span className="contentText">
           <span className="en">{topic.title.en}</span>
