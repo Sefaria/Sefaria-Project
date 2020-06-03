@@ -195,6 +195,7 @@ class ReaderTextTableOfContents extends Component {
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
         currentVersionElement = (<VersionBlock
+          rendermode="toc-open-version"
           title={title}
           version={cv}
           currVersions={this.props.currVersions}
@@ -996,6 +997,7 @@ class VersionsList extends Component {
     var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
      versions.filter(v => v.language == lang).map(v =>
       <VersionBlock
+        rendermode="version-list"
         title={this.props.title}
         version={v}
         currVersions={this.props.currVersions}
