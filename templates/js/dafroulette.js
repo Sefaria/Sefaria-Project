@@ -9,7 +9,6 @@ let isStarted = false;
 let localStream;
 let pc;
 let remoteStream;
-let turnReady;
 let pcConfig;
 
 // Set up audio and video regardless of what devices are present.

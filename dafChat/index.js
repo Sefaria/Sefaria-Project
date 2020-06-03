@@ -91,7 +91,8 @@ io.sockets.on('connection', function(socket) {
               console.log(socket.id +' attempting to join room: '+ room)
               socket.join(room, () => {
                 console.log('Client ID ' + socket.id + ' joined room ' + room);
-                io.to(room).emit('join', room);
+                socket.to(room).emit('join', room);
+                socket.emit('join', room);
                 db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
               });
               foundRoom = true;
@@ -120,7 +121,7 @@ io.sockets.on('connection', function(socket) {
     socket.leave(room, () => {
       console.log(`bye received from ${socket.id} for room ${room}`);
       db.run(`DELETE FROM chatrooms WHERE name=?`, room);
-      io.to(room).emit('message', 'bye');
+      socket.to(room).emit('message', 'bye');
       socket.emit('byeReceived');
     });
   });
