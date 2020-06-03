@@ -9,7 +9,6 @@ let isStarted = false;
 let localStream;
 let pc;
 let remoteStream;
-let turnReady;
 let pcConfig;
 
 // Set up audio and video regardless of what devices are present.
@@ -198,6 +197,15 @@ function createPeerConnection() {
     pc.onremovestream = handleRemoteStreamRemoved;
     pc.oniceconnectionstatechange = handleIceConnectionChange;
     console.log('Created RTCPeerConnnection');
+
+    //in certain circumstances a user can join a room and await a connection from a user that doesn't exist
+    //five seconds should be more than enough to move from "new" to "checking" or "connected"
+    setTimeout(function(){
+        if (isStarted && !isInitiator && pc.iceConnectionState == "new") {
+          socket.emit('bye', clientRoom);
+        }
+    }, 5000);
+
   } catch (e) {
     console.log('Failed to create PeerConnection, exception: ' + e.message);
     alert('Cannot create RTCPeerConnection object.');
@@ -216,6 +224,9 @@ function handleIceCandidate(event) {
     });
   } else {
     console.log('End of candidates.');
+    if (!remoteStream) {
+      socket.emit('bye', clientRoom);
+    }
   }
 }
 
@@ -267,5 +278,6 @@ function handleRemoteHangup() {
   window.onbeforeunload = null;
   location.reload();
 }
+
 
 {% endautoescape %}

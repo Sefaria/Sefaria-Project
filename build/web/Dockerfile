@@ -16,7 +16,7 @@ COPY . /app/
 WORKDIR /app/
 RUN mkdir -p /app/log && mkdir -p /app/sefaria && mkdir -p /log && touch /app/dev-db.sqlite
 
-RUN apt-get update && apt-get install --yes npm  && apt-get clean
+RUN apt-get update && apt-get install --yes npm varnish && apt-get clean
 RUN pip3 install --no-cache-dir -r /app/requirements.txt
 RUN npm install && npm run build-prod
 RUN python manage.py collectstatic

@@ -1104,6 +1104,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
         "extendedNotes",
         "extendedNotesHebrew",
+        "purchaseInformationImage",
+        "purchaseInformationURL"
     ]
 
     def __str__(self):
@@ -1118,7 +1120,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
-        assert self.get_index() is not None
+        if self.get_index() is None:
+            raise InputError("Versions cannot be created for non existing Index records")
         return True
 
     def _normalize(self):
@@ -4034,7 +4037,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
                   "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
-                  "extendedNotesHebrew"]
+                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():

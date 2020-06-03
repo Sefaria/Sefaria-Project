@@ -18,6 +18,13 @@ body:not(.user-is-tabbing) *:focus {
 /*
 Style Guide Font Hierarchy
 https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
+
+font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+
+font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+
 */
 .int-he {
   font-family: "Heebo", sans-serif;
@@ -102,7 +109,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   color: #000;
 }
 .chapterText .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "Times New Roman", serif;
   font-size: 22px;
   font-weight: normal;
   text-transform: uppercase;
@@ -134,7 +141,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
 .contentText .int-he,
 .contentText .he,
 .contentText.he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "Times New Roman", serif;
   font-size: 18px;
   font-weight: normal;
   color: #000;
@@ -145,14 +152,14 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
 /* end Style Guide */
 
 @font-face {
-  /* English content text that may contain Hebrew characters */
-  font-family: 'Hebrew Text Font';
-  src: local('Frank Ruehl Libre'), url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('Times New Roman');
+  /* Mixed Hebrew - English content text */
+  font-family: 'HebrewInEnglish Text Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
   unicode-range: U+0590-05FF, U+25CC;
 }
 @font-face {
-  /* English system text that may contain Hebrew characters */
-  font-family: 'Hebrew System Font';
+  /* Mixed Hebrew - English system text */
+  font-family: 'HebrewInEnglish System Font';
   src: local('Heebo'), local('Roboto');
   unicode-range: U+0590-05FF;
 }
@@ -397,7 +404,7 @@ input.noselect {
   width: 160px;
 }
 .header .search.hebrewSearch {
-  font-family: 'Hebrew Text Font', serif;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
 }
 .ui-autocomplete .ui-menu-item.search-override {
@@ -854,7 +861,7 @@ input.noselect {
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   z-index: 1000000 !important;
-  font-family: 'Hebrew Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .header > .ui-autocomplete {
   z-index: 1000 !important;
@@ -930,7 +937,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
   width: 100%;
@@ -986,7 +993,7 @@ input.noselect {
   font-size: inherit;
 }
 .readerPanel .he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   direction: rtl;
   text-align: right;
 }
@@ -1168,7 +1175,7 @@ input.noselect {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerNavTop .readerNavTopCategory .he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .readerNavTop.search {
 }
@@ -1353,10 +1360,10 @@ input.noselect {
   color: #000;
 }
 .topicPanel .sideColumn .sideList a .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicPanel .sideColumn .sideList a .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .topicPanel .sideColumn .topicCategory {
   margin-bottom: 30px;
@@ -1365,7 +1372,7 @@ input.noselect {
   font-size: 24px;
 }
 .topicPanel .story .storySheetList .pageTitle .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 29px;
 }
 .topicPanel .authorOrganizationsystemText {
@@ -1376,20 +1383,20 @@ input.noselect {
   font-size: 24px;
 }
 .story .storyTitle .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 29px;
 }
 .topicPanel .pageTitle h1 span {
   font-size: 30px;
 }
 .topicPanel .pageTitle h1 .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 36px;
 }
 .pageTitle .topicTitleInHe .but-text-is-he {
   color: #888;
   font-size: 20px;
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .topicPanel .topicCategory {
   margin: 0 0 15px 0;
@@ -1399,7 +1406,7 @@ input.noselect {
   text-align: center;
 }
 .readerTocTopics .topicTitle .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .readerTocTopics .topicDescription.systemText .int-en,
 .readerTocTopics .topicDescription.systemText .int-he {
@@ -1447,7 +1454,7 @@ input.noselect {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicPanel .resourcesLink.blue .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   margin-bottom: -3px;
 }
 h1 .languageToggle {
@@ -1464,7 +1471,7 @@ h1 .languageToggle {
   cursor: pointer;
 }
 h1 div.languageToggle .en {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-weight: normal;
 }
 h1 .languageToggle .he {
@@ -1472,7 +1479,7 @@ h1 .languageToggle .he {
   font-size: 22px;
 }
 .readerNavMenu h1 .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";  /* fallback on Hebrew if Hebrew in text */
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Taamey Frank";  /* fallback on Hebrew if Hebrew in text */
 }
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
@@ -2015,11 +2022,6 @@ a.readerNavCategory {
   color: #999;
   font-style: italic;
 }
-.readerTextTableOfContents .currentVersionBox .versionSelect {
-  width: 80%;
-  max-width: 300px;
-  margin: 20px auto 5px;
-}
 .readerTextTableOfContents .tocDetails a {
   color: #999;
 }
@@ -2030,7 +2032,7 @@ a.readerNavCategory {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerTextTableOfContents .tocDetail .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .readerTextTableOfContents .tocDetails .description {
   margin: 6px 0 16px;
@@ -2109,7 +2111,10 @@ a.readerNavCategory {
 .readerTextTableOfContents .versionEditForm #versionSource,
 .readerTextTableOfContents .versionEditForm #versionNotes,
 .readerTextTableOfContents .versionEditForm #versionTitleInHebrew,
-.readerTextTableOfContents .versionEditForm #versionNotesInHebrew
+.readerTextTableOfContents .versionEditForm #versionNotesInHebrew,
+.readerTextTableOfContents .versionEditForm #purchase_name,
+.readerTextTableOfContents .versionEditForm #purchase_url,
+.readerTextTableOfContents .versionEditForm #purchase_image
  {
   width: 98%;
 }
@@ -2353,45 +2358,135 @@ a.readerNavCategory {
   color: #999;
   padding: 10px 0;
 }
+.versionBlock{
+  display: flex;
+  flex-flow: column;
+}
 .readerTextTableOfContents .versionBlock {
   padding: 0 30px;
   margin: 25px 0;
   box-sizing: border-box;
   cursor: pointer;
+  text-align: center;
 }
 .versionBlock .versionTitle {
   font-size: 18px;
   color: #000;
-  unicode-bidi: plaintext;
+  /*unicode-bidi: plaintext;*/
+}
+.versionBlock .versionTitle a{
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.versionBlock .versionTitle .versionEditIcon{
+  display: none;
+}
+.versionBlock .versionTitle .versionEditIcon.enabled{
+  display: inline-block;
+}
+.versionBlock .versionSelect{
+  margin: 10px 0;
+}
+.readerTextTableOfContents .versionBlock .versionSelect, .aboutBox .versionBlock .versionSelect{
+  display: none;
 }
 .versionBlock a {
   color: #999;
 }
 .versionBlock .versionNotes a {
-  color: #000;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: 22px;
+  color: #666666;
+  text-decoration: underline;
+}
+.versionBlock .versionNotes span{
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .versionBlock .versionDetails {
   display: inline-block;
   font-size: 12px;
   font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
-  padding-top: 10px;
+  display: flex;
+  flex-flow: row;
+  justify-content: space-between;
 }
-.versionBlock .versionDetails .separator {
-  margin: 0 3px;
+.readerTextTableOfContents .versionBlock .versionDetails{
+  text-align: center;
+}
+.versionBlock .versionDetails .versionDetailsInformation{
+  display: flex;
+  flex-flow: column;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation{
+  margin: auto;
+  flex-flow: row;
+  justify-content: space-around;
+}
+.versionBlock .versionDetails .versionDetailsImage{
+  margin-top: 5px;
+}
+.versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement{
+  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 20px;
+  color: #999999;
+}
+.versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionBuyLink a{
+  color: #18345D;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement{
+  margin: 0 2px;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement::after{
+  content: "•";
+  margin-inline-start: 4px;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionHistoryLink::after{
+  content: "›";
+}
+.versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover{
+  text-decoration: none;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsLabel{
+  display: none;
+}
+.versionBlock .versionDetails .versionBuyImage .versionDetailsImageLink img{
+  height: 100px;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionBuyImage, .readerTextTableOfContents .versionBlock .versionDetails .versionBuyLink{
+  display: none;
+}
+.versionBlock .versionDetails .n-a, .versionBlock .n-a{
+  display: none;
 }
 .versionBlock .versionTitle:hover {
   text-decoration: underline;
 }
 .versionBlock .versionNotes {
-  padding-top: 10px;
-  color: #666;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: normal;
   font-size: 18px;
+  line-height: 22px;
+  color: #666666;
+  margin: 10px 0;
 }
 .versionBlock .versionEditIcon {
   margin: 0 7px;
   vertical-align: 1px;
 }
+.versionBlock .versionExtendedNotesLinks{
+  font-style: italic;
+}
+.versionBlock .versionExtendedNotesLinks.no-notes{
+  display: none;
+}
+
 .modTools {
   width: 50%;
   margin: 0 auto;
@@ -2536,7 +2631,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 30px;
 }
 .searchContentFrame h1.hebrewQuery {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 30px;
 }
 .searchContent {
@@ -2943,7 +3038,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .text_result .result-title .int-he,
 .searchContent .sheet_result .result-title .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 22px;
 }
 .searchContent .text_result .result-title .int-en,
@@ -3120,7 +3215,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerSheetsNav .tagsList .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .interface-english .readerPanel .readerNavMenu .tagsList .gridBox {
   direction: ltr;
@@ -4110,7 +4205,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 30px 30px 80px 30px;
 }
 .textList.fullPanel .texts {
-  padding: 50px 40px 80px 40px;
+  padding: 40px 40px 80px 40px;
 }
 .textListTop {
   position: absolute;
@@ -5317,13 +5412,13 @@ a .button:hover {
 }
 .interface-hebrew ::placeholder {
   font-style: normal;
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 18px;
   color: #666;
 }
 .interface-hebrew :-ms-input-placeholder {
   font-style: normal;
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 18px;
   color: #666;
 }
@@ -5666,7 +5761,7 @@ h2.splitHeader .he {
   font-size: 18px;
 }
 .groupPage .groupDescription .he .dedication {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 20px;
 }
 .groupPage .tabs {
@@ -5873,10 +5968,10 @@ h2.splitHeader .he {
   min-height: 500px;
 }
 .topicsPanel .content .topicList .navButton .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Taamey Frank";
 }
 .topicsPanel .content .topicList .navButton .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .topicsPanel .trendingTopics {
   margin-bottom: 40px;
@@ -6425,35 +6520,33 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .aboutBox .aboutTitle {
   padding: 10px 0 15px 0;
-  font-size: 30px;
-  color: black;
   display: inline-block;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 29px;
+  color: #000000;
 }
 .aboutBox .aboutSubtitle {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: italic;
+  font-weight: normal;
   font-size: 18px;
-  color: #666;
+  line-height: 22px;
+  color: #666666;
 }
 .aboutBox .aboutSubtitle .he {
   font-style: normal;
 }
 .aboutBox .aboutDesc {
   padding: 15px 0 30px 0;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: normal;
   font-size: 18px;
-}
-.aboutBox .versionNotes {
-  padding-bottom: 15px;
-  font-size: 15px;
-  color: #666;
-}
-.aboutBox .versionDetails,
-.versionsBox .versionDetails {
-  font-size: 13px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
-  padding-bottom: 5px;
-  text-align: left;
-  line-height: 150%;
+  line-height: 22px;
+  color: #000000;
 }
 .readerApp.interface-hebrew .aboutBox .versionDetails,
 .readerApp.interface-hebrew .versionsBox .versionDetails {
@@ -6470,15 +6563,51 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .currVersionSection {
   padding-bottom: 30px;
 }
+.version-with-buy-button {
+  display: flex;
+  flex-direction: column;
+}
+.version-with-buy-button .version-text-image{
+  display: flex;
+  justify-content: space-between;
+}
+.version-with-buy-button .version-text-image .versionBlock{
+  align-self: flex-start;
+}
+.versionsBox .version-with-buy-button{
+    border-top: solid 1px #CCC;
+}
+.versionsBox .version-with-buy-button .versionBlock{
+    border-top: none;
+}
+.versionsBox .version-with-buy-button .version-text-image .version-with-buy-button-image
+{
+  padding: 20px;
+}
+.versionsBox .version-with-buy-button .version-with-buy-button-link{
+    padding: 10px 20px;
+}
+.version-with-buy-button .version-with-buy-button-link{
+  align-content: flex-start;
+  min-width: 50%;
+}
+.version-with-buy-button .version-with-buy-button-link a.button{
+  color: #FFFFFF;
+  padding: 7px 20px;
+}
+.version-with-buy-button .version-text-image .version-with-buy-button-image img.buy-img {
+    height: 85px;
+    border-radius: 2px;
+}
 .versionsBox .versionLanguage {
   padding-bottom: 15px;
-  text-transform: uppercase;
-  font-size: 16px;
-  color: #666;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
-  padding-left: 20px;
-  padding-right: 20px;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  color: #666666;
 }
 .interface-hebrew .versionsBox .versionLanguage {
   font-family: "Heebo", sans-serif;
@@ -6490,28 +6619,35 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #999;
 }
 .versionsBox a.selectButton {
-  color: #000;
+  font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  color: #666666;
   box-shadow: 0 1px 2px #999;
-  padding: 5px 8px;
-  text-transform: uppercase;
+  padding: 2px 8px;
   background-color: white;
   border-radius: 4px;
-  line-height: 24px;
+  line-height: 18px;
 }
 .versionsBox a.selectButton.currSelectButton {
-  color: #fff;
   background-color: #212E50;
   text-decoration: none;
   cursor: default;
+  line-height: 20px;
+  color: #FFFFFF;
 }
 .versionsTextList .topFiltersInner .uppercase {
   text-transform: none;
 }
 .versionsBox .versionBlock {
-  padding: 20px;
+  padding: 20px 0;
   border-top: solid 1px #CCC;
 }
-.versionsBox .versionBlock .versionTitle a {
+.versionBlock .versionTitle .he{
+
+}
+.versionBlock .versionTitle a {
   color: black;
 }
 .interface-hebrew .versionsBox .versionLanguage {
@@ -7560,7 +7696,7 @@ body .homeFeedWrapper .content {
   font-weight: 400;
 }
 .sideColumn .sideCatLink .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 22px;
   font-weight: normal;
   text-transform: uppercase;
@@ -7958,7 +8094,7 @@ body .homeFeedWrapper.userStats {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .hebrew .userStats .blockLink .he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 
 .userStatModeChooser {

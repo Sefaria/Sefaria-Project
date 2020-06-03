@@ -104,7 +104,7 @@
                 'font-family: "Crimson Text";' +
             '}' +
             '.he {' +
-                'font-family: "Frank Ruhl Libre";' +
+                'font-family: "Taamey Frank";' +
             '}' +
             '.content-hebrew .sefaria-text .en {' +
                 'display: none;' +

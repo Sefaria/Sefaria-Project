@@ -190,18 +190,13 @@ class ConnectionsPanel extends Component {
   getVersionFromData(d, lang) {
     //d - data received from this.getData()
     //language - the language of the version
+    //console.log(d);
+    const currentVersionTitle = (lang == "he") ? d.heVersionTitle : d.versionTitle;
     return {
-      language:               lang,
-      versionTitle:           lang == "he" ? d.heVersionTitle : d.versionTitle,
-      versionSource:          lang == "he" ? d.heVersionSource : d.versionSource,
-      versionStatus:          lang == "he" ? d.heVersionStatus : d.versionStatus,
-      license:                lang == "he" ? d.heLicense : d.license,
+      ... d.versions.find(v => v.versionTitle == currentVersionTitle && v.language == lang),
+      title:                  d.indexTitle,
+      heTitle:                d.heIndexTitle,
       sources:                lang == "he" ? d.heSources : d.sources,
-      versionNotes:           lang == "he" ? d.heVersionNotes : d.versionNotes,
-      digitizedBySefaria:     lang == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
-      versionTitleInHebrew:   lang == "he" ? d.heVersionTitleInHebrew : d.versionTitleInHebrew,
-      versionNotesInHebrew:   lang == "he" ? d.heVersionNotesInHebrew : d.versionNotesInHebrew,
-      extendedNotes:          lang == "he" ? d.extendedNotesHebrew : d.extendedNotes,
       merged:                 lang == "he" ? !!d.heSources : !!d.sources,
     }
   }
@@ -569,7 +564,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={this.props.topicsCount} onClick={() => this.props.setConnectionsMode("Topics")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
-              <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
+              <ToolsButton en="Translations" he="תרגומים" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
@@ -778,7 +773,7 @@ const TopicListItem = ({ topic, interfaceLang, srefs }) => {
     dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(srefs[0])}" ${Sefaria._('by')} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
   return (
-    <a href={`/topics/${topic.topic}`} className="toolsButton topicButton" onClick={()=>{}}>
+    <a href={`/topics/${topic.topic}`} className="toolsButton topicButton" target="_blank">
       <span className="topicButtonTitle">
         <span className="contentText">
           <span className="en">{topic.title.en}</span>
