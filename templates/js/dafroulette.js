@@ -215,6 +215,9 @@ function handleIceCandidate(event) {
     });
   } else {
     console.log('End of candidates.');
+    if (!remoteStream) {
+      socket.emit('bye', clientRoom);
+    }
   }
 }
 
@@ -266,5 +269,11 @@ function handleRemoteHangup() {
   window.onbeforeunload = null;
   location.reload();
 }
+
+setInterval(function(){
+    if (isStarted && !isInitiator && pc.iceConnectionState == "new") {
+      socket.emit('bye', clientRoom);
+    }
+}, 5000);
 
 {% endautoescape %}
