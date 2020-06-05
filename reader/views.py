@@ -2436,6 +2436,37 @@ def dictionary_api(request, word):
     
     return jsonResponse(result, callback=request.GET.get("callback", None))
 
+@catch_error_as_json
+def homepage_stories_api(request):
+    """
+
+    :param request:
+    :return:
+    """
+
+    if request.method == "GET":
+        if not request.user.is_authenticated:
+            shared_only = True
+            user = None
+            traits = get_session_traits(request)
+        else:
+            user = UserProfile(id=request.user.id)
+            traits = get_session_traits(request, request.user.id)
+
+        stories = []
+        """
+        Order:
+        - Torah Portion w/ commentary
+        - Trending Topics
+        - Popular Sheet
+        - New Sheet
+        - Daf Yomi
+        - Author
+        - News
+        - New in the Library
+        """
+        return jsonResponse({
+                                "stories": stories })
 
 @catch_error_as_json
 def stories_api(request, gid=None):

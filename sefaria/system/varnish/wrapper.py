@@ -85,10 +85,6 @@ def invalidate_counts(indx):
     purge_url("{}/api/counts/{}".format(FRONT_END_URL, url))
     purge_url("{}/api/v2/index/{}?with_content_counts=1".format(FRONT_END_URL, url))
 
-    # Assume this is unnecesary, given that the specific URLs will have been purged/banned by the save action
-    # oref = Ref(indx.title)
-    # invalidate_ref(oref)
-
 
 @graceful_exception(logger=logger, return_value=None)
 def invalidate_index(indx):

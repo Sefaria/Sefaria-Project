@@ -140,6 +140,7 @@ class SharedStory(Story):
     ]
 
     optional_attrs = [
+        "slotType",      # str: Which slot on the homepage can this fit in
         "mustHave",      # traits a user must have to get this story
         "cantHave"       # traits that a user can't have and see this story
     ]
@@ -215,6 +216,7 @@ class UserStory(Story):
     ]
 
     optional_attrs = [
+        "slotType",          # str: Which slot on the homepage can this fit in (is this needed on a user story?)
         "shared_story_id",   # required if is_shared is true
         "storyForm",         # required if is_shared is false
         "data"               # required if is_shared is false
@@ -252,7 +254,6 @@ class UserStory(Story):
         if timestamp is not None:
             c.timestamp = timestamp
         return c
-
 
     def _init_defaults(self):
         self.timestamp = int(time.time())

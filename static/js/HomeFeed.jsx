@@ -180,19 +180,26 @@ HomeFeedSidebar.propTypes = {
 };
 
 function HomeFeed(props) {
-  const {interfaceLang, toggleSignUpModal, onlySharedStories} = props;
+  // const {interfaceLang, toggleSignUpModal, onlySharedStories} = props;
   const [stories, setStories] = useState([]);
-  const scrollable_element = useRef();
+  // const scrollable_element = useRef();
 
+  /*
   usePaginatedScroll(
       scrollable_element,
       "/api/stories?" + (onlySharedStories ? "shared_only=1" : ""),
       data => setStories(prev => ([...prev, ...data.stories]))
   );
+  */
+
+  useEffect(() => {
+      $.getJSON("/api/homepage/stories/", (data) => { setStories(data); });
+  }, []);
+
 
   return (
     <div className="homeFeedWrapper">
-      <div className="content hasFooter" ref={scrollable_element}>
+      <div className="content hasFooter">  <!-- ref={scrollable_element}> -->
         <div className="contentInner">
         <div id="homeCover">
             <video id="homeVideo" poster="/static/img/home-video-narrow.jpg" preload="auto" autoPlay={true} loop="loop" muted="muted" volume="0">

@@ -168,6 +168,7 @@ urlpatterns += [
     url(r'^api/notifications/read', reader_views.notifications_read_api),
     url(r'^api/updates/?(?P<gid>.+)?$', reader_views.updates_api),
     url(r'^api/stories/?(?P<gid>.+)?$', reader_views.stories_api),
+    url(r'^api/homepage/stories/?$', reader_views.homepage_stories_api),
     url(r'^api/story_reflector/?$', reader_views.story_reflector),
     url(r'^api/user_stats/(?P<uid>.+)/?$', reader_views.user_stats_api),
     url(r'^api/site_stats/?$', reader_views.site_stats_api),
