@@ -230,9 +230,15 @@ function handleIceCandidate(event) {
     });
   } else {
     console.log('End of candidates.');
-    if (!remoteStream) {
-      socket.emit('bye', clientRoom);
-    }
+
+    //in certain circumstances no legit icecandidate's can be found or a remotestream never added
+    //three seconds after running through all candidates should be more than enough to ascertain
+    setTimeout(function(){
+      console.log('checking if remote stream exists')
+      if (!remoteStream) {
+        socket.emit('bye', clientRoom);
+      }
+    }, 3000);
   }
 }
 
