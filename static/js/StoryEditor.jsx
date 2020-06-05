@@ -402,6 +402,7 @@ const NewVersionStoryForm = () => {
                 }, {});
             return {
                 storyForm: 'newVersion',
+                slotType: 'NewText',
                 data: d
                 }
             },
@@ -434,6 +435,7 @@ const NewIndexStoryForm = () => {
                 }, {});
             return {
                 storyForm: 'newIndex',
+                slotType: 'NewText',
                 data: d
                 }
             },

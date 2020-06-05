@@ -245,6 +245,7 @@ class UserStory(Story):
     def from_sheet_publish(cls, user_id, publisher_id, sheet_id, timestamp = None):
         c = cls({
             "storyForm": "publishSheet",
+            "slotType": "NewSheet",
             "uid": user_id,
             "data": {
                 "publisher_id": publisher_id,
@@ -348,10 +349,15 @@ class AbstractStoryFactory(object):
         pass
 
     # Implemented at concrete level
-    # Generally simply returns a string, e.g. "textPassage"
+    # Returns a string, e.g. "textPassage"
     @classmethod
     def _story_form(cls, **kwargs):
-        pass
+        return ""
+
+    # Returns a string, e.g. "parshaSlot"
+    @classmethod
+    def _slot_type(cls, **kwargs):
+        return kwargs.get("slotType", "")
 
     @classmethod
     def generate_story(cls, **kwargs):
@@ -365,6 +371,7 @@ class AbstractStoryFactory(object):
         return SharedStory({
             "storyForm": cls._story_form(**kwargs),
             "data": cls._data_object(**kwargs),
+            "slotType": cls._slot_type(**kwargs),
             "mustHave": kwargs.get("mustHave", []),
             "cantHave": kwargs.get("cantHave", [])
         })
@@ -376,6 +383,7 @@ class AbstractStoryFactory(object):
         d = {
             "uid": uid,
             "storyForm": cls._story_form(**kwargs),
+            "slotType": cls._slot_type(**kwargs),
             "data": cls._data_object(**kwargs)
         }
         if kwargs.get("timestamp"):
@@ -573,6 +581,7 @@ class TextPassageStoryFactory(AbstractStoryFactory):
             ref=sugya.ref().normal(),
             lead={'en': 'Daf Yomi', 'he': "דף יומי"},
             title=daf_yomi_display_value(),
+            slotType="DafYomi",
             **kwargs
         ).save()
 
@@ -686,6 +695,7 @@ class MultiTextStoryFactory(AbstractStoryFactory):
                 refs = [top_ref.normal(), connection_ref.normal()],
                 title={"en": category + " on " + cal["displayValue"]["en"], "he": hebrew_term(category) + " על " + cal["displayValue"]["he"]},
                 lead={"en": "Weekly Torah Portion", "he": 'פרשת השבוע'},
+                slotType="Parsha",
                 mustHave=mustHave,
                 **kwargs
             ).save()
@@ -717,6 +727,7 @@ class MultiTextStoryFactory(AbstractStoryFactory):
                 refs = [top_ref.normal(), commentary_ref.normal()],
                 title={"en": commentator + " on " + cal["displayValue"]["en"], "he": hebrew_term(commentator) + " על " + cal["displayValue"]["he"]},
                 lead={"en": "Weekly Torah Portion", "he": 'פרשת השבוע'},
+                slotType="Parsha",
                 mustHave=mustHave,
                 **kwargs
             ).save()
@@ -736,6 +747,10 @@ class AuthorStoryFactory(AbstractStoryFactory):
     @classmethod
     def _story_form(cls, **kwargs):
         return "author"
+
+    @classmethod
+    def _slot_type(cls, **kwargs):
+        return "Author"
 
     @classmethod
     def create_random_shared_story(cls):
@@ -797,6 +812,7 @@ class UserSheetsFactory(AbstractStoryFactory):
     def create_user_story(cls, uid, author_uid, **kwargs):
         story = cls._generate_user_story(uid=uid, author_uid=author_uid, **kwargs)
         story.save()
+
 
 class GroupSheetListFactory(AbstractStoryFactory):
     """
@@ -1027,7 +1043,7 @@ class TopicListStoryFactory(AbstractStoryFactory):
     def create_trending_story(cls, **kwargs):
         days = kwargs.get("days", 7)
         from sefaria import sheets
-        cls.create_shared_story(topics=sheets.trending_topics(days=days, ntags=6))
+        cls.create_shared_story(topics=sheets.trending_topics(days=days, ntags=6), slotType="Topics")
 
     @classmethod
     def generate_parasha_topics_story(cls, parasha_obj, mustHave, iteration, k, **kwargs):

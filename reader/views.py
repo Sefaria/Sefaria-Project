@@ -2456,14 +2456,14 @@ def homepage_stories_api(request):
         stories = []
         """
         Order:
-        - Torah Portion w/ commentary
-        - Trending Topics
-        - Popular Sheet
-        - New Sheet
-        - Daf Yomi
-        - Author
-        - News
-        - New in the Library
+        - X "Parsha" Torah Portion w/ commentary
+        - X "Topics" Trending Topics
+        - "PopularSheet" Popular Sheet
+        - X "NewSheet" 
+        - X "DafYomi"
+        - X "Author" 
+        - "News" 
+        - X "NewText" New in the Library
         """
         return jsonResponse({
                                 "stories": stories })
