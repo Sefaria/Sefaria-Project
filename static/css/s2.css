@@ -7056,7 +7056,7 @@ span.purim-emoji img{
 .interface-hebrew .tab-view .tab-list .justifyright {
   margin: 0 auto 0 0;
 }
-.tab-list :not(.active) .tab {
+.tab-list :not(.active) .tab, .tab-list :not(.active) .tab a{
     color: #666;
 }
 .profile-page .textRange {
