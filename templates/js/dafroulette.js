@@ -24,10 +24,12 @@ var clientRoom;
 const socket = io.connect('//{{ rtc_server }}');
 
 socket.on('return rooms', function(numRooms) {
+  console.log('got number of rooms')
   document.getElementById("numberOfChevrutas").innerHTML = numRooms;
 });
 
 socket.on('creds', function(conf) {
+  console.log('got creds')
   pcConfig = conf;
 });
 
@@ -47,6 +49,7 @@ socket.on('join', function(room) {
 });
 
 socket.on('got user name', function(userName, uid) {
+  console.log('got user name')
   document.getElementById("chevrutaName").innerHTML = userName;
   document.getElementById("chevrutaUID").value = uid;
   localStorage.setItem('lastChevrutaID', uid);
@@ -60,6 +63,8 @@ socket.on('user reported', function(){
 });
 
 socket.on('byeReceived', function(){
+  console.log('bye received')
+
   window.onbeforeunload = null;
   location.reload();
 });
@@ -69,13 +74,13 @@ socket.on('byeReceived', function(){
 ////////////////////////////////////////////////
 
 function sendMessage(message) {
-  // console.log('Client sending message: ', message);
+  console.log('Client sending message: ', message);
   socket.emit('message', message);
 }
 
 // This client receives a message
 socket.on('message', function(message) {
-  // console.log('Client received message:', message);
+  console.log('Client received message:', message);
   if (message.type === 'offer') {
     if (!isInitiator && !isStarted) {
       maybeStart();
@@ -166,13 +171,11 @@ function reportUser() {
 }
 
 function maybeStart() {
-  // console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
+  console.log('maybeStart() ', isStarted, localStream, isChannelReady);
   if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
-    // console.log('>>>>>> creating peer connection');
     createPeerConnection();
     pc.addStream(localStream);
     isStarted = true;
-    // console.log('isInitiator', isInitiator);
     if (isInitiator) {
       doCall();
     }
@@ -180,12 +183,14 @@ function maybeStart() {
 }
 
 window.onbeforeunload = function() {
+  console.log('onbeforeunload')
   socket.emit('bye', clientRoom);
 };
 
 /////////////////////////////////////////////////////////
 
 function createPeerConnection() {
+  console.log('creating peer connection')
   try {
     if (location.hostname !== 'localhost') {
       pc = new RTCPeerConnection(pcConfig);
@@ -201,6 +206,7 @@ function createPeerConnection() {
     //in certain circumstances a user can join a room and await a connection from a user that doesn't exist
     //five seconds should be more than enough to move from "new" to "checking" or "connected"
     setTimeout(function(){
+      console.log('checking not in phantom room')
         if (isStarted && !isInitiator && pc.iceConnectionState == "new") {
           socket.emit('bye', clientRoom);
         }
@@ -224,9 +230,15 @@ function handleIceCandidate(event) {
     });
   } else {
     console.log('End of candidates.');
-    if (!remoteStream) {
-      socket.emit('bye', clientRoom);
-    }
+
+    //in certain circumstances no legit icecandidate's can be found or a remotestream never added
+    //three seconds after running through all candidates should be more than enough to ascertain
+    setTimeout(function(){
+      console.log('checking if remote stream exists')
+      if (!remoteStream) {
+        socket.emit('bye', clientRoom);
+      }
+    }, 3000);
   }
 }
 
