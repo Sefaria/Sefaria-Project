@@ -4790,6 +4790,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textListTextRangeBox .connection-buttons .delete-link::before{
   content: url("/static/icons/remove-connection.svg");
 }
+.textListTextRangeBox .connection-buttons .add-to-sheet-link::before{
+  content: url("/static/icons/add-to-sheet.svg");
+}
 .toolsButton {
   display: flex;
   justify-content: flex-start;

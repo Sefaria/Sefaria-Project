@@ -300,16 +300,24 @@ const ConnectionButtons = ({connection, onTextClick, onConnectionDelete}) =>{
       Sefaria.track.event("Reader", "Click Text from TextList", connection.sourceRef);
     }
   }
+  const addToSheet = () => {
+    console.log("opening sheet panel!");
+  }
   return(
       <div className={`connection-buttons access-${Sefaria.is_moderator ? "moderator" : "user"}`}>
         <a className="connection-button panel-open-link" onClick={openLinkInTab}>
           <span className="int-en">Open</span>
           <span className="int-he">פתיחה</span>
         </a>
+        <a className="connection-button add-to-sheet-link" onClick={addToSheet}>
+          <span className="int-en">Add to Sheet</span>
+          <span className="int-he">הוספה לדף מקורות</span>
+        </a>
         <a className="connection-button delete-link" onClick={deleteLink}>
           <span className="int-en">Remove</span>
           <span className="int-he">מחיקת קישור</span>
         </a>
+
       </div>
   );
 }
