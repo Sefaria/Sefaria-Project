@@ -2462,7 +2462,7 @@ def homepage_stories_api(request):
         - X "NewSheet" 
         - X "DafYomi"
         - X "Author" 
-        - "News" 
+        - X "News" 
         - X "NewText" New in the Library
         """
         return jsonResponse({

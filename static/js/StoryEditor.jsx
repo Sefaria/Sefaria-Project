@@ -372,6 +372,7 @@ const FreeTextStoryForm = () => {
                 }, {});
             return {
                 storyForm: 'freeText',
+                slotType: 'News',
                 data: d
                 }
             },
