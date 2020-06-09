@@ -569,7 +569,7 @@ class TextBlockLink extends Component {
   }
 
   render() {
-    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang } = this.props;
+    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang, csrRequired } = this.props;
     const index    = Sefaria.index(book);
     category = category || (index ? index.primary_category : "Other");
     const style    = {"borderColor": Sefaria.palette.categoryColor(category)};
@@ -577,8 +577,7 @@ class TextBlockLink extends Component {
     heTitle  = heTitle || (showSections ? heRef : index.heTitle);
     const hlang = intlang ? "int-he": "he";
     const elang = intlang ? "int-en": "en";
-    const csrActive = this.state && this.state.csrActive;
-
+    const fullRender = !csrRequired || (this.state && this.state.csrActive);
     let byLine;
     if (!!sheetOwner && sideColor) {
       title = sheetTitle.stripHtml();
@@ -609,7 +608,7 @@ class TextBlockLink extends Component {
 
     if (sideColor) {
       return (
-        <a href={(this.props.csrRequired && csrActive) ? url : ""} className={classes} data-ref={(this.props.csrRequired && csrActive) ? sref : ""} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
+        <a href={fullRender ? url : ""} className={classes} data-ref={fullRender ? sref : ""} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
@@ -629,7 +628,7 @@ class TextBlockLink extends Component {
         </a>
       );
     }
-    return (<a href={(this.props.csrRequired && csrActive) ? url : ""} className={classes} data-ref={(this.props.csrRequired && csrActive) ? sref : ""} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
+    return (<a href={fullRender ? url : ""} className={classes} data-ref={fullRender ? sref : ""} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
               <span className={elang}>{title}</span>
               <span className={hlang}>{heTitle}</span>
                 {subtitle}
