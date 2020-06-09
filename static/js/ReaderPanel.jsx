@@ -1300,7 +1300,7 @@ class ReaderControls extends Component {
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          {this.props.sheet && Sefaria._uid == this.props.sheet.owner ?
+          {this.props.sheet && Sefaria._uid == this.props.sheet.owner && document.cookie.includes("new_editor") ?
               <button id="sheetEditToggle" onClick={() => this.props.toggleSheetEditMode(this.props.editSheet)}>
                 {this.props.editSheet == true ? <img src={"/static/icons/iconmonstr-eye-4.svg"} alt="Eye icon" />:<img src={"/static/icons/iconmonstr-pencil-2.svg"} alt="Pencil icon" />}
                 {this.props.editSheet == true ? "View" : "Edit"}

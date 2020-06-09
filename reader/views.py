@@ -645,6 +645,21 @@ def search(request):
     })
 
 
+@login_required
+def enable_new_editor(request):
+    resp = home(request)
+    resp.set_cookie("new_editor", "yup", 60 * 60 * 24 * 365)
+    return resp
+
+
+@login_required
+def disable_new_editor(request):
+    resp = home(request)
+    resp.delete_cookie("new_editor")
+    return resp
+
+
+
 @sanitize_get_params
 def sheets(request):
     """
@@ -2437,7 +2452,7 @@ def dictionary_api(request, word):
     if ls:
         for l in ls:
             result.append(l.contents())
-    
+
     return jsonResponse(result, callback=request.GET.get("callback", None))
 
 
@@ -3525,20 +3540,6 @@ def account_settings(request):
                                 'user': request.user,
                                 'profile': profile,
                               })
-
-
-@login_required
-def enable_home_feed(request):
-    resp = home(request, True)
-    resp.set_cookie("home_feed", "yup", 60 * 60 * 24 * 365)
-    return resp
-
-
-@login_required
-def disable_home_feed(request):
-    resp = home(request, False)
-    resp.delete_cookie("home_feed")
-    return resp
 
 
 @ensure_csrf_cookie

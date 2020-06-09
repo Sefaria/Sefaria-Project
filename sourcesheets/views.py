@@ -57,9 +57,7 @@ def annotate_user_links(sources):
 @ensure_csrf_cookie
 def new_sheet(request):
 
-	editor = request.GET.get('editor', '0')
-
-	if editor == '0':
+	if request.COOKIES.get("new_editor", None):
 		sheet = {
 				'status': 'unlisted',
 				'title': '',
