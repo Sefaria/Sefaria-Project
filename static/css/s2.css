@@ -681,13 +681,13 @@ input.noselect {
   height: 100%;
   background-color: white;
   opacity: 0.7;
-  position: fixed;
+  position: absolute;
 }
 #interruptingMessage {
   max-width: 90%;
   max-height: 90%;
   box-sizing: border-box;
-  position: fixed;
+  position: absolute;
   padding: 18px 15px;
   z-index: 1001;
   border: 1px solid #E6E6E6;
