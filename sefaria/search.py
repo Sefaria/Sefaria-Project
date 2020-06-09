@@ -452,6 +452,9 @@ class TextIndexer(object):
     def get_ref_version_list(oref, tries=0):
         try:
             return oref.version_list()
+        except InputError as e:
+            print(f"InputError: {oref.normal()}")
+            return []
         except pymongo.errors.AutoReconnect as e:
             if tries < 200:
                 pytime.sleep(5)

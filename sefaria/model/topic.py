@@ -77,13 +77,25 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-    def get_leaf_nodes(self, linkType='is-a', explored_set=None):
+    def topics_by_link_type_recursively(self, linkType='is-a', explored_set=None, only_leaves=False, reverse=False):
+        """
+        Gets all topics linked to `self` by `linkType`. The query is recursive so it's most useful for 'is-a' and 'displays-under' linkTypes
+        :param linkType: str, the linkType to recursively traverse.
+        :param explored_set: set(str), set of slugs already explored. To be used in recursive calls.
+        :param only_leaves: bool, if True only return last level traversed
+        :param reverse: bool, if True traverse the inverse direction of `linkType`. E.g. if linkType == 'is-a' and reverse == True, you will traverse 'is-category-of' links
+        :return: list(Topic)
+        """
         explored_set = explored_set or set()
-        leaves = []
-        children = [l.fromTopic for l in IntraTopicLinkSet({"toTopic": self.slug, "linkType": linkType})]
+        results = []
+        dir1 = "to" if reverse else "from"
+        dir2 = "from" if reverse else "to"
+        children = [getattr(l, f"{dir1}Topic") for l in IntraTopicLinkSet({f"{dir2}Topic": self.slug, "linkType": linkType})]
         if len(children) == 0:
             return [self]
         else:
+            if not only_leaves:
+                results += [self]
             for slug in children:
                 if slug in explored_set:
                     continue
@@ -92,8 +104,8 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                 if child_topic is None:
                     logger.warning(f"{slug} is None")
                     continue
-                leaves += child_topic.get_leaf_nodes(linkType, explored_set)
-        return leaves
+                results += child_topic.topics_by_link_type_recursively(linkType, explored_set, only_leaves, reverse)
+        return results
 
     def has_types(self, search_slug_set):
         """
