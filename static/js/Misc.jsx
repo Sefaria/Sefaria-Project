@@ -1304,7 +1304,7 @@ class SheetListing extends Component {
         </div>
         <div className="sheetRight">
           {
-            this.props.editable ?
+            this.props.editable && !document.cookie.includes("new_editor") ?
             <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg"/></a>
               : null
           }
