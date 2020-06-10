@@ -174,7 +174,7 @@ Django auth features run on a separate database. To init this database and set u
 
 Node is now required to run the site. Even if you choose to have js run only on the client, we are also using [Webpack](https://webpack.js.org/) to bundle our javascript. 
 
-Instaling Node and npm fro mthe main installers on Node's homepage may cause permission issues. For that reason it is recommended to use one of the alternative methods (with a preference to a version manager like nvm) listed [here](https://nodejs.org/en/download/package-manager/):
+Instaling Node and npm from the main installers on Node's homepage may cause permission issues. For that reason it is recommended to use one of the alternative methods (with a preference to a version manager like nvm) listed [here](https://nodejs.org/en/download/package-manager/):
 
 ###### Debian, Ubuntu and Linux Mint 
 You are better off using `apt-get nodejs` or following the instructions [here](https://github.com/nodesource/distributions/blob/master/README.md). They will install both Node and npm. 
