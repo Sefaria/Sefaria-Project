@@ -488,7 +488,11 @@ class Util {
         };
     }
     static setupMisc() {
-
+        // Protect against browsers without consoles and forgotten console statements
+        if(typeof(console) === 'undefined') {
+            var console = {};
+            console.log = function() {};
+        }
     }
     static handleUserCookie(loggedIn, uid, partner_group, partner_role) {
         var cookie = INBROWSER ? $.cookie : this.cookie;
