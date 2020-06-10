@@ -29,6 +29,7 @@ const { useIncrementalLoad }   = require('./Hooks');
 
 const norm_hebrew_ref = tref => tref.replace(/[׳״]/g, '');
 
+
 const fetchBulkText = inRefs =>
   Sefaria.getBulkText(
     inRefs.map(x => x.ref),
@@ -45,6 +46,7 @@ const fetchBulkText = inRefs =>
   }
 );
 
+
 const fetchBulkSheet = inSheets =>
     Sefaria.getBulkSheets(inSheets.map(x => x.sid)).then(outSheets => {
     for (let tempSheet of inSheets) {
@@ -55,6 +57,7 @@ const fetchBulkSheet = inSheets =>
     return Object.values(outSheets);
   }
 );
+
 
 const refSort = (currSortOption, a, b, { interfaceLang }) => {
   a = a[1]; b = b[1];
@@ -248,6 +251,7 @@ const TopicPage = ({
     const scrollableElement = useRef();
     let textCancel, sheetCancel;
     const clearAndSetTopic = (topic, topicTitle) => {setTopicData(false); setTopic(topic, topicTitle)};
+    
     useEffect(() => {
       const { promise, cancel } = Sefaria.makeCancelable((async () => {
         const d = await Sefaria.getTopic(topic);
@@ -310,6 +314,7 @@ const TopicPage = ({
         updateTopicsTab(tabs[tabIndex].id);
       }
     }, [tabIndex]);
+
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
         <div className="content hasFooter noOverflowX" ref={scrollableElement}>
@@ -380,7 +385,7 @@ const TopicPage = ({
                             ) : null
                           }
                         </TabView>
-                   :""}
+                   : null }
                 </div>
                 <div className="sideColumn">
                     <TopicSideColumn key={topic} slug={topic} links={topicData.links}

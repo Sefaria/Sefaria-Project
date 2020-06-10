@@ -1103,6 +1103,9 @@ class ReaderApp extends Component {
     } else if (path.match(/\/sheets\/\d+/)) {
       this.openPanel("Sheet " + path.slice(8));
 
+    } else if (path.match(/\/topics\/\[^\/]+/)) {
+      this.openTopic(path.slice(8));
+
     } else if (path.match(/\/profile\/.+/)) {
       this.openProfile(path.slice(9));
 
@@ -1215,6 +1218,7 @@ class ReaderApp extends Component {
     });
   }
   updateTopicsTabInHeader(topicsTab) {
+    debugger;
     this.updateTopicsTab(undefined, ...arguments);
   }
   updateTopicsTab(n, topicsTab) {
@@ -1709,6 +1713,11 @@ class ReaderApp extends Component {
       state = this.makePanelState(state);
       this.setState({panels: [state]}, cb);
     }
+  }
+  openTopic(slug) {
+    Sefaria.getTopic(slug).then(topic => {
+      this.setStateInHeaderOrSinglePanel({ menuOpen: "topics", navigationTopic: slug });
+    });
   }
   openProfile(slug) {
     Sefaria.profileAPI(slug).then(profile => {

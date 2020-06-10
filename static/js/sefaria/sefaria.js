@@ -1651,22 +1651,6 @@ Sefaria = extend(Sefaria, {
     stories: [],
     page: 0
   },
-/*
-  topic: function(topic, callback) {
-    if (topic in this._topics) {
-      var data = this._topics[topic];
-      if (callback) { callback(data); }
-    } else if (callback) {
-      var data = null;
-      var url = Sefaria.apiHost + "/api/topics/" + topic;
-      Sefaria._api(url, function(data) {
-        this._topics[topic] = data;
-        if (callback) { callback(data); }
-      }.bind(this));
-    }
-    return data;
-  },
-*/
   getParashaNextRead: function(parasha) {
     return this._cachedApiPromise({
       url:   `${this.apiHost}/api/calendars/next-read/${parasha}`,
