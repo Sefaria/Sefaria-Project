@@ -75,7 +75,8 @@ socket.on('byeReceived', function(){
 
 function sendMessage(message) {
   console.log('Client sending message: ', message);
-  socket.emit('message', message);
+  console.log(clientRoom)
+  socket.emit('message', message, clientRoom);
 }
 
 // This client receives a message
