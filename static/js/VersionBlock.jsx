@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
 import Sefaria from './sefaria/sefaria';
+import Util from './sefaria/util';
 import $ from './sefaria/sefariaJquery';
 import Component from 'react-class';
 
@@ -288,7 +289,7 @@ class VersionBlock extends Component {
                     {`${Sefaria._("Source")}: `}
                   </span>
                   <a className="versionDetailsLink" href={v.versionSource} target="_blank">
-                    { Sefaria.util.parseURL(v.versionSource).host.replace("www.", "") }
+                    { Sefaria.util.parseUrl(v.versionSource).host.replace("www.", "") }
                   </a>
                 </div>
                 <div className={classNames(this.makeAttrClassNames({"versionDigitizedBySefaria": 1, "versionDetailsElement": 1}, "digitizedBySefaria"))}>
