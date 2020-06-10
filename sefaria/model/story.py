@@ -721,7 +721,9 @@ class MultiTextStoryFactory(AbstractStoryFactory):
 
             if not commentary_ref.is_text_translated():
                 mustHave += ["readsHebrew"]
-            commentator = commentary_ref.index.collective_title
+            commentator = getattr(commentary_ref.index, "collective_title", None)
+            if not commentator:
+                return
 
             cls.generate_story(
                 refs = [top_ref.normal(), commentary_ref.normal()],
@@ -1030,7 +1032,7 @@ class TopicListStoryFactory(AbstractStoryFactory):
     def _data_object(cls, **kwargs):
         # todo: handle possibility of Hebrew terms trending. NOAH: I think this may be solved now that we've moved to topics model
         return {
-            "topics": [{"en": topic['en'], "he": topic['he'], "slug": topic["slug"]} for topic in kwargs.get('topics')],
+            "topics": [{"en": topic.get_primary_title("en"), "he": topic.get_primary_title("he"), "slug": topic.slug} for topic in kwargs.get('topics')],
             "title": kwargs.get("title", {"en": "Trending Recently", "he": "נושאים עדכניים"}),
             "lead": kwargs.get("lead", {"en": "Topics", "he": "נושאים"})
         }
@@ -1072,7 +1074,9 @@ class TopicListStoryFactory(AbstractStoryFactory):
     @classmethod
     def create_parasha_topics_stories(cls, iteration=1, k=6, **kwargs):
         def _create_parasha_topic_story(parasha_obj, mustHave=None, **kwargs):
-            cls.generate_parasha_topics_story(parasha_obj, mustHave, iteration, k, **kwargs).save()
+            c = cls.generate_parasha_topics_story(parasha_obj, mustHave, iteration, k, **kwargs)
+            if c:
+                c.save()
 
         create_israel_and_diaspora_stories(_create_parasha_topic_story, **kwargs)
 
@@ -1148,7 +1152,7 @@ def daf_yomi_display_value():
 
 def random_commentary_on(ref):
     commentary_refs = [l.ref_opposite(ref) for l in [x for x in ref.linkset() if x.type == "commentary"]]
-    candidates = [r for r in commentary_refs if not r.is_empty()]
+    candidates = [r for r in commentary_refs if r and not r.is_empty()]
     return random.choice(candidates)
 
 

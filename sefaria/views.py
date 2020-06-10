@@ -323,6 +323,7 @@ def bundle_many_texts(refs, useTextFamily=False, as_sized_string=False, min_char
             res[tref] = {"error": 1}
     return res
 
+
 def bulktext_api(request, refs):
     """
     Used by the linker.

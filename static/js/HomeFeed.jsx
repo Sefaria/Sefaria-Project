@@ -199,7 +199,7 @@ function HomeFeed(props) {
 
   return (
     <div className="homeFeedWrapper">
-      <div className="content hasFooter">  <!-- ref={scrollable_element}> -->
+      <div className="content hasFooter">
         <div className="contentInner">
         <div id="homeCover">
             <video id="homeVideo" poster="/static/img/home-video-narrow.jpg" preload="auto" autoPlay={true} loop="loop" muted="muted" volume="0">
