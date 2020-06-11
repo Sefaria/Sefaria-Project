@@ -193,7 +193,7 @@ function HomeFeed(props) {
   */
 
   useEffect(() => {
-      $.getJSON("/api/homepage/stories/", (data) => { setStories(data); });
+      $.getJSON("/api/homepage/stories/", (data) => { setStories(data.stories); });
   }, []);
 
 

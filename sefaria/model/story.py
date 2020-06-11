@@ -199,6 +199,12 @@ class SharedStorySet(abst.AbstractMongoSet):
             q.update(query)
         return cls(q, limit=limit, page=page, sort=sort)
 
+    @classmethod
+    def get_latest_in_slot(cls, slot_type, traits=None, uid=None):
+        query = {"slotType": slot_type}
+        r = cls.for_traits(traits, query, sort=[("_id", -1)], limit=1)
+        return r[0] if r.count() > 0 else None
+
     def register_for_user(self, uid):
         for shared_story in self:
             UserStory.from_shared_story(uid, shared_story).save()
@@ -303,6 +309,12 @@ class UserStorySet(abst.AbstractMongoSet):
             query["uid"] = uid
 
         super(UserStorySet, self).__init__(query=query, page=page, limit=limit, sort=sort)
+
+    @classmethod
+    def get_latest_in_slot(cls, slot_type, uid=None, traits=None):
+        query = {"slotType": slot_type}
+        r = cls(query, uid=uid, limit=1)
+        return r[0] if r.count() > 0 else None
 
     @staticmethod
     def _add_shared_stories(uid, traits):

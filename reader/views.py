@@ -2443,10 +2443,18 @@ def homepage_stories_api(request):
     :param request:
     :return:
     """
+    story_slots = [
+        (SharedStorySet, "Parsha"),
+        (SharedStorySet, "Topics"),
+        (UserStorySet, "NewSheet"),
+        (SharedStorySet, "DafYomi"),
+        (SharedStorySet, "Author"),
+        (SharedStorySet, "News"),
+        (SharedStorySet, "NewText")
+    ]
 
     if request.method == "GET":
         if not request.user.is_authenticated:
-            shared_only = True
             user = None
             traits = get_session_traits(request)
         else:
@@ -2454,19 +2462,16 @@ def homepage_stories_api(request):
             traits = get_session_traits(request, request.user.id)
 
         stories = []
-        """
-        Order:
-        - X "Parsha" Torah Portion w/ commentary
-        - X "Topics" Trending Topics
-        - "PopularSheet" Popular Sheet
-        - X "NewSheet" 
-        - X "DafYomi"
-        - X "Author" 
-        - X "News" 
-        - X "NewText" New in the Library
-        """
-        return jsonResponse({
-                                "stories": stories })
+
+        for klass, slot_type in story_slots:
+            if not user and klass == UserStorySet:
+                continue
+            s = klass.get_latest_in_slot(slot_type, uid=request.user.id, traits=traits)
+            if s:
+                stories += [s.contents()]
+
+        return jsonResponse({"stories": stories})
+
 
 @catch_error_as_json
 def stories_api(request, gid=None):
