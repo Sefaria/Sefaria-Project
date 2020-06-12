@@ -825,23 +825,6 @@ const withSefariaSheet = editor => {
           }
       }
 
-      // Replaces blank sheettitle with "Untitled Sheet"
-      // if (node.type == "SheetTitle") {
-      //   const currentText = Node.string(node);
-      //   if (currentText == "") {
-      //     Transforms.insertText(editor, "Untitled Sheet ", {at: path})
-      //   }
-      // }
-
-
-
-      // prevent any edits to Text References
-      if (node.type == "TextRef") {
-        const currentText = Node.string(node);
-        if (node.refText != currentText) {
-          Transforms.insertText(editor, node.refText, {at: path})
-        }
-      }
 
       // prevent any edits to username
       // if (node.type == "byline") {
@@ -928,9 +911,9 @@ const withSefariaSheet = editor => {
 
       }
 
-      //only allow TextRef & SourceContentText in he or en
-      // if extra -- merge it with the previous element
       if (node.type == "he" || node.type == "en") {
+        //only allow TextRef & SourceContentText in he or en
+        // if extra -- merge it with the previous element
           if (node.children && node.children.length > 2) {
           for (const [child, childPath] of Node.children(editor, path)) {
               if (!["SourceContentText", "TextRef"].includes(child.type)) {
@@ -939,6 +922,17 @@ const withSefariaSheet = editor => {
                 return
               }
             }
+          }
+          //for he's or en's in a SheetSource, make sure that SourceContentText exists
+          if (Node.parent(editor, path).type == "SheetSource") {
+            if (node.children && node.children.length < 2) {
+              const insertPath = path.concat([1])
+              Transforms.insertNodes(editor,{
+                              type: "SourceContentText",
+                              children: parseSheetItemHTML('...')
+                            }, { at: insertPath });
+            }
+
           }
       }
 
@@ -950,6 +944,9 @@ const withSefariaSheet = editor => {
             return
           }
         }
+        if (Node.string(node) == "") {
+          editor.insertText("...")
+        }
       }
 
       //if a sheetitem is stuck somewhere it shouldnt be raise it up to proper doc level
@@ -957,6 +954,19 @@ const withSefariaSheet = editor => {
           Transforms.liftNodes(editor, { at: path })
       }
 
+
+      if (node.type == "SheetSource") {
+        //If a sheet source's Hebrew element AND english element are both missing their header or their source content, delete the whole sheetItem
+        if (
+              (node.children[0].children.length < 2 || Node.string(node.children[0].children[1]) == "..." ) &&
+              (node.children.length < 2 || node.children[1].children.length < 2 || Node.string(node.children[1].children[1]) == "...")
+            ) {
+
+              // Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: path});
+              console.log("delete source...")
+
+        }
+      }
 
       // if extra content is in sheet source -- merge it with the previous element
       // if (node.type == "SheetSource") {
