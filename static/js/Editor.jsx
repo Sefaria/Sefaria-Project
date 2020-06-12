@@ -1368,7 +1368,7 @@ function saveSheetContent(doc, lastModified) {
         summary: doc.summary,
         options: doc.options,
         tags: doc.tags,
-        title: sheetTitle == "" ? "Untitled Source Sheet" : sheetTitle,
+        title: sheetTitle == "" ? "Untitled" : sheetTitle,
         sources: sources.filter(x => !!x),
         nextNode: doc.nextNode,
     };

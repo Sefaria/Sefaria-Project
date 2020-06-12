@@ -5678,7 +5678,7 @@ h2.splitHeader .he {
   background-color: transparent;
 }
 .sheetMetaDataBox .title.empty:before {
-  content: "Untitled Source Sheet";
+  content: "Untitled";
   color: #999;
   position: relative;
   pointer-events: none;

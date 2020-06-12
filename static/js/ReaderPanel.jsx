@@ -1248,6 +1248,10 @@ class ReaderControls extends Component {
     if (this.props.sheet) {
       title = this.props.sheet.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ');
       heTitle = title;
+      if (title == "") {
+        title = "Untitled";
+        heTitle = "ללא שם";
+      }
     } else if (oref) {
       var sectionString = oref.ref.replace(oref.indexTitle, "");
       var heSectionString = oref.heRef.replace(oref.heIndexTitle, "");
