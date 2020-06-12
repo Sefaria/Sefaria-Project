@@ -778,6 +778,7 @@ const withSefariaSheet = editor => {
       }
       else {
         insertData(data)
+        checkAndFixDuplicateSheetNodeNumbers(editor);
       }
     };
 
@@ -1003,10 +1004,14 @@ const parseMediaLink = (url) => {
   }
 }
 
+const incrementNextSheetNode = (editor) => {
+  Transforms.setNodes(editor, {nextNode: editor.children[0].nextNode + 1}, {at: [0]});
+}
+
 const addItemToSheet = (editor, fragment, position) => {
     const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")[1];
     const nextSheetItemPath = position == "top" ? closestSheetItem : getNextSheetItemPath(closestSheetItem);
-    Transforms.setNodes(editor, {nextNode: editor.children[0].nextNode + 1}, {at: [0]});
+    incrementNextSheetNode(editor);
     Transforms.insertNodes(editor, fragment, {at: nextSheetItemPath});
 };
 
@@ -1029,6 +1034,22 @@ const insertOutsideText = (editor, position) => {
     Transforms.move(editor);
 };
 
+const checkAndFixDuplicateSheetNodeNumbers = (editor) => {
+  let existingSheetNodes = []
+
+  for (const [child, childPath] of Node.children(editor, [0,1])) {
+    const sheetNode = child.children[0];
+    if (existingSheetNodes.includes(sheetNode.node)) {
+      const newNodeEditPath = childPath.concat([0]);
+      Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: newNodeEditPath});
+      existingSheetNodes.push(editor.children[0].nextNode);
+      incrementNextSheetNode(editor)
+    }
+    else {
+      existingSheetNodes.push(sheetNode.node)
+    }
+  }
+}
 
 const insertMedia = (editor, mediaUrl) => {
   const fragment = {
@@ -1389,11 +1410,11 @@ const SefariaEditor = (props) => {
 
     function saveDocument(doc) {
         const json = saveSheetContent(doc[0], lastModified);
-        // console.log('saving...')
+        console.log('saving...')
 
         $.post("/api/sheets/", {"json": json}, res => {
             setlastModified(res.dateModified);
-            // console.log("saved at: "+ res.dateModified);
+            console.log("saved at: "+ res.dateModified);
             setUnsavedChanges(false)
         });
     }
