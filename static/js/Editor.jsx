@@ -964,6 +964,7 @@ const withSefariaSheet = editor => {
 
               // Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: path});
               console.log("delete source...")
+              Transforms.removeNodes(editor, {at: path});
 
         }
       }
