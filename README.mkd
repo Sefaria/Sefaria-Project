@@ -109,6 +109,8 @@ On some macOS systems `gettext` will atill not run after installation and `djang
     
     export TEMP_PATH=$PATH
     export PATH=$PATH:/usr/local/Cellar/gettext/0.xx.x/bin
+    
+> If you work on such systems, you may want to add this to your .bashrc(or its equivalent on your system) so that you don't have to write it manually every time you want to manage localizations.
 
 ###### On Debian systems
 
