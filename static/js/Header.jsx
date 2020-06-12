@@ -1,17 +1,17 @@
-const {
+import {
   ReaderNavigationMenuSearchButton,
   GlobalWarningMessage,
   TestMessage,
   ProfilePic,
-  InterfaceLanguageMenu
-}                = require('./Misc');
-const React      = require('react');
-const PropTypes  = require('prop-types');
-const ReactDOM   = require('react-dom');
-const classNames = require('classnames');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const ReaderPanel= require('./ReaderPanel');
+  InterfaceLanguageMenu,
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import ReactDOM  from 'react-dom';
+import classNames  from 'classnames';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import ReaderPanel from './ReaderPanel';
 import Component from 'react-class';
 
 
@@ -108,8 +108,8 @@ class Header extends Component {
         .then(d => {
           const comps = d["completion_objects"].map(o => ({
             value: `${o['title']}${o["type"] === "ref" ? "" :` (${o["type"]})`}`,
-            label: o["title"], 
-            key:   o["key"], 
+            label: o["title"],
+            key:   o["key"],
             type:  o["type"]}));
           if (comps.length > 0) {
             const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
@@ -436,4 +436,4 @@ Header.propTypes = {
 };
 
 
-module.exports = Header;
+export default Header;

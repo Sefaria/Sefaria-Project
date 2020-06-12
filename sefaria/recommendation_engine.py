@@ -30,13 +30,13 @@ class RecommendationSource:
 
     def __repr__(self):
         return "{}({}, {})".format(self.__class__.__name__, self.source, self.anchor_ref).encode('utf-8')
-    
+
     def __eq__(self, other):
         return self.__hash__() == other.__hash__()
 
     def __hash__(self):
         return hash(self.source + self.anchor_ref.normal())
-    
+
     def to_dict(self):
         return {
             "source": self.source,
@@ -222,7 +222,8 @@ class RecommendationEngine:
         if len(included_refs) > INCLUDED_REF_MAX:
             # this guy has waaaay too much to talk about. probably not interesting
             return False
-        if sheet.get("title", "") == "New Source Sheet":
+        uninteresting_sheet_titles = ["New Source Sheet", "Untitled Source Sheet", "Untitled"]
+        if sheet.get("title", "") in uninteresting_sheet_titles:
             # didn't care enough to change default title. wow
             return False
         return True
@@ -281,8 +282,8 @@ class RecommendationEngine:
     def includes_section(oref):
         """
         makes sure oref is not a range which makes up at least one entire section
-        :param oref: 
-        :return: 
+        :param oref:
+        :return:
         """
         if oref.is_section_level():
             return True
@@ -294,7 +295,7 @@ class RecommendationEngine:
                 # ref is simply a full section. user didn't bother trimming it down
                 return True
         return False
-            
+
     @staticmethod
     def normalize_related_refs(related_refs, focus_ref_set, base_score, check_has_ref=False, other_data=None, count_steinsaltz=False):
         '''
@@ -359,4 +360,3 @@ class RecommendationEngine:
         if focus_ref_subset is not None or not check_has_ref:
             return final_refs, focus_range_factor, final_other_data, focus_ref_subref
         return [], focus_range_factor, final_other_data, focus_ref_subref
-

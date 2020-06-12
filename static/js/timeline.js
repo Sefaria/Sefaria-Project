@@ -1,7 +1,7 @@
-let d3 = require("d3");
-let Sefaria = require('sefaria');
-let SefariaD3 = require("./sefaria-d3/sefaria-d3");
-let $ = require("./sefaria/sefariaJquery");
+import d3  from "d3";
+import Sefaria  from 'sefaria';
+import SefariaD3  from "./sefaria-d3/sefaria-d3";
+import $  from "./sefaria/sefariaJquery";
 
 /*****          Layout              *****/
 let margin = [60, 40, 20, 40];
@@ -51,7 +51,7 @@ async function getPartitionedLinks(ref, year) {
     if (ref in _partitionedLinks) return _partitionedLinks[ref];
 
     let refYear = (year != null) ? year : await Sefaria.getIndexDetails(Sefaria.parseRef(ref).index).then(getDate);
-    if ((!refYear) && (refYear !== 0)) throw "No date for " + ref; 
+    if ((!refYear) && (refYear !== 0)) throw "No date for " + ref;
 
     let links = await Sefaria.getLinks(ref).then(refineLinks);
 

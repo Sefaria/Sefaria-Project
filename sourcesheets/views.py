@@ -56,32 +56,61 @@ def annotate_user_links(sources):
 @login_required
 @ensure_csrf_cookie
 def new_sheet(request):
-    """
-    View an new, empty source sheet.
-    """
-    if "assignment" in request.GET:
-        sheet_id  = int(request.GET["assignment"])
 
-        query = { "owner": request.user.id or -1, "assignment_id": sheet_id }
-        existingAssignment = db.sheets.find_one(query) or []
-        if "id" in existingAssignment:
-            return view_sheet(request,str(existingAssignment["id"]),True)
+	if request.COOKIES.get("new_editor", None):
+		sheet = {
+				'status': 'unlisted',
+				'title': '',
+				'sources': [
+					{
+						"outsideText": "",
+						"node": 1,
+					}
+				],
+				'nextNode': 2,
+				'options': {
+					'layout':    "stacked",
+					'boxed':  0,
+					'language':    "bilingual",
+					'numbered':    0,
+					'assignable':    0,
+					'divineNames':    "noSub",
+					'collaboration':    "none",
+					'highlightMode':    0,
+					'langLayout':    "heRight",
+					'bsd':    0,
+				}
+		}
 
-        if "assignable" in db.sheets.find_one({"id": sheet_id})["options"]:
-            if db.sheets.find_one({"id": sheet_id})["options"]["assignable"] == 1:
-                return assigned_sheet(request, sheet_id)
+		responseSheet = save_sheet(sheet, request.user.id)
+		return catchall(request, str(responseSheet["id"]), True)
 
-    owner_groups  = get_user_groups(request.user.id)
-    query         = {"owner": request.user.id or -1 }
-    hide_video    = db.sheets.count_documents(query) > 2
+	"""
+	View an new, empty source sheet.
+	"""
+	if "assignment" in request.GET:
+		sheet_id  = int(request.GET["assignment"])
 
-    return render(request,'sheets.html', {"can_edit": True,
-                                                "new_sheet": True,
-                                                "is_owner": True,
-                                                "hide_video": hide_video,
-                                                "owner_groups": owner_groups,
-                                                "current_url": request.get_full_path,
-                                                })
+		query = { "owner": request.user.id or -1, "assignment_id": sheet_id }
+		existingAssignment = db.sheets.find_one(query) or []
+		if "id" in existingAssignment:
+			return view_sheet(request,str(existingAssignment["id"]),True)
+
+		if "assignable" in db.sheets.find_one({"id": sheet_id})["options"]:
+			if db.sheets.find_one({"id": sheet_id})["options"]["assignable"] == 1:
+				return assigned_sheet(request, sheet_id)
+
+	owner_groups  = get_user_groups(request.user.id)
+	query         = {"owner": request.user.id or -1 }
+	hide_video    = db.sheets.count_documents(query) > 2
+
+	return render(request,'sheets.html', {"can_edit": True,
+												"new_sheet": True,
+												"is_owner": True,
+												"hide_video": hide_video,
+												"owner_groups": owner_groups,
+												"current_url": request.get_full_path,
+												})
 
 
 def can_edit(user, sheet):

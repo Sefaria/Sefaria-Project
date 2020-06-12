@@ -1,10 +1,10 @@
-const React      = require('react');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const TextRange  = require('./TextRange');
-const { AddToSourceSheetWindow } = require('./AddToSourceSheet');
-const { Note } = require('./Misc');
-const PropTypes  = require('prop-types');
+import React  from 'react';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import TextRange  from './TextRange';
+import { AddToSourceSheetWindow } from './AddToSourceSheet';
+import { Note } from './Misc';
+import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 
 class NoteListing extends Component {
@@ -74,4 +74,4 @@ NoteListing.defaultProps = {
   showText: true
 };
 
-module.exports = NoteListing;
+export default NoteListing;

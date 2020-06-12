@@ -1,8 +1,8 @@
-const React           = require('react'),
-      ReactDOM        = require('react-dom'),
-      $               = require('jquery'),
-      {default: Form} = require('react-jsonschema-form'),
-      DjangoCSRF      = require('./lib/django-csrf');
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import $  from 'jquery';
+import Form from 'react-jsonschema-form';
+import DjangoCSRF  from './lib/django-csrf';
 
 DjangoCSRF.init();
 
@@ -23,11 +23,11 @@ window.SefariaJsonEditor = function(schemaName, initData, container) {
     alert("Saving... Please wait for confirmation.");
     $.post("/api/" + schemaName + "/" + data.name + (isUpdate ? "?update=1" : ""),
       {"json": JSON.stringify(data)},
-      function(data) { 
+      function(data) {
       	if ("error" in data) {
       		alert("Error: " + data.error);
       	} else {
-      		alert("Saved.");      		
+      		alert("Saved.");
       	}
       }
     );
@@ -39,7 +39,7 @@ window.SefariaJsonEditor = function(schemaName, initData, container) {
       $.ajax({
         url: "/api/" + schemaName + "/" + data.name,
         method: "DELETE",
-        success: function(data) { 
+        success: function(data) {
           if ("error" in data) {
             alert("Error: " + data.error);
           } else {
@@ -54,7 +54,7 @@ window.SefariaJsonEditor = function(schemaName, initData, container) {
   const log = data => { console.log(data); };
   ReactDOM.render(
     <div>
-      <Form 
+      <Form
 				schema={schema}
 				formData={initData}
 				onSubmit={onSubmit}

@@ -50,7 +50,7 @@ palette.categoryColor = function(cat) {
   if (cat in palette.categoryColors) {
     return palette.categoryColors[cat];
   }
-  
+
   // For unknown categories, map the string a color (random, but stable)
   const colors = Object.values(palette.colors);
   let idx = 0;
@@ -61,4 +61,4 @@ palette.categoryColor = function(cat) {
   return colors[idx];
 };
 
-module.exports = palette;
+export default palette;

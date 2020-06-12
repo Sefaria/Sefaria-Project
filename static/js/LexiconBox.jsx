@@ -1,11 +1,11 @@
-const {
+import {
   LoadingMessage,
-}                = require('./Misc');
-const React      = require('react');
-const Sefaria    = require('./sefaria/sefaria');
-const DictionarySearch = require('./DictionarySearch');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
+} from './Misc';
+import React  from 'react';
+import Sefaria  from './sefaria/sefaria';
+import DictionarySearch  from './DictionarySearch';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 
 
@@ -253,4 +253,4 @@ LexiconEntry.propTypes = {
 };
 
 
-module.exports = LexiconBox;
+export default LexiconBox;

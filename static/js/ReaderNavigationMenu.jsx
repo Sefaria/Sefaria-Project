@@ -1,4 +1,4 @@
-const {
+import {
   CategoryColorLine,
   ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuCloseButton,
@@ -9,17 +9,19 @@ const {
   TwoOrThreeBox,
   TwoBox,
   LanguageToggleButton,
-}                                  = require('./Misc');
-const {TopicCategory}              = require('./TopicPage');
-const MobileHeader                 = require('./MobileHeader');
+} from './Misc';
+//const React                        = require('react');
 import React, { useState, useEffect, useRef } from 'react';
-const ReactDOM                     = require('react-dom');
-const PropTypes                    = require('prop-types');
-const classNames                   = require('classnames');
-const Sefaria                      = require('./sefaria/sefaria');
-const $                            = require('./sefaria/sefariaJquery');
-const ReaderNavigationCategoryMenu = require('./ReaderNavigationCategoryMenu');
-const Footer                       = require('./Footer');
+import ReactDOM  from 'react-dom';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import Sefaria  from './sefaria/sefaria';
+import $  from './sefaria/sefariaJquery';
+import ReaderNavigationCategoryMenu  from './ReaderNavigationCategoryMenu';
+import Footer  from './Footer';
+import Component from 'react-class';
+import MobileHeader from './MobileHeader';
+import {TopicCategory} from './TopicPage';
 
 // The Navigation menu for browsing and searching texts, plus some site links.
 const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNavTopic, setTopic, setOption, onClose, openNav, openSearch,
@@ -343,4 +345,4 @@ const Dedication = () => {
 };
 
 
-module.exports = ReaderNavigationMenu;
+export default ReaderNavigationMenu;

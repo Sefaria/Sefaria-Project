@@ -1,14 +1,14 @@
 
-const {
+import {
   TwoOrThreeBox,
   BlockLink,
   ReaderNavigationMenuSection
-}                = require('./Misc');
-const React      = require('react');
-const PropTypes  = require('prop-types');
-const classNames = require('classnames');
-const Footer     = require('./Footer');
-const $          = require('./sefaria/sefariaJquery');
+} from './Misc';
+import React from 'react';
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
+import Footer from './Footer';
+import $ from './sefaria/sefariaJquery';
 import Component from 'react-class';
 
 
@@ -59,7 +59,7 @@ class AccountPanel extends Component {
       (<BlockLink interfaceLink={true} target="mailto:hello@sefaria.org" title="Email" heTitle='אימייל' />)
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
-    
+
 
     var classes = {accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
@@ -91,4 +91,4 @@ AccountPanel.propTypes = {
 };
 
 
-module.exports = AccountPanel;
+export default AccountPanel;
