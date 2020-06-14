@@ -105,10 +105,11 @@ After installing the Python development libraries, run `pip install -r requireme
     brew install gettext
     
     
-On some macOS systems `gettext` will atill not run after installation and `django manage.py makemessages` will fail. In such a case, one easy solution is to run (replace x's with your gettext version number) before running functions that invoke gettext:
+On some macOS systems `gettext` will still not run after installation and `django manage.py makemessages` will fail. In such a case, one easy solution is to add (replace x's with your gettext version number) to your .bashrc(or its equivalent on your system):
     
     export TEMP_PATH=$PATH
     export PATH=$PATH:/usr/local/Cellar/gettext/0.xx.x/bin
+    
 
 ###### On Debian systems
 
