@@ -3,12 +3,9 @@
 export PYTHONPATH=$(pwd)
 export DJANGO_SETTINGS_MODULE=sefaria.settings
 
-if [[ $* == *-i* ]]
+if [[ $* == *-p* ]]
 then
-    ipython -i cli.py
-elif [[ $* == *-3* ]]
-then
-    ipython3 -i cli.py	
+    python3 -i cli.py
 else
-    python -i cli.py
+    ipython3 -i cli.py
 fi

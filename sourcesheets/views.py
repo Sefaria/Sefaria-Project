@@ -4,7 +4,8 @@ import httplib2
 from urllib3.exceptions import NewConnectionError
 from elasticsearch.exceptions import AuthorizationException
 
-from io import StringIO
+from datetime import datetime, timedelta
+from io import StringIO, BytesIO
 
 import logging
 logger = logging.getLogger(__name__)
@@ -39,7 +40,6 @@ from sefaria.sheets import clean_source, bleach_text
 import sefaria.model.dependencies
 
 from sefaria.gauth.decorators import gauth_required
-
 
 def annotate_user_links(sources):
     """
@@ -583,7 +583,7 @@ def save_sheet_api(request):
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to save."})
+                return jsonResponse({"error": "You must be logged in or use an API key to save.", "errorAction": "loginRedirect"})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
@@ -649,6 +649,15 @@ def save_sheet_api(request):
         return jsonResponse(responseSheet)
 
 
+def bulksheet_api(request, sheet_id_list):
+    if request.method == "GET":
+        cb = request.GET.get("callback", None)
+        only_public = bool(int(request.GET.get("public", True)))
+        sheet_id_list = [int(sheet_id) for sheet_id in set(sheet_id_list.split("|"))]
+        response = jsonResponse({s['sheet_id']: s for s in sheet_list_to_story_list(request, sheet_id_list, only_public)}, cb)
+        return response
+
+
 @api_view(["GET"])
 def user_sheet_list_api(request, user_id):
     """
@@ -693,6 +702,7 @@ def sheet_api(request, sheet_id):
     if request.method == "POST":
         return jsonResponse({"error": "TODO - save to sheet by id"})
 
+
 def sheet_node_api(request, sheet_id, node_id):
     if request.method == "GET":
         sheet_node = get_sheet_node(int(sheet_id),int(node_id))
@@ -700,6 +710,7 @@ def sheet_node_api(request, sheet_id, node_id):
 
     if request.method == "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
+
 
 def check_sheet_modified_api(request, sheet_id, timestamp):
     """
@@ -823,12 +834,13 @@ def add_ref_to_sheet_api(request, sheet_id):
 
 
 @login_required
-def update_sheet_tags_api(request, sheet_id):
+def update_sheet_topics_api(request, sheet_id):
     """
     API to update tags for sheet_id.
     """
-    tags = json.loads(request.POST.get("tags"))
-    return jsonResponse(update_sheet_tags(int(sheet_id), tags))
+    topics = json.loads(request.POST.get("topics"))
+    old_topics = db.sheets.find_one({"id": int(sheet_id)}, {"topics":1}).get("topics", [])
+    return jsonResponse(update_sheet_topics(int(sheet_id), topics, old_topics))
 
 
 def visual_sheet_api(request, sheet_id):
@@ -896,7 +908,7 @@ def user_tag_list_api(request, user_id):
     """
     #if int(user_id) != request.user.id:
         #return jsonResponse({"error": "You are not authorized to view that."})
-    response = sheet_tag_counts({ "owner": int(user_id) })
+    response = sheet_topics_counts({"owner": int(user_id)})
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
@@ -907,7 +919,7 @@ def group_tag_list_api(request, group):
     API to retrieve the list of public tags ordered by count.
     """
     group = group.replace("-", " ").replace("_", " ")
-    response = sheet_tag_counts({ "group": group })
+    response = sheet_topics_counts({"group": group})
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
@@ -917,7 +929,7 @@ def trending_tags_api(request):
     """
     API to retrieve the list of trending tags.
     """
-    response = trending_tags(ntags=18)
+    response = trending_topics(ntags=18)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
@@ -943,8 +955,27 @@ def sheet_to_story_dict(request, sid):
     return d
 
 
+def sheet_list_to_story_list(request, sid_list, public=True):
+    """
+
+    :param request:
+    :param sid_list: list of sheet ids
+    :param public: if True, return only public sheets
+    :return:
+    """
+    from sefaria.model.story import Story
+    dict_list = Story.sheet_metadata_bulk(sid_list, return_id=True, public=public)
+    followees_set = following.FolloweesSet(request.user.id).uids
+    for d in dict_list:
+        d.update(Story.publisher_metadata(d["publisher_id"]))
+        if request.user.is_authenticated:
+            d["publisher_followed"] = d["publisher_id"] in followees_set
+
+    return dict_list
+
+
 def story_form_sheets_by_tag(request, tag):
-    sheets   = get_sheets_by_tag(tag, public=True)
+    sheets   = get_sheets_by_topic(tag, public=True)
     sheets   = [sheet_to_story_dict(request, s["id"]) for s in sheets]
     response = {"tag": tag, "sheets": sheets}
     response = jsonResponse(response, callback=request.GET.get("callback", None))
@@ -956,7 +987,7 @@ def sheets_by_tag_api(request, tag):
     """
     API to get a list of sheets by `tag`.
     """
-    sheets   = get_sheets_by_tag(tag, public=True)
+    sheets   = get_sheets_by_topic(tag, public=True)
     sheets   = [sheet_to_dict(s) for s in sheets]
     response = {"tag": tag, "sheets": sheets}
     response = jsonResponse(response, callback=request.GET.get("callback", None))
@@ -1029,7 +1060,7 @@ def sheet_to_html_string(sheet):
         "assignments_from_sheet": assignments_from_sheet(sheet['id']),
     }
 
-    return render_to_string('gdocs_sheet.html', context).encode('utf-8')
+    return render_to_string('gdocs_sheet.html', context)
 
 
 def resolve_options_of_sources(sheet):
@@ -1068,10 +1099,10 @@ def export_to_drive(request, credential, sheet_id):
         'mimeType': 'application/vnd.google-apps.document'
     }
 
-    html_string = sheet_to_html_string(sheet)
+    html_string = bytes(sheet_to_html_string(sheet), "utf8")
 
     media = MediaIoBaseUpload(
-        StringIO(html_string),
+        BytesIO(html_string),
         mimetype='text/html',
         resumable=True)
 

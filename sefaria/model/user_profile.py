@@ -6,6 +6,7 @@ import sys
 import json
 import csv
 from datetime import datetime
+from django.utils.translation import ugettext as _, ungettext_lazy
 from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError
@@ -13,6 +14,7 @@ from functools import reduce
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User
+    from emailusernames.utils import get_user, user_exists
     from django.core.mail import EmailMultiAlternatives
     from django.template.loader import render_to_string
     from django.core.validators import URLValidator, EmailValidator
@@ -218,6 +220,44 @@ class UserHistorySet(abst.AbstractMongoSet):
         return reduce(lambda agg,o: agg + getattr(o, "num_times_read", 1), self, 0)
 
 
+"""
+Wrapper class for operations on the user object. Currently only for changing primary email.
+"""
+class UserWrapper(object):
+    def __init__(self, email=None):
+        self.user = get_user(email)
+        self._errors = []
+
+    def set_email(self, new_email):
+        self.email = new_email
+        self._errors = []
+
+    def validate(self):
+        return not self.errors()
+
+    def errors(self):
+        if len(self._errors):
+            return self._errors[0]
+        if user_exists(self.email):
+            u = get_user(self.email)
+            if u.id != self.user.id:
+                self._errors.append(_("A user with that email already exists"))
+        email_val = EmailValidator()
+        try:
+            email_val(self.email)
+        except ValidationError as e:
+            self._errors.append(_("The email address is not valid."))
+        return self._errors[0] if len(self._errors) else None
+
+    def save(self):
+        if self.validate():
+            self.user.email = self.email
+            self.user.username = self.email #this is to conform with our username-as-email library, which doesnt really take care of itself properly as advertised
+            self.user.save()
+        else:
+            raise ValueError(self.errors())
+
+
 class UserProfile(object):
     def __init__(self, id=None, slug=None, email=None):
 
@@ -293,9 +333,9 @@ class UserProfile(object):
 
         if len(self.profile_pic_url) == 0:
             default_image           = "https://www.sefaria.org/static/img/profile-default.png"
-            gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower()).hexdigest() + "?"
-            gravatar_url       = gravatar_base + urllib.urlencode({'d':default_image, 's':str(250)})
-            gravatar_url_small = gravatar_base + urllib.urlencode({'d':default_image, 's':str(80)})
+            gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower().encode('utf-8')).hexdigest() + "?"
+            gravatar_url       = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(250)})
+            gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
             self.profile_pic_url = gravatar_url
             self.profile_pic_url_small = gravatar_url_small
 
@@ -459,7 +499,7 @@ class UserProfile(object):
         Sets the partner group if email pattern matches known school
         """
         email_pattern = self.email.split("@")[1]
-        tsv_file = csv.reader(open(PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, "rb"), delimiter="\t")
+        tsv_file = csv.reader(open(PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, "rt"), delimiter="\t")
         for row in tsv_file:
             # if current rows 2nd value is equal to input, print that row
             if email_pattern == row[1]:

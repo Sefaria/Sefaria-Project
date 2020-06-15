@@ -7,6 +7,7 @@ import re
 from . import abstract as abst
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError
+from sefaria.utils.hebrew import is_hebrew, strip_cantillation, has_cantillation
 
 
 class WordForm(abst.AbstractMongoRecord):
@@ -80,8 +81,33 @@ class LexiconEntry(abst.AbstractMongoRecord):
         "headword",
         "parent_lexicon",
     ]
-    optional_attrs = ["content"]
-
+    optional_attrs = [
+        "transliteration",
+        "pronunciation",
+        "morphology",
+        "language_code",
+        "refs",
+        "related_words",
+        "number",
+        "language_reference",
+        "number",
+        "content",
+        "citations",
+        "plural_form",
+        "binyan_form",
+        "alt_headwords",
+        "derivatives",
+        "quotes",
+        "prev_hw",
+        "next_hw",
+        "notes",
+        "alternative",
+        "strong_number",
+        "orig_word",
+        "orig_ref",
+        "catane_number",
+        "rid"
+    ]
     ALLOWED_TAGS    = ("i", "b", "br", "u", "strong", "em", "big", "small", "img", "sup", "span", "a")
     ALLOWED_ATTRS   = {
         'span':['class', 'dir'],
@@ -104,29 +130,6 @@ class LexiconEntry(abst.AbstractMongoRecord):
 
 
 class DictionaryEntry(LexiconEntry):
-
-    optional_attrs = [
-        "transliteration",
-        "pronunciation",
-        "morphology",
-        "language_code",
-        "refs",
-        "related_words",
-        "number",
-        "language_reference", 
-        "number",
-        "content",
-        "citations",
-        "plural_form",
-        "binyan_form",
-        "alt_headwords",
-        "derivatives",
-        "quotes",
-        "prev_hw",
-        "next_hw",
-        "notes",
-        "alternative"
-    ]
 
     def get_sense(self, sense):
         text = ''
@@ -246,7 +249,6 @@ class LexiconEntrySubClassMapping(object):
         'Jastrow Dictionary': JastrowDictionaryEntry,
         "Jastrow Unabbreviated" : JastrowDictionaryEntry,
         'Klein Dictionary': KleinDictionaryEntry,
-
     }
 
     @classmethod
@@ -285,8 +287,6 @@ class LexiconEntrySet(abst.AbstractMongoSet):
                 self.records.sort(key=is_primary)
 
 
-
-
 class LexiconLookupAggregator(object):
 
     @classmethod
@@ -303,12 +303,13 @@ class LexiconLookupAggregator(object):
 
     @classmethod
     def get_word_form_objects(cls, input_word, lookup_key='form', **kwargs):
-        from sefaria.utils.hebrew import is_hebrew, strip_cantillation, has_cantillation
         from sefaria.model import Ref
 
         lookup_ref = kwargs.get("lookup_ref", None)
         wform_pkey = lookup_key
         if is_hebrew(input_word):
+            # This step technically used to happen in the lookup main method `lexicon_lookup` if there were no initial results, but in case where a
+            # consonantal form was supplied in the first place, this optimizes queries.
             input_word = strip_cantillation(input_word)
             if not has_cantillation(input_word, detect_vowels=True):
                 wform_pkey = 'c_form'
@@ -352,7 +353,7 @@ class LexiconLookupAggregator(object):
     def lexicon_lookup(cls, input_str, **kwargs):
         results = cls._single_lookup(input_str, **kwargs)
         if not results:
-            results = cls._single_lookup(input_str, lookup_key='c_form', **kwargs)
+            results = cls._single_lookup(strip_cantillation(input_str, True), lookup_key='c_form', **kwargs)
         if not kwargs.get('never_split', None) and (len(results) == 0 or kwargs.get("always_split", None)):
             ngram_results = cls._ngram_lookup(input_str, **kwargs)
             results += ngram_results

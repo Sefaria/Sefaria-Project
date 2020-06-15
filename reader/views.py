@@ -11,6 +11,7 @@ from bson.json_util import dumps
 import socket
 import bleach
 from collections import OrderedDict
+import pytz
 
 from rest_framework.decorators import api_view
 from django.template.loader import render_to_string, get_template
@@ -31,7 +32,6 @@ from sefaria.reviews import *
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
-from sefaria.model.topic_old import get_topics
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
@@ -41,19 +41,21 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.summaries import get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_tag, user_sheets, user_tags, trending_tags, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_topic, user_sheets, user_tags, trending_topics, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.talmud import daf_to_section
-from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, this_weeks_parasha
+from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
+from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref
 from django.utils.html import strip_tags
+
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -125,7 +127,7 @@ def render_react_component(component, props):
     if not USE_NODE:
         return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
-    from sefaria.settings import NODE_TIMEOUT, NODE_TIMEOUT_MONITOR
+    from sefaria.settings import NODE_TIMEOUT
 
     propsJSON = json.dumps(props) if isinstance(props, dict) else props
     cache_key = "todo" # zlib.compress(propsJSON)
@@ -142,16 +144,13 @@ def render_react_component(component, props):
     except Exception as e:
         # Catch timeouts, however they may come.  Write to file NODE_TIMEOUT_MONITOR, which forever monitors to restart process
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
-            logger.exception("Node timeout: Fell back to client-side rendering.")
-            with open(NODE_TIMEOUT_MONITOR, "a") as myfile:
-                props = json.loads(props) if isinstance(props, str) else props
-                myfile.write("Timeout at {}: {} / {} / {} / {}\n".format(
-                    datetime.now().isoformat(),
+            props = json.loads(props) if isinstance(props, str) else props
+            logger.exception("Node timeout: {} / {} / {} / {}\n".format(
                     props.get("initialPath"),
                     "MultiPanel" if props.get("multiPanel", True) else "Mobile",
                     "Logged In" if props.get("loggedIn", False) else "Logged Out",
                     props.get("interfaceLang")
-                ))
+            ))
             return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
         else:
             # If anything else goes wrong with Node, just fall back to client-side rendering
@@ -202,7 +201,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "Web Pages", "extended notes"):
+            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "WebPages", "extended notes", "Topics"):
                 panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
@@ -370,8 +369,9 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
     filter = request.GET.get("with").replace("_", " ").split("+") if request.GET.get("with") else None
     filter = [] if filter == ["all"] else filter
 
-    if sheet == None:
+    noindex = False
 
+    if sheet == None:
         versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
 
         if versionEn and not Version().load({"versionTitle": versionEn, "language": "en"}):
@@ -404,7 +404,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             sheet_id = request.GET.get("s{}".format(i))
             panelDisplayLanguage = request.GET.get("lang", "bi")
             panels += make_sheet_panel_dict(sheet_id, None, **{"panelDisplayLanguage": panelDisplayLanguage})
-
 
         else:
             try:
@@ -454,6 +453,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialSheetsTag":            None,
         "initialNavigationCategories": None,
         "initialNavigationTopicCategory":     None,
+        "initialNavigationTopicTitle": None,
     })
     if sheet == None:
         title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
@@ -489,19 +489,22 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     else:
         sheet = panels[0].get("sheet",{})
-        title = "Sefaria Source Sheet: " + strip_tags(sheet["title"])
+        title = strip_tags(sheet["title"]) + " | " + _("Sefaria Source Sheet")
         breadcrumb = sheet_crumbs(request, sheet)
-        desc = sheet.get("summary","A source sheet created with Sefaria's Source Sheet Builder")
-
+        desc = sheet.get("summary", _("A source sheet created with Sefaria's Source Sheet Builder"))
+        noindex = sheet["status"] != "public"
 
     propsJSON = json.dumps(props)
+    if len(panels) > 0 and panels[0].get("refs") == [] and panels[0].get("mode") == "Text":
+        logger.debug("Mangled panel state: {}".format(panels), stack_info=True)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON":      propsJSON,
         "html":           html,
         "title":          title,
         "desc":           desc,
-        "ldBreadcrumbs":  breadcrumb
+        "ldBreadcrumbs":  breadcrumb,
+        "noindex":        noindex,
     })
 
 def _reduce_ranged_ref_text_to_first_section(text_list):
@@ -561,10 +564,14 @@ def topics_toc_page(request, topicCategory):
     List of texts in a category.
     """
     props = base_props(request)
-
+    topic_obj = Topic.init(topicCategory)
     props.update({
         "initialMenu": "navigation",
         "initialNavigationTopicCategory": topicCategory,
+        "initialNavigationTopicTitle": {
+            "en": topic_obj.get_primary_title('en'),
+            "he": topic_obj.get_primary_title('he')
+        }
     })
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -644,7 +651,7 @@ def sheets(request):
         "initialMenu": "sheets",
         "topSheets": get_top_sheets(),
         "tagList": public_tag_list(sort_by="count"),
-        "trendingTags": trending_tags(ntags=18)
+        "trendingTags": trending_topics(ntags=18)
     })
 
     title = _("Sefaria Source Sheets")
@@ -680,6 +687,7 @@ def get_group_page(request, group, authenticated):
         "html": html,
         "title": group[0].name + " | " + _("Sefaria Groups"),
         "desc": props["groupData"].get("description", ""),
+        "noindex": not getattr(group[0], "listed", False)
     })
 
 
@@ -732,10 +740,8 @@ def sheets_by_tag(request, tag):
         desc  = _("Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts.")
 
     else:
-        props["tagSheets"]    = [sheet_to_dict(s) for s in get_sheets_by_tag(tag)]
-        tag   = Term.normalize(tag, lang=request.LANGUAGE_CODE)
-        title = tag + _(" | Sefaria")
-        desc  = _('Public Source Sheets on tagged with "%(tag)s", drawing from Sefaria\'s library of Jewish texts.') % {'tag': tag}
+        # redirect to topics
+        return redirect("/topics/{}".format(tag), permanent=True)
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -754,8 +760,8 @@ def sheets_list(request, type=None):
     either as a full page or as an HTML fragment
     """
     if not type:
-        # Sheet Splash page
-        return sheets(request)
+        # Topics Splash page (for now while waiting for sheets landing page)
+        return topics_page(request)
 
     response = { "status": 0 }
 
@@ -950,12 +956,18 @@ def _crumb(pos, id, name):
 
 
 def sheet_crumbs(request, sheet=None):
+    from sefaria.helper.topic import get_top_topic
     if sheet is None:
         return ""
-
-    # todo: write up topic breadcrumbs
-    breadcrumbJsonList = [_crumb(1, "/sheets", _("Sheets"))]
-
+    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
+    main_topic = get_top_topic(sheet)
+    if main_topic is None:  # crumbs make no sense if there are no topics on sheet
+        return ""
+    breadcrumbJsonList = [
+        _crumb(1, "/topics", _("Topics")),
+        _crumb(2, f"/topics/{main_topic.slug}", main_topic.get_primary_title(short_lang)),
+        _crumb(3, f"/sheets/{sheet['id']}", _("Source Sheet"))
+    ]
     return json.dumps({
         "@context": "http://schema.org",
         "@type": "BreadcrumbList",
@@ -1124,8 +1136,6 @@ def terms_editor(request, term=None):
                              })
 
 
-
-
 def interface_language_redirect(request, language):
     """
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
@@ -1196,15 +1206,18 @@ def texts_api(request, tref):
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
         stripItags = bool(int(request.GET.get("stripItags", False)))
-        multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negtive integer (indicating backward)
+        multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
+            text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
+                                      commentary=commentary, context=context, pad=pad, alts=alts,
+                                      wrapLinks=wrapLinks, stripItags=stripItags)
             try:
-                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks, stripItags=stripItags).contents()
+                text = TextFamily(oref, **text_family_kwargs).contents()
             except AttributeError as e:
                 oref = oref.default_child_ref()
-                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks, stripItags=stripItags).contents()
+                text = TextFamily(oref, **text_family_kwargs).contents()
             except NoVersionFoundError as e:
                 return {"error": str(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}
 
@@ -1241,10 +1254,9 @@ def texts_api(request, tref):
             return jsonResponse(text, cb)
         else:
             # Return list of many sections
-            target_count = int(multiple)
-            assert target_count != 0
-            direction = "next" if target_count > 0 else "prev"
-            target_count = abs(target_count)
+            assert multiple != 0
+            direction = "next" if multiple > 0 else "prev"
+            target_count = abs(multiple)
 
             current = 0
             texts = []
@@ -1347,7 +1359,7 @@ def old_recent_redirect(request):
 @catch_error_as_json
 def parashat_hashavua_api(request):
     callback = request.GET.get("callback", None)
-    p = this_weeks_parasha(datetime.now(), request.diaspora)
+    p = get_parasha(datetime.now(), request.diaspora)
     p["date"] = p["date"].isoformat()
     #p.update(get_text(p["ref"]))
     p.update(TextFamily(Ref(p["ref"])).contents())
@@ -1885,8 +1897,8 @@ def related_api(request, tref):
     """
     Single API to bundle available content related to `tref`.
     """
-    oref = model.Ref(tref)
     if request.GET.get("private", False) and request.user.is_authenticated:
+        oref = model.Ref(tref)
         response = {
             "sheets": get_sheets_for_ref(tref, uid=request.user.id),
             "notes": get_notes(oref, uid=request.user.id, public=False)
@@ -1899,6 +1911,7 @@ def related_api(request, tref):
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
+            "topics": get_topics_for_ref(tref, annotate=True),
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
@@ -2082,13 +2095,19 @@ def flag_text_api(request, title, lang, version):
 def tag_category_api(request, path=None):
     if request.method == "GET":
         if not path or path == "index":
-            categories = TermSet({"scheme": "Tag Category"})
-
+            categories = TopicSet({"isTopLevelDisplay": True}, sort=[("displayOrder", 1)])
         else:
-            categories = TermSet({"category": path})
+            from sefaria.model.abstract import AbstractMongoRecord
+            slug = AbstractMongoRecord.normalize_slug(path)
+            topic = Topic.init(slug)
+            if not topic:
+                categories = []
+            else:
+                links = topic.link_set(query_kwargs={"linkType": "displays-under", "toTopic": slug})
+                categories = [Topic.init(l.topic) for l in links]
+                categories.sort(key=lambda x: getattr(x, 'displayOrder', 10000))
 
-
-        category_names = [{"tag": category.get_primary_title(), "heTag": category.get_primary_title("he"), } for category in categories]
+        category_names = [{"tag": category.get_primary_title('en'), "heTag": category.get_primary_title("he"), } for category in categories]
         return jsonResponse(category_names)
 
 
@@ -2167,13 +2186,20 @@ def calendars_api(request):
         import datetime
         diaspora = request.GET.get("diaspora", "1")
         custom = request.GET.get("custom", None)
+
+        zone_name = request.GET.get("timezone", timezone.get_current_timezone_name())
+        try:
+            zone = pytz.timezone(zone_name)
+        except pytz.exceptions.UnknownTimeZoneError as e:
+            return jsonResponse({"error": "Unknown 'timezone' value: '%s'." % zone_name})\
+
         try:
             year = int(request.GET.get("year", None))
             month = int(request.GET.get("month", None))
             day = int(request.GET.get("day", None))
-            datetimeobj = datetime.datetime(year, month, day)
+            datetimeobj = datetime.datetime(year, month, day, tzinfo=zone)
         except Exception as e:
-            datetimeobj = timezone.localtime(timezone.now())
+            datetimeobj = timezone.localtime(timezone.now(), timezone=zone)
 
         if diaspora not in ["0", "1"]:
             return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
@@ -2181,9 +2207,24 @@ def calendars_api(request):
             diaspora = True if diaspora == "1" else False
             calendars = get_all_calendar_items(datetimeobj, diaspora=diaspora, custom=custom)
             return jsonResponse({"date": datetimeobj.date().isoformat(),
-                                 "timezone" : timezone.get_current_timezone_name(),
+                                 "timezone" : zone_name,
                                  "calendar_items": calendars},
                                 callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
+@csrf_exempt
+def parasha_next_read_api(request, parasha):
+    """
+    Get info on when `parasha` is next read.
+    Returns JSON with Haftarahs read and date of when this parasha is next read
+    :param request:
+    :return:
+    """
+    from sefaria.utils.calendars import parashat_hashavua_and_haftara
+    if request.method == "GET":
+        datetimeobj = timezone.localtime(timezone.now())
+        return jsonResponse(parashat_hashavua_and_haftara(datetimeobj, request.diaspora, parasha=parasha, ret_type='dict'))
 
 
 @catch_error_as_json
@@ -2263,26 +2304,25 @@ def get_name_completions(name, limit, ref_only):
             lexicon_ac = library.lexicon_auto_completer(inode.parent.lexiconName)
             t = [base_title + ", " + t[1] for t in lexicon_ac.items(inode.word)[:limit or None]]
             completions = list(OrderedDict.fromkeys(t))  # filter out dupes
-        else:
-            completions = [name.capitalize()] + completer.next_steps_from_node(name)
+            completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
 
-        if limit == 0 or len(completions) < limit:
-            current = {t: 1 for t in completions}
-            additional_results = completer.complete(name, limit)
-            for res in additional_results:
-                if res not in current:
-                    completions += [res]
+        else:
+            completions, completion_objects = completer.complete(name, limit)
+            object_data = completer.get_object(name)
+
     except DictionaryEntryNotFoundError as e:
         # A dictionary beginning, but not a valid entry
         lexicon_ac = library.lexicon_auto_completer(e.lexicon_name)
         t = [e.base_title + ", " + t[1] for t in lexicon_ac.items(e.word)[:limit or None]]
         completions = list(OrderedDict.fromkeys(t))  # filter out dupes
-    except InputError:
-        completions = completer.complete(name, limit)
-        object_data = completer.get_data(name)
+        completion_objects = [o for n in completions for o in lexicon_ac.get_data(n)]
+    except InputError:  # Not a Ref
+        completions, completion_objects = completer.complete(name, limit)
+        object_data = completer.get_object(name)
 
     return {
-        "completions": completions,
+        "completions": completions[:limit or None],
+        "completion_objects": completion_objects[:limit or None],
         "lang": lang,
         "object_data": object_data,
         "ref": ref
@@ -2295,7 +2335,7 @@ def name_api(request, name):
         return jsonResponse({"error": "Unsupported HTTP method."})
 
     # Number of results to return.  0 indicates no limit
-    LIMIT = int(request.GET.get("limit", 16))
+    LIMIT = int(request.GET.get("limit", 10))
     ref_only = request.GET.get("ref_only", False)
     completions_dict = get_name_completions(name, LIMIT, ref_only)
     ref = completions_dict["ref"]
@@ -2318,9 +2358,8 @@ def name_api(request, name):
             "internalToSections": ref.toSections,
             "sections": ref.normal_sections(),  # this switch is to match legacy behavior of parseRef
             "toSections": ref.normal_toSections(),
-            # "number_follows": inode.has_numeric_continuation(),
-            # "titles_follow": titles_follow,
             "completions": completions_dict["completions"] if LIMIT == 0 else completions_dict["completions"][:LIMIT],
+            "completion_objects": completions_dict["completion_objects"],
             # todo: ADD textual completions as well
             "examples": []
         }
@@ -2336,7 +2375,8 @@ def name_api(request, name):
         d = {
             "lang": completions_dict["lang"],
             "is_ref": False,
-            "completions": completions_dict["completions"]
+            "completions": completions_dict["completions"],
+            "completion_objects": completions_dict["completion_objects"],
         }
 
         # let's see if it's a known name of another sort
@@ -2364,8 +2404,8 @@ def dictionary_completion_api(request, word, lexicon=None):
 
     if lexicon is None:
         ac = library.cross_lexicon_auto_completer()
-        rs = ac.complete(word, LIMIT)
-        result = [[r, ac.title_trie[ac.normalizer(r)]["key"]] for r in rs]
+        rs, _ = ac.complete(word, LIMIT)
+        result = [[r, ac.title_trie[ac.normalizer(r)][0]["key"]] for r in rs]
     else:
         result = library.lexicon_auto_completer(lexicon).items(word)[:LIMIT]
     return jsonResponse(result)
@@ -2393,10 +2433,8 @@ def dictionary_api(request, word):
     if ls:
         for l in ls:
             result.append(l.contents())
-        if len(result):
-            return jsonResponse(result, callback=request.GET.get("callback", None))
-    else:
-        return jsonResponse({"error": "No information found for given word."})
+    
+    return jsonResponse(result, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -2867,16 +2905,13 @@ def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
 @sanitize_get_params
 def topics_page(request):
     """
-    Page of sheets by tag.
-    Currently used to for "My Sheets" and  "All Sheets" as well.
+    Page of all Topics
     """
-    topics = get_topics()
     props = base_props(request)
     props.update({
         "initialMenu":  "topics",
         "initialTopic": None,
-        "topicList": topics.list(sort_by="count"),
-        "trendingTags": trending_tags(ntags=12),
+        # "trendingTags": trending_tags(ntags=12),
     })
 
     propsJSON = json.dumps(props)
@@ -2892,22 +2927,34 @@ def topics_page(request):
 @sanitize_get_params
 def topic_page(request, topic):
     """
-    Page of sheets by tag.
-    Currently used to for "My Sheets" and  "All Sheets" as well.
+    Page of an individual Topic
     """
-    if topic != Term.normalize(topic):
-        return redirect("/topics/%s" % Term.normalize(topic))
-
+    topic_obj = Topic.init(topic)
+    if topic_obj is None:
+        # try to normalize
+        from sefaria.model.abstract import AbstractMongoRecord
+        topic_obj = Topic.init(AbstractMongoRecord.normalize_slug(topic))
+        if topic_obj is None:
+            raise Http404
+        topic = topic_obj.slug
     props = base_props(request)
     props.update({
-        "initialMenu":  "topics",
+        "initialMenu": "topics",
         "initialTopic": topic,
+        "initialTopicsTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
+        "initialTopicTitle": {
+            "en": topic_obj.get_primary_title('en'),
+            "he": topic_obj.get_primary_title('he')
+        },
         "topicData": _topic_data(topic),
     })
 
-    title = "%(topic)s | Sefaria" % {"topic": topic}
-    desc  = 'Explore "%(topic)s" on Sefaria, drawing from our library of Jewish texts.' % {"topic": topic}
-
+    short_lang = 'en' if request.interfaceLang == 'english' else 'he'
+    title = topic_obj.get_primary_title(short_lang) + _(' | Sefaria')
+    desc = _('Explore %(topic)s on Sefaria, drawing from our library of Jewish texts. ') % {'topic': topic_obj.get_primary_title(short_lang)}
+    topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
+    if topic_desc is not None:
+        desc += topic_desc
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request,'base.html', {
@@ -2922,8 +2969,9 @@ def topics_list_api(request):
     """
     API to get data for a particular topic.
     """
-    topics = get_topics()
-    response = topics.list(sort_by="count")
+    limit = int(request.GET.get("limit", 1000))
+    topics = get_all_topics(limit)
+    response = [t.contents() for t in topics]
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     response["Cache-Control"] = "max-age=3600"
     return response
@@ -2936,33 +2984,41 @@ def topics_api(request, topic):
     """
     with_links = bool(int(request.GET.get("with_links", False)))
     annotate_links = bool(int(request.GET.get("annotate_links", False)))
-
+    group_related = bool(int(request.GET.get("group_related", False)))
     with_refs = bool(int(request.GET.get("with_refs", False)))
+    response = get_topic(topic, with_links, annotate_links, with_refs, group_related)
+    return jsonResponse(response, callback=request.GET.get("callback", None))
 
-    topic_obj = Topic().load({"slug": topic})
-    response = topic_obj.contents()
-    if with_links:
-        response['links'] = [l.contents(annotate=annotate_links) for l in IntraTopicLinkSet({"toTopic": topic}, proj={"toTopic": False})]
 
-    if with_refs:
-        response['refs'] = [l.contents() for l in RefTopicLinkSet({"toTopic": topic}, proj={"toTopic": False})]
+@catch_error_as_json
+def topic_ref_api(request, tref):
+    """
+    API to get RefTopicLinks
+    """
+    annotate = bool(int(request.GET.get("annotate", False)))
+    response = get_topics_for_ref(tref, annotate)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 def _topic_data(topic):
-    topics = get_topics()
-    topic = Term.normalize(titlecase(topic))
-    response = topics.get(topic).contents()
-    term = library.get_term(topic)
-    if term:
-        cat = getattr(term, "category", "")
-        response["category"] = cat
-        if cat:
-            response["siblings"] = [t.get_primary_title() for t in TermSet({"category": cat})]
-        description = getattr(term, "description", None)
-        if description:
-            response["description"] = description
+    response = get_topic(topic, with_links=True, annotate_links=True, with_refs=True, group_related=True)
     return response
+
+
+@catch_error_as_json
+def bulk_topic_api(request):
+    """
+    Use POST because topic_slug_list can be very large when used for search topic filters
+    :param request:
+    :return:
+    """
+    from sefaria.helper.topic import get_bulk_topics
+    if request.method == "POST":
+        minify = request.GET.get("minify", False)
+        postJSON = request.POST.get("json")
+        topic_slug_list = json.loads(postJSON)
+        response = [t.contents(minify=minify) for t in get_bulk_topics(topic_slug_list)]
+        return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -2970,18 +3026,18 @@ def recommend_topics_api(request, ref_list=None):
     """
     API to receive recommended topics for list of strings `refs`.
     """
+    from sefaria.helper.topic import recommend_topics
+
     if request.method == "GET":
         refs = [Ref(ref).normal() for ref in ref_list.split("+")] if ref_list else []
 
     elif request.method == "POST":
-        topics = get_topics()
         postJSON = request.POST.get("json")
         if not postJSON:
             return jsonResponse({"error": "No post JSON."})
         refs = json.loads(postJSON)
 
-    topics = get_topics()
-    response = {"topics": topics.recommend_topics(refs)}
+    response = {"topics": recommend_topics(refs)}
     response = jsonResponse(response, callback=request.GET.get("callback", None))
     return response
 
@@ -3137,6 +3193,8 @@ def user_profile(request, username):
     """
     User's profile page.
     """
+    user = None
+
     try:
         profile = UserProfile(slug=username)
     except Exception as e:
@@ -3147,6 +3205,11 @@ def user_profile(request, username):
         profile = UserProfile(id=user.id)
 
         return redirect("/profile/%s" % profile.slug, permanent=True)
+
+    if user is None:
+        user = User.objects.get(id=profile.id)
+    if not user.is_active:
+        raise Http404('Profile is inactive.')
 
     props = base_props(request)
     profileJSON = profile.to_api_dict()
@@ -3194,6 +3257,44 @@ def profile_api(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@login_required
+@csrf_protect
+def account_user_update(request):
+    """
+    API for user profiles.
+    """
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to update your profile.")})
+
+    if request.method == "POST":
+        accountJSON = request.POST.get("json")
+        if not accountJSON:
+            return jsonResponse({"error": "No post JSON."})
+        accountUpdate = json.loads(accountJSON)
+        error = None
+        # some validation on post fields
+        if accountUpdate["email"] != accountUpdate["confirmEmail"]:
+            error = _("Email fields did not match")
+        elif not request.user.check_password(accountUpdate["confirmPassword"]):
+            error = _("Incorrect account password for this account")
+        else:
+            # get the logged in user
+            uuser = UserWrapper(request.user.email)
+            try:
+                uuser.set_email(accountUpdate["email"])
+                uuser.save()
+            except Exception as e:
+                error = uuser.errors()
+
+        if not error:
+            return jsonResponse({"status": "ok"})
+        else:
+            return jsonResponse({"error": error})
+
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+
 @catch_error_as_json
 def profile_get_api(request, slug):
     if request.method == "GET":
@@ -3217,23 +3318,25 @@ def profile_upload_photo(request):
         return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
     if request.method == "POST":
         from PIL import Image
-        from StringIO import StringIO
+        from io import BytesIO
         from sefaria.utils.util import epoch_time
         now = epoch_time()
+
         def get_resized_file(image, size):
             resized_image = image.resize(size, resample=Image.LANCZOS)
-            resized_image_file = StringIO()
+            resized_image_file = BytesIO()
             resized_image.save(resized_image_file, format="PNG")
             resized_image_file.seek(0)
             return resized_image_file
+
         profile = UserProfile(id=request.user.id)
         bucket_name = GoogleStorageManager.PROFILES_BUCKET
         image = Image.open(request.FILES['file'])
         old_big_pic_filename = re.findall(r"/([^/]+)$", profile.profile_pic_url)[0] if profile.profile_pic_url.startswith(GoogleStorageManager.BASE_URL) else None
         old_small_pic_filename = re.findall(r"/([^/]+)$", profile.profile_pic_url_small)[0] if profile.profile_pic_url_small.startswith(GoogleStorageManager.BASE_URL) else None
 
-        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), u"{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
-        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), u"{}-{}-small.png".format(profile.slug, now), bucket_name, old_small_pic_filename)
+        big_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (250, 250)), "{}-{}.png".format(profile.slug, now), bucket_name, old_big_pic_filename)
+        small_pic_url = GoogleStorageManager.upload_file(get_resized_file(image, (80, 80)), "{}-{}-small.png".format(profile.slug, now), bucket_name, old_small_pic_filename)
 
         profile.update({"profile_pic_url": big_pic_url, "profile_pic_url_small": small_pic_url})
         profile.save()
@@ -3274,9 +3377,15 @@ def profile_sync_api(request):
                 continue
             field_data = json.loads(post[field])
             if field == "settings":
-                if field_data["time_stamp"] > profile.attr_time_stamps[field]:
+                settings_time_stamp = field_data.pop("time_stamp")  # don't save time_stamp as a field of profile
+                try:
+                    # mobile app is sending time_stamps as strings. for now, patch by casting server-side. can be None if user hasn't updated settings yet.
+                    settings_time_stamp = 0 if settings_time_stamp is None else int(settings_time_stamp)
+                except ValueError as e:
+                    logger.warning(f'profile_sync_api: {e}')
+                    continue
+                if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
-                    settings_time_stamp = field_data.pop("time_stamp")  # don't save time_stamp as a field of profile
                     profile.attr_time_stamps.update({field: settings_time_stamp})
                     profile.update({
                         field: field_data,
@@ -3286,6 +3395,9 @@ def profile_sync_api(request):
             elif field == "user_history":
                 # loop thru `field_data` reversed to apply `last_place` to the last item read in each book
                 for hist in reversed(field_data):
+                    if 'ref' not in hist:
+                        logger.warning(f'Ref not in hist. Post data: {post[field]}. User ID: {request.user.id}')
+                        continue
                     uh = UserHistory.save_history_item(request.user.id, hist, now)
                     ret["created"] += [uh.contents(for_api=True)]
 
@@ -3293,7 +3405,7 @@ def profile_sync_api(request):
             # determine return value after new history saved to include new saved and deleted saves
             # send back items after `last_sync`
             last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
-            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}})
+            uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}}, hint="uid_1_server_time_stamp_1")
             ret["last_sync"] = now
             ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
             ret["settings"] = profile.settings
@@ -3924,22 +4036,18 @@ def random_by_topic_api(request):
     """
     Returns Texts API data for a random text taken from popular topic tags
     """
+    from sefaria.helper.topic import get_random_topic, get_random_topic_source
+
     cb = request.GET.get("callback", None)
-    topics_filtered = [x for x in get_topics().list() if x['good_to_promote']]
-    if len(topics_filtered) == 0:
-        resp = jsonResponse({"ref": None, "topic": None, "url": None}, callback=cb)
-        resp['Content-Type'] = "application/json; charset=utf-8"
-        return resp
-    random_topic = choice(topics_filtered)['tag']
-    term = Term().load_by_title(random_topic)
-    random_source = choice(get_topics().get(random_topic).contents()['sources'])[0]
-    try:
-        oref = Ref(random_source)
-        tref = oref.normal()
-        url = oref.url()
-    except Exception:
+    random_topic = get_random_topic(good_to_promote=True)
+    if random_topic is None:
         return random_by_topic_api(request)
-    resp = jsonResponse({"ref": tref, "topic": random_topic, "url": url}, callback=cb)
+    random_source = get_random_topic_source(random_topic)
+    if random_source is None:
+        return random_by_topic_api(request)
+    tref = random_source.normal()
+    url = random_source.url()
+    resp = jsonResponse({"ref": tref, "topic": random_topic.contents(), "url": url}, callback=cb)
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
 
@@ -4328,3 +4436,14 @@ def application_health_api(request):
         return http.HttpResponse("Healthy", status="200")
     else:
         return http.HttpResponse("Unhealthy", status="500")
+
+def application_health_api_nonlibrary(request):
+    return http.HttpResponse("Healthy", status="200")
+
+@login_required
+def daf_roulette_redirect(request):
+
+    return render(request,'static/dafroulette.html',
+                             {
+                              "rtc_server": RTC_SERVER,
+                              })

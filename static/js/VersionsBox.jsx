@@ -17,7 +17,6 @@ class VersionsBox extends Component {
     }
     this.state = {
       versionLangMap: null,  // object with version languages as keys and array of versions in that lang as values
-      versionLangs: null,  // sorted list of version languages available
       initialCurrVersions,
       initialMainVersionLanguage: props.mainVersionLanguage,
     };
@@ -31,6 +30,7 @@ class VersionsBox extends Component {
     }
   }
   onVersionsLoad(versions) {
+    console.log("versionsload");
     const versionLangMap = {};
     for (let v of versions) {
       const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2})\\]$")); // two-letter ISO language code
@@ -44,11 +44,20 @@ class VersionsBox extends Component {
     //- mainVersionLanguage shows up first
     //- standard_langs show up second
     //- everything else shows up in alphabetical order
+    this.setState({versionLangMap});
+  };
+  openVersionInSidebar(versionTitle, versionLanguage) {
+    this.props.setConnectionsMode("Version Open");
+    this.props.setFilter(versionTitle);
+  };
+  sortVersionsByActiveLang(prioritize=null){
     const standard_langs = ["en", "he"];
-    const versionLangs = Object.keys(versionLangMap).sort(
+    return Object.keys(this.state.versionLangMap).sort(
       (a, b) => {
-        if      (a === this.state.initialMainVersionLanguage.slice(0,2)) {return -1;}
-        else if (b === this.state.initialMainVersionLanguage.slice(0,2)) {return  1;}
+        if      (!!prioritize && a === prioritize)                {return -1;}
+        else if (!!prioritize && b === prioritize)                {return 1;}
+        else if (a === this.props.mainVersionLanguage.slice(0,2)) {return -1;}
+        else if (b === this.props.mainVersionLanguage.slice(0,2)) {return  1;}
         else if (a in standard_langs && !(b in standard_langs))   {return -1;}
         else if (b in standard_langs && !(a in standard_langs))   {return  1;}
         else if (a < b)                                           {return -1;}
@@ -56,12 +65,7 @@ class VersionsBox extends Component {
         else                                                      {return  0;}
       }
     );
-    this.setState({versionLangMap, versionLangs});
-  };
-  openVersionInSidebar(versionTitle, versionLanguage) {
-    this.props.setConnectionsMode("Version Open");
-    this.props.setFilter(versionTitle);
-  };
+  }
   renderModeVersions() {
     if (!this.state.versionLangMap) {
       return (
@@ -70,6 +74,7 @@ class VersionsBox extends Component {
         </div>
       );
     }
+    const versionLangs = this.sortVersionsByActiveLang("en");
     const currVersions = {};
     for (let vlang in this.props.currObjectVersions) {
       const tempV = this.props.currObjectVersions[vlang];
@@ -78,12 +83,14 @@ class VersionsBox extends Component {
     return (
       <div className="versionsBox">
         {
-          this.state.versionLangs.map((lang) => (
+          versionLangs.map((lang) => (
             <div key={lang}>
               <div className="versionLanguage">{Sefaria._(this.props.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${this.state.versionLangMap[lang].length})`}</span></div>
               {
                 this.state.versionLangMap[lang].map((v) => (
                   <VersionBlock
+                    rendermode="versions-box"
+                    sidebarDisplay={true}
                     version={v}
                     currVersions={currVersions}
                     currentRef={this.props.srefs[0]}

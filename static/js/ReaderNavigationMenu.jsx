@@ -11,6 +11,7 @@ const {
   LanguageToggleButton,
 }                                  = require('./Misc');
 const {TopicCategory}              = require('./TopicPage');
+const MobileHeader                 = require('./MobileHeader');
 import React, { useState, useEffect, useRef } from 'react';
 const ReactDOM                     = require('react-dom');
 const PropTypes                    = require('prop-types');
@@ -39,13 +40,13 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
   }, []);
 
   const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : 1000);
-  
+
   const navHome = () => {
     setCategories([]);
-    setNavTopic("");
+    setNavTopic("", null);
     openNav();
   };
-  
+
   const enableShowMore = (event) => {
     event.preventDefault();
     setShowMore(true);
@@ -53,20 +54,6 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
   const enableShowMoreTopics = (event) => {
     event.preventDefault();
     setShowMoreTopics(true);
-  };
-  
-  const handleSearchKeyUp = (event) => {
-    if (event.keyCode === 13) {
-      const query = $(event.target).val();
-      openSearch(query);
-    }
-  };
-  
-  const handleSearchButtonClick = (event) => {
-    const query = $(ReactDOM.findDOMNode(ref.current)).find(".readerSearch").val();
-    if (query) {
-      openSearch(query);
-    }
   };
 
   const openSaved = () => (Sefaria._uid) ? openMenu("saved") : toggleSignUpModal();
@@ -99,6 +86,7 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
             <TopicCategory
               topic={topic}
               setTopic={setTopic}
+              setNavTopic={setNavTopic}
               toggleLanguage={toggleLanguage}
               contentLang={settings.language}
               interfaceLang={interfaceLang}
@@ -106,6 +94,9 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
               multiPanel={multiPanel}
               compare={compare}
               hideNavHeader={hideNavHeader}
+              openDisplaySettings={openDisplaySettings}
+              openSearch={openSearch}
+              onClose={onClose}
             />
         </div>
     )
@@ -121,8 +112,8 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
             );
   });
   const more = (<a href="#" className="readerNavCategory readerNavMore" onClick={enableShowMore}>
-                  <span className="int-en">More <img src="/static/img/arrow-right.png" alt="" /></span>
-                  <span className="int-he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
+                  <span className="int-en">More<img src="/static/img/arrow-right.png" alt="" /></span>
+                  <span className="int-he">עוד<img src="/static/img/arrow-left.png" alt="" /></span>
               </a>);
   const nCats  = width < 500 ? 9 : 8;
   categoriesBlock = showMore ? categoriesBlock : categoriesBlock.slice(0, nCats).concat(more);
@@ -170,14 +161,15 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
                 heDisplayValue={item.displayValue["he"]}
                 category={item.category}
                 showSections={false}
-                recentItem={false} />)
+                recentItem={false}
+                csrRequired={true}/>)
   });
   calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={width} /></div>);
 
 
   let resources = [
       <TocLink en="Create a Sheet" he="צור דף חדש" href="/sheets/new" resourcesLink={true} outOfAppLink={true}
-            img="/static/img/new-sheet.svg"  alt="new source sheet icon"/>,
+            img="/static/img/new-sheet.svg"  alt="new source sheet icon" />,
       <TocLink en="Authors" he="רשימת מחברים" href="/people" resourcesLink={true} outOfAppLink={true}
             img="/static/img/authors-icon.png" alt="author icon"/>,
       <TocLink en="Groups" he="קבוצות" href="/groups" resourcesLink={true} outOfAppLink={true}
@@ -193,26 +185,17 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
   resources = (<div className="readerTocResources"><TwoBox content={resources} width={width} /></div>);
 
 
-  const topContent = hideNavHeader ? null : home ?
-          (<div className="readerNavTop search">
-            <CategoryColorLine category="Other" />
-            <ReaderNavigationMenuSearchButton onClick={navHome} />
-            <div className='sefariaLogo'><img src="/static/img/logo.svg" alt="Sefaria Logo" /></div>
-            {interfaceLang !== "hebrew" ?
-              <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} />
-              : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> }
-          </div>) :
-          (<div className="readerNavTop search">
-            <CategoryColorLine category="Other" />
-            <div className="readerNavTopStart">
-              <ReaderNavigationMenuMenuButton onClick={onClose} compare={compare} interfaceLang={interfaceLang}/>
-              <div className="searchBox">
-                <ReaderNavigationMenuSearchButton onClick={handleSearchButtonClick} />
-                <input id="searchInput" className="readerSearch" title={Sefaria._("Search for Texts or Keywords Here")} placeholder={Sefaria._("Search")} onKeyUp={handleSearchKeyUp} />
-              </div>
-            </div>
-            {interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} /> : null}
-          </div>);
+  const topContent = hideNavHeader ? null : (
+    <MobileHeader
+      mode={home ? 'home' : 'mainTOC'}
+      navHome={navHome}
+      interfaceLang={interfaceLang}
+      openDisplaySettings={openDisplaySettings}
+      onClose={onClose}
+      compare={compare}
+      openSearch={openSearch}
+    />
+  );
 
   let topUserData = [
       <TocLink en="Saved" he="שמורים" href="/texts/saved" resourcesLink={true} onClick={openSaved} img="/static/img/star.png" alt="saved text icon"/>,
@@ -221,16 +204,16 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
   topUserData = (<div className="readerTocResources userDataButtons"><TwoBox content={topUserData} width={width} /></div>);
 
   let donation  = [
-      <TocLink en="Make a Donation" he="בצעו תרומה" resourcesLink={true} outOfAppLink={true} classes="donationLink" img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/supportsefaria"/>,
-      <TocLink en="Sponsor a day" he="תרום יום לימוד" resourcesLink={true} outOfAppLink={true} classes="donationLink" img="/static/img/calendar.svg" alt="donation icon" href="https://sefaria.nationbuilder.com/sponsor"/>,
+      <TocLink en="Make a Donation" he="תרומות" resourcesLink={true} outOfAppLink={true} classes="donationLink" img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/supportsefaria"/>,
+      <TocLink en="Sponsor a day" he="תנו חסות ליום לימוד" resourcesLink={true} outOfAppLink={true} classes="donationLink" img="/static/img/calendar.svg" alt="donation icon" href="https://sefaria.nationbuilder.com/sponsor"/>,
   ];
 
   donation = (<div className="readerTocResources"><TwoBox content={donation} width={width} /></div>);
 
 
   let topicBlocks = Sefaria.topicTocPage().map((t,i) => {
-      const openTopic = e => {e.preventDefault(); setNavTopic(t.name)};
-      return <a href={"/topics/category/" + t.name}
+      const openTopic = e => {e.preventDefault(); setNavTopic(t.slug, {en: t.en, he: t.he})};
+      return <a href={"/topics/category/" + t.slug}
          onClick={openTopic}
          className="blockLink"
          key={i}>
@@ -239,10 +222,18 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
       </a>
   });
   const moreTopics = (<a href="#" className="blockLink readerNavMore" onClick={enableShowMoreTopics}>
-                  <span className="int-en">More <img src="/static/img/arrow-right.png" alt="" /></span>
-                  <span className="int-he">עוד <img src="/static/img/arrow-left.png" alt="" /></span>
+                  <span className="int-en">More<img src="/static/img/arrow-right.png" alt="" /></span>
+                  <span className="int-he">עוד<img src="/static/img/arrow-left.png" alt="" /></span>
               </a>);
-  const azButton = <TocLink en="All Topics A-Z" he="כל הנושאים" href="/topics" resourcesLink={true} onClick={openMenu.bind(null, "topics")} />;
+  const azButton = (
+    <a href={"/topics"}
+       onClick={openMenu.bind(null, "topics")}
+       className="blockLink readerNavMore"
+    >
+        <span className='en'>All Topics</span>
+        <span className='he'>כל הנושאים</span>
+    </a>
+  );
   topicBlocks = showMoreTopics ? topicBlocks.concat(azButton) : topicBlocks.slice(0, nCats).concat(moreTopics);
   const topicsBlock = (<div className="readerTocTopics"><TwoOrThreeBox content={topicBlocks} width={width} /></div>);
 
@@ -265,9 +256,9 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
               { compare ? null : title }
               { compare ? null : <Dedication /> }
               { topUserData }
-              <ReaderNavigationMenuSection title="Browse" heTitle="טקסטים" content={categoriesBlock} />
+              <ReaderNavigationMenuSection title="Texts" heTitle="טקסטים" content={categoriesBlock} />
               { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} /> : null }
-              <ReaderNavigationMenuSection title="Topics" heTitle="נושאים" content={topicsBlock} />
+              { Sefaria.topicTocPage().length ? <ReaderNavigationMenuSection title="Topics" heTitle="נושאים" content={topicsBlock} /> : null }
               { !compare ? (<ReaderNavigationMenuSection title="Resources" heTitle="קהילה" content={resources} />) : null }
               { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Support Sefaria" heTitle="תמכו בספריא" content={donation} /> : null }
               { multiPanel ? null : siteLinks }
@@ -344,8 +335,8 @@ const Dedication = () => {
         !dedicationData ? null :
         <div className="dedication">
           <span>
-              <span className="en">{dedicationData.en}</span>
-              <span className="he">{dedicationData.he}</span>
+              <span className="int-en">{dedicationData.en}</span>
+              <span className="int-he">{dedicationData.he}</span>
           </span>
         </div>
     );

@@ -7,20 +7,22 @@
 {% block content %}
 <div id="editProfilePage" class="static biReady">
 	<div class="inner">
-        <h1>
-            <span class="int-en">Edit Your Profile</span>
-            <span class="int-he">עריכת פרופיל</span>
-        </h1>
-        <div id="saveCancelButtons">
-            <a class="button transparent control-elem" href="/my/profile">
-                <span class="int-en">Cancel</span>
-                <span class="int-he">ביטול</span>
-            </a>
-            <div id="saveProfile" tabindex="0" role="button" class="button blue control-elem">
-                <span class="int-en">Save</span>
-                <span class="int-he">שמירה</span>
+        <h1 class="header-with-buttons">
+            <div>
+                <span class="int-en">Edit Your Profile</span>
+                <span class="int-he">עריכת פרופיל</span>
             </div>
-        </div>
+            <div id="saveCancelButtons">
+                <a class="button transparent control-elem" href="/my/profile">
+                    <span class="int-en">Cancel</span>
+                    <span class="int-he">בטל</span>
+                </a>
+                <div id="saveProfile" class="button blue control-elem" tabindex="0" role="button" >
+                    <span class="int-en">Save</span>
+                    <span class="int-he">שמור</span>
+                </div>
+            </div>
+        </h1>
         <div id="profileBox">
             <div class="field control-elem">
                 <label>

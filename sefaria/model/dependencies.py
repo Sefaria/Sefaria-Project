@@ -70,10 +70,17 @@ subscribe(cascade_delete(notification.GlobalNotificationSet, "content.version", 
 subscribe(layer.process_note_deletion_in_layer,                         note.Note, "delete")
 
 # Terms
+# TODO cascade change to Term.name.
+# TODO Current locations where we know terms are used [Index, Categories]
+# TODO Use Sefaria-Project/scripts/search_for_indexes_that_use_terms.py for now
 subscribe(cascade(schema.TermSet, "scheme"),                                schema.TermScheme, "attributeChange", "name")
 subscribe(text.reset_simple_term_mapping,                                   schema.Term, "delete")
 subscribe(text.reset_simple_term_mapping,                                   schema.Term, "save")
-
+"""
+Notes on where Terms are used
+Index (alt structs and schema)
+Category
+"""
 # Version State Save
 subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
 

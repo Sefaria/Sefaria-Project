@@ -1,6 +1,6 @@
 import time
 import redis
-from sefaria.local_settings import MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB
+from sefaria.settings import MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB
 
 import logging
 logger = logging.getLogger("multiserver")
@@ -11,7 +11,7 @@ class MessagingNode(object):
 
     def connect(self):
         logger.info("Initializing {} with subscriptions: {}".format(self.__class__.__name__, self.subscription_channels))
-        self.redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB)
+        self.redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
         self.pubsub = self.redis_client.pubsub()
         if len(self.subscription_channels):
             self.pubsub.subscribe(*self.subscription_channels)

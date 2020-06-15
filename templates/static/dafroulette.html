@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "DafRoulette" %}{% endblock %}
+
+{% block description %}{% trans "DafRoulette is an experiment from Sefaria to match you with random partners for studying daf yomi." %}{% endblock %}
+
+{% block css %}
+
+html, body, .wrapper, #content {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+}
+
+#s2 {
+  display: none;
+}
+
+video {
+  max-width: 100%;
+  width: 258px;
+  order: 0;
+  flex: 0 0 auto;
+  align-self: auto;
+  border: 0;
+
+}
+
+iframe {
+  width: 100%;
+  border: 0;
+
+}
+
+a {
+  color: #666666;
+}
+
+.flippedVideo {
+  transform: rotateY(180deg);
+}
+
+#container {
+    min-height: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-content: stretch;
+    align-items: flex-start;
+    }
+
+#videos {
+    order: 0;
+    flex: 0 1 auto;
+    align-self: stretch;
+    background-color: #EDEDEC;
+
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-content: center;
+    align-items: center;
+    z-index: 1001;
+
+    }
+
+  #videos p {
+    width: 208px;
+    font-size: 13px;
+    line-height: 18px;
+    color: #666666;
+  }
+
+#iframeContainer {
+    order: 0;
+    flex: 1 1 auto;
+    align-self: stretch;
+
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+    }
+
+    #chevrutaName {
+      margin: -30px 5px 20px;
+      padding: 5px;
+      border-radius: 10px;
+      z-index: 1;
+      background: rgba(0,0,0,.3);
+      color: white;
+      align-self: flex-start;
+      font-size: 13px;
+    }
+
+button {
+  background: #FFFFFF;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  width: 208px;
+  height: 39px;
+  order: 0;
+  flex: 0 0 auto;
+  align-self: center;
+
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+
+  color: #666666;
+
+  margin: 9px 0px;
+
+}
+
+#reportUser {
+  color: #c82333;
+}
+
+a {
+  text-decoration: underline;
+
+}
+
+{% endblock %}
+
+{% block bodyclasses %}nochrome{% endblock %}
+{% block content %}
+
+<div id="container">
+  <div id="videos">
+    <video id="localVideo" class="flippedVideo" autoplay playsinline muted></video>
+    <video id="remoteVideo" autoplay playsinline poster="/static/img/dafroulette-loading.png"></video>
+    <div id="chevrutaName"></div>
+    <input type="hidden" id="chevrutaUID" value=false>
+    <div id="buttonContainer"></div>
+    <p class="int-en">
+      DafRoulette is an experimental project from Sefaria to match you with random partners for studying daf yomi.
+    </p>
+
+    <p class="int-he">
+      DafRoulette הוא פרויקט ניסיוני של ספריא, שמטרתו להתאים לכם חברותא אקראית ללימוד דף יומי.
+    </p>
+
+
+    <p class="int-en">
+      Pirkei Avot says you should be at least <a href="https://www.sefaria.org/Pirkei_Avot.5.21?lang=bi&with=all&lang2=bi">15+ to experience this</a>, so check with your grownup if you're younger.
+    </p>
+
+    <p class="int-he">
+      בפרקי אבות נאמר שאפשר לחוות חוויה <a href=https://www.sefaria.org/Pirkei_Avot.5.21">זו מגיל 15</a>. התייעצו עם מבוגר אם אתם צעירים מגיל 15.
+    </p>
+
+
+    <p class="int-en">
+      There are currently <span id="numberOfChevrutas"><em>loading...</em></span> chevrutas studying.
+    </p>
+
+    <p class="int-he">
+      ברגע זה פועלות <span id="numberOfChevrutas"><em>loading...</em></span> חברותות.
+    </p>
+
+
+    <p class="int-en">
+      Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
+    </p>
+
+    <p class="int-he">
+      לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
+    </p>
+
+
+    <p class="int-en">
+      <a href="#" id="reportUser" onclick="reportUser();">Report User</a>
+    </p>
+
+    <p class="int-he">
+      <a href="#" id="reportUser" onclick="reportUser();">דיווח משתמש</a>
+    </p>
+
+  </div>
+  <div id="iframeContainer">
+  </div>
+</div>
+{% endblock %}
+
+{% block js  %}
+<script src="//{{ rtc_server }}/socket.io/socket.io.js"></script>
+<script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<script src="/dafroulette.js"></script>
+<script>addAdditionalHTML()</script>
+{% endblock %}

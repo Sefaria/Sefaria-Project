@@ -19,7 +19,7 @@ try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
 except ImportError:
-    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
+    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
 from . import abstract as abst
@@ -439,7 +439,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         :return: TimePeriod: First tries to return `compDate`. Deals with ranges and negative values for compDate
         If no compDate, looks at author info
         """
-        author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
         start, end, startIsApprox, endIsApprox = None, None, None, None
 
         if getattr(self, "compDate", None):
@@ -461,13 +460,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 except UnicodeEncodeError as e:
                     pass
 
-        elif author and author.mostAccurateTimePeriod():
-            tp = author.mostAccurateTimePeriod()
-            tpvars = vars(tp)
-            start = tp.start if "start" in tpvars else None
-            end = tp.end if "end" in tpvars else None
-            startIsApprox = tp.startIsApprox if "startIsApprox" in tpvars else None
-            endIsApprox = tp.endIsApprox if "endIsApprox" in tpvars else None
+        else:
+            author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
+            if author and author.mostAccurateTimePeriod():
+                tp = author.mostAccurateTimePeriod()
+                tpvars = vars(tp)
+                start = tp.start if "start" in tpvars else None
+                end = tp.end if "end" in tpvars else None
+                startIsApprox = tp.startIsApprox if "startIsApprox" in tpvars else None
+                endIsApprox = tp.endIsApprox if "endIsApprox" in tpvars else None
 
         if not start is None:
             from sefaria.model.timeperiod import TimePeriod
@@ -489,20 +490,23 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if not getattr(self, date_field, None):
             return None
 
-        errorMargin = int(getattr(self, margin_field, 0)) if margin_field else 0
-        startIsApprox = endIsApprox = errorMargin > 0
+        try:
+            error_margin = int(getattr(self, margin_field, 0)) if margin_field else 0
+        except ValueError:
+            error_margin = 0
+        startIsApprox = endIsApprox = error_margin > 0
 
         try:
             year = int(getattr(self, date_field))
-            start = year - errorMargin
-            end = year + errorMargin
+            start = year - error_margin
+            end = year + error_margin
         except ValueError as e:
             years = getattr(self, date_field).split("-")
             if years[0] == "" and len(years) == 3:  #Fix for first value being negative
                 years[0] = -int(years[1])
                 years[1] = int(years[2])
-            start = int(years[0]) - errorMargin
-            end = int(years[1]) + errorMargin
+            start = int(years[0]) - error_margin
+            end = int(years[1]) + error_margin
         return timeperiod.TimePeriod({
             "start": start,
             "startIsApprox": startIsApprox,
@@ -650,11 +654,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             except BookNameError:
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
-        if not library.get_toc_tree().lookup(self.categories):
-            # Perhaps we're in the midst of change?  Try to load directly.
-            from sefaria.model import Category
-            if not Category().load({"path": self.categories}):
-                raise InputError("You must create category {} before adding texts to it.".format("/".join(self.categories)))
+        from sefaria.model import Category
+        if not Category().load({"path": self.categories}):
+            raise InputError("You must create category {} before adding texts to it.".format("/".join(self.categories)))
 
         '''
         for cat in self.categories:
@@ -711,9 +713,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if order:
             return order[0]
         elif getattr(self, 'base_text_titles', None):
-            order = max([library.get_index(x).get_toc_index_order() for x in self.base_text_titles])
-            return order
-        return 9999
+            orders = [a for a in filter(None, [library.get_index(x).get_toc_index_order() for x in self.base_text_titles])]
+            if len(orders) > 0:
+                return min(orders)
+        return None
 
     def slim_toc_contents(self):
         toc_contents_dict = {
@@ -946,9 +949,8 @@ class AbstractTextRecord(object):
 
         for segment in as_array:
             joiner = " " if previous_state is not None else ""
-
             previous_state = accumulator
-            accumulator += joiner + segment
+            accumulator += joiner + self._strip_itags(segment)
 
             cur_len = len(accumulator)
             prev_len = len(previous_state)
@@ -1025,14 +1027,14 @@ class AbstractTextRecord(object):
     @staticmethod
     def _find_itags(tag):
         if isinstance(tag, Tag):
-            is_footnote = tag.name == "sup" and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
+            is_footnote = tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             return is_footnote or is_inline_commentator
         return False
 
     @staticmethod
     def _strip_itags(s):
-        soup = BeautifulSoup("<div>{}</div>".format(s), 'xml')
+        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
         itag_list = soup.find_all(AbstractTextRecord._find_itags)
         for itag in itag_list:
             try:
@@ -1040,7 +1042,7 @@ class AbstractTextRecord(object):
             except AttributeError:
                 pass  # it's an inline commentator
             itag.decompose()
-        return soup.encode_contents().decode()[5:-6]  # remove divs added
+        return soup.root.encode_contents().decode()  # remove divs added
 
     def _get_text_after_modifications(self, text_modification_funcs):
         """
@@ -1054,6 +1056,7 @@ class AbstractTextRecord(object):
             for func in text_modification_funcs:
                 s = func(s)
             return s
+
         return self.ja().modify_by_function(modifier)
 
     # Currently assumes that text is JA
@@ -1101,6 +1104,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
         "extendedNotes",
         "extendedNotesHebrew",
+        "purchaseInformationImage",
+        "purchaseInformationURL"
     ]
 
     def __str__(self):
@@ -1115,7 +1120,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
-        assert self.get_index() is not None
+        if self.get_index() is None:
+            raise InputError("Versions cannot be created for non existing Index records")
         return True
 
     def _normalize(self):
@@ -2890,6 +2896,18 @@ class Ref(object, metaclass=RefCacheType):
             return False
         return len(self.sections) == self.index_node.depth
 
+    def is_sheet(self):
+        """
+        Is this Ref a Sheet Ref?
+        ::
+            >>> Ref("Leviticus 15:3").is_sheet()
+            False
+            >>> Ref("Sheet 15").is_sheet()
+            True
+        :return bool:
+        """
+        return self.index.title == 'Sheet'
+
     """ Methods to generate new Refs based on this Ref """
     def _core_dict(self):
         return {
@@ -2907,6 +2925,7 @@ class Ref(object, metaclass=RefCacheType):
     def default_child_ref(self):
         """
         Return ref to the default node underneath this node
+        If there is no default node, return self
         :return:
         """
         if not self.has_default_child():
@@ -3046,7 +3065,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         return self.padded_ref().context_ref(self.index_node.depth - 1)
 
-    def next_section_ref(self):
+    def next_section_ref(self, vstate=None):
         """
         Returns a Ref to the next section (e.g. Chapter).
 
@@ -3059,7 +3078,7 @@ class Ref(object, metaclass=RefCacheType):
                 nl = self.index_node.next_leaf()
                 self._next = nl.ref() if nl else None
                 return self._next
-            self._next = self._iter_text_section()
+            self._next = self._iter_text_section(vstate=vstate)
             if self._next is None and not self.index_node.children:
                 current_leaf = self.index_node
                 #we now need to iterate over the next leaves, finding the first available section
@@ -3072,7 +3091,7 @@ class Ref(object, metaclass=RefCacheType):
                             return None
                     if next_leaf:
                         next_node_ref = next_leaf.ref() #get a ref so we can do the next lines
-                        potential_next = next_node_ref._iter_text_section(depth_up=0 if next_leaf.depth == 1 else 1)
+                        potential_next = next_node_ref._iter_text_section(depth_up=0 if next_leaf.depth == 1 else 1, vstate=vstate)
                         if potential_next:
                             self._next = potential_next
                             break
@@ -3082,7 +3101,7 @@ class Ref(object, metaclass=RefCacheType):
                         break
         return self._next
 
-    def prev_section_ref(self):
+    def prev_section_ref(self, vstate=None):
         """
         Returns a Ref to the previous section (e.g. Chapter).
 
@@ -3095,7 +3114,7 @@ class Ref(object, metaclass=RefCacheType):
                 pl = self.index_node.prev_leaf()
                 self._prev = pl.ref() if pl else None
                 return self._prev
-            self._prev = self._iter_text_section(False)
+            self._prev = self._iter_text_section(False, vstate=vstate)
             if self._prev is None and not self.index_node.children:
                 current_leaf = self.index_node
                 # we now need to iterate over the prev leaves, finding the first available section
@@ -3108,7 +3127,7 @@ class Ref(object, metaclass=RefCacheType):
                             return None
                     if prev_leaf:
                         prev_node_ref = prev_leaf.ref()  # get a ref so we can do the next lines
-                        potential_prev = prev_node_ref._iter_text_section(forward=False, depth_up=0 if prev_leaf.depth == 1 else 1)
+                        potential_prev = prev_node_ref._iter_text_section(forward=False, depth_up=0 if prev_leaf.depth == 1 else 1, vstate=vstate)
                         if potential_prev:
                             self._prev = potential_prev
                             break
@@ -3267,12 +3286,13 @@ class Ref(object, metaclass=RefCacheType):
 
         return db.texts.count_documents(self.condition_query(lang)) == 0
 
-    def _iter_text_section(self, forward=True, depth_up=1):
+    def _iter_text_section(self, forward=True, depth_up=1, vstate=None):
         """
         Iterate forwards or backwards to the next available :class:`Ref` in a text
 
         :param forward: Boolean indicating direction to iterate
         :depth_up: if we want to traverse the text at a higher level than most granular. Defaults to one level above
+        :param vstate: VersionState for this index. Pass this down to avoid calling expensive database lookups
         :return: :class:`Ref`
         """
         if self.index_node.depth <= depth_up:  # if there is only one level of text, don't even waste time iterating.
@@ -3292,7 +3312,10 @@ class Ref(object, metaclass=RefCacheType):
             starting_points[-1] += 1 if forward else -1
 
         #let the counts obj calculate the correct place to go.
-        c = self.get_state_node(hint=[("all","availableTexts")]).ja("all", "availableTexts")
+        if vstate:
+            c = vstate.state_node(self.index_node).ja("all", "availableTexts")
+        else:
+            c = self.get_state_node(hint=[("all","availableTexts")]).ja("all", "availableTexts")
         new_section = c.next_index(starting_points) if forward else c.prev_index(starting_points)
 
         # we are also scaling back the sections to the level ABOVE the lowest section type (eg, for bible we want chapter, not verse)
@@ -3488,10 +3511,10 @@ class Ref(object, metaclass=RefCacheType):
             try:
                 if len(self.sections) >= self.index_node.depth - 1:
                     return self
-            except AttributeError: # This is a schema node, try to get a default child
-                try:
+            except AttributeError:  # This is a schema node, try to get a default child
+                if self.has_default_child():
                     return self.default_child_ref().padded_ref()
-                except Exception:
+                else:
                     raise InputError("Can not pad a schema node ref")
 
             d = self._core_dict()
@@ -3583,53 +3606,51 @@ class Ref(object, metaclass=RefCacheType):
             [Ref('Shabbat 13b:3-50'), Ref('Shabbat 14a'), Ref('Shabbat 14b:1-3')]
 
         """
-        if not self._spanned_refs or True:
+        if self.index_node.depth == 1 or not self.is_spanning():
+            self._spanned_refs = [self]
 
-            if self.index_node.depth == 1 or not self.is_spanning():
-                self._spanned_refs = [self]
+        else:
+            start, end = self.sections[self.range_index()], self.toSections[self.range_index()]
+            ref_depth = len(self.sections)
+            to_ref_depth = len(self.toSections)
 
-            else:
-                start, end = self.sections[self.range_index()], self.toSections[self.range_index()]
-                ref_depth = len(self.sections)
-                to_ref_depth = len(self.toSections)
+            refs = []
+            for n in range(start, end + 1):
+                d = self._core_dict()
+                if n == start:
+                    d["toSections"] = self.sections[0:self.range_index() + 1]
 
-                refs = []
-                for n in range(start, end + 1):
-                    d = self._core_dict()
-                    if n == start:
-                        d["toSections"] = self.sections[0:self.range_index() + 1]
+                    for i in range(self.range_index() + 1, ref_depth):
+                        d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]],until_last_nonempty=True)]
+                elif n == end:
+                    d["sections"] = self.toSections[0:self.range_index() + 1]
+                    for _ in range(self.range_index() + 1, to_ref_depth):
+                        d["sections"] += [1]
+                else:
+                    d["sections"] = self.sections[0:self.range_index()] + [n]
+                    d["toSections"] = self.sections[0:self.range_index()] + [n]
 
+                    '''  If we find that we need to expand inner refs, add this arg.
+                    # It will require handling on cached ref and passing on the recursive call below.
+                    if expand_middle:
                         for i in range(self.range_index() + 1, ref_depth):
-                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]],until_last_nonempty=True)]
-                    elif n == end:
-                        d["sections"] = self.toSections[0:self.range_index() + 1]
-                        for _ in range(self.range_index() + 1, to_ref_depth):
                             d["sections"] += [1]
-                    else:
-                        d["sections"] = self.sections[0:self.range_index()] + [n]
-                        d["toSections"] = self.sections[0:self.range_index()] + [n]
+                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                    '''
 
-                        '''  If we find that we need to expand inner refs, add this arg.
-                        # It will require handling on cached ref and passing on the recursive call below.
-                        if expand_middle:
-                            for i in range(self.range_index() + 1, ref_depth):
-                                d["sections"] += [1]
-                                d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
-                        '''
+                if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
+                    try:
+                        refs.append(Ref(_obj=d))
+                    except InputError:
+                        pass
 
-                    if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
-                        try:
-                            refs.append(Ref(_obj=d))
-                        except InputError:
-                            pass
-
-                if self.range_depth() == 2:
-                    self._spanned_refs = refs
-                if self.range_depth() > 2: #recurse
-                    expanded_refs = []
-                    for ref in refs:
-                        expanded_refs.extend(ref.split_spanning_ref())
-                    self._spanned_refs = expanded_refs
+            if self.range_depth() == 2:
+                self._spanned_refs = refs
+            if self.range_depth() > 2: #recurse
+                expanded_refs = []
+                for ref in refs:
+                    expanded_refs.extend(ref.split_spanning_ref())
+                self._spanned_refs = expanded_refs
 
         return self._spanned_refs
 
@@ -4016,7 +4037,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
                   "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
-                  "extendedNotesHebrew"]
+                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
@@ -4181,6 +4202,11 @@ class Ref(object, metaclass=RefCacheType):
         from . import LinkSet
         return LinkSet(self)
 
+    def topiclinkset(self):
+        from . import RefTopicLinkSet
+        regex_list = self.regex(as_list=True)
+        return RefTopicLinkSet({"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]})
+
     def autolinker(self, **kwargs):
         """
         Returns the class best suited to perform auto linking,
@@ -4273,6 +4299,8 @@ class Library(object):
         self._toc_json = None
         self._toc_tree = None
         self._topic_toc_json = None
+        self._topic_link_types = None
+        self._topic_data_sources = None
         self._search_filter_toc = None
         self._search_filter_toc_json = None
         self._category_id_dict = None
@@ -4345,7 +4373,7 @@ class Library(object):
         if not skip_filter_toc:
             self._search_filter_toc = self.get_search_filter_toc(rebuild=True)
         self._search_filter_toc_json = self.get_search_filter_toc_json(rebuild=True)
-
+        self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
         self._category_id_dict = None
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
@@ -4390,26 +4418,59 @@ class Library(object):
         self._toc_tree_is_ready = True
         return self._toc_tree
 
-    def get_topic_toc_json(self):
-        if not self._topic_toc_json:
-            ts = TermSet({"scheme": "Tag Category"})
-            names = [t.name for t in ts]
-            kid_ts = TermSet({"category": {"$in": names}})
-            kids = defaultdict(list)
-            for k in kid_ts:
-                kids[k.category] += [{
-                    "name": k.name,
-                    "en": k.get_primary_title("en"),
-                    "he": k.get_primary_title("he"),
-                }]
-            topics = [{
-                "name": t.name,
-                "en": t.get_primary_title("en"),
-                "he": t.get_primary_title("he"),
-                "children": kids[t.name]
-            } for t in ts]
-            self._topic_toc_json = json.dumps(topics)
+    def get_topic_toc_json(self, rebuild=False):
+        if not self._topic_toc_json or rebuild:
+            self._topic_toc_json = json.dumps(self.get_topic_toc_json_recursive())
         return self._topic_toc_json
+
+    def get_topic_toc_json_recursive(self, topic=None, explored=None):
+        from .topic import Topic, TopicSet, IntraTopicLinkSet
+        explored = explored or set()
+        if topic is None:
+            ts = TopicSet({"isTopLevelDisplay": True})
+            children = [t.slug for t in ts]
+            topic_json = {}
+        else:
+            children = [] if topic.slug in explored else [l.fromTopic for l in IntraTopicLinkSet({"linkType": "displays-under", "toTopic": topic.slug})]
+            topic_json = {
+                "slug": topic.slug,
+                "shouldDisplay": True if len(children) > 0 else topic.should_display(),
+                "en": topic.get_primary_title("en"),
+                "he": topic.get_primary_title("he"),
+                "displayOrder": getattr(topic, "displayOrder", 10000)
+            }
+            explored.add(topic.slug)
+        if len(children) > 0 or topic is None:  # make sure root gets children no matter what
+            topic_json['children'] = []
+        for child in children:
+            child_topic = Topic().load({'slug': child})
+            if child_topic is None:
+                logger.warning("While building topic TOC, encountered non-existant topic slug: {}".format(child))
+                continue
+            topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored)]
+        if len(children) > 0:
+            topic_json['children'].sort(key=lambda x: x['displayOrder'])
+        if topic is None:
+            return topic_json['children']
+        return topic_json
+
+    def get_topic_link_type(self, link_type):
+        from .topic import TopicLinkTypeSet
+        if not self._topic_link_types:
+            # pre-populate topic link types
+            self._topic_link_types = {
+                link_type.slug: link_type for link_type in TopicLinkTypeSet()
+            }
+        return self._topic_link_types.get(link_type, None)
+
+    def get_topic_data_source(self, data_source):
+        from .topic import TopicDataSourceSet
+        if not self._topic_data_sources:
+            # pre-populate topic data sources
+            self._topic_data_sources = {
+                data_source.slug: data_source for data_source in TopicDataSourceSet()
+            }
+        return self._topic_data_sources.get(data_source, None)
 
     def get_groups_in_library(self):
         return self._toc_tree.get_groups_in_library()
@@ -4443,7 +4504,7 @@ class Library(object):
     def build_full_auto_completer(self):
         from .autospell import AutoCompleter
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_categories=True, include_parasha=True, include_groups=True) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_groups=True) for lang in self.langs
         }
 
         for lang in self.langs:

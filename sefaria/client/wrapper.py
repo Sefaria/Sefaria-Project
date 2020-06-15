@@ -7,7 +7,6 @@ logger = logging.getLogger(__name__)
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError, NoVersionFoundError
-from sefaria.model.text import library
 from sefaria.model.user_profile import user_link, public_user_data
 from sefaria.sheets import get_sheets_for_ref
 from sefaria.utils.hebrew import hebrew_term
@@ -53,7 +52,10 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
 
     compDate = getattr(linkRef.index, "compDate", None)
     if compDate:
-        com["compDate"] = int(compDate)
+        try:
+            com["compDate"] = int(compDate)
+        except ValueError:
+            com["compDate"] = 3000  # default comp date to in the future
         try:
             com["errorMargin"] = int(getattr(linkRef.index, "errorMargin", 0))
         except ValueError:
@@ -291,7 +293,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
             logger.warning("Trying to get non existent text for ref '{}'. Link refs were: {}".format(top_nref, link.refs))
             continue
 
-    # Harded-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
+    # Hard-coding automatic display of links to an underlying text. bound_texts = ("Rashba on ",)
     # E.g., when requesting "Steinsaltz on X" also include links to "X" as though they were connected directly to Steinsaltz.
     bound_texts = ("Steinsaltz on ",)
     for prefix in bound_texts:

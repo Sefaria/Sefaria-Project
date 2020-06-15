@@ -125,6 +125,12 @@ def index_sheet(index_name, id):
     pud = public_user_data(sheet["owner"])
     tag_terms_simple = make_sheet_tags(sheet)
     tags = [t["en"] for t in tag_terms_simple]
+    topics = []
+    for t in sheet.get('topics', []):
+        topic_obj = Topic.init(t['slug'])
+        if not topic_obj:
+            continue
+        topics += [topic_obj]
     try:
         doc = {
             "title": strip_tags(sheet["title"]),
@@ -135,6 +141,9 @@ def index_sheet(index_name, id):
             "profile_url": pud["profileUrl"],
             "version": "Source Sheet by " + user_link(sheet["owner"]),
             "tags": tags,
+            "topic_slugs": [topic_obj.slug for topic_obj in topics],
+            "topics_en": [topic_obj.get_primary_title('en') for topic_obj in topics],
+            "topics_he": [topic_obj.get_primary_title('he') for topic_obj in topics],
             "sheetId": id,
             "summary": sheet.get("summary", None),
             "group": sheet.get("group", ''),
@@ -339,6 +348,15 @@ def put_sheet_mapping(index_name):
             'tags': {
                 'type': 'keyword'
             },
+            "topics_en": {
+                "type": "keyword"
+            },
+            "topics_he": {
+                "type": "keyword"
+            },
+            "topic_slugs": {
+                "type": "keyword"
+            },
             'owner_image': {
                 'type': 'keyword'
             },
@@ -434,6 +452,9 @@ class TextIndexer(object):
     def get_ref_version_list(oref, tries=0):
         try:
             return oref.version_list()
+        except InputError as e:
+            print(f"InputError: {oref.normal()}")
+            return []
         except pymongo.errors.AutoReconnect as e:
             if tries < 200:
                 pytime.sleep(5)
@@ -715,9 +736,6 @@ def index_from_queue():
             TextIndexer.index_ref(index_name_merged, Ref(item["ref"]), None, item["lang"], True)
             db.index_queue.remove(item)
         except Exception as e:
-            import sys
-            reload(sys)
-            sys.setdefaultencoding("utf-8")
             logging.error("Error indexing from queue ({} / {} / {}) : {}".format(item["ref"], item["version"], item["lang"], e))
 
 

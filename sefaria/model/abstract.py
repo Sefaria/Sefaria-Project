@@ -28,9 +28,10 @@ class AbstractMongoRecord(object):
     "collection" attribute is set on subclass
     """
     collection = None  # name of MongoDB collection
+    sub_collection_query = None  # dict with key/values for docs in `collection` that can be instantiated with this model (e.g. used in RefTopicLink)
     id_field = "_id"  # Mongo ID field
     criteria_field = "_id"  # Primary ID used to find existing records
-    slug_field = None  # If record can be uniquely identified by slug, set this var with the slug field
+    slug_fields = None  # If record can be uniquely identified by slug, set this var with the slug fields
     criteria_override_field = None  # If a record type uses a different primary key (such as 'title' for Index records), and the presence of an override field in a save indicates that the primary attribute is changing ("oldTitle" in Index records) then this class attribute has that override field name used.
     required_attrs = []  # list of names of required attributes
     optional_attrs = []  # list of names of optional attributes
@@ -193,21 +194,25 @@ class AbstractMongoRecord(object):
             d["_id"] = str(self._id)
         return d
 
-    def normalize_slug(self):
+    def normalize_slug_field(self, slug_field):
         """
-        Set the slug according to `initial_slug`,
-        using the first available number at the end if duplicates exist
-        :param initial_slug: str, initial guess as to what you want slug to be, assuming no duplicates
-        :param slug_attr: the attribute on self for where to set slug
+        Set the slug (stored in self[slug_field]) using the first available number at the end if duplicates exist
         """
-        slug = getattr(self, self.slug_field).lower()
-        slug = slug.replace(" ", "-")
-        slug = re.sub(r"[^a-z0-9\-]", "", slug)
+        slug = self.normalize_slug(getattr(self, slug_field))
         dupe_count = 0
         _id = getattr(self, '_id', None)  # _id is not necessarily set b/c record might not have been saved yet
-        while getattr(db, self.collection).find_one({self.slug_field: slug, "_id": {"$ne": _id}}):
+        temp_slug = slug
+        while getattr(db, self.collection).find_one({slug_field: temp_slug, "_id": {"$ne": _id}}):
             dupe_count += 1
-            slug = "{}{}".format(slug, dupe_count)
+            temp_slug = "{}{}".format(slug, dupe_count)
+        return temp_slug
+
+    @staticmethod
+    def normalize_slug(slug):
+        slug = slug.lower()
+        slug = re.sub(r"[ /]", "-", slug.strip())
+        slug = re.sub(r"[^a-z0-9()\-א-ת]", "", slug)  # parens are for disambiguation on topics
+        slug = re.sub(r"-+", "-", slug)
         return slug
 
     def _set_pkeys(self):
@@ -257,8 +262,9 @@ class AbstractMongoRecord(object):
         return True
 
     def _normalize(self):
-        if self.slug_field is not None:
-            setattr(self, self.slug_field, self.normalize_slug())
+        if self.slug_fields is not None:
+            for slug_field in self.slug_fields:
+                setattr(self, slug_field, self.normalize_slug_field(slug_field))
 
     def _pre_save(self):
         pass
@@ -296,8 +302,9 @@ class AbstractMongoSet(collections.abc.Iterable):
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None):
+    def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None, record_kwargs=None):
         self.query = query or {}
+        self.record_kwargs = record_kwargs or {}  # kwargs to pass to record when instantiating
         self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj).sort(sort).skip(page * limit).limit(limit)
         self.hint = hint
         self.limit = limit
@@ -322,7 +329,7 @@ class AbstractMongoSet(collections.abc.Iterable):
         if self.records is None:
             self.records = []
             for rec in self.raw_records:
-                self.records.append(self.recordClass(attrs=rec))
+                self.records.append(self.recordClass(attrs=rec, **self.record_kwargs))
             self.max = len(self.records)
 
     def __len__(self):
@@ -342,7 +349,7 @@ class AbstractMongoSet(collections.abc.Iterable):
             return self.max
         else:
             kwargs = {k: getattr(self, k) for k in ["skip", "limit", "hint"] if getattr(self, k, None)}
-            return getattr(db, self.recordClass.collection).count_documents(self.query, **kwargs)
+            return int(getattr(db, self.recordClass.collection).count_documents(self.query, **kwargs))
 
     def update(self, attrs):
         for rec in self:
@@ -374,12 +381,14 @@ def get_subclasses(c):
     return subclasses
 
 
-def get_record_classes(concrete=True):
+def get_record_classes(concrete=True, dynamic_classes=False):
     sc = get_subclasses(AbstractMongoRecord)
     if concrete:
-        return [s for s in sc if s.collection is not None]
-    else:
-        return sc
+        sc = [s for s in sc if s.collection is not None]
+    if not dynamic_classes:
+        from sefaria.model.lexicon import DictionaryEntry
+        sc = [s for s in sc if not issubclass(s, DictionaryEntry)]
+    return sc
 
 
 def get_set_classes():
