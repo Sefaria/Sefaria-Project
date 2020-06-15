@@ -86,7 +86,6 @@ class Hebrew {
       }
     }
     if (heCount == enCount) {
-      console.log(Sefaria.interfaceLang === 'hebrew')
       return (Sefaria.interfaceLang === 'hebrew')
     }
     return (heCount > enCount);
