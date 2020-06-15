@@ -157,7 +157,7 @@ class SheetMetadata extends Component {
             </div>
             <div>{this.state.sheetCopyStatus == "Copied" ? <a href={"/sheets/"+this.state.copiedSheetId}><span className="int-en">View copy &raquo;</span><span className="int-he">צפה בהעתק &raquo;</span> </a> : null}</div>
             {document.cookie.includes("new_editor") ?
-            <a className="smallText" href={"/sheets/"+this.props.sheet.id+"?editor=1"}><span className="int-en">View in the old sheets experience</span><span className="int-he">View in the old sheets experience</span></a> : null
+            <a className="smallText" href={"/sheets/"+this.props.sheet.id+"?editor=1"}><span className="int-en">View in the old sheets experience</span><span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span></a> : null
             }
          </div>
       )
