@@ -1,9 +1,9 @@
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const PropTypes  = require('prop-types');
-const classNames = require('classnames');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class'
 
 class DictionarySearch extends Component {
@@ -88,7 +88,7 @@ class DictionarySearch extends Component {
         this.checkIfChanged()
       }.bind(this),
       classes: {
-        "ui-autocomplete": "dictionary-toc-autocomplete"  //todo: make unique identifier? 
+        "ui-autocomplete": "dictionary-toc-autocomplete"  //todo: make unique identifier?
       },
       minLength: 1,
       focus: e => clearTimeout(this.state.timer),
@@ -187,7 +187,7 @@ DictionarySearch.propTypes = {
   showBaseText:     PropTypes.func,      // req. for redirect to text - e.g. TOC case.
   showWordList:     PropTypes.func,      // req. for sidebar case
   currVersions:     PropTypes.object,    // req. for redirect to text - e.g. TOC case.
-  contextSelector:  PropTypes.string.isRequired // CSS Selector for uniquely identifiable context that this is in. 
+  contextSelector:  PropTypes.string.isRequired // CSS Selector for uniquely identifiable context that this is in.
 };
 
-module.exports = DictionarySearch;
+export default DictionarySearch;

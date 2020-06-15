@@ -475,7 +475,7 @@ def is_valid_source(source):
 
 def bleach_text(text):
 	ok_sheet_tags = ['blockquote', 'p', 'a', 'ul', 'ol', 'nl', 'li', 'b', 'i', 'strong', 'em', 'small', 'big', 'span', 'strike',
-			'hr', 'br', 'div', 'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup']
+			'hr', 'br', 'div', 'table', 'thead', 'caption', 'tbody', 'tr', 'th', 'td', 'pre', 'sup', 'u']
 
 	ok_sheet_attrs = {'a': [ 'href', 'name', 'target', 'data-ref' ],'img': [ 'src' ], 'p': ['style'], 'span': ['style'], 'div': ['style'], 'td': ['colspan'],"*": ["class"]}
 
@@ -654,8 +654,15 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	mongo_user_profiles = list(db.profiles.find({"id": {"$in": user_ids}},{"id":1,"slug":1,"profile_pic_url_small":1}))
 	mongo_user_profiles = {item['id']: item for item in mongo_user_profiles}
 	for profile in user_profiles:
-		user_profiles[profile]["slug"] = mongo_user_profiles[profile]["slug"]
-		user_profiles[profile]["profile_pic_url_small"] = mongo_user_profiles[profile].get("profile_pic_url_small", '')
+		try:
+			user_profiles[profile]["slug"] = mongo_user_profiles[profile]["slug"]
+		except:
+			user_profiles[profile]["slug"] = "/"
+
+		try:
+			user_profiles[profile]["profile_pic_url_small"] = mongo_user_profiles[profile].get("profile_pic_url_small", '')
+		except:
+			user_profiles[profile]["profile_pic_url_small"] = ""
 
 	ref_re = "("+'|'.join(regex_list)+")"
 	results = []

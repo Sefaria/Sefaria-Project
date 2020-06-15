@@ -1,8 +1,8 @@
-const React                    = require('react');
-const PropTypes     = require('prop-types');
-const Sefaria                  = require('./sefaria/sefaria');
-const $                        = require('./sefaria/sefariaJquery');
-const { NewsletterSignUpForm } = require('./Misc');
+import React  from 'react';
+import Sefaria  from './sefaria/sefaria';
+import PropTypes from'prop-types';
+import $  from './sefaria/sefariaJquery';
+import { NewsletterSignUpForm } from './Misc';
 import Component from 'react-class';
 
 
@@ -256,17 +256,17 @@ class LikeFollowButtons extends Component {
         var js, fjs = d.getElementsByTagName(s)[0];
         if (d.getElementById(id)) return;
         js = d.createElement(s); js.id = id;
-        js.src = Sefaria.interfaceLang ==  "hebrew" ? 
+        js.src = Sefaria.interfaceLang ==  "hebrew" ?
           "https://connect.facebook.net/he_IL/sdk.js#xfbml=1&version=v2.10&appId=206308089417064"
           : "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10&appId=206308089417064";
         fjs.parentNode.insertBefore(js, fjs);
-      }(document, 'script', 'facebook-jssdk'));        
+      }(document, 'script', 'facebook-jssdk'));
     }
   }
   loadTwitter() {
     if (typeof twttr !== "undefined") {
       if ("widgets" in twttr) {
-        twttr.widgets.load();        
+        twttr.widgets.load();
       }
     } else {
       window.twttr = (function(d, s, id) {
@@ -284,7 +284,7 @@ class LikeFollowButtons extends Component {
         };
 
         return t;
-      }(document, "script", "twitter-wjs"));      
+      }(document, "script", "twitter-wjs"));
     }
   }
   render() {
@@ -292,12 +292,12 @@ class LikeFollowButtons extends Component {
     var lang = Sefaria.interfaceLang.substring(0,2);
     return (<div id="socialButtons">
               <div id="facebookButton">
-                <div className="fb-like" 
-                  data-href={fbURL} 
-                  data-layout="button" 
-                  data-action="like" 
-                  data-size="small" 
-                  data-show-faces="false" 
+                <div className="fb-like"
+                  data-href={fbURL}
+                  data-layout="button"
+                  data-action="like"
+                  data-size="small"
+                  data-show-faces="false"
                   data-share="true"></div>
               </div>
               <div id="twitterButton">
@@ -312,4 +312,4 @@ class LikeFollowButtons extends Component {
 }
 
 
-module.exports = Footer;
+export default Footer;

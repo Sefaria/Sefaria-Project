@@ -1,11 +1,11 @@
-const React      = require('react');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const {
+import React  from 'react';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import {
   ProfilePic,
-}                = require('./Misc');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
+} from './Misc';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 
 
@@ -75,4 +75,4 @@ SearchSheetResult.propTypes = {
 };
 
 
-module.exports = SearchSheetResult;
+export default SearchSheetResult;

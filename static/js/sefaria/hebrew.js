@@ -8,7 +8,7 @@ class Hebrew {
     }
 
     var n = 0;
-    for (c in h) {
+    for (let c in h) {
       n += values[h[c]];
     }
 
@@ -86,7 +86,7 @@ class Hebrew {
       }
     }
 
-    return (heCount >= enCount);
+    return (heCount > enCount);
   }
   static containsHebrew(text) {
     // Returns true if there are any Hebrew characters in text
@@ -203,4 +203,4 @@ Hebrew.hebrewNumerals = {
   1200: "\u05EA\u05EA\u05EA"
 };
 
-module.exports = Hebrew;
+export default Hebrew;

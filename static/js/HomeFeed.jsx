@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Component from 'react-class';
-const $                        = require('./sefaria/sefariaJquery');
-const Sefaria                  = require('./sefaria/sefaria');
-const PropTypes                = require('prop-types');
-const {Story}                  = require('./Story');
-const Footer                   = require('./Footer');
-const { usePaginatedScroll }   = require('./Hooks');
-const { 
+import $ from './sefaria/sefariaJquery';
+import Sefaria from './sefaria/sefaria';
+import PropTypes from 'prop-types';
+import {Story} from './Story';
+import Footer from'./Footer';
+import { usePaginatedScroll } from './Hooks';
+import {
     NewsletterSignUpForm, 
     LoadingMessage 
-}                              = require('./Misc');
+} from './Misc';
 
 function CategoryLink({category, showLibrary}) {
     return ( <a className="sideCatLink refLink inAppLink" href={"/texts/" + category} style={{borderColor: Sefaria.palette.categoryColor(category)}} onClick={()=>{showLibrary(category)}}>
@@ -287,11 +287,11 @@ class NewHomeFeedbackBox extends Component {
     return (
         <div className={"feedbackBoxOverlay" + (this.state.goodbyePrompt ? " open" : "")}>
         <div className="feedbackBox">
-            
-            {this.state.goodbyePrompt ? 
+
+            {this.state.goodbyePrompt ?
             <div><p className="int-en">Before you go, would you tell why you're going back?</p>
             <p className="int-he">עוזבים? ספרו לנו מדוע אתם חוזרים למצב הישן</p></div>
-            : 
+            :
             <div><p className="int-en">Thanks for trying out the new homepage!</p>
             <p className="int-he">תודה שניסיתם את דף הבית החדש!</p></div>}
 
@@ -318,7 +318,7 @@ class NewHomeFeedbackBox extends Component {
              <div className="button white" role="button" onClick={this.toggleGoodbyePrompt}>
                  <span className="int-en">Stay on new homepage</span>
                  <span className="int-he">המשך שימוש בדף הבית החדש</span>
-             </div></div>           
+             </div></div>
              :
              <div><div className="button" role="button" onClick={this.sendFeedback}>
                  <span className="int-en">Submit Feedback</span>
@@ -340,4 +340,4 @@ class NewHomeFeedbackBox extends Component {
 }
 */
 
-module.exports = HomeFeed;
+export default HomeFeed;

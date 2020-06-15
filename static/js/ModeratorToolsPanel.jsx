@@ -1,7 +1,7 @@
-const React      = require('react');
-const PropTypes  = require('prop-types');
-const Sefaria    = require('./sefaria/sefaria');
-const $          = require('./sefaria/sefariaJquery');
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import Sefaria  from './sefaria/sefaria';
+import $  from './sefaria/sefariaJquery';
 import Component from 'react-class';
 
 
@@ -132,4 +132,4 @@ ModeratorToolsPanel.propTypes = {
 };
 
 
-module.exports = ModeratorToolsPanel;
+export default ModeratorToolsPanel;

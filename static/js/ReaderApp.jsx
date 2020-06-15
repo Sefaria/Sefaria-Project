@@ -1,25 +1,24 @@
-const React         = require('react');
-const classNames    = require('classnames');
-const extend        = require('extend');
-const PropTypes     = require('prop-types');
-const Sefaria       = require('./sefaria/sefaria');
-const Header        = require('./Header');
-const ReaderPanel   = require('./ReaderPanel');
-const $             = require('./sefaria/sefariaJquery');
-const EditGroupPage = require('./EditGroupPage');
-const {
+import React from 'react';
+import classNames from 'classnames';
+import extend from 'extend';
+import PropTypes from 'prop-types';
+import Sefaria from './sefaria/sefaria';
+import Header from './Header';
+import ReaderPanel from './ReaderPanel';
+import $ from './sefaria/sefariaJquery';
+import EditGroupPage from './EditGroupPage';
+import Footer from './Footer';
+import SearchState from './sefaria/searchState';
+import {
   RemoteLearningPage,
-  SheetsLandingPage
-}                   = require('./StaticPages');
-const Footer        = require('./Footer');
-const SearchState   = require('./sefaria/searchState');
-const {
+  SheetsLandingPage,
+} from './StaticPages';
+import {
   SignUpModal,
   InterruptingMessage,
   CookiesNotification,
-}                   = require('./Misc');
+} from './Misc';
 import Component from 'react-class';
-
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -993,6 +992,11 @@ class ReaderApp extends Component {
       $(curPanel).find(':focusable').first().focus();
     }
   }
+  closeConnectionPanel(n) {
+    if (this.state.panels.length > n+1  && this.state.panels[n+1].mode === "Connections") {
+      this.closePanel(n+1);
+    }
+  }
   handleCitationClick(n, citationRef, textRef) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
     if (this.state.panels.length > n+1  && this.state.panels[n+1].mode === "Connections") {
@@ -1752,6 +1756,7 @@ class ReaderApp extends Component {
       var style                          = (this.state.layoutOrientation=="ltr")?{width: width + unit, left: offset + unit}:{width: width + unit, right: offset + unit};
       var onSegmentClick                 = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick                = this.handleCitationClick.bind(null, i);
+      var onCloseConnectionClick         = this.closeConnectionPanel.bind(null,i);
       var onSearchResultClick            = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
@@ -1790,6 +1795,7 @@ class ReaderApp extends Component {
                       multiPanel={this.props.multiPanel}
                       onSegmentClick={onSegmentClick}
                       onCitationClick={onCitationClick}
+                      closeConnectionPanel={onCloseConnectionClick}
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
                       onRecentClick={this.handleRecentClick}
@@ -1911,11 +1917,14 @@ ReaderApp.defaultProps = {
   initialPath:                 "/"
 };
 
-
-module.exports.ReaderApp            = ReaderApp;
-module.exports.Footer               = Footer;
-module.exports.sefariaSetup         = Sefaria.setup;
-module.exports.unpackDataFromProps  = Sefaria.unpackDataFromProps;
-module.exports.EditGroupPage        = EditGroupPage;
-module.exports.RemoteLearningPage   = RemoteLearningPage;
-module.exports.SheetsLandingPage = SheetsLandingPage;
+const sefariaSetup = Sefaria.setup;
+const { unpackDataFromProps } = Sefaria;
+export {
+  ReaderApp,
+  Footer,
+  sefariaSetup,
+  unpackDataFromProps,
+  EditGroupPage,
+  RemoteLearningPage,
+  SheetsLandingPage,
+};

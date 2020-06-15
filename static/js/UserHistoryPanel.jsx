@@ -1,16 +1,16 @@
-const {
+import {
   CategoryColorLine,
   ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuDisplaySettingsButton,
   TextBlockLink,
   LanguageToggleButton,
   LoadingMessage,
-}               = require('./Misc');
-const React      = require('react');
-const PropTypes = require('prop-types');
-const classNames = require('classnames');
-const Sefaria     = require('./sefaria/sefaria');
-const Footer     = require('./Footer');
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import Sefaria  from './sefaria/sefaria';
+import Footer  from './Footer';
 import Component from 'react-class';
 
 
@@ -87,7 +87,7 @@ class UserHistoryPanel extends Component {
           <div className="contentInner">
             {this.props.hideNavHeader ?
               <h1>
-              {this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ? 
+              {this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
                 <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null}
               <span className="int-en">{ title }</span>
               <span className="int-he">{ title }</span>
@@ -112,4 +112,4 @@ UserHistoryPanel.propTypes = {
   menuOpen:            PropTypes.string.isRequired,
 };
 
-module.exports = UserHistoryPanel;
+export default UserHistoryPanel;
