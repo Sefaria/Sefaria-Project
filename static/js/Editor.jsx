@@ -242,7 +242,7 @@ function renderSheetItem(source) {
             return content
         }
         case 'outsideText': {
-            const lang = Sefaria.hebrew.isHebrew(source.outsideText) && source.outsideText.length > 0 ? 'he' : 'en';
+            const lang = Sefaria.hebrew.isHebrew(source.outsideText.stripHtml()) ? 'he' : 'en';
 
             const content = (
                 {
@@ -797,7 +797,7 @@ const withSefariaSheet = editor => {
       // Autoset language of an outside text for proper RTL/LTR handling
       if (node.type == "SheetOutsideText") {
           const content = Node.string(node);
-          const lang = Sefaria.hebrew.isHebrew(content) && content.length > 0 ? 'he' : 'en';
+          const lang = Sefaria.hebrew.isHebrew(content) ? 'he' : 'en';
           Transforms.setNodes(editor, { lang: lang }, {at: path});
       }
 
