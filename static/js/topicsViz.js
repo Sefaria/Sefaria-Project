@@ -36,13 +36,97 @@ function switchToHebrew() { lang = "he"; }
 /*****                   Currying Data                  *****/
 
 async function layoutGraph(topic_data) {
-    let hierarchy = d3.hierarchy(topic_data, d => d["past"]);
-    let tree = d3.tree().size([w/2, graphBox_height]);
+  const drag = simulation => {
+
+    function dragstarted(d) {
+      if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+      d.fx = d.x;
+      d.fy = d.y;
+    }
+
+    function dragged(d) {
+      d.fx = d3.event.x;
+      d.fy = d3.event.y;
+    }
+
+    function dragended(d) {
+      if (!d3.event.active) simulation.alphaTarget(0);
+      d.fx = null;
+      d.fy = null;
+    }
+
+    return d3.drag()
+        .on("start", dragstarted)
+        .on("drag", dragged)
+        .on("end", dragended);
+  }
+  const color = "#ff0000";
+  const slugSet = new Set();
+  const nodes = [{id: topic_data.slug, group: 1}];
+  const links = [];
+  for (let [linkType, tempLinks] of Object.entries(topic_data.links)) {
+    for (let tempLink of tempLinks.links) {
+      if (!slugSet.has(tempLink.topic)) {
+        slugSet.add(tempLink.topic);
+        nodes.push({id: tempLink.topic, group: 1});
+      }
+      links.push({
+        source: topic_data.slug,
+        target: tempLink.topic,
+        value: 1,
+      });
+    }
+  }
+
+  const simulation = d3.forceSimulation(nodes)
+    .force("link", d3.forceLink(links).id(d => d.id).distance(d => 150))
+    .force("charge", d3.forceManyBody())
+    .force("center", d3.forceCenter(w / 2, h / 2));
+
+  const link = svg.append("g")
+      .attr("stroke", "#999")
+      .attr("stroke-opacity", 0.6)
+    .selectAll("line")
+    .data(links)
+    .join("line")
+      .attr("stroke-width", d => Math.sqrt(d.value))
+
+  const node = svg.append("g")
+      .attr("stroke", "#fff")
+      .attr("stroke-width", 1.5)
+    .selectAll("circle")
+    .data(nodes)
+    .join("circle")
+      .attr("r", 25)
+      .attr("fill", color)
+      .call(drag(simulation));
+  node.append("text")
+//  .attr('font-size', '14')
+//  .attr('font-weight', 'bold')
+  .attr('fill', "black")
+  .style("text-anchor", "middle")
+    .text(function(d) { return "Blah" });
+//  node.append("title")
+//      .text(d => d.id);
+
+  simulation.on("tick", () => {
+    link
+        .attr("x1", d => d.source.x)
+        .attr("y1", d => d.source.y)
+        .attr("x2", d => d.target.x)
+        .attr("y2", d => d.target.y);
+
+    node
+        .attr("cx", d => d.x)
+        .attr("cy", d => d.y);
+  });
+
+  return svg.node();
 }
 
 async function getTopic(topic) {
     let url = Sefaria.apiHost + "/api/topics/" + topic + "?with_links=1&annotate_links=1";
-    let res = await Sefaria._promiseAPI(url);
+    let res = await Sefaria._ApiPromise(url);
     return res;
 }
 
