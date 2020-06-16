@@ -200,4 +200,18 @@ var timelineConfig = config({
     }
 });
 
-module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig];
+var topicsConfig = config({
+    context: path.resolve('./static/js'),
+    entry: './topicsViz',
+    mode: 'development',  // can be overriden via cli
+    externals: {
+        d3: 'd3',
+        sefaria: 'Sefaria',
+    },
+    output: {
+        path: path.resolve(buildDir + 'topicsViz'),
+        filename: 'topicsViz.js'
+    }
+});
+
+module.exports = [clientConfig, serverConfig, diffConfig, exploreConfig, sefariajsConfig, jsonEditorConfig, timelineConfig, topicsConfig];

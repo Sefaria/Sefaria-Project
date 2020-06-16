@@ -4245,6 +4245,10 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
 def visualize_timeline(request):
     return render(request, 'timeline.html', {})
 
+@staff_member_required
+def visualize_topics(request):
+    return render(request, 'topicsViz.html', {})
+
 
 def person_page(request, name):
     person = Person().load({"key": name})
