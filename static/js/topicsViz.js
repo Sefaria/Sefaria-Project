@@ -66,8 +66,9 @@ async function layoutGraph(topic_data) {
   const nodes = [{id: topic_data.slug, title: topic_data.primaryTitle}];
   const links = [];
   for (let [linkType, tempLinks] of Object.entries(topic_data.links)) {
-    if (linkType === 'has-sheets-related-to') { continue; }
-    if (linkType === 'sheets-related-to') { continue; }
+    //if (linkType === 'has-sheets-related-to') { continue; }
+    //if (linkType === 'sheets-related-to') { continue; }
+    if (linkType !== 'is-a' && linkType !== 'is-category-of') { continue; }
     for (let tempLink of tempLinks.links) {
       if (!slugSet.has(tempLink.topic)) {
         slugSet.add(tempLink.topic);
