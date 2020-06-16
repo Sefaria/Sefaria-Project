@@ -67,7 +67,7 @@ class SearchTextResult extends Component {
     render () {
         var data = this.props.data;
         var s = this.props.data._source;
-        const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${s.version.replace(/ /g, "_")}&qh=${this.props.query}`;
+        const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${Sefaria.util.encodeVtitle(s.version)}&qh=${this.props.query}`;
 
         const more_results_caret =
             (this.state.duplicatesShown)

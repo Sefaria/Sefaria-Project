@@ -8,6 +8,12 @@ import sanitizeHtml from 'sanitize-html';
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
+    static encodeVtitle(vtitle) {
+      return vtitle.replace(/\s/g, '_').replace(/;/g, '%3B');
+    }
+    static decodeVtitle(vtitle) {
+      return vtitle.replace(/_/g, ' ').replace(/%3B/g, ';');
+    }
     static localeDate(dateString) {
         // takes dateString (usually generated from Python datetime object) and returns a human readable string depending on interfaceLang
         const locale = Sefaria.interfaceLang === 'english' ? 'en-US' : 'iw-IL';

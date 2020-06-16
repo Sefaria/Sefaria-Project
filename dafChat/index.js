@@ -47,7 +47,7 @@ io.sockets.on('connection', function(socket) {
     const room = Math.random().toString(36).substring(7);
     socket.join(room, () => {
       console.log(`${socket.id} created room ${room}`);
-      socket.emit('created', room, socket.id);
+      socket.emit('created', room);
       db.run(`INSERT INTO chatrooms(name, clients, roomStarted) VALUES(?, ?, ?)`, [room, uid, +new Date], function(err) {
         if (err) {
           console.log(err.message);
@@ -90,7 +90,8 @@ io.sockets.on('connection', function(socket) {
               console.log(socket.id +' attempting to join room: '+ room)
               socket.join(room, () => {
                 console.log('Client ID ' + socket.id + ' joined room ' + room);
-                io.in(room).emit('join', room);
+                socket.to(room).emit('join', room);
+                socket.emit('join', room);
                 db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
               });
               foundRoom = true;

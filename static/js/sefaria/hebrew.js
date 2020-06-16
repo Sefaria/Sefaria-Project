@@ -85,7 +85,9 @@ class Hebrew {
         enCount++;
       }
     }
-
+    if (heCount == enCount) {
+      return (Sefaria.interfaceLang === 'hebrew')
+    }
     return (heCount > enCount);
   }
   static containsHebrew(text) {
