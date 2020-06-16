@@ -1,4 +1,4 @@
-from .settings import GOOGLE_APPLICATION_CREDENTIALS_FILEPATH
+from .settings import GOOGLE_APPLICATION_BACKUP_CREDENTIALS_FILEPATH
 from google.cloud import storage
 
 
@@ -10,7 +10,7 @@ class GoogleStorageManager(object):
     @classmethod
     def get_bucket(cls, bucket_name):
         if getattr(cls, 'client', None) is None:
-            cls.client = storage.Client.from_service_account_json(GOOGLE_APPLICATION_CREDENTIALS_FILEPATH)
+            cls.client = storage.Client.from_service_account_json(GOOGLE_APPLICATION_BACKUP_CREDENTIALS_FILEPATH)
         bucket = cls.client.get_bucket(bucket_name)
         return bucket
 
