@@ -377,6 +377,20 @@ const defaultsheetMetaDataBox = (sheetTitle, authorStatement, groupStatement) =>
     }
 }
 
+const defaultEmptyOutsideText = (sheetNodeNumber, textFragment) => {
+  return {
+        type: "SheetItem",
+        children: [{
+            type: "SheetOutsideText",
+            node: sheetNodeNumber,
+            children: [{
+                type: "paragraph",
+                children: [{text: textFragment}]
+            }],
+        }]
+    }
+}
+
 function getInitialSheetNodes(sheet) {
   return sheet["sources"].map(source => source["node"])
 }
@@ -756,7 +770,9 @@ const withSefariaSheet = editor => {
 
           const selectionAtEdge = isSelectionFocusAtEdgeOfSheetItem(editor);
           if (selectionAtEdge) {
-              insertOutsideText(editor, selectionAtEdge);
+              const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, "")
+              addItemToSheet(editor, fragment, selectionAtEdge);
+              Transforms.move(editor);
               return
           }
 
@@ -789,8 +805,13 @@ const withSefariaSheet = editor => {
       let sheetElementTypes = Object.values(sheet_item_els);
 
       if (node.type == "Sheet") {
-          if (node.children) {
-              // console.log(`Sheet has ${node.children.length} children`)
+          if (node.children && node.children.length == 1) {
+            const fragmentText = defaultEmptyOutsideText(editor.children[0].nextNode, "")
+            const fragment = {
+                  type: 'SheetContent',
+                  children: [fragmentText]
+            }
+            Transforms.insertNodes(editor, fragment, {at: [0,1]});
           }
       }
 
@@ -847,8 +868,8 @@ const withSefariaSheet = editor => {
 
 
 
-      // If sheet elements are in sheetcontent and not wrapped in sheetItem, wrap it.
       if (node.type == "SheetContent") {
+        // If sheet elements are in sheetcontent and not wrapped in sheetItem, wrap it.
         for (const [child, childPath] of Node.children(editor, path)) {
           if (sheetElementTypes.includes(child.type)) {
             Transforms.wrapNodes(editor,
@@ -862,18 +883,7 @@ const withSefariaSheet = editor => {
           if (child.hasOwnProperty('text')) {
 
             const fragmentText = child.text
-
-            const fragment = {
-                  type: "SheetItem",
-                  children: [{
-                      type: "SheetOutsideText",
-                      node: editor.children[0].nextNode,
-                      children: [{
-                          type: "paragraph",
-                          children: [{text: fragmentText}]
-                      }],
-                  }]
-              }
+            const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, fragmentText)
 
             Transforms.delete(editor, {at: childPath});
             Transforms.insertNodes(editor, fragment, { at: childPath });
@@ -963,8 +973,7 @@ const withSefariaSheet = editor => {
             ) {
 
               // Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: path});
-              console.log("delete source...")
-              Transforms.removeNodes(editor, {at: path});
+              Transforms.removeNodes(editor, {at: Path.parent(path)});
 
         }
       }
@@ -1026,24 +1035,7 @@ const addItemToSheet = (editor, fragment, position) => {
     Transforms.insertNodes(editor, fragment, {at: nextSheetItemPath});
 };
 
-const insertOutsideText = (editor, position) => {
-    const fragment = {
-        type: "SheetItem",
-        children: [{
-            type: "SheetOutsideText",
-            node: editor.children[0].nextNode,
-            children: [{
-                type: "paragraph",
-                children: [{
-                    text: ""
-                }]
-            }],
 
-        }]
-    };
-    addItemToSheet(editor, fragment, position);
-    Transforms.move(editor);
-};
 
 const checkAndFixDuplicateSheetNodeNumbers = (editor) => {
   let existingSheetNodes = []
