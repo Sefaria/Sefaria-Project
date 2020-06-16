@@ -2,6 +2,7 @@ let d3 = require("d3");
 let Sefaria = require('sefaria');
 let SefariaD3 = require("./sefaria-d3/sefaria-d3");
 let $ = require("./sefaria/sefariaJquery");
+const { getMatchingOption } = require("react-jsonschema-form/lib/utils");
 
 /*****          Layout              *****/
 let margin = [60, 40, 20, 40];
@@ -62,63 +63,86 @@ async function layoutGraph(topic_data) {
   }
   const color = "#ff0000";
   const slugSet = new Set();
-  const nodes = [{id: topic_data.slug, group: 1}];
+  const nodes = [{id: topic_data.slug, title: topic_data.primaryTitle}];
   const links = [];
   for (let [linkType, tempLinks] of Object.entries(topic_data.links)) {
+    if (linkType === 'has-sheets-related-to') { continue; }
     for (let tempLink of tempLinks.links) {
       if (!slugSet.has(tempLink.topic)) {
         slugSet.add(tempLink.topic);
-        nodes.push({id: tempLink.topic, group: 1});
+        nodes.push({id: tempLink.topic, title: tempLink.title});
       }
       links.push({
         source: topic_data.slug,
         target: tempLink.topic,
-        value: 1,
+        type: linkType
       });
     }
   }
 
   const simulation = d3.forceSimulation(nodes)
-    .force("link", d3.forceLink(links).id(d => d.id).distance(d => 150))
-    .force("charge", d3.forceManyBody())
+    .force("link", d3.forceLink(links).id(d => d.id).distance(d => 100))
+    .force("charge", d3.forceManyBody().strength(x=> -5000))
+    .force('x', d3.forceX(w / 2).strength(1))
+    .force('y', d3.forceY(h / 2).strength(1))
     .force("center", d3.forceCenter(w / 2, h / 2));
 
-  const link = svg.append("g")
-      .attr("stroke", "#999")
-      .attr("stroke-opacity", 0.6)
-    .selectAll("line")
-    .data(links)
-    .join("line")
-      .attr("stroke-width", d => Math.sqrt(d.value))
+  const link = svg.selectAll('.fdf')
+  .data(links).enter().append('g')
 
-  const node = svg.append("g")
-      .attr("stroke", "#fff")
-      .attr("stroke-width", 1.5)
-    .selectAll("circle")
-    .data(nodes)
-    .join("circle")
-      .attr("r", 25)
+  const ltext = link.append('text').text(d => d.type).style("fill", "#666").style('user-select', 'none')
+  const line = link.append("line").attr("stroke", "#999")
+  .attr("stroke-opacity", 0.6)
+  
+
+      const node = svg.selectAll(".ddfadsfd")
+			.data(nodes)
+			.enter().append("g")
+	const circle = node.append("circle")
+      .attr("r", 15)
       .attr("fill", color)
       .call(drag(simulation));
-  node.append("text")
-//  .attr('font-size', '14')
-//  .attr('font-weight', 'bold')
-  .attr('fill', "black")
-  .style("text-anchor", "middle")
-    .text(function(d) { return "Blah" });
-//  node.append("title")
-//      .text(d => d.id);
+
+const text = node.append("text")	
+		  .text(d => d.title.en)
+      .style("fill", "black")
+      .style("user-select", "none");
+ node.append("title")
+     .text(d => d.title.en);
 
   simulation.on("tick", () => {
-    link
+    line
         .attr("x1", d => d.source.x)
         .attr("y1", d => d.source.y)
         .attr("x2", d => d.target.x)
         .attr("y2", d => d.target.y);
-
-    node
+        ltext
+        .attr("dx", d => {
+          const {x: x1, y: y1} = d.source;
+          const {x: x2, y: y2} = d.target;
+          const dy = y2-y1;
+          const dx = x2-x1;
+          const len = Math.sqrt(Math.pow(dy, 2) + Math.pow(dx, 2));
+          let angle = Math.atan2(dy, dx);
+          return x1 + (0.9*len)*Math.cos(angle);
+        })
+        .attr("dy", d => {
+          const {x: x1, y: y1} = d.source;
+          const {x: x2, y: y2} = d.target;
+          const dy = y2-y1;
+          const dx = x2-x1;
+          const len = Math.sqrt(Math.pow(dy, 2) + Math.pow(dx, 2));
+          let angle = Math.atan2(dy, dx);
+          return y1 + (0.9*len)*Math.sin(angle);
+        })
+    circle
         .attr("cx", d => d.x)
         .attr("cy", d => d.y);
+
+        text
+        .attr("dx", d => d.x + 12)
+        .attr("dy", d => d.y - 12);
+
   });
 
   return svg.node();
