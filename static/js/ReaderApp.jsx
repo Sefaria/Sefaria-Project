@@ -459,7 +459,7 @@ class ReaderApp extends Component {
     if (currVersions) {
       return Object.keys(currVersions)
               .filter(vlang=>!!currVersions[vlang])
-              .map(vlang=>`&v${vlang}${i > 1 ? i : ""}=${currVersions[vlang].replace(/\s/g,"_")}`)
+              .map(vlang=>`&v${vlang}${i > 1 ? i : ""}=${Sefaria.util.encodeVtitle(currVersions[vlang])}`)
               .join("");
     } else {
       return "";
@@ -751,7 +751,7 @@ class ReaderApp extends Component {
               url += "&aliyot=" + histories[0].aliyot;
           }
           if(histories[1].versionFilter) {
-            hist.url += "&vside=" + histories[1].versionFilter.replace(/\s/g, '_');
+            hist.url += "&vside=" + Sefaria.util.encodeVtitle(histories[1].versionFilter);
           }
           hist.url += "&with=" + histories[1].sources;
 
@@ -768,7 +768,7 @@ class ReaderApp extends Component {
             hist.url += "&aliyot" + (i) + "=" + histories[i-1].aliyot;
           }
           if(histories[i].versionFilter) {
-            hist.url += "&vside" + (i) + "=" + histories[i].versionFilter.replace(/\s/g, '_');
+            hist.url += "&vside" + (i) + "=" + Sefaria.util.encodeVtitle(histories[i].versionFilter);
           }
           hist.url   += "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
           hist.title += Sefaria._(" & ") + histories[i].title; // TODO this doesn't trim title properly
