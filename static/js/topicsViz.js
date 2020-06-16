@@ -67,6 +67,7 @@ async function layoutGraph(topic_data) {
   const links = [];
   for (let [linkType, tempLinks] of Object.entries(topic_data.links)) {
     if (linkType === 'has-sheets-related-to') { continue; }
+    if (linkType === 'sheets-related-to') { continue; }
     for (let tempLink of tempLinks.links) {
       if (!slugSet.has(tempLink.topic)) {
         slugSet.add(tempLink.topic);
@@ -101,6 +102,7 @@ async function layoutGraph(topic_data) {
 	const circle = node.append("circle")
       .attr("r", 15)
       .attr("fill", color)
+      .on('click', d => { window.location.href = `/visualize/topics?topic=${d.id}`})
       .call(drag(simulation));
 
 const text = node.append("text")	
@@ -193,15 +195,15 @@ function update(node) {
 //Build objects that are present for any starting state
 function buildFrame() {
     w = window.innerWidth ?  window.innerWidth - margin[1] - margin[3] : 1000 - margin[1] - margin[3];
-    textBox = d3.select("#content").append("div")
-        .attr("id", "textBox")
-        .style("height", textBox_height + "px")
-        .style("width", w - 400 + "px");
-    textBox.append("div")
-        .attr("id", 'textTitle');
-    textBox.append("div")
-        .attr("id", 'textInner')
-        .style("direction", "rtl");
+    // textBox = d3.select("#content").append("div")
+    //     .attr("id", "textBox")
+    //     .style("height", textBox_height + "px")
+    //     .style("width", w - 400 + "px");
+    // textBox.append("div")
+    //     .attr("id", 'textTitle');
+    // textBox.append("div")
+    //     .attr("id", 'textInner')
+    //     .style("direction", "rtl");
     svg = d3.select("#content").append("svg")
         .attr("width", w + margin[1] + margin[3] - 16)
         .attr("height", graphBox_height + 150);  // todo: 150 is slop becuase I'm too lazy to sit and do arithmetic
