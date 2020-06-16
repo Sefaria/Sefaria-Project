@@ -1070,13 +1070,15 @@ class TopicListStoryFactory(AbstractStoryFactory):
             return
         link_set = topic.link_set(_class='intraTopic', page=page, limit=k)
         related_topics = list(filter(None, [Topic.init(l.topic) for l in link_set]))
+
         if len(related_topics) < k:
             return
 
+        related_topic_dicts = [{"en": t.get_primary_title("en"), "he": t.get_primary_title("he"), "slug": t.slug} for t in related_topics]
         cal = make_parashah_response_from_calendar_entry(parasha_obj)[0]
 
         return cls.generate_story(
-            topics=related_topics,
+            topics=related_topic_dicts,
             title={"en": "Topics in " + cal["displayValue"]["en"], "he": "נושאים ב" + cal["displayValue"]["he"]},
             lead={"en": "Weekly Torah Portion", "he": 'פרשת השבוע'},
             mustHave=mustHave or [],
