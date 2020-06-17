@@ -4,8 +4,9 @@ import sys
 from functools import wraps
 from django.http import HttpRequest
 
+import structlog
 import logging
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 try:
     from sefaria.settings import USE_VARNISH

@@ -3,8 +3,9 @@ from . import abstract as abst
 from . import schema
 from . import timeperiod
 import geojson
+import structlog
 import logging
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class Person(abst.AbstractMongoRecord):

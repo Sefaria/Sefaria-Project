@@ -5,8 +5,9 @@ from sefaria.local_settings import VARNISH_ADM_ADDR, VARNISH_HOST, VARNISH_FRNT_
 
 from sefaria.utils.util import graceful_exception
 
+import structlog
 import logging
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 @graceful_exception(logger=logger, return_value=None)

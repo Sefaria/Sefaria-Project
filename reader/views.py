@@ -60,8 +60,9 @@ from django.utils.html import strip_tags
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
+import structlog
 import logging
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.

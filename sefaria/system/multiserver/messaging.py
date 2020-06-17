@@ -3,6 +3,8 @@ import redis
 from sefaria.settings import MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB
 
 import logging
+import structlog
+import logging
 logger = logging.getLogger("multiserver")
 
 

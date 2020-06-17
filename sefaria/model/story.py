@@ -21,8 +21,9 @@ from . import following
 from . import ref_data
 from . import passage
 
+import structlog
 import logging
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class Story(abst.AbstractMongoRecord):

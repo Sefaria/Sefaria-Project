@@ -7,6 +7,7 @@ Writes to MongoDB Collection: sheets
 import sys
 import hashlib
 import urllib.request, urllib.parse, urllib.error
+import structlog
 import logging
 import regex
 import dateutil.parser
@@ -34,14 +35,15 @@ from .history import record_sheet_publication, delete_sheet_publication
 from .settings import SEARCH_INDEX_ON_SAVE
 from . import search
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 if not hasattr(sys, '_doc_build'):
 	from django.contrib.auth.models import User
 from django.contrib.humanize.templatetags.humanize import naturaltime
 
+import structlog
 import logging
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def get_sheet(id=None):

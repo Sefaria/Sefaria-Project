@@ -3,8 +3,9 @@ from PIL import Image
 from io import BytesIO
 import requests
 
+import structlog
 import logging
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def get_resized_file(image, size, format="PNG"):

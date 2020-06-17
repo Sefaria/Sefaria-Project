@@ -8,6 +8,8 @@ from sefaria.settings import MULTISERVER_ENABLED, MULTISERVER_REDIS_EVENT_CHANNE
 from .messaging import MessagingNode
 
 import logging
+import structlog
+import logging
 logger = logging.getLogger("multiserver")
 
 

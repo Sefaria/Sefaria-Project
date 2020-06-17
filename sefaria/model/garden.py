@@ -12,8 +12,9 @@ from . import person
 from . import link
 from . import user_profile
 
+import structlog
 import logging
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class Garden(abst.AbstractMongoRecord):

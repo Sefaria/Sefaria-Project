@@ -19,8 +19,9 @@ from sefaria.utils.util import short_to_long_lang_code
 from sefaria.utils.hebrew import hebrew_parasha_name
 from reader.views import render_react_component
 
+import structlog
 import logging
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 def data_only(view):

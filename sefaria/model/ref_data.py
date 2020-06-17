@@ -4,8 +4,9 @@ from . import abstract as abst
 from . import text
 from sefaria.system.exceptions import InputError
 
+import structlog
 import logging
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class RefData(abst.AbstractMongoRecord):

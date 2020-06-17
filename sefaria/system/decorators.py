@@ -10,8 +10,9 @@ import sefaria.settings
 
 import collections
 import bleach
+import structlog
 import logging
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 # TODO: we really need to fix the way we are using json responses. Django 1.7 introduced a baked in JsonResponse.

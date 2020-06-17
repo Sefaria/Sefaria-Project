@@ -5,6 +5,7 @@ from django.contrib.sites.models import Site
 from sefaria.settings import CLOUDFLARE_ZONE, CLOUDFLARE_EMAIL, CLOUDFLARE_TOKEN, USE_CLOUDFLARE, STATICFILES_DIRS
 from sefaria.utils.util import list_chunks, in_directory, get_directory_content
 
+import structlog
 import logging
 logger = logging.getLogger('cloudflare')
 

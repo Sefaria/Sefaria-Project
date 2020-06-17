@@ -8,8 +8,9 @@ import regex as re
 from . import abstract as abst
 from sefaria.model.text import Ref
 
+import structlog
 import logging
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class Note(abst.AbstractMongoRecord):

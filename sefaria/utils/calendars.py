@@ -15,8 +15,9 @@ from sefaria.utils.util import graceful_exception
 from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
 from sefaria.site.site_settings import SITE_SETTINGS
 
+import structlog
 import logging
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 """

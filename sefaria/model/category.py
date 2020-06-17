@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import structlog
 import logging
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 from sefaria.system.database import db
 from sefaria.system.exceptions import BookNameError, InputError
