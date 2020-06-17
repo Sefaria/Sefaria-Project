@@ -77,25 +77,31 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-    def topics_by_link_type_recursively(self, linkType='is-a', explored_set=None, only_leaves=False, reverse=False):
+    def topics_by_link_type_recursively(self, **kwargs):
+        topics, _ = self.topics_and_links_by_link_type_recursively(**kwargs)
+        return topics
+
+    def topics_and_links_by_link_type_recursively(self, linkType='is-a', explored_set=None, only_leaves=False, reverse=False, max_depth=None):
         """
         Gets all topics linked to `self` by `linkType`. The query is recursive so it's most useful for 'is-a' and 'displays-under' linkTypes
         :param linkType: str, the linkType to recursively traverse.
         :param explored_set: set(str), set of slugs already explored. To be used in recursive calls.
         :param only_leaves: bool, if True only return last level traversed
         :param reverse: bool, if True traverse the inverse direction of `linkType`. E.g. if linkType == 'is-a' and reverse == True, you will traverse 'is-category-of' links
+        :param max_depth: How many levels below this one to traverse. 1 returns only this node's children, 0 returns only this node and None means unlimited.
         :return: list(Topic)
         """
         explored_set = explored_set or set()
-        results = []
+        topics = []
         dir1 = "to" if reverse else "from"
         dir2 = "from" if reverse else "to"
-        children = [getattr(l, f"{dir1}Topic") for l in IntraTopicLinkSet({f"{dir2}Topic": self.slug, "linkType": linkType})]
+        links = IntraTopicLinkSet({f"{dir2}Topic": self.slug, "linkType": linkType}).array()
+        children = [getattr(l, f"{dir1}Topic") for l in links]
         if len(children) == 0:
-            return [self]
+            return [self], []
         else:
             if not only_leaves:
-                results += [self]
+                topics += [self]
             for slug in children:
                 if slug in explored_set:
                     continue
@@ -104,8 +110,12 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                 if child_topic is None:
                     logger.warning(f"{slug} is None")
                     continue
-                results += child_topic.topics_by_link_type_recursively(linkType, explored_set, only_leaves, reverse)
-        return results
+                if max_depth is None or max_depth > 0:
+                    next_depth = max_depth if max_depth is None else max_depth - 1
+                    temp_topics, temp_links = child_topic.topics_and_links_by_link_type_recursively(linkType, explored_set, only_leaves, reverse, next_depth)
+                    topics += temp_topics
+                    links += temp_links
+        return topics, links
 
     def has_types(self, search_slug_set):
         """
