@@ -143,7 +143,7 @@ class SectionContentAsExpectedMasechtotAndChapters(AtomicTest):
         self.click_source_title()
         self.click_masechet_and_chapter('2','3')
         section = self.get_section_txt('1')
-        assert 'רבי זירא הוה קא משתמיט' in strip_nikkud(section)
+        assert 'רבי זירא הוה משתמיט' in strip_nikkud(section)
 
 
 class SectionContentAsExpectedChapter(AtomicTest):
@@ -455,7 +455,8 @@ class TalmudHasNoCantillation(AtomicTest):
     every_build = False
 
     def body(self):
-        self.browse_to_ref("Shabbat 2b")
+        # changed to a book that should NEVER get cantillation
+        self.browse_to_ref("Introductions to the Babylonian Talmud, Berakhot, Introduction to Berakhot")
         assert not has_cantillation(self.get_nth_section_hebrew(1).text)
         assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
         self.toggle_on_text_settings()
@@ -517,15 +518,15 @@ class SideBarEntries(AtomicTest):
         # self.click_sheets_on_sidebar()    #commented out as sheets is being worked on
         self.click_notes_on_sidebar()
         self.click_about_on_sidebar()
-        msg = self.driver.find_element_by_css_selector('#panel-1 > div.readerContent > div > div > div > section > div.detailsSection > h2 > span.int-en').text
+        msg = self.driver.find_element_by_css_selector('#panel-1 > div.readerContent > div > div > div > section > div.detailsSection > h2 > span.int-en').get_attribute('innerHTML')
         assert msg == 'About This Text'
         self.click_resources_on_sidebar()
         self.click_versions_on_sidebar()
         #todo: This version doesn't show up on title bar.  Rework this to change to a version that will show on bar.
         #url1 = self.get_current_url()
         #title1 = self.get_current_content_title()
-        assert self.get_sidebar_nth_version_button(1).text in ['CURRENT', 'Current'],  "'{}' does not equal 'CURRENT' or 'Current'".format(self.get_sidebar_nth_version_button(1).text)
-        assert self.get_sidebar_nth_version_button(2).text in ['SELECT', 'Select'],  "'{}' does not equal 'SELECT' or 'Select'".format(self.get_sidebar_nth_version_button(2).text)
+        assert self.get_sidebar_nth_version_button(1).text in ['Current Translation', 'מהדורה נוכחית'],  "'{}' does not equal 'Current Translation'".format(self.get_sidebar_nth_version_button(1).text)
+        assert self.get_sidebar_nth_version_button(2).text in ['Select Translation', 'בחירת תרגום'],  "'{}' does not equal 'Select Translation'".format(self.get_sidebar_nth_version_button(2).text)
         self.click_sidebar_nth_version_button(2)
         #url2 = self.get_current_url()
         #title2 = self.get_current_content_title()
@@ -533,8 +534,8 @@ class SideBarEntries(AtomicTest):
         #assert title1 != title2,  u"'{}' equals '{}'".format(title1, title2)
         time.sleep(1)
 
-        assert self.get_sidebar_nth_version_button(1).text in [u'SELECT', u'Select'],  u"'{}' does not equal 'SELECT' or 'Select'".format(self.get_sidebar_nth_version_button(1).text)
-        assert self.get_sidebar_nth_version_button(2).text in [u'CURRENT', u'Current'], u"'{}' does not equal 'CURRENT' or 'Current'".format(self.get_sidebar_nth_version_button(2).text)
+        assert self.get_sidebar_nth_version_button(1).text in ['Select Translation', 'בחירת תרגום'],  u"'{}' does not equal 'Select Translation'".format(self.get_sidebar_nth_version_button(1).text)
+        assert self.get_sidebar_nth_version_button(2).text in ['Current Translation', 'מהדורה נוכחית'], u"'{}' does not equal 'Current Translation'".format(self.get_sidebar_nth_version_button(2).text)
         self.click_resources_on_sidebar()
         self.click_webpages_on_sidebar()
         self.click_resources_on_sidebar()

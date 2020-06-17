@@ -1307,7 +1307,8 @@ class ReaderControls extends Component {
           {this.props.sheet && Sefaria._uid == this.props.sheet.owner && document.cookie.includes("new_editor") ?
               <button id="sheetEditToggle" onClick={() => this.props.toggleSheetEditMode(this.props.editSheet)}>
                 {this.props.editSheet == true ? <img src={"/static/icons/iconmonstr-eye-4.svg"} alt="Eye icon" />:<img src={"/static/icons/iconmonstr-pencil-2.svg"} alt="Pencil icon" />}
-                {this.props.editSheet == true ? "View" : "Edit"}
+                <span className="int-en">{this.props.editSheet == true ? "View" : "Edit"}</span>
+                <span className="int-he">{this.props.editSheet == true ? "צפייה" : "עריכה"}</span> 
               </button>
             : null }
           <SaveButton

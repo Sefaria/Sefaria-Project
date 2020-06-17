@@ -2052,7 +2052,10 @@ const GroupStatement = (props) => (
             </a>
           </div>
           <a href={"/groups/" + props.group}>{props.children ? props.children : props.group}</a>
-        </div> : null
+        </div> :     <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
+                  {props.children}
+            </div>
+
 )
 
 GroupStatement.propTypes = {

@@ -227,10 +227,10 @@ class AbstractTest(object):
                 i += 1
                 time.sleep(.25)
                 continue
-
-        WebDriverWait(self.driver, TEMPER).until(
-            one_of_these_texts_present_in_element((By.CSS_SELECTOR, "h1 > span.en, h2 > span.en"), [category_name, category_name.upper()])
-        )
+        elem = self.driver.find_element_by_css_selector("h1 > span.en, h2 > span.en")
+        if category_name == "Talmud":
+            category_name = "Talmud Bavli"
+        assert elem.get_attribute('innerHTML') == category_name, f"elem innerHTML == {elem.get_attribute('innerHTML')} != {category_name}"  # use get_attribute in case element is visible due to hebrew interface
         return self
 
     def click_toc_text(self, text_name):
@@ -386,16 +386,16 @@ class AbstractTest(object):
             self.click_resources_on_sidebar()
 
     def click_about_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(4) > span:nth-child(2)')
-
-    def click_versions_on_sidebar(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(5) > span:nth-child(2)')
 
+    def click_versions_on_sidebar(self):
+        self.click_object_by_css_selector('a.toolsButton:nth-child(6) > span:nth-child(2)')
+
     def click_webpages_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(7) > span:nth-child(2)')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(8) > span:nth-child(2)')
 
     def click_tools_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(8) > span:nth-child(2)')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(9) > span:nth-child(2)')
 
     def click_share_on_sidebar(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(1) > span:nth-child(2)')
@@ -456,7 +456,7 @@ class AbstractTest(object):
         return self.get_sidebar_nth_version_button(n).text
 
     def get_sidebar_nth_version_button(self, n):
-        slctr = "#panel-1 > div.readerContent > div > div > div > div > div:nth-child(1) > div:nth-child(" + str(n+1) + ") > div.versionDetails > a.selectButton"
+        slctr = f"#panel-1 > div.readerContent > div > div > div > div > div:nth-child(1) >div:nth-child({n+1}) > div.versionSelect > a.selectButton"
         return self.get_object_by_css_selector(slctr)
 
     def get_object_by_css_selector(self, selector):
@@ -578,6 +578,13 @@ class AbstractTest(object):
         self.click_object_by_css_selector('a.toolsButton:nth-child(4) > span:nth-child(2)')
 
     def click_ivrit_link(self): # Named '..ivrit..' as the link's in Hebrew. Below - a method with '..hebrew..' (that calls this one), in case it's easier to locate that way
+        try:
+            # if logged out, first click to open dropdown
+            self.driver.find_element_by_css_selector('.header a.interfaceLinks-button')
+            self.click_object_by_css_selector('.header a.interfaceLinks-button')
+        except NoSuchElementException:
+            # must be logged in
+            pass
         self.click_object_by_link_text('עברית')
 
     def click_hebrew_link(self):
@@ -684,7 +691,7 @@ class AbstractTest(object):
         return ret
 
     def get_facebook_link_text(self):
-        ret = self.get_object_by_css_selector('#footerInner > div.section.last.connect > a:nth-child(4)').text
+        ret = self.get_object_by_css_selector('#footerInner > div.section.last.connect .socialLinks > a:nth-child(1)').text
         return ret
 
     def get_sefaria_lib_title(self):
