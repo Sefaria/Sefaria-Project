@@ -55,3 +55,4 @@ undecorated
 unicodecsv
 unidecode
 user-agents
+django-structlog
