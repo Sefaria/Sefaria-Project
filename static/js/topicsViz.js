@@ -1,8 +1,10 @@
 let d3 = require("d3");
+let svgPanZoom = require("svgPanZoom");
 let Sefaria = require('sefaria');
 let SefariaD3 = require("./sefaria-d3/sefaria-d3");
 let $ = require("./sefaria/sefariaJquery");
 const { getMatchingOption } = require("react-jsonschema-form/lib/utils");
+const { getSupportedLanguages } = require("humanize-duration");
 
 /*****          Layout              *****/
 let margin = [60, 40, 20, 40];
@@ -15,7 +17,7 @@ let svg, timeScale, s, t, textBox, graphBox;
 
 const urlParams = new URLSearchParams(window.location.search);
 let startingTopic = urlParams.get('topic');
-let currentTopic = startingTopic || "shabbat";
+let currentTopic = startingTopic || "entity";
 console.log(currentTopic);
 
 /*****          Hebrew / English Handling              *****/
@@ -35,6 +37,141 @@ function switchToHebrew() { lang = "he"; }
 (GLOBALS.interfaceLang == "hebrew") ? switchToHebrew() : switchToEnglish();
 
 /*****                   Currying Data                  *****/
+
+async function layoutTree(data) {
+  const root = d3.hierarchy(data);
+  const dy = 200;
+  const dx = 10;
+  const width = w;
+  const height = h;
+  const tree = d3.tree().nodeSize([dx, dy]);
+  const diagonal = d3.linkHorizontal().x(d => d.y).y(d => d.x);
+  const margin = ({top: 10, right: 120, bottom: 10, left: 40});
+  root.x0 = dy / 2;
+  root.y0 = 0;
+  root.descendants().forEach((d, i) => {
+    d.id = i;
+    d._children = d.children;
+    if (d.depth && d.data.name.length !== 7) d.children = null;
+  });
+
+  svg.attr("viewBox", [-margin.left, -margin.top, width, dx])
+      .style("font", "10px sans-serif")
+      .style("user-select", "none");
+
+  const gLink = svg.append("g")
+      .attr("fill", "none")
+      .attr("stroke", "#555")
+      .attr("stroke-opacity", 0.4)
+      .attr("stroke-width", 1.5);
+
+  const gNode = svg.append("g")
+      .attr("cursor", "pointer")
+      .attr("pointer-events", "all");
+  function zoomed() {
+    gNode.attr("transform", d3.event.transform);
+    gLink.attr("transform", d3.event.transform);
+  }
+  svg.call(d3.zoom()
+    .extent([[0, 0], [w, h]])
+    .scaleExtent([1, 8])
+    .on("zoom", zoomed));
+  function update(source) {
+    const duration = d3.event && d3.event.altKey ? 2500 : 250;
+    const nodes = root.descendants().reverse();
+    const links = root.links();
+
+    // Compute the new tree layout.
+    tree(root);
+
+    let left = root;
+    let right = root;
+    root.eachBefore(node => {
+      if (node.x < left.x) left = node;
+      if (node.x > right.x) right = node;
+    });
+
+    const height = right.x - left.x + margin.top + margin.bottom;
+
+    const transition = svg.transition()
+        //.duration(duration)
+        //.attr("viewBox", [-margin.left, left.x - margin.top, width, height])
+        // .tween("resize", window.ResizeObserver ? null : () => () => svg.dispatch("toggle"));
+
+    // Update the nodes…
+    const node = gNode.selectAll("g")
+      .data(nodes, d => d.id);
+
+    // Enter any new nodes at the parent's previous position.
+    const nodeEnter = node.enter().append("g")
+        .attr("transform", d => `translate(${source.y0},${source.x0})`)
+        .attr("fill-opacity", 0)
+        .attr("stroke-opacity", 0)
+        .on("click", d => {
+          d.children = d.children ? null : d._children;
+          update(d);
+        });
+
+    nodeEnter.append("circle")
+        .attr("r", 2.5)
+        .attr("fill", d => d._children ? "#555" : "#999")
+        .attr("stroke-width", 10);
+
+    nodeEnter.append("text")
+        .attr("dy", "0.31em")
+        .attr("x", d => d._children ? -6 : 6)
+        .attr("text-anchor", d => d._children ? "end" : "start")
+        .text(d => d.data.name)
+      .clone(true).lower()
+        .attr("stroke-linejoin", "round")
+        .attr("stroke-width", 3)
+        .attr("stroke", "white");
+
+    // Transition nodes to their new position.
+    const nodeUpdate = node.merge(nodeEnter).transition(transition)
+        .attr("transform", d => `translate(${d.y},${d.x})`)
+        .attr("fill-opacity", 1)
+        .attr("stroke-opacity", 1);
+
+    // Transition exiting nodes to the parent's new position.
+    const nodeExit = node.exit().transition(transition).remove()
+        .attr("transform", d => `translate(${source.y},${source.x})`)
+        .attr("fill-opacity", 0)
+        .attr("stroke-opacity", 0);
+
+    // Update the links…
+    const link = gLink.selectAll("path")
+      .data(links, d => d.target.id);
+
+    // Enter any new links at the parent's previous position.
+    const linkEnter = link.enter().append("path")
+        .attr("d", d => {
+          const o = {x: source.x0, y: source.y0};
+          return diagonal({source: o, target: o});
+        });
+
+    // Transition links to their new position.
+    link.merge(linkEnter).transition(transition)
+        .attr("d", diagonal);
+
+    // Transition exiting nodes to the parent's new position.
+    link.exit().transition(transition).remove()
+        .attr("d", d => {
+          const o = {x: source.x, y: source.y};
+          return diagonal({source: o, target: o});
+        });
+
+    // Stash the old positions for transition.
+    root.eachBefore(d => {
+      d.x0 = d.x;
+      d.y0 = d.y;
+    });
+  }
+
+  update(root);
+
+  return svg.node();
+}
 
 async function layoutGraph(topic_data) {
   const drag = simulation => {
@@ -157,6 +294,41 @@ async function getTopic(topic) {
     return res;
 }
 
+function createHierarchy(root, links) {
+  const hierarchy = {name: root};
+  const children = links[root];
+  if (!!children && children.length) {
+    hierarchy.children = [];
+    let count = 0;
+    for (let child of children) {
+      const tempHierarchy = createHierarchy(child, links);
+      hierarchy.children.push(tempHierarchy);
+      count++;
+      if (count > 30) { break; }
+    }
+  } else {
+    return hierarchy;
+  }
+  return hierarchy;
+}
+async function getTree(topic) {
+  let url = Sefaria.apiHost + "/api/topics-graph/" + topic + "";
+  let res = await Sefaria._ApiPromise(url).then(data => {
+    const linksObj = {};
+    for (let link of data.links) {
+      let tempLinks = linksObj[link.toTopic];
+      if (!tempLinks) {
+        tempLinks = [];
+        linksObj[link.toTopic] = tempLinks;
+      }
+      tempLinks.push(link.fromTopic);
+    }
+    
+    return createHierarchy(topic, linksObj);
+  });
+  return res;
+}
+
 /*****         Draw Tree                                *****/
 
 buildScreen();
@@ -169,8 +341,10 @@ function buildScreen() {
 }
 
 function curryAndRenderData() {
-    getTopic(currentTopic)
-        .then(layoutGraph);
+    //getTopic(currentTopic)
+    getTree(currentTopic)  
+    .then(layoutTree)
+        //.then(layoutGraph);
     // getPassage(currentRef)
     //     .then(buildRawTrees)
     //     .then(buildNetwork)
@@ -220,6 +394,7 @@ function buildFrame() {
 
     graphBox.append("g")
         .attr("transform", "translate(0,50)");
+
 }
 
 /*****     Listeners to handle popstate and to rebuild on screen resize     *****/
