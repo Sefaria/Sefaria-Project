@@ -1,5 +1,4 @@
 let d3 = require("d3");
-let svgPanZoom = require("svgPanZoom");
 let Sefaria = require('sefaria');
 let SefariaD3 = require("./sefaria-d3/sefaria-d3");
 let $ = require("./sefaria/sefariaJquery");
@@ -14,7 +13,7 @@ let textBox_height = 150;
 let graphBox_height = h - textBox_height;
 
 let svg, timeScale, s, t, textBox, graphBox;
-
+let sefariaBlue = '#18345D';
 const urlParams = new URLSearchParams(window.location.search);
 let startingTopic = urlParams.get('topic');
 let currentTopic = startingTopic || "entity";
@@ -61,7 +60,7 @@ async function layoutTree(data) {
 
   const gLink = svg.append("g")
       .attr("fill", "none")
-      .attr("stroke", "#555")
+      .attr("stroke", sefariaBlue)
       .attr("stroke-opacity", 0.4)
       .attr("stroke-width", 1.5);
 
@@ -74,7 +73,7 @@ async function layoutTree(data) {
   }
   svg.call(d3.zoom()
     .extent([[0, 0], [w, h]])
-    .scaleExtent([1, 8])
+    .scaleExtent([0.3, 3])
     .on("zoom", zoomed));
   function update(source) {
     const duration = d3.event && d3.event.altKey ? 2500 : 250;
@@ -294,37 +293,39 @@ async function getTopic(topic) {
     return res;
 }
 
-function createHierarchy(root, links) {
-  const hierarchy = {name: root};
-  const children = links[root];
+function createHierarchy(root) {
+  const hierarchy = {name: allTopics[root] ? allTopics[root].primaryTitle.en : root};
+  const children = allLinks[root];
   if (!!children && children.length) {
     hierarchy.children = [];
-    let count = 0;
     for (let child of children) {
-      const tempHierarchy = createHierarchy(child, links);
+      const tempHierarchy = createHierarchy(child);
       hierarchy.children.push(tempHierarchy);
-      count++;
-      if (count > 30) { break; }
     }
   } else {
     return hierarchy;
   }
   return hierarchy;
 }
+let allTopics, allLinks;
 async function getTree(topic) {
   let url = Sefaria.apiHost + "/api/topics-graph/" + topic + "";
   let res = await Sefaria._ApiPromise(url).then(data => {
-    const linksObj = {};
+    allLinks = {};
     for (let link of data.links) {
-      let tempLinks = linksObj[link.toTopic];
+      let tempLinks = allLinks[link.toTopic];
       if (!tempLinks) {
         tempLinks = [];
-        linksObj[link.toTopic] = tempLinks;
+        allLinks[link.toTopic] = tempLinks;
       }
       tempLinks.push(link.fromTopic);
     }
+    allTopics = {};
+    for (let tempTopic of data.topics) {
+      allTopics[tempTopic.slug] = tempTopic;
+    }
     
-    return createHierarchy(topic, linksObj);
+    return createHierarchy(topic);
   });
   return res;
 }
