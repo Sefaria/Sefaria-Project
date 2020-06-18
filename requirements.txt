@@ -55,3 +55,4 @@ gevent
 django-debug-toolbar # not used in prod
 unidecode
 django-structlog
+google-cloud-logging
