@@ -141,7 +141,7 @@ or user your os service manager to have it start on startup
 
 #### 8) Put some texts in your database:
 
-We make a MongoDB dump of our database is available download. 
+MongoDB dumps of our database are available to download. 
 
 The recommended dump (which is of a manageable size) is available [here](https://storage.googleapis.com/sefaria-mongo-backup/dump_small.tar.gz). 
 
