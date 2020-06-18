@@ -40,9 +40,14 @@ function switchToHebrew() { lang = "he"; }
 async function layoutTree(data) {
   const root = d3.hierarchy(data);
   const dy = 200;
-  const dx = 10;
+  const dx = 20;
   const width = w;
   const height = h;
+
+  // const radius = 477;
+  // const tree = d3.tree()
+  //   .size([2 * Math.PI, radius])
+  //   .separation((a, b) => (a.parent == b.parent ? 1 : 2) / a.depth)
   const tree = d3.tree().nodeSize([dx, dy]);
   const diagonal = d3.linkHorizontal().x(d => d.y).y(d => d.x);
   const margin = ({top: 10, right: 120, bottom: 10, left: 40});
@@ -51,7 +56,7 @@ async function layoutTree(data) {
   root.descendants().forEach((d, i) => {
     d.id = i;
     d._children = d.children;
-    if (d.depth && d.data.name.length !== 7) d.children = null;
+    if (d.depth && d.children && d.children.length > 4) d.children = null;
   });
 
   svg.attr("viewBox", [-margin.left, -margin.top, width, dx])
@@ -62,7 +67,7 @@ async function layoutTree(data) {
       .attr("fill", "none")
       .attr("stroke", sefariaBlue)
       .attr("stroke-opacity", 0.4)
-      .attr("stroke-width", 1.5);
+      .attr("stroke-width", 3);
 
   const gNode = svg.append("g")
       .attr("cursor", "pointer")
@@ -112,13 +117,13 @@ async function layoutTree(data) {
         });
 
     nodeEnter.append("circle")
-        .attr("r", 2.5)
-        .attr("fill", d => d._children ? "#555" : "#999")
+        .attr("r", 7.5)
+        .attr("fill", d => d._children ? "rgb(171, 78, 102)" : "#999")
         .attr("stroke-width", 10);
 
     nodeEnter.append("text")
         .attr("dy", "0.31em")
-        .attr("x", d => d._children ? -6 : 6)
+        .attr("x", d => d._children ? -10 : 10)
         .attr("text-anchor", d => d._children ? "end" : "start")
         .text(d => d.data.name)
       .clone(true).lower()
