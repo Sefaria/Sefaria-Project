@@ -6912,7 +6912,7 @@ span.purim-emoji img{
   margin-bottom: -45px;
 }
 .interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:after {
-  content: "יש צורך בתרגום: Write some text or type a citation";
+  content: "הקלידו טקסט חופשי או מראה מקום (לדוגמא, בראשית א, א-ה)";
   top: -56px;
   margin-bottom: -56px;
 }
