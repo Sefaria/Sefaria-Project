@@ -64,7 +64,7 @@ io.sockets.on('connection', function(socket) {
         console.error(err.message);
       }
 
-      if (!row.name) {
+      if (!row) {
         socket.emit('byeReceived');
       }
     });
