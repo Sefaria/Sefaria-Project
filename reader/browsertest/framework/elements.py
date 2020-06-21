@@ -227,10 +227,10 @@ class AbstractTest(object):
                 i += 1
                 time.sleep(.25)
                 continue
-
-        WebDriverWait(self.driver, TEMPER).until(
-            one_of_these_texts_present_in_element((By.CSS_SELECTOR, "h1 > span.en, h2 > span.en"), [category_name, category_name.upper()])
-        )
+        elem = self.driver.find_element_by_css_selector("h1 > span.en, h2 > span.en")
+        if category_name == "Talmud":
+            category_name = "Talmud Bavli"
+        assert elem.get_attribute('innerHTML') == category_name, f"elem innerHTML == {elem.get_attribute('innerHTML')} != {category_name}"  # use get_attribute in case element is visible due to hebrew interface
         return self
 
     def click_toc_text(self, text_name):
@@ -386,16 +386,16 @@ class AbstractTest(object):
             self.click_resources_on_sidebar()
 
     def click_about_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(4) > span:nth-child(2)')
-
-    def click_versions_on_sidebar(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(5) > span:nth-child(2)')
 
+    def click_versions_on_sidebar(self):
+        self.click_object_by_css_selector('a.toolsButton:nth-child(6) > span:nth-child(2)')
+
     def click_webpages_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(7) > span:nth-child(2)')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(8) > span:nth-child(2)')
 
     def click_tools_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(8) > span:nth-child(2)')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(9) > span:nth-child(2)')
 
     def click_share_on_sidebar(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(1) > span:nth-child(2)')
@@ -456,7 +456,7 @@ class AbstractTest(object):
         return self.get_sidebar_nth_version_button(n).text
 
     def get_sidebar_nth_version_button(self, n):
-        slctr = "#panel-1 > div.readerContent > div > div > div > div > div:nth-child(1) > div:nth-child(" + str(n+1) + ") > div.versionDetails > a.selectButton"
+        slctr = f"#panel-1 > div.readerContent > div > div > div > div > div:nth-child(1) >div:nth-child({n+1}) > div.versionSelect > a.selectButton"
         return self.get_object_by_css_selector(slctr)
 
     def get_object_by_css_selector(self, selector):
@@ -578,6 +578,13 @@ class AbstractTest(object):
         self.click_object_by_css_selector('a.toolsButton:nth-child(4) > span:nth-child(2)')
 
     def click_ivrit_link(self): # Named '..ivrit..' as the link's in Hebrew. Below - a method with '..hebrew..' (that calls this one), in case it's easier to locate that way
+        try:
+            # if logged out, first click to open dropdown
+            self.driver.find_element_by_css_selector('.header a.interfaceLinks-button')
+            self.click_object_by_css_selector('.header a.interfaceLinks-button')
+        except NoSuchElementException:
+            # must be logged in
+            pass
         self.click_object_by_link_text('עברית')
 
     def click_hebrew_link(self):
@@ -684,7 +691,7 @@ class AbstractTest(object):
         return ret
 
     def get_facebook_link_text(self):
-        ret = self.get_object_by_css_selector('#footerInner > div.section.last.connect > a:nth-child(4)').text
+        ret = self.get_object_by_css_selector('#footerInner > div.section.last.connect .socialLinks > a:nth-child(1)').text
         return ret
 
     def get_sefaria_lib_title(self):
@@ -1187,6 +1194,59 @@ class AbstractTest(object):
         self.driver.get(url)
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
         return self
+
+    # Editor
+    def new_sheet_in_editor(self):
+        self.driver.get(self.base_url + "/sheets/new?editor=0")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheetContent")))
+        return self
+
+    def load_existing_sheet(self, sheetID):
+        self.driver.get(self.base_url + "/sheets/"+sheetID)
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheetContent")))
+        return self
+
+    def nav_to_end_of_editor(self):
+        elem = self.driver.find_element_by_css_selector(".sheetContent")
+        elem.click()
+        self.driver.switch_to.active_element.send_keys(Keys.CONTROL, Keys.END)
+        return self
+
+    def generate_text(self, language):
+        paragraph = {
+            "en": "Proin elit arcu, rutrum commodo, vehicula tempus, commodo a, risus. Curabitur nec arcu. Donec sollicitudin mi sit amet mauris. Nam elementum quam ullamcorper ante. Etiam aliquet massa et lorem. Mauris dapibus lacus auctor risus. Aenean tempor ullamcorper leo. Vivamus sed magna quis ligula eleifend adipiscing. Duis orci. Aliquam sodales tortor vitae ipsum. Aliquam nulla. Duis aliquam molestie erat. Ut et mauris vel pede varius sollicitudin. Sed ut dolor nec orci tincidunt interdum. Phasellus ipsum. Nunc tristique tempus lectus.",
+            "he": " לורם איפסום דולור סיט אמט, קונסקטורר אדיפיסינג אלית קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף סחטיר בלובק. תצטנפל בלינדו למרקל אס לכימפו, דול, צוט ומעיוט - לפתיעם ברשג - ולתיעם גדדיש. קוויז דומור ליאמום בלינך רוגצה. לפמעט מוסן מנת. קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף גולר מונפרר סוברט לורם שבצק יהול, לכנוץ בעריר גק ליץ, ושבעגט ליבם סולגק. בראיט ולחת צורק מונחף, בגורמי מגמש. תרבנך וסתעד לכנו סתשם השמה - לתכי מורגם בורק? לתיג ישבעס."
+        }
+        elem = self.driver.switch_to.active_element
+        elem.send_keys(paragraph[language])
+        elem.send_keys(Keys.RETURN)
+        time.sleep(3) #sheet won't save until there's a brief pause
+        return self
+
+    def add_source(self):
+        elem = self.driver.switch_to.active_element
+        elem.send_keys("Genesis 1:1")
+        elem.send_keys(Keys.RETURN)
+        time.sleep(3) #sheet won't save until there's a brief pause
+        return self
+
+    def toggle_sheet_edit_view(self):
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "div.rightButtons button")))
+        button = self.driver.find_element_by_css_selector("div.rightButtons button")
+        button.click()
+        return self
+
+    def get_sheet_html(self):
+        sheet_selector = '.sheetContent'
+        sheet = self.driver.find_element_by_css_selector(sheet_selector)
+        sheet_html = sheet.get_attribute('innerHTML')
+        return sheet_html
+
+
+
+
+
+
 
 
 class TestSuite(AbstractTest):
@@ -1817,6 +1877,8 @@ def get_every_build_tests(tests):
     return [t for t in tests if t.every_build]
 
 
+
+
 # The following util method highlights (blinks) a Webdriver on the page, helpful for figuring out what a code line does.
 # A relevant use case would be to recognize an element on browser-1 when it can't be found on browser-2. Just switch locally to
 # the other browser (by changing the value of default_local_driver above), run up to the point of failure (using a breakpoint), and from the Evaluate Expression
@@ -1831,6 +1893,7 @@ def highlight(element):
     apply_style("background: yellow; border: 2px solid red;")
     time.sleep(.3)
     apply_style(original_style)
+
 
 
 class one_of_these_texts_present_in_element(object):

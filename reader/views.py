@@ -287,6 +287,10 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     if panelDisplayLanguage:
         panel["settings"] = {"language": short_to_long_lang_code(panelDisplayLanguage)}
 
+    referer = kwargs.get("referer")
+    if referer == "/sheets/new":
+        panel["sheet"]["editor"] = True
+
     panels = []
     panels.append(panel)
 
@@ -387,7 +391,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
-        panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang", "bi")})
+        panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang", "bi"), "referer": request.path})
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -639,6 +643,21 @@ def search(request):
         "title":     (search_params["query"] + " | " if search_params["query"] else "") + _("Sefaria Search"),
         "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation.")
     })
+
+
+@login_required
+def enable_new_editor(request):
+    resp = home(request)
+    resp.set_cookie("new_editor", "yup", 60 * 60 * 24 * 365)
+    return resp
+
+
+@login_required
+def disable_new_editor(request):
+    resp = home(request)
+    resp.delete_cookie("new_editor")
+    return resp
+
 
 
 @sanitize_get_params
@@ -2437,7 +2456,7 @@ def dictionary_api(request, word):
     if ls:
         for l in ls:
             result.append(l.contents())
-    
+
     return jsonResponse(result, callback=request.GET.get("callback", None))
 
 
@@ -3525,20 +3544,6 @@ def account_settings(request):
                                 'user': request.user,
                                 'profile': profile,
                               })
-
-
-@login_required
-def enable_home_feed(request):
-    resp = home(request, True)
-    resp.set_cookie("home_feed", "yup", 60 * 60 * 24 * 365)
-    return resp
-
-
-@login_required
-def disable_home_feed(request):
-    resp = home(request, False)
-    resp.delete_cookie("home_feed")
-    return resp
 
 
 @ensure_csrf_cookie

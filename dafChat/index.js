@@ -39,8 +39,7 @@ const pcConfig = {
 
 io.sockets.on('connection', function(socket) {
 
-  socket.on('message', function(message) {
-    const roomId = (Object.keys(socket.rooms).filter(item => item!=socket.id))[0]
+  socket.on('message', function(message, roomId) {
     socket.to(roomId).emit('message', message);
   });
 
@@ -48,7 +47,7 @@ io.sockets.on('connection', function(socket) {
     const room = Math.random().toString(36).substring(7);
     socket.join(room, () => {
       console.log(`${socket.id} created room ${room}`);
-      socket.emit('created', room, socket.id);
+      socket.emit('created', room);
       db.run(`INSERT INTO chatrooms(name, clients, roomStarted) VALUES(?, ?, ?)`, [room, uid, +new Date], function(err) {
         if (err) {
           console.log(err.message);
@@ -56,6 +55,20 @@ io.sockets.on('connection', function(socket) {
       });
     });
   }
+
+  socket.on('does room exist', function(roomID) {
+    let sql = `SELECT name FROM chatrooms WHERE name = ?`;
+    let room = roomID;
+    db.get(sql, [room], (err, row) => {
+      if (err) {
+        console.error(err.message);
+      }
+
+      if (!row) {
+        socket.emit('byeReceived');
+      }
+    });
+  });
 
   socket.on('how many rooms', function(uid, lastChevrutaID) {
     socket.emit('creds', pcConfig)
@@ -118,11 +131,11 @@ io.sockets.on('connection', function(socket) {
   });
 
   socket.on('bye', function(room){
+    socket.to(room).emit('message', 'bye')
     socket.leave(room, () => {
-      console.log(`bye received from ${socket.id} for room ${room}`);
-      db.run(`DELETE FROM chatrooms WHERE name=?`, room);
-      socket.to(room).emit('message', 'bye');
-      socket.emit('byeReceived');
+        console.log(`bye received from ${socket.id} for room ${room}`);
+        db.run(`DELETE FROM chatrooms WHERE name=?`, room);
+        socket.emit('byeReceived');
     });
   });
 

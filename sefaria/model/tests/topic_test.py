@@ -114,8 +114,8 @@ class TestTopics(object):
         assert ts['1'].has_types({'3', '8'})
         assert not ts['2'].has_types({'6'})
 
-        assert {t.slug for t in ts['5'].get_leaf_nodes('is-a')} == {'1', '6'}
-        assert ts['1'].get_leaf_nodes('is-a') == [ts['1']]
+        assert {t.slug for t in ts['5'].topics_by_link_type_recursively('is-a', only_leaves=True)} == {'1', '6'}
+        assert ts['1'].topics_by_link_type_recursively('is-a', only_leaves=True) == [ts['1']]
 
     def test_link_set(self, topic_graph):
         ts = topic_graph['topics']

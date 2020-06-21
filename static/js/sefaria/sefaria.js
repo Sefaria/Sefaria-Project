@@ -1,12 +1,12 @@
-const   extend     = require('extend'),
-        param      = require('querystring').stringify,
-        Search     = require('./search'),
-        palette    = require('./palette'),
-        Track      = require('./track'),
-        Hebrew     = require('./hebrew'),
-        Util       = require('./util'),
-        $          = require('./sefariaJquery');
-                     require('babel-polyfill');
+var extend     = require('extend'),
+    param      = require('querystring').stringify;
+import Search from './search';
+import palette from './palette';
+import Track from './track';
+import Hebrew from './hebrew';
+import Util from './util';
+import $ from './sefariaJquery';
+require('babel-polyfill');
 
 
 let Sefaria = Sefaria || {
@@ -1739,7 +1739,10 @@ Sefaria = extend(Sefaria, {
   },
   sheets: {
     _loadSheetByID: {},
-    loadSheetByID: function(id, callback) {
+    loadSheetByID: function(id, callback, reset) {
+      if (reset) {
+        this._loadSheetByID[id] = null;
+      }
       var sheet = this._loadSheetByID[id];
       if (sheet) {
         if (callback) { callback(sheet); }
@@ -2477,4 +2480,4 @@ Sefaria.setup = function(data) {
 };
 Sefaria.setup();
 
-module.exports = Sefaria;
+export default Sefaria;

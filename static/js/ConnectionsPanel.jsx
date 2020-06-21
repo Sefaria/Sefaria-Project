@@ -1,4 +1,4 @@
-const {
+import {
   Dropdown,
   LoadingMessage,
   LoginPrompt,
@@ -8,24 +8,22 @@ const {
   Note,
   FeedbackBox,
   ToolTipped,
-}                            = require('./Misc');
-const {
-  CategoryFilter,
-}                            = require('./ConnectionFilters');
-const React                  = require('react');
-const PropTypes              = require('prop-types');
-const ReactDOM               = require('react-dom');
-const Sefaria                = require('./sefaria/sefaria');
-const $                      = require('./sefaria/sefariaJquery');
-const TextRange              = require('./TextRange');
-const TextList               = require('./TextList');
-const ConnectionsPanelHeader = require('./ConnectionsPanelHeader');
-const { AddToSourceSheetBox }= require('./AddToSourceSheet');
-const LexiconBox             = require('./LexiconBox');
-const AboutBox               = require('./AboutBox');
-const VersionsBox            = require('./VersionsBox');
-const ExtendedNotes          = require('./ExtendedNotes');
-const classNames             = require('classnames');
+} from './Misc';
+import {  CategoryFilter,} from './ConnectionFilters';
+import React from 'react';
+import PropTypes from 'prop-types';
+import ReactDOM from 'react-dom';
+import Sefaria from './sefaria/sefaria';
+import $ from './sefaria/sefariaJquery';
+import TextRange from './TextRange'
+import TextList from './TextList'
+import ConnectionsPanelHeader from './ConnectionsPanelHeader';
+import { AddToSourceSheetBox } from './AddToSourceSheet';
+import LexiconBox from './LexiconBox';
+import AboutBox from './AboutBox';
+import VersionsBox from './VersionsBox';
+import ExtendedNotes from './ExtendedNotes';
+import classNames from 'classnames';
 import Component             from 'react-class';
 
 
@@ -1296,6 +1294,7 @@ AddConnectionBox.propTypes = {
   onCancel: PropTypes.func.isRequired
 };
 
-
-module.exports.ConnectionsPanel = ConnectionsPanel;
-module.exports.ConnectionsPanelHeader = ConnectionsPanelHeader;
+export {
+  ConnectionsPanel,
+  ConnectionsPanelHeader,
+};

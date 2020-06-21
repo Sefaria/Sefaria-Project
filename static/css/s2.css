@@ -370,7 +370,8 @@ input.noselect {
 }
 .header .searchBox {
   overflow: hidden;
-  display: inline-block;
+  display: flex;
+  align-items: center;
   padding: 0;
   text-align: inherit;
   margin: 0 17px 0 17px;
@@ -384,7 +385,6 @@ input.noselect {
 }
 .header .searchBox input {
   background-color: transparent; /*for firefox */
-  margin-top: 2px;
 }
 .header .searchBox input::placeholder {
   font-style: normal;
@@ -396,7 +396,6 @@ input.noselect {
   color: black;
   font-size:  18px;
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-  vertical-align: 6px;
   margin: 0;
   width: 100px;
 }
@@ -682,13 +681,13 @@ input.noselect {
   height: 100%;
   background-color: white;
   opacity: 0.7;
-  position: fixed;
+  position: absolute;
 }
 #interruptingMessage {
   max-width: 90%;
   max-height: 90%;
   box-sizing: border-box;
-  position: fixed;
+  position: absolute;
   padding: 18px 15px;
   z-index: 1001;
   border: 1px solid #E6E6E6;
@@ -834,6 +833,9 @@ input.noselect {
   position: relative;
   margin: 0 10px 0 10px;
   top: -2px;
+}
+.header .readerNavMenuSearchButton {
+  top: 2px;
 }
 .readerNavTop .readerNavMenuSearchButton {
   top: 0;
@@ -5704,6 +5706,13 @@ h2.splitHeader .he {
 .tocTop .groupListingImageBox {
   background-color: transparent;
 }
+.sheetMetaDataBox .title.empty:before {
+  content: "Untitled";
+  color: #999;
+  position: relative;
+  pointer-events: none;
+
+}
 .groupListingImage {
   height: 100%;
   width: 100%;
@@ -6777,7 +6786,7 @@ span.purim-emoji img{
   margin: 0 0 1em 0;
 }
 .segmentNumber.sheetSegmentNumber {
-  display: block;
+  display: none;
   position: relative;
 }
 .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
@@ -6921,6 +6930,23 @@ span.purim-emoji img{
 .sheetContent .media .mediaCaption.enOnly .he {
   display: none;
 }
+.sheetItem:only-of-type.empty .SheetOutsideText:after {
+  color: #999;
+  position: relative;
+  pointer-events: none;
+}
+.interface-english .sheetItem:only-of-type.empty .SheetOutsideText:after {
+  content: "Write some text or type a citation (ex. 'Genesis 1:1-5') ";
+  top: -45px;
+  margin-bottom: -45px;
+}
+.interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:after {
+  content: "הקלידו טקסט חופשי או מראה מקום (לדוגמא, בראשית א, א-ה)";
+  top: -56px;
+  margin-bottom: -56px;
+}
+
+
 .oldSheetNotice,
 .oldSheetNotice a,
 .editSheetNotice,
@@ -6996,6 +7022,21 @@ span.purim-emoji img{
 .sheetItem.ref-display-none .ref {
   display: none;
 }
+
+.sheetItem .SheetSource {
+  border-left: 4px solid;
+  margin-left: -34px;
+  padding-left: 34px;
+}
+
+.sheetItem .SheetOutsideBiText {
+  border-left: 4px solid;
+  margin-left: -34px;
+  padding-left: 34px;
+  border-color: #073570;
+}
+
+
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;
@@ -7083,7 +7124,7 @@ span.purim-emoji img{
 .interface-hebrew .tab-view .tab-list .justifyright {
   margin: 0 auto 0 0;
 }
-.tab-list :not(.active) .tab {
+.tab-list :not(.active) .tab, .tab-list :not(.active) .tab a{
     color: #666;
 }
 .profile-page .textRange {
@@ -8143,3 +8184,120 @@ body .homeFeedWrapper.userStats {
   text-align: center;
   padding-top: 8px;
 }
+
+.editorToolbar {
+  position:fixed;
+  top: 0;
+  left: 0;
+  z-index: 100000;
+}
+
+#sheetEditToggle {
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-inline-end: 8px;
+  padding-inline-start: 0;
+  margin-top: 15px;
+  margin-inline-end: 0;
+  margin-bottom: 0;
+  margin-inline-start: -70px;
+  width: 70px;
+  height: 30px;
+  background: #fff;
+  border: #ccc solid 1px;
+  color: #666;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+  box-sizing: border-box;
+  border-radius: 6px;
+}
+
+#sheetEditToggle img {
+  height: 13px;
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-inline-start: 0;
+  margin-inline-end: 5px;
+  top: 2px;
+  position: relative;
+  filter: invert(67%) sepia(32%) saturate(0%) hue-rotate(54deg) brightness(85%) contrast(91%); /* #999 */
+}
+
+#sheetEditToggle i {
+  margin: 5px;
+}
+
+.hoverMenu {
+  padding: 8px 10px 6px;
+  position: absolute;
+  z-index: 1;
+  top: -10000px;
+  left: -10000px;
+  margin-top: -6px;
+  opacity: 0;
+  background-color: #fafafa;
+  border-radius: 4px;
+  transition: opacity 0.75s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+
+}
+
+.markButton {
+  padding: 10px;
+}
+.markButton i {
+  color: #737373
+}
+.markButton i.active {
+  color: #000;
+}
+.editorHoverBox {
+    position: fixed;
+    top: 120px;
+    background-color: #ccc;
+    padding: 3px;
+    font-size: 12px;
+}
+
+.inlineTextRef {
+    color: #4B71B7
+}
+
+
+/* start css code for loading bezel */
+.sourceLoader {
+  margin-left: -34px;
+  top: 15px;
+  font-size: 4px;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  position: relative;
+  text-indent: -9999em;
+  -webkit-animation: load5 1.1s infinite ease;
+  animation: load5 1.1s infinite ease;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+}
+@-webkit-keyframes load5 {
+0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}
+12.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.7),1.8em -1.8em 0 0 #ffffff,2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.5)}
+25%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.5),1.8em -1.8em 0 0 rgba(0,0,0,0.7),2.5em 0 0 0 #ffffff,1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+37.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.5),2.5em 0 0 0 rgba(0,0,0,0.7),1.75em 1.75em 0 0 #ffffff,0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+50%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.5),1.75em 1.75em 0 0 rgba(0,0,0,0.7),0 2.5em 0 0 #ffffff,-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+62.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.5),0 2.5em 0 0 rgba(0,0,0,0.7),-1.8em 1.8em 0 0 #ffffff,-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+75%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.5),-1.8em 1.8em 0 0 rgba(0,0,0,0.7),-2.6em 0 0 0 #ffffff,-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+87.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.5),-2.6em 0 0 0 rgba(0,0,0,0.7),-1.8em -1.8em 0 0 #fff}
+}
+@keyframes load5 {
+0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}
+12.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.7),1.8em -1.8em 0 0 #ffffff,2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.5)}
+25%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.5),1.8em -1.8em 0 0 rgba(0,0,0,0.7),2.5em 0 0 0 #ffffff,1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+37.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.5),2.5em 0 0 0 rgba(0,0,0,0.7),1.75em 1.75em 0 0 #ffffff,0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+50%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.5),1.75em 1.75em 0 0 rgba(0,0,0,0.7),0 2.5em 0 0 #ffffff,-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+62.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.5),0 2.5em 0 0 rgba(0,0,0,0.7),-1.8em 1.8em 0 0 #ffffff,-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+75%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.5),-1.8em 1.8em 0 0 rgba(0,0,0,0.7),-2.6em 0 0 0 #ffffff,-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+87.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.5),-2.6em 0 0 0 rgba(0,0,0,0.7),-1.8em -1.8em 0 0 #fff}
+}
+/* end css code for loading bezel */
