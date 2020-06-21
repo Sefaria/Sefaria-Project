@@ -20,7 +20,7 @@ Style Guide Font Hierarchy
 https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
 
 font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 
 font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -4968,12 +4968,27 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .confirmAddToSheet {
   text-align: center;
   background-color: #FBFBFA;
+  margin-bottom: 10px;
 }
-.confirmAddToSheet .message {
+.confirmAddToSheet .message{
+  text-align: start;
+}
+.confirmAddToSheet.addToSourceSheetBox .message span{
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  font-style: normal;
+  font-weight: normal;
   font-size: 18px;
-  margin-bottom: 30px;
-  font-style: italic;
+  line-height: 25px;
+  text-decoration-line: none;
+  color: #666666;
 }
+
+.confirmAddToSheet.addToSourceSheetBox .message span a{
+  text-decoration: underline;
+  color: #666666;
+}
+
+
 .confirmAddToSheet .button {
   width: 100%;
 }
@@ -5369,7 +5384,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 0.1em;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
-  line-height: 1;
+  line-height: 19px;
   text-align: center;
 }
 a.button {
@@ -6302,6 +6317,35 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .addToSourceSheetBox .dropdownMain .loadingMessage {
   margin: 0;
+}
+.addToSourceSheetBoxTitle{
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 15px;
+  color: #999999;
+  margin-bottom: 11px;
+}
+.addToSourceSheetBox .selectedRef{
+  padding: 16px 22px;
+  font-size: 16px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  background: #FBFBFA;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+}
+.addToSourceSheetBox .selectedRef span{
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: 25px;
+  color: #666666;
+}
+.readerPanel.hebrew .addToSourceSheetBox .selectedRef span{
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  font-size: 1.2em;
 }
 .dropdown .dropdownOpenButton {
   float: right;

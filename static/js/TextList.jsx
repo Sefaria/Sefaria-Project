@@ -230,6 +230,7 @@ class TextList extends Component {
                                         connection={link}
                                         onTextClick={this.props.onTextClick}
                                         onConnectionDelete={this.onDataChange}
+                                        setConnectionMode={this.props.setConnectionsMode}
                                       />
                                   </div>);
 
@@ -274,7 +275,7 @@ TextList.propTypes = {
   checkVisibleSegments:    PropTypes.func.isRequired,
 };
 
-const ConnectionButtons = ({connection, onTextClick, onConnectionDelete}) =>{
+const ConnectionButtons = ({connection, onTextClick, onConnectionDelete, setConnectionMode}) =>{
   const deleteLink = () => {
     if(!Sefaria.is_moderator) return;
     if (confirm("Are you sure you want to delete this connection?")) {
@@ -301,7 +302,7 @@ const ConnectionButtons = ({connection, onTextClick, onConnectionDelete}) =>{
     }
   }
   const addToSheet = () => {
-    console.log("opening sheet panel!");
+    setConnectionMode("Add Connection To Sheet", {"connectionRefs" : [connection.sourceRef]});
   }
   return(
       <div className={`connection-buttons access-${Sefaria.is_moderator ? "moderator" : "user"}`}>

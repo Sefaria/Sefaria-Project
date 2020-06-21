@@ -75,7 +75,7 @@ class AddToSourceSheetBox extends Component {
     if (!this.props.nodeRef) {
       this.props.addToSourceSheet(this.state.selectedSheet.id, this.confirmAdd);
     } else {
-      var url     = "/api/sheets/" + this.state.selectedSheet.id + "/copy_source";
+      const url     = "/api/sheets/" + this.state.selectedSheet.id + "/copy_source";
       $.post(url, {
           sheetID: this.props.nodeRef.split(".")[0],
           nodeID:this.props.nodeRef.split(".")[1]
@@ -88,8 +88,8 @@ class AddToSourceSheetBox extends Component {
     if (this.props.addToSourceSheet) {
       this.props.addToSourceSheet(this.state.selectedSheet.id, this.confirmAdd);
     } else {
-      var url     = "/api/sheets/" + this.state.selectedSheet.id + "/add";
-      var source = {};
+      const url     = "/api/sheets/" + this.state.selectedSheet.id + "/add";
+      let source = {};
       if (this.props.srefs) {
         source.refs = this.props.srefs;
         if (this.props.en) source.en = this.props.en;
@@ -101,7 +101,7 @@ class AddToSourceSheetBox extends Component {
           source.outsideText = this.props.en || this.props.he;
         }
       }
-      var postData = {source: JSON.stringify(source)};
+      let postData = {source: JSON.stringify(source)};
       if (this.props.note) {
         postData.note = this.props.note;
       }
@@ -109,14 +109,14 @@ class AddToSourceSheetBox extends Component {
     }
   }
   createSheet(refs) {
-    var title = $(ReactDOM.findDOMNode(this)).find("input").val();
+    const title = $(ReactDOM.findDOMNode(this)).find("input").val();
     if (!title) { return; }
-    var sheet = {
+    const sheet = {
       title: title,
       options: {numbered: 0},
       sources: []
     };
-    var postJSON = JSON.stringify(sheet);
+    let postJSON = JSON.stringify(sheet);
     $.post("/api/sheets/", {"json": postJSON}, function(data) {
       Sefaria.sheets.clearUserSheets(Sefaria._uid);
       this.selectSheet(data);
@@ -132,23 +132,36 @@ class AddToSourceSheetBox extends Component {
   }
   render() {
     if (this.state.showConfirm) {
-      return (<ConfirmAddToSheet sheetId={this.state.selectedSheet.id} />);
+      return (<ConfirmAddToSheet sheet={this.state.selectedSheet} srefs={this.props.srefs} />);
     } else if (this.state.showLogin) {
       return (<div className="addToSourceSheetBox sans">
                 <LoginPrompt />
               </div>);
     }
-    var sheets     = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
-    var sheetsList = Sefaria._uid && sheets ? sheets.map((sheet) => {
-      var classes     = classNames({dropdownOption: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
-      var title = sheet.title ? sheet.title.stripHtml() : Sefaria._("Untitled Source Sheet");
-      var selectSheet = this.selectSheet.bind(this, sheet);
+    const titleRef = Sefaria.getRefFromCache(this.props.srefs[0]);
+    const sheets     = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
+    let sheetsList = Sefaria._uid && sheets ? sheets.map((sheet) => {
+      let classes     = classNames({dropdownOption: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
+      let title = sheet.title ? sheet.title.stripHtml() : Sefaria._("Untitled Source Sheet");
+      let selectSheet = this.selectSheet.bind(this, sheet);
       return (<div className={classes} onClick={selectSheet} key={sheet.id}>{title}</div>);
     }) : (Sefaria._uid ? <LoadingMessage /> : null);
 
     // Uses
     return (
-      <div className="addToSourceSheetBox noselect sans">
+      <div className="addToSourceSheetBox noselect">
+        <div className="addToSourceSheetBoxTitle">
+          <span className="int-en">Selected Citation</span>
+          <span className="int-he">מקור להוספה</span>
+        </div>
+        <div className="selectedRef">
+          <span className="en">{titleRef.ref}</span>
+          <span className="he">{titleRef.heRef}</span>
+        </div>
+        <div className="addToSourceSheetBoxTitle">
+          <span className="int-en">Add to</span>
+          <span className="int-he">יעד להוספה</span>
+        </div>
         <div className="dropdown">
           <div className="dropdownMain noselect" onClick={this.toggleSheetList}>
             <i className="dropdownOpenButton noselect fa fa-caret-down"></i>
@@ -187,20 +200,27 @@ AddToSourceSheetBox.propTypes = {
 
 class ConfirmAddToSheet extends Component {
   render() {
+    //const titleRef = Sefaria.getRefFromCache(Sefaria.normRefList(this.props.srefs));
+    const titleRef = Sefaria.getRefFromCache(this.props.srefs[0]);
     return (<div className="confirmAddToSheet addToSourceSheetBox">
               <div className="message">
-                <span className="int-en">Your source has been added.</span>
-                <span className="int-he">הטקסט נוסף בהצלחה לדף המקורות</span>
+                <span className="int-en">
+                  <a href={`/${titleRef.ref}`}>{titleRef.ref}</a>
+                  &nbsp;has been added to&nbsp;
+                   <a href={"/sheets/" + this.props.sheet.id} target="_blank">{this.props.sheet.title}</a>.
+                </span>
+                <span className="int-he">
+                  <a href={`/${titleRef.ref}`}>{titleRef.heRef}</a>
+                   &nbsp;נוסף בהצלחה לדף המקורות&nbsp;
+                  <a href={"/sheets/" + this.props.sheet.id} target="_blank">${this.props.sheet.title}</a>.
+                </span>
               </div>
-              <a className="button white" href={"/sheets/" + this.props.sheetId} target="_blank">
-                <span className="int-en">Go to Source Sheet</span>
-                <span className="int-he">עבור לדף המקורות</span>
-              </a>
             </div>);
   }
 }
 ConfirmAddToSheet.propTypes = {
-  sheetId: PropTypes.number.isRequired
+  srefs: PropTypes.array,
+  sheet: PropTypes.object.isRequired
 };
 
 

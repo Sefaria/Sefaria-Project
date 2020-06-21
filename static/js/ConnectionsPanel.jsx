@@ -364,6 +364,18 @@ class ConnectionsPanel extends Component {
 
                 </div>);
 
+    } else if (this.props.mode == "Add Connection To Sheet"){
+        let refForSheet = (this.props.connectionData && "connectionRefs" in this.props.connectionData) ? this.props.connectionData["connectionRefs"] : this.props.srefs;
+        content = (<div>
+                  <AddToSourceSheetBox
+                    srefs={refForSheet}
+                    nodeRef = {this.props.nodeRef}
+                    fullPanel={this.props.fullPanel}
+                    toggleSignUpModal = {this.props.toggleSignUpModal}
+                    setConnectionsMode={this.props.setConnectionsMode}
+                    addToSourceSheet={this.props.addToSourceSheet} />
+                   </div>);
+
     } else if (this.props.mode === "Notes") {
       content = (<div>
                   <AddNoteBox
