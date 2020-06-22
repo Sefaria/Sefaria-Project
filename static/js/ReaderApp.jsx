@@ -416,7 +416,7 @@ class ReaderApp extends Component {
           (next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs)) ||
           (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) ||
           ((next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter)) ||
-          (next.mode === "Version Open" && prev.versionFilter && !prev.versionFilter(next.versionFilter)) ||
+          (next.mode === "Translation Open" && prev.versionFilter && !prev.versionFilter(next.versionFilter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.currentlyVisibleRef === prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMode) ||
@@ -473,7 +473,7 @@ class ReaderApp extends Component {
     var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
     var panels = headerPanel ? [this.state.header] : this.state.panels;
     var states = [];
-    const moreSidebarModes = new Set(["Sheets", "Notes", "Versions", "Version Open", "About", "WebPages", "extended notes", "Topics"]);
+    const moreSidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open", "About", "WebPages", "extended notes", "Topics"]);
     var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
 
     for (var i = 0; i < panels.length; i++) {
@@ -662,7 +662,7 @@ class ReaderApp extends Component {
         var filter    = state.filter.length ? state.filter :
                           (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
-        if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
+        if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
         hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
@@ -675,7 +675,7 @@ class ReaderApp extends Component {
         var filter    = state.filter.length ? state.filter :
                           (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
-        if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
+        if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
         hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
@@ -706,7 +706,7 @@ class ReaderApp extends Component {
         var filter    = state.filter.length ? state.filter :
                           (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
-        if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
+        if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
         hist.title    = state.sheet.title.stripHtml()  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
@@ -1476,10 +1476,10 @@ class ReaderApp extends Component {
         connectionsPanel.recentVersionFilters = [filter].concat(connectionsPanel.recentVersionFilters);
       }
       connectionsPanel.versionFilter = [filter];
-      connectionsPanel.connectionsMode = "Version Open";
+      connectionsPanel.connectionsMode = "Translation Open";
     } else {
       connectionsPanel.versionFilter = [];
-      connectionsPanel.connectionsMode = "Versions";
+      connectionsPanel.connectionsMode = "Translations";
     }
     if (basePanel) {
       basePanel.versionFilter        = connectionsPanel.versionFilter;

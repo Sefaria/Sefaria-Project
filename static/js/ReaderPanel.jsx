@@ -478,7 +478,7 @@ class ReaderPanel extends Component {
         this.state.recentVersionFilters = [filter].concat(this.state.recentVersionFilters);
       }
       filter = filter ? [filter] : [];
-      this.conditionalSetState({recentVersionFilters: this.state.recentVersionFilters, versionFilter: filter, connectionsMode: "Version Open"});
+      this.conditionalSetState({recentVersionFilters: this.state.recentVersionFilters, versionFilter: filter, connectionsMode: "Translation Open"});
     }
   }
   setWebPagesFilter(filter) {
