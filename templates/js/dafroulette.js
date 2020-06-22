@@ -19,7 +19,7 @@ const sdpConstraints = {
 
 /////////////////////////////////////////////
 
-var clientRoom;
+let clientRoom;
 
 const socket = io.connect('//{{ rtc_server }}');
 
@@ -37,6 +37,14 @@ socket.on('created', function(room) {
   console.log('Created room ' + room);
   isInitiator = true;
   clientRoom = room;
+
+  // There is a situation where a client is in a room and another joins but a match not made & the other browser reloads
+  // and sends the "bye" signal to the server and cleans up the room, but neither the join message nor the bye message
+  // are received by the original client. This code runs every 7.5 seconds to make sure the room still exists and
+  // prevents a user from getting stuck in a room that no one would join
+  setInterval(function(){
+    socket.emit('does room exist', clientRoom);
+    }, 7500);
 });
 
 socket.on('join', function(room) {
