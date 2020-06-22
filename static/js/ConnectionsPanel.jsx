@@ -462,7 +462,7 @@ class ConnectionsPanel extends Component {
                   getLicenseMap={this.props.getLicenseMap}
                   viewExtendedNotes={this.props.viewExtendedNotes} />);
 
-    } else if (this.props.mode === "Versions" || this.props.mode === "Version Open") {
+    } else if (this.props.mode === "Translations" || this.props.mode === "Translation Open") {
       content = (<VersionsBox
                   currObjectVersions={this.state.currObjectVersions}
                   mainVersionLanguage={this.state.mainVersionLanguage}
@@ -564,7 +564,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={this.props.topicsCount} onClick={() => this.props.setConnectionsMode("Topics")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
-              <ToolsButton en="Translations" he="תרגומים" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
+              <ToolsButton en="Translations" he="תרגומים" image="layers.png" onClick={() => this.props.setConnectionsMode("Translations")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
