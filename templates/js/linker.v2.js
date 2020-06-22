@@ -410,6 +410,7 @@
             var book = books[k];
             // Run each regex over the document, and wrap results
             var r = XRegExp(ns.regexes[book],"xgm");
+            // find the refrences and push them into ns.matches
             for (var i = 0; i < ns.elems.length; i++) {
                 findAndReplaceDOMText(ns.elems[i], {
                     preset: 'prose',
@@ -417,7 +418,29 @@
                     replace: function(portion, match) {
                         var matched_ref = match[0]
                             .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
-                            .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
+                            .replace(/[(){}[\]]+/g, "") // Filter out internal parenthesis todo: Don't break on parens in books names
+                            .replace(match[1], '');
+                        ns.matches.push(matched_ref);
+
+                        return match[1] + '~' + portion.text.replace(match[1], '') + '~';
+                    },
+                    filterElements: function(el) {
+                        return !(
+                            hasOwn.call(findAndReplaceDOMText.NON_PROSE_ELEMENTS, el.nodeName.toLowerCase())
+                            || (el.tagName == "A")
+                            // The below test is subsumed in the more simple test above
+                            //|| (el.className && el.className.split(' ').indexOf("sefaria-ref")>=0)
+                        );
+                    }
+                });
+            }
+            // put the prefixes out side of the a tag and the ref inside it.
+            for (var i = 0; i < ns.elems.length; i++) {
+                findAndReplaceDOMText(ns.elems[i], {
+                    preset: 'prose',
+                    find: /~(.*?)~/,
+                    replace: function(portion, match) {
+                        var matched_ref = match[1];
                         ns.matches.push(matched_ref);
 
                         var node = document.createElement("a");
@@ -426,7 +449,7 @@
                         node.href = base_url + matched_ref;
                         node.setAttribute('data-ref', matched_ref);
                         node.setAttribute('aria-controls', 'sefaria-popup');
-                        node.textContent = portion.text;
+                        node.textContent = portion.text.replace(/~/, '').replace(/~/, '');
 
                         return node;
                     },

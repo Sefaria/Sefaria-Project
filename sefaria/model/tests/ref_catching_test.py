@@ -34,5 +34,5 @@ class Test_find_citation_in_text(object):
         match = re.search(res_no_comments, st)
         match_string = '' if not match else match.group()
         print(match_string)
-        assert [r for r in m.library.get_refs_in_string('('+ match_string +')')] == m.library.get_refs_in_string('('+st+')')
+        assert [r for r in m.library.get_refs_in_string('(' + match_string + ')')] == m.library.get_refs_in_string('('+st+')')
 

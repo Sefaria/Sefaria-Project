@@ -5082,9 +5082,12 @@ class Library(object):
         node = self.get_schema_node(title, lang)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
-        if lang == "en" or for_js:  # Javascript doesn't support look behinds.
+        if lang == "en":
             return node.full_regex(title, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=capture_title)
-
+        elif for_js:  # be sure that all for_js also lang 'he' will run this because Javascript doesn't support look behinds.
+            reg = node.full_regex(title, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored,
+                                   capture_title=capture_title)
+            return reg
         elif lang == "he":
             return r"""(?<=							# look behind for opening brace
                     [({]										# literal '(', brace,
