@@ -56,6 +56,20 @@ io.sockets.on('connection', function(socket) {
     });
   }
 
+  socket.on('does room exist', function(roomID) {
+    let sql = `SELECT name FROM chatrooms WHERE name = ?`;
+    let room = roomID;
+    db.get(sql, [room], (err, row) => {
+      if (err) {
+        console.error(err.message);
+      }
+
+      if (!row) {
+        socket.emit('byeReceived');
+      }
+    });
+  });
+
   socket.on('how many rooms', function(uid, lastChevrutaID) {
     socket.emit('creds', pcConfig)
 
