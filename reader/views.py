@@ -2994,14 +2994,17 @@ def topics_api(request, topic):
 def topic_graph_api(request, topic):
     link_type = request.GET.get("link-type", 'is-a')
     max_depth = int(request.GET.get("max-depth", -1))
+    min_sources = int(request.GET.get("min-sources", -1))
     if max_depth == -1:
         max_depth = None
+    if min_sources == -1:
+        min_sources = None
     topic_obj = Topic.init(topic)
    
     if topic_obj is None:
         response = {"error": f"Topic slug {topic} does not exist"}
     else:
-        topics, links = topic_obj.topics_and_links_by_link_type_recursively(linkType=link_type, max_depth=max_depth)
+        topics, links = topic_obj.topics_and_links_by_link_type_recursively(linkType=link_type, max_depth=max_depth, min_sources=min_sources)
         response = {
             "topics": [t.contents() for t in topics],
             "links": [l.contents() for l in links]

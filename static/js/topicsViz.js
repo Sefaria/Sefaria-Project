@@ -314,7 +314,7 @@ function createHierarchy(root) {
 }
 let allTopics, allLinks;
 async function getTree(topic) {
-  let url = Sefaria.apiHost + "/api/topics-graph/" + topic + "";
+  let url = `${Sefaria.apiHost}/api/topics-graph/${topic}?min-sources=10`;
   let res = await Sefaria._ApiPromise(url).then(data => {
     allLinks = {};
     for (let link of data.links) {
