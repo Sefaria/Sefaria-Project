@@ -4305,11 +4305,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textList.fullPanel .recentFilterSet .textFilter {
   display: inline-block;
-  padding: 6px 14px;
-  margin: 5px;
-  border-radius: 12px;
-  border: 1px solid #DADADA;
+  padding: 0;
+  margin: 6px 14px;
   background-color: transparent;
+  color: #999999;
+  border-bottom: 4px solid #cccccc;
 }
 .english .textList.fullPanel .recentFilterSet .textFilter {
   margin-left: 0;
@@ -4318,7 +4318,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 0;
 }
 .textList.fullPanel .recentFilterSet .textFilter.on {
-  background-color: white;
+  color: #000000;
+  border-bottom-color: #4871BF ;
 }
 .topFiltersInner {
   display: inline-block;
@@ -4347,7 +4348,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 19px 34px;
   font-size: 18px;
   line-height: 1.2;
-  border-top: 1px solid #E5E5E5;
   display: block;
   cursor: pointer;
   color: #333;
@@ -4386,6 +4386,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .categoryFilterGroup.withBooks + .categoryFilterGroup {
   margin-top: 30px;
+}
+.categoryFilterGroup .textFilter {
+    border-top: 1px solid #E5E5E5;
 }
 .categoryFilter.on, .textFilter.on {
   color: black;
