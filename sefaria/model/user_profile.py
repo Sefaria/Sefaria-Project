@@ -278,6 +278,7 @@ class UserProfile(object):
             self.last_name         = user.last_name
             self.email             = user.email
             self.date_joined       = user.date_joined
+            self.user              = user
         except:
             # These default values allow profiles to function even
             # if the Django User records are missing (for testing)
@@ -285,6 +286,7 @@ class UserProfile(object):
             self.last_name         = str(id)
             self.email             = "test@sefaria.org"
             self.date_joined       = None
+            self.user              = None
 
         self._id                   = None  # Mongo ID of profile doc
         self.id                    = id    # user ID
@@ -476,7 +478,7 @@ class UserProfile(object):
         """
         Returns True if this is a real existing user, not simply a mock profile.
         """
-        return bool(self.date_joined)
+        return bool(self.user)
 
     def assign_slug(self):
         """
