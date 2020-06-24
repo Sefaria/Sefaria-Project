@@ -33,7 +33,7 @@ class WorkflowyParser(object):
         self._c_index = c_index
         self._c_version = c_version
         tree = ET.parse(self._schema_outline_file)
-        self.outline = tree.getroot().find("./body/outline")
+        self.outline = tree.getroot().find("./body/outline/outline")
         self.comment_strip_re = re.compile(r"</b>|<b>|"+self.comment_delim+".*"+self.comment_delim, re.UNICODE)
         self.parsed_schema = None
         self.version_info = None
