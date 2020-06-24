@@ -8,9 +8,8 @@ from sefaria.system.database import db
 from sefaria.utils.hebrew import hebrew_term
 from .model import *
 from .model.category import CATEGORY_ORDER, TOP_CATEGORIES, REVERSE_ORDER
-import structlog
 import logging
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 """ Not used?

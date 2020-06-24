@@ -3,10 +3,9 @@ from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref
 from sefaria.system.exceptions import DuplicateRecordError
-import structlog
 import logging
 import regex as re
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class Topic(abst.AbstractMongoRecord, AbstractTitledObject):

@@ -3,9 +3,8 @@ queue.py
 Writes to MongoDB Collection: index_queue
 """
 
-import structlog
 import logging
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 from . import abstract as abst
 
