@@ -13,9 +13,8 @@ import regex
 import math
 
 from sefaria.system.decorators import memoized
-import structlog
 import logging
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 ### Change to all caps for constants

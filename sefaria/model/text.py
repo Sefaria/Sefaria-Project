@@ -3,10 +3,9 @@
 text.py
 """
 
-import structlog
 import logging
 from functools import reduce
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 import sys
 import regex

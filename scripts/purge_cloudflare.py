@@ -11,7 +11,6 @@ try:
 except ImportError as e:
     USE_CLOUDFLARE=False
 
-import structlog
 import logging
 logger = logging.getLogger('cloudflare')
 

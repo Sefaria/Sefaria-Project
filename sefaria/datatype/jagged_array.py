@@ -12,9 +12,8 @@ jagged_array.py: a sparse array of arrays
 import re
 from functools import reduce
 from itertools import zip_longest
-import structlog
 import logging
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class JaggedArray(object):

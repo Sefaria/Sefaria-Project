@@ -3,9 +3,8 @@
 from .common import ban_url, purge_url, FRONT_END_URL
 from sefaria.utils.util import graceful_exception
 
-import structlog
 import logging
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @graceful_exception(logger=logger, return_value=None)

@@ -2,12 +2,11 @@
 version_state.py
 Writes to MongoDB Collection:
 """
-import structlog
 import logging
 from functools import reduce
 
 
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 from . import abstract as abst
 from . import text

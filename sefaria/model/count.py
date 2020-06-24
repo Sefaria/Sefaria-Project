@@ -2,9 +2,8 @@
 count.py
 Writes to MongoDB Collection: counts
 """
-import structlog
 import logging
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 from . import abstract as abst
 import sefaria.datatype.jagged_array as ja

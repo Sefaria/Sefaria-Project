@@ -59,9 +59,8 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
 
-import structlog
 import logging
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def process_register_form(request, auth_method='session'):
