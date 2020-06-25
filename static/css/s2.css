@@ -3390,6 +3390,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 13px;
   padding-bottom: 0;
 }
+.interface-hebrew .topicPanel .mainColumn .saveLine .saveButton.three-dots-button {
+  margin-left: 0;
+  margin-right: 10px;
+}
 .interface-hebrew .topicPanel .three-dots-button {
   margin-left: 0px;
   margin-right: 10px;
