@@ -353,6 +353,7 @@
         options.popupStyles = options.popupStyles || {};
         options.interfaceLang = options.interfaceLang || "english";
         options.contentLang = options.contentLang || "bilingual";
+        options.parentheses = options.parentheses || 0;
 
         var selector = options.selector || "body";
         if (window.screen.width < 820 || options.mode == "link") { mode = "link"; }  // If the screen is small, fallback to link mode
@@ -382,7 +383,7 @@
     // Private API
     ns._getRegexesThenTexts = function() {
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|"))
+        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+ns.link.arguments[0].parentheses)
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
@@ -418,7 +419,7 @@
                     replace: function(portion, match) {
                         var matched_ref = match[0]
                             .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
-                            .replace(/[(){}[\]]+/g, "") // Filter out internal parenthesis todo: Don't break on parens in books names
+                            .replace(/[(){}[\]]+/g, "") // Filter out internal parentheses todo: Don't break on parens in books names
                             .replace(match[1], '');
                         ns.matches.push(matched_ref);
 

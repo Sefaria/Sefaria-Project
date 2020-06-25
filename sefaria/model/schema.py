@@ -946,15 +946,16 @@ class NumberedTitledTreeNode(TitledTreeNode):
 
         """
         prefixes = 'בכ|וב|וה|וכ|ול|ומ|וש|כב|ככ|כל|כמ|כש|לכ|מב|מה|מכ|מל|מש|שב|שה|שכ|של|שמ|ב|כ|ל|מ|ש|ה|ו|ד' if lang == 'he' else ''
-        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"), kwargs.get("escape_titles"))
+        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"), kwargs.get("escape_titles"), kwargs.get("parentheses"))
         if not self._regexes.get(key):
-            reg = r"^" if anchored else r"((?:^|\s|\(|\[)(?:{})?)".format(prefixes)
+            parentheses = 0 if not kwargs.get("parentheses") or not int(kwargs.get("parentheses")) else 1
+            reg = r"^" if anchored else r"([(\[][^)\]]*({})?)".format(prefixes) if parentheses else r"((?:^|\s|\(|\[)(?:{})?)".format(prefixes)
             title_block = regex.escape(title) if escape_titles else title
             reg += r"(?P<title>" + title_block + r")" if capture_title else title_block
             reg += self.after_title_delimiter_re
             addr_regex = self.address_regex(lang, **kwargs)
-            reg += r'(?:(?:' + addr_regex + r')|(?:[\[({]' + addr_regex + r'[\])}]))'  # Match expressions with internal parenthesis around the address portion
-            reg += r"(?=[.,:;?!\s})\]<]|$)" if kwargs.get("for_js") else r"(?=\W|$)" if not kwargs.get("terminated") else r"$"
+            reg += r'(?:(?:' + addr_regex + r')|(?:[\[({]' + addr_regex + r'[\])}]))'  # Match expressions with internal parentheses around the address portion
+            reg += r"(?=[.,:;?!\s})\]<]|$)" if kwargs.get("for_js") and not parentheses else r"(?=[^(\[]*[)\]])" if parentheses else r"(?=\W|$)" if not kwargs.get("terminated") else r"$"
             self._regexes[key] = regex.compile(reg, regex.VERBOSE) if compiled else reg
         return self._regexes[key]
 

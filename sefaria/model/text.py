@@ -5079,15 +5079,15 @@ class Library(object):
             return full_regex
 
     # do we want to move this to the schema node? We'd still have to pass the title...
-    def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False):
+    def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False, parentheses=False):
         node = self.get_schema_node(title, lang)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
         if lang == "en":
-            return node.full_regex(title, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=capture_title)
+            return node.full_regex(title, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=capture_title, parentheses=parentheses)
         elif for_js:  # be sure that all for_js also lang 'he' will run this because Javascript doesn't support look behinds.
             reg = node.full_regex(title, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored,
-                                   capture_title=capture_title)
+                                   capture_title=capture_title, parentheses=parentheses)
             return reg
         elif lang == "he":
             return r"""(?<=							# look behind for opening brace
