@@ -342,7 +342,6 @@ urlpatterns += [
     url(r'^api/bulktext/(?P<refs>.+)$', sefaria_views.bulktext_api),
     url(r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>plain\.txt)', sefaria_views.text_download_api),
     url(r'^download/version/(?P<title>.+) - (?P<lang>[he][en]) - (?P<versionTitle>.+)\.(?P<format>json|csv|txt)',sefaria_views.text_download_api),
-    url(r'^download/bulk/versions/', sefaria_views.bulk_download_versions_api),
     url(r'^api/text-upload$', sefaria_views.text_upload_api),
     url(r'^api/linker-track$', sefaria_views.linker_tracking_api),
 

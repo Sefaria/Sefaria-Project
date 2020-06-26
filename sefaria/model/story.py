@@ -518,7 +518,9 @@ class TextPassageStoryFactory(AbstractStoryFactory):
 
         d = {
             "ref": oref.normal(),
-            "title": kwargs.get("title", {"en": oref.normal(), "he": oref.he_normal()})
+            "title": kwargs.get("title", {"en": oref.normal(), "he": oref.he_normal()}),
+            "opener": kwargs.get("opener"),
+            "subtitle": kwargs.get("subtitle")
         }
         if kwargs.get("lead") and kwargs.get("lead").get("en") and kwargs.get("lead").get("he"):
             d["lead"] = kwargs.get("lead")
@@ -629,6 +631,12 @@ class MultiTextStoryFactory(AbstractStoryFactory):
         "lead"
             "en"
             "he"
+        "opener" (optional)
+            "en"
+            "he"
+        "subtitle" (optional)
+            "en"
+            "he"
         "refs"
         "texts" (derived)
             [{"ref", "heRef", "en","he"}, ...]
@@ -640,8 +648,10 @@ class MultiTextStoryFactory(AbstractStoryFactory):
         normal_refs = [text.Ref(ref).normal() for ref in trefs]
 
         return {
-            "title": kwargs.get("title"),
             "lead": kwargs.get("lead"),
+            "title": kwargs.get("title"),
+            "opener": kwargs.get("opener"),
+            "subtitle": kwargs.get("subtitle"),
             "refs": normal_refs
         }
 
