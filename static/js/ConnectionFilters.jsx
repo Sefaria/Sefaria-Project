@@ -47,7 +47,7 @@ class CategoryFilter extends Component {
         <span className="en">
           <span className="filterInner">
             <span className="filterText">{this.props.category}{count}</span>
-            {this.props.hasEnglish ? <EnglishAvailableTag /> : null}
+            {this.props.hasEnglish && Sefaria._siteSettings.TORAH_SPECIFC ? <EnglishAvailableTag /> : null}
           </span>
         </span>
         <span className="he">{this.props.heCategory}{count}</span>
