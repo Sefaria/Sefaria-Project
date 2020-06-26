@@ -390,9 +390,7 @@ class Header extends Component {
                     </div>
                 </div>
                 <div className="headerHomeSection">
-                    {Sefaria._siteSettings.TORAH_SPECIFIC ?
-                      <a className="home" href="/?home" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> :
-                      null }
+                    <a className="home" href="/?home" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a>
                 </div>
                 <div className="headerLinksSection">
                   { headerMessage }
