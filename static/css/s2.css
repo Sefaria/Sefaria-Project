@@ -1495,6 +1495,10 @@ h1 .languageToggle .he {
     font-size: 20px;
   }
 }
+.readerNavMenu .libraryMessage {
+  font-size: 18px;
+  margin-bottom: 40px;
+}
 .readerPanel.hebrew .navToggles {
     direction: rtl;
 }
