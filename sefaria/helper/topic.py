@@ -8,10 +8,9 @@ from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.model.topic import TopicLinkHelper
 from sefaria.system.database import db
-import structlog
 import logging
 
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def get_topic(topic, with_links, annotate_links, with_refs, group_related):

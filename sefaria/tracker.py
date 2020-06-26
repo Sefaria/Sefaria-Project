@@ -3,9 +3,8 @@ Object history tracker
 Accepts change requests for model objects, passes the changes to the models, and records the changes in history
 
 """
-import structlog
 import logging
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 import sefaria.model as model
 from sefaria.system.exceptions import InputError

@@ -3,10 +3,9 @@
 text.py
 """
 
-import structlog
 import logging
 from functools import reduce
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 import sys
 import regex
@@ -949,9 +948,10 @@ class AbstractTextRecord(object):
         accumulator = ''
 
         for segment in as_array:
+            segment = self._strip_itags(segment)
             joiner = " " if previous_state is not None else ""
             previous_state = accumulator
-            accumulator += joiner + self._strip_itags(segment)
+            accumulator += joiner + segment
 
             cur_len = len(accumulator)
             prev_len = len(previous_state)
@@ -2008,7 +2008,7 @@ class TextFamily(object):
                 #then count how many links came from that version. If any- do the wrapping.
                 from . import LinkSet
                 query = oref.ref_regex_query()
-                query.update({"$or": [{"generated_by": "add_links_from_text"}, {"generated_by": "link_disambiguator"}]})  # , "source_text_oid": {"$in": c.version_ids()}
+                query.update({"generated_by": "add_links_from_text"})  # , "source_text_oid": {"$in": c.version_ids()}
                 if LinkSet(query).count() > 0:
                     text_modification_funcs += [lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)]
             setattr(self, self.text_attr_map[language], c._get_text_after_modifications(text_modification_funcs))

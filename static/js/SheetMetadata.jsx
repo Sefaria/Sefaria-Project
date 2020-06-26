@@ -153,6 +153,10 @@ class SheetMetadata extends Component {
                 <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
             </div>
             <div className="int-he">
+            {Sefaria._uid == this.props.sheet.owner && !document.cookie.includes("new_editor") ?
+                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">ערוך</a> :
+                null
+            }
                 <a href="#" className="button white" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
             </div>
             <div>{this.state.sheetCopyStatus == "Copied" ? <a href={"/sheets/"+this.state.copiedSheetId}><span className="int-en">View copy &raquo;</span><span className="int-he">צפה בהעתק &raquo;</span> </a> : null}</div>

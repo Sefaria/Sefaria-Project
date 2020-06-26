@@ -7,9 +7,8 @@ from elasticsearch.exceptions import AuthorizationException
 from datetime import datetime, timedelta
 from io import StringIO, BytesIO
 
-import structlog
 import logging
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect

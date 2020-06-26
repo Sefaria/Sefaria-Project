@@ -4,9 +4,8 @@ from . import abstract as abst
 from . import schema
 from sefaria.system.exceptions import InputError
 
-import structlog
 import logging
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 class Place(abst.AbstractMongoRecord):
     """

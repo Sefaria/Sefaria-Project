@@ -4,7 +4,6 @@
 abstract.py - abstract classes for Sefaria models
 """
 import collections
-import structlog
 import logging
 import copy
 import bleach

@@ -29,9 +29,8 @@ from sefaria.utils.util import epoch_time
 from django.utils import translation
 from sefaria.settings import PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
 
-import structlog
 import logging
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class UserHistory(abst.AbstractMongoRecord):

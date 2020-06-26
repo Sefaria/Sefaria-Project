@@ -15,14 +15,12 @@ import pymongo
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 import logging
-import structlog
-import logging
 import json
 import math
 from logging import NullHandler
 from collections import defaultdict
 import time as pytime
-logger = structlog.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
@@ -43,7 +41,6 @@ import sefaria.model.queue as qu
 es_client = Elasticsearch(SEARCH_ADMIN)
 index_client = IndicesClient(es_client)
 
-import logging
 tracer = logging.getLogger('elasticsearch')
 tracer.setLevel(logging.CRITICAL)
 #tracer.addHandler(logging.FileHandler('/tmp/es_trace.log'))
