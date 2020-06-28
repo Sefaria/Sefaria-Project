@@ -32,7 +32,10 @@ class GroupPage extends Component {
     Sefaria.getGroup(this.props.group)
         .then(groupData => {
           this.sortSheetData(groupData);
-          this.setState({groupData, showTopics: !!groupData.showTagsByDefault})
+          this.setState({
+            groupData,
+            showTopics: !!groupData.showTagsByDefault && !this.props.tag
+          });
         });
   }
   componentDidUpdate(prevProps, prevState) {

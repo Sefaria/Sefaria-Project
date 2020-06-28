@@ -86,6 +86,7 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
 
         if not SITE_SETTINGS["TORAH_SPECIFIC"]:
             content = "english"
+            interface = "english"
 
         request.LANGUAGE_CODE = interface[0:2]
         request.interfaceLang = interface

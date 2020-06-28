@@ -3212,22 +3212,10 @@ def user_profile(request, username):
     """
     User's profile page.
     """
-    user = None
-
-    try:
-        profile = UserProfile(slug=username)
-    except Exception as e:
-        # Couldn't find by slug, try looking up by username (old style urls)
-        # If found, redirect to new URL
-        # If we no longer want to support the old URLs, we can remove this
-        user = get_object_or_404(User, username=username)
-        profile = UserProfile(id=user.id)
-
-        return redirect("/profile/%s" % profile.slug, permanent=True)
-
-    if user is None:
-        user = User.objects.get(id=profile.id)
-    if not user.is_active:
+    profile = UserProfile(slug=username)
+    if profile.user is None:
+        raise Http404
+    if not profile.user.is_active:
         raise Http404('Profile is inactive.')
 
     props = base_props(request)
