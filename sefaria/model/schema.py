@@ -949,7 +949,13 @@ class NumberedTitledTreeNode(TitledTreeNode):
         key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"), kwargs.get("escape_titles"), kwargs.get("parentheses"))
         if not self._regexes.get(key):
             parentheses = 0 if not kwargs.get("parentheses") or not int(kwargs.get("parentheses")) else 1
-            reg = r"^" if anchored else r"([(\[][^)\]]*({})?)".format(prefixes) if parentheses else r"((?:^|\s|\(|\[)(?:{})?)".format(prefixes)
+            prefixes_wraper = r"(?P<prefixes>" if kwargs.get("for_js") else r"(?<="
+            if anchored:
+                reg = r"^"
+            elif parentheses:
+                reg = r"{}[(\[]([^)\]]*?\s)?({})?)".format(prefixes_wraper, prefixes)
+            else:
+                reg = r"{}(?:^|\s|\(|\[)(?:{})?)".format(prefixes_wraper, prefixes)
             title_block = regex.escape(title) if escape_titles else title
             reg += r"(?P<title>" + title_block + r")" if capture_title else title_block
             reg += self.after_title_delimiter_re
