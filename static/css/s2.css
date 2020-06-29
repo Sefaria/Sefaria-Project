@@ -18,6 +18,13 @@ body:not(.user-is-tabbing) *:focus {
 /*
 Style Guide Font Hierarchy
 https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
+
+font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+
+font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+
 */
 .int-he {
   font-family: "Heebo", sans-serif;
@@ -102,7 +109,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
   color: #000;
 }
 .chapterText .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "Times New Roman", serif;
   font-size: 22px;
   font-weight: normal;
   text-transform: uppercase;
@@ -134,7 +141,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
 .contentText .int-he,
 .contentText .he,
 .contentText.he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "Times New Roman", serif;
   font-size: 18px;
   font-weight: normal;
   color: #000;
@@ -145,14 +152,14 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
 /* end Style Guide */
 
 @font-face {
-  /* English content text that may contain Hebrew characters */
-  font-family: 'Hebrew Text Font';
-  src: local('Frank Ruehl Libre'), url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local('Times New Roman');
+  /* Mixed Hebrew - English content text */
+  font-family: 'HebrewInEnglish Text Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
   unicode-range: U+0590-05FF, U+25CC;
 }
 @font-face {
-  /* English system text that may contain Hebrew characters */
-  font-family: 'Hebrew System Font';
+  /* Mixed Hebrew - English system text */
+  font-family: 'HebrewInEnglish System Font';
   src: local('Heebo'), local('Roboto');
   unicode-range: U+0590-05FF;
 }
@@ -363,7 +370,8 @@ input.noselect {
 }
 .header .searchBox {
   overflow: hidden;
-  display: inline-block;
+  display: flex;
+  align-items: center;
   padding: 0;
   text-align: inherit;
   margin: 0 17px 0 17px;
@@ -377,7 +385,6 @@ input.noselect {
 }
 .header .searchBox input {
   background-color: transparent; /*for firefox */
-  margin-top: 2px;
 }
 .header .searchBox input::placeholder {
   font-style: normal;
@@ -389,7 +396,6 @@ input.noselect {
   color: black;
   font-size:  18px;
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-  vertical-align: 6px;
   margin: 0;
   width: 100px;
 }
@@ -397,12 +403,18 @@ input.noselect {
   width: 160px;
 }
 .header .search.hebrewSearch {
-  font-family: 'Hebrew Text Font', serif;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
 }
 .ui-autocomplete .ui-menu-item.search-override {
   border-top: solid 1px #ccc;
   padding-top: 12px;
+}
+.ui-autocomplete .ui-menu-item.hebrew-result a {
+  direction: rtl;
+}
+.ui-autocomplete .ui-menu-item.english-result a {
+  direction: ltr;
 }
 .header .home {
   margin-top: 1px;
@@ -669,13 +681,13 @@ input.noselect {
   height: 100%;
   background-color: white;
   opacity: 0.7;
-  position: fixed;
+  position: absolute;
 }
 #interruptingMessage {
   max-width: 90%;
   max-height: 90%;
   box-sizing: border-box;
-  position: fixed;
+  position: absolute;
   padding: 18px 15px;
   z-index: 1001;
   border: 1px solid #E6E6E6;
@@ -822,6 +834,9 @@ input.noselect {
   margin: 0 10px 0 10px;
   top: -2px;
 }
+.header .readerNavMenuSearchButton {
+  top: 2px;
+}
 .readerNavTop .readerNavMenuSearchButton {
   top: 0;
 }
@@ -848,7 +863,7 @@ input.noselect {
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   z-index: 1000000 !important;
-  font-family: 'Hebrew Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .header > .ui-autocomplete {
   z-index: 1000 !important;
@@ -924,7 +939,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: "Frank Ruehl Libre", "Hebrew Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
   width: 100%;
@@ -980,7 +995,7 @@ input.noselect {
   font-size: inherit;
 }
 .readerPanel .he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   direction: rtl;
   text-align: right;
 }
@@ -1162,7 +1177,7 @@ input.noselect {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerNavTop .readerNavTopCategory .he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .readerNavTop.search {
 }
@@ -1347,10 +1362,10 @@ input.noselect {
   color: #000;
 }
 .topicPanel .sideColumn .sideList a .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicPanel .sideColumn .sideList a .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .topicPanel .sideColumn .topicCategory {
   margin-bottom: 30px;
@@ -1359,7 +1374,7 @@ input.noselect {
   font-size: 24px;
 }
 .topicPanel .story .storySheetList .pageTitle .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 29px;
 }
 .topicPanel .authorOrganizationsystemText {
@@ -1370,20 +1385,20 @@ input.noselect {
   font-size: 24px;
 }
 .story .storyTitle .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 29px;
 }
 .topicPanel .pageTitle h1 span {
   font-size: 30px;
 }
 .topicPanel .pageTitle h1 .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 36px;
 }
 .pageTitle .topicTitleInHe .but-text-is-he {
   color: #888;
   font-size: 20px;
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .topicPanel .topicCategory {
   margin: 0 0 15px 0;
@@ -1393,7 +1408,7 @@ input.noselect {
   text-align: center;
 }
 .readerTocTopics .topicTitle .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .readerTocTopics .topicDescription.systemText .int-en,
 .readerTocTopics .topicDescription.systemText .int-he {
@@ -1441,7 +1456,7 @@ input.noselect {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topicPanel .resourcesLink.blue .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   margin-bottom: -3px;
 }
 h1 .languageToggle {
@@ -1458,7 +1473,7 @@ h1 .languageToggle {
   cursor: pointer;
 }
 h1 div.languageToggle .en {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-weight: normal;
 }
 h1 .languageToggle .he {
@@ -1466,7 +1481,7 @@ h1 .languageToggle .he {
   font-size: 22px;
 }
 .readerNavMenu h1 .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";  /* fallback on Hebrew if Hebrew in text */
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Taamey Frank";  /* fallback on Hebrew if Hebrew in text */
 }
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
@@ -1479,6 +1494,10 @@ h1 .languageToggle .he {
   .readerNavMenu .tagline .he {
     font-size: 20px;
   }
+}
+.readerNavMenu .libraryMessage {
+  font-size: 18px;
+  margin-bottom: 40px;
 }
 .readerPanel.hebrew .navToggles {
     direction: rtl;
@@ -2009,11 +2028,6 @@ a.readerNavCategory {
   color: #999;
   font-style: italic;
 }
-.readerTextTableOfContents .currentVersionBox .versionSelect {
-  width: 80%;
-  max-width: 300px;
-  margin: 20px auto 5px;
-}
 .readerTextTableOfContents .tocDetails a {
   color: #999;
 }
@@ -2024,7 +2038,7 @@ a.readerNavCategory {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerTextTableOfContents .tocDetail .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .readerTextTableOfContents .tocDetails .description {
   margin: 6px 0 16px;
@@ -2103,7 +2117,10 @@ a.readerNavCategory {
 .readerTextTableOfContents .versionEditForm #versionSource,
 .readerTextTableOfContents .versionEditForm #versionNotes,
 .readerTextTableOfContents .versionEditForm #versionTitleInHebrew,
-.readerTextTableOfContents .versionEditForm #versionNotesInHebrew
+.readerTextTableOfContents .versionEditForm #versionNotesInHebrew,
+.readerTextTableOfContents .versionEditForm #purchase_name,
+.readerTextTableOfContents .versionEditForm #purchase_url,
+.readerTextTableOfContents .versionEditForm #purchase_image
  {
   width: 98%;
 }
@@ -2347,45 +2364,135 @@ a.readerNavCategory {
   color: #999;
   padding: 10px 0;
 }
+.versionBlock{
+  display: flex;
+  flex-flow: column;
+}
 .readerTextTableOfContents .versionBlock {
   padding: 0 30px;
   margin: 25px 0;
   box-sizing: border-box;
   cursor: pointer;
+  text-align: center;
 }
 .versionBlock .versionTitle {
   font-size: 18px;
   color: #000;
-  unicode-bidi: plaintext;
+  /*unicode-bidi: plaintext;*/
+}
+.versionBlock .versionTitle a{
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.versionBlock .versionTitle .versionEditIcon{
+  display: none;
+}
+.versionBlock .versionTitle .versionEditIcon.enabled{
+  display: inline-block;
+}
+.versionBlock .versionSelect{
+  margin: 10px 0;
+}
+.readerTextTableOfContents .versionBlock .versionSelect, .aboutBox .versionBlock .versionSelect{
+  display: none;
 }
 .versionBlock a {
   color: #999;
 }
 .versionBlock .versionNotes a {
-  color: #000;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: 22px;
+  color: #666666;
+  text-decoration: underline;
+}
+.versionBlock .versionNotes span{
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .versionBlock .versionDetails {
   display: inline-block;
   font-size: 12px;
   font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #999;
-  padding-top: 10px;
+  display: flex;
+  flex-flow: row;
+  justify-content: space-between;
 }
-.versionBlock .versionDetails .separator {
-  margin: 0 3px;
+.readerTextTableOfContents .versionBlock .versionDetails{
+  text-align: center;
+}
+.versionBlock .versionDetails .versionDetailsInformation{
+  display: flex;
+  flex-flow: column;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation{
+  margin: auto;
+  flex-flow: row;
+  justify-content: space-around;
+}
+.versionBlock .versionDetails .versionDetailsImage{
+  margin-top: 5px;
+}
+.versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement{
+  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 20px;
+  color: #999999;
+}
+.versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionBuyLink a{
+  color: #18345D;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement{
+  margin: 0 2px;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement::after{
+  content: "•";
+  margin-inline-start: 4px;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsInformation .versionDetailsElement.versionHistoryLink::after{
+  content: "›";
+}
+.versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover{
+  text-decoration: none;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsLabel{
+  display: none;
+}
+.versionBlock .versionDetails .versionBuyImage .versionDetailsImageLink img{
+  height: 100px;
+}
+.readerTextTableOfContents .versionBlock .versionDetails .versionBuyImage, .readerTextTableOfContents .versionBlock .versionDetails .versionBuyLink{
+  display: none;
+}
+.versionBlock .versionDetails .n-a, .versionBlock .n-a{
+  display: none;
 }
 .versionBlock .versionTitle:hover {
   text-decoration: underline;
 }
 .versionBlock .versionNotes {
-  padding-top: 10px;
-  color: #666;
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: normal;
   font-size: 18px;
+  line-height: 22px;
+  color: #666666;
+  margin: 10px 0;
 }
 .versionBlock .versionEditIcon {
   margin: 0 7px;
   vertical-align: 1px;
 }
+.versionBlock .versionExtendedNotesLinks{
+  font-style: italic;
+}
+.versionBlock .versionExtendedNotesLinks.no-notes{
+  display: none;
+}
+
 .modTools {
   width: 50%;
   margin: 0 auto;
@@ -2530,7 +2637,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 30px;
 }
 .searchContentFrame h1.hebrewQuery {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 30px;
 }
 .searchContent {
@@ -2937,7 +3044,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .searchContent .text_result .result-title .int-he,
 .searchContent .sheet_result .result-title .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 22px;
 }
 .searchContent .text_result .result-title .int-en,
@@ -3117,7 +3224,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerSheetsNav .tagsList .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .interface-english .readerPanel .readerNavMenu .tagsList .gridBox {
   direction: ltr;
@@ -3269,12 +3376,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: auto;
   right: -50px;
 }
-.mainColumn .saveButton.tooltip-toggle.three-dots-button {
+.saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
   margin-bottom: 13px;
-  padding: 0;
-  width: 22px;
-  height: 20px;
+  padding: 0 6px;  /* HACK: setting width and height to equal values doesn't make this circular, but this does! */
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3285,9 +3391,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 10px;
   margin-top: 0;
 }
-.topicPanel .three-dots-button {
+.topicPanel .mainColumn .saveLine .saveButton.three-dots-button {
   margin-left: 10px;
   margin-right: 0;
+  margin-bottom: 13px;
+  padding-bottom: 0;
+}
+.interface-hebrew .topicPanel .mainColumn .saveLine .saveButton.three-dots-button {
+  margin-left: 0;
+  margin-right: 10px;
 }
 .interface-hebrew .topicPanel .three-dots-button {
   margin-left: 0px;
@@ -4106,7 +4218,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 30px 30px 80px 30px;
 }
 .textList.fullPanel .texts {
-  padding: 50px 40px 80px 40px;
+  padding: 40px 40px 80px 40px;
 }
 .textListTop {
   position: absolute;
@@ -4674,6 +4786,71 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 16px;
   letter-spacing: 1px;
   padding: 20px 34px;
+}
+.topicList.topicsHe {
+  direction: rtl;
+}
+.topicList.topicsEn {
+  direction: ltr;
+}
+.toolsButton.topicButton {
+  flex-direction: column;
+  letter-spacing: unset;
+}
+.topicButton .topicButtonTitle {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  text-align: left;
+}
+.topicButton .topicButtonTitle .he {
+  text-align: right;
+}
+.topicButton .contentText .en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.topicButtonTitle .he {
+  font-size: 122%;
+}
+.topicButton .saveButton.tooltip-toggle.three-dots-button {
+  margin-bottom: 0;
+  margin-left: 30px;
+}
+.topicsHe .topicButton .saveButton.tooltip-toggle.three-dots-button {
+  margin-right: 30px;
+  margin-left: 0;
+}
+.topicButton .three-dots-button.tooltip-toggle::before {
+  transform: none;
+  left: unset;
+  right: 30px;
+  width: 180px;
+}
+.topicsHe .topicButton .three-dots-button.tooltip-toggle::before {
+  right: unset;
+  left: 30px;
+  text-align: right;
+}
+.topicButton .smallText {
+  margin-top: 10px;
+  line-height: 18px;
+  font-size: 18px;
+  text-align: left;
+}
+.topicButton .smallText .en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  color: #999;
+}
+.topicButton .smallText .he {
+  font-family: "Heebo", sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  color: #999;
+}
+.topicsHe .topicButton .smallText {
+  text-align: right;
 }
 .toolsButton:last-child {
   border-bottom: 1px solid #E5E5E5;
@@ -5247,13 +5424,13 @@ a .button:hover {
 }
 .interface-hebrew ::placeholder {
   font-style: normal;
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 18px;
   color: #666;
 }
 .interface-hebrew :-ms-input-placeholder {
   font-style: normal;
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 18px;
   color: #666;
 }
@@ -5510,6 +5687,13 @@ h2.splitHeader .he {
 .tocTop .groupListingImageBox {
   background-color: transparent;
 }
+.sheetMetaDataBox .title.empty:before {
+  content: "Untitled";
+  color: #999;
+  position: relative;
+  pointer-events: none;
+
+}
 .groupListingImage {
   height: 100%;
   width: 100%;
@@ -5589,7 +5773,7 @@ h2.splitHeader .he {
   font-size: 18px;
 }
 .groupPage .groupDescription .he .dedication {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 20px;
 }
 .groupPage .tabs {
@@ -5796,10 +5980,10 @@ h2.splitHeader .he {
   min-height: 500px;
 }
 .topicsPanel .content .topicList .navButton .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Frank Ruehl Libre", "Taamey Frank", "Times New Roman";
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Taamey Frank";
 }
 .topicsPanel .content .topicList .navButton .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .topicsPanel .trendingTopics {
   margin-bottom: 40px;
@@ -6348,35 +6532,33 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .aboutBox .aboutTitle {
   padding: 10px 0 15px 0;
-  font-size: 30px;
-  color: black;
   display: inline-block;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 24px;
+  line-height: 29px;
+  color: #000000;
 }
 .aboutBox .aboutSubtitle {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: italic;
+  font-weight: normal;
   font-size: 18px;
-  color: #666;
+  line-height: 22px;
+  color: #666666;
 }
 .aboutBox .aboutSubtitle .he {
   font-style: normal;
 }
 .aboutBox .aboutDesc {
   padding: 15px 0 30px 0;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: normal;
   font-size: 18px;
-}
-.aboutBox .versionNotes {
-  padding-bottom: 15px;
-  font-size: 15px;
-  color: #666;
-}
-.aboutBox .versionDetails,
-.versionsBox .versionDetails {
-  font-size: 13px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #999;
-  padding-bottom: 5px;
-  text-align: left;
-  line-height: 150%;
+  line-height: 22px;
+  color: #000000;
 }
 .readerApp.interface-hebrew .aboutBox .versionDetails,
 .readerApp.interface-hebrew .versionsBox .versionDetails {
@@ -6393,15 +6575,51 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .currVersionSection {
   padding-bottom: 30px;
 }
+.version-with-buy-button {
+  display: flex;
+  flex-direction: column;
+}
+.version-with-buy-button .version-text-image{
+  display: flex;
+  justify-content: space-between;
+}
+.version-with-buy-button .version-text-image .versionBlock{
+  align-self: flex-start;
+}
+.versionsBox .version-with-buy-button{
+    border-top: solid 1px #CCC;
+}
+.versionsBox .version-with-buy-button .versionBlock{
+    border-top: none;
+}
+.versionsBox .version-with-buy-button .version-text-image .version-with-buy-button-image
+{
+  padding: 20px;
+}
+.versionsBox .version-with-buy-button .version-with-buy-button-link{
+    padding: 10px 20px;
+}
+.version-with-buy-button .version-with-buy-button-link{
+  align-content: flex-start;
+  min-width: 50%;
+}
+.version-with-buy-button .version-with-buy-button-link a.button{
+  color: #FFFFFF;
+  padding: 7px 20px;
+}
+.version-with-buy-button .version-text-image .version-with-buy-button-image img.buy-img {
+    height: 85px;
+    border-radius: 2px;
+}
 .versionsBox .versionLanguage {
   padding-bottom: 15px;
-  text-transform: uppercase;
-  font-size: 16px;
-  color: #666;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
-  padding-left: 20px;
-  padding-right: 20px;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  color: #666666;
 }
 .interface-hebrew .versionsBox .versionLanguage {
   font-family: "Heebo", sans-serif;
@@ -6413,28 +6631,35 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   color: #999;
 }
 .versionsBox a.selectButton {
-  color: #000;
+  font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  color: #666666;
   box-shadow: 0 1px 2px #999;
-  padding: 5px 8px;
-  text-transform: uppercase;
+  padding: 2px 8px;
   background-color: white;
   border-radius: 4px;
-  line-height: 24px;
+  line-height: 18px;
 }
 .versionsBox a.selectButton.currSelectButton {
-  color: #fff;
   background-color: #212E50;
   text-decoration: none;
   cursor: default;
+  line-height: 20px;
+  color: #FFFFFF;
 }
 .versionsTextList .topFiltersInner .uppercase {
   text-transform: none;
 }
 .versionsBox .versionBlock {
-  padding: 20px;
+  padding: 20px 0;
   border-top: solid 1px #CCC;
 }
-.versionsBox .versionBlock .versionTitle a {
+.versionBlock .versionTitle .he{
+
+}
+.versionBlock .versionTitle a {
   color: black;
 }
 .interface-hebrew .versionsBox .versionLanguage {
@@ -6542,7 +6767,7 @@ span.purim-emoji img{
   margin: 0 0 1em 0;
 }
 .segmentNumber.sheetSegmentNumber {
-  display: block;
+  display: none;
   position: relative;
 }
 .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
@@ -6686,6 +6911,23 @@ span.purim-emoji img{
 .sheetContent .media .mediaCaption.enOnly .he {
   display: none;
 }
+.sheetItem:only-of-type.empty .SheetOutsideText:after {
+  color: #999;
+  position: relative;
+  pointer-events: none;
+}
+.interface-english .sheetItem:only-of-type.empty .SheetOutsideText:after {
+  content: "Write some text or type a citation (ex. 'Genesis 1:1-5') ";
+  top: -45px;
+  margin-bottom: -45px;
+}
+.interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:after {
+  content: "הקלידו טקסט חופשי או מראה מקום (לדוגמא, בראשית א, א-ה)";
+  top: -56px;
+  margin-bottom: -56px;
+}
+
+
 .oldSheetNotice,
 .oldSheetNotice a,
 .editSheetNotice,
@@ -6761,6 +7003,21 @@ span.purim-emoji img{
 .sheetItem.ref-display-none .ref {
   display: none;
 }
+
+.sheetItem .SheetSource {
+  border-left: 4px solid;
+  margin-left: -34px;
+  padding-left: 34px;
+}
+
+.sheetItem .SheetOutsideBiText {
+  border-left: 4px solid;
+  margin-left: -34px;
+  padding-left: 34px;
+  border-color: #073570;
+}
+
+
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;
@@ -6854,7 +7111,7 @@ span.purim-emoji img{
 .interface-hebrew .tab-view .tab-list .justifyright {
   margin: 0 auto 0 0;
 }
-.tab-list :not(.active) .tab {
+.tab-list :not(.active) .tab, .tab-list :not(.active) .tab a{
     color: #666;
 }
 .profile-page .textRange {
@@ -7466,7 +7723,7 @@ body .homeFeedWrapper .content {
   font-weight: 400;
 }
 .sideColumn .sideCatLink .int-he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 22px;
   font-weight: normal;
   text-transform: uppercase;
@@ -7864,7 +8121,7 @@ body .homeFeedWrapper.userStats {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .hebrew .userStats .blockLink .he {
-  font-family: "Frank Ruehl Libre", "Taamey Frank", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 
 .userStatModeChooser {
@@ -7914,3 +8171,120 @@ body .homeFeedWrapper.userStats {
   text-align: center;
   padding-top: 8px;
 }
+
+.editorToolbar {
+  position:fixed;
+  top: 0;
+  left: 0;
+  z-index: 100000;
+}
+
+#sheetEditToggle {
+  padding-top: 0;
+  padding-bottom: 0;
+  padding-inline-end: 8px;
+  padding-inline-start: 0;
+  margin-top: 15px;
+  margin-inline-end: 0;
+  margin-bottom: 0;
+  margin-inline-start: -70px;
+  width: 70px;
+  height: 30px;
+  background: #fff;
+  border: #ccc solid 1px;
+  color: #666;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+  box-sizing: border-box;
+  border-radius: 6px;
+}
+
+#sheetEditToggle img {
+  height: 13px;
+  margin-top: 0;
+  margin-bottom: 0;
+  margin-inline-start: 0;
+  margin-inline-end: 5px;
+  top: 2px;
+  position: relative;
+  filter: invert(67%) sepia(32%) saturate(0%) hue-rotate(54deg) brightness(85%) contrast(91%); /* #999 */
+}
+
+#sheetEditToggle i {
+  margin: 5px;
+}
+
+.hoverMenu {
+  padding: 8px 10px 6px;
+  position: absolute;
+  z-index: 1;
+  top: -10000px;
+  left: -10000px;
+  margin-top: -6px;
+  opacity: 0;
+  background-color: #fafafa;
+  border-radius: 4px;
+  transition: opacity 0.75s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+
+}
+
+.markButton {
+  padding: 10px;
+}
+.markButton i {
+  color: #737373
+}
+.markButton i.active {
+  color: #000;
+}
+.editorHoverBox {
+    position: fixed;
+    top: 120px;
+    background-color: #ccc;
+    padding: 3px;
+    font-size: 12px;
+}
+
+.inlineTextRef {
+    color: #4B71B7
+}
+
+
+/* start css code for loading bezel */
+.sourceLoader {
+  margin-left: -34px;
+  top: 15px;
+  font-size: 4px;
+  width: 1em;
+  height: 1em;
+  border-radius: 50%;
+  position: relative;
+  text-indent: -9999em;
+  -webkit-animation: load5 1.1s infinite ease;
+  animation: load5 1.1s infinite ease;
+  -webkit-transform: translateZ(0);
+  -ms-transform: translateZ(0);
+  transform: translateZ(0);
+}
+@-webkit-keyframes load5 {
+0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}
+12.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.7),1.8em -1.8em 0 0 #ffffff,2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.5)}
+25%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.5),1.8em -1.8em 0 0 rgba(0,0,0,0.7),2.5em 0 0 0 #ffffff,1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+37.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.5),2.5em 0 0 0 rgba(0,0,0,0.7),1.75em 1.75em 0 0 #ffffff,0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+50%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.5),1.75em 1.75em 0 0 rgba(0,0,0,0.7),0 2.5em 0 0 #ffffff,-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+62.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.5),0 2.5em 0 0 rgba(0,0,0,0.7),-1.8em 1.8em 0 0 #ffffff,-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+75%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.5),-1.8em 1.8em 0 0 rgba(0,0,0,0.7),-2.6em 0 0 0 #ffffff,-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+87.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.5),-2.6em 0 0 0 rgba(0,0,0,0.7),-1.8em -1.8em 0 0 #fff}
+}
+@keyframes load5 {
+0%,100%{box-shadow:0 -2.6em 0 0 #ffffff,1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.5),-1.8em -1.8em 0 0 rgba(0,0,0,0.7)}
+12.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.7),1.8em -1.8em 0 0 #ffffff,2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.5)}
+25%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.5),1.8em -1.8em 0 0 rgba(0,0,0,0.7),2.5em 0 0 0 #ffffff,1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+37.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.5),2.5em 0 0 0 rgba(0,0,0,0.7),1.75em 1.75em 0 0 #ffffff,0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+50%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.5),1.75em 1.75em 0 0 rgba(0,0,0,0.7),0 2.5em 0 0 #ffffff,-1.8em 1.8em 0 0 rgba(0,0,0,0.2),-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+62.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.5),0 2.5em 0 0 rgba(0,0,0,0.7),-1.8em 1.8em 0 0 #ffffff,-2.6em 0 0 0 rgba(0,0,0,0.2),-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+75%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.5),-1.8em 1.8em 0 0 rgba(0,0,0,0.7),-2.6em 0 0 0 #ffffff,-1.8em -1.8em 0 0 rgba(0,0,0,0.2)}
+87.5%{box-shadow:0 -2.6em 0 0 rgba(0,0,0,0.2),1.8em -1.8em 0 0 rgba(0,0,0,0.2),2.5em 0 0 0 rgba(0,0,0,0.2),1.75em 1.75em 0 0 rgba(0,0,0,0.2),0 2.5em 0 0 rgba(0,0,0,0.2),-1.8em 1.8em 0 0 rgba(0,0,0,0.5),-2.6em 0 0 0 rgba(0,0,0,0.7),-1.8em -1.8em 0 0 #fff}
+}
+/* end css code for loading bezel */

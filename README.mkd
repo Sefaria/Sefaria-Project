@@ -4,7 +4,7 @@
 
 You can find outputs of our entire database in [Sefaria-Export](https://github.com/Sefaria/Sefaria-Export).
 
-Interested developers should join the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
+Interested developers should join the [sefaria-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
 
 For general discussion questions about the project, please email [hello@sefaria.org](mailto:hello@sefaria.org).
 
@@ -12,7 +12,7 @@ If you find textual problems in our library please email [corrections@sefaria.or
 
 You can post bugs or request/discuss features on [GitHub Issues](https://github.com/sefaria/Sefaria-Project/issues?direction=desc&page=1&sort=created&state=open). Tackling an issue marked as a "Starter Project" is a good way to sink your teeth into Sefaria.
 
-If you're interested in working on a project you see listed here, please email the [sefara-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
+If you're interested in working on a project you see listed here, please email the [sefaria-dev mailing list](https://groups.google.com/forum/#!forum/sefaria-dev).
 
 ***
 
@@ -105,10 +105,11 @@ After installing the Python development libraries, run `pip install -r requireme
     brew install gettext
     
     
-On some macOS systems `gettext` will atill not run after installation and `django manage.py makemessages` will fail. In such a case, one easy solution is to run (replace x's with your gettext version number) before running functions that invoke gettext:
+On some macOS systems `gettext` will still not run after installation and `django manage.py makemessages` will fail. In such a case, one easy solution is to add (replace x's with your gettext version number) to your .bashrc(or its equivalent on your system):
     
     export TEMP_PATH=$PATH
     export PATH=$PATH:/usr/local/Cellar/gettext/0.xx.x/bin
+    
 
 ###### On Debian systems
 
@@ -140,7 +141,7 @@ or user your os service manager to have it start on startup
 
 #### 8) Put some texts in your database:
 
-We make a MongoDB dump of our database is available download. 
+MongoDB dumps of our database are available to download. 
 
 The recommended dump (which is of a manageable size) is available [here](https://storage.googleapis.com/sefaria-mongo-backup/dump_small.tar.gz). 
 
@@ -174,7 +175,7 @@ Django auth features run on a separate database. To init this database and set u
 
 Node is now required to run the site. Even if you choose to have js run only on the client, we are also using [Webpack](https://webpack.js.org/) to bundle our javascript. 
 
-Instaling Node and npm fro mthe main installers on Node's homepage may cause permission issues. For that reason it is recommended to use one of the alternative methods (with a preference to a version manager like nvm) listed [here](https://nodejs.org/en/download/package-manager/):
+Instaling Node and npm from the main installers on Node's homepage may cause permission issues. For that reason it is recommended to use one of the alternative methods (with a preference to a version manager like nvm) listed [here](https://nodejs.org/en/download/package-manager/):
 
 ###### Debian, Ubuntu and Linux Mint 
 You are better off using `apt-get nodejs` or following the instructions [here](https://github.com/nodesource/distributions/blob/master/README.md). They will install both Node and npm. 

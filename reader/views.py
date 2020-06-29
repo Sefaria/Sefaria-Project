@@ -53,7 +53,7 @@ from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES,
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
-from sefaria.helper.topic import get_topic, get_all_topics
+from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref
 from django.utils.html import strip_tags
 
 
@@ -201,7 +201,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "Web Pages", "extended notes"):
+            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "WebPages", "extended notes", "Topics"):
                 panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
@@ -286,6 +286,10 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
         panel["settings"] = {"language": short_to_long_lang_code(panelDisplayLanguage)}
+
+    referer = kwargs.get("referer")
+    if referer == "/sheets/new":
+        panel["sheet"]["editor"] = True
 
     panels = []
     panels.append(panel)
@@ -387,7 +391,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
-        panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang", "bi")})
+        panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang", "bi"), "referer": request.path})
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -639,6 +643,21 @@ def search(request):
         "title":     (search_params["query"] + " | " if search_params["query"] else "") + _("Sefaria Search"),
         "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation.")
     })
+
+
+@login_required
+def enable_new_editor(request):
+    resp = home(request)
+    resp.set_cookie("new_editor", "yup", 60 * 60 * 24 * 365)
+    return resp
+
+
+@login_required
+def disable_new_editor(request):
+    resp = home(request)
+    resp.delete_cookie("new_editor")
+    return resp
+
 
 
 @sanitize_get_params
@@ -1897,8 +1916,8 @@ def related_api(request, tref):
     """
     Single API to bundle available content related to `tref`.
     """
-    oref = model.Ref(tref)
     if request.GET.get("private", False) and request.user.is_authenticated:
+        oref = model.Ref(tref)
         response = {
             "sheets": get_sheets_for_ref(tref, uid=request.user.id),
             "notes": get_notes(oref, uid=request.user.id, public=False)
@@ -1911,6 +1930,7 @@ def related_api(request, tref):
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
+            "topics": get_topics_for_ref(tref, annotate=True),
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
@@ -2432,7 +2452,7 @@ def dictionary_api(request, word):
     if ls:
         for l in ls:
             result.append(l.contents())
-    
+
     return jsonResponse(result, callback=request.GET.get("callback", None))
 
 
@@ -2989,6 +3009,16 @@ def topics_api(request, topic):
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
+@catch_error_as_json
+def topic_ref_api(request, tref):
+    """
+    API to get RefTopicLinks
+    """
+    annotate = bool(int(request.GET.get("annotate", False)))
+    response = get_topics_for_ref(tref, annotate)
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
 def _topic_data(topic):
     response = get_topic(topic, with_links=True, annotate_links=True, with_refs=True, group_related=True)
     return response
@@ -3182,22 +3212,10 @@ def user_profile(request, username):
     """
     User's profile page.
     """
-    user = None
-
-    try:
-        profile = UserProfile(slug=username)
-    except Exception as e:
-        # Couldn't find by slug, try looking up by username (old style urls)
-        # If found, redirect to new URL
-        # If we no longer want to support the old URLs, we can remove this
-        user = get_object_or_404(User, username=username)
-        profile = UserProfile(id=user.id)
-
-        return redirect("/profile/%s" % profile.slug, permanent=True)
-
-    if user is None:
-        user = User.objects.get(id=profile.id)
-    if not user.is_active:
+    profile = UserProfile(slug=username)
+    if profile.user is None:
+        raise Http404
+    if not profile.user.is_active:
         raise Http404('Profile is inactive.')
 
     props = base_props(request)
@@ -3510,20 +3528,6 @@ def account_settings(request):
                                 'user': request.user,
                                 'profile': profile,
                               })
-
-
-@login_required
-def enable_home_feed(request):
-    resp = home(request, True)
-    resp.set_cookie("home_feed", "yup", 60 * 60 * 24 * 365)
-    return resp
-
-
-@login_required
-def disable_home_feed(request):
-    resp = home(request, False)
-    resp.delete_cookie("home_feed")
-    return resp
 
 
 @ensure_csrf_cookie

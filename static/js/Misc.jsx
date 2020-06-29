@@ -1,14 +1,14 @@
 //const React      = require('react');
 import React, { useState, useEffect, useRef } from 'react';
-const ReactDOM   = require('react-dom');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
-const { usePaginatedDisplay } = require('./Hooks');
+import ReactDOM  from 'react-dom';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
+import Component from 'react-class';
+import { usePaginatedDisplay } from './Hooks'
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import Component      from 'react-class';
 
 // interface text that can fallback to alternate langauge if current language doesn't have content
 const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
@@ -169,6 +169,7 @@ class ProfilePic extends Component {
             onError={this.setShowDefault}
           /> : null
         }
+        {this.props.children ? this.props.children : null /*required for slate.js*/}
         { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
             (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
               <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
@@ -555,8 +556,14 @@ ReaderNavigationMenuSection.defaultProps = {
 class TextBlockLink extends Component {
   // Monopoly card style link with category color at top
   // This component is seriously overloaded :grimacing:
+  componentDidMount(){
+    if(this.props.csrRequired) {
+      this.setState({csrActive: true});
+    }
+  }
+
   render() {
-    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang } = this.props;
+    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang, csrRequired } = this.props;
     const index    = Sefaria.index(book);
     category = category || (index ? index.primary_category : "Other");
     const style    = {"borderColor": Sefaria.palette.categoryColor(category)};
@@ -564,7 +571,7 @@ class TextBlockLink extends Component {
     heTitle  = heTitle || (showSections ? heRef : index.heTitle);
     const hlang = intlang ? "int-he": "he";
     const elang = intlang ? "int-en": "en";
-
+    const fullRender = !csrRequired || (this.state && this.state.csrActive);
     let byLine;
     if (!!sheetOwner && sideColor) {
       title = sheetTitle.stripHtml();
@@ -595,7 +602,7 @@ class TextBlockLink extends Component {
 
     if (sideColor) {
       return (
-        <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
+        <a href={fullRender ? url : ""} className={classes} data-ref={fullRender ? sref : ""} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
@@ -615,7 +622,7 @@ class TextBlockLink extends Component {
         </a>
       );
     }
-    return (<a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
+    return (<a href={fullRender ? url : ""} className={classes} data-ref={fullRender ? sref : ""} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
               <span className={elang}>{title}</span>
               <span className={hlang}>{heTitle}</span>
                 {subtitle}
@@ -641,9 +648,11 @@ TextBlockLink.propTypes = {
   sheetTitle:      PropTypes.string,
   sheetOwner:      PropTypes.string,
   timeStamp:       PropTypes.number,
+  csrRequired:     PropTypes.bool,
 };
 TextBlockLink.defaultProps = {
   currVersions: {en:null, he:null},
+  csrRequired: false,
 };
 
 
@@ -719,6 +728,9 @@ SimpleLinkedBlock.propTypes = {
     classes: PropTypes.string,
     aclasses: PropTypes.string
 };
+
+
+
 
 
 class BlockLink extends Component {
@@ -1276,7 +1288,7 @@ class SheetListing extends Component {
         </div>
         <div className="sheetRight">
           {
-            this.props.editable ?
+            this.props.editable && !document.cookie.includes("new_editor") ?
             <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg"/></a>
               : null
           }
@@ -1995,52 +2007,116 @@ class CookiesNotification extends Component {
   }
 }
 
+const SheetTitle = (props) => (
+        <div className={`title ${props.empty ? 'empty': ''}`} role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
+            {props.children? props.children : props.title.stripHtmlKeepLineBreaks()}
+        </div>
+    )
+SheetTitle.propTypes = {
+    title:          PropTypes.string,
+};
 
-module.exports.SimpleInterfaceBlock                      = SimpleInterfaceBlock;
-module.exports.DangerousInterfaceBlock                   = DangerousInterfaceBlock;
-module.exports.SimpleContentBlock                        = SimpleContentBlock;
-module.exports.SimpleLinkedBlock                         = SimpleLinkedBlock;
-module.exports.BlockLink                                 = BlockLink;
-module.exports.CategoryColorLine                         = CategoryColorLine;
-module.exports.CategoryAttribution                       = CategoryAttribution;
-module.exports.CookiesNotification                       = CookiesNotification;
-module.exports.Dropdown                                  = Dropdown;
-module.exports.DropdownButton                            = DropdownButton;
-module.exports.DropdownModal                             = DropdownModal;
-module.exports.DropdownOptionList                        = DropdownOptionList;
-module.exports.FeedbackBox                               = FeedbackBox;
-module.exports.FilterableList                            = FilterableList;
-module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
-module.exports.InterfaceTextWithFallback                 = InterfaceTextWithFallback;
-module.exports.InterruptingMessage                       = InterruptingMessage;
-module.exports.LanguageToggleButton                      = LanguageToggleButton;
-module.exports.Link                                      = Link;
-module.exports.LoadingMessage                            = LoadingMessage;
-module.exports.LoadingRing                               = LoadingRing;
-module.exports.LoginPrompt                               = LoginPrompt;
-module.exports.NewsletterSignUpForm                      = NewsletterSignUpForm;
-module.exports.Note                                      = Note;
-module.exports.ProfileListing                            = ProfileListing;
-module.exports.ProfilePic                                = ProfilePic;
-module.exports.ReaderMessage                             = ReaderMessage;
-module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
-module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;
-module.exports.ReaderNavigationMenuMenuButton            = ReaderNavigationMenuMenuButton;
-module.exports.SaveButton                                = SaveButton;
-module.exports.FollowButton                              = FollowButton;
-module.exports.ReaderNavigationMenuSection               = ReaderNavigationMenuSection;
-module.exports.ReaderNavigationMenuSearchButton          = ReaderNavigationMenuSearchButton;
-module.exports.SinglePanelNavHeader                      = SinglePanelNavHeader;
-module.exports.SignUpModal                               = SignUpModal;
-module.exports.SheetListing                              = SheetListing;
-module.exports.SheetAccessIcon                           = SheetAccessIcon;
-module.exports.SheetTopicLink                            = SheetTopicLink;
-module.exports.TabView                                   = TabView;
-module.exports.TextBlockLink                             = TextBlockLink;
-module.exports.TestMessage                               = TestMessage;
-module.exports.ThreeBox                                  = ThreeBox;
-module.exports.ToggleSet                                 = ToggleSet;
-module.exports.ToolTipped                                = ToolTipped;
-module.exports.TwoBox                                    = TwoBox;
-module.exports.TwoOrThreeBox                             = TwoOrThreeBox;
-module.exports.InterfaceLanguageMenu                     = InterfaceLanguageMenu;
+const SheetAuthorStatement = (props) => (
+    <div className="authorStatement" contentEditable={false} style={{ userSelect: 'none' }}>
+          {props.children}
+    </div>
+)
+
+SheetAuthorStatement.propTypes = {
+    authorImage:      PropTypes.string,
+    authorStatement:  PropTypes.string,
+    authorUrl:        PropTypes.string,
+};
+
+const GroupStatement = (props) => (
+    props.group && props.group != "" ?
+        <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none' }}>
+          <div className="groupListingImageBox imageBox">
+            <a href={"/groups/" + props.group}>
+              <img className="groupListingImage img-circle" src={props.groupLogo} alt="Group Logo"/>
+            </a>
+          </div>
+          <a href={"/groups/" + props.group}>{props.children ? props.children : props.group}</a>
+        </div> :     <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
+                  {props.children}
+            </div>
+
+)
+
+GroupStatement.propTypes = {
+    group:      PropTypes.string,
+    groupLogo:  PropTypes.string,
+};
+
+
+const SheetMetaDataBox = (props) => (
+    <div className="sheetMetaDataBox">
+      {props.children}
+    </div>
+);
+
+SheetMetaDataBox.propTypes = {
+    title:          PropTypes.string,
+    authorUrl:      PropTypes.string,
+    authorImage:    PropTypes.string,
+    authorStatement:PropTypes.string,
+    group:          PropTypes.string,
+    groupLogo:      PropTypes.string,
+};
+
+
+
+export {
+  SimpleInterfaceBlock,
+  DangerousInterfaceBlock,
+  SimpleContentBlock,
+  SimpleLinkedBlock,
+  BlockLink,
+  CategoryColorLine,
+  CategoryAttribution,
+  CookiesNotification,
+  Dropdown,
+  DropdownButton,
+  DropdownModal,
+  DropdownOptionList,
+  FeedbackBox,
+  FilterableList,
+  GlobalWarningMessage,
+  InterruptingMessage,
+  InterfaceTextWithFallback,
+  LanguageToggleButton,
+  Link,
+  LoadingMessage,
+  LoadingRing,
+  LoginPrompt,
+  NewsletterSignUpForm,
+  Note,
+  ProfileListing,
+  ProfilePic,
+  ReaderMessage,
+  ReaderNavigationMenuCloseButton,
+  ReaderNavigationMenuDisplaySettingsButton,
+  ReaderNavigationMenuMenuButton,
+  SaveButton,
+  FollowButton,
+  ReaderNavigationMenuSection,
+  ReaderNavigationMenuSearchButton,
+  SinglePanelNavHeader,
+  SignUpModal,
+  SheetListing,
+  SheetAccessIcon,
+  SheetTopicLink,
+  TabView,
+  TextBlockLink,
+  TestMessage,
+  ThreeBox,
+  ToggleSet,
+  ToolTipped,
+  TwoBox,
+  TwoOrThreeBox,
+  SheetMetaDataBox,
+  SheetAuthorStatement,
+  SheetTitle,
+  GroupStatement,
+  InterfaceLanguageMenu,
+};

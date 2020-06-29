@@ -1,12 +1,12 @@
-const   extend     = require('extend'),
-        param      = require('querystring').stringify,
-        Search     = require('./search'),
-        palette    = require('./palette'),
-        Track      = require('./track'),
-        Hebrew     = require('./hebrew'),
-        Util       = require('./util'),
-        $          = require('./sefariaJquery');
-                     require('babel-polyfill');
+var extend     = require('extend'),
+    param      = require('querystring').stringify;
+import Search from './search';
+import palette from './palette';
+import Track from './track';
+import Hebrew from './hebrew';
+import Util from './util';
+import $ from './sefariaJquery';
+require('babel-polyfill');
 
 
 let Sefaria = Sefaria || {
@@ -342,10 +342,7 @@ Sefaria = extend(Sefaria, {
 
     let promises = refStrs.map(refStr => this._ApiPromise(`${hostStr}${refStr}${paramStr.replace(/&/,'?')}`));
 
-    return Promise.all(promises).then(results => {
-      let combinedResults = {};
-      return Object.assign(combinedResults, ...results);
-    });
+    return Promise.all(promises).then(results => Object.assign({}, ...results));
   },
   getBulkSheets: function(sheetIds) {
     // todo: fish existing texts out of cache first
@@ -1190,6 +1187,38 @@ Sefaria = extend(Sefaria, {
       return (a.linkerHits > b.linkerHits) ? -1 : 1
     });
   },
+  _refTopicLinks: {},
+  _saveTopicByRef: function(ref, data) {
+    ref = Sefaria.humanRef(ref);
+    const split = this._saveItemsByRef(data, this._refTopicLinks);
+    this._refTopicLinks[ref] = data;
+    return split;
+  },
+  topicsByRef: function(refs) {
+    refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
+    const topicsObj = {};
+    let resultLoaded = false;  // _refTopicLinks will have an empty array for ref if ref's topics were loaded
+    for (let r of refs) {
+      const tempTopicList = this._refTopicLinks[r];
+      if (!tempTopicList) { continue; }
+      resultLoaded = true;
+      for (let tempTopic of tempTopicList) {
+        if (!topicsObj[tempTopic.topic]) {
+          tempTopic.order = tempTopic.order || {};
+          tempTopic.dataSources = {};
+          topicsObj[tempTopic.topic] = tempTopic;
+        }
+        // aggregate dataSources for display in tooltip
+        topicsObj[tempTopic.topic].dataSources[tempTopic.dataSource.slug] = tempTopic.dataSource;
+      }
+    }
+    if (!resultLoaded) { return null ;}
+    return Object.values(topicsObj).sort((a, b) => b.order.pr - a.order.pr);
+  },
+  topicsByRefCount: function(refs) {
+    const topics = Sefaria.topicsByRef(refs);
+    return topics && topics.length;
+  },
   _related: {},
   related: function(ref, callback) {
     // Single API to bundle public links, sheets, and notes by ref.
@@ -1218,6 +1247,7 @@ Sefaria = extend(Sefaria, {
           notes: this._saveNoteData(ref, data.notes),
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
+          topics: this._saveTopicByRef(ref, data.topics || []),
       };
 
        // Build split related data from individual split data arrays
@@ -1225,7 +1255,7 @@ Sefaria = extend(Sefaria, {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: [], webpages: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], topics: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }
@@ -1713,7 +1743,10 @@ Sefaria = extend(Sefaria, {
   },
   sheets: {
     _loadSheetByID: {},
-    loadSheetByID: function(id, callback) {
+    loadSheetByID: function(id, callback, reset) {
+      if (reset) {
+        this._loadSheetByID[id] = null;
+      }
       var sheet = this._loadSheetByID[id];
       if (sheet) {
         if (callback) { callback(sheet); }
@@ -2020,12 +2053,12 @@ Sefaria = extend(Sefaria, {
       "Public Source Sheets":"דפי מקורות פומביים",
       "History": "היסטוריה",
       "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
-      "Public Domain": "רשיון בנחלת הכלל",
-      "CC-BY": "רשיון CC-BY",
-      "CC-BY-NC": "רשיון CC-BY-NC",
-      "CC-BY-SA": "רשיון CC-BY-SA",
-      "CC-BY-NC-SA": "רשיון CC-BY-NC-SA",
-      "CC0": "רשיון CC0",
+      "Public Domain": "בנחלת הכלל",
+      "CC-BY": "CC-BY",
+      "CC-BY-NC": "CC-BY-NC",
+      "CC-BY-SA": "CC-BY-SA",
+      "CC-BY-NC-SA": "CC-BY-NC-SA",
+      "CC0": "CC0",
       "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
       //sheets
@@ -2107,12 +2140,22 @@ Sefaria = extend(Sefaria, {
       "Search for:": "חיפוש:",
       "Views": "צפיות",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
-      "Versions": "גרסאות",
-      "Version Open": "גרסה פתוחה",
+      "Versions": "מהדורות",
+      "Version Open": "מהדורה פתוחה",
       "About": "אודות",
-      "Current": "נוכחית",
+      "Current Version": "מהדורה נוכחית",
+      "Current Translation": "תרגום נוכחי",
+      "Select Version": "בחירת מהדורה",
+      "Select Translation": "בחירת תרגום",
+      "Merged from": "נוצר ממיזוג",
+      "Source" : "מקור",
+      "Digitization" : "דיגיטציה",
+      "License" : "רשיון",
+      "Revision History" : "היסטורית עריכה",
+      "Buy in Print" : "לרכישה בדפוס",
+      "Buy Now" : "רכישה",
+      "Read More": "קרא עוד",
       "Web Pages": "דפי אינטרנט",
-      "Select": "החלפת גרסה",
       "Members": "חברים",
       "Send": "שלח",
       "Cancel": "בטל",
@@ -2189,6 +2232,7 @@ Sefaria = extend(Sefaria, {
       "Chronological": 'כרונולוגי',
       "Newest": "הכי חדש",
       "This source is connected to ": "מקור הזה קשור ל-",
+      "This topic is connected to ": "נושא הזה קשור ל-",
       "by": "על ידי",
       "Read the Portion": "קראו את הפרשה",
 
@@ -2440,4 +2484,4 @@ Sefaria.setup = function(data) {
 };
 Sefaria.setup();
 
-module.exports = Sefaria;
+export default Sefaria;

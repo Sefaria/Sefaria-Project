@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-const PropTypes           = require('prop-types');
-const classNames          = require('classnames');
-const Sefaria             = require('./sefaria/sefaria');
-const MobileHeader        = require('./MobileHeader');
-const {
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import Sefaria  from './sefaria/sefaria';
+import MobileHeader from './MobileHeader';
+import {
     SheetBlock,
     StorySheetList,
     SaveLine,
@@ -12,8 +12,8 @@ const {
     StoryBodyBlock,
     StoryFrame,
     textPropType
-}                         = require('./Story');
-const {
+} from './Story';
+import {
   TabView,
   LoadingMessage,
   Link,
@@ -21,11 +21,9 @@ const {
   InterfaceTextWithFallback,
   FilterableList,
   ToolTipped,
-}                         = require('./Misc');
-const Footer              = require('./Footer');
-const { useIncrementalLoad }   = require('./Hooks');
-
-
+} from './Misc';
+import Footer from './Footer';
+import { useIncrementalLoad } from './Hooks';
 
 const norm_hebrew_ref = tref => tref.replace(/[׳״]/g, '');
 
@@ -607,6 +605,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
   </div>
 );
 
-
-module.exports.TopicPage = TopicPage;
-module.exports.TopicCategory = TopicCategory;
+export {
+  TopicPage,
+  TopicCategory
+}

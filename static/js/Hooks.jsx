@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-const $          = require('./sefaria/sefariaJquery');
+import $  from './sefaria/sefariaJquery';
 
 
 //From https://usehooks.com/useDebounce/
@@ -189,7 +189,9 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement,
   usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, resetValue);
 }
 
-module.exports.usePaginatedScroll               = usePaginatedScroll;
-module.exports.usePaginatedDisplay              = usePaginatedDisplay;
-module.exports.useDebounce                      = useDebounce;
-module.exports.useIncrementalLoad               = useIncrementalLoad;
+export {
+  usePaginatedScroll,
+  usePaginatedDisplay,
+  useDebounce,
+  useIncrementalLoad,
+};

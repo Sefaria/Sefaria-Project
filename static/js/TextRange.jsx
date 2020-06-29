@@ -1,10 +1,10 @@
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const PropTypes  = require('prop-types');
-const classNames = require('classnames');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-import Component from 'react-class'
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import Component from 'react-class';
 
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
@@ -592,4 +592,4 @@ TextSegment.propTypes = {
 };
 
 
-module.exports = TextRange;
+export default TextRange;

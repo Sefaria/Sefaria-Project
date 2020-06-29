@@ -9,7 +9,6 @@ let isStarted = false;
 let localStream;
 let pc;
 let remoteStream;
-let turnReady;
 let pcConfig;
 
 // Set up audio and video regardless of what devices are present.
@@ -20,15 +19,17 @@ const sdpConstraints = {
 
 /////////////////////////////////////////////
 
-var clientRoom;
+let clientRoom;
 
 const socket = io.connect('//{{ rtc_server }}');
 
 socket.on('return rooms', function(numRooms) {
+  console.log('got number of rooms')
   document.getElementById("numberOfChevrutas").innerHTML = numRooms;
 });
 
 socket.on('creds', function(conf) {
+  console.log('got creds')
   pcConfig = conf;
 });
 
@@ -36,28 +37,31 @@ socket.on('created', function(room) {
   console.log('Created room ' + room);
   isInitiator = true;
   clientRoom = room;
+
+  // There is a situation where a client is in a room and another joins but a match not made & the other browser reloads
+  // and sends the "bye" signal to the server and cleans up the room, but neither the join message nor the bye message
+  // are received by the original client. This code runs every 7.5 seconds to make sure the room still exists and
+  // prevents a user from getting stuck in a room that no one would join
+  setInterval(function(){
+    socket.emit('does room exist', clientRoom);
+    }, 7500);
 });
 
 socket.on('join', function(room) {
-  console.log('another user joined room: ' + room);
-  Sefaria.track.event("DafRoulette", "Chevruta Match Made", "initator");
-  isChannelReady = true;
-  socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room);
-  maybeStart();
-});
-
-socket.on('joined', function(room) {
-  console.log('joined: ' + room);
-  isChannelReady = true;
+  console.log('user joined room: ' + room);
+  Sefaria.track.event("DafRoulette", "Chevruta Match Made");
   clientRoom = room;
-  Sefaria.track.event("DafRoulette", "Chevruta Match Made", "joiner");
+  isChannelReady = true;
   socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room);
   maybeStart();
 });
 
 socket.on('got user name', function(userName, uid) {
+  console.log('got user name')
   document.getElementById("chevrutaName").innerHTML = userName;
   document.getElementById("chevrutaUID").value = uid;
+  localStorage.setItem('lastChevrutaID', uid);
+  localStorage.setItem('lastChevrutaTimeStamp', Date.now());
 });
 
 socket.on('user reported', function(){
@@ -66,11 +70,21 @@ socket.on('user reported', function(){
   alert("Your chevruta clicked the 'Report User' button. \n\nA report has been sent to the Sefaria administrators.")
 });
 
+socket.on('byeReceived', function(){
+  console.log('bye received')
+
+  window.onbeforeunload = null;
+  location.reload();
+});
+
+
+
 ////////////////////////////////////////////////
 
 function sendMessage(message) {
   console.log('Client sending message: ', message);
-  socket.emit('message', message);
+  console.log(clientRoom)
+  socket.emit('message', message, clientRoom);
 }
 
 // This client receives a message
@@ -106,7 +120,12 @@ navigator.mediaDevices.getUserMedia({
   })
   .then((stream) => {
     localStream = localVideo.srcObject = stream;
-    socket.emit('how many rooms');
+
+    // if it's been >5 minutes since user last matched w/ a chevruta allow for any potential match
+    if (Date.now() - localStorage.getItem('lastChevrutaTimeStamp') > 300000) {
+      localStorage.setItem('lastChevrutaID', null);
+    }
+    socket.emit('how many rooms', {{ client_uid }}, localStorage.getItem('lastChevrutaID'));
     console.log('Adding local stream.');
   })
   .catch(function(e) {
@@ -115,7 +134,7 @@ navigator.mediaDevices.getUserMedia({
 
 function addAdditionalHTML() {
   const newRoomButton = document.createElement('div');
-  newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()">New Person</button>';
+  newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()"><span class="int-en">New Person</span><span class="int-he">משתמש חדש</span></button>';
   document.getElementById("buttonContainer").appendChild(newRoomButton)
 
   const iframe = document.createElement('iframe');
@@ -126,7 +145,7 @@ function addAdditionalHTML() {
 
 function getNewChevruta() {
   Sefaria.track.event("DafRoulette", "New Chevruta Click", "");
-  location.reload();
+  socket.emit('bye', clientRoom);
 }
 
 
@@ -136,7 +155,6 @@ function reportUser() {
 
   const uid = document.getElementById("chevrutaUID").value;
   const username = document.getElementById("chevrutaName").innerHTML;
-  console.log(uid, username)
 
   var feedback = {
       type: "daf_roulette_report",
@@ -162,13 +180,11 @@ function reportUser() {
 }
 
 function maybeStart() {
-  console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
+  console.log('maybeStart() ', isStarted, localStream, isChannelReady);
   if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
-    console.log('>>>>>> creating peer connection');
     createPeerConnection();
     pc.addStream(localStream);
     isStarted = true;
-    console.log('isInitiator', isInitiator);
     if (isInitiator) {
       doCall();
     }
@@ -176,12 +192,14 @@ function maybeStart() {
 }
 
 window.onbeforeunload = function() {
+  console.log('onbeforeunload')
   socket.emit('bye', clientRoom);
 };
 
 /////////////////////////////////////////////////////////
 
 function createPeerConnection() {
+  console.log('creating peer connection')
   try {
     if (location.hostname !== 'localhost') {
       pc = new RTCPeerConnection(pcConfig);
@@ -191,7 +209,18 @@ function createPeerConnection() {
     pc.onicecandidate = handleIceCandidate;
     pc.onaddstream = handleRemoteStreamAdded;
     pc.onremovestream = handleRemoteStreamRemoved;
+    pc.oniceconnectionstatechange = handleIceConnectionChange;
     console.log('Created RTCPeerConnnection');
+
+    //in certain circumstances a user can join a room and await a connection from a user that doesn't exist
+    //five seconds should be more than enough to move from "new" to "checking" or "connected"
+    setTimeout(function(){
+      console.log('checking not in phantom room')
+        if (isStarted && !isInitiator && pc.iceConnectionState == "new") {
+          socket.emit('bye', clientRoom);
+        }
+    }, 5000);
+
   } catch (e) {
     console.log('Failed to create PeerConnection, exception: ' + e.message);
     alert('Cannot create RTCPeerConnection object.');
@@ -200,7 +229,7 @@ function createPeerConnection() {
 }
 
 function handleIceCandidate(event) {
-  console.log('icecandidate event: ', event);
+  // console.log('icecandidate event: ', event);
   if (event.candidate) {
     sendMessage({
       type: 'candidate',
@@ -210,6 +239,15 @@ function handleIceCandidate(event) {
     });
   } else {
     console.log('End of candidates.');
+
+    //in certain circumstances no legit icecandidate's can be found or a remotestream never added
+    //three seconds after running through all candidates should be more than enough to ascertain
+    setTimeout(function(){
+      console.log('checking if remote stream exists')
+      if (!remoteStream) {
+        socket.emit('bye', clientRoom);
+      }
+    }, 3000);
   }
 }
 
@@ -232,7 +270,7 @@ function doAnswer() {
 
 function setLocalAndSendMessage(sessionDescription) {
   pc.setLocalDescription(sessionDescription);
-  console.log('setLocalAndSendMessage sending message', sessionDescription);
+  // console.log('setLocalAndSendMessage sending message', sessionDescription);
   sendMessage(sessionDescription);
 }
 
@@ -250,16 +288,17 @@ function handleRemoteStreamRemoved(event) {
   console.log('Remote stream removed. Event: ', event);
 }
 
+function handleIceConnectionChange(event) {
+  if (pc.iceConnectionState == "disconnected" || pc.iceConnectionState == "failed") {
+    socket.emit('bye', clientRoom);
+  }
+  console.log(pc.iceConnectionState);
+}
+
 function handleRemoteHangup() {
-  socket.emit('bye', clientRoom);
-  console.log('Session terminated.');
+  window.onbeforeunload = null;
   location.reload();
 }
 
-setInterval(function(){
-    if (isStarted && !remoteStream) {
-      location.reload();
-    }
-}, 5000);
 
 {% endautoescape %}

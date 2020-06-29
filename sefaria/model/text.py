@@ -948,9 +948,10 @@ class AbstractTextRecord(object):
         accumulator = ''
 
         for segment in as_array:
+            segment = self._strip_itags(segment)
             joiner = " " if previous_state is not None else ""
             previous_state = accumulator
-            accumulator += joiner + self._strip_itags(segment)
+            accumulator += joiner + segment
 
             cur_len = len(accumulator)
             prev_len = len(previous_state)
@@ -1027,14 +1028,14 @@ class AbstractTextRecord(object):
     @staticmethod
     def _find_itags(tag):
         if isinstance(tag, Tag):
-            is_footnote = tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
+            is_footnote = tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             return is_footnote or is_inline_commentator
         return False
 
     @staticmethod
     def _strip_itags(s):
-        soup = BeautifulSoup("<div>{}</div>".format(s), 'xml')
+        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
         itag_list = soup.find_all(AbstractTextRecord._find_itags)
         for itag in itag_list:
             try:
@@ -1042,7 +1043,7 @@ class AbstractTextRecord(object):
             except AttributeError:
                 pass  # it's an inline commentator
             itag.decompose()
-        return soup.encode_contents().decode()[5:-6]  # remove divs added
+        return soup.root.encode_contents().decode()  # remove divs added
 
     def _get_text_after_modifications(self, text_modification_funcs):
         """
@@ -1104,6 +1105,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
         "extendedNotes",
         "extendedNotesHebrew",
+        "purchaseInformationImage",
+        "purchaseInformationURL"
     ]
 
     def __str__(self):
@@ -1118,7 +1121,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
-        assert self.get_index() is not None
+        if self.get_index() is None:
+            raise InputError("Versions cannot be created for non existing Index records")
         return True
 
     def _normalize(self):
@@ -4034,7 +4038,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
                   "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
-                  "extendedNotesHebrew"]
+                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
@@ -4198,6 +4202,11 @@ class Ref(object, metaclass=RefCacheType):
         """
         from . import LinkSet
         return LinkSet(self)
+
+    def topiclinkset(self):
+        from . import RefTopicLinkSet
+        regex_list = self.regex(as_list=True)
+        return RefTopicLinkSet({"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]})
 
     def autolinker(self, **kwargs):
         """

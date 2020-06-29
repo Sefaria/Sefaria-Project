@@ -1,7 +1,7 @@
-const $ = require('./sefariaJquery');
-const extend            = require('extend');
-const FilterNode = require('./FilterNode');
-const SearchState = require('./searchState');
+import $ from './sefariaJquery';
+import extend from 'extend';
+import FilterNode from './FilterNode';
+import SearchState from './searchState';
 
 
 class Search {
@@ -654,4 +654,5 @@ class HackyQueryAborter{
     }
 }
 
-module.exports = Search;
+
+export default Search;

@@ -1,18 +1,18 @@
-const {
+import {
+  InterfaceTextWithFallback,
   LanguageToggleButton,
   LoadingMessage,
   TwoOrThreeBox,
   SheetTopicLink,
   SheetAccessIcon,
   ProfilePic,
-  InterfaceTextWithFallback,
-}                = require('./Misc');
-const React      = require('react');
-const PropTypes  = require('prop-types');
-const classNames = require('classnames');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const Footer     = require('./Footer');
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import Footer  from './Footer';
 import Component from 'react-class';
 
 
@@ -32,7 +32,10 @@ class GroupPage extends Component {
     Sefaria.getGroup(this.props.group)
         .then(groupData => {
           this.sortSheetData(groupData);
-          this.setState({groupData, showTopics: !!groupData.showTagsByDefault})
+          this.setState({
+            groupData,
+            showTopics: !!groupData.showTagsByDefault && !this.props.tag
+          });
         });
   }
   componentDidUpdate(prevProps, prevState) {
@@ -648,4 +651,4 @@ GroupMemberListingActions.propTypes = {
 };
 
 
-module.exports = GroupPage;
+export default GroupPage;

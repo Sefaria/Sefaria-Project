@@ -111,7 +111,7 @@
   border-bottom: 1px solid #ddd;
   padding-bottom: 16px;
   margin-bottom: 16px;
-  line-height: 1;
+  line-height: 1.4;
 }
 .static h3 {
   font-weight: normal;
@@ -250,7 +250,7 @@
 }
 
 .static .quotation he {
-  font-family: frank ruehl libre,taamey frank,times new roman,serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .static .quotation int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -449,7 +449,7 @@
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #homePage a.refLink .int-he {
-  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #homePage #homeProgress {
   text-align: center;
@@ -655,7 +655,7 @@
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #activityList .text.int-he {
-  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #activityList .time {
   color: #ccc;
@@ -1291,7 +1291,7 @@ p.registration-links a:hover{
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #activityPage #activityFeed .text.ver-he {
-  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #activityPage #activityList .time {
   color: #ccc;
@@ -1699,7 +1699,7 @@ p.registration-links a:hover{
   -webkit-align-items: flex-start;
 }
 #visualGardenPage #results-container .int-he {
-  font-family: "Frank Ruehl Libre","Times New Roman",serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #visualGardenPage .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -1781,7 +1781,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
    direction: rtl;
 }
 #visualGardenPage #results .result-text span.he {
- font-family: "Frank Ruehl Libre","Times New Roman",serif;
+ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #visualGardenPage #results:after { /* Clearfix, for footer */
 	visibility: hidden;
