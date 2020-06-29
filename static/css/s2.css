@@ -6348,12 +6348,13 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-inline-start: auto;
   align-self: end;
   opacity: 0.4;
-  transform: scale(0.55) rotate(90deg);
-  transform-origin: 50% 50%;
+  height: 24px;
+  transform: scale(0.6) rotate(90deg);
+  transform-origin: center center;
 }
 .addToSourceSheetBox .dropdownMain.noselect.open::after{
-  transform: scale(0.55) rotate(-90deg);
-  transform-origin: 50% 50%;
+  transform: scale(0.6) rotate(-90deg);
+  transform-origin: center center;
 }
 .addToSourceSheetBox .dropdownMain .loadingMessage {
   margin: 0;
