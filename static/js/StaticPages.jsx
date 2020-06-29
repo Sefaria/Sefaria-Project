@@ -42,6 +42,12 @@ const classNames = require('classnames');
 
 
  */
+const ContestLandingPage = () => (
+    <StaticPage>
+
+    </StaticPage>
+);
+
 const SheetsLandingPage = () => (
     <StaticPage>
         <Header
@@ -481,3 +487,4 @@ const SimpleButton = ({href, he_href, he, en, white, rounded=true, tall=false}) 
 
 module.exports.RemoteLearningPage = RemoteLearningPage;
 module.exports.SheetsLandingPage = SheetsLandingPage;
+module.exports.ContestLandingPage = ContestLandingPage;
