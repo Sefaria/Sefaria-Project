@@ -187,7 +187,7 @@ def make_cltk_full(doc):
 
     cltk_doc["meta"] = '-'.join(best_sec_names)
     cltk_doc["work"] = doc["title"]
-    return json.dumps(cltk_doc, indent=4, encoding='utf-8', ensure_ascii=False)
+    return json.dumps(cltk_doc, indent=4, ensure_ascii=False)
 
 
 def make_cltk_flat(doc):
@@ -248,7 +248,7 @@ def make_cltk_flat(doc):
 
     cltk_doc["meta"] = '-'.join(best_sec_names)
     cltk_doc["work"] = doc["title"]
-    return json.dumps(cltk_doc, indent=4, encoding='utf-8', ensure_ascii=False)
+    return json.dumps(cltk_doc, indent=4, ensure_ascii=False)
 """
 List of export formats, consisting of a name and function.
 The name is used as a top level directory and file suffix, unless there are three elements.
@@ -290,7 +290,7 @@ def write_text_doc_to_disk(doc=None):
             os.makedirs(os.path.dirname(path))
         try:
             with open(path, "w") as f:
-                f.write(out.encode('utf-8'))
+                f.write(out)
         except IOError as e:
             log_error('failed to write to disk: {}'.format(str(e)))
 
@@ -460,7 +460,7 @@ def export_schemas():
 
         with open(path + title + ".json", "w") as f:
             try:
-                f.write(make_json(i.contents(v2=True)).encode('utf-8'))
+                f.write(make_json(i.contents(v2=True)))
 
             except InputError as e:
                 print("InputError: %s" % e)
@@ -476,7 +476,7 @@ def export_toc():
     """
     toc = library.get_toc()
     with open(SEFARIA_EXPORT_PATH + "/table_of_contents.json", "w") as f:
-        f.write(make_json(toc).encode('utf-8'))
+        f.write(make_json(toc))
 
 def export_links():
     """
@@ -578,8 +578,8 @@ def export_tag_graph():
         ])
         for link in counts.most_common():
             writer.writerow([
-                link[0][0].encode("utf-8"),
-                link[0][1].encode("utf-8"),
+                link[0][0],
+                link[0][1],
                 link[1],
             ])
 
