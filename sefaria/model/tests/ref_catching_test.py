@@ -54,3 +54,18 @@ class Test_find_citation_in_text(object):
         match_string = 'no match' if not match else match.group().replace(match.group(1), '')
         resp = requests.get("https://www.sefaria.org.il/{}".format(match_string))
         assert resp.status_code == 404
+
+    def test_regex_string_he_in_parentheses(self):
+        st3 = '(בדברים לב ובספרות ג ב)'
+        titles = ['דברים', 'רות']
+
+
+        for title in titles:
+            lang = "he" if is_hebrew(title) else "en"
+            res = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False, parentheses=1)
+            res_no_comments = re.sub('\s+', '', re.sub('\s*?#.*?\n', '', res))
+
+            match = re.search(res_no_comments, st3)
+            match_string = 'no match' if not match else match.group().replace(match.group(1), '')
+            resp = requests.get("https://www.sefaria.org.il/{}".format(match_string))
+            assert resp.status_code == 200 if title == 'דברים'else 400
