@@ -1,11 +1,4 @@
 User-agent: *
 Disallow: /activity/
-Disallow: /profile/*/*
-Disallow: /profile/*?*
-crawl-delay: 7
-
-User-agent: Googlebot
-Disallow: /activity/
-Disallow: /profile/*/*
-Disallow: /profile/*?*
-crawl-delay: 1
+Disallow: /login?next=*
+Disallow: /register?next=*

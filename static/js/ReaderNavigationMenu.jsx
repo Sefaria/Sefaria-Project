@@ -180,7 +180,7 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
             img="/static/img/visualizations-icon.png" alt="visualization icon" />,
   ];
 
-  const torahSpecificResources = ["/visualizations", "/people"];
+  const torahSpecificResources = ["/visualizations", "/people", "/groups"];
   if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
     resources = resources.filter(r => torahSpecificResources.indexOf(r.props.href) == -1);
   }
@@ -247,6 +247,13 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
                 <span className="int-he">{Sefaria._siteSettings.LIBRARY_NAME.he}</span>
               </h1>);
 
+
+  const dedication = Sefaria._siteSettings.TORAH_SPECIFIC && ! compare ? <Dedication /> : null;
+
+  const libraryMessage = Sefaria._siteSettings.LIBRARY_MESSAGE && !compare ? 
+                          <div className="libraryMessage" dangerouslySetInnerHTML={ {__html: Sefaria._siteSettings.LIBRARY_MESSAGE} }></div> :
+                          null;
+
   const footer = compare ? null : <Footer />;
   const classes = classNames({readerNavMenu:1, noHeader: !hideHeader, compare: compare, home: home, noLangToggleInHebrew: 1 });
   const contentClasses = classNames({content: 1, hasFooter: footer != null});
@@ -256,7 +263,8 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
           <div className={contentClasses}>
             <div className="contentInner">
               { compare ? null : title }
-              { compare ? null : <Dedication /> }
+              { dedication }
+              { libraryMessage }
               { topUserData }
               <ReaderNavigationMenuSection title="Texts" heTitle="טקסטים" content={categoriesBlock} />
               { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} /> : null }
@@ -270,29 +278,29 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
         </div>);
 };
 ReaderNavigationMenu.propTypes = {
-  categories:        PropTypes.array.isRequired,
-  topic:            PropTypes.string.isRequired,
-  settings:          PropTypes.object.isRequired,
-  setCategories:     PropTypes.func.isRequired,
+  categories:          PropTypes.array.isRequired,
+  topic:               PropTypes.string.isRequired,
+  settings:            PropTypes.object.isRequired,
+  setCategories:       PropTypes.func.isRequired,
   setNavTopic:         PropTypes.func.isRequired,
-  setOption:         PropTypes.func.isRequired,
-  onClose:           PropTypes.func.isRequired,
-  openNav:           PropTypes.func.isRequired,
-  openSearch:        PropTypes.func.isRequired,
-  openMenu:          PropTypes.func.isRequired,
-  onTextClick:       PropTypes.func.isRequired,
-  onRecentClick:     PropTypes.func.isRequired,
-  handleClick:       PropTypes.func.isRequired,
-  toggleSignUpModal: PropTypes.func.isRequired,
+  setOption:           PropTypes.func.isRequired,
+  onClose:             PropTypes.func.isRequired,
+  openNav:             PropTypes.func.isRequired,
+  openSearch:          PropTypes.func.isRequired,
+  openMenu:            PropTypes.func.isRequired,
+  onTextClick:         PropTypes.func.isRequired,
+  onRecentClick:       PropTypes.func.isRequired,
+  handleClick:         PropTypes.func.isRequired,
+  toggleSignUpModal:   PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func,
-  toggleLanguage:    PropTypes.func,
-  hideNavHeader:     PropTypes.bool,
-  hideHeader:        PropTypes.bool,
-  multiPanel:        PropTypes.bool,
-  home:              PropTypes.bool,
-  compare:           PropTypes.bool,
-  interfaceLang:     PropTypes.string,
-};
+  toggleLanguage:      PropTypes.func,
+  hideNavHeader:       PropTypes.bool,
+  hideHeader:          PropTypes.bool,
+  multiPanel:          PropTypes.bool,
+  home:                PropTypes.bool,
+  compare:             PropTypes.bool,
+  interfaceLang:       PropTypes.string,
+};  
 
 const TocLink = ({en, he, img, alt, href, resourcesLink, outOfAppLink, classes, onClick}) =>
     <a className={(resourcesLink?"resourcesLink ":"") + (outOfAppLink?"outOfAppLink ":"") + classes} href={href} onClick={onClick}>
