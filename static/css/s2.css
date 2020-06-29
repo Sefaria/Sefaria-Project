@@ -4800,13 +4800,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
 }
 .textListTextRangeBox .connection-buttons .panel-open-link::before{
-  content: url("/static/icons/open-panel-a.svg");
+  content: url("/static/icons/open-panel.svg");
 }
 .textListTextRangeBox .connection-buttons .delete-link::before{
-  content: url("/static/icons/remove-connection-a.svg");
+  content: url("/static/icons/remove-connection.svg");
 }
 .textListTextRangeBox .connection-buttons .add-to-sheet-link::before{
-  content: url("/static/icons/add-to-sheet-a.svg");
+  content: url("/static/icons/add-to-sheet.svg");
 }
 .toolsButton {
   display: flex;
@@ -6344,7 +6344,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   line-height: 10px;
 }
 .addToSourceSheetBox .dropdownMain.noselect::after{
-  content: url("/static/icons/chevron-a.svg");
+  content: url("/static/icons/chevron.svg");
   margin-inline-start: auto;
   align-self: end;
   opacity: 0.4;
