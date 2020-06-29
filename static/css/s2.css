@@ -4755,6 +4755,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textListTextRangeBox .connection-buttons{
   margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  align-content: flex-start;
 }
 .textListTextRangeBox .connection-buttons.access-user .connection-button.delete-link{
   display:none;
@@ -4781,22 +4784,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 18px;
 }
 .textListTextRangeBox .connection-buttons .connection-button::before{
-  margin-inline-end: 5px;
-  width: 13px;
-  height: 13px;
-  font-size: 13px;
-  line-height: 15px;
+  line-height: 25px;
   color: #999999;
   vertical-align: middle;
+  opacity: 0.4;
+  transform: scale(0.55);
+  display: inline-block;
 }
 .textListTextRangeBox .connection-buttons .panel-open-link::before{
-  content: url("/static/icons/open-panel.svg");
+  content: url("/static/icons/open-panel-a.svg");
 }
 .textListTextRangeBox .connection-buttons .delete-link::before{
-  content: url("/static/icons/remove-connection.svg");
+  content: url("/static/icons/remove-connection-a.svg");
 }
 .textListTextRangeBox .connection-buttons .add-to-sheet-link::before{
-  content: url("/static/icons/add-to-sheet.svg");
+  content: url("/static/icons/add-to-sheet-a.svg");
 }
 .toolsButton {
   display: flex;
@@ -6318,6 +6320,33 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-bottom: 10px;
   cursor: pointer;
 }
+.addToSourceSheetBox .dropdownMain.noselect{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  align-content: flex-start;
+}
+.addToSourceSheetBox .dropdownMain.noselect::before{
+  content: url("/static/img/sheet.svg");
+  opacity: 0.4;
+  display: inline-block;
+  margin-inline-end: 10px;
+  transform: scale(0.8);
+  vertical-align: text-bottom;
+  line-height: 10px;
+}
+.addToSourceSheetBox .dropdownMain.noselect::after{
+  content: url("/static/icons/chevron-a.svg");
+  margin-inline-start: auto;
+  align-self: end;
+  opacity: 0.4;
+  transform: scale(0.55) rotate(90deg);
+  transform-origin: 50% 50%;
+}
+.addToSourceSheetBox .dropdownMain.noselect.open::after{
+  transform: scale(0.55) rotate(-90deg);
+  transform-origin: 50% 50%;
+}
 .addToSourceSheetBox .dropdownMain .loadingMessage {
   margin: 0;
 }
@@ -6389,12 +6418,20 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .dropdown .dropdownList .dropdownOption {
   font-size: 18px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
   padding: 0 22px;
   margin: 26px 0;
   border: none;
   color: #666;
+}
+.addToSourceSheetBox .dropdown .dropdownList .dropdownOption::before{
+  content: url("/static/img/sheet.svg");
+  opacity: 0.4;
+  display: inline-block;
+  margin-inline-end: 10px;
+  transform: scale(0.8);
+  vertical-align: text-bottom;
+  line-height: 10px;
 }
 .dropdown .dropdownList .dropdownOption.selected {
   color: #333;

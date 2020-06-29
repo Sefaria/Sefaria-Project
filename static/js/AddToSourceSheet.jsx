@@ -163,8 +163,7 @@ class AddToSourceSheetBox extends Component {
           <span className="int-he">יעד להוספה</span>
         </div>
         <div className="dropdown">
-          <div className="dropdownMain noselect" onClick={this.toggleSheetList}>
-            <i className="dropdownOpenButton noselect fa fa-caret-down"></i>
+          <div className={`dropdownMain noselect ${this.state.sheetListOpen ? "open" : ""}`} onClick={this.toggleSheetList}>
             {this.state.sheetsLoaded ? (this.state.selectedSheet.title === null ? Sefaria._("Untitled Source Sheet") : this.state.selectedSheet.title.stripHtml()) : <LoadingMessage messsage="Loading your sheets..." heMessage="טוען את דפי המקורות שלך"/>}          </div>
           {this.state.sheetListOpen ?
           <div className="dropdownListBox noselect">
