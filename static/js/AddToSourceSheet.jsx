@@ -130,6 +130,19 @@ class AddToSourceSheetBox extends Component {
     }
     this.setState({showConfirm: true});
   }
+  makeTitleRef(){
+    if(this.props.srefs.length > 1){
+      return {
+        "en": Sefaria.joinRefsToSpanStr(Sefaria.getRefFromCache(this.props.srefs[0]).ref, Sefaria.getRefFromCache(this.props.srefs[this.props.srefs.length - 1]).ref),
+        "he": Sefaria.joinRefsToSpanStr(Sefaria.getRefFromCache(this.props.srefs[0]).heRef, Sefaria.getRefFromCache(this.props.srefs[this.props.srefs.length - 1]).heRef)
+      };
+    }else{
+      return {
+        "en": Sefaria.getRefFromCache(this.props.srefs[0]).ref,
+        "he": Sefaria.getRefFromCache(this.props.srefs[0]).heRef
+      };
+    }
+  }
   render() {
     if (this.state.showConfirm) {
       return (<ConfirmAddToSheet sheet={this.state.selectedSheet} srefs={this.props.srefs} />);
@@ -138,7 +151,7 @@ class AddToSourceSheetBox extends Component {
                 <LoginPrompt />
               </div>);
     }
-    const titleRef = Sefaria.getRefFromCache(this.props.srefs[0]);
+    const titleRef = this.makeTitleRef();
     const sheets     = Sefaria._uid ? Sefaria.sheets.userSheets(Sefaria._uid) : null;
     let sheetsList = Sefaria._uid && sheets ? sheets.map((sheet) => {
       let classes     = classNames({dropdownOption: 1, noselect: 1, selected: this.state.selectedSheet && this.state.selectedSheet.id == sheet.id});
@@ -155,8 +168,8 @@ class AddToSourceSheetBox extends Component {
           <span className="int-he">מקור להוספה</span>
         </div>
         <div className="selectedRef">
-          <span className="en">{titleRef.ref}</span>
-          <span className="he">{titleRef.heRef}</span>
+          <span className="en">{titleRef["en"]}</span>
+          <span className="he">{titleRef["he"]}</span>
         </div>
         <div className="addToSourceSheetBoxTitle">
           <span className="int-en">Add to</span>

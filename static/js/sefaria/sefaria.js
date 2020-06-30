@@ -165,6 +165,15 @@ Sefaria = extend(Sefaria, {
     nRef.toSections = pRefEnd.toSections;
     return Sefaria.makeRef(nRef);
   },
+  joinRefsToSpanStr: function(ref1, ref2){
+      //should check that these are actually refs
+      //only use for display as it doesn't rely on any ref parsing!
+      //since this is jsut string manipulation it works language agnostically.
+      const similarpart = Sefaria.util.commonSubstring(ref1, ref2);
+      const ref1Diff = ref1.substring(similarpart.length, ref1.length);
+      const ref2Diff = ref2.substring(similarpart.length, ref2.length);
+      return `${similarpart}${ref1Diff}-${ref2Diff}`;
+  },
   refContains: function(ref1, ref2) {
     // Returns true is `ref1` contains `ref2`
     const oRef1 = Sefaria.parseRef(ref1);

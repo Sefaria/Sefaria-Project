@@ -241,7 +241,15 @@ class Util {
       var win = window.open(url, '_blank');
       win.focus();
     }
+    static commonSubstring(str1, str2){
+        const length = Math.min(str1.length, str2.length);
+        let index = 0;
+        while(index<length && str1[index] === str2[index])
+            index++;
+        return str1.substring(0, index);
+    }
     static setupPrototypes() {
+
 
         String.prototype.toProperCase = function() {
           // Treat anything after ", " as a new clause
