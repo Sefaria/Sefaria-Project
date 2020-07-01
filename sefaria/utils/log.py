@@ -4,6 +4,7 @@ import logging
 from django.conf import settings
 
 # Check if this is a gevent environment
+import os
 if os.environ['GEVENT_ENABLED'] == "true":
     from gevent import monkey
     monkey.patch_all()
