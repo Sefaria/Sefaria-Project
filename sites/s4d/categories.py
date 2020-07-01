@@ -62,6 +62,8 @@ CATEGORY_ORDER = [
     "Case Law",
     "Philosophy",
     "Religion",
+        "Judaism",
+        "Christianity",
 ]
 
 TOP_CATEGORIES = [
