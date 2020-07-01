@@ -1,3 +1,10 @@
+import os
+
+# Check if this is a gevent environment
+if os.environ['GEVENT_ENABLED'] == "true":
+    from gevent import monkey
+    monkey.patch_all()
+
 import hashlib
 import urllib.request, urllib.parse, urllib.error
 import re

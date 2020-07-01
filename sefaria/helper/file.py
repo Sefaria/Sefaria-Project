@@ -1,6 +1,13 @@
 # -*- coding: utf-8 -*-
 from PIL import Image
 from io import BytesIO
+import os
+
+# Check if this is a gevent environment
+if os.environ['GEVENT_ENABLED'] == "true":
+    from gevent import monkey
+    monkey.patch_all()
+
 import requests
 
 import logging

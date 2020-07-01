@@ -4,6 +4,14 @@ sheets.py - backend core for Sefaria Source sheets
 
 Writes to MongoDB Collection: sheets
 """
+
+import os
+
+# Check if this is a gevent environment
+if os.environ['GEVENT_ENABLED'] == True:
+    from gevent import monkey
+    monkey.patch_all()
+
 import sys
 import hashlib
 import urllib.request, urllib.parse, urllib.error

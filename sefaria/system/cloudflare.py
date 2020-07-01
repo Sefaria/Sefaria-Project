@@ -1,3 +1,10 @@
+import os
+
+# Check if this is a gevent environment
+if os.environ['GEVENT_ENABLED'] == "true":
+    from gevent import monkey
+    monkey.patch_all()
+
 import requests
 import json
 from django.contrib.sites.models import Site
@@ -20,9 +27,6 @@ class SefariaCloudflareManager(object):
 
     def purge_cloudflare(self):
         """Purge the entire Cloudflare cache"""
-        import requests
-        import json
-
         url = 'https://api.cloudflare.com/client/v4/zones/%s/purge_cache' % CLOUDFLARE_ZONE
         headers = {
             "X-Auth-Email": CLOUDFLARE_EMAIL,

@@ -1,6 +1,13 @@
 # Varnish wrapper used by web server.
 # There is also a parallel file thin_wrapper.py, which does not rely on core code - used for the multiserver monitor.
 
+import os
+
+# Check if this is a gevent environment
+if os.environ['GEVENT_ENABLED'] == "true":
+    from gevent import monkey
+    monkey.patch_all()
+
 import re
 import urllib.request, urllib.parse, urllib.error
 

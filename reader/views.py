@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import os
+
+# Check if this is a gevent environment
+if os.environ['GEVENT_ENABLED'] == "true":
+    from gevent import monkey
+    monkey.patch_all()
+
 from datetime import datetime, timedelta
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
@@ -3464,7 +3471,6 @@ def profile_get_user_history(request):
     :tref: Ref associated with history item
     """
     if not request.user.is_authenticated:
-        import urllib.parse
         recents = json.loads(urllib.parse.unquote(request.COOKIES.get("recentlyViewed", '[]')))  # for backwards compat
         recents = UserProfile.transformOldRecents(None, recents)
         history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
