@@ -40,11 +40,70 @@ const classNames = require('classnames');
             borderColor="#"
         />
 
+        <About
+            enTitle=""
+            heTitle=""
+            enText=""
+            heText=""
+            backgroundColor=""
+        />
+
+
+
 
  */
 const ContestLandingPage = () => (
     <StaticPage>
-
+        <Header
+            enTitle="Powered by Sefaria Contest"
+            enText="Calling all engineers, researchers, and designers. Join us in our mission to advance the frontiers of Torah and technology by getting creative and building something new this summer using Sefaria’s free data or API."
+            enImg="/static/img/contest-landing-page/codemockup2.png"
+            enImgAlt=""
+            enActionURL="http://sefaria.nationbuilder.com/contest"
+            enActionText="Register to Join"
+            heTitle=""
+            heText=""
+            heImg="/static/img/contest-landing-page/codemockup2.png"
+            heImgAlt=""
+            heActionURL={null}
+            heActionText={null}
+        />
+        <About
+            enTitle=""
+            heTitle=""
+            enText=""
+            heText="" 
+            backgroundColor=""
+        />
+        <ButtonRow>
+            <SimpleButton
+                white={true}
+                rounded={false}
+                tall={true}
+                href=""
+                he_href=""
+                he=""
+                en=""
+            />
+            <SimpleButton
+                white={true}
+                rounded={false}
+                tall={true}
+                href=""
+                he_href=""
+                he=""
+                en=""
+            />
+            <SimpleButton
+                white={true}
+                rounded={false}
+                tall={true}
+                href=""
+                he_href=""
+                he=""
+                en=""
+            />
+        </ButtonRow>
     </StaticPage>
 );
 
