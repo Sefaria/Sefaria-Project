@@ -1076,7 +1076,8 @@ class Sheet(abstract.AbstractMongoRecord):
 		"group",
 		"generatedBy",
 		"highlighterTags",
-		"summary"
+		"summary",
+        "reviewed",
 	]
 
 	def is_hebrew(self):

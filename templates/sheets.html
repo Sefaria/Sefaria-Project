@@ -999,7 +999,7 @@
                                     <span class="int-he">מטלות שמורות</span>
                                 </div>
         						{% for assignment_sheet in assignments_from_sheet %}
-                                <a href="./{{ assignment_sheet.id }}" target="_blank"><div class="button white" >{{ assignment_sheet.owner|user_name }}</div></a>
+                                <a href="./{{ assignment_sheet.id }}?editor=1" target="_blank"><div class="button white" >{{ assignment_sheet.owner|user_name }}</div></a>
 
                                 {% empty %}
                                     <em>

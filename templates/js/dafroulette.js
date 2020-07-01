@@ -282,6 +282,7 @@ function handleRemoteStreamAdded(event) {
   console.log('Remote stream added.');
   remoteStream = event.stream;
   remoteVideo.srcObject = remoteStream;
+  document.getElementById("chevrutaName").style.display = 'none';
 }
 
 function handleRemoteStreamRemoved(event) {
