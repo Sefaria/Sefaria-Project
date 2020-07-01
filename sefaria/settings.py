@@ -293,21 +293,21 @@ CACHES = {
     }
 }
 
-"""
+
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "shavuot-banner-2020",
-    "repetition": 2,
+    "name":       "reading-challenge-banner",
+    "repetition": 0,
     "style":      "banner",
     "condition": {
         "returning_only": False,
         "desktop_only": False,
-        "english_only": False,
+        "english_only": True,
         "hebrew_only": False,
         "debug": False
     }
 }
-"""
-GLOBAL_INTERRUPTING_MESSAGE = None
+
+# GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab enviornment specific settings from a file which
 # is left out of the repo.
