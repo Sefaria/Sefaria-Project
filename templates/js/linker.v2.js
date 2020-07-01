@@ -354,6 +354,7 @@
         options.interfaceLang = options.interfaceLang || "english";
         options.contentLang = options.contentLang || "bilingual";
         options.parentheses = options.parentheses || 0;
+        options.quotationOnly = options.quotationOnly || false;
 
         var selector = options.selector || "body";
         if (window.screen.width < 820 || options.mode == "link") { mode = "link"; }  // If the screen is small, fallback to link mode
@@ -362,7 +363,7 @@
         setupPopup(options, mode);
 
         ns.elems = document.querySelectorAll(selector);
-
+        ns.quotationOnly = options.quotationOnly;
         // Find text titles in the document
         // todo: hold locations of title matches?
         var full_text = [].reduce.call(ns.elems, function(prev, current) { return prev + current.textContent; }, "");
@@ -421,9 +422,13 @@
                             .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                             .replace(/[(){}[\]]+/g, "") // Filter out internal parentheses todo: Don't break on parens in books names
                             .replace(match[1], '');
-                        ns.matches.push(matched_ref);
-
-                        return match[1] + '~' + portion.text.replace(match[1], '') + '~';
+                        if (ns.quotationOnly && matched_ref.search(/.*?\s+.*?['\u05f3"\u05f4]/g) == -1) {
+                                                     return match[1] + portion.text.replace(match[1], '')
+                        }
+                        else {
+                            ns.matches.push(matched_ref);
+                                return match[1] + '~' + portion.text.replace(match[1], '') + '~';
+                        }
                     },
                     filterElements: function(el) {
                         return !(
