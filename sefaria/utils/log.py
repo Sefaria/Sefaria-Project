@@ -47,17 +47,18 @@ class SlackLogHandler(logging.Handler):
         self.stack_trace = stack_trace
 
     def emit(self, record):
-        message = '%s' % (self.formatter.format(record))
-        if self.stack_trace:
-            if record.exc_info:
-                message += '\n'.join(traceback.format_exception(*record.exc_info))
-        slack_payload = {
-            "text": message,
-            "username": "errorbot",
-            "icon_emoji": ":scream:",
-            "channel": self.channel
-        }
-        try:
-            requests.post(self.logging_url, data=json.dumps(slack_payload))
-        except ConnectionError:
-            pass  # basa. but slack posting failures should not crash a script
+        print("SlackLogHandler Placeholder")
+        # message = '%s' % (self.formatter.format(record))
+        # if self.stack_trace:
+        #     if record.exc_info:
+        #         message += '\n'.join(traceback.format_exception(*record.exc_info))
+        # slack_payload = {
+        #     "text": message,
+        #     "username": "errorbot",
+        #     "icon_emoji": ":scream:",
+        #     "channel": self.channel
+        # }
+        # try:
+        #     requests.post(self.logging_url, data=json.dumps(slack_payload))
+        # except ConnectionError:
+        #     pass  # basa. but slack posting failures should not crash a script
