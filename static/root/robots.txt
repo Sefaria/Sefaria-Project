@@ -1,4 +1,0 @@
-User-agent: *
-Disallow: /activity/
-Disallow: /login?next=*
-Disallow: /register?next=*
