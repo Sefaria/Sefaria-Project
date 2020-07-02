@@ -28,6 +28,14 @@ const classNames = require('classnames');
             he=""
         />
 
+        <EnBlock padded={true}>
+            {Any content}
+        </EnBlock
+
+        <HeBlock padded={true}>
+            {Any content}
+        </HeBlock>
+
         <Feature
             enTitle=""
             enText=""
@@ -61,49 +69,150 @@ const ContestLandingPage = () => (
             enImgAlt=""
             enActionURL="http://sefaria.nationbuilder.com/contest"
             enActionText="Register to Join"
-            heTitle=""
-            heText=""
+            heTitle="תחרות הקיץ “Powered by Sefaria”"
+            heText="קול קורא למתכנתים, חוקרים ומעצבים. יש לכם זמן פנוי בקיץ הקרוב? מעוניינים לפתח מיומנויות חדשות ולהשיג תוצר שתוכלו להוסיף לתיק העבודות שלכם? הצטרפו אלינו לאתגר שיקדם את תחום התורה והטכנולוגיה בבניית תוצר יצירתי ועצמאי בעזרת המאגר החופשי וממשק ה־API של ספריא."
             heImg="/static/img/contest-landing-page/codemockup2.png"
             heImgAlt=""
-            heActionURL={null}
-            heActionText={null}
+            heActionURL="http://sefaria.nationbuilder.com/contest"
+            heActionText="הרשמה לתחרות"
         />
-        <About
-            enTitle=""
-            heTitle=""
-            enText=""
-            heText="" 
-            backgroundColor=""
-        />
+
+        <H2Block en="The Contest" he="התחרות"/>
+        <EnBlock padded={true}>
+            <p>Sefaria offers a free digital dataset of Jewish texts, translations, and interconnections that is open for anyone to reuse in novel ways. Over the years dozens of third parties have created apps, visualizations, and done research using our data or API. We’ve seen some incredible projects and we’d love to see what else our community can dream up.</p>
+            <p>What you create is up to you. It could be a functioning web app or just a compelling demo; an interactive visualization or just a question that digs into data quantitatively in search of an answer; something useful and impactful to the world of learning, or just a crazy experiment that fascinates you without a clear application. <b>The only criteria being that it prominently makes use of the data that Sefaria has to offer.</b></p>
+            <p>To get your ideas flowing, here are three great examples of projects using Sefaria’s data or API that were created in the last few years. You can find dozens more on our "<a href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria">Powered by Sefaria</a>" list on Github.</p>
+        </EnBlock>
+        <HeBlock padded={true}>
+            <p>ספריא מציעה מאגר נתונים דיגיטלי חופשי של טקסטים יהודיים, תרגומים וקישורים, וכל אלה פתוחים לכל מי שרוצה לעשות בהם שימוש יצירתי. במהלך השנים עשרות משתמשים יצרו יישומונים והמחשות וביצעו מחקרים באמצעות שימוש בנתונים וב־API של ספריא. התוודענו לכמה מיזמים מדהימים, ונשמח לראות אילו עוד חלומות הקהילה שלנו יכולה להגשים.</p>
+            <p>הרעיון תלוי בכם: תוכלו ליצור יישומון פעיל או מיצג משכנע; המחשה אינטראקטיבית או שאלה שפתרונה יימצא בנתונים כמותיים במאגרים של ספריא; משהו יעיל שישפיע על עולם הלימוד או ניסוי מטורף שמרתק אתכם בלי אפליקציה ברורה.
+                &nbsp;<b>הקריטריון היחיד להשתתפות בתחרות הוא שימוש בנתונים של ספריא.</b>
+            </p>
+            <p>לפני שאתם מתחילים להעלות רעיונות, הינה שלוש דוגמאות נהדרות של מיזמים שעושים שימוש בנתונים או בממשק ה־API של ספריא משנים קודמות. תוכלו למצוא עוד עשרות דוגמאות של מיזמים ברשימת
+                "<a href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria">Powered by Sefaria</a>"
+                באתר Github.</p>
+        </HeBlock>
+
         <ButtonRow>
             <SimpleButton
                 white={true}
                 rounded={false}
                 tall={true}
-                href=""
-                he_href=""
-                he=""
-                en=""
+                href="https://talmud.dev/"
+                he_href="https://talmud.dev/"
+                he="talmud.dev"
+                en="talmud.dev"
             />
             <SimpleButton
                 white={true}
                 rounded={false}
                 tall={true}
-                href=""
-                he_href=""
-                he=""
-                en=""
+                href="https://github.com/shman/SefariaAddOn-Google"
+                he_href="https://github.com/shman/SefariaAddOn-Google"
+                he="התוסף של ספריא לגוגל דוקס (Google Docs)"
+                en="Google Docs Sefaria Add-on"
             />
             <SimpleButton
                 white={true}
                 rounded={false}
                 tall={true}
-                href=""
-                he_href=""
-                he=""
-                en=""
+                href="https://www.sefaria.org/explore"
+                he_href="https://www.sefaria.org.il/explore"
+                he="Sefaria’s Link Explorer"
+                en="Sefaria’s Link Explorer"
             />
         </ButtonRow>
+
+
+        <H2Block en="Timeline and Prize" he="" />
+        <EnBlock padded={true}>
+            <p>We'll be accepting submissions from Wednesday, July 1 until Monday, August 31st. To participate, you just need to send us a URL and a short description of what you've made.</p>
+            <p>A jury will select two projects to win cash prizes: $5,000 for the grand prize, and $3,600 for the student prize for work created by undergraduate students or younger, or people under the age of 23.</p>
+            <p>A selection of completed projects will also be featured on a contest page and shared with our community.</p>
+        </EnBlock>
+        <HeBlock padded={true}>
+
+        </HeBlock>
+
+        <H2Block en="Eligibility" he="" />
+        <EnBlock padded={true}>
+            <p>The Contest is open to applicants from the United States and Israel. All participants are eligible to enter the grand prize, and those who are eligible for the youth prize may submit their project into both categories. All entrants under the age of 18 must obtain permission from their parent or guardian before entering the contest. <b>To learn more, see our official <a href="https://drive.google.com/file/d/1-TdCwaxGvGaPPZgEiWoYakqygZLyYtBf/view?usp=sharing">Contest Rules</a>.</b></p>
+        </EnBlock>
+        <HeBlock padded={true}>
+        </HeBlock>
+
+        <GreyBox>
+            <ImageWithText
+                enText="<i>“By open-sourcing a vast array of Jewish texts, Sefaria's API makes programmatic analysis of Jewish tradition simple for the everyday programmer. talmud.page began as my own hand-tailored UI for learning Daf Yomi. The more developers use Sefaria's API to solve creative questions, the richer Jewish learning will be worldwide.”
+                        <br/><br/>
+                    - Ron Shapiro, <a href='https://talmud.page'>talmud.page</a></i></div>"
+                enImg="/static/img/contest-landing-page/AdobeStock_314348719.jpeg"
+                enImgAlt=""
+                heText=""
+                heImg="/static/img/contest-landing-page/AdobeStock_314348719.jpeg"
+                heImgAlt=""
+                borderColor="#"
+            />
+        </GreyBox>
+
+        <H2Block en="Winner Selection" he="" />
+        <EnBlock padded={true}>
+            <p>Winners will be selected by a panel of three judges. The judges will evaluate each project on the basis of four criteria:</p>
+            <ol>
+                <li>Highlighting of Jewish texts and their unique value</li>
+                <li>Technological accomplishment</li>
+                <li>Potential for impact or inspiration</li>
+                <li>Creativity</li>
+            </ol>
+            <p>Projects that existed prior to the call for submission may enter on the basis of additional work added since the time the contest began. Judges will evaluate the projects on the basis of the additional work. Projects don’t have to be 100% complete or polished to enter either; our judges will be happy to see the potential in a promising start. </p>
+        </EnBlock>
+        <HeBlock padded={true}>
+        </HeBlock>
+
+        <H2Block en="Registration" he="" />
+        <EnBlock padded={true}>
+            <p><a href="http://sefaria.nationbuilder.com/contest">Click here</a> to register your interest in participating so we can keep you up to date as the contest progresses with tools and resources, including engineering office hours where you can ask questions or work out ideas 1:1 with our team. You can register as an individual or team, and sign up at any point between now and the end of the contest.</p>
+        </EnBlock>
+        <HeBlock padded={true}>
+        </HeBlock>
+
+        <ButtonRow>
+            <SimpleButton
+                white={true}
+                rounded={false}
+                tall={true}
+                href="http://sefaria.nationbuilder.com/contest"
+                he_href="http://sefaria.nationbuilder.com/contest"
+                he=""
+                en="Register"
+            />
+            <SimpleButton
+                white={true}
+                rounded={false}
+                tall={true}
+                href="https://drive.google.com/file/d/1-TdCwaxGvGaPPZgEiWoYakqygZLyYtBf/view?usp=sharing"
+                he_href="https://drive.google.com/file/d/1-TdCwaxGvGaPPZgEiWoYakqygZLyYtBf/view?usp=sharing"
+                he=""
+                en="Official Rules"
+            />
+            <SimpleButton
+                white={true}
+                rounded={false}
+                tall={true}
+                href="https://github.com/Sefaria/Sefaria-Project"
+                he_href="https://github.com/Sefaria/Sefaria-Project"
+                he=""
+                en="GitHub"
+            />
+        </ButtonRow>
+        <CallToActionFooterWithButton
+            href="http://sefaria.nationbuilder.com/contest"
+            he_href="http://sefaria.nationbuilder.com/contest"
+            enText="Let’s Innovate Together"
+            heText=""
+            enButtonText="Register"
+            heButtonText=""
+        />
     </StaticPage>
 );
 
@@ -423,8 +532,8 @@ const StaticPage = ({children}) => (
     </div>
 );
 
-const HeBlock = ({children}) => <div className="int-he">{children}</div>;
-const EnBlock = ({children}) => <div className="int-en">{children}</div>;
+const HeBlock = ({children, padded}) => <div className={"int-he" + (padded ? " staticPageBlockInner" : "")}>{children}</div>;
+const EnBlock = ({children, padded}) => <div className={"int-en" + (padded ? " staticPageBlockInner" : "")}>{children}</div>;
 
 const GreyBox = ({children, light}) => <div className={light ? "lightgreyBackground" : "greyBackground"}>{children}</div>;
 
@@ -497,6 +606,21 @@ const About = ({enTitle, heTitle, enText, heText, backgroundColor}) => (
                 <span className="int-he">{heTitle}</span>
             </h2>
             <SimpleInterfaceBlock classes="staticPageAboutText" he={heText} en={enText} />
+        </div>
+    </div>
+);
+
+const ImageWithText = ({enText, heText, enImg, heImg, enImgAlt, heImgAlt}) => (
+    <div className="feature" style={{backgroundColor: "inherit"}}>
+        <div className="staticPageBlockInner flexContainer">
+            <div className="featureText" style={{borderTop: 0}}>
+                <div className="int-en" dangerouslySetInnerHTML={{__html:enText}} />
+                <div className="int-he" dangerouslySetInnerHTML={{__html:heText}} />
+            </div>
+            <div className="featureImage">
+                <img className="int-en" src={enImg} alt={enImgAlt}/>
+                <img className="int-he" src={heImg} alt={heImgAlt}/>
+            </div>
         </div>
     </div>
 );
