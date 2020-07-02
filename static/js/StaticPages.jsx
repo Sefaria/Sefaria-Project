@@ -124,21 +124,28 @@ const ContestLandingPage = () => (
         </ButtonRow>
 
 
-        <H2Block en="Timeline and Prize" he="" />
+        <H2Block en="Timeline and Prize" he="לוח זמנים ופרסים" />
         <EnBlock padded={true}>
             <p>We'll be accepting submissions from Wednesday, July 1 until Monday, August 31st. To participate, you just need to send us a URL and a short description of what you've made.</p>
             <p>A jury will select two projects to win cash prizes: $5,000 for the grand prize, and $3,600 for the student prize for work created by undergraduate students or younger, or people under the age of 23.</p>
             <p>A selection of completed projects will also be featured on a contest page and shared with our community.</p>
         </EnBlock>
         <HeBlock padded={true}>
-
+            <p>הגשות תתקבלנה מיום רביעי, 1 ביולי, ועד יום שני, 31 באוגוסט. להשתתפות בתחרות שלחו כתובת URL ותיאור תמציתי של התוצר.</p>
+            <p>חבר השופטים שלנו יבחר שני מיזמים: הפרס הראשון בסך $5,000 , והפרס השני בסך 3,600$ יוענק למתכנת/ת צעיר/ה עבור מיזם שיוגש על ידי מי שלומד לתואר ראשון או על ידי צעירים מתחת לגיל 23.</p>
+            <p>מבחר מיזמים אחרים שיושלמו, יופיעו אף הם בדף התחרות וישותפו עם קהילת ספריא.</p>
         </HeBlock>
 
-        <H2Block en="Eligibility" he="" />
+        <H2Block en="Eligibility" he="זכאות" />
         <EnBlock padded={true}>
             <p>The Contest is open to applicants from the United States and Israel. All participants are eligible to enter the grand prize, and those who are eligible for the youth prize may submit their project into both categories. All entrants under the age of 18 must obtain permission from their parent or guardian before entering the contest. <b>To learn more, see our official <a href="https://drive.google.com/file/d/1-TdCwaxGvGaPPZgEiWoYakqygZLyYtBf/view?usp=sharing">Contest Rules</a>.</b></p>
         </EnBlock>
         <HeBlock padded={true}>
+            <p>התחרות פתוחה למועמדים מארצות הברית ומישראל. כל המשתתפים זכאים למועמדות לפרס הראשון, ומועמדים לפרס המתמודד הצעיר יוכלו להגיש את המיזם בשתי הקטגוריות. משתתפים מתחת לגיל 18 נדרשים להביא אישור מהורה או אפוטרופוס כדי להשתתף בתחרות. למידע נוסף עיינו
+                &nbsp;<a href="https://drive.google.com/file/d/1-TdCwaxGvGaPPZgEiWoYakqygZLyYtBf/view?usp=sharing">
+                בכללי התחרות הרשמיים
+                </a>
+                .</p>
         </HeBlock>
 
         <GreyBox>
@@ -148,14 +155,13 @@ const ContestLandingPage = () => (
                     - Ron Shapiro, <a href='https://talmud.page'>talmud.page</a></i></div>"
                 enImg="/static/img/contest-landing-page/AdobeStock_314348719.jpeg"
                 enImgAlt=""
-                heText=""
+                heText="<i>דברים נחמדים</i>"
                 heImg="/static/img/contest-landing-page/AdobeStock_314348719.jpeg"
                 heImgAlt=""
-                borderColor="#"
             />
         </GreyBox>
 
-        <H2Block en="Winner Selection" he="" />
+        <H2Block en="Winner Selection" he="בחירת הזוכה" />
         <EnBlock padded={true}>
             <p>Winners will be selected by a panel of three judges. The judges will evaluate each project on the basis of four criteria:</p>
             <ol>
@@ -167,13 +173,22 @@ const ContestLandingPage = () => (
             <p>Projects that existed prior to the call for submission may enter on the basis of additional work added since the time the contest began. Judges will evaluate the projects on the basis of the additional work. Projects don’t have to be 100% complete or polished to enter either; our judges will be happy to see the potential in a promising start. </p>
         </EnBlock>
         <HeBlock padded={true}>
+            <p>הזוכים ייבחרו על ידי פאנל של שלושה שופטים. השופטים יבחנו כל פרויקט על בסיס הקריטריונים הבאים:</p>
+            <ol>
+                <li>דגש על טקסטים יהודיים וערכם המיוחד</li>
+                <li>ההישגים הטכנולוגיים שבמיזם</li>
+                <li>פוטנציאל ההשפעה או ההשראה הטמון במיזם</li>
+                <li>יצירתיות המיזם</li>
+            </ol>
+            <p>אפשר להגיש מיזמים שהתחילו עוד לפני פרסום הקול קורא, כל עוד תיעשה עבודה נוספת במיזם אחרי שהתחרות כבר החלה. השופטים יעריכו את המיזמים על פי העבודה שהתווספה.</p>
         </HeBlock>
 
-        <H2Block en="Registration" he="" />
+        <H2Block en="Registration" he="הרשמה"/>
         <EnBlock padded={true}>
             <p><a href="http://sefaria.nationbuilder.com/contest">Click here</a> to register your interest in participating so we can keep you up to date as the contest progresses with tools and resources, including engineering office hours where you can ask questions or work out ideas 1:1 with our team. You can register as an individual or team, and sign up at any point between now and the end of the contest.</p>
         </EnBlock>
         <HeBlock padded={true}>
+            <p>אם אתם מעוניינים להשתתף בתחרות, לחצו כאן להרשמה, כדי שנוכל לשלוח לכם עדכונים במהלך התחרות בנוגע לכלים ומשאבים, כולל שעות העבודה של המתכנתים שלנו, שתוכלו לשאול אותם שאלות ולהתייעץ איתם על רעיונות אחד־על־אחד. תוכלו להתמודד באופן עצמאי או כחלק מצוות, ולהירשם בכל שלב מעכשיו ועד לסיום התחרות.</p>
         </HeBlock>
 
         <ButtonRow>
@@ -183,7 +198,7 @@ const ContestLandingPage = () => (
                 tall={true}
                 href="http://sefaria.nationbuilder.com/contest"
                 he_href="http://sefaria.nationbuilder.com/contest"
-                he=""
+                he="טופס הרשמה"
                 en="Register"
             />
             <SimpleButton
@@ -192,7 +207,7 @@ const ContestLandingPage = () => (
                 tall={true}
                 href="https://drive.google.com/file/d/1-TdCwaxGvGaPPZgEiWoYakqygZLyYtBf/view?usp=sharing"
                 he_href="https://drive.google.com/file/d/1-TdCwaxGvGaPPZgEiWoYakqygZLyYtBf/view?usp=sharing"
-                he=""
+                he="כללי התחרות"
                 en="Official Rules"
             />
             <SimpleButton
@@ -201,7 +216,7 @@ const ContestLandingPage = () => (
                 tall={true}
                 href="https://github.com/Sefaria/Sefaria-Project"
                 he_href="https://github.com/Sefaria/Sefaria-Project"
-                he=""
+                he="GitHub"
                 en="GitHub"
             />
         </ButtonRow>
@@ -209,9 +224,9 @@ const ContestLandingPage = () => (
             href="http://sefaria.nationbuilder.com/contest"
             he_href="http://sefaria.nationbuilder.com/contest"
             enText="Let’s Innovate Together"
-            heText=""
+            heText="עוד דברים נחמדים"
             enButtonText="Register"
-            heButtonText=""
+            heButtonText="טופס הרשמה"
         />
     </StaticPage>
 );
