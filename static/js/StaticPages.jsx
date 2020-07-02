@@ -153,10 +153,10 @@ const ContestLandingPage = () => (
                 enText="<i>“By open-sourcing a vast array of Jewish texts, Sefaria's API makes programmatic analysis of Jewish tradition simple for the everyday programmer. talmud.page began as my own hand-tailored UI for learning Daf Yomi. The more developers use Sefaria's API to solve creative questions, the richer Jewish learning will be worldwide.”
                         <br/><br/>
                     - Ron Shapiro, <a href='https://talmud.page'>talmud.page</a></i></div>"
-                enImg="/static/img/contest-landing-page/AdobeStock_314348719.jpeg"
+                enImg="/static/img/contest-landing-page/AdobeStock_314348719.png"
                 enImgAlt=""
                 heText="<i>דברים נחמדים</i>"
-                heImg="/static/img/contest-landing-page/AdobeStock_314348719.jpeg"
+                heImg="/static/img/contest-landing-page/AdobeStock_314348719.png"
                 heImgAlt=""
             />
         </GreyBox>
