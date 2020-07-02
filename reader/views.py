@@ -4431,8 +4431,21 @@ def application_health_api_nonlibrary(request):
 
 @login_required
 def daf_roulette_redirect(request):
+    return render(request,'static/dafroulette.html',
+                             {
+                              "rtc_server": RTC_SERVER,
+                              "room_id": "",
+                              "starting_ref": "todays-daf-yomi"
+                              })
+
+@login_required
+def chevruta_redirect(request):
+    room_id = request.GET.get("rid", None)
+    starting_ref = request.GET.get("ref", "Genesis 1")
 
     return render(request,'static/dafroulette.html',
                              {
                               "rtc_server": RTC_SERVER,
+                              "room_id": room_id,
+                              "starting_ref": starting_ref
                               })
