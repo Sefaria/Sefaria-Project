@@ -297,7 +297,9 @@ urlpatterns += [
 urlpatterns += [
     url(r'^random/link$',        reader_views.random_redirect),
     url(r'^random/?$',           reader_views.random_text_page),
-    url(r'^daf-roulette/?$',     reader_views.daf_roulette_redirect)
+    url(r'^daf-roulette/?$',     reader_views.daf_roulette_redirect),
+    url(r'^chevruta/?$',     reader_views.chevruta_redirect),
+
 ]
 
 # Registration

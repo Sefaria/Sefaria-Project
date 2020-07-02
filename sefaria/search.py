@@ -756,6 +756,7 @@ def add_recent_to_queue(ndays):
     for ref in list(refs):
         add_ref_to_index_queue(ref[0], ref[1], ref[2])
 
+
 def get_new_and_current_index_names(type, debug=False):
     base_index_name_dict = {
         'text': SEARCH_INDEX_NAME_TEXT,
@@ -793,6 +794,7 @@ def index_all(skip=0, merged=False, debug=False):
         index_all_of_type('sheet', skip=skip, merged=merged, debug=debug)
     end = datetime.now()
     print("Elapsed time: %s" % str(end-start))
+
 
 def index_all_of_type(type, skip=0, merged=False, debug=False):
     index_names_dict = get_new_and_current_index_names(type=type, debug=debug)

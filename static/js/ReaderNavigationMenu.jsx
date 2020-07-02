@@ -180,7 +180,7 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
             img="/static/img/visualizations-icon.png" alt="visualization icon" />,
   ];
 
-  const torahSpecificResources = ["/visualizations", "/people", "/groups"];
+  const torahSpecificResources = ["/visualizations", "/people"];
   if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
     resources = resources.filter(r => torahSpecificResources.indexOf(r.props.href) == -1);
   }
