@@ -4311,23 +4311,26 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList.fullPanel .recentFilterSet {
   margin: 0 0 12px 0;
 }
-.textList.fullPanel .recentFilterSet .textFilter {
+.textList.fullPanel .recentFilterSet .textFilter, .connectionsPanelHeader .recentFilterSet.topFilters .textFilter{
   display: inline-block;
   padding: 0;
   margin: 6px 14px;
   background-color: transparent;
   color: #999999;
   border-bottom: 4px solid #cccccc;
+  margin-inline-start: 0;
 }
-.english .textList.fullPanel .recentFilterSet .textFilter {
-  margin-left: 0;
+.connectionsPanelHeader .recentFilterSet.topFilters .textFilter{
+  margin: 18px;
+  margin-inline-end: 14px;
+  margin-inline-start: 0;
 }
-.hebrew .textList.fullPanel .recentFilterSet .textFilter {
-  margin-right: 0;
-}
-.textList.fullPanel .recentFilterSet .textFilter.on {
+.textList.fullPanel .recentFilterSet .textFilter.on, .connectionsPanelHeader .recentFilterSet.topFilters .textFilter.on {
   color: #000000;
   border-bottom-color: var(--category-color);
+}
+.recentFilterSet.filterSet .textFilter{
+  font-family: "HebrewInEnglish Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topFiltersInner {
   display: inline-block;
