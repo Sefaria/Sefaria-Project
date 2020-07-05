@@ -148,7 +148,7 @@ class RecentFilterSet extends Component {
         book: filter,
         filterSuffix: filterSuffix,
         heBook: index ? index.heTitle : Sefaria.hebrewTerm(filter),
-        category: index ? index.primary_category : filter
+        category: index ? (index.primary_category ? index.primary_category : index.categories[0]) : filter
       };
     });
     var topLinks = [];
