@@ -4783,6 +4783,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
   cursor: pointer;
 }
+.singlePanel .textListTextRangeBox .connection-buttons .connection-button{
+  text-align: start;
+  margin-inline-end: 5px;
+}
 .textListTextRangeBox .connection-buttons .connection-button .int-en{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
