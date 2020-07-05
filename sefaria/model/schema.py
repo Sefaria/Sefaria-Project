@@ -961,7 +961,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
             reg += self.after_title_delimiter_re
             addr_regex = self.address_regex(lang, **kwargs)
             reg += r'(?:(?:' + addr_regex + r')|(?:[\[({]' + addr_regex + r'[\])}]))'  # Match expressions with internal parentheses around the address portion
-            reg += r"(?=[.,:;?!\s})\]<]|$)" if kwargs.get("for_js") and not parentheses else r"(?=[^(\[]*[)\]])" if parentheses else r"(?=\W|$)" if not kwargs.get("terminated") else r"$"
+            reg += r"(?=[.,:;?!\s})\]<]|$)" if kwargs.get("for_js") and not parentheses else r"((?=[)\]<])|(?=[.,:;?!\s<][^(\[]*[)\]]))" if parentheses else r"(?=\W|$)" if not kwargs.get("terminated") else r"$"
             self._regexes[key] = regex.compile(reg, regex.VERBOSE) if compiled else reg
         return self._regexes[key]
 

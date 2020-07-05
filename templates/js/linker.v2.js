@@ -421,8 +421,8 @@
                         var matched_ref = match[0]
                             .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                             .replace(/[(){}[\]]+/g, "") // Filter out internal parentheses todo: Don't break on parens in books names
-                            .replace(match[1], '');
-                        if (ns.quotationOnly && matched_ref.search(/.*?\s+.*?['\u05f3"\u05f4]/g) == -1) {
+                            .replace(match[1], '').replace(/~/g, '');
+                        if (ns.quotationOnly && matched_ref.search(/.*?\s+(.*?['\u05f3"\u05f4]|.\s|\d*\s)+/g) == -1) {
                                                      return match[1] + portion.text.replace(match[1], '')
                         }
                         else {
@@ -455,7 +455,7 @@
                         node.href = base_url + matched_ref;
                         node.setAttribute('data-ref', matched_ref);
                         node.setAttribute('aria-controls', 'sefaria-popup');
-                        node.textContent = portion.text.replace(/~/, '').replace(/~/, '');
+                        node.textContent = portion.text.replace(/~/g, '');
 
                         return node;
                     },
