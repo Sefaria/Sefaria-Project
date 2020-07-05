@@ -333,11 +333,13 @@ class ConnectionsPanel extends Component {
       content = (<div>
                   <AddToSourceSheetBox
                     srefs={this.props.srefs}
+                    currVersions={this.props.currVersions}
+                    contentLanguage={this.props.masterPanelLanguage}
+                    selectedWords={this.props.selectedWords}
                     nodeRef = {this.props.nodeRef}
                     fullPanel={this.props.fullPanel}
                     toggleSignUpModal = {this.props.toggleSignUpModal}
-                    setConnectionsMode={this.props.setConnectionsMode}
-                    addToSourceSheet={this.props.addToSourceSheet} />
+                    setConnectionsMode={this.props.setConnectionsMode}/>
                   { Sefaria._uid ?
                   <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth">
                     <span className="int-en">Go to My Sheets</span>
@@ -369,11 +371,13 @@ class ConnectionsPanel extends Component {
         content = (<div>
                   <AddToSourceSheetBox
                     srefs={refForSheet}
+                    currVersions={this.props.currVersions}
+                    contentLanguage={this.props.masterPanelLanguage}
+                    selectedWords={null}
                     nodeRef = {this.props.nodeRef}
                     fullPanel={this.props.fullPanel}
                     toggleSignUpModal = {this.props.toggleSignUpModal}
-                    setConnectionsMode={this.props.setConnectionsMode}
-                    addToSourceSheet={this.props.addToSourceSheet} />
+                    setConnectionsMode={this.props.setConnectionsMode} />
                    </div>);
 
     } else if (this.props.mode === "Notes") {
@@ -534,7 +538,6 @@ ConnectionsPanel.propTypes = {
   setConnectionsCategory:  PropTypes.func.isRequired,
   editNote:                PropTypes.func.isRequired,
   openComparePanel:        PropTypes.func.isRequired,
-  addToSourceSheet:        PropTypes.func.isRequired,
   title:                   PropTypes.string.isRequired,
   currVersions:            PropTypes.object.isRequired,
   selectVersion:           PropTypes.func.isRequired,

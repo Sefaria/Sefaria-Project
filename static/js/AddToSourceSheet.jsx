@@ -85,20 +85,32 @@ class AddToSourceSheetBox extends Component {
   addToSourceSheet() {
     if (!Sefaria._uid) { this.props.toggleSignUpModal() }
     if (!this.state.selectedSheet || !this.state.selectedSheet.id) { return; }
-    if (this.props.addToSourceSheet) {
-      this.props.addToSourceSheet(this.state.selectedSheet.id, this.confirmAdd);
-    } else {
       const url     = "/api/sheets/" + this.state.selectedSheet.id + "/add";
+      const language = this.props.contentLanguage;
       let source = {};
-      if (this.props.srefs) {
+      if(this.props.en || this.props.he){ // legacy code to support a call to this component in Gardens.
+        if(this.props.srefs){ //we are saving a ref + ref's text, generally all fields should be present.
+          source.refs = this.props.srefs;
+          source.en = this.props.en;
+          source.he = this.props.he;
+        }else{ // an outside free text is being passed in. theoretically supports any interface that passes this in. In practice only legacy Gardens code.
+          if (this.props.en && this.props.he) {
+            source.outsideBiText = {he: this.props.he, en: this.props.en};
+          } else {
+            source.outsideText = this.props.en || this.props.he;
+          }
+        }
+      } else if (this.props.srefs) { //regular use - this is currently the case when the component is loaded in the sidepanel or in the modal component via profiles and notes pages
         source.refs = this.props.srefs;
-        if (this.props.en) source.en = this.props.en;
-        if (this.props.he) source.he = this.props.he;
-      } else {
-        if (this.props.en && this.props.he) {
-          source.outsideBiText = {he: this.props.he, en: this.props.en};
-        } else {
-          source.outsideText = this.props.en || this.props.he;
+        const { en, he } = this.props.currVersions; //the text we are adding may be non-default version
+        if (he) { source.versionHe = he; /*source.versionLanguage = "he";*/ }
+        if (en) { source.versionEn = en; /*source.versionLanguage = "en"; */}
+
+        // If something is highlighted and main panel language is not bilingual:
+        // Use main panel language to determine which version this highlight covers.
+        var selectedWords = this.props.selectedWords; //if there was highlighted single panel
+        if (selectedWords && language != "bilingual") {
+          source[language.slice(0,2)] = selectedWords;
         }
       }
       let postData = {source: JSON.stringify(source)};
@@ -106,7 +118,6 @@ class AddToSourceSheetBox extends Component {
         postData.note = this.props.note;
       }
       $.post(url, postData, this.confirmAdd);
-    }
   }
   createSheet(refs) {
     const title = $(ReactDOM.findDOMNode(this)).find("input").val();
@@ -202,7 +213,6 @@ class AddToSourceSheetBox extends Component {
 }
 AddToSourceSheetBox.propTypes = {
   srefs:              PropTypes.array,
-  addToSourceSheet:   PropTypes.func,
   fullPanel:          PropTypes.bool,
   en:                 PropTypes.string,
   he:                 PropTypes.string,

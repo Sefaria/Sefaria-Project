@@ -743,7 +743,6 @@ class ReaderPanel extends Component {
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
           allOpenRefs={this.props.allOpenRefs}
-          addToSourceSheet={this.props.addToSourceSheet}
           canEditText={canEditText}
           setFilter={this.setFilter}
           toggleSignUpModal={this.props.toggleSignUpModal}
@@ -1187,7 +1186,6 @@ ReaderPanel.propTypes = {
   searchInGroup:               PropTypes.func,
   openComparePanel:            PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
-  addToSourceSheet:            PropTypes.func,
   highlightedRefs:             PropTypes.array,
   hideNavHeader:               PropTypes.bool,
   multiPanel:                  PropTypes.bool,
