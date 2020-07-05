@@ -90,15 +90,12 @@ class TextFilter extends Component {
     }
   }
   render() {
-    var classes = classNames({textFilter: 1, on: this.props.on, lowlight: this.props.count == 0});
-
-    if (!this.props.hideColors) {
-      var color = Sefaria.palette.categoryColor(this.props.category);
-      var style = {"borderTop": "4px solid " + color};
-    }
-    var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
-    var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="connectionsCount">&nbsp;({this.props.count})</span>);
-    var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name:"";
+    const classes = classNames({textFilter: 1, on: this.props.on, lowlight: this.props.count == 0});
+    const color = Sefaria.palette.categoryColor(this.props.category);
+    const style = {"--category-color": color};
+    const name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
+    const count = this.props.hideCounts || !this.props.count ? "" : ( <span className="connectionsCount">&nbsp;({this.props.count})</span>);
+    const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name:"";
     const upperClass = classNames({uppercase: this.props.book === this.props.category});
     return (
       <a href={url} onClick={this.handleClick}>

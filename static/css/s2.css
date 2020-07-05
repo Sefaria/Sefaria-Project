@@ -4327,7 +4327,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textList.fullPanel .recentFilterSet .textFilter.on {
   color: #000000;
-  border-bottom-color: #4871BF ;
+  border-bottom-color: var(--category-color);
 }
 .topFiltersInner {
   display: inline-block;
