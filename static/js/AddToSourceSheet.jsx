@@ -234,7 +234,7 @@ class ConfirmAddToSheet extends Component {
                 <span className="int-he">
                   <a href={`/${titleRef.ref}`}>{titleRef.heRef}</a>
                    &nbsp;נוסף בהצלחה לדף המקורות&nbsp;
-                  <a href={"/sheets/" + this.props.sheet.id} target="_blank">${this.props.sheet.title}</a>.
+                  <a href={"/sheets/" + this.props.sheet.id} target="_blank">{this.props.sheet.title}</a>.
                 </span>
               </div>
             </div>);
