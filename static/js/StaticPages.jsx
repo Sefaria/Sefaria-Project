@@ -138,11 +138,11 @@ const ContestLandingPage = () => (
 
         <H2Block en="Eligibility" he="זכאות" />
         <EnBlock padded={true}>
-            <p>The Contest is open to applicants from the United States and Israel. All participants are eligible to enter the grand prize, and those who are eligible for the youth prize may submit their project into both categories. All entrants under the age of 18 must obtain permission from their parent or guardian before entering the contest. <b>To learn more, see our official <a href="https://drive.google.com/file/d/1-TdCwaxGvGaPPZgEiWoYakqygZLyYtBf/view?usp=sharing">Contest Rules</a>.</b></p>
+            <p>The Contest is open to applicants from the United States and Israel. All participants are eligible to enter the grand prize, and those who are eligible for the youth prize may submit their project into both categories. All entrants under the age of 18 must obtain permission from their parent or guardian before entering the contest. <b>To learn more, see our official <a href="https://d3n8a8pro7vhmx.cloudfront.net/sefaria/pages/1085/attachments/original/1593805425/Sefaria_Contest_Official_Rules.pdf?1593805425">Contest Rules</a>.</b></p>
         </EnBlock>
         <HeBlock padded={true}>
             <p>התחרות פתוחה למועמדים מארצות הברית ומישראל. כל המשתתפים זכאים למועמדות לפרס הראשון, ומועמדים לפרס המתמודד הצעיר יוכלו להגיש את המיזם בשתי הקטגוריות. משתתפים מתחת לגיל 18 נדרשים להביא אישור מהורה או אפוטרופוס כדי להשתתף בתחרות. למידע נוסף עיינו
-                &nbsp;<a href="https://drive.google.com/file/d/1-TdCwaxGvGaPPZgEiWoYakqygZLyYtBf/view?usp=sharing">
+                &nbsp;<a href="https://d3n8a8pro7vhmx.cloudfront.net/sefaria/pages/1085/attachments/original/1593805425/Sefaria_Contest_Official_Rules.pdf?1593805425">
                 בכללי התחרות הרשמיים
                 </a>
                 .</p>
@@ -155,7 +155,10 @@ const ContestLandingPage = () => (
                     - Ron Shapiro, <a href='https://talmud.page'>talmud.page</a></i></div>"
                 enImg="/static/img/contest-landing-page/AdobeStock_314348719.png"
                 enImgAlt=""
-                heText="<i>דברים נחמדים</i>"
+                heText='<i>"על-ידי אספקת גישה למגוון עצום של טקסטים יהודיים, ה-API של ספריא מאפשר למתכנת הפשוט לבצע ניתוח פרוגרמטי של המסורת היהודי. talmud.page החל כממשק משתמש בעיצובי ללימוד דף יומי. שימוש רב יותר של מפתחים ב-API של ספריא לפתרון שאלות יצירתיות יעשיר את הלימוד היהודי בכל העולם"
+                <br/><br/>
+                 - רון שפירא
+                 <a href="https://talmud.page">talmud.page</a></i>'
                 heImg="/static/img/contest-landing-page/AdobeStock_314348719.png"
                 heImgAlt=""
             />
@@ -224,7 +227,7 @@ const ContestLandingPage = () => (
             href="http://sefaria.nationbuilder.com/contest"
             he_href="http://sefaria.nationbuilder.com/contest"
             enText="Let’s Innovate Together"
-            heText="עוד דברים נחמדים"
+            heText="בואו נחדש ביחד!"
             enButtonText="Register"
             heButtonText="טופס הרשמה"
         />
