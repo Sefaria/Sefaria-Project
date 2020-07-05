@@ -4329,7 +4329,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000000;
   border-bottom-color: var(--category-color);
 }
-.recentFilterSet.filterSet .textFilter{
+.recentFilterSet.filterSet .textFilter, .recentFilterSet.filterSet .textFilter span{
   font-family: "HebrewInEnglish Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topFiltersInner {
