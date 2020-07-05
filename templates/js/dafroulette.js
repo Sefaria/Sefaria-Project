@@ -109,6 +109,10 @@ socket.on('message', function(message) {
   }
 });
 
+socket.on('room full', function() {
+  alert("The room you selected is full. Please try again later.")
+})
+
 ////////////////////////////////////////////////////
 
 const localVideo = document.querySelector('#localVideo');
@@ -125,7 +129,13 @@ navigator.mediaDevices.getUserMedia({
     if (Date.now() - localStorage.getItem('lastChevrutaTimeStamp') > 300000) {
       localStorage.setItem('lastChevrutaID', null);
     }
-    socket.emit('how many rooms', {{ client_uid }}, localStorage.getItem('lastChevrutaID'));
+
+    if (startingRoom !="") {
+      socket.emit('enter room', {{ client_uid }}, startingRoom);
+    }
+    else {
+      socket.emit('how many rooms', {{ client_uid }}, localStorage.getItem('lastChevrutaID'));
+    }
     console.log('Adding local stream.');
   })
   .catch(function(e) {
@@ -137,8 +147,10 @@ function addAdditionalHTML() {
   newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()"><span class="int-en">New Person</span><span class="int-he">משתמש חדש</span></button>';
   document.getElementById("buttonContainer").appendChild(newRoomButton)
 
+  document.body.classList.remove("hasBannerMessage");
+
   const iframe = document.createElement('iframe');
-  iframe.src = "https://www.sefaria.org/todays-daf-yomi";
+  iframe.src = "https://www.sefaria.org/"+startingRef;
   document.getElementById("iframeContainer").appendChild(iframe);
 }
 
@@ -282,7 +294,7 @@ function handleRemoteStreamAdded(event) {
   console.log('Remote stream added.');
   remoteStream = event.stream;
   remoteVideo.srcObject = remoteStream;
-  document.getElementById("chevrutaName").style.display = 'none';
+  document.getElementById("chevrutaName").style.display = 'block';
 }
 
 function handleRemoteStreamRemoved(event) {
