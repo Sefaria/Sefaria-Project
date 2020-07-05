@@ -165,13 +165,20 @@ Sefaria = extend(Sefaria, {
     nRef.toSections = pRefEnd.toSections;
     return Sefaria.makeRef(nRef);
   },
-  joinRefsToSpanStr: function(ref1, ref2){
+  joinRefsToDisplayStr: function(ref1, ref2, lang){
       //should check that these are actually refs
       //only use for display as it doesn't rely on any ref parsing!
-      //since this is jsut string manipulation it works language agnostically.
-      const similarpart = Sefaria.util.commonSubstring(ref1, ref2);
-      const ref1Diff = ref1.substring(similarpart.length, ref1.length);
-      const ref2Diff = ref2.substring(similarpart.length, ref2.length);
+      //since this is just string manipulation it works language agnostically.
+      //does not work well in cases like Genesis 1:10, Genesis 1:15 (will return Genesis 1:10-5). Needs fixing
+      //Deuteronomy 11:32-2:1 instead of Deuteronomy 11:32-12:1
+      const refStrAttr = {
+          "hebrew" : "heRef",
+          "english": "ref"
+      }[lang];
+      let [refStr1, refStr2] = [ref1[refStrAttr], ref2[refStrAttr]];
+      const similarpart = Sefaria.util.commonSubstring(refStr1, refStr2);
+      const ref1Diff = refStr1.substring(similarpart.length, refStr1.length);
+      const ref2Diff = refStr2.substring(similarpart.length, refStr2.length);
       return `${similarpart}${ref1Diff}-${ref2Diff}`;
   },
   refContains: function(ref1, ref2) {

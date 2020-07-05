@@ -144,8 +144,8 @@ class AddToSourceSheetBox extends Component {
   makeTitleRef(){
     if(this.props.srefs.length > 1){
       return {
-        "en": Sefaria.joinRefsToSpanStr(Sefaria.getRefFromCache(this.props.srefs[0]).ref, Sefaria.getRefFromCache(this.props.srefs[this.props.srefs.length - 1]).ref),
-        "he": Sefaria.joinRefsToSpanStr(Sefaria.getRefFromCache(this.props.srefs[0]).heRef, Sefaria.getRefFromCache(this.props.srefs[this.props.srefs.length - 1]).heRef)
+        "en": Sefaria.joinRefsToDisplayStr(Sefaria.getRefFromCache(this.props.srefs[0]), Sefaria.getRefFromCache(this.props.srefs[this.props.srefs.length - 1]), "english"),
+        "he": Sefaria.joinRefsToDisplayStr(Sefaria.getRefFromCache(this.props.srefs[0]), Sefaria.getRefFromCache(this.props.srefs[this.props.srefs.length - 1]), "hebrew")
       };
     }else{
       return {
