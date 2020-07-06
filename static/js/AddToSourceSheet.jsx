@@ -103,11 +103,11 @@ class AddToSourceSheetBox extends Component {
       } else if (this.props.srefs) { //regular use - this is currently the case when the component is loaded in the sidepanel or in the modal component via profiles and notes pages
         source.refs = this.props.srefs;
         const { en, he } = this.props.currVersions; //the text we are adding may be non-default version
-        if (he) { source.versionHe = he; /*source.versionLanguage = "he";*/ }
-        if (en) { source.versionEn = en; /*source.versionLanguage = "en"; */}
+        if (he) { source["version-he"] = he; }
+        if (en) { source["version-en"] = en; }
 
         // If something is highlighted and main panel language is not bilingual:
-        // Use main panel language to determine which version this highlight covers.
+        // Use passed in language to determine which version this highlight covers.
         var selectedWords = this.props.selectedWords; //if there was highlighted single panel
         if (selectedWords && language != "bilingual") {
           source[language.slice(0,2)] = selectedWords;
