@@ -371,7 +371,7 @@ class ConnectionsPanel extends Component {
         content = (<div>
                   <AddToSourceSheetBox
                     srefs={refForSheet}
-                    currVersions={this.props.currVersions}
+                    currVersions={{"en":null,"he":null}} //sidebar doesn't actually do versions
                     contentLanguage={this.props.masterPanelLanguage}
                     selectedWords={null}
                     nodeRef = {this.props.nodeRef}

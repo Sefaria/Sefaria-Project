@@ -794,7 +794,8 @@ def add_source_to_sheet_api(request, sheet_id):
         else:  # otherwise get the text chunk for the prvided ref, either with a version (if provided) or the default.
             lang_tc = TextChunk(ref_obj, lang, source["version-"+lang]) if source.get("version-"+lang, None) else TextChunk(ref_obj, lang)
             lang_tc = lang_tc.ja().flatten_to_string()
-            del source_obj["version-"+lang]
+            if "version-"+lang in source_obj:
+                del source_obj["version-"+lang]
             return lang_tc if lang_tc != "" else "..."
 
     source = json.loads(request.POST.get("source"))
