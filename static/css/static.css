@@ -2910,6 +2910,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPage .staticPageHeader .staticPageHeaderImg {
   flex: 9;
+  min-height: 290px;
 }
 .interface-english .staticPage .staticPageHeader .staticPageHeaderTextBox {
   padding-right: 10px;
@@ -2965,6 +2966,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPage .staticPageHeaderTextBox .simpleButtonWrapper {
   width: 66%;
+  padding-bottom: 30px;
 }
 .staticPage .simpleButtonWrapper .button {
   border-radius: 0;
@@ -2980,8 +2982,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   margin: auto;
 }
 .staticPageHeader h1 {
-  font-size: 48px;
-  line-height: 58px;
+  font-size: 42px;
+  line-height: 52px;
   font-weight: normal;
   margin: 0 0 14px 0;
 }

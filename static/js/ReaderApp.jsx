@@ -10,6 +10,7 @@ import EditGroupPage from './EditGroupPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
 import {
+  ContestLandingPage,
   RemoteLearningPage,
   SheetsLandingPage,
 } from './StaticPages';
@@ -1899,6 +1900,7 @@ export {
   sefariaSetup,
   unpackDataFromProps,
   EditGroupPage,
+  ContestLandingPage,
   RemoteLearningPage,
   SheetsLandingPage,
 };
