@@ -7355,6 +7355,8 @@ span.purim-emoji img{
 }
 .profile-page .aboutText {
   margin-top: 20px;
+  font-size: 18px;
+  line-height: 1.4;
 }
 @media (max-width: 540px) {
   .profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {
