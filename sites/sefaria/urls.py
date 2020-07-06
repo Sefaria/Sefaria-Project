@@ -44,7 +44,8 @@ static_pages = [
     "dicta-thanks",
     "daf-yomi",
     "remote-learning",
-    "sheets"
+    "sheets",
+    "contest"
 ]
 
 

@@ -147,6 +147,8 @@ function addAdditionalHTML() {
   newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()"><span class="int-en">New Person</span><span class="int-he">משתמש חדש</span></button>';
   document.getElementById("buttonContainer").appendChild(newRoomButton)
 
+  document.body.classList.remove("hasBannerMessage");
+
   const iframe = document.createElement('iframe');
   iframe.src = "https://www.sefaria.org/"+startingRef;
   document.getElementById("iframeContainer").appendChild(iframe);
