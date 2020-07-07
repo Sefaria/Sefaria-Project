@@ -1584,10 +1584,9 @@ def shape_api(request, title):
     API for retrieving a shape document for a given text or category.
     For simple texts, returns a dict with keys:
 	{
-		"section": Category immediately above book?,
-		[Perhaps, instead, "categories"]
+		"section": Category immediately above book
 		"heTitle": Hebrew title of node
-		"length": Number of chapters,
+		"length": Number of chapters
 		"chapters": List of Chapter Lengths (think about depth 1 & 3)
 		"title": English title of node
 		"book": English title of Book
