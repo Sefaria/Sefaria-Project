@@ -1,0 +1,1 @@
+{"verse": [{"start_time": "228.893007", "end_time": "244.8", "url": "https://raw.githubusercontent.com/rneiss/PocketTorah/master/data/audio/Vezot Haberakhah-7.json.mp3"}]}
