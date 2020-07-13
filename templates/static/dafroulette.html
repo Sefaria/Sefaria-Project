@@ -95,6 +95,7 @@ a {
       color: white;
       align-self: flex-start;
       font-size: 13px;
+      display: none;
     }
 
 button {
@@ -150,11 +151,11 @@ a {
 
 
     <p class="int-en">
-      Pirkei Avot says you should be at least <a href="https://www.sefaria.org/Pirkei_Avot.5.21?lang=bi&with=all&lang2=bi">15+ to experience this</a>, so check with your grownup if you're younger.
+      Pirkei Avot says you should be at least <a href="https://www.sefaria.org/Pirkei_Avot.5.21" target="_blank">15+ to experience this</a>, so check with your grownup if you're younger.
     </p>
 
     <p class="int-he">
-      בפרקי אבות נאמר שאפשר לחוות חוויה <a href=https://www.sefaria.org/Pirkei_Avot.5.21">זו מגיל 15</a>. התייעצו עם מבוגר אם אתם צעירים מגיל 15.
+      בפרקי אבות נאמר שאפשר לחוות חוויה <a href="https://www.sefaria.org.il/Pirkei_Avot.5.21" target="_blank">זו מגיל 15</a>. התייעצו עם מבוגר אם אתם צעירים מגיל 15.
     </p>
 
 
@@ -193,6 +194,10 @@ a {
 {% block js  %}
 <script src="//{{ rtc_server }}/socket.io/socket.io.js"></script>
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<script>
+  const startingRef = "{{starting_ref}}";
+  const startingRoom = "{{room_id}}";
+</script>
 <script src="/dafroulette.js"></script>
 <script>addAdditionalHTML()</script>
 {% endblock %}

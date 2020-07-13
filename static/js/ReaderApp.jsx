@@ -10,6 +10,7 @@ import EditGroupPage from './EditGroupPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
 import {
+  ContestLandingPage,
   RemoteLearningPage,
   SheetsLandingPage,
 } from './StaticPages';
@@ -870,7 +871,7 @@ class ReaderApp extends Component {
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
       menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories:    state.navigationCategories    || [],
-      navigationTopicCategory:        state.navigationTopicCategory   || "",
+      navigationTopicCategory: state.navigationTopicCategory || "",
       navigationSheetTag:      state.sheetsTag               || null,
       navigationGroupTag:      state.navigationGroupTag      || null,
       sheet:                   state.sheet                   || null,
@@ -1925,6 +1926,7 @@ export {
   sefariaSetup,
   unpackDataFromProps,
   EditGroupPage,
+  ContestLandingPage,
   RemoteLearningPage,
   SheetsLandingPage,
 };

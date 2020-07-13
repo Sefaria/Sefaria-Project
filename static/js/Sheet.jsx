@@ -602,6 +602,11 @@ class SheetMedia extends Component {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>';
     }
 
+    else if (mediaURL.toLowerCase().indexOf('vimeo') > 0) {
+      mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0"  allow="autoplay; fullscreen" allowfullscreen></iframe></div>';
+    }
+
+
     else if (mediaURL.toLowerCase().indexOf('soundcloud') > 0) {
       mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>';
     }

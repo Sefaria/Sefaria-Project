@@ -86,6 +86,25 @@ steps:
       - generate_localsettings_file
       - k8s-admin_clone
 
+  - name: gcr.io/${PROJECT_ID}/mongo-restore
+    dir: k8s-admin/v2/app_settings/nginx
+    entrypoint: "bash"
+    args: ['-c', './generateRobotsTxtFile.bash']
+    id: generate_robots_file
+    env: 
+      - 'IS_PROD=true'
+    wait_for: [ "-" ]
+    
+  # Copy robots.txt into file
+  # Later, combined this with the script above
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+    dir: k8s-admin/v2
+    id: copy_robots_file
+    entrypoint: cp
+    args: ["-f", "./app_settings/nginx/_robots.txt", "./charts/sefaria/robots.txt"]
+    wait_for:
+      - generate_robots_file
+
   - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.1.2"
     id: deploy_sandbox
     dir: k8s-admin/v2
@@ -103,6 +122,7 @@ steps:
       - generate_localsettings_file
       - copy_localsettings_file
       - k8s-admin_clone
+      - generate_robots_file
 
 images:
   - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA"

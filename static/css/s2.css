@@ -1495,6 +1495,10 @@ h1 .languageToggle .he {
     font-size: 20px;
   }
 }
+.readerNavMenu .libraryMessage {
+  font-size: 18px;
+  margin-bottom: 40px;
+}
 .readerPanel.hebrew .navToggles {
     direction: rtl;
 }
@@ -3389,6 +3393,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 0;
   margin-bottom: 13px;
   padding-bottom: 0;
+}
+.interface-hebrew .topicPanel .mainColumn .saveLine .saveButton.three-dots-button {
+  margin-left: 0;
+  margin-right: 10px;
 }
 .interface-hebrew .topicPanel .three-dots-button {
   margin-left: 0px;
@@ -7347,6 +7355,8 @@ span.purim-emoji img{
 }
 .profile-page .aboutText {
   margin-top: 20px;
+  font-size: 18px;
+  line-height: 1.4;
 }
 @media (max-width: 540px) {
   .profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {

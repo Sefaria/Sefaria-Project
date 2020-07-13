@@ -111,7 +111,7 @@
   border-bottom: 1px solid #ddd;
   padding-bottom: 16px;
   margin-bottom: 16px;
-  line-height: 1;
+  line-height: 1.4;
 }
 .static h3 {
   font-weight: normal;
@@ -2856,8 +2856,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   /* display: block; */
 }
 .staticPage .blockVerticalPadding {
-  padding-top: 40px;
-  padding-bottom: 40px;
+  padding-top: 80px;
+  padding-bottom: 80px;
 }
 .staticPage .flexContainer {
   display: flex;
@@ -2891,7 +2891,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   color: white;
 }
 .staticPage .staticPageCallToActionFooter .staticPageBlockInner {
-  padding: 60px 0;
+  padding: 80px 0;
 }
 .staticPage .staticPageCallToActionFooter .callToActionText {
   font-style: normal;
@@ -2910,6 +2910,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPage .staticPageHeader .staticPageHeaderImg {
   flex: 9;
+  min-height: 290px;
 }
 .interface-english .staticPage .staticPageHeader .staticPageHeaderTextBox {
   padding-right: 10px;
@@ -2928,6 +2929,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 30px;
   line-height: 35px;
   color: #666666;
+}
+
+.staticPage .staticPageSpacer {
 }
 
 .staticPage .staticPageSheetList {
@@ -2965,6 +2969,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPage .staticPageHeaderTextBox .simpleButtonWrapper {
   width: 66%;
+  padding-bottom: 80px;
 }
 .staticPage .simpleButtonWrapper .button {
   border-radius: 0;
@@ -2980,8 +2985,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   margin: auto;
 }
 .staticPageHeader h1 {
-  font-size: 48px;
-  line-height: 58px;
+  font-size: 42px;
+  line-height: 52px;
   font-weight: normal;
   margin: 0 0 14px 0;
 }

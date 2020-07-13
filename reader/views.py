@@ -1584,10 +1584,9 @@ def shape_api(request, title):
     API for retrieving a shape document for a given text or category.
     For simple texts, returns a dict with keys:
 	{
-		"section": Category immediately above book?,
-		[Perhaps, instead, "categories"]
+		"section": Category immediately above book
 		"heTitle": Hebrew title of node
-		"length": Number of chapters,
+		"length": Number of chapters
 		"chapters": List of Chapter Lengths (think about depth 1 & 3)
 		"title": English title of node
 		"book": English title of Book
@@ -3212,22 +3211,10 @@ def user_profile(request, username):
     """
     User's profile page.
     """
-    user = None
-
-    try:
-        profile = UserProfile(slug=username)
-    except Exception as e:
-        # Couldn't find by slug, try looking up by username (old style urls)
-        # If found, redirect to new URL
-        # If we no longer want to support the old URLs, we can remove this
-        user = get_object_or_404(User, username=username)
-        profile = UserProfile(id=user.id)
-
-        return redirect("/profile/%s" % profile.slug, permanent=True)
-
-    if user is None:
-        user = User.objects.get(id=profile.id)
-    if not user.is_active:
+    profile = UserProfile(slug=username)
+    if profile.user is None:
+        raise Http404
+    if not profile.user.is_active:
         raise Http404('Profile is inactive.')
 
     props = base_props(request)
@@ -4443,8 +4430,21 @@ def application_health_api_nonlibrary(request):
 
 @login_required
 def daf_roulette_redirect(request):
+    return render(request,'static/dafroulette.html',
+                             {
+                              "rtc_server": RTC_SERVER,
+                              "room_id": "",
+                              "starting_ref": "todays-daf-yomi"
+                              })
+
+@login_required
+def chevruta_redirect(request):
+    room_id = request.GET.get("rid", None)
+    starting_ref = request.GET.get("ref", "Genesis 1")
 
     return render(request,'static/dafroulette.html',
                              {
                               "rtc_server": RTC_SERVER,
+                              "room_id": room_id,
+                              "starting_ref": starting_ref
                               })
