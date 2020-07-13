@@ -24,7 +24,7 @@ class GoogleStorageManager(object):
         """
         bucket = cls.get_bucket(bucket_name)
         if old_filename is not None:
-            cls.delete_filename(bucket_name, old_filename)
+            cls.delete_filename(old_filename, bucket_name)
         blob = bucket.blob(to_filename)
         if isinstance(from_file, str):
             blob.upload_from_filename(from_file)
@@ -34,7 +34,7 @@ class GoogleStorageManager(object):
         return cls.get_url(to_filename, bucket_name)
 
     @classmethod
-    def delete_filename(cls, bucket_name, filename):
+    def delete_filename(cls, filename, bucket_name):
         bucket = cls.get_bucket(bucket_name)
         blob = bucket.blob(filename)
         if blob.exists():
