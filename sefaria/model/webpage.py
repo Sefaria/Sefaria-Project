@@ -59,6 +59,7 @@ class WebPage(abst.AbstractMongoRecord):
             "add www": lambda url: re.sub(r"^(https?://)(?!www\.)", r"\1www.", url),
             "remove www": lambda url: re.sub(r"^(https?://)www\.", r"\1", url),
             "remove mediawiki params": lambda url: re.sub(r"&amp;.+", "", url),
+            "remove sort param": lambda url: re.sub(r"\?sort=.+", "", url),
         }
         global_rules = ["remove hash"]
         domain = WebPage.domain_for_url(url)
@@ -85,6 +86,10 @@ class WebPage(abst.AbstractMongoRecord):
             "halachipedia\.com\/index\.php\?search=", # Halachipedia search results
             "halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
             "myjewishlearning.com\/\?post_type=evergreen", # These urls end up not working
+            "judaism.codidact.com\/.+\/edit",
+            "judaism.codidact.com\/.+\/history",
+            "judaism.codidact.com\/.+\/suggested-edit\/",
+            "judaism.codidact.com\/.+\/posts\/new\/",
             "http:\/\/webcache.googleusercontent.com",
             "https:\/\/translate.googleusercotent.com",
             "http:\/\/:localhost(:\d+)?",
@@ -462,6 +467,12 @@ sites_data = [
         "name": 'אתר לבנ"ה - קרן תל"י',
         "domains": ["levana.org.il"],
         "title_branding": ["אתר לבנה מבית קרן תל&#039;&#039;י", "אתר לבנה מבית קרן תל''י"]  # not sure how HTML escape characters are handled. Including both options.
+    },
+    {
+        "name": 'Judaism Codidact',
+        "domains": ["judaism.codidact.com"],
+        "title_branding": ["Judaism"],
+        "initial_title_branding": True,
+        "normalization_rules": ["remove sort param"],
     }
-
 ]
