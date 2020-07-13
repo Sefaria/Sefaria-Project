@@ -233,37 +233,46 @@ ProfilePic.propTypes = {
 
 
 const FilterableList = ({
-  filterFunc, sortFunc, renderItem, sortOptions, getData, renderEmptyList,
+  filterFunc, sortFunc, renderItem, sortOptions, getData, getDataFromCache, renderEmptyList,
   renderHeader, renderFooter, showFilterHeader, extraData, ignoreCache,
   scrollableElement, pageSize, bottomMargin,
 }) => {
   const [filter, setFilter] = useState('');
   const [sortOption, setSortOption] = useState(sortOptions[0]);
   const [displaySort, setDisplaySort] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [rawData, setRawData] = useState([]);
-  const [displayData, setDisplayData] = useState([]);
+
+  const processData = rawData => rawData ? rawData
+      .filter(item => !filter ? true : filterFunc(filter, item))
+      .sort((a, b) => sortFunc(sortOption, a, b, extraData))
+      : [];
+
+  const cachedData = getDataFromCache ? getDataFromCache() : null;
+  const [loading, setLoading] = useState(!cachedData);
+  const [rawData, setRawData] = useState(cachedData);
+  const [displayData, setDisplayData] = useState(processData(rawData));
+  
   useEffect(() => {
     let isMounted = true;
-    // TODO this trick only works the first time. every time after that ignoreCache is defined
-    getData(typeof ignoreCache != "undefined").then(data => {
-      if (isMounted) {
-        setLoading(false);
-        setRawData(data);
-      }
-    });
+    if (!rawData) {
+      // TODO this trick only works the first time. every time after that ignoreCache is defined
+      getData(typeof ignoreCache != "undefined").then(data => {
+        debugger
+        if (isMounted) {
+          setLoading(false);
+          setRawData(data);
+        }
+      });      
+    }
     return () => {
       setLoading(true);
       isMounted = false;
     };
-  }, [getData, ignoreCache]);
+  }, [rawData, getData, ignoreCache]);
+
   useEffect(() => {
-    setDisplayData(
-      rawData
-      .filter(item => !filter ? true : filterFunc(filter, item))
-      .sort((a, b) => sortFunc(sortOption, a, b, extraData))
-    );
+    setDisplayData(processData(rawData));
   }, [rawData, filter, sortOption, extraData]);
+
   const dataUpToPage = usePaginatedDisplay(scrollableElement, displayData, pageSize, bottomMargin);
   const onSortChange = newSortOption => {
     if (newSortOption === sortOption) { return; }
@@ -361,6 +370,7 @@ FilterableList.propTypes = {
   showFilterHeader: PropTypes.bool,
   extraData: PropTypes.object,  // extraData to pass to sort function
 };
+
 
 class TabView extends Component {
   constructor(props) {

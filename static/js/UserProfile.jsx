@@ -138,14 +138,14 @@ class UserProfile extends Component {
   getSheets(ignoreCache) {
     return new Promise((resolve, reject) => {
       Sefaria.sheets.userSheets(this.props.profile.id, sheets => {
-        // add urls to sheets for rendering with SheetListing
-        sheets.forEach(s => {
-          s.options.language = "en";
-          s.sheetUrl = `/sheets/${s.id}`;
-        });
+        // What was the below for?
+        // s.options.language = "en";
         resolve(sheets);
       }, undefined, 0, 0, ignoreCache);
     });
+  }
+  getSheetsFromCache() {
+    return Sefaria.sheets.userSheets(this.props.profile.id, null, undefined, 0, 0, false);
   }
   filterSheet(currFilter, sheet) {
     const n = text => text.toLowerCase();
@@ -300,7 +300,9 @@ class UserProfile extends Component {
     if (!Sefaria._uid) { this.props.toggleSignUpModal(); return; }
     this._messageModalRef.makeVisible();
   }
-  follow() { Sefaria.followAPI(this.props.profile.id); }
+  follow() { 
+    Sefaria.followAPI(this.props.profile.id);
+  }
   openFollowers(e) {
     e.preventDefault();
     this._tabViewRef.openTab(this.state.tabs.findIndex(t => t.text === Sefaria._('Followers')));
@@ -347,6 +349,7 @@ class UserProfile extends Component {
                     renderHeader={this.renderSheetHeader}
                     sortOptions={["Recent", "Views"]}
                     getData={this.getSheets}
+                    getDataFromCache={this.getSheetsFromCache}
                   />
                   {
                     this.state.showNotes ? (

@@ -319,6 +319,7 @@ class ReaderApp extends Component {
       this.setState(state, () => {
         if (state.scrollPosition) {
           console.log("scroll restoration", event.state.scrollPosition);
+          debugger
           $(".content").scrollTop(event.state.scrollPosition)
             .trigger("scroll");
         }
