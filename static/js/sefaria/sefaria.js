@@ -1248,6 +1248,7 @@ Sefaria = extend(Sefaria, {
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
           topics: this._saveTopicByRef(ref, data.topics || []),
+		  // TAMAR audio: this._saveItemsByRef
       };
 
        // Build split related data from individual split data arrays

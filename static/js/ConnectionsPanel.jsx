@@ -286,6 +286,7 @@ class ConnectionsPanel extends Component {
                     sheetsCount={Sefaria.sheets.sheetsTotalCount(this.props.srefs)}
                     notesCount={Sefaria.notesTotalCount(this.props.srefs)}
                     webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length}
+					audioCount={Sefaria.audioByRef(this.props.srefs).length}
                     topicsCount={Sefaria.topicsByRefCount(this.props.srefs)}
                   />
                   </div>);
@@ -407,7 +408,14 @@ class ConnectionsPanel extends Component {
                     interfaceLang={this.props.interfaceLang}
                     key="WebPages"/>);
 
-    } else if (this.props.mode === "Tools") {
+    } else if (this.props.mode === "Audio" || this.props.mode === "AudioList") {
+      content = (<AudioList
+                    srefs={this.props.srefs}
+                    interfaceLang={this.props.interfaceLang}
+                    key="Audio"/>);
+
+    }
+	else if (this.props.mode === "Tools") {
       content = (<ToolsList
                     srefs={this.props.srefs}
                     toggleSignUpModal={this.props.toggleSignUpModal}
@@ -485,7 +493,7 @@ class ConnectionsPanel extends Component {
                   currVersions={this.props.currVersions}
                   title={this.props.title}/>);
     }
-    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics"].indexOf(this.props.mode) != -1;
+    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Audio", "Topics"].indexOf(this.props.mode) != -1;
 
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
@@ -567,6 +575,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Translations" he="תרגומים" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} />
+			  <ToolsButton en="Audio" he="שמע" image="audio.svg" count={this.props.audioCount} onClick={() => this.props.setConnectionsMode("Audio")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
@@ -805,6 +814,7 @@ class WebPagesList extends Component {
     let content = [];
 
     if (!this.props.filter) {
+		//if nothing has been clicked = filter ==0
       let sites = {};
       webpages.map(page => {
         if (page.siteName in sites) {
