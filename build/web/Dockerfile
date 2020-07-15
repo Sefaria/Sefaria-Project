@@ -1,23 +1,29 @@
-FROM gcr.io/production-deployment/wsgi-re2
+# Descended from python3
+FROM gcr.io/production-deployment/pyre2:3e01eba
 
-RUN rm -rf /app
-COPY . /app/
-WORKDIR /app/
-
-RUN rm -rf /app/log \
- && mkdir /app/log \
- && chmod 777 /app/log \
- && ln -sf /settings/local_settings.py /app/sefaria/local_settings.py
-
+# Django Environment Variables
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONPATH /app
 ENV DJANGO_SETTINGS_MODULE sefaria.settings
 
-COPY build/web/wsgi.whiskey /app/.whiskey
+# NodeJS Environment variables
+ENV DJANGO_HOST web
+ENV DJANGO_PORT 80
+ENV NODEJS_PORT 3000
+ENV DEBUG       false
 
-# requirements are installed on wsgi-re2, this tries to cover the case where requirements differ in this commit.
-# In practice, differing requirements don't install cleanly
-RUN pip install -r requirements.txt \
-  && chown -R whiskey /app
+COPY . /app/
+WORKDIR /app/
+RUN mkdir -p /app/log && mkdir -p /app/sefaria && mkdir -p /log && touch /app/dev-db.sqlite
 
-#RUN python manage.py collectstatic --noinput
+RUN apt-get update && apt-get install --yes npm varnish && apt-get clean
+RUN pip3 install --no-cache-dir -r /app/requirements.txt
+RUN npm install && npm run build-prod
+RUN python manage.py collectstatic
+
+ENTRYPOINT ["/bin/bash", "-c"]
+EXPOSE 80
+
+## TODO:
+# * Separate this container into separate `build` and `run` containers, only preserving the latter
+# * when slimming down the containers, create a smaller monitor-only container, without npm

@@ -13,7 +13,7 @@ with open(pfile, 'rb') as parshiot_json:
         name = parsha["parasha"]
         if name in pset:
             continue
-        if u"-" in name and name != "Lech-Lecha":
+        if "-" in name and name != "Lech-Lecha":
             continue
         if name == "Lech-Lecha":
             name = "Lech Lecha"
@@ -29,7 +29,7 @@ with open(pfile, 'rb') as parshiot_json:
             "book": book,
             "whole_ref": whole_ref
         }
-    pset[u"V'Zot HaBerachah"] = {
+    pset["V'Zot HaBerachah"] = {
         "refs": ["Deuteronomy 33:1–7",
             "Deuteronomy 33:8–12",
             "Deuteronomy 33:13–17",
@@ -61,7 +61,7 @@ for term in terms:
         'refs': pset[term.name]["refs"]
     })
 
-for name, struct in structs.items():
+for name, struct in list(structs.items()):
     i = library.get_index(name)
     obj = deserialize_tree(struct, index=i, struct_class=TitledTreeNode)
     obj.title_group = i.nodes.title_group

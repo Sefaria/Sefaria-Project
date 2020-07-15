@@ -16,7 +16,7 @@ class Test_AutoLinker(object):
     }
 
     @classmethod
-    def setup_class(self):
+    def setup_class(cls):
         # create dummy indexes: "Many to One on Genesis" and "One to One on Genesis"
         # ensure dummy index was properly deleted
         index = Index().load({'title': 'Many to One on Genesis'})
@@ -28,7 +28,7 @@ class Test_AutoLinker(object):
         # Build an index with some nodes
         root = SchemaNode()
         root.add_title('Many to One on Genesis', 'en', primary=True)
-        root.add_title(u'הרבה לאחד על בראשית', 'he', primary=True)
+        root.add_title('הרבה לאחד על בראשית', 'he', primary=True)
         root.key = 'Delete Me'
 
         intro = JaggedArrayNode()
@@ -129,7 +129,7 @@ class Test_AutoLinker(object):
         # Build an index with some nodes
         root = SchemaNode()
         root.add_title('One to One on Genesis', 'en', primary=True)
-        root.add_title(u'אחד לאחד על בראשית', 'he', primary=True)
+        root.add_title('אחד לאחד על בראשית', 'he', primary=True)
         root.key = 'Delete Me'
 
         intro = JaggedArrayNode()
@@ -229,12 +229,12 @@ class Test_AutoLinker(object):
         VersionState("One to One on Genesis").refresh()
 
         link_set_lambda = lambda x: LinkSet({"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"})
-        self.desired_link_counts["Many to One on Genesis"] = link_set_lambda("Many to One on Genesis").count()
-        self.desired_link_counts["One to One on Genesis"] = link_set_lambda("One to One on Genesis").count()
+        cls.desired_link_counts["Many to One on Genesis"] = link_set_lambda("Many to One on Genesis").count()
+        cls.desired_link_counts["One to One on Genesis"] = link_set_lambda("One to One on Genesis").count()
         #print 'End of test setup'
 
     @classmethod
-    def teardown_class(self):
+    def teardown_class(cls):
         #print 'Cleaning Up'
         ls = LinkSet(Ref("Many to One on Genesis"))
         ls.delete()
@@ -383,7 +383,7 @@ class Test_AutoLinker(object):
     def test_refresh_links_with_text_save(self):
         title = 'Rashi on Genesis'
         section_tref = 'Rashi on Genesis 18:22'
-        stext = [u"כךל שדךלגכח ש ךלדקחכ ףךדלכח שףךדג", u"כךל שדךלגכח ש ךלדקחכ ףךדלכח שףךדג", u"כךל שדךלגכח ש ךלדקחכ ףךדלכח שףךדג"]
+        stext = ["כךל שדךלגכח ש ךלדקחכ ףךדלכח שףךדג", "כךל שדךלגכח ש ךלדקחכ ףךדלכח שףךדג", "כךל שדךלגכח ש ךלדקחכ ףךדלכח שףךדג"]
         lang = 'he'
         vtitle = "test"
         oref = Ref(section_tref)
@@ -411,7 +411,7 @@ class Test_AutoLinker(object):
         regex = rf.regex()
 
         # add another segment to intro text to show that it won't affect link count
-        stext = [u"Intro first segment text", u"Intro second segment text", u"Intro third segment text"]
+        stext = ["Intro first segment text", "Intro second segment text", "Intro third segment text"]
         oref = Ref("{}, Introduction 1".format(title))
         tracker.modify_text(1, oref, "test", "en", stext)
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
@@ -422,7 +422,7 @@ class Test_AutoLinker(object):
         vtitle = "test"
         oref = Ref(title_ref)
         stext = TextChunk(oref, lang=lang).text
-        stext += [u"חדש", u"חדש"]
+        stext += ["חדש", "חדש"]
         tracker.modify_text(1, oref, vtitle, lang, stext)
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert link_count == (desired_link_count+2)
@@ -443,7 +443,7 @@ class Test_AutoLinker(object):
         regex = rf.regex()
 
         # add another segment to intro text to show that it won't affect link count
-        stext = [u"Intro first segment text", u"Intro second segment text", u"Intro third segment text"]
+        stext = ["Intro first segment text", "Intro second segment text", "Intro third segment text"]
         oref = Ref("{}, Introduction 1".format(title))
         tracker.modify_text(1, oref, "test", "en", stext)
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
@@ -454,7 +454,7 @@ class Test_AutoLinker(object):
         vtitle = "test"
         oref = Ref(title_ref)
         stext = TextChunk(oref, lang=lang).text
-        stext += [u"new", u"new"]
+        stext += ["new", "new"]
         tracker.modify_text(1, oref, vtitle, lang, stext)
         link_count = LinkSet(
             {"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()

@@ -7,7 +7,6 @@ import re
 from sefaria.utils.util import list_depth
 
 
-
 def test_text_index_map():
     r = Ref("Shabbat 8b")
     tc = TextChunk(r,"he")
@@ -23,7 +22,7 @@ def test_text_index_map():
     # Test Range
     g = Ref('Genesis 1:31-2:2')
     chunk = g.text('en', 'The Holy Scriptures: A New Translation (JPS 1917)')
-    ind_list, ref_list, total_len = chunk.text_index_map(lambda x: x.split(u' '))
+    ind_list, ref_list, total_len = chunk.text_index_map(lambda x: x.split(' '))
     assert (ind_list, ref_list) == ([0, 26, 40], [Ref('Genesis 1:31'), Ref('Genesis 2:1'), Ref('Genesis 2:2')])
 
     #test depth 3 with empty sections
@@ -45,10 +44,7 @@ def test_text_index_map():
     r = Ref("Ramban on Genesis 48-50")
     tc = TextChunk(r,"he")
     ind_list, ref_list, total_len = tc.text_index_map()
-    assert ref_list[-1] == Ref('Ramban on Genesis 49:33:2')
-
-
-
+    assert ref_list[-1] == Ref('Ramban on Genesis 49:33:3')
 
 
     #test depth 2 with empty segments
@@ -62,7 +58,7 @@ def test_verse_chunk():
         TextChunk(Ref("Daniel 2:3"), "he")
     ]
     for c in chunks:
-        assert isinstance(c.text, basestring)
+        assert isinstance(c.text, str)
         assert len(c.text)
 
 
@@ -82,7 +78,7 @@ def test_depth_1_chunk():
     c = TextChunk(Ref("Hadran"), "he")
     assert isinstance(c.text, list)
     c = TextChunk(Ref("Hadran 3"), "he")
-    assert isinstance(c.text, basestring)
+    assert isinstance(c.text, str)
 
 
 def test_out_of_range_chunks():
@@ -140,6 +136,15 @@ def test_commentary_chunks():
     rang = TextChunk(Ref("Rashi on Exodus 4:1-10"), lang="he")
     assert rang.text[-1] == verse.text
     assert span.text[-1][-1] == verse.text
+
+
+def test_default_in_family():
+    r = Ref('Shulchan Arukh, Even HaEzer')
+    f = TextFamily(r)
+    assert isinstance(f.text, list)
+    assert isinstance(f.he, list)
+    assert len(f.text) > 0
+    assert len(f.he) > 0
 
 
 def test_spanning_family():
@@ -430,16 +435,16 @@ def test_complex_with_depth_1():
     # There was a bug that chunks of complex texts always returned the first element of the array, even for deeper chunks
     r = Ref('Pesach Haggadah, Kadesh 1')
     c = TextChunk(r, "he")
-    assert u"כוס ראשון" in c.text
+    assert "כוס ראשון" in c.text
 
     r = Ref('Pesach Haggadah, Kadesh 2')
     c = TextChunk(r, "he")
-    assert u"קַדֵּשׁ" in c.text
+    assert "קַדֵּשׁ" in c.text
 
     r = Ref('Pesach Haggadah, Kadesh 2-4')
     c = TextChunk(r, "he")
     assert len(c.text) == 3
-    assert u"קַדֵּשׁ" in c.text[0]
+    assert "קַדֵּשׁ" in c.text[0]
 
     #Comparing Hebrew is hard.
     #assert u"בְּשַׁבָּת מַתְחִילִין" in c.text[1]
@@ -447,8 +452,8 @@ def test_complex_with_depth_1():
 
     c = TextChunk(r, "en")
     assert len(c.text) == 3
-    assert u"Kiddush" in c.text[0]
-    assert u"seventh day" in c.text[2]
+    assert "Kiddush" in c.text[0]
+    assert "seventh day" in c.text[2]
 
 
 def test_complex_with_depth_2():
@@ -481,17 +486,17 @@ def test_strip_itags():
         "title": "Hadran",
         "versionSource": "http://foobar.com",
         "versionTitle": "Hadran Test",
-        "chapter": ['Cool text <sup>1</sup><i class="footnote">well, not that cool</i>',
+        "chapter": ['Cool text <sup>1</sup><i class="footnote yo">well, not that cool</i>',
                     'Silly text <sup>1</sup><i class="footnote">See <i>cool text</i></i>',
                     'More text <i data-commentator="Boring comment" data-order="1"></i> and yet more']
     }).save()
     modified_text = ['Cool text', 'Silly text', 'More text and yet more']
     c = TextChunk(Ref("Hadran"), "en", "Hadran Test")
-    test_modified_text = c._get_text_after_modifications([c._strip_itags, lambda x: u' '.join(x.split()).strip()])
+    test_modified_text = c._get_text_after_modifications([c._strip_itags, lambda x: ' '.join(x.split()).strip()])
     for m, t in zip(modified_text, test_modified_text):
         assert m == t
 
-    test_modified_text = v._get_text_after_modifications([v._strip_itags, lambda x: u' '.join(x.split()).strip()])
+    test_modified_text = v._get_text_after_modifications([v._strip_itags, lambda x: ' '.join(x.split()).strip()])
     for m, t in zip(modified_text, test_modified_text):
         assert m == t
 
@@ -503,4 +508,7 @@ def test_strip_itags():
     test_modified_text = v._get_text_after_modifications([])
     for m, t in zip(v.chapter, test_modified_text):
         assert m == t
+
+    text = '<i></i>Lo, his spirit.'
+    assert TextChunk._strip_itags(text) == text
 

@@ -21,12 +21,12 @@ def clean_segment_layer(index_title):
     for chap_index, chapter in enumerate(ja.array()):
         for verse_index, verse in enumerate(chapter):
 
-            if not isinstance(verse, basestring):
+            if not isinstance(verse, str):
 
                 assert isinstance(verse, list)
                 assert len(verse) == 0
 
-                ja.set_element([chap_index, verse_index], u'')
+                ja.set_element([chap_index, verse_index], '')
 
     version.save()
 

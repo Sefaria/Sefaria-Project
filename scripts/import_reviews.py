@@ -48,7 +48,7 @@ version_langs = {
 for filename in files:
 	with open(filename, 'rb') as csvfile:
 		reviews = csv.reader(csvfile)
-		header = reviews.next()
+		header = next(reviews)
 		for row in reviews:
 			
 			try:
@@ -62,22 +62,22 @@ for filename in files:
 					"language": version_langs[row[3]],
 					"version":  row[3],
 				}
-			except Exception, e:
-				print "ERROR Importing: %s" % e
+			except Exception as e:
+				print("ERROR Importing: %s" % e)
 				continue
 
 			valid = validate_review(review)
 			if "error" in valid:
-				print "ERROR Validating: %s" % valid["error"]
+				print("ERROR Validating: %s" % valid["error"])
 				continue
 
 			#text = get_text(review["ref"], context=1, commentary=False, version=review["version"], lang=review["language"])
 			text = TextFamily(Ref(review["ref"]), context=1, commentary=False, version=review["version"], lang=review["language"]).contents()
 			field = "text" if review["language"] == "en" else "he"
 			if not text[field]:
-				print "ERROR Matching: No text found for %s, %s" % (review["ref"], review["version"])
+				print("ERROR Matching: No text found for %s, %s" % (review["ref"], review["version"]))
 				#versions = get_version_list(review["ref"])
 				versions = Ref(review["ref"]).version_list()
-				print "Versions: %s" % ", ".join([v["versionTitle"] for v in versions if v["language"] == review["language"]])
+				print("Versions: %s" % ", ".join([v["versionTitle"] for v in versions if v["language"] == review["language"]]))
 
 			db.history.save(review)

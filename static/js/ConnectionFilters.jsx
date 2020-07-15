@@ -1,7 +1,7 @@
-const React      = require('react');
-const Sefaria    = require('./sefaria/sefaria');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
+import React from 'react';
+import Sefaria from './sefaria/sefaria';
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
 import Component      from 'react-class';
 
 
@@ -47,7 +47,7 @@ class CategoryFilter extends Component {
         <span className="en">
           <span className="filterInner">
             <span className="filterText">{this.props.category}{count}</span>
-            {this.props.hasEnglish ? <EnglishAvailableTag /> : null}
+            {this.props.hasEnglish && Sefaria._siteSettings.TORAH_SPECIFIC ? <EnglishAvailableTag /> : null}
           </span>
         </span>
         <span className="he">{this.props.heCategory}{count}</span>
@@ -107,7 +107,7 @@ class TextFilter extends Component {
               <span className="en">
                 <span className="filterInner">
                   <span className="filterText">{name}{count}</span>
-                  {this.props.hasEnglish ? <EnglishAvailableTag /> : null}
+                  {this.props.hasEnglish && Sefaria._siteSettings.TORAH_SPECIFIC ? <EnglishAvailableTag /> : null}
                 </span>
               </span>
               <span className="he">{this.props.heBook}{count}</span>
@@ -208,6 +208,7 @@ RecentFilterSet.propTypes = {
   setFilter:     PropTypes.func.isRequired,
 };
 
-
-module.exports.CategoryFilter  = CategoryFilter;
-module.exports.RecentFilterSet = RecentFilterSet;
+export {
+  CategoryFilter,
+  RecentFilterSet,
+};

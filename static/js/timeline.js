@@ -1,7 +1,7 @@
-let d3 = require("d3");
-let Sefaria = require('sefaria');
-let SefariaD3 = require("./sefaria-d3/sefaria-d3");
-let $ = require("./sefaria/sefariaJquery");
+import * as d3 from './lib/d3.v5.min';
+import Sefaria from 'sefaria';
+import SefariaD3  from "./sefaria-d3/sefaria-d3";
+import $  from "./sefaria/sefariaJquery";
 
 /*****          Layout              *****/
 let margin = [60, 40, 20, 40];
@@ -70,6 +70,11 @@ function buildFrame() {
         .call(axis);
 }
 
+/*
+    let refYear = (year != null) ? year : await Sefaria.getIndexDetails(Sefaria.parseRef(ref).index).then(getDate);
+
+    if ((!refYear) && (refYear !== 0)) throw "No date for " + ref;
+*/
 
 /*****                   Popup                        *****/
 

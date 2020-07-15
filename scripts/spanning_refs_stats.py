@@ -12,7 +12,7 @@ ls = LinkSet({"refs": {"$regex": "-.*:"}})
 categories = defaultdict(int)
 texts = defaultdict(int)
 
-print "{} spanning links".format(ls.count())
+print("{} spanning links".format(ls.count()))
 
 def count_ref(oref):
 	categories[oref.primary_category] += 1
@@ -26,10 +26,10 @@ for link in ls:
 	if oref2.is_spanning():
 		count_ref(oref1)
 
-print "CATEGORIES"
+print("CATEGORIES")
 for key in categories:
-	print "{}: {}".format(key, categories[key])
+	print("{}: {}".format(key, categories[key]))
 
-print "TEXTS"
+print("TEXTS")
 for key in texts:
-	print "{}: {}".format(key, texts[key])
+	print("{}: {}".format(key, texts[key]))

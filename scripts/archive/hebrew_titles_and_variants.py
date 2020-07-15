@@ -28,8 +28,8 @@ if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
 mishnahs = db.index.find({"categories": "Mishnah"})
 for m in mishnahs:
 	title = m["heTitle"]
-	if not regex.match(u'משנה', m["heTitle"]):
-		m["heTitle"] = u'משנה' + " " + title
+	if not regex.match('משנה', m["heTitle"]):
+		m["heTitle"] = 'משנה' + " " + title
 		db.index.save(m)
 # Do we need to do anything like update_text_title()?
 
@@ -40,10 +40,10 @@ for i in idxs:
 	db.index.save(i)
 
 # For mishna that does not have a Gemara as well, add the simple name to heTitleVariants
-mlist = [u'פאה', u'דמאי', u'כלאים', u'שביעית' ,u'תרומות', u'מעשרות', u'מעשר שני', u'חלה', u'ערלה', u'ביכורים', u'שקלים', u'עדיות', u'אבות', u'מדות', u'קינים', u'כלים', u'אהלות', u'נגעים', u'פרה', u'טהרות', u'מקואות', u'מכשירין', u'זבים', u'טבול יום', u'ידים', u'עוקצים']
+mlist = ['פאה', 'דמאי', 'כלאים', 'שביעית' ,'תרומות', 'מעשרות', 'מעשר שני', 'חלה', 'ערלה', 'ביכורים', 'שקלים', 'עדיות', 'אבות', 'מדות', 'קינים', 'כלים', 'אהלות', 'נגעים', 'פרה', 'טהרות', 'מקואות', 'מכשירין', 'זבים', 'טבול יום', 'ידים', 'עוקצים']
 for m in mlist:
-	print m
-	search = [m,u'משנה' + " " + m]
+	print(m)
+	search = [m,'משנה' + " " + m]
 	mrec = db.index.find_one({"categories": "Mishnah", "heTitle": {"$in": search}})
 	v = mrec.get("heTitleVariants")
 	v.append(m)
@@ -60,22 +60,22 @@ for m in mlist:
 '''
 
 alts = {
-	u'ירמיה': u'ירמיהו',
-	u'נידה': u'נדה',
-	u'ישעיה': u'ישעיהו',
-	u'תהלים': u'תהילים',
-	u'ערובין': u'עירובין',
-	u'\u05de\"\u05d0': u'מלכים א',
-	u'\u05de\"\u05d1': u'מלכים ב',
-	u'\u05e9\"\u05d0': u'שמואל א',
-	u'\u05e9\"\u05d1': u'שמואל ב',
-	u'\u05d1\"\u05de': u'בבא מציעא',
-	u'\u05d1\"\u05e7': u'בבא קמא',
-	u'\u05d1\"\u05d1': u'בבא בתרא'
+	'ירמיה': 'ירמיהו',
+	'נידה': 'נדה',
+	'ישעיה': 'ישעיהו',
+	'תהלים': 'תהילים',
+	'ערובין': 'עירובין',
+	'\u05de\"\u05d0': 'מלכים א',
+	'\u05de\"\u05d1': 'מלכים ב',
+	'\u05e9\"\u05d0': 'שמואל א',
+	'\u05e9\"\u05d1': 'שמואל ב',
+	'\u05d1\"\u05de': 'בבא מציעא',
+	'\u05d1\"\u05e7': 'בבא קמא',
+	'\u05d1\"\u05d1': 'בבא בתרא'
 }
 
-for alt, book in alts.items():
-	print book
+for alt, book in list(alts.items()):
+	print(book)
 	mrec = db.index.find_one({"heTitle": book})
 	v = mrec.get("heTitleVariants")
 	v.append(alt)

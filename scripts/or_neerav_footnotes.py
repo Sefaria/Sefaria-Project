@@ -12,7 +12,7 @@ def get_ftnotes(sec_ref, title):
         if "Subject" in relevant_footnote_ref:
             relevant_footnote_ref = relevant_footnote_ref.replace(", Subject", " 1")
     ftnotes = Ref(relevant_footnote_ref).text('en').text
-    assert type(ftnotes[0]) is unicode
+    assert type(ftnotes[0]) is str
     ftnotes = dict(enumerate(ftnotes))
     return ftnotes
 
@@ -33,7 +33,7 @@ if __name__ == "__main__":
                 old_ftnote = "<sup>{}</sup>".format(match)
                 ftnote_num = int(match)
                 ftnote_text = ftnotes[ftnote_num - 1]
-                new_ftnote = u"{}<i class='footnote'>{}</i>".format(old_ftnote, ftnote_text)
+                new_ftnote = "{}<i class='footnote'>{}</i>".format(old_ftnote, ftnote_text)
                 if new_ftnote not in text[comment_n]:
                     text[comment_n] = text[comment_n].replace(old_ftnote, new_ftnote)
         tc = TextChunk(sec_ref, vtitle=vtitle, lang='en')

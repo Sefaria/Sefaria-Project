@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from config import *
+from .config import TEMPER, SAUCE_CAPS, SAUCE_CORE_CAPS, SAUCE_MAX_THREADS, BS_CAPS, BS_MAX_THREADS, BS_KEY, BS_USER, LOCAL_URL, REMOTE_URL
 from sefaria.model import *
-#from multiprocessing import Pool
 from pathos.multiprocessing import ProcessingPool as Pool
 import random
 import os
 import inspect
-import httplib
+import http.client
 import base64
 import json
 import traceback
@@ -19,7 +18,8 @@ from selenium.webdriver.common.touch_actions import TouchActions
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support.expected_conditions import title_contains, presence_of_element_located, staleness_of,\
-        element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, text_to_be_present_in_element, _find_element, StaleElementReferenceException
+        element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, \
+    text_to_be_present_in_element, _find_element, StaleElementReferenceException, visibility_of_any_elements_located
 from selenium.webdriver.common.keys import Keys
 from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, WebDriverException
 # http://selenium-python.readthedocs.io/waits.html
@@ -72,7 +72,7 @@ class AbstractTest(object):
     def run(self):
         pass
 
-    def carp(self, msg, short_msg=u"", always=False):
+    def carp(self, msg, short_msg="", always=False):
         sys.stdout.write(msg if self.isVerbose or always else short_msg)
         sys.stdout.flush()
 
@@ -227,10 +227,10 @@ class AbstractTest(object):
                 i += 1
                 time.sleep(.25)
                 continue
-
-        WebDriverWait(self.driver, TEMPER).until(
-            one_of_these_texts_present_in_element((By.CSS_SELECTOR, "h1 > span.en, h2 > span.en"), [category_name, category_name.upper()])
-        )
+        elem = self.driver.find_element_by_css_selector("h1 > span.en, h2 > span.en")
+        if category_name == "Talmud":
+            category_name = "Talmud Bavli"
+        assert elem.get_attribute('innerHTML') == category_name, f"elem innerHTML == {elem.get_attribute('innerHTML')} != {category_name}"  # use get_attribute in case element is visible due to hebrew interface
         return self
 
     def click_toc_text(self, text_name):
@@ -386,16 +386,16 @@ class AbstractTest(object):
             self.click_resources_on_sidebar()
 
     def click_about_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(4) > span:nth-child(2)')
-
-    def click_versions_on_sidebar(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(5) > span:nth-child(2)')
 
+    def click_versions_on_sidebar(self):
+        self.click_object_by_css_selector('a.toolsButton:nth-child(6) > span:nth-child(2)')
+
     def click_webpages_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(7) > span:nth-child(2)')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(8) > span:nth-child(2)')
 
     def click_tools_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(8) > span:nth-child(2)')
+        self.click_object_by_css_selector('a.toolsButton:nth-child(9) > span:nth-child(2)')
 
     def click_share_on_sidebar(self):
         self.click_object_by_css_selector('a.toolsButton:nth-child(1) > span:nth-child(2)')
@@ -456,7 +456,7 @@ class AbstractTest(object):
         return self.get_sidebar_nth_version_button(n).text
 
     def get_sidebar_nth_version_button(self, n):
-        slctr = "#panel-1 > div.readerContent > div > div > div > div > div:nth-child(1) > div:nth-child(" + str(n+1) + ") > div.versionDetails > a.selectButton"
+        slctr = f"#panel-1 > div.readerContent > div > div > div > div > div:nth-child(1) >div:nth-child({n+1}) > div.versionSelect > a.selectButton"
         return self.get_object_by_css_selector(slctr)
 
     def get_object_by_css_selector(self, selector):
@@ -578,6 +578,13 @@ class AbstractTest(object):
         self.click_object_by_css_selector('a.toolsButton:nth-child(4) > span:nth-child(2)')
 
     def click_ivrit_link(self): # Named '..ivrit..' as the link's in Hebrew. Below - a method with '..hebrew..' (that calls this one), in case it's easier to locate that way
+        try:
+            # if logged out, first click to open dropdown
+            self.driver.find_element_by_css_selector('.header a.interfaceLinks-button')
+            self.click_object_by_css_selector('.header a.interfaceLinks-button')
+        except NoSuchElementException:
+            # must be logged in
+            pass
         self.click_object_by_link_text('עברית')
 
     def click_hebrew_link(self):
@@ -684,7 +691,7 @@ class AbstractTest(object):
         return ret
 
     def get_facebook_link_text(self):
-        ret = self.get_object_by_css_selector('#footerInner > div.section.last.connect > a:nth-child(4)').text
+        ret = self.get_object_by_css_selector('#footerInner > div.section.last.connect .socialLinks > a:nth-child(1)').text
         return ret
 
     def get_sefaria_lib_title(self):
@@ -834,19 +841,19 @@ class AbstractTest(object):
             element_to_be_clickable((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
 
     def search_ref(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         self.type_in_search_box(ref.normal())
         time.sleep(.5)  # Old page may have an element that matches the selector below.  Wait for it to go away.
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".linkCountDot")))
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
         time.sleep(.5)  # Something takes a moment here.  Not sure what to wait for.
         return self
 
     def browse_to_ref(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
 
@@ -897,7 +904,7 @@ class AbstractTest(object):
         :param filter: "all", "Rashi", etc
         :return:
         """
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         url = self.base_url + "/" + ref.url()
@@ -914,7 +921,7 @@ class AbstractTest(object):
         else:
             WebDriverWait(self.driver, TEMPER).until(
                 element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
-            WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".linkCountDot")))
+            WebDriverWait(self.driver, TEMPER).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
         self.set_modal_cookie()
         return self
 
@@ -932,7 +939,7 @@ class AbstractTest(object):
         return self
 
     def load_text_toc(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         url = self.base_url + "/" + ref.url()
@@ -943,7 +950,7 @@ class AbstractTest(object):
         return self
 
     def click_text_toc_section(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         p1 = self.driver.find_element_by_css_selector('.sectionLink[data-ref="{}"], .schema-node-toc[data-ref="{}"]'.format(ref.normal(), ref.normal()))
@@ -954,7 +961,7 @@ class AbstractTest(object):
         return self
 
     def open_text_toc_menu(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         p1 = self.driver.find_element_by_css_selector('.schema-node-toc[data-ref="{}"]>span'.format(ref.normal()))
@@ -967,7 +974,7 @@ class AbstractTest(object):
         pass
 
     def click_segment(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         self._perform_segment_click(ref)
@@ -977,7 +984,7 @@ class AbstractTest(object):
         return self
 
     def click_segment_to_close_commentary(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         self._perform_segment_click(ref)
@@ -1043,7 +1050,7 @@ class AbstractTest(object):
         return self
 
     def scroll_to_segment(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         # todo
@@ -1112,9 +1119,9 @@ class AbstractTest(object):
         elem.send_keys(Keys.RETURN)
         return self
 
-    def load_sheets(self):
-        self.driver.get(self.base_url + "/sheets")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerSheetsNav")))
+    def load_topics(self):
+        self.driver.get(self.base_url + "/topics")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".topicList")))
         self.set_modal_cookie()
         return self
 
@@ -1162,7 +1169,7 @@ class AbstractTest(object):
 
     # Editing
     def load_translate(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         url = self.base_url + "/translate/" + ref.url()
@@ -1171,7 +1178,7 @@ class AbstractTest(object):
         return self
 
     def load_edit(self, ref, lang, version):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         url = self.base_url + "/edit/" + ref.url() + "/" + lang + "/" + version.replace(" ", "_")
@@ -1180,13 +1187,66 @@ class AbstractTest(object):
         return self
 
     def load_add(self, ref):
-        if isinstance(ref, basestring):
+        if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         url = self.base_url + "/add/" + ref.url()
         self.driver.get(url)
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
         return self
+
+    # Editor
+    def new_sheet_in_editor(self):
+        self.driver.get(self.base_url + "/sheets/new?editor=0")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheetContent")))
+        return self
+
+    def load_existing_sheet(self, sheetID):
+        self.driver.get(self.base_url + "/sheets/"+sheetID)
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheetContent")))
+        return self
+
+    def nav_to_end_of_editor(self):
+        elem = self.driver.find_element_by_css_selector(".sheetContent")
+        elem.click()
+        self.driver.switch_to.active_element.send_keys(Keys.CONTROL, Keys.END)
+        return self
+
+    def generate_text(self, language):
+        paragraph = {
+            "en": "Proin elit arcu, rutrum commodo, vehicula tempus, commodo a, risus. Curabitur nec arcu. Donec sollicitudin mi sit amet mauris. Nam elementum quam ullamcorper ante. Etiam aliquet massa et lorem. Mauris dapibus lacus auctor risus. Aenean tempor ullamcorper leo. Vivamus sed magna quis ligula eleifend adipiscing. Duis orci. Aliquam sodales tortor vitae ipsum. Aliquam nulla. Duis aliquam molestie erat. Ut et mauris vel pede varius sollicitudin. Sed ut dolor nec orci tincidunt interdum. Phasellus ipsum. Nunc tristique tempus lectus.",
+            "he": " לורם איפסום דולור סיט אמט, קונסקטורר אדיפיסינג אלית קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף סחטיר בלובק. תצטנפל בלינדו למרקל אס לכימפו, דול, צוט ומעיוט - לפתיעם ברשג - ולתיעם גדדיש. קוויז דומור ליאמום בלינך רוגצה. לפמעט מוסן מנת. קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף גולר מונפרר סוברט לורם שבצק יהול, לכנוץ בעריר גק ליץ, ושבעגט ליבם סולגק. בראיט ולחת צורק מונחף, בגורמי מגמש. תרבנך וסתעד לכנו סתשם השמה - לתכי מורגם בורק? לתיג ישבעס."
+        }
+        elem = self.driver.switch_to.active_element
+        elem.send_keys(paragraph[language])
+        elem.send_keys(Keys.RETURN)
+        time.sleep(3) #sheet won't save until there's a brief pause
+        return self
+
+    def add_source(self):
+        elem = self.driver.switch_to.active_element
+        elem.send_keys("Genesis 1:1")
+        elem.send_keys(Keys.RETURN)
+        time.sleep(3) #sheet won't save until there's a brief pause
+        return self
+
+    def toggle_sheet_edit_view(self):
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "div.rightButtons button")))
+        button = self.driver.find_element_by_css_selector("div.rightButtons button")
+        button.click()
+        return self
+
+    def get_sheet_html(self):
+        sheet_selector = '.sheetContent'
+        sheet = self.driver.find_element_by_css_selector(sheet_selector)
+        sheet_html = sheet.get_attribute('innerHTML')
+        return sheet_html
+
+
+
+
+
+
 
 
 class TestSuite(AbstractTest):
@@ -1203,10 +1263,10 @@ class TestSuite(AbstractTest):
         return len(self.tests)
 
     def long_name(self):
-        return u"{}\n{}".format(self.name(), self.tests_string())
+        return "{}\n{}".format(self.name(), self.tests_string())
 
     def tests_string(self):
-        return u", ".join([t.__class__.__name__ for t in self.tests])
+        return ", ".join([t.__class__.__name__ for t in self.tests])
 
     def setup(self):
         pass
@@ -1215,18 +1275,18 @@ class TestSuite(AbstractTest):
         pass
 
     def run(self):
-        self.carp(u"\n{}\n".format(str(self)), always=True)
+        self.carp("\n{}\n".format(str(self)), always=True)
 
         try:
             self.setup()
         except Exception:
-            msg = u"Exception in {}.setup()\n{}".format(self.name(), traceback.format_exc())
+            msg = "Exception in {}.setup()\n{}".format(self.name(), traceback.format_exc())
             self.carp(msg, always=True)
             return SingleTestResult(self.__class__, self.cap, False, msg)
 
         max = None
         for i, test in enumerate(self.tests):
-            self.carp(u" * Enter {}:{}\n".format(self.name(), test.__class__.__name__))
+            self.carp(" * Enter {}:{}\n".format(self.name(), test.__class__.__name__))
             result = test.run()
             result.order = i
             result.suite = self
@@ -1236,7 +1296,7 @@ class TestSuite(AbstractTest):
         try:
             self.teardown()
         except Exception:
-            msg = u"Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
+            msg = "Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
             self.carp(msg, always=True)
             result = SingleTestResult(self.__class__, self.cap, False, msg)
             result.order = max + 1
@@ -1293,12 +1353,12 @@ class AtomicTest(AbstractTest):
             try:
                 self.setup()
             except Exception:
-                msg = u"Exception in {}.setup()\n{}".format(self.name(), traceback.format_exc())
+                msg = "Exception in {}.setup()\n{}".format(self.name(), traceback.format_exc())
                 self.carp(msg, always=True)
                 return SingleTestResult(self.__class__, self.cap, False, msg)
 
         try:
-            self.carp(u"{} - Starting\n".format(self.name()))
+            self.carp("{} - Starting\n".format(self.name()))
             self.driver.execute_script('"**** Enter {} ****"'.format(self.name()))
             self.body()
             self.driver.execute_script('"**** Exit {} ****"'.format(self.name()))
@@ -1312,10 +1372,10 @@ class AtomicTest(AbstractTest):
             try:
                 self.teardown()
             except Exception:
-                msg = u"Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
+                msg = "Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
                 self.carp(msg, always=True)
 
-        self.carp(u"{} - {}\n".format(result.word_status(), self.name()), always=not result.success)
+        self.carp("{} - {}\n".format(result.word_status(), self.name()), always=not result.success)
         if err:
             self.carp(err, always=True)
 
@@ -1359,7 +1419,7 @@ class AbstractTestResult(object):
 
 
 class SingleTestResult(AbstractTestResult):
-    def __init__(self, test_class, cap, success, message=u""):
+    def __init__(self, test_class, cap, success, message=""):
         assert isinstance(success, bool)
         assert issubclass(test_class, AbstractTest)
 
@@ -1387,10 +1447,10 @@ class SingleTestResult(AbstractTestResult):
         return ret
 
     def word_status(self):
-        return u"Passed" if self.success else u"Failed"
+        return "Passed" if self.success else "Failed"
 
     def letter_status(self):
-        return u"." if self.success else u"F"
+        return "." if self.success else "F"
 
     @property
     def message(self):
@@ -1451,25 +1511,25 @@ class TestResultSet(AbstractTestResult):
         p = self.number_passed()
         f = self.number_failed()
         if p and f:
-            return u"Mixed"
+            return "Mixed"
         elif p:
-            return u"Passed"
+            return "Passed"
         elif f:
-            return u"Failed"
+            return "Failed"
         else:
-            return u"Empty"
+            return "Empty"
 
     def letter_status(self):
         p = self.number_passed()
         f = self.number_failed()
         if p and f:
-            return u"/"
+            return "/"
         elif p:
-            return u"."
+            return "."
         elif f:
-            return u"F"
+            return "F"
         else:
-            return u"0"
+            return "0"
 
     def number_passed(self):
         return len([t for t in self._test_results if t.success])
@@ -1505,9 +1565,9 @@ class TestResultSet(AbstractTestResult):
             if res is None:
                 return "s"
             if res.success is True:
-                return u"."
+                return "."
             if res.success is False:
-                return u"Fail"
+                return "Fail"
 
         current_suite = None
 
@@ -1526,14 +1586,14 @@ class TestResultSet(AbstractTestResult):
         # http://stackoverflow.com/a/13214945/213042
         matrix = self._results_as_matrix()
         s = [[str(e) for e in row] for row in matrix]
-        lens = [max(map(len, col)) for col in zip(*s)]
+        lens = [max(list(map(len, col))) for col in zip(*s)]
         fmt = ' '.join('{{:{}}}'.format(x) for x in lens)
         table = [fmt.format(*row) for row in s]
         ret += '\n'.join(table)
 
         total_tests = len(self._test_results)
         passed_tests = self.number_passed()
-        percentage_passed = (float(passed_tests) / total_tests) * 100
+        percentage_passed = (float(passed_tests) / total_tests) * 100 if total_tests > 0 else 0
         ret += "\n\n{}/{} - {:.0f}% passed\n".format(passed_tests, total_tests, percentage_passed)
 
         if passed_tests < total_tests:
@@ -1545,8 +1605,8 @@ class TestResultSet(AbstractTestResult):
 
 class Trial(object):
 
-    # default_local_driver = webdriver.Chrome
-    default_local_driver = webdriver.Firefox
+    default_local_driver = webdriver.Chrome
+    # default_local_driver = webdriver.Firefox
     # default_local_driver = webdriver.Safari
     def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None, verbose=False):
         """
@@ -1576,7 +1636,7 @@ class Trial(object):
         else:
             self.is_local = False
             self.BASE_URL = REMOTE_URL
-            self.caps = caps if caps else SAUCE_CAPS if platform == "sauce" else BS_CAPS
+            self.caps = caps if caps else BS_CAPS
         self.isVerbose = verbose
         self.platform = platform
         self.build = build
@@ -1661,9 +1721,9 @@ class Trial(object):
 
             msg = traceback.format_exc()
             if self.isVerbose:
-                self.carp(u"{} / {} - Aborted\n{}\n".format(test_class.__name__, Trial.cap_to_string(cap), msg))
+                self.carp("{} / {} - Aborted\n{}\n".format(test_class.__name__, Trial.cap_to_string(cap), msg))
             else:
-                self.carp(u"A")
+                self.carp("A")
 
             if driver is not None:
                 try:
@@ -1681,7 +1741,7 @@ class Trial(object):
         """
         result_set = TestResultSet()
         caps = _caps or self.caps
-        self.carp(u"\n{}: ".format(test_class.__name__))
+        self.carp("\n{}: ".format(test_class.__name__))
         exception_thrown = False
         is_first_test = _caps is None
         is_second_test = _caps is not None
@@ -1691,10 +1751,10 @@ class Trial(object):
             p = Pool(self.thread_count)
             l = len(caps)
             try:
-                tresults = p.map(_test_one_worker, zip([self] * l, [test_class] * l, caps))
+                tresults = p.map(_test_one_worker, list(zip([self] * l, [test_class] * l, caps)))
             except Exception:
                 msg = traceback.format_exc()
-                self.carp(u"{} - Exception\n{}\n".format(test_class.__name__, msg), always=True)
+                self.carp("{} - Exception\n{}\n".format(test_class.__name__, msg), always=True)
                 tresults += [SingleTestResult(test_class, caps[0], False, msg)]
                 exception_thrown = True
         else:
@@ -1725,17 +1785,21 @@ class Trial(object):
     def results(self):
         return self._results
 
-    def carp(self, msg, short_msg=u"", always=False):
+    def carp(self, msg, short_msg="", always=False):
         sys.stdout.write(msg if self.isVerbose or always else short_msg)
         sys.stdout.flush()
 
     @staticmethod
     def set_sauce_result(driver, result):
-        base64string = base64.encodestring('%s:%s' % (SAUCE_USERNAME, SAUCE_ACCESS_KEY))[:-1]
+        sauce_result = "passed" if result else "failed"
+        driver.execute_script("sauce:job-result={}".format(sauce_result))
+
+        """
+        base64string = base64.encodebytes(b'%s:%s' % (SAUCE_USERNAME, SAUCE_ACCESS_KEY))[:-1]
 
         def set_test_status(jobid, passed=True):
             body_content = json.dumps({"passed": passed})
-            connection = httplib.HTTPConnection("saucelabs.com")
+            connection = http.client.HTTPConnection("saucelabs.com")
             connection.request('PUT', '/rest/v1/%s/jobs/%s' % (SAUCE_USERNAME, jobid),
                                body_content,
                                headers={"Authorization": "Basic %s" % base64string})
@@ -1744,6 +1808,7 @@ class Trial(object):
 
         set_test_status(driver.session_id, passed=result)
         return result
+        """
 
     @staticmethod
     def cap_to_string(cap):
@@ -1812,6 +1877,8 @@ def get_every_build_tests(tests):
     return [t for t in tests if t.every_build]
 
 
+
+
 # The following util method highlights (blinks) a Webdriver on the page, helpful for figuring out what a code line does.
 # A relevant use case would be to recognize an element on browser-1 when it can't be found on browser-2. Just switch locally to
 # the other browser (by changing the value of default_local_driver above), run up to the point of failure (using a breakpoint), and from the Evaluate Expression
@@ -1826,6 +1893,7 @@ def highlight(element):
     apply_style("background: yellow; border: 2px solid red;")
     time.sleep(.3)
     apply_style(original_style)
+
 
 
 class one_of_these_texts_present_in_element(object):

@@ -8,14 +8,14 @@ from datetime import datetime
 
 from sefaria.model import *
 from sefaria.system.database import db
-from settings import STATICFILES_DIRS, STATIC_URL
+from .settings import STATICFILES_DIRS, STATIC_URL
 
 
 def chunks(l, n):
     """
     Yield successive n-sized chunks from l.
     """
-    for i in xrange(0, len(l), n):
+    for i in range(0, len(l), n):
         yield l[i:i + n]
 
 
@@ -25,7 +25,6 @@ class SefariaSiteMapGenerator(object):
         'org': {'interfaceLang': 'en', 'hostname':'https://www.sefaria.org'},
         'org.il': {'interfaceLang': 'he', 'hostname':'https://www.sefaria.org.il'},
     }
-
     static_urls = [
         "",
         "/explore",
@@ -35,6 +34,9 @@ class SefariaSiteMapGenerator(object):
         "/educators",
         "/donate",
         "/supporters",
+        "/mobile",
+        "/app",
+        "/daf-yomi",
         "/linker",
         "/jobs",
         "/help",
@@ -43,7 +45,6 @@ class SefariaSiteMapGenerator(object):
         "/sheets/public",
         "/login",
         "/register",
-        "/related-projects",
         "/terms",
         "/testimonials",
         "/privacy-policy",
@@ -51,7 +52,9 @@ class SefariaSiteMapGenerator(object):
         "/people",
         "/people/Talmud",
         "/william-davidson-talmud",
+        "/remote-learning",
     ]
+    sitemaps = []
 
     def __init__(self, hostSuffix='org', output_directory=STATICFILES_DIRS[0]):
         if hostSuffix in SefariaSiteMapGenerator.hostnames:
@@ -116,8 +119,16 @@ class SefariaSiteMapGenerator(object):
         query = {"status": "public"}
         public = db.sheets.find(query).distinct("id")
         urls = [self._hostname + "/sheets/" + str(id) for id in public]
-
         self.write_urls(urls, "sheets-sitemap.txt")
+
+    def generate_topics_sitemap(self):
+        """
+        Creates a sitemap for each topic that has at least one source or source sheet.
+        """
+        topics = TopicSet()
+        topics = [topic for topic in topics if topic.should_display()]
+        urls = [self._hostname + "/topics/" + topic.slug for topic in topics]
+        self.write_urls(urls, "topics-sitemap.txt")
 
     def generate_people_sitemap(self):
         urls = [self._hostname + "/person/{}".format(p.key.replace(" ", "%20")) for p in PersonSet()]
@@ -129,7 +140,6 @@ class SefariaSiteMapGenerator(object):
         """
         self.write_urls([self._hostname + "/" + url for url in self.static_urls], "static-sitemap.txt")
 
-
     def write_urls(self, urls, filename):
         """
         Writes the list URLS, one per line, to filename.
@@ -137,14 +147,14 @@ class SefariaSiteMapGenerator(object):
         out = self.output_directory + "sitemaps/" + self._interfaceLang + "/" + filename
         f = open(out, 'w')
         for url in urls:
-            f.write(url.encode('utf-8') + "\n")
+            f.write(url + "\n")
         f.close()
+        self.sitemaps.append(filename)
 
-
-    def generate_sitemap_index(self, sitemaps):
+    def generate_sitemap_index(self):
         now = datetime.now().strftime("%Y-%m-%d")
         xml = ""
-        for m in sitemaps:
+        for m in self.sitemaps:
             xml += """
                <sitemap>
                   <loc>%s%ssitemaps/%s/%s</loc>
@@ -163,7 +173,6 @@ class SefariaSiteMapGenerator(object):
         f.write(sitemapindex)
         f.close()
 
-
     def generate_sitemaps(self):
         """
         Creates all sitemap files then creates and index file for all.
@@ -173,9 +182,6 @@ class SefariaSiteMapGenerator(object):
         self.generate_texts_toc_sitemap()
         self.generate_categories_sitemap()
         self.generate_people_sitemap()
-        n = self.generate_texts_sitemaps()
+        self.generate_texts_sitemaps()
 
-        maps = ["static-sitemap.txt", "categories-sitemap.txt", "text-toc-sitemap.txt", "person-sitemap.txt", "sheets-sitemap.txt"]
-        maps += ["texts-sitemap%d.txt" % i for i in range(n)]
-
-        self.generate_sitemap_index(maps)
+        self.generate_sitemap_index()

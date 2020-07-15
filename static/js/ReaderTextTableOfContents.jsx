@@ -1,20 +1,20 @@
-const {
+import {
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuDisplaySettingsButton,
   CategoryAttribution,
   CategoryColorLine,
   LoadingMessage,
   TwoBox,
-}                  = require('./Misc');
-const React        = require('react');
-const ReactDOM     = require('react-dom');
-const $            = require('./sefaria/sefariaJquery');
-const Sefaria      = require('./sefaria/sefaria');
-const DictionarySearch = require('./DictionarySearch');
-const VersionBlock = require('./VersionBlock');
-const ExtendedNotes= require('./ExtendedNotes');
-const classNames   = require('classnames');
-const PropTypes    = require('prop-types');
+} from './Misc';
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import DictionarySearch  from './DictionarySearch';
+import VersionBlock  from './VersionBlock';
+import ExtendedNotes from './ExtendedNotes';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
 import Component   from 'react-class';
 
 
@@ -195,6 +195,7 @@ class ReaderTextTableOfContents extends Component {
           defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
         }
         currentVersionElement = (<VersionBlock
+          rendermode="toc-open-version"
           title={title}
           version={cv}
           currVersions={this.props.currVersions}
@@ -219,7 +220,7 @@ class ReaderTextTableOfContents extends Component {
             onClick={this.toggleVersionsDropDownOpen}
             onKeyPress={(e) => {e.charCode == 13 ? this.toggleVersionsDropDownOpen(e):null}}>
             <div className="versionSectionSummary versionSectionSummaryHidden" aria-hidden="true">
-              {Sefaria._siteSettings.TORAH_SPECIFIC ? 
+              {Sefaria._siteSettings.TORAH_SPECIFIC ?
               <span>
                 <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
                 <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
@@ -235,7 +236,7 @@ class ReaderTextTableOfContents extends Component {
               {(this.state.versionsDropDownOpen) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
             </div>
             <div className="versionSectionSummary">
-              {Sefaria._siteSettings.TORAH_SPECIFIC ? 
+              {Sefaria._siteSettings.TORAH_SPECIFIC ?
               <span>
                 <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
                 <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
@@ -301,7 +302,7 @@ class ReaderTextTableOfContents extends Component {
           {Sefaria.interfaceLang == "hebrew" ? `גרסה משולבת (${languageInHebrew[lang]})` : `Merged Version (${lang})`}
         </option>,
       ));
-      
+
       var downloadButton = <div className="versionDownloadButton">
           <div className="downloadButtonInner">
             <span className="int-en">Download</span>
@@ -996,6 +997,7 @@ class VersionsList extends Component {
     var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
      versions.filter(v => v.language == lang).map(v =>
       <VersionBlock
+        rendermode="version-list"
         title={this.props.title}
         version={v}
         currVersions={this.props.currVersions}
@@ -1206,4 +1208,4 @@ ReadMoreText.defaultProps = {
 // }
 
 
-module.exports = ReaderTextTableOfContents;
+export default ReaderTextTableOfContents;

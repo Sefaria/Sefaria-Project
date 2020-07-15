@@ -50,7 +50,7 @@ def add_default_node_and_addendums():
 
     node_titles = [node.get_titles("en") for node in root.children]
     if [] in node_titles:
-        print "Already has default"
+        print("Already has default")
     else:
         default = JaggedArrayNode()
         default.key = "default"
@@ -60,16 +60,16 @@ def add_default_node_and_addendums():
         attach_branch(default, root, 1)
 
     if "Addendum I" in node_titles:
-        print "Already has addendum"
+        print("Already has addendum")
     else:
         node = JaggedArrayNode()
         node.add_structure(["Paragraph"])
-        node.add_primary_titles("Addendum I", u"נספח א")
+        node.add_primary_titles("Addendum I", "נספח א")
         attach_branch(node, root, -1)
 
         node = JaggedArrayNode()
         node.add_structure(["Paragraph"])
-        node.add_primary_titles("Addendum II", u"נספח ב")
+        node.add_primary_titles("Addendum II", "נספח ב")
         attach_branch(node, root, -1)
 
 def remove_chapter_nodes():
@@ -116,11 +116,11 @@ def needs_rewrite(str, *kwargs):
     try:
         needsRewrite = str.startswith("Sefer HaYashar, CHAPTER") or str.startswith("Sefer HaYashar, Addendum I")
         if needsRewrite:
-            print "NEEDS REWRITER: {}".format(str)
+            print("NEEDS REWRITER: {}".format(str))
         return needsRewrite
     except InputError as e:
-        print "Problem with {}".format(str)
-        print e.message
+        print("Problem with {}".format(str))
+        print(e.message)
 
 
 def add_alt_struct(old_nodes):
@@ -176,9 +176,9 @@ if __name__ == "__main__":
 
     #still may need to remove data for Footnotes node
     ftnote_links = LinkSet({"refs": {"$regex": "^Sefer HaYashar, Footnotes"}})
-    print "Removing {} 'Sefer HaYashar, Footnotes' links".format(ftnote_links.count())
+    print("Removing {} 'Sefer HaYashar, Footnotes' links".format(ftnote_links.count()))
     ftnote_links.delete()
 
     ftnote_history = HistorySet({"ref": {"$regex": "^Sefer HaYashar, Footnotes"}})
-    print "Removing {} 'Sefer HaYashar, Footnotes' history".format(ftnote_history.count())
+    print("Removing {} 'Sefer HaYashar, Footnotes' history".format(ftnote_history.count()))
     ftnote_history.delete()

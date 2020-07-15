@@ -7,20 +7,22 @@
 {% block content %}
 <div id="editProfilePage" class="static biReady">
 	<div class="inner">
-        <h1>
-            <span class="int-en">Edit Your Profile</span>
-            <span class="int-he">עריכת פרופיל</span>
-        </h1>
-        <div id="saveCancelButtons">
-            <a class="button transparent control-elem" href="/my/profile">
-                <span class="int-en">Cancel</span>
-                <span class="int-he">ביטול</span>
-            </a>
-            <div id="saveProfile" tabindex="0" role="button" class="button blue control-elem">
-                <span class="int-en">Save</span>
-                <span class="int-he">שמירה</span>
+        <h1 class="header-with-buttons">
+            <div>
+                <span class="int-en">Edit Your Profile</span>
+                <span class="int-he">עריכת פרופיל</span>
             </div>
-        </div>
+            <div id="saveCancelButtons">
+                <a class="button transparent control-elem" href="/my/profile">
+                    <span class="int-en">Cancel</span>
+                    <span class="int-he">בטל</span>
+                </a>
+                <div id="saveProfile" class="button blue control-elem" tabindex="0" role="button" >
+                    <span class="int-en">Save</span>
+                    <span class="int-he">שמור</span>
+                </div>
+            </div>
+        </h1>
         <div id="profileBox">
             <div class="field control-elem">
                 <label>
@@ -63,15 +65,6 @@
                     <span class="int-he">מקום</span>
                 </label>
                 <input id="location" value="{{ profile.location }}" >
-            </div>
-            <div class="field control-elem" id="profilePictureBox">
-                 <label>
-                    <span class="int-en">Profile Picture</span>
-                    <span class="int-he">תמונת פרופיל</span>
-                </label>
-                <img src="{{ profile.profile_pic_url_small }}" alt="User Profile Icon"/>
-                <span class="int-en">Your profile picture is hosted on <a href="http://www.gravatar.com" target="_blank">Gravatar</a>. Create an account or login on Gravatar to <a class="" href="https://en.gravatar.com/site/signup" target="_blank">change your Profile Picture</a>.</span>
-                <span class="int-he">תמונת הפרופיל שלך מתקבלת מאתר <a href="http://www.gravatar.com" target="_blank">Gravatar</a>. צור שם חשבון או הכנס בכדי <a class="" href="https://en.gravatar.com/site/signup" target="_blank">לשנות את תמונת הפרופיל שלך</a>.</span>
             </div>
             <div id="jewishEducation" class="field control-elem">
                  <label>

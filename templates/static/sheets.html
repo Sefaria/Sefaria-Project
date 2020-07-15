@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Sheets on Sefaria" %}{% endblock %}
+
+{% block description %}{% trans "Resources for teaching and learning virtually." %}{% endblock %}
+
+{% block css %}
+{% endblock %}
+
+
+{% block js %}
+<script>
+    {% autoescape off %}
+    DJANGO_VARS.containerId = 'sheetsLandingPageInner';
+    DJANGO_VARS.reactComponentName = 'SheetsLandingPage';
+    DJANGO_VARS.static_url = {{ STATIC_PREFIX }};
+    {% endautoescape %}
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="sheetsLandingPage" class="staticPageFrame">
+  <div id="sheetsLandingPageInner" class="staticPageInner">
+    <h1 id="appLoading">Loading...</h1>
+  </div>
+</div>
+{% endblock %}

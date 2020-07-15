@@ -1,4 +1,5 @@
-const {
+import {
+  InterfaceTextWithFallback,
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuDisplaySettingsButton,
   CategoryAttribution,
@@ -6,14 +7,14 @@ const {
   LoadingMessage,
   TwoBox,
   LoginPrompt,
-}                = require('./Misc');
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
-const sanitizeHtml = require('sanitize-html');
+} from './Misc';
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
+import sanitizeHtml  from 'sanitize-html';
 import Component from 'react-class';
 
 
@@ -38,8 +39,6 @@ class SheetMetadata extends Component {
   componentDidUpdate(prevProps, prevState) {
     if ((this.props.settingsLanguage != prevProps.settingsLanguage)) {
       this.forceUpdate();
-
-
     }
   }
   loadSaved() {
@@ -147,28 +146,21 @@ class SheetMetadata extends Component {
       return (
          <div>
             <div className="int-en">
-                {Sefaria._uid == this.props.sheet.owner ?
-                    <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">Edit Sheet</a> :
-                    null
-                }
+            {Sefaria._uid == this.props.sheet.owner && !document.cookie.includes("new_editor") ?
+                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">Edit Sheet</a> :
+                null
+            }
                 <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
-
-                {Sefaria._uid != this.props.sheet.owner ?
-                    <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">View in Editor</a> : null }
             </div>
             <div className="int-he">
-                {Sefaria._uid == this.props.sheet.owner ?
-                    <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">ערוך</a> :
-                    null
-                }
+            {Sefaria._uid == this.props.sheet.owner && !document.cookie.includes("new_editor") ?
+                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">ערוך</a> :
+                null
+            }
                 <a href="#" className="button white" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
-
-                {Sefaria._uid != this.props.sheet.owner ?
-                    <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">לתצוגת עריכה</a> : null }
-
             </div>
-
-            {this.state.sheetCopyStatus == "Copied" ? <a href={"/sheets/"+this.state.copiedSheetId}><span className="int-en">View copy &raquo;</span><span className="int-he">צפה בהעתק &raquo;</span> </a> : null}
+            <div>{this.state.sheetCopyStatus == "Copied" ? <a href={"/sheets/"+this.state.copiedSheetId}><span className="int-en">View copy &raquo;</span><span className="int-he">צפה בהעתק &raquo;</span> </a> : null}</div>
+            <a className="smallText" href={"/sheets/"+this.props.sheet.id+"?editor=1"}><span className="int-en">View in the old sheets experience</span><span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span></a>
          </div>
       )
 
@@ -266,31 +258,22 @@ class SheetMetadata extends Component {
                     <div className="tocDetails">
                       {details ? <div className="description" dangerouslySetInnerHTML={ {__html: details} }></div> : null}
                     </div>
-                    {this.props.sheet.tags && this.props.sheet.tags.length > 0 ?
+                    {this.props.sheet.topics && this.props.sheet.topics.length > 0 ?
                     <div className="tagsSection">
                         <h2 className="tagsTitle int-en">Tags</h2>
-                        <div className="sheetTags int-en">
-                          {this.props.sheet.tags.map(function(tag, i) {
-                            return (
-                                <a href={"/sheets/tags/" + tag}
-                                        target="_blank"
-                                        className="sheetTag button"
-                                        key={tag}
-                                        >{tag}</a>
-                            )
-                          }.bind(this))}
-                        </div>
-                       <h2 className="tagsTitle int-he">תוית</h2>
-                       <div className="sheetTags int-he">
-                          {this.props.sheet.tags.map(function(tag, i) {
-                            return (
-                                <a href={"/sheets/tags/" + tag}
-                                        target="_blank"
-                                        className="int-he sheetTag button"
-                                        key={tag}
-                                        >{Sefaria.hebrewTerm(tag)}</a>
-                            )
-                          }.bind(this))}
+                        <h2 className="tagsTitle int-he">תוית</h2>
+
+                        <div className="sheetTags">
+                          {this.props.sheet.topics.map(topic => (
+                              <a href={"/topics/" + topic.slug}
+                                target="_blank"
+                                className="sheetTag button"
+                                key={topic.slug}
+                              >
+                                <InterfaceTextWithFallback en={topic.en} he={topic.he} />
+                              </a>
+                            ))
+                          }
                         </div>
                     </div> : null }
 
@@ -317,4 +300,4 @@ SheetMetadata.propTypes = {
 
 
 
-module.exports = SheetMetadata;
+export default SheetMetadata;

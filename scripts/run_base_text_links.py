@@ -11,7 +11,7 @@ for idx in idxset:
         for btitle in idx.base_text_titles:
             flink = LinkSet.get_first_ref_in_linkset(btitle, idx.title)
             if flink:
-                print "{} - {}) {} {}".format(idx.title, btitle, flink.refs, flink.type)
+                print("{} - {}) {} {}".format(idx.title, btitle, flink.refs, flink.type))
                 flink.is_first_comment = True
                 flink.first_comment_indexes = [idx.title, btitle]
                 if index_ref.contains(text.Ref(flink.refs[0])):
@@ -21,4 +21,4 @@ for idx in idxset:
 
                 flink.save(override_dependencies=True)
             else:
-                print "{} - {}) Nothing".format(idx.title, btitle)
+                print("{} - {}) Nothing".format(idx.title, btitle))

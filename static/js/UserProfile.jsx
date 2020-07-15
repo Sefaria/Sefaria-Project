@@ -1,19 +1,20 @@
-const {
+import {
   LoadingMessage,
   TabView,
   FilterableList,
   SheetListing,
+  SinglePanelNavHeader,
   ProfileListing,
   ProfilePic,
   FollowButton,
-}               = require('./Misc');
-const React      = require('react');
-const PropTypes = require('prop-types');
-const Sefaria   = require('./sefaria/sefaria');
-const { GroupListing } = require('./MyGroupsPanel');
-const NoteListing = require('./NoteListing');
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import Sefaria  from './sefaria/sefaria';
+import { GroupListing } from './MyGroupsPanel';
+import NoteListing  from './NoteListing';
 import Component from 'react-class';
-const Footer    = require('./Footer');
+import Footer  from './Footer';
 
 class UserProfile extends Component {
   constructor(props) {
@@ -33,7 +34,7 @@ class UserProfile extends Component {
       { text: Sefaria._("Groups"), icon: "/static/img/group.svg" },
       { text: Sefaria._("Followers"), invisible: true },
       { text: Sefaria._("Following"), invisible: true },
-      { text: Sefaria._("Torah Tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true}
+      { text: Sefaria._("Torah Tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
       tabs.splice(1, 0, { text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
@@ -49,9 +50,6 @@ class UserProfile extends Component {
   }
   _getMessageModalRef(ref) { this._messageModalRef = ref; }
   _getTabViewRef(ref) { this._tabViewRef = ref; }
-  _getSheetListRef(ref) { this._sheetListRef = ref; }
-  _getNoteListRef(ref) { this._noteListRef = ref; }
-  _getGroupListRef(ref) { this._groupListRef = ref; }
   getGroups() {
     return Sefaria.userGroups(this.props.profile.id);
   }
@@ -74,7 +72,7 @@ class UserProfile extends Component {
           <span className="int-he">0 קבוצות</span>
         </div>
         { Sefaria._uid === this.props.profile.id ?
-          <a href="/groups/new" className="resourcesLink faded">
+          <a href="/groups/new" className="resourcesLink">
             <img src="/static/img/group.svg" alt="Group icon" />
             <span className="int-en">Create a New Group</span>
             <span className="int-he">צור קבוצה חדשה</span>
@@ -92,7 +90,7 @@ class UserProfile extends Component {
     if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
       <div className="sheet-header">
-        <a href="/groups/new" className="resourcesLink faded">
+        <a href="/groups/new" className="resourcesLink">
           <img src="/static/img/group.svg" alt="Group icon" />
           <span className="int-en">Create a New Group</span>
           <span className="int-he">צור קבוצה חדשה</span>
@@ -108,7 +106,7 @@ class UserProfile extends Component {
     });
   }
   onDeleteNote() {
-    if (this._noteListRef) { this._noteListRef.reload(); }
+    this.setState({ ignoreNoteCache: Math.random() });
   }
   filterNote(currFilter, note) {
     const n = text => text.toLowerCase();
@@ -143,7 +141,7 @@ class UserProfile extends Component {
         // add urls to sheets for rendering with SheetListing
         sheets.forEach(s => {
           s.options.language = "en";
-          s.sheetUrl = `/Sheet.${s.id}`;
+          s.sheetUrl = `/sheets/${s.id}`;
         });
         resolve(sheets);
       }, undefined, 0, 0, ignoreCache);
@@ -152,7 +150,8 @@ class UserProfile extends Component {
   filterSheet(currFilter, sheet) {
     const n = text => text.toLowerCase();
     currFilter = n(currFilter);
-    return n(sheet.title).indexOf(currFilter) > -1 || sheet.tags.reduce((accum, curr) => accum || n(curr).indexOf(currFilter) > -1, false);
+    const filterText = sheet.title.stripHtml() + " " + sheet.topics.map(topic => topic.asTyped).join(" ")
+    return n(filterText).indexOf(currFilter) > -1;
   }
   sortSheet(currSortOption, sheetA, sheetB) {
     if (currSortOption === "Recent") { return 0; /* already in order */}
@@ -182,7 +181,7 @@ class UserProfile extends Component {
             באפשרותכם להשתמש בדפי מקורות בכדי לארגן מקורות, ליצור טקסטים חדשים, לתכנן שיעורים, הרצאות, כתבות ועוד.
           </span>
         </div>
-        <a href="/sheets/new" className="resourcesLink faded">
+        <a href="/sheets/new" className="resourcesLink">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
           <span className="int-en">Create a New Sheet</span>
           <span className="int-he">צור דף חדש</span>
@@ -191,7 +190,7 @@ class UserProfile extends Component {
     );
   }
   handleSheetDelete() {
-    if (this._sheetListRef) { this._sheetListRef.reload(); }
+    this.setState({ ignoreSheetCache: Math.random() });
   }
   renderSheet(sheet) {
     return (
@@ -213,7 +212,7 @@ class UserProfile extends Component {
     if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
       <div className="sheet-header">
-        <a href="/sheets/new" className="resourcesLink faded">
+        <a href="/sheets/new" className="resourcesLink">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
           <span className="int-en">Create a New Sheet</span>
           <span className="int-he">צור דף חדש</span>
@@ -315,6 +314,13 @@ class UserProfile extends Component {
   render() {
     return (
       <div key={this.props.profile.id} className="profile-page readerNavMenu noHeader">
+        {this.props.multiPanel ? null :
+          <SinglePanelNavHeader
+            enTitle="Profile"
+            heTitle={Sefaria._("Profile")}
+            navHome={this.props.navHome}
+            showDisplaySettings={false}/>
+        }
         <div className="content hasFooter noOverflowX">
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :
@@ -335,7 +341,8 @@ class UserProfile extends Component {
                 >
                   <FilterableList
                     key="sheet"
-                    ref={this._getSheetListRef}
+                    pageSize={1e6}
+                    ignoreCache={this.state.ignoreSheetCache}
                     filterFunc={this.filterSheet}
                     sortFunc={this.sortSheet}
                     renderItem={this.renderSheet}
@@ -348,7 +355,8 @@ class UserProfile extends Component {
                     this.state.showNotes ? (
                       <FilterableList
                         key="note"
-                        ref={this._getNoteListRef}
+                        pageSize={1e6}
+                        ignoreCache={this.state.ignoreNoteCache}
                         filterFunc={this.filterNote}
                         sortFunc={this.sortNote}
                         renderItem={this.renderNote}
@@ -360,7 +368,7 @@ class UserProfile extends Component {
                   }
                   <FilterableList
                     key="group"
-                    ref={this._getGroupListRef}
+                    pageSize={1e6}
                     filterFunc={this.filterGroup}
                     sortFunc={this.sortGroup}
                     renderItem={this.renderGroup}
@@ -371,6 +379,7 @@ class UserProfile extends Component {
                   />
                   <FilterableList
                     key="follower"
+                    pageSize={1e6}
                     filterFunc={this.filterFollower}
                     sortFunc={() => { return 0; }}
                     renderItem={this.renderFollower}
@@ -381,6 +390,7 @@ class UserProfile extends Component {
                   />
                   <FilterableList
                     key="following"
+                    pageSize={1e6}
                     filterFunc={this.filterFollower}
                     sortFunc={() => { return 0; }}
                     renderItem={this.renderFollower}
@@ -389,6 +399,7 @@ class UserProfile extends Component {
                     sortOptions={[]}
                     getData={this.getFollowing}
                   />
+                  <div className="torahTrackerPlaceholder filterable-list" />
                   { this.state.showBio ?
                     <div className="systemText filterable-list">
                       <div  className="aboutText" dangerouslySetInnerHTML={{ __html: this.props.profile.bio }} />
@@ -481,8 +492,8 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
               toggleSignUpModal={toggleSignUpModal}
             />
             <a href="#" className="resourcesLink" onClick={message}>
-              <span className="en">Message</span>
-              <span className="he">שלח הודעה</span>
+              <span className="int-en">Message</span>
+              <span className="int-he">שלח הודעה</span>
             </a>
           </div>)
         }
@@ -553,4 +564,4 @@ MessageModal.propTypes = {
   name: PropTypes.string.isRequired,
   uid:  PropTypes.number.isRequired,
 };
-module.exports = UserProfile;
+export default UserProfile;

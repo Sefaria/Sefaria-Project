@@ -1,0 +1,102 @@
+<style>
+    #highHolidayDonation {
+        width: 410px;
+        max-height: 100%;
+        max-width: 100%;
+    }
+    .interface-english #highHolidayDonation {
+        text-align: left;
+    }
+    .interface-hebrew #highHolidayDonation {
+        text-align: right;
+        direction: rtl;
+    }
+    #highHolidayDonation p {
+        color: #555;
+    }
+    .interface-hebrew p.int-en {
+        display: none;
+    }
+    #highHolidayDonation p .int-en {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+    }
+    #highHolidayDonation p .int-he {
+        font-family: "adobe-garamond-pro", Georgia, serif;
+        /* font-family: "Heebo", sans-serif; */
+    }
+    #highHolidayDonation p.sub {
+        color: #999;
+        font-size: 12px;
+        font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+    }
+    #highHolidayDonation p {
+        margin-top: 0;
+    }
+    #highHolidayDonation .button {
+        margin-bottom: 20px;
+    }
+    #highHolidayDonation img {
+        max-width: 100%;
+    }
+    #highHolidayDonation .buttons{
+        text-align: right;
+    }
+    .leader {
+        font-weight: bold;
+    }
+    .center{
+        text-align: center;
+    }
+    #email-input-wrapper {
+        display: flex;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+    .newsletterInput#email-input {
+        width: 300px;
+        padding: 10px;
+        margin-bottom: 20px;
+        border-radius: 7px;
+        border: 1px solid #EEE;
+        color: #333;
+    }
+
+</style>
+<div id="highHolidayDonation">
+
+    <p>
+        <span class="int-en">רוצים לעזור לנו לשפר את אתר האינטרנט ואת האפליקציה של ספריא?</span>
+        <span class="int-he">רוצים לעזור לנו לשפר את אתר האינטרנט ואת האפליקציה של ספריא?</span>
+    </p>
+
+    <p>
+        <span class="int-en">הירשמו לשיחת וידאו קצרה עם ספריא.</span>
+        <span class="int-he">הירשמו לשיחת וידאו קצרה עם ספריא.</span>
+    </p>
+
+    <p>
+        <span class="int-en">נשמח לראות איך אתם משתמשים בספריא ולשמוע איך אנחנו יכולים לשפר את חווית המשתמש שלכם.</span>
+        <span class="int-he">נשמח לראות איך אתם משתמשים בספריא ולשמוע איך אנחנו יכולים לשפר את חווית המשתמש שלכם.</span>
+    </p>
+    <div id="email-input-wrapper">
+        <input
+          id="email-input"
+          class="newsletterInput"
+          placeholder="כתובת דוא''ל"
+        />
+    </div>
+    <div class="buttons">
+        <a class="button int-he" onclick="Sefaria.util.sign_up_user_testing()">
+            <span class="int-he">הרשמה</span>
+        </a>
+    </div>
+    <p>
+        <span class="int-en">תודה!</span>
+        <span class="int-he">תודה!</span>
+    </p>
+    <p>
+        <span class="int-en">צוות ספריא</span>
+        <span class="int-he">צוות ספריא</span>
+    </p>
+
+</div>

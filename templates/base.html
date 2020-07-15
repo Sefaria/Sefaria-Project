@@ -9,9 +9,13 @@
     <meta charset="utf-8"/>
     <meta name="description" property="og:description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/>
 
+    {% if noindex or DEBUG %}
+        <meta name="robots" content="noindex, nofollow">
+    {% endif %}
+
     <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static "files/opensearch.xml" %}" />
-    <link rel="alternate" href="//www.sefaria.org{{ request.path }}" hreflang="en" />
-    <link rel="alternate" href="//www.sefaria.org.il{{ request.path }}" hreflang="he" />
+    <link rel="alternate" href="https://www.sefaria.org{{ request.path }}" hreflang="en" />
+    <link rel="alternate" href="https://www.sefaria.org.il{{ request.path }}" hreflang="he" />
 
     {% block ogtype %}
         <meta property="og:type" content="website"/>
@@ -25,14 +29,13 @@
     {% endblock %}
 
     <meta property="og:title" content="{{title|striptags}}" />
-    <meta property="og:url" content="//www.sefaria.org{{ request.path }}" />
+    <meta property="og:url" content="https://www.sefaria.org{{ request.path }}" />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@sefariaproject" />
     <meta name="twitter:title" content="{{title|striptags}}" />
     <meta name="twitter:description" content="{% block soc_description %}{{ desc|striptags }}{% endblock %}" />
     <meta name="twitter:image" content="https://embed.sefaria.org{{ request.path }}?lang={{request.GET.lang}}&platform=twitter">
-
 
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-itunes-app" content="app-id=1163273965">
@@ -94,12 +97,12 @@
         });
         WebFont.load({
           google: {
-            families: ['Roboto:300,400,700', 'Heebo:300,400,700:hebrew', 'Frank Ruehl Libre:400,700:hebrew'] // The dotted h causes Heebo not to load.
+            families: ['Roboto:300,400,700', 'Heebo:300,400,700:hebrew'] // The dotted h causes Heebo not to load.
           }});
     </script>
 </head>
 
-<body class="interface-{{ request.interfaceLang }}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
+<body class="interface-{% if request.interfaceLang %}{{request.interfaceLang}}{% else %}english{% endif %}{% if EMBED %} embeded{% endif %} {% block bodyclasses %}{% endblock %}">
     {% if GOOGLE_TAG_MANAGER_CODE %}
     <!-- Google Tag Manager (noscript) -->
     <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ GOOGLE_TAG_MANAGER_CODE }}"
@@ -171,6 +174,22 @@
               var lineNumbers = container.getElementsByClassName('segmentNumber');
               while(lineNumbers.length > 0){
                   lineNumbers[0].parentNode.removeChild(lineNumbers[0]);
+              }
+
+              var curReaderPanel = (selection.getRangeAt(0).commonAncestorContainer.closest('.readerPanel'))
+
+              if (curReaderPanel && curReaderPanel.classList.contains('hebrew')) {
+                  var elsToRemove = container.getElementsByClassName('en')
+                  while(elsToRemove.length > 0){
+                      elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+                  }
+              }
+
+              else if (curReaderPanel && curReaderPanel.classList.contains('english')) {
+                  var elsToRemove = container.getElementsByClassName('he')
+                  while(elsToRemove.length > 0){
+                      elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+                  }
               }
 
               html = container.innerHTML;

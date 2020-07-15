@@ -1,8 +1,7 @@
 from datetime import datetime
 import requests
-import os
-import sys
 import traceback
+import os
 import django
 django.setup()
 from sefaria.model import *
@@ -23,25 +22,26 @@ try:
     update_pagesheetrank()
     index_all(merged=False)
     index_all(merged=True)
-    r = requests.post("http://web/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
+    r = requests.post("https://www.sefaria.org/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
     if "error" in r.text:
         raise Exception("Error when calling admin/index-sheets-by-timestamp API: " + r.text)
     else:
-        print "SUCCESS!", r.text
+        print("SUCCESS!", r.text)
 except Exception as e:
-    t, v, tb = sys.exc_info()
+    tb_str = traceback.format_exc()
+    print("Caught exception")
     post_object = {
         "icon_emoji": ":facepalm:",
         "username": "Reindex ElasticSearch",
         "channel": "#engineering-discuss",
-    	"attachments": [
-        {
-            "fallback": message,
-            "color": "#a30200",
-            "pretext": "Cronjob Error",
-            "text": traceback.print_exc()
-        }
+        "attachments": [
+            {
+                "fallback": tb_str,
+                "color": "#a30200",
+                "pretext": "Cronjob Error",
+                "text": tb_str
+            }
         ]
     }
     requests.post(os.environ['SLACK_URL'], json=post_object)
-    raise t, v, tb
+    raise e

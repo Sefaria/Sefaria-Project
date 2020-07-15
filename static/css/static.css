@@ -4,7 +4,8 @@
 .container{
   width: 100%;
 }
-.interface-hebrew .static {
+.interface-hebrew .static,
+.interface-hebrew .staticPage {
   direction:rtl;
 }
 .static {
@@ -39,11 +40,11 @@
 .static .sans .int-he, .static.sans .int-he  {
   font-family: "Heebo", sans-serif;
 }
-.interface-english .static .int-he {
-  display: none !important;
+.interface-english .static .int-he, .interface-english .static .he {
+  display: none;
 }
-.interface-hebrew .static .int-en {
-  display: none !important;
+.interface-hebrew .static .int-en, .interface-hebrew .static .en {
+  display: none;
 }
 .static h2,
 .static h3,
@@ -58,8 +59,8 @@
 .interface-hebrew h3,
 .interface-hebrew h4,
 .static h1 .int-he,
-.static h2 .int-he, 
-.static h3 .int-he, 
+.static h2 .int-he,
+.static h3 .int-he,
 .static h4 .int-he {
   font-family: "Heebo", sans-serif;
 }
@@ -71,6 +72,32 @@
   font-size: 30px;
   margin: 0 0 60px 0;
   height: auto;
+}
+.static h1.header-with-buttons{
+  display: flex;
+  justify-content: space-between;
+}
+.static h1 > div:first-child{
+  margin-inline-end: auto;
+  margin-inline-start: 33%;
+}
+/*.static h1 #saveCancelButtons{
+  float: right;
+  position: static;
+}*/
+@media screen and (max-width: 700px) {
+  .static h1 #saveCancelButtons{
+    float: none;
+  }
+  .static h1 {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .static h1 > div:first-child{
+    margin-inline-end: auto;
+    margin-inline-start: auto;
+  }
 }
 .static h1 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -84,7 +111,7 @@
   border-bottom: 1px solid #ddd;
   padding-bottom: 16px;
   margin-bottom: 16px;
-  line-height: 1;
+  line-height: 1.4;
 }
 .static h3 {
   font-weight: normal;
@@ -117,27 +144,8 @@
   color: #666;
   font-size: 14px;
   background-color: white;
+  -webkit-appearance: none;
 }
-.static input:focus {
-  outline: none;
-}
-.static input::placeholder { /* eventual spec? */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static input::-moz-placeholder { /* Firefox 19+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static input:-ms-input-placeholder { /* IE 10+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static input:-moz-placeholder { /* Firefox 18- */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-
-
 .static a {
   color: #333;
 }
@@ -151,7 +159,6 @@
 .static a.button.transparent {
   color: #666;
 }
-
 .static .refLink {
   text-decoration: none;
 }
@@ -210,6 +217,10 @@
   border: 1px solid #212E50;
   color: white;
 }
+.static .inner .button.full{
+  width:100%;
+  margin: 10px 0;
+}
 .static img.fullWidth {
   width: 100%;
   box-sizing: border-box;
@@ -239,7 +250,7 @@
 }
 
 .static .quotation he {
-  font-family: frank ruehl libre,taamey frank,times new roman,serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .static .quotation int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -306,7 +317,7 @@
 #homePage .sectionInner {
   width: 750px;
   max-width: 94%;
-  margin: auto; 
+  margin: auto;
 }
 #homePage .section:nth-child(even) {
   background-color: #FBFBFA;
@@ -438,7 +449,7 @@
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #homePage a.refLink .int-he {
-  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #homePage #homeProgress {
   text-align: center;
@@ -644,7 +655,7 @@
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #activityList .text.int-he {
-  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #activityList .time {
   color: #ccc;
@@ -676,6 +687,21 @@
   cursor: pointer;
   width: 100%;
   box-sizing: border-box;
+}
+.registrationContent input::placeholder { /* eventual spec? */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input::-moz-placeholder { /* Firefox 19+ */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input:-ms-input-placeholder { /* IE 10+ */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.registrationContent input:-moz-placeholder { /* Firefox 18- */
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
   width: auto;
@@ -913,7 +939,7 @@ p.registration-links a:hover{
 #teamPage .teamMember .teamEmail {
   color: #999;
 }
-#teamPage .teamMember .teamBio { 
+#teamPage .teamMember .teamBio {
   margin-top: 20px;
   white-space: normal;
 }
@@ -921,15 +947,16 @@ p.registration-links a:hover{
   color: #666;
 }
 #editProfilePage .inner {
-  position: relative; 
+  position: relative;
 }
-#saveCancelButtons {
+/*#saveCancelButtons {
   position: absolute;
-  top: 127px;
+  top: 145px;
   right: 0px;
-}
+}*/
 #saveCancelButtons .button {
   padding: 10px 16px;
+  font-weight: normal;
 }
 #editProfilePage #profileBox,
 #editProfilePage #contactBox,
@@ -1076,7 +1103,43 @@ p.registration-links a:hover{
 #accountSettingsPage .toggleSet {
   width: 100%;
 }
-
+#accountSettingsPage input {
+    width: 100%;
+    color: #999;
+    box-sizing: border-box;
+    padding: 15px 12px;
+    border: none;
+    margin-bottom: 10px;
+}
+#accountSettingsPage .form-section{
+    margin: 2px auto 20px auto;
+    margin-left: 1px;
+}
+#accountSettingsPage input[disabled="disabled"] {
+    background-color: #FBFBFA;
+}
+#accountSettingsPage input::placeholder{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-weight: normal;
+  color: #999;
+  padding-bottom: 15px;
+  font-style: normal;
+}
+#accountSettingsPage [id^="email-edit"]{
+  padding: 15px;
+  text-align: center;
+  display: block;
+  width 100%;
+  margin: 10px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+}
+#accountSettingsPage #email-edit-errors{
+  color: #CB6158;
+}
+#accountSettingsPage #email-edit-ok{
+  color: #666;
+}
 .interface-hebrew #accountSettingsPage.static.biReady .toggleOption:first-child{
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
@@ -1126,7 +1189,13 @@ p.registration-links a:hover{
   text-decoration: none;
 }
 #peoplePage .author a, #talmudicPeoplePage .author a, #personPage a{
-  color: #666;
+  color: #000;
+  font-size: 18px;
+}
+#peoplePage .author a .int-en, 
+#talmudicPeoplePage .author a .int-en, 
+#personPage a .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #peoplePage .author, #talmudicPeoplePage .author{
   margin-left: 0;
@@ -1148,6 +1217,10 @@ p.registration-links a:hover{
 #peoplePage .authors-row:first-of-type {
   padding-top: 10px;
 }
+#peoplePage h3, #talmudicPeoplePage h3, #talmudicPeoplePage h4{
+  color: #666;
+  font-size: 16px;
+}
 #talmudicPeoplePage .talmudic-generation {
   width: 49%;
   display: inline-block;
@@ -1157,10 +1230,6 @@ p.registration-links a:hover{
   #talmudicPeoplePage .talmudic-generation {
     width: 100%
   }
-}
-#talmudicPeoplePage h4{
-  color: #ccc;
-  padding-bottom: 10px;
 }
 #talmudicPeoplePage p.author{
   padding-bottom: 5px;
@@ -1222,7 +1291,7 @@ p.registration-links a:hover{
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #activityPage #activityFeed .text.ver-he {
-  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #activityPage #activityList .time {
   color: #ccc;
@@ -1566,7 +1635,7 @@ p.registration-links a:hover{
   font-size: 14px;
 }
 #edConnect #mailingListEmail {
-  padding: 14px 24px;
+  padding: 16px 24px;
   margin: -4px 8px 0 0;
   width: 240px;
   font-size: 16px;
@@ -1630,7 +1699,7 @@ p.registration-links a:hover{
   -webkit-align-items: flex-start;
 }
 #visualGardenPage #results-container .int-he {
-  font-family: "Frank Ruehl Libre","Times New Roman",serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #visualGardenPage .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -1712,7 +1781,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
    direction: rtl;
 }
 #visualGardenPage #results .result-text span.he {
- font-family: "Frank Ruehl Libre","Times New Roman",serif;
+ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #visualGardenPage #results:after { /* Clearfix, for footer */
 	visibility: hidden;
@@ -1815,7 +1884,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 #koschitzky.static {
   margin-top: 60px;
 }
-.categoryColorLine {
+.static .categoryColorLineRainbow {
   position: fixed;
   top: 60px;
   left: 0;
@@ -2399,7 +2468,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
     margin-bottom: 10%;
   }
   #mobilePage #mobileDownloadLinks .mobileDownloadHeader h3{
-    margin: 10% 0 10%% 0;
+    margin: 10% 0 10% 0;
   }
   #mobilePage #mobileDownloadLinks .mobileDownloadHeader h3 span{
     font-size: 30px;
@@ -2428,5 +2497,601 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   }
 }
 
+/******* daf yomi landing page ****/
+#dafyomiPage{
+  background: #fff;
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+
+#dafyomiPage p {
+  font-size: 16px;
+  line-height: 21px;
+}
+
+.interface-hebrew #dafyomiPage.static .int-he{
+  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, sans-serif !important;
+}
+#dafyomiPage .button{
+  padding: 3% 5%;
+}
+#dafyomiPage .sectionInner{
+  position: relative;
+  max-width: 1152px;
+  margin: auto;
+}
+#dafyomiPage .sectionWide{}
+#dafyomiPage .sectionRegular{
+  max-width: 960px;
+}
+#dafyomiPage .sectionNarrow {
+  max-width: 640px;
+}
+#dafyomiPage .flexContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+#dafyomiPage .flexReverse {
+  flex-direction: row-reverse;
+}
+#dafyomiPage #dafyomiPageHeader {
+  background-color: #18345D;
+  padding: 70px 0;
+  margin-top: 60px;
+  background-image: url(/static/img/daf-yomi-landing-page/talmudtextheader.jpg);
+  background-size: cover;
+  background-position: center;
+}
+
+#dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderText{
+  flex: 1;
+  /* width: 438px; */
+  padding-top: 0%;
+  margin: auto;
+  text-align: center;
+}
+#dafyomiPage #dafyomiPageHeader h1{
+  /*width: 438px;*/
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 64px;
+  line-height: 77px;
+  text-align: center;
+  letter-spacing: 2px;
+  color: #FFFFFF;
+  margin: auto;
+}
+
+#dafyomiPage #dafyomiPageHeader h1 img {
+  width: 244px;
+}
+
+#dafyomiPage #dafyomiPageHeader #dafyomiPageSubHeaderText{
+  padding: 2% 0;
+}
+#dafyomiPage #dafyomiPageHeader #dafyomiPageSubHeaderText h2{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 30px;
+  line-height: 35px;
+  text-align: center;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-feature-settings: 'cpsp' on;
+  color: #FFFFFF;
+  border-bottom: none;
+  padding-bottom: 0;
+  margin: auto;
+}
+
+#dafyomiPage .center {
+    text-align: center;
+}
+#dafyomiPage #dafyomiDescription p{
+  font-size: 22px;
+  line-height: 26px;
+  text-align: justify;
+  color: #000000;
+  margin-top: 62px;
+  margin-bottom: 65px;
+}
+#dafyomiPage #dafyomiDescription p .int-en{
+    font-family: "adobe-garamond-pro", Georgia, serif;
+}
+
+#dafyomiPage #dafyomiWhatIs,
+#dafyomiPage #dafyomiWhatsNew {
+  background: #EDEDEC;
+  padding: 2% 0;
+}
+#dafyomiPage #dafyomiWhatIs .flexContainer div,
+#dafyomiPage #dafyomiWhatsNew .flexContainer div{
+  flex: 1;
+}
+#dafyomiPage #dafyomiWhatsNew #dafyomiWhatIsImage,
+#dafyomiPage #dafyomiWhatIs #dafyomiWhatsNewImage {
+  margin: 30px;
+  text-align: center;
+}
+
+#dafyomiPage #dafyomiWhatsNew #dafyomiWhatsNewImage img,
+#dafyomiPage #dafyomiWhatIs #dafyomiWhatIsImage img{
+  width: 362px;
+  margin-left: 40px;
+}
+
+#dafyomiPage #dafyomiWhatsNew #dafyomiWhatsNewImage img {
+  margin-bottom: -30px
+}
+
+#dafyomiPage #dafyomiWhatIs div.dafyomiWhatIsText,
+#dafyomiPage #dafyomiWhatsNew div.dafyomiWhatsNewText{
+  flex: 2;
+}
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewTitle,
+#dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsTitle{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 30px;
+  line-height: 35px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #000000;
+}
+
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText h3.dafyomiWhatsNewTitle {
+  margin-top: 10px;
+}
 
 
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewTitle span,
+#dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsTitle span{
+  display: inline-block;
+}
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewDescription,
+#dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsDescription{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+  color: #000000;
+}
+
+#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewNew span{
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 24px;
+  line-height: 29px;
+  text-align: justify;
+  color: #000000;
+  font-style: italic;
+}
+
+#dafyomiPage #dafyomiExamples{
+  background-color: #fff;
+}
+#dafyomiPage #dafyomiExamples .example{
+  border-bottom: 1px solid #CCCCCC;
+  padding-bottom: 40px;
+  padding-top: 40px;
+}
+#dafyomiPage #dafyomiExamples .example:last-child{
+  border-bottom: none;
+}
+
+#dafyomiPage #dafyomiExamples .example div{
+  flex: 0 0 45%;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleHeader h3 {
+  display: inline-block;
+  border-bottom: 4px solid;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleMobileApp.example .dafyomiExampleHeader h3{
+  border-bottom-color: #CCB479;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleCalendar.example .dafyomiExampleHeader h3{
+  border-bottom-color: #4871BF;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleTranslations.example .dafyomiExampleHeader h3{
+  border-bottom-color: #5D956F;
+}
+#dafyomiPage #dafyomiExamples #dafyomiExampleConnections.example .dafyomiExampleHeader h3{
+  border-bottom-color: #802F3E;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleHeader h3 .int-en{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: bold;
+  font-size: 22px;
+  line-height: 26px;
+  text-align: justify;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-feature-settings: 'cpsp' on;
+  color: #666666;
+}
+#dafyomiPage #dafyomiExamples .flexReverse.example .dafyomiExampleHeader{
+  text-align: end;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleText{
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 21px;
+  text-align: justify;
+  color: #000000;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleImage {
+  text-align: center;
+}
+#dafyomiPage #dafyomiExamples .example .dafyomiExampleImage img{
+  height: 250px;
+}
+
+#dafyomiPage #dafyomiExamples .dafyomiExamplesHeader h3{
+  text-align: center;
+  border-bottom: none;
+  margin: 65px 0 10px 0;
+}
+
+#dafyomiPage h3.headerText {
+  border-bottom: none;
+}
+#dafyomiPage h3.headerText.additionalMargin {
+  margin: 80px 0 60px 0;
+}
+
+#dafyomiPage h3.headerText span {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 48px;
+  line-height: 58px;
+  color: #666666;
+  text-transform: initial;
+}
+
+#dafyomiPage hr {
+  border-top: 1px solid #ccc;
+  margin: 50px;
+}
+
+#dafyomiPage .testimonial {
+  font-style: italic;
+  margin: 40px 0;
+
+}
+#dafyomiPage .testimonial::before {
+  font-family: FontAwesome;
+  content: '\f10d'; /*quote left icon*/
+  position: relative;
+  top: -7px;
+}
+
+#dafyomiPage .int-he.testimonial::before {
+  font-family: FontAwesome;
+  content: '\f10e'; /*quote left icon*/
+  position: relative;
+  top: -7px;
+}
+
+#dafyomiPage .finalContent {
+  margin-bottom: 80px;
+}
+
+
+@media screen and (max-width: 700px) {
+  #dafyomiPage .sectionInner{
+    max-width: 310px;
+  }
+  #dafyomiPage .sectionRegular{
+    max-width: 310px;
+  }
+  #dafyomiPage .sectionNarrow{
+    max-width: 310px;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderImage{
+    height: auto;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderText{
+    padding-top: 20%;
+  }
+  #dafyomiPage #dafyomiPageHeader h1{
+    font-size: 40px;
+    line-height: 48px;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageSubHeaderText h2{
+    font-size: 16px;
+    line-height: 19px;
+  }
+  #dafyomiPage #dafyomiPageHeader #dafyomiPageHeaderButtons .button{
+    width: 183px;
+    height: 47px;
+    font-size: 12px;
+    line-height: 14px;
+  }
+  #dafyomiPage #dafyomiDescription p{
+    font-size: 18px;
+    line-height: 22px;
+  }
+  #dafyomiPage #dafyomiWhatsNew #dafyomiWhatsNewImage img,
+  #dafyomiPage #dafyomiWhatIs #dafyomiWhatIsImage img {
+    margin-left: 0;
+    margin-bottom: 0;
+  }
+  #dafyomiPage #dafyomiExamples{
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .example div{
+    margin: auto;
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .flexReverse.example .dafyomiExampleHeader{
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .example .dafyomiExampleText{
+    flex: 100%;
+    margin: auto;
+    text-align: center;
+  }
+  #dafyomiPage #dafyomiExamples .example .dafyomiExampleImage{
+    margin-top: 10%;
+  }
+  #dafyomiPage #dafyomiExamples .example .dafyomiExampleImage img{
+    height: 246px;
+  }
+}
+
+/* Static Page Templates */
+
+.staticPage {
+  background-color: #fff;
+}
+.staticPage .staticPageBlockInner {
+  width: 800px;
+  margin: 0 auto;
+  max-width: 90%;
+  /* margin: 20px; */
+  /* display: block; */
+}
+.staticPage .blockVerticalPadding {
+  padding-top: 80px;
+  padding-bottom: 80px;
+}
+.staticPage .flexContainer {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+/* We need to hide some <a> tags that have a flexContainer on them. */
+.interface-hebrew .staticPage .flexContainer.int-en,
+.interface-english .staticPage .flexContainer.int-he {
+    display: none;
+}
+.staticPage .flexReverse {
+  flex-direction: row-reverse;
+}
+.staticPage .greyBackground {
+  background-color: #EDEDEC;
+}
+.staticPage .lightgreyBackground {
+  background-color: #FBFBFA;
+}
+
+.staticPage .staticPageHeader {
+  background-color: #212E50;
+  padding: 70px 0 0 0;
+  margin-top: 60px;
+  color: white;
+}
+.staticPage .staticPageCallToActionFooter {
+  background-color: #212E50;
+  color: white;
+}
+.staticPage .staticPageCallToActionFooter .staticPageBlockInner {
+  padding: 80px 0;
+}
+.staticPage .staticPageCallToActionFooter .callToActionText {
+  font-style: normal;
+  font-weight: normal;
+  font-size: 30px;
+  line-height: 36px;
+  width: 50%;
+}.staticPage .staticPageCallToActionFooter .callToActionText .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.staticPage .staticPageCallToActionFooter .newsletterSignUpBox .subscribeMessage {
+  color: white;
+}
+.staticPage .staticPageHeader .staticPageHeaderTextBox {
+  flex: 7;
+}
+.staticPage .staticPageHeader .staticPageHeaderImg {
+  flex: 9;
+  min-height: 290px;
+}
+.interface-english .staticPage .staticPageHeader .staticPageHeaderTextBox {
+  padding-right: 10px;
+}
+.interface-hebrew .staticPage .staticPageHeader .staticPageHeaderTextBox {
+  padding-left: 10px;
+}
+.staticPage .staticPageH2 {
+  padding: 55px 0 10px;
+  margin: 0;
+  width: 35%;
+}
+.staticPage .staticPageH2 span {
+  font-style: normal;
+  font-weight: 500;
+  font-size: 30px;
+  line-height: 35px;
+  color: #666666;
+}
+
+.staticPage .staticPageSpacer {
+}
+
+.staticPage .staticPageSheetList {
+  padding: 30px 0 0;
+}
+.staticPage .staticPageSheetList .staticPageSheetItem {
+  padding: 20px 0;
+}
+.staticPage .staticPageSheetList .staticPageSheetItem + .staticPageSheetItem {
+  border-top: 1px solid #ccc;
+}
+.staticPage .staticPageSheetList .staticPageSheetItem a {
+  padding-bottom: 20px;
+  display: block;
+  color: #000;
+}
+.staticPage .int-en .staticPageSheetList .staticPageSheetItem a {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+  font-size: 24px;
+}
+.staticPage .int-he .staticPageSheetList .staticPageSheetItem a {
+  font-family: "Heebo", sans-serif;
+  font-size: 24px;
+}
+.staticPage .staticPageSheetList .staticPageSheetItem img {
+  height: 46px;
+  width: 46px;
+  vertical-align: middle;
+}
+.staticPage .staticPageSheetList .staticPageSheetItem .staticPageSheetAuthor {
+  padding: 0 20px;
+}
+.staticPage .simpleButtonWrapper {
+  width: 33%;
+}
+.staticPage .staticPageHeaderTextBox .simpleButtonWrapper {
+  width: 66%;
+  padding-bottom: 80px;
+}
+.staticPage .simpleButtonWrapper .button {
+  border-radius: 0;
+  min-height: 47px;
+}
+.staticPage .simpleButtonWrapper .button.tall {
+  min-height: 78px;
+}
+.staticPage .simpleButtonWrapper .button.rounded {
+  border-radius: 6px;
+}
+.staticPage .simpleButtonWrapper .button span {
+  margin: auto;
+}
+.staticPageHeader h1 {
+  font-size: 42px;
+  line-height: 52px;
+  font-weight: normal;
+  margin: 0 0 14px 0;
+}
+.staticPageHeader h1 .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.staticPageHeaderText {
+  font-size: 16px;
+  max-width: 280px;
+  line-height: 22px;
+  padding-bottom: 25px;
+}
+.staticPageHeaderImg img {
+  width: 100%;
+  display: block;
+}
+.staticPageAbout {
+  padding: 50px 0;
+}
+.staticPageAbout h2 {
+  font-size: 22px;
+  font-weight: 500;
+  color: #666;
+  line-height: 26px;
+  margin: 0 0 19px 0;
+}
+.staticPageAboutText {
+  font-size: 16px;
+  line-height: 19px;
+}
+
+.staticPage .feature .featureText {
+  font-family: "Roboto", sans-serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 21px;
+  border-top: 4px solid;
+  color: #000000;
+  width: 35%;
+}
+.staticPage .feature .featureImage {
+  text-align: center;
+  width: 57%;
+}
+.staticPage .feature .featureImage img {
+  width: 454px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  /* max-width: 100%; */
+}
+.staticPage .feature {
+    padding: 40px 0;
+    background-color: #FBFBFA;
+}
+.staticPage .feature .featureHeader {}
+.staticPage .feature .featureHeader h3 {
+  margin: 20px 0 20px 0;
+  font-size: 30px;
+  line-height: 36px;
+  font-weight: normal;
+  display: inline-block;
+}
+
+.staticPage .feature .featureHeader h3 .int-en {
+  font-family: "adobe-garamond-pro", Georgia, serif;
+}
+@media (max-width: 540px) {
+  .staticPage .flexContainer {
+    flex-direction: column;
+  }
+  .staticPage .staticPageBlockInner {
+    width: auto;
+    max-width: none;
+    margin: 0 30px;
+  }
+  .staticPage .staticPageHeader {
+    padding-top: 40px;
+  }
+  .staticPage .staticPageHeaderText {
+    max-width: 100%;
+  }
+  .staticPage .staticPageH2 {
+    width: 100%;
+  }
+  .staticPageCallToActionFooter .simpleButtonWrapper,
+  .staticPage .feature .featureImage {
+    padding-top: 30px;
+  }
+  .staticPage .staticPageHeader .staticPageHeaderImg {
+    margin-top: 20px;
+  }
+  .staticPage .simpleButtonWrapper,
+  .staticPage .feature .featureText,
+  .staticPage .feature .featureImage,
+  .staticPage .feature .featureImage img,
+  .staticPage .staticPageCallToActionFooter .callToActionText {
+    width: 100%;
+  }
+  .staticPage .staticPageCallToActionFooter .callToActionText {
+    padding-bottom: 20px;
+  }
+}
+
+
+/*** Filters for coloring svgs ***/
+.svg-white {
+  filter: invert(100%) sepia(0%) saturate(0%) hue-rotate(93deg) brightness(103%) contrast(103%);
+}

@@ -79,8 +79,8 @@ class Test_Jagged_Array(object):
 
 class Test_Jagged_Int_Array(object):
     def test_sum(self):
-        assert ja.JaggedIntArray([[1, 2], [3, 4]]) + ja.JaggedIntArray([[2, 3], [4]]) == ja.JaggedIntArray([[3, 5], [7, 4]])
-
+        x = ja.JaggedIntArray([[1, 2], [3, 4]]) + ja.JaggedIntArray([[2, 3], [4]])
+        assert x.array() == [[3, 5], [7, 4]]
 
 class Test_Jagged_Text_Array(object):
     def test_until_last_nonempty(self):
@@ -132,6 +132,10 @@ class Test_Jagged_Text_Array(object):
 
         assert ja.JaggedTextArray(threeby).subarray([1, 1, 1], [1, 1, 2]) == ja.JaggedTextArray(
             ["2:2", "2:3"],
+        )
+
+        assert ja.JaggedTextArray(threeby).subarray([1, 1, 1, 0], [1, 1, 2, 0]) == ja.JaggedTextArray(
+            []
         )
 
     def test_set_element(self):

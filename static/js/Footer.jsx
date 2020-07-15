@@ -1,7 +1,8 @@
-const React                    = require('react');
-const Sefaria                  = require('./sefaria/sefaria');
-const $                        = require('./sefaria/sefariaJquery');
-const { NewsletterSignUpForm } = require('./Misc');
+import React  from 'react';
+import Sefaria  from './sefaria/sefaria';
+import PropTypes from'prop-types';
+import $  from './sefaria/sefariaJquery';
+import { NewsletterSignUpForm } from './Misc';
 import Component from 'react-class';
 
 
@@ -9,6 +10,9 @@ class Footer extends Component {
   constructor(props) {
     super(props);
     this.state = {subscribeMessage: null};
+  }
+  componentDidMount() {
+      this.setState({isClient: true});
   }
   trackLanguageClick(language){
     Sefaria.track.setInterfaceLanguage('interface language footer', language);
@@ -42,9 +46,7 @@ class Footer extends Component {
 
     const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
-    let currentPath = Sefaria.util.currentPath();
-    let currentPathEncoded = encodeURIComponent(currentPath);
-    let next = currentPathEncoded ? currentPathEncoded : '?home';
+    let next = this.state.isClient ? (encodeURIComponent(Sefaria.util.currentPath())) : "/" ; //try to make sure that a server render of this does not get some weird data in the url that then gets cached
     return (
       <footer id="footer" className="static sans">
         <div id="footerInner">
@@ -108,6 +110,10 @@ class Footer extends Component {
               <a href="/mobile" className="outOfAppLink">
                   <span className="int-en">Mobile Apps</span>
                   <span className="int-he">ספריא בנייד</span>
+              </a>
+              <a href="/daf-yomi" className="outOfAppLink">
+                  <span className="int-en">Daf Yomi</span>
+                  <span className="int-he">דף יומי</span>
               </a>
               <a href="/torah-tab" className="outOfAppLink">
                   <span className="int-en">Torah Tab</span>
@@ -184,37 +190,39 @@ class Footer extends Component {
               </div>
               <NewsletterSignUpForm contextName="Footer" />
               <LikeFollowButtons />
-              <a href={fbURL} target="_blank" className="outOfAppLink">
-                <span className="int-en">Facebook</span>
-                <span className="int-he">פייסבוק</span>
-              </a>
-              &bull;
-              <a href="https://twitter.com/SefariaProject" target="_blank" className="outOfAppLink">
-                <span className="int-en">Twitter</span>
-                <span className="int-he">טוויטר</span>
+              <div className="socialLinks">
+                  <a href={fbURL} target="_blank" className="outOfAppLink">
+                    <span className="int-en">Facebook</span>
+                    <span className="int-he">פייסבוק</span>
+                  </a>
+                  &bull;
+                  <a href="https://twitter.com/SefariaProject" target="_blank" className="outOfAppLink">
+                    <span className="int-en">Twitter</span>
+                    <span className="int-he">טוויטר</span>
 
-              </a>
-              <br />
-              <a href="https://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
-                  <span className="int-en">YouTube</span>
-                  <span className="int-he">יוטיוב</span>
-              </a>
-              &bull;
-              <a href={blgURL} target="_blank" className="outOfAppLink">
-                  <span className="int-en">Blog</span>
-                  <span className="int-he">בלוג</span>
-              </a>
-              <br />
-              <a href="https://www.instagram.com/sefariaproject/" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Instagram</span>
-                  <span className="int-he">אינסטגרם</span>
+                  </a>
+                  <br />
+                  <a href="https://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
+                      <span className="int-en">YouTube</span>
+                      <span className="int-he">יוטיוב</span>
+                  </a>
+                  &bull;
+                  <a href={blgURL} target="_blank" className="outOfAppLink">
+                      <span className="int-en">Blog</span>
+                      <span className="int-he">בלוג</span>
+                  </a>
+                  <br />
+                  <a href="https://www.instagram.com/sefariaproject/" target="_blank" className="outOfAppLink">
+                      <span className="int-en">Instagram</span>
+                      <span className="int-he">אינסטגרם</span>
 
-              </a>
-              &bull;
-              <a href="mailto:hello@sefaria.org" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Email</span>
-                  <span className="int-he">דוא&quot;ל</span>
-              </a>
+                  </a>
+                  &bull;
+                  <a href="mailto:hello@sefaria.org" target="_blank" className="outOfAppLink">
+                      <span className="int-en">Email</span>
+                      <span className="int-he">דוא&quot;ל</span>
+                  </a>
+              </div>
               <div id="siteLanguageToggle">
                   <div id="siteLanguageToggleLabel">
                       <span className="int-en">Site Language</span>
@@ -235,7 +243,6 @@ class Footer extends Component {
   }
 }
 
-
 class LikeFollowButtons extends Component {
   componentDidMount() {
     this.loadFacebook();
@@ -249,17 +256,17 @@ class LikeFollowButtons extends Component {
         var js, fjs = d.getElementsByTagName(s)[0];
         if (d.getElementById(id)) return;
         js = d.createElement(s); js.id = id;
-        js.src = Sefaria.interfaceLang ==  "hebrew" ? 
+        js.src = Sefaria.interfaceLang ==  "hebrew" ?
           "https://connect.facebook.net/he_IL/sdk.js#xfbml=1&version=v2.10&appId=206308089417064"
           : "https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.10&appId=206308089417064";
         fjs.parentNode.insertBefore(js, fjs);
-      }(document, 'script', 'facebook-jssdk'));        
+      }(document, 'script', 'facebook-jssdk'));
     }
   }
   loadTwitter() {
     if (typeof twttr !== "undefined") {
       if ("widgets" in twttr) {
-        twttr.widgets.load();        
+        twttr.widgets.load();
       }
     } else {
       window.twttr = (function(d, s, id) {
@@ -277,7 +284,7 @@ class LikeFollowButtons extends Component {
         };
 
         return t;
-      }(document, "script", "twitter-wjs"));      
+      }(document, "script", "twitter-wjs"));
     }
   }
   render() {
@@ -285,12 +292,12 @@ class LikeFollowButtons extends Component {
     var lang = Sefaria.interfaceLang.substring(0,2);
     return (<div id="socialButtons">
               <div id="facebookButton">
-                <div className="fb-like" 
-                  data-href={fbURL} 
-                  data-layout="button" 
-                  data-action="like" 
-                  data-size="small" 
-                  data-show-faces="false" 
+                <div className="fb-like"
+                  data-href={fbURL}
+                  data-layout="button"
+                  data-action="like"
+                  data-size="small"
+                  data-show-faces="false"
                   data-share="true"></div>
               </div>
               <div id="twitterButton">
@@ -305,4 +312,4 @@ class LikeFollowButtons extends Component {
 }
 
 
-module.exports = Footer;
+export default Footer;

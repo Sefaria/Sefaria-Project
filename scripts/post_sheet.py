@@ -4,21 +4,21 @@ Post a sheet form the local enviornment to a remote enviornment, using an API Ke
 """
 import sys
 import json
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 
 from sefaria.sheets import get_sheet
 
 try:
   from sefaria.local_settings import SEFARIA_API_KEY
 except:
-  print "To post sheets, please set SEFARIA_API_KEY in your local_settings.py"
+  print("To post sheets, please set SEFARIA_API_KEY in your local_settings.py")
   sys.exit()
 
 
 if len(sys.argv) < 3:
-  print "Please specify a sheet id to post and a destination host. E.g.:"
-  print "post_sheet.py 613 https://dev.sefaira.org'"
+  print("Please specify a sheet id to post and a destination host. E.g.:")
+  print("post_sheet.py 613 https://dev.sefaira.org'")
 else:
   
   id = int(sys.argv[1])
@@ -30,13 +30,13 @@ else:
 
   post_json = json.dumps(sheet)
   values = {'json': post_json, 'apikey': SEFARIA_API_KEY}
-  post = urllib.urlencode(values)  
+  post = urllib.parse.urlencode(values)  
 
-  req = urllib2.Request(host + "/api/sheets", post)  
+  req = urllib.request.Request(host + "/api/sheets", post)  
 
   try:
-    response = urllib2.urlopen(req)
-    print "Sheet posted."
-  except urllib2.HTTPError as e:
+    response = urllib.request.urlopen(req)
+    print("Sheet posted.")
+  except urllib.error.HTTPError as e:
     error_message = e.read()
-    print error_message
+    print(error_message)

@@ -38,5 +38,5 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--filename", help="abs path of data csv")
     args = parser.parse_args()
-    print args.filename
+    print(args.filename)
     parse_daily_mishnah(args.filename)

@@ -42,17 +42,22 @@ static_pages = [
     "testimonials",
     "torah-tab",
     "dicta-thanks",
+    "daf-yomi",
+    "remote-learning",
+    "sheets",
+    "contest"
 ]
 
 
 # Static and Semi Static Content
 site_urlpatterns = [
     url(r'^$', reader_views.home, name="home"),
-    url(r'^enable_feed/?$', reader_views.enable_home_feed),
-    url(r'^disable_feed/?$', reader_views.disable_home_feed),
+    url(r'^enable_new_editor/?$', reader_views.enable_new_editor),
+    url(r'^disable_new_editor/?$', reader_views.disable_new_editor),
     url(r'^metrics/?$', reader_views.metrics),
     url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
     url(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),
+    url(r'^\.well-known/apple-app-site-association/?$', reader_views.apple_app_site_association),
     url(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
     url(r'^healthz/?$', reader_views.application_health_api),
 ]
@@ -68,7 +73,7 @@ site_urlpatterns += [
     url(r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
-    url(r'^[nN]echama/?', lambda x: HttpResponseRedirect(u"/groups/גיליונות-נחמה")),
+    url(r'^[nN]echama/?', lambda x: HttpResponseRedirect("/groups/גיליונות-נחמה")),
 ]
 
 

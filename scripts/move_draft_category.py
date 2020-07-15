@@ -21,7 +21,7 @@ if __name__ == '__main__':
                                                                   "necessary. E.g. for Rashi on Tanakh, set to 'Rashi on '")
 
     args = parser.parse_args()
-    print args
+    print(args)
     if not args.apikey:
         raise argparse.ArgumentTypeError( 'The API key must be supplied or be present by default on the server' )
     if args.versionlist:

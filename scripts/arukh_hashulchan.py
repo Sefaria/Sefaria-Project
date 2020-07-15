@@ -12,8 +12,8 @@ if __name__ == "__main__":
         "Aruch HaShulchan 4": "Aruch HaShulchan, Choshen Mishpat"
     }
     root = SchemaNode()
-    root.add_primary_titles("Aruch HaShulchan", u"ערוך השולחן")
-    nodes = [("Orach Chaim", u"אורח חיים"), ("Yoreh De'ah", u"יורה דעה"), ("Even HaEzer", u"אבן העזר"), ("Choshen Mishpat", u"חושן משפט")]
+    root.add_primary_titles("Aruch HaShulchan", "ערוך השולחן")
+    nodes = [("Orach Chaim", "אורח חיים"), ("Yoreh De'ah", "יורה דעה"), ("Even HaEzer", "אבן העזר"), ("Choshen Mishpat", "חושן משפט")]
     for node in nodes:
         if node[0] == "Even HaEzer":
             even_haezer = SchemaNode()

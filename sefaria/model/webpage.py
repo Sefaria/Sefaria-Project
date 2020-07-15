@@ -1,6 +1,6 @@
 # coding=utf-8
+from urllib.parse import urlparse
 import regex as re
-from urlparse import urlparse
 from datetime import datetime
 from collections import defaultdict
 
@@ -28,9 +28,9 @@ class WebPage(abst.AbstractMongoRecord):
     ]
 
     def load(self, url_or_query):
-        query = {"url": WebPage.normalize_url(url_or_query)} if isinstance(url_or_query, basestring) else url_or_query
+        query = {"url": WebPage.normalize_url(url_or_query)} if isinstance(url_or_query, str) else url_or_query
         return super(WebPage, self).load(query)
-        
+
     def _set_derived_attributes(self):
         if getattr(self, "url", None):
             self.domain      = WebPage.domain_for_url(self.url)
@@ -59,6 +59,7 @@ class WebPage(abst.AbstractMongoRecord):
             "add www": lambda url: re.sub(r"^(https?://)(?!www\.)", r"\1www.", url),
             "remove www": lambda url: re.sub(r"^(https?://)www\.", r"\1", url),
             "remove mediawiki params": lambda url: re.sub(r"&amp;.+", "", url),
+            "remove sort param": lambda url: re.sub(r"\?sort=.+", "", url),
         }
         global_rules = ["remove hash"]
         domain = WebPage.domain_for_url(url)
@@ -84,6 +85,14 @@ class WebPage(abst.AbstractMongoRecord):
             "rabbisacks\.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
             "halachipedia\.com\/index\.php\?search=", # Halachipedia search results
             "halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
+            "myjewishlearning.com\/\?post_type=evergreen", # These urls end up not working
+            "judaism.codidact.com\/.+\/edit",
+            "judaism.codidact.com\/.+\/history",
+            "judaism.codidact.com\/.+\/suggested-edit\/",
+            "judaism.codidact.com\/.+\/posts\/new\/",
+            "http:\/\/webcache.googleusercontent.com",
+            "https:\/\/translate.googleusercotent.com",
+            "http:\/\/:localhost(:\d+)?",
         ]
         return "|".join(bad_urls)
 
@@ -119,7 +128,7 @@ class WebPage(abst.AbstractMongoRecord):
         d = self.contents()
         d["domain"]     = self.domain
         d["siteName"]   = self.site_name
-        d["faviconUrl"] = self.favicon 
+        d["faviconUrl"] = self.favicon
         del d["lastUpdated"]
         d = self.clean_client_contents(d)
         return d
@@ -132,18 +141,18 @@ class WebPage(abst.AbstractMongoRecord):
     def clean_title(self):
         if not self._site_data:
             return self.title
-        title = unicode(self.title)
+        title = str(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
-        separators = [u"-", u"|", u"—", u"»"]
+        separators = ["-", "|", "—", "»"]
         for separator in separators:
             for brand in brands:
                 if self._site_data.get("initial_title_branding", False):
-                    brand_str = u"{} {} ".format(brand, separator)
+                    brand_str = "{} {} ".format(brand, separator)
                     if title.startswith(brand_str):
-                        title = title[len(brand_str):]                   
-                else:    
-                    brand_str = u" {} {}".format(separator, brand)
+                        title = title[len(brand_str):]
+                else:
+                    brand_str = " {} {}".format(separator, brand)
                     if title.endswith(brand_str):
                         title = title[:-len(brand_str)]
 
@@ -179,7 +188,7 @@ def get_webpages_for_ref(tref):
             webpage_contents = webpage.client_contents()
             webpage_contents["anchorRef"] = ref
             client_results.append(webpage_contents)
-    
+
     return client_results
 
 
@@ -189,11 +198,12 @@ def test_normalization():
     for page in pages:
         norm = WebPage.normalize_url(page.url)
         if page.url != norm:
-            print page.url.encode("utf-8")
-            print norm.encode("utf-8")
-            print "\n"
+            print(page.url.encode("utf-8"))
+            print(norm.encode("utf-8"))
+            print("\n")
             count += 1
-    print "{} pages normalized".format(count)
+
+    print("{} pages normalized".format(count))
 
 
 def dedupe_webpages(test=True):
@@ -207,10 +217,10 @@ def dedupe_webpages(test=True):
             if normpage:
                 dedupe_count += 1
                 if test:
-                    print "DEDUPE"
-                    print webpage.url.encode("utf-8")
-                    print norm.encode("utf-8")
-                    print "\n"
+                    print("DEDUPE")
+                    print(webpage.url.encode("utf-8"))
+                    print(norm.encode("utf-8"))
+                    print("\n")
                 else:
                     normpage.linkerHits += webpage.linkerHits
                     if normpage.lastUpdated < webpage.lastUpdated:
@@ -222,14 +232,14 @@ def dedupe_webpages(test=True):
             else:
                 norm_count += 1
                 if test:
-                    print "NORM"
-                    print webpage.url.encode("utf-8")
-                    print norm.encode("utf-8")
-                    print "\n"        
+                    print("NORM")
+                    print(webpage.url.encode("utf-8"))
+                    print(norm.encode("utf-8"))
+                    print("\n")
                 else:
                     webpage.save()
-    print "{} pages removed as duplicates".format(dedupe_count)
-    print "{} pages normalized".format(norm_count)
+    print("{} pages removed as duplicates".format(dedupe_count))
+    print("{} pages normalized".format(norm_count))
 
     dedupe_identical_urls(test=test)
 
@@ -242,7 +252,7 @@ def dedupe_identical_urls(test=True):
             "count": {"$sum": 1}
             }
         },
-        {"$match": { 
+        {"$match": {
             "count": {"$gt": 1}
             }
         },
@@ -261,43 +271,43 @@ def dedupe_identical_urls(test=True):
             "url": dupe["_id"], "linkerHits": 0, "lastUpdated": datetime.min
         }
         if test:
-            print "\nReplacing: "
+            print("\nReplacing: ")
         for page in pages:
             if test:
-                print page.contents()
+                print(page.contents())
             merged_page_data["linkerHits"] += page.linkerHits
             if merged_page_data["lastUpdated"] < page.lastUpdated:
                 merged_page_data["refs"]  = page.refs
                 merged_page_data["title"] = page.title
                 merged_page_data["description"]  = page.description
-        
+
         removed_count += (pages.count() - 1)
 
         merged_page = WebPage(merged_page_data)
         if test:
-            print "with"
-            print merged_page.contents()           
+            print("with")
+            print(merged_page.contents())
         else:
             pages.delete()
             merged_page.save()
 
-    print "\n{} pages with identical urls removed from {} url groups.".format(removed_count, url_count)
+    print("\n{} pages with identical urls removed from {} url groups.".format(removed_count, url_count))
 
 
 def clean_webpages(delete=False):
     """ Delete webpages matching patterns deemed not worth including"""
     pages = WebPageSet({"$or": [
-            {"url": {"$regex": WebPage.excluded_pages_url_regex()}}, 
+            {"url": {"$regex": WebPage.excluded_pages_url_regex()}},
             {"title": {"$regex": WebPage.excluded_pages_title_regex()}}
         ]})
 
     if delete:
         pages.delete()
-        print "Deleted {} pages.".format(pages.count())
+        print("Deleted {} pages.".format(pages.count()))
     else:
         for page in pages:
-            print page.url
-        print "\n {} pages would be deleted".format(pages.count())
+            print(page.url)
+        print("\n {} pages would be deleted".format(pages.count()))
 
 
 def webpages_stats():
@@ -321,33 +331,29 @@ def webpages_stats():
             [covered_refs[oref.index.title].add(ref.normal()) for ref in oref.all_segment_refs()]
 
     # Totals
-    print "{} total pages.\n".format(total_pages)
-    print "{} total connections.\n".format(total_links)
-
+    print("{} total pages.\n".format(total_pages))
+    print("{} total connections.\n".format(total_links))
 
     # Count by Site
-    print "\nSITES"
-    sites = sorted(sites.iteritems(), key=lambda x: -x[1])
+    print("\nSITES")
+    sites = sorted(sites.items(), key=lambda x: -x[1])
     for site in sites:
-        print "{}: {}".format(site[0], site[1])
-
+        print("{}: {}".format(site[0], site[1]))
 
     # Count / Percentage by Category
-    print "\nCATEGORIES"
-    categories = sorted(categories.iteritems(), key=lambda x: -x[1])
+    print("\nCATEGORIES")
+    categories = sorted(categories.items(), key=lambda x: -x[1])
     for category in categories:
-        print "{}: {} ({}%)".format(category[0], category[1], round(category[1]*100.0/total_links, 2))
-
+        print("{}: {} ({}%)".format(category[0], category[1], round(category[1] * 100.0 / total_links, 2)))
 
     # Count / Percentage by Book
-    print "\nBOOKS"
-    books = sorted(books.iteritems(), key=lambda x: -x[1])
+    print("\nBOOKS")
+    books = sorted(books.items(), key=lambda x: -x[1])
     for book in books:
-        print "{}: {} ({}%)".format(book[0], book[1], round(book[1]*100.0/total_links, 2))
-
+        print("{}: {} ({}%)".format(book[0], book[1], round(book[1] * 100.0 / total_links, 2)))
 
     # Coverage Percentage / Average pages per ref for Torah, Tanakh, Mishnah, Talmud
-    print "\nCOVERAGE"
+    print("\nCOVERAGE")
     coverage_cats = ["Torah", "Tanakh", "Bavli", "Mishnah"]
     for cat in coverage_cats:
         cat_books = text.library.get_indexes_in_category(cat)
@@ -359,7 +365,7 @@ def webpages_stats():
                 total_in_book = set([ref.normal() for ref in text.Ref(book).all_segment_refs()])
             except:
                 continue # Bad data in Mishnah Sukkah
-            
+
             # print "{} in covered, not in total:".format(book)
             # print list(covered_in_book - total_in_book)
             # Ignore refs that we don't have in the library
@@ -368,13 +374,14 @@ def webpages_stats():
             covered += len(covered_in_book)
             total += len(total_in_book)
 
-        print "{}: {}%".format(cat, round(covered*100.0/total, 2))
+        print("{}: {}%".format(cat, round(covered * 100.0 / total, 2)))
 
 
 sites_data = [
-    {   
+    {
         "name":           "My Jewish Learning",
         "domains":        ["myjewishlearning.com"],
+        "normalization_rules": ["use https"]
     },
     {
         "name":           "Virtual Beit Midrash",
@@ -389,7 +396,7 @@ sites_data = [
     {
         "name":           "Halachipedia",
         "domains":        ["halachipedia.com"],
-        "normalization_rules": ["use https", "remove www", "remove mediawiki params"]
+        "normalization_rules": ["use https", "remove www", "remove mediawiki params"],
     },
     {
         "name":           "Torah In Motion",
@@ -400,9 +407,9 @@ sites_data = [
         "domains":        ["opensiddur.org"],
     },
     {
-        "name":           u"בית הלל",
+        "name":           "בית הלל",
         "domains":        ["beithillel.org.il"],
-        "title_branding": [u"בית הלל - הנהגה תורנית קשובה"]
+        "title_branding": ["בית הלל - הנהגה תורנית קשובה"]
     },
     {
         "name":                   "ParshaNut",
@@ -442,6 +449,30 @@ sites_data = [
     {
         "name": "Tradition Online",
         "domains": ["traditiononline.org"]
+    },
+    {
+        "name": "Partners in Torah",
+        "domains": ["partnersintorah.org"]
+    },
+    {
+        "name": "The Lehrhaus",
+        "domains": ["thelehrhaus.com"]
+    },
+    {
+        "name": "סִינַי",
+        "domains": ["sinai.org.il"],
+        "title_branding": ["הדף היומי ב15 דקות - שיעורי דף יומי קצרים בגמרא"]
+    },
+    {
+        "name": 'אתר לבנ"ה - קרן תל"י',
+        "domains": ["levana.org.il"],
+        "title_branding": ["אתר לבנה מבית קרן תל&#039;&#039;י", "אתר לבנה מבית קרן תל''י"]  # not sure how HTML escape characters are handled. Including both options.
+    },
+    {
+        "name": 'Judaism Codidact',
+        "domains": ["judaism.codidact.com"],
+        "title_branding": ["Judaism"],
+        "initial_title_branding": True,
+        "normalization_rules": ["remove sort param"],
     }
-
 ]

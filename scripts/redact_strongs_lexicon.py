@@ -57,11 +57,11 @@ suspect_entries =[]
 for entry in lex_entries:
 
     if "senses" not in entry.content:
-        print "Entry {} doesnt have senses".format(entry.strong_number)
+        print("Entry {} doesnt have senses".format(entry.strong_number))
     else:
         if recurse_senses(entry.content["senses"]) is not None:
             suspect_entries.append(entry.strong_number)
-            print "{}".format(entry.headword.encode("utf-8"))
-print suspect_entries
+            print("{}".format(entry.headword.encode("utf-8")))
+print(suspect_entries)
 query = {'strong_number': {'$in': suspect_entries }}
-print json.dumps(query)
+print(json.dumps(query))

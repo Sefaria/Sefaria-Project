@@ -67,6 +67,7 @@
 
         var html = "";
         // Set default content for the popup
+
         html += `<style scoped> 
         @import url("https://fonts.googleapis.com/css?family=Crimson+Text|Frank+Ruhl+Libre|Heebo"); 
         #sefaria-popup {
@@ -96,12 +97,14 @@
             font-size: 16px;
             text-align: center; 
             text-decoration: none; 
+            margin: 12px 0;
+            padding: 0;
         } 
         .en { 
             font-family: "Crimson Text"; 
         } 
         .he { 
-            font-family: "Frank Ruhl Libre"; 
+            font-family: "Taamey Frank"; 
         } 
         .content-hebrew .sefaria-text .en { 
             display: none; 
@@ -161,6 +164,7 @@
             font-family: "Heebo", sans-serif;
         }`;
 
+
         if (mode == "popup-click") {
             html += `#sefaria-close { 
                 font-family: "Crimson Text"; 
@@ -195,11 +199,14 @@
         <div class="sefaria-text" id="sefaria-linker-text" tabindex="0"></div> 
 
         <div class="sefaria-footer"> 
-            <div class="sefaria-powered-by-box">${poweredByText}<div id="sefaria-logo">&nbsp;</div></div> 
-            <span class="sefaria-read-more-button"> 
-                <a class = "sefaria-popup-ref" href = "">${readMoreText}</a> 
-            </span> 
-        </div>`;
+            <div class="sefaria-powered-by-box">${poweredByText}<div id="sefaria-logo">&nbsp;</div></div> `
+
+        html += (mode == "popup-click" ? `<span class="sefaria-read-more-button"> 
+                <a class = "sefaria-popup-ref" target="_blank" href = "">${readMoreText}</a> 
+            </span>` : "");
+
+        html += `</div>`;
+
 
         popUpElem.innerHTML = html;
 
@@ -214,7 +221,7 @@
         popUpElem.style.position = "fixed";
         popUpElem.style.overflow = "hidden";
         popUpElem.style.display = "none";
-        popUpElem.style.zIndex = 1000;
+        popUpElem.style.zIndex = 9000;
 
         // Accessibility Whatnot
         popUpElem.setAttribute('role', 'dialog');

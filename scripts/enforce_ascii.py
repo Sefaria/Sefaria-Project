@@ -48,7 +48,7 @@ def multiple_replace(in_string, replace_dict):
     :param dict replace_dict: key to be replaced by value
     :return: fixed string
     """
-    for key in replace_dict.keys():
+    for key in list(replace_dict.keys()):
         in_string = in_string.replace(key, replace_dict[key])
     return in_string
 
@@ -62,16 +62,16 @@ def fix_node_titles():
         if is_ascii(old_title):
             return
         things_to_replace = {
-            u'\xa0': u'',
-            u'\u015b': u's',
-            u'\u2018': u"'",
-            u'\u2019': u"'"
+            '\xa0': '',
+            '\u015b': 's',
+            '\u2018': "'",
+            '\u2019': "'"
         }
         new_title = multiple_replace(old_title, things_to_replace)
         if old_title == new_title:
-            print u"Can't fix {}".format(node.full_title('en'))
+            print("Can't fix {}".format(node.full_title('en')))
             return
-        print u"Changing '{}' to '{}'".format(old_title, new_title)
+        print("Changing '{}' to '{}'".format(old_title, new_title))
         change_node_title(node, old_title, 'en', new_title)
 
     def run_on_nodes(node):
