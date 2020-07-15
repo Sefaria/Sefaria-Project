@@ -22,7 +22,7 @@ records = []
 
 ls = LinkSet()
 total = ls.count()
-print "{} Links".format(total)
+print("{} Links".format(total))
 successful = 0
 failed = 0
 concurrent = 0
@@ -30,7 +30,7 @@ current = 0
 for link in ls:
     current += 1
     if current % 100000 == 0:
-        print "{}/{}".format(current, total)
+        print("{}/{}".format(current, total))
         db.linknet.insert_many(records)
         records = []
 
@@ -90,8 +90,8 @@ for link in ls:
         failed += 1
 
 
-print
-print "Succeeded {} ({} Failed, {} concurrent)".format(successful, failed, concurrent)
+print()
+print("Succeeded {} ({} Failed, {} concurrent)".format(successful, failed, concurrent))
 db.linknet.insert_many(records)
 
 

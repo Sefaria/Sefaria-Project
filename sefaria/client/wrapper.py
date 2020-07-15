@@ -373,12 +373,12 @@ class LinkNetwork(object):
             for g2 in g1["past"]:
                 self.record_ref(g2, "early")
 
-        for k, n in self.indexNodes.iteritems():
+        for k, n in self.indexNodes.items():
             n["refs"] = sorted(list(n["refs"]))
 
         # Search for any connections between covered refs
         # This will include the original tree
-        covered_refs = self.coveredRefs.keys()
+        covered_refs = list(self.coveredRefs)
         all_connections = db.linknet.find({
             "early_refs": {"$in": covered_refs},
             "late_refs": {"$in": covered_refs}
@@ -397,7 +397,7 @@ class LinkNetwork(object):
             "category": self.base_oref.index.categories[0],
             "ref": self.base_oref.normal(),
             "indexNodes": self.indexNodes,
-            "indexLinks": self.indexLinks.keys(),
+            "indexLinks": list(self.indexLinks),
         }
 
     def indexKey(self, oref):
@@ -428,7 +428,7 @@ class LinkNetwork(object):
     def cluster_refs(self):
         from sefaria.recommendation_engine import RecommendationEngine
 
-        for k, v in self.indexNodes.iteritems():
+        for k, v in self.indexNodes.items():
             clusters = RecommendationEngine.cluster_close_refs([Ref(r) for r in v["refs"]], v["refs"], 1, fast=True)
             results = []
             for cluster in clusters:
