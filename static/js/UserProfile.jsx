@@ -399,6 +399,7 @@ class UserProfile extends Component {
                     sortOptions={[]}
                     getData={this.getFollowing}
                   />
+                  <div className="torahTrackerPlaceholder filterable-list" />
                   { this.state.showBio ?
                     <div className="systemText filterable-list">
                       <div  className="aboutText" dangerouslySetInnerHTML={{ __html: this.props.profile.bio }} />
