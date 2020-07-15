@@ -419,15 +419,18 @@
                     find: r,
                     replace: function(portion, match) {
                         var matched_ref = match[0]
-                            .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
-                            .replace(/[(){}[\]]+/g, "") // Filter out internal parentheses todo: Don't break on parens in books names
-                            .replace(match[1], '').replace(/~/g, '');
+                            //.replace(match[1], '')
+                            .replace(/[\r\n\t ]+/g, " ")// Filter out multiple spaces
+                            .replace(/[(){}[\]]+/g, ""); // Filter out internal parentheses todo: Don't break on parens in books names
+
                         if (ns.quotationOnly && matched_ref.search(/.*?\s+(.*?['\u05f3"\u05f4]|.\s|\d*\s)+/g) == -1) {
-                                                     return match[1] + portion.text.replace(match[1], '')
+                            return match[0];
                         }
                         else {
                             ns.matches.push(matched_ref);
-                                return match[1] + '~' + portion.text.replace(match[1], '') + '~';
+                            // portion.node.data = portion.node.data.replace(matched_ref, '~'+matched_ref+'~');
+                            // portion.node.wholeText = portion.node.data;
+                            return '~'+match[0]+'~'; //.replace(matched_ref.trim(), '~'+matched_ref.trim()+'~');
                         }
                     },
                     filterElements: function(el) {
@@ -444,15 +447,15 @@
             for (var i = 0; i < ns.elems.length; i++) {
                 findAndReplaceDOMText(ns.elems[i], {
                     preset: 'prose',
-                    find: /~(.*?)~/,
+                    find: /~(.*?)~/g,
                     replace: function(portion, match) {
-                        var matched_ref = match[1];
-                        ns.matches.push(matched_ref);
+                        var matched_ref = match[0]; // vs match[1] before when it was a match[1] because there was no lookbehind
+                        // ns.matches.push(matched_ref);
 
                         var node = document.createElement("a");
                         node.target = "_blank";
                         node.className = "sefaria-ref";
-                        node.href = base_url + matched_ref;
+                        node.href = base_url + matched_ref.replace(/~/g, '');
                         node.setAttribute('data-ref', matched_ref);
                         node.setAttribute('aria-controls', 'sefaria-popup');
                         node.textContent = portion.text.replace(/~/g, '');
