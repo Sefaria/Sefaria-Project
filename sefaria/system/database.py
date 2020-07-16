@@ -117,7 +117,9 @@ def ensure_indices(active_db=None):
         ('user_history', [[("uid", pymongo.ASCENDING), ("book", pymongo.ASCENDING), ("last_place", pymongo.ASCENDING)]], {}),
         ('trend', ["name"],{}),
         ('trend', ["uid"],{}),
-        ('webpages', ["refs"],{})
+        ('webpages', ["refs"],{}),
+        ('linknet', ["early_refs"],{}),
+        ('linknet', ["late_refs"], {})
     ]
 
     for col, args, kwargs in indices:

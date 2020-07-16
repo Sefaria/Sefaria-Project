@@ -3,7 +3,7 @@ import django
 django.setup()
 
 from sefaria.model import *
-from sefaria.system.database import db
+from sefaria.system.database import db, ensure_indices
 from sefaria.system.exceptions import PartialRefInputError, InputError
 
 
@@ -93,6 +93,6 @@ for link in ls:
 print()
 print("Succeeded {} ({} Failed, {} concurrent)".format(successful, failed, concurrent))
 db.linknet.insert_many(records)
-
+ensure_indices()
 
 
