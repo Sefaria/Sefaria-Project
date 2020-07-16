@@ -1106,7 +1106,9 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "extendedNotes",
         "extendedNotesHebrew",
         "purchaseInformationImage",
-        "purchaseInformationURL"
+        "purchaseInformationURL",
+        "oclcNumber",
+        "oclcSortOrder"
     ]
 
     def __str__(self):
@@ -4038,7 +4040,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
                   "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
-                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL"]
+                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL", "oclcNumber", "oclcSortOrder"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
