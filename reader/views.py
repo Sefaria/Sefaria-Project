@@ -4388,6 +4388,27 @@ def visual_garden_page(request, g):
     return render(request,'visual_garden.html', template_vars)
 
 
+def oclc_page(request, oclc_num):
+    res = []
+    for v in VersionSet({"oclcNumber": oclc_num}, sort=[["oclcSortOrder", 1]]):
+        try:
+            res.append({
+                "title": v.title,
+                "url": v.first_section_ref(),
+                "versionTitle": v.versionTitle,
+                "versionTitleInHebrew": v.versionTitleInHebrew,
+                "language": v.language,
+                "wordcount": v.word_count()
+            })
+        except Exception:
+            pass
+
+    return render(request,'oclc.html',
+                              {
+                              'oclc_num': oclc_num,
+                              'oclc_titles': res,
+                              })
+
 
 @requires_csrf_token
 def custom_server_error(request, template_name='500.html'):

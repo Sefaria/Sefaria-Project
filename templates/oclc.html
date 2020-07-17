@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% load sefaria_tags %}
+{% load humanize %}
+
+{% block title %}Sefaria Texts for OCLC #: {{ oclc_num }} {% endblock %}
+
+{% block content %}
+
+<div id="oclcPage" class="container static">
+    <div class="inner">
+    <h1>
+        <span class='en'>Sefaria Texts for OCLC #: {{ oclc_num }}</span>
+        <span class='he'>OCLC</span>
+    </h1>
+    <div class="row static-text">
+        <div id="groups">
+          <ul>
+                {% for title in oclc_titles %}
+                <li>
+                  <span class='en'>
+                    <a href="/{{ title.url|url_safe }}?{% if title.language == 'he' %}vhe={% else %}ven={% endif %}{{ title.versionTitle|url_safe }}">{{ title.title }} - {{title.versionTitle}}</a>
+                  </span>
+                  <span class='he'>
+                  <a href="/{{ title.url|url_safe }}?{% if title.language == 'he' %}vhe={% else %}ven={% endif %}{{ title.versionTitle|url_safe }}">{{ title.title }} - {{title.versionTitleInHebrew}}</a>
+                  </span>
+                </li>
+                {% endfor %}
+          </ul>
+        </div>
+    </div>
+    </div>
+</div>
+
+
+
+
+{% endblock %}
+
+{% block js %}
+	<script>
+
+	</script>
+{% endblock %}

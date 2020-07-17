@@ -330,6 +330,11 @@ urlpatterns += [
     url(r'^vgarden/custom/(?P<key>.*)$', reader_views.custom_visual_garden_page),  # legacy.  Used for "maggid" and "ecology"
 ]
 
+# OCLC page
+urlpatterns += [
+    url(r'^oclc/(?P<oclc_num>.+)$', reader_views.oclc_page),
+]
+
 # Sefaria.js -- Packaged JavaScript
 urlpatterns += [
     url(r'^data\.js$', sefaria_views.data_js),
@@ -348,6 +353,7 @@ urlpatterns += [
     url(r'^api/linker-track$', sefaria_views.linker_tracking_api),
 
 ]
+
 
 # dafroulette.js -
 urlpatterns += [
