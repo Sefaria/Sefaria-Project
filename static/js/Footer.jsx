@@ -86,7 +86,7 @@ class Footer extends Component {
                 <Link href="/people" en="Authors" he="מחברים" out={true} />
                 <Link href="/groups" en="Groups" he="קבוצות" out={true} />
                 <Link href="/updates" en="New Additions" he="עדכונים" out={true} />
-                <Link href="/remote-learning" en="Remote Learning" he="מקורות ללימוד וללמידה מרחוק" out={true} />
+                <Link href="/remote-learning" en="Remote Learning" he="למידה מרחוק" out={true} />
             </Section>
 
             <Section en="Developers" he="מפתחים">
