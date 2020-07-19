@@ -16,7 +16,7 @@ import pytz
 from rest_framework.decorators import api_view
 from django.template.loader import render_to_string, get_template
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import Http404
+from django.http import Http404, QueryDict
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
@@ -1753,7 +1753,8 @@ def links_api(request, link_id_or_ref=None):
 
     # delegate according to single/multiple objects posted
     if not request.user.is_authenticated:
-        key = request.POST.get("apikey")
+        delete_query = QueryDict(request.body)
+        key = delete_query.get("apikey") #key = request.POST.get("apikey")
         if not key:
             return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
         apikey = db.apikeys.find_one({"key": key})
@@ -1795,9 +1796,21 @@ def links_api(request, link_id_or_ref=None):
     if request.method == "DELETE":
         if not link_id_or_ref:
             return jsonResponse({"error": "No link id given for deletion."})
-        retval = _internal_do_delete(request, link_id_or_ref, uid)
-
-        return jsonResponse(retval)
+        try:
+            ref = Ref(link_id_or_ref)
+            link_ids = [str(l._id) for l in LinkSet(ref)]
+            errors = []
+            for link_id in link_ids:
+                retval = _internal_do_delete(request, link_id, uid)
+                if "error" in retval:
+                    errors.append(retval)
+            if not errors:
+                return jsonResponse({"response": "ok"})
+            else:
+                return jsonResponse(errors)
+        except InputError:
+            retval = _internal_do_delete(request, link_id_or_ref, uid)
+            return jsonResponse(retval)
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
