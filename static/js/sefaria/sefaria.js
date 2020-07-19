@@ -1875,13 +1875,12 @@ Sefaria = extend(Sefaria, {
       return sheets;
     },
     clearUserSheets: function(uid) {
-      //this._userSheets = this._userSheets.filter(item => !item.startsWith(str(uid)))
       this._userSheets  = Object.keys(this._userSheets)
       .filter(key => !key.startsWith(uid.toString()))
       .reduce((obj, key) => {
         return {
           ...obj,
-          [key]: raw[key]
+          [key]: this._userSheets[key]
         };
       }, {});
     },
