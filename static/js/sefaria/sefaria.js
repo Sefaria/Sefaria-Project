@@ -1874,6 +1874,9 @@ Sefaria = extend(Sefaria, {
       }
       return sheets;
     },
+    clearUserSheets: function(uid) {
+      this._userSheets = this._userSheets.filter(item => !item.startsWith(str(uid)))
+    },
     _publicSheets: {},
     publicSheets: function(offset, numberToRetrieve, callback) {
       if (!offset) offset = 0;
@@ -1906,10 +1909,6 @@ Sefaria = extend(Sefaria, {
         }.bind(this));
       }
       return sheets;
-    },
-    clearUserSheets: function(uid) {
-      this._userSheets[uid+"date"] = null;
-      this._userSheets[uid+"views"] = null;
     },
     _sheetsByRef: {},
     sheetsByRef: function(ref, cb) {
