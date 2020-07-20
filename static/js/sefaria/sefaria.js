@@ -1855,13 +1855,10 @@ Sefaria = extend(Sefaria, {
         });
     },
     _userSheets: {},
-    userSheets: function(uid, callback, sortBy, offset, numberToRetrieve, ignoreCache) {
+    userSheets: function(uid, callback, sortBy = "date", offset = 0, numberToRetrieve = 0, ignoreCache=false) {
       // Returns a list of source sheets belonging to `uid`
       // Only a user logged in as `uid` will get private data from this API.
       // Otherwise, only public data will be returned
-      if (!offset) offset = 0;
-      if (!numberToRetrieve) numberToRetrieve = 0;
-      sortBy = typeof sortBy == "undefined" ? "date" : sortBy;
       const sheets = ignoreCache ? null : this._userSheets[uid+sortBy+offset+numberToRetrieve];
       if (sheets) {
         if (callback) { callback(sheets); }
@@ -1873,6 +1870,20 @@ Sefaria = extend(Sefaria, {
         });
       }
       return sheets;
+    },
+    updateUserSheets: function(sheet, uid, update = true){
+        for (const property in this._userSheets) {
+          if(property.startsWith(uid.toString())){
+              if(property.includes("date")){ //add to front because we sorted by date
+                  if(update) {
+                      this._userSheets[property].splice(this._userSheets[property].findIndex(item => item.id === sheet.id), 1);
+                  }
+                  this._userSheets[property].unshift(sheet);
+              }else if(!update){
+                  this._userSheets[property].push(sheet);
+              }
+          }
+        }
     },
     clearUserSheets: function(uid) {
       this._userSheets  = Object.keys(this._userSheets)

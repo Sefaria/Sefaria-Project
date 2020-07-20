@@ -129,7 +129,7 @@ class AddToSourceSheetBox extends Component {
     };
     let postJSON = JSON.stringify(sheet);
     $.post("/api/sheets/", {"json": postJSON}, function(data) {
-      Sefaria.sheets.clearUserSheets(Sefaria._uid);
+      Sefaria.sheets.updateUserSheets(data, Sefaria._uid, false);
       this.selectSheet(data);
     }.bind(this));
   }
@@ -139,6 +139,7 @@ class AddToSourceSheetBox extends Component {
     } else {
       Sefaria.track.event("Tools", "Add to Source Sheet Save", "Outside Source");
     }
+    Sefaria.sheets.updateUserSheets(this.state.selectedSheet, Sefaria._uid, true);
     this.setState({showConfirm: true});
   }
   makeTitleRef(){
