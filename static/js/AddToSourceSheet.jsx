@@ -9,6 +9,7 @@ import Sefaria from './sefaria/sefaria';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component from 'react-class';
+import sanitizeHtml  from 'sanitize-html';
 
 
 class AddToSourceSheetBox extends Component {
@@ -143,7 +144,24 @@ class AddToSourceSheetBox extends Component {
     this.setState({showConfirm: true});
   }
   makeTitleRef(){
-    if(this.props.srefs.length > 1){
+    if(this.props.nodeRef){
+      const sheetID = this.props.nodeRef.split(".")[0];
+      const nodeID = this.props.nodeRef.split(".")[1];
+      const sheet = Sefaria.sheets.loadSheetByID(sheetID);
+      const sheetTitle = sanitizeHtml(sheet.title, {
+        allowedTags: [],
+        disallowedTagsMode: 'discard',
+      });
+      let titleRetval = {
+        "en": `Source Sheet: ${sheetTitle} [Section #${nodeID}]`,
+        "he": `דף מקורות ${sheetTitle} [סעיף ${nodeID}]`
+      }
+      if (this.props.srefs.length > 0 && (this.props.srefs[0] !== `Sheet ${sheetID}:${nodeID}`)){
+        titleRetval["en"] += `(${Sefaria.joinRefsToDisplayStr(Sefaria.getRefFromCache(this.props.srefs[0]), Sefaria.getRefFromCache(this.props.srefs[this.props.srefs.length - 1]), "english")})`;
+        titleRetval["he"] += `(${Sefaria.joinRefsToDisplayStr(Sefaria.getRefFromCache(this.props.srefs[0]), Sefaria.getRefFromCache(this.props.srefs[this.props.srefs.length - 1]), "hebrew")})`;
+      }
+      return titleRetval;
+    }else if(this.props.srefs.length > 1){
       return {
         "en": Sefaria.joinRefsToDisplayStr(Sefaria.getRefFromCache(this.props.srefs[0]), Sefaria.getRefFromCache(this.props.srefs[this.props.srefs.length - 1]), "english"),
         "he": Sefaria.joinRefsToDisplayStr(Sefaria.getRefFromCache(this.props.srefs[0]), Sefaria.getRefFromCache(this.props.srefs[this.props.srefs.length - 1]), "hebrew")
