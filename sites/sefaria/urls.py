@@ -82,4 +82,5 @@ site_urlpatterns +=[
     url(r'^workshop/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_SummerMeeting_2016.pdf')),
     url(r'^ideasforteaching/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
     url(r'^strategicplan/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Strategic_Plan.pdf')),
+    url(r'^annualreport/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Annual_Report_71420.pdf')),
 ]
