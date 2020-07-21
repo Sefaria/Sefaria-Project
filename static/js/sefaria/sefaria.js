@@ -813,6 +813,7 @@ Sefaria = extend(Sefaria, {
         }
       }
     }
+	debugger;
     return splitItems;
   },
   linksLoaded: function(ref) {
@@ -1154,10 +1155,28 @@ Sefaria = extend(Sefaria, {
       });
     });
   },
+  
+  
+_audio: {},
+  audioByRef: function(refs) {
+    refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
+    var ref = Sefaria.normRefList(refs);
+    
+    var audio = [];
+    refs.map(r => {
+      if (this._audio[r]) { audio = audio.concat(this._audio[r]); }
+    }, this);
+	
+	debugger; 
+
+	return audio;
+  },
+  
+  
   _webpages: {},
   webPagesByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
-    var ref = Sefaria.normRefList(refs);
+    var ref = Sefaria.normRefList(refs); 
     refs.map(r => {
       // Also include webpages linked at section level. Deduped below.
       if (r.indexOf(":") !== -1) {
@@ -1248,15 +1267,15 @@ Sefaria = extend(Sefaria, {
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
           topics: this._saveTopicByRef(ref, data.topics || []),
-		  // TAMAR audio: this._saveItemsByRef
+		  audio: this._saveItemsByRef(data.audio, this._audio),
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets", "webpages"].forEach(obj_type => {
+      ["links", "notes", "sheets", "webpages", "audio"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], topics: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], audio: [], topics: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }
