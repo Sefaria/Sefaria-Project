@@ -68,7 +68,7 @@ class Footer extends Component {
             <Section en="About" he="אודות">
                 <Link href="/about" en="What is Sefaria?" he="מהי ספריא" out={true} />
                 <Link href="/help" en="Help" he="עזרה" out={true} />
-                <Link href="/faq" en="FAQ" he="שאלות נפוצות" blank={true} out={true} />
+                <Link href="/faq" en="FAQ" he="שאלות נפוצות" out={true} />
                 <Link href="/team" en="Team" he="צוות" out={true} />
                 <Link href="/testimonials" en="Testimonials" he="חוות דעת" out={true} />
                 <Link href="/metrics" en="Metrics" he="מדדים" out={true} />
@@ -86,7 +86,7 @@ class Footer extends Component {
                 <Link href="/people" en="Authors" he="מחברים" out={true} />
                 <Link href="/groups" en="Groups" he="קבוצות" out={true} />
                 <Link href="/updates" en="New Additions" he="עדכונים" out={true} />
-                <Link href="/remote-learning" en="Remote Learning" he="מקורות ללימוד וללמידה מרחוק" out={true} />
+                <Link href="/remote-learning" en="Remote Learning" he="למידה מרחוק" out={true} />
             </Section>
 
             <Section en="Developers" he="מפתחים">
