@@ -6178,7 +6178,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td{
 body #keyboardInputMaster tbody tr td table tbody tr td:hover,
 body #keyboardInputMaster tbody tr td table tbody tr td:active,
 body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
-    border: 1px solid #eee;
+    border: 0.5px solid #eee;
     background: #eee;
 }
 #editGroupPageContainerInner {
