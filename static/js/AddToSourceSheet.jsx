@@ -171,7 +171,7 @@ class AddToSourceSheetBox extends Component {
   }
   render() {
     if (this.state.showConfirm) {
-      return (<ConfirmAddToSheet sheet={this.state.selectedSheet} srefs={this.props.srefs} />);
+      return (<ConfirmAddToSheet sheet={this.state.selectedSheet} srefs={this.props.srefs} nodeRef={this.props.nodeRef}/>);
     } else if (this.state.showLogin) {
       return (<div className="addToSourceSheetBox sans">
                 <LoginPrompt />
@@ -237,17 +237,34 @@ AddToSourceSheetBox.propTypes = {
 
 class ConfirmAddToSheet extends Component {
   render() {
-    //const titleRef = Sefaria.getRefFromCache(Sefaria.normRefList(this.props.srefs));
-    const titleRef = Sefaria.getRefFromCache(this.props.srefs[0]);
+    let sref = null;
+    let srefTitles = {};
+    if(!this.props.nodeRef){
+      sref = `/${Sefaria.getRefFromCache(this.props.srefs[0]).ref}`;
+      srefTitles = {
+        "en": Sefaria.joinRefList(this.props.srefs, "en"),
+        "he": Sefaria.joinRefList(this.props.srefs, "he"),
+      };
+    }else{
+      sref = `/sheets/${this.props.nodeRef}`;
+      let sheetTitle = sanitizeHtml(Sefaria.sheets.loadSheetByID(this.props.nodeRef.split(".")[0]).title, {
+        allowedTags: [],
+        disallowedTagsMode: 'discard',
+      });
+      srefTitles = {
+        "en": `Section from "${sheetTitle}"`,
+        "he": `הקטע מתוך  "${sheetTitle}"`,
+      };
+    }
     return (<div className="confirmAddToSheet addToSourceSheetBox">
               <div className="message">
                 <span className="int-en">
-                  <a href={`/${titleRef.ref}`}>{titleRef.ref}</a>
+                  <a href={sref}>{srefTitles["en"]}</a>
                   &nbsp;has been added to&nbsp;
                    <a href={"/sheets/" + this.props.sheet.id} target="_blank">{this.props.sheet.title}</a>.
                 </span>
                 <span className="int-he">
-                  <a href={`/${titleRef.ref}`}>{titleRef.heRef}</a>
+                  <a href={sref}>{srefTitles["he"]}</a>
                    &nbsp;נוסף בהצלחה לדף המקורות&nbsp;
                   <a href={"/sheets/" + this.props.sheet.id} target="_blank">{this.props.sheet.title}</a>.
                 </span>
