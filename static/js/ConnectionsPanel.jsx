@@ -10,7 +10,7 @@ import {
   ToolTipped,
 } from './Misc';
 import {  CategoryFilter,} from './ConnectionFilters';
-import React from 'react';
+import React,{useRef, useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
@@ -827,7 +827,7 @@ class WebPagesList extends Component {
         return (<div className="website toolsButton" onClick={()=>this.setFilter(site.name)} key={site.name}>
           <img className="icon" src={site.faviconUrl} />
           <span className="siteName toolsButtonText">{site.name} <span className="connectionsCount">({site.count})</span></span>
-		  <p>"Website!"</p>
+		  <p>"Hi Tzophia!"</p>
         </div>);
       });
     } else {
@@ -872,17 +872,70 @@ WebPagesList.propTypes = {
   srefs: PropTypes.array.isRequired,
 };
 
+// class Audio extends Component {
+	// playAudio = (time) => {
+		// console.log("time = "+time);
+		// debugger;
+		// this._audio.play()
+		//this.a.currentTime = time; //this.currentTime
+		//this.tamar.play();
+		// debugger;
+	// }
+	
+	// render() {
+		// return (<div className={"Audio"} key={this.props.audioUrl}>
+		// <button type="button" onClick={this.playAudio(this.props.startTime).bind(this)}>Play!</button>
+		// <audio id="my-audio" ref = {(a) => this._audio = a}> <source src={this.props.audioUrl} type="audio/mpeg"/></audio> 
+			// </div>)
+			
+	// };
+// }
+
+const Audio = ({audioUrl, startTime, endTime}) => {
+	const audioElement = useRef();
+	const [currTime, setCurrTime] = useState(startTime); //state that keeps track of time
+	const [isPlaying, setIsPlaying] = useState(false); 
+	
+	const setStartTime = () => { //attribute current time which gets updated 
+		audioElement.current.currentTime = startTime
+		audioElement.current.play()
+	};
+	
+	const checkEndTime = () => {
+		if(audioElement.current.currentTime > endTime){
+			audioElement.current.pause();
+		}
+	};
+	
+	useEffect(()=>{
+		//audioElement.current.currentTime = startTime
+		//audioElement.current.play()
+		audioElement.current.addEventListener("play", () => setStartTime());
+		audioElement.current.addEventListener("timeupdate", () => checkEndTime());
+		setCurrTime(audioElement.current.currentTime)
+		//debugger;
+	});
+	
+	return (<div 
+		className={"Audio"}  key={audioUrl}>
+		<div> {"time = " + currTime} </div>
+		<audio id="my-audio" controls ref = {audioElement}> 
+			<source src={audioUrl} type="audio/mpeg"/>
+		</audio> 
+	</div>)
+};
 
 class AudioList extends Component {
 	render() {
 		let audios = Sefaria.audioByRef(this.props.srefs)
 		let content = [];
-		debugger; 
 		//webpages = webpages.filter(page => this.props.filter == "all" || page.siteName == this.props.filter);
 		  content = audios.map(audio => {
-			return (<div className={"Audio"} key={audio.audio_url}>
-					<audio id="audio" controls> <source src={audio.audio_url} type="audio/mpeg"/></audio> 
-			</div>)
+			return <Audio
+				audioUrl = {audio.audio_url}
+				startTime = {audio.start_time}
+				endTime = {audio.end_time}
+				/>
 		  });
 		  
 		 //if (!content.length) {
@@ -890,6 +943,7 @@ class AudioList extends Component {
 					 // <p> "Audio" </p>
 				   // </div>)
 		 //};
+		 
 
 		return <div className="audioList">
 				  {content}
