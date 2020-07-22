@@ -144,6 +144,10 @@ class AddToSourceSheetBox extends Component {
     this.setState({showConfirm: true});
   }
   makeTitleRef(){
+    const refTitles = (this.props.srefs.length > 0 && (!this.props.srefs[0].startsWith("Sheet"))) ? {
+      "en" : Sefaria.joinRefList(this.props.srefs, "en"),
+      "he" : Sefaria.joinRefList(this.props.srefs, "he"),
+    } : null;
     if(this.props.nodeRef){ //this whole if clause is ust to make sure that when a sheet is in the main panel, a human readable citation regarding the sheet is shown in the sheet box.
       const sheetID = this.props.nodeRef.split(".")[0];
       const nodeID = this.props.nodeRef.split(".")[1];
@@ -156,21 +160,13 @@ class AddToSourceSheetBox extends Component {
         "en": `Source Sheet: ${sheetTitle} [Section #${nodeID}]`,
         "he": `דף מקורות: ${sheetTitle} [סעיף ${nodeID}]`
       }
-      if (this.props.srefs.length > 0 && (this.props.srefs[0] !== `Sheet ${sheetID}:${nodeID}`)){ //show the refs also of a source, just to be nice
-        titleRetval["en"] += `(${Sefaria.joinRefsToDisplayStr(Sefaria.getRefFromCache(this.props.srefs[0]), Sefaria.getRefFromCache(this.props.srefs[this.props.srefs.length - 1]), "english")})`;
-        titleRetval["he"] += `(${Sefaria.joinRefsToDisplayStr(Sefaria.getRefFromCache(this.props.srefs[0]), Sefaria.getRefFromCache(this.props.srefs[this.props.srefs.length - 1]), "hebrew")})`;
+      if (refTitles){ //show the refs also of a source, just to be nice
+        titleRetval["en"] += `(${refTitles["en"]})`;
+        titleRetval["he"] += `(${refTitles["he"]})`;
       }
       return titleRetval;
-    }else if(this.props.srefs.length > 1){
-      return {
-        "en": Sefaria.joinRefsToDisplayStr(Sefaria.getRefFromCache(this.props.srefs[0]), Sefaria.getRefFromCache(this.props.srefs[this.props.srefs.length - 1]), "english"),
-        "he": Sefaria.joinRefsToDisplayStr(Sefaria.getRefFromCache(this.props.srefs[0]), Sefaria.getRefFromCache(this.props.srefs[this.props.srefs.length - 1]), "hebrew")
-      };
     }else{
-      return {
-        "en": Sefaria.getRefFromCache(this.props.srefs[0]).ref,
-        "he": Sefaria.getRefFromCache(this.props.srefs[0]).heRef
-      };
+      return refTitles;
     }
   }
   render() {
@@ -261,6 +257,7 @@ class ConfirmAddToSheet extends Component {
 }
 ConfirmAddToSheet.propTypes = {
   srefs: PropTypes.array,
+  nodeRef: PropTypes.string,
   sheet: PropTypes.object.isRequired
 };
 

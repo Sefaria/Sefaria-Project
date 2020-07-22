@@ -165,21 +165,26 @@ Sefaria = extend(Sefaria, {
     nRef.toSections = pRefEnd.toSections;
     return Sefaria.makeRef(nRef);
   },
-  joinRefsToDisplayStr: function(ref1, ref2, lang){
+  joinRefList: function(refs, lang){
       //should check that these are actually refs
       //only use for display as it doesn't rely on any ref parsing!
       //since this is just string manipulation it works language agnostically.
       //does not work well in cases like Genesis 1:10, Genesis 1:15 (will return Genesis 1:10-5). Needs fixing
       //Deuteronomy 11:32-2:1 instead of Deuteronomy 11:32-12:1
       const refStrAttr = {
-          "hebrew" : "heRef",
-          "english": "ref"
+          "he" : "heRef",
+          "en": "ref"
       }[lang];
-      let [refStr1, refStr2] = [ref1[refStrAttr], ref2[refStrAttr]];
-      const similarpart = Sefaria.util.commonSubstring(refStr1, refStr2);
-      const ref1Diff = refStr1.substring(similarpart.length, refStr1.length);
-      const ref2Diff = refStr2.substring(similarpart.length, refStr2.length);
-      return `${similarpart}${ref1Diff}-${ref2Diff}`;
+      if(!refs.length){ return null ;}
+      const start = Sefaria.getRefFromCache(refs[0])[refStrAttr]; //deal with case where this doesnt exist in cache with getName or a new function o combine refs from server side
+      const end = Sefaria.getRefFromCache(refs[refs.length - 1])[refStrAttr];
+      if(start == end){
+          return start;
+      }
+      const similarpart = Sefaria.util.commonSubstring(start, end);
+      const startDiff = start.substring(similarpart.length, start.length);
+      const endDiff = end.substring(similarpart.length, end.length);
+      return `${similarpart}${startDiff}-${endDiff}`;
   },
   refContains: function(ref1, ref2) {
     // Returns true is `ref1` contains `ref2`
