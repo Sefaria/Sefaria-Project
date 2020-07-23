@@ -428,7 +428,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 							}).delete()
 
 	sheet["includedRefs"] = refs_in_sources(sheet.get("sources", []))
-	sheet["expandedRefs"] = expand_included_refs(sheet["includedRefs"]) 
+	sheet["expandedRefs"] = model.Ref.expand_refs(sheet["includedRefs"]) 
 
 	if rebuild_nodes:
 		sheet = rebuild_sheet_nodes(sheet)
@@ -559,20 +559,6 @@ def refs_in_sources(sources, refine_refs=False):
 	return refs
 
 
-def expand_included_refs(refs):
-	expanded_set = set()
-	for tref in refs:
-		try:
-			oref = model.Ref(tref)
-		except InputError:
-			continue
-		try:
-			expanded_set |= {r.normal() for r in oref.all_segment_refs()}
-		except AssertionError:
-			continue
-	return list(expanded_set)
-
-
 def refine_ref_by_text(ref, text):
 	"""
 	Returns a ref (string) which refines 'ref' (string) by comparing 'text' (string),
@@ -630,7 +616,7 @@ def update_included_refs(query=None, hours=None, refine_refs=False):
 	for sheet in sheets:
 		sources = sheet.get("sources", [])
 		refs = refs_in_sources(sources, refine_refs=refine_refs)
-		db.sheets.update({"_id": sheet["_id"]}, {"$set": {"includedRefs": refs, "expandedRefs": expand_included_refs(refs)}})
+		db.sheets.update({"_id": sheet["_id"]}, {"$set": {"includedRefs": refs, "expandedRefs": model.Ref.expand_refs(refs)}})
 
 
 def get_top_sheets(limit=3):

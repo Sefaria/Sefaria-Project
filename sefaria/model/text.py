@@ -4249,6 +4249,26 @@ class Ref(object, metaclass=RefCacheType):
             return -1
         else:
             return distance
+    
+    @staticmethod
+    def expand_refs(refs):
+        """
+        Expands `refs` into list of unique segment refs. Usually used to preprocess database objects that reference refs
+        :param refs: list of trefs to expand
+        :return: list(trefs). unique segment refs derived from `refs`
+        """
+        
+        expanded_set = set()
+        for tref in refs:
+            try:
+                oref = Ref(tref)
+            except InputError:
+                continue
+            try:
+                expanded_set |= {r.normal() for r in oref.all_segment_refs()}
+            except AssertionError:
+                continue
+        return list(expanded_set)
 
 
 class Library(object):

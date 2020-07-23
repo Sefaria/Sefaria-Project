@@ -19,6 +19,7 @@ class WebPage(abst.AbstractMongoRecord):
         "url",
         "title",
         "refs",
+        "expandedRefs",
         "lastUpdated",
         "linkerHits",
     ]
@@ -47,6 +48,7 @@ class WebPage(abst.AbstractMongoRecord):
         self.url = WebPage.normalize_url(self.url)
         self.refs = [text.Ref(ref).normal() for ref in self.refs if text.Ref.is_ref(ref)]
         self.refs = list(set(self.refs))
+        self.expandedRefs = text.Ref.expand_refs(self.refs)
 
     def _validate(self):
         super(WebPage, self)._validate()
