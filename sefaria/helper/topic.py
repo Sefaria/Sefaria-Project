@@ -254,21 +254,16 @@ def generate_all_topic_links_from_sheets(topic=None):
     query = {"status": "public", "viaOwner": {"$exists": 0}, "assignment_id": {"$exists": 0}}
     if topic:
         query['topics.slug'] = topic
-    projection = {"topics": 1, "includedRefs": 1, "owner": 1}
+    projection = {"topics": 1, "expandedRefs": 1, "owner": 1}
     sheet_list = db.sheets.find(query, projection)
     for sheet in tqdm(sheet_list, desc="aggregating sheet topics"):
         sheet_topics = sheet.get("topics", [])
         for topic_dict in sheet_topics:
             slug = topic_dict['slug']
-            for tref in sheet.get("includedRefs", []):
-                try:
-                    oref = Ref(tref)
-                    for sub_oref in oref.range_list():
-                        value = all_related_refs[sub_oref.normal()][slug].get(sheet['owner'], 0)
-                        all_related_refs[sub_oref.normal()][slug][sheet['owner']] = max(1/len(sheet_topics), value)
-                        topic_ref_counts[slug][sub_oref.normal()] += 1
-                except:
-                    continue
+            for tref in sheet.get("expandedRefs", []):
+                value = all_related_refs[tref][slug].get(sheet['owner'], 0)
+                all_related_refs[tref][slug][sheet['owner']] = max(1/len(sheet_topics), value)
+                topic_ref_counts[slug][tref] += 1
             for related_topic_dict in sheet_topics:
                 if slug != related_topic_dict['slug']:
                     all_related_topics[slug][related_topic_dict['slug']].add(sheet['owner'])

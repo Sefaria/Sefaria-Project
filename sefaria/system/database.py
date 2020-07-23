@@ -88,6 +88,7 @@ def ensure_indices(active_db=None):
         ('sheets', ["dateModified"],{}),
         ('sheets', ["sources.ref"],{}),
         ('sheets', ["includedRefs"],{}),
+        ('sheets', ["expandedRefs"], {}),
         ('sheets', ["tags"],{}),
         ('sheets', ["owner"],{}),
         ('sheets', ["assignment_id"],{}),

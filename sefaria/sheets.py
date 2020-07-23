@@ -566,7 +566,10 @@ def expand_included_refs(refs):
 			oref = model.Ref(tref)
 		except InputError:
 			continue
-		expanded_set |= {r.normal() for r in oref.all_segment_refs()}
+		try:
+			expanded_set |= {r.normal() for r in oref.all_segment_refs()}
+		except AssertionError:
+			continue
 	return list(expanded_set)
 
 
@@ -639,6 +642,41 @@ def get_top_sheets(limit=3):
 	return sheet_list(query=query, limit=limit)
 
 
+def get_anchor_ref(search_refs, sheet_refs):
+	"""
+	Compare search_refs with sheet_refs to find longest matching ref. this is your anchor_ref
+	Returns anchor_ref, anchor_ref_expanded, anchor_verse. Can all be None
+	"""
+	potential_anchor_ref_expanded_list = []
+	sheet_ref_set = set(sheet_refs)
+	temp_match = []
+	for seg_ref in search_refs:
+		if seg_ref in sheet_ref_set:
+			temp_match += [seg_ref]
+		elif len(temp_match) > 0:
+			potential_anchor_ref_expanded_list += [temp_match]
+			temp_match = []
+	if len(temp_match) > 0:
+			potential_anchor_ref_expanded_list += [temp_match]
+	potential_anchor_ref_expanded_list.sort(key=lambda x: len(x))
+	anchor_ref = None
+	anchor_ref_expanded = None
+	anchor_verse = None
+	for potential_anchor_ref_expanded in potential_anchor_ref_expanded_list:
+		try:
+			if len(potential_anchor_ref_expanded) == 1:
+				oref = model.Ref(potential_anchor_ref_expanded[0])
+			else:
+				oref = model.Ref(potential_anchor_ref_expanded[0]).to(model.Ref(potential_anchor_ref_expanded[-1]))
+			anchor_ref = oref.normal()
+			anchor_ref_expanded = potential_anchor_ref_expanded
+			anchor_verse = oref.sections[-1] if len(oref.sections) else 1
+			break
+		except InputError:
+			continue
+	return anchor_ref, anchor_ref_expanded, anchor_verse
+
+
 def get_sheets_for_ref(tref, uid=None, in_group=None):
 	"""
 	Returns a list of sheets that include ref,
@@ -677,31 +715,9 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 
 	results = []
 	for sheet in sheets:
-		matched_refs = []
-		expanded_ref_set = set(sheet["expandedRefs"])
-		temp_match = []
-		for seg_ref in segment_refs:
-			if seg_ref in expanded_ref_set:
-				temp_match += [seg_ref]
-			elif len(temp_match) > 0:
-				matched_refs += [temp_match]
-				temp_match = []
-		if len(temp_match) > 0:
-				matched_refs += [temp_match]
-		longest_match = []
-		for match in matched_refs:
-			if len(match) > len(longest_match):
-				longest_match = match
-		if len(longest_match) == 0:
+		anchor_ref, anchor_ref_expanded, anchor_verse = get_anchor_ref(segment_refs, sheet['expandedRefs'])
+		if anchor_ref is None:
 			continue
-		try:
-			if len(longest_match) == 1:
-				match = model.Ref(longest_match[0])
-			else:
-				match = model.Ref(longest_match[0]).to(model.Ref(longest_match[-1]))
-		except InputError:
-			continue
-
 		ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
 		if len(ownerData.get('profile_pic_url_small', '')) == 0:
 			default_image           = "https://www.sefaria.org/static/img/profile-default.png"
@@ -727,9 +743,9 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 			"owner":           sheet["owner"],
 			"_id":             str(sheet["_id"]),
 			"id":              str(sheet["id"]),
-			"anchorRef":       match.normal(),
-			"anchorRefExpanded": longest_match,
-			"anchorVerse":     match.sections[-1] if len(match.sections) else 1,
+			"anchorRef":       anchor_ref,
+			"anchorRefExpanded": anchor_ref_expanded,
+			"anchorVerse":     anchor_verse,
 			"public":          sheet["status"] == "public",
 			"title":           strip_tags(sheet["title"]),
 			"sheetUrl":        "/sheets/" + str(sheet["id"]),
@@ -1084,6 +1100,7 @@ class Sheet(abstract.AbstractMongoRecord):
 	optional_attrs = [
 		"is_featured",  # boolean - show this sheet, unsolicited.
 		"includedRefs",
+		"expandedRefs",
 		"views",
 		"nextNode",
 		"tags",
