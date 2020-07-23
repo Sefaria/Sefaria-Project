@@ -628,41 +628,6 @@ def get_top_sheets(limit=3):
 	return sheet_list(query=query, limit=limit)
 
 
-def get_anchor_ref(search_refs, sheet_refs):
-	"""
-	Compare search_refs with sheet_refs to find longest matching ref. this is your anchor_ref
-	Returns anchor_ref, anchor_ref_expanded, anchor_verse. Can all be None
-	"""
-	potential_anchor_ref_expanded_list = []
-	sheet_ref_set = set(sheet_refs)
-	temp_match = []
-	for seg_ref in search_refs:
-		if seg_ref in sheet_ref_set:
-			temp_match += [seg_ref]
-		elif len(temp_match) > 0:
-			potential_anchor_ref_expanded_list += [temp_match]
-			temp_match = []
-	if len(temp_match) > 0:
-			potential_anchor_ref_expanded_list += [temp_match]
-	potential_anchor_ref_expanded_list.sort(key=lambda x: len(x))
-	anchor_ref = None
-	anchor_ref_expanded = None
-	anchor_verse = None
-	for potential_anchor_ref_expanded in potential_anchor_ref_expanded_list:
-		try:
-			if len(potential_anchor_ref_expanded) == 1:
-				oref = model.Ref(potential_anchor_ref_expanded[0])
-			else:
-				oref = model.Ref(potential_anchor_ref_expanded[0]).to(model.Ref(potential_anchor_ref_expanded[-1]))
-			anchor_ref = oref.normal()
-			anchor_ref_expanded = potential_anchor_ref_expanded
-			anchor_verse = oref.sections[-1] if len(oref.sections) else 1
-			break
-		except InputError:
-			continue
-	return anchor_ref, anchor_ref_expanded, anchor_verse
-
-
 def get_sheets_for_ref(tref, uid=None, in_group=None):
 	"""
 	Returns a list of sheets that include ref,
@@ -701,7 +666,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 
 	results = []
 	for sheet in sheets:
-		anchor_ref, anchor_ref_expanded, anchor_verse = get_anchor_ref(segment_refs, sheet['expandedRefs'])
+		anchor_ref, anchor_ref_expanded, anchor_verse = model.Ref.get_anchor_ref(segment_refs, sheet['expandedRefs'])
 		if anchor_ref is None:
 			continue
 		ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})

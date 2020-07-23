@@ -4257,7 +4257,7 @@ class Ref(object, metaclass=RefCacheType):
         :param refs: list of trefs to expand
         :return: list(trefs). unique segment refs derived from `refs`
         """
-        
+
         expanded_set = set()
         for tref in refs:
             try:
@@ -4269,6 +4269,41 @@ class Ref(object, metaclass=RefCacheType):
             except AssertionError:
                 continue
         return list(expanded_set)
+
+    @staticmethod
+    def get_anchor_ref(refs1, refs2):
+        """
+        Compare refs1 with refs2 to find longest matching ref. this is your anchor_ref
+        Returns anchor_ref, anchor_ref_expanded, anchor_verse. Can all be None
+        """
+        potential_anchor_ref_expanded_list = []
+        refs2_set = set(refs2)
+        temp_match = []
+        for seg_ref in refs1:
+            if seg_ref in refs2_set:
+                temp_match += [seg_ref]
+            elif len(temp_match) > 0:
+                potential_anchor_ref_expanded_list += [temp_match]
+                temp_match = []
+        if len(temp_match) > 0:
+                potential_anchor_ref_expanded_list += [temp_match]
+        potential_anchor_ref_expanded_list.sort(key=lambda x: len(x))
+        anchor_ref = None
+        anchor_ref_expanded = None
+        anchor_verse = None
+        for potential_anchor_ref_expanded in potential_anchor_ref_expanded_list:
+            try:
+                if len(potential_anchor_ref_expanded) == 1:
+                    oref = Ref(potential_anchor_ref_expanded[0])
+                else:
+                    oref = Ref(potential_anchor_ref_expanded[0]).to(Ref(potential_anchor_ref_expanded[-1]))
+                anchor_ref = oref.normal()
+                anchor_ref_expanded = potential_anchor_ref_expanded
+                anchor_verse = oref.sections[-1] if len(oref.sections) else 1
+                break
+            except InputError:
+                continue
+        return anchor_ref, anchor_ref_expanded, anchor_verse
 
 
 class Library(object):
