@@ -2755,7 +2755,13 @@ class Ref(object, metaclass=RefCacheType):
 
     def all_segment_refs(self):
         supported_classes = (JaggedArrayNode, DictionaryEntryNode, SheetNode)
-        assert isinstance(self.index_node, supported_classes)
+        assert self.index_node is not None
+        if not isinstance(self.index_node, supported_classes):
+            # search for default node child
+            for child in self.index_node.children:
+                if child.is_default():
+                    return child.ref().all_segment_refs()
+            assert isinstance(self.index_node, supported_classes)
 
         if self.is_range():
             input_refs = self.range_list()
@@ -5322,6 +5328,8 @@ def process_index_title_change_in_dependant_records(indx, **kwargs):
         didx.save()
 
 def process_index_title_change_in_sheets(indx, **kwargs):
+    from sefaria.sheets import expand_included_refs
+
     print("Cascading refs in sheets {} to {}".format(kwargs['old'], kwargs['new']))
 
     regex_list = [pattern.replace(re.escape(kwargs["new"]), re.escape(kwargs["old"]))
@@ -5331,6 +5339,7 @@ def process_index_title_change_in_sheets(indx, **kwargs):
     sheets = db.sheets.find(query)
     for sheet in sheets:
         sheet["includedRefs"] = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), r) else r for r in sheet.get("includedRefs", [])]
+        sheet["expandedRefs"] = expand_included_refs(sheet["includedRefs"])
         for source in sheet.get("sources", []):
             if "ref" in source:
                 source["ref"] = source["ref"].replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), source["ref"]) else source["ref"]
