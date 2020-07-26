@@ -3943,10 +3943,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   -khtml-user-select: none;
   -webkit-user-select: none;
   -o-user-select: none;
+  user-select: none;
 }
 .segmentNumber .segmentNumberInner,
 .linkCount .linkCountDot {
   display: inline-block;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -o-user-select: none;
+  user-select: none;
 }
 .bilingual .segmentNumber .segmentNumberInner,
 .bilingual .linkCount .linkCountDot,
