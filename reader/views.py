@@ -1798,9 +1798,9 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": "No link id given for deletion."})
         try:
             ref = Ref(link_id_or_ref)
-            link_ids = [str(l._id) for l in LinkSet(ref)]
             errors = []
-            for link_id in link_ids:
+            for l in LinkSet(ref):
+                link_id = str(l._id)
                 retval = _internal_do_delete(request, link_id, uid)
                 if "error" in retval:
                     errors.append(retval)
