@@ -705,6 +705,7 @@
 }
 .registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
   width: auto;
+  -webkit-appearance: checkbox; /* fixes a declaration from here `.static input` that was meant to fix drop shadows on iOS Safari*/
 }
 .registrationContent .helptext {
   font-size: 16px;

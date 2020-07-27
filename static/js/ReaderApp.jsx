@@ -1216,30 +1216,6 @@ class ReaderApp extends Component {
       return true;
     }
   }
-  addToSourceSheet(n, selectedSheet, confirmFunction) {
-    // This is invoked from a connections panel.
-    // It sends a ref-based (i.e. "inside") source
-    var connectionsPanel = this.state.panels[n];
-    var textPanel = this.state.panels[n-1];
-
-    var source  = { refs: connectionsPanel.refs };
-
-    // If version exists in main panel, pass it along, use that for the target language.
-    const { en, he } = textPanel.currVersions;
-    if (he)      { source.version = he; source.versionLanguage = "he"; }
-    else if (en) { source.version = en; source.versionLanguage = "en"; }
-    // If something is highlighted and main panel language is not bilingual:
-    // Use main panel language to determine which version this highlight covers.
-    var language = textPanel.settings.language;
-    var selectedWords = connectionsPanel.selectedWords;
-    if (selectedWords && language != "bilingual") {
-      source[language.slice(0,2)] = selectedWords;
-    }
-
-    var url     = "/api/sheets/" + selectedSheet + "/add";
-    $.post(url, {source: JSON.stringify(source)}, confirmFunction);
-
-  }
   getLicenseMap() {
     const licenseMap = {
       "Public Domain": "https://en.wikipedia.org/wiki/Public_domain",
@@ -1776,7 +1752,6 @@ class ReaderApp extends Component {
       var setConnectionsFilter           = this.setConnectionsFilter.bind(this, i);
       var setVersionFilter               = this.setVersionFilter.bind(this, i);
       var selectVersion                  = this.selectVersion.bind(null, i);
-      var addToSourceSheet               = this.addToSourceSheet.bind(null, i);
       var viewExtendedNotes              = this.viewExtendedNotes.bind(this, i);
       var backFromExtendedNotes          = this.backFromExtendedNotes.bind(this, i);
 
@@ -1800,7 +1775,6 @@ class ReaderApp extends Component {
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
                       onRecentClick={this.handleRecentClick}
-                      addToSourceSheet={addToSourceSheet}
                       updateTopicsTab={updateTopicsTab}
                       onOpenConnectionsClick={onOpenConnectionsClick}
                       openComparePanel={openComparePanel}

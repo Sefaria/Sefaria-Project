@@ -165,6 +165,27 @@ Sefaria = extend(Sefaria, {
     nRef.toSections = pRefEnd.toSections;
     return Sefaria.makeRef(nRef);
   },
+  joinRefList: function(refs, lang){
+      //should check that these are actually refs
+      //only use for display as it doesn't rely on any ref parsing!
+      //since this is just string manipulation it works language agnostically.
+      //does not work well in cases like Genesis 1:10, Genesis 1:15 (will return Genesis 1:10-5). Needs fixing
+      //Deuteronomy 11:32-2:1 instead of Deuteronomy 11:32-12:1
+      const refStrAttr = {
+          "he" : "heRef",
+          "en": "ref"
+      }[lang];
+      if(!refs.length){ return null ;}
+      const start = Sefaria.getRefFromCache(refs[0])[refStrAttr]; //deal with case where this doesnt exist in cache with getName or a new function o combine refs from server side
+      const end = Sefaria.getRefFromCache(refs[refs.length - 1])[refStrAttr];
+      if(start == end){
+          return start;
+      }
+      const similarpart = Sefaria.util.commonSubstring(start, end);
+      const startDiff = start.substring(similarpart.length, start.length);
+      const endDiff = end.substring(similarpart.length, end.length);
+      return `${similarpart}${startDiff}-${endDiff}`;
+  },
   refContains: function(ref1, ref2) {
     // Returns true is `ref1` contains `ref2`
     const oRef1 = Sefaria.parseRef(ref1);
@@ -1839,13 +1860,10 @@ Sefaria = extend(Sefaria, {
         });
     },
     _userSheets: {},
-    userSheets: function(uid, callback, sortBy, offset, numberToRetrieve, ignoreCache) {
+    userSheets: function(uid, callback, sortBy = "date", offset = 0, numberToRetrieve = 0, ignoreCache=false) {
       // Returns a list of source sheets belonging to `uid`
       // Only a user logged in as `uid` will get private data from this API.
       // Otherwise, only public data will be returned
-      if (!offset) offset = 0;
-      if (!numberToRetrieve) numberToRetrieve = 0;
-      sortBy = typeof sortBy == "undefined" ? "date" : sortBy;
       const sheets = ignoreCache ? null : this._userSheets[uid+sortBy+offset+numberToRetrieve];
       if (sheets) {
         if (callback) { callback(sheets); }
@@ -1857,6 +1875,30 @@ Sefaria = extend(Sefaria, {
         });
       }
       return sheets;
+    },
+    updateUserSheets: function(sheet, uid, update = true){
+        for (const property in this._userSheets) {
+          if(property.startsWith(uid.toString())){
+              if(property.includes("date")){ //add to front because we sorted by date
+                  if(update) {
+                      this._userSheets[property].splice(this._userSheets[property].findIndex(item => item.id === sheet.id), 1);
+                  }
+                  this._userSheets[property].unshift(sheet);
+              }else if(!update){
+                  this._userSheets[property].push(sheet);
+              }
+          }
+        }
+    },
+    clearUserSheets: function(uid) {
+      this._userSheets  = Object.keys(this._userSheets)
+      .filter(key => !key.startsWith(uid.toString()))
+      .reduce((obj, key) => {
+        return {
+          ...obj,
+          [key]: this._userSheets[key]
+        };
+      }, {});
     },
     _publicSheets: {},
     publicSheets: function(offset, numberToRetrieve, callback) {
@@ -1890,10 +1932,6 @@ Sefaria = extend(Sefaria, {
         }.bind(this));
       }
       return sheets;
-    },
-    clearUserSheets: function(uid) {
-      this._userSheets[uid+"date"] = null;
-      this._userSheets[uid+"views"] = null;
     },
     _sheetsByRef: {},
     sheetsByRef: function(ref, cb) {

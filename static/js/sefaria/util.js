@@ -241,7 +241,15 @@ class Util {
       var win = window.open(url, '_blank');
       win.focus();
     }
+    static commonSubstring(str1, str2){
+        const length = Math.min(str1.length, str2.length);
+        let index = 0;
+        while(index<length && str1[index] === str2[index])
+            index++;
+        return str1.substring(0, index);
+    }
     static setupPrototypes() {
+
 
         String.prototype.toProperCase = function() {
           // Treat anything after ", " as a new clause
@@ -522,6 +530,42 @@ class Util {
               return c;
             }
         }
+    }
+    static getNormalizedSelectionString(){
+          const selection = window.getSelection()
+          if (selection.rangeCount) {
+              let container = document.createElement("div");
+              for (let i = 0, len = selection.rangeCount; i < len; ++i) {
+                  container.appendChild(selection.getRangeAt(i).cloneContents());
+              }
+                //remove line numbers
+              let lineNumbers = container.getElementsByClassName('segmentNumber');
+              while(lineNumbers.length > 0){
+                  lineNumbers[0].parentNode.removeChild(lineNumbers[0]);
+              }
+              let titleBoxes = container.getElementsByClassName('titleBox');
+              while(titleBoxes.length > 0){
+                  titleBoxes[0].parentNode.removeChild(titleBoxes[0]);
+              }
+              //remove other language. will need to be generalized for
+              var curReaderPanel = (selection.getRangeAt(0).commonAncestorContainer.parentNode.closest('.readerPanel'))
+              if (curReaderPanel && curReaderPanel.classList.contains('hebrew')) {
+                  var elsToRemove = container.getElementsByClassName('en')
+                  while(elsToRemove.length > 0){
+                      elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+                  }
+              }
+              else if (curReaderPanel && curReaderPanel.classList.contains('english')) {
+                  var elsToRemove = container.getElementsByClassName('he')
+                  while(elsToRemove.length > 0){
+                      elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+                  }
+              }
+              return container.innerText;
+          }
+          else {
+              return selection.toString();
+          }
     }
     static getSelectionBoundaryElement(isStart) {
         // http://stackoverflow.com/questions/1335252/how-can-i-get-the-dom-element-which-contains-the-current-selection

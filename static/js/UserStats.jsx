@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext, useRef} from 'react';
 import $  from './sefaria/sefariaJquery';
-import d3  from './lib/d3.v5.min';
+import * as d3 from './lib/d3.v5.min';
 import Sefaria  from './sefaria/sefaria';
 import {StorySheetList} from './Story';
 import { useDebounce } from './Hooks';
