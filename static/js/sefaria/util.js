@@ -548,7 +548,7 @@ class Util {
                   titleBoxes[0].parentNode.removeChild(titleBoxes[0]);
               }
               //remove other language. will need to be generalized for
-              var curReaderPanel = (selection.getRangeAt(0).commonAncestorContainer.closest('.readerPanel'))
+              var curReaderPanel = (selection.getRangeAt(0).commonAncestorContainer.parentNode.closest('.readerPanel'))
               if (curReaderPanel && curReaderPanel.classList.contains('hebrew')) {
                   var elsToRemove = container.getElementsByClassName('en')
                   while(elsToRemove.length > 0){
