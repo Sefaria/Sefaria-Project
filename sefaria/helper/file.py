@@ -15,11 +15,21 @@ def get_resized_file(image, size, to_format="PNG"):
     resized_image_file.seek(0)
     return resized_image_file
 
+
+def thumbnail_image_file(image, size, to_format="PNG"):
+    resized_image = image.thumbnail(size, resample=Image.BICUBIC)
+    resized_image_file = BytesIO()
+    resized_image.save(resized_image_file, format=to_format)
+    resized_image_file.seek(0)
+    return resized_image_file
+
+
 def scrape_file(url):
     r = requests.get(url, allow_redirects=True)
     fileobj = BytesIO(r.content)
     fileobj.seek(0)
     return fileobj
+
 
 def scrape_image(url):
     try:
