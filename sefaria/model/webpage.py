@@ -19,12 +19,12 @@ class WebPage(abst.AbstractMongoRecord):
         "url",
         "title",
         "refs",
-        "expandedRefs",
         "lastUpdated",
         "linkerHits",
     ]
     optional_attrs = [
         "description",
+        "expandedRefs",
         "body",
     ]
 
@@ -176,20 +176,20 @@ class WebPageSet(abst.AbstractMongoSet):
 
 def get_webpages_for_ref(tref):
     oref = text.Ref(tref)
-    regex_list = oref.regex(as_list=True)
-    ref_clauses = [{"refs": {"$regex": r}} for r in regex_list]
-    query = {"$or": ref_clauses }
+    segment_refs = [r.normal() for r in oref.all_segment_refs()]
+    query = {"$or": [{"expandedRefs": r} for r in segment_refs] }
     results = WebPageSet(query=query)
     client_results = []
-    ref_re = "("+'|'.join(regex_list)+")"
     for webpage in results:
         if not webpage.whitelisted:
             continue
-        matched_refs = [r for r in webpage.refs if re.match(ref_re, r)]
-        for ref in matched_refs:
-            webpage_contents = webpage.client_contents()
-            webpage_contents["anchorRef"] = ref
-            client_results.append(webpage_contents)
+        anchor_ref, anchor_ref_expanded, _ = text.Ref.get_anchor_ref(segment_refs, webpage.expandedRefs)
+        webpage_contents = webpage.client_contents()
+        webpage_contents.update({
+            "anchorRef": anchor_ref,
+            "anchorRefExpanded": anchor_ref_expanded
+        })
+        client_results.append(webpage_contents)
 
     return client_results
 
@@ -228,6 +228,7 @@ def dedupe_webpages(test=True):
                     if normpage.lastUpdated < webpage.lastUpdated:
                         normpage.lastUpdated = webpage.lastUpdated
                         normpage.refs = webpage.refs
+                        normpage.expandedRefs = text.Ref.expand_refs(webpage.refs)
                     normpage.save()
                     webpage.delete()
 
@@ -279,10 +280,12 @@ def dedupe_identical_urls(test=True):
                 print(page.contents())
             merged_page_data["linkerHits"] += page.linkerHits
             if merged_page_data["lastUpdated"] < page.lastUpdated:
-                merged_page_data["refs"]  = page.refs
-                merged_page_data["title"] = page.title
-                merged_page_data["description"]  = page.description
-
+                merged_page_data.update({
+                    "ref": page.refs,
+                    "expandedRefs": text.Ref.expand_refs(page.refs),
+                    "title": page.title,
+                    "description": page.description
+                })
         removed_count += (pages.count() - 1)
 
         merged_page = WebPage(merged_page_data)
