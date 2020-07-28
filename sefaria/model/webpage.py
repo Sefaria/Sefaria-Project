@@ -177,19 +177,21 @@ class WebPageSet(abst.AbstractMongoSet):
 def get_webpages_for_ref(tref):
     oref = text.Ref(tref)
     segment_refs = [r.normal() for r in oref.all_segment_refs()]
-    query = {"$or": [{"expandedRefs": r} for r in segment_refs] }
-    results = WebPageSet(query=query)
+    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}})
     client_results = []
     for webpage in results:
         if not webpage.whitelisted:
             continue
-        anchor_ref, anchor_ref_expanded, _ = text.Ref.get_anchor_ref(segment_refs, webpage.expandedRefs)
-        webpage_contents = webpage.client_contents()
-        webpage_contents.update({
-            "anchorRef": anchor_ref,
-            "anchorRefExpanded": anchor_ref_expanded
-        })
-        client_results.append(webpage_contents)
+        temp_refs = [text.Ref(r) for r in webpage.refs if text.Ref.is_ref(r)]
+        temp_expanded_refs = [text.Ref(r) for r in webpage.expandedRefs if text.Ref.is_ref(r)]
+        anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(temp_refs, temp_expanded_refs)
+        for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
+            webpage_contents = webpage.client_contents()
+            webpage_contents.update({
+                "anchorRef": anchor_ref.normal(),
+                "anchorRefExpanded": [r.normal() for r in anchor_ref_expanded]
+            })
+            client_results.append(webpage_contents)
 
     return client_results
 

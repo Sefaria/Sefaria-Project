@@ -638,7 +638,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref
 	segment_refs = [r.normal() for r in oref.all_segment_refs()]
-	query = {"$or": [{"expandedRefs": r} for r in segment_refs] }
+	query = {"expandedRefs": {"$in": segment_refs}}
 	if uid:
 		query["owner"] = uid
 	else:
@@ -646,7 +646,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	if in_group:
 		query["group"] = {"$in": in_group}
 	sheetsObj = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "group":1, "options":1}).sort([["views", -1]])
+		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "group":1, "options":1}).sort([["views", -1]])
 	sheets = [s for s in sheetsObj]
 	user_ids = list({s["owner"] for s in sheets})
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
@@ -666,65 +666,65 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 
 	results = []
 	for sheet in sheets:
-		anchor_ref, anchor_ref_expanded, anchor_verse = model.Ref.get_anchor_ref(segment_refs, sheet['expandedRefs'])
-		if anchor_ref is None:
-			continue
-		ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
-		if len(ownerData.get('profile_pic_url_small', '')) == 0:
-			default_image           = "https://www.sefaria.org/static/img/profile-default.png"
-			gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower().encode('utf8')).hexdigest() + "?"
-			gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
-			ownerData['profile_pic_url_small'] = gravatar_url_small
+		included_refs = [model.Ref(r) for r in sheet.get("includedRefs", []) if model.Ref.is_ref(r)]
+		expanded_refs = [model.Ref(r) for r in sheet.get("expandedRefs", []) if model.Ref.is_ref(r)]
+		anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(included_refs, expanded_refs)
+		for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
+			ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
+			if len(ownerData.get('profile_pic_url_small', '')) == 0:
+				default_image           = "https://www.sefaria.org/static/img/profile-default.png"
+				gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower().encode('utf8')).hexdigest() + "?"
+				gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
+				ownerData['profile_pic_url_small'] = gravatar_url_small
 
-		if "assigner_id" in sheet:
-			asignerData = public_user_data(sheet["assigner_id"])
-			sheet["assignerName"] = asignerData["name"]
-			sheet["assignerProfileUrl"] = asignerData["profileUrl"]
-		if "viaOwner" in sheet:
-			viaOwnerData = public_user_data(sheet["viaOwner"])
-			sheet["viaOwnerName"] = viaOwnerData["name"]
-			sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
+			if "assigner_id" in sheet:
+				asignerData = public_user_data(sheet["assigner_id"])
+				sheet["assignerName"] = asignerData["name"]
+				sheet["assignerProfileUrl"] = asignerData["profileUrl"]
+			if "viaOwner" in sheet:
+				viaOwnerData = public_user_data(sheet["viaOwner"])
+				sheet["viaOwnerName"] = viaOwnerData["name"]
+				sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
 
-		if "group" in sheet:
-			group = Group().load({"name": sheet["group"]})
-			sheet["groupLogo"]       = getattr(group, "imageUrl", None)
-			sheet["groupTOC"]        = getattr(group, "toc", None)
+			if "group" in sheet:
+				group = Group().load({"name": sheet["group"]})
+				sheet["groupLogo"]       = getattr(group, "imageUrl", None)
+				sheet["groupTOC"]        = getattr(group, "toc", None)
 
-		sheet_data = {
-			"owner":           sheet["owner"],
-			"_id":             str(sheet["_id"]),
-			"id":              str(sheet["id"]),
-			"anchorRef":       anchor_ref,
-			"anchorRefExpanded": anchor_ref_expanded,
-			"anchorVerse":     anchor_verse,
-			"public":          sheet["status"] == "public",
-			"title":           strip_tags(sheet["title"]),
-			"sheetUrl":        "/sheets/" + str(sheet["id"]),
-			"options": 		   sheet["options"],
-			"naturalDateCreated": naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f")),
-			"group":           sheet.get("group", None),
-			"groupLogo" : 	   sheet.get("groupLogo", None),
-			"groupTOC":        sheet.get("groupTOC", None),
-			"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
-			"via":			   sheet.get("via", None),
-			"viaOwnerName":	   sheet.get("viaOwnerName", None),
-			"assignerName":	   sheet.get("assignerName", None),
-			"viaOwnerProfileUrl":	   sheet.get("viaOwnerProfileUrl", None),
-			"assignerProfileUrl":	   sheet.get("assignerProfileUrl", None),
-			"ownerProfileUrl": "/profile/" + ownerData["slug"],
-			"ownerImageUrl":   ownerData.get('profile_pic_url_small',''),
-			"status":          sheet["status"],
-			"views":           sheet["views"],
-			"topics":          add_langs_to_topics(sheet.get("topics", [])),
-			"likes":           sheet.get("likes", []),
-			"summary":         sheet.get("summary", None),
-			"attribution":     sheet.get("attribution", None),
-			"is_featured":     sheet.get("is_featured", False),
-			"category":        "Sheets", # ditto
-			"type":            "sheet", # ditto
-		}
+			sheet_data = {
+				"owner":           sheet["owner"],
+				"_id":             str(sheet["_id"]),
+				"id":              str(sheet["id"]),
+				"public":          sheet["status"] == "public",
+				"title":           strip_tags(sheet["title"]),
+				"sheetUrl":        "/sheets/" + str(sheet["id"]),
+				"anchorRef":       anchor_ref.normal(),
+				"anchorRefExpanded": [r.normal() for r in anchor_ref_expanded],
+				"options": 		   sheet["options"],
+				"naturalDateCreated": naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f")),
+				"group":           sheet.get("group", None),
+				"groupLogo" : 	   sheet.get("groupLogo", None),
+				"groupTOC":        sheet.get("groupTOC", None),
+				"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
+				"via":			   sheet.get("via", None),
+				"viaOwnerName":	   sheet.get("viaOwnerName", None),
+				"assignerName":	   sheet.get("assignerName", None),
+				"viaOwnerProfileUrl":	   sheet.get("viaOwnerProfileUrl", None),
+				"assignerProfileUrl":	   sheet.get("assignerProfileUrl", None),
+				"ownerProfileUrl": "/profile/" + ownerData["slug"],
+				"ownerImageUrl":   ownerData.get('profile_pic_url_small',''),
+				"status":          sheet["status"],
+				"views":           sheet["views"],
+				"topics":          add_langs_to_topics(sheet.get("topics", [])),
+				"likes":           sheet.get("likes", []),
+				"summary":         sheet.get("summary", None),
+				"attribution":     sheet.get("attribution", None),
+				"is_featured":     sheet.get("is_featured", False),
+				"category":        "Sheets", # ditto
+				"type":            "sheet", # ditto
+			}
 
-		results.append(sheet_data)
+			results.append(sheet_data)
 	return results
 
 
@@ -1020,9 +1020,9 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 			leaf_spanning_ref = leaf.first_section_ref().to(leaf.last_section_ref())
 			assert isinstance(leaf_spanning_ref, model.Ref)
 			if segment_level:
-				refs += [ref for ref in leaf_spanning_ref.all_segment_refs() if oref.contains(ref)]
+				refs += [ref for ref in leaf_spanning_ref.all_segment_refs() if oref.overlaps(ref, strictly_contains=True)]
 			else:  # section level
-				refs += [ref for ref in leaf_spanning_ref.split_spanning_ref() if oref.contains(ref)]
+				refs += [ref for ref in leaf_spanning_ref.split_spanning_ref() if oref.overlaps(ref, strictly_contains=True)]
 		else:
 			refs.append(leaf.ref())
 
