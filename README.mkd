@@ -137,7 +137,9 @@ If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/i
 
     sudo mongod
     
-or user your os service manager to have it start on startup
+or user your os service manager to have it start on startup. By default, MongoDB will look for a folder `/data/db`. You need to create this folder using
+
+    mkdir -p /data/db
 
 #### 8) Put some texts in your database:
 
