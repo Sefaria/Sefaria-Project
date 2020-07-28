@@ -1181,8 +1181,8 @@ Sefaria = extend(Sefaria, {
 
       // 3: exact match, 2: range match: 1: section match
       var aSpecificity, bSpecificity;
-      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRef === ref ? 3 : (page.anchorRef.indexOf("-") !== -1 ? 2 : 1));
-      if (aSpecificity !== bSpecificity) {return aSpecificity > bSpecificity ? -1 : 1};
+      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRefExpanded.length);
+      if (aSpecificity !== bSpecificity) {return aSpecificity - bSpecificity};
 
       return (a.linkerHits > b.linkerHits) ? -1 : 1
     });
