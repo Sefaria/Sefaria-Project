@@ -3738,19 +3738,6 @@ class Ref(object, metaclass=RefCacheType):
 
 
     """ Comparisons """
-    def overlaps(self, other):
-        """
-        Does this Ref overlap ``other`` Ref?
-
-        :param other:
-        :return bool:
-        """
-        assert isinstance(other, Ref)
-        if not self.index_node == other.index_node:
-            return False
-
-        return not (self.precedes(other) or self.follows(other))
-
     def contains(self, other):
         """
         Does this Ref completely contain ``other`` Ref?
@@ -3758,18 +3745,60 @@ class Ref(object, metaclass=RefCacheType):
         :param other:
         :return bool:
         """
+        return self.overlaps(other, strictly_contains=True)
+
+    def overlaps(self, other, strictly_contains=False):
+        """
+        Does this Ref overlap ``other`` Ref?
+
+        :param other: Ref
+        :param strictly_contains: bool. If true, checks that self fully contains other
+        :return bool:
+        """
         assert isinstance(other, Ref)
         if not self.index_node == other.index_node:
             return self.index_node.is_ancestor_of(other.index_node)
+        
+        SECTION_END = None
+        def get_padded_sections(ref):
+            # pad sections and toSections to index_node.depth. In the case of toSections, pad with SECTION_END, a placeholder for the end of the section
+            sections, toSections = ref.sections[:], ref.toSections[:]
+            for _ in range(ref.index_node.depth - len(sections)):
+                sections += [1]
+            for _ in range(ref.index_node.depth - len(toSections)):
+                toSections += [SECTION_END]
+            return sections, toSections
+        
+        me_start, me_end = get_padded_sections(self)
+        you_start, you_end = get_padded_sections(other)
 
-        me = self.as_ranged_segment_ref()
-        you = other.as_ranged_segment_ref()
-
-        return (
-            (not me.starting_ref().follows(you.starting_ref()))
-            and
-            (not me.ending_ref().precedes(you.ending_ref()))
-        )
+        if SECTION_END in you_end:
+            # We can't know where the exact end of the toSection is without pulling up the refs
+            me = self.as_ranged_segment_ref()
+            you = other.as_ranged_segment_ref()
+            if strictly_contains:
+                return not (you.starting_ref().precedes(me.starting_ref()) or you.ending_ref().follows(me.ending_ref()))
+            return not (you.ending_ref().precedes(me.starting_ref()) or you.starting_ref().follows(me.ending_ref()))
+        
+        # Otherwise, we can optimize and simply compare sections and toSections mathematically
+        before_me_start, after_me_end = False, False
+        for me_section, you_section in zip(me_start, you_start if strictly_contains else you_end):
+            if me_section < you_section:
+                # already contained from this section and on
+                before_me_start = False
+                break
+            if you_section < me_section:
+                before_me_start = True
+                break
+        for me_toSection, you_toSection in zip(me_end, you_end if strictly_contains else you_start):
+            if me_toSection is SECTION_END or me_toSection > you_toSection:
+                # already contained from this section and on
+                after_me_end = False
+                break
+            if you_toSection > me_toSection:
+                after_me_end = True
+                break
+        return not (before_me_start or after_me_end)
 
     def precedes(self, other):
         """
@@ -4249,7 +4278,18 @@ class Ref(object, metaclass=RefCacheType):
             return -1
         else:
             return distance
-    
+
+    def get_all_anchor_refs(self, document_ref_list, document_ref_expanded):
+        """
+        Return all refs in document_ref_list that overlap with self. These are your anchor_refs. Useful for related API.
+        :param list(Ref): document_ref_list. list of Refs to check for overlaps with
+        :param list(Ref): document_ref_expanded. unique list of refs that results from running Ref.expand_refs(document_ref_list)
+        Returns tuple(list(Ref), list(Ref)). returns two lists. First are the anchor_refs for self. The second are the expanded refs corresponding to each anchor_ref
+        """
+        anchor_ref_list = list(filter(lambda document_ref: document_ref.overlaps(self), document_ref_list))
+        anchor_ref_expanded_list = [list(filter(lambda document_segment_ref: anchor_ref.overlaps(document_segment_ref), document_ref_expanded)) for anchor_ref in anchor_ref_list]
+        return anchor_ref_list, anchor_ref_expanded_list
+
     @staticmethod
     def expand_refs(refs):
         """
@@ -4269,41 +4309,6 @@ class Ref(object, metaclass=RefCacheType):
             except AssertionError:
                 continue
         return list(expanded_set)
-
-    @staticmethod
-    def get_anchor_ref(refs1, refs2):
-        """
-        Compare refs1 with refs2 to find longest matching ref. this is your anchor_ref
-        Returns anchor_ref, anchor_ref_expanded, anchor_verse. Can all be None
-        """
-        potential_anchor_ref_expanded_list = []
-        refs2_set = set(refs2)
-        temp_match = []
-        for seg_ref in refs1:
-            if seg_ref in refs2_set:
-                temp_match += [seg_ref]
-            elif len(temp_match) > 0:
-                potential_anchor_ref_expanded_list += [temp_match]
-                temp_match = []
-        if len(temp_match) > 0:
-                potential_anchor_ref_expanded_list += [temp_match]
-        potential_anchor_ref_expanded_list.sort(key=lambda x: len(x))
-        anchor_ref = None
-        anchor_ref_expanded = None
-        anchor_verse = None
-        for potential_anchor_ref_expanded in potential_anchor_ref_expanded_list:
-            try:
-                if len(potential_anchor_ref_expanded) == 1:
-                    oref = Ref(potential_anchor_ref_expanded[0])
-                else:
-                    oref = Ref(potential_anchor_ref_expanded[0]).to(Ref(potential_anchor_ref_expanded[-1]))
-                anchor_ref = oref.normal()
-                anchor_ref_expanded = potential_anchor_ref_expanded
-                anchor_verse = oref.sections[-1] if len(oref.sections) else 1
-                break
-            except InputError:
-                continue
-        return anchor_ref, anchor_ref_expanded, anchor_verse
 
 
 class Library(object):
@@ -5383,8 +5388,6 @@ def process_index_title_change_in_dependant_records(indx, **kwargs):
         didx.save()
 
 def process_index_title_change_in_sheets(indx, **kwargs):
-    from sefaria.sheets import expand_included_refs
-
     print("Cascading refs in sheets {} to {}".format(kwargs['old'], kwargs['new']))
 
     regex_list = [pattern.replace(re.escape(kwargs["new"]), re.escape(kwargs["old"]))
@@ -5394,7 +5397,7 @@ def process_index_title_change_in_sheets(indx, **kwargs):
     sheets = db.sheets.find(query)
     for sheet in sheets:
         sheet["includedRefs"] = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), r) else r for r in sheet.get("includedRefs", [])]
-        sheet["expandedRefs"] = expand_included_refs(sheet["includedRefs"])
+        sheet["expandedRefs"] = Ref.expand_refs(sheet["includedRefs"])
         for source in sheet.get("sources", []):
             if "ref" in source:
                 source["ref"] = source["ref"].replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), source["ref"]) else source["ref"]

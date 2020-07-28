@@ -633,6 +633,9 @@ class Test_comparisons(object):
         assert Ref("Exodus 6").contains(Ref("Exodus 6:2"))
         assert Ref("Exodus 6").contains(Ref("Exodus 6:2-12"))
 
+        assert Ref("Genesis 1:1-31").contains(Ref("Genesis 1"))
+        assert Ref("Genesis 1").contains(Ref("Genesis 1:1-31"))
+
         assert Ref("Exodus").contains(Ref("Exodus 6"))
         assert Ref("Exodus").contains(Ref("Exodus 6:2"))
         assert Ref("Exodus").contains(Ref("Exodus 6:2-12"))
