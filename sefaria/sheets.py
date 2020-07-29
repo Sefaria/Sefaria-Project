@@ -666,31 +666,30 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 
 	results = []
 	for sheet in sheets:
-		included_refs = [model.Ref(r) for r in sheet.get("includedRefs", []) if model.Ref.is_ref(r)]
-		expanded_refs = [model.Ref(r) for r in sheet.get("expandedRefs", []) if model.Ref.is_ref(r)]
 		anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, sheet.get("includedRefs", []), sheet.get("expandedRefs", []))
+		ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
+		if len(ownerData.get('profile_pic_url_small', '')) == 0:
+			default_image           = "https://www.sefaria.org/static/img/profile-default.png"
+			gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower().encode('utf8')).hexdigest() + "?"
+			gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
+			ownerData['profile_pic_url_small'] = gravatar_url_small
+
+		if "assigner_id" in sheet:
+			asignerData = public_user_data(sheet["assigner_id"])
+			sheet["assignerName"] = asignerData["name"]
+			sheet["assignerProfileUrl"] = asignerData["profileUrl"]
+		if "viaOwner" in sheet:
+			viaOwnerData = public_user_data(sheet["viaOwner"])
+			sheet["viaOwnerName"] = viaOwnerData["name"]
+			sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
+
+		if "group" in sheet:
+			group = Group().load({"name": sheet["group"]})
+			sheet["groupLogo"]       = getattr(group, "imageUrl", None)
+			sheet["groupTOC"]        = getattr(group, "toc", None)
+		natural_date_created = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
+		topics = add_langs_to_topics(sheet.get("topics", []))
 		for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
-			ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
-			if len(ownerData.get('profile_pic_url_small', '')) == 0:
-				default_image           = "https://www.sefaria.org/static/img/profile-default.png"
-				gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower().encode('utf8')).hexdigest() + "?"
-				gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
-				ownerData['profile_pic_url_small'] = gravatar_url_small
-
-			if "assigner_id" in sheet:
-				asignerData = public_user_data(sheet["assigner_id"])
-				sheet["assignerName"] = asignerData["name"]
-				sheet["assignerProfileUrl"] = asignerData["profileUrl"]
-			if "viaOwner" in sheet:
-				viaOwnerData = public_user_data(sheet["viaOwner"])
-				sheet["viaOwnerName"] = viaOwnerData["name"]
-				sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
-
-			if "group" in sheet:
-				group = Group().load({"name": sheet["group"]})
-				sheet["groupLogo"]       = getattr(group, "imageUrl", None)
-				sheet["groupTOC"]        = getattr(group, "toc", None)
-
 			sheet_data = {
 				"owner":           sheet["owner"],
 				"_id":             str(sheet["_id"]),
@@ -701,7 +700,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"anchorRef":       anchor_ref.normal(),
 				"anchorRefExpanded": [r.normal() for r in anchor_ref_expanded],
 				"options": 		   sheet["options"],
-				"naturalDateCreated": naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f")),
+				"naturalDateCreated": natural_date_created,
 				"group":           sheet.get("group", None),
 				"groupLogo" : 	   sheet.get("groupLogo", None),
 				"groupTOC":        sheet.get("groupTOC", None),
@@ -715,7 +714,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"ownerImageUrl":   ownerData.get('profile_pic_url_small',''),
 				"status":          sheet["status"],
 				"views":           sheet["views"],
-				"topics":          add_langs_to_topics(sheet.get("topics", [])),
+				"topics":          topics,
 				"likes":           sheet.get("likes", []),
 				"summary":         sheet.get("summary", None),
 				"attribution":     sheet.get("attribution", None),
