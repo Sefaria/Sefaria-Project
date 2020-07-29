@@ -596,6 +596,10 @@ class Test_comparisons(object):
         assert Ref("Genesis 5:13-28").overlaps(Ref("Genesis 5:10-20"))
         assert not Ref("Genesis 5:10-20").overlaps(Ref("Genesis 5:21-25"))
 
+        assert not Ref("Genesis 1").overlaps(Ref("Genesis 2"))
+        assert not Ref("Genesis 2").overlaps(Ref("Genesis 1"))
+        assert Ref("Genesis 1").overlaps(Ref("Genesis 1"))
+
         assert Ref("Genesis 5:10-6:20").overlaps(Ref("Genesis 6:18-25"))
         assert Ref("Genesis 5:10-6:20").overlaps(Ref("Genesis 5:18-25"))
         assert Ref("Genesis 5:18-25").overlaps(Ref("Genesis 5:10-6:20"))

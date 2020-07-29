@@ -3766,13 +3766,18 @@ class Ref(object, metaclass=RefCacheType):
             for _ in range(ref.index_node.depth - len(sections)):
                 sections += [1]
             for _ in range(ref.index_node.depth - len(toSections)):
-                toSections += [SECTION_END]
+                toSections += [None]
             return sections, toSections
         
         me_start, me_end = get_padded_sections(self)
         you_start, you_end = get_padded_sections(other)
-
-        if SECTION_END in you_end:
+        ambiguous_end = False
+        for temp_you_end, temp_me_end in zip(you_end, me_end):
+            if temp_you_end is SECTION_END and temp_me_end is not SECTION_END:
+                ambiguous_end = True
+                break
+        if ambiguous_end:
+            logger.warning(f"Using LONG version of overlaps. Input: {self.normal()} {other.normal()}")
             # We can't know where the exact end of the toSection is without pulling up the refs
             me = self.as_ranged_segment_ref()
             you = other.as_ranged_segment_ref()
@@ -3783,7 +3788,7 @@ class Ref(object, metaclass=RefCacheType):
         # Otherwise, we can optimize and simply compare sections and toSections mathematically
         before_me_start, after_me_end = False, False
         for me_section, you_section in zip(me_start, you_start if strictly_contains else you_end):
-            if me_section < you_section:
+            if you_section is SECTION_END or me_section < you_section:
                 # already contained from this section and on
                 before_me_start = False
                 break
