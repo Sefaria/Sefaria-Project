@@ -4279,15 +4279,30 @@ class Ref(object, metaclass=RefCacheType):
         else:
             return distance
 
-    def get_all_anchor_refs(self, document_ref_list, document_ref_expanded):
+    def get_all_anchor_refs(self, expanded_self, document_tref_list, document_ref_expanded):
         """
         Return all refs in document_ref_list that overlap with self. These are your anchor_refs. Useful for related API.
         :param list(Ref): document_ref_list. list of Refs to check for overlaps with
         :param list(Ref): document_ref_expanded. unique list of refs that results from running Ref.expand_refs(document_ref_list)
         Returns tuple(list(Ref), list(Ref)). returns two lists. First are the anchor_refs for self. The second are the expanded refs corresponding to each anchor_ref
         """
-        anchor_ref_list = list(filter(lambda document_ref: document_ref.overlaps(self), document_ref_list))
-        anchor_ref_expanded_list = [list(filter(lambda document_segment_ref: anchor_ref.overlaps(document_segment_ref), document_ref_expanded)) for anchor_ref in anchor_ref_list]
+        unique_anchor_ref_expanded_set = set(expanded_self) & set(document_ref_expanded)
+        unique_anchor_ref_expanded_list = []
+        for tref in unique_anchor_ref_expanded_set:
+            try:
+                oref = Ref(tref)
+                unique_anchor_ref_expanded_list += [oref]
+            except InputError:
+                continue
+        document_oref_list = []
+        for tref in document_tref_list:
+            try:
+                oref = Ref(tref)
+                document_oref_list += [oref]
+            except InputError:
+                continue
+        anchor_ref_list = list(filter(lambda document_ref: document_ref.overlaps(self), document_oref_list))
+        anchor_ref_expanded_list = [list(filter(lambda document_segment_ref: anchor_ref.overlaps(document_segment_ref), unique_anchor_ref_expanded_list)) for anchor_ref in anchor_ref_list]
         return anchor_ref_list, anchor_ref_expanded_list
 
     @staticmethod

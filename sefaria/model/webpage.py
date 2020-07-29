@@ -182,9 +182,7 @@ def get_webpages_for_ref(tref):
     for webpage in results:
         if not webpage.whitelisted:
             continue
-        temp_refs = [text.Ref(r) for r in webpage.refs if text.Ref.is_ref(r)]
-        temp_expanded_refs = [text.Ref(r) for r in webpage.expandedRefs if text.Ref.is_ref(r)]
-        anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(temp_refs, temp_expanded_refs)
+        anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, webpage.refs, webpage.expandedRefs)
         for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
             webpage_contents = webpage.client_contents()
             webpage_contents.update({

@@ -668,7 +668,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	for sheet in sheets:
 		included_refs = [model.Ref(r) for r in sheet.get("includedRefs", []) if model.Ref.is_ref(r)]
 		expanded_refs = [model.Ref(r) for r in sheet.get("expandedRefs", []) if model.Ref.is_ref(r)]
-		anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(included_refs, expanded_refs)
+		anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, sheet.get("includedRefs", []), sheet.get("expandedRefs", []))
 		for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
 			ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
 			if len(ownerData.get('profile_pic_url_small', '')) == 0:
