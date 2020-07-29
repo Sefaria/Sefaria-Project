@@ -178,7 +178,8 @@ Sefaria = extend(Sefaria, {
       if(!refs.length){ return null ;}
       let start, end;
       if (refs[0].indexOf("-") != -1) { // did we get a ranged ref for some reason inside the arguemnts
-          start = Sefaria.splitRangingRef(refs[0])[0];
+          let startSplit = Sefaria.splitRangingRef(refs[0])
+          start = Sefaria.getRefFromCache(startSplit[0])[refStrAttr];
       }else{
           start = Sefaria.getRefFromCache(refs[0])[refStrAttr];
       }
