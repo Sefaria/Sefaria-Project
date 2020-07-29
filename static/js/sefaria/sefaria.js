@@ -176,15 +176,50 @@ Sefaria = extend(Sefaria, {
           "en": "ref"
       }[lang];
       if(!refs.length){ return null ;}
-      const start = Sefaria.getRefFromCache(refs[0])[refStrAttr]; //deal with case where this doesnt exist in cache with getName or a new function o combine refs from server side
-      const end = Sefaria.getRefFromCache(refs[refs.length - 1])[refStrAttr];
+      let start, end;
+      if (refs[0].indexOf("-") != -1) { // did we get a ranged ref for some reason inside the arguemnts
+          start = Sefaria.splitRangingRef(refs[0])[0];
+      }else{
+          start = Sefaria.getRefFromCache(refs[0])[refStrAttr];
+      }
+      if (refs[refs.length - 1].indexOf("-") != -1) {
+          let endSplit = Sefaria.splitRangingRef(refs[refs.length - 1]);
+          end = Sefaria.getRefFromCache(endSplit[endSplit.length -1])[refStrAttr];
+      }else{
+          end = Sefaria.getRefFromCache(refs[refs.length - 1])[refStrAttr];
+      }
+       //deal with case where this doesnt exist in cache with getName or a new function o combine refs from server side
+
+      //TODO handle ranged refs as input
       if(start == end){
           return start;
       }
-      const similarpart = Sefaria.util.commonSubstring(start, end);
-      const startDiff = start.substring(similarpart.length, start.length);
-      const endDiff = end.substring(similarpart.length, end.length);
-      return `${similarpart}${startDiff}-${endDiff}`;
+      //break down refs into textual part and "numeric "address parts, the comparison of the numeric parts has to be atomic and not char by char
+      const lastSpaceStart = start.lastIndexOf(" ");
+      const namedPartStart =  start.substr(0, lastSpaceStart);
+      const addressPartStart = start.substr(lastSpaceStart + 1).split(":");
+      const lastSpaceEnd = end.lastIndexOf(" ");
+      const namedPartEnd =  end.substr(0, lastSpaceEnd);
+      const addressPartEnd = end.substr(lastSpaceEnd + 1).split(":");
+      if(namedPartStart != namedPartEnd){
+          //the string part is different already, so the numeric parts will be for sure separated correctly.
+          //works mostly for ranged complex text refs
+          const similarpart = Sefaria.util.commonSubstring(start, end);
+          const startDiff = start.substring(similarpart.length, start.length);
+          const endDiff = end.substring(similarpart.length, end.length);
+          return `${similarpart}${startDiff}-${endDiff}`;
+      }else{
+          let similaraddrs = []
+          const addrLength = Math.min(addressPartStart.length, addressPartEnd.length);
+          let index = 0;
+          while(index<addrLength && addressPartStart[index] === addressPartEnd[index]){
+              similaraddrs.push(addressPartStart[index]);
+              index++;
+          }
+          const addrStr = similaraddrs.join(":")+(index == 0? "" : ":")+addressPartStart.slice(index).join(":")+"-"+addressPartEnd.slice(index).join(":");
+          return `${namedPartStart} ${addrStr}`
+      }
+
   },
   refContains: function(ref1, ref2) {
     // Returns true is `ref1` contains `ref2`
