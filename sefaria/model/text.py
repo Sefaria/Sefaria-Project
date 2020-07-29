@@ -4292,6 +4292,7 @@ class Ref(object, metaclass=RefCacheType):
         Returns tuple(list(Ref), list(Ref)). returns two lists. First are the anchor_refs for self. The second are the expanded refs corresponding to each anchor_ref
         """
         unique_anchor_ref_expanded_set = set(expanded_self) & set(document_ref_expanded)
+        document_tref_list = [tref for tref in document_tref_list if tref.startswith(self.index.title)]
         unique_anchor_ref_expanded_list = []
         for tref in unique_anchor_ref_expanded_set:
             try:
@@ -4306,7 +4307,7 @@ class Ref(object, metaclass=RefCacheType):
                 document_oref_list += [oref]
             except InputError:
                 continue
-        anchor_ref_list = list(filter(lambda document_ref: document_ref.overlaps(self), document_oref_list))
+        anchor_ref_list = list(filter(lambda document_ref: self.overlaps(document_ref), document_oref_list))
         anchor_ref_expanded_list = [list(filter(lambda document_segment_ref: anchor_ref.overlaps(document_segment_ref), unique_anchor_ref_expanded_list)) for anchor_ref in anchor_ref_list]
         return anchor_ref_list, anchor_ref_expanded_list
 
