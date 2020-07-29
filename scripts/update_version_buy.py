@@ -40,22 +40,25 @@ def process_versions_sheet(incremental=False, process_images=True):
                 if process_images and image_update and external_image_url:
 
                     try:
-                        print("Downloading: {}".fomrat(external_image_url.encode("utf-8")))
+                        print("Downloading: {}".format(external_image_url.encode("utf-8")))
                         image = scrape_image(external_image_url)
                     except Exception as e:
-                        print("      -Error: getting image for [{}] [{}]".format(version_index_title, version_title))
+                        print("      -Error: getting image for [{}] [{}]: ({})".format(version_index_title, version_title, e))
                         continue
                     try:
                         resized_image_file = thumbnail_image_file(image, (400, 400))
                     except Exception as e:
-                        print("      -Error: processing image for [{}] [{}]".format(version_index_title, version_title))
+                        print("      -Error: processing image for [{}] [{}]: ({})".format(version_index_title, version_title, e))
                         continue
 
                     version_image_file = "{}.png".format(cache_get_key([version_index_title, version_title, version_lang]))
                     version_image_url = GoogleStorageManager.upload_file(resized_image_file, version_image_file, VERSION_IMAGE_BUCKET)
-                    old_version_image_filename = re.findall(r"/([^/]+)$", version_obj.purchaseInformationImage)[0] if version_obj.purchaseInformationImage.startswith(GoogleStorageManager.BASE_URL) else None
-                    if old_version_image_filename is not None and old_version_image_filename != version_image_file:
-                        GoogleStorageManager.delete_filename(old_version_image_filename, VERSION_IMAGE_BUCKET)
+                    try:
+                        old_version_image_filename = re.findall(r"/([^/]+)$", version_obj.purchaseInformationImage)[0] if version_obj.purchaseInformationImage.startswith(GoogleStorageManager.BASE_URL) else None
+                        if old_version_image_filename is not None and old_version_image_filename != version_image_file:
+                            GoogleStorageManager.delete_filename(old_version_image_filename, VERSION_IMAGE_BUCKET)
+                    except AttributeError:
+                        pass
                     version_obj.purchaseInformationImage = version_image_url
                     version_obj.save(override_dependencies=True)
                     updated = True

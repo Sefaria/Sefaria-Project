@@ -17,9 +17,9 @@ def get_resized_file(image, size, to_format="PNG"):
 
 
 def thumbnail_image_file(image, size, to_format="PNG"):
-    resized_image = image.thumbnail(size, resample=Image.BICUBIC)
+    image.thumbnail(size, resample=Image.BICUBIC)
     resized_image_file = BytesIO()
-    resized_image.save(resized_image_file, format=to_format)
+    image.save(resized_image_file, format=to_format)
     resized_image_file.seek(0)
     return resized_image_file
 
