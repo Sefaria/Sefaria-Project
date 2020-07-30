@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useState, useEffect, useRef} from 'react';
 import {jsx} from 'slate-hyperscript'
 import {withHistory} from 'slate-history'
-import {Editor, createEditor, Range, Node, Transforms, Path, Text} from 'slate'
-import {Slate, Editable, ReactEditor, withReact, useSlate} from 'slate-react'
+import {Editor, createEditor, Range, Node, Transforms, Path, Text, Point} from 'slate'
+import {Slate, Editable, ReactEditor, withReact, useSlate, useSelected, useFocused} from 'slate-react'
 import isHotkey from 'is-hotkey'
 
 import Sefaria from './sefaria/sefaria';
@@ -511,8 +511,14 @@ const Element = ({attributes, children, element}) => {
                 </div>
             );
         case 'SheetSource':
+            const selected = useSelected()
+            const classes = {SheetSource: 1, segment: 1, selected: selected};
             return (
-                <div className="SheetSource segment" {...attributes} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
+                <div
+                onSelect={event => {
+                      console.log('aroo')
+                    }}
+                className={classNames(classes)} {...attributes} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
                     {children}
                 </div>
             );
@@ -617,7 +623,7 @@ const Element = ({attributes, children, element}) => {
             );
         case 'TextRef':
             return (
-                    <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{children}</div>
+              <div className="ref" contentEditable={false}>{children}</div>
             )
         case 'SourceContentText':
             return (
@@ -660,6 +666,13 @@ const getClosestSheetElement = (editor, path, elementType) => {
         }
     }
     return(null);
+}
+
+const activeSheetSources = editor => {
+  return Array.from(Editor.nodes(editor, {
+    at: editor.selection,
+    match: n => n.type === "SheetSource"
+  }));
 }
 
 const isWholeSheetItemSelected = (editor) => {
@@ -748,6 +761,9 @@ async function getRefInText(editor) {
 
 const withSefariaSheet = editor => {
     const {insertData, isVoid, normalizeNode} = editor;
+
+    //Hack to override this built-in which often returns null when programmatically selecting the whole SheetSource
+    Transforms.deselect = () => {}
 
     editor.isVoid = element => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
@@ -1423,8 +1439,84 @@ const SefariaEditor = (props) => {
     }
 
     function onChange(value) {
-        setFullSheetItemSelectedPath(isWholeSheetItemSelected(editor));
+        // setFullSheetItemSelectedPath(isWholeSheetItemSelected(editor));
 
+        const selectedSheetSources = activeSheetSources(editor);
+        console.log(selectedSheetSources)
+        if(selectedSheetSources.length > 0) {
+          const firstSourceEdge = Editor.edges(editor, Path.parent(selectedSheetSources[0][1]))[0]
+          const lastSourceEdge = Editor.edges(editor, Path.parent(selectedSheetSources[selectedSheetSources.length - 1][1]))[1]
+          let selectionTop = {
+            path: firstSourceEdge.path,
+            offset: firstSourceEdge.offset
+          }
+          let selectionBottom = {
+            path: lastSourceEdge.path,
+            offset: lastSourceEdge.offset
+          }
+          console.log(selectionTop)
+          console.log(selectionBottom)
+
+          if (Range.isBackward(editor.selection)) {
+            const anchorLoc = Point.isAfter(lastSourceEdge, editor.selection.anchor) ? lastSourceEdge : editor.selection.anchor;
+            if (Point.isBefore(selectionTop, editor.selection.focus)) {
+              Transforms.select(editor, {
+                focus: { path: firstSourceEdge["path"], offset: firstSourceEdge["offset"]},
+                anchor: { path: anchorLoc.path, offset: anchorLoc.offset}
+
+              });
+            }
+          }
+          else {
+            const anchorLoc = Point.isBefore(firstSourceEdge, editor.selection.anchor) ? firstSourceEdge : editor.selection.anchor;
+            if (Point.isAfter(selectionBottom, editor.selection.focus, )) {
+              Transforms.select(editor, {
+                focus: { path: lastSourceEdge["path"], offset: lastSourceEdge["offset"]},
+                anchor: { path: anchorLoc.path, offset: anchorLoc.offset}
+              });
+            }
+          }
+
+
+          // if (Range.isBackward(editor.selection)) {
+          //
+          //   if (Path.isBefore(editor.selection.focus.path, firstSourceEdges.path)) {
+          //     selectionTop["path"] = editor.selection.focus.path;
+          //     selectionTop["offset"] = editor.selection.focus.offset;
+          //   }
+          //   if (Path.isAfter(editor.selection.anchor.path, lastSourceEdges.path)) {
+          //     selectionBottom["path"] = editor.selection.anchor.path
+          //     selectionBottom["offset"] = editor.selection.anchor.offset
+          //   }
+          // }
+          // else {
+          //   if (Path.isBefore(editor.selection.anchor.path, firstSourceEdges.path)) {
+          //     selectionTop["path"] = editor.selection.anchor.path
+          //     selectionTop["offset"] = editor.selection.anchor.offset
+          //   }
+          //   if (Path.isAfter(editor.selection.focus.path, lastSourceEdges)) {
+          //     selectionBottom["path"] = editor.selection.focus.path
+          //     selectionBottom["offset"] = editor.selection.focus.offset
+          //   }
+          // }
+          // console.log(selectionTop)
+          // console.log(selectionBottom)
+          //
+          // if (Range.isBackward(editor.selection)) {
+          //   Transforms.select(editor, {
+          //     anchor: { path: selectionBottom["path"], offset: selectionBottom["offset"]},
+          //     focus: { path: selectionTop["path"], offset: selectionTop["offset"]}
+          //   });
+          // }
+          //
+          // else {
+          //   Transforms.select(editor, {
+              // anchor: { path: selectionTop["path"], offset: selectionTop["offset"]},
+              // focus: { path: selectionBottom["path"], offset: selectionBottom["offset"]}
+          //   });
+          // }
+
+        }
         if (currentDocument !== value) {
             setCurrentDocument(value);
         }

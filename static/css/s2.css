@@ -7130,9 +7130,37 @@ span.purim-emoji img{
 }
 
 .sheetItem .SheetSource {
-  border-left: 4px solid;
-  margin-left: -34px;
-  padding-left: 34px;
+  border-inline-start: 4px solid;
+  padding-inline-start: 11px;
+  padding-inline-end: 15px;
+  box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
+}
+
+.sheetItem .SheetSource.selected,
+.sheetItem .SheetSource.selected .en {
+  background-color: #F0F8FF;
+}
+
+.sheetItem .SheetSource *::selection {
+  background-color: rgba(255,0,0,0)
+}
+
+
+.sheetItem .SheetSource .he,
+.sheetItem .SheetSource .en {
+  padding-inline-start: 11px;
+  padding-inline-end: 15px;
+  margin-inline-start: -11px;
+  margin-inline-end: -15px;
+}
+
+.sheetItem .SheetSource .en {
+  background-color: #FBFBFA;
+}
+
+.sheetItem .SheetSource .ref {
+  pointer-events: none;
+  user-select: none;
 }
 
 .sheetItem .SheetOutsideBiText {
