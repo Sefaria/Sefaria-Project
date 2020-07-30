@@ -55,6 +55,8 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref
 from django.utils.html import strip_tags
+from bson.objectid import ObjectId
+
 
 
 if USE_VARNISH:
@@ -1796,21 +1798,36 @@ def links_api(request, link_id_or_ref=None):
     if request.method == "DELETE":
         if not link_id_or_ref:
             return jsonResponse({"error": "No link id given for deletion."})
+
         try:
             ref = Ref(link_id_or_ref)
-            errors = []
-            for l in LinkSet(ref):
-                link_id = str(l._id)
+        except InputError as e:
+            if ObjectId.is_valid(link_id_or_ref):
+                # link_id_or_ref is id so just delete this link
+                retval = _internal_do_delete(request, link_id_or_ref, uid)
+                return jsonResponse(retval)
+            else:
+                return jsonResponse({"error": "{} is neither a valid Ref nor a valid Mongo ObjectID. {}".format(link_id_or_ref, e)})
+
+        ls = LinkSet(ref)
+        if ls.count() == 0:
+            return jsonResponse({"error": "No links found for {}".format(ref)})
+
+        results = []
+        for l in ls:
+            link_id = str(l._id)
+            refs = l.refs
+            try:
                 retval = _internal_do_delete(request, link_id, uid)
                 if "error" in retval:
-                    errors.append(retval)
-            if not errors:
-                return jsonResponse({"response": "ok"})
-            else:
-                return jsonResponse(errors)
-        except InputError:
-            retval = _internal_do_delete(request, link_id_or_ref, uid)
-            return jsonResponse(retval)
+                    raise Exception(retval["error"])
+                else:
+                    results.append({"status": "ok. Link: {} | {} Deleted".format(refs[0], refs[1])})
+            except Exception as e:
+                results.append({"error": "Link: {} | {} Error: {}".format(refs[0], refs[1], str(e))})
+
+        return jsonResponse(results)
+
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
