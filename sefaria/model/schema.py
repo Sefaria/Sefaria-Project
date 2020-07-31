@@ -1929,6 +1929,7 @@ class AddressType(object):
             raise IndexSchemaError("No matching class for addressType {}".format(atype))
         return klass(0).toStr(lang, i)
 
+    # Is this used?
     def storage_offset(self):
         return 0
 
@@ -2077,7 +2078,7 @@ class AddressInteger(AddressType):
         elif lang == "he":
             return decode_hebrew_numeral(s)
 
-
+''' Never used
 class AddressYear(AddressInteger):
     """
     :class: AddressYear stores Hebrew years as numbers, for example 778 for the year תשע״ח
@@ -2096,6 +2097,7 @@ class AddressYear(AddressInteger):
         elif lang == "he":
             punctuation = kwargs.get("punctuation", True)
             return sanitize(encode_small_hebrew_numeral(i), punctuation) if i < 1200 else encode_hebrew_numeral(i, punctuation=punctuation)
+'''
 
 
 class AddressAliyah(AddressInteger):
