@@ -835,7 +835,7 @@ class WebPagesList extends Component {
       content = webpages.map(webpage => {
         return (<div className={"webpage" + (webpage.isHebrew ? " hebrew" : "")} key={webpage.url}>
           <img className="icon" src={webpage.faviconUrl} />
-          <a className="title" href={webpage.url} target="_blank">{"tamar was here"/* webpage.title */}</a>
+          <a className="title" href={webpage.url} target="_blank">{webpage.title}</a>
           <div className="domain">{webpage.domain}</div>
           {webpage.description ? <div className="description">{webpage.description}</div> : null}
           <div className="stats">
@@ -891,19 +891,26 @@ WebPagesList.propTypes = {
 	// };
 // }
 
-const Audio = ({audioUrl, startTime, endTime}) => {
+const Audio = ({audioUrl, startTime, endTime, source, license, source_site, description}) => {
    const audioElement = useRef();
-   const [currTime, setCurrTime] = useState(); //state that keeps track of time
+   const [currTime, setCurrTime] = useState(true); //state that keeps track of time
    const [playing, setPlaying] = useState(false); //true would be autoplay
    const [clipEndTime, setClipEndTime] = useState();
    const [clipStartTime, setClipStartTime] = useState();
-   const handleChange = (value) => setCurrTime(value); //set value when user uses slider
+   const handleChange = (value) => {
+		   setCurrTime(value);  //slider will follow the time
+		   setCurrTime(value.currentTarget.value);
+		   audioElement.current.currentTime = value.currentTarget.value
+		};//set value when user uses slider
+
    
    useEffect(() => {
        const setAudioData = () => {
+		   if (startTime < clipStartTime){
+		   if (clipStartTime != currTime) setPlaying(true); 
+		   setCurrTime(null)};
            setClipEndTime(endTime);
 		   setClipStartTime(startTime);
-           //setCurrTime(startTime);
        };
 	   
        const setAudioTime = () => setCurrTime(audioElement.current.currentTime); //control range component 
@@ -925,25 +932,30 @@ const Audio = ({audioUrl, startTime, endTime}) => {
 		   setCurrTime(null);
        } 
 	   
-	   //<input type="range" min={startTime} max={endTime} value = {currTime} step="1" onChange={(value) => {handleChange(value)}}/> //changes pointer according to audio
-
-       return () => {
+	   
+       return () => { //pretty sure these are both unnecassary
            audioElement.current.removeEventListener("loadeddata", setAudioData);
            audioElement.current.removeEventListener("timeupdate", setAudioTime);
        }
    });
    return (
-       <div className={"Audio"}  key={audioUrl}>
-          <h3>
-		  <div> {"range: 0 ----- " + parseInt((clipEndTime-clipStartTime) - (clipEndTime - currTime)) + " ----- " + parseInt(clipEndTime-clipStartTime)} </div>
-		  </h3>
-          <button onClick={() => setPlaying(playing ? false : true)}>{playing ? "Pause" : "Play"}</button>
-		  <input type="range" min={startTime} max={endTime} value = {currTime} step="1" onChange={(value) => {handleChange(value)}}/>
-          <audio id="my-audio" ref = {audioElement}>
-             <source src={audioUrl} type="audio/mpeg"/>
-			 //set back to normal vals and do math at the endTime
-          </audio>
-       </div>
+		<div className="audio"  key={audioUrl}>
+			  <div className="title">{source}</div>
+			  <div className="description"><a>{description}</a></div>
+			  <div className="panel">
+				<button onClick={() => setPlaying(playing ? false : true)}>{playing ? "Pause" : "Play"}</button>
+				<input type="range" min={startTime} max={endTime} value = {currTime} step="any" class="slider" onChange={(value) => {handleChange(value)}}/>
+				<a> {parseInt((clipEndTime-clipStartTime) - (clipEndTime - currTime)) + "/" + parseInt(clipEndTime-clipStartTime)}</a>
+			  </div>
+			  <audio id="my-audio" ref = {audioElement}>
+				 <source src={audioUrl} type="audio/mpeg"/>
+				 //set back to normal vals and do math at the endTime
+			  </audio>
+			  <div className="meta">
+				<a>License: {license}</a>
+				<a>Source: {source_site}</a>
+			  </div>
+		   </div> 
    )
 };
 
@@ -957,6 +969,10 @@ class AudioList extends Component {
 				audioUrl = {audio.audio_url}
 				startTime = {audio.start_time}
 				endTime = {audio.end_time}
+				source = {audio.source}
+				license = {audio.license}
+				source_site = {audio.source_site}
+				description = {audio.description}
 				/>
 		  });
 		  
@@ -968,6 +984,7 @@ class AudioList extends Component {
 		 
 
 		return <div className="audioList">
+				<div class="audioTitle"> Torah Reading </div>
 				  {content}
 			   </div>;
 	}
@@ -1405,7 +1422,7 @@ AddConnectionBox.propTypes = {
   srefs:    PropTypes.array.isRequired,
   onSave:   PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired
-};
+}
 
 export {
   ConnectionsPanel,

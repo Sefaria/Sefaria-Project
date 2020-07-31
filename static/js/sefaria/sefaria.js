@@ -813,7 +813,6 @@ Sefaria = extend(Sefaria, {
         }
       }
     }
-	debugger;
     return splitItems;
   },
   linksLoaded: function(ref) {
@@ -1167,8 +1166,6 @@ _audio: {},
       if (this._audio[r]) { audio = audio.concat(this._audio[r]); }
     }, this);
 	
-	debugger; 
-
 	return audio;
   },
   

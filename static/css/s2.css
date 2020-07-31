@@ -4650,6 +4650,106 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .textListTextRangeBox + .sheet {
   margin-top: 24px;
 }
+
+.audioList {
+	padding: 40px 40px 80px;
+}
+
+.audioList .audio {
+  border-top: solid 1px #CCC;
+  padding: 20px 0;
+}
+
+.audioList .audioTitle {
+    font-family: roboto,helvetica neue,helvetica,sans-serif;
+    letter-spacing: 1px;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 19px;
+    color: #666;
+	padding-bottom: 15px;
+}
+
+.audioList .audio .title {
+	font-size: 22px;
+    color: #000;
+	display: flex;
+}
+
+
+.audioList .audio a {
+	color: #999;
+}
+
+.audioList .audio .description {
+	margin: 10px 0;
+}
+
+.audioList .audio .description a {
+    font-size: 14px;
+    font-family: hebrew system text,roboto,helvetica neue,helvetica,sans-serif;
+    flex-flow: row;
+    justify-content: space-between;
+}
+
+.audioList .audio .panel{
+	background: #e6e6e6;
+	border-radius: 50px;
+	width: 70%;
+	height: 100%;
+	text-align: center;
+	margin: 10px 0;
+	padding: 15px;
+}
+
+.audioList .audio .panel a {
+	font-size: 14px;
+	margin: 5px;
+}
+
+.slider {
+  -webkit-appearance: none;
+  width: 60%;
+  height: 5px;
+  background: #4d4d4d;
+  outline: none;
+  opacity: 0.7;
+}
+
+.slider:hover {
+  opacity: 5;
+}
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #000080;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4CAF50;
+  cursor: pointer;
+}
+
+.audioList .audio .meta a {
+  margin-top:5px;
+  display: inline-block;
+  font-size: 12px;
+  font-family: "Hebrew System Text", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #999;
+  display: flex;
+  flex-flow: row;
+  justify-content: space-between;
+}
+
 .webpageList .website .icon {
   height: 16px;
   width: 16px;
@@ -8243,6 +8343,10 @@ body .homeFeedWrapper.userStats {
 .inlineTextRef {
     color: #4B71B7
 }
+
+
+
+
 
 
 /* start css code for loading bezel */
