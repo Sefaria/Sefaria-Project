@@ -623,7 +623,7 @@ const Element = ({attributes, children, element}) => {
             );
         case 'TextRef':
             return (
-              <div className="ref" contentEditable={false}>{children}</div>
+              <div className="ref">{children}</div>
             )
         case 'SourceContentText':
             return (
@@ -1440,26 +1440,14 @@ const SefariaEditor = (props) => {
 
     function onChange(value) {
         // setFullSheetItemSelectedPath(isWholeSheetItemSelected(editor));
-
         const selectedSheetSources = activeSheetSources(editor);
-        console.log(selectedSheetSources)
         if(selectedSheetSources.length > 0) {
-          const firstSourceEdge = Editor.edges(editor, Path.parent(selectedSheetSources[0][1]))[0]
-          const lastSourceEdge = Editor.edges(editor, Path.parent(selectedSheetSources[selectedSheetSources.length - 1][1]))[1]
-          let selectionTop = {
-            path: firstSourceEdge.path,
-            offset: firstSourceEdge.offset
-          }
-          let selectionBottom = {
-            path: lastSourceEdge.path,
-            offset: lastSourceEdge.offset
-          }
-          console.log(selectionTop)
-          console.log(selectionBottom)
+          const firstSourceEdge = Editor.edges(editor, (selectedSheetSources[0][1]))[0]
+          const lastSourceEdge = Editor.edges(editor, (selectedSheetSources[selectedSheetSources.length - 1][1]))[1]
 
           if (Range.isBackward(editor.selection)) {
             const anchorLoc = Point.isAfter(lastSourceEdge, editor.selection.anchor) ? lastSourceEdge : editor.selection.anchor;
-            if (Point.isBefore(selectionTop, editor.selection.focus)) {
+            if (Point.isBefore(firstSourceEdge, editor.selection.focus)) {
               Transforms.select(editor, {
                 focus: { path: firstSourceEdge["path"], offset: firstSourceEdge["offset"]},
                 anchor: { path: anchorLoc.path, offset: anchorLoc.offset}
@@ -1469,7 +1457,7 @@ const SefariaEditor = (props) => {
           }
           else {
             const anchorLoc = Point.isBefore(firstSourceEdge, editor.selection.anchor) ? firstSourceEdge : editor.selection.anchor;
-            if (Point.isAfter(selectionBottom, editor.selection.focus, )) {
+            if (Point.isAfter(lastSourceEdge, editor.selection.focus, )) {
               Transforms.select(editor, {
                 focus: { path: lastSourceEdge["path"], offset: lastSourceEdge["offset"]},
                 anchor: { path: anchorLoc.path, offset: anchorLoc.offset}
