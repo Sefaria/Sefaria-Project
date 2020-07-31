@@ -1175,27 +1175,26 @@ Sefaria = extend(Sefaria, {
       });
     });
   },
-  
-  
+
+
 _audio: {},
   audioByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
     var ref = Sefaria.normRefList(refs);
-    debugger; 
 	
     var audio = [];
     refs.map(r => {
       if (this._audio[r]) { audio = audio.concat(this._audio[r]); }
     }, this);
-	
+
 	return audio;
   },
-  
-  
+
+
   _webpages: {},
   webPagesByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
-    var ref = Sefaria.normRefList(refs); 
+    var ref = Sefaria.normRefList(refs);
     refs.map(r => {
       // Also include webpages linked at section level. Deduped below.
       if (r.indexOf(":") !== -1) {

@@ -422,7 +422,7 @@ class ConnectionsPanel extends Component {
                     setWebPagesFilter={this.props.setWebPagesFilter}
                     interfaceLang={this.props.interfaceLang}
                     key="WebPages"/>);
-					
+
 	} else if (this.props.mode === "Audio" || this.props.mode === "AudioList") {
       content = (<AudioList
 					srefs={this.props.srefs}
@@ -827,7 +827,7 @@ class WebPagesList extends Component {
   render() {
     let webpages = Sefaria.webPagesByRef(this.props.srefs)
     let content = [];
-	
+
     if (!this.props.filter) {
       let sites = {};
       webpages.map(page => {
@@ -893,40 +893,40 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
    const [clipEndTime, setClipEndTime] = useState();
    const [clipStartTime, setClipStartTime] = useState();
    const handleChange = (value) => {
-		   setCurrTime(value); 
+		   setCurrTime(value);
 		   setCurrTime(value.currentTarget.value);
 		   audioElement.current.currentTime = value.currentTarget.value
 		};
 
-   
+
    useEffect(() => {
        const setAudioData = () => {
 		   if (startTime < clipStartTime){
-		   if (clipStartTime != currTime) setPlaying(true); 
+		   if (clipStartTime != currTime) setPlaying(true);
 		   setCurrTime(null)};
            setClipEndTime(endTime);
 		   setClipStartTime(startTime);
        };
-	   
-       const setAudioTime = () => setCurrTime(audioElement.current.currentTime); //control range component 
-	   
-	   
+
+       const setAudioTime = () => setCurrTime(audioElement.current.currentTime); //control range component
+
+
        audioElement.current.addEventListener("timeupdate", setAudioTime);
 	   setAudioData();
-	   
-	   if (clipStartTime && currTime < clipStartTime){		   
+
+	   if (clipStartTime && currTime < clipStartTime){
 			audioElement.current.currentTime = clipStartTime;
 	   };
-			
-	   
+
+
        playing ? audioElement.current.play() : audioElement.current.pause();
-	   
+
        if (clipEndTime && currTime > clipEndTime) {
            setPlaying(false);
 		   setCurrTime(null);
-       } 
-	   
-	   
+       }
+
+
        return () => { //pretty sure these are both unnecassary
            audioElement.current.removeEventListener("loadeddata", setAudioData);
            audioElement.current.removeEventListener("timeupdate", setAudioTime);
@@ -948,7 +948,7 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
 				<a>License: {license}</a>
 				<a>Source: {source_site}</a>
 			  </div>
-		   </div> 
+		   </div>
    )
 };
 
@@ -967,7 +967,7 @@ class AudioList extends Component {
 				description = {audio.description}
 				/>
 		  });
-		 debugger;
+      console.log(content);
 		 if (!content.length) {
 			return <div className="audioList empty">
                   No known audio
