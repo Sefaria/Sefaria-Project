@@ -1,1 +1,0 @@
-cat ~/Documents/PocketTorah/data/aliyah.json | grep '_numverses\|_id' | cut -d '"' -f 4 > parsha_aliyot3.txt
