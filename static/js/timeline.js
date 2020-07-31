@@ -1,5 +1,5 @@
-import d3  from "d3";
-import Sefaria  from 'sefaria';
+import * as d3 from './lib/d3.v5.min';
+import Sefaria from 'sefaria';
 import SefariaD3  from "./sefaria-d3/sefaria-d3";
 import $  from "./sefaria/sefariaJquery";
 

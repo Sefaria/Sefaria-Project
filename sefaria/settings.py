@@ -293,7 +293,7 @@ CACHES = {
     }
 }
 
-
+"""
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "reading-challenge-banner",
     "repetition": 0,
@@ -306,10 +306,11 @@ GLOBAL_INTERRUPTING_MESSAGE = {
         "debug": False
     }
 }
+"""
 
-# GLOBAL_INTERRUPTING_MESSAGE = None
+GLOBAL_INTERRUPTING_MESSAGE = None
 
-# Grab enviornment specific settings from a file which
+# Grab environment specific settings from a file which
 # is left out of the repo.
 try:
     from sefaria.local_settings import *

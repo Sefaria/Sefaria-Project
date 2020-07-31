@@ -705,6 +705,7 @@
 }
 .registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
   width: auto;
+  -webkit-appearance: checkbox; /* fixes a declaration from here `.static input` that was meant to fix drop shadows on iOS Safari*/
 }
 .registrationContent .helptext {
   font-size: 16px;
@@ -2856,8 +2857,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   /* display: block; */
 }
 .staticPage .blockVerticalPadding {
-  padding-top: 40px;
-  padding-bottom: 40px;
+  padding-top: 80px;
+  padding-bottom: 80px;
 }
 .staticPage .flexContainer {
   display: flex;
@@ -2891,7 +2892,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   color: white;
 }
 .staticPage .staticPageCallToActionFooter .staticPageBlockInner {
-  padding: 60px 0;
+  padding: 80px 0;
 }
 .staticPage .staticPageCallToActionFooter .callToActionText {
   font-style: normal;
@@ -2931,6 +2932,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   color: #666666;
 }
 
+.staticPage .staticPageSpacer {
+}
+
 .staticPage .staticPageSheetList {
   padding: 30px 0 0;
 }
@@ -2966,7 +2970,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPage .staticPageHeaderTextBox .simpleButtonWrapper {
   width: 66%;
-  padding-bottom: 30px;
+  padding-bottom: 80px;
 }
 .staticPage .simpleButtonWrapper .button {
   border-radius: 0;

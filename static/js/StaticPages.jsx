@@ -92,6 +92,7 @@ const ContestLandingPage = () => (
                 "<a href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria">Powered by Sefaria</a>"
                 באתר Github.</p>
         </HeBlock>
+        <Spacer/>
 
         <ButtonRow>
             <SimpleButton
@@ -147,6 +148,7 @@ const ContestLandingPage = () => (
                 </a>
                 .</p>
         </HeBlock>
+        <Spacer/>
 
         <GreyBox>
             <ImageWithText
@@ -193,6 +195,7 @@ const ContestLandingPage = () => (
         <HeBlock padded={true}>
             <p>אם אתם מעוניינים להשתתף בתחרות, לחצו כאן להרשמה, כדי שנוכל לשלוח לכם עדכונים במהלך התחרות בנוגע לכלים ומשאבים, כולל שעות העבודה של המתכנתים שלנו, שתוכלו לשאול אותם שאלות ולהתייעץ איתם על רעיונות אחד־על־אחד. תוכלו להתמודד באופן עצמאי או כחלק מצוות, ולהירשם בכל שלב מעכשיו ועד לסיום התחרות.</p>
         </HeBlock>
+        <Spacer/>
 
         <ButtonRow>
             <SimpleButton
@@ -223,6 +226,7 @@ const ContestLandingPage = () => (
                 en="GitHub"
             />
         </ButtonRow>
+
         <CallToActionFooterWithButton
             href="http://sefaria.nationbuilder.com/contest"
             he_href="http://sefaria.nationbuilder.com/contest"
@@ -550,6 +554,7 @@ const StaticPage = ({children}) => (
     </div>
 );
 
+const Spacer = ({height}) => <div className={"staticPageSpacer"} style={{height: height || 60}}></div>;
 const HeBlock = ({children, padded}) => <div className={"int-he" + (padded ? " staticPageBlockInner" : "")}>{children}</div>;
 const EnBlock = ({children, padded}) => <div className={"int-en" + (padded ? " staticPageBlockInner" : "")}>{children}</div>;
 
@@ -629,7 +634,7 @@ const About = ({enTitle, heTitle, enText, heText, backgroundColor}) => (
 );
 
 const ImageWithText = ({enText, heText, enImg, heImg, enImgAlt, heImgAlt}) => (
-    <div className="feature" style={{backgroundColor: "inherit"}}>
+    <div className="feature blockVerticalPadding" style={{backgroundColor: "inherit"}}>
         <div className="staticPageBlockInner flexContainer">
             <div className="featureText" style={{borderTop: 0}}>
                 <div className="int-en" dangerouslySetInnerHTML={{__html:enText}} />

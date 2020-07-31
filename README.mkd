@@ -137,7 +137,9 @@ If you don't already have it, [install MongoDB](http://docs.mongodb.org/manual/i
 
     sudo mongod
     
-or user your os service manager to have it start on startup
+or user your os service manager to have it start on startup.
+
+Note, you need to make sure the default data directory is created or `sudo mongod` will fail. See [here](https://docs.mongodb.com/manual/tutorial/manage-mongodb-processes/#start-mongod-processes) for instructions on running `sudo mongod` for the first time.
 
 #### 8) Put some texts in your database:
 

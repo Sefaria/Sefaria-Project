@@ -1061,7 +1061,7 @@ class ModeratorButtons extends Component {
   deleteIndex() {
     var title = this.props.title;
 
-    var confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions and links. This action CANNOT be undone. Type DELETE to confirm.", "");
+    var confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions, translations and links. This action CANNOT be undone. Type DELETE to confirm.", "");
     if (confirm !== "DELETE") {
       alert("Delete canceled.");
       return;
