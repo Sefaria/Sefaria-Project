@@ -892,37 +892,59 @@ WebPagesList.propTypes = {
 // }
 
 const Audio = ({audioUrl, startTime, endTime}) => {
-	const audioElement = useRef();
-	const [currTime, setCurrTime] = useState(startTime); //state that keeps track of time
-	const [isPlaying, setIsPlaying] = useState(false); 
-	
-	const setStartTime = () => { //attribute current time which gets updated 
-		audioElement.current.currentTime = startTime
-		audioElement.current.play()
-	};
-	
-	const checkEndTime = () => {
-		if(audioElement.current.currentTime > endTime){
-			audioElement.current.pause();
-		}
-	};
-	
-	useEffect(()=>{
-		//audioElement.current.currentTime = startTime
-		//audioElement.current.play()
-		audioElement.current.addEventListener("play", () => setStartTime());
-		audioElement.current.addEventListener("timeupdate", () => checkEndTime());
-		setCurrTime(audioElement.current.currentTime)
-		//debugger;
-	});
-	
-	return (<div 
-		className={"Audio"}  key={audioUrl}>
-		<div> {"time = " + currTime} </div>
-		<audio id="my-audio" controls ref = {audioElement}> 
-			<source src={audioUrl} type="audio/mpeg"/>
-		</audio> 
-	</div>)
+   const audioElement = useRef();
+   const [currTime, setCurrTime] = useState(); //state that keeps track of time
+   const [playing, setPlaying] = useState(false); //true would be autoplay
+   const [clipEndTime, setClipEndTime] = useState();
+   const [clipStartTime, setClipStartTime] = useState();
+   const handleChange = (value) => setCurrTime(value); //set value when user uses slider
+   
+   useEffect(() => {
+       const setAudioData = () => {
+           setClipEndTime(endTime);
+		   setClipStartTime(startTime);
+           //setCurrTime(startTime);
+       };
+	   
+       const setAudioTime = () => setCurrTime(audioElement.current.currentTime); //control range component 
+	   
+	   
+       audioElement.current.addEventListener("timeupdate", setAudioTime);
+       //audioElement.current.addEventListener("loadeddata", setAudioData);
+	   setAudioData();
+	   
+	   if (clipStartTime && currTime < clipStartTime){		   
+			audioElement.current.currentTime = clipStartTime;
+	   };
+			
+	   
+       playing ? audioElement.current.play() : audioElement.current.pause();
+	   
+       if (clipEndTime && currTime > clipEndTime) {
+           setPlaying(false);
+		   setCurrTime(null);
+       } 
+	   
+	   //<input type="range" min={startTime} max={endTime} value = {currTime} step="1" onChange={(value) => {handleChange(value)}}/> //changes pointer according to audio
+
+       return () => {
+           audioElement.current.removeEventListener("loadeddata", setAudioData);
+           audioElement.current.removeEventListener("timeupdate", setAudioTime);
+       }
+   });
+   return (
+       <div className={"Audio"}  key={audioUrl}>
+          <h3>
+		  <div> {"range: 0 ----- " + parseInt((clipEndTime-clipStartTime) - (clipEndTime - currTime)) + " ----- " + parseInt(clipEndTime-clipStartTime)} </div>
+		  </h3>
+          <button onClick={() => setPlaying(playing ? false : true)}>{playing ? "Pause" : "Play"}</button>
+		  <input type="range" min={startTime} max={endTime} value = {currTime} step="1" onChange={(value) => {handleChange(value)}}/>
+          <audio id="my-audio" ref = {audioElement}>
+             <source src={audioUrl} type="audio/mpeg"/>
+			 //set back to normal vals and do math at the endTime
+          </audio>
+       </div>
+   )
 };
 
 class AudioList extends Component {
