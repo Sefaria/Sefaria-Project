@@ -916,12 +916,14 @@ class ArrayMapNode extends Component {
         if (this.props.schema.addressTypes[0] === "Talmud") {
           var section = Sefaria.hebrew.intToDaf(i);
           var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+
+/* Never used
         } else if (this.props.schema.addressTypes[0] === "Year") {
           var section = i + 1241;
           var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
           heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
-        }
-        else {
+*/
+        } else {
           var section = i+1;
           var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
