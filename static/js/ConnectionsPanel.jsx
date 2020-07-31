@@ -967,7 +967,11 @@ class AudioList extends Component {
 				description = {audio.description}
 				/>
 		  });
-		 
+		 if (!content.length) {
+			return <div className="audioList empty">
+                  No known audio
+                </div>;
+		 }
 
 		return <div className="audioList">
 				<div class="audioTitle"> Torah Reading </div>
