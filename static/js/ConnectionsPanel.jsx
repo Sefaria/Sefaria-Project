@@ -842,7 +842,6 @@ class WebPagesList extends Component {
         return (<div className="website toolsButton" onClick={()=>this.setFilter(site.name)} key={site.name}>
           <img className="icon" src={site.faviconUrl} />
           <span className="siteName toolsButtonText">{site.name} <span className="connectionsCount">({site.count})</span></span>
-		  <p>"Hi Tzophia!"</p>
         </div>);
       });
     } else {
@@ -887,36 +886,17 @@ WebPagesList.propTypes = {
   srefs: PropTypes.array.isRequired,
 };
 
-// class Audio extends Component {
-	// playAudio = (time) => {
-		// console.log("time = "+time);
-		// debugger;
-		// this._audio.play()
-		//this.a.currentTime = time; //this.currentTime
-		//this.tamar.play();
-		// debugger;
-	// }
-	
-	// render() {
-		// return (<div className={"Audio"} key={this.props.audioUrl}>
-		// <button type="button" onClick={this.playAudio(this.props.startTime).bind(this)}>Play!</button>
-		// <audio id="my-audio" ref = {(a) => this._audio = a}> <source src={this.props.audioUrl} type="audio/mpeg"/></audio> 
-			// </div>)
-			
-	// };
-// }
-
 const Audio = ({audioUrl, startTime, endTime, source, license, source_site, description}) => {
    const audioElement = useRef();
-   const [currTime, setCurrTime] = useState(true); //state that keeps track of time
-   const [playing, setPlaying] = useState(false); //true would be autoplay
+   const [currTime, setCurrTime] = useState(true);
+   const [playing, setPlaying] = useState(false); //true for autoplay
    const [clipEndTime, setClipEndTime] = useState();
    const [clipStartTime, setClipStartTime] = useState();
    const handleChange = (value) => {
-		   setCurrTime(value);  //slider will follow the time
+		   setCurrTime(value); 
 		   setCurrTime(value.currentTarget.value);
 		   audioElement.current.currentTime = value.currentTarget.value
-		};//set value when user uses slider
+		};
 
    
    useEffect(() => {
@@ -932,7 +912,6 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
 	   
 	   
        audioElement.current.addEventListener("timeupdate", setAudioTime);
-       //audioElement.current.addEventListener("loadeddata", setAudioData);
 	   setAudioData();
 	   
 	   if (clipStartTime && currTime < clipStartTime){		   
@@ -964,7 +943,6 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
 			  </div>
 			  <audio id="my-audio" ref = {audioElement}>
 				 <source src={audioUrl} type="audio/mpeg"/>
-				 //set back to normal vals and do math at the endTime
 			  </audio>
 			  <div className="meta">
 				<a>License: {license}</a>
@@ -978,7 +956,6 @@ class AudioList extends Component {
 	render() {
 		let audios = Sefaria.audioByRef(this.props.srefs)
 		let content = [];
-		//webpages = webpages.filter(page => this.props.filter == "all" || page.siteName == this.props.filter);
 		  content = audios.map(audio => {
 			return <Audio
 				audioUrl = {audio.audio_url}
@@ -990,12 +967,6 @@ class AudioList extends Component {
 				description = {audio.description}
 				/>
 		  });
-		  
-		 //if (!content.length) {
-			// return (<div className="webpageList empty">
-					 // <p> "Audio" </p>
-				   // </div>)
-		 //};
 		 
 
 		return <div className="audioList">
