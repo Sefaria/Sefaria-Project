@@ -1181,7 +1181,8 @@ _audio: {},
   audioByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
     var ref = Sefaria.normRefList(refs);
-    
+    debugger; 
+	
     var audio = [];
     refs.map(r => {
       if (this._audio[r]) { audio = audio.concat(this._audio[r]); }
