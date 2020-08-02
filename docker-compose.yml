@@ -1,0 +1,39 @@
+version: '3.3'
+
+services:
+  postgres:
+    image: postgres:11.2
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - local_net
+  mongo:
+    image: mongo
+    volumes:
+      - mongo_data:/data/db  # TODO: - confirm this persists data
+      # - ./dump:/dump    # Run docker-compose exec mongo mongorestore --drop
+    networks:
+      - local_net
+  web:
+    build:
+      context: .
+      dockerfile: build/web/Dockerfile
+      args:
+        - DEBUG=true
+    command:
+      - bash -c "cp sefaria/docker_settings.py sefaria/local_settings.py && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./sefaria:/app/sefaria
+    depends_on:
+      - mongo
+      - postgres
+    networks:
+      - local_net
+
+volumes:
+  postgres_data:
+  mongo_data:
+networks:
+  local_net:

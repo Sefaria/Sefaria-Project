@@ -21,6 +21,20 @@ First clone the Sefaria-Project repository to a directory on your computer, then
 
 *Note: if you are a developer that might want to contribute code to Sefaria, we suggest first making a fork of this respository by clicking the "Fork" button above when logged in to GitHub.*
 
+Download Docker
+Download a dump within the top level of the repo locally
+Run
+```
+docker build . -f build/pyre2/Dockerfile -t pyre2:0.0
+docker-compose up --build
+```
+in another tab run
+```
+docker-compose exec mongo mongorestore --drop
+docker-compose exec web django manage.py makemessages
+```
+Otherwise you can follow the rest of this guide
+
 *Note for macOS users: Install `Homebrew`*
 
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
