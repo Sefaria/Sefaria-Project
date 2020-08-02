@@ -236,8 +236,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             for name, struct in list(self.alt_structs.items()):
                 self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=TitledTreeNode)
                 self.struct_objs[name].title_group = self.nodes.title_group
-                # Our pattern has been to validate on save, not on load
-                # self.struct_objs[name].validate()
 
     def is_complex(self):
         return getattr(self, "nodes", None) and self.nodes.has_children()
