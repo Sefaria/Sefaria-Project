@@ -418,49 +418,22 @@
                     preset: 'prose',
                     find: r,
                     replace: function(portion, match) {
-                        var matched_ref = match[0]
-                            //.replace(match[1], '')
-                            .replace(/[\r\n\t ]+/g, " ")// Filter out multiple spaces
-                            .replace(/[(){}[\]]+/g, ""); // Filter out internal parentheses todo: Don't break on parens in books names
-
-                        if (ns.quotationOnly && matched_ref.search(/.*?\s+(.*?['\u05f3"\u05f4]|.\s|\d*\s)+/g) == -1) {
-                            return match[0];
-                        }
-                        else {
-                            ns.matches.push(matched_ref);
-                            // portion.node.data = portion.node.data.replace(matched_ref, '~'+matched_ref+'~');
-                            // portion.node.wholeText = portion.node.data;
-                            return '~'+match[0]+'~'; //.replace(matched_ref.trim(), '~'+matched_ref.trim()+'~');
-                        }
-                    },
-                    filterElements: function(el) {
-                        return !(
-                            hasOwn.call(findAndReplaceDOMText.NON_PROSE_ELEMENTS, el.nodeName.toLowerCase())
-                            || (el.tagName == "A")
-                            // The below test is subsumed in the more simple test above
-                            //|| (el.className && el.className.split(' ').indexOf("sefaria-ref")>=0)
-                        );
-                    }
-                });
-            }
-            // put the prefixes out side of the a tag and the ref inside it.
-            for (var i = 0; i < ns.elems.length; i++) {
-                findAndReplaceDOMText(ns.elems[i], {
-                    preset: 'prose',
-                    find: /~(.*?)~/g,
-                    replace: function(portion, match) {
-                        var matched_ref = match[0]; // vs match[1] before when it was a match[1] because there was no lookbehind
-                        // ns.matches.push(matched_ref);
-
+                        var matched_ref = match[0].replace(match[1], '')
+                            .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
+                            .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
+                        ns.matches.push(matched_ref);
+                        var node_p = document.createElement("span");
                         var node = document.createElement("a");
                         node.target = "_blank";
                         node.className = "sefaria-ref";
-                        node.href = base_url + matched_ref.replace(/~/g, '');
+                        node.href = base_url + matched_ref;
                         node.setAttribute('data-ref', matched_ref);
                         node.setAttribute('aria-controls', 'sefaria-popup');
-                        node.textContent = portion.text.replace(/~/g, '');
-
-                        return node;
+                        node.textContent = matched_ref;
+                        node_p.textContent = match[1].replace('/<a>.*?</a>/g', '');
+                        node_p.append(node);
+                        console.log(node_p.textContent);
+                        return node_p;
                     },
                     filterElements: function(el) {
                         return !(
