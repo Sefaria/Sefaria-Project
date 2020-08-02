@@ -185,10 +185,8 @@ def get_webpages_for_ref(tref):
         anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, webpage.refs, webpage.expandedRefs)
         for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
             webpage_contents = webpage.client_contents()
-            webpage_contents.update({
-                "anchorRef": anchor_ref.normal(),
-                "anchorRefExpanded": [r.normal() for r in anchor_ref_expanded]
-            })
+            webpage_contents["anchorRef"] = anchor_ref.normal()
+            webpage_contents["anchorRefExpanded"] = [r.normal() for r in anchor_ref_expanded]
             client_results.append(webpage_contents)
 
     return client_results
