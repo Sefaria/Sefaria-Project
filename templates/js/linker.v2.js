@@ -353,6 +353,8 @@
         options.popupStyles = options.popupStyles || {};
         options.interfaceLang = options.interfaceLang || "english";
         options.contentLang = options.contentLang || "bilingual";
+        options.parentheses = options.parentheses || 0;
+        options.quotationOnly = options.quotationOnly || false;
 
         var selector = options.selector || "body";
         if (window.screen.width < 820 || options.mode == "link") { mode = "link"; }  // If the screen is small, fallback to link mode
@@ -361,7 +363,7 @@
         setupPopup(options, mode);
 
         ns.elems = document.querySelectorAll(selector);
-
+        ns.quotationOnly = options.quotationOnly;
         // Find text titles in the document
         // todo: hold locations of title matches?
         var full_text = [].reduce.call(ns.elems, function(prev, current) { return prev + current.textContent; }, "");
@@ -382,7 +384,7 @@
     // Private API
     ns._getRegexesThenTexts = function() {
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|"))
+        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+ns.link.arguments[0].parentheses)
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
@@ -410,25 +412,28 @@
             var book = books[k];
             // Run each regex over the document, and wrap results
             var r = XRegExp(ns.regexes[book],"xgm");
+            // find the refrences and push them into ns.matches
             for (var i = 0; i < ns.elems.length; i++) {
                 findAndReplaceDOMText(ns.elems[i], {
                     preset: 'prose',
                     find: r,
                     replace: function(portion, match) {
-                        var matched_ref = match[0]
+                        var matched_ref = match[0].replace(match[1], '')
                             .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                             .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
                         ns.matches.push(matched_ref);
-
+                        var node_p = document.createElement("span");
                         var node = document.createElement("a");
                         node.target = "_blank";
                         node.className = "sefaria-ref";
                         node.href = base_url + matched_ref;
                         node.setAttribute('data-ref', matched_ref);
                         node.setAttribute('aria-controls', 'sefaria-popup');
-                        node.textContent = portion.text;
-
-                        return node;
+                        node.textContent = matched_ref;
+                        node_p.textContent = match[1].replace('/<a>.*?</a>/g', '');
+                        node_p.append(node);
+                        console.log(node_p.textContent);
+                        return node_p;
                     },
                     filterElements: function(el) {
                         return !(
