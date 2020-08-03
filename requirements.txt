@@ -14,7 +14,7 @@ regex
 pytest
 mailchimp
 redis
-django-redis
+django-redis==4.11.*
 django_mobile
 roman
 p929
