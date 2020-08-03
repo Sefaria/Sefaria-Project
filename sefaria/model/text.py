@@ -4280,14 +4280,15 @@ class Ref(object, metaclass=RefCacheType):
         else:
             return distance
 
-    def get_all_anchor_refs(self, expanded_self, document_tref_list, document_ref_expanded):
+    def get_all_anchor_refs(self, expanded_self, document_tref_list, document_tref_expanded):
         """
         Return all refs in document_ref_list that overlap with self. These are your anchor_refs. Useful for related API.
-        :param list(Ref): document_ref_list. list of Refs to check for overlaps with
-        :param list(Ref): document_ref_expanded. unique list of refs that results from running Ref.expand_refs(document_ref_list)
-        Returns tuple(list(Ref), list(Ref)). returns two lists. First are the anchor_refs for self. The second are the expanded refs corresponding to each anchor_ref
+        :param list(str): expanded_self. precalculated list of segment trefs for self
+        :param list(str): document_tref_list. list of trefs to from document in which you want to find archor refs
+        :param list(Ref): document_tref_expanded. unique list of trefs that results from running Ref.expand_refs(document_tref_list)
+        Returns tuple(list(Ref), list(list(Ref))). returns two lists. First are the anchor_refs for self. The second is a 2D list, where the inner list represents the expanded anchor refs for the corresponding position in anchor_ref_list
         """
-        unique_anchor_ref_expanded_set = set(expanded_self) & set(document_ref_expanded)
+        unique_anchor_ref_expanded_set = set(expanded_self) & set(document_tref_expanded)
         document_tref_list = [tref for tref in document_tref_list if tref.startswith(self.index.title)]
         unique_anchor_ref_expanded_list = []
         for tref in unique_anchor_ref_expanded_set:
