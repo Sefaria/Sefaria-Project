@@ -1414,6 +1414,59 @@ const SefariaEditor = (props) => {
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [fullSheetItemSelectedPath, setFullSheetItemSelectedPath] = useState(null);
+    const [modifiedSourceSelection, setModifiedSourceSelection] = useState(false);
+    const [currentSelection, setCurrentSelection] = useState([]);
+
+    function ensureSelectOfEntireSource(currentSelection) {
+
+      if(currentSelection.length > 0) {
+        const firstSourceEdge = Editor.edges(editor, (currentSelection[0][1]))[0]
+        const lastSourceEdge = Editor.edges(editor, (currentSelection[currentSelection.length - 1][1]))[1]
+
+        if (Range.isBackward(editor.selection)) {
+          const anchorLoc = Point.isAfter(lastSourceEdge, editor.selection.anchor) ? lastSourceEdge : editor.selection.anchor;
+          if (Point.isBefore(firstSourceEdge, editor.selection.focus)) {
+            Transforms.select(editor, {
+              focus: { path: firstSourceEdge["path"], offset: firstSourceEdge["offset"]},
+              anchor: { path: anchorLoc.path, offset: anchorLoc.offset}
+
+            });
+          }
+        }
+        else {
+          const anchorLoc = Point.isBefore(firstSourceEdge, editor.selection.anchor) ? firstSourceEdge : editor.selection.anchor;
+          if (Point.isAfter(lastSourceEdge, editor.selection.focus, )) {
+            Transforms.select(editor, {
+              focus: { path: lastSourceEdge["path"], offset: lastSourceEdge["offset"]},
+              anchor: { path: anchorLoc.path, offset: anchorLoc.offset}
+            });
+          }
+        }
+
+      }
+      console.log(currentSelection)
+
+    }
+
+    useEffect(
+        () => {
+            setModifiedSourceSelection(true)
+            // Update debounced value after delay
+            const handler = setTimeout(() => {
+                ensureSelectOfEntireSource(currentSelection);
+                setModifiedSourceSelection(false);
+            }, 250);
+
+            // Cancel the timeout if value changes (also on delay change or unmount)
+            // This is how we prevent debounced value from updating if value is changed ...
+            // .. within the delay period. Timeout gets cleared and restarted.
+            return () => {
+                clearTimeout(handler);
+            };
+        },
+        [currentSelection] // Only re-call effect if value or delay changes
+    );
+
 
     useEffect(
         () => {
@@ -1447,70 +1500,11 @@ const SefariaEditor = (props) => {
     function onChange(value) {
         // setFullSheetItemSelectedPath(isWholeSheetItemSelected(editor));
         const selectedSheetSources = activeSheetSources(editor);
-        if(selectedSheetSources.length > 0) {
-          const firstSourceEdge = Editor.edges(editor, (selectedSheetSources[0][1]))[0]
-          const lastSourceEdge = Editor.edges(editor, (selectedSheetSources[selectedSheetSources.length - 1][1]))[1]
-
-          if (Range.isBackward(editor.selection)) {
-            const anchorLoc = Point.isAfter(lastSourceEdge, editor.selection.anchor) ? lastSourceEdge : editor.selection.anchor;
-            if (Point.isBefore(firstSourceEdge, editor.selection.focus)) {
-              Transforms.select(editor, {
-                focus: { path: firstSourceEdge["path"], offset: firstSourceEdge["offset"]},
-                anchor: { path: anchorLoc.path, offset: anchorLoc.offset}
-
-              });
-            }
-          }
-          else {
-            const anchorLoc = Point.isBefore(firstSourceEdge, editor.selection.anchor) ? firstSourceEdge : editor.selection.anchor;
-            if (Point.isAfter(lastSourceEdge, editor.selection.focus, )) {
-              Transforms.select(editor, {
-                focus: { path: lastSourceEdge["path"], offset: lastSourceEdge["offset"]},
-                anchor: { path: anchorLoc.path, offset: anchorLoc.offset}
-              });
-            }
-          }
-
-
-          // if (Range.isBackward(editor.selection)) {
-          //
-          //   if (Path.isBefore(editor.selection.focus.path, firstSourceEdges.path)) {
-          //     selectionTop["path"] = editor.selection.focus.path;
-          //     selectionTop["offset"] = editor.selection.focus.offset;
-          //   }
-          //   if (Path.isAfter(editor.selection.anchor.path, lastSourceEdges.path)) {
-          //     selectionBottom["path"] = editor.selection.anchor.path
-          //     selectionBottom["offset"] = editor.selection.anchor.offset
-          //   }
-          // }
-          // else {
-          //   if (Path.isBefore(editor.selection.anchor.path, firstSourceEdges.path)) {
-          //     selectionTop["path"] = editor.selection.anchor.path
-          //     selectionTop["offset"] = editor.selection.anchor.offset
-          //   }
-          //   if (Path.isAfter(editor.selection.focus.path, lastSourceEdges)) {
-          //     selectionBottom["path"] = editor.selection.focus.path
-          //     selectionBottom["offset"] = editor.selection.focus.offset
-          //   }
-          // }
-          // console.log(selectionTop)
-          // console.log(selectionBottom)
-          //
-          // if (Range.isBackward(editor.selection)) {
-          //   Transforms.select(editor, {
-          //     anchor: { path: selectionBottom["path"], offset: selectionBottom["offset"]},
-          //     focus: { path: selectionTop["path"], offset: selectionTop["offset"]}
-          //   });
-          // }
-          //
-          // else {
-          //   Transforms.select(editor, {
-              // anchor: { path: selectionTop["path"], offset: selectionTop["offset"]},
-              // focus: { path: selectionBottom["path"], offset: selectionBottom["offset"]}
-          //   });
-          // }
-
+        if (currentSelection != selectedSheetSources) {
+          setCurrentSelection(selectedSheetSources)
         }
+
+
         if (currentDocument !== value) {
             setCurrentDocument(value);
         }
