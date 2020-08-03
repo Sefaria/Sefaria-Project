@@ -20,7 +20,8 @@ VERSION_IMAGE_BUCKET = "sefaria-physical-editions"
 def process_versions_sheet(incremental=False, process_images=True):
     with open("data/Versions_OCLC_BuyLinks.csv", 'r') as inputfile:
         cin = csv.DictReader(inputfile)
-        counter = 0
+        counter_urls = 0
+        counter_images = 0
         for row in cin:
             updated = False
             version_index_title = row["title"]
@@ -36,7 +37,7 @@ def process_versions_sheet(incremental=False, process_images=True):
                 if version_buy_link:
                     print("     -Adding buy url for [{}] [{}]".format(version_index_title, version_title))
                     version_obj.purchaseInformationURL = version_buy_link
-                    updated = True
+                    counter_urls +=1
                 if process_images and image_update and external_image_url:
 
                     try:
@@ -61,26 +62,25 @@ def process_versions_sheet(incremental=False, process_images=True):
                         pass
                     version_obj.purchaseInformationImage = version_image_url
                     version_obj.save(override_dependencies=True)
-                    updated = True
+                    counter_images += 1
                     print("     -scraped and uploaded version image file for [{}] [{}]".format(version_index_title, version_title))
 
                 elif image_update and external_image_url: #image was already processed and uploaded
-                    version_image_file = cache_get_key([version_index_title, version_title, version_lang])
-                    version_obj.purchaseInformationImage = GoogleStorageManager.get_url(version_image_file, VERSION_IMAGE_BUCKET)
-                    version_obj.save(override_dependencies=True)
-                    updated = True
-                    print("     -just saving image url on object for [{}] [{}]".format(version_index_title, version_title))
+                    version_image_file = "{}.png".format(cache_get_key([version_index_title, version_title, version_lang]))
+                    if GoogleStorageManager.file_exists(version_image_file, VERSION_IMAGE_BUCKET):
+                        version_obj.purchaseInformationImage = GoogleStorageManager.get_url(version_image_file, VERSION_IMAGE_BUCKET)
+                        version_obj.save(override_dependencies=True)
+                        counter_images += 1
+                        print("     -just saving image url on object for [{}] [{}]".format(version_index_title, version_title))
             else:
                 print("No version found for [{}] [{}]".format(version_index_title, version_title))
-            if updated:
-                counter += 1
 
-        print("Processed {} files".format(counter))
+        print("Processed {} images and {} urls".format(counter_images, counter_urls))
 
 if __name__ == '__main__':
 
     argparser = argparse.ArgumentParser()
-    argparser.add_argument("-l", "--incremental", action="store_true", help="Pass this flag to link the text. Requires a user id to run")
+    argparser.add_argument("-u", "--incremental", action="store_true", help="Pass this flag to link the text. Requires a user id to run")
     argparser.add_argument("-i", "--process_images", action="store_true", help="Run the tests without making any changes")
 
     arguments = argparser.parse_args()

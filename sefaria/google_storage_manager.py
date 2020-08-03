@@ -41,5 +41,11 @@ class GoogleStorageManager(object):
             blob.delete()
 
     @classmethod
+    def file_exists(cls, filename, bucket_name):
+        bucket = cls.get_bucket(bucket_name)
+        blob = bucket.blob(filename)
+        return blob.exists()
+
+    @classmethod
     def get_url(cls, filename, bucket_name):
         return "{}/{}/{}".format(cls.BASE_URL, bucket_name, filename)
