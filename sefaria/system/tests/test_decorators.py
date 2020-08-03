@@ -22,7 +22,7 @@ def call_exception():
 def raise_exception():
     raise Exception("System Error!")
 
-@pytest.mark.failing
+@pytest.mark.xfail(reason="unknown")
 def test_catch_error():
     httpr = call_user_error()
     assert getattr(httpr, "content")

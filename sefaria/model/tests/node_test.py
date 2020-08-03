@@ -92,7 +92,7 @@ class Test_Titles(object):
             j.validate()
 
     #todo: why failing?
-    @pytest.mark.failing
+    @pytest.mark.xfail(reason="unknown")
     def test_terms_and_he(self):
         s = SchemaNode()
         s.key = "root"
@@ -136,7 +136,7 @@ class Test_Titles(object):
             j.add_shared_term("BadTermName")
 
     #todo: why failing?
-    @pytest.mark.failing
+    @pytest.mark.xfail(reason="unknown")
     def test_presentation_and_default(self):
         s = SchemaNode()
         s.key = "root"
@@ -187,7 +187,7 @@ class Test_Titles(object):
         assert td == target
 
     #todo: why failing?
-    @pytest.mark.failing
+    @pytest.mark.xfail(reason="unknown")
     def test_grandchild_presentation(self):
         s = SchemaNode()
         s.key = "root"
