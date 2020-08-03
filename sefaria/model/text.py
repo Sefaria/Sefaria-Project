@@ -4288,8 +4288,11 @@ class Ref(object, metaclass=RefCacheType):
         :param list(Ref): document_tref_expanded. unique list of trefs that results from running Ref.expand_refs(document_tref_list)
         Returns tuple(list(Ref), list(list(Ref))). returns two lists. First are the anchor_refs for self. The second is a 2D list, where the inner list represents the expanded anchor refs for the corresponding position in anchor_ref_list
         """
+
+        # narrow down search space to avoid excissive Ref instantiation
         unique_anchor_ref_expanded_set = set(expanded_self) & set(document_tref_expanded)
         document_tref_list = [tref for tref in document_tref_list if tref.startswith(self.index.title)]
+        
         unique_anchor_ref_expanded_list = []
         for tref in unique_anchor_ref_expanded_set:
             try:
