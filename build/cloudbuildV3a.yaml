@@ -19,7 +19,6 @@ options:
   machineType: N1_HIGHCPU_8
 
 steps:
-  # Clone k8s-admin -- get the `lorenzo/deploy-python3' branch
   - name: "gcr.io/cloud-builders/git"
     args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', '${_K8S_ADMIN_BRANCH}', '--single-branch']
     id: k8s-admin_clone
@@ -31,19 +30,19 @@ steps:
   # TODO: Use the Kaniko builder to take advantage of shared build caches across builds
   # TODO: Use SHORT_SHA for image tags after a trigger for sandboxes is created (That variable is only available for triggered builds)
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA", "-f", "build/web/Dockerfile", "."]
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA", "-t", "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$TAG_NAME", "-f", "build/web/Dockerfile", "."]
     #dir: Sefaria-Project
     id: web_container
     wait_for: [ "-" ]  
 
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA", "-f", "build/node/Dockerfile", "."]
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA", "-t", "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$TAG_NAME", "-f", "build/node/Dockerfile", "."]
     # dir: Sefaria-Project
     id: nodejs_container
     wait_for: [ "-" ]
 
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA", "."]
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA", "-t", "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$TAG_NAME", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA", "."]
     # dir: Sefaria-Project
     id: nginx_container
     wait_for:
@@ -128,4 +127,8 @@ images:
   - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA"
   - "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA"
   - "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA"
+
+  - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$TAG_NAME"
+  - "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$TAG_NAME"
+  - "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$TAG_NAME"
 ...
