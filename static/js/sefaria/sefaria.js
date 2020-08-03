@@ -789,7 +789,7 @@ Sefaria = extend(Sefaria, {
     if (words.length <= 0) { return Promise.resolve([]); }
 
     const key = ref ? words + "|" + ref : words;
-    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?never_split=1" + (ref?("&lookup_ref="+ref):"");
+    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?always_consonants=1&never_split=1" + (ref?("&lookup_ref="+ref):"");
     return this._cachedApiPromise({url, key, store: this._lexiconLookups});
   },
   _links: {},
