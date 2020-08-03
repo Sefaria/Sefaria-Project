@@ -3736,6 +3736,17 @@ class Ref(object, metaclass=RefCacheType):
         ref_clauses = [{"refs": {"$regex": r}} for r in reg_list]
         return {"$or": ref_clauses}
 
+    def get_padded_sections(self, section_end=None):
+        """
+        pad sections and toSections to index_node.depth.
+        In the case of toSections, pad with section_end, a placeholder for the end of the section
+        """
+        sections, toSections = self.sections[:], self.toSections[:]
+        for _ in range(self.index_node.depth - len(sections)):
+            sections += [1]
+        for _ in range(self.index_node.depth - len(toSections)):
+            toSections += [section_end]
+        return sections, toSections
 
     """ Comparisons """
     def contains(self, other):
@@ -3760,24 +3771,11 @@ class Ref(object, metaclass=RefCacheType):
             return self.index_node.is_ancestor_of(other.index_node)
         
         SECTION_END = None
-        def get_padded_sections(ref):
-            # pad sections and toSections to index_node.depth. In the case of toSections, pad with SECTION_END, a placeholder for the end of the section
-            sections, toSections = ref.sections[:], ref.toSections[:]
-            for _ in range(ref.index_node.depth - len(sections)):
-                sections += [1]
-            for _ in range(ref.index_node.depth - len(toSections)):
-                toSections += [None]
-            return sections, toSections
-        
-        me_start, me_end = get_padded_sections(self)
-        you_start, you_end = get_padded_sections(other)
-        ambiguous_end = False
-        for temp_you_end, temp_me_end in zip(you_end, me_end):
-            if temp_you_end is SECTION_END and temp_me_end is not SECTION_END:
-                ambiguous_end = True
-                break
+        me_start, me_end = self.get_padded_sections(SECTION_END)
+        you_start, you_end = other.get_padded_sections(SECTION_END)
+
+        ambiguous_end = any(temp_you_end is SECTION_END and temp_me_end is not SECTION_END for temp_you_end, temp_me_end in zip(you_end, me_end))
         if ambiguous_end:
-            logger.warning(f"Using LONG version of overlaps. Input: {self.normal()} {other.normal()}")
             # We can't know where the exact end of the toSection is without pulling up the refs
             me = self.as_ranged_segment_ref()
             you = other.as_ranged_segment_ref()
