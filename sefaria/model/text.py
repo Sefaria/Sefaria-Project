@@ -3750,6 +3750,7 @@ class Ref(object, metaclass=RefCacheType):
     def contains(self, other):
         """
         Does this Ref completely contain ``other`` Ref?
+        See NOTE in Ref.overlaps for conditions when this function runs optimally
 
         :param other:
         :return bool:
@@ -3759,6 +3760,11 @@ class Ref(object, metaclass=RefCacheType):
     def overlaps(self, other, strictly_contains=False):
         """
         Does this Ref overlap ``other`` Ref?
+        NOTE: Can run without database lookups as long as either
+        - other is segment level
+        - self is defined to the same section depth as other (e.g. both are section-level)
+
+        Otherwise, will need to use `Ref.as_ranged_segment_ref()` to accurately determine if there's an overlap
 
         :param other: Ref
         :param strictly_contains: bool. If true, checks that self fully contains other
@@ -4292,7 +4298,7 @@ class Ref(object, metaclass=RefCacheType):
         # narrow down search space to avoid excissive Ref instantiation
         unique_anchor_ref_expanded_set = set(expanded_self) & set(document_tref_expanded)
         document_tref_list = [tref for tref in document_tref_list if tref.startswith(self.index.title)]
-        
+
         unique_anchor_ref_expanded_list = []
         for tref in unique_anchor_ref_expanded_set:
             try:
