@@ -346,7 +346,7 @@ class Test_Ref(object):
             first = ref.first_spanned_ref()
             assert first == ref.split_spanning_ref()[0]
 
-    @pytest.mark.failing
+    @pytest.mark.xfail(reason="cause")
     def test_split_spanning_ref_expanded(self):
         assert Ref("Leviticus 15:3 - 17:12").split_spanning_ref() == [Ref('Leviticus 15:3-33'), Ref('Leviticus 16:1-34'), Ref('Leviticus 17:1-12')]
 
@@ -806,7 +806,7 @@ class Test_Talmud_at_Second_Place(object):
         assert Ref("Zohar, Lech Lecha")
         assert Ref("Zohar, Bo")
 
-    @pytest.mark.failing
+    @pytest.mark.xfail(reason="unknown")
     def test_range_short_form(self):
         assert Ref("Zohar 2.15a - 15b").sections[1] == 29
         assert Ref("Zohar 2.15a - 15b").toSections[1] == 30
