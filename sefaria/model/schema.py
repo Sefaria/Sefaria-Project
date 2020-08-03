@@ -953,10 +953,9 @@ class NumberedTitledTreeNode(TitledTreeNode):
             if anchored:
                 reg = r"^"
             elif parentheses:
-                reg = rf"{prefixes_wraper}[(\[](?:[^)\]]*?\s)?(?:{prefixes})?)"
-                # reg = rf"(?<=[(\[](?:[^)\]]*?\s)?(?:{prefixes})?)"
+                reg = rf"(?<=[(\[](?:[^)\]]*?\s)?(?:{prefixes})?)"
             else:
-                reg = r"{}(?:^|\s|\(|\[)(?:{})?)".format(prefixes_wraper, prefixes)
+                reg = rf"(?<=(?:^|\s|\(|\[)(?:{prefixes})?)"
             title_block = regex.escape(title) if escape_titles else title
             reg += r"(?P<title>" + title_block + r")" if capture_title else title_block
             reg += self.after_title_delimiter_re
