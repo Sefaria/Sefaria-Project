@@ -20,6 +20,7 @@ RUN mkdir -p /app/log && mkdir -p /app/sefaria && mkdir -p /log && touch /app/de
 
 RUN apt-get update && apt-get install --yes npm varnish && apt-get clean  &&  apt-get install --yes gettext
 RUN pip3 install --no-cache-dir -r /app/requirements.txt
+RUN npm cache clean -f  && npm install -g n && n stable && export PATH="$PATH"
 RUN npm install && npm run build-prod
 RUN python manage.py collectstatic
 RUN python manage.py makemessages
