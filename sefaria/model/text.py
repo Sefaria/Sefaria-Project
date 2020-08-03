@@ -2753,7 +2753,13 @@ class Ref(object, metaclass=RefCacheType):
 
     def all_segment_refs(self):
         supported_classes = (JaggedArrayNode, DictionaryEntryNode, SheetNode)
-        assert isinstance(self.index_node, supported_classes)
+        assert self.index_node is not None
+        if not isinstance(self.index_node, supported_classes):
+            # search for default node child
+            for child in self.index_node.children:
+                if child.is_default():
+                    return child.ref().all_segment_refs()
+            assert isinstance(self.index_node, supported_classes)
 
         if self.is_range():
             input_refs = self.range_list()
@@ -3728,21 +3734,19 @@ class Ref(object, metaclass=RefCacheType):
         ref_clauses = [{"refs": {"$regex": r}} for r in reg_list]
         return {"$or": ref_clauses}
 
+    def get_padded_sections(self, section_end=None):
+        """
+        pad sections and toSections to index_node.depth.
+        In the case of toSections, pad with section_end, a placeholder for the end of the section
+        """
+        sections, toSections = self.sections[:], self.toSections[:]
+        for _ in range(self.index_node.depth - len(sections)):
+            sections += [1]
+        for _ in range(self.index_node.depth - len(toSections)):
+            toSections += [section_end]
+        return sections, toSections
 
     """ Comparisons """
-    def overlaps(self, other):
-        """
-        Does this Ref overlap ``other`` Ref?
-
-        :param other:
-        :return bool:
-        """
-        assert isinstance(other, Ref)
-        if not self.index_node == other.index_node:
-            return False
-
-        return not (self.precedes(other) or self.follows(other))
-
     def contains(self, other):
         """
         Does this Ref completely contain ``other`` Ref?
@@ -3750,18 +3754,52 @@ class Ref(object, metaclass=RefCacheType):
         :param other:
         :return bool:
         """
+        return self.overlaps(other, strictly_contains=True)
+
+    def overlaps(self, other, strictly_contains=False):
+        """
+        Does this Ref overlap ``other`` Ref?
+
+        :param other: Ref
+        :param strictly_contains: bool. If true, checks that self fully contains other
+        :return bool:
+        """
         assert isinstance(other, Ref)
         if not self.index_node == other.index_node:
             return self.index_node.is_ancestor_of(other.index_node)
+        
+        SECTION_END = None
+        me_start, me_end = self.get_padded_sections(SECTION_END)
+        you_start, you_end = other.get_padded_sections(SECTION_END)
 
-        me = self.as_ranged_segment_ref()
-        you = other.as_ranged_segment_ref()
-
-        return (
-            (not me.starting_ref().follows(you.starting_ref()))
-            and
-            (not me.ending_ref().precedes(you.ending_ref()))
-        )
+        ambiguous_end = any(temp_you_end is SECTION_END and temp_me_end is not SECTION_END for temp_you_end, temp_me_end in zip(you_end, me_end))
+        if ambiguous_end:
+            # We can't know where the exact end of the toSection is without pulling up the refs
+            me = self.as_ranged_segment_ref()
+            you = other.as_ranged_segment_ref()
+            if strictly_contains:
+                return not (you.starting_ref().precedes(me.starting_ref()) or you.ending_ref().follows(me.ending_ref()))
+            return not (you.ending_ref().precedes(me.starting_ref()) or you.starting_ref().follows(me.ending_ref()))
+        
+        # Otherwise, we can optimize and simply compare sections and toSections mathematically
+        before_me_start, after_me_end = False, False
+        for me_section, you_section in zip(me_start, you_start if strictly_contains else you_end):
+            if you_section is SECTION_END or me_section < you_section:
+                # already contained from this section and on
+                before_me_start = False
+                break
+            if you_section < me_section:
+                before_me_start = True
+                break
+        for me_toSection, you_toSection in zip(me_end, you_end if strictly_contains else you_start):
+            if me_toSection is SECTION_END or me_toSection > you_toSection:
+                # already contained from this section and on
+                after_me_end = False
+                break
+            if you_toSection > me_toSection:
+                after_me_end = True
+                break
+        return not (before_me_start or after_me_end)
 
     def precedes(self, other):
         """
@@ -4241,6 +4279,53 @@ class Ref(object, metaclass=RefCacheType):
             return -1
         else:
             return distance
+
+    def get_all_anchor_refs(self, expanded_self, document_tref_list, document_ref_expanded):
+        """
+        Return all refs in document_ref_list that overlap with self. These are your anchor_refs. Useful for related API.
+        :param list(Ref): document_ref_list. list of Refs to check for overlaps with
+        :param list(Ref): document_ref_expanded. unique list of refs that results from running Ref.expand_refs(document_ref_list)
+        Returns tuple(list(Ref), list(Ref)). returns two lists. First are the anchor_refs for self. The second are the expanded refs corresponding to each anchor_ref
+        """
+        unique_anchor_ref_expanded_set = set(expanded_self) & set(document_ref_expanded)
+        document_tref_list = [tref for tref in document_tref_list if tref.startswith(self.index.title)]
+        unique_anchor_ref_expanded_list = []
+        for tref in unique_anchor_ref_expanded_set:
+            try:
+                oref = Ref(tref)
+                unique_anchor_ref_expanded_list += [oref]
+            except InputError:
+                continue
+        document_oref_list = []
+        for tref in document_tref_list:
+            try:
+                oref = Ref(tref)
+                document_oref_list += [oref]
+            except InputError:
+                continue
+        anchor_ref_list = list(filter(lambda document_ref: self.overlaps(document_ref), document_oref_list))
+        anchor_ref_expanded_list = [list(filter(lambda document_segment_ref: anchor_ref.overlaps(document_segment_ref), unique_anchor_ref_expanded_list)) for anchor_ref in anchor_ref_list]
+        return anchor_ref_list, anchor_ref_expanded_list
+
+    @staticmethod
+    def expand_refs(refs):
+        """
+        Expands `refs` into list of unique segment refs. Usually used to preprocess database objects that reference refs
+        :param refs: list of trefs to expand
+        :return: list(trefs). unique segment refs derived from `refs`
+        """
+
+        expanded_set = set()
+        for tref in refs:
+            try:
+                oref = Ref(tref)
+            except InputError:
+                continue
+            try:
+                expanded_set |= {r.normal() for r in oref.all_segment_refs()}
+            except AssertionError:
+                continue
+        return list(expanded_set)
 
 
 class Library(object):
@@ -5329,6 +5414,7 @@ def process_index_title_change_in_sheets(indx, **kwargs):
     sheets = db.sheets.find(query)
     for sheet in sheets:
         sheet["includedRefs"] = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), r) else r for r in sheet.get("includedRefs", [])]
+        sheet["expandedRefs"] = Ref.expand_refs(sheet["includedRefs"])
         for source in sheet.get("sources", []):
             if "ref" in source:
                 source["ref"] = source["ref"].replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), source["ref"]) else source["ref"]
