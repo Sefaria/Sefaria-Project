@@ -177,7 +177,7 @@ class WebPageSet(abst.AbstractMongoSet):
 def get_webpages_for_ref(tref):
     oref = text.Ref(tref)
     segment_refs = [r.normal() for r in oref.all_segment_refs()]
-    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}})
+    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}}, hint="expandedRefs_1")
     client_results = []
     for webpage in results:
         if not webpage.whitelisted:
