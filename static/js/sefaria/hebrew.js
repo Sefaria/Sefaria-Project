@@ -141,7 +141,7 @@ class Hebrew {
   static intToFolio(i) {
     i += 1;
     const daf = Math.ceil(i/4);
-    const mod = i%2;
+    const mod = i%4;
     return daf + (mod === 1 ? "a" : mod === 2 ? "b" : mod === 3 ? "c" : "d");
   }
   static dafToInt(daf) {
