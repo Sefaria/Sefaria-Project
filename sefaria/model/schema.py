@@ -1060,7 +1060,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
                 d["depth"] += 1
                 d["offset"] = offset
             elif getattr(self, "startingAddress", False):
-                d["offset"] = self.address_class(0).toIndex("en", self.startingAddress) - 1
+                d["offset"] = self.address_class(0).toIndex("en", self.startingAddress)
             if (kwargs.get("include_previews", False)):
                 d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
                 if d.get("refs"):
