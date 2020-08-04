@@ -1035,7 +1035,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
     (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
     required_param_keys = ["depth", "wholeRef"]
-    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
+    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
     has_key = False  # This is not used as schema for content
 
     def get_ref_from_sections(self, sections):
@@ -1046,7 +1046,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
     def serialize(self, **kwargs):
         d = super(ArrayMapNode, self).serialize(**kwargs)
         if kwargs.get("expand_refs"):
-            if getattr(self, "includeSections", None):
+            if getattr(self, "includeSections", False):
                 # We assume that with "includeSections", we're going from depth 0 to depth 1, and expanding "wholeRef"
                 from . import text
 
@@ -1059,7 +1059,8 @@ class ArrayMapNode(NumberedTitledTreeNode):
                 d["sectionNames"] = first.index_node.sectionNames[-2:-1]
                 d["depth"] += 1
                 d["offset"] = offset
-
+            elif getattr(self, "startingAddress", False):
+                d["offset"] = self.address_class(0).toIndex("en", self.startingAddress) - 1
             if (kwargs.get("include_previews", False)):
                 d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
                 if d.get("refs"):
@@ -2064,6 +2065,121 @@ class AddressTalmud(AddressType):
 
     def storage_offset(self):
         return 2
+
+
+class AddressFolio(AddressType):
+    """
+    :class:`AddressType` for Folio style #[abcd] addresses
+    """
+    section_patterns = {
+        "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
+        "he": r"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3'\"״]\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
+    }
+
+    def _core_regex(self, lang, group_id=None):
+        if group_id:
+            reg = r"(?P<" + group_id + r">"
+        else:
+            reg = r"("
+
+        if lang == "en":
+            reg += r"\d+[abcdᵃᵇᶜᵈ]?)"
+        elif lang == "he":
+            # todo: How do these references look in Hebrew?
+            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
+
+        return reg
+
+    def stop_parsing(self, lang):
+        if lang == "he":
+            return True
+        return False
+
+    def toNumber(self, lang, s):
+        if lang == "en":
+            try:
+                if s[-1] in ["a", "b", "c", "d", 'ᵃ', 'ᵇ', 'ᶜ', 'ᵈ']:
+                    amud = s[-1]
+                    daf = int(s[:-1])
+                else:
+                    amud = "a"
+                    daf = int(s)
+            except ValueError:
+                raise InputError("Couldn't parse Talmud reference: {}".format(s))
+
+            if self.length and daf > self.length:
+                #todo: Catch this above and put the book name on it.  Proably change Exception type.
+                raise InputError("{} exceeds max of {} dafs.".format(daf, self.length))
+
+            indx = daf * 4
+            if amud == "a" or amud == "ᵃ":
+                indx -= 3
+            if amud == "b" or amud == "ᵇ":
+                indx -= 2
+            if amud == "c" or amud == "ᶜ":
+                indx -= 1
+            return indx
+        elif lang == "he":
+            # todo: This needs work
+            num = re.split("[.:,\s]", s)[0]
+            daf = decode_hebrew_numeral(num) * 2
+            if s[-1] == ":" or (
+                    s[-1] == "\u05d1"    #bet
+                        and
+                    ((len(s) > 2 and s[-2] in ", ")  # simple bet
+                     or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"bet
+                     or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''bet
+                    )
+            ):
+                return daf  # amud B
+            return daf - 1
+
+            #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
+
+    @classmethod
+    def toStr(cls, lang, i, **kwargs):
+        """
+
+        1 => 1a
+        2 => 1b
+        3 => 1c
+        4 => 1d
+        5 => 2a
+        6 => 2b
+        etc.
+
+        (i // 4) + 1
+        """
+        daf_num = ((i - 1) // 4) + 1
+        mod = i % 4
+        folio = "a" if mod == 1 else "b" if mod == 2 else "c" if mod == 3 else "d"
+        daf = str(daf_num) + folio
+
+        # todo
+        if lang == "he":
+            dotted = kwargs.get("dotted")
+            if dotted:
+                daf = encode_hebrew_daf(daf)
+            else:
+                punctuation = kwargs.get("punctuation", True)
+                if i > daf_num * 2:
+                    daf = ("%s " % sanitize(encode_small_hebrew_numeral(daf_num), punctuation) if daf_num < 1200 else encode_hebrew_numeral(daf_num, punctuation=punctuation)) + "\u05d1"
+                else:
+                    daf = ("%s " % sanitize(encode_small_hebrew_numeral(daf_num), punctuation) if daf_num < 1200 else encode_hebrew_numeral(daf_num, punctuation=punctuation)) + "\u05d0"
+
+        return daf
+
+    def format_count(self, name, number):
+        if name == "Daf":
+            return {
+                "Amud": number,
+                "Daf": number / 2
+            }
+        else:  #shouldn't get here
+            return {name: number}
+
+    def storage_offset(self):
+        return 0
 
 
 class AddressInteger(AddressType):
