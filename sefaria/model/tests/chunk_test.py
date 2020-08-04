@@ -186,7 +186,7 @@ def test_family_chapter_result_no_merge():
 
 # Yoma.1 is no longer merged.
 # todo: find a merged text to test with
-@pytest.mark.failing
+@pytest.mark.xfail(reason="unknown")
 def test_chapter_result_merge():
     v = TextFamily(Ref("Mishnah_Yoma.1"))
 
