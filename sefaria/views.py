@@ -57,7 +57,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 
 
 if USE_VARNISH:
-    from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
+    from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
 
 import logging
 logger = logging.getLogger(__name__)
@@ -427,6 +427,9 @@ def reset_cache(request):
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "rebuild")
+
+    if USE_VARNISH:
+        invalidate_all()
 
     return HttpResponseRedirect("/?m=Cache-Reset")
 
