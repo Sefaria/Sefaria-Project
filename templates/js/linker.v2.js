@@ -104,7 +104,7 @@
                 'font-family: "Crimson Text";' +
             '}' +
             '.he {' +
-                'font-family: "Taamey Frank";' +
+                'font-family: "Frank Ruhl Libre";' +
             '}' +
             '.content-hebrew .sefaria-text .en {' +
                 'display: none;' +
@@ -457,7 +457,8 @@
                         return;
                     }
                     var source = ns.sources[e.getAttribute('data-ref')];
-                    e.setAttribute('href', base_url + source.url + "?lang=" + (source.lang == "en"?"he-en":"he")+"&utm_source=sef_linker");
+                    var utm_source = window.location.hostname ? window.location.hostname.replace(/^www\./, "") : "(not%20set)";
+                    e.setAttribute('href', base_url + source.url + "?lang=" + (source.lang == "en"?"he-en":"he") + "&utm_source=" + utm_source + "&utm_medium=sefaria_linker");
                     if (mode == "popup-hover") {
                         e.addEventListener('mouseover', function(event) {
                             showPopup(this, mode);
