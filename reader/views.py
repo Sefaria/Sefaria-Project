@@ -2227,7 +2227,10 @@ def calendars_api(request):
             return jsonResponse({"error": "'Diaspora' parameter must be 1 or 0."})
         else:
             diaspora = True if diaspora == "1" else False
-            calendars = get_all_calendar_items(datetimeobj, diaspora=diaspora, custom=custom)
+            format_func = get_all_calendar_items
+            if request.GET.get("responseFormat", None) == "keyed": #allow user to request response in a dict format keyed by the type of calendar item instead of array
+                format_func = get_keyed_calendar_items
+            calendars = format_func(datetimeobj, diaspora=diaspora, custom=custom)
             return jsonResponse({"date": datetimeobj.date().isoformat(),
                                  "timezone" : zone_name,
                                  "calendar_items": calendars},
@@ -3555,7 +3558,7 @@ def home(request):
     if (recent or last_place or request.user.is_authenticated) and "home" not in request.GET:
         return redirect("/texts")
 
-    calendar_items = get_keyed_calendar_items(request.diaspora)
+    calendar_items = get_keyed_calendar_items(diaspora=request.diaspora)
     daf_today = calendar_items["Daf Yomi"]
     parasha   = calendar_items["Parashat Hashavua"]
     metrics   = db.metrics.find().sort("timestamp", -1).limit(1)[0]
