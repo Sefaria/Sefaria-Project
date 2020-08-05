@@ -460,9 +460,6 @@ input.noselect {
   font-size: 16px;
   margin-top: 2px;
   color: #666;
-  -webkit-margin-end: 20px;
-  -moz-margin-end: 20px;
-  margin-inline-end: 20px;
 }
 .header .accountLinks.anon a:last-child{
   background: #FFFFFF;
@@ -477,6 +474,9 @@ input.noselect {
   color: #666;
   cursor: pointer;
   position: relative;
+  -webkit-margin-start: 20px;
+  -moz-margin-start: 20px;
+  margin-inline-start: 20px;
 }
 .header .interfaceLinks img{
   height: 18px;
