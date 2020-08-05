@@ -24,6 +24,7 @@ class WebPage(abst.AbstractMongoRecord):
     ]
     optional_attrs = [
         "description",
+        "expandedRefs",
         "body",
     ]
 
@@ -47,6 +48,7 @@ class WebPage(abst.AbstractMongoRecord):
         self.url = WebPage.normalize_url(self.url)
         self.refs = [text.Ref(ref).normal() for ref in self.refs if text.Ref.is_ref(ref)]
         self.refs = list(set(self.refs))
+        self.expandedRefs = text.Ref.expand_refs(self.refs)
 
     def _validate(self):
         super(WebPage, self)._validate()
@@ -174,19 +176,17 @@ class WebPageSet(abst.AbstractMongoSet):
 
 def get_webpages_for_ref(tref):
     oref = text.Ref(tref)
-    regex_list = oref.regex(as_list=True)
-    ref_clauses = [{"refs": {"$regex": r}} for r in regex_list]
-    query = {"$or": ref_clauses }
-    results = WebPageSet(query=query)
+    segment_refs = [r.normal() for r in oref.all_segment_refs()]
+    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}}, hint="expandedRefs_1")
     client_results = []
-    ref_re = "("+'|'.join(regex_list)+")"
     for webpage in results:
         if not webpage.whitelisted:
             continue
-        matched_refs = [r for r in webpage.refs if re.match(ref_re, r)]
-        for ref in matched_refs:
+        anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, webpage.refs, webpage.expandedRefs)
+        for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
             webpage_contents = webpage.client_contents()
-            webpage_contents["anchorRef"] = ref
+            webpage_contents["anchorRef"] = anchor_ref.normal()
+            webpage_contents["anchorRefExpanded"] = [r.normal() for r in anchor_ref_expanded]
             client_results.append(webpage_contents)
 
     return client_results
@@ -226,6 +226,7 @@ def dedupe_webpages(test=True):
                     if normpage.lastUpdated < webpage.lastUpdated:
                         normpage.lastUpdated = webpage.lastUpdated
                         normpage.refs = webpage.refs
+                        normpage.expandedRefs = text.Ref.expand_refs(webpage.refs)
                     normpage.save()
                     webpage.delete()
 
@@ -277,10 +278,12 @@ def dedupe_identical_urls(test=True):
                 print(page.contents())
             merged_page_data["linkerHits"] += page.linkerHits
             if merged_page_data["lastUpdated"] < page.lastUpdated:
-                merged_page_data["refs"]  = page.refs
-                merged_page_data["title"] = page.title
-                merged_page_data["description"]  = page.description
-
+                merged_page_data.update({
+                    "ref": page.refs,
+                    "expandedRefs": text.Ref.expand_refs(page.refs),
+                    "title": page.title,
+                    "description": page.description
+                })
         removed_count += (pages.count() - 1)
 
         merged_page = WebPage(merged_page_data)

@@ -20,7 +20,7 @@ Style Guide Font Hierarchy
 https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
 
 font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 
 font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -3868,7 +3868,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: inherit;
 }
 .sheetContent .segment a {
-    color: #000;
+    color: #4B71B7;
 }
 .sheetContent .segment .sourceContentText a {
     text-decoration: underline;
@@ -3943,10 +3943,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   -khtml-user-select: none;
   -webkit-user-select: none;
   -o-user-select: none;
+  user-select: none;
 }
 .segmentNumber .segmentNumberInner,
 .linkCount .linkCountDot {
   display: inline-block;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -o-user-select: none;
+  user-select: none;
 }
 .bilingual .segmentNumber .segmentNumberInner,
 .bilingual .linkCount .linkCountDot,
@@ -4311,22 +4317,26 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList.fullPanel .recentFilterSet {
   margin: 0 0 12px 0;
 }
-.textList.fullPanel .recentFilterSet .textFilter {
+.textList.fullPanel .recentFilterSet .textFilter, .connectionsPanelHeader .recentFilterSet.topFilters .textFilter{
   display: inline-block;
-  padding: 6px 14px;
-  margin: 5px;
-  border-radius: 12px;
-  border: 1px solid #DADADA;
+  padding: 0;
+  margin: 6px 14px;
   background-color: transparent;
+  color: #999999;
+  border-bottom: 4px solid #cccccc;
+  margin-inline-start: 0;
 }
-.english .textList.fullPanel .recentFilterSet .textFilter {
-  margin-left: 0;
+.connectionsPanelHeader .recentFilterSet.topFilters .textFilter{
+  margin: 18px;
+  margin-inline-end: 14px;
+  margin-inline-start: 0;
 }
-.hebrew .textList.fullPanel .recentFilterSet .textFilter {
-  margin-right: 0;
+.textList.fullPanel .recentFilterSet .textFilter.on, .connectionsPanelHeader .recentFilterSet.topFilters .textFilter.on {
+  color: #000000;
+  border-bottom-color: var(--category-color);
 }
-.textList.fullPanel .recentFilterSet .textFilter.on {
-  background-color: white;
+.recentFilterSet.filterSet .textFilter, .recentFilterSet.filterSet .textFilter span{
+  font-family: "HebrewInEnglish Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .topFiltersInner {
   display: inline-block;
@@ -4355,7 +4365,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 19px 34px;
   font-size: 18px;
   line-height: 1.2;
-  border-top: 1px solid #E5E5E5;
   display: block;
   cursor: pointer;
   color: #333;
@@ -4394,6 +4403,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .categoryFilterGroup.withBooks + .categoryFilterGroup {
   margin-top: 30px;
+}
+.categoryFilterGroup .textFilter {
+    border-top: 1px solid #E5E5E5;
 }
 .categoryFilter.on, .textFilter.on {
   color: black;
@@ -4486,10 +4498,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textList .texts .textRange {
   font-size: 1.8em;
-  padding: 16px 0;
-  margin: 12px 0;
-  cursor: pointer;
+  padding-top: 16px;
+  margin-top: 12px;
   position: relative;
+  cursor: text;
+}
+.textList .texts .textRange .segment{
+  cursor: text;
 }
 .textListTextRangeBox {
   border-bottom: 1px solid #eee;
@@ -4751,28 +4766,60 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textListTextRangeBox {
   position: relative;
 }
-.textListTextRangeBox:hover .editorLinkOptions {
-  display: block;
+.textListTextRangeBox .textRange{
+  margin-bottom: 0;
+  padding-bottom: 0;
 }
-.editorLinkOptions {
-  display: none;
+.textListTextRangeBox .connection-buttons{
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  align-content: flex-start;
+}
+.textListTextRangeBox .connection-buttons.access-user .connection-button.delete-link{
+  display:none;
+}
+.textListTextRangeBox .connection-buttons .connection-button{
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 15px;
+  color: #999999;
+  margin-inline-end: 15px;
+  text-decoration: none;
   cursor: pointer;
-  font-size: 14px;
-  color: #999;
-  letter-spacing: 1px;
-  margin: -20px 0 10px;
 }
-.interface-hebrew .editorLinkOptions {
-  left: auto;
-  right: 0;
+.singlePanel .textListTextRangeBox .connection-buttons .connection-button{
+  text-align: start;
+  margin-inline-end: 5px;
 }
-.editorLinkOptions > div:hover {
-  text-decoration: underline;
+.textListTextRangeBox .connection-buttons .connection-button .int-en{
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.textListTextRangeBox .connection-buttons .connection-button .int-he{
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toolsMessage {
   margin: 130px 0;
   text-align: center;
   font-size: 18px;
+}
+.textListTextRangeBox .connection-buttons .connection-button::before{
+  line-height: 25px;
+  color: #999999;
+  vertical-align: middle;
+  opacity: 0.4;
+  transform: scale(0.55);
+  display: inline-block;
+}
+.textListTextRangeBox .connection-buttons .panel-open-link::before{
+  content: url("/static/icons/open-panel.svg");
+}
+.textListTextRangeBox .connection-buttons .delete-link::before{
+  content: url("/static/icons/remove-connection.svg");
+}
+.textListTextRangeBox .connection-buttons .add-to-sheet-link::before{
+  content: url("/static/icons/add-to-sheet.svg");
 }
 .toolsButton {
   display: flex;
@@ -4947,12 +4994,27 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .confirmAddToSheet {
   text-align: center;
   background-color: #FBFBFA;
+  margin-bottom: 10px;
 }
-.confirmAddToSheet .message {
+.confirmAddToSheet .message{
+  text-align: start;
+}
+.confirmAddToSheet.addToSourceSheetBox .message span{
+  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  font-style: normal;
+  font-weight: normal;
   font-size: 18px;
-  margin-bottom: 30px;
-  font-style: italic;
+  line-height: 25px;
+  text-decoration-line: none;
+  color: #666666;
 }
+
+.confirmAddToSheet.addToSourceSheetBox .message span a{
+  text-decoration: underline;
+  color: #666666;
+}
+
+
 .confirmAddToSheet .button {
   width: 100%;
 }
@@ -5348,7 +5410,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 0.1em;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
-  line-height: 1;
+  line-height: 19px;
   text-align: center;
 }
 a.button {
@@ -6279,8 +6341,65 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-bottom: 10px;
   cursor: pointer;
 }
+.addToSourceSheetBox .dropdownMain.noselect{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  align-content: flex-start;
+}
+.addToSourceSheetBox .dropdownMain.noselect::before{
+  content: url("/static/img/sheet.svg");
+  opacity: 0.4;
+  display: inline-block;
+  margin-inline-end: 10px;
+  transform: scale(0.8);
+  vertical-align: text-bottom;
+  line-height: 10px;
+}
+.addToSourceSheetBox .dropdownMain.noselect::after{
+  content: url("/static/icons/chevron.svg");
+  margin-inline-start: auto;
+  align-self: end;
+  opacity: 0.4;
+  height: 24px;
+  transform: scale(0.6) rotate(90deg);
+  transform-origin: center center;
+}
+.addToSourceSheetBox .dropdownMain.noselect.open::after{
+  transform: scale(0.6) rotate(-90deg);
+  transform-origin: center center;
+}
 .addToSourceSheetBox .dropdownMain .loadingMessage {
   margin: 0;
+}
+.addToSourceSheetBoxTitle{
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 15px;
+  color: #999999;
+  margin-bottom: 11px;
+}
+.addToSourceSheetBox .selectedRef{
+  padding: 16px 22px;
+  font-size: 16px;
+  margin-bottom: 15px;
+  cursor: pointer;
+  background: #FBFBFA;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+}
+.addToSourceSheetBox .selectedRef span{
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 18px;
+  line-height: 25px;
+  color: #666666;
+}
+.readerPanel.hebrew .addToSourceSheetBox .selectedRef span{
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  font-size: 1.2em;
 }
 .dropdown .dropdownOpenButton {
   float: right;
@@ -6321,12 +6440,20 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .dropdown .dropdownList .dropdownOption {
   font-size: 18px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   cursor: pointer;
   padding: 0 22px;
   margin: 26px 0;
   border: none;
   color: #666;
+}
+.addToSourceSheetBox .dropdown .dropdownList .dropdownOption::before{
+  content: url("/static/img/sheet.svg");
+  opacity: 0.4;
+  display: inline-block;
+  margin-inline-end: 10px;
+  transform: scale(0.8);
+  vertical-align: text-bottom;
+  line-height: 10px;
 }
 .dropdown .dropdownList .dropdownOption.selected {
   color: #333;
@@ -6941,12 +7068,12 @@ span.purim-emoji img{
   background-color: #212E50;
   border-top: 1px solid #ccc;
   bottom: 0;
-  left: 0;
   box-sizing: border-box;
   width: 100%;
   padding: 10px 0;
   line-height: 1.1;
   text-align: center;
+  unicode-bidi: plaintext;
 }
 .cookiesNotification a {
   text-decoration: underline;

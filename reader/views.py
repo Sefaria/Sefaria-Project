@@ -203,7 +203,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "WebPages", "extended notes", "Topics"):
+            if filter[0] in ("Sheets", "Notes", "About", "Translations", "Translation Open", "WebPages", "extended notes", "Topics"):
                 panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
@@ -970,9 +970,9 @@ def _crumb(pos, id, name):
     return {
         "@type": "ListItem",
         "position": pos,
+        "name": name,
         "item": {
             "@id": id,
-            "name": name
         }}
 
 
@@ -1725,16 +1725,6 @@ def links_api(request, link_id_or_ref=None):
     Currently also handles post notes.
     #TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
     """
-    if request.method == "GET":
-        callback=request.GET.get("callback", None)
-        if link_id_or_ref is None:
-            return jsonResponse({"error": "Missing text identifier"}, callback)
-        #The Ref instanciation is just to validate the Ref and let an error bubble up.
-        #TODO is there are better way to validate the ref from GET params?
-        model.Ref(link_id_or_ref)
-        with_text = int(request.GET.get("with_text", 1))
-        with_sheet_links = int(request.GET.get("with_sheet_links", 0))
-        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
     def _internal_do_post(request, link, uid, **kwargs):
         func = tracker.update if "_id" in link else tracker.add
@@ -1753,7 +1743,17 @@ def links_api(request, link_id_or_ref=None):
         obj = tracker.delete(uid, model.Link, link_id_or_ref, callback=revarnish_link)
         return obj
 
-    # delegate according to single/multiple objects posted
+    if request.method == "GET":
+        callback=request.GET.get("callback", None)
+        if link_id_or_ref is None:
+            return jsonResponse({"error": "Missing text identifier"}, callback)
+        #The Ref instanciation is just to validate the Ref and let an error bubble up.
+        #TODO is there are better way to validate the ref from GET params?
+        model.Ref(link_id_or_ref)
+        with_text = int(request.GET.get("with_text", 1))
+        with_sheet_links = int(request.GET.get("with_sheet_links", 0))
+        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
+
     if not request.user.is_authenticated:
         delete_query = QueryDict(request.body)
         key = delete_query.get("apikey") #key = request.POST.get("apikey")
@@ -1764,11 +1764,13 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": "Unrecognized API key."})
         uid = apikey["uid"]
         kwargs = {"method": "API"}
+        user = User.objects.get(id=apikey["uid"])
     else:
+        user = request.user
         uid = request.user.id
         kwargs = {}
         _internal_do_post = csrf_protect(_internal_do_post)
-        _internal_do_delete = csrf_protect(_internal_do_delete)
+        _internal_do_delete = staff_member_required(csrf_protect(_internal_do_delete))
 
     if request.method == "POST":
         j = request.POST.get("json")
@@ -1798,6 +1800,11 @@ def links_api(request, link_id_or_ref=None):
     if request.method == "DELETE":
         if not link_id_or_ref:
             return jsonResponse({"error": "No link id given for deletion."})
+        
+        if not user.is_staff:
+            return jsonResponse({"error": "Only Sefaria Moderators can delete links."})
+        
+        retval = _internal_do_delete(request, link_id_or_ref, uid)
 
         try:
             ref = Ref(link_id_or_ref)

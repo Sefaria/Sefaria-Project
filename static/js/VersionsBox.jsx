@@ -30,7 +30,6 @@ class VersionsBox extends Component {
     }
   }
   onVersionsLoad(versions) {
-    console.log("versionsload");
     const versionLangMap = {};
     for (let v of versions) {
       const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2})\\]$")); // two-letter ISO language code
@@ -47,7 +46,7 @@ class VersionsBox extends Component {
     this.setState({versionLangMap});
   };
   openVersionInSidebar(versionTitle, versionLanguage) {
-    this.props.setConnectionsMode("Version Open");
+    this.props.setConnectionsMode("Translation Open");
     this.props.setFilter(versionTitle);
   };
   sortVersionsByActiveLang(prioritize=null){
@@ -127,12 +126,12 @@ class VersionsBox extends Component {
     );
   }
   render() {
-    return (this.props.mode === "Versions" ? this.renderModeVersions() : this.renderModeSelected());
+    return (this.props.mode === "Translations" ? this.renderModeVersions() : this.renderModeSelected());
   }
 }
 VersionsBox.propTypes = {
   currObjectVersions:       PropTypes.object.isRequired,
-  mode:                     PropTypes.oneOf(["Versions", "Version Open"]),
+  mode:                     PropTypes.oneOf(["Translations", "Translation Open"]),
   mainVersionLanguage:      PropTypes.oneOf(["english", "hebrew"]).isRequired,
   vFilter:                  PropTypes.array,
   recentVFilters:           PropTypes.array,

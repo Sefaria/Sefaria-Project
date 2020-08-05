@@ -138,7 +138,7 @@ def teardown_module():
     i.delete()
 
 
-@pytest.mark.failing
+@pytest.mark.xfail(reason="unknown")
 @pytest.mark.deep
 def test_migrate_to_complex_structure():
     mappings = {}
