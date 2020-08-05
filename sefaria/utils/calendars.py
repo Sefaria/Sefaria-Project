@@ -292,6 +292,12 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items = [item for item in cal_items if item]
     return cal_items
 
+def get_keyed_calendar_items(diaspora=True, custom=None):
+    cal_items = get_todays_calendar_items(diaspora=diaspora, custom=custom)
+    cal_dict = {}
+    for cal_item in cal_items:
+        cal_dict[cal_item["title"]["en"]] = cal_item
+    return cal_dict
 
 def get_todays_calendar_items(diaspora=True, custom=None):
     return get_all_calendar_items(timezone.localtime(timezone.now()), diaspora=diaspora, custom=custom)
