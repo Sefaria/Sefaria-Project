@@ -296,7 +296,7 @@ CACHES = {
 
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "sustainers-august-2020",
-    "repetition": 0,
+    "repetition": 1,
     "style":      "banner",
     "condition": {
         "returning_only": False,
