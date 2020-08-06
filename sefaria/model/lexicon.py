@@ -355,7 +355,7 @@ class LexiconLookupAggregator(object):
         input_str = unicodedata.normalize("NFC", input_str)
         results = cls._single_lookup(input_str, **kwargs)
         if not results or kwargs.get('always_consonants', False):
-            results = cls._single_lookup(strip_cantillation(input_str, True), lookup_key='c_form', **kwargs)
+            results += cls._single_lookup(strip_cantillation(input_str, True), lookup_key='c_form', **kwargs)
         if not kwargs.get('never_split', None) and (len(results) == 0 or kwargs.get("always_split", None)):
             ngram_results = cls._ngram_lookup(input_str, **kwargs)
             results += ngram_results
