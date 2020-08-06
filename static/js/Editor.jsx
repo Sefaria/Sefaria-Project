@@ -422,6 +422,7 @@ function transformSheetJsonToDraft(sheet) {
             promptedToPublish: sheet.promptedToPublish,
             options: sheet.options,
             nextNode: sheet.nextNode,
+            edittingSource: false,
             authorUrl: sheet.ownerProfileUrl,
             authorStatement: sheet.ownerName,
             authorImage: sheet.ownerImageUrl,
@@ -500,6 +501,14 @@ function transformSheetJsonToDraft(sheet) {
     return initValue;
 }
 
+function isSourceEditable(e, editor) {
+  if (editor.children[0]["edittingSource"]) {return true}
+
+  const isEditable = (!Range.isCollapsed(editor.selection))
+  Transforms.setNodes(editor, {edittingSource: isEditable}, {at: [0]});
+  return (isEditable)
+}
+
 const Element = ({attributes, children, element}) => {
     switch (element.type) {
         case 'SheetItem':
@@ -511,14 +520,11 @@ const Element = ({attributes, children, element}) => {
                 </div>
             );
         case 'SheetSource':
-            const selected = useSelected()
-            const classes = {SheetSource: 1, segment: 1, selected: selected};
+            const editor = useSlate();
+            const selected = useSelected();
+            const classes = {SheetSource: 1, segment: 1, selected: selected };
             return (
-                <div
-                onSelect={event => {
-                      console.log('aroo')
-                    }}
-                className={classNames(classes)} {...attributes} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
+                <div onClick={(e) => console.log(isSourceEditable(e, editor))} className={classNames(classes)} {...attributes} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
                     {children}
                 </div>
             );
@@ -572,14 +578,20 @@ const Element = ({attributes, children, element}) => {
                 </div>
             );
         case 'he':
+            const heSelected = useSelected();
+            const heEditable = useSlate().children[0]["edittingSource"];
+            const heClasses = {he: 1, editable: heEditable, selected: heSelected };
             return (
-                <div className="he">
+                <div className={classNames(heClasses)}>
                     {children}
                 </div>
             );
         case 'en':
+            const enSelected = useSelected();
+            const enEditable = useSlate().children[0]["edittingSource"];
+            const enClasses = {en: 1, editable: enEditable, selected: enSelected };
             return (
-                <div className="en">
+                <div className={classNames(enClasses)}>
                     {children}
                 </div>
             );
@@ -1414,12 +1426,17 @@ const SefariaEditor = (props) => {
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
     const [fullSheetItemSelectedPath, setFullSheetItemSelectedPath] = useState(null);
-    const [modifiedSourceSelection, setModifiedSourceSelection] = useState(false);
     const [currentSelection, setCurrentSelection] = useState([]);
 
     function ensureSelectOfEntireSource(currentSelection) {
 
+
       if(currentSelection.length > 0) {
+        if (editor.children[0]["edittingSource"]) {
+          Transforms.collapse(editor, { edge: 'focus' })
+          return
+        }
+
         const firstSourceEdge = Editor.edges(editor, (currentSelection[0][1]))[0]
         const lastSourceEdge = Editor.edges(editor, (currentSelection[currentSelection.length - 1][1]))[1]
 
@@ -1444,17 +1461,18 @@ const SefariaEditor = (props) => {
         }
 
       }
-      console.log(currentSelection)
+
+      else {
+        Transforms.setNodes(editor, {edittingSource: false}, {at: [0]});
+      }
 
     }
 
     useEffect(
         () => {
-            setModifiedSourceSelection(true)
             // Update debounced value after delay
             const handler = setTimeout(() => {
                 ensureSelectOfEntireSource(currentSelection);
-                setModifiedSourceSelection(false);
             }, 250);
 
             // Cancel the timeout if value changes (also on delay change or unmount)
