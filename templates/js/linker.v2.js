@@ -208,8 +208,8 @@
 
         // Apply any override styles
         for (var n in options.popupStyles) {
-            if (styles.hasOwnProperty(n)) {
-                popUpElem.style[n] = styles[n];
+            if (options.popupStyles.hasOwnProperty(n)) {
+                popUpElem.style[n] = options.popupStyles[n];
             }
         }
 
