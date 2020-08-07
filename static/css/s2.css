@@ -29,6 +29,7 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
 .int-he {
   font-family: "Heebo", sans-serif;
   direction: rtl;
+  display: flex;
 }
 .int-he.but-text-is-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -4673,6 +4674,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .audioList .audio {
   border-top: solid 1px #CCC;
   padding: 20px 0;
+  text-align: left;
+  direction: ltr;
 }
 
 .audioList .audioTitle {
@@ -4685,6 +4688,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     color: #666;
 	padding-bottom: 15px;
 }
+
 
 .audioList .audio .title {
 	font-size: 22px;
@@ -4721,6 +4725,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .audioList .audio .panel a {
 	font-size: 14px;
 	margin: 5px;
+}
+.audioList .audio .panel input[type='image'] {
+	width: 15px;
+    height: 15px;
+    margin-right: 20px;
+    margin-top: 5px;
 }
 
 .slider {
@@ -4775,7 +4785,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: left;
   direction: ltr;
 }
-.webpageList .webpage.hebrew {
+.webpageList .webpage.hebrew{
   text-align: right;
   direction: rtl;
 }
@@ -4804,7 +4814,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 18px;
   color: #999;
 }
-.webpageList .webpage .stats {
+.webpageList .webpage .stats, .audioList .audio .meta {
   font-size: 13px;
   color: #999;
   margin-top: 5px;

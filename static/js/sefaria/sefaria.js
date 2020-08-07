@@ -1222,7 +1222,6 @@ _audio: {},
     refs.map(r => {
       if (this._audio[r]) { audio = audio.concat(this._audio[r]); }
     }, this);
-	
 	return audio;
   },
   
@@ -1230,7 +1229,7 @@ _audio: {},
   _webpages: {},
   webPagesByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
-    var ref = Sefaria.normRefList(refs); 
+    var ref = Sefaria.normRefList(refs);
     refs.map(r => {
       // Also include webpages linked at section level. Deduped below.
       if (r.indexOf(":") !== -1) {
@@ -1254,8 +1253,8 @@ _audio: {},
 
       // 3: exact match, 2: range match: 1: section match
       var aSpecificity, bSpecificity;
-      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRefExpanded.length);
-      if (aSpecificity !== bSpecificity) {return aSpecificity - bSpecificity};
+      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRef === ref ? 3 : (page.anchorRef.indexOf("-") !== -1 ? 2 : 1));
+      if (aSpecificity !== bSpecificity) {return aSpecificity > bSpecificity ? -1 : 1};
 
       return (a.linkerHits > b.linkerHits) ? -1 : 1
     });

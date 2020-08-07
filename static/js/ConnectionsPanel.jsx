@@ -286,6 +286,7 @@ class ConnectionsPanel extends Component {
                     sheetsCount={Sefaria.sheets.sheetsTotalCount(this.props.srefs)}
                     notesCount={Sefaria.notesTotalCount(this.props.srefs)}
                     webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length}
+					audioCount={Sefaria.audioByRef(this.props.srefs).length}
                     topicsCount={Sefaria.topicsByRefCount(this.props.srefs)}
                   />
                   </div>);
@@ -590,7 +591,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Translations" he="תרגומים" image="layers.png" onClick={() => this.props.setConnectionsMode("Translations")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} />
-			  <ToolsButton en="Audio" he="שמיעה" image="audio.jpg" count={"1"} onClick={() => this.props.setConnectionsMode("Audio")} />
+			  <ToolsButton en="Audio" he="שמיעה" image="audio.svg" count={this.props.audioCount} onClick={() => this.props.setConnectionsMode("Audio")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
@@ -827,7 +828,7 @@ class WebPagesList extends Component {
   render() {
     let webpages = Sefaria.webPagesByRef(this.props.srefs)
     let content = [];
-	
+
     if (!this.props.filter) {
       let sites = {};
       webpages.map(page => {
@@ -886,7 +887,7 @@ WebPagesList.propTypes = {
   srefs: PropTypes.array.isRequired,
 };
 
-const Audio = ({audioUrl, startTime, endTime, source, license, source_site, description}) => {
+const Audio = ({audioUrl, startTime, endTime, source, license, source_site, description, anchor}) => {
    const audioElement = useRef();
    const [currTime, setCurrTime] = useState(true);
    const [playing, setPlaying] = useState(false); //true for autoplay
@@ -898,7 +899,29 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
 		   audioElement.current.currentTime = value.currentTarget.value
 		};
 
-   
+   const reportUser = () => {
+	   console.log("report got called")
+
+	  var feedback = {
+		  type: "audio report",
+		  msg: {audioUrl}, //add dropdown error
+	  };
+	  var postData = {json: JSON.stringify(feedback)};
+	  var url = "/api/send_feedback";
+
+	  $.post(url, postData, function (data) {
+		  if (data.error) {
+			  alert(data.error);
+		  } else {
+			  console.log(data);
+			  window.onbeforeunload = null;
+			  alert(`The error has been noted. Happy learning!`)
+			  location.reload()
+		  }
+	  }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
+		  alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
+	  });
+	}
    useEffect(() => {
        const setAudioData = () => {
 		   if (startTime < clipStartTime){
@@ -906,7 +929,7 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
 		   setCurrTime(null)};
            setClipEndTime(endTime);
 		   setClipStartTime(startTime);
-       };
+       }; 
 	   
        const setAudioTime = () => setCurrTime(audioElement.current.currentTime); //control range component 
 	   
@@ -932,12 +955,12 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
            audioElement.current.removeEventListener("timeupdate", setAudioTime);
        }
    });
-   return (
+      return (
 		<div className="audio"  key={audioUrl}>
 			  <div className="title">{source}</div>
 			  <div className="description"><a>{description}</a></div>
 			  <div className="panel">
-				<button onClick={() => setPlaying(playing ? false : true)}>{playing ? "Pause" : "Play"}</button>
+			    <input type="image" src = {playing ? "static/img/pause.svg" : "static/img/play.svg"} onClick={() => setPlaying(playing ? false : true)} id="pause"/>
 				<input type="range" min={startTime} max={endTime} value = {currTime} step="any" class="slider" onChange={(value) => {handleChange(value)}}/>
 				<a> {parseInt((clipEndTime-clipStartTime) - (clipEndTime - currTime)) + "/" + parseInt(clipEndTime-clipStartTime)}</a>
 			  </div>
@@ -945,13 +968,17 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
 				 <source src={audioUrl} type="audio/mpeg"/>
 			  </audio>
 			  <div className="meta">
-				<a>License: {license}</a>
-				<a>Source: {source_site}</a>
+				<span className="int-en">License: {license}</span>
+				<span className="int-he">עסק רשיון: {license}</span>
+				<span className="int-en">Source: {source_site}</span>
+				<span className="int-he">מקור: {source_site}</span>
 			  </div>
-		   </div> 
+			  
+			  <p><a href="#" id="reportUser" onClick={() => {reportUser()}}>Report User</a></p>
+
+		</div> 
    )
 };
-
 class AudioList extends Component {
 	render() {
 		let audios = Sefaria.audioByRef(this.props.srefs)
@@ -965,9 +992,9 @@ class AudioList extends Component {
 				license = {audio.license}
 				source_site = {audio.source_site}
 				description = {audio.description}
+				anchor = {audio.anchorRef}
 				/>
 		  });
-		 debugger;
 		 if (!content.length) {
 			return <div className="audioList empty">
                   No known audio
@@ -975,7 +1002,10 @@ class AudioList extends Component {
 		 }
 
 		return <div className="audioList">
-				<div class="audioTitle"> Torah Reading </div>
+				<div class="audioTitle">
+					<div className="en">Torah Reading </div>
+					<div className="he">קריאת התורה </div>
+				</div>
 				  {content}
 			   </div>;
 	}
