@@ -2462,7 +2462,7 @@ a.readerNavCategory {
   display: none;
 }
 .versionBlock .versionDetails .versionBuyImage .versionDetailsImageLink img{
-  height: 100px;
+  height: 120px;
 }
 .readerTextTableOfContents .versionBlock .versionDetails .versionBuyImage, .readerTextTableOfContents .versionBlock .versionDetails .versionBuyLink{
   display: none;
