@@ -251,7 +251,7 @@ def linker_js(request, linker_version=None):
 def title_regex_api(request, titles):
     if request.method == "GET":
         cb = request.GET.get("callback", None)
-        parentheses = request.GET.get("parentheses", 0)
+        parentheses = bool(int(request.GET.get("parentheses", False)))
         titles = set(titles.split("|"))
         res = {}
         errors = []
