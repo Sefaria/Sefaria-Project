@@ -259,7 +259,7 @@ class Test_he_get_refs_in_text(object):
         matched_refs = library.get_refs_in_string("אלו דברים בני ישראל", lang='he', citing_only=citing_only)
         assert matched_refs == []
 
-    @pytest.mark.failing
+    @pytest.mark.xfail(reason="unknown")
     @pytest.mark.parametrize(('citing_only'), (True, False))
     def test_huge_second_addr(self, citing_only):
         st = """וכן הוא בב"ר (ילקוט שמעוני אסתר א, תתרמו) א"ר לוי בגדי כהונה"""

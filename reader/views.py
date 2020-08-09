@@ -968,9 +968,9 @@ def _crumb(pos, id, name):
     return {
         "@type": "ListItem",
         "position": pos,
+        "name": name,
         "item": {
             "@id": id,
-            "name": name
         }}
 
 
