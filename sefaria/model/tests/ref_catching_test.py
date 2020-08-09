@@ -42,7 +42,7 @@ class Test_find_citation_in_text(object):
         title = 'ויקרא'
 
         lang = "he" if is_hebrew(title) else "en"
-        res = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False, parentheses=1)
+        res = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False, parentheses=True)
         res_no_comments = re.sub('\s+', '', re.sub('\s*?#.*?\n', '', res))
 
         match = re.search(res_no_comments, st1)
@@ -62,30 +62,30 @@ class Test_find_citation_in_text(object):
 
         for title in titles:
             lang = "he" if is_hebrew(title) else "en"
-            res = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False, parentheses=1)
+            res = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False, parentheses=True)
             res_no_comments = re.sub('\s+', '', re.sub('\s*?#.*?\n', '', res))
 
             match = re.search(res_no_comments, st3)
-            match_string = 'no match' if not match else match.group().replace(match.group(1), '')
+            match_string = 'no match' if not match else match.group()
             resp = requests.get("https://www.sefaria.org.il/{}".format(match_string))
-            assert resp.status_code == 200 if title == 'דברים' else 400
+            assert resp.status_code == 200 if title == 'דברים' else resp.status_code in [400, 404]
             print(resp.url)
             assert resp.url == 'https://www.sefaria.org.il/Deuteronomy.32' if title == 'דברים' else 'https://www.sefaria.org.il/no%20match'
 
     def test_regex_string_he_in_parentheses_1(self):
-        st3 = '(בדברים לב ובספרות ג ב'
+        st3 = '(בדברים לב ובספרות ג ב)'
         titles = ['דברים', 'רות']
 
         for title in titles:
             lang = "he" if is_hebrew(title) else "en"
             res = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False,
-                                             parentheses=1)
+                                             parentheses=True)
             res_no_comments = re.sub('\s+', '', re.sub('\s*?#.*?\n', '', res))
 
             match = re.search(res_no_comments, st3)
-            match_string = 'no match' if not match else match.group().replace(match.group(1), '')
+            match_string = 'no match' if not match else match.group()
             resp = requests.get("https://www.sefaria.org.il/{}".format(match_string))
-            assert resp.status_code == 200 if title == 'דברים' else 400
+            assert resp.status_code == 200 if title == 'דברים' else 404
             print(resp.url)
             assert resp.url == 'https://www.sefaria.org.il/Deuteronomy.32' if title == 'דברים' else 'https://www.sefaria.org.il/no%20match'
 
@@ -96,11 +96,11 @@ class Test_find_citation_in_text(object):
         for title in titles:
             lang = "he" if is_hebrew(title) else "en"
             res = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False,
-                                             parentheses=1)
+                                             parentheses=True)
             res_no_comments = re.compile(res, re.VERBOSE)
             match = res_no_comments.search(st3)
-            match_string = 'no match' if not match else match.group().replace(match.group(1), '')
+            match_string = 'no match' if not match else match.group()
             resp = requests.get("https://www.sefaria.org.il/{}".format(match_string))
             assert resp.status_code == 200
             print(resp.url)
-            assert resp.url == 'https://www.sefaria.org.il/Song_of_Songs.1' if title == 'שיר השירים' else ''
+            assert resp.url == 'https://www.sefaria.org.il/Song_of_Songs.1' if title == 'שיר השירים' else 'https://www.sefaria.org.il/Jerusalem_Talmud_Ketubot.28b' if title ==  'ירושלמי כתובות' else ''
