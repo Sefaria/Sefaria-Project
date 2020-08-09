@@ -353,7 +353,7 @@
         options.popupStyles = options.popupStyles || {};
         options.interfaceLang = options.interfaceLang || "english";
         options.contentLang = options.contentLang || "bilingual";
-        options.parentheses = options.parentheses || 0;
+        options.parentheses = options.parentheses || false;
         options.quotationOnly = options.quotationOnly || false;
 
         var selector = options.selector || "body";
@@ -384,7 +384,7 @@
     // Private API
     ns._getRegexesThenTexts = function() {
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+ns.link.arguments[0].parentheses)
+        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.link.arguments[0].parentheses))
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
@@ -417,12 +417,15 @@
                 findAndReplaceDOMText(ns.elems[i], {
                     preset: 'prose',
                     find: r,
-                    replace: function(portion, match) {
+                    replace: (function(book, portion, match) {
                         var matched_ref = match[0]
                             .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
-                            .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
-                        if (ns.quotationOnly && matched_ref.search(/.*?\s+(.*?['\u05f3"\u05f4]|.(\s|$)|\d*\s)+/g) == -1) {
-                           return match[0];
+                            .replace(/[(){}[\]]+/g, "")
+                            .replace('\u05d3\u05e3', ""); // Filter out internal parenthesis todo: Don't break on parens in books names
+                            var matched_reg = new RegExp(`${book}\\s+([\u05d0-\u05ea]+?['\u05f3"\u05f4]|[\u05d0-\u05ea](\\.|:)?([-\u2010-\u2015\u05be][\u05d0-\u05ea])?(\\s|$)|(\\d|\\.)+(a|b|:)?(\\s|[-\u2010-\u2015\u05be]|$))+`, 'g');
+
+                        if (ns.quotationOnly && matched_ref.search(matched_reg) == -1) {
+                           return portion.text;
                         }
                         else { ns.matches.push(matched_ref);
                             var node = document.createElement("a");
@@ -435,7 +438,7 @@
                             return node;
 
                         }
-                    },
+                    }).bind(null, book),
                     filterElements: function(el) {
                         return !(
                             hasOwn.call(findAndReplaceDOMText.NON_PROSE_ELEMENTS, el.nodeName.toLowerCase())
