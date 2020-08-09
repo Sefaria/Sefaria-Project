@@ -421,7 +421,7 @@
                             .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                             .replace(/[(){}[\]]+/g, "")
                             .replace('\u05d3\u05e3', ""); // Filter out internal parenthesis todo: Don't break on parens in books names
-                            var matched_reg = new RegExp(`${book}\\s+([\u05d0-\u05ea]+?['\u05f3"\u05f4][\u05d0-\u05ea]+?(:|\\.)?(\\s|$)|[\u05d0-\u05ea](\\.|:)?([-\u2010-\u2015\u05be][\u05d0-\u05ea])?(\\s|$)|(\\d|\\.)+(a|b|:)?(\\s|[-\u2010-\u2015\u05be]|$))+`, 'g');
+                            var matched_reg = new RegExp(`${book}\\s+([\u05d0-\u05ea]+?['\u05f3"\u05f4][\u05d0-\u05ea]*?(:|\\.)?(\\s|$)|[\u05d0-\u05ea](\\.|:)?([-\u2010-\u2015\u05be][\u05d0-\u05ea])?(\\s|$)|(\\d|\\.)+(a|b|:)?(\\s|[-\u2010-\u2015\u05be]|$))+`, 'g');
 
                         if (ns.quotationOnly && (matched_ref.match(matched_reg) == null || matched_ref.match(matched_reg)[0]!=matched_ref)) {
                            return portion.text;
