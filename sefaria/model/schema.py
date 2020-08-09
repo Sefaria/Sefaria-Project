@@ -945,11 +945,10 @@ class NumberedTitledTreeNode(TitledTreeNode):
         Different address type / language combinations produce different internal regexes in the innermost portions of the above, where the comments say 'digits'.
 
         """
+        parentheses = kwargs.get("parentheses", False)
         prefixes = 'בכ|וב|וה|וכ|ול|ומ|וש|כב|ככ|כל|כמ|כש|לכ|מב|מה|מכ|מל|מש|שב|שה|שכ|של|שמ|ב|כ|ל|מ|ש|ה|ו|ד' if lang == 'he' else ''
-        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"), kwargs.get("escape_titles"), kwargs.get("parentheses"))
+        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"), kwargs.get("escape_titles"), parentheses)
         if not self._regexes.get(key):
-            parentheses = 0 if not kwargs.get("parentheses") or not int(kwargs.get("parentheses")) else 1
-            prefixes_wraper = r"(?P<prefixes>" if kwargs.get("for_js") else r"(?<="
             if anchored:
                 reg = r"^"
             elif parentheses:
@@ -963,12 +962,9 @@ class NumberedTitledTreeNode(TitledTreeNode):
             reg += r'(?:(?:' + addr_regex + r')|(?:[\[({]' + addr_regex + r'[\])}]))'  # Match expressions with internal parentheses around the address portion
             if parentheses:
                 reg += r"(?=(?:[)\]])|(?:[.,:;?!\s<][^\])]*?[)\]]))"
-                # reg += r"(?=[.,:;?!\s})\]<]|$)" if kwargs.get("for_js") else r"(?=\W|$)" if not kwargs.get(
-                #     "terminated") else r"$"
             else:
                 reg += r"(?=[.,:;?!\s})\]<]|$)" if kwargs.get("for_js") else r"(?=\W|$)" if not kwargs.get(
                     "terminated") else r"$"
-            # reg += r"(?=[.,:;?!\s})\]<]|$)" if kwargs.get("for_js") and not parentheses else r"(?=(?:[)\]])|(?:[.,:;?!\s<][^(\[]*[)\]]))" if parentheses else r"(?=\W|$)" if not kwargs.get("terminated") else r"$"
             self._regexes[key] = regex.compile(reg, regex.VERBOSE) if compiled else reg
         return self._regexes[key]
 
