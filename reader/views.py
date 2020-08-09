@@ -2447,7 +2447,7 @@ def dictionary_api(request, word):
     :return:
     """
     kwargs = {}
-    for key in ["lookup_ref", "never_split", "always_split"]:
+    for key in ["lookup_ref", "never_split", "always_split", "always_consonants"]:
         if request.GET.get(key, None):
             kwargs[key] = request.GET.get(key)
     result = []
