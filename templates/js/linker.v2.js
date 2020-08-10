@@ -384,7 +384,7 @@
     // Private API
     ns._getRegexesThenTexts = function() {
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.parenthesesOnly))//ns.link.arguments[0].parentheses))
+        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.parenthesesOnly))
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
