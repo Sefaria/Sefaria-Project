@@ -787,9 +787,9 @@ Sefaria = extend(Sefaria, {
     ref = typeof ref !== "undefined" ? ref : null;
     words = typeof words !== "undefined" ? words : "";
     if (words.length <= 0) { return Promise.resolve([]); }
-
+    words = words.normalize("NFC"); //make sure we normalize any errant unicode (vowels and diacritics that may appear to be equal but the underlying characters are out of order or different.
     const key = ref ? words + "|" + ref : words;
-    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?never_split=1" + (ref?("&lookup_ref="+ref):"");
+    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?always_consonants=1&never_split=1" + (ref?("&lookup_ref="+ref):"");
     return this._cachedApiPromise({url, key, store: this._lexiconLookups});
   },
   _links: {},

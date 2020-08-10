@@ -57,7 +57,7 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 
 
 if USE_VARNISH:
-    from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts
+    from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
 
 import logging
 logger = logging.getLogger(__name__)
@@ -245,19 +245,20 @@ def linker_js(request, linker_version=None):
                       + model.library.citing_title_list("he"))
     }
 
-    return render(request, linker_link, attrs, content_type= "text/javascript")
+    return render(request, linker_link, attrs, content_type = "text/javascript")
 
 
 def title_regex_api(request, titles):
     if request.method == "GET":
         cb = request.GET.get("callback", None)
+        parentheses = bool(int(request.GET.get("parentheses", False)))
         titles = set(titles.split("|"))
         res = {}
         errors = []
         for title in titles:
             lang = "he" if is_hebrew(title) else "en"
             try:
-                re_string = model.library.get_regex_string(title, lang, anchored=False, for_js=True)
+                re_string = model.library.get_regex_string(title, lang, anchored=False, for_js=True, parentheses=parentheses)
                 res[title] = re_string
             except (AttributeError, AssertionError) as e:
                 # There are normal errors here, when a title matches a schema node, the chatter fills up the logs.
@@ -427,6 +428,9 @@ def reset_cache(request):
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "rebuild")
+
+    if USE_VARNISH:
+        invalidate_all()
 
     return HttpResponseRedirect("/?m=Cache-Reset")
 
