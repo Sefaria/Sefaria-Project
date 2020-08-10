@@ -352,7 +352,7 @@
         options.popupStyles = options.popupStyles || {};
         options.interfaceLang = options.interfaceLang || "english";
         options.contentLang = options.contentLang || "bilingual";
-        options.parentheses = options.parentheses || false;
+        options.parenthesesOnly = options.parenthesesOnly || false;
         options.quotationOnly = options.quotationOnly || false;
 
         var selector = options.selector || "body";
@@ -363,6 +363,7 @@
 
         ns.elems = document.querySelectorAll(selector);
         ns.quotationOnly = options.quotationOnly;
+        ns.parenthesesOnly = options.parenthesesOnly;
         // Find text titles in the document
         // todo: hold locations of title matches?
         var full_text = [].reduce.call(ns.elems, function(prev, current) { return prev + current.textContent; }, "");
@@ -383,7 +384,7 @@
     // Private API
     ns._getRegexesThenTexts = function() {
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.link.arguments[0].parentheses))
+        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.parenthesesOnly))//ns.link.arguments[0].parentheses))
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
@@ -419,10 +420,10 @@
                     replace: (function(book, portion, match) {
                         var matched_ref = match[0]
                             .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
-                            .replace(/[(){}[\]]+/g, "")
-                            .replace('\u05d3\u05e3', ""); // Filter out internal parenthesis todo: Don't break on parens in books names
-                            var matched_reg = new RegExp(`${book}\\s+([\u05d0-\u05ea]+?['\u05f3"\u05f4][\u05d0-\u05ea]*?(:|\\.)?(\\s|$)|[\u05d0-\u05ea](\\.|:)?([-\u2010-\u2015\u05be][\u05d0-\u05ea])?(\\s|$)|(\\d|\\.)+(a|b|:)?(\\s|[-\u2010-\u2015\u05be]|$))+`, 'g');
-
+                            .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
+                        //  the following regex recognizes 'quotationOnly' citations. by reading the book name and then allowing a single Hebrew letter or numbers or multiple Hebrew letters with the different quotations (gershayim) options somewhere in them
+                        var matched_reg = new RegExp(`${book}\\s+(\u05d3\u05e3\\s+)?([\u05d0-\u05ea]+?['\u05f3"\u05f4][\u05d0-\u05ea]*?(:|\\.)?(\\s|$)|[\u05d0-\u05ea](\\.|:)?([-\u2010-\u2015\u05be][\u05d0-\u05ea])?(\\s|$)|(\\d|\\.)+(a|b|:)?(\\s|[-\u2010-\u2015\u05be]|$))+`, 'g');
+                        // this line tests if the match of the full Ref found is a quotaionOnly and should/n't be wrapped
                         if (ns.quotationOnly && (matched_ref.match(matched_reg) == null || matched_ref.match(matched_reg)[0]!=matched_ref)) {
                            return portion.text;
                         }
