@@ -77,25 +77,42 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-    def topics_by_link_type_recursively(self, linkType='is-a', explored_set=None, only_leaves=False, reverse=False):
+    def topics_by_link_type_recursively(self, **kwargs):
+        topics, _ = self.topics_and_links_by_link_type_recursively(**kwargs)
+        return topics
+    
+    def topics_and_links_by_link_type_recursively(self, linkType='is-a', only_leaves=False, reverse=False, max_depth=None, min_sources=None):
         """
         Gets all topics linked to `self` by `linkType`. The query is recursive so it's most useful for 'is-a' and 'displays-under' linkTypes
         :param linkType: str, the linkType to recursively traverse.
-        :param explored_set: set(str), set of slugs already explored. To be used in recursive calls.
         :param only_leaves: bool, if True only return last level traversed
         :param reverse: bool, if True traverse the inverse direction of `linkType`. E.g. if linkType == 'is-a' and reverse == True, you will traverse 'is-category-of' links
+        :param max_depth: How many levels below this one to traverse. 1 returns only this node's children, 0 returns only this node and None means unlimited.
         :return: list(Topic)
         """
+        topics, links, below_min_sources = self._topics_and_links_by_link_type_recursively_helper(linkType, only_leaves, reverse, max_depth, min_sources)
+        links = list(filter(lambda x: x.fromTopic not in below_min_sources and x.toTopic not in below_min_sources, links))
+        return topics, links
+
+    def _topics_and_links_by_link_type_recursively_helper(self, linkType, only_leaves, reverse, max_depth, min_sources, explored_set=None, below_min_sources_set=None):
+        """
+        Helper function for `topics_and_links_by_link_type_recursively()` to carry out recursive calls
+        :param explored_set: set(str), set of slugs already explored. To be used in recursive calls.
+        """
         explored_set = explored_set or set()
-        results = []
+        below_min_sources_set = below_min_sources_set or set()
+        topics = []
         dir1 = "to" if reverse else "from"
         dir2 = "from" if reverse else "to"
-        children = [getattr(l, f"{dir1}Topic") for l in IntraTopicLinkSet({f"{dir2}Topic": self.slug, "linkType": linkType})]
+        links = IntraTopicLinkSet({f"{dir2}Topic": self.slug, "linkType": linkType}).array()
+        children = [getattr(l, f"{dir1}Topic") for l in links]
         if len(children) == 0:
-            return [self]
+            if min_sources is not None and self.numSources < min_sources:
+                return [], [], {self.slug}
+            return [self], [], set()
         else:
             if not only_leaves:
-                results += [self]
+                topics += [self]
             for slug in children:
                 if slug in explored_set:
                     continue
@@ -104,8 +121,13 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                 if child_topic is None:
                     logger.warning(f"{slug} is None")
                     continue
-                results += child_topic.topics_by_link_type_recursively(linkType, explored_set, only_leaves, reverse)
-        return results
+                if max_depth is None or max_depth > 0:
+                    next_depth = max_depth if max_depth is None else max_depth - 1
+                    temp_topics, temp_links, temp_below_min_sources = child_topic._topics_and_links_by_link_type_recursively_helper(linkType, only_leaves, reverse, next_depth, min_sources, explored_set, below_min_sources_set)
+                    topics += temp_topics
+                    links += temp_links
+                    below_min_sources_set |= temp_below_min_sources
+        return topics, links, below_min_sources_set
 
     def has_types(self, search_slug_set):
         """

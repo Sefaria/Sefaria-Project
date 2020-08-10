@@ -352,6 +352,8 @@
         options.popupStyles = options.popupStyles || {};
         options.interfaceLang = options.interfaceLang || "english";
         options.contentLang = options.contentLang || "bilingual";
+        options.parenthesesOnly = options.parenthesesOnly || false;
+        options.quotationOnly = options.quotationOnly || false;
 
         var selector = options.selector || "body";
         if (window.screen.width < 820 || options.mode == "link") { mode = "link"; }  // If the screen is small, fallback to link mode
@@ -360,7 +362,8 @@
         setupPopup(options, mode);
 
         ns.elems = document.querySelectorAll(selector);
-
+        ns.quotationOnly = options.quotationOnly;
+        ns.parenthesesOnly = options.parenthesesOnly;
         // Find text titles in the document
         // todo: hold locations of title matches?
         var full_text = [].reduce.call(ns.elems, function(prev, current) { return prev + current.textContent; }, "");
@@ -381,7 +384,7 @@
     // Private API
     ns._getRegexesThenTexts = function() {
         // Get regexes for each of the titles
-        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|"))
+        atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.parenthesesOnly))
             .success(function (data, xhr) {
                 if ("error" in data) {
                     console.log(data["error"]);
@@ -409,32 +412,37 @@
             var book = books[k];
             // Run each regex over the document, and wrap results
             var r = XRegExp(ns.regexes[book],"xgm");
+            // find the refrences and push them into ns.matches
             for (var i = 0; i < ns.elems.length; i++) {
                 findAndReplaceDOMText(ns.elems[i], {
                     preset: 'prose',
                     find: r,
-                    replace: function(portion, match) {
+                    replace: (function(book, portion, match) {
                         var matched_ref = match[0]
                             .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                             .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
-                        ns.matches.push(matched_ref);
+                        //  the following regex recognizes 'quotationOnly' citations. by reading the book name and then allowing a single Hebrew letter or numbers or multiple Hebrew letters with the different quotations (gershayim) options somewhere in them
+                        var quotation_reg = new RegExp(`${book}\\s+(\u05d3\u05e3\\s+)?(([\u05d0-\u05ea]+?['\u05f3"\u05f4][\u05d0-\u05ea]*?|[\u05d0-\u05ea](\\.|:)?|\\d+(a|b|:|\\.)?)\\s*(\\s|$|:|\\.|[-\u2010-\u2015\u05be])\\s*)+`, 'g');
+                        // this line tests if the match of the full Ref found is a quotaionOnly and should/n't be wrapped
+                        if (ns.quotationOnly && (matched_ref.match(quotation_reg) == null || matched_ref.match(quotation_reg)[0]!==matched_ref)) {
+                           return portion.text;
+                        }
+                        else { ns.matches.push(matched_ref);
+                            var node = document.createElement("a");
+                            node.target = "_blank";
+                            node.className = "sefaria-ref";
+                            node.href = base_url + matched_ref;
+                            node.setAttribute('data-ref', matched_ref);
+                            node.setAttribute('aria-controls', 'sefaria-popup');
+                            node.textContent = portion.text;
+                            return node;
 
-                        var node = document.createElement("a");
-                        node.target = "_blank";
-                        node.className = "sefaria-ref";
-                        node.href = base_url + matched_ref;
-                        node.setAttribute('data-ref', matched_ref);
-                        node.setAttribute('aria-controls', 'sefaria-popup');
-                        node.textContent = portion.text;
-
-                        return node;
-                    },
+                        }
+                    }).bind(null, book),
                     filterElements: function(el) {
                         return !(
                             hasOwn.call(findAndReplaceDOMText.NON_PROSE_ELEMENTS, el.nodeName.toLowerCase())
                             || (el.tagName == "A")
-                            // The below test is subsumed in the more simple test above
-                            //|| (el.className && el.className.split(' ').indexOf("sefaria-ref")>=0)
                         );
                     }
                 });

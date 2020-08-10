@@ -2447,7 +2447,7 @@ def dictionary_api(request, word):
     :return:
     """
     kwargs = {}
-    for key in ["lookup_ref", "never_split", "always_split"]:
+    for key in ["lookup_ref", "never_split", "always_split", "always_consonants"]:
         if request.GET.get(key, None):
             kwargs[key] = request.GET.get(key)
     result = []
@@ -3009,6 +3009,25 @@ def topics_api(request, topic):
     group_related = bool(int(request.GET.get("group_related", False)))
     with_refs = bool(int(request.GET.get("with_refs", False)))
     response = get_topic(topic, with_links, annotate_links, with_refs, group_related)
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
+def topic_graph_api(request, topic):
+    link_type = request.GET.get("link-type", 'is-a')
+    max_depth = int(request.GET.get("max-depth", -1))
+    if max_depth == -1:
+        max_depth = None
+    topic_obj = Topic.init(topic)
+
+    if topic_obj is None:
+        response = {"error": f"Topic slug {topic} does not exist"}
+    else:
+        topics, links = topic_obj.topics_and_links_by_link_type_recursively(linkType=link_type, max_depth=max_depth)
+        response = {
+            "topics": [t.contents() for t in topics],
+            "links": [l.contents() for l in links]
+        }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
