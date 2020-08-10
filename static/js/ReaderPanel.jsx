@@ -486,7 +486,7 @@ class ReaderPanel extends Component {
         this.state.recentVersionFilters = [filter].concat(this.state.recentVersionFilters);
       }
       filter = filter ? [filter] : [];
-      this.conditionalSetState({recentVersionFilters: this.state.recentVersionFilters, versionFilter: filter, connectionsMode: "Version Open"});
+      this.conditionalSetState({recentVersionFilters: this.state.recentVersionFilters, versionFilter: filter, connectionsMode: "Translation Open"});
     }
   }
   setWebPagesFilter(filter) {
@@ -541,7 +541,7 @@ class ReaderPanel extends Component {
     }
     this.conditionalSetState(state);
   }
-  setConnectionsMode(mode) {
+  setConnectionsMode(mode, connectionData = null) {
     var loginRequired = {
       "Add Connection": 1,
     };
@@ -557,6 +557,9 @@ class ReaderPanel extends Component {
     var state = {connectionsMode: mode};
     if (mode === "Resources") {
       this.setFilter();
+    }
+    if (!!connectionData){
+      state["connectionData"] = connectionData;
     }
     this.conditionalSetState(state);
   }
@@ -739,6 +742,7 @@ class ReaderPanel extends Component {
           mode={this.state.connectionsMode || "Resources"}
           recentFilters={this.state.recentFilters}
           connectionsCategory={this.state.connectionsCategory}
+          connectionData={this.state.connectionData}
           interfaceLang={this.props.interfaceLang}
           contentLang={this.state.settings.language}
           title={this.currentBook()}
@@ -746,7 +750,6 @@ class ReaderPanel extends Component {
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
           allOpenRefs={this.props.allOpenRefs}
-          addToSourceSheet={this.props.addToSourceSheet}
           canEditText={canEditText}
           setFilter={this.setFilter}
           toggleSignUpModal={this.props.toggleSignUpModal}
@@ -1186,7 +1189,6 @@ ReaderPanel.propTypes = {
   searchInGroup:               PropTypes.func,
   openComparePanel:            PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
-  addToSourceSheet:            PropTypes.func,
   highlightedRefs:             PropTypes.array,
   hideNavHeader:               PropTypes.bool,
   multiPanel:                  PropTypes.bool,

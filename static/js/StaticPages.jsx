@@ -92,6 +92,7 @@ const ContestLandingPage = () => (
                 "<a href="https://github.com/Sefaria/Sefaria-Project/wiki/Projects-Powered-by-Sefaria">Powered by Sefaria</a>"
                 באתר Github.</p>
         </HeBlock>
+        <Spacer/>
 
         <ButtonRow>
             <SimpleButton
@@ -126,12 +127,12 @@ const ContestLandingPage = () => (
 
         <H2Block en="Timeline and Prize" he="לוח זמנים ופרסים" />
         <EnBlock padded={true}>
-            <p>We'll be accepting submissions from Wednesday, July 1 until Monday, August 31st. To participate, you just need to send us a URL and a short description of what you've made.</p>
+            <p>We'll be <a href="https://docs.google.com/forms/d/e/1FAIpQLSdYygtWWCte6ljlNUq7qwVItoJREeaVRXznuuVC8213xw6k4w/viewform">accepting submissions</a> from Wednesday, July 1 until Monday, August 31st. To participate, you just need to send us a URL and a short description of what you've made.</p>
             <p>A jury will select two projects to win cash prizes: $5,000 for the grand prize, and $3,600 for the student prize for work created by undergraduate students or younger, or people under the age of 23.</p>
             <p>A selection of completed projects will also be featured on a contest page and shared with our community.</p>
         </EnBlock>
         <HeBlock padded={true}>
-            <p>הגשות תתקבלנה מיום רביעי, 1 ביולי, ועד יום שני, 31 באוגוסט. להשתתפות בתחרות שלחו כתובת URL ותיאור תמציתי של התוצר.</p>
+            <p> מיום רביעי, 1 ביולי, ועד יום שני, 31 באוגוסט. להשתתפות בתחרות שלחו כתובת <a href="https://docs.google.com/forms/d/e/1FAIpQLSdYygtWWCte6ljlNUq7qwVItoJREeaVRXznuuVC8213xw6k4w/viewform">הגשות תתקבלנה</a> URL ותיאור תמציתי של התוצר.</p>
             <p>חבר השופטים שלנו יבחר שני מיזמים: הפרס הראשון בסך $5,000 , והפרס השני בסך 3,600$ יוענק למתכנת/ת צעיר/ה עבור מיזם שיוגש על ידי מי שלומד לתואר ראשון או על ידי צעירים מתחת לגיל 23.</p>
             <p>מבחר מיזמים אחרים שיושלמו, יופיעו אף הם בדף התחרות וישותפו עם קהילת ספריא.</p>
         </HeBlock>
@@ -147,6 +148,7 @@ const ContestLandingPage = () => (
                 </a>
                 .</p>
         </HeBlock>
+        <Spacer/>
 
         <GreyBox>
             <ImageWithText
@@ -193,6 +195,7 @@ const ContestLandingPage = () => (
         <HeBlock padded={true}>
             <p>אם אתם מעוניינים להשתתף בתחרות, לחצו כאן להרשמה, כדי שנוכל לשלוח לכם עדכונים במהלך התחרות בנוגע לכלים ומשאבים, כולל שעות העבודה של המתכנתים שלנו, שתוכלו לשאול אותם שאלות ולהתייעץ איתם על רעיונות אחד־על־אחד. תוכלו להתמודד באופן עצמאי או כחלק מצוות, ולהירשם בכל שלב מעכשיו ועד לסיום התחרות.</p>
         </HeBlock>
+        <Spacer/>
 
         <ButtonRow>
             <SimpleButton
@@ -223,13 +226,14 @@ const ContestLandingPage = () => (
                 en="GitHub"
             />
         </ButtonRow>
+
         <CallToActionFooterWithButton
-            href="http://sefaria.nationbuilder.com/contest"
-            he_href="http://sefaria.nationbuilder.com/contest"
-            enText="Let’s Innovate Together"
-            heText="בואו נחדש ביחד!"
-            enButtonText="Register"
-            heButtonText="טופס הרשמה"
+            href="https://docs.google.com/forms/d/e/1FAIpQLSdYygtWWCte6ljlNUq7qwVItoJREeaVRXznuuVC8213xw6k4w/viewform"
+            he_href="https://docs.google.com/forms/d/e/1FAIpQLSdYygtWWCte6ljlNUq7qwVItoJREeaVRXznuuVC8213xw6k4w/viewform"
+            enText="Ready to share what you created?"
+            heText="מוכנים לשתף את מה שיצרתם?"
+            enButtonText="Submit your project"
+            heButtonText="הגישו את הפרוייקט שלכם"
         />
     </StaticPage>
 );
@@ -550,6 +554,7 @@ const StaticPage = ({children}) => (
     </div>
 );
 
+const Spacer = ({height}) => <div className={"staticPageSpacer"} style={{height: height || 60}}></div>;
 const HeBlock = ({children, padded}) => <div className={"int-he" + (padded ? " staticPageBlockInner" : "")}>{children}</div>;
 const EnBlock = ({children, padded}) => <div className={"int-en" + (padded ? " staticPageBlockInner" : "")}>{children}</div>;
 
@@ -629,7 +634,7 @@ const About = ({enTitle, heTitle, enText, heText, backgroundColor}) => (
 );
 
 const ImageWithText = ({enText, heText, enImg, heImg, enImgAlt, heImgAlt}) => (
-    <div className="feature" style={{backgroundColor: "inherit"}}>
+    <div className="feature blockVerticalPadding" style={{backgroundColor: "inherit"}}>
         <div className="staticPageBlockInner flexContainer">
             <div className="featureText" style={{borderTop: 0}}>
                 <div className="int-en" dangerouslySetInnerHTML={{__html:enText}} />

@@ -429,6 +429,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 							}).delete()
 
 	sheet["includedRefs"] = refs_in_sources(sheet.get("sources", []))
+	sheet["expandedRefs"] = model.Ref.expand_refs(sheet["includedRefs"]) 
 
 	if rebuild_nodes:
 		sheet = rebuild_sheet_nodes(sheet)
@@ -616,7 +617,7 @@ def update_included_refs(query=None, hours=None, refine_refs=False):
 	for sheet in sheets:
 		sources = sheet.get("sources", [])
 		refs = refs_in_sources(sources, refine_refs=refine_refs)
-		db.sheets.update({"_id": sheet["_id"]}, {"$set": {"includedRefs": refs}})
+		db.sheets.update({"_id": sheet["_id"]}, {"$set": {"includedRefs": refs, "expandedRefs": model.Ref.expand_refs(refs)}})
 
 
 def get_top_sheets(limit=3):
@@ -637,9 +638,8 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	"""
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref
-	regex_list = oref.context_ref().regex(as_list=True)
-	ref_clauses = [{"includedRefs": {"$regex": r}} for r in regex_list]
-	query = {"$or": ref_clauses }
+	segment_refs = [r.normal() for r in oref.all_segment_refs()]
+	query = {"expandedRefs": {"$in": segment_refs}}
 	if uid:
 		query["owner"] = uid
 	else:
@@ -647,9 +647,10 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 	if in_group:
 		query["group"] = {"$in": in_group}
 	sheetsObj = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "group":1, "options":1}).sort([["views", -1]])
-	sheets = list((s for s in sheetsObj))
-	user_ids = list(set([s["owner"] for s in sheets]))
+		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "group":1, "options":1}).sort([["views", -1]])
+	sheetsObj.hint("expandedRefs_1")
+	sheets = [s for s in sheetsObj]
+	user_ids = list({s["owner"] for s in sheets})
 	django_user_profiles = User.objects.filter(id__in=user_ids).values('email','first_name','last_name','id')
 	user_profiles = {item['id']: item for item in django_user_profiles}
 	mongo_user_profiles = list(db.profiles.find({"id": {"$in": user_ids}},{"id":1,"slug":1,"profile_pic_url_small":1}))
@@ -665,50 +666,43 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 		except:
 			user_profiles[profile]["profile_pic_url_small"] = ""
 
-	ref_re = "("+'|'.join(regex_list)+")"
 	results = []
 	for sheet in sheets:
-		potential_matches = [r for r in sheet["includedRefs"] if r.startswith(oref.index.title)]
-		matched_refs = [r for r in potential_matches if regex.match(ref_re, r)]
+		anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, sheet.get("includedRefs", []), sheet.get("expandedRefs", []))
+		ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
+		if len(ownerData.get('profile_pic_url_small', '')) == 0:
+			default_image           = "https://www.sefaria.org/static/img/profile-default.png"
+			gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower().encode('utf8')).hexdigest() + "?"
+			gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
+			ownerData['profile_pic_url_small'] = gravatar_url_small
 
-		for match in matched_refs:
-			try:
-				match = model.Ref(match)
-			except InputError:
-				continue
+		if "assigner_id" in sheet:
+			asignerData = public_user_data(sheet["assigner_id"])
+			sheet["assignerName"] = asignerData["name"]
+			sheet["assignerProfileUrl"] = asignerData["profileUrl"]
+		if "viaOwner" in sheet:
+			viaOwnerData = public_user_data(sheet["viaOwner"])
+			sheet["viaOwnerName"] = viaOwnerData["name"]
+			sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
 
-			ownerData = user_profiles.get(sheet["owner"], {'first_name': 'Ploni', 'last_name': 'Almoni', 'email': 'test@sefaria.org', 'slug': 'Ploni-Almoni', 'id': None, 'profile_pic_url_small': ''})
-			if len(ownerData.get('profile_pic_url_small', '')) == 0:
-				default_image           = "https://www.sefaria.org/static/img/profile-default.png"
-				gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(ownerData["email"].lower().encode('utf8')).hexdigest() + "?"
-				gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
-				ownerData['profile_pic_url_small'] = gravatar_url_small
-
-			if "assigner_id" in sheet:
-				asignerData = public_user_data(sheet["assigner_id"])
-				sheet["assignerName"] = asignerData["name"]
-				sheet["assignerProfileUrl"] = asignerData["profileUrl"]
-			if "viaOwner" in sheet:
-				viaOwnerData = public_user_data(sheet["viaOwner"])
-				sheet["viaOwnerName"] = viaOwnerData["name"]
-				sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
-
-			if "group" in sheet:
-				group = Group().load({"name": sheet["group"]})
-				sheet["groupLogo"]       = getattr(group, "imageUrl", None)
-				sheet["groupTOC"]        = getattr(group, "toc", None)
-
+		if "group" in sheet:
+			group = Group().load({"name": sheet["group"]})
+			sheet["groupLogo"]       = getattr(group, "imageUrl", None)
+			sheet["groupTOC"]        = getattr(group, "toc", None)
+		natural_date_created = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
+		topics = add_langs_to_topics(sheet.get("topics", []))
+		for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
 			sheet_data = {
 				"owner":           sheet["owner"],
 				"_id":             str(sheet["_id"]),
 				"id":              str(sheet["id"]),
-				"anchorRef":       match.normal(),
-				"anchorVerse":     match.sections[-1] if len(match.sections) else 1,
 				"public":          sheet["status"] == "public",
 				"title":           strip_tags(sheet["title"]),
 				"sheetUrl":        "/sheets/" + str(sheet["id"]),
+				"anchorRef":       anchor_ref.normal(),
+				"anchorRefExpanded": [r.normal() for r in anchor_ref_expanded],
 				"options": 		   sheet["options"],
-				"naturalDateCreated": naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f")),
+				"naturalDateCreated": natural_date_created,
 				"group":           sheet.get("group", None),
 				"groupLogo" : 	   sheet.get("groupLogo", None),
 				"groupTOC":        sheet.get("groupTOC", None),
@@ -722,7 +716,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"ownerImageUrl":   ownerData.get('profile_pic_url_small',''),
 				"status":          sheet["status"],
 				"views":           sheet["views"],
-				"topics":          add_langs_to_topics(sheet.get("topics", [])),
+				"topics":          topics,
 				"likes":           sheet.get("likes", []),
 				"summary":         sheet.get("summary", None),
 				"attribution":     sheet.get("attribution", None),
@@ -732,9 +726,6 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 			}
 
 			results.append(sheet_data)
-
-			break
-
 	return results
 
 
@@ -1061,6 +1052,7 @@ class Sheet(abstract.AbstractMongoRecord):
 	optional_attrs = [
 		"is_featured",  # boolean - show this sheet, unsolicited.
 		"includedRefs",
+		"expandedRefs",
 		"views",
 		"nextNode",
 		"tags",

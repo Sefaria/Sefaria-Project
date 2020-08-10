@@ -134,7 +134,7 @@ class VersionBlock extends Component {
     if (this.props.version.merged) {
       return "#"; // there's no url for a merged version
     }
-    const withParam = versionParam === 'side' ? "&with=Version Open" : "";
+    const withParam = versionParam === 'side' ? "&with=Translation Open" : "";
     const nonSelectedVersionParams = Object.keys(this.props.currVersions)
                                       .filter(vlang=>!!this.props.currVersions[vlang] && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
                                       .map(vlang=>`&v${vlang}=${this.props.currVersions[vlang].replace(/\s/g,'_')}`)
