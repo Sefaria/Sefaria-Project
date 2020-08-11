@@ -53,7 +53,7 @@ from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES,
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
-from sefaria.helper.topic import get_topic, get_all_topics
+from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref
 from django.utils.html import strip_tags
 
 
@@ -201,7 +201,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "Web Pages", "extended notes"):
+            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "WebPages", "extended notes", "Topics"):
                 panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
@@ -1206,15 +1206,18 @@ def texts_api(request, tref):
         alts       = bool(int(request.GET.get("alts", True)))
         wrapLinks = bool(int(request.GET.get("wrapLinks", False)))
         stripItags = bool(int(request.GET.get("stripItags", False)))
-        multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negtive integer (indicating backward)
+        multiple = int(request.GET.get("multiple", 0))  # Either undefined, or a positive integer (indicating how many sections forward) or negative integer (indicating backward)
 
         def _get_text(oref, versionEn=versionEn, versionHe=versionHe, commentary=commentary, context=context, pad=pad,
                       alts=alts, wrapLinks=wrapLinks, layer_name=layer_name):
+            text_family_kwargs = dict(version=versionEn, lang="en", version2=versionHe, lang2="he",
+                                      commentary=commentary, context=context, pad=pad, alts=alts,
+                                      wrapLinks=wrapLinks, stripItags=stripItags)
             try:
-                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks, stripItags=stripItags).contents()
+                text = TextFamily(oref, **text_family_kwargs).contents()
             except AttributeError as e:
                 oref = oref.default_child_ref()
-                text = TextFamily(oref, version=versionEn, lang="en", version2=versionHe, lang2="he", commentary=commentary, context=context, pad=pad, alts=alts, wrapLinks=wrapLinks, stripItags=stripItags).contents()
+                text = TextFamily(oref, **text_family_kwargs).contents()
             except NoVersionFoundError as e:
                 return {"error": str(e), "ref": oref.normal(), "enVersion": versionEn, "heVersion": versionHe}
 
@@ -1251,10 +1254,9 @@ def texts_api(request, tref):
             return jsonResponse(text, cb)
         else:
             # Return list of many sections
-            target_count = int(multiple)
-            assert target_count != 0
-            direction = "next" if target_count > 0 else "prev"
-            target_count = abs(target_count)
+            assert multiple != 0
+            direction = "next" if multiple > 0 else "prev"
+            target_count = abs(multiple)
 
             current = 0
             texts = []
@@ -1895,8 +1897,8 @@ def related_api(request, tref):
     """
     Single API to bundle available content related to `tref`.
     """
-    oref = model.Ref(tref)
     if request.GET.get("private", False) and request.user.is_authenticated:
+        oref = model.Ref(tref)
         response = {
             "sheets": get_sheets_for_ref(tref, uid=request.user.id),
             "notes": get_notes(oref, uid=request.user.id, public=False)
@@ -1909,6 +1911,7 @@ def related_api(request, tref):
             "sheets": get_sheets_for_ref(tref),
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
+            "topics": get_topics_for_ref(tref, annotate=True),
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
@@ -2987,6 +2990,16 @@ def topics_api(request, topic):
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
+@catch_error_as_json
+def topic_ref_api(request, tref):
+    """
+    API to get RefTopicLinks
+    """
+    annotate = bool(int(request.GET.get("annotate", False)))
+    response = get_topics_for_ref(tref, annotate)
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
 def _topic_data(topic):
     response = get_topic(topic, with_links=True, annotate_links=True, with_refs=True, group_related=True)
     return response
@@ -3244,6 +3257,44 @@ def profile_api(request):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
+@login_required
+@csrf_protect
+def account_user_update(request):
+    """
+    API for user profiles.
+    """
+    if not request.user.is_authenticated:
+        return jsonResponse({"error": _("You must be logged in to update your profile.")})
+
+    if request.method == "POST":
+        accountJSON = request.POST.get("json")
+        if not accountJSON:
+            return jsonResponse({"error": "No post JSON."})
+        accountUpdate = json.loads(accountJSON)
+        error = None
+        # some validation on post fields
+        if accountUpdate["email"] != accountUpdate["confirmEmail"]:
+            error = _("Email fields did not match")
+        elif not request.user.check_password(accountUpdate["confirmPassword"]):
+            error = _("Incorrect account password for this account")
+        else:
+            # get the logged in user
+            uuser = UserWrapper(request.user.email)
+            try:
+                uuser.set_email(accountUpdate["email"])
+                uuser.save()
+            except Exception as e:
+                error = uuser.errors()
+
+        if not error:
+            return jsonResponse({"status": "ok"})
+        else:
+            return jsonResponse({"error": error})
+
+    return jsonResponse({"error": "Unsupported HTTP method."})
+
+
+
 @catch_error_as_json
 def profile_get_api(request, slug):
     if request.method == "GET":
@@ -3267,13 +3318,13 @@ def profile_upload_photo(request):
         return jsonResponse({"error": _("You must be logged in to update your profile photo.")})
     if request.method == "POST":
         from PIL import Image
-        from io import StringIO
+        from io import BytesIO
         from sefaria.utils.util import epoch_time
         now = epoch_time()
 
         def get_resized_file(image, size):
             resized_image = image.resize(size, resample=Image.LANCZOS)
-            resized_image_file = StringIO()
+            resized_image_file = BytesIO()
             resized_image.save(resized_image_file, format="PNG")
             resized_image_file.seek(0)
             return resized_image_file
@@ -4381,6 +4432,9 @@ def application_health_api(request):
         return http.HttpResponse("Healthy", status="200")
     else:
         return http.HttpResponse("Unhealthy", status="500")
+
+def application_health_api_nonlibrary(request):
+    return http.HttpResponse("Healthy", status="200")
 
 @login_required
 def daf_roulette_redirect(request):

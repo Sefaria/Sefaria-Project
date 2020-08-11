@@ -321,7 +321,6 @@ input.noselect {
   z-index: 1001;
   box-sizing: border-box;
   padding: 0 30px;
-  overflow: hidden;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -347,6 +346,7 @@ input.noselect {
   display: flex;
   justify-content: flex-end;
   min-width: 40%;
+  align-items: center;
 }
 .header .header-nav{
   margin-top: 1px;
@@ -404,6 +404,12 @@ input.noselect {
   border-top: solid 1px #ccc;
   padding-top: 12px;
 }
+.ui-autocomplete .ui-menu-item.hebrew-result a {
+  direction: rtl;
+}
+.ui-autocomplete .ui-menu-item.english-result a {
+  direction: ltr;
+}
 .header .home {
   margin-top: 1px;
 }
@@ -412,7 +418,9 @@ input.noselect {
   width: 92px;
 }
 .header .login:first-child{
-  margin: auto 30px;
+  -webkit-margin-end: 0px;
+  -moz-margin-end: 0px;
+  margin-inline-end: 0px;
 }
 .header .notifications {
   margin: 0 17px;
@@ -446,6 +454,123 @@ input.noselect {
   font-size: 16px;
   margin-top: 2px;
   color: #666;
+  -webkit-margin-end: 20px;
+  -moz-margin-end: 20px;
+  margin-inline-end: 20px;
+}
+.header .accountLinks.anon a:last-child{
+  background: #FFFFFF;
+  border: 1px solid #EDEDEC;
+  box-sizing: border-box;
+  border-radius: 6px;
+}
+.header .interfaceLinks{
+  display: block;
+  align-items: center;
+  margin-top: 2px;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+}
+.header .interfaceLinks img{
+  height: 18px;
+  width: 18px;
+  vertical-align: middle;
+  -webkit-margin-end: 5px;
+  -moz-margin-end: 5px;
+  margin-inline-end: 5px;
+}
+.header .interfaceLinks a.interfaceLinks-button::after{
+  display: inline-block;
+  background-image: url("/static/icons/chevron-down.svg");
+  height: 10px;
+  width: 10px;
+  vertical-align: middle;
+  content: "";
+}
+.header .interfaceLinks .interfaceLinks-menu{
+  top: 35px;
+  position: absolute;
+  z-index: 1;
+  position: absolute;
+  width: 150px;
+  background: #FBFBFA;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  display: none;
+}
+.header .interfaceLinks .interfaceLinks-menu.open{
+  display: block;
+}
+.interface-english .header .interfaceLinks .interfaceLinks-menu{
+  right: 0px;
+}
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu{
+  left: 0px;
+}
+.header .interfaceLinks .interfaceLinks-header{
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 18px;
+  color: #999999;
+  padding: 12px;
+  border-bottom: 1px solid #CCCCCC;
+}
+.interface-english .header .interfaceLinks .interfaceLinks-header{
+  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
+}
+.interface-hebrew .header .interfaceLinks .interfaceLinks-header{
+  font-family: "Heebo", sans-serif;
+}
+.interfaceLinks-options{
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+}
+.header .interfaceLinks .interfaceLinks-option{
+  display: flex;
+  text-decoration: none;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 23px;
+  text-align: right;
+  color: #666666;
+  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
+  padding: 5px;
+}
+.header .interfaceLinks .interfaceLinks-option::before{
+  content: "";
+  font-family:FontAwesome;
+  color: #999;
+  font-weight: normal;
+  font-size: 13px;
+  font-style: normal;
+  padding: 0 15px;
+}
+.header .interfaceLinks .interfaceLinks-option.active{
+  order: -1;
+}
+.header .interfaceLinks .interfaceLinks-option.active::before{
+  content: "\f00c";
+  padding: 0 8px;
+}
+@media screen and (max-width: 700px) {
+  .header .interfaceLinks {
+    display: none;
+  }
+  .header .accountLinks .login{
+    padding: 5px 5px;
+  }
+  .header .accountLinks{
+    -webkit-margin-end: 0px;
+    -moz-margin-end: 0px;
+    margin-inline-end: 0px;
+  }
+  .header .login:first-child{
+    margin:auto;
+  }
 }
 .header .my-profile, .header .notifications {
   display: inline-block;
@@ -478,6 +603,7 @@ input.noselect {
   color: #666;
   display: inline-block;
   line-height: 1;
+  padding: 8px 15px;
 }
 .header .login .en {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
@@ -3146,12 +3272,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: auto;
   right: -50px;
 }
-.mainColumn .saveButton.tooltip-toggle.three-dots-button {
+.saveButton.tooltip-toggle.three-dots-button {
   background-color: #ededec;
   margin-bottom: 13px;
-  padding: 0;
-  width: 22px;
-  height: 20px;
+  padding: 0 6px;  /* HACK: setting width and height to equal values doesn't make this circular, but this does! */
+  height: 22px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -3162,9 +3287,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 10px;
   margin-top: 0;
 }
-.topicPanel .three-dots-button {
+.topicPanel .mainColumn .saveLine .saveButton.three-dots-button {
   margin-left: 10px;
   margin-right: 0;
+  margin-bottom: 13px;
+  padding-bottom: 0;
 }
 .interface-hebrew .topicPanel .three-dots-button {
   margin-left: 0px;
@@ -4551,6 +4678,71 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 16px;
   letter-spacing: 1px;
   padding: 20px 34px;
+}
+.topicList.topicsHe {
+  direction: rtl;
+}
+.topicList.topicsEn {
+  direction: ltr;
+}
+.toolsButton.topicButton {
+  flex-direction: column;
+  letter-spacing: unset;
+}
+.topicButton .topicButtonTitle {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  text-align: left;
+}
+.topicButton .topicButtonTitle .he {
+  text-align: right;
+}
+.topicButton .contentText .en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.topicButtonTitle .he {
+  font-size: 122%;
+}
+.topicButton .saveButton.tooltip-toggle.three-dots-button {
+  margin-bottom: 0;
+  margin-left: 30px;
+}
+.topicsHe .topicButton .saveButton.tooltip-toggle.three-dots-button {
+  margin-right: 30px;
+  margin-left: 0;
+}
+.topicButton .three-dots-button.tooltip-toggle::before {
+  transform: none;
+  left: unset;
+  right: 30px;
+  width: 180px;
+}
+.topicsHe .topicButton .three-dots-button.tooltip-toggle::before {
+  right: unset;
+  left: 30px;
+  text-align: right;
+}
+.topicButton .smallText {
+  margin-top: 10px;
+  line-height: 18px;
+  font-size: 18px;
+  text-align: left;
+}
+.topicButton .smallText .en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  color: #999;
+}
+.topicButton .smallText .he {
+  font-family: "Heebo", sans-serif;
+  font-size: 13px;
+  font-weight: normal;
+  color: #999;
+}
+.topicsHe .topicButton .smallText {
+  text-align: right;
 }
 .toolsButton:last-child {
   border-bottom: 1px solid #E5E5E5;

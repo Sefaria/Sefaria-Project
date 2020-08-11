@@ -39,8 +39,6 @@ class SheetMetadata extends Component {
   componentDidUpdate(prevProps, prevState) {
     if ((this.props.settingsLanguage != prevProps.settingsLanguage)) {
       this.forceUpdate();
-
-
     }
   }
   loadSaved() {

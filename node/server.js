@@ -85,7 +85,7 @@ server.post('/Footer/:cachekey', function(req, res) {
 
 server.listen(settings.NODEJS_PORT, function() {
   console.log('Django Host: ' + settings.DJANGO_HOST);
-  console.log('Django Post: ' + settings.DJANGO_PORT);
+  console.log('Django Port: ' + settings.DJANGO_PORT);
   console.log('Debug: ' + settings.DEBUG);
   console.log('Listening on ' + settings.NODEJS_PORT);
 });

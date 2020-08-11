@@ -19,7 +19,7 @@ try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
 except ImportError:
-    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
+    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
 from . import abstract as abst
@@ -1027,14 +1027,14 @@ class AbstractTextRecord(object):
     @staticmethod
     def _find_itags(tag):
         if isinstance(tag, Tag):
-            is_footnote = tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
+            is_footnote = tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             return is_footnote or is_inline_commentator
         return False
 
     @staticmethod
     def _strip_itags(s):
-        soup = BeautifulSoup("<div>{}</div>".format(s), 'xml')
+        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
         itag_list = soup.find_all(AbstractTextRecord._find_itags)
         for itag in itag_list:
             try:
@@ -1042,7 +1042,7 @@ class AbstractTextRecord(object):
             except AttributeError:
                 pass  # it's an inline commentator
             itag.decompose()
-        return soup.encode_contents().decode()[5:-6]  # remove divs added
+        return soup.root.encode_contents().decode()  # remove divs added
 
     def _get_text_after_modifications(self, text_modification_funcs):
         """
@@ -3603,53 +3603,51 @@ class Ref(object, metaclass=RefCacheType):
             [Ref('Shabbat 13b:3-50'), Ref('Shabbat 14a'), Ref('Shabbat 14b:1-3')]
 
         """
-        if not self._spanned_refs or True:
+        if self.index_node.depth == 1 or not self.is_spanning():
+            self._spanned_refs = [self]
 
-            if self.index_node.depth == 1 or not self.is_spanning():
-                self._spanned_refs = [self]
+        else:
+            start, end = self.sections[self.range_index()], self.toSections[self.range_index()]
+            ref_depth = len(self.sections)
+            to_ref_depth = len(self.toSections)
 
-            else:
-                start, end = self.sections[self.range_index()], self.toSections[self.range_index()]
-                ref_depth = len(self.sections)
-                to_ref_depth = len(self.toSections)
+            refs = []
+            for n in range(start, end + 1):
+                d = self._core_dict()
+                if n == start:
+                    d["toSections"] = self.sections[0:self.range_index() + 1]
 
-                refs = []
-                for n in range(start, end + 1):
-                    d = self._core_dict()
-                    if n == start:
-                        d["toSections"] = self.sections[0:self.range_index() + 1]
+                    for i in range(self.range_index() + 1, ref_depth):
+                        d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]],until_last_nonempty=True)]
+                elif n == end:
+                    d["sections"] = self.toSections[0:self.range_index() + 1]
+                    for _ in range(self.range_index() + 1, to_ref_depth):
+                        d["sections"] += [1]
+                else:
+                    d["sections"] = self.sections[0:self.range_index()] + [n]
+                    d["toSections"] = self.sections[0:self.range_index()] + [n]
 
+                    '''  If we find that we need to expand inner refs, add this arg.
+                    # It will require handling on cached ref and passing on the recursive call below.
+                    if expand_middle:
                         for i in range(self.range_index() + 1, ref_depth):
-                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]],until_last_nonempty=True)]
-                    elif n == end:
-                        d["sections"] = self.toSections[0:self.range_index() + 1]
-                        for _ in range(self.range_index() + 1, to_ref_depth):
                             d["sections"] += [1]
-                    else:
-                        d["sections"] = self.sections[0:self.range_index()] + [n]
-                        d["toSections"] = self.sections[0:self.range_index()] + [n]
+                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                    '''
 
-                        '''  If we find that we need to expand inner refs, add this arg.
-                        # It will require handling on cached ref and passing on the recursive call below.
-                        if expand_middle:
-                            for i in range(self.range_index() + 1, ref_depth):
-                                d["sections"] += [1]
-                                d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
-                        '''
+                if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
+                    try:
+                        refs.append(Ref(_obj=d))
+                    except InputError:
+                        pass
 
-                    if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
-                        try:
-                            refs.append(Ref(_obj=d))
-                        except InputError:
-                            pass
-
-                if self.range_depth() == 2:
-                    self._spanned_refs = refs
-                if self.range_depth() > 2: #recurse
-                    expanded_refs = []
-                    for ref in refs:
-                        expanded_refs.extend(ref.split_spanning_ref())
-                    self._spanned_refs = expanded_refs
+            if self.range_depth() == 2:
+                self._spanned_refs = refs
+            if self.range_depth() > 2: #recurse
+                expanded_refs = []
+                for ref in refs:
+                    expanded_refs.extend(ref.split_spanning_ref())
+                self._spanned_refs = expanded_refs
 
         return self._spanned_refs
 
@@ -4201,6 +4199,11 @@ class Ref(object, metaclass=RefCacheType):
         from . import LinkSet
         return LinkSet(self)
 
+    def topiclinkset(self):
+        from . import RefTopicLinkSet
+        regex_list = self.regex(as_list=True)
+        return RefTopicLinkSet({"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]})
+
     def autolinker(self, **kwargs):
         """
         Returns the class best suited to perform auto linking,
@@ -4434,7 +4437,7 @@ class Library(object):
                 "displayOrder": getattr(topic, "displayOrder", 10000)
             }
             explored.add(topic.slug)
-        if len(children) > 0:
+        if len(children) > 0 or topic is None:  # make sure root gets children no matter what
             topic_json['children'] = []
         for child in children:
             child_topic = Topic().load({'slug': child})

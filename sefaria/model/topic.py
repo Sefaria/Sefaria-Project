@@ -77,18 +77,22 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-    def get_leaf_nodes(self, linkType='is-a'):
+    def get_leaf_nodes(self, linkType='is-a', explored_set=None):
+        explored_set = explored_set or set()
         leaves = []
         children = [l.fromTopic for l in IntraTopicLinkSet({"toTopic": self.slug, "linkType": linkType})]
         if len(children) == 0:
             return [self]
         else:
             for slug in children:
+                if slug in explored_set:
+                    continue
                 child_topic = Topic.init(slug)
+                explored_set.add(slug)
                 if child_topic is None:
                     logger.warning(f"{slug} is None")
                     continue
-                leaves += child_topic.get_leaf_nodes(linkType)
+                leaves += child_topic.get_leaf_nodes(linkType, explored_set)
         return leaves
 
     def has_types(self, search_slug_set):
@@ -207,6 +211,20 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                 title += f' ({disambig_text})'
         return title
 
+    def get_titles(self, lang=None, with_disambiguation=True):
+        if with_disambiguation:
+            titles = []
+            for title in self.get_titles_object():
+                if not (lang is None or lang == title['lang']):
+                    continue
+                text = title['text']
+                disambig_text = title.get('disambiguation', None)
+                if disambig_text:
+                    text += f' ({disambig_text})'
+                titles += [text]
+            return titles
+        return super(Topic, self).get_titles(lang)
+
     def get_property(self, property):
         properties = getattr(self, 'properties', {})
         if property not in properties:
@@ -252,6 +270,7 @@ class TopicLinkHelper(object):
         'generatedBy',
         'order'
     ]
+    generated_by_sheets = "sheet-topic-aggregator"
 
     @staticmethod
     def init_by_class(topic_link, context_slug=None):
@@ -267,6 +286,7 @@ class TopicLinkHelper(object):
 
 class IntraTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
+    sub_collection_query = {"class": "intraTopic"}
     required_attrs = TopicLinkHelper.required_attrs + ['fromTopic']
     optional_attrs = TopicLinkHelper.optional_attrs
     valid_links = []
@@ -330,7 +350,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 
     def contents(self, **kwargs):
         d = super(IntraTopicLink, self).contents(**kwargs)
-        if self.context_slug is not None:
+        if not (self.context_slug is None or kwargs.get('for_db', False)):
             d['isInverse'] = self.is_inverse
             d['topic'] = self.topic
             del d['toTopic']
@@ -360,6 +380,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 
 class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
+    sub_collection_query = {"class": "refTopic"}
     required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']  # is_sheet  and expandedRef attrs are defaulted automatically in normalize
     optional_attrs = TopicLinkHelper.optional_attrs + ['text']
 
@@ -382,6 +403,12 @@ class RefTopicLink(abst.AbstractMongoRecord):
                 raise DuplicateRecordError("Duplicate ref topic link for linkType '{}', ref '{}', toTopic '{}', dataSource '{}'".format(
                 self.linkType, self.ref, self.toTopic, getattr(self, 'dataSource', 'N/A')))
 
+    def contents(self, **kwargs):
+        d = super(RefTopicLink, self).contents(**kwargs)
+        if not kwargs.get('for_db', False):
+            d['topic'] = d['toTopic']
+            d.pop('toTopic')
+        return d
 
 class TopicLinkSetHelper(object):
 

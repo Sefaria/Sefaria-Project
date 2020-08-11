@@ -28,33 +28,21 @@ socket.on('return rooms', function(numRooms) {
   document.getElementById("numberOfChevrutas").innerHTML = numRooms;
 });
 
-console.log('Attempted to create or join room');
-
-socket.on('created', function(room, conf) {
+socket.on('creds', function(conf) {
   pcConfig = conf;
+});
+
+socket.on('created', function(room) {
   console.log('Created room ' + room);
   isInitiator = true;
   clientRoom = room;
 });
 
-socket.on('full', function(room) {
-  console.log('Room ' + room + ' is full');
-});
-
 socket.on('join', function(room) {
-  console.log('another user joined room: ' + room);
-  Sefaria.track.event("DafRoulette", "Chevruta Match Made", "initator");
-  isChannelReady = true;
-  socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room);
-  maybeStart();
-});
-
-socket.on('joined', function(room, conf) {
-  pcConfig = conf;
-  console.log('joined: ' + room);
-  isChannelReady = true;
+  console.log('user joined room: ' + room);
+  Sefaria.track.event("DafRoulette", "Chevruta Match Made");
   clientRoom = room;
-  Sefaria.track.event("DafRoulette", "Chevruta Match Made", "joiner");
+  isChannelReady = true;
   socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room);
   maybeStart();
 });
@@ -62,6 +50,8 @@ socket.on('joined', function(room, conf) {
 socket.on('got user name', function(userName, uid) {
   document.getElementById("chevrutaName").innerHTML = userName;
   document.getElementById("chevrutaUID").value = uid;
+  localStorage.setItem('lastChevrutaID', uid);
+  localStorage.setItem('lastChevrutaTimeStamp', Date.now());
 });
 
 socket.on('user reported', function(){
@@ -70,16 +60,23 @@ socket.on('user reported', function(){
   alert("Your chevruta clicked the 'Report User' button. \n\nA report has been sent to the Sefaria administrators.")
 });
 
+socket.on('byeReceived', function(){
+  window.onbeforeunload = null;
+  location.reload();
+});
+
+
+
 ////////////////////////////////////////////////
 
 function sendMessage(message) {
-  console.log('Client sending message: ', message);
+  // console.log('Client sending message: ', message);
   socket.emit('message', message);
 }
 
 // This client receives a message
 socket.on('message', function(message) {
-  console.log('Client received message:', message);
+  // console.log('Client received message:', message);
   if (message.type === 'offer') {
     if (!isInitiator && !isStarted) {
       maybeStart();
@@ -110,7 +107,12 @@ navigator.mediaDevices.getUserMedia({
   })
   .then((stream) => {
     localStream = localVideo.srcObject = stream;
-    socket.emit('how many rooms');
+
+    // if it's been >5 minutes since user last matched w/ a chevruta allow for any potential match
+    if (Date.now() - localStorage.getItem('lastChevrutaTimeStamp') > 300000) {
+      localStorage.setItem('lastChevrutaID', null);
+    }
+    socket.emit('how many rooms', {{ client_uid }}, localStorage.getItem('lastChevrutaID'));
     console.log('Adding local stream.');
   })
   .catch(function(e) {
@@ -119,7 +121,7 @@ navigator.mediaDevices.getUserMedia({
 
 function addAdditionalHTML() {
   const newRoomButton = document.createElement('div');
-  newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()">New Person</button>';
+  newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()"><span class="int-en">New Person</span><span class="int-he">ממתין לחברותא</span></button>';
   document.getElementById("buttonContainer").appendChild(newRoomButton)
 
   const iframe = document.createElement('iframe');
@@ -130,7 +132,7 @@ function addAdditionalHTML() {
 
 function getNewChevruta() {
   Sefaria.track.event("DafRoulette", "New Chevruta Click", "");
-  location.reload();
+  socket.emit('bye', clientRoom);
 }
 
 
@@ -140,7 +142,6 @@ function reportUser() {
 
   const uid = document.getElementById("chevrutaUID").value;
   const username = document.getElementById("chevrutaName").innerHTML;
-  console.log(uid, username)
 
   var feedback = {
       type: "daf_roulette_report",
@@ -166,13 +167,13 @@ function reportUser() {
 }
 
 function maybeStart() {
-  console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
+  // console.log('>>>>>>> maybeStart() ', isStarted, localStream, isChannelReady);
   if (!isStarted && typeof localStream !== 'undefined' && isChannelReady) {
-    console.log('>>>>>> creating peer connection');
+    // console.log('>>>>>> creating peer connection');
     createPeerConnection();
     pc.addStream(localStream);
     isStarted = true;
-    console.log('isInitiator', isInitiator);
+    // console.log('isInitiator', isInitiator);
     if (isInitiator) {
       doCall();
     }
@@ -195,6 +196,7 @@ function createPeerConnection() {
     pc.onicecandidate = handleIceCandidate;
     pc.onaddstream = handleRemoteStreamAdded;
     pc.onremovestream = handleRemoteStreamRemoved;
+    pc.oniceconnectionstatechange = handleIceConnectionChange;
     console.log('Created RTCPeerConnnection');
   } catch (e) {
     console.log('Failed to create PeerConnection, exception: ' + e.message);
@@ -204,7 +206,7 @@ function createPeerConnection() {
 }
 
 function handleIceCandidate(event) {
-  console.log('icecandidate event: ', event);
+  // console.log('icecandidate event: ', event);
   if (event.candidate) {
     sendMessage({
       type: 'candidate',
@@ -236,7 +238,7 @@ function doAnswer() {
 
 function setLocalAndSendMessage(sessionDescription) {
   pc.setLocalDescription(sessionDescription);
-  console.log('setLocalAndSendMessage sending message', sessionDescription);
+  // console.log('setLocalAndSendMessage sending message', sessionDescription);
   sendMessage(sessionDescription);
 }
 
@@ -254,9 +256,15 @@ function handleRemoteStreamRemoved(event) {
   console.log('Remote stream removed. Event: ', event);
 }
 
+function handleIceConnectionChange(event) {
+  if (pc.iceConnectionState == "disconnected" || pc.iceConnectionState == "failed") {
+    socket.emit('bye', clientRoom);
+  }
+  console.log(pc.iceConnectionState);
+}
+
 function handleRemoteHangup() {
-  socket.emit('bye', clientRoom);
-  console.log('Session terminated.');
+  window.onbeforeunload = null;
   location.reload();
 }
 

@@ -354,7 +354,7 @@ const TopicTextsStory = (props) => (
     <StoryFrame cls="topicTextsStory">
         <StoryTypeBlock en="Topic" he="" />
         <SeeAllLink url="/topics"/>
-        <StoryTitleBlock en={props.data.title.en} he={props.data.title.he} url={"/topics/" + props.data.title.en}/>
+      <StoryTitleBlock en={props.data.title.en} he={props.data.title.he} url={"/topics/" + (props.data.slug || props.data.title.en)}/>
         <StoryTextList texts={props.data.texts} toggleSignUpModal={props.toggleSignUpModal}/>
     </StoryFrame>
 );
@@ -398,7 +398,7 @@ const TopicListStory = (props) => (
         <SeeAllLink url="/topics"/>
         <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
         <TwoBox content={props.data.topics.map(topic =>
-            <BlockLink title={topic.en} heTitle={topic.he} target={"/topics/" + topic.en} interfaceLink={true}/>
+            <BlockLink title={topic.en} heTitle={topic.he} target={"/topics/" + (topic.slug || topic.en)} interfaceLink={true}/>
         )}/>
     </StoryFrame>
 );
