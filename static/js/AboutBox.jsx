@@ -1,7 +1,7 @@
-const React                  = require('react');
-const PropTypes              = require('prop-types');
-const Sefaria                = require('./sefaria/sefaria');
-const VersionBlock         = require('./VersionBlock');
+import React from 'react';
+import PropTypes from 'prop-types';
+import Sefaria from './sefaria/sefaria';
+import VersionBlock from './VersionBlock';
 import Component             from 'react-class';
 
 
@@ -157,10 +157,12 @@ class AboutBox extends Component {
     const versionSectionHe =
       (!!vh ? <div className="currVersionSection">
         <h2 className="aboutHeader">
-          <span className="int-en">Current Hebrew Version</span>
-          <span className="int-he">גרסה עברית נוכחית</span>
+          <span className="int-en">Current Version</span>
+          <span className="int-he">מהדורה נוכחית</span>
         </h2>
         <VersionBlock
+          rendermode="about-box"
+          sidebarDisplay = {true}
           version={vh}
           currVersions={currVersions}
           currentRef={this.props.srefs[0]}
@@ -170,10 +172,12 @@ class AboutBox extends Component {
     const versionSectionEn =
       (!!ve ? <div className="currVersionSection">
         <h2 className="aboutHeader">
-          <span className="int-en">Current English Version</span>
-          <span className="int-he">גרסה אנגלית נוכחית</span>
+          <span className="int-en">Current Translation</span>
+          <span className="int-he">תרגום נוכחי</span>
         </h2>
         <VersionBlock
+          rendermode="about-box"
+          sidebarDisplay = {true}
           version={ve}
           currVersions={currVersions}
           currentRef={this.props.srefs[0]}
@@ -203,4 +207,4 @@ AboutBox.propTypes = {
 
 
 
-module.exports = AboutBox;
+export default AboutBox;

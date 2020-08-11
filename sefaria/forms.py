@@ -75,7 +75,7 @@ class SefariaNewUserForm(EmailUserCreationForm):
             user.groups.remove(seed_group)
         else:
             user = super(SefariaNewUserForm, self).save(commit=False)
-        
+
         user.first_name = self.cleaned_data["first_name"]
         user.last_name = self.cleaned_data["last_name"]
 
@@ -135,4 +135,3 @@ class SefariaSetPasswordForm(SetPasswordForm):
         strip=False,
         widget=forms.PasswordInput(attrs={'placeholder': _("Repeat New Password")}),
     )
-

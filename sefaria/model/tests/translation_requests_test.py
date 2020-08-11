@@ -28,7 +28,7 @@ def teardown_module(module):
 class Test_complete_request:
 
     # OperationFailure: database error: Executor error: OperationFailed Sort operation used more than the maximum 33554432 bytes of RAM. Add an index, or specify a smaller limit.
-    @pytest.mark.failing
+    @pytest.mark.xfail(reason="unknown")
     def test_preexisting_completes_request(self):
         assert len(Ref("Job 4:4").text().text) > 0
         tr = TranslationRequest.make_request("Job 4:4", 1)
@@ -36,7 +36,7 @@ class Test_complete_request:
         tr = TranslationRequest().load({"ref": "Job 4:4"})
         assert tr.completed == True
 
-    @pytest.mark.failing
+    @pytest.mark.xfail(reason="unknown")
     def test_new_translation_completes_request(self):
         # Make sure we don't have Genesis 1:99
         oref = Ref("Genesis 1:99")

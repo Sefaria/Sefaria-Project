@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "Powered by Sefaria Contest" %}{% endblock %}
+
+{% block description %}{% trans "Powered by Sefaria Contest" %}{% endblock %}
+
+{% block css %}
+{% endblock %}
+
+
+{% block js %}
+<script>
+    {% autoescape off %}
+    DJANGO_VARS.containerId = 'contestPageInner';
+    DJANGO_VARS.reactComponentName = 'ContestLandingPage';
+    DJANGO_VARS.static_url = {{ STATIC_PREFIX }};
+    {% endautoescape %}
+</script>
+{% endblock %}
+
+{% block content %}
+<div id="contestPage" class="staticPageFrame">
+  <div id="contestPageInner" class="staticPageInner">
+    <h1 id="appLoading">Loading...</h1>
+  </div>
+</div>
+{% endblock %}

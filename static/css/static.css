@@ -111,7 +111,7 @@
   border-bottom: 1px solid #ddd;
   padding-bottom: 16px;
   margin-bottom: 16px;
-  line-height: 1;
+  line-height: 1.4;
 }
 .static h3 {
   font-weight: normal;
@@ -250,7 +250,7 @@
 }
 
 .static .quotation he {
-  font-family: frank ruehl libre,taamey frank,times new roman,serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .static .quotation int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -449,7 +449,7 @@
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #homePage a.refLink .int-he {
-  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #homePage #homeProgress {
   text-align: center;
@@ -655,7 +655,7 @@
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #activityList .text.int-he {
-  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #activityList .time {
   color: #ccc;
@@ -705,6 +705,7 @@
 }
 .registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
   width: auto;
+  -webkit-appearance: checkbox; /* fixes a declaration from here `.static input` that was meant to fix drop shadows on iOS Safari*/
 }
 .registrationContent .helptext {
   font-size: 16px;
@@ -1291,7 +1292,7 @@ p.registration-links a:hover{
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 #activityPage #activityFeed .text.ver-he {
-  font-family: "Frank Ruehl Libre", "Times New Roman", serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #activityPage #activityList .time {
   color: #ccc;
@@ -1699,7 +1700,7 @@ p.registration-links a:hover{
   -webkit-align-items: flex-start;
 }
 #visualGardenPage #results-container .int-he {
-  font-family: "Frank Ruehl Libre","Times New Roman",serif;
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #visualGardenPage .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
@@ -1781,7 +1782,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
    direction: rtl;
 }
 #visualGardenPage #results .result-text span.he {
- font-family: "Frank Ruehl Libre","Times New Roman",serif;
+ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 #visualGardenPage #results:after { /* Clearfix, for footer */
 	visibility: hidden;
@@ -2856,8 +2857,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   /* display: block; */
 }
 .staticPage .blockVerticalPadding {
-  padding-top: 40px;
-  padding-bottom: 40px;
+  padding-top: 80px;
+  padding-bottom: 80px;
 }
 .staticPage .flexContainer {
   display: flex;
@@ -2891,7 +2892,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   color: white;
 }
 .staticPage .staticPageCallToActionFooter .staticPageBlockInner {
-  padding: 60px 0;
+  padding: 80px 0;
 }
 .staticPage .staticPageCallToActionFooter .callToActionText {
   font-style: normal;
@@ -2910,6 +2911,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPage .staticPageHeader .staticPageHeaderImg {
   flex: 9;
+  min-height: 290px;
 }
 .interface-english .staticPage .staticPageHeader .staticPageHeaderTextBox {
   padding-right: 10px;
@@ -2928,6 +2930,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 30px;
   line-height: 35px;
   color: #666666;
+}
+
+.staticPage .staticPageSpacer {
 }
 
 .staticPage .staticPageSheetList {
@@ -2965,6 +2970,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPage .staticPageHeaderTextBox .simpleButtonWrapper {
   width: 66%;
+  padding-bottom: 80px;
 }
 .staticPage .simpleButtonWrapper .button {
   border-radius: 0;
@@ -2980,8 +2986,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   margin: auto;
 }
 .staticPageHeader h1 {
-  font-size: 48px;
-  line-height: 58px;
+  font-size: 42px;
+  line-height: 52px;
   font-weight: normal;
   margin: 0 0 14px 0;
 }

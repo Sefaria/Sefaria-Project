@@ -5,9 +5,6 @@ from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
-
-from emailusernames.forms import EmailAuthenticationForm
-
 from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
 
@@ -229,6 +226,7 @@ urlpatterns += [
 # Topics API
 urlpatterns += [
     url(r'^api/topics$', reader_views.topics_list_api),
+    url(r'^api/topics-graph/(?P<topic>.+)$', reader_views.topic_graph_api),
     url(r'^api/ref-topic-links/(?P<tref>.+)$', reader_views.topic_ref_api),
     url(r'^api/topics/(?P<topic>.+)$', reader_views.topics_api),
     url(r'^api/bulktopics$', reader_views.bulk_topic_api),
@@ -300,7 +298,9 @@ urlpatterns += [
 urlpatterns += [
     url(r'^random/link$',        reader_views.random_redirect),
     url(r'^random/?$',           reader_views.random_text_page),
-    url(r'^daf-roulette/?$',     reader_views.daf_roulette_redirect)
+    url(r'^daf-roulette/?$',     reader_views.daf_roulette_redirect),
+    url(r'^chevruta/?$',     reader_views.chevruta_redirect),
+
 ]
 
 # Registration

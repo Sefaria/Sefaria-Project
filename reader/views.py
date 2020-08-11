@@ -201,7 +201,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter[0] in ("Sheets", "Notes", "About", "Versions", "Version Open", "WebPages", "extended notes", "Topics"):
+            if filter[0] in ("Sheets", "Notes", "About", "Translations", "Translation Open", "WebPages", "extended notes", "Topics"):
                 panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
@@ -286,6 +286,10 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
     if panelDisplayLanguage:
         panel["settings"] = {"language": short_to_long_lang_code(panelDisplayLanguage)}
+
+    referer = kwargs.get("referer")
+    if referer == "/sheets/new":
+        panel["sheet"]["editor"] = True
 
     panels = []
     panels.append(panel)
@@ -387,7 +391,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
 
     elif sheet == True:
-        panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang", "bi")})
+        panels += make_sheet_panel_dict(ref, filter, **{"panelDisplayLanguage": request.GET.get("lang", "bi"), "referer": request.path})
 
     # Handle any panels after 1 which are identified with params like `p2`, `v2`, `l2`.
     i = 2
@@ -639,6 +643,21 @@ def search(request):
         "title":     (search_params["query"] + " | " if search_params["query"] else "") + _("Sefaria Search"),
         "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation.")
     })
+
+
+@login_required
+def enable_new_editor(request):
+    resp = home(request)
+    resp.set_cookie("new_editor", "yup", 60 * 60 * 24 * 365)
+    return resp
+
+
+@login_required
+def disable_new_editor(request):
+    resp = home(request)
+    resp.delete_cookie("new_editor")
+    return resp
+
 
 
 @sanitize_get_params
@@ -949,9 +968,9 @@ def _crumb(pos, id, name):
     return {
         "@type": "ListItem",
         "position": pos,
+        "name": name,
         "item": {
             "@id": id,
-            "name": name
         }}
 
 
@@ -1565,10 +1584,9 @@ def shape_api(request, title):
     API for retrieving a shape document for a given text or category.
     For simple texts, returns a dict with keys:
 	{
-		"section": Category immediately above book?,
-		[Perhaps, instead, "categories"]
+		"section": Category immediately above book
 		"heTitle": Hebrew title of node
-		"length": Number of chapters,
+		"length": Number of chapters
 		"chapters": List of Chapter Lengths (think about depth 1 & 3)
 		"title": English title of node
 		"book": English title of Book
@@ -1705,16 +1723,6 @@ def links_api(request, link_id_or_ref=None):
     Currently also handles post notes.
     #TODO: can we distinguish between a link_id (mongo id) for POSTs and a ref for GETs?
     """
-    if request.method == "GET":
-        callback=request.GET.get("callback", None)
-        if link_id_or_ref is None:
-            return jsonResponse({"error": "Missing text identifier"}, callback)
-        #The Ref instanciation is just to validate the Ref and let an error bubble up.
-        #TODO is there are better way to validate the ref from GET params?
-        model.Ref(link_id_or_ref)
-        with_text = int(request.GET.get("with_text", 1))
-        with_sheet_links = int(request.GET.get("with_sheet_links", 0))
-        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
     def _internal_do_post(request, link, uid, **kwargs):
         func = tracker.update if "_id" in link else tracker.add
@@ -1733,7 +1741,17 @@ def links_api(request, link_id_or_ref=None):
         obj = tracker.delete(uid, model.Link, link_id_or_ref, callback=revarnish_link)
         return obj
 
-    # delegate according to single/multiple objects posted
+    if request.method == "GET":
+        callback=request.GET.get("callback", None)
+        if link_id_or_ref is None:
+            return jsonResponse({"error": "Missing text identifier"}, callback)
+        #The Ref instanciation is just to validate the Ref and let an error bubble up.
+        #TODO is there are better way to validate the ref from GET params?
+        model.Ref(link_id_or_ref)
+        with_text = int(request.GET.get("with_text", 1))
+        with_sheet_links = int(request.GET.get("with_sheet_links", 0))
+        return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
+
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
         if not key:
@@ -1743,11 +1761,13 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": "Unrecognized API key."})
         uid = apikey["uid"]
         kwargs = {"method": "API"}
+        user = User.objects.get(id=apikey["uid"])
     else:
+        user = request.user
         uid = request.user.id
         kwargs = {}
         _internal_do_post = csrf_protect(_internal_do_post)
-        _internal_do_delete = csrf_protect(_internal_do_delete)
+        _internal_do_delete = staff_member_required(csrf_protect(_internal_do_delete))
 
     if request.method == "POST":
         j = request.POST.get("json")
@@ -1777,6 +1797,8 @@ def links_api(request, link_id_or_ref=None):
     if request.method == "DELETE":
         if not link_id_or_ref:
             return jsonResponse({"error": "No link id given for deletion."})
+        if not user.is_staff:
+            return jsonResponse({"error": "Only Sefaria Moderators can delete links."})
         retval = _internal_do_delete(request, link_id_or_ref, uid)
 
         return jsonResponse(retval)
@@ -2425,7 +2447,7 @@ def dictionary_api(request, word):
     :return:
     """
     kwargs = {}
-    for key in ["lookup_ref", "never_split", "always_split"]:
+    for key in ["lookup_ref", "never_split", "always_split", "always_consonants"]:
         if request.GET.get(key, None):
             kwargs[key] = request.GET.get(key)
     result = []
@@ -2433,7 +2455,7 @@ def dictionary_api(request, word):
     if ls:
         for l in ls:
             result.append(l.contents())
-    
+
     return jsonResponse(result, callback=request.GET.get("callback", None))
 
 
@@ -2991,6 +3013,25 @@ def topics_api(request, topic):
 
 
 @catch_error_as_json
+def topic_graph_api(request, topic):
+    link_type = request.GET.get("link-type", 'is-a')
+    max_depth = int(request.GET.get("max-depth", -1))
+    if max_depth == -1:
+        max_depth = None
+    topic_obj = Topic.init(topic)
+
+    if topic_obj is None:
+        response = {"error": f"Topic slug {topic} does not exist"}
+    else:
+        topics, links = topic_obj.topics_and_links_by_link_type_recursively(linkType=link_type, max_depth=max_depth)
+        response = {
+            "topics": [t.contents() for t in topics],
+            "links": [l.contents() for l in links]
+        }
+    return jsonResponse(response, callback=request.GET.get("callback", None))
+
+
+@catch_error_as_json
 def topic_ref_api(request, tref):
     """
     API to get RefTopicLinks
@@ -3193,22 +3234,10 @@ def user_profile(request, username):
     """
     User's profile page.
     """
-    user = None
-
-    try:
-        profile = UserProfile(slug=username)
-    except Exception as e:
-        # Couldn't find by slug, try looking up by username (old style urls)
-        # If found, redirect to new URL
-        # If we no longer want to support the old URLs, we can remove this
-        user = get_object_or_404(User, username=username)
-        profile = UserProfile(id=user.id)
-
-        return redirect("/profile/%s" % profile.slug, permanent=True)
-
-    if user is None:
-        user = User.objects.get(id=profile.id)
-    if not user.is_active:
+    profile = UserProfile(slug=username)
+    if profile.user is None:
+        raise Http404
+    if not profile.user.is_active:
         raise Http404('Profile is inactive.')
 
     props = base_props(request)
@@ -3521,20 +3550,6 @@ def account_settings(request):
                                 'user': request.user,
                                 'profile': profile,
                               })
-
-
-@login_required
-def enable_home_feed(request):
-    resp = home(request, True)
-    resp.set_cookie("home_feed", "yup", 60 * 60 * 24 * 365)
-    return resp
-
-
-@login_required
-def disable_home_feed(request):
-    resp = home(request, False)
-    resp.delete_cookie("home_feed")
-    return resp
 
 
 @ensure_csrf_cookie
@@ -4438,8 +4453,21 @@ def application_health_api_nonlibrary(request):
 
 @login_required
 def daf_roulette_redirect(request):
+    return render(request,'static/dafroulette.html',
+                             {
+                              "rtc_server": RTC_SERVER,
+                              "room_id": "",
+                              "starting_ref": "todays-daf-yomi"
+                              })
+
+@login_required
+def chevruta_redirect(request):
+    room_id = request.GET.get("rid", None)
+    starting_ref = request.GET.get("ref", "Genesis 1")
 
     return render(request,'static/dafroulette.html',
                              {
                               "rtc_server": RTC_SERVER,
+                              "room_id": room_id,
+                              "starting_ref": starting_ref
                               })

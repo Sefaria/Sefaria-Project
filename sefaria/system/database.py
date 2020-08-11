@@ -88,6 +88,7 @@ def ensure_indices(active_db=None):
         ('sheets', ["dateModified"],{}),
         ('sheets', ["sources.ref"],{}),
         ('sheets', ["includedRefs"],{}),
+        ('sheets', ["expandedRefs"], {}),
         ('sheets', ["tags"],{}),
         ('sheets', ["owner"],{}),
         ('sheets', ["assignment_id"],{}),
@@ -117,7 +118,8 @@ def ensure_indices(active_db=None):
         ('user_history', [[("uid", pymongo.ASCENDING), ("book", pymongo.ASCENDING), ("last_place", pymongo.ASCENDING)]], {}),
         ('trend', ["name"],{}),
         ('trend', ["uid"],{}),
-        ('webpages', ["refs"],{})
+        ('webpages', ["refs"],{}),
+        ('webpages', ["expandedRefs"],{})
     ]
 
     for col, args, kwargs in indices:

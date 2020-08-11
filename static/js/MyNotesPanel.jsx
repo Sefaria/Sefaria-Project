@@ -1,4 +1,4 @@
-const {
+import {
   CategoryColorLine,
   ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuDisplaySettingsButton,
@@ -6,16 +6,16 @@ const {
   LoadingMessage,
   SinglePanelNavHeader,
   Note,
-}                         = require('./Misc');
-const React               = require('react');
-const PropTypes           = require('prop-types');
-const ReactDOM            = require('react-dom');
-const classNames          = require('classnames');
-const Sefaria             = require('./sefaria/sefaria');
-const $                   = require('./sefaria/sefariaJquery');
-const TextRange           = require('./TextRange');
-const { AddToSourceSheetWindow } = require('./AddToSourceSheet');
-const Footer              = require('./Footer');
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import ReactDOM  from 'react-dom';
+import classNames  from 'classnames';
+import Sefaria  from './sefaria/sefaria';
+import $  from './sefaria/sefariaJquery';
+import TextRange  from './TextRange';
+import { AddToSourceSheetWindow } from './AddToSourceSheet';
+import Footer  from './Footer';
 import Component          from 'react-class';
 
 
@@ -167,4 +167,4 @@ NoteListing.defaultProps = {
 };
 
 
-module.exports = MyNotesPanel;
+export default MyNotesPanel;

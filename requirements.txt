@@ -14,7 +14,7 @@ regex
 pytest
 mailchimp
 redis
-django-redis
+django-redis==4.11.*
 django_mobile
 roman
 p929
@@ -54,3 +54,5 @@ tqdm
 gevent
 django-debug-toolbar # not used in prod
 unidecode
+django-structlog
+google-cloud-logging

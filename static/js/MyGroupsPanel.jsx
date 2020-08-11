@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-const {
+import {
   LoadingMessage,
   SinglePanelNavHeader,
-}                = require('./Misc');
-const PropTypes  = require('prop-types');
-const classNames = require('classnames');
-const Footer     = require('./Footer');
-const Sefaria    = require('./sefaria/sefaria');
+} from './Misc';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import Footer  from './Footer';
+import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
+
 
 function MyGroupsPanel({multiPanel, navHome}) {
   const [groupsList, setGroupsList] = useState(null);
@@ -61,8 +62,20 @@ MyGroupsPanel.propTypes = {};
 
 function PublicGroupsPanel({multiPanel, navHome}) {
   const [groupsList, setGroupsList] = useState(null);
+  
+  const sortGroupList = d => {
+    if (Sefaria.interfaceLang == "hebrew") {
+      d.public.sort((a, b) => {
+        const [aHe, bHe] = [a.name, b.name].map(Sefaria.hebrew.isHebrew);
+        return aHe == bHe ? a.name - b.name : (aHe ? -1 : 1)
+      });
+    }
+    return d;
+  };
+
   useEffect(() => {
     Sefaria.getGroupsList()
+        .then(d => sortGroupList(d))
         .then(d => setGroupsList(d));
   });
 
@@ -146,6 +159,8 @@ GroupListing.propTypes = {
   showMembership: PropTypes.bool,
 };
 
-module.exports.GroupListing = GroupListing;
-module.exports.MyGroupsPanel = MyGroupsPanel;
-module.exports.PublicGroupsPanel = PublicGroupsPanel;
+export {
+  GroupListing,
+  MyGroupsPanel,
+  PublicGroupsPanel,
+};

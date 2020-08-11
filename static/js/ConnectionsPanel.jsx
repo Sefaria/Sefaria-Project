@@ -1,4 +1,4 @@
-const {
+import {
   Dropdown,
   LoadingMessage,
   LoginPrompt,
@@ -8,24 +8,22 @@ const {
   Note,
   FeedbackBox,
   ToolTipped,
-}                            = require('./Misc');
-const {
-  CategoryFilter,
-}                            = require('./ConnectionFilters');
-const React                  = require('react');
-const PropTypes              = require('prop-types');
-const ReactDOM               = require('react-dom');
-const Sefaria                = require('./sefaria/sefaria');
-const $                      = require('./sefaria/sefariaJquery');
-const TextRange              = require('./TextRange');
-const TextList               = require('./TextList');
-const ConnectionsPanelHeader = require('./ConnectionsPanelHeader');
-const { AddToSourceSheetBox }= require('./AddToSourceSheet');
-const LexiconBox             = require('./LexiconBox');
-const AboutBox               = require('./AboutBox');
-const VersionsBox            = require('./VersionsBox');
-const ExtendedNotes          = require('./ExtendedNotes');
-const classNames             = require('classnames');
+} from './Misc';
+import {  CategoryFilter,} from './ConnectionFilters';
+import React from 'react';
+import PropTypes from 'prop-types';
+import ReactDOM from 'react-dom';
+import Sefaria from './sefaria/sefaria';
+import $ from './sefaria/sefariaJquery';
+import TextRange from './TextRange'
+import TextList from './TextList'
+import ConnectionsPanelHeader from './ConnectionsPanelHeader';
+import { AddToSourceSheetBox } from './AddToSourceSheet';
+import LexiconBox from './LexiconBox';
+import AboutBox from './AboutBox';
+import VersionsBox from './VersionsBox';
+import ExtendedNotes from './ExtendedNotes';
+import classNames from 'classnames';
 import Component             from 'react-class';
 
 
@@ -192,18 +190,13 @@ class ConnectionsPanel extends Component {
   getVersionFromData(d, lang) {
     //d - data received from this.getData()
     //language - the language of the version
+    //console.log(d);
+    const currentVersionTitle = (lang == "he") ? d.heVersionTitle : d.versionTitle;
     return {
-      language:               lang,
-      versionTitle:           lang == "he" ? d.heVersionTitle : d.versionTitle,
-      versionSource:          lang == "he" ? d.heVersionSource : d.versionSource,
-      versionStatus:          lang == "he" ? d.heVersionStatus : d.versionStatus,
-      license:                lang == "he" ? d.heLicense : d.license,
+      ... d.versions.find(v => v.versionTitle == currentVersionTitle && v.language == lang),
+      title:                  d.indexTitle,
+      heTitle:                d.heIndexTitle,
       sources:                lang == "he" ? d.heSources : d.sources,
-      versionNotes:           lang == "he" ? d.heVersionNotes : d.versionNotes,
-      digitizedBySefaria:     lang == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
-      versionTitleInHebrew:   lang == "he" ? d.heVersionTitleInHebrew : d.versionTitleInHebrew,
-      versionNotesInHebrew:   lang == "he" ? d.heVersionNotesInHebrew : d.versionNotesInHebrew,
-      extendedNotes:          lang == "he" ? d.extendedNotesHebrew : d.extendedNotes,
       merged:                 lang == "he" ? !!d.heSources : !!d.sources,
     }
   }
@@ -340,11 +333,13 @@ class ConnectionsPanel extends Component {
       content = (<div>
                   <AddToSourceSheetBox
                     srefs={this.props.srefs}
+                    currVersions={this.props.currVersions}
+                    contentLanguage={this.props.masterPanelLanguage}
+                    selectedWords={this.props.selectedWords}
                     nodeRef = {this.props.nodeRef}
                     fullPanel={this.props.fullPanel}
                     toggleSignUpModal = {this.props.toggleSignUpModal}
-                    setConnectionsMode={this.props.setConnectionsMode}
-                    addToSourceSheet={this.props.addToSourceSheet} />
+                    setConnectionsMode={this.props.setConnectionsMode}/>
                   { Sefaria._uid ?
                   <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth">
                     <span className="int-en">Go to My Sheets</span>
@@ -370,6 +365,20 @@ class ConnectionsPanel extends Component {
                   /> : null }
 
                 </div>);
+
+    } else if (this.props.mode == "Add Connection To Sheet"){
+        let refForSheet = (this.props.connectionData && "connectionRefs" in this.props.connectionData) ? this.props.connectionData["connectionRefs"] : this.props.srefs;
+        content = (<div>
+                  <AddToSourceSheetBox
+                    srefs={refForSheet}
+                    currVersions={{"en":null,"he":null}} //sidebar doesn't actually do versions
+                    contentLanguage={this.props.masterPanelLanguage}
+                    selectedWords={null}
+                    nodeRef = {this.props.nodeRef}
+                    fullPanel={this.props.fullPanel}
+                    toggleSignUpModal = {this.props.toggleSignUpModal}
+                    setConnectionsMode={this.props.setConnectionsMode} />
+                   </div>);
 
     } else if (this.props.mode === "Notes") {
       content = (<div>
@@ -469,7 +478,7 @@ class ConnectionsPanel extends Component {
                   getLicenseMap={this.props.getLicenseMap}
                   viewExtendedNotes={this.props.viewExtendedNotes} />);
 
-    } else if (this.props.mode === "Versions" || this.props.mode === "Version Open") {
+    } else if (this.props.mode === "Translations" || this.props.mode === "Translation Open") {
       content = (<VersionsBox
                   currObjectVersions={this.state.currObjectVersions}
                   mainVersionLanguage={this.state.mainVersionLanguage}
@@ -529,7 +538,6 @@ ConnectionsPanel.propTypes = {
   setConnectionsCategory:  PropTypes.func.isRequired,
   editNote:                PropTypes.func.isRequired,
   openComparePanel:        PropTypes.func.isRequired,
-  addToSourceSheet:        PropTypes.func.isRequired,
   title:                   PropTypes.string.isRequired,
   currVersions:            PropTypes.object.isRequired,
   selectVersion:           PropTypes.func.isRequired,
@@ -571,7 +579,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={this.props.topicsCount} onClick={() => this.props.setConnectionsMode("Topics")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
-              <ToolsButton en="Versions" he="גרסאות" image="layers.png" onClick={() => this.props.setConnectionsMode("Versions")} />
+              <ToolsButton en="Translations" he="תרגומים" image="layers.png" onClick={() => this.props.setConnectionsMode("Translations")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
@@ -780,7 +788,7 @@ const TopicListItem = ({ topic, interfaceLang, srefs }) => {
     dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(srefs[0])}" ${Sefaria._('by')} ${Object.values(topic.dataSources).map(d => d[langKey]).join(' & ')}.`;
   }
   return (
-    <a href={`/topics/${topic.topic}`} className="toolsButton topicButton" onClick={()=>{}}>
+    <a href={`/topics/${topic.topic}`} className="toolsButton topicButton" target="_blank">
       <span className="topicButtonTitle">
         <span className="contentText">
           <span className="en">{topic.title.en}</span>
@@ -1301,6 +1309,7 @@ AddConnectionBox.propTypes = {
   onCancel: PropTypes.func.isRequired
 };
 
-
-module.exports.ConnectionsPanel = ConnectionsPanel;
-module.exports.ConnectionsPanelHeader = ConnectionsPanelHeader;
+export {
+  ConnectionsPanel,
+  ConnectionsPanelHeader,
+};

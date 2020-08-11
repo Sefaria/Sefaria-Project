@@ -33,8 +33,8 @@ CATEGORY_ORDER = [
          'Andrew Johnson',
          'Ulysses S Grant',
          'Rutherford B Hayes',
-         'James Garfield',
-         'Chester Arthur',
+         'James A Garfield',
+         'Chester A Arthur',
          'Grover Cleveland',
          'Benjamin Harrison',
          'Grover Cleveland',
@@ -62,6 +62,8 @@ CATEGORY_ORDER = [
     "Case Law",
     "Philosophy",
     "Religion",
+        "Judaism",
+        "Christianity",
 ]
 
 TOP_CATEGORIES = [

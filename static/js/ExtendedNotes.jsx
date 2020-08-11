@@ -1,9 +1,9 @@
-const {
+import {
   LoadingMessage,
-}                  = require('./Misc');
+} from './Misc';
 
-const React        = require('react');
-const PropTypes    = require('prop-types');
+import React  from 'react';
+import PropTypes  from 'prop-types';
 import Component   from 'react-class';
 
 class ExtendedNotes extends Component {
@@ -78,4 +78,4 @@ ExtendedNotes.PropTypes = {
 
 };
 
-module.exports = ExtendedNotes;
+export default ExtendedNotes;
