@@ -326,8 +326,8 @@ const TextPassageStory = (props) => {
         <SaveLine dref={props.data.ref} toggleSignUpModal={props.toggleSignUpModal} classes={"storyTitleWrapper"}>
             <StoryTitleBlock en={props.data.title.en} he={props.data.title.he} url={url}/>
         </SaveLine>
-        {props.data.opener ? <SimpleInterfaceBlock en={props.data.opener.en} he={props.data.opener.he} classes={} /> : null}
-        {props.data.subtitle ? <SimpleInterfaceBlock en={props.data.subtitle.en} he={props.data.subtitle.he} classes={} /> : null}
+        {props.data.opener ? <SimpleInterfaceBlock en={props.data.opener.en} he={props.data.opener.he} /> : null}
+        {props.data.subtitle ? <SimpleInterfaceBlock en={props.data.subtitle.en} he={props.data.subtitle.he} /> : null}
         <ColorBarBox tref={props.data.ref}>
             <StoryBodyBlock en={props.data.text.en} he={props.data.text.he}/>
         </ColorBarBox>
@@ -377,8 +377,8 @@ const MultiTextStory = (props) => (
     <StoryFrame cls="multiTextStory">
         <StoryTypeBlock en={props.data.lead.en} he={props.data.lead.he}/>
         <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
-        {props.data.opener ? <SimpleInterfaceBlock en={props.data.opener.en} he={props.data.opener.he} classes={} /> : null}
-        {props.data.subtitle ? <SimpleInterfaceBlock en={props.data.subtitle.en} he={props.data.subtitle.he} classes={} /> : null}
+        {props.data.opener ? <SimpleInterfaceBlock en={props.data.opener.en} he={props.data.opener.he} /> : null}
+        {props.data.subtitle ? <SimpleInterfaceBlock en={props.data.subtitle.en} he={props.data.subtitle.he} /> : null}
         <StoryTextList texts={props.data.texts} toggleSignUpModal={props.toggleSignUpModal} />
     </StoryFrame>
 );
