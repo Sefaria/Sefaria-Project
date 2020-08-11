@@ -2647,10 +2647,10 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 
 
-#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewTitle span,
+/*#dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewTitle span,
 #dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsTitle span{
   display: inline-block;
-}
+}*/
 #dafyomiPage #dafyomiWhatsNew .dafyomiWhatsNewText .dafyomiWhatsNewDescription,
 #dafyomiPage #dafyomiWhatIs .dafyomiWhatIsText .dafyomiWhatIsDescription{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
