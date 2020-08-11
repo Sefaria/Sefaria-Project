@@ -422,7 +422,7 @@
                             .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                             .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
                         //  the following regex recognizes 'quotationOnly' citations. by reading the book name and then allowing a single Hebrew letter or numbers or multiple Hebrew letters with the different quotations (gershayim) options somewhere in them
-                        var quotation_reg = new RegExp(`${book}\\s+(\u05d3\u05e3\\s+)?(([\u05d0-\u05ea]+?['\u05f3"\u05f4][\u05d0-\u05ea]*?|[\u05d0-\u05ea](\\.|:)?|\\d+(a|b|:|\\.)?)\\s*(\\s|$|:|\\.|[-\u2010-\u2015\u05be])\\s*)+`, 'g');
+                        var quotation_reg = new RegExp(`${book}\\s+(\u05d3\u05e3\\s+)?(([\u05d0-\u05ea]+?['\u05f3"\u05f4”’][\u05d0-\u05ea]*?|[\u05d0-\u05ea](\\.|:)?|\\d+(a|b|:|\\.)?)\\s*(\\s|$|:|\\.|,|[-\u2010-\u2015\u05be])\\s*)+`, 'g');
                         // this line tests if the match of the full Ref found is a quotaionOnly and should/n't be wrapped
                         if (ns.quotationOnly && (matched_ref.match(quotation_reg) == null || matched_ref.match(quotation_reg)[0]!==matched_ref)) {
                            return portion.text;

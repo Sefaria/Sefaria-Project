@@ -355,9 +355,9 @@ def linker_tracking_api(request):
         return jsonResponse({"error": "Missing 'json' parameter in post data."})
     data = json.loads(j)
 
-    WebPage.add_or_update_from_linker(data)
+    status = WebPage.add_or_update_from_linker(data)
 
-    return jsonResponse({"status": "ok"})
+    return jsonResponse({"status": status})
 
 
 def passages_api(request, refs):
