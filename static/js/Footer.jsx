@@ -5,6 +5,21 @@ import $  from './sefaria/sefariaJquery';
 import { NewsletterSignUpForm } from './Misc';
 import Component from 'react-class';
 
+const Section = ({en, he, children}) => (
+    <div className="section">
+      <div className="header">
+          <span className="int-en">{en}</span>
+          <span className="int-he">{he}</span>
+      </div>
+      {children}
+    </div>
+);
+const Link = ({href, en, he, blank, out}) => (
+    <a href={href} target={blank ? "_blank" : "_self"} className={out ? "outOfAppLink" : ""}>
+      <span className="int-en">{en}</span>
+      <span className="int-he">{he}</span>
+    </a>
+);
 
 class Footer extends Component {
   constructor(props) {
@@ -50,138 +65,44 @@ class Footer extends Component {
     return (
       <footer id="footer" className="static sans">
         <div id="footerInner">
-          <div className="section">
+            <Section en="About" he="אודות">
+                <Link href="/about" en="What is Sefaria?" he="מהי ספריא" out={true} />
+                <Link href="/help" en="Help" he="עזרה" out={true} />
+                <Link href="/faq" en="FAQ" he="שאלות נפוצות" out={true} />
+                <Link href="/team" en="Team" he="צוות" out={true} />
+                <Link href="/testimonials" en="Testimonials" he="חוות דעת" out={true} />
+                <Link href="/metrics" en="Metrics" he="מדדים" out={true} />
+                <Link href="/terms" en="Terms of Use" he="תנאי שימוש" out={true} />
+                <Link href="/privacy-policy" en="Privacy Policy" he="מדיניות הפרטיות" out={true} />
+            </Section>
 
-              <div className="header">
-                  <span className="int-en">About</span>
-                  <span className="int-he">אודות</span>
-              </div>
-              <a href="/about" className="outOfAppLink">
-                  <span className="int-en">What is Sefaria?</span>
-                  <span className="int-he">מהי ספריא</span>
-              </a>
-              <a href="/help" className="outOfAppLink">
-                  <span className="int-en">Help</span>
-                  <span className="int-he">עזרה</span>
-              </a>
-              <a href="/faq" target="_blank" className="outOfAppLink">
-                  <span className="int-en">FAQ</span>
-                  <span className="int-he">שאלות נפוצות</span>
-              </a>
-              <a href="/team" className="outOfAppLink">
-                  <span className="int-en">Team</span>
-                  <span className="int-he">צוות</span>
-              </a>
-              <a href="/testimonials" className="outOfAppLink">
-                  <span className="int-en">Testimonials</span>
-                  <span className="int-he">חוות דעת</span>
-              </a>
-              <a href="/metrics" className="outOfAppLink">
-                  <span className="int-en">Metrics</span>
-                  <span className="int-he">מדדים</span>
-              </a>
-              <a href="/terms" className="outOfAppLink">
-                  <span className="int-en">Terms of Use</span>
-                  <span className="int-he">תנאי שימוש</span>
-              </a>
-              <a href="/privacy-policy" className="outOfAppLink">
-                  <span className="int-en">Privacy Policy</span>
-                  <span className="int-he">מדיניות הפרטיות</span>
-              </a>
-          </div>
+            <Section en="Tools" he="כלים">
+                <Link href="/educators" en="Teach with Sefaria" he="למד באמצעות ספריא" out={true} />
+                <Link href="/sheets" en="Source Sheets" he="דפי מקורות" out={true} />
+                <Link href="/visualizations" en="Visualizations" he="תרשימים גרפיים" out={true} />
+                <Link href="/mobile" en="Mobile Apps" he="ספריא בנייד" out={true} />
+                <Link href="/daf-yomi" en="Daf Yomi" he="דף יומי" out={true} />
+                <Link href="/torah-tab" en="Torah Tab" he="תורה טאב" out={true} />
+                <Link href="/people" en="Authors" he="מחברים" out={true} />
+                <Link href="/groups" en="Groups" he="קבוצות" out={true} />
+                <Link href="/updates" en="New Additions" he="עדכונים" out={true} />
+                <Link href="/remote-learning" en="Remote Learning" he="למידה מרחוק" out={true} />
+            </Section>
 
-          <div className="section">
-              <div className="header">
-                      <span className="int-en">Tools</span>
-                      <span className="int-he">כלים</span>
-              </div>
-              <a href="/educators" className="outOfAppLink">
-                  <span className="int-en">Teach with Sefaria</span>
-                  <span className="int-he">למד באמצעות ספריא</span>
-              </a>
-              <a href="/sheets" className="outOfAppLink">
-                  <span className="int-en">Source Sheets</span>
-                  <span className="int-he">דפי מקורות</span>
-              </a>
-              <a href="/visualizations" className="outOfAppLink">
-                  <span className="int-en">Visualizations</span>
-                  <span className="int-he">תרשימים גרפיים</span>
-              </a>
-              <a href="/mobile" className="outOfAppLink">
-                  <span className="int-en">Mobile Apps</span>
-                  <span className="int-he">ספריא בנייד</span>
-              </a>
-              <a href="/daf-yomi" className="outOfAppLink">
-                  <span className="int-en">Daf Yomi</span>
-                  <span className="int-he">דף יומי</span>
-              </a>
-              <a href="/torah-tab" className="outOfAppLink">
-                  <span className="int-en">Torah Tab</span>
-                  <span className="int-he">תורה טאב</span>
-              </a>
-              <a href="/people" className="outOfAppLink">
-                  <span className="int-en">Authors</span>
-                  <span className="int-he">מחברים</span>
-              </a>
-              <a href="/groups" className="outOfAppLink">
-                  <span className="int-en">Groups</span>
-                  <span className="int-he">קבוצות</span>
-              </a>
-              <a href="/updates" className="outOfAppLink">
-                  <span className="int-en">New Additions</span>
-                  <span className="int-he">עדכונים</span>
-              </a>
-          </div>
+            <Section en="Developers" he="מפתחים">
+                <Link href="/developers" en="Get Involved" he="הצטרף אלינו" blank={true} out={true} />
+                <Link href="/developers#api" en="API Docs" he="מסמכי API" blank={true} out={true} />
+                <Link href="https://github.com/Sefaria/Sefaria-Project" en="Fork us on GitHub" he="זלגו חופשי מגיטהאב" blank={true} out={true} />
+                <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="הורד את בסיס הנתונים שלנו" blank={true} out={true} />
+            </Section>
 
-          <div className="section">
-              <div className="header">
-                  <span className="int-en">Developers</span>
-                  <span className="int-he">מפתחים</span>
-              </div>
-              <a href="/developers" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Get Involved</span>
-                  <span className="int-he">הצטרף אלינו</span>
-              </a>
-              <a href="/developers#api" target="_blank" className="outOfAppLink">
-                  <span className="int-en">API Docs</span>
-                  <span className="int-he">מסמכי API</span>
-              </a>
-              <a href="https://github.com/Sefaria/Sefaria-Project" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Fork us on GitHub</span>
-                  <span className="int-he">זלגו חופשי מגיטהאב</span>
-              </a>
-              <a href="https://github.com/Sefaria/Sefaria-Export" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Download our Data</span>
-                  <span className="int-he">הורד את בסיס הנתונים שלנו</span>
-              </a>
-          </div>
-
-          <div className="section">
-              <div className="header">
-                  <span className="int-en">Join Us</span>
-                  <span className="int-he">הצטרף אלינו</span>
-              </div>
-              <a href="https://sefaria.nationbuilder.com/supportsefaria" className="outOfAppLink">
-                  <span className="int-en">Donate</span>
-                  <span className="int-he">תרומות</span>
-              </a>
-              <a href="/supporters" className="outOfAppLink">
-                  <span className="int-en">Supporters</span>
-                  <span className="int-he">תומכים</span>
-              </a>
-              <a href="/contribute" target="_blank" className="outOfAppLink">
-                  <span className="int-en">Contribute</span>
-                  <span className="int-he">הצטרף</span>
-              </a>
-              <a href="/jobs" className="outOfAppLink">
-                  <span className="int-en">Jobs</span>
-                  <span className="int-he">דרושים</span>
-              </a>
-              <a href="https://store.sefaria.org" className="outOfAppLink">
-                  <span className="int-en">Shop</span>
-                  <span className="int-he">חנות</span>
-              </a>
-          </div>
+            <Section en="Join Us" he="הצטרף אלינו">
+                <Link href="https://sefaria.nationbuilder.com/supportsefaria" en="Donate" he="תרומות" out={true} />
+                <Link href="/supporters" en="Supporters" he="תומכים" out={true} />
+                <Link href="/contribute" en="Contribute" he="הצטרף" blank={true} out={true} />
+                <Link href="/jobs" en="Jobs" he="דרושים" out={true} />
+                <Link href="https://store.sefaria.org" en="Shop" he="חנות" out={true} />
+            </Section>
 
           <div className="section last connect">
               <div className="header connect">
@@ -191,37 +112,19 @@ class Footer extends Component {
               <NewsletterSignUpForm contextName="Footer" />
               <LikeFollowButtons />
               <div className="socialLinks">
-                  <a href={fbURL} target="_blank" className="outOfAppLink">
-                    <span className="int-en">Facebook</span>
-                    <span className="int-he">פייסבוק</span>
-                  </a>
+                  <Link href={fbURL} en="Facebook" he="פייסבוק" blank={true} out={true}/>
                   &bull;
-                  <a href="https://twitter.com/SefariaProject" target="_blank" className="outOfAppLink">
-                    <span className="int-en">Twitter</span>
-                    <span className="int-he">טוויטר</span>
-
-                  </a>
+                  <Link href="https://twitter.com/SefariaProject" en="Twitter" he="טוויטר" out={true} />
                   <br />
-                  <a href="https://www.youtube.com/user/SefariaProject" target="_blank" className="outOfAppLink">
-                      <span className="int-en">YouTube</span>
-                      <span className="int-he">יוטיוב</span>
-                  </a>
-                  &bull;
-                  <a href={blgURL} target="_blank" className="outOfAppLink">
-                      <span className="int-en">Blog</span>
-                      <span className="int-he">בלוג</span>
-                  </a>
-                  <br />
-                  <a href="https://www.instagram.com/sefariaproject/" target="_blank" className="outOfAppLink">
-                      <span className="int-en">Instagram</span>
-                      <span className="int-he">אינסטגרם</span>
 
-                  </a>
+                  <Link href="https://www.youtube.com/user/SefariaProject" en="YouTube" he="יוטיוב" out={true} />
                   &bull;
-                  <a href="mailto:hello@sefaria.org" target="_blank" className="outOfAppLink">
-                      <span className="int-en">Email</span>
-                      <span className="int-he">דוא&quot;ל</span>
-                  </a>
+                  <Link href={blgURL} en="Blog" he="בלוג" blank={true} out={true}/>
+                  <br />
+
+                  <Link href="https://www.instagram.com/sefariaproject/" en="Instagram" he="אינסטגרם" out={true} />
+                  &bull;
+                  <Link href="mailto:hello@sefaria.org" en="Email" he="דוא&quot;ל" out={true} />
               </div>
               <div id="siteLanguageToggle">
                   <div id="siteLanguageToggleLabel">

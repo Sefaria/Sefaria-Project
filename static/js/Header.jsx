@@ -145,15 +145,13 @@ class Header extends Component {
       this.showVirtualKeyboardIcon(false);
     }
   }
-  showDesktop() {
-    if (this.props.panelsOpen === 0) {
-      const { last_place } = Sefaria;
-      if (last_place && last_place.length) {
-        this.handleRefClick(last_place[0].ref, last_place[0].versions);
-      }
+  handleLibraryClick(e) {
+    e.preventDefault();
+    if (typeof sjs !== "undefined") {
+      window.location = "/texts";
+      return;
     }
-    this.props.setCentralState({menuOpen: null});
-    this.clearSearchBox();
+    this.showLibrary();   
   }
   showLibrary(categories) {
     this.props.showLibrary(categories);
@@ -273,22 +271,6 @@ class Header extends Component {
   clearSearchBox() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
   }
-  handleLibraryClick(e) {
-    e.preventDefault();
-    if (typeof sjs !== "undefined") {
-      window.location = "/texts";
-      return;
-    }
-    if (this.state.menuOpen === "home") {
-      return;
-    } else if (this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 && !this.state.navigationTopicCategory) {
-      this.showDesktop();
-    } else {
-      this.showLibrary();
-    }
-    $(".wrapper").remove();
-    $("#footer").remove();
-  }
   handleRefClick(ref, currVersions) {
     if (this.props.headerMode) {
       window.location.assign("/" + ref);
@@ -390,14 +372,12 @@ class Header extends Component {
                     </div>
                 </div>
                 <div className="headerHomeSection">
-                    {Sefaria._siteSettings.TORAH_SPECIFIC ?
-                      <a className="home" href="/?home" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> :
-                      null }
+                    <a className="home" href="/?home" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a>
                 </div>
                 <div className="headerLinksSection">
                   { headerMessage }
                   { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
-                  { !Sefaria.loggedIn ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
+                  { !Sefaria.loggedIn && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
                 </div>
               </div>
               { viewContent ?

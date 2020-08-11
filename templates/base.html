@@ -9,7 +9,7 @@
     <meta charset="utf-8"/>
     <meta name="description" property="og:description" content="{% block description %}{{ desc|striptags }}{% endblock %}"/>
 
-    {% if noindex %}
+    {% if noindex or DEBUG %}
         <meta name="robots" content="noindex, nofollow">
     {% endif %}
 

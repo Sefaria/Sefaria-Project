@@ -565,7 +565,7 @@ class TextIndexer(object):
         tref = oref.normal()
         doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories)
         id = make_text_doc_id(tref, version_title, lang)
-        es_client.index(index_name, "text", doc, id)
+        es_client.index(index_name, doc, id=id)
 
     @classmethod
     def _cache_action(cls, segment_str, tref, heTref, version):
@@ -792,6 +792,7 @@ def index_all(skip=0, merged=False, debug=False):
         index_all_of_type('text', skip=skip, merged=merged, debug=debug)
         index_all_of_type('sheet', skip=skip, merged=merged, debug=debug)
     end = datetime.now()
+    db.index_queue.delete_many({})  # index queue is now stale
     print("Elapsed time: %s" % str(end-start))
 
 def index_all_of_type(type, skip=0, merged=False, debug=False):

@@ -62,8 +62,20 @@ MyGroupsPanel.propTypes = {};
 
 function PublicGroupsPanel({multiPanel, navHome}) {
   const [groupsList, setGroupsList] = useState(null);
+  
+  const sortGroupList = d => {
+    if (Sefaria.interfaceLang == "hebrew") {
+      d.public.sort((a, b) => {
+        const [aHe, bHe] = [a.name, b.name].map(Sefaria.hebrew.isHebrew);
+        return aHe == bHe ? a.name - b.name : (aHe ? -1 : 1)
+      });
+    }
+    return d;
+  };
+
   useEffect(() => {
     Sefaria.getGroupsList()
+        .then(d => sortGroupList(d))
         .then(d => setGroupsList(d));
   });
 

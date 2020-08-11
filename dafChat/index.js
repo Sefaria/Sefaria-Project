@@ -70,6 +70,36 @@ io.sockets.on('connection', function(socket) {
     });
   });
 
+  socket.on('enter room', function(uid, room) {
+    socket.emit('creds', pcConfig)
+
+    if (!io.sockets.adapter.rooms[room] || io.sockets.adapter.rooms[room].length == 1) {
+      socket.join(room, () => {
+
+        if (io.sockets.adapter.rooms[room].length == 1) {
+          console.log(`${socket.id} created room ${room}`);
+          socket.emit('created', room);
+          db.run(`INSERT INTO chatrooms(name, clients, roomStarted) VALUES(?, ?, ?)`, [room, 0, +new Date], function(err) {
+            if (err) {
+              console.log(err.message);
+            }
+          });
+        }
+
+        else {
+          console.log('Client ID ' + socket.id + ' joined room ' + room);
+          socket.to(room).emit('join', room);
+          socket.emit('join', room);
+        }
+
+      });
+    }
+  else {
+    socket.emit('room full');
+  }
+
+  });
+
   socket.on('how many rooms', function(uid, lastChevrutaID) {
     socket.emit('creds', pcConfig)
 

@@ -295,8 +295,8 @@ CACHES = {
 
 """
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "shavuot-banner-2020",
-    "repetition": 2,
+    "name":       "sustainers-august-2020",
+    "repetition": 1,
     "style":      "banner",
     "condition": {
         "returning_only": False,
@@ -307,9 +307,10 @@ GLOBAL_INTERRUPTING_MESSAGE = {
     }
 }
 """
+
 GLOBAL_INTERRUPTING_MESSAGE = None
 
-# Grab enviornment specific settings from a file which
+# Grab environment specific settings from a file which
 # is left out of the repo.
 try:
     from sefaria.local_settings import *

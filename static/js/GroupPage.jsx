@@ -31,8 +31,11 @@ class GroupPage extends Component {
   componentDidMount() {
     Sefaria.getGroup(this.props.group)
         .then(groupData => {
-          this.sortSheetData(groupData);
-          this.setState({groupData, showTopics: !!groupData.showTagsByDefault})
+          this.sortSheetData(groupData, this.state.sheetSort);
+          this.setState({
+            groupData,
+            showTopics: !!groupData.showTagsByDefault && !this.props.tag
+          });
         });
   }
   componentDidUpdate(prevProps, prevState) {
@@ -54,7 +57,7 @@ class GroupPage extends Component {
   onDataChange() {
     this.setState({groupData: Sefaria._groups[this.props.group]});
   }
-  sortSheetData(group) {
+  sortSheetData(group, sheetSort) {
     // Warning: This sorts the sheets within the cached group item in sefaria.js
     if (!group.sheets) { return; }
 
@@ -69,7 +72,7 @@ class GroupPage extends Component {
         return b.views - a.views;
       }
     };
-    group.sheets.sort(sorters[this.state.sheetSort]);
+    group.sheets.sort(sorters[sheetSort]);
 
     if (this.props.group == "גיליונות נחמה"){
       let parshaOrder = ["Bereshit", "Noach", "Lech Lecha", "Vayera", "Chayei Sara", "Toldot", "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi", "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah", "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei", "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot", "Kedoshim", "Emor", "Behar", "Bechukotai", "Bamidbar", "Nasso", "Beha'alotcha", "Sh'lach", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masei", "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei", "Ki Tavo", "Nitzavim", "Vayeilech", "Ha'Azinu", "V'Zot HaBerachah"]
@@ -132,7 +135,9 @@ class GroupPage extends Component {
     }
   }
   changeSheetSort(event) {
-    this.setState({sheetSort: event.target.value})
+    let groupData = this.state.groupData;
+    this.sortSheetData(groupData, event.target.value);
+    this.setState({groupData, sheetSort: event.target.value});
   }
   searchGroup(query) {
     this.props.searchInGroup(query, this.props.group);
