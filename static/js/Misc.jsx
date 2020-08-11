@@ -241,6 +241,7 @@ const FilterableList = ({
   const [sortOption, setSortOption] = useState(sortOptions[0]);
   const [displaySort, setDisplaySort] = useState(false);
 
+  // Apply filter and sort to the raw data
   const processData = rawData => rawData ? rawData
       .filter(item => !filter ? true : filterFunc(filter, item))
       .sort((a, b) => sortFunc(sortOption, a, b, extraData))
@@ -251,27 +252,30 @@ const FilterableList = ({
   const [rawData, setRawData] = useState(cachedData);
   const [displayData, setDisplayData] = useState(processData(rawData));
   
+  //debugger;
+  // Initial loading of data
   useEffect(() => {
     let isMounted = true;
     if (!rawData) {
       // TODO this trick only works the first time. every time after that ignoreCache is defined
+      setLoading(true);
       getData(typeof ignoreCache != "undefined").then(data => {
-        debugger
         if (isMounted) {
           setLoading(false);
           setRawData(data);
+          setDisplayData(processData(data));
         }
       });      
     }
     return () => {
-      setLoading(true);
       isMounted = false;
     };
-  }, [rawData, getData, ignoreCache]);
+  }, [getData, ignoreCache]);
 
+  // Updates to filter or sort
   useEffect(() => {
     setDisplayData(processData(rawData));
-  }, [rawData, filter, sortOption, extraData]);
+  }, [filter, sortOption, extraData]);
 
   const dataUpToPage = usePaginatedDisplay(scrollableElement, displayData, pageSize, bottomMargin);
   const onSortChange = newSortOption => {
@@ -279,6 +283,7 @@ const FilterableList = ({
     setSortOption(newSortOption);
     setDisplaySort(false);
   };
+
   const oldDesign = typeof showFilterHeader == 'undefined';
   return (
     <div className="filterable-list">

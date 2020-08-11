@@ -2071,8 +2071,16 @@ Sefaria = extend(Sefaria, {
   getGroupsListFromCache() {
     return Sefaria._groupsList.list;
   },
-  userGroups: function(uid) {
-    return Sefaria._ApiPromise(`${Sefaria.apiHost}/api/groups/user-groups/${uid}`);
+  _userGroups: {},
+  getUserGroups: function(uid) {
+    return this._cachedApiPromise({
+      url: `${Sefaria.apiHost}/api/groups/user-groups/${uid}`,
+      key: uid,
+      store: Sefaria._userGroups
+    });
+  },
+  getUserGroupsFromCache(uid) {
+    return Sefaria._userGroups[uid];
   },
   calendarRef: function(calendarTitle) {
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);

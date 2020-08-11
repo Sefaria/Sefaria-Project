@@ -73,7 +73,7 @@ function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMarg
   */
   const [page, setPage] = useState(0);
   const [loadedToEnd, setLoadedToEnd] = useState(false);
-  const [inputUpToPage, setInputUpToPage] = useState([]);
+  const [inputUpToPage, setInputUpToPage] = useState(input.slice(0, pageSize*(page+1)));
   useEffect(() => () => {
     setInputUpToPage(prev => {
       // use `setInputUpToPage` to get access to previous value

@@ -51,7 +51,10 @@ class UserProfile extends Component {
   _getMessageModalRef(ref) { this._messageModalRef = ref; }
   _getTabViewRef(ref) { this._tabViewRef = ref; }
   getGroups() {
-    return Sefaria.userGroups(this.props.profile.id);
+    return Sefaria.getUserGroups(this.props.profile.id);
+  }
+  getGroupsFromCache() {
+    return Sefaria.getUserGroupsFromCache(this.props.profile.id);
   }
   filterGroup(currFilter, group) {
     const n = text => text.toLowerCase();
@@ -104,6 +107,9 @@ class UserProfile extends Component {
         resolve(notes);
       });
     });
+  }
+  getNotesFromCache() {
+    return Sefaria.allPrivateNotes();
   }
   onDeleteNote() {
     this.setState({ ignoreNoteCache: Math.random() });
@@ -363,6 +369,7 @@ class UserProfile extends Component {
                         renderEmptyList={this.renderEmptyNoteList}
                         sortOptions={[]}
                         getData={this.getNotes}
+                        getDataFromCache={this.getNotesFromCache}
                       />
                     ) : null
                   }
@@ -376,6 +383,7 @@ class UserProfile extends Component {
                     renderHeader={this.renderGroupHeader}
                     sortOptions={["Members", "Sheets"]}
                     getData={this.getGroups}
+                    getDataFromCache={this.getGroupsFromCache}
                   />
                   <FilterableList
                     key="follower"

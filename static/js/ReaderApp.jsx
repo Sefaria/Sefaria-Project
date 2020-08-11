@@ -319,7 +319,7 @@ class ReaderApp extends Component {
       this.setState(state, () => {
         if (state.scrollPosition) {
           console.log("scroll restoration", event.state.scrollPosition);
-          debugger
+          // debugger
           $(".content").scrollTop(event.state.scrollPosition)
             .trigger("scroll");
         }
@@ -1224,7 +1224,6 @@ class ReaderApp extends Component {
     });
   }
   updateTopicsTabInHeader(topicsTab) {
-    debugger;
     this.updateTopicsTab(undefined, ...arguments);
   }
   updateTopicsTab(n, topicsTab) {
