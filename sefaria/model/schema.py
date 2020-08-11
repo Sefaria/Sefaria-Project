@@ -2275,7 +2275,7 @@ class AddressVolume(AddressInteger):
     section_patterns = {
         "en": r"""(?:(?:[Vv](olumes?|\.))?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"""(?:\u05d1?                                 # optional ב in front
-        (?:\u05d7\u05b5?(?:\u05dc\u05b6?\u05e7|'|\u05f3\u2018\u2019)\s+)  # Helek - spelled out with nikkud possibly or followed by a ' or a geresh - followed by space
+        (?:\u05d7\u05b5?(?:\u05dc\u05b6?\u05e7|'|\u05f3|\u2018|\u2019)\s+)  # Helek - spelled out with nikkud possibly or followed by a ' or a geresh - followed by space
          |(?:\u05d7["\u05f4])                     # chet followed by gershayim or double quote
         )
         """
