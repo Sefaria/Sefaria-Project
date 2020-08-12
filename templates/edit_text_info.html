@@ -759,7 +759,7 @@
             // Don't allow new texts in these locked categories (we have them all)
             index.categories = "locked";
         } else {
-            index.categories = (cat == "Other" ? [$("#otherCategory").val()] : (cat ? [cat]: []));
+            index.categories = (cat == "Other" ? ($("#otherCategory").val() == "" ? ["Other"] : [$("#otherCategory").val()]) : (cat ? [cat]: []));
         }
         if ($("#textStructureFieldSet").is(":visible")) {
             var sectionNames = [];
