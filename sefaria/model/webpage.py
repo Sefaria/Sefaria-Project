@@ -79,8 +79,8 @@ class WebPage(abst.AbstractMongoRecord):
 
     def should_be_excluded(self):
         url_regex = WebPage.excluded_pages_url_regex()
-        title_regex = WebPage().excluded_pages_title_regex()
-        return bool(re.match(url_regex, self.url) or re.match(title_regex, self.title))
+        title_regex = WebPage.excluded_pages_title_regex()
+        return bool(re.search(url_regex, self.url) or re.search(title_regex, self.title))
 
     @staticmethod
     def excluded_pages_url_regex():
@@ -94,12 +94,13 @@ class WebPage(abst.AbstractMongoRecord):
             "judaism.codidact.com\/.+\/suggested-edit\/",
             "judaism.codidact.com\/.+\/posts\/new\/",
             "jewishexponent.com\/page\/\d",
-            "http:\/\/webcache.googleusercontent.com",
-            "https:\/\/translate.googleusercotent.com",
+            "hebrewcollege.edu\/blog\/(author|category|tag)\/",  # these function like indices of articles
+            "webcache.googleusercontent.com",
+            "translate.googleusercotent.com",
             "http:\/\/:localhost(:\d+)?",
 
         ]
-        return "|".join(bad_urls)
+        return "({})".format("|".join(bad_urls))
 
     @staticmethod
     def excluded_pages_title_regex():
@@ -108,7 +109,7 @@ class WebPage(abst.AbstractMongoRecord):
             "Page not found",   # JTS 404 pages include links to content
             "JTS Torah Online"  # JTS search result pages
         ]
-        return "|".join(bad_titles)
+        return "({})".format("|".join(bad_titles))
 
     @staticmethod
     def site_data_for_domain(domain):
@@ -126,11 +127,14 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def add_or_update_from_linker(data):
+        """Adds of entry for the WebPage represented by `data` or updates an existing entry with the same normalized URL
+        Returns True is data was saved, False if data was determined to be exluded"""
         data["url"] = WebPage.normalize_url(data["url"])
         webpage = WebPage().load(data["url"]) or WebPage(data)
         if webpage.should_be_excluded():
-            return
+            return "excluded"
         webpage.update_from_linker(data)
+        return "saved"
 
     def client_contents(self):
         d = self.contents()
@@ -501,5 +505,9 @@ sites_data = [
     {
         "name": "The 5 Towns Jewish Times",
         "domains": ["5tjt.com"]
+    },
+    {
+        "name": "Hebrew College",
+        "domains": ["hebrewcollege.edu"]
     },
 ]
