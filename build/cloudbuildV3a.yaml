@@ -22,6 +22,13 @@ steps:
     id: k8s-admin_clone
     wait_for: [ "-" ]
 
+   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: print_k8s_admin_git_hash
+    entrypoint: bash
+    dir: k8s-admin
+    args: ["-c", 'git rev-parse HEAD > ../k8s-admin-hash.txt']
+    wait_for: ["k8s-admin_clone"]
+
   #
   # Build artifacts
   #
@@ -123,8 +130,10 @@ steps:
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     id: slack_notification
-    args: [ 'gcloud', 'pubsub', 'topics', 'publish', 'projects/production-deployment/topics/deployment-notification', '--message', '[Production Deployment] App Version: ${TAG_NAME}; k8s-admin Version: placeholder; Build Id: ${BUILD_ID}' ]
-    wait_for:
+    entrypoint: bash
+    args: [ '-c', 'gcloud pubsub topics publish projects/production-deployment/topics/deployment-notification --message "[Production Deployment] App Version: ${TAG_NAME}; k8s-admin git hash: `cat k8s-admin-hash.txt`; Build Id: ${BUILD_ID}"' ]
+    wait_for: 
+      - print_k8s_admin_git_hash
       - deploy_sandbox
 
 images:
