@@ -22,7 +22,7 @@ steps:
     id: k8s-admin_clone
     wait_for: [ "-" ]
 
-   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     id: print_k8s_admin_git_hash
     entrypoint: bash
     dir: k8s-admin
