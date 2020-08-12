@@ -1,7 +1,5 @@
 # TODO: Fail the build if the target mongo host is not reachable
-# TODO: Consider "one mongo instance per sandbox" architecture
-# TODO: Idempotently update ingress definition
-# TODO: Notifications
+# TODO: Remove references to sandboxes
 
 ---
 substitutions:
@@ -122,6 +120,12 @@ steps:
       - copy_localsettings_file
       - k8s-admin_clone
       - generate_robots_file
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: slack_notification
+    args: [ 'gcloud', 'pubsub', 'topics', 'publish', 'projects/production-deployment/topics/deployment-notification', '--message', '[Production Deployment] App Version: ${TAG_NAME}; k8s-admin Version: placeholder; Build Id: ${BUILD_ID}' ]
+    wait_for:
+      - deploy_sandbox
 
 images:
   - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA"
