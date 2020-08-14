@@ -1347,67 +1347,6 @@ p.registration-links a:hover{
 #helpPage .section {
   margin-bottom: 60px;
 }
-#translationRequestsPage .translationRequest{
-  background-color: inherit;
-  text-align: justify;
-  border-bottom: 1px solid #eee;
-  padding: 20px 0 20px 0;
-  margin: 0;
-  display: flex;
-  display: -webkit-flex;
-  justify-content: space-between;
-  -webkit-justify-content:space-between;
-  align-items: center;
-  -webkit-align-items: center;
-}
-#translationRequestsPage .translationRequest > div{
-  all: initial;
-}
-#translationRequestsPage .translationRequest .requestRank,
-#translationRequestsPage .translationRequest .requestText,
-#translationRequestsPage .translationRequest .requestCountBox{
-  display: inline-block;
-  vertical-align: middle;
-}
-#translationRequestsPage .translationRequest span{
-  font-size: 1.3em;
-}
-#translationRequestsPage .translationRequest .requestRank{
-  display: inline-block;
-}
-#translationRequestsPage .translationRequest .requestCountBox{
-  display: inline-block;
-  text-align: right;
-}
-#translationRequestsPage .translationRequest .requestText{
-  display: inline-block;
-  width: 80%
-}
-#translationRequestsPage .translationRequest .requestText > div{
-  display: block;
-}
-.translationRequest .requestRef a {
-  float: none;
-  display: inline;
-  width: 100%;
-  line-height: 5px;
-}
-#translationRequestsPage .translationRequest .requestText .requestCompleter span{
-  font-size: 0.8em;
-}
-#translationRequestsPage .translationRequest .requestFeatured {
-    float: none;
-    cursor: pointer;
-    /*color: #FFCC00;*/
-    font-size: 16px;
-    vertical-align: middle;
-}
-#translationRequestsPage .translationRequest .requestButton {
-    width: 20px;
-    padding: 10px;
-    display: inline;
-    vertical-align: middle;
-}
 #metricsPage .chart {
   margin-bottom: 80px;
   border: 1px solid #ddd;
