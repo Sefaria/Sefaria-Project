@@ -29,7 +29,6 @@ urlpatterns = [
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
-    #url(r'^sheets/?$', reader_views.sheets_list),
     url(r'^sheets/tags/?$', reader_views.sheets_tags_list),
     url(r'^sheets/tags/(?P<tag>.+)$', reader_views.sheets_by_tag),
     url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_list),
@@ -48,7 +47,6 @@ urlpatterns = [
     url(r'^new-home/?$', reader_views.new_home),
     url(r'^story_editor/?$', reader_views.story_editor),
     url(r'^torahtracker/?$', reader_views.user_stats),
-
 ]
 
 # People Pages

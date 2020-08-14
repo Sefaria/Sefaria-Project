@@ -507,6 +507,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "html":           html,
         "title":          title,
         "desc":           desc,
+        "canonical_url":  canonical_url(request),
         "ldBreadcrumbs":  breadcrumb,
         "noindex":        noindex,
     })
@@ -559,8 +560,10 @@ def texts_category_list(request, cats):
         "html":             html,
         "title":            title,
         "desc":             desc,
+        "canonical_url":    canonical_url(request),
         "ldBreadcrumbs":    ld_cat_crumbs(request, cats)
     })
+
 
 @sanitize_get_params
 def topics_toc_page(request, topicCategory):
@@ -854,6 +857,7 @@ def menu_page(request, props, page, title="", desc=""):
         "title":          title,
         "desc":           desc,
         "html":           html,
+        "canonical_url":  canonical_url(request),
     })
 
 
@@ -961,6 +965,25 @@ def s2_extended_notes(request, tref, lang, version_title):
     return s2_page(request, props, "extended notes", title)
 """
 
+def canonical_url(request):
+    if not SITE_SETTINGS["TORAH_SPECIFIC"]:
+        return None
+
+    path = request.get_full_path()
+    if request.interfaceLang == "hebrew":
+        host = "https://www.sefaria.org.il"
+        # Default params for texts, text toc, and text category
+        path = re.sub("\?lang=he(&aliyot=0)?$", "", path)
+    else:
+        host = "https://www.sefaria.org"
+        # Default params for texts, text toc, and text category
+        path = re.sub("\?lang=bi(&aliyot=0)?$", "", path)
+
+    path = re.sub("\?home$", "", path) # remove param to force homepage load
+
+    path = "" if path == "/" else path
+    return host + path
+
 """
 JSON - LD snippets for use in "rich snippets" - semantic markup.
 """
@@ -1053,7 +1076,6 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
         "@type": "BreadcrumbList",
         "itemListElement": breadcrumbJsonList
     })
-
 
 
 @ensure_csrf_cookie
@@ -2973,7 +2995,7 @@ def topic_page(request, topic):
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + _(' | Sefaria')
-    desc = _('Explore %(topic)s on Sefaria, drawing from our library of Jewish texts. ') % {'topic': topic_obj.get_primary_title(short_lang)}
+    desc = _('Explore %(topic)s on Sefaria, drawing from our library of Jewish texts.') % {'topic': topic_obj.get_primary_title(short_lang)}
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
         desc += topic_desc
@@ -3563,7 +3585,6 @@ def home(request):
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
 
-    # show_feed = request.COOKIES.get("home_feed", None)
     show_feed = request.user.is_authenticated
 
     if show_feed:
@@ -3584,6 +3605,7 @@ def home(request):
                               "metrics": metrics,
                               "daf_today": daf_today,
                               "parasha": parasha,
+                              "canonical_url": canonical_url(reqest)
                               })
 
 

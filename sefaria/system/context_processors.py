@@ -64,9 +64,6 @@ def global_settings(request):
         "GLOBAL_WARNING_MESSAGE": GLOBAL_WARNING_MESSAGE,
         "GOOGLE_MAPS_API_KEY":    GOOGLE_MAPS_API_KEY,
         "SITE_SETTINGS":          SITE_SETTINGS,
-        #"USE_VARNISH":            USE_VARNISH,
-        #"VARNISH_ADDR":           VARNISH_ADDR,
-        #"USE_VARNISH_ESI":        USE_VARNISH_ESI
         }
 
 
