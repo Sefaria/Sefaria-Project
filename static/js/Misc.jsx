@@ -233,7 +233,7 @@ ProfilePic.propTypes = {
 
 
 const FilterableList = ({
-  filterFunc, sortFunc, renderItem, sortOptions, getData, getDataFromCache, renderEmptyList,
+  filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
   renderHeader, renderFooter, showFilterHeader, extraData, ignoreCache,
   scrollableElement, pageSize, bottomMargin,
 }) => {
@@ -247,7 +247,7 @@ const FilterableList = ({
       .sort((a, b) => sortFunc(sortOption, a, b, extraData))
       : [];
 
-  const cachedData = getDataFromCache ? getDataFromCache() : null;
+  const cachedData = !!data ? data : null;
   const [loading, setLoading] = useState(!cachedData);
   const [rawData, setRawData] = useState(cachedData);
   const [displayData, setDisplayData] = useState(processData(rawData));
@@ -364,16 +364,17 @@ const FilterableList = ({
   );
 };
 FilterableList.propTypes = {
-  filterFunc:  PropTypes.func.isRequired,
-  sortFunc:    PropTypes.func.isRequired,
-  renderItem:  PropTypes.func.isRequired,
-  sortOptions: PropTypes.array.isRequired,
-  getData:     PropTypes.func.isRequired,
-  renderEmptyList: PropTypes.func,
-  renderHeader: PropTypes.func,
-  renderFooter: PropTypes.func,
+  filterFunc:       PropTypes.func.isRequired,
+  sortFunc:         PropTypes.func.isRequired,
+  renderItem:       PropTypes.func.isRequired,
+  sortOptions:      PropTypes.array.isRequired,
+  getData:          PropTypes.func,   // At least one of `getData` or `data` is required
+  data:             PropTypes.array,
+  renderEmptyList:  PropTypes.func,
+  renderHeader:     PropTypes.func,
+  renderFooter:     PropTypes.func,
   showFilterHeader: PropTypes.bool,
-  extraData: PropTypes.object,  // extraData to pass to sort function
+  extraData:        PropTypes.object,  // extraData to pass to sort function
 };
 
 

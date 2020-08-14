@@ -234,77 +234,83 @@ const TopicHeader = ({
     </div>
 );}
 
+
 const TopicPage = ({
   tab, topic, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel,
   hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings,
   updateTopicsTab, onClose, openSearch
 }) => {
-    const [topicData, setTopicData] = useState(false);
-    const [topicRefs, setTopicRefs] = useState(false);
-    const [topicSheets, setTopicSheets] = useState(false);
-    const [sheetData, setSheetData] = useState(null);
-    const [textData, setTextData] = useState(null);
+    const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic));
+    const [sheetData, setSheetData] = useState(topicData ? topicData.sheetData : null);
+    const [textData, setTextData]   = useState(topicData ? topicData.textData : null);
+    const [textRefsToFetch, setTextRefsToFetch] = useState(false);
+    const [sheetRefsToFetch, setSheetRefsToFetch] = useState(false);
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
     const scrollableElement = useRef();
+    const textRefs  = topicData ? topicData.textRefs : false;
+    const sheetRefs = topicData ? topicData.sheetRefs : false;
+
     let textCancel, sheetCancel;
     const clearAndSetTopic = (topic, topicTitle) => {setTopicData(false); setTopic(topic, topicTitle)};
     
+    // Initial Topic Data, updates when `topic` changes
     useEffect(() => {
       const { promise, cancel } = Sefaria.makeCancelable((async () => {
         const d = await Sefaria.getTopic(topic);
         if (d.parasha) { Sefaria.getParashaNextRead(d.parasha).then(setParashaData); }
         setTopicData(d);
-        let refMap = {};
-        for (let refObj of d.refs.filter(s => !s.is_sheet)) {
-          refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSources: refObj.dataSources};
-        }
-        const refs = Object.values(refMap);
-        let sheetMap = {};
-        for (let refObj of d.refs.filter(s => s.is_sheet)) {
-          const sid = refObj.ref.replace('Sheet ', '');
-          sheetMap[sid] = {sid, order: refObj.order};
-        }
-        const sheets = Object.values(sheetMap);
-        setTopicRefs(refs);
-        setTopicSheets(sheets);
+        // Data remaining to fetch that was not already in the cache
+        setTextRefsToFetch(d.textData ? d.textRefs.slice(d.textData.length) : d.textRefs);
+        setSheetRefsToFetch(d.sheetData ? d.sheetRefs.slice(d.sheetData.length) : d.sheetRefs);
       })());
       promise.catch((error) => { if (!error.isCanceled) { console.log('TopicPage Error', error); } });
       return () => {
         cancel();
         setTopicData(false);
-        setTopicRefs(false);
-        setTopicSheets(false);
+        setTextData(null);
+        setSheetData(null);
+        setTextRefsToFetch(false);
+        setSheetRefsToFetch(false);
       }
     }, [topic]);
 
+    // Fetching textual data in chunks
     useIncrementalLoad(
       fetchBulkText,
-      topicRefs,
+      textRefsToFetch,
       70,
-      data => setTextData(prev => (!prev || data === false) ? data : [...prev, ...data]),
+      data => setTextData(prev => {
+        const updatedData = (!prev || data === false) ? data : [...prev, ...data];
+        if (topicData) { topicData.textData = updatedData; } // Persist textData in cache
+        return updatedData;
+      }),
       topic
     );
 
+    // Fetching sheet data in chunks
     useIncrementalLoad(
       fetchBulkSheet,
-      topicSheets,
+      sheetRefsToFetch,
       70,
-      data => setSheetData(prev => (!prev || data === false) ? data : [...prev, ...data]),
+      data => setSheetData(prev => {
+        const updatedData = (!prev || data === false) ? data : [...prev, ...data];
+        if (topicData) { topicData.sheetData = updatedData; } // Persist sheetData in cache
+        return updatedData;
+      }),
       topic
     );
 
     const tabs = [];
-    if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources"), id: 'sources'}); }
-    if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets"), id: 'sheets'}); }
+    if (!!textRefs.length) { tabs.push({text: Sefaria._("Sources"), id: 'sources'}); }
+    if (!!sheetRefs.length) { tabs.push({text: Sefaria._("Sheets"), id: 'sheets'}); }
     let onClickFilterIndex = 2;
-    if (!!topicRefs.length || !!topicSheets.length) {
+    if (!!textRefs.length || !!sheetRefs.length) {
       tabs.push({text: Sefaria._("Filter"), icon: `/static/img/arrow-${showFilterHeader ? 'up' : 'down'}-bold.svg`, justifyright: true });
       onClickFilterIndex = tabs.length - 1;
     }
     let tabIndex = tabs.findIndex(t => t.id === tab);
-    if (Array.isArray(topicSheets) && Array.isArray(topicSheets) && tabIndex == -1 && tabs.length > 0) {
-      // check topicSheets isArray which means setTopicSheets() has run
+    if (tabIndex == -1 && tabs.length > 0) {
       tabIndex = 0;
     }
     useEffect(() => {
@@ -332,7 +338,7 @@ const TopicPage = ({
                           )}
                           onClickArray={{[onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader)}}
                         >
-                          { !!topicRefs.length ? (
+                          { !!textRefs.length ? (
                             <TopicPageTab
                               scrollableElement={scrollableElement}
                               showFilterHeader={showFilterHeader}
@@ -360,7 +366,7 @@ const TopicPage = ({
                               />
                             ) : null
                           }
-                          { !!topicSheets.length ? (
+                          { !!sheetRefs.length ? (
                             <TopicPageTab
                               scrollableElement={scrollableElement}
                               showFilterHeader={showFilterHeader}
@@ -417,7 +423,6 @@ const TopicPageTab = ({
   data, renderItem, classes, sortOptions, sortFunc, filterFunc, extraData,
   showFilterHeader, scrollableElement
 }) => {
-  const getData = useCallback(() => Promise.resolve(data), [data]);
   return (
     <div className="story topicTabContents">
       {!!data ?
@@ -434,7 +439,7 @@ const TopicPageTab = ({
             renderHeader={()=>null}
             sortOptions={sortOptions}
             extraData={extraData}
-            getData={getData}
+            data={data}
           />
         </div> : <LoadingMessage />
       }

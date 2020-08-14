@@ -178,6 +178,7 @@ function useIncrementalLoad(fetchData, input, pageSize, setter, identityElement,
   // When input changes, creates function to fetch data by page, computes number of pages
   const [fetchDataByPage, numPages] = useMemo(() => {
     const fetchDataByPage = (page) => {
+      console.log("fetching page " + page + " of something");
       if (!input) { return Promise.reject({error: "input not array", input}); }
       const pagedInput = input.slice(page*pageSize, (page+1)*pageSize);
       return fetchData(pagedInput);

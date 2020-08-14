@@ -355,7 +355,7 @@ class UserProfile extends Component {
                     renderHeader={this.renderSheetHeader}
                     sortOptions={["Recent", "Views"]}
                     getData={this.getSheets}
-                    getDataFromCache={this.getSheetsFromCache}
+                    data={this.getSheetsFromCache()}
                   />
                   {
                     this.state.showNotes ? (
@@ -369,7 +369,7 @@ class UserProfile extends Component {
                         renderEmptyList={this.renderEmptyNoteList}
                         sortOptions={[]}
                         getData={this.getNotes}
-                        getDataFromCache={this.getNotesFromCache}
+                        data={this.getNotesFromCache()}
                       />
                     ) : null
                   }
@@ -383,7 +383,7 @@ class UserProfile extends Component {
                     renderHeader={this.renderGroupHeader}
                     sortOptions={["Members", "Sheets"]}
                     getData={this.getGroups}
-                    getDataFromCache={this.getGroupsFromCache}
+                    data={this.getGroupsFromCache()}
                   />
                   <FilterableList
                     key="follower"
