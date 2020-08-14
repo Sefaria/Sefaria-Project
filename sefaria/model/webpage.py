@@ -88,17 +88,17 @@ class WebPage(abst.AbstractMongoRecord):
             "rabbisacks\.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
             "halachipedia\.com\/index\.php\?search=", # Halachipedia search results
             "halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
-            "myjewishlearning.com\/\?post_type=evergreen", # These urls end up not working
-            "judaism.codidact.com\/.+\/edit",
-            "judaism.codidact.com\/.+\/history",
-            "judaism.codidact.com\/.+\/suggested-edit\/",
-            "judaism.codidact.com\/.+\/posts\/new\/",
-            "jewishexponent.com\/page\/\d",
-            "hebrewcollege.edu\/blog\/(author|category|tag)\/",  # these function like indices of articles
-            "webcache.googleusercontent.com",
-            "translate.googleusercotent.com",
+            "myjewishlearning\.com\/\?post_type=evergreen", # These urls end up not working
+            "judaism.codidact\.com\/.+\/edit",
+            "judaism.codidact\.com\/.+\/history",
+            "judaism.codidact\.com\/.+\/suggested-edit\/",
+            "judaism.codidact\.com\/.+\/posts\/new\/",
+            "jewishexponent\.com\/page\/\d",
+            "hebrewcollege\.edu\/blog\/(author|category|tag)\/",  # these function like indices of articles
+            "webcache\.googleusercontent\.com",
+            "translate\.googleusercotent\.com",
+            "dailympails\.gq\/",
             "http:\/\/:localhost(:\d+)?",
-
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -509,5 +509,9 @@ sites_data = [
     {
         "name": "Hebrew College",
         "domains": ["hebrewcollege.edu"]
+    },
+    {
+        "name": ["מכון הדר"],
+        "domains": ["mechohadar.org.il"]
     },
 ]

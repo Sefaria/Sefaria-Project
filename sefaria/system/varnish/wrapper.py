@@ -121,7 +121,7 @@ def invalidate_title(title):
 
 
 def invalidate_all():
-    ban_url("*")
+    ban_url(".*")
 
 
 def url_regex(ref):
