@@ -2151,7 +2151,11 @@ def tag_category_api(request, path=None):
                 categories = [Topic.init(l.topic) for l in links]
                 categories.sort(key=lambda x: getattr(x, 'displayOrder', 10000))
 
-        category_names = [{"tag": category.get_primary_title('en'), "heTag": category.get_primary_title("he"), } for category in categories]
+        category_names = [{
+            "tag":   category.get_primary_title('en'),
+            "heTag": category.get_primary_title("he"),
+            "slug":  category.slug
+        } for category in categories]
         return jsonResponse(category_names)
 
 
