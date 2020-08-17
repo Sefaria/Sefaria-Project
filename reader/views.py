@@ -3609,7 +3609,7 @@ def home(request):
                               "metrics": metrics,
                               "daf_today": daf_today,
                               "parasha": parasha,
-                              "canonical_url": canonical_url(reqest)
+                              "canonical_url": canonical_url(request)
                               })
 
 
