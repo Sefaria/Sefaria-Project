@@ -295,13 +295,13 @@ CACHES = {
 
 """
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "reading-challenge-banner",
-    "repetition": 0,
+    "name":       "sustainers-august-2020",
+    "repetition": 1,
     "style":      "banner",
     "condition": {
         "returning_only": False,
         "desktop_only": False,
-        "english_only": True,
+        "english_only": False,
         "hebrew_only": False,
         "debug": False
     }

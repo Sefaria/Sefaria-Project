@@ -13,9 +13,16 @@
         <meta name="robots" content="noindex, nofollow">
     {% endif %}
 
-    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static "files/opensearch.xml" %}" />
+    <link rel="search" type="application/opensearchdescription+xml" title="Sefaria Search" href="{% static 'files/opensearch.xml' %}" />
+    
+    {% if SITE_SETTINGS.TORAH_SPECIFIC %}
     <link rel="alternate" href="https://www.sefaria.org{{ request.path }}" hreflang="en" />
     <link rel="alternate" href="https://www.sefaria.org.il{{ request.path }}" hreflang="he" />
+    {% endif %}
+
+    {% if canonical_url %}
+    <link rel="canonical" href="{{canonical_url}}" />
+    {% endif %}
 
     {% block ogtype %}
         <meta property="og:type" content="website"/>

@@ -104,7 +104,7 @@ class Test_OO_Toc(object):
         new_json = json.dumps(rt_toc, sort_keys=True)
         assert len(base_json) == len(new_json)
 
-    @pytest.mark.failing
+    @pytest.mark.xfail(reason="unknown")
     def test_compare_db_toc_and_derived_toc(self):
         derived_toc = s.update_table_of_contents()
         base_json = json.dumps(derived_toc, sort_keys=True)

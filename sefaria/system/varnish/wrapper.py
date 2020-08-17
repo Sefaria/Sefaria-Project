@@ -120,6 +120,10 @@ def invalidate_title(title):
     ban_url("/api/links/{}".format(title))
 
 
+def invalidate_all():
+    ban_url(".*")
+
+
 def url_regex(ref):
     """
     :return string: Returns a non-anchored regular expression part that will match normally formed URLs of this Ref and any more specific Ref.

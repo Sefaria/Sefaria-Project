@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-translation_request.py
-Writes to MongoDB Collection:
+Writes to MongoDB Collection: word_form, lexicon_entry
 """
 import re
+import unicodedata
 from . import abstract as abst
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError
@@ -351,9 +351,10 @@ class LexiconLookupAggregator(object):
 
     @classmethod
     def lexicon_lookup(cls, input_str, **kwargs):
+        input_str = unicodedata.normalize("NFC", input_str)
         results = cls._single_lookup(input_str, **kwargs)
-        if not results:
-            results = cls._single_lookup(strip_cantillation(input_str, True), lookup_key='c_form', **kwargs)
+        if not results or kwargs.get('always_consonants', False):
+            results += cls._single_lookup(strip_cantillation(input_str, True), lookup_key='c_form', **kwargs)
         if not kwargs.get('never_split', None) and (len(results) == 0 or kwargs.get("always_split", None)):
             ngram_results = cls._ngram_lookup(input_str, **kwargs)
             results += ngram_results

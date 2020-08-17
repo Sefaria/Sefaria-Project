@@ -460,9 +460,6 @@ input.noselect {
   font-size: 16px;
   margin-top: 2px;
   color: #666;
-  -webkit-margin-end: 20px;
-  -moz-margin-end: 20px;
-  margin-inline-end: 20px;
 }
 .header .accountLinks.anon a:last-child{
   background: #FFFFFF;
@@ -477,6 +474,9 @@ input.noselect {
   color: #666;
   cursor: pointer;
   position: relative;
+  -webkit-margin-start: 20px;
+  -moz-margin-start: 20px;
+  margin-inline-start: 20px;
 }
 .header .interfaceLinks img{
   height: 18px;
@@ -2462,7 +2462,7 @@ a.readerNavCategory {
   display: none;
 }
 .versionBlock .versionDetails .versionBuyImage .versionDetailsImageLink img{
-  height: 100px;
+  height: 120px;
 }
 .readerTextTableOfContents .versionBlock .versionDetails .versionBuyImage, .readerTextTableOfContents .versionBlock .versionDetails .versionBuyLink{
   display: none;
@@ -7168,12 +7168,12 @@ span.purim-emoji img{
   background-color: #212E50;
   border-top: 1px solid #ccc;
   bottom: 0;
-  left: 0;
   box-sizing: border-box;
   width: 100%;
   padding: 10px 0;
   line-height: 1.1;
   text-align: center;
+  unicode-bidi: plaintext;
 }
 .cookiesNotification a {
   text-decoration: underline;

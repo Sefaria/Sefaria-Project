@@ -221,7 +221,7 @@ class Test_Jagged_Text_Array(object):
         assert ja.JaggedTextArray(threeby).shape() == [[3, 3, 3],[3, 3, 3],[3, 3, 3]]
         assert ja.JaggedTextArray(["a","b","c"]).shape() == 3
 
-    @pytest.mark.failing
+    @pytest.mark.xfail(reason="unknown")
     def test_trim_ending_whitespace(self):
         # Note - this test can fail when run in the full suite, because earlier test data bleeds through.
         # See warning at top of jagged_array.py

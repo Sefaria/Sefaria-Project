@@ -176,15 +176,51 @@ Sefaria = extend(Sefaria, {
           "en": "ref"
       }[lang];
       if(!refs.length){ return null ;}
-      const start = Sefaria.getRefFromCache(refs[0])[refStrAttr]; //deal with case where this doesnt exist in cache with getName or a new function o combine refs from server side
-      const end = Sefaria.getRefFromCache(refs[refs.length - 1])[refStrAttr];
+      let start, end;
+      if (refs[0].indexOf("-") != -1) { // did we get a ranged ref for some reason inside the arguemnts
+          let startSplit = Sefaria.splitRangingRef(refs[0])
+          start = Sefaria.getRefFromCache(startSplit[0])[refStrAttr];
+      }else{
+          start = Sefaria.getRefFromCache(refs[0])[refStrAttr];
+      }
+      if (refs[refs.length - 1].indexOf("-") != -1) {
+          let endSplit = Sefaria.splitRangingRef(refs[refs.length - 1]);
+          end = Sefaria.getRefFromCache(endSplit[endSplit.length -1])[refStrAttr];
+      }else{
+          end = Sefaria.getRefFromCache(refs[refs.length - 1])[refStrAttr];
+      }
+       //deal with case where this doesnt exist in cache with getName or a new function o combine refs from server side
+
+      //TODO handle ranged refs as input
       if(start == end){
           return start;
       }
-      const similarpart = Sefaria.util.commonSubstring(start, end);
-      const startDiff = start.substring(similarpart.length, start.length);
-      const endDiff = end.substring(similarpart.length, end.length);
-      return `${similarpart}${startDiff}-${endDiff}`;
+      //break down refs into textual part and "numeric "address parts, the comparison of the numeric parts has to be atomic and not char by char
+      const lastSpaceStart = start.lastIndexOf(" ");
+      const namedPartStart =  start.substr(0, lastSpaceStart);
+      const addressPartStart = start.substr(lastSpaceStart + 1).split(":");
+      const lastSpaceEnd = end.lastIndexOf(" ");
+      const namedPartEnd =  end.substr(0, lastSpaceEnd);
+      const addressPartEnd = end.substr(lastSpaceEnd + 1).split(":");
+      if(namedPartStart != namedPartEnd){
+          //the string part is different already, so the numeric parts will be for sure separated correctly.
+          //works mostly for ranged complex text refs
+          const similarpart = Sefaria.util.commonSubstring(start, end);
+          const startDiff = start.substring(similarpart.length, start.length);
+          const endDiff = end.substring(similarpart.length, end.length);
+          return `${similarpart}${startDiff}-${endDiff}`;
+      }else{
+          let similaraddrs = []
+          const addrLength = Math.min(addressPartStart.length, addressPartEnd.length);
+          let index = 0;
+          while(index<addrLength && addressPartStart[index] === addressPartEnd[index]){
+              similaraddrs.push(addressPartStart[index]);
+              index++;
+          }
+          const addrStr = similaraddrs.join(":")+(index == 0? "" : ":")+addressPartStart.slice(index).join(":")+"-"+addressPartEnd.slice(index).join(":");
+          return `${namedPartStart} ${addrStr}`
+      }
+
   },
   refContains: function(ref1, ref2) {
     // Returns true is `ref1` contains `ref2`
@@ -751,9 +787,9 @@ Sefaria = extend(Sefaria, {
     ref = typeof ref !== "undefined" ? ref : null;
     words = typeof words !== "undefined" ? words : "";
     if (words.length <= 0) { return Promise.resolve([]); }
-
+    words = words.normalize("NFC"); //make sure we normalize any errant unicode (vowels and diacritics that may appear to be equal but the underlying characters are out of order or different.
     const key = ref ? words + "|" + ref : words;
-    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?never_split=1" + (ref?("&lookup_ref="+ref):"");
+    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?always_consonants=1&never_split=1" + (ref?("&lookup_ref="+ref):"");
     return this._cachedApiPromise({url, key, store: this._lexiconLookups});
   },
   _links: {},
@@ -1218,8 +1254,8 @@ _audio: {},
 
       // 3: exact match, 2: range match: 1: section match
       var aSpecificity, bSpecificity;
-      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRef === ref ? 3 : (page.anchorRef.indexOf("-") !== -1 ? 2 : 1));
-      if (aSpecificity !== bSpecificity) {return aSpecificity > bSpecificity ? -1 : 1};
+      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRefExpanded.length);
+      if (aSpecificity !== bSpecificity) {return aSpecificity - bSpecificity};
 
       return (a.linkerHits > b.linkerHits) ? -1 : 1
     });
@@ -1391,9 +1427,10 @@ _audio: {},
     if (!data || "error" in data) { return []; }
     var segments  = [];
     var highlight = data.sections.length === data.textDepth;
-    var wrap = (typeof data.text == "string");
-    var en = wrap ? [data.text] : data.text;
-    var he = wrap ? [data.he] : data.he;
+    var wrapEn = (typeof data.text == "string");
+    var wrapHe = (typeof data.he == "string");
+    var en = wrapEn ? [data.text] : data.text;
+    var he = wrapHe ? [data.he] : data.he;
     var topLength = Math.max(en.length, he.length);
     en = en.pad(topLength, "");
     he = he.pad(topLength, "");
