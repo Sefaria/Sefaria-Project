@@ -787,9 +787,9 @@ Sefaria = extend(Sefaria, {
     ref = typeof ref !== "undefined" ? ref : null;
     words = typeof words !== "undefined" ? words : "";
     if (words.length <= 0) { return Promise.resolve([]); }
-
+    words = words.normalize("NFC"); //make sure we normalize any errant unicode (vowels and diacritics that may appear to be equal but the underlying characters are out of order or different.
     const key = ref ? words + "|" + ref : words;
-    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?never_split=1" + (ref?("&lookup_ref="+ref):"");
+    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?always_consonants=1&never_split=1" + (ref?("&lookup_ref="+ref):"");
     return this._cachedApiPromise({url, key, store: this._lexiconLookups});
   },
   _links: {},
@@ -1410,9 +1410,10 @@ Sefaria = extend(Sefaria, {
     if (!data || "error" in data) { return []; }
     var segments  = [];
     var highlight = data.sections.length === data.textDepth;
-    var wrap = (typeof data.text == "string");
-    var en = wrap ? [data.text] : data.text;
-    var he = wrap ? [data.he] : data.he;
+    var wrapEn = (typeof data.text == "string");
+    var wrapHe = (typeof data.he == "string");
+    var en = wrapEn ? [data.text] : data.text;
+    var he = wrapHe ? [data.he] : data.he;
     var topLength = Math.max(en.length, he.length);
     en = en.pad(topLength, "");
     he = he.pad(topLength, "");

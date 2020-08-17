@@ -58,12 +58,13 @@ class WebPage(abst.AbstractMongoRecord):
         rewrite_rules = {
             "use https": lambda url: re.sub(r"^http://", "https://", url),
             "remove hash": lambda url: re.sub(r"#.+", "", url),
+            "remove utm params": lambda url: re.sub(r"\?utm_.+", "", url),
             "add www": lambda url: re.sub(r"^(https?://)(?!www\.)", r"\1www.", url),
             "remove www": lambda url: re.sub(r"^(https?://)www\.", r"\1", url),
             "remove mediawiki params": lambda url: re.sub(r"&amp;.+", "", url),
             "remove sort param": lambda url: re.sub(r"\?sort=.+", "", url),
         }
-        global_rules = ["remove hash"]
+        global_rules = ["remove hash", "remove utm params"]
         domain = WebPage.domain_for_url(url)
         site_data = WebPage.site_data_for_domain(domain) or {}
         site_rules = global_rules + site_data.get("normalization_rules", [])
@@ -78,8 +79,8 @@ class WebPage(abst.AbstractMongoRecord):
 
     def should_be_excluded(self):
         url_regex = WebPage.excluded_pages_url_regex()
-        title_regex = WebPage().excluded_pages_title_regex()
-        return bool(re.match(url_regex, self.url) or re.match(title_regex, self.title))
+        title_regex = WebPage.excluded_pages_title_regex()
+        return bool(re.search(url_regex, self.url) or re.search(title_regex, self.title))
 
     @staticmethod
     def excluded_pages_url_regex():
@@ -87,23 +88,28 @@ class WebPage(abst.AbstractMongoRecord):
             "rabbisacks\.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
             "halachipedia\.com\/index\.php\?search=", # Halachipedia search results
             "halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
-            "myjewishlearning.com\/\?post_type=evergreen", # These urls end up not working
-            "judaism.codidact.com\/.+\/edit",
-            "judaism.codidact.com\/.+\/history",
-            "judaism.codidact.com\/.+\/suggested-edit\/",
-            "judaism.codidact.com\/.+\/posts\/new\/",
-            "http:\/\/webcache.googleusercontent.com",
-            "https:\/\/translate.googleusercotent.com",
+            "myjewishlearning\.com\/\?post_type=evergreen", # These urls end up not working
+            "judaism.codidact\.com\/.+\/edit",
+            "judaism.codidact\.com\/.+\/history",
+            "judaism.codidact\.com\/.+\/suggested-edit\/",
+            "judaism.codidact\.com\/.+\/posts\/new\/",
+            "jewishexponent\.com\/page\/\d",
+            "hebrewcollege\.edu\/blog\/(author|category|tag)\/",  # these function like indices of articles
+            "webcache\.googleusercontent\.com",
+            "translate\.googleusercotent\.com",
+            "dailympails\.gq\/",
             "http:\/\/:localhost(:\d+)?",
         ]
-        return "|".join(bad_urls)
+        return "({})".format("|".join(bad_urls))
 
     @staticmethod
     def excluded_pages_title_regex():
         bad_titles = [
             "Page \d+ of \d+",  # Rabbi Sacks paged archives
+            "Page not found",   # JTS 404 pages include links to content
+            "JTS Torah Online"  # JTS search result pages
         ]
-        return "|".join(bad_titles)
+        return "({})".format("|".join(bad_titles))
 
     @staticmethod
     def site_data_for_domain(domain):
@@ -121,10 +127,14 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def add_or_update_from_linker(data):
+        """Adds of entry for the WebPage represented by `data` or updates an existing entry with the same normalized URL
+        Returns True is data was saved, False if data was determined to be exluded"""
+        data["url"] = WebPage.normalize_url(data["url"])
         webpage = WebPage().load(data["url"]) or WebPage(data)
         if webpage.should_be_excluded():
-            return
+            return "excluded"
         webpage.update_from_linker(data)
+        return "saved"
 
     def client_contents(self):
         d = self.contents()
@@ -207,6 +217,7 @@ def test_normalization():
 
 
 def dedupe_webpages(test=True):
+    """Normalizes URLs of all webpages and deletes multiple entries that normalize to the same URL"""
     norm_count = 0
     dedupe_count = 0
     webpages = WebPageSet()
@@ -297,14 +308,14 @@ def dedupe_identical_urls(test=True):
     print("\n{} pages with identical urls removed from {} url groups.".format(removed_count, url_count))
 
 
-def clean_webpages(delete=False):
+def clean_webpages(test=True):
     """ Delete webpages matching patterns deemed not worth including"""
     pages = WebPageSet({"$or": [
             {"url": {"$regex": WebPage.excluded_pages_url_regex()}},
             {"title": {"$regex": WebPage.excluded_pages_title_regex()}}
         ]})
 
-    if delete:
+    if not test:
         pages.delete()
         print("Deleted {} pages.".format(pages.count()))
     else:
@@ -451,7 +462,8 @@ sites_data = [
     },
     {
         "name": "Tradition Online",
-        "domains": ["traditiononline.org"]
+        "domains": ["traditiononline.org"],
+        "normalization_rules": ["remove mediawiki params"]
     },
     {
         "name": "Partners in Torah",
@@ -477,5 +489,29 @@ sites_data = [
         "title_branding": ["Judaism"],
         "initial_title_branding": True,
         "normalization_rules": ["remove sort param"],
-    }
+    },
+    {
+        "name": "The Jewish Theological Seminary",
+        "domains": ["jtsa.edu"]
+    },
+    {
+        "name": "Ritualwell",
+        "domains": ["ritualwell.org"]
+    },
+    {
+        "name": "Jewish Exponent",
+        "domains": ["jewishexponent.com"]
+    },
+    {
+        "name": "The 5 Towns Jewish Times",
+        "domains": ["5tjt.com"]
+    },
+    {
+        "name": "Hebrew College",
+        "domains": ["hebrewcollege.edu"]
+    },
+    {
+        "name": ["מכון הדר"],
+        "domains": ["mechohadar.org.il"]
+    },
 ]

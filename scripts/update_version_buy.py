@@ -35,9 +35,12 @@ def process_versions_sheet(incremental=False, process_images=True):
             if version_obj:
                 print("Version loaded: [{}] [{}] ({})".format(version_index_title, version_title, version_lang))
                 if version_buy_link:
-                    print("     -Adding buy url for [{}] [{}]".format(version_index_title, version_title))
-                    version_obj.purchaseInformationURL = version_buy_link
-                    counter_urls +=1
+                    old_buy_link = getattr(version_obj, "purchaseInformationURL", None)
+                    if version_buy_link not in [None, ""] and version_buy_link != old_buy_link:
+                        version_obj.purchaseInformationURL = version_buy_link
+                        counter_urls +=1
+                        version_obj.save(override_dependencies=True)
+                        print("     -Adding buy url for [{}] [{}]".format(version_index_title, version_title))
                 if process_images and image_update and external_image_url:
 
                     try:

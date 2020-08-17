@@ -82,7 +82,7 @@ def split_thousands(n, littleendian=True):
 	"""
 
 	# Ignore geresh on digit < 10, if present
-	if n[-1] == GERESH or n[-1] == "'":
+	if n[-1] == GERESH or n[-1] == "'" or n[-1] == "\u2018" or n[-1] == "\u2019":
 		n = n[:-1]
 
 	#assume that two single quotes in a row should be a double quote. '' -> "
@@ -104,7 +104,7 @@ def heb_string_to_int(n):
 	764
 	'''
 
-	n = re.sub('[\u05F4"]', '', n)  # remove gershayim
+	n = re.sub('[\u05F4"\u201d]', '', n)  # remove gershayim, double quote, or fancy double quote
 	return sum(map(heb_to_int, n))
 
 @memoized

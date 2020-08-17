@@ -29,7 +29,6 @@ urlpatterns = [
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
-    #url(r'^sheets/?$', reader_views.sheets_list),
     url(r'^sheets/tags/?$', reader_views.sheets_tags_list),
     url(r'^sheets/tags/(?P<tag>.+)$', reader_views.sheets_by_tag),
     url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_list),
@@ -48,7 +47,6 @@ urlpatterns = [
     url(r'^new-home/?$', reader_views.new_home),
     url(r'^story_editor/?$', reader_views.story_editor),
     url(r'^torahtracker/?$', reader_views.user_stats),
-
 ]
 
 # People Pages
@@ -226,6 +224,7 @@ urlpatterns += [
 # Topics API
 urlpatterns += [
     url(r'^api/topics$', reader_views.topics_list_api),
+    url(r'^api/topics-graph/(?P<topic>.+)$', reader_views.topic_graph_api),
     url(r'^api/ref-topic-links/(?P<tref>.+)$', reader_views.topic_ref_api),
     url(r'^api/topics/(?P<topic>.+)$', reader_views.topics_api),
     url(r'^api/bulktopics$', reader_views.bulk_topic_api),
@@ -244,11 +243,6 @@ urlpatterns += [
     url(r'^api/history/(?P<tref>.+)$', reader_views.texts_history_api),
 ]
 
-# Translation Request API
-urlpatterns += [
-    url(r'^api/translation-request/(?P<tref>.+)$', reader_views.translation_request_api),
-]
-
 # Edit Locks API (temporary locks on segments during editing)
 urlpatterns += [
     url(r'^api/locks/set/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.set_lock_api),
@@ -260,15 +254,6 @@ urlpatterns += [
 urlpatterns += [
     url(r'^api/locktext/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.lock_text_api),
     url(r'^api/version/flags/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.flag_text_api),
-]
-
-# Campaigns
-urlpatterns += [
-    url(r'^translate/(?P<tref>.+)$', reader_views.translation_flow),
-    url(r'^translation-requests/completed?', reader_views.completed_translation_requests),
-    url(r'^translation-requests/featured-completed?', reader_views.completed_featured_translation_requests),
-    url(r'^translation-requests/?', reader_views.translation_requests),
-    url(r'^contests/(?P<slug>.+)$', reader_views.contest_splash),
 ]
 
 # Discussions
@@ -299,7 +284,6 @@ urlpatterns += [
     url(r'^random/?$',           reader_views.random_text_page),
     url(r'^daf-roulette/?$',     reader_views.daf_roulette_redirect),
     url(r'^chevruta/?$',     reader_views.chevruta_redirect),
-
 ]
 
 # Registration
@@ -355,7 +339,6 @@ urlpatterns += [
 ]
 
 
-
 urlpatterns += [
     url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),
 ]
@@ -395,8 +378,6 @@ urlpatterns += [
     url(r'^admin/run/tests', sefaria_views.run_tests),
     url(r'^admin/export/all', sefaria_views.export_all),
     url(r'^admin/error', sefaria_views.cause_error),
-    url(r'^admin/contest-results', sefaria_views.list_contest_results),
-    url(r'^admin/translation-requests-stats', sefaria_views.translation_requests_stats),
     url(r'^admin/sheet-stats', sefaria_views.sheet_stats),
     url(r'^admin/untagged-sheets', sefaria_views.untagged_sheets),
     url(r'^admin/spam', sefaria_views.spam_dashboard),

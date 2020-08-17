@@ -542,7 +542,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
                     if d["categories"][0] == "Talmud":
                         node.addressTypes = ["Talmud", "Integer"]
-                        if d["categories"][1] == "Bavli" and d.get("heTitle"):
+                        if d["categories"][1] == "Bavli" and d.get("heTitle") and not self.is_dependant_text():
                             node.checkFirst = {
                                 "he": "משנה" + " " + d.get("heTitle"),
                                 "en": "Mishnah " + d.get("title")
@@ -5172,13 +5172,12 @@ class Library(object):
             return full_regex
 
     # do we want to move this to the schema node? We'd still have to pass the title...
-    def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False):
+    def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False, parentheses=False):
         node = self.get_schema_node(title, lang)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
-        if lang == "en" or for_js:  # Javascript doesn't support look behinds.
-            return node.full_regex(title, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=capture_title)
-
+        if lang == "en" or for_js:
+            return node.full_regex(title, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=capture_title, parentheses=parentheses)
         elif lang == "he":
             return r"""(?<=							# look behind for opening brace
                     [({]										# literal '(', brace,
