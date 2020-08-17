@@ -2234,8 +2234,8 @@ def calendars_api(request):
         import datetime
         diaspora = request.GET.get("diaspora", "1")
         custom = request.GET.get("custom", None)
+        zone_name = request.GET.get("timezone", "UTC")
 
-        zone_name = request.GET.get("timezone", timezone.get_current_timezone_name())
         try:
             zone = pytz.timezone(zone_name)
         except pytz.exceptions.UnknownTimeZoneError as e:
