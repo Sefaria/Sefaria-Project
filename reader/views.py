@@ -2245,8 +2245,8 @@ def calendars_api(request):
             year = int(request.GET.get("year", None))
             month = int(request.GET.get("month", None))
             day = int(request.GET.get("day", None))
-            # If a user is asking the API for a specific date but did not specify timezone, he doesnt expect the date to get mangled by the default timzone
-            # which might set it back a day
+            # If a user is asking the API for a specific date there's really no reason to specify a timezone.
+            # The user also doesnt expect the date to get mangled by the default timzone which might implicitly set it back a day
             datetimeobj = datetime.datetime(year, month, day, tzinfo=pytz.timezone("UTC"))
         except Exception as e:
             datetimeobj = timezone.localtime(timezone.now(), timezone=zone)
