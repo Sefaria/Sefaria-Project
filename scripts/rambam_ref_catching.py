@@ -105,6 +105,4 @@ def to_add_to_mongo(endParts, title_type = None, comentators_name = []):
     return str(gen_titles)
 
 if __name__ == "__main__":
-    test(assertyes=False)
-    # print('"titleParts" :' + to_add_to_mongo(['מאכ"א'], title_type='rambam') + ',')
-    # print('"genTitles" :' + to_add_to_mongo(['שמות'], comentators_name=['רש"י']) + ',')
+    test(assertyes=True)
