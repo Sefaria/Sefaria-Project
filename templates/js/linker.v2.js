@@ -1,3 +1,4 @@
+
 {% autoescape off %}
 //call with sefaria.link();
 
@@ -98,6 +99,12 @@
                 'text-decoration: none;' +
                 'margin: 12px 0;' +
                 'padding: 0;' +
+            '}' +
+            '#sefaria-title .en {' +
+                'text-align: center;' +
+            '}' +
+            '#sefaria-title .he {' +
+                'text-align: center;' +
             '}' +
             '.en {' +
                 'font-family: "Crimson Text";' +
