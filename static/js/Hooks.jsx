@@ -28,6 +28,9 @@ function useDebounce(value, delay) {
 }
 
 function usePaginatedScroll(scrollable_element_ref, url, setter, pagesPreLoaded = 0) {
+  // Fetches and sets data from `url` when user scrolls to the
+  // bottom of `scollable_element_ref`
+
   const [page, setPage] = useState(pagesPreLoaded > 0 ? pagesPreLoaded - 1 : 0);
   const [nextPage, setNextPage] = useState(pagesPreLoaded > 0 ? pagesPreLoaded : 1);
   const [loadedToEnd, setLoadedToEnd] = useState(false);
@@ -66,14 +69,16 @@ function usePaginatedScroll(scrollable_element_ref, url, setter, pagesPreLoaded 
   }, [])
 }
 
-function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMargin) {
+function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMargin, initialRenderSize) {
   /*
-  listens until user is scrolled within `bottomMargin` of `scrollable_element_ref`
-  when this happens, show `pageSize` more elements from `input`
+  Listens until user is scrolled within `bottomMargin` of `scrollable_element_ref`
+  when this happens, show `pageSize` more elements from `input`.
+  On initial run, return `initialRenderSize` items if greater than `pageSize`.
   */
-  const [page, setPage] = useState(0);
+  initialRenderSize = Math.max(initialRenderSize, pageSize); 
+  const [page, setPage] = useState(parseInt(initialRenderSize/pageSize)-1);
   const [loadedToEnd, setLoadedToEnd] = useState(false);
-  const [inputUpToPage, setInputUpToPage] = useState(input.slice(0, pageSize*(page+1)));
+  const [inputUpToPage, setInputUpToPage] = useState(input.slice(0, initialRenderSize));
   useEffect(() => () => {
     setInputUpToPage(prev => {
       // use `setInputUpToPage` to get access to previous value

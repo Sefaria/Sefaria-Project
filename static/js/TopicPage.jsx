@@ -357,6 +357,10 @@ const TopicPage = ({
                                 }
                               }}
                               sortFunc={refSort}
+                              onDisplayedDataChange={(data) => {
+                                topicData._textRefsDisplayed = data.length;
+                              }}
+                              initialRenderSize={topicData._textRefsDisplayed || 0}
                               extraData={{ interfaceLang }}
                               renderItem={item=>(
                                 <TextPassage
@@ -385,6 +389,10 @@ const TopicPage = ({
                                 }
                               }}
                               sortFunc={sheetSort}
+                              onDisplayedDataChange={(data) => {
+                                topicData._sheetRefsDisplayed = data.length;
+                              }}
+                              initialRenderSize={topicData._sheetRefsDisplayed || 0}
                               extraData={{ interfaceLang }}
                               renderItem={item=>(
                                 <SheetBlock key={item.sheet_id} sheet={item} compact toggleSignUpModal={toggleSignUpModal}/>
@@ -427,7 +435,7 @@ TopicPage.propTypes = {
 
 const TopicPageTab = ({
   data, renderItem, classes, sortOptions, sortFunc, filterFunc, extraData,
-  showFilterHeader, scrollableElement
+  showFilterHeader, scrollableElement, onDisplayedDataChange, initialRenderSize
 }) => {
   return (
     <div className="story topicTabContents">
@@ -444,6 +452,8 @@ const TopicPageTab = ({
             renderEmptyList={()=>null}
             renderHeader={()=>null}
             sortOptions={sortOptions}
+            onDisplayedDataChange={onDisplayedDataChange}
+            initialRenderSize={initialRenderSize}
             extraData={extraData}
             data={data}
           />
