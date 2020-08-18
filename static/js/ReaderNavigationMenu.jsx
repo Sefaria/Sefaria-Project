@@ -24,7 +24,7 @@ import MobileHeader from './MobileHeader';
 import {TopicCategory} from './TopicPage';
 
 // The Navigation menu for browsing and searching texts, plus some site links.
-const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNavTopic, 
+const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCategories, setNavTopic, 
         setTopic, setOption, onClose, openNav, openSearch, showMoreTexts, setMoreTexts, 
         showMoreTopics, setMoreTopics, toggleLanguage, openMenu, onTextClick, 
         onRecentClick, handleClick, openDisplaySettings, toggleSignUpModal,
@@ -87,6 +87,7 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
         <div ref={ref} className="readerNavMenu" onClick={handleClick} >
             <TopicCategory
               topic={topic}
+              topicTitle={topicTitle}
               setTopic={setTopic}
               setNavTopic={setNavTopic}
               toggleLanguage={toggleLanguage}

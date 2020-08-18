@@ -797,6 +797,7 @@ class ReaderPanel extends Component {
                     multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
                     topic={this.state.navigationTopicCategory || ""}
+                    topicTitle={this.state.navigationTopicTitle}
                     showMoreTexts={this.state.showMoreTexts}
                     showMoreTopics={this.state.showMoreTopics}
                     settings={this.state.settings}
@@ -951,6 +952,7 @@ class ReaderPanel extends Component {
           <TopicPage
             tab={this.state.topicsTab}
             topic={this.state.navigationTopic}
+            topicTitle={this.state.topicTitle}
             interfaceLang={this.props.interfaceLang}
             setTopic={this.setTopic}
             setNavTopic={this.setNavigationTopic}
