@@ -157,7 +157,7 @@ def json_maker(title, time_stamps):
     count = 0
     data = {}
     data['media_url'] = 'https://raw.githubusercontent.com/rneiss/PocketTorah/master/data/audio/' + title + '.mp3'
-    data['source'] = 'pockettorah'
+    data['source'] = 'Pocket Torah'
     data['media_type'] = "audio"
     data['license'] = "CC-BY-SA"
     data['source_site'] = 'pockettorah.com'

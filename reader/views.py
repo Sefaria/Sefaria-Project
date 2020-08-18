@@ -33,7 +33,7 @@ from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.webpage import get_webpages_for_ref
-from sefaria.model.audio import get_audio_for_ref
+from sefaria.model.media import get_media_for_ref
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
@@ -203,7 +203,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         }
         if filter and len(filter):
 
-            if filter[0] in ("Sheets", "Notes", "About", "Translations", "Translation Open", "WebPages", "Audio", "extended notes", "Topics"):
+            if filter[0] in ("Sheets", "Notes", "About", "Translations", "Translation Open", "WebPages", "Media", "extended notes", "Topics"):
                 panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
@@ -1936,7 +1936,7 @@ def related_api(request, tref):
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
             "topics": get_topics_for_ref(tref, annotate=True),
-            "audio": get_audio_for_ref(tref),
+            "media": get_media_for_ref(tref),
         } 
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
