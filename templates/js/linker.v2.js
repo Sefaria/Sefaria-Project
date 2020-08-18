@@ -1,3 +1,4 @@
+
 {% autoescape off %}
 //call with sefaria.link();
 
@@ -59,7 +60,7 @@
           "Targum":             "#7f85a9",
           "Modern Works":       "#7c406f",
           "Modern Commentary":  "#7c406f",
-        }
+        };
         popUpElem = document.createElement("div");
         popUpElem.id = "sefaria-popup";
         popUpElem.classList.add("interface-" + options.interfaceLang);
@@ -98,6 +99,12 @@
                 'text-decoration: none;' +
                 'margin: 12px 0;' +
                 'padding: 0;' +
+            '}' +
+            '#sefaria-title .en {' +
+                'text-align: center;' +
+            '}' +
+            '#sefaria-title .he {' +
+                'text-align: center;' +
             '}' +
             '.en {' +
                 'font-family: "Crimson Text";' +
@@ -252,7 +259,7 @@
         }
     };
 
-    var showPopup = function(e, mode) {
+    const showPopup = function(e, mode) {
         while (textBox.firstChild) {
             textBox.removeChild(textBox.firstChild);
         }
@@ -336,8 +343,8 @@
 
     };
 
-    var hidePopup = function() {
-        if (popUpElem.style.display == "block") {
+    const hidePopup = function() {
+        if (popUpElem.style.display === "block") {
                 triggerLink.focus();
         }
         popUpElem.style.display = "none";
@@ -366,13 +373,10 @@
         ns.parenthesesOnly = options.parenthesesOnly;
         // Find text titles in the document
         // todo: hold locations of title matches?
-        var full_text = [].reduce.call(ns.elems, function(prev, current) { return prev + current.textContent; }, "");
-        ns.matchedTitles = bookTitles.filter(function(title) {
-            return (full_text.indexOf(title) > -1);
-        });
-        ns.matchedTitles = ns.matchedTitles.filter(distinct);
+        const full_text = [].reduce.call(ns.elems, (prev, current) => prev + current.textContent, "");
+        ns.matchedTitles = bookTitles.filter(title => full_text.indexOf(title) > -1).filter(distinct);
 
-        if (ns.matchedTitles.length == 0) {
+        if (ns.matchedTitles.length === 0) {
             //console.log("No book titles found to link to Sefaria.");
             return;
         }
@@ -482,7 +486,7 @@
                 });
             })
             .error(function (data, xhr) { });
-    }
+    };
 
     ns._trackPage = function() {
         var robots = document.head.querySelector("meta[name~=robots]");

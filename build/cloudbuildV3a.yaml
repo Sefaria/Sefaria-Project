@@ -1,7 +1,5 @@
 # TODO: Fail the build if the target mongo host is not reachable
-# TODO: Consider "one mongo instance per sandbox" architecture
-# TODO: Idempotently update ingress definition
-# TODO: Notifications
+# TODO: Remove references to sandboxes
 
 ---
 substitutions:
@@ -23,6 +21,13 @@ steps:
     args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', '${_K8S_ADMIN_BRANCH}', '--single-branch']
     id: k8s-admin_clone
     wait_for: [ "-" ]
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: print_k8s_admin_git_hash
+    entrypoint: bash
+    dir: k8s-admin
+    args: ["-c", 'git rev-parse HEAD > ../k8s-admin-hash.txt']
+    wait_for: ["k8s-admin_clone"]
 
   #
   # Build artifacts
@@ -122,6 +127,14 @@ steps:
       - copy_localsettings_file
       - k8s-admin_clone
       - generate_robots_file
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: slack_notification
+    entrypoint: bash
+    args: [ '-c', 'gcloud pubsub topics publish projects/production-deployment/topics/deployment-notification --message "[Production Deployment] App Version: ${TAG_NAME}; k8s-admin git hash: `cat k8s-admin-hash.txt`; Build Id: ${BUILD_ID}"' ]
+    wait_for: 
+      - print_k8s_admin_git_hash
+      - deploy_sandbox
 
 images:
   - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA"

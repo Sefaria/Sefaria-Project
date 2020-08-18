@@ -282,10 +282,15 @@ def test_nodes_missing_content():
     assert len(result[1]) == 3
     test_index.delete()
 
-
 class TestTitleGroup():
 
     def test_duplicate_titles(self):
         tg = TitleGroup([{'lang': 'en', 'text':'ab', 'primary': True}, {'lang': 'he', 'text': 'אב', 'primary': True}], [{'lang': 'en', 'parts': [['a'], ['b', 'c']]}, {'lang': 'he', 'parts': [['א'], ['ב']]}])
         assert tg.titles == [{'lang': 'en', 'text': 'ab', 'primary': True}, {'lang': 'he', 'text': 'אב', 'primary': True}, {'lang': 'en', 'text': 'ac'}]
         tg.validate()
+
+# Todo parametrize for all address types
+def test_folio_type():
+    folio = schema.AddressFolio(1)
+    for i in [1,2,3,4,5,6,7,15,23,64,128]:
+        assert folio.toNumber("en", folio.toStr("en", i)) == i

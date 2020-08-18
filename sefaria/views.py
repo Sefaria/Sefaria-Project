@@ -40,7 +40,6 @@ from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.group import GroupSet
-from sefaria.model.translation_request import count_completed_translation_requests
 from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
 # noinspection PyUnresolvedReferences
@@ -663,53 +662,6 @@ def cause_error(request):
         logger.exception('An Exception has ocurred in the code')
     erorr = error
     return jsonResponse(resp)
-
-
-@staff_member_required
-def list_contest_results(request):
-    """
-    List results for last week's mini contest on translation requests.
-    """
-    today            = datetime.today()
-    end_month        = today.month if today.day >= 28 else today.month - 1
-    end_month        = 12 if end_month == 0 else end_month
-    contest_end      = today.replace(month=end_month, day=28, hour=0, minute=0)
-    start_month      = end_month - 1 if end_month > 1 else 12
-    contest_start    = contest_end.replace(month=start_month)
-    requests_query   = {"completed": True, "featured": True, "completed_date": { "$gt": contest_start, "$lt": contest_end } }
-    requests         = model.TranslationRequestSet(requests_query, sort=[["featured", 1]])
-    user_points      = defaultdict(int)
-    user_requests    = defaultdict(int)
-    total_points     = 0
-    total_requests   = len(requests)
-    results          = "Contest Results for %s to %s<br>" % (str(contest_start), str(contest_end))
-    lottery          = []
-
-    for request in requests:
-        points = 5 if getattr(request, "featured", False) else 1
-        user_points[request.completer] += points
-        user_requests[request.completer] += 1
-        total_points += points
-
-    results += "%d participants completed %d requests<br><br>" % (len(list(user_requests.keys())), total_requests)
-
-    for user in list(user_points.keys()):
-        profile = model.user_profile.UserProfile(id=user)
-        results += "%s: completed %d requests for %d points (%s)<br>" % (profile.full_name, user_requests[user], user_points[user], profile.email)
-        lottery += ([user] * user_points[user])
-
-    if len(lottery):
-        winner = choice(lottery)
-        winner = model.user_profile.UserProfile(id=winner)
-
-        results += "<br>The winner is: %s (%s)" % (winner.full_name, winner.email)
-
-    return HttpResponse(results)
-
-
-@staff_member_required
-def translation_requests_stats(request):
-    return HttpResponse(count_completed_translation_requests().replace("\n", "<br>"))
 
 
 @staff_member_required
