@@ -1,4 +1,4 @@
-const {
+import {
   CategoryColorLine,
   ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuCloseButton,
@@ -9,17 +9,19 @@ const {
   TwoOrThreeBox,
   TwoBox,
   LanguageToggleButton,
-}                                  = require('./Misc');
-const {TopicCategory}              = require('./TopicPage');
-const MobileHeader                 = require('./MobileHeader');
+} from './Misc';
+//const React                        = require('react');
 import React, { useState, useEffect, useRef } from 'react';
-const ReactDOM                     = require('react-dom');
-const PropTypes                    = require('prop-types');
-const classNames                   = require('classnames');
-const Sefaria                      = require('./sefaria/sefaria');
-const $                            = require('./sefaria/sefariaJquery');
-const ReaderNavigationCategoryMenu = require('./ReaderNavigationCategoryMenu');
-const Footer                       = require('./Footer');
+import ReactDOM  from 'react-dom';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import Sefaria  from './sefaria/sefaria';
+import $  from './sefaria/sefariaJquery';
+import ReaderNavigationCategoryMenu  from './ReaderNavigationCategoryMenu';
+import Footer  from './Footer';
+import Component from 'react-class';
+import MobileHeader from './MobileHeader';
+import {TopicCategory} from './TopicPage';
 
 // The Navigation menu for browsing and searching texts, plus some site links.
 const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNavTopic, setTopic, setOption, onClose, openNav, openSearch,
@@ -161,7 +163,8 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
                 heDisplayValue={item.displayValue["he"]}
                 category={item.category}
                 showSections={false}
-                recentItem={false} />)
+                recentItem={false}
+                csrRequired={true}/>)
   });
   calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={width} /></div>);
 
@@ -244,6 +247,13 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
                 <span className="int-he">{Sefaria._siteSettings.LIBRARY_NAME.he}</span>
               </h1>);
 
+
+  const dedication = Sefaria._siteSettings.TORAH_SPECIFIC && ! compare ? <Dedication /> : null;
+
+  const libraryMessage = Sefaria._siteSettings.LIBRARY_MESSAGE && !compare ? 
+                          <div className="libraryMessage" dangerouslySetInnerHTML={ {__html: Sefaria._siteSettings.LIBRARY_MESSAGE} }></div> :
+                          null;
+
   const footer = compare ? null : <Footer />;
   const classes = classNames({readerNavMenu:1, noHeader: !hideHeader, compare: compare, home: home, noLangToggleInHebrew: 1 });
   const contentClasses = classNames({content: 1, hasFooter: footer != null});
@@ -253,7 +263,8 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
           <div className={contentClasses}>
             <div className="contentInner">
               { compare ? null : title }
-              { compare ? null : <Dedication /> }
+              { dedication }
+              { libraryMessage }
               { topUserData }
               <ReaderNavigationMenuSection title="Texts" heTitle="טקסטים" content={categoriesBlock} />
               { Sefaria._siteSettings.TORAH_SPECIFIC ? <ReaderNavigationMenuSection title="Calendar" heTitle="לוח יומי" content={calendar} enableAnchor={true} /> : null }
@@ -267,29 +278,29 @@ const ReaderNavigationMenu = ({categories, topic, settings, setCategories, setNa
         </div>);
 };
 ReaderNavigationMenu.propTypes = {
-  categories:        PropTypes.array.isRequired,
-  topic:            PropTypes.string.isRequired,
-  settings:          PropTypes.object.isRequired,
-  setCategories:     PropTypes.func.isRequired,
+  categories:          PropTypes.array.isRequired,
+  topic:               PropTypes.string.isRequired,
+  settings:            PropTypes.object.isRequired,
+  setCategories:       PropTypes.func.isRequired,
   setNavTopic:         PropTypes.func.isRequired,
-  setOption:         PropTypes.func.isRequired,
-  onClose:           PropTypes.func.isRequired,
-  openNav:           PropTypes.func.isRequired,
-  openSearch:        PropTypes.func.isRequired,
-  openMenu:          PropTypes.func.isRequired,
-  onTextClick:       PropTypes.func.isRequired,
-  onRecentClick:     PropTypes.func.isRequired,
-  handleClick:       PropTypes.func.isRequired,
-  toggleSignUpModal: PropTypes.func.isRequired,
+  setOption:           PropTypes.func.isRequired,
+  onClose:             PropTypes.func.isRequired,
+  openNav:             PropTypes.func.isRequired,
+  openSearch:          PropTypes.func.isRequired,
+  openMenu:            PropTypes.func.isRequired,
+  onTextClick:         PropTypes.func.isRequired,
+  onRecentClick:       PropTypes.func.isRequired,
+  handleClick:         PropTypes.func.isRequired,
+  toggleSignUpModal:   PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func,
-  toggleLanguage:    PropTypes.func,
-  hideNavHeader:     PropTypes.bool,
-  hideHeader:        PropTypes.bool,
-  multiPanel:        PropTypes.bool,
-  home:              PropTypes.bool,
-  compare:           PropTypes.bool,
-  interfaceLang:     PropTypes.string,
-};
+  toggleLanguage:      PropTypes.func,
+  hideNavHeader:       PropTypes.bool,
+  hideHeader:          PropTypes.bool,
+  multiPanel:          PropTypes.bool,
+  home:                PropTypes.bool,
+  compare:             PropTypes.bool,
+  interfaceLang:       PropTypes.string,
+};  
 
 const TocLink = ({en, he, img, alt, href, resourcesLink, outOfAppLink, classes, onClick}) =>
     <a className={(resourcesLink?"resourcesLink ":"") + (outOfAppLink?"outOfAppLink ":"") + classes} href={href} onClick={onClick}>
@@ -342,4 +353,4 @@ const Dedication = () => {
 };
 
 
-module.exports = ReaderNavigationMenu;
+export default ReaderNavigationMenu;

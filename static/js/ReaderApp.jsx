@@ -1,24 +1,25 @@
-const React         = require('react');
-const classNames    = require('classnames');
-const extend        = require('extend');
-const PropTypes     = require('prop-types');
-const Sefaria       = require('./sefaria/sefaria');
-const Header        = require('./Header');
-const ReaderPanel   = require('./ReaderPanel');
-const $             = require('./sefaria/sefariaJquery');
-const EditGroupPage = require('./EditGroupPage');
-const {
-  RemoteLearningPage
-}                   = require('./StaticPages');
-const Footer        = require('./Footer');
-const SearchState   = require('./sefaria/searchState');
-const {
+import React from 'react';
+import classNames from 'classnames';
+import extend from 'extend';
+import PropTypes from 'prop-types';
+import Sefaria from './sefaria/sefaria';
+import Header from './Header';
+import ReaderPanel from './ReaderPanel';
+import $ from './sefaria/sefariaJquery';
+import EditGroupPage from './EditGroupPage';
+import Footer from './Footer';
+import SearchState from './sefaria/searchState';
+import {
+  ContestLandingPage,
+  RemoteLearningPage,
+  SheetsLandingPage,
+} from './StaticPages';
+import {
   SignUpModal,
   InterruptingMessage,
   CookiesNotification,
-}                   = require('./Misc');
+} from './Misc';
 import Component from 'react-class';
-
 
 class ReaderApp extends Component {
   constructor(props) {
@@ -416,7 +417,7 @@ class ReaderApp extends Component {
           (next.mode === "Text" && !prev.highlightedRefs.compare(next.highlightedRefs)) ||
           (next.mode === "TextAndConnections" && prev.highlightedRefs.slice(-1)[0] !== next.highlightedRefs.slice(-1)[0]) ||
           ((next.mode === "Connections" || next.mode === "TextAndConnections") && prev.filter && !prev.filter.compare(next.filter)) ||
-          (next.mode === "Version Open" && prev.versionFilter && !prev.versionFilter(next.versionFilter)) ||
+          (next.mode === "Translation Open" && prev.versionFilter && !prev.versionFilter(next.versionFilter)) ||
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.currentlyVisibleRef === prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMode) ||
@@ -459,7 +460,7 @@ class ReaderApp extends Component {
     if (currVersions) {
       return Object.keys(currVersions)
               .filter(vlang=>!!currVersions[vlang])
-              .map(vlang=>`&v${vlang}${i > 1 ? i : ""}=${currVersions[vlang].replace(/\s/g,"_")}`)
+              .map(vlang=>`&v${vlang}${i > 1 ? i : ""}=${Sefaria.util.encodeVtitle(currVersions[vlang])}`)
               .join("");
     } else {
       return "";
@@ -473,7 +474,7 @@ class ReaderApp extends Component {
     var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
     var panels = headerPanel ? [this.state.header] : this.state.panels;
     var states = [];
-    var moreSidebarModes = ["Sheets", "Notes", "Versions", "Version Open", "About", "WebPages", "extended notes"];
+    const moreSidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open", "About", "WebPages", "extended notes", "Topics"]);
     var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
 
     for (var i = 0; i < panels.length; i++) {
@@ -660,9 +661,9 @@ class ReaderApp extends Component {
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in moreSidebarModes ? [state.connectionsMode] : ["all"]);
+                          (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
-        if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
+        if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
         hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
@@ -673,9 +674,9 @@ class ReaderApp extends Component {
       } else if (state.mode === "TextAndConnections") {
         var ref       = Sefaria.normRefList(state.highlightedRefs);
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in moreSidebarModes ? [state.connectionsMode] : ["all"]);
+                          (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
-        if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
+        if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
         hist.title    = Sefaria._r(ref)  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
@@ -698,15 +699,15 @@ class ReaderApp extends Component {
         hist.title = state.sheet.title.stripHtml();
         var sheetURLSlug = state.highlightedNodes ? state.sheet.id + "." + state.highlightedNodes : state.sheet.id;
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in moreSidebarModes ? [state.connectionsMode] : ["all"]);
+                          (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         hist.url = i == 0 ? "sheets/"+ sheetURLSlug : "sheet&s="+ sheetURLSlug;
         hist.mode     = "Sheet"
       } else if (state.mode === "SheetAndConnections") {
         var filter    = state.filter.length ? state.filter :
-                          (state.connectionsMode in moreSidebarModes ? [state.connectionsMode] : ["all"]);
+                          (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
-        if (state.connectionsMode === "Version Open" && state.versionFilter.length) {
+        if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
         hist.title    = state.sheet.title.stripHtml()  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
@@ -751,7 +752,7 @@ class ReaderApp extends Component {
               url += "&aliyot=" + histories[0].aliyot;
           }
           if(histories[1].versionFilter) {
-            hist.url += "&vside=" + histories[1].versionFilter.replace(/\s/g, '_');
+            hist.url += "&vside=" + Sefaria.util.encodeVtitle(histories[1].versionFilter);
           }
           hist.url += "&with=" + histories[1].sources;
 
@@ -768,7 +769,7 @@ class ReaderApp extends Component {
             hist.url += "&aliyot" + (i) + "=" + histories[i-1].aliyot;
           }
           if(histories[i].versionFilter) {
-            hist.url += "&vside" + (i) + "=" + histories[i].versionFilter.replace(/\s/g, '_');
+            hist.url += "&vside" + (i) + "=" + Sefaria.util.encodeVtitle(histories[i].versionFilter);
           }
           hist.url   += "&w" + i + "=" + histories[i].sources; //.replace("with=", "with" + i + "=").replace("?", "&");
           hist.title += Sefaria._(" & ") + histories[i].title; // TODO this doesn't trim title properly
@@ -870,7 +871,7 @@ class ReaderApp extends Component {
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
       menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
       navigationCategories:    state.navigationCategories    || [],
-      navigationTopicCategory:        state.navigationTopicCategory   || "",
+      navigationTopicCategory: state.navigationTopicCategory || "",
       navigationSheetTag:      state.sheetsTag               || null,
       navigationGroupTag:      state.navigationGroupTag      || null,
       sheet:                   state.sheet                   || null,
@@ -990,6 +991,11 @@ class ReaderApp extends Component {
     if ($(".readerPanel")[n+1] && window.getSelection().isCollapsed) { //Focus on the first focusable element of the newly loaded panel if text not selected. Mostly for a11y
       var curPanel = $(".readerPanel")[n+1];
       $(curPanel).find(':focusable').first().focus();
+    }
+  }
+  closeConnectionPanel(n) {
+    if (this.state.panels.length > n+1  && this.state.panels[n+1].mode === "Connections") {
+      this.closePanel(n+1);
     }
   }
   handleCitationClick(n, citationRef, textRef) {
@@ -1209,30 +1215,6 @@ class ReaderApp extends Component {
     } else {
       return true;
     }
-  }
-  addToSourceSheet(n, selectedSheet, confirmFunction) {
-    // This is invoked from a connections panel.
-    // It sends a ref-based (i.e. "inside") source
-    var connectionsPanel = this.state.panels[n];
-    var textPanel = this.state.panels[n-1];
-
-    var source  = { refs: connectionsPanel.refs };
-
-    // If version exists in main panel, pass it along, use that for the target language.
-    const { en, he } = textPanel.currVersions;
-    if (he)      { source.version = he; source.versionLanguage = "he"; }
-    else if (en) { source.version = en; source.versionLanguage = "en"; }
-    // If something is highlighted and main panel language is not bilingual:
-    // Use main panel language to determine which version this highlight covers.
-    var language = textPanel.settings.language;
-    var selectedWords = connectionsPanel.selectedWords;
-    if (selectedWords && language != "bilingual") {
-      source[language.slice(0,2)] = selectedWords;
-    }
-
-    var url     = "/api/sheets/" + selectedSheet + "/add";
-    $.post(url, {source: JSON.stringify(source)}, confirmFunction);
-
   }
   getLicenseMap() {
     const licenseMap = {
@@ -1471,10 +1453,10 @@ class ReaderApp extends Component {
         connectionsPanel.recentVersionFilters = [filter].concat(connectionsPanel.recentVersionFilters);
       }
       connectionsPanel.versionFilter = [filter];
-      connectionsPanel.connectionsMode = "Version Open";
+      connectionsPanel.connectionsMode = "Translation Open";
     } else {
       connectionsPanel.versionFilter = [];
-      connectionsPanel.connectionsMode = "Versions";
+      connectionsPanel.connectionsMode = "Translations";
     }
     if (basePanel) {
       basePanel.versionFilter        = connectionsPanel.versionFilter;
@@ -1751,6 +1733,7 @@ class ReaderApp extends Component {
       var style                          = (this.state.layoutOrientation=="ltr")?{width: width + unit, left: offset + unit}:{width: width + unit, right: offset + unit};
       var onSegmentClick                 = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick                = this.handleCitationClick.bind(null, i);
+      var onCloseConnectionClick         = this.closeConnectionPanel.bind(null,i);
       var onSearchResultClick            = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
       var updateQuery                    = this.updateQuery.bind(null, i);
@@ -1769,7 +1752,6 @@ class ReaderApp extends Component {
       var setConnectionsFilter           = this.setConnectionsFilter.bind(this, i);
       var setVersionFilter               = this.setVersionFilter.bind(this, i);
       var selectVersion                  = this.selectVersion.bind(null, i);
-      var addToSourceSheet               = this.addToSourceSheet.bind(null, i);
       var viewExtendedNotes              = this.viewExtendedNotes.bind(this, i);
       var backFromExtendedNotes          = this.backFromExtendedNotes.bind(this, i);
 
@@ -1789,10 +1771,10 @@ class ReaderApp extends Component {
                       multiPanel={this.props.multiPanel}
                       onSegmentClick={onSegmentClick}
                       onCitationClick={onCitationClick}
+                      closeConnectionPanel={onCloseConnectionClick}
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
                       onRecentClick={this.handleRecentClick}
-                      addToSourceSheet={addToSourceSheet}
                       updateTopicsTab={updateTopicsTab}
                       onOpenConnectionsClick={onOpenConnectionsClick}
                       openComparePanel={openComparePanel}
@@ -1910,10 +1892,15 @@ ReaderApp.defaultProps = {
   initialPath:                 "/"
 };
 
-
-module.exports.ReaderApp            = ReaderApp;
-module.exports.Footer               = Footer;
-module.exports.sefariaSetup         = Sefaria.setup;
-module.exports.unpackDataFromProps  = Sefaria.unpackDataFromProps;
-module.exports.EditGroupPage        = EditGroupPage;
-module.exports.RemoteLearningPage   = RemoteLearningPage;
+const sefariaSetup = Sefaria.setup;
+const { unpackDataFromProps } = Sefaria;
+export {
+  ReaderApp,
+  Footer,
+  sefariaSetup,
+  unpackDataFromProps,
+  EditGroupPage,
+  ContestLandingPage,
+  RemoteLearningPage,
+  SheetsLandingPage,
+};

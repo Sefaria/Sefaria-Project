@@ -1,13 +1,14 @@
 //const React      = require('react');
-import React, { useState, useEffect } from 'react';
-const ReactDOM   = require('react-dom');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
+import React, { useState, useEffect, useRef } from 'react';
+import ReactDOM  from 'react-dom';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
+import Component from 'react-class';
+import { usePaginatedDisplay } from './Hooks'
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
-import Component      from 'react-class';
 
 // interface text that can fallback to alternate langauge if current language doesn't have content
 const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
@@ -174,6 +175,7 @@ class ProfilePic extends Component {
             onError={this.setShowDefault}
           /> : null
         }
+        {this.props.children ? this.props.children : null /*required for slate.js*/}
         { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
             (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
               <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
@@ -237,140 +239,123 @@ ProfilePic.propTypes = {
 };
 
 
-class FilterableList extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      currFilter: '',
-      currSortOption: props.sortOptions[0],
-      displaySort: false,
-      loading: true,
-      data: [],
-    };
-  }
-  componentDidMount() {
-    this._isMounted = true;
-    this.load();
-  }
-  componentWillUnmount() {
-    this._isMounted = false;
-  }
-  load(ignoreCache) {
-    this.props.getData(ignoreCache).then(data => {
-      if (this._isMounted) {
-        this.setState({ loading: false, data });
+const FilterableList = ({
+  filterFunc, sortFunc, renderItem, sortOptions, getData, renderEmptyList,
+  renderHeader, renderFooter, showFilterHeader, extraData, ignoreCache,
+  scrollableElement, pageSize, bottomMargin,
+}) => {
+  const [filter, setFilter] = useState('');
+  const [sortOption, setSortOption] = useState(sortOptions[0]);
+  const [displaySort, setDisplaySort] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [rawData, setRawData] = useState([]);
+  const [displayData, setDisplayData] = useState([]);
+  useEffect(() => {
+    let isMounted = true;
+    // TODO this trick only works the first time. every time after that ignoreCache is defined
+    getData(typeof ignoreCache != "undefined").then(data => {
+      if (isMounted) {
+        setLoading(false);
+        setRawData(data);
       }
     });
-  }
-  reload() {
-    this.setState({ loading: true, data: [] }, () => this.load(true));
-  }
-  closeSort() {
-    this.setState({ displaySort: false });
-  }
-  toggleSort() {
-    this.setState({ displaySort: !this.state.displaySort });
-  }
-  filterFunc(item) {
-    if (!this.state.currFilter) { return true; }
-    return this.props.filterFunc(this.state.currFilter, item);
-  }
-  sortFunc(itemA, itemB) {
-    return this.props.sortFunc(this.state.currSortOption, itemA, itemB, this.props.extraData);
-  }
-  onFilterChange(e) {
-    this.setState({currFilter: e.target.value});
-  }
-  onSortChange(sortOption) {
-    if (sortOption === this.props.currSortOption) {
-      return;
-    }
-    this.setState({currSortOption: sortOption});
-    this.closeSort();
-  }
-  render() {
-    const { sortOptions, renderItem, renderEmptyList, renderHeader, renderFooter, showFilterHeader } = this.props;
-    const { loading, currFilter, displaySort, currSortOption, data } = this.state;
-    const oldDesign = typeof showFilterHeader == 'undefined';
-    return (
-      <div className="filterable-list">
-        {oldDesign ? <div className="filter-bar">
-          <div className="filter-bar-inner">
+    return () => {
+      setLoading(true);
+      isMounted = false;
+    };
+  }, [getData, ignoreCache]);
+  useEffect(() => {
+    setDisplayData(
+      rawData
+      .filter(item => !filter ? true : filterFunc(filter, item))
+      .sort((a, b) => sortFunc(sortOption, a, b, extraData))
+    );
+  }, [rawData, filter, sortOption, extraData]);
+  const dataUpToPage = usePaginatedDisplay(scrollableElement, displayData, pageSize, bottomMargin);
+  const onSortChange = newSortOption => {
+    if (newSortOption === sortOption) { return; }
+    setSortOption(newSortOption);
+    setDisplaySort(false);
+  };
+  const oldDesign = typeof showFilterHeader == 'undefined';
+  return (
+    <div className="filterable-list">
+      {oldDesign ? <div className="filter-bar">
+        <div className="filter-bar-inner">
+          <ReaderNavigationMenuSearchButton />
+          <input
+            type="text"
+            placeholder={Sefaria._("Search")}
+            name="filterableListInput"
+            value={filter}
+            onChange={e => setFilter(e.target.value)}
+          />
+        </div>
+        <div>
+          { sortOptions.length > 1 ?
+            <DropdownModal close={()=>setDisplaySort(false)} isOpen={displaySort}>
+              <DropdownButton
+                isOpen={displaySort}
+                toggle={()=>setDisplaySort(prev => !prev)}
+                enText={"Sort"}
+                heText={"מיון"}
+              />
+              <DropdownOptionList
+                isOpen={displaySort}
+                options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option)}))}
+                currOptionSelected={sortOption}
+                handleClick={onSortChange}
+              />
+            </DropdownModal>
+            : null
+          }
+        </div>
+      </div> : null }
+      { !oldDesign && showFilterHeader ? (
+        <div className="filter-bar-new">
+          <div className="filter-input">
             <ReaderNavigationMenuSearchButton />
             <input
               type="text"
               placeholder={Sefaria._("Search")}
               name="filterableListInput"
-              value={currFilter}
-              onChange={this.onFilterChange}
+              value={filter}
+              onChange={e => setFilter(e.target.value)}
             />
           </div>
-          <div>
-            { sortOptions.length > 1 ?
-              <DropdownModal close={this.closeSort} isOpen={displaySort}>
-                <DropdownButton
-                  isOpen={displaySort}
-                  toggle={this.toggleSort}
-                  enText={"Sort"}
-                  heText={"מיון"}
-                />
-                <DropdownOptionList
-                  isOpen={displaySort}
-                  options={sortOptions.map(option => ({type: option, name: option, heName: Sefaria._(option)}))}
-                  currOptionSelected={currSortOption}
-                  handleClick={this.onSortChange}
-                />
-              </DropdownModal>
-              : null
-            }
-          </div>
-        </div> : null }
-        { !oldDesign && showFilterHeader ? (
-          <div className="filter-bar-new">
-            <div className="filter-input">
-              <ReaderNavigationMenuSearchButton />
-              <input
-                type="text"
-                placeholder={Sefaria._("Search")}
-                name="filterableListInput"
-                value={currFilter}
-                onChange={this.onFilterChange}
-              />
-            </div>
-            <div className="filter-sort-wrapper">
-              <span className="systemText">
-                <span className="int-en">Sort by</span>
-                <span className="int-he">מיון לפי</span>
+          <div className="filter-sort-wrapper">
+            <span className="systemText">
+              <span className="int-en">Sort by</span>
+              <span className="int-he">מיון לפי</span>
+            </span>
+            { sortOptions.map(option =>(
+              <span
+                key={option}
+                className={classNames({'sort-option': 1, noselect: 1, active: sortOption === option})}
+                onClick={() => onSortChange(option)}
+              >
+                <span className="int-en">{ option }</span>
+                <span className="int-he">{ Sefaria._(option) }</span>
               </span>
-              { sortOptions.map(option =>(
-                <span
-                  key={option}
-                  className={classNames({'sort-option': 1, noselect: 1, active: currSortOption === option})}
-                  onClick={() => { this.onSortChange(option); }}
-                >
-                  <span className="int-en">{ option }</span>
-                  <span className="int-he">{ Sefaria._(option) }</span>
-                </span>
-              ))}
-            </div>
+            ))}
           </div>
-        ) : null}
-        {
-          loading ? <LoadingMessage /> :
-          ( data.length ?
-            (
-              <div className="filter-content">
-                { !!renderHeader ? renderHeader() : null }
-                { data.filter(this.filterFunc).sort(this.sortFunc).map(renderItem) }
-                { !!renderFooter ? renderFooter() : null }
-              </div>
-            ) : ( !!renderEmptyList ? renderEmptyList() : null )
-          )
-        }
-      </div>
-    )
-  }
-}
+        </div>
+      ) : null}
+      {
+        loading ? <LoadingMessage /> :
+        ( dataUpToPage.length ?
+          (
+            <div className="filter-content">
+              { !!renderHeader ? renderHeader() : null }
+              { dataUpToPage.map(renderItem) }
+              { !!renderFooter ? renderFooter() : null }
+            </div>
+          ) : ( !!renderEmptyList ? renderEmptyList() : null )
+        )
+      }
+    </div>
+  );
+};
 FilterableList.propTypes = {
   filterFunc:  PropTypes.func.isRequired,
   sortFunc:    PropTypes.func.isRequired,
@@ -578,8 +563,14 @@ ReaderNavigationMenuSection.defaultProps = {
 class TextBlockLink extends Component {
   // Monopoly card style link with category color at top
   // This component is seriously overloaded :grimacing:
+  componentDidMount(){
+    if(this.props.csrRequired) {
+      this.setState({csrActive: true});
+    }
+  }
+
   render() {
-    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang } = this.props;
+    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang, csrRequired } = this.props;
     const index    = Sefaria.index(book);
     category = category || (index ? index.primary_category : "Other");
     const style    = {"borderColor": Sefaria.palette.categoryColor(category)};
@@ -587,7 +578,7 @@ class TextBlockLink extends Component {
     heTitle  = heTitle || (showSections ? heRef : index.heTitle);
     const hlang = intlang ? "int-he": "he";
     const elang = intlang ? "int-en": "en";
-
+    const fullRender = !csrRequired || (this.state && this.state.csrActive);
     let byLine;
     if (!!sheetOwner && sideColor) {
       title = sheetTitle.stripHtml();
@@ -618,7 +609,7 @@ class TextBlockLink extends Component {
 
     if (sideColor) {
       return (
-        <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
+        <a href={fullRender ? url : ""} className={classes} data-ref={fullRender ? sref : ""} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
@@ -638,7 +629,7 @@ class TextBlockLink extends Component {
         </a>
       );
     }
-    return (<a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
+    return (<a href={fullRender ? url : ""} className={classes} data-ref={fullRender ? sref : ""} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
               <span className={elang}>{title}</span>
               <span className={hlang}>{heTitle}</span>
                 {subtitle}
@@ -664,9 +655,11 @@ TextBlockLink.propTypes = {
   sheetTitle:      PropTypes.string,
   sheetOwner:      PropTypes.string,
   timeStamp:       PropTypes.number,
+  csrRequired:     PropTypes.bool,
 };
 TextBlockLink.defaultProps = {
   currVersions: {en:null, he:null},
+  csrRequired: false,
 };
 
 
@@ -742,6 +735,9 @@ SimpleLinkedBlock.propTypes = {
     classes: PropTypes.string,
     aclasses: PropTypes.string
 };
+
+
+
 
 
 class BlockLink extends Component {
@@ -954,6 +950,62 @@ ReaderNavigationMenuDisplaySettingsButton.propTypes = {
   onClick: PropTypes.func,
   placeholder: PropTypes.bool,
 };
+
+
+function InterfaceLanguageMenu({currentLang}){
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef(null);
+
+  const getCurrentPage = () => {
+    return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
+  }
+  const handleClick = (e) => {
+    e.stopPropagation();
+    setIsOpen(isOpen => !isOpen);
+  }
+  const handleHideDropdown = (event) => {
+      if (event.key === 'Escape') {
+          setIsOpen(false);
+      }
+  };
+  const handleClickOutside = (event) => {
+      if (
+          wrapperRef.current &&
+          !wrapperRef.current.contains(event.target)
+      ) {
+          setIsOpen(false);
+      }
+  };
+
+  useEffect(() => {
+      document.addEventListener('keydown', handleHideDropdown, true);
+      document.addEventListener('click', handleClickOutside, true);
+      return () => {
+          document.removeEventListener('keydown', handleHideDropdown, true);
+          document.removeEventListener('click', handleClickOutside, true);
+      };
+  }, []);
+
+  return (
+      <div className="interfaceLinks" ref={wrapperRef}>
+        <a className="interfaceLinks-button" onClick={handleClick}><img src="/static/icons/globe-wire.svg"/></a>
+        <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
+          <div className="interfaceLinks-header">
+            <span className="int-en">Site Language</span>
+            <span className="int-he">שפת האתר</span>
+          </div>
+          <div className="interfaceLinks-options">
+            <a className={`interfaceLinks-option int-bi ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
+            <a className={`interfaceLinks-option int-bi ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+          </div>
+        </div>
+      </div>
+  );
+}
+
+InterfaceLanguageMenu.propTypes = {
+  currentLang: PropTypes.string
+}
 
 // const [mounted, setMounted] = React.useState(true);
 // useEffect(() => {return () => {setMounted(false)}}, []);
@@ -1251,7 +1303,7 @@ class SheetListing extends Component {
         </div>
         <div className="sheetRight">
           {
-            this.props.editable ?
+            this.props.editable && !document.cookie.includes("new_editor") ?
             <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg"/></a>
               : null
           }
@@ -1375,7 +1427,7 @@ function NewsletterSignUpForm(props) {
           onKeyUp={handleSubscribeKeyUp} />
       </span>
       <img src="/static/img/circled-arrow-right.svg" onClick={handleSubscribe} />
-      {includeEducatorOption ? 
+      {includeEducatorOption ?
         <div className="newsletterEducatorOption">
           <span className="int-en">
             <input
@@ -1943,7 +1995,7 @@ ReaderMessage.propTypes = {
 class CookiesNotification extends Component {
   constructor(props) {
     super(props);
-    var showNotification = !Sefaria._debug && Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
+    const showNotification = !Sefaria._debug && Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
 
     this.state = {showNotification: showNotification};
   }
@@ -1956,65 +2008,130 @@ class CookiesNotification extends Component {
     return (
       <div className="cookiesNotification">
 
-          <div>
-            <span className="int-en">We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
+          <span className="int-en">
+            <span>We use cookies to give you the best experience possible on our site. Click OK to continue using Sefaria. <a href="/privacy-policy">Learn More</a>.</span>
             <span className='int-en button small white' onClick={this.setCookie}>OK</span>
-          </div>
-          <div>
-            <span className="int-he">אנחנו משתמשים בעוגיות כדי לתת למשתמשים את חווית השימוש הטובה ביותר. לחץ כאן לאישור. <a href="/privacy-policy">קרא עוד בנושא</a>.</span>
-            <span className='int-he button small white' onClick={this.setCookie}>כאן</span>
-          </div>
+          </span>
+          <span className="int-he">
+            <span>אנחנו משתמשים בעוגיות כדי לתת למשתמשים את חווית השימוש הטובה ביותר. <a href="/privacy-policy">קרא עוד בנושא</a>.</span>
+            <span className='int-he button small white' onClick={this.setCookie}>אישור</span>
+          </span>
 
        </div>
     );
   }
 }
 
+const SheetTitle = (props) => (
+        <div className={`title ${props.empty ? 'empty': ''}`} role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
+            {props.children? props.children : props.title.stripHtmlKeepLineBreaks()}
+        </div>
+    )
+SheetTitle.propTypes = {
+    title:          PropTypes.string,
+};
 
-module.exports.SimpleInterfaceBlock                      = SimpleInterfaceBlock;
-module.exports.DangerousInterfaceBlock                   = DangerousInterfaceBlock;
-module.exports.SimpleContentBlock                        = SimpleContentBlock;
-module.exports.SimpleLinkedBlock                         = SimpleLinkedBlock;
-module.exports.BlockLink                                 = BlockLink;
-module.exports.CategoryColorLine                         = CategoryColorLine;
-module.exports.CategoryAttribution                       = CategoryAttribution;
-module.exports.CookiesNotification                       = CookiesNotification;
-module.exports.Dropdown                                  = Dropdown;
-module.exports.DropdownButton                            = DropdownButton;
-module.exports.DropdownModal                             = DropdownModal;
-module.exports.DropdownOptionList                        = DropdownOptionList;
-module.exports.FeedbackBox                               = FeedbackBox;
-module.exports.FilterableList                            = FilterableList;
-module.exports.GlobalWarningMessage                      = GlobalWarningMessage;
-module.exports.InterfaceTextWithFallback                 = InterfaceTextWithFallback;
-module.exports.InterruptingMessage                       = InterruptingMessage;
-module.exports.LanguageToggleButton                      = LanguageToggleButton;
-module.exports.Link                                      = Link;
-module.exports.LoadingMessage                            = LoadingMessage;
-module.exports.LoadingRing                               = LoadingRing;
-module.exports.LoginPrompt                               = LoginPrompt;
-module.exports.NewsletterSignUpForm                      = NewsletterSignUpForm;
-module.exports.Note                                      = Note;
-module.exports.ProfileListing                            = ProfileListing;
-module.exports.ProfilePic                                = ProfilePic;
-module.exports.ReaderMessage                             = ReaderMessage;
-module.exports.ReaderNavigationMenuCloseButton           = ReaderNavigationMenuCloseButton;
-module.exports.ReaderNavigationMenuDisplaySettingsButton = ReaderNavigationMenuDisplaySettingsButton;
-module.exports.ReaderNavigationMenuMenuButton            = ReaderNavigationMenuMenuButton;
-module.exports.SaveButton                                = SaveButton;
-module.exports.FollowButton                              = FollowButton;
-module.exports.ReaderNavigationMenuSection               = ReaderNavigationMenuSection;
-module.exports.ReaderNavigationMenuSearchButton          = ReaderNavigationMenuSearchButton;
-module.exports.SinglePanelNavHeader                      = SinglePanelNavHeader;
-module.exports.SignUpModal                               = SignUpModal;
-module.exports.SheetListing                              = SheetListing;
-module.exports.SheetAccessIcon                           = SheetAccessIcon;
-module.exports.SheetTopicLink                            = SheetTopicLink;
-module.exports.TabView                                   = TabView;
-module.exports.TextBlockLink                             = TextBlockLink;
-module.exports.TestMessage                               = TestMessage;
-module.exports.ThreeBox                                  = ThreeBox;
-module.exports.ToggleSet                                 = ToggleSet;
-module.exports.ToolTipped                                = ToolTipped;
-module.exports.TwoBox                                    = TwoBox;
-module.exports.TwoOrThreeBox                             = TwoOrThreeBox;
+const SheetAuthorStatement = (props) => (
+    <div className="authorStatement" contentEditable={false} style={{ userSelect: 'none' }}>
+          {props.children}
+    </div>
+)
+
+SheetAuthorStatement.propTypes = {
+    authorImage:      PropTypes.string,
+    authorStatement:  PropTypes.string,
+    authorUrl:        PropTypes.string,
+};
+
+const GroupStatement = (props) => (
+    props.group && props.group != "" ?
+        <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none' }}>
+          <div className="groupListingImageBox imageBox">
+            <a href={"/groups/" + props.group}>
+              <img className="groupListingImage img-circle" src={props.groupLogo} alt="Group Logo"/>
+            </a>
+          </div>
+          <a href={"/groups/" + props.group}>{props.children ? props.children : props.group}</a>
+        </div> :     <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
+                  {props.children}
+            </div>
+
+)
+
+GroupStatement.propTypes = {
+    group:      PropTypes.string,
+    groupLogo:  PropTypes.string,
+};
+
+
+const SheetMetaDataBox = (props) => (
+    <div className="sheetMetaDataBox">
+      {props.children}
+    </div>
+);
+
+SheetMetaDataBox.propTypes = {
+    title:          PropTypes.string,
+    authorUrl:      PropTypes.string,
+    authorImage:    PropTypes.string,
+    authorStatement:PropTypes.string,
+    group:          PropTypes.string,
+    groupLogo:      PropTypes.string,
+};
+
+
+
+export {
+  SimpleInterfaceBlock,
+  DangerousInterfaceBlock,
+  SimpleContentBlock,
+  SimpleLinkedBlock,
+  BlockLink,
+  CategoryColorLine,
+  CategoryAttribution,
+  CookiesNotification,
+  Dropdown,
+  DropdownButton,
+  DropdownModal,
+  DropdownOptionList,
+  FeedbackBox,
+  FilterableList,
+  GlobalWarningMessage,
+  InterruptingMessage,
+  InterfaceTextWithFallback,
+  LanguageToggleButton,
+  Link,
+  LoadingMessage,
+  LoadingRing,
+  LoginPrompt,
+  NewsletterSignUpForm,
+  Note,
+  ProfileListing,
+  ProfilePic,
+  ReaderMessage,
+  ReaderNavigationMenuCloseButton,
+  ReaderNavigationMenuDisplaySettingsButton,
+  ReaderNavigationMenuMenuButton,
+  SaveButton,
+  FollowButton,
+  ReaderNavigationMenuSection,
+  ReaderNavigationMenuSearchButton,
+  SinglePanelNavHeader,
+  SignUpModal,
+  SheetListing,
+  SheetAccessIcon,
+  SheetTopicLink,
+  TabView,
+  TextBlockLink,
+  TestMessage,
+  ThreeBox,
+  ToggleSet,
+  ToolTipped,
+  TwoBox,
+  TwoOrThreeBox,
+  SheetMetaDataBox,
+  SheetAuthorStatement,
+  SheetTitle,
+  GroupStatement,
+  InterfaceLanguageMenu,
+};

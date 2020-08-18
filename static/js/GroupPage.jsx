@@ -1,18 +1,18 @@
-const {
+import {
+  InterfaceTextWithFallback,
   LanguageToggleButton,
   LoadingMessage,
   TwoOrThreeBox,
   SheetTopicLink,
   SheetAccessIcon,
   ProfilePic,
-  InterfaceTextWithFallback,
-}                = require('./Misc');
-const React      = require('react');
-const PropTypes  = require('prop-types');
-const classNames = require('classnames');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const Footer     = require('./Footer');
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import Footer  from './Footer';
 import Component from 'react-class';
 
 
@@ -31,8 +31,11 @@ class GroupPage extends Component {
   componentDidMount() {
     Sefaria.getGroup(this.props.group)
         .then(groupData => {
-          this.sortSheetData(groupData);
-          this.setState({groupData, showTopics: !!groupData.showTagsByDefault})
+          this.sortSheetData(groupData, this.state.sheetSort);
+          this.setState({
+            groupData,
+            showTopics: !!groupData.showTagsByDefault && !this.props.tag
+          });
         });
   }
   componentDidUpdate(prevProps, prevState) {
@@ -51,7 +54,10 @@ class GroupPage extends Component {
       }
     }
   }
-  sortSheetData(group) {
+  onDataChange() {
+    this.setState({groupData: Sefaria._groups[this.props.group]});
+  }
+  sortSheetData(group, sheetSort) {
     // Warning: This sorts the sheets within the cached group item in sefaria.js
     if (!group.sheets) { return; }
 
@@ -66,7 +72,7 @@ class GroupPage extends Component {
         return b.views - a.views;
       }
     };
-    group.sheets.sort(sorters[this.state.sheetSort]);
+    group.sheets.sort(sorters[sheetSort]);
 
     if (this.props.group == "גיליונות נחמה"){
       let parshaOrder = ["Bereshit", "Noach", "Lech Lecha", "Vayera", "Chayei Sara", "Toldot", "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi", "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah", "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei", "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot", "Kedoshim", "Emor", "Behar", "Bechukotai", "Bamidbar", "Nasso", "Beha'alotcha", "Sh'lach", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masei", "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei", "Ki Tavo", "Nitzavim", "Vayeilech", "Ha'Azinu", "V'Zot HaBerachah"]
@@ -129,7 +135,9 @@ class GroupPage extends Component {
     }
   }
   changeSheetSort(event) {
-    this.setState({sheetSort: event.target.value})
+    let groupData = this.state.groupData;
+    this.sortSheetData(groupData, event.target.value);
+    this.setState({groupData, sheetSort: event.target.value});
   }
   searchGroup(query) {
     this.props.searchInGroup(query, this.props.group);
@@ -307,17 +315,18 @@ class GroupPage extends Component {
 
                   {this.state.tab == "members" ?
                     <div>
-                     {isAdmin ? <GroupInvitationBox groupName={this.props.group} onDataChange={this.onDataLoad}/> : null }
-                     { members.map(function(member) {
-                      return <GroupMemberListing
+                     {isAdmin ? <GroupInvitationBox groupName={this.props.group} onDataChange={this.onDataChange}/> : null }
+                     { members.map(function (member, i) {
+                        return <GroupMemberListing
                                 member={member}
                                 isAdmin={isAdmin}
                                 isSelf={member.uid == Sefaria._uid}
                                 groupName={this.props.group}
-                                onDataChange={this.onDataLoad}
+                                onDataChange={this.onDataChange }
                                 openProfile={this.props.openProfile}
-                                key={member.uid} />;
-                     }.bind(this)) }
+                                key={i} />
+                        }.bind(this) )
+                      }
                     </div>
                   : null }
 
@@ -498,7 +507,7 @@ GroupMemberListing.propTypes ={
   isAdmin:      PropTypes.bool,
   isSelf:       PropTypes.bool,
   groupName:    PropTypes.string,
-  onDataChange: PropTypes.func,
+  onDataChange: PropTypes.func.isRequired,
   openProfile:  PropTypes.func.isRequired,
 };
 
@@ -652,4 +661,4 @@ GroupMemberListingActions.propTypes = {
 };
 
 
-module.exports = GroupPage;
+export default GroupPage;

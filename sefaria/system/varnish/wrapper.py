@@ -4,7 +4,7 @@
 import re
 import urllib.request, urllib.parse, urllib.error
 
-from .common import manager, secret, purge_url, FRONT_END_URL
+from .common import ban_url, purge_url, FRONT_END_URL
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import graceful_exception
@@ -57,10 +57,9 @@ def invalidate_ref(oref, lang=None, version=None, purge=False):
         purge_url("{}/api/related/{}?with_sheet_links=0".format(FRONT_END_URL, oref.url()))
 
     # Ban anything underneath this section
-    manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(url_regex(oref)), secret=secret)
-    manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(url_regex(oref)), secret=secret)
-    manager.run("ban", 'obj.http.url ~ "/api/related/{}"'.format(url_regex(oref)), secret=secret)
-
+    ban_url("/api/texts/{}".format(url_regex(oref)))
+    ban_url("/api/links/{}".format(url_regex(oref)))
+    ban_url("/api/related/{}".format(url_regex(oref)))
 
 
 def invalidate_linked(oref):
@@ -117,9 +116,12 @@ def invalidate_title(title):
     title = title.replace(" ", "_").replace(":", ".")
     invalidate_index(title)
     invalidate_counts(title)
-    manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(title), secret=secret)
-    manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(title), secret=secret)
+    ban_url("/api/texts/{}".format(title))
+    ban_url("/api/links/{}".format(title))
 
+
+def invalidate_all():
+    ban_url(".*")
 
 
 def url_regex(ref):

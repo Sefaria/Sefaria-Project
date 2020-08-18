@@ -90,18 +90,29 @@ $(function() {
 	);
 
 	function makeMediaEmbedLink(mediaURL) {
-	  var re = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
-  	var m;
-    var embedHTML;
+    	let embedHTML;
+	  	let youtubeRe = /https?:\/\/(www\.)?(youtu(?:\.be|be\.com)\/(?:.*v(?:\/|=)|(?:.*\/)?)([\w'-]+))/i;
+    	let vimeoRe = /^.*(vimeo\.com\/)((channels\/[A-z]+\/)|(groups\/[A-z]+\/videos\/))?([0-9]+)/;
+  		let m;
 
-		if ((m = re.exec(mediaURL)) !== null) {
-			if (m.index === re.lastIndex) {
-				re.lastIndex++;
+		if ((m = youtubeRe.exec(mediaURL)) !== null) {
+			if (m.index === youtubeRe.lastIndex) {
+				youtubeRe.lastIndex++;
 			}
 				if (m.length>0) {
 					embedHTML = '<iframe width="560" height="315" src="https://www.youtube.com/embed/'+m[m.length-1]+'?rel=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>';
 				}
 		}
+
+		else if ((m = vimeoRe.exec(mediaURL)) !== null) {
+			if (m.index === vimeoRe.lastIndex) {
+				vimeoRe.lastIndex++;
+			}
+				if (m.length>0) {
+					embedHTML = '<iframe width="560" height="315" src="https://player.vimeo.com/video/'+m[5]+'?title=0&amp;byline=0&amp;portrait=0" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>';
+				}
+		}
+
 
 		else if ( (mediaURL).match(/https?:\/\/(www\.)?.+\.(jpeg|jpg|gif|png)$/i) != null ) {
 					embedHTML = '<img class="addedMedia" src="'+mediaURL+'" />';
@@ -623,7 +634,7 @@ $(function() {
 			{name: 'basicstyles', items: ['Bold', 'Italic', 'Underline', 'Strike', 'Subscript', 'Superscript']},
 			{name: "justify", items: ['JustifyLeft', 'JustifyCenter', 'JustifyRight', 'JustifyBlock']},
 			{name: 'paragraph', items: ['NumberedList', 'BulletedList']},
-			{name: 'styles', items: ['Font', 'FontSize']},
+			// {name: 'styles', items: ['Font', 'FontSize']},
 			{name: 'colors', items: ['TextColor', 'BGColor']},
 			{name: 'links', items: ['Link', 'Unlink']},
 			{name: 'insert', items: ['Image', 'Table', 'HorizontalRule']},
@@ -2156,7 +2167,7 @@ sjs.sheetTagger = {
 				// Don't allow # or @ in tags
 				return false;
 			}
-			if (e.keyCode == 13 || e.keyCode == 188) {
+			if (e.keyCode == 13 || e.key == ",") {
 				// Let enter or , trigger enter
 				sjs.sheetTagger.addTagFromInput($("#addTag").val());
 				return false;
@@ -2172,7 +2183,7 @@ sjs.sheetTagger = {
 							topics.push(obj.title);
 							if (!(obj.title in sjs.sheetTagger.tagSlugs)) {
 								// Cache slug / title pair, but don't overwrite so more popular slug is kept in case of collision
-								sjs.sheetTagger.tagSlugs[obj.title] = obj.key;								
+								sjs.sheetTagger.tagSlugs[obj.title] = obj.key;
 							}
 						}
 					});
@@ -2181,7 +2192,7 @@ sjs.sheetTagger = {
 				.then(response);
 			},
 			position: {my: dropdownAnchorSide + " top", at: dropdownAnchorSide + " bottom"},
-			select: function(event, ui) { 
+			select: function(event, ui) {
 				sjs.sheetTagger.addTagFromInput(ui.item.value);
 			},
 			minLength: 3
@@ -3058,6 +3069,9 @@ function buildSource($target, source, appendOrInsert) {
 		else if (source.media.toLowerCase().indexOf('soundcloud') > 0) {
 			mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="'+source.media+'"></iframe>'
 			mediaClass = "media fullWidth";
+		}
+		else if (source.media.toLowerCase().indexOf('vimeo') > 0) {
+			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>'
 		}
 		else if (source.media.match(/\.(mp3)$/i) != null) {
 			mediaLink = '<audio src="'+source.media+'" type="audio/mpeg" controls>Your browser does not support the audio element.</audio>';

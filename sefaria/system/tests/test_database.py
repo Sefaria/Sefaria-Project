@@ -6,12 +6,12 @@ from sefaria.settings import *
 import pytest
 
 #This one is purposefully circumvented on Travis, to speed up build time.
-@pytest.mark.failing
+@pytest.mark.xfail(reason="unknown")
 def test_db_name():
     assert d.db.name == d.TEST_DB
 
 #todo: why failing?
-@pytest.mark.failing
+@pytest.mark.xfail(reason="unknown")
 def test_test_db():
     """
     Create a record using the sefaria API against the test db, and then verify it from a new db connection

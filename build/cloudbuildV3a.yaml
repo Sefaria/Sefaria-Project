@@ -1,7 +1,5 @@
 # TODO: Fail the build if the target mongo host is not reachable
-# TODO: Consider "one mongo instance per sandbox" architecture
-# TODO: Idempotently update ingress definition
-# TODO: Notifications
+# TODO: Remove references to sandboxes
 
 ---
 substitutions:
@@ -19,11 +17,17 @@ options:
   machineType: N1_HIGHCPU_8
 
 steps:
-  # Clone k8s-admin -- get the `lorenzo/deploy-python3' branch
   - name: "gcr.io/cloud-builders/git"
     args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', '${_K8S_ADMIN_BRANCH}', '--single-branch']
     id: k8s-admin_clone
     wait_for: [ "-" ]
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk
+    id: print_k8s_admin_git_hash
+    entrypoint: bash
+    dir: k8s-admin
+    args: ["-c", 'git rev-parse HEAD > ../k8s-admin-hash.txt']
+    wait_for: ["k8s-admin_clone"]
 
   #
   # Build artifacts
@@ -31,19 +35,19 @@ steps:
   # TODO: Use the Kaniko builder to take advantage of shared build caches across builds
   # TODO: Use SHORT_SHA for image tags after a trigger for sandboxes is created (That variable is only available for triggered builds)
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA", "-f", "build/web/Dockerfile", "."]
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA", "-t", "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$TAG_NAME", "-f", "build/web/Dockerfile", "."]
     #dir: Sefaria-Project
     id: web_container
     wait_for: [ "-" ]  
 
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA", "-f", "build/node/Dockerfile", "."]
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA", "-t", "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$TAG_NAME", "-f", "build/node/Dockerfile", "."]
     # dir: Sefaria-Project
     id: nodejs_container
     wait_for: [ "-" ]
 
   - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA", "."]
+    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA", "-t", "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$TAG_NAME", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA", "."]
     # dir: Sefaria-Project
     id: nginx_container
     wait_for:
@@ -86,6 +90,25 @@ steps:
       - generate_localsettings_file
       - k8s-admin_clone
 
+  - name: gcr.io/${PROJECT_ID}/mongo-restore
+    dir: k8s-admin/v2/app_settings/nginx
+    entrypoint: "bash"
+    args: ['-c', './generateRobotsTxtFile.bash']
+    id: generate_robots_file
+    env: 
+      - 'IS_PROD=true'
+    wait_for: [ "-" ]
+    
+  # Copy robots.txt into file
+  # Later, combined this with the script above
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+    dir: k8s-admin/v2
+    id: copy_robots_file
+    entrypoint: cp
+    args: ["-f", "./app_settings/nginx/_robots.txt", "./charts/sefaria/robots.txt"]
+    wait_for:
+      - generate_robots_file
+
   - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.1.2"
     id: deploy_sandbox
     dir: k8s-admin/v2
@@ -103,9 +126,22 @@ steps:
       - generate_localsettings_file
       - copy_localsettings_file
       - k8s-admin_clone
+      - generate_robots_file
+
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: slack_notification
+    entrypoint: bash
+    args: [ '-c', 'gcloud pubsub topics publish projects/production-deployment/topics/deployment-notification --message "[Production Deployment] App Version: ${TAG_NAME}; k8s-admin git hash: `cat k8s-admin-hash.txt`; Build Id: ${BUILD_ID}"' ]
+    wait_for: 
+      - print_k8s_admin_git_hash
+      - deploy_sandbox
 
 images:
   - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA"
   - "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA"
   - "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA"
+
+  - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$TAG_NAME"
+  - "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$TAG_NAME"
+  - "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$TAG_NAME"
 ...

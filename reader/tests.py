@@ -50,7 +50,7 @@ class SefariaTestCase(TestCase):
 
 class PagesTest(SefariaTestCase):
     """
-    Tests that an assortment of important pages can load without error. 
+    Tests that an assortment of important pages can load without error.
     """
 
     def test_root(self):
@@ -114,7 +114,7 @@ class PagesTest(SefariaTestCase):
         self.assertEqual(200, response.status_code)
 
     def test_new_sheet(self):
-        response = c.get('/sheets/new')
+        response = c.get('/sheets/new?editor=1')
         self.assertEqual(200, response.status_code)
 
     def test_new_sheet(self):
@@ -125,20 +125,12 @@ class PagesTest(SefariaTestCase):
         response = c.get('/profile/brett-lockspeiser')
         self.assertEqual(200, response.status_code)
 
-    def test_campaign(self):
-        response = c.get('/translate/Bereishit_Rabbah')
-        self.assertEqual(200, response.status_code)
-
     def test_explorer(self):
         response = c.get('/explore')
         self.assertEqual(200, response.status_code)
 
     def test_discussions(self):
         response = c.get('/discussions')
-        self.assertEqual(200, response.status_code)
-
-    def test_translation_requests(self):
-        response = c.get('/translation-requests')
         self.assertEqual(200, response.status_code)
 
     def test_login(self):
@@ -448,7 +440,7 @@ class PostIndexTest(SefariaTestCase):
         self.assertNotIn("error", data)
         self.assertIn("titleVariants", data)
         self.assertIn("Book of Variants", data["titleVariants"])
-        
+
         # Post with variants field missing
         index = {
             "title": "Book of Variants",

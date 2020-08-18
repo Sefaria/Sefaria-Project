@@ -15,6 +15,10 @@ html, body, .wrapper, #content {
   font-weight: normal;
 }
 
+body.hasBannerMessage {
+  padding-top: 0;
+}
+
 #s2 {
   display: none;
 }
@@ -95,6 +99,7 @@ a {
       color: white;
       align-self: flex-start;
       font-size: 13px;
+      display: none;
     }
 
 button {
@@ -140,22 +145,48 @@ a {
     <div id="chevrutaName"></div>
     <input type="hidden" id="chevrutaUID" value=false>
     <div id="buttonContainer"></div>
-    <p>
+    <p class="int-en">
       DafRoulette is an experimental project from Sefaria to match you with random partners for studying daf yomi.
     </p>
-    <p>
-      Pirkei Avot says you should be at least <a href="https://www.sefaria.org/Pirkei_Avot.5.21?lang=bi&with=all&lang2=bi">15+ to experience this</a>, so check with your grownup if you're younger.
+
+    <p class="int-he">
+      DafRoulette הוא פרויקט ניסיוני של ספריא, שמטרתו להתאים לכם חברותא אקראית ללימוד דף יומי.
     </p>
 
-    <p>
+
+    <p class="int-en">
+      Pirkei Avot says you should be at least <a href="https://www.sefaria.org/Pirkei_Avot.5.21" target="_blank">15+ to experience this</a>, so check with your grownup if you're younger.
+    </p>
+
+    <p class="int-he">
+      בפרקי אבות נאמר שאפשר לחוות חוויה <a href="https://www.sefaria.org.il/Pirkei_Avot.5.21" target="_blank">זו מגיל 15</a>. התייעצו עם מבוגר אם אתם צעירים מגיל 15.
+    </p>
+
+
+    <p class="int-en">
       There are currently <span id="numberOfChevrutas"><em>loading...</em></span> chevrutas studying.
     </p>
 
-    <p>
+    <p class="int-he">
+      ברגע זה פועלות <span id="numberOfChevrutas"><em>loading...</em></span> חברותות.
+    </p>
+
+
+    <p class="int-en">
       Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
     </p>
-    <p>
+
+    <p class="int-he">
+      לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
+    </p>
+
+
+    <p class="int-en">
       <a href="#" id="reportUser" onclick="reportUser();">Report User</a>
+    </p>
+
+    <p class="int-he">
+      <a href="#" id="reportUser" onclick="reportUser();">דיווח משתמש</a>
     </p>
 
   </div>
@@ -167,6 +198,10 @@ a {
 {% block js  %}
 <script src="//{{ rtc_server }}/socket.io/socket.io.js"></script>
 <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+<script>
+  const startingRef = "{{starting_ref}}";
+  const startingRoom = "{{room_id}}";
+</script>
 <script src="/dafroulette.js"></script>
 <script>addAdditionalHTML()</script>
 {% endblock %}

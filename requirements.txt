@@ -14,11 +14,10 @@ regex
 pytest
 mailchimp
 redis
-django-redis
+django-redis==4.11.*
 django_mobile
 roman
 p929
-git+https://github.com/ByteInternet/python-varnishadm.git@74555895719f7db4c03298a5e54c689db334a903
 geojson
 django-recaptcha
 unicodecsv
@@ -52,3 +51,8 @@ lxml
 convertdate
 ipython
 tqdm
+gevent
+django-debug-toolbar # not used in prod
+unidecode
+django-structlog
+google-cloud-logging

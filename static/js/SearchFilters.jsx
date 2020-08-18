@@ -1,16 +1,16 @@
-const {
+import {
   DropdownModal,
   DropdownButton,
   DropdownOptionList,
   LoadingMessage,
-}                = require('./Misc');
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const Sefaria    = require('./sefaria/sefaria');
-const $          = require('./sefaria/sefariaJquery');
-const SearchState= require('./sefaria/searchState');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
+} from './Misc';
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import Sefaria  from './sefaria/sefaria';
+import $  from './sefaria/sefariaJquery';
+import SearchState from './sefaria/searchState';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 
 const noGroupEn = '(No Group)';
@@ -234,7 +234,7 @@ class SheetSearchFilterPanel extends Component {
   }
   render() {
     const groupFilters = this.props.availableFilters.filter(filter => filter.aggType === 'group');
-    const tagFilters = this.props.availableFilters.filter(filter => filter.aggType === 'tags');
+    const tagFilters = this.props.availableFilters.filter(filter => filter.aggType.match(/^topics/));
 
 
     return (
@@ -608,4 +608,4 @@ SearchFilter.propTypes = {
 };
 
 
-module.exports = SearchFilters;
+export default SearchFilters;

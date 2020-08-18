@@ -1,4 +1,4 @@
-const {
+import {
   LoadingMessage,
   TabView,
   FilterableList,
@@ -7,14 +7,14 @@ const {
   ProfileListing,
   ProfilePic,
   FollowButton,
-}               = require('./Misc');
-const React      = require('react');
-const PropTypes = require('prop-types');
-const Sefaria   = require('./sefaria/sefaria');
-const { GroupListing } = require('./MyGroupsPanel');
-const NoteListing = require('./NoteListing');
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import Sefaria  from './sefaria/sefaria';
+import { GroupListing } from './MyGroupsPanel';
+import NoteListing  from './NoteListing';
 import Component from 'react-class';
-const Footer    = require('./Footer');
+import Footer  from './Footer';
 
 class UserProfile extends Component {
   constructor(props) {
@@ -50,9 +50,6 @@ class UserProfile extends Component {
   }
   _getMessageModalRef(ref) { this._messageModalRef = ref; }
   _getTabViewRef(ref) { this._tabViewRef = ref; }
-  _getSheetListRef(ref) { this._sheetListRef = ref; }
-  _getNoteListRef(ref) { this._noteListRef = ref; }
-  _getGroupListRef(ref) { this._groupListRef = ref; }
   getGroups() {
     return Sefaria.userGroups(this.props.profile.id);
   }
@@ -109,7 +106,7 @@ class UserProfile extends Component {
     });
   }
   onDeleteNote() {
-    if (this._noteListRef) { this._noteListRef.reload(); }
+    this.setState({ ignoreNoteCache: Math.random() });
   }
   filterNote(currFilter, note) {
     const n = text => text.toLowerCase();
@@ -193,7 +190,7 @@ class UserProfile extends Component {
     );
   }
   handleSheetDelete() {
-    if (this._sheetListRef) { this._sheetListRef.reload(); }
+    this.setState({ ignoreSheetCache: Math.random() });
   }
   renderSheet(sheet) {
     return (
@@ -344,7 +341,8 @@ class UserProfile extends Component {
                 >
                   <FilterableList
                     key="sheet"
-                    ref={this._getSheetListRef}
+                    pageSize={1e6}
+                    ignoreCache={this.state.ignoreSheetCache}
                     filterFunc={this.filterSheet}
                     sortFunc={this.sortSheet}
                     renderItem={this.renderSheet}
@@ -357,7 +355,8 @@ class UserProfile extends Component {
                     this.state.showNotes ? (
                       <FilterableList
                         key="note"
-                        ref={this._getNoteListRef}
+                        pageSize={1e6}
+                        ignoreCache={this.state.ignoreNoteCache}
                         filterFunc={this.filterNote}
                         sortFunc={this.sortNote}
                         renderItem={this.renderNote}
@@ -369,7 +368,7 @@ class UserProfile extends Component {
                   }
                   <FilterableList
                     key="group"
-                    ref={this._getGroupListRef}
+                    pageSize={1e6}
                     filterFunc={this.filterGroup}
                     sortFunc={this.sortGroup}
                     renderItem={this.renderGroup}
@@ -380,6 +379,7 @@ class UserProfile extends Component {
                   />
                   <FilterableList
                     key="follower"
+                    pageSize={1e6}
                     filterFunc={this.filterFollower}
                     sortFunc={() => { return 0; }}
                     renderItem={this.renderFollower}
@@ -390,6 +390,7 @@ class UserProfile extends Component {
                   />
                   <FilterableList
                     key="following"
+                    pageSize={1e6}
                     filterFunc={this.filterFollower}
                     sortFunc={() => { return 0; }}
                     renderItem={this.renderFollower}
@@ -398,6 +399,7 @@ class UserProfile extends Component {
                     sortOptions={[]}
                     getData={this.getFollowing}
                   />
+                  <div className="torahTrackerPlaceholder filterable-list" />
                   { this.state.showBio ?
                     <div className="systemText filterable-list">
                       <div  className="aboutText" dangerouslySetInnerHTML={{ __html: this.props.profile.bio }} />
@@ -562,4 +564,4 @@ MessageModal.propTypes = {
   name: PropTypes.string.isRequired,
   uid:  PropTypes.number.isRequired,
 };
-module.exports = UserProfile;
+export default UserProfile;

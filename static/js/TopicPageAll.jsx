@@ -1,4 +1,4 @@
-const {
+import {
   CategoryColorLine,
   ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuDisplaySettingsButton,
@@ -7,15 +7,16 @@ const {
   TwoOrThreeBox,
   Link,
   InterfaceTextWithFallback,
-}                         = require('./Misc');
-const React               = require('react');
-const PropTypes           = require('prop-types');
-const classNames          = require('classnames');
-const Sefaria             = require('./sefaria/sefaria');
-const $                   = require('./sefaria/sefariaJquery');
-const MobileHeader        = require('./MobileHeader');
-const Footer              = require('./Footer');
-import Component          from 'react-class';
+} from './Misc';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import Sefaria  from './sefaria/sefaria';
+import $  from './sefaria/sefariaJquery';
+import MobileHeader from './MobileHeader';
+import Footer  from './Footer';
+import Component from 'react-class';
+
 
 
 class TopicPageAll extends Component {
@@ -114,7 +115,7 @@ class TopicPageAll extends Component {
                         { hasFilter ? null :
                           <h2>
                             <span className="int-en">Most Used</span>
-                            <span className="int-he">הכי בשימוש</span>
+                            <span className="int-he">בשימוש נפוץ</span>
                           </h2>
                         }
                         <TwoOrThreeBox content={topicList} width={this.props.width} />
@@ -144,4 +145,4 @@ TopicPageAll.defaultProps = {
 };
 
 
-module.exports = TopicPageAll;
+export default TopicPageAll;

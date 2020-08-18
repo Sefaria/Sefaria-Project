@@ -1,7 +1,7 @@
-const React      = require('react');
-const Sefaria    = require('./sefaria/sefaria');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
+import React from 'react';
+import Sefaria from './sefaria/sefaria';
+import classNames from 'classnames';
+import PropTypes from 'prop-types';
 import Component      from 'react-class';
 
 
@@ -47,7 +47,7 @@ class CategoryFilter extends Component {
         <span className="en">
           <span className="filterInner">
             <span className="filterText">{this.props.category}{count}</span>
-            {this.props.hasEnglish ? <EnglishAvailableTag /> : null}
+            {this.props.hasEnglish && Sefaria._siteSettings.TORAH_SPECIFIC ? <EnglishAvailableTag /> : null}
           </span>
         </span>
         <span className="he">{this.props.heCategory}{count}</span>
@@ -90,15 +90,12 @@ class TextFilter extends Component {
     }
   }
   render() {
-    var classes = classNames({textFilter: 1, on: this.props.on, lowlight: this.props.count == 0});
-
-    if (!this.props.hideColors) {
-      var color = Sefaria.palette.categoryColor(this.props.category);
-      var style = {"borderTop": "4px solid " + color};
-    }
-    var name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
-    var count = this.props.hideCounts || !this.props.count ? "" : ( <span className="connectionsCount">&nbsp;({this.props.count})</span>);
-    var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name:"";
+    const classes = classNames({textFilter: 1, on: this.props.on, lowlight: this.props.count == 0});
+    const color = Sefaria.palette.categoryColor(this.props.category);
+    const style = {"--category-color": color};
+    const name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
+    const count = this.props.hideCounts || !this.props.count ? "" : ( <span className="connectionsCount">&nbsp;({this.props.count})</span>);
+    const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name:"";
     const upperClass = classNames({uppercase: this.props.book === this.props.category});
     return (
       <a href={url} onClick={this.handleClick}>
@@ -107,7 +104,7 @@ class TextFilter extends Component {
               <span className="en">
                 <span className="filterInner">
                   <span className="filterText">{name}{count}</span>
-                  {this.props.hasEnglish ? <EnglishAvailableTag /> : null}
+                  {this.props.hasEnglish && Sefaria._siteSettings.TORAH_SPECIFIC ? <EnglishAvailableTag /> : null}
                 </span>
               </span>
               <span className="he">{this.props.heBook}{count}</span>
@@ -151,7 +148,7 @@ class RecentFilterSet extends Component {
         book: filter,
         filterSuffix: filterSuffix,
         heBook: index ? index.heTitle : Sefaria.hebrewTerm(filter),
-        category: index ? index.primary_category : filter
+        category: index ? (index.primary_category ? index.primary_category : index.categories[0]) : filter
       };
     });
     var topLinks = [];
@@ -208,6 +205,7 @@ RecentFilterSet.propTypes = {
   setFilter:     PropTypes.func.isRequired,
 };
 
-
-module.exports.CategoryFilter  = CategoryFilter;
-module.exports.RecentFilterSet = RecentFilterSet;
+export {
+  CategoryFilter,
+  RecentFilterSet,
+};

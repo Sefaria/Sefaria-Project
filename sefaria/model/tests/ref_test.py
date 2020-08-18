@@ -346,7 +346,7 @@ class Test_Ref(object):
             first = ref.first_spanned_ref()
             assert first == ref.split_spanning_ref()[0]
 
-    @pytest.mark.failing
+    @pytest.mark.xfail(reason="cause")
     def test_split_spanning_ref_expanded(self):
         assert Ref("Leviticus 15:3 - 17:12").split_spanning_ref() == [Ref('Leviticus 15:3-33'), Ref('Leviticus 16:1-34'), Ref('Leviticus 17:1-12')]
 
@@ -596,6 +596,10 @@ class Test_comparisons(object):
         assert Ref("Genesis 5:13-28").overlaps(Ref("Genesis 5:10-20"))
         assert not Ref("Genesis 5:10-20").overlaps(Ref("Genesis 5:21-25"))
 
+        assert not Ref("Genesis 1").overlaps(Ref("Genesis 2"))
+        assert not Ref("Genesis 2").overlaps(Ref("Genesis 1"))
+        assert Ref("Genesis 1").overlaps(Ref("Genesis 1"))
+
         assert Ref("Genesis 5:10-6:20").overlaps(Ref("Genesis 6:18-25"))
         assert Ref("Genesis 5:10-6:20").overlaps(Ref("Genesis 5:18-25"))
         assert Ref("Genesis 5:18-25").overlaps(Ref("Genesis 5:10-6:20"))
@@ -632,6 +636,9 @@ class Test_comparisons(object):
 
         assert Ref("Exodus 6").contains(Ref("Exodus 6:2"))
         assert Ref("Exodus 6").contains(Ref("Exodus 6:2-12"))
+
+        assert Ref("Genesis 1:1-31").contains(Ref("Genesis 1"))
+        assert Ref("Genesis 1").contains(Ref("Genesis 1:1-31"))
 
         assert Ref("Exodus").contains(Ref("Exodus 6"))
         assert Ref("Exodus").contains(Ref("Exodus 6:2"))
@@ -799,7 +806,7 @@ class Test_Talmud_at_Second_Place(object):
         assert Ref("Zohar, Lech Lecha")
         assert Ref("Zohar, Bo")
 
-    @pytest.mark.failing
+    @pytest.mark.xfail(reason="unknown")
     def test_range_short_form(self):
         assert Ref("Zohar 2.15a - 15b").sections[1] == 29
         assert Ref("Zohar 2.15a - 15b").toSections[1] == 30

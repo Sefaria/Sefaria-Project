@@ -1,5 +1,5 @@
-const Util = require('./util');
-const FilterNode = require('./FilterNode');
+import Util from './util';
+import FilterNode from './FilterNode';
 
 class SearchState {
   constructor({
@@ -174,7 +174,7 @@ SearchState.metadataByType = {
     fieldBroad: null,
     field: 'content',
     aggregation_field_array: ['group', 'topics'],
-    aggregation_field_lang_suffix_array: [null, {'english': '_en', 'hebrew': '_he'}],
+    aggregation_field_lang_suffix_array: [null, {'english': '_en.keyword', 'hebrew': '_he.keyword'}],
     build_and_apply_filters: 'buildAndApplySheetFilters',  // func name from Search.js
     sortType: 'relevance',
     sortTypeArray: [
@@ -205,4 +205,4 @@ SearchState.metadataByType = {
   },
 };
 
-module.exports = SearchState;
+export default SearchState;

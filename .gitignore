@@ -76,6 +76,7 @@ node_modules
 #  Virtualenv Files #
 #####################
 venv/
+.python-version
 
 # Partner files #
 #################

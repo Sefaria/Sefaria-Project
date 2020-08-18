@@ -8,7 +8,7 @@ import string
 from collections import defaultdict
 
 import datrie
-
+from unidecode import unidecode
 from sefaria.model import *
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.utils import hebrew
@@ -20,16 +20,22 @@ try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
 except ImportError:
-    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
+    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
-letter_scope = "\u05b0\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05bc\u05c1\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea\u05f3\u05f4\u200e\u200f\u2013\u201d\ufeffabcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*()'& \""
+letter_scope = "\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05ba\u05bb\u05bc\u05bd" \
+            + "\u05c1\u05c2" \
+            + "\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05da\u05db\u05dc\u05dd\u05de\u05df" \
+            + "\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea" \
+            + "\u05f3\u05f4" \
+            + "\u200e\u200f\u2013\u201d\ufeff" \
+            + " abcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*()'&?/\""
 
 
 def normalizer(lang):
     if lang == "he":
-        return hebrew.normalize_final_letters_in_str
-    return str.lower
+        return lambda x: "".join([c if c in letter_scope else unidecode(c) for c in hebrew.normalize_final_letters_in_str(x)])
+    return lambda x: "".join([c if c in letter_scope else unidecode(c) for c in str.lower(x)])
 
 
 splitter = re.compile(r"[\s,]+")
@@ -261,7 +267,10 @@ class Completions(object):
                 self.auto_completer.spell_checker.correct_phrase(self.normal_string)
             ):
                 k = normalizer(self.lang)(suggestion)
-                all_v = self.auto_completer.title_trie[k]
+                try:
+                    all_v = self.auto_completer.title_trie[k]
+                except KeyError:
+                    pass
                 added_to_completions = False
                 for v in all_v:
                     if (v["type"], v["key"]) not in self.keys_covered:
@@ -369,7 +378,7 @@ class TitleTrie(datrie.Trie):
         for (title, snode), norm_title in zip(tnd_items, normal_titles):
             self[norm_title] = {
                 "title": title,
-                "key": snode.full_title(self.lang),
+                "key": snode.full_title("en"),
                 "type": "ref",
                 "is_primary": title == snode.full_title(self.lang)
             }

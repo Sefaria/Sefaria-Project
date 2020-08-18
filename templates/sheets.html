@@ -4,7 +4,7 @@
 {% load static %}
 {% load i18n %}
 
-{% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "Sefaria Source Sheet Builder" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
+{% block title %}{% if title %}{{ title|striptags|strip_html_entities }} | {% trans "Sefaria" %}{% else %}{% trans "Start a New Sheet - Sefaria Source Sheet Builder" %}{% endif %}{% endblock %}
 
 {% block description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
 {% block soc_description %}{% if sheet.owner %}{% trans "A source sheet created with Sefaria's Source Sheet Builder." %}{% else %}{% trans "Create your own source sheet with Sefaria's Source Sheet Builder." %}{% endif %}{% endblock %}
@@ -999,7 +999,7 @@
                                     <span class="int-he">מטלות שמורות</span>
                                 </div>
         						{% for assignment_sheet in assignments_from_sheet %}
-                                <a href="./{{ assignment_sheet.id }}" target="_blank"><div class="button white" >{{ assignment_sheet.owner|user_name }}</div></a>
+                                <a href="./{{ assignment_sheet.id }}?editor=1" target="_blank"><div class="button white" >{{ assignment_sheet.owner|user_name }}</div></a>
 
                                 {% empty %}
                                     <em>

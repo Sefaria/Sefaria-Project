@@ -77,19 +77,57 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             new_topic.get_types(types, new_path, search_slug_set)
         return types
 
-    def get_leaf_nodes(self, linkType='is-a'):
-        leaves = []
-        children = [l.fromTopic for l in IntraTopicLinkSet({"toTopic": self.slug, "linkType": linkType})]
+    def topics_by_link_type_recursively(self, **kwargs):
+        topics, _ = self.topics_and_links_by_link_type_recursively(**kwargs)
+        return topics
+    
+    def topics_and_links_by_link_type_recursively(self, linkType='is-a', only_leaves=False, reverse=False, max_depth=None, min_sources=None):
+        """
+        Gets all topics linked to `self` by `linkType`. The query is recursive so it's most useful for 'is-a' and 'displays-under' linkTypes
+        :param linkType: str, the linkType to recursively traverse.
+        :param only_leaves: bool, if True only return last level traversed
+        :param reverse: bool, if True traverse the inverse direction of `linkType`. E.g. if linkType == 'is-a' and reverse == True, you will traverse 'is-category-of' links
+        :param max_depth: How many levels below this one to traverse. 1 returns only this node's children, 0 returns only this node and None means unlimited.
+        :return: list(Topic)
+        """
+        topics, links, below_min_sources = self._topics_and_links_by_link_type_recursively_helper(linkType, only_leaves, reverse, max_depth, min_sources)
+        links = list(filter(lambda x: x.fromTopic not in below_min_sources and x.toTopic not in below_min_sources, links))
+        return topics, links
+
+    def _topics_and_links_by_link_type_recursively_helper(self, linkType, only_leaves, reverse, max_depth, min_sources, explored_set=None, below_min_sources_set=None):
+        """
+        Helper function for `topics_and_links_by_link_type_recursively()` to carry out recursive calls
+        :param explored_set: set(str), set of slugs already explored. To be used in recursive calls.
+        """
+        explored_set = explored_set or set()
+        below_min_sources_set = below_min_sources_set or set()
+        topics = []
+        dir1 = "to" if reverse else "from"
+        dir2 = "from" if reverse else "to"
+        links = IntraTopicLinkSet({f"{dir2}Topic": self.slug, "linkType": linkType}).array()
+        children = [getattr(l, f"{dir1}Topic") for l in links]
         if len(children) == 0:
-            return [self]
+            if min_sources is not None and self.numSources < min_sources:
+                return [], [], {self.slug}
+            return [self], [], set()
         else:
+            if not only_leaves:
+                topics += [self]
             for slug in children:
+                if slug in explored_set:
+                    continue
                 child_topic = Topic.init(slug)
+                explored_set.add(slug)
                 if child_topic is None:
                     logger.warning(f"{slug} is None")
                     continue
-                leaves += child_topic.get_leaf_nodes(linkType)
-        return leaves
+                if max_depth is None or max_depth > 0:
+                    next_depth = max_depth if max_depth is None else max_depth - 1
+                    temp_topics, temp_links, temp_below_min_sources = child_topic._topics_and_links_by_link_type_recursively_helper(linkType, only_leaves, reverse, next_depth, min_sources, explored_set, below_min_sources_set)
+                    topics += temp_topics
+                    links += temp_links
+                    below_min_sources_set |= temp_below_min_sources
+        return topics, links, below_min_sources_set
 
     def has_types(self, search_slug_set):
         """
@@ -207,6 +245,20 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                 title += f' ({disambig_text})'
         return title
 
+    def get_titles(self, lang=None, with_disambiguation=True):
+        if with_disambiguation:
+            titles = []
+            for title in self.get_titles_object():
+                if not (lang is None or lang == title['lang']):
+                    continue
+                text = title['text']
+                disambig_text = title.get('disambiguation', None)
+                if disambig_text:
+                    text += f' ({disambig_text})'
+                titles += [text]
+            return titles
+        return super(Topic, self).get_titles(lang)
+
     def get_property(self, property):
         properties = getattr(self, 'properties', {})
         if property not in properties:
@@ -252,6 +304,7 @@ class TopicLinkHelper(object):
         'generatedBy',
         'order'
     ]
+    generated_by_sheets = "sheet-topic-aggregator"
 
     @staticmethod
     def init_by_class(topic_link, context_slug=None):
@@ -331,7 +384,7 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 
     def contents(self, **kwargs):
         d = super(IntraTopicLink, self).contents(**kwargs)
-        if self.context_slug is not None:
+        if not (self.context_slug is None or kwargs.get('for_db', False)):
             d['isInverse'] = self.is_inverse
             d['topic'] = self.topic
             del d['toTopic']
@@ -384,6 +437,12 @@ class RefTopicLink(abst.AbstractMongoRecord):
                 raise DuplicateRecordError("Duplicate ref topic link for linkType '{}', ref '{}', toTopic '{}', dataSource '{}'".format(
                 self.linkType, self.ref, self.toTopic, getattr(self, 'dataSource', 'N/A')))
 
+    def contents(self, **kwargs):
+        d = super(RefTopicLink, self).contents(**kwargs)
+        if not kwargs.get('for_db', False):
+            d['topic'] = d['toTopic']
+            d.pop('toTopic')
+        return d
 
 class TopicLinkSetHelper(object):
 

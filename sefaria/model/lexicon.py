@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-translation_request.py
-Writes to MongoDB Collection:
+Writes to MongoDB Collection: word_form, lexicon_entry
 """
 import re
+import unicodedata
 from . import abstract as abst
 from sefaria.datatype.jagged_array import JaggedTextArray
 from sefaria.system.exceptions import InputError
+from sefaria.utils.hebrew import is_hebrew, strip_cantillation, has_cantillation
 
 
 class WordForm(abst.AbstractMongoRecord):
@@ -302,12 +303,13 @@ class LexiconLookupAggregator(object):
 
     @classmethod
     def get_word_form_objects(cls, input_word, lookup_key='form', **kwargs):
-        from sefaria.utils.hebrew import is_hebrew, strip_cantillation, has_cantillation
         from sefaria.model import Ref
 
         lookup_ref = kwargs.get("lookup_ref", None)
         wform_pkey = lookup_key
         if is_hebrew(input_word):
+            # This step technically used to happen in the lookup main method `lexicon_lookup` if there were no initial results, but in case where a
+            # consonantal form was supplied in the first place, this optimizes queries.
             input_word = strip_cantillation(input_word)
             if not has_cantillation(input_word, detect_vowels=True):
                 wform_pkey = 'c_form'
@@ -349,9 +351,10 @@ class LexiconLookupAggregator(object):
 
     @classmethod
     def lexicon_lookup(cls, input_str, **kwargs):
+        input_str = unicodedata.normalize("NFC", input_str)
         results = cls._single_lookup(input_str, **kwargs)
-        if not results:
-            results = cls._single_lookup(input_str, lookup_key='c_form', **kwargs)
+        if not results or kwargs.get('always_consonants', False):
+            results += cls._single_lookup(strip_cantillation(input_str, True), lookup_key='c_form', **kwargs)
         if not kwargs.get('never_split', None) and (len(results) == 0 or kwargs.get("always_split", None)):
             ngram_results = cls._ngram_lookup(input_str, **kwargs)
             results += ngram_results

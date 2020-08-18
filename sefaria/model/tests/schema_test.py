@@ -272,3 +272,9 @@ def test_nodes_missing_content():
     assert result[0] is False
     assert len(result[1]) == 3
     test_index.delete()
+
+# Todo parametrize for all address types
+def test_folio_type():
+    folio = schema.AddressFolio(1)
+    for i in [1,2,3,4,5,6,7,15,23,64,128]:
+        assert folio.toNumber("en", folio.toStr("en", i)) == i

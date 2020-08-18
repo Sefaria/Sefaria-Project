@@ -6,6 +6,7 @@ import sys
 import json
 import csv
 from datetime import datetime
+from django.utils.translation import ugettext as _, ungettext_lazy
 from random import randint
 
 from sefaria.system.exceptions import InputError, SheetNotFoundError
@@ -13,6 +14,7 @@ from functools import reduce
 
 if not hasattr(sys, '_doc_build'):
     from django.contrib.auth.models import User
+    from emailusernames.utils import get_user, user_exists
     from django.core.mail import EmailMultiAlternatives
     from django.template.loader import render_to_string
     from django.core.validators import URLValidator, EmailValidator
@@ -218,6 +220,44 @@ class UserHistorySet(abst.AbstractMongoSet):
         return reduce(lambda agg,o: agg + getattr(o, "num_times_read", 1), self, 0)
 
 
+"""
+Wrapper class for operations on the user object. Currently only for changing primary email.
+"""
+class UserWrapper(object):
+    def __init__(self, email=None):
+        self.user = get_user(email)
+        self._errors = []
+
+    def set_email(self, new_email):
+        self.email = new_email
+        self._errors = []
+
+    def validate(self):
+        return not self.errors()
+
+    def errors(self):
+        if len(self._errors):
+            return self._errors[0]
+        if user_exists(self.email):
+            u = get_user(self.email)
+            if u.id != self.user.id:
+                self._errors.append(_("A user with that email already exists"))
+        email_val = EmailValidator()
+        try:
+            email_val(self.email)
+        except ValidationError as e:
+            self._errors.append(_("The email address is not valid."))
+        return self._errors[0] if len(self._errors) else None
+
+    def save(self):
+        if self.validate():
+            self.user.email = self.email
+            self.user.username = self.email #this is to conform with our username-as-email library, which doesnt really take care of itself properly as advertised
+            self.user.save()
+        else:
+            raise ValueError(self.errors())
+
+
 class UserProfile(object):
     def __init__(self, id=None, slug=None, email=None):
 
@@ -237,6 +277,7 @@ class UserProfile(object):
             self.last_name         = user.last_name
             self.email             = user.email
             self.date_joined       = user.date_joined
+            self.user              = user
         except:
             # These default values allow profiles to function even
             # if the Django User records are missing (for testing)
@@ -244,6 +285,7 @@ class UserProfile(object):
             self.last_name         = str(id)
             self.email             = "test@sefaria.org"
             self.date_joined       = None
+            self.user              = None
 
         self._id                   = None  # Mongo ID of profile doc
         self.id                    = id    # user ID
@@ -290,6 +332,14 @@ class UserProfile(object):
         profile = self.migrateFromOldRecents(profile)
         if profile:
             self.update(profile)
+        elif self.exists():
+            # If we encounter a user that has a Django user record but not a profile document
+            # create a profile for them. This allows two enviornments to share a user database,
+            # while maintaining separate profiles (e.g. Sefaria and S4D).
+            self.assign_slug()
+            self.interrupting_messages = []
+            self.save()
+
 
         if len(self.profile_pic_url) == 0:
             default_image           = "https://www.sefaria.org/static/img/profile-default.png"
@@ -435,7 +485,7 @@ class UserProfile(object):
         """
         Returns True if this is a real existing user, not simply a mock profile.
         """
-        return bool(self.date_joined)
+        return bool(self.user)
 
     def assign_slug(self):
         """

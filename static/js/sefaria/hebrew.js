@@ -8,7 +8,7 @@ class Hebrew {
     }
 
     var n = 0;
-    for (c in h) {
+    for (let c in h) {
       n += values[h[c]];
     }
 
@@ -62,6 +62,10 @@ class Hebrew {
       return this.encodeHebrewNumeral(n) + " " + this.encodeHebrewNumeral(a);
     }
   }
+  static encodeHebrewFolio(daf) {
+    // todo:
+    return daf;
+  }
   static stripNikkud(rawString) {
     return rawString.replace(/[\u0591-\u05C7]/g,"");
   }
@@ -85,8 +89,10 @@ class Hebrew {
         enCount++;
       }
     }
-
-    return (heCount >= enCount);
+    if (heCount == enCount) {
+      return (Sefaria.interfaceLang === 'hebrew')
+    }
+    return (heCount > enCount);
   }
   static containsHebrew(text) {
     // Returns true if there are any Hebrew characters in text
@@ -129,8 +135,14 @@ class Hebrew {
     // Base 0 int -> daf
     // e.g. 2 -> "2a"
     i += 1;
-    var daf = Math.ceil(i/2);
+    const daf = Math.ceil(i/2);
     return daf + (i%2 ? "a" : "b");
+  }
+  static intToFolio(i) {
+    i += 1;
+    const daf = Math.ceil(i/4);
+    const mod = i%4;
+    return daf + (mod === 1 ? "a" : mod === 2 ? "b" : mod === 3 ? "c" : "d");
   }
   static dafToInt(daf) {
     var amud = daf.slice(-1);
@@ -203,4 +215,4 @@ Hebrew.hebrewNumerals = {
   1200: "\u05EA\u05EA\u05EA"
 };
 
-module.exports = Hebrew;
+export default Hebrew;

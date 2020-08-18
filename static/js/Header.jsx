@@ -1,16 +1,17 @@
-const {
+import {
   ReaderNavigationMenuSearchButton,
   GlobalWarningMessage,
   TestMessage,
   ProfilePic,
-}                = require('./Misc');
-const React      = require('react');
-const PropTypes  = require('prop-types');
-const ReactDOM   = require('react-dom');
-const classNames = require('classnames');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const ReaderPanel= require('./ReaderPanel');
+  InterfaceLanguageMenu,
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import ReactDOM  from 'react-dom';
+import classNames  from 'classnames';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import ReaderPanel from './ReaderPanel';
 import Component from 'react-class';
 
 
@@ -66,10 +67,13 @@ class Header extends Component {
     $.widget( "custom.sefaria_autocomplete", $.ui.autocomplete, {
       _renderItem: function(ul, item) {
         const override = item.label.match(this._searchOverrideRegex());
+        const is_hebrew = Sefaria.hebrew.isHebrew(item.label);
         return $( "<li></li>" )
           .addClass('ui-menu-item')
           .data( "item.autocomplete", item )
           .toggleClass("search-override", !!override)
+          .toggleClass("hebrew-result", !!is_hebrew)
+          .toggleClass("english-result", !is_hebrew)
           .append(`<img alt="${item.type}" src="/static/icons/${this._type_icon_map[item.type]}">`)
           .append( $(`<a href="${this.getURLForObject(item.type, item.key)}" role='option' data-type-key="${item.type}-${item.key}"></a>` ).text( item.label ) )
           .appendTo( ul );
@@ -104,8 +108,8 @@ class Header extends Component {
         .then(d => {
           const comps = d["completion_objects"].map(o => ({
             value: `${o['title']}${o["type"] === "ref" ? "" :` (${o["type"]})`}`,
-            label: o["title"], 
-            key:   o["key"], 
+            label: o["title"],
+            key:   o["key"],
             type:  o["type"]}));
           if (comps.length > 0) {
             const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
@@ -141,15 +145,13 @@ class Header extends Component {
       this.showVirtualKeyboardIcon(false);
     }
   }
-  showDesktop() {
-    if (this.props.panelsOpen === 0) {
-      const { last_place } = Sefaria;
-      if (last_place && last_place.length) {
-        this.handleRefClick(last_place[0].ref, last_place[0].versions);
-      }
+  handleLibraryClick(e) {
+    e.preventDefault();
+    if (typeof sjs !== "undefined") {
+      window.location = "/texts";
+      return;
     }
-    this.props.setCentralState({menuOpen: null});
-    this.clearSearchBox();
+    this.showLibrary();   
   }
   showLibrary(categories) {
     this.props.showLibrary(categories);
@@ -269,22 +271,6 @@ class Header extends Component {
   clearSearchBox() {
     $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
   }
-  handleLibraryClick(e) {
-    e.preventDefault();
-    if (typeof sjs !== "undefined") {
-      window.location = "/texts";
-      return;
-    }
-    if (this.state.menuOpen === "home") {
-      return;
-    } else if (this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 && !this.state.navigationTopicCategory) {
-      this.showDesktop();
-    } else {
-      this.showLibrary();
-    }
-    $(".wrapper").remove();
-    $("#footer").remove();
-  }
   handleRefClick(ref, currVersions) {
     if (this.props.headerMode) {
       window.location.assign("/" + ref);
@@ -353,14 +339,14 @@ class Header extends Component {
                             <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses} onClick={this.showNotifications}>{this.state.notificationCount}</a>
                             <a href="/my/profile" className="my-profile" onClick={this.openMyProfile}><ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></a>
                          </div>);
-    var loggedOutLinks = (<div className="accountLinks">
+    var loggedOutLinks = (<div className="accountLinks anon">
+                          <a className="login loginLink" href={"/login" + nextParam}>
+                             <span className="int-en">Log in</span>
+                             <span className="int-he">התחבר</span>
+                           </a>
                            <a className="login signupLink" href={"/register" + nextParam}>
                              <span className="int-en">Sign up</span>
                              <span className="int-he">הרשם</span>
-                           </a>
-                           <a className="login loginLink" href={"/login" + nextParam}>
-                             <span className="int-en">Log in</span>
-                             <span className="int-he">התחבר</span>
                            </a>
                          </div>);
     // Header should not show box-shadow over panels that have color line
@@ -386,13 +372,12 @@ class Header extends Component {
                     </div>
                 </div>
                 <div className="headerHomeSection">
-                    {Sefaria._siteSettings.TORAH_SPECIFIC ?
-                      <a className="home" href="/?home" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> :
-                      null }
+                    <a className="home" href="/?home" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a>
                 </div>
                 <div className="headerLinksSection">
                   { headerMessage }
                   { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
+                  { !Sefaria.loggedIn && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
                 </div>
               </div>
               { viewContent ?
@@ -431,4 +416,4 @@ Header.propTypes = {
 };
 
 
-module.exports = Header;
+export default Header;

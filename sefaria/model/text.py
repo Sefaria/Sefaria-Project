@@ -19,7 +19,7 @@ try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
 except ImportError:
-    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/blockspeiser/Sefaria-Project/wiki/Regular-Expression-Engines")
+    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
 from . import abstract as abst
@@ -236,8 +236,6 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             for name, struct in list(self.alt_structs.items()):
                 self.struct_objs[name] = deserialize_tree(struct, index=self, struct_class=TitledTreeNode)
                 self.struct_objs[name].title_group = self.nodes.title_group
-                # Our pattern has been to validate on save, not on load
-                # self.struct_objs[name].validate()
 
     def is_complex(self):
         return getattr(self, "nodes", None) and self.nodes.has_children()
@@ -544,7 +542,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
                     if d["categories"][0] == "Talmud":
                         node.addressTypes = ["Talmud", "Integer"]
-                        if d["categories"][1] == "Bavli" and d.get("heTitle"):
+                        if d["categories"][1] == "Bavli" and d.get("heTitle") and not self.is_dependant_text():
                             node.checkFirst = {
                                 "he": "משנה" + " " + d.get("heTitle"),
                                 "en": "Mishnah " + d.get("title")
@@ -948,9 +946,10 @@ class AbstractTextRecord(object):
         accumulator = ''
 
         for segment in as_array:
+            segment = self._strip_itags(segment)
             joiner = " " if previous_state is not None else ""
             previous_state = accumulator
-            accumulator += joiner + self._strip_itags(segment)
+            accumulator += joiner + segment
 
             cur_len = len(accumulator)
             prev_len = len(previous_state)
@@ -1027,14 +1026,14 @@ class AbstractTextRecord(object):
     @staticmethod
     def _find_itags(tag):
         if isinstance(tag, Tag):
-            is_footnote = tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and tag.next_sibling.get('class', '') == 'footnote'
+            is_footnote = tag.name == "sup" and isinstance(tag.next_sibling, Tag) and tag.next_sibling.name == "i" and 'footnote' in tag.next_sibling.get('class', '')
             is_inline_commentator = tag.name == "i" and len(tag.get('data-commentator', '')) > 0
             return is_footnote or is_inline_commentator
         return False
 
     @staticmethod
     def _strip_itags(s):
-        soup = BeautifulSoup("<div>{}</div>".format(s), 'xml')
+        soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
         itag_list = soup.find_all(AbstractTextRecord._find_itags)
         for itag in itag_list:
             try:
@@ -1042,7 +1041,7 @@ class AbstractTextRecord(object):
             except AttributeError:
                 pass  # it's an inline commentator
             itag.decompose()
-        return soup.encode_contents().decode()[5:-6]  # remove divs added
+        return soup.root.encode_contents().decode()  # remove divs added
 
     def _get_text_after_modifications(self, text_modification_funcs):
         """
@@ -1104,6 +1103,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "versionNotesInHebrew",  # stores VersionNotes in Hebrew
         "extendedNotes",
         "extendedNotesHebrew",
+        "purchaseInformationImage",
+        "purchaseInformationURL"
     ]
 
     def __str__(self):
@@ -1118,7 +1119,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         Old style database text record have a field called 'chapter'
         Version records in the wild have a field called 'text', and not always a field called 'chapter'
         """
-        assert self.get_index() is not None
+        if self.get_index() is None:
+            raise InputError("Versions cannot be created for non existing Index records")
         return True
 
     def _normalize(self):
@@ -2751,7 +2753,13 @@ class Ref(object, metaclass=RefCacheType):
 
     def all_segment_refs(self):
         supported_classes = (JaggedArrayNode, DictionaryEntryNode, SheetNode)
-        assert isinstance(self.index_node, supported_classes)
+        assert self.index_node is not None
+        if not isinstance(self.index_node, supported_classes):
+            # search for default node child
+            for child in self.index_node.children:
+                if child.is_default():
+                    return child.ref().all_segment_refs()
+            assert isinstance(self.index_node, supported_classes)
 
         if self.is_range():
             input_refs = self.range_list()
@@ -3603,53 +3611,51 @@ class Ref(object, metaclass=RefCacheType):
             [Ref('Shabbat 13b:3-50'), Ref('Shabbat 14a'), Ref('Shabbat 14b:1-3')]
 
         """
-        if not self._spanned_refs or True:
+        if self.index_node.depth == 1 or not self.is_spanning():
+            self._spanned_refs = [self]
 
-            if self.index_node.depth == 1 or not self.is_spanning():
-                self._spanned_refs = [self]
+        else:
+            start, end = self.sections[self.range_index()], self.toSections[self.range_index()]
+            ref_depth = len(self.sections)
+            to_ref_depth = len(self.toSections)
 
-            else:
-                start, end = self.sections[self.range_index()], self.toSections[self.range_index()]
-                ref_depth = len(self.sections)
-                to_ref_depth = len(self.toSections)
+            refs = []
+            for n in range(start, end + 1):
+                d = self._core_dict()
+                if n == start:
+                    d["toSections"] = self.sections[0:self.range_index() + 1]
 
-                refs = []
-                for n in range(start, end + 1):
-                    d = self._core_dict()
-                    if n == start:
-                        d["toSections"] = self.sections[0:self.range_index() + 1]
+                    for i in range(self.range_index() + 1, ref_depth):
+                        d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]],until_last_nonempty=True)]
+                elif n == end:
+                    d["sections"] = self.toSections[0:self.range_index() + 1]
+                    for _ in range(self.range_index() + 1, to_ref_depth):
+                        d["sections"] += [1]
+                else:
+                    d["sections"] = self.sections[0:self.range_index()] + [n]
+                    d["toSections"] = self.sections[0:self.range_index()] + [n]
 
+                    '''  If we find that we need to expand inner refs, add this arg.
+                    # It will require handling on cached ref and passing on the recursive call below.
+                    if expand_middle:
                         for i in range(self.range_index() + 1, ref_depth):
-                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]],until_last_nonempty=True)]
-                    elif n == end:
-                        d["sections"] = self.toSections[0:self.range_index() + 1]
-                        for _ in range(self.range_index() + 1, to_ref_depth):
                             d["sections"] += [1]
-                    else:
-                        d["sections"] = self.sections[0:self.range_index()] + [n]
-                        d["toSections"] = self.sections[0:self.range_index()] + [n]
+                            d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
+                    '''
 
-                        '''  If we find that we need to expand inner refs, add this arg.
-                        # It will require handling on cached ref and passing on the recursive call below.
-                        if expand_middle:
-                            for i in range(self.range_index() + 1, ref_depth):
-                                d["sections"] += [1]
-                                d["toSections"] += [self.get_state_ja().sub_array_length([s - 1 for s in d["toSections"][0:i]])]
-                        '''
+                if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
+                    try:
+                        refs.append(Ref(_obj=d))
+                    except InputError:
+                        pass
 
-                    if d["toSections"][-1]:  # to filter out, e.g. non-existant Rashi's, where the last index is 0
-                        try:
-                            refs.append(Ref(_obj=d))
-                        except InputError:
-                            pass
-
-                if self.range_depth() == 2:
-                    self._spanned_refs = refs
-                if self.range_depth() > 2: #recurse
-                    expanded_refs = []
-                    for ref in refs:
-                        expanded_refs.extend(ref.split_spanning_ref())
-                    self._spanned_refs = expanded_refs
+            if self.range_depth() == 2:
+                self._spanned_refs = refs
+            if self.range_depth() > 2: #recurse
+                expanded_refs = []
+                for ref in refs:
+                    expanded_refs.extend(ref.split_spanning_ref())
+                self._spanned_refs = expanded_refs
 
         return self._spanned_refs
 
@@ -3728,40 +3734,78 @@ class Ref(object, metaclass=RefCacheType):
         ref_clauses = [{"refs": {"$regex": r}} for r in reg_list]
         return {"$or": ref_clauses}
 
+    def get_padded_sections(self, section_end=None):
+        """
+        pad sections and toSections to index_node.depth.
+        In the case of toSections, pad with section_end, a placeholder for the end of the section
+        """
+        sections, toSections = self.sections[:], self.toSections[:]
+        for _ in range(self.index_node.depth - len(sections)):
+            sections += [1]
+        for _ in range(self.index_node.depth - len(toSections)):
+            toSections += [section_end]
+        return sections, toSections
 
     """ Comparisons """
-    def overlaps(self, other):
+    def contains(self, other):
         """
-        Does this Ref overlap ``other`` Ref?
+        Does this Ref completely contain ``other`` Ref?
+        See NOTE in Ref.overlaps for conditions when this function runs optimally
 
         :param other:
         :return bool:
         """
-        assert isinstance(other, Ref)
-        if not self.index_node == other.index_node:
-            return False
+        return self.overlaps(other, strictly_contains=True)
 
-        return not (self.precedes(other) or self.follows(other))
-
-    def contains(self, other):
+    def overlaps(self, other, strictly_contains=False):
         """
-        Does this Ref completely contain ``other`` Ref?
+        Does this Ref overlap ``other`` Ref?
+        NOTE: Can run without database lookups as long as either
+        - other is segment level
+        - self is defined to the same section depth as other (e.g. both are section-level)
 
-        :param other:
+        Otherwise, will need to use `Ref.as_ranged_segment_ref()` to accurately determine if there's an overlap
+
+        :param other: Ref
+        :param strictly_contains: bool. If true, checks that self fully contains other
         :return bool:
         """
         assert isinstance(other, Ref)
         if not self.index_node == other.index_node:
             return self.index_node.is_ancestor_of(other.index_node)
+        
+        SECTION_END = None
+        me_start, me_end = self.get_padded_sections(SECTION_END)
+        you_start, you_end = other.get_padded_sections(SECTION_END)
 
-        me = self.as_ranged_segment_ref()
-        you = other.as_ranged_segment_ref()
-
-        return (
-            (not me.starting_ref().follows(you.starting_ref()))
-            and
-            (not me.ending_ref().precedes(you.ending_ref()))
-        )
+        ambiguous_end = any(temp_you_end is SECTION_END and temp_me_end is not SECTION_END for temp_you_end, temp_me_end in zip(you_end, me_end))
+        if ambiguous_end:
+            # We can't know where the exact end of the toSection is without pulling up the refs
+            me = self.as_ranged_segment_ref()
+            you = other.as_ranged_segment_ref()
+            if strictly_contains:
+                return not (you.starting_ref().precedes(me.starting_ref()) or you.ending_ref().follows(me.ending_ref()))
+            return not (you.ending_ref().precedes(me.starting_ref()) or you.starting_ref().follows(me.ending_ref()))
+        
+        # Otherwise, we can optimize and simply compare sections and toSections mathematically
+        before_me_start, after_me_end = False, False
+        for me_section, you_section in zip(me_start, you_start if strictly_contains else you_end):
+            if you_section is SECTION_END or me_section < you_section:
+                # already contained from this section and on
+                before_me_start = False
+                break
+            if you_section < me_section:
+                before_me_start = True
+                break
+        for me_toSection, you_toSection in zip(me_end, you_end if strictly_contains else you_start):
+            if me_toSection is SECTION_END or me_toSection > you_toSection:
+                # already contained from this section and on
+                after_me_end = False
+                break
+            if you_toSection > me_toSection:
+                after_me_end = True
+                break
+        return not (before_me_start or after_me_end)
 
     def precedes(self, other):
         """
@@ -4036,7 +4080,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         fields = ["versionTitle", "versionSource", "language", "status", "license", "versionNotes",
                   "digitizedBySefaria", "priority", "versionTitleInHebrew", "versionNotesInHebrew", "extendedNotes",
-                  "extendedNotesHebrew"]
+                  "extendedNotesHebrew", "purchaseInformationImage", "purchaseInformationURL"]
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
@@ -4201,6 +4245,11 @@ class Ref(object, metaclass=RefCacheType):
         from . import LinkSet
         return LinkSet(self)
 
+    def topiclinkset(self):
+        from . import RefTopicLinkSet
+        regex_list = self.regex(as_list=True)
+        return RefTopicLinkSet({"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]})
+
     def autolinker(self, **kwargs):
         """
         Returns the class best suited to perform auto linking,
@@ -4236,6 +4285,57 @@ class Ref(object, metaclass=RefCacheType):
             return -1
         else:
             return distance
+
+    def get_all_anchor_refs(self, expanded_self, document_tref_list, document_tref_expanded):
+        """
+        Return all refs in document_ref_list that overlap with self. These are your anchor_refs. Useful for related API.
+        :param list(str): expanded_self. precalculated list of segment trefs for self
+        :param list(str): document_tref_list. list of trefs to from document in which you want to find archor refs
+        :param list(Ref): document_tref_expanded. unique list of trefs that results from running Ref.expand_refs(document_tref_list)
+        Returns tuple(list(Ref), list(list(Ref))). returns two lists. First are the anchor_refs for self. The second is a 2D list, where the inner list represents the expanded anchor refs for the corresponding position in anchor_ref_list
+        """
+
+        # narrow down search space to avoid excissive Ref instantiation
+        unique_anchor_ref_expanded_set = set(expanded_self) & set(document_tref_expanded)
+        document_tref_list = [tref for tref in document_tref_list if tref.startswith(self.index.title)]
+
+        unique_anchor_ref_expanded_list = []
+        for tref in unique_anchor_ref_expanded_set:
+            try:
+                oref = Ref(tref)
+                unique_anchor_ref_expanded_list += [oref]
+            except InputError:
+                continue
+        document_oref_list = []
+        for tref in document_tref_list:
+            try:
+                oref = Ref(tref)
+                document_oref_list += [oref]
+            except InputError:
+                continue
+        anchor_ref_list = list(filter(lambda document_ref: self.overlaps(document_ref), document_oref_list))
+        anchor_ref_expanded_list = [list(filter(lambda document_segment_ref: anchor_ref.overlaps(document_segment_ref), unique_anchor_ref_expanded_list)) for anchor_ref in anchor_ref_list]
+        return anchor_ref_list, anchor_ref_expanded_list
+
+    @staticmethod
+    def expand_refs(refs):
+        """
+        Expands `refs` into list of unique segment refs. Usually used to preprocess database objects that reference refs
+        :param refs: list of trefs to expand
+        :return: list(trefs). unique segment refs derived from `refs`
+        """
+
+        expanded_set = set()
+        for tref in refs:
+            try:
+                oref = Ref(tref)
+            except InputError:
+                continue
+            try:
+                expanded_set |= {r.normal() for r in oref.all_segment_refs()}
+            except AssertionError:
+                continue
+        return list(expanded_set)
 
 
 class Library(object):
@@ -5072,13 +5172,12 @@ class Library(object):
             return full_regex
 
     # do we want to move this to the schema node? We'd still have to pass the title...
-    def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False):
+    def get_regex_string(self, title, lang, for_js=False, anchored=False, capture_title=False, parentheses=False):
         node = self.get_schema_node(title, lang)
         assert isinstance(node, JaggedArrayNode)  # Assumes that node is a JaggedArrayNode
 
-        if lang == "en" or for_js:  # Javascript doesn't support look behinds.
-            return node.full_regex(title, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=capture_title)
-
+        if lang == "en" or for_js:
+            return node.full_regex(title, lang, for_js=for_js, match_range=True, compiled=False, anchored=anchored, capture_title=capture_title, parentheses=parentheses)
         elif lang == "he":
             return r"""(?<=							# look behind for opening brace
                     [({]										# literal '(', brace,
@@ -5324,6 +5423,7 @@ def process_index_title_change_in_sheets(indx, **kwargs):
     sheets = db.sheets.find(query)
     for sheet in sheets:
         sheet["includedRefs"] = [r.replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), r) else r for r in sheet.get("includedRefs", [])]
+        sheet["expandedRefs"] = Ref.expand_refs(sheet["includedRefs"])
         for source in sheet.get("sources", []):
             if "ref" in source:
                 source["ref"] = source["ref"].replace(kwargs["old"], kwargs["new"], 1) if re.search('|'.join(regex_list), source["ref"]) else source["ref"]

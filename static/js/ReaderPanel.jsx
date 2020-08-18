@@ -1,38 +1,38 @@
-const React      = require('react');
-const classNames = require('classnames');
-const ReactDOM   = require('react-dom');
-const PropTypes  = require('prop-types');
-const extend     = require('extend');
-const Sefaria    = require('./sefaria/sefaria');
-const $          = require('./sefaria/sefariaJquery');
-const TextColumn = require('./TextColumn');
-const ReaderNavigationMenu      = require('./ReaderNavigationMenu');
-const {
+import React  from 'react';
+import classNames  from 'classnames';
+import ReactDOM  from 'react-dom';
+import PropTypes  from 'prop-types';
+import extend  from 'extend';
+import Sefaria  from './sefaria/sefaria';
+import $  from './sefaria/sefariaJquery';
+import TextColumn  from './TextColumn';
+import ReaderNavigationMenu  from './ReaderNavigationMenu';
+import {
   ConnectionsPanel,
   ConnectionsPanelHeader,
-}                               = require('./ConnectionsPanel');
-const ReaderTextTableOfContents = require('./ReaderTextTableOfContents');
-const SearchPage                = require('./SearchPage');
-const SheetsNav                 = require('./SheetsNav');
-const Sheet                     = require('./Sheet');
-const SheetMetadata             = require('./SheetMetadata');
-const TopicPageAll              = require('./TopicPageAll');
-const {TopicPage}               = require('./TopicPage');
-const AccountPanel              = require('./AccountPanel');
-const NotificationsPanel        = require('./NotificationsPanel');
-const MyNotesPanel              = require('./MyNotesPanel');
-const UserHistoryPanel          = require('./UserHistoryPanel');
-const UserProfile               = require('./UserProfile');
-const UpdatesPanel              = require('./UpdatesPanel');
-const HomeFeed                  = require('./HomeFeed');
-const StoryEditor               = require('./StoryEditor');
-const UserStats                 = require('./UserStats');
-const ModeratorToolsPanel       = require('./ModeratorToolsPanel');
-const {
+} from './ConnectionsPanel';
+import ReaderTextTableOfContents  from './ReaderTextTableOfContents';
+import SearchPage  from './SearchPage';
+import SheetsNav  from './SheetsNav';
+import Sheet  from './Sheet';
+import SheetMetadata  from './SheetMetadata';
+import TopicPageAll  from './TopicPageAll';
+import {TopicPage}  from './TopicPage';
+import AccountPanel  from './AccountPanel';
+import NotificationsPanel  from './NotificationsPanel';
+import MyNotesPanel  from './MyNotesPanel';
+import UserHistoryPanel  from './UserHistoryPanel';
+import UserProfile  from './UserProfile';
+import UpdatesPanel  from './UpdatesPanel';
+import HomeFeed  from './HomeFeed';
+import StoryEditor  from './StoryEditor';
+import UserStats  from './UserStats';
+import ModeratorToolsPanel  from './ModeratorToolsPanel';
+import {
   MyGroupsPanel,
   PublicGroupsPanel
-}                               = require('./MyGroupsPanel');
-const {
+} from './MyGroupsPanel';
+import {
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuDisplaySettingsButton,
@@ -40,7 +40,7 @@ const {
   CategoryColorLine,
   CategoryAttribution,
   ToggleSet,
-}                                = require('./Misc');
+} from './Misc';
 import Component from 'react-class';
 
 
@@ -89,6 +89,7 @@ class ReaderPanel extends Component {
       sheetsGroup:          props.initialGroup || null,
       sheet:                props.sheet || null,
       sheetID:              null,
+      editSheet:            false,
       searchQuery:          props.initialQuery || null,
       searchTab:            props.initialSearchTab || "text",
       topicsTab:            props.initialTopicsTab || "sources",
@@ -344,6 +345,22 @@ class ReaderPanel extends Component {
       settings: this.state.settings
     });
   }
+
+  toggleSheetEditMode(buttonstate) {
+      if (buttonstate == true) {
+          this.conditionalSetState({
+              editSheet: false
+          })
+      } else {
+          this.conditionalSetState({
+              editSheet: true
+          })
+          if (this.props.hasSidebar) {
+            this.props.closeConnectionPanel(this.props.panelPosition)
+          }
+      }
+
+  }
   updateTextColumn(refs) {
     // Change the refs in the current TextColumn, for infinite scroll up/down.
     this.replaceHistory = true;
@@ -461,7 +478,7 @@ class ReaderPanel extends Component {
         this.state.recentVersionFilters = [filter].concat(this.state.recentVersionFilters);
       }
       filter = filter ? [filter] : [];
-      this.conditionalSetState({recentVersionFilters: this.state.recentVersionFilters, versionFilter: filter, connectionsMode: "Version Open"});
+      this.conditionalSetState({recentVersionFilters: this.state.recentVersionFilters, versionFilter: filter, connectionsMode: "Translation Open"});
     }
   }
   setWebPagesFilter(filter) {
@@ -516,7 +533,7 @@ class ReaderPanel extends Component {
     }
     this.conditionalSetState(state);
   }
-  setConnectionsMode(mode) {
+  setConnectionsMode(mode, connectionData = null) {
     var loginRequired = {
       "Add Connection": 1,
     };
@@ -532,6 +549,9 @@ class ReaderPanel extends Component {
     var state = {connectionsMode: mode};
     if (mode === "Resources") {
       this.setFilter();
+    }
+    if (!!connectionData){
+      state["connectionData"] = connectionData;
     }
     this.conditionalSetState(state);
   }
@@ -638,9 +658,16 @@ class ReaderPanel extends Component {
     let contentLangOverride = null;
 
     if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
-      items.push(<Sheet
+      if (this.state.sheet.editor) {
+        let newSheet = this.state.sheet;
+        delete newSheet.editor
+        this.conditionalSetState({ sheet: newSheet});
+        this.toggleSheetEditMode(false)
+      }
+        items.push(<Sheet
           panelPosition ={this.props.panelPosition}
           id={this.state.sheet.id}
+          editor={this.state.editSheet}
           key={"sheet-"+this.state.sheet.id}
           highlightedNodes={this.state.highlightedNodes}
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
@@ -708,6 +735,7 @@ class ReaderPanel extends Component {
           mode={this.state.connectionsMode || "Resources"}
           recentFilters={this.state.recentFilters}
           connectionsCategory={this.state.connectionsCategory}
+          connectionData={this.state.connectionData}
           interfaceLang={this.props.interfaceLang}
           contentLang={this.state.settings.language}
           title={this.currentBook()}
@@ -715,7 +743,6 @@ class ReaderPanel extends Component {
           fullPanel={this.props.multiPanel}
           multiPanel={this.props.multiPanel}
           allOpenRefs={this.props.allOpenRefs}
-          addToSourceSheet={this.props.addToSourceSheet}
           canEditText={canEditText}
           setFilter={this.setFilter}
           toggleSignUpModal={this.props.toggleSignUpModal}
@@ -1062,6 +1089,8 @@ class ReaderPanel extends Component {
         (<ReaderControls
           showBaseText={this.showBaseText}
           sheet={this.state.sheet}
+          toggleSheetEditMode={this.toggleSheetEditMode}
+          editSheet={this.state.editSheet}
           currentRef={this.state.currentlyVisibleRef}
           highlightedRef={(!!this.state.highlightedRefs && this.state.highlightedRefs.length) ? Sefaria.normRef(this.state.highlightedRefs) : null}
           currentMode={this.currentMode.bind(this)}
@@ -1157,7 +1186,6 @@ ReaderPanel.propTypes = {
   searchInGroup:               PropTypes.func,
   openComparePanel:            PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
-  addToSourceSheet:            PropTypes.func,
   highlightedRefs:             PropTypes.array,
   hideNavHeader:               PropTypes.bool,
   multiPanel:                  PropTypes.bool,
@@ -1222,6 +1250,10 @@ class ReaderControls extends Component {
     if (this.props.sheet) {
       title = this.props.sheet.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ');
       heTitle = title;
+      if (title == "") {
+        title = "Untitled";
+        heTitle = "ללא שם";
+      }
     } else if (oref) {
       var sectionString = oref.ref.replace(oref.indexTitle, "");
       var heSectionString = oref.heRef.replace(oref.heIndexTitle, "");
@@ -1274,6 +1306,13 @@ class ReaderControls extends Component {
         </div>);
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
+          {this.props.sheet && Sefaria._uid == this.props.sheet.owner && document.cookie.includes("new_editor") ?
+              <button id="sheetEditToggle" onClick={() => this.props.toggleSheetEditMode(this.props.editSheet)}>
+                {this.props.editSheet == true ? <img src={"/static/icons/iconmonstr-eye-4.svg"} alt="Eye icon" />:<img src={"/static/icons/iconmonstr-pencil-2.svg"} alt="Pencil icon" />}
+                <span className="int-en">{this.props.editSheet == true ? "View" : "Edit"}</span>
+                <span className="int-he">{this.props.editSheet == true ? "צפייה" : "עריכה"}</span> 
+              </button>
+            : null }
           <SaveButton
             historyObject={this.props.historyObject}
             tooltip={true}
@@ -1515,4 +1554,4 @@ ReaderDisplayOptionsMenu.propTypes = {
 };
 
 
-module.exports = ReaderPanel;
+export default ReaderPanel;

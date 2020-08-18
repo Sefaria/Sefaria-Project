@@ -1,13 +1,13 @@
-const {
+import {
   LoadingMessage
-}                = require('./Misc');
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
-const TextRange  = require('./TextRange');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
+} from './Misc';
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
+import TextRange  from './TextRange';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
 
 
@@ -74,17 +74,19 @@ class TextColumn extends Component {
     this.adjustInfiniteScroll();
   }
   handleTextSelection() {
-    var selection = window.getSelection();
-
+    const selection = window.getSelection();
     if (selection.type === "Range") {
       //console.log("handling range");
-      var $start    = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
-      var $end      = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
-      var $segments = $(ReactDOM.findDOMNode(this)).find(".segment");
-      var start     = $segments.index($start);
-      var end       = $segments.index($end);
-      var $segments = $segments.slice(start, end+1);
-      var refs      = [];
+      const $start    = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
+      const $end      = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
+      let $segments = $(ReactDOM.findDOMNode(this)).find(".segment");
+      let start     = $segments.index($start);
+      let end       = $segments.index($end);
+      //if one of the endpoints isn't actually in a segment node (for example its in a title), adjust selection endpoints
+      start = start == -1 ? end : start;
+      end = end == -1 ? start : end;
+      $segments = $segments.slice(start, end+1);
+      let refs      = [];
 
       $segments.each(function() {
         refs.push($(this).attr("data-ref"));
@@ -94,7 +96,8 @@ class TextColumn extends Component {
       //console.log(refs);
       this.props.setTextListHighlight(refs);
     }
-    var selectedWords = selection.toString();
+    //const selectedWords = selection.toString(); //this doesnt work in Chrome, as it does not skip elements marked with css `user-select: none` as it should.
+    const selectedWords = Sefaria.util.getNormalizedSelectionString(); //this gets around the above issue
     if (selectedWords !== this.props.selectedWords) {
       //console.log("setting selecting words")
       this.props.setSelectedWords(selectedWords);
@@ -370,4 +373,4 @@ TextColumn.propTypes = {
 };
 
 
-module.exports = TextColumn;
+export default TextColumn;

@@ -1,7 +1,7 @@
-const d3 = require('d3'),
- Sefaria = require('sefaria'),
- SefariaD3 = require("./sefaria-d3/sefaria-d3"),
- $ = require("./sefaria/sefariaJquery");
+import d3  from 'd3';
+import Sefaria  from 'sefaria';
+import SefariaD3  from "./sefaria-d3/sefaria-d3";
+import $  from "./sefaria/sefariaJquery";
 
 /*****          Layout              *****/
 const margin = [30, 40, 20, 40];
@@ -87,7 +87,7 @@ $.when(b, t).then(function() {
 /*****         Methods used in screen construction      *****/
 
 function buildScreen(openBooks, colorScheme) {
-    
+
     buildFrame();
     buildBookCollection(topBooks, topCat, "top", topOffsetY, 10);
     buildBookCollection(bottomBooks, bottomCat, "bottom", bottomOffsetY, 0);
@@ -352,7 +352,7 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
                 .attr("cx", function(d) { d["base_cx"] = Number(this.getAttribute("x")) + Number(this.getAttribute("width")) / 2; return d["base_cx"]; })
                 .attr("cy", function(d) {  return Number(this.getAttribute("y")) + cnxOffset; })
                 .attr("section", function(d) { return toId(d["section"]) })
-                .attr("color", function(d) { 
+                .attr("color", function(d) {
                     var cat = position == "top" ? topCat : bottomCat;
                     if (categories[cat].colorByBook) {
                         return colors(d.id);
@@ -366,7 +366,7 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
                 .on("click", recordOpenBook);
 
     svg.selectAll("#" + klass + "-collection .book")
-            .on("mouseover.tooltip", function() { 
+            .on("mouseover.tooltip", function() {
                 bookTooltip.style("display", null); })
             .on("mouseout.tooltip", function() { bookTooltip.style("display", "none"); })
             .on("mousemove.tooltip", function(d) {
@@ -374,7 +374,7 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
               var yPosition = d3.mouse(this)[1] - 35;
               bookTooltip.select("text").text(isEnglish() ? d.book : d.heBook);
               var bbox = bookTooltip.select("text").node().getBBox();
-              bookTooltip.select("rect").attr("width", bbox.width + 30); 
+              bookTooltip.select("rect").attr("width", bbox.width + 30);
               bookTooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
             });
 
@@ -384,7 +384,7 @@ function buildBookCollection(books, klass, position, offset, cnxOffset) {
 function buildBookLabels(bks, klass, position) {
 
     var cat = position == "top" ? topCat : bottomCat;
-    
+
     if (categories[cat].labelBySection) {
         buildBookLabelsBySection(bks, klass, position);
         return;
@@ -510,7 +510,7 @@ function addAxis(d) {
     var orient = d.position;
     var ticks, y;
 
-    var y = orient == "top" ? topOffsetY + 5 : bottomOffsetY + 5;    
+    var y = orient == "top" ? topOffsetY + 5 : bottomOffsetY + 5;
 
     if(categories[d.collection].talmudAddressed) {
         ticks = SefariaD3.talmudRefTicks(d);
@@ -523,7 +523,7 @@ function addAxis(d) {
     d.s = SefariaD3.scaleNormalizationFunction(d.scale);
 
     d.axis = d3.svg.axis()
-        .orient(orient) 
+        .orient(orient)
         .scale(d.scale)
         .tickValues(ticks)
         .tickFormat(ref => ref.split(/(\d.*)/)[1]); // Only show numerical portion of ref in ticks
@@ -687,8 +687,8 @@ function buildBookLinks() {
               if (isHebrew()) {
                 tooltip.selectAll("text").attr("x", width + 15);
                 xPosition -= width;
-              } 
-              tooltip.select("rect").attr("width", width + 30); 
+              }
+              tooltip.select("rect").attr("width", width + 30);
               tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
           });
     }
@@ -939,8 +939,8 @@ function processPreciseLinks(dBook) {
         }
 
         var preciseLinks = plinks.selectAll("a.preciseLinkA")
-            .data(json, function(d) { 
-                return d["r1"]["title"] + "-" + d["r1"]["loc"] + "-" + d["r2"]["title"] + "-" + d["r2"]["loc"]; 
+            .data(json, function(d) {
+                return d["r1"]["title"] + "-" + d["r1"]["loc"] + "-" + d["r2"]["title"] + "-" + d["r2"]["loc"];
             });
 
         //enter
@@ -976,7 +976,7 @@ function processPreciseLinks(dBook) {
                     if (isHebrew()) {
                         tooltip.selectAll("text").attr("x", width + 15);
                         xPosition -= width;
-                    } 
+                    }
                     tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
                 });
 
@@ -1043,7 +1043,7 @@ function mouseout_plink(d) {
 function selectBook(book) {
     // selects a book by ID, accounting for encoding CSS friendly characters
     return svg.select("#" + toId(book));
-} 
+}
 
 function isBookOnTop(book) {
     // returns true if `book` belongs to the collection of books on top
