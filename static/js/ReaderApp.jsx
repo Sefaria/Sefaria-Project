@@ -1073,13 +1073,18 @@ class ReaderApp extends Component {
       return;
     }
     let path = el.getAttribute('href');
+    const handled = this.openURL(path);
+    if (handled) {
+      e.preventDefault();
+    }
+  }
+  openURL(path) {
+    // Attempts to open `path` in app, return true if successful.
     // TODO: Handle links with URL params
     if (path.indexOf("?") !== -1) {
-      return;
-    }
-    
-    let handled = true;
-    if (path == "/texts") {
+      return false;
+
+    } else if (path == "/texts") {
       this.showLibrary();
 
     } else if (path.match(/\/texts\/.+/)) {
@@ -1109,7 +1114,7 @@ class ReaderApp extends Component {
     } else if (path.match(/\/sheets\/\d+/)) {
       this.openPanel("Sheet " + path.slice(8));
 
-    } else if (path.match(/\/topics\/\[^\/]+/)) {
+    } else if (path.match(/\/topics\/[^\/]+/)) {
       this.openTopic(path.slice(8));
 
     } else if (path.match(/\/profile\/.+/)) {
@@ -1122,11 +1127,9 @@ class ReaderApp extends Component {
       this.openPanel(Sefaria.humanRef(path.slice(1)));
 
     } else {
-      handled = false;
+      return false
     }
-    if (handled) {
-      e.preventDefault();
-    }
+    return true;
   }
   _getStateAndSetStateForHeaderPanelFuncs(n) {
     // helper func to avoid code duplication in funcs of type `updateXInHeader` / `updateXInPanel`
@@ -1696,8 +1699,9 @@ class ReaderApp extends Component {
     }
   }
   openTopic(slug) {
+    console.log(slug);
     Sefaria.getTopic(slug).then(topic => {
-      this.setStateInHeaderOrSinglePanel({ menuOpen: "topics", navigationTopic: slug });
+      this.setStateInHeaderOrSinglePanel({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle });
     });
   }
   openProfile(slug) {
@@ -1800,6 +1804,7 @@ class ReaderApp extends Component {
                     showLibrary={this.showLibrary}
                     showSearch={this.showSearch}
                     searchInGroup={this.searchInGroup}
+                    openURL={this.openURL}
                     onQueryChange={this.updateQueryInHeader}
                     updateSearchTab={this.updateSearchTabInHeader}
                     updateTopicsTab={this.updateTopicsTabInHeader}

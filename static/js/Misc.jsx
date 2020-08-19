@@ -279,9 +279,11 @@ const FilterableList = ({
 
   const dataUpToPage = usePaginatedDisplay(scrollableElement, displayData, pageSize, bottomMargin, initialRenderSize || pageSize);
   
-  useEffect(() => {
-    onDisplayedDataChange(dataUpToPage);
-  }, [dataUpToPage]);
+  if (onDisplayedDataChange) {
+    useEffect(() => {
+      onDisplayedDataChange(dataUpToPage);
+    }, [dataUpToPage]);
+  }
 
   const onSortChange = newSortOption => {
     if (newSortOption === sortOption) { return; }

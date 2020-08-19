@@ -664,8 +664,6 @@ class CheckGraphs(AtomicTest):
         assert self.get_object_by_id('Nehemiah').is_displayed()
         assert self.get_object_by_id('I-Chronicles').is_displayed()
         assert self.get_object_by_id('II-Chronicles').is_displayed()
-
-
         assert self.get_object_by_id('Berakhot').is_displayed()
         assert float(self.get_object_by_id('Berakhot').get_attribute('cx')) < float(self.get_object_by_id('Shabbat').get_attribute('cx'))
         assert self.get_object_by_id('Shabbat').is_displayed()
@@ -1061,7 +1059,7 @@ class SpecialCasedSearchBarNavigations(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(title_contains("Yosef Giqatillah"))
         self.type_in_search_box("Midrash")
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerNavCategoryMenu")))
-
+        
         self.type_in_search_box("שבת")
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerTextTableOfContents")))
         self.type_in_search_box("שבת י״ד")

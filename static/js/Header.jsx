@@ -186,31 +186,14 @@ class Header extends Component {
       return `/${key.replace(/ /g, '_')}`;
     }
   }
-  showObject(type, key) {
-    window.location = this.getURLForObject(type, key);
-  }
   redirectToObject(type, key) {
-      if (type === "Person") {
-        Sefaria.track.event("Search", "Search Box Navigation - Person", key);
-        this.closeSearchAutocomplete();
-        this.showObject(type, key);
-      } else if (type === "Group") {
-        Sefaria.track.event("Search", "Search Box Navigation - Group", key);
-        this.closeSearchAutocomplete();
-        this.showObject(type, key);
-      } else if (type === "TocCategory") {
-        Sefaria.track.event("Search", "Search Box Navigation - Category", key);
-        this.closeSearchAutocomplete();
-        this.showLibrary(key);  // "key" holds the category path
-      } else if (type === "Topic") {
-        Sefaria.track.event("Search", "Search Box Navigation - Topic", key);
-        this.closeSearchAutocomplete();
-        this.showObject(type, key);
-      } else if (type === "ref") {
-        Sefaria.track.event("Search", "Search Box Navigation - Book", key);
-        this.closeSearchAutocomplete();
-        this.clearSearchBox();
-        this.handleRefClick(key);
+      Sefaria.track.event("Search", `Search Box Navigation - ${type}`, key);
+      this.closeSearchAutocomplete();
+      this.clearSearchBox();
+      const url = this.getURLForObject(type, key);
+      const handled = this.props.openURL(url);
+      if (!handled) {
+        window.location = url;
       }
   }
   submitSearch(query) {

@@ -1,4 +1,3 @@
-
 import {
   TwoOrThreeBox,
   BlockLink,
@@ -7,6 +6,7 @@ import {
 import React from 'react';
 import PropTypes from 'prop-types';
 import classNames from 'classnames';
+import Sefaria  from './sefaria/sefaria';
 import Footer from './Footer';
 import $ from './sefaria/sefariaJquery';
 import Component from 'react-class';
