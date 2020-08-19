@@ -1410,9 +1410,10 @@ Sefaria = extend(Sefaria, {
     if (!data || "error" in data) { return []; }
     var segments  = [];
     var highlight = data.sections.length === data.textDepth;
-    var wrap = (typeof data.text == "string");
-    var en = wrap ? [data.text] : data.text;
-    var he = wrap ? [data.he] : data.he;
+    var wrapEn = (typeof data.text == "string");
+    var wrapHe = (typeof data.he == "string");
+    var en = wrapEn ? [data.text] : data.text;
+    var he = wrapHe ? [data.he] : data.he;
     var topLength = Math.max(en.length, he.length);
     en = en.pad(topLength, "");
     he = he.pad(topLength, "");

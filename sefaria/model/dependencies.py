@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, translation_request, timeperiod, person, garden, notification, story, group, library, category, ref_data, user_profile
+from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, person, garden, notification, story, group, library, category, ref_data, user_profile
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -36,7 +36,6 @@ subscribe(version_state.process_index_delete_in_version_state,          text.Ind
 subscribe(link.process_index_delete_in_links,                           text.Index, "delete")
 subscribe(note.process_index_delete_in_notes,                           text.Index, "delete")
 subscribe(text.process_index_delete_in_versions,                        text.Index, "delete")
-subscribe(translation_request.process_index_delete_in_translation_requests, text.Index, "delete")
 subscribe(text.process_index_delete_in_toc,                             text.Index, "delete")
 subscribe(cascade_delete(notification.GlobalNotificationSet, "content.index", "title"),   text.Index, "delete")
 subscribe(ref_data.process_index_delete_in_ref_data,                    text.Index, "delete")
@@ -81,8 +80,6 @@ Notes on where Terms are used
 Index (alt structs and schema)
 Category
 """
-# Version State Save
-subscribe(translation_request.process_version_state_change_in_translation_requests, version_state.VersionState, "save")
 
 # Time
 subscribe(cascade(person.PersonSet, "era"),                                timeperiod.TimePeriod, "attributeChange", "symbol")
