@@ -329,45 +329,6 @@ class AbstractTest(object):
     def click_start_a_sheet(self):
         self.click_object_by_css_selector('#homeSheets > div > div.textBox > a:nth-child(3) > div > span.int-en')
 
-    def click_commentary_on_sidebar(self):
-        self.click_sidebar_entry('Commentary')
-
-    def click_tanakh_on_sidebar(self):
-        self.click_sidebar_entry('Tanakh')
-
-    def click_targum_on_sidebar(self):
-        self.click_sidebar_entry('Targum')
-
-    def click_mishnah_on_sidebar(self):
-        self.click_sidebar_entry('Mishnah')
-
-    def click_talmud_on_sidebar(self):
-        self.click_sidebar_entry('Talmud')
-
-    def click_midrash_on_sidebar(self):
-        self.click_sidebar_entry('Midrash')
-
-    def click_halakhah_on_sidebar(self):
-        self.click_sidebar_entry('Halakhah')
-
-    def click_kabbalah_on_sidebar(self):
-        self.click_sidebar_entry('Kabbalah')
-
-    def click_philosophy_on_sidebar(self):
-        self.click_sidebar_entry('Philosophy')
-
-    def click_chasidut_on_sidebar(self):
-        self.click_sidebar_entry('Chasidut')
-
-    def click_musar_on_sidebar(self):
-        self.click_sidebar_entry('Musar')
-
-    def click_other_on_sidebar(self):
-        self.click_sidebar_entry('Other')
-
-    def click_grammar_on_sidebar(self):
-        self.click_sidebar_entry('Grammar')
-
     def click_resources_on_sidebar(self):
         self.click_object_by_css_selector('.connectionsHeaderTitle')
 

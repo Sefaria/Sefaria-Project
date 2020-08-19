@@ -483,33 +483,14 @@ class SideBarEntries(AtomicTest):
 
     def body(self):
         self.login_user()
-        self.browse_to_ref("Genesis 1")
-        self.click_segment("Genesis 1:1")
-        self.click_commentary_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_tanakh_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_targum_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_mishnah_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_talmud_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_midrash_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_halakhah_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_kabbalah_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_philosophy_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_chasidut_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_musar_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_other_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_grammar_on_sidebar()
+        self.browse_to_ref("Ecclesiastes 1")
+        self.click_segment("Ecclesiastes 1:1")
+        
+        sections = ("Commentary", "Targum", "Talmud", "Midrash", "Midrash")
+        for section in sections:
+            self.click_sidebar_entry(section)
+            self.click_resources_on_sidebar()
+
         self.click_resources_on_sidebar()
         self.click_other_text_on_sidebar()
         assert self.is_sidebar_browse_title_displayed()
@@ -956,24 +937,24 @@ class BrowserBackAndForward(AtomicTest):
 
     def body(self):
         # Sidebar
-        self.browse_to_ref("Genesis 2").click_segment("Genesis 2:2").click_category_filter("Commentary")
-        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url
+        self.browse_to_ref("Amos 3").click_segment("Amos 3:1").click_category_filter("Commentary")
+        assert "Amos.3.1" in self.driver.current_url, self.driver.current_url
         assert "with=Commentary" in self.driver.current_url, self.driver.current_url
         self.driver.back()
-        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url
+        assert "Amos.3.1" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
         self.driver.back()
-        assert "Genesis.2" in self.driver.current_url, self.driver.current_url
+        assert "Amos.3" in self.driver.current_url, self.driver.current_url
         assert "with=" not in self.driver.current_url, self.driver.current_url
         self.driver.forward()
-        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url
+        assert "Amos.3.1" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
         self.driver.forward()
-        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url
+        assert "Amos.3.1" in self.driver.current_url, self.driver.current_url
         assert "with=Commentary" in self.driver.current_url, self.driver.current_url
         # Todo - infinite scroll, nav pages, display options, ref normalization
 
-        self.click_segment_to_close_commentary("Genesis 2:2")  # Close commentary window on mobile
+        self.click_segment_to_close_commentary("Amos 3:1")  # Close commentary window on mobile
 
 
 class ClickVersionedSearchResultMobile(AtomicTest):
@@ -1024,9 +1005,9 @@ class SaveNewSourceSheet(AtomicTest):
 
         try:
             # this is site language dependent. try both options
-            WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria Source Sheet Builder"))
+            WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria"))
         except TimeoutException:
-            WebDriverWait(self.driver, TEMPER).until(title_contains("דף מקורות חדש | בונה דפי המקורות בספריא"))
+            WebDriverWait(self.driver, TEMPER).until(title_contains("דף מקורות חדש | ספריא"))
 
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.headerNavSection .library')))
 
