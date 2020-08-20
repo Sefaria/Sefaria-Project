@@ -421,7 +421,7 @@ class ReaderApp extends Component {
       const prevSheetSearchState = new SearchState(prev.sheetSearchState);
       const nextTextSearchState = new SearchState(next.textSearchState);
       const nextSheetSearchState = new SearchState(next.sheetSearchState);
-      
+
       if ((prev.mode !== next.mode) ||
           (prev.menuOpen !== next.menuOpen) ||
           (prev.menuOpen === "book toc" && prev.bookRef !== next.bookRef) ||
@@ -446,8 +446,7 @@ class ReaderApp extends Component {
           (!prevSheetSearchState.isEqual({ other: nextSheetSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
           (prev.settings.language != next.settings.language) ||
           (prev.settings.aliyotTorah != next.settings.aliyotTorah))
-
-          {
+      {
          return true;
 
       } else if (prev.navigationCategories !== next.navigationCategories) {
@@ -457,6 +456,7 @@ class ReaderApp extends Component {
         } else if (!prev.navigationCategories.compare(next.navigationCategories)) {
           return true; // both are set, compare arrays
         }
+
       } else if (prev.navigationTopicCategory !== next.navigationTopicCategory) {
         // Handle array comparison, !== could mean one is null or both are arrays
         if (!prev.navigationTopicCategory || !next.navigationTopicCategory) {

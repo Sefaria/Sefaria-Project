@@ -134,8 +134,28 @@ class SearchState {
     // prefix: string prepended to every parameter. meant to distinguish between different type of searchState URL parameters (e.g. sheet and text)
     //         oneOf({'t': 'text', 's': sheet, 'g': group, 'u': user})
     const aggTypes = SearchState.metadataByType[this.type].aggregation_field_array;
-    const url = aggTypes.reduce( (accum, aggType) => {
-        const aggTypeFilters = aggTypes.length > 1 ? Util.zip(this.appliedFilters, this.appliedFilterAggTypes).filter( f => f[1] === aggType).map( x => x[0]) : this.appliedFilters;
+    const aggTypesSuffixes = SearchState.metadataByType[this.type].aggregation_field_lang_suffix_array;
+    const aggTypesWithSuffixes = []
+    Sefaria.util // 
+      .zip(aggTypes, aggTypesSuffixes)
+      .map(([agg, suffixMap]) => {
+        if (suffixMap) {
+          Object.values(suffixMap).map(suffix => {aggTypesWithSuffixes.push(agg+suffix)});
+        } else {
+          aggTypesWithSuffixes.push(agg);
+        }
+      });
+
+    const url = aggTypesWithSuffixes.reduce( (accum, aggType) => {  
+        const aggTypeFilters = aggTypes.length > 1 ? 
+          Util.zip(this.appliedFilters, this.appliedFilterAggTypes)
+          .filter( f => f[1] === aggType)
+          .map( x => x[0]) 
+          : this.appliedFilters;
+        console.log(this.appliedFilters)
+        console.log(this.appliedFilterAggTypes)
+        console.log(aggType)
+        console.log(aggTypeFilters);
         return accum + (aggTypeFilters.length > 0 ? `&${prefix}${aggType}Filters=${aggTypeFilters.map( f => encodeURIComponent(f)).join('|')}` : '');
       }, '') +
       `&${prefix}var=` + (this.field !== this.fieldExact ? '1' : '0') +

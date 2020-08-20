@@ -19,7 +19,7 @@ class SearchResultList extends Component {
     constructor(props) {
       super(props);
       this.types = ['text', 'sheet'];
-      this.querySize = {"text": 100, "sheet": 20};
+      this.querySize = {"text": 50, "sheet": 20};
       this.updateAppliedFilterByTypeMap      = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedFilter.bind(null, k);      return obj; }, {});
       this.updateAppliedOptionFieldByTypeMap = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedOptionField.bind(null, k); return obj; }, {});
       this.updateAppliedOptionSortByTypeMap  = this.types.reduce((obj, k) => { obj[k] = props.updateAppliedOptionSort.bind(null, k);  return obj; }, {});
@@ -42,7 +42,8 @@ class SearchResultList extends Component {
         const args = this._getQueryArgs(props, t);
         let cachedQuery = Sefaria.search.getCachedQuery(args);
         while (cachedQuery) {
-          // Load all pages of results that are available
+          // Load all pages of results that are available in cache, so if page X was 
+          // previously loaded it will be returned. 
           console.log("Loaded cached query for")
           console.log(args);
           this.state.hits[t] = this.state.hits[t].concat(cachedQuery.hits.hits);
