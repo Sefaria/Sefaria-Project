@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Writes to MongoDB Collection: word_form, lexicon_entry
+translation_request.py
+Writes to MongoDB Collection:
 """
 import re
 import unicodedata
