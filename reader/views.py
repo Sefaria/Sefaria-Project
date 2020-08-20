@@ -2212,8 +2212,8 @@ def calendars_api(request):
         import datetime
         diaspora = request.GET.get("diaspora", "1")
         custom = request.GET.get("custom", None)
-
         zone_name = request.GET.get("timezone", timezone.get_current_timezone_name())
+
         try:
             zone = pytz.timezone(zone_name)
         except pytz.exceptions.UnknownTimeZoneError as e:
@@ -2223,7 +2223,9 @@ def calendars_api(request):
             year = int(request.GET.get("year", None))
             month = int(request.GET.get("month", None))
             day = int(request.GET.get("day", None))
-            datetimeobj = datetime.datetime(year, month, day, tzinfo=zone)
+            # If a user is asking the API for a specific date there's really no reason to specify a timezone.
+            # The user also doesnt expect the date to get mangled by the default timzone which might implicitly set it back a day
+            datetimeobj = datetime.datetime(year, month, day, tzinfo=pytz.timezone("UTC"))
         except Exception as e:
             datetimeobj = timezone.localtime(timezone.now(), timezone=zone)
 
@@ -2233,7 +2235,7 @@ def calendars_api(request):
             diaspora = True if diaspora == "1" else False
             calendars = get_all_calendar_items(datetimeobj, diaspora=diaspora, custom=custom)
             return jsonResponse({"date": datetimeobj.date().isoformat(),
-                                 "timezone" : zone_name,
+                                 "timezone" : datetimeobj.tzinfo.zone,
                                  "calendar_items": calendars},
                                 callback=request.GET.get("callback", None))
 
