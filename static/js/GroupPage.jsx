@@ -20,12 +20,16 @@ class GroupPage extends Component {
   constructor(props) {
     super(props);
 
+    const groupData = Sefaria.getGroupFromCache(this.props.group);
+    const sheetSort = "date";
+    if (groupData) { this.sortSheetData(groupData, sheetSort); }
+
     this.state = {
-      showTopics: false,
+      showTopics: groupData && !!groupData.showTagsByDefault && !this.props.tag,
       sheetFilterTopic: this.props.tag,
-      sheetSort: "date",
+      sheetSort: sheetSort,
       tab: "sheets",
-      groupData: null,
+      groupData: groupData,
     };
   }
   componentDidMount() {

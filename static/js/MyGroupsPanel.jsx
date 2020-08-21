@@ -74,8 +74,8 @@ function PublicGroupsPanel({multiPanel, navHome}) {
     return d;
   };
 
-  if (groupList) {
-    sortGroupList(groupList);
+  if (groupsList) {
+    sortGroupList(groupsList);
   }
 
   useEffect(() => {

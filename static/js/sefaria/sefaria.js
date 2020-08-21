@@ -2087,9 +2087,12 @@ Sefaria = extend(Sefaria, {
   },
   _groups: {},
   getGroup: function(key) {
-      const url = Sefaria.apiHost + "/api/groups/" + key;
+      const url = Sefaria.apiHost + "/api/groups/" + encodeURIComponent(key);
       const store = this._groups;
       return this._cachedApiPromise({url, key, store});
+  },
+  getGroupFromCache: function(key) {
+    return Sefaria._groups[key];
   },
   _groupsList: {},
   getGroupsList: function() {

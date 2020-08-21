@@ -2055,14 +2055,16 @@ const GroupStatement = (props) => (
     props.group && props.group != "" ?
         <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none' }}>
           <div className="groupListingImageBox imageBox">
-            <a href={"/groups/" + props.group}>
+            <a href={"/groups/" + props.group.replace(/-/g, "-")}>
               <img className="groupListingImage img-circle" src={props.groupLogo} alt="Group Logo"/>
             </a>
           </div>
-          <a href={"/groups/" + props.group}>{props.children ? props.children : props.group}</a>
-        </div> :     <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
-                  {props.children}
-            </div>
+          <a href={"/groups/" + props.group.replace(/ /g, "-")}>{props.children ? props.children : props.group}</a>
+        </div> 
+        : 
+        <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
+          {props.children}
+        </div>
 
 )
 
