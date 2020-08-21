@@ -265,8 +265,12 @@ const TopicPage = ({
         if (d.parasha) { Sefaria.getParashaNextRead(d.parasha).then(setParashaData); }
         setTopicData(d);
         // Data remaining to fetch that was not already in the cache
-        setTextRefsToFetch(d.textData ? d.textRefs.slice(d.textData.length) : d.textRefs);
-        setSheetRefsToFetch(d.sheetData ? d.sheetRefs.slice(d.sheetData.length) : d.sheetRefs);
+        const textRefsWithoutData = d.textData ? d.textRefs.slice(d.textData.length) : d.textRefs;
+        const sheetRefsWithoutData = d.sheetData ? d.sheetRefs.slice(d.sheetData.length) : d.sheetRefs;
+        if (textRefsWithoutData.length) { setTextRefsToFetch(textRefsWithoutData); }
+        else { setTextData(d.textData); }
+        if (sheetRefsWithoutData.length) { setSheetRefsToFetch(sheetRefsWithoutData); }
+        else { setSheetData(d.sheetData); }
       })());
       promise.catch((error) => { if (!error.isCanceled) { console.log('TopicPage Error', error); } });
       return () => {
@@ -329,7 +333,7 @@ const TopicPage = ({
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic} onClose={onClose} openSearch={openSearch} openDisplaySettings={openDisplaySettings} hideNavHeader={hideNavHeader}/>
-                   {!topicData.isLoading ?
+                    {!topicData.isLoading ?
                        <TabView
                           currTabIndex={tabIndex}
                           setTab={(tabIndex, tempTabs) => { updateTopicsTab(tempTabs[tabIndex].id); }}
@@ -401,7 +405,7 @@ const TopicPage = ({
                             ) : null
                           }
                         </TabView>
-                   : <LoadingMessage /> }
+                    : <LoadingMessage /> }
                 </div>
                 <div className="sideColumn">
                     { topicData ?

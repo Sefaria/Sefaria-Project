@@ -1699,7 +1699,6 @@ class ReaderApp extends Component {
     }
   }
   openTopic(slug) {
-    console.log(slug);
     Sefaria.getTopic(slug).then(topic => {
       this.setStateInHeaderOrSinglePanel({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle });
     });
