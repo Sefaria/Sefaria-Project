@@ -8,6 +8,8 @@ import Component from 'react-class';
 class ModeratorToolsPanel extends Component {
   constructor(props) {
     super(props);
+    this.handleWfSubmit = this.handleWfSubmit.bind(this);
+    this.wfFileInput = React.createRef();
 
     this.state = {
       // Bulk Download
@@ -19,7 +21,11 @@ class ModeratorToolsPanel extends Component {
       files: [],
       uploading: false,
       uploadError: null,
-      uploadMessage: null
+      uploadMessage: null,
+      //workflowy upload
+      wf_files: [],
+      wf_uploading: false,
+
     };
   }
   handleFiles(event) {
@@ -28,9 +34,9 @@ class ModeratorToolsPanel extends Component {
   uploadFiles(event) {
     event.preventDefault();
     this.setState({uploading: true, uploadMessage:"Uploading..."});
-    var formData = new FormData();
-    for (var i = 0; i < this.state.files.length; i++) {
-      var file = this.state.files[i];
+    let formData = new FormData();
+    for (let i = 0; i < this.state.files.length; i++) {
+      let file = this.state.files[i];
       formData.append('texts[]', file, file.name);
     }
     $.ajax({
@@ -66,21 +72,39 @@ class ModeratorToolsPanel extends Component {
     this.setState({bulk_format: event.target.value});
   }
   bulkVersionDlLink() {
-    var args = ["format","title_pattern","version_title_pattern","language"].map(
+    let args = ["format","title_pattern","version_title_pattern","language"].map(
         arg => this.state["bulk_" + arg]?`${arg}=${encodeURIComponent(this.state["bulk_"+arg])}`:""
     ).filter(a => a).join("&");
     return "download/bulk/versions/?" + args;
   }
+
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
+  }
+
+  handleWfSubmit(event) {
+    event.preventDefault();
+    alert(
+      `Selected file - ${this.wfFileInput.current.files[0].name}`
+    );
+  }
+
   render () {
     // Bulk Download
-    var dlReady = (this.state.bulk_format && (this.state.bulk_title_pattern || this.state.bulk_version_title_pattern));
-    var downloadButton = <div className="versionDownloadButton">
+    const dlReady = (this.state.bulk_format && (this.state.bulk_title_pattern || this.state.bulk_version_title_pattern));
+    const downloadButton = <div className="versionDownloadButton">
         <div className="downloadButtonInner">
           <span className="int-en">Download</span>
           <span className="int-he">הורדה</span>
         </div>
       </div>;
-    var downloadSection = (
+    const downloadSection = (
       <div className="modToolsSection dlSection">
         <div className="dlSectionTitle">
           <span className="int-en">Bulk Download Text</span>
@@ -105,12 +129,12 @@ class ModeratorToolsPanel extends Component {
       </div>);
 
     // Uploading
-    var ulReady = (!this.state.uploading) && this.state.files.length > 0;
-    var uploadButton = <a><div className="versionDownloadButton" onClick={this.uploadFiles}><div className="downloadButtonInner">
+    const ulReady = (!this.state.uploading) && this.state.files.length > 0;
+    const uploadButton = <a><div className="versionDownloadButton" onClick={this.uploadFiles}><div className="downloadButtonInner">
        <span className="int-en">Upload</span>
        <span className="int-he">העלאה</span>
       </div></div></a>;
-    var uploadForm = (
+    const uploadForm = (
       <div className="modToolsSection">
         <div className="dlSectionTitle">
           <span className="int-en">Bulk Upload CSV</span>
@@ -123,8 +147,60 @@ class ModeratorToolsPanel extends Component {
         {this.state.uploadMessage?<div className="message">{this.state.uploadMessage}</div>:""}
         {this.state.uploadError?<div className="error">{this.state.uploadError}</div>:""}
       </div>);
-
-    return (Sefaria.is_moderator)?<div className="modTools">{downloadSection}{uploadForm}</div>:<div>Tools are only available to logged in moderators.</div>;
+    const wflowyUpl = (
+      <div className="modToolsSection">
+        <div className="dlSectionTitle">
+          <span className="int-en">Workflowy Outline Upload</span>
+          <span className="int-he">העלאת קובץ - workflowy</span>
+        </div>
+         <form id="wf-file-form" onSubmit={this.handleWfSubmit}>
+           <label>
+              Upload Workflowy file:
+              <input type="file" ref={this.fileInput} />
+           </label>
+           <label>
+              Create Index Record:
+              <input
+                name="c_index"
+                type="checkbox"
+                defaultChecked={true}
+                checked={this.state.c_index}
+                onChange={this.handleInputChange} />
+           </label>
+           <label>
+              Create Version From Notes on Outline:
+              <input
+                name="c_version"
+                type="checkbox"
+                defaultChecked={false}
+                checked={this.state.c_version}
+                onChange={this.handleInputChange} />
+           </label>
+           <label>
+            Custom Delimiters (In the following Order- 1. Title Language 2. Alt Titles 3. Categories):
+              <input
+                name="delims"
+                type="text"
+                value={this.state.delims}
+                onChange={this.handleInputChange} />
+            </label>
+            <label>
+              Optional Term Scheme Name:
+              <input
+                name="term_scheme"
+                type="text"
+                value={this.state.term_scheme}
+                onChange={this.handleInputChange} />
+            </label>
+             <button className="versionDownloadButton" name="wf-submit" type="submit">
+               <div className="downloadButtonInner">
+                <span className="int-en">Upload</span>
+                <span className="int-he">העלאה</span>
+                </div>
+             </button>
+         </form>
+      </div>);
+    return (Sefaria.is_moderator)?<div className="modTools">{downloadSection}{uploadForm}{wflowyUpl}</div>:<div>Tools are only available to logged in moderators.</div>;
   }
 }
 ModeratorToolsPanel.propTypes = {
