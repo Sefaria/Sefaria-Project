@@ -929,7 +929,7 @@ def notifications(request):
     return menu_page(request, props, "notifications", title)
 
 
-@login_required
+@staff_member_required
 def modtools(request):
     title = _("Moderator Tools")
     props = base_props(request)
