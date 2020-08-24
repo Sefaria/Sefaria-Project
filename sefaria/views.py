@@ -938,6 +938,27 @@ def text_upload_api(request):
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
 
+@csrf_exempt
+def modtools_upload_workflowy(request):
+    from sefaria.helper.text import WorkflowyParser
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
+
+    file = request.FILES['wf_file']
+    c_index = request.POST.get("c_index", False)
+    c_version = request.POST.get("c_version", False)
+    delims = request.POST.get("delims", None)
+    term_scheme = request.POST.get("c_index", None)
+
+    try:
+        wfparser = WorkflowyParser(file, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
+        wfparser.parse()
+    except Exception as e:
+        return jsonResponse({"error": str(e)})
+
+
+    message = "Successfully imported {} versions".format(len(files))
+    return jsonResponse({"status": "ok", "message": message})
 
 def compare(request, secRef=None, lang=None, v1=None, v2=None):
     if secRef and Ref.is_ref(secRef):

@@ -935,8 +935,6 @@ def modtools(request):
     props = base_props(request)
     return menu_page(request, props, "modtools", title)
 
-def modtools_upload_workflowy(request):
-    pass
 
 """ Is this used?
 
