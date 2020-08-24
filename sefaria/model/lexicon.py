@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Writes to MongoDB Collection: word_form, lexicon_entry
+translation_request.py
+Writes to MongoDB Collection:
 """
 import re
 import unicodedata
@@ -362,7 +363,7 @@ class LexiconLookupAggregator(object):
             primary_tuples = set()
             query = set() #TODO: optimize number of word form lookups? there can be a lot of duplicates... is it needed?
             for r in results:
-                # extract the lookups with "primary" field so it can be used for sorting lookup in the LexicinEntrySet,
+                # extract the lookups with "primary" field so it can be used for sorting lookup in the LexiconEntrySet,
                 # but also delete it, because its not part of the query obj
                 if "primary" in r:
                     if r["primary"] is True:

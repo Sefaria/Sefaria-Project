@@ -50,6 +50,9 @@ def remove_old_index_and_rename(idx_title):
 
     print("deleting version states for {}".format(idx_title))
     VersionStateSet({"title": idx_title}).delete()
+    print("deleting translation requests for {}".format(idx_title))
+    TranslationRequestSet({'ref': {"$regex": pattern}}).delete()
+
 
     print("deleting versions of {}".format(idx_title))
     vs.delete()

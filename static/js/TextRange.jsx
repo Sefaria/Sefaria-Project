@@ -271,9 +271,7 @@ class TextRange extends Component {
       heTitle          = "טעינה...";
       ref              = null;
     }
-    const showNumberLabel    =  data &&
-                              data.categories &&
-                              data.categories[0] !== "Talmud" &&
+    const showNumberLabel =  data && data.categories &&
                               data.categories[0] !== "Liturgy" &&
                               data.categories[0] !== "Reference";
 

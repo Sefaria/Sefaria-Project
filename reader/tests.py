@@ -125,12 +125,20 @@ class PagesTest(SefariaTestCase):
         response = c.get('/profile/brett-lockspeiser')
         self.assertEqual(200, response.status_code)
 
+    def test_campaign(self):
+        response = c.get('/translate/Bereishit_Rabbah')
+        self.assertEqual(200, response.status_code)
+
     def test_explorer(self):
         response = c.get('/explore')
         self.assertEqual(200, response.status_code)
 
     def test_discussions(self):
         response = c.get('/discussions')
+        self.assertEqual(200, response.status_code)
+
+    def test_translation_requests(self):
+        response = c.get('/translation-requests')
         self.assertEqual(200, response.status_code)
 
     def test_login(self):
