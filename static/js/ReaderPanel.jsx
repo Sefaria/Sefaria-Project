@@ -204,7 +204,10 @@ class ReaderPanel extends Component {
     }
     return { target, linkType };
   }
-  handleClick(event) {
+  handleNavigationClick(event) {
+    // Handles clicks within a ReaderNavigationMenu panel.
+    // This logic for handling these links could be replaced by ReaderApp.handleInAppLinkClick()
+    // except for the fact that navigation can occur inside a "compare" panel. 
     if (!$(event.target).hasClass("outOfAppLink") && !$(event.target.parentElement).hasClass("outOfAppLink")) {
       event.preventDefault();
     }
@@ -215,11 +218,10 @@ class ReaderPanel extends Component {
       const pos       = target.attr("data-position");
       const enVersion = target.attr("data-ven");
       const heVersion = target.attr("data-vhe");
-      if (target.hasClass("recentItem")) {
-        this.props.onRecentClick(parseInt(pos), ref, {en: enVersion, he: heVersion});
+      if (this.props.onNavTextClick && this.state.menuOpen !== "compare") {
+        this.props.onNavTextClick(ref, {en: enVersion, he: heVersion});
       } else {
-        const onTextClick = this.props.onNavTextClick || this.showBaseText;
-        onTextClick(ref, {en: enVersion, he: heVersion});
+        this.showBaseText(ref, false, {en: enVersion, he: heVersion});
       }
       if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Text Click", ref); }
     } else if (linkType === "cat") {
@@ -310,8 +312,8 @@ class ReaderPanel extends Component {
     // Set the current primary text `ref`, which may be either a string or an array of strings.
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
-    //console.log("showBaseText", ref)
     this.replaceHistory = Boolean(replaceHistory);
+    console.log("showBaseText", ref, replaceHistory);
     if (this.state.mode == "Connections" && this.props.masterPanelLanguage == "bilingual") {
       // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
       // allow it to return to bilingual.
@@ -787,7 +789,6 @@ class ReaderPanel extends Component {
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var openInPanel   = function(pos, ref) { this.showBaseText(ref) }.bind(this);
       var openNav       = this.state.menuOpen === "compare" ? this.openMenu.bind(null, "compare") : this.openMenu.bind(null, "navigation");
-      var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
       menu = (<ReaderNavigationMenu
                     key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory: "navHome"}
@@ -810,13 +811,11 @@ class ReaderPanel extends Component {
                     toggleLanguage={this.toggleLanguage}
                     onClose={this.onClose}
                     closePanel={this.props.closePanel}
-                    handleClick={this.handleClick}
+                    handleClick={this.handleNavigationClick}
                     openNav={openNav}
                     openSearch={this.openSearch}
                     openMenu={this.openMenu}
                     openDisplaySettings={this.openDisplaySettings}
-                    onTextClick={this.props.onNavTextClick || this.showBaseText}
-                    onRecentClick={onRecentClick}
                     hideNavHeader={this.props.hideNavHeader}
                     toggleSignUpModal={this.props.toggleSignUpModal}
                   />);
@@ -1169,7 +1168,6 @@ ReaderPanel.propTypes = {
   onSegmentClick:              PropTypes.func,
   onCitationClick:             PropTypes.func,
   onNavTextClick:              PropTypes.func,
-  onRecentClick:               PropTypes.func,
   onSearchResultClick:         PropTypes.func,
   onUpdate:                    PropTypes.func,
   onError:                     PropTypes.func,

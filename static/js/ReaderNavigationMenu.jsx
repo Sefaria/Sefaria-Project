@@ -26,8 +26,8 @@ import {TopicCategory} from './TopicPage';
 // The Navigation menu for browsing and searching texts, plus some site links.
 const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCategories, setNavTopic, 
         setTopic, setOption, onClose, openNav, openSearch, showMoreTexts, setMoreTexts, 
-        showMoreTopics, setMoreTopics, toggleLanguage, openMenu, onTextClick, 
-        onRecentClick, handleClick, openDisplaySettings, toggleSignUpModal,
+        showMoreTopics, setMoreTopics, toggleLanguage, openMenu, 
+        handleClick, openDisplaySettings, toggleSignUpModal,
         hideHeader, hideNavHeader, multiPanel, home, compare, interfaceLang}) => {
 
   const [width, setWidth] = useState(1000);
@@ -63,7 +63,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   // List of Texts in a Category
   if (categories.length) {
     return (
-        <div ref={ref} className="readerNavMenu" onClick={handleClick} >
+        <div ref={ref} className="readerNavMenu" onClick={handleClick}>
             <ReaderNavigationCategoryMenu
               categories={categories}
               category={categories.slice(-1)[0]}
@@ -84,7 +84,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   // Topics List
   if (topic.length) {
     return (
-        <div ref={ref} className="readerNavMenu" onClick={handleClick} >
+        <div ref={ref} className="readerNavMenu" onClick={handleClick}>
             <TopicCategory
               topic={topic}
               topicTitle={topicTitle}
@@ -289,8 +289,6 @@ ReaderNavigationMenu.propTypes = {
   openNav:             PropTypes.func.isRequired,
   openSearch:          PropTypes.func.isRequired,
   openMenu:            PropTypes.func.isRequired,
-  onTextClick:         PropTypes.func.isRequired,
-  onRecentClick:       PropTypes.func.isRequired,
   handleClick:         PropTypes.func.isRequired,
   toggleSignUpModal:   PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func,

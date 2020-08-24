@@ -296,7 +296,7 @@ class ReaderApp extends Component {
   }
   handlePopState(event) {
     var state = event.state;
-    // console.log("Pop - " + window.location.pathname);
+    console.log("Pop - " + window.location.pathname);
     // console.log(event.state);
     if (state) {
       this.justPopped = true;
@@ -867,7 +867,7 @@ class ReaderApp extends Component {
     } else {
       if (currentUrl == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-      //console.log("Push History - " + hist.url);
+      console.log("Push History - " + hist.url);
       this.trackPageview();
     }
 
@@ -1036,21 +1036,13 @@ class ReaderApp extends Component {
     this.setTextListHighlight(n, [textRef]);
     this.openPanelAt(n, citationRef);
   }
-  handleRecentClick(pos, ref, currVersions) {
-    // Click on an item in your Recently Viewed
-    if (this.props.multiPanel) {
-      this.openPanel(ref, currVersions);
-    } else {
-      this.handleNavigationClick(ref, currVersions);
-    }
-  }
   handleCompareSearchClick(n, ref, currVersions, options) {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
     // todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
     this.replacePanel(n, ref, currVersions);
   }
   handleInAppLinkClick(e) {
-    // If a default has been prevented, assume a custom handler is already in palce
+    // If a default has been prevented, assume a custom handler is already in place
     if (e.isDefaultPrevented()) {
       return;
     }
@@ -1072,7 +1064,7 @@ class ReaderApp extends Component {
     if (el.target && el.target !== '_self') {
       return;
     }
-    let path = el.getAttribute('href');
+    const path = el.getAttribute('href');
     const handled = this.openURL(path);
     if (handled) {
       e.preventDefault();
@@ -1798,7 +1790,6 @@ class ReaderApp extends Component {
                     interfaceLang={this.props.interfaceLang}
                     setCentralState={this.setHeaderState}
                     onRefClick={this.handleNavigationClick}
-                    onRecentClick={this.handleRecentClick}
                     setDefaultOption={this.setDefaultOption}
                     showLibrary={this.showLibrary}
                     showSearch={this.showSearch}
@@ -1871,7 +1862,6 @@ class ReaderApp extends Component {
                       closeConnectionPanel={onCloseConnectionClick}
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
-                      onRecentClick={this.handleRecentClick}
                       updateTopicsTab={updateTopicsTab}
                       onOpenConnectionsClick={onOpenConnectionsClick}
                       openComparePanel={openComparePanel}
