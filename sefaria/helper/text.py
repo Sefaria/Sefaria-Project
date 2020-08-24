@@ -591,7 +591,7 @@ class WorkflowyParser(object):
                 print("No Text, Creating Default Empty Version Record")
                 self.create_version_default(idx)
         else:
-            print(pprint.pprint(schema_root.serialize()))
+            return schema_root.serialize()
 
     # object tree of each with jagged array nodes at the lowest level (recursive)
     def build_index_schema(self, element):

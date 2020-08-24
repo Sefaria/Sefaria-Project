@@ -3,6 +3,7 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import Component from 'react-class';
+import Cookies from 'js-cookie';
 
 
 class ModeratorToolsPanel extends Component {
@@ -184,8 +185,14 @@ class WorkflowyModeratorTool extends Component{
     formData.append('wf_file', file, file.name);*/
     const data = new FormData(event.target);
     console.log(data);
-    fetch('/modtools/upload_text', {
+    const request = new Request(
+        '/modtools/upload_text',
+        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+    );
+    fetch(request, {
       method: 'POST',
+      mode: 'same-origin',
+      credentials: 'same-origin',
       body: data,
     }).then(data => {
         console.log(data);
