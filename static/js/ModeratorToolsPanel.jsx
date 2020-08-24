@@ -22,10 +22,6 @@ class ModeratorToolsPanel extends Component {
       uploading: false,
       uploadError: null,
       uploadMessage: null,
-      //workflowy upload
-      wf_files: [],
-      wf_uploading: false,
-
     };
   }
   handleFiles(event) {
@@ -149,14 +145,64 @@ class ModeratorToolsPanel extends Component {
       </div>);
     const wflowyUpl = (
       <div className="modToolsSection">
+          <WorkflowyModeratorTool />
+      </div>);
+    return (Sefaria.is_moderator)?<div className="modTools">{downloadSection}{uploadForm}{wflowyUpl}</div>:<div>Tools are only available to logged in moderators.</div>;
+  }
+}
+ModeratorToolsPanel.propTypes = {
+  interfaceLang: PropTypes.string
+};
+
+
+class WorkflowyModeratorTool extends Component{
+    constructor(props) {
+    super(props);
+    this.handleWfSubmit = this.handleWfSubmit.bind(this);
+    this.wfFileInput = React.createRef();
+    this.state = {};
+  }
+
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
+  }
+
+  handleWfSubmit(event) {
+    event.preventDefault();
+    console.log(
+      `Selected file - ${this.wfFileInput.current.files[0].name}`
+    );
+    this.setState({uploading: true, uploadMessage:"Uploading..."});
+    /*let formData = new FormData();
+    let file = this.wfFileInput.current.files[0];
+    formData.append('wf_file', file, file.name);*/
+    const data = new FormData(event.target);
+    console.log(data);
+    fetch('/modtools/upload_text', {
+      method: 'POST',
+      body: data,
+    }).then(data => {
+        console.log(data);
+    });
+  }
+
+  render() {
+    return(
+        <>
         <div className="dlSectionTitle">
           <span className="int-en">Workflowy Outline Upload</span>
           <span className="int-he">העלאת קובץ - workflowy</span>
         </div>
-         <form id="wf-file-form" onSubmit={this.handleWfSubmit}>
+        <form id="wf-file-form" onSubmit={this.handleWfSubmit}>
            <label>
               Upload Workflowy file:
-              <input type="file" ref={this.fileInput} />
+              <input type="file" name="wf_file" ref={this.wfFileInput} />
            </label>
            <label>
               Create Index Record:
@@ -199,13 +245,11 @@ class ModeratorToolsPanel extends Component {
                 </div>
              </button>
          </form>
-      </div>);
-    return (Sefaria.is_moderator)?<div className="modTools">{downloadSection}{uploadForm}{wflowyUpl}</div>:<div>Tools are only available to logged in moderators.</div>;
+        <div className="wf-upl-status">{this.state.uploadMessage}</div>
+        <div className="wf-result">{this.state.uploadError}</div>
+        </>);
   }
 }
-ModeratorToolsPanel.propTypes = {
-  interfaceLang: PropTypes.string
-};
 
 
 export default ModeratorToolsPanel;

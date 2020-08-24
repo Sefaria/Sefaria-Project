@@ -44,6 +44,7 @@ urlpatterns = [
     url(r'^my/notes/?$', reader_views.my_notes),
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
+    url(r'^modtools/upload_text$', reader_views.modtools_upload_workflowy),
     url(r'^new-home/?$', reader_views.new_home),
     url(r'^story_editor/?$', reader_views.story_editor),
     url(r'^torahtracker/?$', reader_views.user_stats),
