@@ -286,7 +286,7 @@ class ConnectionsPanel extends Component {
                     sheetsCount={Sefaria.sheets.sheetsTotalCount(this.props.srefs)}
                     notesCount={Sefaria.notesTotalCount(this.props.srefs)}
                     webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length}
-					audioCount={Sefaria.audioByRef(this.props.srefs).length}
+					          audioCount={Sefaria.mediaByRef(this.props.srefs).length}
                     topicsCount={Sefaria.topicsByRefCount(this.props.srefs)}
                   />
                   </div>);
@@ -591,7 +591,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Translations" he="תרגומים" image="layers.png" onClick={() => this.props.setConnectionsMode("Translations")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} />
-			  <ToolsButton en="Audio" he="שמיעה" image="audio.svg" count={this.props.audioCount} onClick={() => this.props.setConnectionsMode("Audio")} />
+			        <ToolsButton en="Audio" he="שמיעה" image="audio.svg" count={this.props.audioCount} onClick={() => this.props.setConnectionsMode("Audio")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
@@ -956,13 +956,13 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
        }
    });
       return (
-		<div className="audio"  key={audioUrl}>
+		<div className="media"  key={audioUrl}>
 			  <div className="title">{source}</div>
 			  <div className="description"><a>{description}</a></div>
 			  <div className="panel">
-			    <input type="image" src = {playing ? "static/img/pause.svg" : "static/img/play.svg"} onClick={() => setPlaying(playing ? false : true)} id="pause"/>
-				<input type="range" min={startTime} max={endTime} value = {currTime} step="any" class="slider" onChange={(value) => {handleChange(value)}}/>
-				<a> {parseInt((clipEndTime-clipStartTime) - (clipEndTime - currTime)) + "/" + parseInt(clipEndTime-clipStartTime)}</a>
+			    <input type="image" src = {playing ? "static/img/pause.svg" : "static/img/play.svg"} alt={playing ? "Pause Audio" : "Play Audio"} onClick={() => setPlaying(playing ? false : true)} id="pause"/>
+				<input type="range" min={startTime} max={endTime} value = {currTime} step="any" className="slider" onChange={(value) => {handleChange(value)}}/>
+				{parseInt((clipEndTime-clipStartTime) - (clipEndTime - currTime)) + "/" + parseInt(clipEndTime-clipStartTime)}
 			  </div>
 			  <audio id="my-audio" ref = {audioElement}>
 				 <source src={audioUrl} type="audio/mpeg"/>
@@ -981,8 +981,9 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
 };
 class AudioList extends Component {
 	render() {
-		let audios = Sefaria.audioByRef(this.props.srefs)
+		let audios = Sefaria.mediaByRef(this.props.srefs)
 		let content = [];
+    console.log(content)
 		  content = audios.map(audio => {
 			return <Audio
 				audioUrl = {audio.audio_url}
@@ -996,13 +997,13 @@ class AudioList extends Component {
 				/>
 		  });
 		 if (!content.length) {
-			return <div className="audioList empty">
+			return <div className="mediaList empty">
                   No known audio
                 </div>;
 		 }
 
-		return <div className="audioList">
-				<div class="audioTitle">
+		return <div className="mediaList">
+				<div className="mediaTitle">
 					<div className="en">Torah Reading </div>
 					<div className="he">קריאת התורה </div>
 				</div>
