@@ -1613,7 +1613,7 @@ class Trial(object):
         """
         if self.platform == "local":
             cap = cap if cap else self.default_local_driver
-            if isinstance(cap, appium_webdriver.Remote):
+            if isinstance(cap, appium_webdriver.Remote) or isinstance(cap, webdriver.chrome.webdriver.WebDriver):
                 driver = cap
             else:
                 driver = cap()
