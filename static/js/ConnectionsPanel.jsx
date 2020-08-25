@@ -897,29 +897,21 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
 		   audioElement.current.currentTime = value.currentTarget.value
 		};
 
-   const reportAudioError = () => {
-	   console.log("report got called")
+    function formatTime(totalSeconds) {
+        const seconds = Math.floor(totalSeconds % 60);
+        const minutes = Math.floor(totalSeconds / 60);
 
-	  var feedback = {
-		  type: "audio report",
-		  msg: {audioUrl}, //add dropdown error
-	  };
-	  var postData = {json: JSON.stringify(feedback)};
-	  var url = "/api/send_feedback";
+        const padWithZero = number => {
+            const string = number.toString();
+            if (number < 10) {
+                return "0" + string;
+            }
+            return string;
+        };
+        return (minutes) + ":" + padWithZero(seconds);
+    }
 
-	  $.post(url, postData, function (data) {
-		  if (data.error) {
-			  alert(data.error);
-		  } else {
-			  console.log(data);
-			  window.onbeforeunload = null;
-			  alert(`The error has been noted. Happy learning!`)
-			  location.reload()
-		  }
-	  }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
-		  alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
-	  });
-	}
+
    useEffect(() => {
        const setAudioData = () => {
 		   if (startTime < clipStartTime){
@@ -956,11 +948,13 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
       return (
 		<div className="media"  key={anchor+"_"+"audio"}>
 			  <div className="title">{source}</div>
-			  <div className="description"><a>{description}</a></div>
+			  <div className="description">{description}</div>
 			  <div className="panel">
-			    <input type="image" src = {playing ? "static/img/pause.svg" : "static/img/play.svg"} alt={playing ? "Pause Audio" : "Play Audio"} onClick={() => setPlaying(playing ? false : true)} id="pause"/>
-				<input type="range" min={startTime} max={endTime} value = {currTime} step="any" className="slider" onChange={(value) => {handleChange(value)}}/>
-				{parseInt((clipEndTime-clipStartTime) - (clipEndTime - currTime)) + "/" + parseInt(clipEndTime-clipStartTime)}
+          <div className="playTimeContainer">
+            <input type="image" src = {playing ? "static/img/pause.svg" : "static/img/play.svg"} alt={playing ? "Pause Audio" : "Play Audio"} onClick={() => setPlaying(playing ? false : true)} id="pause"/>
+            <span>{formatTime((clipEndTime-clipStartTime) - (clipEndTime - currTime)) + " / " + formatTime(clipEndTime-clipStartTime)}</span>
+          </div>
+				  <div className="sliderContainer"><input type="range" min={startTime} max={endTime} value = {currTime} step="any" className="slider" onChange={(value) => {handleChange(value)}}/></div>
 			  </div>
 			  <audio id="my-audio" ref = {audioElement}>
 				 <source src={audioUrl} type="audio/mpeg"/>
@@ -968,11 +962,10 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
 			  <div className="meta">
 				<span className="int-en">License: {license}</span>
 				<span className="int-he">עסק רשיון: {license}</span>
-				<span className="int-en">Source: {source_site}</span>
+        <br/>
+				<span className="int-en">Source: <a href={"//"+source_site} target="_blank">{source}</a></span>
 				<span className="int-he">מקור: {source_site}</span>
 			  </div>
-
-			  <p><a href="#" id="reportAudioError" onClick={() => {reportAudioError()}}>Report audio error</a></p>
 
 		</div>
    )
@@ -996,7 +989,7 @@ class AudioList extends Component {
 		  });
 		 if (!content.length) {
 			return <div className="mediaList empty">
-                  No known audio
+                  <LoadingMessage />
                 </div>;
 		 }
 
