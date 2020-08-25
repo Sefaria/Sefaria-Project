@@ -426,9 +426,7 @@ class ConnectionsPanel extends Component {
 
 	} else if (this.props.mode === "Audio" || this.props.mode === "AudioList") {
       content = (<AudioList
-					srefs={this.props.srefs}
-                    //filter={this.props.mode == "Audios" ? null : this.props.webPagesFilter}
-                    //setWebPagesFilter={this.props.setWebPagesFilter}
+					          srefs={this.props.srefs}
                     interfaceLang={this.props.interfaceLang}
                     key="Audio"/>);
 
@@ -956,7 +954,7 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
        }
    });
       return (
-		<div className="media"  key={audioUrl}>
+		<div className="media"  key={anchor+"_"+"audio"}>
 			  <div className="title">{source}</div>
 			  <div className="description"><a>{description}</a></div>
 			  <div className="panel">
@@ -986,7 +984,7 @@ class AudioList extends Component {
     console.log(content)
 		  content = audios.map(audio => {
 			return <Audio
-				audioUrl = {audio.audio_url}
+				audioUrl = {audio.media_url}
 				startTime = {audio.start_time}
 				endTime = {audio.end_time}
 				source = {audio.source}
