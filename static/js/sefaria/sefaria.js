@@ -1183,17 +1183,22 @@ Sefaria = extend(Sefaria, {
   },
   _allPrivateNotes: null,
   allPrivateNotes: function(callback) {
-    if (this._allPrivateNote || !callback) { return this._allPrivateNotes; }
+    if (!callback)  { return this._allPrivateNotes; }
 
-    var url = Sefaria.apiHost + "/api/notes/all?private=1";
-    this._api(url, (data) => {
-      if ("error" in data) {
-        return;
-      }
-      this._savePrivateNoteData(null, data);
-      this._allPrivateNotes = data;
-      callback(data);
-    });
+    if (this._allPrivateNotes) {
+      callback(this._allPrivateNotes);
+    } else {
+      const url = Sefaria.apiHost + "/api/notes/all?private=1";
+      this._api(url, (data) => {
+        if ("error" in data) {
+          return;
+        }
+        this._savePrivateNoteData(null, data);
+        this._allPrivateNotes = data;
+        callback(data);
+      });
+    }
+    return this._allPrivateNotes;
   },
   _savePrivateNoteData: function(ref, data) {
     return this._saveItemsByRef(data, this._privateNotes);
@@ -1931,11 +1936,11 @@ Sefaria = extend(Sefaria, {
         });
     },
     _userSheets: {},
-    userSheets: function(uid, callback, sortBy = "date", offset = 0, numberToRetrieve = 0, ignoreCache=false) {
+    userSheets: function(uid, callback, sortBy = "date", offset = 0, numberToRetrieve = 0) {
       // Returns a list of source sheets belonging to `uid`
       // Only a user logged in as `uid` will get private data from this API.
       // Otherwise, only public data will be returned
-      const sheets = ignoreCache ? null : this._userSheets[uid+sortBy+offset+numberToRetrieve];
+      const sheets = this._userSheets[uid+sortBy+offset+numberToRetrieve];
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {

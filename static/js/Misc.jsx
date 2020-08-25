@@ -234,7 +234,7 @@ ProfilePic.propTypes = {
 
 const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
-  renderHeader, renderFooter, showFilterHeader, extraData, ignoreCache,
+  renderHeader, renderFooter, showFilterHeader, extraData, refreshData,
   scrollableElement, pageSize, bottomMargin, onDisplayedDataChange, initialRenderSize
 }) => {
   const [filter, setFilter] = useState('');
@@ -247,7 +247,7 @@ const FilterableList = ({
       .sort((a, b) => sortFunc(sortOption, a, b, extraData))
       : [];
 
-  const cachedData = !!data ? data : null;
+  const cachedData = data || null;
   const [loading, setLoading] = useState(!cachedData);
   const [rawData, setRawData] = useState(cachedData);
   const [displayData, setDisplayData] = useState(processData(rawData));
@@ -257,9 +257,8 @@ const FilterableList = ({
   useEffect(() => {
     let isMounted = true;
     if (!rawData) {
-      // TODO this trick only works the first time. every time after that ignoreCache is defined
       setLoading(true);
-      getData(typeof ignoreCache != "undefined").then(data => {
+      getData().then(data => {
         if (isMounted) {
           setLoading(false);
           setRawData(data);
@@ -270,7 +269,12 @@ const FilterableList = ({
     return () => {
       isMounted = false;
     };
-  }, [getData, ignoreCache]);
+  }, [getData, rawData]);
+
+  // When refreshData changes, trigger a new call for data.
+  useEffect(() => {
+    setRawData(null);
+  }, [refreshData])
 
   // Updates to filter or sort
   useEffect(() => {
@@ -434,6 +438,7 @@ TabView.propTypes = {
   currTabIndex: PropTypes.number,  // not required. If passed, TabView will be controlled from outside
   setTab: PropTypes.func,          // not required. If passed, TabView will be controlled from outside
 };
+
 
 class DropdownOptionList extends Component {
   render() {

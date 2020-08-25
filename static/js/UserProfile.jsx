@@ -112,7 +112,8 @@ class UserProfile extends Component {
     return Sefaria.allPrivateNotes();
   }
   onDeleteNote() {
-    this.setState({ ignoreNoteCache: Math.random() });
+    Sefaria.clearPrivateNotes();
+    this.getNotes().then(() => this.setState({ refreshNoteData: Math.random() }));
   }
   filterNote(currFilter, note) {
     const n = text => text.toLowerCase();
@@ -141,17 +142,17 @@ class UserProfile extends Component {
       />
     );
   }
-  getSheets(ignoreCache) {
+  getSheets() {
     return new Promise((resolve, reject) => {
       Sefaria.sheets.userSheets(this.props.profile.id, sheets => {
         // What was the below for?
         // s.options.language = "en";
         resolve(sheets);
-      }, undefined, 0, 0, ignoreCache);
+      }, undefined, 0, 0);
     });
   }
   getSheetsFromCache() {
-    return Sefaria.sheets.userSheets(this.props.profile.id, null, undefined, 0, 0, false);
+    return Sefaria.sheets.userSheets(this.props.profile.id, null, undefined, 0, 0);
   }
   filterSheet(currFilter, sheet) {
     const n = text => text.toLowerCase();
@@ -196,7 +197,8 @@ class UserProfile extends Component {
     );
   }
   handleSheetDelete() {
-    this.setState({ ignoreSheetCache: Math.random() });
+    Sefaria.sheets.clearUserSheets(Sefaria._uid);
+    this.getSheets().then(() => this.setState({ refreshSheetData: Math.random() }));
   }
   renderSheet(sheet) {
     return (
@@ -347,7 +349,6 @@ class UserProfile extends Component {
                   <FilterableList
                     key="sheet"
                     pageSize={1e6}
-                    ignoreCache={this.state.ignoreSheetCache}
                     filterFunc={this.filterSheet}
                     sortFunc={this.sortSheet}
                     renderItem={this.renderSheet}
@@ -356,13 +357,13 @@ class UserProfile extends Component {
                     sortOptions={["Recent", "Views"]}
                     getData={this.getSheets}
                     data={this.getSheetsFromCache()}
+                    refreshData={this.state.refreshSheetData}
                   />
                   {
                     this.state.showNotes ? (
                       <FilterableList
                         key="note"
                         pageSize={1e6}
-                        ignoreCache={this.state.ignoreNoteCache}
                         filterFunc={this.filterNote}
                         sortFunc={this.sortNote}
                         renderItem={this.renderNote}
@@ -370,6 +371,7 @@ class UserProfile extends Component {
                         sortOptions={[]}
                         getData={this.getNotes}
                         data={this.getNotesFromCache()}
+                        refreshData={this.state.refreshNoteData}
                       />
                     ) : null
                   }
