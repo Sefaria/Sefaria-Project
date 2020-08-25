@@ -21,6 +21,7 @@ import {
 } from './Misc';
 import Component from 'react-class';
 
+
 class ReaderApp extends Component {
   constructor(props) {
     super(props);
@@ -309,6 +310,7 @@ class ReaderApp extends Component {
       if (state.panels) {
         for (let p of state.panels) {
           p.textSearchState = p.textSearchState && new SearchState(p.textSearchState);
+          p.sheetSearchState = p.sheetSearchState && new SearchState(p.sheetSearchState);
         }
       }
 

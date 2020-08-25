@@ -152,10 +152,6 @@ class SearchState {
           .filter( f => f[1] === aggType)
           .map( x => x[0]) 
           : this.appliedFilters;
-        console.log(this.appliedFilters)
-        console.log(this.appliedFilterAggTypes)
-        console.log(aggType)
-        console.log(aggTypeFilters);
         return accum + (aggTypeFilters.length > 0 ? `&${prefix}${aggType}Filters=${aggTypeFilters.map( f => encodeURIComponent(f)).join('|')}` : '');
       }, '') +
       `&${prefix}var=` + (this.field !== this.fieldExact ? '1' : '0') +
