@@ -493,7 +493,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     else:
         sheet = panels[0].get("sheet",{})
-        title = strip_tags(sheet["title"]) + " | " + _("Sefaria Source Sheet")
+        title = strip_tags(sheet["title"]) + " | " + _("Sefaria")
         breadcrumb = sheet_crumbs(request, sheet)
         desc = sheet.get("summary", _("A source sheet created with Sefaria's Source Sheet Builder"))
         noindex = sheet["status"] != "public"
@@ -507,6 +507,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "html":           html,
         "title":          title,
         "desc":           desc,
+        "canonical_url":  canonical_url(request),
         "ldBreadcrumbs":  breadcrumb,
         "noindex":        noindex,
     })
@@ -559,8 +560,10 @@ def texts_category_list(request, cats):
         "html":             html,
         "title":            title,
         "desc":             desc,
+        "canonical_url":    canonical_url(request),
         "ldBreadcrumbs":    ld_cat_crumbs(request, cats)
     })
+
 
 @sanitize_get_params
 def topics_toc_page(request, topicCategory):
@@ -854,6 +857,7 @@ def menu_page(request, props, page, title="", desc=""):
         "title":          title,
         "desc":           desc,
         "html":           html,
+        "canonical_url":  canonical_url(request),
     })
 
 
@@ -961,6 +965,25 @@ def s2_extended_notes(request, tref, lang, version_title):
     return s2_page(request, props, "extended notes", title)
 """
 
+def canonical_url(request):
+    if not SITE_SETTINGS["TORAH_SPECIFIC"]:
+        return None
+
+    path = request.get_full_path()
+    if request.interfaceLang == "hebrew":
+        host = "https://www.sefaria.org.il"
+        # Default params for texts, text toc, and text category
+        path = re.sub("\?lang=he(&aliyot=0)?$", "", path)
+    else:
+        host = "https://www.sefaria.org"
+        # Default params for texts, text toc, and text category
+        path = re.sub("\?lang=bi(&aliyot=0)?$", "", path)
+
+    path = re.sub("\?home$", "", path) # remove param to force homepage load
+
+    path = "" if path == "/" else path
+    return host + path
+
 """
 JSON - LD snippets for use in "rich snippets" - semantic markup.
 """
@@ -1053,7 +1076,6 @@ def ld_cat_crumbs(request, cats=None, title=None, oref=None):
         "@type": "BreadcrumbList",
         "itemListElement": breadcrumbJsonList
     })
-
 
 
 @ensure_csrf_cookie
@@ -2979,7 +3001,7 @@ def topic_page(request, topic):
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + _(' | Sefaria')
-    desc = _('Explore %(topic)s on Sefaria, drawing from our library of Jewish texts. ') % {'topic': topic_obj.get_primary_title(short_lang)}
+    desc = _('Explore %(topic)s on Sefaria, drawing from our library of Jewish texts.') % {'topic': topic_obj.get_primary_title(short_lang)}
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
         desc += topic_desc
@@ -3569,7 +3591,6 @@ def home(request):
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return redirect("/texts")
 
-    # show_feed = request.COOKIES.get("home_feed", None)
     show_feed = request.user.is_authenticated
 
     if show_feed:
@@ -3590,6 +3611,7 @@ def home(request):
                               "metrics": metrics,
                               "daf_today": daf_today,
                               "parasha": parasha,
+                              "canonical_url": canonical_url(request)
                               })
 
 
@@ -3657,310 +3679,6 @@ def dashboard(request):
                                 {
                                     "states": states,
                                 })
-
-
-@ensure_csrf_cookie
-@sanitize_get_params
-def translation_requests(request, completed_only=False, featured_only=False):
-    """
-    Page listing all outstnading translation requests.
-    """
-    page              = int(request.GET.get("page", 1)) - 1
-    page_size         = 100
-    query             = {"completed": False, "section_level": False} if not completed_only else {"completed": True}
-    query             = {"completed": True, "featured": True} if completed_only and featured_only else query
-    requests          = TranslationRequestSet(query, limit=page_size, page=page, sort=[["request_count", -1]])
-    request_count     = TranslationRequestSet({"completed": False, "section_level": False}).count()
-    complete_count    = TranslationRequestSet({"completed": True}).count()
-    featured_complete = TranslationRequestSet({"completed": True, "featured": True}).count()
-    next_page         = page + 2 if True or len(requests) == page_size else 0
-    featured_query    = {"featured": True, "featured_until": { "$gt": datetime.now() } }
-    featured          = TranslationRequestSet(featured_query, sort=[["completed", 1], ["featured_until", 1]])
-    today             = datetime.today()
-    featured_end      = today + timedelta(7 - ((today.weekday()+1) % 7)) # This coming Sunday
-    featured_end      = featured_end.replace(hour=0, minute=0)  # At midnight
-    current           = [d.featured_until <= featured_end for d in featured]
-    featured_current  = sum(current)
-    show_featured     = not completed_only and not page and ((request.user.is_staff and len(featured)) or (featured_current))
-
-    return render(request,'translation_requests.html',
-                                {
-                                    "featured": featured,
-                                    "featured_current": featured_current,
-                                    "show_featured": show_featured,
-                                    "requests": requests,
-                                    "request_count": request_count,
-                                    "completed_only": completed_only,
-                                    "complete_count": complete_count,
-                                    "featured_complete": featured_complete,
-                                    "featured_only": featured_only,
-                                    "next_page": next_page,
-                                    "page_offset": page * page_size
-                                })
-
-
-def completed_translation_requests(request):
-    """
-    Wrapper for listing completed translations requests.
-    """
-    return translation_requests(request, completed_only=True)
-
-
-def completed_featured_translation_requests(request):
-    """
-    Wrapper for listing completed translations requests.
-    """
-    return translation_requests(request, completed_only=True, featured_only=True)
-
-
-@catch_error_as_json
-def translation_request_api(request, tref):
-    """
-    API for requesting a text segment for translation.
-    """
-    if not request.user.is_authenticated:
-        return jsonResponse({"error": "You must be logged in to request a translation."})
-
-    oref = Ref(tref)
-    ref = oref.normal()
-
-    if "unrequest" in request.POST:
-        TranslationRequest.remove_request(ref, request.user.id)
-        response = {"status": "ok"}
-
-    elif "feature" in request.POST:
-        if not request.user.is_staff:
-            response = {"error": "Only admins can feature requests."}
-        else:
-            tr                = TranslationRequest().load({"ref": ref})
-            tr.featured       = True
-            tr.featured_until = dateutil.parser.parse(request.POST.get("feature"))
-            tr.save()
-            response = {"status": "ok"}
-
-    elif "unfeature" in request.POST:
-        if not request.user.is_staff:
-            response = {"error": "Only admins can unfeature requests."}
-        else:
-            tr = TranslationRequest().load({"ref": ref})
-            tr.featured       = False
-            tr.featured_until = None
-            tr.save()
-            response = {"status": "ok"}
-
-    else:
-        if oref.is_text_translated():
-            response = {"error": "Sefaria already has a translation for %s." % ref}
-        else:
-            tr = TranslationRequest.make_request(ref, request.user.id)
-            response = tr.contents()
-
-    return jsonResponse(response)
-
-
-@ensure_csrf_cookie
-@sanitize_get_params
-def translation_flow(request, tref):
-    """
-    Assign a user a paritcular bit of text to translate within 'ref',
-    either a text title or category.
-    """
-    tref = tref.replace("_", " ")
-    generic_response = { "title": "Help Translate %s" % tref, "content": "" }
-    categories = model.library.get_text_categories()
-    next_text = None
-    next_section = None
-
-    # expire old locks before checking for a currently unlocked text
-    model.expire_locks()
-
-    try:
-        oref = model.Ref(tref)
-    except InputError:
-        oref = False
-    if oref and len(oref.sections) == 0:
-        # tref is an exact text Title
-
-        # normalize URL
-        if request.path != "/translate/%s" % oref.url():
-            return redirect("/translate/%s" % oref.url(), permanent=True)
-
-        # Check for completion
-        if oref.get_state_node().get_percent_available("en") == 100:
-            generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % tref
-            return render(request,'static/generic.html', generic_response)
-
-        if "random" in request.GET:
-            # choose a ref from a random section within this text
-            if "skip" in request.GET:
-                if oref.is_talmud():
-                    skip = int(daf_to_section(request.GET.get("skip")))
-                else:
-                    skip = int(request.GET.get("skip"))
-            else:
-                skip = None
-            assigned_ref = random_untranslated_ref_in_text(oref.normal(), skip=skip)
-
-            if assigned_ref:
-                next_section = model.Ref(assigned_ref).padded_ref().sections[0]
-
-        elif "section" in request.GET:
-            # choose the next ref within the specified section
-            next_section = int(request.GET["section"])
-            assigned_ref = next_untranslated_ref_in_text(oref.normal(), section=next_section)
-
-        else:
-            # choose the next ref in this text in order
-            assigned_ref = next_untranslated_ref_in_text(oref.normal())
-
-        if not assigned_ref:
-            generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (oref.normal(), tref)
-            return render(request,'static/generic.html', generic_response)
-
-    elif oref and len(oref.sections) > 0:
-        # ref is a citation to a particular location in a text
-        # for now, send this to the edit_text view
-        return edit_text(request, tref)
-
-    elif tref in categories:  #todo: Fix me to work with Version State!
-        # ref is a text Category
-        raise InputError("This function is under repair.  Our Apologies.")
-        '''
-        cat = tref
-
-        # Check for completion
-        if get_percent_available(cat) == 100:
-            generic_response["content"] = "<h3>Sefaria now has a complete translation of %s</h3>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % tref
-            return render(request,'static/generic.html', generic_response)
-
-        if "random" in request.GET:
-            # choose a random text from this cateogory
-            skip = int(request.GET.get("skip")) if "skip" in request.GET else None
-            text = random_untranslated_text_in_category(cat, skip=skip)
-            assigned_ref = next_untranslated_ref_in_text(text)
-            next_text = text
-
-        elif "text" in request.GET:
-            # choose the next text requested in URL
-            oref = model.Ref(request.GET["text"])
-            text = oref.normal()
-            next_text = text
-            if oref.get_state_node().get_percent_available("en") == 100:
-                generic_response["content"] = "%s is complete! Work on <a href='/translate/%s'>another text</a>." % (text, tref)
-                return render(request,'static/generic.html', generic_response)
-
-            try:
-                assigned_ref = next_untranslated_ref_in_text(text)
-            except InputError:
-                generic_response["content"] = "All remaining sections in %s are being worked on by other contributors. Work on <a href='/translate/%s'>another text</a> for now." % (text, tref)
-                return render(request,'static/generic.html', generic_response)
-
-        else:
-            # choose the next text in order
-            skip = 0
-            success = 0
-            # TODO -- need an escape valve here
-            while not success:
-                try:
-                    text = next_untranslated_text_in_category(cat, skip=skip)
-                    assigned_ref = next_untranslated_ref_in_text(text)
-                    skip += 1
-                except InputError:
-                    pass
-                else:
-                    success = 1
-        '''
-    else:
-        # we don't know what this is
-        generic_response["content"] = "<b>%s</b> isn't a known text or category.<br>But you can still contribute in other ways.</h3> <a href='/contribute'>Learn More.</a>" % (tref)
-        return render(request,'static/generic.html', generic_response)
-
-    # get the assigned text
-    assigned = TextFamily(Ref(assigned_ref), context=0, commentary=False).contents()
-
-    # Put a lock on this assignment
-    user = request.user.id if request.user.is_authenticated else 0
-    model.set_lock(assigned_ref, "en", "Sefaria Community Translation", user)
-
-    # if the assigned text is actually empty, run this request again
-    # but leave the new lock in place to skip over it
-    if "he" not in assigned or not len(assigned["he"]):
-        return translation_flow(request, tref)
-
-    # get percentage and remaining counts
-    # percent   = get_percent_available(assigned["book"])
-    translated = StateNode(assigned["book"]).get_translated_count_by_unit(assigned["sectionNames"][-1])
-    remaining = StateNode(assigned["book"]).get_untranslated_count_by_unit(assigned["sectionNames"][-1])
-    percent    = 100 * translated / float(translated + remaining)
-
-
-    return render(request,'translate_campaign.html',
-                                    {"title": "Help Translate %s" % tref,
-                                    "base_ref": tref,
-                                    "assigned_ref": assigned_ref,
-                                    "assigned_ref_url": model.Ref(assigned_ref).url(),
-                                    "assigned_text": assigned["he"],
-                                    "assigned_segment_name": assigned["sectionNames"][-1],
-                                    "assigned": assigned,
-                                    "translated": translated,
-                                    "remaining": remaining,
-                                    "percent": percent,
-                                    "thanks": "thank" in request.GET,
-                                    "random_param": "&skip={}".format(assigned["sections"][0]) if request.GET.get("random") else "",
-                                    "next_text": next_text,
-                                    "next_section": next_section,
-                                    })
-
-
-@ensure_csrf_cookie
-@sanitize_get_params
-def contest_splash(request, slug):
-    """
-    Splash page for contest.
-
-    Example of adding a contest record to the DB:
-    db.contests.save({
-            "contest_start"    : datetime.strptime("3/5/14", "%m/%d/%y"),
-            "contest_end"      : datetime.strptime("3/26/14", "%m/%d/%y"),
-            "version"          : "Sefaria Community Translation",
-            "ref_regex"        : "^Shulchan Arukh, Even HaEzer ",
-            "assignment_url"   : "/translate/Shulchan_Arukh,_Even_HaEzer",
-            "title"            : "Translate Shulchan Arukh, Even HaEzer",
-            "slug"             : "shulchan-arukh-even-haezer"
-    })
-    """
-    settings = db.contests.find_one({"slug": slug})
-    if not settings:
-        raise Http404
-
-    settings["copy_template"] = "static/contest/%s.html" % settings["slug"]
-
-    leaderboard_condition = make_leaderboard_condition( start     = settings["contest_start"],
-                                                        end       = settings["contest_end"],
-                                                        version   = settings["version"],
-                                                        ref_regex = settings["ref_regex"])
-
-    now = datetime.now()
-    if now < settings["contest_start"]:
-        settings["phase"] = "pre"
-        settings["leaderboard"] = None
-        settings["time_to_start"] = td_format(settings["contest_start"] - now)
-
-    elif settings["contest_start"] < now < settings["contest_end"]:
-        settings["phase"] = "active"
-        settings["leaderboard_title"] = "Current Leaders"
-        settings["leaderboard"] = make_leaderboard(leaderboard_condition)
-        settings["time_to_end"] = td_format(settings["contest_end"] - now)
-
-    elif settings["contest_end"] < now:
-        settings["phase"] = "post"
-        settings["leaderboard_title"] = "Contest Leaders (Unreviewed)"
-
-        settings["leaderboard"] = make_leaderboard(leaderboard_condition)
-
-
-    return render(request,"contest_splash.html",
-                                settings)
 
 
 @ensure_csrf_cookie
