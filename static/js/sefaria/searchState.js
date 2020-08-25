@@ -174,7 +174,7 @@ SearchState.metadataByType = {
     fieldBroad: null,
     field: 'content',
     aggregation_field_array: ['group', 'topics'],
-    aggregation_field_lang_suffix_array: [null, {'english': '_en.keyword', 'hebrew': '_he.keyword'}],
+    aggregation_field_lang_suffix_array: [null, {'english': '_en', 'hebrew': '_he'}],
     build_and_apply_filters: 'buildAndApplySheetFilters',  // func name from Search.js
     sortType: 'relevance',
     sortTypeArray: [

@@ -514,4 +514,9 @@ sites_data = [
         "name": ["מכון הדר"],
         "domains": ["mechohadar.org.il"]
     },
+    {
+        "name": "Pardes Institute of Jewish Studies",
+        "domains": ["pardes.org"],
+        "title_branding": ["Elmad Online Learning Torah Podcasts, Online Jewish Learning"]
+    },
 ]
