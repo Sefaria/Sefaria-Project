@@ -10,7 +10,7 @@ import {
   ToolTipped,
 } from './Misc';
 import {  CategoryFilter,} from './ConnectionFilters';
-import React from 'react';
+import React,{useRef, useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
@@ -286,6 +286,7 @@ class ConnectionsPanel extends Component {
                     sheetsCount={Sefaria.sheets.sheetsTotalCount(this.props.srefs)}
                     notesCount={Sefaria.notesTotalCount(this.props.srefs)}
                     webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length}
+					audioCount={Sefaria.audioByRef(this.props.srefs).length}
                     topicsCount={Sefaria.topicsByRefCount(this.props.srefs)}
                   />
                   </div>);
@@ -423,6 +424,14 @@ class ConnectionsPanel extends Component {
                     interfaceLang={this.props.interfaceLang}
                     key="WebPages"/>);
 
+	} else if (this.props.mode === "Audio" || this.props.mode === "AudioList") {
+      content = (<AudioList
+					srefs={this.props.srefs}
+                    //filter={this.props.mode == "Audios" ? null : this.props.webPagesFilter}
+                    //setWebPagesFilter={this.props.setWebPagesFilter}
+                    interfaceLang={this.props.interfaceLang}
+                    key="Audio"/>);
+
     } else if (this.props.mode === "Tools") {
       content = (<ToolsList
                     srefs={this.props.srefs}
@@ -501,7 +510,7 @@ class ConnectionsPanel extends Component {
                   currVersions={this.props.currVersions}
                   title={this.props.title}/>);
     }
-    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics"].indexOf(this.props.mode) != -1;
+    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics", "Audio"].indexOf(this.props.mode) != -1;
 
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
@@ -582,6 +591,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Translations" he="תרגומים" image="layers.png" onClick={() => this.props.setConnectionsMode("Translations")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} />
+			  <ToolsButton en="Audio" he="שמיעה" image="audio.svg" count={this.props.audioCount} onClick={() => this.props.setConnectionsMode("Audio")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
@@ -877,6 +887,133 @@ WebPagesList.propTypes = {
   srefs: PropTypes.array.isRequired,
 };
 
+const Audio = ({audioUrl, startTime, endTime, source, license, source_site, description, anchor}) => {
+   const audioElement = useRef();
+   const [currTime, setCurrTime] = useState(true);
+   const [playing, setPlaying] = useState(false); //true for autoplay
+   const [clipEndTime, setClipEndTime] = useState();
+   const [clipStartTime, setClipStartTime] = useState();
+   const handleChange = (value) => {
+		   setCurrTime(value);
+		   setCurrTime(value.currentTarget.value);
+		   audioElement.current.currentTime = value.currentTarget.value
+		};
+
+   const reportAudioError = () => {
+	   console.log("report got called")
+
+	  var feedback = {
+		  type: "audio report",
+		  msg: {audioUrl}, //add dropdown error
+	  };
+	  var postData = {json: JSON.stringify(feedback)};
+	  var url = "/api/send_feedback";
+
+	  $.post(url, postData, function (data) {
+		  if (data.error) {
+			  alert(data.error);
+		  } else {
+			  console.log(data);
+			  window.onbeforeunload = null;
+			  alert(`The error has been noted. Happy learning!`)
+			  location.reload()
+		  }
+	  }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
+		  alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
+	  });
+	}
+   useEffect(() => {
+       const setAudioData = () => {
+		   if (startTime < clipStartTime){
+		   if (clipStartTime != currTime) setPlaying(true);
+		   setCurrTime(null)};
+           setClipEndTime(endTime);
+		   setClipStartTime(startTime);
+       };
+
+       const setAudioTime = () => setCurrTime(audioElement.current.currentTime); //control range component
+
+
+       audioElement.current.addEventListener("timeupdate", setAudioTime);
+	   setAudioData();
+
+	   if (clipStartTime && currTime < clipStartTime){
+			audioElement.current.currentTime = clipStartTime;
+	   };
+
+
+       playing ? audioElement.current.play() : audioElement.current.pause();
+
+       if (clipEndTime && currTime > clipEndTime) {
+           setPlaying(false);
+		   setCurrTime(null);
+       }
+
+
+       return () => { //pretty sure these are both unnecassary
+           audioElement.current.removeEventListener("loadeddata", setAudioData);
+           audioElement.current.removeEventListener("timeupdate", setAudioTime);
+       }
+   });
+      return (
+		<div className="audio"  key={audioUrl}>
+			  <div className="title">{source}</div>
+			  <div className="description"><a>{description}</a></div>
+			  <div className="panel">
+			    <input type="image" src = {playing ? "static/img/pause.svg" : "static/img/play.svg"} onClick={() => setPlaying(playing ? false : true)} id="pause"/>
+				<input type="range" min={startTime} max={endTime} value = {currTime} step="any" class="slider" onChange={(value) => {handleChange(value)}}/>
+				<a> {parseInt((clipEndTime-clipStartTime) - (clipEndTime - currTime)) + "/" + parseInt(clipEndTime-clipStartTime)}</a>
+			  </div>
+			  <audio id="my-audio" ref = {audioElement}>
+				 <source src={audioUrl} type="audio/mpeg"/>
+			  </audio>
+			  <div className="meta">
+				<span className="int-en">License: {license}</span>
+				<span className="int-he">עסק רשיון: {license}</span>
+				<span className="int-en">Source: {source_site}</span>
+				<span className="int-he">מקור: {source_site}</span>
+			  </div>
+
+			  <p><a href="#" id="reportAudioError" onClick={() => {reportAudioError()}}>Report audio error</a></p>
+
+		</div>
+   )
+};
+class AudioList extends Component {
+	render() {
+		let audios = Sefaria.audioByRef(this.props.srefs)
+		let content = [];
+		  content = audios.map(audio => {
+			return <Audio
+				audioUrl = {audio.audio_url}
+				startTime = {audio.start_time}
+				endTime = {audio.end_time}
+				source = {audio.source}
+				license = {audio.license}
+				source_site = {audio.source_site}
+				description = {audio.description}
+				anchor = {audio.anchorRef}
+				/>
+		  });
+		 if (!content.length) {
+			return <div className="audioList empty">
+                  No known audio
+                </div>;
+		 }
+
+		return <div className="audioList">
+				<div class="audioTitle">
+					<div className="en">Torah Reading </div>
+					<div className="he">קריאת התורה </div>
+				</div>
+				  {content}
+			   </div>;
+	}
+}
+AudioList.propTypes = {
+  srefs: PropTypes.array.isRequired,
+};
+
 
 class ToolsList extends Component {
   render() {
@@ -1097,7 +1234,6 @@ class AddNoteBox extends Component {
     /* Leaving out public / private toggle until public notes are reintroduced
     <div className="noteSharingToggle">
       <div className={privateClasses} onClick={this.setPrivate}>
-
         <span className="int-en"><i className="fa fa-lock"></i> Private</span>
         <span className="int-he"><i className="fa fa-lock"></i>רשומה פרטית</span>
       </div>
@@ -1307,7 +1443,7 @@ AddConnectionBox.propTypes = {
   srefs:    PropTypes.array.isRequired,
   onSave:   PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired
-};
+}
 
 export {
   ConnectionsPanel,
