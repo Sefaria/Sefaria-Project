@@ -309,6 +309,7 @@ const TopicPage = ({
       topic
     );
 
+    // Set up Tabs
     const tabs = [];
     if (!!textRefs.length) { tabs.push({text: Sefaria._("Sources"), id: 'sources'}); }
     if (!!sheetRefs.length) { tabs.push({text: Sefaria._("Sheets"), id: 'sheets'}); }
