@@ -1101,6 +1101,41 @@ class InfiniteScrollDown(AtomicTest):
         self.test_down("Pesach Haggadah, Magid, The Four Sons", "Pesach Haggadah, Magid, Yechol Me'rosh Chodesh 1")
 
 
+class BackRestoresScrollPosition(AtomicTest):
+    suite_class = ReaderSuite
+    every_build = True
+
+    def body(self):
+        SCROLL_DISTANCE = 200
+
+        # TOC
+        self.load_toc()
+        self.scroll_content_to_position(SCROLL_DISTANCE)
+        self.click_toc_category("Midrash")
+        self.driver.back()
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-cat="Midrash"]')))
+        assert self.get_content_scroll_position() == SCROLL_DISTANCE
+
+        # Search
+        self.search_for("restoration")
+        self.scroll_content_to_position(SCROLL_DISTANCE)
+        versionedResult = self.driver.find_element_by_css_selector('a[href="/Mishneh_Torah%2C_Kings_and_Wars.12.2?ven=Yad-Hachazakah,_edited_by_Elias_Soloweyczik%3B_London,_1863&qh=restoration"]')
+        versionedResult.click()
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.segment')))
+        self.driver.back()
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.text_result')))
+        assert self.get_content_scroll_position() == SCROLL_DISTANCE
+
+        # Topic
+        self.load_topic_page("wonders")
+        self.scroll_content_to_position(SCROLL_DISTANCE)
+        source = self.driver.find_element_by_css_selector('.storyTitle a')
+        source.click()
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.segment')))
+        self.driver.back()
+        assert self.get_content_scroll_position() == SCROLL_DISTANCE
+
+
 """
 # Not complete
 

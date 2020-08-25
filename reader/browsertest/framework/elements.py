@@ -1007,6 +1007,15 @@ class AbstractTest(object):
         # todo
         return self
 
+    def scroll_content_to_position(self, pixels):
+        self.driver.execute_script(
+            "var a = document.getElementsByClassName('content')[0]; a.scrollTop = {}".format(pixels)
+        )
+        return self
+
+    def get_content_scroll_position(self):
+        return self.driver.execute_script("var a = document.getElementsByClassName('content')[0]; return a.scrollTop;")
+
     def scroll_to_segment(self, ref):
         if isinstance(ref, str):
             ref = Ref(ref)
@@ -1081,6 +1090,11 @@ class AbstractTest(object):
         self.driver.get(self.base_url + "/topics")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".topicList")))
         self.set_modal_cookie()
+        return self
+
+    def load_topic_page(self, slug):
+        self.driver.get(self.base_url + "/topics/" + slug)
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".storyTitle")))
         return self
 
     def load_gardens(self):
