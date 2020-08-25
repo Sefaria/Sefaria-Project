@@ -1213,17 +1213,16 @@ Sefaria = extend(Sefaria, {
   },
 
 
-_audio: {},
-  audioByRef: function(refs) {
+_media: {},
+  mediaByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
     var ref = Sefaria.normRefList(refs);
-	
-    var audio = [];
-    refs.map(r => {
-      if (this._audio[r]) { audio = audio.concat(this._audio[r]); }
-    }, this);
 
-	return audio;
+    var media = [];
+    refs.map(r => {
+      if (this._media[r]) { media = media.concat(this._media[r]); }
+    }, this);
+	return media;
   },
 
 
@@ -1254,8 +1253,8 @@ _audio: {},
 
       // 3: exact match, 2: range match: 1: section match
       var aSpecificity, bSpecificity;
-      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRefExpanded.length);
-      if (aSpecificity !== bSpecificity) {return aSpecificity - bSpecificity};
+      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRef === ref ? 3 : (page.anchorRef.indexOf("-") !== -1 ? 2 : 1));
+      if (aSpecificity !== bSpecificity) {return aSpecificity > bSpecificity ? -1 : 1};
 
       return (a.linkerHits > b.linkerHits) ? -1 : 1
     });
@@ -1321,15 +1320,15 @@ _audio: {},
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
           topics: this._saveTopicByRef(ref, data.topics || []),
-		  audio: this._saveItemsByRef(data.audio, this._audio),
+		  media: this._saveItemsByRef(data.media, this._media),
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets", "webpages", "audio"].forEach(obj_type => {
+      ["links", "notes", "sheets", "webpages", "media"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], audio: [], topics: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], media: [], topics: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }

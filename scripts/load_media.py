@@ -10,4 +10,4 @@ directory = 'data/tmp/pockettorah_audio/'
 for filename in os.listdir(directory):
     with open(directory + filename) as json_file:
         data = json.load(json_file)
-        db.audio.save(data) # saves a single record
+        db.media.save(data) # saves a single record
