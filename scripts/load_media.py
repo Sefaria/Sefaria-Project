@@ -11,3 +11,4 @@ for filename in os.listdir(directory):
     with open(directory + filename) as json_file:
         data = json.load(json_file)
         db.media.save(data) # saves a single record
+        db.media.ensure_index("ref.sefaria_ref")

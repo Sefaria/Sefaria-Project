@@ -75,6 +75,7 @@ def ensure_indices(active_db=None):
         ('links', ["source_text_oid"],{}),
         ('links', ["is_first_comment"],{}),
         ('metrics', ["timestamp"], {'unique': True}),
+        ('media, ["ref.sefaria_ref"]', {}),
         ('notes', [[("owner", pymongo.ASCENDING), ("ref", pymongo.ASCENDING), ("public", pymongo.ASCENDING)]],{}),
         ('notifications', [[("uid", pymongo.ASCENDING), ("read", pymongo.ASCENDING)]],{}),
         ('notifications', ["uid"],{}),
