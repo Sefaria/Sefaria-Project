@@ -252,7 +252,6 @@ const FilterableList = ({
   const [rawData, setRawData] = useState(cachedData);
   const [displayData, setDisplayData] = useState(processData(rawData));
   
-  //debugger;
   // Initial loading of data
   useEffect(() => {
     let isMounted = true;
@@ -260,9 +259,9 @@ const FilterableList = ({
       setLoading(true);
       getData().then(data => {
         if (isMounted) {
-          setLoading(false);
           setRawData(data);
           setDisplayData(processData(data));
+          setLoading(false);
         }
       });      
     }
