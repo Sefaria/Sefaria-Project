@@ -1701,6 +1701,8 @@ Sefaria = extend(Sefaria, {
         const user_history_cookie = cookie("user_history");
         const user_history = !!user_history_cookie ? JSON.parse(user_history_cookie) : [];
         cookie("user_history", JSON.stringify(new_hist_array.concat(user_history)), {path: "/"});
+        Sefaria._userHistory.history = new_hist_array.concat(user_history);
+
         //console.log("saving history cookie", new_hist_array);
         if (Sefaria._inBrowser) {
           // check if we've reached the cookie size limit

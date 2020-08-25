@@ -1058,6 +1058,7 @@ class ReaderPanel extends Component {
           openNav={this.openMenu.bind(null, "navigation")}
           openDisplaySettings={this.openDisplaySettings}
           toggleLanguage={this.toggleLanguage}
+          handleClick={this.handleNavigationClick}
           compare={this.state.menuOpen === "compare"}
           hideNavHeader={this.props.hideNavHeader}
           interfaceLang={this.props.interfaceLang}
