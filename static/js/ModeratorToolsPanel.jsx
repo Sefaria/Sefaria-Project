@@ -161,7 +161,7 @@ class WorkflowyModeratorTool extends Component{
     super(props);
     this.handleWfSubmit = this.handleWfSubmit.bind(this);
     this.wfFileInput = React.createRef();
-    this.state = {};
+    this.state = {c_index: true};
   }
 
   handleInputChange(event) {
@@ -176,13 +176,10 @@ class WorkflowyModeratorTool extends Component{
 
   handleWfSubmit(event) {
     event.preventDefault();
-    console.log(
+    /*console.log(
       `Selected file - ${this.wfFileInput.current.files[0].name}`
-    );
+    );*/
     this.setState({uploading: true, uploadMessage:"Uploading..."});
-    /*let formData = new FormData();
-    let file = this.wfFileInput.current.files[0];
-    formData.append('wf_file', file, file.name);*/
     const data = new FormData(event.target);
     console.log(data);
     const request = new Request(
@@ -194,9 +191,33 @@ class WorkflowyModeratorTool extends Component{
       mode: 'same-origin',
       credentials: 'same-origin',
       body: data,
-    }).then(data => {
-        console.log(data);
+    }).then(response => {
+        this.setState({uploading: false, uploadMessage:""});
+        if (!response.ok) {
+            response.text().then(resp_text=> {
+                console.log("error in html form", resp_text);
+                this.setState({uploading: false, error: true, errorIsHTML: true, uploadResult: resp_text});
+            })
+        }else{
+            response.json().then(resp_json=>{
+                console.log("okay response", resp_json);
+                this.setState({uploading: false, error: false, uploadMessage:resp_json["data"]["message"], uploadResult: JSON.stringify(resp_json["data"]["index"])})
+            });
+        }
+    }).catch(error => {
+        console.log("network error", error);
+        this.setState({uploading: false, error: true, errorIsHTML: false, uploadMessage:error.message});
     });
+  }
+
+  parseErrorHTML(htmltext){
+    console.log("pparsing html", htmltext);
+    // Initialize the DOM parser
+    let parser = new DOMParser();
+    // Parse the text
+    let doc = parser.parseFromString(htmltext, "text/html");
+    //return {__html: doc};
+    return doc
   }
 
   render() {
@@ -216,7 +237,6 @@ class WorkflowyModeratorTool extends Component{
               <input
                 name="c_index"
                 type="checkbox"
-                defaultChecked={true}
                 checked={this.state.c_index}
                 onChange={this.handleInputChange} />
            </label>
@@ -225,8 +245,7 @@ class WorkflowyModeratorTool extends Component{
               <input
                 name="c_version"
                 type="checkbox"
-                defaultChecked={false}
-                checked={this.state.c_version}
+                checked={this.state.c_version || false}
                 onChange={this.handleInputChange} />
            </label>
            <label>
@@ -246,14 +265,14 @@ class WorkflowyModeratorTool extends Component{
                 onChange={this.handleInputChange} />
             </label>
              <button className="versionDownloadButton" name="wf-submit" type="submit">
-               <div className="downloadButtonInner">
                 <span className="int-en">Upload</span>
-                <span className="int-he">העלאה</span>
-                </div>
+                <span className="int-he">Upload</span>
              </button>
          </form>
-        <div className="wf-upl-status">{this.state.uploadMessage}</div>
-        <div className="wf-result">{this.state.uploadError}</div>
+        <div id="wf-upl-msg" className="wf-upl-msg">{this.state.uploadMessage || ""}</div>
+        { (this.state.error && this.state.errorIsHTML) ?
+              <div id="wf-upl-message" className="wf-upl-message" dangerouslySetInnerHTML={{__html: this.state.uploadResult}}/> :
+              <div id="wf-upl-message" className="wf-upl-message">{this.state.uploadResult}</div> }
         </>);
   }
 }
