@@ -581,17 +581,19 @@ class WorkflowyParser(object):
         schema_root = self.build_index_schema(self.outline)
         self.parsed_schema = schema_root
         schema_root.validate()
+        idx = self.create_index_from_schema(categories)
         if self._c_index:
-            print("Saving Index record")
-            idx = self.create_index_from_schema(categories)
+            idx = Index(idx).save()
+            res = "Index record [{}] created.".format(self.parsed_schema.primary_title())
             if self._c_version:
-                print("Creating Version Record")
-                self.create_version_from_outline_notes()
+                self.save_version_from_outline_notes()
+                res += " Version record created."
             else:
-                print("No Text, Creating Default Empty Version Record")
-                self.create_version_default(idx)
+                self.save_version_default(idx)
+                res += " No text, Default empty Version record created."
         else:
-            return schema_root.serialize()
+            res = "Returning index outline without saving."
+        return {"message": res, "index": idx}
 
     # object tree of each with jagged array nodes at the lowest level (recursive)
     def build_index_schema(self, element):
@@ -722,12 +724,11 @@ class WorkflowyParser(object):
     def create_index_from_schema(self, categories=None):
         if not categories:
             categories = ["Other"]
-        idx = Index({
+        return {
             "title": self.parsed_schema.primary_title(),
             "categories": categories,
             "schema": self.parsed_schema.serialize()
-        }).save()
-        return idx
+        }
 
     def create_term_scheme(self):
         if not TermScheme().load({"name": self._term_scheme}):
@@ -759,7 +760,7 @@ class WorkflowyParser(object):
         return None
 
     # builds and posts text to api
-    def create_version_from_outline_notes(self):
+    def save_version_from_outline_notes(self):
         from sefaria.tracker import modify_text
         for text_ref in self.version_info['text']:
             node = text_ref['node']
@@ -771,7 +772,7 @@ class WorkflowyParser(object):
             vsource = self.version_info['info']['versionSource']
             modify_text(user, ref, vtitle, lang, text, vsource)
 
-    def create_version_default(self, idx):
+    def save_version_default(self, idx):
         Version(
             {
                 "chapter": idx.nodes.create_skeleton(),

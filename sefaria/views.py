@@ -954,7 +954,7 @@ def modtools_upload_workflowy(request):
         wfparser = WorkflowyParser(file, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
         res = wfparser.parse()
     except Exception as e:
-        return jsonResponse({"error": str(e)})
+        raise e #this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want
 
     return jsonResponse({"status": "ok", "data": res})
 
