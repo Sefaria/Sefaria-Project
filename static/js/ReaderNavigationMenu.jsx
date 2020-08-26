@@ -124,28 +124,28 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
 
 
   let siteLinks = Sefaria._uid ?
-                [(<a className="siteLink outOfAppLink" key='profile' href="/my/profile">
+                [(<a className="siteLink" key='profile' href="/my/profile">
                     <i className="fa fa-user"></i>
                     <span className="en">Your Profile</span>
                     <span className="he">הפרופיל שלי</span>
                   </a>),
                  (<span className='divider' key="d1">•</span>),
-                 (<a className="siteLink outOfAppLink" key='about' href="/about">
+                 (<a className="siteLink" key='about' href="/about">
                     <span className="en">About Sefaria</span>
                     <span className="he">אודות ספריא</span>
                   </a>),
                  (<span className='divider' key="d2">•</span>),
-                 (<a className="siteLink outOfAppLink" key='logout' href="/logout">
+                 (<a className="siteLink" key='logout' href="/logout">
                     <span className="en">Logout</span>
                     <span className="he">התנתק</span>
                   </a>)] :
 
-                [(<a className="siteLink outOfAppLink" key='about' href="/about">
+                [(<a className="siteLink" key='about' href="/about">
                     <span className="en">About Sefaria</span>
                     <span className="he">אודות ספריא</span>
                   </a>),
                  (<span className='divider' key="d1">•</span>),
-                 (<a className="siteLink outOfAppLink" key='login' href="/login">
+                 (<a className="siteLink" key='login' href="/login">
                     <span className="en">Sign In</span>
                     <span className="he">התחבר</span>
                   </a>)];
@@ -171,13 +171,13 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
 
 
   let resources = [
-      <TocLink en="Create a Sheet" he="צור דף חדש" href="/sheets/new" resourcesLink={true} outOfAppLink={true}
+      <TocLink en="Create a Sheet" he="צור דף חדש" href="/sheets/new" resourcesLink={true}
             img="/static/img/new-sheet.svg"  alt="new source sheet icon" />,
-      <TocLink en="Authors" he="רשימת מחברים" href="/people" resourcesLink={true} outOfAppLink={true}
+      <TocLink en="Authors" he="רשימת מחברים" href="/people" resourcesLink={true}
             img="/static/img/authors-icon.png" alt="author icon"/>,
-      <TocLink en="Groups" he="קבוצות" href="/groups" resourcesLink={true} outOfAppLink={true}
+      <TocLink en="Groups" he="קבוצות" href="/groups" resourcesLink={true}
             img="/static/img/group.svg" alt="Groups icon"/>,
-      <TocLink en="Visualizations" he="תרשימים גרפיים" href="/visualizations" resourcesLink={true} outOfAppLink={true}
+      <TocLink en="Visualizations" he="תרשימים גרפיים" href="/visualizations" resourcesLink={true}
             img="/static/img/visualizations-icon.png" alt="visualization icon" />,
   ];
 
@@ -207,8 +207,8 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   topUserData = (<div className="readerTocResources userDataButtons"><TwoBox content={topUserData} width={width} /></div>);
 
   let donation  = [
-      <TocLink en="Make a Donation" he="תרומות" resourcesLink={true} outOfAppLink={true} classes="donationLink" img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/supportsefaria"/>,
-      <TocLink en="Sponsor a day" he="תנו חסות ליום לימוד" resourcesLink={true} outOfAppLink={true} classes="donationLink" img="/static/img/calendar.svg" alt="donation icon" href="https://sefaria.nationbuilder.com/sponsor"/>,
+      <TocLink en="Make a Donation" he="תרומות" resourcesLink={true} classes="donationLink" img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/supportsefaria"/>,
+      <TocLink en="Sponsor a day" he="תנו חסות ליום לימוד" resourcesLink={true} classes="donationLink" img="/static/img/calendar.svg" alt="donation icon" href="https://sefaria.nationbuilder.com/sponsor"/>,
   ];
 
   donation = (<div className="readerTocResources"><TwoBox content={donation} width={width} /></div>);
@@ -302,8 +302,8 @@ ReaderNavigationMenu.propTypes = {
 };  
 
 
-const TocLink = ({en, he, img, alt, href, resourcesLink, outOfAppLink, classes, onClick}) =>
-    <a className={(resourcesLink?"resourcesLink ":"") + (outOfAppLink?"outOfAppLink ":"") + classes} href={href} onClick={onClick}>
+const TocLink = ({en, he, img, alt, href, resourcesLink, classes, onClick}) =>
+    <a className={(resourcesLink?"resourcesLink ":"") + classes} href={href} onClick={onClick}>
         {img?<img src={img} alt={alt} />:""}
         <span className="int-en">{en}</span>
         <span className="int-he">{he}</span>

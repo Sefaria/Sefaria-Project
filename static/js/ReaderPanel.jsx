@@ -207,12 +207,11 @@ class ReaderPanel extends Component {
   handleNavigationClick(event) {
     // Handles clicks within a ReaderNavigationMenu panel.
     // This logic for handling these links could be replaced by ReaderApp.handleInAppLinkClick()
-    // except for the fact that navigation can occur inside a "compare" panel. 
-    if (!$(event.target).hasClass("outOfAppLink") && !$(event.target.parentElement).hasClass("outOfAppLink")) {
-      event.preventDefault();
-    }
+    // except for the fact that navigation can occur inside a "compare" panel.
     const { target, linkType } = this._getClickTarget(event);
     if (!target) { return; }
+    event.preventDefault();
+
     if (linkType === "ref") {
       const ref       = target.attr("data-ref");
       const pos       = target.attr("data-position");

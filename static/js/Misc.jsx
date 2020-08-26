@@ -1809,7 +1809,7 @@ class CategoryAttribution extends Component {
   render() {
     var attribution = Sefaria.categoryAttribution(this.props.categories);
     if (!attribution) { return null; }
-    var linkedContent = <a href={attribution.link} className="outOfAppLink">
+    var linkedContent = <a href={attribution.link}>
                           <span className="en">{attribution.english}</span>
                           <span className="he">{attribution.hebrew}</span>
                         </a>;
