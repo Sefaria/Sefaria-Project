@@ -58,8 +58,6 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
     setMoreTopics(true);
   };
 
-  const openSaved = () => (Sefaria._uid) ? openMenu("saved") : toggleSignUpModal();
-
   // List of Texts in a Category
   if (categories.length) {
     return (
@@ -201,8 +199,8 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   );
 
   let topUserData = [
-      <TocLink en="Saved" he="שמורים" href="/texts/saved" resourcesLink={true} onClick={openSaved} img="/static/img/star.png" alt="saved text icon"/>,
-      <TocLink en="History" he="היסטוריה" href="/texts/history" resourcesLink={true} onClick={openMenu.bind(null, "history")} img="/static/img/clock.png" alt="history icon"/>
+      <TocLink en="Saved" he="שמורים" href="/texts/saved" resourcesLink={true} img="/static/img/star.png" alt="saved text icon"/>,
+      <TocLink en="History" he="היסטוריה" href="/texts/history" resourcesLink={true} img="/static/img/clock.png" alt="history icon"/>
   ];
   topUserData = (<div className="readerTocResources userDataButtons"><TwoBox content={topUserData} width={width} /></div>);
 
@@ -303,7 +301,7 @@ ReaderNavigationMenu.propTypes = {
 
 
 const TocLink = ({en, he, img, alt, href, resourcesLink, classes, onClick}) =>
-    <a className={(resourcesLink?"resourcesLink ":"") + classes} href={href} onClick={onClick}>
+    <a className={(resourcesLink?"resourcesLink ":"") + (classes||"")} href={href} onClick={onClick}>
         {img?<img src={img} alt={alt} />:""}
         <span className="int-en">{en}</span>
         <span className="int-he">{he}</span>

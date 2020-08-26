@@ -1086,6 +1086,7 @@ class ReaderApp extends Component {
       this.showLibrary();
 
     } else if (path.match(/\/texts\/.+/)) {
+      console.log("readerApp caught /texts")
       this.showLibrary(path.slice(7).split("/"));
 
     } else if (path == "/groups") {

@@ -190,7 +190,7 @@ class ReaderPanel extends Component {
       // go up known data-ref-children
       target = target.parent();
     }
-    if (target.parent().hasClass("refLink") || target.parent().hasClass("catLink")) {
+    if (["refLink", "catLink", "resourcesLink"].some(cls => target.parent().hasClass(cls))) {
       target = target.parent();
     }
     if (target.hasClass("refLink")) {
@@ -199,6 +199,10 @@ class ReaderPanel extends Component {
       linkType = "cat";
     } else if (target.hasClass("sheetLink")) {
       linkType = "sheet";
+    } else if (target.attr('href') === "/texts/history") {
+      linkType = "history";
+    } else if (target.attr('href') === "/texts/saved") {
+      linkType = "saved";
     } else {
       return {};  // couldn't find a known link
     }
@@ -208,10 +212,11 @@ class ReaderPanel extends Component {
     // Handles clicks within a ReaderNavigationMenu panel.
     // This logic for handling these links could be replaced by ReaderApp.handleInAppLinkClick()
     // except for the fact that navigation can occur inside a "compare" panel.
+    console.log("handleNavigationClick")
     const { target, linkType } = this._getClickTarget(event);
-    if (!target) { return; }
+    if (!linkType) { return; }
     event.preventDefault();
-
+   
     if (linkType === "ref") {
       const ref       = target.attr("data-ref");
       const pos       = target.attr("data-position");
@@ -223,15 +228,26 @@ class ReaderPanel extends Component {
         this.showBaseText(ref, false, {en: enVersion, he: heVersion});
       }
       if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Text Click", ref); }
+    
     } else if (linkType === "cat") {
       const cats = target.attr("data-cats").split("|");
       this.setNavigationCategories(cats);
       if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Sub Category Click", cats.join(" / ")); }
+    
     } else if (linkType === "sheet") {
       const ref = target.attr("data-ref");
       const onTextClick = this.props.onNavTextClick || this.showBaseText;
       onTextClick(ref);
+    
+    } else if (linkType === "history") {
+      this.openMenu("history");
+    
+    } else if (linkType === "saved") {
+      Sefaria._uid ? this.openMenu("saved") : this.props.toggleSignUpModal();
+
     }
+
+
   }
   clonePanel(panel) {
     // Todo: Move the multiple instances of this out to a utils file
