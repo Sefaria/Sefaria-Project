@@ -1111,6 +1111,7 @@ class BackRestoresScrollPosition(AtomicTest):
         # TOC
         self.load_toc()
         self.scroll_content_to_position(SCROLL_DISTANCE)
+        time.sleep(0.4)
         self.click_toc_category("Midrash")
         self.driver.back()
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-cat="Midrash"]')))
@@ -1119,6 +1120,7 @@ class BackRestoresScrollPosition(AtomicTest):
         # Search
         self.search_for("restoration")
         self.scroll_content_to_position(SCROLL_DISTANCE)
+        time.sleep(0.4)
         versionedResult = self.driver.find_element_by_css_selector('a[href="/Mishneh_Torah%2C_Kings_and_Wars.12.2?ven=Yad-Hachazakah,_edited_by_Elias_Soloweyczik%3B_London,_1863&qh=restoration"]')
         versionedResult.click()
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.segment')))
@@ -1129,6 +1131,7 @@ class BackRestoresScrollPosition(AtomicTest):
         # Topic
         self.load_topic_page("wonders")
         self.scroll_content_to_position(SCROLL_DISTANCE)
+        time.sleep(0.4)
         source = self.driver.find_element_by_css_selector('.storyTitle a')
         source.click()
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.segment')))
