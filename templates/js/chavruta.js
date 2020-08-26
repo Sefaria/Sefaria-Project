@@ -143,9 +143,12 @@ navigator.mediaDevices.getUserMedia({
   });
 
 function addAdditionalHTML() {
-  const newRoomButton = document.createElement('div');
-  newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()"><span class="int-en">New Person</span><span class="int-he">משתמש חדש</span></button>';
-  document.getElementById("buttonContainer").appendChild(newRoomButton)
+
+  if ({{roulette}} == "1") {
+    const newRoomButton = document.createElement('div');
+    newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()"><span class="int-en">New Person</span><span class="int-he">משתמש חדש</span></button>';
+    document.getElementById("buttonContainer").appendChild(newRoomButton)
+  }
 
   document.body.classList.remove("hasBannerMessage");
 

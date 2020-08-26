@@ -333,9 +333,9 @@ urlpatterns += [
 
 ]
 
-# dafroulette.js -
+# chavruta.js -
 urlpatterns += [
-    url(r'^dafroulette\.js$', sefaria_views.dafroulette_js)
+    url(r'^chavruta\.js$', sefaria_views.chavruta_js)
 ]
 
 

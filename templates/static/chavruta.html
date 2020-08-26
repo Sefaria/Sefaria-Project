@@ -133,6 +133,23 @@ a {
 
 }
 
+#chavrutaURL {
+  width: 186px;
+
+background: #FBFBFA;
+box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+border-radius: 6px;
+
+padding: 15px 11px;
+font-family: Roboto;
+font-style: normal;
+font-weight: normal;
+font-size: 16px;
+line-height: 19px;
+
+
+}
+
 {% endblock %}
 
 {% block bodyclasses %}nochrome{% endblock %}
@@ -144,33 +161,66 @@ a {
     <video id="remoteVideo" autoplay playsinline poster="/static/img/dafroulette-loading.png"></video>
     <div id="chevrutaName"></div>
     <input type="hidden" id="chevrutaUID" value=false>
-    <div id="buttonContainer"></div>
+
+
+    {% if roulette == "1" %}
+
+      <div id="buttonContainer"></div>
+      <p class="int-en">
+        DafRoulette is an experimental project from Sefaria to match you with random partners for studying daf yomi.
+      </p>
+
+      <p class="int-he">
+        DafRoulette הוא פרויקט ניסיוני של ספריא, שמטרתו להתאים לכם חברותא אקראית ללימוד דף יומי.
+      </p>
+
+
+      <p class="int-en">
+        Pirkei Avot says you should be at least <a href="https://www.sefaria.org/Pirkei_Avot.5.21" target="_blank">15+ to experience this</a>, so check with your grownup if you're younger.
+      </p>
+
+      <p class="int-he">
+        בפרקי אבות נאמר שאפשר לחוות חוויה <a href="https://www.sefaria.org.il/Pirkei_Avot.5.21" target="_blank">זו מגיל 15</a>. התייעצו עם מבוגר אם אתם צעירים מגיל 15.
+      </p>
+
+
+      <p class="int-en">
+        There are currently <span id="numberOfChevrutas"><em>loading...</em></span> chevrutas studying.
+      </p>
+
+      <p class="int-he">
+        ברגע זה פועלות <span id="numberOfChevrutas"><em>loading...</em></span> חברותות.
+      </p>
+
+
+      <p class="int-en">
+        Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
+      </p>
+
+      <p class="int-he">
+        לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
+      </p>
+
+
+      <p class="int-en">
+        <a href="#" id="reportUser" onclick="reportUser();">Report User</a>
+      </p>
+
+      <p class="int-he">
+        <a href="#" id="reportUser" onclick="reportUser();">דיווח משתמש</a>
+      </p>
+
+    {% else %}
+
     <p class="int-en">
-      DafRoulette is an experimental project from Sefaria to match you with random partners for studying daf yomi.
+      Share this link with your chavruta to start a video call with this text
     </p>
 
     <p class="int-he">
-      DafRoulette הוא פרויקט ניסיוני של ספריא, שמטרתו להתאים לכם חברותא אקראית ללימוד דף יומי.
+      Share this link with your chavruta to start a video call with this text
     </p>
 
-
-    <p class="int-en">
-      Pirkei Avot says you should be at least <a href="https://www.sefaria.org/Pirkei_Avot.5.21" target="_blank">15+ to experience this</a>, so check with your grownup if you're younger.
-    </p>
-
-    <p class="int-he">
-      בפרקי אבות נאמר שאפשר לחוות חוויה <a href="https://www.sefaria.org.il/Pirkei_Avot.5.21" target="_blank">זו מגיל 15</a>. התייעצו עם מבוגר אם אתם צעירים מגיל 15.
-    </p>
-
-
-    <p class="int-en">
-      There are currently <span id="numberOfChevrutas"><em>loading...</em></span> chevrutas studying.
-    </p>
-
-    <p class="int-he">
-      ברגע זה פועלות <span id="numberOfChevrutas"><em>loading...</em></span> חברותות.
-    </p>
-
+    <input id="chavrutaURL" type="text" value={{ request.build_absolute_uri }} autofocus="autofocus" onfocus="this.select()" readonly >
 
     <p class="int-en">
       Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
@@ -181,13 +231,7 @@ a {
     </p>
 
 
-    <p class="int-en">
-      <a href="#" id="reportUser" onclick="reportUser();">Report User</a>
-    </p>
-
-    <p class="int-he">
-      <a href="#" id="reportUser" onclick="reportUser();">דיווח משתמש</a>
-    </p>
+    {% endif %}
 
   </div>
   <div id="iframeContainer">
@@ -202,6 +246,6 @@ a {
   const startingRef = "{{starting_ref}}";
   const startingRoom = "{{room_id}}";
 </script>
-<script src="/dafroulette.js"></script>
+<script src="/chavruta.js?roulette={{roulette}}"></script>
 <script>addAdditionalHTML()</script>
 {% endblock %}
