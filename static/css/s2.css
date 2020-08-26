@@ -2496,14 +2496,14 @@ a.readerNavCategory {
 .modTools {
   width: 50%;
   margin: 0 auto;
+  overflow-y: scroll;
+  height: 100%;
 }
 .modTools .modToolsSection {
-  clear: both;
   padding: 50px;
   border-top: 1px solid #ccc;
 }
 .readerTextTableOfContents .content .dlSection {
-  clear: both;
   padding-top: 50px;
   border-top: 1px solid #ccc;
 }
@@ -2588,6 +2588,35 @@ a.readerNavCategory {
 .readerTextTableOfContents .content a .versionDownloadButton {
     border-color: #212E50;
     background-color: #212E50;
+}
+
+.modTools .workflowy-tool{
+  width: 60%;
+  margin: auto;
+}
+
+.modTools .workflowy-tool .dlSectionTitle{
+  width: unset;
+}
+
+.modTools .workflowy-tool .versionDownloadButton{
+  color: black;
+}
+.modTools .workflowy-tool .versionDownloadButton:hover{
+  background-color: #999;
+}
+
+.modTools .workflowy-tool textarea {
+  width: 100%;
+  min-height: 30rem;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+.modTools .workflowy-tool .workflowy-tool-form{
+  display: flex;
+  flex-flow: column;
 }
 
 .dictionarySearchBox {

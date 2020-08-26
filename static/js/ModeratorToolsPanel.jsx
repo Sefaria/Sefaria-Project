@@ -148,7 +148,9 @@ class ModeratorToolsPanel extends Component {
       <div className="modToolsSection">
           <WorkflowyModeratorTool />
       </div>);
-    return (Sefaria.is_moderator)?<div className="modTools">{downloadSection}{uploadForm}{wflowyUpl}</div>:<div>Tools are only available to logged in moderators.</div>;
+    return (Sefaria.is_moderator)?
+        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl} </div> :
+        <div className="modTools"> Tools are only available to logged in moderators.</div>;
   }
 }
 ModeratorToolsPanel.propTypes = {
@@ -196,12 +198,18 @@ class WorkflowyModeratorTool extends Component{
         if (!response.ok) {
             response.text().then(resp_text=> {
                 console.log("error in html form", resp_text);
-                this.setState({uploading: false, error: true, errorIsHTML: true, uploadResult: resp_text});
+                this.setState({uploading: false,
+                    error: true,
+                    errorIsHTML: true,
+                     uploadResult: resp_text});
             })
         }else{
             response.json().then(resp_json=>{
                 console.log("okay response", resp_json);
-                this.setState({uploading: false, error: false, uploadMessage:resp_json["data"]["message"], uploadResult: JSON.stringify(resp_json["data"]["index"])})
+                this.setState({uploading: false,
+                    error: false,
+                    uploadMessage:resp_json["data"]["message"],
+                    uploadResult: JSON.stringify(resp_json["data"]["index"], undefined, 4)})
             });
         }
     }).catch(error => {
@@ -222,12 +230,12 @@ class WorkflowyModeratorTool extends Component{
 
   render() {
     return(
-        <>
+        <div className="workflowy-tool">
         <div className="dlSectionTitle">
           <span className="int-en">Workflowy Outline Upload</span>
           <span className="int-he">העלאת קובץ - workflowy</span>
         </div>
-        <form id="wf-file-form" onSubmit={this.handleWfSubmit}>
+        <form id="wf-file-form" className="workflowy-tool-form" onSubmit={this.handleWfSubmit}>
            <label>
               Upload Workflowy file:
               <input type="file" name="wf_file" ref={this.wfFileInput} />
@@ -251,6 +259,7 @@ class WorkflowyModeratorTool extends Component{
            <label>
             Custom Delimiters (In the following Order- 1. Title Language 2. Alt Titles 3. Categories):
               <input
+                className="dlVersionSelect"
                 name="delims"
                 type="text"
                 value={this.state.delims}
@@ -259,6 +268,7 @@ class WorkflowyModeratorTool extends Component{
             <label>
               Optional Term Scheme Name:
               <input
+                className="dlVersionSelect"
                 name="term_scheme"
                 type="text"
                 value={this.state.term_scheme}
@@ -272,8 +282,8 @@ class WorkflowyModeratorTool extends Component{
         <div id="wf-upl-msg" className="wf-upl-msg">{this.state.uploadMessage || ""}</div>
         { (this.state.error && this.state.errorIsHTML) ?
               <div id="wf-upl-message" className="wf-upl-message" dangerouslySetInnerHTML={{__html: this.state.uploadResult}}/> :
-              <div id="wf-upl-message" className="wf-upl-message">{this.state.uploadResult}</div> }
-        </>);
+              <textarea id="wf-upl-message" className="wf-upl-message" cols="80" rows="30" value={this.state.uploadResult}></textarea> }
+        </div>);
   }
 }
 
