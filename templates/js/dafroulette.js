@@ -131,10 +131,10 @@ navigator.mediaDevices.getUserMedia({
     }
 
     if (startingRoom !="") {
-      socket.emit('enter room', {{ client_uid }}, startingRoom);
+      socket.emit('start chevruta', {{ client_uid }}, startingRoom);
     }
     else {
-      socket.emit('how many rooms', {{ client_uid }}, localStorage.getItem('lastChevrutaID'));
+      socket.emit('start dafRoulette', {{ client_uid }}, localStorage.getItem('lastChevrutaID'));
     }
     console.log('Adding local stream.');
   })
