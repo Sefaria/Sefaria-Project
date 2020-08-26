@@ -270,10 +270,12 @@ const FilterableList = ({
     };
   }, [getData, rawData]);
 
-  // When refreshData changes, trigger a new call for data.
+  // After initial load, when refreshData changes, trigger a new call for data.
+  const mounted = useRef(false);
   useEffect(() => {
-    setRawData(null);
-  }, [refreshData])
+    if (mounted.current) { setRawData(null); }
+    else { mounted.current = true; }
+  }, [refreshData]);
 
   // Updates to filter or sort
   useEffect(() => {
