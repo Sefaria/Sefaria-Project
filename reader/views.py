@@ -4191,6 +4191,9 @@ def chevruta_redirect(request):
     starting_ref = request.GET.get("ref", "Genesis 1")
     roulette = request.GET.get("roulette", "0")
 
+    if room_id is None:
+        raise Http404('Missing room ID.')
+
     return render(request,'static/chavruta.html',
                              {
                               "rtc_server": RTC_SERVER,
