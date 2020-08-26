@@ -845,8 +845,8 @@ class ReaderApp extends Component {
       this.panelScrollIntentTimer[n] = null;
     });
   }
-  checkIntentTimer(timer, cb) {
-    const intentDelay = 3000;  // Number of milliseconds to demonstrate intent
+  checkIntentTimer(timer, cb, intentDelay) {
+    intentDelay = intentDelay || 3000;  // Number of milliseconds to demonstrate intent
     if (timer) { clearTimeout(timer); }
     return window.setTimeout(cb, intentDelay);
   }
@@ -934,10 +934,14 @@ class ReaderApp extends Component {
   }
   setScrollPositionInHistory(e) {
     const $scrollContainer = $(e.target);
-    const scrollTop = $scrollContainer.scrollTop();
-    let state = history.state;
-    state.scrollPosition = scrollTop;
-    history.replaceState(state, window.location.href);
+    this.scrollPositionTimer = this.checkIntentTimer(this.scrollPositionTimer, () => {
+      const scrollTop = $scrollContainer.scrollTop();
+      const state = history.state;
+      if (scrollTop == state.scrollPosition) { return; }
+      state.scrollPosition = scrollTop;
+      console.log("replace", scrollTop);
+      history.replaceState(state, window.location.href);      
+    }, 300);
   }
   getDefaultPanelSettings() {
     if (this.state && this.state.defaultPanelSettings) {

@@ -347,7 +347,6 @@ class ReaderPanel extends Component {
       settings: this.state.settings
     });
   }
-
   toggleSheetEditMode(buttonstate) {
       if (buttonstate == true) {
           this.conditionalSetState({
@@ -361,7 +360,6 @@ class ReaderPanel extends Component {
             this.props.closeConnectionPanel(this.props.panelPosition)
           }
       }
-
   }
   updateTextColumn(refs) {
     // Change the refs in the current TextColumn, for infinite scroll up/down.
