@@ -947,11 +947,12 @@ def modtools_upload_workflowy(request):
     file = request.FILES['wf_file']
     c_index = request.POST.get("c_index", False)
     c_version = request.POST.get("c_version", False)
-    delims = request.POST.get("delims", None)
-    term_scheme = request.POST.get("c_index", None)
+    delims = request.POST.get("delims", None) if len(request.POST.get("delims", None)) else None
+    term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", None)) else None
 
+    uid = request.user.id
     try:
-        wfparser = WorkflowyParser(file, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
+        wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
         res = wfparser.parse()
     except Exception as e:
         raise e #this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want

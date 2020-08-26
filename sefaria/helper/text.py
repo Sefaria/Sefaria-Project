@@ -555,8 +555,9 @@ class WorkflowyParser(object):
     comment_delim = r'#'
     categories_delim = "%"
 
-    def __init__(self, schema_file, term_scheme=None, c_index=False, c_version=False, delims=None):
+    def __init__(self, schema_file, uid, term_scheme=None, c_index=False, c_version=False, delims=None):
         self._schema_outline_file = schema_file
+        self._uid = uid
         self._term_scheme = term_scheme
         self._c_index = c_index
         self._c_version = c_version
@@ -766,7 +767,7 @@ class WorkflowyParser(object):
             node = text_ref['node']
             ref = Ref(node.full_title(force_update=True))
             text = text_ref['text']
-            user = 8646
+            user = self._uid
             vtitle = self.version_info['info']['versionTitle']
             lang = self.version_info['info']['language']
             vsource = self.version_info['info']['versionSource']
