@@ -130,11 +130,11 @@ navigator.mediaDevices.getUserMedia({
       localStorage.setItem('lastChevrutaID', null);
     }
 
-    if (startingRoom !="") {
+    if (startingRoom !="" && {{roulette}} == 0 ) {
       socket.emit('start chevruta', {{ client_uid }}, startingRoom);
     }
     else {
-      socket.emit('start dafRoulette', {{ client_uid }}, localStorage.getItem('lastChevrutaID'));
+      socket.emit('start roulette', {{ client_uid }}, localStorage.getItem('lastChevrutaID'), startingRoom == "" ? "dafRoulette" : startingRoom);
     }
     console.log('Adding local stream.');
   })

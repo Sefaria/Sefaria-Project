@@ -167,6 +167,10 @@ line-height: 19px;
     {% if roulette == "1" %}
 
       <div id="buttonContainer"></div>
+
+    {% endif %}
+
+    {% if roulette == "1" and room_id == "" %}
       <p class="int-en">
         DafRoulette is an experimental project from Sefaria to match you with random partners for studying daf yomi.
       </p>
@@ -184,7 +188,6 @@ line-height: 19px;
         בפרקי אבות נאמר שאפשר לחוות חוויה <a href="https://www.sefaria.org.il/Pirkei_Avot.5.21" target="_blank">זו מגיל 15</a>. התייעצו עם מבוגר אם אתם צעירים מגיל 15.
       </p>
 
-
       <p class="int-en">
         There are currently <span id="numberOfChevrutas"><em>loading...</em></span> chevrutas studying.
       </p>
@@ -192,7 +195,6 @@ line-height: 19px;
       <p class="int-he">
         ברגע זה פועלות <span id="numberOfChevrutas"><em>loading...</em></span> חברותות.
       </p>
-
 
       <p class="int-en">
         Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
@@ -210,8 +212,9 @@ line-height: 19px;
       <p class="int-he">
         <a href="#" id="reportUser" onclick="reportUser();">דיווח משתמש</a>
       </p>
+    {% endif %}
 
-    {% else %}
+    {% if roulette == 0 and room_id != "" %}
 
     <p class="int-en">
       Share this link with your chavruta to start a video call with this text
@@ -230,7 +233,6 @@ line-height: 19px;
     <p class="int-he">
       לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
     </p>
-
 
     {% endif %}
 

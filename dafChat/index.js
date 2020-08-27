@@ -115,20 +115,22 @@ io.sockets.on('connection', function(socket) {
 
 
 
-  // Default DafRoulette Pathway:
-  socket.on('start dafRoulette', function(uid, lastChevrutaID) {
+  // Default Roulette Pathway:
+  socket.on('start roulette', function(uid, lastChevrutaID, namespace='dafRoulette' ) {
     socket.emit('creds', pcConfig)
 
-    db.get(`SELECT COUNT(*) FROM chatrooms WHERE namespace = 'dafRoulette'`, (err, rows) => {
+    db.get(`SELECT COUNT(*) FROM chatrooms WHERE namespace=?`, [namespace], (err, rows) => {
       if (err) {
         return console.error(err.message);
       }
 
-      let numRows = rows["COUNT(*)"];
-      socket.broadcast.emit('return rooms', numRows);
-      socket.emit('return rooms', numRows);
+      if (namespace == 'dafRoulette') {
+        let numRows = rows["COUNT(*)"];
+        socket.broadcast.emit('return rooms', numRows);
+        socket.emit('return rooms', numRows);
+      }
         console.log('trying to find a room...')
-        db.all(`SELECT name, clients from chatrooms WHERE clients != 0 AND namespace = 'dafRoulette' ORDER BY roomStarted`, [], (err, rows) => {
+        db.all(`SELECT name, clients from chatrooms WHERE clients != 0 AND namespace = ? ORDER BY roomStarted`, [namespace], (err, rows) => {
 
           if (err) {
             return console.error(err.message);
@@ -138,7 +140,7 @@ io.sockets.on('connection', function(socket) {
 
           while (foundRoom == false) {
             if (rows.length == rowIndex) {
-              createNewRoom(uid);
+              createNewRoom(uid, namespace);
               foundRoom = true;
             }
             else if (rows[rowIndex].clients == lastChevrutaID) {
