@@ -414,7 +414,7 @@ class ConnectionsPanel extends Component {
                     </p>
 
                     <p>
-                    <a className="button fillWidth startChavrutaButton" href={chevrutaURL}><img src="/static/img/video.svg" />Start Call</a>
+                    <a className="button fillWidth startChavrutaButton" href={"//"+chevrutaURL}><img src="/static/img/video.svg" />Start Call</a>
                     </p>
                   </div>);
 
