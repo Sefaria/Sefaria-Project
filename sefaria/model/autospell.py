@@ -65,6 +65,8 @@ class AutoCompleter(object):
         self.spell_checker = SpellChecker(lang)
         self.ngram_matcher = NGramMatcher(lang)
         self.other_lang_ac = None
+        self.max_completion_length = 200   # Max # of chars of input string, beyond which no completion search is done
+        self.max_autocorrect_length = 20   # Max # of chars of input string, beyond which no autocorrect search is done
         # self.prefer_longest = True  # True for titles, False for dictionary entries.  AC w/ combo of two may be tricky.
 
         # Titles in library
@@ -188,7 +190,10 @@ class AutoCompleter(object):
         :return: completions list, completion objects list
         """
         instring = instring.strip()  # A terminal space causes some kind of awful "include everything" behavior
-        completion_manager = Completions(self, self.lang, instring, limit)
+        if len(instring) >= self.max_completion_length:
+            return [], []
+        completion_manager = Completions(self, self.lang, instring, limit,
+                                         do_autocorrect=len(instring) < self.max_autocorrect_length)
         completion_manager.process()
         completions = completion_manager.completions
         completion_objects = completion_manager.completion_objects
@@ -220,13 +225,14 @@ class AutoCompleter(object):
 
 
 class Completions(object):
-    def __init__(self, auto_completer, lang, instring, limit=0):
+    def __init__(self, auto_completer, lang, instring, limit=0, do_autocorrect = True):
         """
         An object that contains a single search, delegates to different methods of completions, and aggregates results.
         :param auto_completer:
         :param lang:
         :param instring:
-        :param limit:
+        :param limit: Number of results.  0 is unlimited.
+        :param do_autocorrect: Defaults to true.  Set to false to prevent resource burn on long strings.
         """
         assert lang in ["en", "he"]
 
@@ -238,6 +244,7 @@ class Completions(object):
         self.keys_covered = set()
         self.completions = []  # titles to return
         self.completion_objects = []
+        self.do_autocorrect = do_autocorrect
 
     def process(self):
         """
@@ -249,7 +256,9 @@ class Completions(object):
         self.completions += completions
         self.completion_objects += completion_objects
         if self.limit and len(self.completions) >= self.limit:
-            return self.completions[:self.limit or None]
+            return self.completions[:self.limit or None]   # todo: the return value isn't used, so this (and other) slices on return are a waste
+        if not self.do_autocorrect:
+            return 
 
         # single misspellings
         single_edits = self.auto_completer.spell_checker.single_edits(self.normal_string)
