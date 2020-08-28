@@ -101,7 +101,6 @@ class Sheet extends Component {
             hasSidebar = {this.props.hasSidebar}
             sheetNumbered = {sheet.options.numbered}
             sheetID = {sheet.id}
-            openProfile={this.props.openProfile}
           />
       )
     }
@@ -176,13 +175,6 @@ class SheetContent extends Component {
     e.preventDefault();
     e.stopPropagation();
     this.props.onRefClick(ref);
-  }
-
-  openProfile(e) {
-    e.preventDefault();
-    const slugMatch = this.props.authorUrl.match(/profile\/(.+)$/);
-    const slug = !!slugMatch ? slugMatch[1] : '';
-    this.props.openProfile(slug, this.props.authorStatement);
   }
 
   render() {
@@ -274,7 +266,6 @@ class SheetContent extends Component {
 
     return (
       <div className="sheetContent">
-
         <SheetMetaDataBox>
             <SheetTitle title={this.props.title} />
             <SheetAuthorStatement
@@ -294,7 +285,6 @@ class SheetContent extends Component {
                 groupLogo={this.props.groupLogo}
             />
         </SheetMetaDataBox>
-
 
         <div className="text">
             <div className="textInner">{sources}</div>

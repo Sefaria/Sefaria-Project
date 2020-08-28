@@ -568,7 +568,7 @@ def texts_category_list(request, cats):
 @sanitize_get_params
 def topics_toc_page(request, topicCategory):
     """
-    List of texts in a category.
+    List of topics in a category.
     """
     props = base_props(request)
     topic_obj = Topic.init(topicCategory)
@@ -591,28 +591,31 @@ def topics_toc_page(request, topicCategory):
     })
 
 
-def get_param(param, i=None):
-    return "{}{}".format(param, "" if i is None else i)
-
-
 def get_search_params(get_dict, i=None):
-    gp = get_param
-    sheet_group_search_filters = [urllib.parse.unquote(f) for f in get_dict.get(gp("sgroupFilters", i)).split("|")] if get_dict.get(gp("sgroupFilters", i),
-                                                                                                     "") else []
-    sheet_tags_search_filters = [urllib.parse.unquote(f) for f in get_dict.get(gp("stagsFilters", i), "").split("|")] if get_dict.get(gp("stagsFilters", i),
-                                                                                                       "") else []
-    sheet_agg_types = ['group'] * len(sheet_group_search_filters) + ['tags'] * len(
-        sheet_tags_search_filters)  # i got a tingly feeling writing this
-    text_filters = [urllib.parse.unquote(f) for f in get_dict.get(gp("tpathFilters", i)).split("|")] if get_dict.get(gp("tpathFilters", i)) else []
+    def get_param(param, i=None):
+        return "{}{}".format(param, "" if i is None else i)
+    
+    def get_filters(prefix, filter_type):
+        return [urllib.parse.unquote(f) for f in get_dict.get(get_param(prefix+filter_type+"Filters", i)).split("|")] if get_dict.get(get_param(prefix+filter_type+"Filters", i), "") else []
+
+    sheet_filters_types = ("group", "topics_en", "topics_he")
+    sheet_filters = []
+    sheet_agg_types = []
+    for filter_type in sheet_filters_types:
+        filters = get_filters("s", filter_type)
+        sheet_filters += filters
+        sheet_agg_types += [filter_type] * len(filters)
+    text_filters = get_filters("t", "path")
+    
     return {
-        "query": urllib.parse.unquote(get_dict.get(gp("q", i), "")),
-        "tab": urllib.parse.unquote(get_dict.get(gp("tab", i), "text")),
-        "textField": ("naive_lemmatizer" if get_dict.get(gp("tvar", i)) == "1" else "exact") if get_dict.get(gp("tvar", i)) else "",
-        "textSort": get_dict.get(gp("tsort", i), None),
+        "query": urllib.parse.unquote(get_dict.get(get_param("q", i), "")),
+        "tab": urllib.parse.unquote(get_dict.get(get_param("tab", i), "text")),
+        "textField": ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else "",
+        "textSort": get_dict.get(get_param("tsort", i), None),
         "textFilters": text_filters,
         "textFilterAggTypes": [None for _ in text_filters],  # currently unused. just needs to be equal len as text_filters
-        "sheetSort": get_dict.get(gp("ssort", i), None),
-        "sheetFilters": (sheet_group_search_filters + sheet_tags_search_filters),
+        "sheetSort": get_dict.get(get_param("ssort", i), None),
+        "sheetFilters": sheet_filters,
         "sheetFilterAggTypes": sheet_agg_types,
     }
 

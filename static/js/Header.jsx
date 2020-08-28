@@ -167,35 +167,6 @@ class Header extends Component {
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   }
-  openMyProfile(e) {
-    e.preventDefault();
-    if (typeof sjs !== "undefined") {
-      window.location = "/my/profile";
-      return;
-    }
-    //if (!this.state.profile || Sefaria._uid !== this.state.profile.id) {
-      this.props.openProfile(Sefaria.slug, Sefaria.full_name);
-    //}
-    this.clearSearchBox();
-  }
-  showNotifications(e) {
-    e.preventDefault();
-    if (typeof sjs !== "undefined") {
-      window.location = "/notifications";
-      return;
-    }
-    this.props.setCentralState({menuOpen: "notifications"});
-    this.clearSearchBox();
-  }
-  showUpdates() {
-    // todo: not used yet
-    if (typeof sjs !== "undefined") {
-      window.location = "/updates";
-      return;
-    }
-    this.props.setCentralState({menuOpen: "updates"});
-    this.clearSearchBox();
-  }
   showTestMessage() {
     this.props.setCentralState({showTestMessage: true});
   }
@@ -215,31 +186,14 @@ class Header extends Component {
       return `/${key.replace(/ /g, '_')}`;
     }
   }
-  showObject(type, key) {
-    window.location = this.getURLForObject(type, key);
-  }
   redirectToObject(type, key) {
-      if (type === "Person") {
-        Sefaria.track.event("Search", "Search Box Navigation - Person", key);
-        this.closeSearchAutocomplete();
-        this.showObject(type, key);
-      } else if (type === "Group") {
-        Sefaria.track.event("Search", "Search Box Navigation - Group", key);
-        this.closeSearchAutocomplete();
-        this.showObject(type, key);
-      } else if (type === "TocCategory") {
-        Sefaria.track.event("Search", "Search Box Navigation - Category", key);
-        this.closeSearchAutocomplete();
-        this.showLibrary(key);  // "key" holds the category path
-      } else if (type === "Topic") {
-        Sefaria.track.event("Search", "Search Box Navigation - Topic", key);
-        this.closeSearchAutocomplete();
-        this.showObject(type, key);
-      } else if (type === "ref") {
-        Sefaria.track.event("Search", "Search Box Navigation - Book", key);
-        this.closeSearchAutocomplete();
-        this.clearSearchBox();
-        this.handleRefClick(key);
+      Sefaria.track.event("Search", `Search Box Navigation - ${type}`, key);
+      this.closeSearchAutocomplete();
+      this.clearSearchBox();
+      const url = this.getURLForObject(type, key);
+      const handled = this.props.openURL(url);
+      if (!handled) {
+        window.location = url;
       }
   }
   submitSearch(query) {
@@ -319,14 +273,11 @@ class Header extends Component {
                           registerAvailableFilters={this.props.registerAvailableFilters}
                           searchInGroup={this.props.searchInGroup}
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
-                          handleInAppLinkClick={this.props.handleInAppLinkClick}
                           hideNavHeader={true}
                           analyticsInitialized={this.props.analyticsInitialized}
                           getLicenseMap={this.props.getLicenseMap}
                           translateISOLanguageCode={this.props.translateISOLanguageCode}
                           toggleSignUpModal={this.props.toggleSignUpModal}
-                          openProfile={this.props.openProfile}
-                          showLibrary={this.showLibrary}
                         />) : null;
 
 
@@ -336,8 +287,8 @@ class Header extends Component {
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
     var loggedInLinks  = (<div className="accountLinks">
-                            <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses} onClick={this.showNotifications}>{this.state.notificationCount}</a>
-                            <a href="/my/profile" className="my-profile" onClick={this.openMyProfile}><ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></a>
+                            <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses}>{this.state.notificationCount}</a>
+                            <a href="/my/profile" className="my-profile"><ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks anon">
                           <a className="login loginLink" href={"/login" + nextParam}>
@@ -358,7 +309,7 @@ class Header extends Component {
     return (<div className="header" role="banner">
               <div className={headerInnerClasses}>
                 <div className="headerNavSection">
-                    <a href="/texts" aria-label={this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 ? "Return to text" : "Open the Sefaria Library Table of Contents" } className="library" onClick={this.handleLibraryClick}><i className="fa fa-bars"></i></a>
+                    <a href="/texts" aria-label={this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 ? "Return to text" : "Open the Sefaria Library Table of Contents" } className="library"><i className="fa fa-bars"></i></a>
                     <div id="searchBox" className={searchBoxClasses}>
                       <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
                       <input className={inputClasses}
@@ -406,13 +357,11 @@ Header.propTypes = {
   registerAvailableFilters:    PropTypes.func,
   searchInGroup:               PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
-  handleInAppLinkClick:        PropTypes.func,
   headerMesssage:              PropTypes.string,
   panelsOpen:                  PropTypes.number,
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,
   toggleSignUpModal:           PropTypes.func.isRequired,
-  openProfile:                 PropTypes.func.isRequired,
 };
 
 

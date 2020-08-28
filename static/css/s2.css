@@ -3135,6 +3135,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 15px 0 20px 0;
   padding-bottom: 30px;
 }
+.searchContent .result + .loadingMessage {
+  margin-top: 30px;
+}
 .readerNavMenu .content.sheetList {
   padding: 80px 15px 15px;
 }
@@ -5334,7 +5337,6 @@ color: #666666;
 .profile-page .profile-pic .profile-pic-button {
   position: absolute;
 }
-
 .profile-pic-cropper-modal {
   max-width: unset !important;
   max-height: unset !important;
@@ -7325,6 +7327,12 @@ span.purim-emoji img{
   margin: 0 30px 0 0;
   cursor: pointer;
 }
+.tab-view .tab-list .tab a {
+  color: inherit;
+}
+.tab-view .tab-list .tab a:hover {
+  text-decoration: none;
+}
 .tab-view .tab-list .active .tab {
   border-bottom: 4px solid #CCC;
 }
@@ -7582,7 +7590,7 @@ span.purim-emoji img{
 .profile-page .groupListing + .groupListing {
   border-top: 0;
 }
-.profile-page .profile-summary a {
+.profile-page .profile-summary-content a {
   color: inherit;
 }
 .profile-page .profile-summary a.logoutLink {

@@ -329,45 +329,6 @@ class AbstractTest(object):
     def click_start_a_sheet(self):
         self.click_object_by_css_selector('#homeSheets > div > div.textBox > a:nth-child(3) > div > span.int-en')
 
-    def click_commentary_on_sidebar(self):
-        self.click_sidebar_entry('Commentary')
-
-    def click_tanakh_on_sidebar(self):
-        self.click_sidebar_entry('Tanakh')
-
-    def click_targum_on_sidebar(self):
-        self.click_sidebar_entry('Targum')
-
-    def click_mishnah_on_sidebar(self):
-        self.click_sidebar_entry('Mishnah')
-
-    def click_talmud_on_sidebar(self):
-        self.click_sidebar_entry('Talmud')
-
-    def click_midrash_on_sidebar(self):
-        self.click_sidebar_entry('Midrash')
-
-    def click_halakhah_on_sidebar(self):
-        self.click_sidebar_entry('Halakhah')
-
-    def click_kabbalah_on_sidebar(self):
-        self.click_sidebar_entry('Kabbalah')
-
-    def click_philosophy_on_sidebar(self):
-        self.click_sidebar_entry('Philosophy')
-
-    def click_chasidut_on_sidebar(self):
-        self.click_sidebar_entry('Chasidut')
-
-    def click_musar_on_sidebar(self):
-        self.click_sidebar_entry('Musar')
-
-    def click_other_on_sidebar(self):
-        self.click_sidebar_entry('Other')
-
-    def click_grammar_on_sidebar(self):
-        self.click_sidebar_entry('Grammar')
-
     def click_resources_on_sidebar(self):
         self.click_object_by_css_selector('.connectionsHeaderTitle')
 
@@ -417,9 +378,6 @@ class AbstractTest(object):
         except NoAlertPresentException:
             print('A <<NoAlertPresentException>> was thrown')
             pass
-
-    def click_explore_sheets(self):
-        self.click_object_by_css_selector('#homeSheets > div > div.textBox > a.inAppLink > div > span.int-en')
 
     def click_source_sheet_img(self):
         self.click_object_by_css_selector('#homeSheets > div > div.imageBox.bordered > a > img')
@@ -1049,6 +1007,15 @@ class AbstractTest(object):
         # todo
         return self
 
+    def scroll_content_to_position(self, pixels):
+        self.driver.execute_script(
+            "var a = document.getElementsByClassName('content')[0]; a.scrollTop = {}".format(pixels)
+        )
+        return self
+
+    def get_content_scroll_position(self):
+        return self.driver.execute_script("var a = document.getElementsByClassName('content')[0]; return a.scrollTop;")
+
     def scroll_to_segment(self, ref):
         if isinstance(ref, str):
             ref = Ref(ref)
@@ -1123,6 +1090,11 @@ class AbstractTest(object):
         self.driver.get(self.base_url + "/topics")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".topicList")))
         self.set_modal_cookie()
+        return self
+
+    def load_topic_page(self, slug):
+        self.driver.get(self.base_url + "/topics/" + slug)
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".storyTitle")))
         return self
 
     def load_gardens(self):
@@ -1655,7 +1627,7 @@ class Trial(object):
         """
         if self.platform == "local":
             cap = cap if cap else self.default_local_driver
-            if isinstance(cap, appium_webdriver.Remote):
+            if isinstance(cap, appium_webdriver.Remote) or isinstance(cap, webdriver.chrome.webdriver.WebDriver):
                 driver = cap
             else:
                 driver = cap()

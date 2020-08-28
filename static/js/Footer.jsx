@@ -14,8 +14,9 @@ const Section = ({en, he, children}) => (
       {children}
     </div>
 );
-const Link = ({href, en, he, blank, out}) => (
-    <a href={href} target={blank ? "_blank" : "_self"} className={out ? "outOfAppLink" : ""}>
+
+const Link = ({href, en, he, blank}) => (
+    <a href={href} target={blank ? "_blank" : "_self"}>
       <span className="int-en">{en}</span>
       <span className="int-he">{he}</span>
     </a>
@@ -66,42 +67,42 @@ class Footer extends Component {
       <footer id="footer" className="static sans">
         <div id="footerInner">
             <Section en="About" he="אודות">
-                <Link href="/about" en="What is Sefaria?" he="מהי ספריא" out={true} />
-                <Link href="/help" en="Help" he="עזרה" out={true} />
-                <Link href="/faq" en="FAQ" he="שאלות נפוצות" out={true} />
-                <Link href="/team" en="Team" he="צוות" out={true} />
-                <Link href="/testimonials" en="Testimonials" he="חוות דעת" out={true} />
-                <Link href="/metrics" en="Metrics" he="מדדים" out={true} />
-                <Link href="/terms" en="Terms of Use" he="תנאי שימוש" out={true} />
-                <Link href="/privacy-policy" en="Privacy Policy" he="מדיניות הפרטיות" out={true} />
+                <Link href="/about" en="What is Sefaria?" he="מהי ספריא" />
+                <Link href="/help" en="Help" he="עזרה" />
+                <Link href="/faq" en="FAQ" he="שאלות נפוצות" />
+                <Link href="/team" en="Team" he="צוות" />
+                <Link href="/testimonials" en="Testimonials" he="חוות דעת" />
+                <Link href="/metrics" en="Metrics" he="מדדים" />
+                <Link href="/terms" en="Terms of Use" he="תנאי שימוש" />
+                <Link href="/privacy-policy" en="Privacy Policy" he="מדיניות הפרטיות" />
             </Section>
 
             <Section en="Tools" he="כלים">
-                <Link href="/educators" en="Teach with Sefaria" he="למד באמצעות ספריא" out={true} />
-                <Link href="/sheets" en="Source Sheets" he="דפי מקורות" out={true} />
-                <Link href="/visualizations" en="Visualizations" he="תרשימים גרפיים" out={true} />
-                <Link href="/mobile" en="Mobile Apps" he="ספריא בנייד" out={true} />
-                <Link href="/daf-yomi" en="Daf Yomi" he="דף יומי" out={true} />
-                <Link href="/torah-tab" en="Torah Tab" he="תורה טאב" out={true} />
-                <Link href="/people" en="Authors" he="מחברים" out={true} />
-                <Link href="/groups" en="Groups" he="קבוצות" out={true} />
-                <Link href="/updates" en="New Additions" he="עדכונים" out={true} />
-                <Link href="/remote-learning" en="Remote Learning" he="למידה מרחוק" out={true} />
+                <Link href="/educators" en="Teach with Sefaria" he="למד באמצעות ספריא" />
+                <Link href="/sheets" en="Source Sheets" he="דפי מקורות" />
+                <Link href="/visualizations" en="Visualizations" he="תרשימים גרפיים" />
+                <Link href="/mobile" en="Mobile Apps" he="ספריא בנייד" />
+                <Link href="/daf-yomi" en="Daf Yomi" he="דף יומי" />
+                <Link href="/torah-tab" en="Torah Tab" he="תורה טאב" />
+                <Link href="/people" en="Authors" he="מחברים" />
+                <Link href="/groups" en="Groups" he="קבוצות" />
+                <Link href="/updates" en="New Additions" he="עדכונים" />
+                <Link href="/remote-learning" en="Remote Learning" he="למידה מרחוק" />
             </Section>
 
             <Section en="Developers" he="מפתחים">
-                <Link href="/developers" en="Get Involved" he="הצטרף אלינו" blank={true} out={true} />
-                <Link href="/developers#api" en="API Docs" he="מסמכי API" blank={true} out={true} />
-                <Link href="https://github.com/Sefaria/Sefaria-Project" en="Fork us on GitHub" he="זלגו חופשי מגיטהאב" blank={true} out={true} />
-                <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="הורד את בסיס הנתונים שלנו" blank={true} out={true} />
+                <Link href="/developers" en="Get Involved" he="הצטרף אלינו" blank={true} />
+                <Link href="/developers#api" en="API Docs" he="מסמכי API" blank={true} />
+                <Link href="https://github.com/Sefaria/Sefaria-Project" en="Fork us on GitHub" he="זלגו חופשי מגיטהאב" blank={true} />
+                <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="הורד את בסיס הנתונים שלנו" blank={true} />
             </Section>
 
             <Section en="Join Us" he="הצטרף אלינו">
-                <Link href="https://sefaria.nationbuilder.com/supportsefaria" en="Donate" he="תרומות" out={true} />
-                <Link href="/supporters" en="Supporters" he="תומכים" out={true} />
-                <Link href="/contribute" en="Contribute" he="הצטרף" blank={true} out={true} />
-                <Link href="/jobs" en="Jobs" he="דרושים" out={true} />
-                <Link href="https://store.sefaria.org" en="Shop" he="חנות" out={true} />
+                <Link href="https://sefaria.nationbuilder.com/supportsefaria" en="Donate" he="תרומות" />
+                <Link href="/supporters" en="Supporters" he="תומכים" />
+                <Link href="/contribute" en="Contribute" he="הצטרף" blank={true} />
+                <Link href="/jobs" en="Jobs" he="דרושים" />
+                <Link href="https://store.sefaria.org" en="Shop" he="חנות" />
             </Section>
 
           <div className="section last connect">
@@ -112,30 +113,30 @@ class Footer extends Component {
               <NewsletterSignUpForm contextName="Footer" />
               <LikeFollowButtons />
               <div className="socialLinks">
-                  <Link href={fbURL} en="Facebook" he="פייסבוק" blank={true} out={true}/>
+                  <Link href={fbURL} en="Facebook" he="פייסבוק" blank={true}/>
                   &bull;
-                  <Link href="https://twitter.com/SefariaProject" en="Twitter" he="טוויטר" out={true} />
+                  <Link href="https://twitter.com/SefariaProject" en="Twitter" he="טוויטר" />
                   <br />
 
-                  <Link href="https://www.youtube.com/user/SefariaProject" en="YouTube" he="יוטיוב" out={true} />
+                  <Link href="https://www.youtube.com/user/SefariaProject" en="YouTube" he="יוטיוב" />
                   &bull;
-                  <Link href={blgURL} en="Blog" he="בלוג" blank={true} out={true}/>
+                  <Link href={blgURL} en="Blog" he="בלוג" blank={true}/>
                   <br />
 
-                  <Link href="https://www.instagram.com/sefariaproject/" en="Instagram" he="אינסטגרם" out={true} />
+                  <Link href="https://www.instagram.com/sefariaproject/" en="Instagram" he="אינסטגרם" />
                   &bull;
-                  <Link href="mailto:hello@sefaria.org" en="Email" he="דוא&quot;ל" out={true} />
+                  <Link href="mailto:hello@sefaria.org" en="Email" he="דוא&quot;ל" />
               </div>
               <div id="siteLanguageToggle">
                   <div id="siteLanguageToggleLabel">
                       <span className="int-en">Site Language</span>
                       <span className="int-he">שפת האתר</span>
                   </div>
-                  <a href={"/interface/english?next=" + next} id="siteLanguageEnglish" className="outOfAppLink"
+                  <a href={"/interface/english?next=" + next} id="siteLanguageEnglish"
                      onClick={this.trackLanguageClick.bind(null, "English")}>English
                   </a>
                   |
-                  <a href={"/interface/hebrew?next=" + next} id="siteLanguageHebrew" className="outOfAppLink"
+                  <a href={"/interface/hebrew?next=" + next} id="siteLanguageHebrew"
                       onClick={this.trackLanguageClick.bind(null, "Hebrew")}>עברית
                   </a>
               </div>

@@ -11,21 +11,12 @@ import Component      from 'react-class';
 
 class SearchSheetResult extends Component {
     handleSheetClick(e) {
-      var href = e.target.closest('a').getAttribute("href");
-      e.preventDefault();
       var s = this.props.data._source;
-      Sefaria.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`,
-          {hitCallback: () => window.location = href}
-      );
+      Sefaria.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`);
     }
     handleProfileClick(e) {
-      e.preventDefault();
-      const href = e.target.closest('a').getAttribute("href");
-      const slugMatch = href.match(/profile\/(.+)$/);
-      const slug = !!slugMatch ? slugMatch[1] : '';
       const s = this.props.data._source;
       Sefaria.track.event("Search", "Search Result Sheet Owner Click", `${this.props.query} - ${s.sheetId} - ${s.owner_name}`);
-      this.props.openProfile(slug, s.owner_name);
     }
     get_snippet_markup(data) {
       let snippet = data.highlight.content.join("..."); // data.highlight ? data.highlight.content.join("...") : s.content;
@@ -71,7 +62,6 @@ class SearchSheetResult extends Component {
 SearchSheetResult.propTypes = {
   query: PropTypes.string,
   data: PropTypes.object,
-  openProfile: PropTypes.func.isRequired,
 };
 
 

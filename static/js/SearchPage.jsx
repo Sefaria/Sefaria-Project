@@ -57,7 +57,6 @@ class SearchPage extends Component {
                                 updateAppliedOptionField={this.props.updateAppliedOptionField}
                                 updateAppliedOptionSort={this.props.updateAppliedOptionSort}
                                 registerAvailableFilters={this.props.registerAvailableFilters}
-                                openProfile={this.props.openProfile}
                               />
                           </div>
                       </div>
@@ -84,7 +83,6 @@ SearchPage.propTypes = {
     updateAppliedOptionSort:  PropTypes.func,
     registerAvailableFilters: PropTypes.func,
     hideNavHeader:            PropTypes.bool,
-    openProfile:              PropTypes.func.isRequired,
 };
 
 
