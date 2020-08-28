@@ -3809,20 +3809,20 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding-left: 0;
   padding-right: 0;
 }
-.readerPanel.english .sheetItem.heOnly .en,
-.readerPanel.bilingual .sheetItem.heOnly .en {
+.readerPanel.english .sheetItem.heOnly > .en,
+.readerPanel.bilingual .sheetItem.heOnly > .en {
   display: none;
 }
-.readerPanel.hebrew .sheetItem.heOnly .he,
-.readerPanel.bilingual .sheetItem.heOnly .he {
+.readerPanel.hebrew .sheetItem.heOnly > .he,
+.readerPanel.bilingual .sheetItem.heOnly > .he {
   display: inline;
 }
-.readerPanel.hebrew .sheetItem.enOnly .he,
-.readerPanel.bilingual .sheetItem.enOnly .he {
+.readerPanel.hebrew .sheetItem.enOnly > .he,
+.readerPanel.bilingual .sheetItem.enOnly > .he {
   display: none;
 }
-.readerPanel.english .sheetItem.enOnly .en,
-.readerPanel.bilingual .sheetItem.enOnly .en {
+.readerPanel.english .sheetItem.enOnly > .en,
+.readerPanel.bilingual .sheetItem.enOnly > .en {
   display: inline;
 }
 .heLeft.bilingual .segment > .en,
@@ -4016,8 +4016,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   left: -48px;
 }
 .readerPanel.english .segment .linkCount,
-.readerPanel.bilingual .sheetItem.segment .linkCount
-{
+.readerPanel.bilingual .sheetItem.segment .linkCount {
   right: -46px;
   left:auto;
 }
@@ -7012,6 +7011,9 @@ span.purim-emoji img{
 .sheetContent tbody {
   width: 100%;
 }
+.readerPanel .sheetItem {
+  position: relative;
+}
 .readerPanel.hebrew .sheetItem .he {
   display: block;
 }
@@ -7043,13 +7045,13 @@ span.purim-emoji img{
   margin: 0 0 1em 0;
 }
 .segmentNumber.sheetSegmentNumber {
-  display: none;
-  position: relative;
+  display: inline-block;
+  position: absolute;
 }
 .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
 .readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber {
   left: -48px;
-  top: 28px;
+  top: 0px;
   text-align: center;
 }
 .interface-hebrew .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber {
@@ -7072,7 +7074,6 @@ span.purim-emoji img{
 .readerPanel.hebrew .sheetItem.segment .segmentNumber.sheetSegmentNumber {
   margin-left: auto;
   right: -32px;
-  top: 26px;
   text-align: center;
 }
 .singlePanel .readerPanel.hebrew .sheetItem.segment .segmentNumber.sheetSegmentNumber {
@@ -7248,11 +7249,9 @@ span.purim-emoji img{
   text-decoration: underline;
   color: inherit;
 }
-
 .groupImageContainer img {
   max-width: 100%;
 }
-
 .he sup.sourcePrefix {
     margin-right: -35px;
     position: absolute;
@@ -7271,7 +7270,6 @@ span.purim-emoji img{
 .heRight.bilingual .sheetContent .text sup.sourcePrefix {
     margin-right: -28px;
 }
-
 .heLeft.bilingual .sheetContent .text .en sup.sourcePrefix,
 .heRight.bilingual .sheetContent .text .en sup.sourcePrefix {
   display: none
@@ -7279,21 +7277,17 @@ span.purim-emoji img{
 .sheetItem.ref-display-none .ref {
   display: none;
 }
-
 .sheetItem .SheetSource {
   border-left: 4px solid;
   margin-left: -34px;
   padding-left: 34px;
 }
-
 .sheetItem .SheetOutsideBiText {
   border-left: 4px solid;
   margin-left: -34px;
   padding-left: 34px;
   border-color: #073570;
 }
-
-
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;

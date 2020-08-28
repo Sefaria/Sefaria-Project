@@ -702,12 +702,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	font-weight: bold;
 }
 
-
 #sheet #sources .sheetItem .sourceNumber.en {
 	position: absolute;
 	width: 50px;
 	text-align: right;
-	top: 35px;
+	top: 28px;
 	left: 6px;
 }
 
@@ -715,7 +714,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	position: absolute;
 	width: 50px;
 	text-align: left;
-	top: 37px;
+	top: 29px;
 	right: 6px;
 }
 
