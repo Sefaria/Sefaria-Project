@@ -1577,15 +1577,12 @@ line-height: normal;
 
 }
 
-
-
 #sheet .source.sheetItem.stacked > .en,
 #sheet .source.sheetItem.stacked > .he {
 	float: none;
 	width: 100%;
 	margin-bottom: 12px;
 }
-
 
 #sheet .source.bilingual .en,
 #sheet .source.bilingual .he,
@@ -1594,18 +1591,13 @@ line-height: normal;
 	display: block;
 }
 
-#sheet .source.english > .he,
-#sheet.numbered #sources .source.english > .sourceNumber.he
-{
+#sheet .source.english > .he {
 	display: none;
 }
 
-#sheet .source.hebrew > .en,
-#sheet.numbered #sources .source.hebrew > .sourceNumber.en
-{
+#sheet .source.hebrew > .en {
 	display: none;
 }
-
 
 #resetToDefaults {
 	margin-top:10px;
