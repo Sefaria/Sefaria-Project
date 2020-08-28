@@ -1071,6 +1071,10 @@ class ReaderApp extends Component {
       return;
     }
     const path = el.getAttribute('href');
+    if (!path) {
+      return;
+    }
+
     const handled = this.openURL(path);
     if (handled) {
       e.preventDefault();
