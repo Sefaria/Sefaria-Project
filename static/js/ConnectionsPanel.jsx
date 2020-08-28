@@ -369,8 +369,8 @@ class ConnectionsPanel extends Component {
         const chevrutaURL = `${window.location.host}/chavruta?ref=${window.location.pathname.replace(/\//, '')}&rid=${uuid}`
 
         content = (<div className="chavruta">
-                    <div className="headerText">Learn with a Chavruta</div>
-
+                    <div className="headerText int-en">Learn with a Chavruta</div>
+                    <div className="headerText int-he">ללמוד עם חברותא</div>
                     <div className="fakeBrowser">
                       <div className="fakeBrowserHeader">
                         <div className="fakeBrowserButtons">
@@ -401,7 +401,10 @@ class ConnectionsPanel extends Component {
                         </div>
                       </div>
                     </div>
-                    <p>Share this link with your chavruta to start a video call with this text</p>
+                    <p className="int-en">Share this link with your chavruta to start a video call with this text</p>
+                    <p className="int-he"> כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הזה: </p>
+
+
                     <p>
                     <input
                       id="chavrutaURL"
@@ -412,7 +415,12 @@ class ConnectionsPanel extends Component {
                     </p>
 
                     <p>
-                    <a className="button fillWidth startChavrutaButton" href={"//"+chevrutaURL}><img src="/static/img/video.svg" />Start Call</a>
+                    <a className="button fillWidth startChavrutaButton" href={"//"+chevrutaURL}><img src="/static/img/video.svg" />
+                    <span className="int-en">Start Call</span>
+                    <span className="int-he">התחלת שיחה</span>
+                    </a>
+
+
                     </p>
                   </div>);
 
