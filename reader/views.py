@@ -4177,21 +4177,27 @@ def application_health_api_nonlibrary(request):
 
 @login_required
 def daf_roulette_redirect(request):
-    return render(request,'static/dafroulette.html',
+    return render(request,'static/chavruta.html',
                              {
                               "rtc_server": RTC_SERVER,
                               "room_id": "",
-                              "starting_ref": "todays-daf-yomi"
+                              "starting_ref": "todays-daf-yomi",
+                              "roulette": "1",
                               })
 
 @login_required
 def chevruta_redirect(request):
     room_id = request.GET.get("rid", None)
     starting_ref = request.GET.get("ref", "Genesis 1")
+    roulette = request.GET.get("roulette", "0")
 
-    return render(request,'static/dafroulette.html',
+    if room_id is None:
+        raise Http404('Missing room ID.')
+
+    return render(request,'static/chavruta.html',
                              {
                               "rtc_server": RTC_SERVER,
                               "room_id": room_id,
-                              "starting_ref": starting_ref
+                              "starting_ref": starting_ref,
+                              "roulette": roulette
                               })

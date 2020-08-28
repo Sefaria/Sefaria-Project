@@ -7,6 +7,7 @@ import {
   SheetListing,
   Note,
   FeedbackBox,
+  ProfilePic,
   ToolTipped,
 } from './Misc';
 import {  CategoryFilter,} from './ConnectionFilters';
@@ -365,6 +366,59 @@ class ConnectionsPanel extends Component {
                   /> : null }
 
                 </div>);
+    } else if (this.props.mode === "Chavruta") {
+        const uuid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        const chevrutaURL = `${window.location.host}/chavruta?ref=${window.location.pathname.replace(/\//, '')}&rid=${uuid}`
+
+        content = (<div className="chavruta">
+                    <div className="headerText">Learn with a Chavruta</div>
+
+                    <div className="fakeBrowser">
+                      <div className="fakeBrowserHeader">
+                        <div className="fakeBrowserButtons">
+                          <div className="fakeBrowserButton red"></div>
+                          <div className="fakeBrowserButton yellow"></div>
+                          <div className="fakeBrowserButton green"></div>
+                        </div>
+                        <div className="fakeBrowserURLBar">sefaria.org</div>
+                      </div>
+                      <div className="fakeBrowserMain">
+                        <div className="fakeBrowserLeft">
+                          <div className="fakeBrowserButtonAvatar"><ProfilePic url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></div>
+                          <div className="fakeBrowserButtonAvatar"><img src="/static/img/anon_user.svg"/></div>
+                        </div>
+                        <div className="fakeBrowserRight">
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                        </div>
+                      </div>
+                    </div>
+                    <p>Share this link with your chavruta to start a video call with this text</p>
+                    <p>
+                    <input
+                      id="chavrutaURL"
+                      type="text"
+                      value={chevrutaURL}
+                      onFocus={(e) => event.target.select()}
+                    />
+                    </p>
+
+                    <p>
+                    <a className="button fillWidth startChavrutaButton" href={"//"+chevrutaURL}><img src="/static/img/video.svg" />Start Call</a>
+                    </p>
+                  </div>);
+
+
 
     } else if (this.props.mode == "Add Connection To Sheet"){
         let refForSheet = (this.props.connectionData && "connectionRefs" in this.props.connectionData) ? this.props.connectionData["connectionRefs"] : this.props.srefs;

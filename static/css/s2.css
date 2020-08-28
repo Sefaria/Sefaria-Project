@@ -5127,6 +5127,148 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 20px;
   margin: 0 8px;
 }
+
+.connectionsPanel .chavruta #chavrutaURL {
+  background: #FBFBFA;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  border: none;
+  width: calc(100% - 22px);
+  padding: 15px 11px;
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+}
+
+.connectionsPanel .chavruta .buttonContainer {
+width: 100%;
+margin-top: 15px;
+text-align: center;
+}
+
+
+.connectionsPanel .chavruta .startChavrutaButton {
+color: #fff;
+}
+
+.connectionsPanel .chavruta .startChavrutaButton img {
+  filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(181deg) brightness(118%) contrast(111%);
+  margin-inline-end: 10px;
+}
+
+.connectionsPanel .chavruta .headerText {
+  font-family: Roboto;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 26px;
+  padding-bottom: 13px;
+
+  /* Dark Grey */
+  color: #666666;
+  border-bottom: 1px solid #CCCCCC;
+}
+
+.connectionsPanel .chavruta p {
+font-size: 16px;
+line-height: 19px;
+color: #666666;
+}
+
+.connectionsPanel .chavruta .fakeBrowser {
+  width: 100%;
+  margin: 30px auto 30px;
+}
+
+.fakeBrowser .fakeBrowserHeader {
+  background: #C4C4C4;
+  width: 100%;
+  height: 30px;
+  display: inline-flex;
+}
+
+.fakeBrowser .fakeBrowserButtons {
+  padding: 7px;
+}
+
+.fakeBrowser .fakeBrowserButton {
+  width: 8px;
+  height: 8px;
+  border-radius: 8px;
+  display: inline-block;
+  margin: 0px 1px;
+}
+
+.fakeBrowserButton.red {
+  background: #E96E4C;
+}
+.fakeBrowserButton.yellow {
+  background: #E6A935;
+}
+.fakeBrowserButton.green {
+  background: #85C33D;
+}
+
+.fakeBrowser .fakeBrowserURLBar {
+  background: #fff;
+  flex: 1;
+  align-self: center;
+  margin-right: 10px;
+  text-align: center;
+  opacity: 0.85;
+  border-radius: 4px;
+  color: #9B9B9B;
+}
+
+.fakeBrowser .fakeBrowserMain {
+  width: 100%;
+  height: 190px;
+  background-color: #fff;
+  border-radius: 0 0 3px 0;
+}
+
+.fakeBrowser .fakeBrowserMain .fakeBrowserLeft {
+  padding: 10px;
+  background-color: #EDEDEC;
+  width: 85px;
+  display: inline-block;
+  border-radius: 0 0 0 3px;
+}
+
+
+.fakeBrowser .fakeBrowserMain .fakeBrowserRight {
+  padding: 0 10px;
+  background-color: #fff;
+  width: calc(100% - 127px);
+  display: inline-block;
+}
+
+.fakeBrowser .fakeBrowserMain .fakeBrowserRight hr {
+  border: none;
+  margin-top: 8px;
+  border-top: 3px solid #ccc;
+}
+
+.fakeBrowser .fakeBrowserMain .fakeBrowserRight hr:nth-child(4n+0) {
+  margin-bottom: 16px;
+  width: 80%;
+  margin-inline-start: 0;
+}
+
+
+.fakeBrowser .fakeBrowserButtonAvatar {
+  margin: 15px auto 0;
+  width: 80%;
+  text-align: center;
+}
+
+.fakeBrowser .fakeBrowserButtonAvatar img {
+  width: 100%;
+}
+
+
 .addConnectionBox {
   font-size: 18px;
   text-align: center;
