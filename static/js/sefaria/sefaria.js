@@ -64,7 +64,11 @@ Sefaria = extend(Sefaria, {
               break;
           }
           if (book in Sefaria.booksDict || book === "Sheet") {
-              nums = first.slice(i+1);
+              const remainder = first.slice(i);
+              if (remainder && remainder[0] !== " ") { 
+                continue; // book name must be followed by a space, Jobs != Job
+              }
+              nums = remainder.slice(1);
               break;
           }
       }
@@ -78,7 +82,7 @@ Sefaria = extend(Sefaria, {
           return Sefaria._parseRef[q];
       }
 
-      if (nums && !nums.match(/\d+[ab]?( \d+)*/)) {
+      if (nums && !nums.match(/\d+[ab]?( \d+)*$/)) {
           Sefaria._parseRef[q] = {"error": "Bad section string."};
           console.log(Sefaria._parseRef[q]);
           return Sefaria._parseRef[q];
