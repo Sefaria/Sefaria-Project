@@ -147,8 +147,15 @@ font-style: normal;
 font-weight: normal;
 font-size: 16px;
 line-height: 19px;
+font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+color: #666;
 
 
+}
+
+.chavrutaFooter {
+  position: absolute;
+  bottom: 15px;
 }
 
 {% endblock %}
@@ -226,13 +233,15 @@ line-height: 19px;
 
     <input id="chavrutaURL" type="text" value={{ request.build_absolute_uri }} autofocus="autofocus" onfocus="this.select()" readonly >
 
-    <p class="int-en">
-      Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
-    </p>
+    <div class="chavrutaFooter">
+      <p class="int-en">
+        Questions? Email <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
+      </p>
 
-    <p class="int-he">
-      לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
-    </p>
+      <p class="int-he">
+        לשאלות פנו/כתבו לדוא"ל <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>
+      </p>
+    </div>
 
     {% endif %}
 

@@ -5138,7 +5138,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border: none;
   width: calc(100% - 22px);
   padding: 15px 11px;
-  font-family: Roboto;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #666;
   font-style: normal;
   font-weight: normal;
   font-size: 16px;
@@ -5162,7 +5163,7 @@ color: #fff;
 }
 
 .connectionsPanel .chavruta .headerText {
-  font-family: Roboto;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: normal;
   font-weight: 500;
   font-size: 22px;
@@ -5176,6 +5177,7 @@ color: #fff;
 
 .connectionsPanel .chavruta p {
 font-size: 16px;
+font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 line-height: 19px;
 color: #666666;
 }
@@ -5190,6 +5192,7 @@ color: #666666;
   width: 100%;
   height: 30px;
   display: inline-flex;
+  border-radius: 3px 3px 0 0;
 }
 
 .fakeBrowser .fakeBrowserButtons {
@@ -5262,7 +5265,7 @@ color: #666666;
 
 
 .fakeBrowser .fakeBrowserButtonAvatar {
-  margin: 15px auto 0;
+  margin: 10px auto 5px;
   width: 80%;
   text-align: center;
 }
@@ -5271,6 +5274,10 @@ color: #666666;
   width: 100%;
 }
 
+.fakeBrowser .fakeBrowserButtonAvatar .default-profile-img {
+  line-height: 68px;
+  background: #212E50;
+}
 
 .addConnectionBox {
   font-size: 18px;
