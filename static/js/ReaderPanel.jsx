@@ -212,7 +212,6 @@ class ReaderPanel extends Component {
     // Handles clicks within a ReaderNavigationMenu panel.
     // This logic for handling these links could be replaced by ReaderApp.handleInAppLinkClick()
     // except for the fact that navigation can occur inside a "compare" panel.
-    console.log("handleNavigationClick")
     const { target, linkType } = this._getClickTarget(event);
     if (!linkType) { return; }
     event.preventDefault();
@@ -265,7 +264,7 @@ class ReaderPanel extends Component {
     }
   }
   handleSheetSegmentClick(source) {
-    console.log(source);
+    // console.log(source);
     this.conditionalSetState({highlightedNodes: source.node});
     if (this.state.mode ==="SheetAndConnections") {
       this.closeSheetConnectionsInPanel();

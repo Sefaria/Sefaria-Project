@@ -297,7 +297,7 @@ class ReaderApp extends Component {
   }
   handlePopState(event) {
     var state = event.state;
-    console.log("Pop - " + window.location.pathname);
+    // console.log("Pop - " + window.location.pathname);
     // console.log(event.state);
     if (state) {
       this.justPopped = true;
@@ -320,8 +320,6 @@ class ReaderApp extends Component {
       }
       this.setState(state, () => {
         if (state.scrollPosition) {
-          console.log("scroll restoration", event.state.scrollPosition);
-          // debugger
           $(".content").scrollTop(event.state.scrollPosition)
             .trigger("scroll");
         }
@@ -863,13 +861,13 @@ class ReaderApp extends Component {
     
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      console.log("Replace History - " + hist.url);
+      //console.log("Replace History - " + hist.url);
       if (currentUrl != hist.url) { this.checkScrollIntentAndTrack(); }
       //console.log(hist);
     } else {
       if (currentUrl == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-      console.log("Push History - " + hist.url);
+      //console.log("Push History - " + hist.url);
       this.trackPageview();
     }
 
@@ -939,7 +937,6 @@ class ReaderApp extends Component {
       const state = history.state;
       if (scrollTop == state.scrollPosition) { return; }
       state.scrollPosition = scrollTop;
-      console.log("replace", scrollTop);
       history.replaceState(state, window.location.href);      
     }, 300);
   }
@@ -1090,7 +1087,6 @@ class ReaderApp extends Component {
       this.showLibrary();
 
     } else if (path.match(/\/texts\/.+/)) {
-      console.log("readerApp caught /texts")
       this.showLibrary(path.slice(7).split("/"));
 
     } else if (path == "/groups") {
