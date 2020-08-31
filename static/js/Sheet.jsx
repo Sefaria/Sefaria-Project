@@ -27,29 +27,24 @@ class Sheet extends Component {
         scrollDir: "down",
     }
   }
-
   componentDidMount() {
     this.$container = $(ReactDOM.findDOMNode(this));
     this.setPaddingForScrollbar();
     this.ensureData();
 
   }
-
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.editor == true && this.props.editor == false) {
       Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad, true);
       console.log('reloading')
     }
   }
-
   getSheetFromCache() {
     return Sefaria.sheets.loadSheetByID(this.props.id);
   }
-
   getSheetFromAPI() {
     Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad);
   }
-
   onDataLoad(data) {
     this.forceUpdate();
 
@@ -61,20 +56,17 @@ class Sheet extends Component {
       }
     }
   }
-
   ensureData() {
     if (!this.getSheetFromCache()) {
       this.getSheetFromAPI();
     }
   }
-
   setPaddingForScrollbar() {
     // Scrollbars take up spacing, causing the centering of Sheet to be slightly off center
     // compared to the header. This functions sets appropriate padding to compensate.
     var width = Sefaria.util.getScrollbarWidth();
     this.$container.css({paddingRight: 0, paddingLeft: width});
   }
-
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
@@ -130,12 +122,10 @@ class SheetContent extends Component {
       this.windowMiddle = $(window).outerHeight() / 2;
       this.scrollToHighlighted();
   }
-
   componentWillUnmount() {
     var node = ReactDOM.findDOMNode(this).parentNode;
     node.removeEventListener("scroll", this.handleScroll);
   }
-
   handleScroll(event) {
     var segment = $(event.target).closest(".readerPanel").find('.segment.highlight');
 
@@ -157,7 +147,6 @@ class SheetContent extends Component {
     }
 
   }
-
   scrollToHighlighted() {
     var $container   = $(ReactDOM.findDOMNode(this));
     var $readerPanel = $container.closest(".readerPanel");
@@ -170,13 +159,11 @@ class SheetContent extends Component {
       $highlighted.focus();
     }
   }
-
   handleClick(ref, e) {
     e.preventDefault();
     e.stopPropagation();
     this.props.onRefClick(ref);
   }
-
   render() {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
       const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
@@ -263,7 +250,6 @@ class SheetContent extends Component {
 
     }, this) : null;
 
-
     return (
       <div className="sheetContent">
         <SheetMetaDataBox>
@@ -297,6 +283,7 @@ class SheetContent extends Component {
     )
   }
 }
+
 
 class SheetSource extends Component {
   sheetSourceClick(event) {
@@ -385,6 +372,7 @@ class SheetSource extends Component {
   }
 }
 
+
 class SheetComment extends Component {
   sheetSourceClick(event) {
     if(event.target.tagName.toLowerCase() === 'a') {
@@ -406,7 +394,6 @@ class SheetComment extends Component {
         this.props.onSegmentClick(this.props.source);
     }
   }
-
   render() {
       var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
       var containerClasses = classNames("sheetItem",
@@ -437,6 +424,7 @@ class SheetComment extends Component {
     )
   }
 }
+
 
 class SheetOutsideText extends Component {
   sheetSourceClick(event) {
@@ -493,6 +481,7 @@ class SheetOutsideText extends Component {
   }
 }
 
+
 class SheetOutsideBiText extends Component {
   sheetSourceClick(event) {
     if(event.target.tagName.toLowerCase() === 'a') {
@@ -514,7 +503,6 @@ class SheetOutsideBiText extends Component {
         this.props.onSegmentClick(this.props.source);
     }
   }
-
   render() {
       var containerClasses = classNames("sheetItem",
           "segment",
@@ -555,6 +543,7 @@ class SheetOutsideBiText extends Component {
 
 }
 
+
 class SheetMedia extends Component {
   sheetSourceClick(event) {
     if(event.target.tagName.toLowerCase() === 'a') {
@@ -575,7 +564,6 @@ class SheetMedia extends Component {
       this.props.onSegmentClick(this.props.source);
     }
   }
-
   makeMediaEmbedContent() {
     var mediaLink;
     var mediaCaption = "";
@@ -618,7 +606,6 @@ class SheetMedia extends Component {
 
     return "<div class='" + mediaClass + "'>" + mediaLink + mediaCaption + "</div>";
   }
-
   render() {
       var containerClasses = classNames("sheetItem",
           "segment",

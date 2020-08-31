@@ -2509,6 +2509,9 @@ Sefaria.unpackDataFromProps = function(props) {
       if (panel.indexDetails) {
         Sefaria._indexDetails[panel.bookRef] = panel.indexDetails;
       }
+      if (panel.sheet) {
+        Sefaria.sheets._loadSheetByID[panel.sheet.id] = panel.sheet;
+      }
       // versions and bookRef are located in different places, depending on if you're in book TOC or reader
       const panelVersions = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
       const panelBook     = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
