@@ -1,12 +1,12 @@
-const   extend     = require('extend'),
-        param      = require('querystring').stringify,
-        Search     = require('./search'),
-        palette    = require('./palette'),
-        Track      = require('./track'),
-        Hebrew     = require('./hebrew'),
-        Util       = require('./util'),
-        $          = require('./sefariaJquery');
-                     require('babel-polyfill');
+var extend     = require('extend'),
+    param      = require('querystring').stringify;
+import Search from './search';
+import palette from './palette';
+import Track from './track';
+import Hebrew from './hebrew';
+import Util from './util';
+import $ from './sefariaJquery';
+require('babel-polyfill');
 
 
 let Sefaria = Sefaria || {
@@ -64,7 +64,11 @@ Sefaria = extend(Sefaria, {
               break;
           }
           if (book in Sefaria.booksDict || book === "Sheet") {
-              nums = first.slice(i+1);
+              const remainder = first.slice(i);
+              if (remainder && remainder[0] !== " ") { 
+                continue; // book name must be followed by a space, Jobs != Job
+              }
+              nums = remainder.slice(1);
               break;
           }
       }
@@ -78,7 +82,7 @@ Sefaria = extend(Sefaria, {
           return Sefaria._parseRef[q];
       }
 
-      if (nums && !nums.match(/\d+[ab]?( \d+)*/)) {
+      if (nums && !nums.match(/\d+[ab]?( \d+)*$/)) {
           Sefaria._parseRef[q] = {"error": "Bad section string."};
           console.log(Sefaria._parseRef[q]);
           return Sefaria._parseRef[q];
@@ -165,6 +169,63 @@ Sefaria = extend(Sefaria, {
     nRef.toSections = pRefEnd.toSections;
     return Sefaria.makeRef(nRef);
   },
+  joinRefList: function(refs, lang){
+      //should check that these are actually refs
+      //only use for display as it doesn't rely on any ref parsing!
+      //since this is just string manipulation it works language agnostically.
+      //does not work well in cases like Genesis 1:10, Genesis 1:15 (will return Genesis 1:10-5). Needs fixing
+      //Deuteronomy 11:32-2:1 instead of Deuteronomy 11:32-12:1
+      const refStrAttr = {
+          "he" : "heRef",
+          "en": "ref"
+      }[lang];
+      if(!refs.length){ return null ;}
+      let start, end;
+      if (refs[0].indexOf("-") != -1) { // did we get a ranged ref for some reason inside the arguemnts
+          let startSplit = Sefaria.splitRangingRef(refs[0])
+          start = Sefaria.getRefFromCache(startSplit[0])[refStrAttr];
+      }else{
+          start = Sefaria.getRefFromCache(refs[0])[refStrAttr];
+      }
+      if (refs[refs.length - 1].indexOf("-") != -1) {
+          let endSplit = Sefaria.splitRangingRef(refs[refs.length - 1]);
+          end = Sefaria.getRefFromCache(endSplit[endSplit.length -1])[refStrAttr];
+      }else{
+          end = Sefaria.getRefFromCache(refs[refs.length - 1])[refStrAttr];
+      }
+       //deal with case where this doesnt exist in cache with getName or a new function o combine refs from server side
+
+      //TODO handle ranged refs as input
+      if(start == end){
+          return start;
+      }
+      //break down refs into textual part and "numeric "address parts, the comparison of the numeric parts has to be atomic and not char by char
+      const lastSpaceStart = start.lastIndexOf(" ");
+      const namedPartStart =  start.substr(0, lastSpaceStart);
+      const addressPartStart = start.substr(lastSpaceStart + 1).split(":");
+      const lastSpaceEnd = end.lastIndexOf(" ");
+      const namedPartEnd =  end.substr(0, lastSpaceEnd);
+      const addressPartEnd = end.substr(lastSpaceEnd + 1).split(":");
+      if(namedPartStart != namedPartEnd){
+          //the string part is different already, so the numeric parts will be for sure separated correctly.
+          //works mostly for ranged complex text refs
+          const similarpart = Sefaria.util.commonSubstring(start, end);
+          const startDiff = start.substring(similarpart.length, start.length);
+          const endDiff = end.substring(similarpart.length, end.length);
+          return `${similarpart}${startDiff}-${endDiff}`;
+      }else{
+          let similaraddrs = []
+          const addrLength = Math.min(addressPartStart.length, addressPartEnd.length);
+          let index = 0;
+          while(index<addrLength && addressPartStart[index] === addressPartEnd[index]){
+              similaraddrs.push(addressPartStart[index]);
+              index++;
+          }
+          const addrStr = similaraddrs.join(":")+(index == 0? "" : ":")+addressPartStart.slice(index).join(":")+"-"+addressPartEnd.slice(index).join(":");
+          return `${namedPartStart} ${addrStr}`
+      }
+
+  },
   refContains: function(ref1, ref2) {
     // Returns true is `ref1` contains `ref2`
     const oRef1 = Sefaria.parseRef(ref1);
@@ -182,6 +243,13 @@ Sefaria = extend(Sefaria, {
       }
     }
     return null;
+  },
+  refCategories: function(ref) {
+    // Returns the text categories for `ref`
+    let pRef = Sefaria.parseRef(ref);
+    if ("error" in pRef) { return []; }
+    let index = Sefaria.index(pRef.index);
+    return index && index.categories ? index.categories : [];
   },
   sectionRef: function(ref) {
     // Returns the section level ref for `ref` or null if no data is available
@@ -307,12 +375,50 @@ Sefaria = extend(Sefaria, {
     const data = this.getTextFromCache(ref, settings);
     if (data && !("updateFromAPI" in data)) {return Promise.resolve(data);}
 
-    return this._promiseAPI(Sefaria.apiHost + this._textUrl(ref, settings))
+    return this._ApiPromise(Sefaria.apiHost + this._textUrl(ref, settings))
         .then(d => { this._saveText(d, settings); return d; });
   },
-  getBulkText: function(refs) {
-    // todo: fish existing texts out of cache first
-    return this._promiseAPI(Sefaria.apiHost + "/api/bulktext/" + refs.join("|"))
+  _bulkTexts: {},
+  getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null) {
+    if (refs.length === 0) { return Promise.resolve({}); }
+
+    const MAX_URL_LENGTH = 3800;
+    const hostStr = `${Sefaria.apiHost}/api/bulktext/`;
+
+    let paramStr = '';
+    for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar})) {
+      paramStr = !!paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
+    }
+    paramStr = paramStr.replace(/&/,'?');
+
+    // Split into multipe requests if URL length goes above limit
+    let refStrs = [""];
+    refs.map(ref => {
+      let last = refStrs[refStrs.length-1];
+      if (encodeURI(`${hostStr}${last}|${ref}${paramStr}`).length > MAX_URL_LENGTH) {
+        refStrs.push(ref)
+      } else {
+        refStrs[refStrs.length-1] += last.length ? `|${ref}` : ref;
+      }
+    });
+
+    let promises = refStrs.map(refStr => this._cachedApiPromise({
+      url: `${hostStr}${refStr}${paramStr}`,
+      key: refStr + paramStr,
+      store: this._bulkTexts
+    }));
+
+    return Promise.all(promises).then(results => Object.assign({}, ...results));
+  },
+  _bulkSheets: {},
+  getBulkSheets: function(sheetIds) {
+    if (sheetIds.length === 0) { return Promise.resolve({}); }
+    const idStr = sheetIds.join("|");
+    return this._cachedApiPromise({
+      url: `${Sefaria.apiHost}/api/v2/sheets/bulk/${idStr}`,
+      key: idStr,
+      store: this._bulkSheets
+    });
   },
   text: function(ref, settings = null, cb = null) {
     // To be deprecated in favor of `getText`
@@ -658,14 +764,18 @@ Sefaria = extend(Sefaria, {
       return ref ? this.getRefFromCache(ref) : null;
   },
   _lookups: {},
-  _ref_lookups: {},
   // getName w/ refOnly true should work as a replacement for parseRef - it uses a callback rather than return value.  Besides that - same data.
-  getName: function(name, refOnly) {
+  getName: function(name, refOnly = false, limit = undefined) {
     const trimmed_name = name.trim();
+    let params = {};
+    if (refOnly) { params["ref_only"] = 1; }
+    if (limit != undefined) { params["limit"] = limit; }
+    let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
+    queryString = (queryString ? "?" + queryString : "");
     return this._cachedApiPromise({
-        url:   this.apiHost + "/api/name/" + trimmed_name + (refOnly?"?ref_only=1":""),
-        key:   trimmed_name,
-        store: refOnly? this._ref_lookups: this._lookups
+        url:   this.apiHost + "/api/name/" + trimmed_name + queryString,
+        key:   trimmed_name + queryString,
+        store: this._lookups
     });
   },
   _lexiconCompletions: {},
@@ -686,34 +796,15 @@ Sefaria = extend(Sefaria, {
       });
   },
   _lexiconLookups: {},
-  lexicon: function(words, ref, cb){
-    // Returns a list of lexicon entries for the given words
+  getLexiconWords: function(words, ref) {
+    // Returns Promise which resolve to a list of lexicon entries for the given words
     ref = typeof ref !== "undefined" ? ref : null;
     words = typeof words !== "undefined" ? words : "";
-    const cache_key = ref ? words + "|" + ref : words;
-    /*if (typeof ref != 'undefined'){
-      cache_key += "|" + ref
-    }*/
-    if (!cb) {
-      return this._lexiconLookups[cache_key] || [];
-    }
-    if (cache_key in this._lexiconLookups) {
-        /*console.log("data from cache: ", this._lexiconLookups[cache_key]);*/
-        cb(this._lexiconLookups[cache_key]);
-    } else if (words.length > 0) {
-      var url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?never_split=1";
-      if(ref){
-        url+="&lookup_ref="+ref;
-      }
-      //console.log(url);
-      this._api(url, function(data) {
-        this._lexiconLookups[cache_key] = ("error" in data) ? [] : data;
-        //console.log("state changed from ajax: ", data);
-        cb(this._lexiconLookups[cache_key]);
-      }.bind(this));
-    } else {
-        return cb([]);
-    }
+    if (words.length <= 0) { return Promise.resolve([]); }
+    words = words.normalize("NFC"); //make sure we normalize any errant unicode (vowels and diacritics that may appear to be equal but the underlying characters are out of order or different.
+    const key = ref ? words + "|" + ref : words;
+    let url = Sefaria.apiHost + "/api/words/" + encodeURIComponent(words)+"?always_consonants=1&never_split=1" + (ref?("&lookup_ref="+ref):"");
+    return this._cachedApiPromise({url, key, store: this._lexiconLookups});
   },
   _links: {},
   getLinks: function(ref) {
@@ -724,7 +815,7 @@ Sefaria = extend(Sefaria, {
             resolve(this._links[ref]);
         } else {
             let url = Sefaria.apiHost + "/api/links/" + ref + "?with_text=0";
-            let p = this._promiseAPI(url)
+            let p = this._ApiPromise(url)
                 .then(data => {
                     if ("error" in data) reject(data);
                     this._saveLinkData(ref, data);
@@ -1096,17 +1187,22 @@ Sefaria = extend(Sefaria, {
   },
   _allPrivateNotes: null,
   allPrivateNotes: function(callback) {
-    if (this._allPrivateNote || !callback) { return this._allPrivateNotes; }
+    if (!callback)  { return this._allPrivateNotes; }
 
-    var url = Sefaria.apiHost + "/api/notes/all?private=1";
-    this._api(url, (data) => {
-      if ("error" in data) {
-        return;
-      }
-      this._savePrivateNoteData(null, data);
-      this._allPrivateNotes = data;
-      callback(data);
-    });
+    if (this._allPrivateNotes) {
+      callback(this._allPrivateNotes);
+    } else {
+      const url = Sefaria.apiHost + "/api/notes/all?private=1";
+      this._api(url, (data) => {
+        if ("error" in data) {
+          return;
+        }
+        this._savePrivateNoteData(null, data);
+        this._allPrivateNotes = data;
+        callback(data);
+      });
+    }
+    return this._allPrivateNotes;
   },
   _savePrivateNoteData: function(ref, data) {
     return this._saveItemsByRef(data, this._privateNotes);
@@ -1161,11 +1257,43 @@ Sefaria = extend(Sefaria, {
 
       // 3: exact match, 2: range match: 1: section match
       var aSpecificity, bSpecificity;
-      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRef === ref ? 3 : (page.anchorRef.indexOf("-") !== -1 ? 2 : 1));
-      if (aSpecificity !== bSpecificity) {return aSpecificity > bSpecificity ? -1 : 1};
+      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRefExpanded.length);
+      if (aSpecificity !== bSpecificity) {return aSpecificity - bSpecificity};
 
       return (a.linkerHits > b.linkerHits) ? -1 : 1
     });
+  },
+  _refTopicLinks: {},
+  _saveTopicByRef: function(ref, data) {
+    ref = Sefaria.humanRef(ref);
+    const split = this._saveItemsByRef(data, this._refTopicLinks);
+    this._refTopicLinks[ref] = data;
+    return split;
+  },
+  topicsByRef: function(refs) {
+    refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
+    const topicsObj = {};
+    let resultLoaded = false;  // _refTopicLinks will have an empty array for ref if ref's topics were loaded
+    for (let r of refs) {
+      const tempTopicList = this._refTopicLinks[r];
+      if (!tempTopicList) { continue; }
+      resultLoaded = true;
+      for (let tempTopic of tempTopicList) {
+        if (!topicsObj[tempTopic.topic]) {
+          tempTopic.order = tempTopic.order || {};
+          tempTopic.dataSources = {};
+          topicsObj[tempTopic.topic] = tempTopic;
+        }
+        // aggregate dataSources for display in tooltip
+        topicsObj[tempTopic.topic].dataSources[tempTopic.dataSource.slug] = tempTopic.dataSource;
+      }
+    }
+    if (!resultLoaded) { return null ;}
+    return Object.values(topicsObj).sort((a, b) => b.order.pr - a.order.pr);
+  },
+  topicsByRefCount: function(refs) {
+    const topics = Sefaria.topicsByRef(refs);
+    return topics && topics.length;
   },
   _related: {},
   related: function(ref, callback) {
@@ -1195,6 +1323,7 @@ Sefaria = extend(Sefaria, {
           notes: this._saveNoteData(ref, data.notes),
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
+          topics: this._saveTopicByRef(ref, data.topics || []),
       };
 
        // Build split related data from individual split data arrays
@@ -1202,7 +1331,7 @@ Sefaria = extend(Sefaria, {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: [], webpages: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], topics: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }
@@ -1300,9 +1429,10 @@ Sefaria = extend(Sefaria, {
     if (!data || "error" in data) { return []; }
     var segments  = [];
     var highlight = data.sections.length === data.textDepth;
-    var wrap = (typeof data.text == "string");
-    var en = wrap ? [data.text] : data.text;
-    var he = wrap ? [data.he] : data.he;
+    var wrapEn = (typeof data.text == "string");
+    var wrapHe = (typeof data.he == "string");
+    var en = wrapEn ? [data.text] : data.text;
+    var he = wrapHe ? [data.he] : data.he;
     var topLength = Math.max(en.length, he.length);
     en = en.pad(topLength, "");
     he = he.pad(topLength, "");
@@ -1469,11 +1599,7 @@ Sefaria = extend(Sefaria, {
   getPassages: function(refs) {
       // refs: list of ref strings
       // resolves to dictionary mapping ref to sugya ref
-    return new Promise((resolve, reject) => {
-        let url = Sefaria.apiHost + "/api/passages/" + refs.join("|");
-        let p = this._promiseAPI(url);
-        resolve(p);
-    });
+      return this._ApiPromise(Sefaria.apiHost + "/api/passages/" + refs.join("|"));
   },
   areVersionsEqual(v1, v2) {
     // v1, v2 are `currVersions` objects stored like {en: ven, he: vhe}
@@ -1512,16 +1638,18 @@ Sefaria = extend(Sefaria, {
       }
     });
   },
+    /*
   toggleFollowAPI: (uid, isUnfollow) => {
     return new Promise((resolve, reject) => {
       $.post({
         url: `/api/${isUnfollow ? 'un' : ''}follow/${uid}`
       });
     });
-    return Sefaria._promiseAPI(`/api/${isUnfollow ? 'un' : ''}follow/${uid}`);
+    return Sefaria._ApiPromise(`/api/${isUnfollow ? 'un' : ''}follow/${uid}`);
   },
+  */
   followAPI: (slug, ftype) => {
-    return Sefaria._promiseAPI(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
+    return Sefaria._ApiPromise(Sefaria.apiHost + `/api/profile/${slug}/${ftype}`);
   },
   messageAPI: (uid, message) => {
     const data = {json: JSON.stringify({recipient: uid, message: message.escapeHtml()})};
@@ -1530,13 +1658,23 @@ Sefaria = extend(Sefaria, {
     });
   },
   getRefSavedHistory: tref => {
-    return Sefaria._promiseAPI(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
+    return Sefaria._ApiPromise(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
   },
+  _profiles: {},
   profileAPI: slug => {
-    return Sefaria._promiseAPI(`${Sefaria.apiHost}/api/profile/${slug}`);
+    return Sefaria._cachedApiPromise({
+      url:   Sefaria.apiHost + "/api/profile/" + slug,
+      key:   slug,
+      store: Sefaria._profiles
+    });
   },
+  _userHistory: {},
   userHistoryAPI: () => {
-    return Sefaria._promiseAPI(Sefaria.apiHost + "/api/profile/user_history?secondary=0");
+    return Sefaria._cachedApiPromise({
+      url: Sefaria.apiHost + "/api/profile/user_history?secondary=0",
+      key: "history",
+      store: Sefaria._userHistory
+    });
   },
   saveUserHistory: function(history_item) {
     // history_item contains:
@@ -1548,7 +1686,13 @@ Sefaria = extend(Sefaria, {
     if (Sefaria._uid) {
         $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1",
               {user_history: JSON.stringify(history_item_array)},
-              data => { /*console.log("sync resp", data)*/ } );
+              data => { 
+                //console.log("sync resp", data)
+                if ("history" in Sefaria._userHistory) {
+                  // If full user history has already been loaded into cache, then modify cache to keep it up to date
+                  Sefaria._userHistory.history.splice(0,0, data.created[0]);
+                }
+              } );
     } else {
       // we need to get the heRef for each history item
       Promise.all(history_item_array.filter(x=>!x.secondary).map(h => new Promise((resolve, reject) => {
@@ -1561,6 +1705,8 @@ Sefaria = extend(Sefaria, {
         const user_history_cookie = cookie("user_history");
         const user_history = !!user_history_cookie ? JSON.parse(user_history_cookie) : [];
         cookie("user_history", JSON.stringify(new_hist_array.concat(user_history)), {path: "/"});
+        Sefaria._userHistory.history = new_hist_array.concat(user_history);
+
         //console.log("saving history cookie", new_hist_array);
         if (Sefaria._inBrowser) {
           // check if we've reached the cookie size limit
@@ -1603,58 +1749,103 @@ Sefaria = extend(Sefaria, {
   },
   _topicList: null,
   topicList: function(callback) {
-    // Returns data for `topic`.
-    if (this._topicList) {
-      if (callback) { callback(this._topicList); }
-    } else if (callback) {
-      var url = Sefaria.apiHost + "/api/topics"; // TODO separate topic list API
-       Sefaria._api(url, function(data) {
-          this._topicList = data;
-           if (callback) { callback(data); }
-        }.bind(this));
-      }
-    return this._topicList;
+    // Returns promise for all topics list.
+    if (this._topicList) { return Promise.resolve(this._topicList); }
+    return this._ApiPromise(Sefaria.apiHost + "/api/topics?limit=0")
+        .then(d => { this._topicList = d; return d; });
   },
   _tableOfContentsDedications: {},
-  _topics: {},
-  topic: function(topic, callback) {
-    if (topic in this._topics) {
-      var data = this._topics[topic];
-      if (callback) { callback(data); }
-    } else if (callback) {
-      var data = null;
-      var url = Sefaria.apiHost + "/api/topics/" + topic;
-      Sefaria._api(url, function(data) {
-        this._topics[topic] = data;
-        if (callback) { callback(data); }
-      }.bind(this));
-    }
-    return data;
+  _stories: {
+    stories: [],
+    page: 0
   },
-  getTopic: function(topic) {
-      return this._cachedApiPromise({
-          url:   this.apiHost + "/api/topics/" + topic,
-          key:   topic,
-          store: this._topics
+  _parashaNextRead: {},
+  getParashaNextRead: function(parasha) {
+    return this._cachedApiPromise({
+      url:   `${this.apiHost}/api/calendars/next-read/${parasha}`,
+      key:   parasha,
+      store: this._parashaNextRead,
     });
   },
-  _topicTocPages: {},
+  _topics: {},
+  getTopic: function(topic, with_links=true, annotate_links=true, with_refs=true, group_related=true) {
+      return this._cachedApiPromise({
+          url:   `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}`,
+          key:   topic,
+          store: this._topics,
+          processor: this.processTopicsData,
+    });
+  },
+  processTopicsData: function(data) {
+    if (!data) { return null; }
+    // Split  `refs` in `sourceRefs` and `sheetRefs`
+    let refMap = {};
+    for (let refObj of data.refs.filter(s => !s.is_sheet)) {
+      refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSources: refObj.dataSources};
+    }
+    data.textRefs = Object.values(refMap);
+    let sheetMap = {};
+    for (let refObj of data.refs.filter(s => s.is_sheet)) {
+      const sid = refObj.ref.replace('Sheet ', '');
+      sheetMap[sid] = {sid, order: refObj.order};
+    }
+    data.sheetRefs = Object.values(sheetMap);
+    return data;
+  },
+  getTopicFromCache: function(topic) {
+    return this._topics[topic];
+  },
+  _topicTocPages: null,
   _initTopicTocPages: function() {
-    this._topicTocPages = this.topic_toc.reduce((a,c) => {a[this._topicTocPageKey(c.name)] = c.children; return a;}, {});
+    this._topicTocPages = this.topic_toc.reduce(this._initTopicTocReducer, {});
     this._topicTocPages[this._topicTocPageKey()] = this.topic_toc.map(({children, ...goodstuff}) => goodstuff);
   },
-  _topicTocPageKey: name => "_" + name,
+  _initTopicTocReducer: function(a,c) {
+    if (!c.children) { return a; }
+    a[Sefaria._topicTocPageKey(c.slug)] = c.children;
+    for (let sub_c of c.children) {
+      Sefaria._initTopicTocReducer(a, sub_c);
+    }
+    return a;
+  },
+  _topicTocCategory: null,
+  _initTopicTocCategory: function() {
+    this._topicTocCategory = this.topic_toc.reduce(this._initTopicTocCategoryReducer, {});
+  },
+  _initTopicTocCategoryReducer: function(a,c) {
+    if (!c.children) {
+      a[c.slug] = c.parent;
+      return a;
+    }
+    for (let sub_c of c.children) {
+      sub_c.parent = { en: c.en, he: c.he, slug: c.slug };
+      Sefaria._initTopicTocCategoryReducer(a, sub_c);
+    }
+    return a;
+  },
+  _topicTocPageKey: slug => "_" + slug,
   topicTocPage: function(parent) {
     const key = this._topicTocPageKey(parent);
-    if (!this._topicTocPages[key]) {
+    if (!this._topicTocPages) {
         this._initTopicTocPages()
     }
     return this._topicTocPages[key]
-
+  },
+  topicTocCategory: function(slug) {
+    // return category english and hebrew for slug
+    if (!this._topicTocCategory) { this._initTopicTocCategory(); }
+    return this._topicTocCategory[slug];
+  },
+  isTopicTopLevel: function(slug) {
+    // returns true is `slug` is part of the top level of topic toc
+    return Sefaria.topic_toc.filter(x => x.slug == slug).length > 0;
   },
   sheets: {
     _loadSheetByID: {},
-    loadSheetByID: function(id, callback) {
+    loadSheetByID: function(id, callback, reset) {
+      if (reset) {
+        this._loadSheetByID[id] = null;
+      }
       var sheet = this._loadSheetByID[id];
       if (sheet) {
         if (callback) { callback(sheet); }
@@ -1671,8 +1862,7 @@ Sefaria = extend(Sefaria, {
       return sheet;
     },
     deleteSheetById: function(id) {
-      const url = `/api/sheets/${id}/delete`;
-      return Sefaria._promiseAPI(url);
+      return Sefaria._ApiPromise(`/api/sheets/${id}/delete`);
     },
     _trendingTags: null,
     trendingTags: function(callback) {
@@ -1744,6 +1934,7 @@ Sefaria = extend(Sefaria, {
     },
     getSheetsByTag: function(tag, v2) {
       const url =  Sefaria.apiHost + "/api" + (v2 ? "/v2" : "") + "/sheets/tag/" + tag.replace("#", "%23");
+
       return Sefaria._cachedApiPromise({
           url:  url,
           store: this._sheetsByTag,
@@ -1751,24 +1942,45 @@ Sefaria = extend(Sefaria, {
         });
     },
     _userSheets: {},
-    userSheets: function(uid, callback, sortBy, offset, numberToRetrieve, ignoreCache) {
+    userSheets: function(uid, callback, sortBy = "date", offset = 0, numberToRetrieve = 0) {
       // Returns a list of source sheets belonging to `uid`
       // Only a user logged in as `uid` will get private data from this API.
       // Otherwise, only public data will be returned
-      if (!offset) offset = 0;
-      if (!numberToRetrieve) numberToRetrieve = 0;
-      sortBy = typeof sortBy == "undefined" ? "date" : sortBy;
-      const sheets = ignoreCache ? null : this._userSheets[uid+sortBy+offset+numberToRetrieve];
+      const sheets = this._userSheets[uid+sortBy+offset+numberToRetrieve];
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
         const url = Sefaria.apiHost + "/api/sheets/user/" + uid + "/" + sortBy + "/" + numberToRetrieve + "/" + offset;
-        Sefaria._promiseAPI(url).then(data => {
+        Sefaria._ApiPromise(url).then(data => {
           this._userSheets[uid+sortBy+offset+numberToRetrieve] = data.sheets;
           if (callback) { callback(data.sheets); }
         });
       }
       return sheets;
+    },
+    updateUserSheets: function(sheet, uid, update = true){
+        for (const property in this._userSheets) {
+          if(property.startsWith(uid.toString())){
+              if(property.includes("date")){ //add to front because we sorted by date
+                  if(update) {
+                      this._userSheets[property].splice(this._userSheets[property].findIndex(item => item.id === sheet.id), 1);
+                  }
+                  this._userSheets[property].unshift(sheet);
+              }else if(!update){
+                  this._userSheets[property].push(sheet);
+              }
+          }
+        }
+    },
+    clearUserSheets: function(uid) {
+      this._userSheets  = Object.keys(this._userSheets)
+      .filter(key => !key.startsWith(uid.toString()))
+      .reduce((obj, key) => {
+        return {
+          ...obj,
+          [key]: this._userSheets[key]
+        };
+      }, {});
     },
     _publicSheets: {},
     publicSheets: function(offset, numberToRetrieve, callback) {
@@ -1802,10 +2014,6 @@ Sefaria = extend(Sefaria, {
         }.bind(this));
       }
       return sheets;
-    },
-    clearUserSheets: function(uid) {
-      this._userSheets[uid+"date"] = null;
-      this._userSheets[uid+"views"] = null;
     },
     _sheetsByRef: {},
     sheetsByRef: function(ref, cb) {
@@ -1890,24 +2098,34 @@ Sefaria = extend(Sefaria, {
   },
   _groups: {},
   getGroup: function(key) {
-      const url = Sefaria.apiHost + "/api/groups/" + key;
+      const url = Sefaria.apiHost + "/api/groups/" + encodeURIComponent(key);
       const store = this._groups;
       return this._cachedApiPromise({url, key, store});
   },
-  _groupsList: null,
-  getGroupsList: function() {
-      // Is there other cases where the cache isn't keyed?   Could refactor _cachedApiPromise for a no key case.
-      return (this._groupsList) ?
-          Promise.resolve(this._groupsList) :
-          Sefaria._promiseAPI(Sefaria.apiHost + "/api/groups")
-              .then(data => {
-                  this._groupsList = data;
-                  return data;
-              })
+  getGroupFromCache: function(key) {
+    return Sefaria._groups[key];
   },
-  userGroups: function(uid) {
-    const url = `${Sefaria.apiHost}/api/groups/user-groups/${uid}`;
-    return Sefaria._promiseAPI(url);
+  _groupsList: {},
+  getGroupsList: function() {
+      return this._cachedApiPromise({
+        url: Sefaria.apiHost + "/api/groups",
+        key: "list",
+        store: Sefaria._groupsList
+      });
+  },
+  getGroupsListFromCache() {
+    return Sefaria._groupsList.list;
+  },
+  _userGroups: {},
+  getUserGroups: function(uid) {
+    return this._cachedApiPromise({
+      url: `${Sefaria.apiHost}/api/groups/user-groups/${uid}`,
+      key: uid,
+      store: Sefaria._userGroups
+    });
+  },
+  getUserGroupsFromCache(uid) {
+    return Sefaria._userGroups[uid];
   },
   calendarRef: function(calendarTitle) {
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
@@ -1962,12 +2180,12 @@ Sefaria = extend(Sefaria, {
       "Public Source Sheets":"דפי מקורות פומביים",
       "History": "היסטוריה",
       "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
-      "Public Domain": "רשיון בנחלת הכלל",
-      "CC-BY": "רשיון CC-BY",
-      "CC-BY-NC": "רשיון CC-BY-NC",
-      "CC-BY-SA": "רשיון CC-BY-SA",
-      "CC-BY-NC-SA": "רשיון CC-BY-NC-SA",
-      "CC0": "רשיון CC0",
+      "Public Domain": "בנחלת הכלל",
+      "CC-BY": "CC-BY",
+      "CC-BY-NC": "CC-BY-NC",
+      "CC-BY-SA": "CC-BY-SA",
+      "CC-BY-NC-SA": "CC-BY-NC-SA",
+      "CC0": "CC0",
       "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
       //sheets
@@ -2045,15 +2263,26 @@ Sefaria = extend(Sefaria, {
       //reader panel
       "Search" : "חיפוש",
       "Search Dictionary": "חפש במילון",
+      "Search for": "חיפוש",
       "Search for:": "חיפוש:",
       "Views": "צפיות",
       "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
-      "Versions": "גרסאות",
-      "Version Open": "גרסה פתוחה",
+      "Versions": "מהדורות",
+      "Version Open": "מהדורה פתוחה",
       "About": "אודות",
-      "Current": "נוכחית",
+      "Current Version": "מהדורה נוכחית",
+      "Current Translation": "תרגום נוכחי",
+      "Select Version": "בחירת מהדורה",
+      "Select Translation": "בחירת תרגום",
+      "Merged from": "נוצר ממיזוג",
+      "Source" : "מקור",
+      "Digitization" : "דיגיטציה",
+      "License" : "רשיון",
+      "Revision History" : "היסטורית עריכה",
+      "Buy in Print" : "לרכישה בדפוס",
+      "Buy Now" : "רכישה",
+      "Read More": "קרא עוד",
       "Web Pages": "דפי אינטרנט",
-      "Select": "החלפת גרסה",
       "Members": "חברים",
       "Send": "שלח",
       "Cancel": "בטל",
@@ -2124,6 +2353,15 @@ Sefaria = extend(Sefaria, {
       "Sign\u00A0in": "התחברו",
       "Save": "שמירה",
       "Remove": "הסרה",
+      "Email was successfully changed!": "כתובת האימייל שונתה בהצלחה!",
+      "Filter": "סינון",
+      "Relevance": 'רלוונטיות',
+      "Chronological": 'כרונולוגי',
+      "Newest": "הכי חדש",
+      "This source is connected to ": "מקור הזה קשור ל-",
+      "This topic is connected to ": "נושא הזה קשור ל-",
+      "by": "על ידי",
+      "Read the Portion": "קראו את הפרשה",
 
       //user stats
       "Torah Tracker" : "לימוד במספרים",
@@ -2180,7 +2418,7 @@ Sefaria = extend(Sefaria, {
     // Ensure that names set in Site Settings are available for translation in JS.
     if (!Sefaria._siteSettings) { return; }
     ["SITE_NAME", "LIBRARY_NAME"].map(key => {
-      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["en"];
+      Sefaria._i18nInterfaceStrings[Sefaria._siteSettings[key]["en"]] = Sefaria._siteSettings[key]["he"];
     });
   },
   _makeBooksDict: function() {
@@ -2195,14 +2433,14 @@ Sefaria = extend(Sefaria, {
   _ajaxObjects: {},   // These are jqXHR objects, which implement the Promise interface
   _api: function(url, callback) {
     // Manage API calls and callbacks to prevent duplicate calls
-    // This method will be deprecated, in favor of _promiseAPI
+    // This method will be deprecated, in favor of _ApiPromise
     //
     if (url in this._ajaxObjects) {
       return this._ajaxObjects[url].then(callback);
     }
-    return this._promiseAPI(url).then(callback);
+    return this._ApiPromise(url).then(callback);
   },
-  _promiseAPI: function(url) {
+  _ApiPromise: function(url) {
     // Uses same _ajaxObjects as _api
     // Use built in Promise logic to handle multiple .then()s
     if (url in this._ajaxObjects) {
@@ -2211,13 +2449,14 @@ Sefaria = extend(Sefaria, {
     this._ajaxObjects[url] = $.getJSON(url).always(_ => {delete this._ajaxObjects[url];});
     return this._ajaxObjects[url];
   },
-  _cachedApiPromise: function({url, key, store}) {
+  _cachedApiPromise: function({url, key, store, processor}) {
       // Checks store[key].  Resolves to this value, if present.
       // Otherwise, calls Promise(url), caches in store[key], and returns
       return (key in store) ?
           Promise.resolve(store[key]) :
-          Sefaria._promiseAPI(url)
+          Sefaria._ApiPromise(url)
               .then(data => {
+                  if (processor) { data = processor(data); }
                   store[key] = data;
                   return data;
               })
@@ -2237,6 +2476,24 @@ Sefaria = extend(Sefaria, {
         promise: wrappedPromise,
         cancel() { hasCanceled_ = true; },
       };
+  },
+  incrementalPromise: async (fetchResponse, data, increment, setResponse, setCancel) => {
+    /*
+    fetchResponse - func that takes slice of `data` as param and returns promise
+    data - array of input data for fetchResponse
+    increment - int, how many values to send to fetchResponse at a time
+    setResponse - callback to react to send updated results
+    setCancel - function that saves cancel function so it can be called in outside scope
+    */
+    let lastEndIndex = 0;
+    while (lastEndIndex <= data.length) {
+      const tempData = data.slice(lastEndIndex, lastEndIndex + increment);
+      const { promise, cancel } = Sefaria.makeCancelable(fetchResponse(tempData));
+      setCancel(cancel);
+      const tempResponses = await promise;
+      setResponse(prevResponses => !prevResponses ? tempResponses : prevResponses.concat(tempResponses));
+      lastEndIndex += increment;
+    }
   }
 });
 
@@ -2292,7 +2549,7 @@ Sefaria.unpackDataFromProps = function(props) {
     Sefaria._groups[props.initialGroup] = props.groupData;
   }
   if (props.topicData) {
-    Sefaria._topics[props.initialTopic] = props.topicData;
+    Sefaria._topics[props.initialTopic] = Sefaria.processTopicsData(props.topicData);
   }
   if (props.topicList) {
     Sefaria._topicList = props.topicList;
@@ -2355,4 +2612,4 @@ Sefaria.setup = function(data) {
 };
 Sefaria.setup();
 
-module.exports = Sefaria;
+export default Sefaria;

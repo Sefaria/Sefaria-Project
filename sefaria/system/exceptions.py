@@ -36,6 +36,7 @@ class DuplicateRecordError(InputError):
 class IndexSchemaError(InputError):
     pass
 
+
 class NoVersionFoundError(InputError):
     pass
 

@@ -1,7 +1,7 @@
-const React      = require('react');
-const Sefaria    = require('./sefaria/sefaria');
-const PropTypes  = require('prop-types');
-const {
+import React  from 'react';
+import Sefaria  from './sefaria/sefaria';
+import PropTypes  from 'prop-types';
+import {
     TwoBox,
     BlockLink,
     SaveButton,
@@ -11,7 +11,7 @@ const {
     FollowButton,
     SimpleLinkedBlock,
     ProfileListing,
-}                = require('./Misc');
+} from './Misc';
 
 
 const sheetPropType = PropTypes.shape({
@@ -354,7 +354,7 @@ const TopicTextsStory = (props) => (
     <StoryFrame cls="topicTextsStory">
         <StoryTypeBlock en="Topic" he="" />
         <SeeAllLink url="/topics"/>
-        <StoryTitleBlock en={props.data.title.en} he={props.data.title.he} url={"/topics/" + props.data.title.en}/>
+      <StoryTitleBlock en={props.data.title.en} he={props.data.title.he} url={"/topics/" + (props.data.slug || props.data.title.en)}/>
         <StoryTextList texts={props.data.texts} toggleSignUpModal={props.toggleSignUpModal}/>
     </StoryFrame>
 );
@@ -398,7 +398,7 @@ const TopicListStory = (props) => (
         <SeeAllLink url="/topics"/>
         <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
         <TwoBox content={props.data.topics.map(topic =>
-            <BlockLink title={topic.en} heTitle={topic.he} target={"/topics/" + topic.en} interfaceLink={true}/>
+            <BlockLink title={topic.en} heTitle={topic.he} target={"/topics/" + (topic.slug || topic.en)} interfaceLink={true}/>
         )}/>
     </StoryFrame>
 );
@@ -529,6 +529,7 @@ const SaveLine = (props) => (
             historyObject={props.historyObject || {ref: props.dref, versions: props.versions || {}}}
             toggleSignUpModal={props.toggleSignUpModal}
         />
+      { props.afterChildren ? props.afterChildren : null }
     </div>
 );
 
@@ -538,10 +539,20 @@ SaveLine.propTypes = {
   toggleSignUpModal:    PropTypes.func,
   versions:             PropTypes.object,
   classes:              PropTypes.string,
+  afterChildren:        PropTypes.object,
 };
 
 const ReadMoreLink = ({url}) => <SimpleLinkedBlock classes="learnMoreLink smallText" url={url} en="Read More ›" he="קרא עוד ›"/>;
 
-module.exports.Story = Story;
-module.exports.SheetBlock = SheetBlock;
-module.exports.StorySheetList = StorySheetList;
+export {
+  Story,
+  SheetBlock,
+  StorySheetList,
+  StoryTextListItem,
+  SaveLine,
+  StoryTitleBlock,
+  ColorBarBox,
+  StoryBodyBlock,
+  StoryFrame,
+  textPropType,
+};

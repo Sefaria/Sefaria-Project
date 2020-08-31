@@ -67,6 +67,7 @@ def ensure_indices(active_db=None):
         ('index', ["title"],{}),
         ('index_queue', [[("lang", pymongo.ASCENDING), ("version", pymongo.ASCENDING), ("ref", pymongo.ASCENDING)]],{'unique': True}),
         ('links', ["refs"],{}),
+        ('links', [[("refs",  pymongo.ASCENDING), ("generated_by", pymongo.ASCENDING)]],{}),
         ('links', ["refs.0"],{}),
         ('links', ["refs.1"],{}),
         ('links', ["expandedRefs0"],{}),
@@ -87,18 +88,25 @@ def ensure_indices(active_db=None):
         ('sheets', ["dateModified"],{}),
         ('sheets', ["sources.ref"],{}),
         ('sheets', ["includedRefs"],{}),
+        ('sheets', ["expandedRefs"], {}),
         ('sheets', ["tags"],{}),
         ('sheets', ["owner"],{}),
         ('sheets', ["assignment_id"],{}),
         ('sheets', ["is_featured"],{}),
+        ('sheets', ["group"], {}),
         ('sheets', [[("views", pymongo.DESCENDING)]],{}),
+        ('links', [[("owner", pymongo.ASCENDING), ("date_modified", pymongo.DESCENDING)]], {}),
         ('texts', ["title"],{}),
         ('texts', [[("priority", pymongo.DESCENDING), ("_id", pymongo.ASCENDING)]],{}),
         ('texts', [[("versionTitle", pymongo.ASCENDING), ("langauge", pymongo.ASCENDING)]],{}),
+        ('topics', ["title.text"], {}),
         ('word_form', ["form"],{}),
         ('word_form', ["c_form"],{}),
+        ('word_form', ["refs"], {}),
         ('term', ["titles.text"], {'unique': True}),
+        ('term', ["category"],{}),
         ('lexicon_entry', [[("headword", pymongo.ASCENDING), ("parent_lexicon", pymongo.ASCENDING)]],{}),
+        ('user_story', ["uid"],{}),
         ('user_story', [[("uid", pymongo.ASCENDING), ("timestamp", pymongo.DESCENDING)]],{}),
         ('user_story', [[("timestamp", pymongo.DESCENDING)]],{}),
         ('passage', ["ref_list"],{}),
@@ -110,7 +118,8 @@ def ensure_indices(active_db=None):
         ('user_history', [[("uid", pymongo.ASCENDING), ("book", pymongo.ASCENDING), ("last_place", pymongo.ASCENDING)]], {}),
         ('trend', ["name"],{}),
         ('trend', ["uid"],{}),
-        ('webpages', ["refs"],{})
+        ('webpages', ["refs"],{}),
+        ('webpages', ["expandedRefs"],{})
     ]
 
     for col, args, kwargs in indices:

@@ -60,6 +60,40 @@ class SheetSuite(TestSuite):
         pass
 '''
 
+class EditorSuite(TestSuite):
+    """
+    Tests that do editor things
+    """
+    every_build = False
+
+    def setup(self):
+        # try:
+        #    self.driver.set_window_size(900, 1100)
+        #except WebDriverException:
+        #    pass
+        self.load_toc(my_temper=60)
+        #self.driver.delete_all_cookies()
+        self.click_accept_cookies()
+        #self.set_cookies_cookie()
+
+
+class CreateNewSheet(AtomicTest):
+    suite_class = EditorSuite
+    every_build = False
+    single_panel = False  # No source sheets on mobile
+
+    def body(self):
+        self.login_user()
+        self.new_sheet_in_editor()
+        self.nav_to_end_of_editor()
+        self.generate_text("he")
+        self.generate_text("en")
+        self.add_source()
+        edited_sheet = self.get_sheet_html()
+        self.driver.get(self.get_current_url())
+        self.toggle_sheet_edit_view()
+        loaded_sheet = self.get_sheet_html()
+        assert edited_sheet == loaded_sheet
 
 class SinglePanelOnMobile(AtomicTest):
     suite_class = ReaderSuite
@@ -86,7 +120,7 @@ class PagesLoad(AtomicTest):
         self.load_toc()
         self.click_toc_category("Midrash").click_toc_text("Ein Yaakov")
         self.load_ref("Psalms.104")
-        self.load_sheets()
+        self.load_topics()
         self.load_gardens()
         self.load_home()
         self.load_people()
@@ -109,7 +143,7 @@ class SectionContentAsExpectedMasechtotAndChapters(AtomicTest):
         self.click_source_title()
         self.click_masechet_and_chapter('2','3')
         section = self.get_section_txt('1')
-        assert 'רבי זירא הוה קא משתמיט' in strip_nikkud(section)
+        assert 'רבי זירא הוה משתמיט' in strip_nikkud(section)
 
 
 class SectionContentAsExpectedChapter(AtomicTest):
@@ -188,8 +222,8 @@ class GoThroughHomeLinksAndButtons(AtomicTest):
 '''
 
 '''
-todo: Test the results of these clicks. 
-As it stands, it's not terribly useful.  It's only testing the existence of the links. 
+todo: Test the results of these clicks.
+As it stands, it's not terribly useful.  It's only testing the existence of the links.
 
 class GoThroughFooterObjects(AtomicTest):
     suite_class = PageloadSuite
@@ -421,7 +455,8 @@ class TalmudHasNoCantillation(AtomicTest):
     every_build = False
 
     def body(self):
-        self.browse_to_ref("Shabbat 2b")
+        # changed to a book that should NEVER get cantillation
+        self.browse_to_ref("Introductions to the Babylonian Talmud, Berakhot, Introduction to Berakhot")
         assert not has_cantillation(self.get_nth_section_hebrew(1).text)
         assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
         self.toggle_on_text_settings()
@@ -448,33 +483,14 @@ class SideBarEntries(AtomicTest):
 
     def body(self):
         self.login_user()
-        self.browse_to_ref("Genesis 1")
-        self.click_segment("Genesis 1:1")
-        self.click_commentary_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_tanakh_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_targum_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_mishnah_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_talmud_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_midrash_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_halakhah_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_kabbalah_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_philosophy_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_chasidut_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_musar_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_other_on_sidebar()
-        self.click_resources_on_sidebar()
-        self.click_grammar_on_sidebar()
+        self.browse_to_ref("Ecclesiastes 1")
+        self.click_segment("Ecclesiastes 1:1")
+        
+        sections = ("Commentary", "Targum", "Talmud", "Midrash", "Midrash")
+        for section in sections:
+            self.click_sidebar_entry(section)
+            self.click_resources_on_sidebar()
+
         self.click_resources_on_sidebar()
         self.click_other_text_on_sidebar()
         assert self.is_sidebar_browse_title_displayed()
@@ -483,15 +499,15 @@ class SideBarEntries(AtomicTest):
         # self.click_sheets_on_sidebar()    #commented out as sheets is being worked on
         self.click_notes_on_sidebar()
         self.click_about_on_sidebar()
-        msg = self.driver.find_element_by_css_selector('#panel-1 > div.readerContent > div > div > div > section > div.detailsSection > h2 > span.int-en').text
+        msg = self.driver.find_element_by_css_selector('#panel-1 > div.readerContent > div > div > div > section > div.detailsSection > h2 > span.int-en').get_attribute('innerHTML')
         assert msg == 'About This Text'
         self.click_resources_on_sidebar()
         self.click_versions_on_sidebar()
         #todo: This version doesn't show up on title bar.  Rework this to change to a version that will show on bar.
         #url1 = self.get_current_url()
         #title1 = self.get_current_content_title()
-        assert self.get_sidebar_nth_version_button(1).text in ['CURRENT', 'Current'],  "'{}' does not equal 'CURRENT' or 'Current'".format(self.get_sidebar_nth_version_button(1).text)
-        assert self.get_sidebar_nth_version_button(2).text in ['SELECT', 'Select'],  "'{}' does not equal 'SELECT' or 'Select'".format(self.get_sidebar_nth_version_button(2).text)
+        assert self.get_sidebar_nth_version_button(1).text in ['Current Translation', 'מהדורה נוכחית'],  "'{}' does not equal 'Current Translation'".format(self.get_sidebar_nth_version_button(1).text)
+        assert self.get_sidebar_nth_version_button(2).text in ['Select Translation', 'בחירת תרגום'],  "'{}' does not equal 'Select Translation'".format(self.get_sidebar_nth_version_button(2).text)
         self.click_sidebar_nth_version_button(2)
         #url2 = self.get_current_url()
         #title2 = self.get_current_content_title()
@@ -499,8 +515,8 @@ class SideBarEntries(AtomicTest):
         #assert title1 != title2,  u"'{}' equals '{}'".format(title1, title2)
         time.sleep(1)
 
-        assert self.get_sidebar_nth_version_button(1).text in [u'SELECT', u'Select'],  u"'{}' does not equal 'SELECT' or 'Select'".format(self.get_sidebar_nth_version_button(1).text)
-        assert self.get_sidebar_nth_version_button(2).text in [u'CURRENT', u'Current'], u"'{}' does not equal 'CURRENT' or 'Current'".format(self.get_sidebar_nth_version_button(2).text)
+        assert self.get_sidebar_nth_version_button(1).text in ['Select Translation', 'בחירת תרגום'],  u"'{}' does not equal 'Select Translation'".format(self.get_sidebar_nth_version_button(1).text)
+        assert self.get_sidebar_nth_version_button(2).text in ['Current Translation', 'מהדורה נוכחית'], u"'{}' does not equal 'Current Translation'".format(self.get_sidebar_nth_version_button(2).text)
         self.click_resources_on_sidebar()
         self.click_webpages_on_sidebar()
         self.click_resources_on_sidebar()
@@ -509,7 +525,7 @@ class SideBarEntries(AtomicTest):
 
         '''
         Buggy.  Doesn't work on Safari. Mobile?
-        
+
         self.click_sidebar_facebook_link()
         url1 = self.get_newly_opened_tab_url()
         assert 'facebook.com' in url1, u"'{}' not in '{}'".format('facebook.com', url1)
@@ -629,8 +645,6 @@ class CheckGraphs(AtomicTest):
         assert self.get_object_by_id('Nehemiah').is_displayed()
         assert self.get_object_by_id('I-Chronicles').is_displayed()
         assert self.get_object_by_id('II-Chronicles').is_displayed()
-
-
         assert self.get_object_by_id('Berakhot').is_displayed()
         assert float(self.get_object_by_id('Berakhot').get_attribute('cx')) < float(self.get_object_by_id('Shabbat').get_attribute('cx'))
         assert self.get_object_by_id('Shabbat').is_displayed()
@@ -923,24 +937,24 @@ class BrowserBackAndForward(AtomicTest):
 
     def body(self):
         # Sidebar
-        self.browse_to_ref("Genesis 2").click_segment("Genesis 2:2").click_category_filter("Commentary")
-        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
-        assert "with=Commentary" in self.driver.current_url, self.driver.current_url        
+        self.browse_to_ref("Amos 3").click_segment("Amos 3:1").click_category_filter("Commentary")
+        assert "Amos.3.1" in self.driver.current_url, self.driver.current_url
+        assert "with=Commentary" in self.driver.current_url, self.driver.current_url
         self.driver.back()
-        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
-        assert "with=all" in self.driver.current_url, self.driver.current_url        
+        assert "Amos.3.1" in self.driver.current_url, self.driver.current_url
+        assert "with=all" in self.driver.current_url, self.driver.current_url
         self.driver.back()
-        assert "Genesis.2" in self.driver.current_url, self.driver.current_url
-        assert "with=" not in self.driver.current_url, self.driver.current_url        
+        assert "Amos.3" in self.driver.current_url, self.driver.current_url
+        assert "with=" not in self.driver.current_url, self.driver.current_url
         self.driver.forward()
-        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
-        assert "with=all" in self.driver.current_url, self.driver.current_url  
+        assert "Amos.3.1" in self.driver.current_url, self.driver.current_url
+        assert "with=all" in self.driver.current_url, self.driver.current_url
         self.driver.forward()
-        assert "Genesis.2.2" in self.driver.current_url, self.driver.current_url        
+        assert "Amos.3.1" in self.driver.current_url, self.driver.current_url
         assert "with=Commentary" in self.driver.current_url, self.driver.current_url
         # Todo - infinite scroll, nav pages, display options, ref normalization
 
-        self.click_segment_to_close_commentary("Genesis 2:2")  # Close commentary window on mobile
+        self.click_segment_to_close_commentary("Amos 3:1")  # Close commentary window on mobile
 
 
 class ClickVersionedSearchResultMobile(AtomicTest):
@@ -991,9 +1005,9 @@ class SaveNewSourceSheet(AtomicTest):
 
         try:
             # this is site language dependent. try both options
-            WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria Source Sheet Builder"))
+            WebDriverWait(self.driver, TEMPER).until(title_contains("New Source Sheet | Sefaria"))
         except TimeoutException:
-            WebDriverWait(self.driver, TEMPER).until(title_contains("דף מקורות חדש | בונה דפי המקורות בספריא"))
+            WebDriverWait(self.driver, TEMPER).until(title_contains("דף מקורות חדש | ספריא"))
 
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.headerNavSection .library')))
 
@@ -1026,7 +1040,7 @@ class SpecialCasedSearchBarNavigations(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(title_contains("Yosef Giqatillah"))
         self.type_in_search_box("Midrash")
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerNavCategoryMenu")))
-
+        
         self.type_in_search_box("שבת")
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerTextTableOfContents")))
         self.type_in_search_box("שבת י״ד")
@@ -1070,7 +1084,7 @@ class InfiniteScrollUp(AtomicTest):
         self.test_up("Job 32", "Job 31:40")
         # Complex Text
         self.test_up("Pesach Haggadah, Magid, The Four Sons", "Pesach Haggadah, Magid, Story of the Five Rabbis 2")
-  
+
 
 class InfiniteScrollDown(AtomicTest):
     suite_class = ReaderSuite
@@ -1078,13 +1092,51 @@ class InfiniteScrollDown(AtomicTest):
 
     def test_down(self, start_ref, next_segment_ref):
         self.browse_to_ref(start_ref).scroll_reader_panel_to_bottom()
-        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % next_segment_ref)))        
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % next_segment_ref)))
 
     def body(self):
         # Simple Text
         self.test_down("Job 32", "Job 33:1")
         # Complex Text
         self.test_down("Pesach Haggadah, Magid, The Four Sons", "Pesach Haggadah, Magid, Yechol Me'rosh Chodesh 1")
+
+
+class BackRestoresScrollPosition(AtomicTest):
+    suite_class = ReaderSuite
+    every_build = True
+
+    def body(self):
+        SCROLL_DISTANCE = 200
+
+        # TOC
+        self.load_toc()
+        self.scroll_content_to_position(SCROLL_DISTANCE)
+        time.sleep(0.4)
+        self.click_toc_category("Midrash")
+        self.driver.back()
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-cat="Midrash"]')))
+        assert self.get_content_scroll_position() == SCROLL_DISTANCE
+
+        # Search
+        self.search_for("restoration")
+        self.scroll_content_to_position(SCROLL_DISTANCE)
+        time.sleep(0.4)
+        versionedResult = self.driver.find_element_by_css_selector('a[href="/Mishneh_Torah%2C_Kings_and_Wars.12.2?ven=Yad-Hachazakah,_edited_by_Elias_Soloweyczik%3B_London,_1863&qh=restoration"]')
+        versionedResult.click()
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.segment')))
+        self.driver.back()
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.text_result')))
+        assert self.get_content_scroll_position() == SCROLL_DISTANCE
+
+        # Topic
+        self.load_topic_page("wonders")
+        self.scroll_content_to_position(SCROLL_DISTANCE)
+        time.sleep(0.4)
+        source = self.driver.find_element_by_css_selector('.storyTitle a')
+        source.click()
+        WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.segment')))
+        self.driver.back()
+        assert self.get_content_scroll_position() == SCROLL_DISTANCE
 
 
 """

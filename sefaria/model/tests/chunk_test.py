@@ -7,7 +7,6 @@ import re
 from sefaria.utils.util import list_depth
 
 
-
 def test_text_index_map():
     r = Ref("Shabbat 8b")
     tc = TextChunk(r,"he")
@@ -45,10 +44,7 @@ def test_text_index_map():
     r = Ref("Ramban on Genesis 48-50")
     tc = TextChunk(r,"he")
     ind_list, ref_list, total_len = tc.text_index_map()
-    assert ref_list[-1] == Ref('Ramban on Genesis 49:33:2')
-
-
-
+    assert ref_list[-1] == Ref('Ramban on Genesis 49:33:3')
 
 
     #test depth 2 with empty segments
@@ -142,6 +138,15 @@ def test_commentary_chunks():
     assert span.text[-1][-1] == verse.text
 
 
+def test_default_in_family():
+    r = Ref('Shulchan Arukh, Even HaEzer')
+    f = TextFamily(r)
+    assert isinstance(f.text, list)
+    assert isinstance(f.he, list)
+    assert len(f.text) > 0
+    assert len(f.he) > 0
+
+
 def test_spanning_family():
     f = TextFamily(Ref("Daniel 2:3-4:5"), context=0)
 
@@ -181,7 +186,7 @@ def test_family_chapter_result_no_merge():
 
 # Yoma.1 is no longer merged.
 # todo: find a merged text to test with
-@pytest.mark.failing
+@pytest.mark.xfail(reason="unknown")
 def test_chapter_result_merge():
     v = TextFamily(Ref("Mishnah_Yoma.1"))
 
@@ -481,17 +486,17 @@ def test_strip_itags():
         "title": "Hadran",
         "versionSource": "http://foobar.com",
         "versionTitle": "Hadran Test",
-        "chapter": ['Cool text <sup>1</sup><i class="footnote">well, not that cool</i>',
+        "chapter": ['Cool text <sup>1</sup><i class="footnote yo">well, not that cool</i>',
                     'Silly text <sup>1</sup><i class="footnote">See <i>cool text</i></i>',
                     'More text <i data-commentator="Boring comment" data-order="1"></i> and yet more']
     }).save()
     modified_text = ['Cool text', 'Silly text', 'More text and yet more']
     c = TextChunk(Ref("Hadran"), "en", "Hadran Test")
-    test_modified_text = c._get_text_after_modifications([c._strip_itags, lambda x: u' '.join(x.split()).strip()])
+    test_modified_text = c._get_text_after_modifications([c._strip_itags, lambda x: ' '.join(x.split()).strip()])
     for m, t in zip(modified_text, test_modified_text):
         assert m == t
 
-    test_modified_text = v._get_text_after_modifications([v._strip_itags, lambda x: u' '.join(x.split()).strip()])
+    test_modified_text = v._get_text_after_modifications([v._strip_itags, lambda x: ' '.join(x.split()).strip()])
     for m, t in zip(modified_text, test_modified_text):
         assert m == t
 
@@ -503,4 +508,7 @@ def test_strip_itags():
     test_modified_text = v._get_text_after_modifications([])
     for m, t in zip(v.chapter, test_modified_text):
         assert m == t
+
+    text = '<i></i>Lo, his spirit.'
+    assert TextChunk._strip_itags(text) == text
 

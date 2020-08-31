@@ -1,29 +1,28 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Component from 'react-class';
-const $                        = require('./sefaria/sefariaJquery');
-const Sefaria                  = require('./sefaria/sefaria');
-const PropTypes                = require('prop-types');
-const {Story}                  = require('./Story');
-const Footer                   = require('./Footer');
-const { usePaginatedScroll }   = require('./Hooks');
-const { 
+import $ from './sefaria/sefariaJquery';
+import Sefaria from './sefaria/sefaria';
+import PropTypes from 'prop-types';
+import {Story} from './Story';
+import Footer from'./Footer';
+import { usePaginatedScroll } from './Hooks';
+import {
     NewsletterSignUpForm, 
     LoadingMessage 
-}                              = require('./Misc');
+} from './Misc';
 
-function CategoryLink({category, showLibrary}) {
-    return ( <a className="sideCatLink refLink inAppLink" href={"/texts/" + category} style={{borderColor: Sefaria.palette.categoryColor(category)}} onClick={()=>{showLibrary(category)}}>
+function CategoryLink({category}) {
+    return ( <a className="sideCatLink refLink" href={"/texts/" + category} style={{borderColor: Sefaria.palette.categoryColor(category)}}>
                 <span className="int-en">{category}</span>
                 <span className="int-he">{Sefaria.hebrewTerm(category)}</span>
             </a>);
 }
 CategoryLink.propTypes = {
-  showLibrary:   PropTypes.func.isRequired,
-  category:      PropTypes.string
+    category: PropTypes.string.isRequired,
 };
 
-function HomeFeedSidebar({showLibrary}) {
-    return (<div className="homeFeedSidebar">
+function HomeFeedSidebar() {
+    return (<div className="sideColumn">
             <div id="homeLearn" className="section">
                 <div className="sectionInner">
                     <div className="textBox">
@@ -37,13 +36,13 @@ function HomeFeedSidebar({showLibrary}) {
                         </div>
                     </div>
                     <div className="imageBox">
-                        <CategoryLink category={"Tanakh"} showLibrary={showLibrary} />
-                        <CategoryLink category={"Mishnah"} showLibrary={showLibrary} />
-                        <CategoryLink category={"Talmud"} showLibrary={showLibrary} />
-                        <CategoryLink category={"Midrash"} showLibrary={showLibrary} />
-                        <CategoryLink category={"Halakhah"} showLibrary={showLibrary} />
+                        <CategoryLink category={"Tanakh"} />
+                        <CategoryLink category={"Mishnah"} />
+                        <CategoryLink category={"Talmud"} />
+                        <CategoryLink category={"Midrash"} />
+                        <CategoryLink category={"Halakhah"} />
                     </div>
-                    <a href="/texts" className="button white fillWidth control-elem" onClick={showLibrary}>
+                    <a href="/texts" className="button white fillWidth control-elem">
                         <i className="fa fa-bars"></i>
                         <span className="int-en">Browse the Library</span>
                         <span className="int-he">עיינו בספריה הוירטואלית</span>
@@ -175,19 +174,21 @@ function HomeFeedSidebar({showLibrary}) {
           </div>
     );
 }
-HomeFeedSidebar.propTypes = {
-  showLibrary:   PropTypes.func.isRequired,
-};
 
 function HomeFeed(props) {
   const {interfaceLang, toggleSignUpModal, onlySharedStories} = props;
-  const [stories, setStories] = useState([]);
+  const [stories, setStories] = useState(Sefaria._stories.stories);
   const scrollable_element = useRef();
 
   usePaginatedScroll(
-      scrollable_element,
-      "/api/stories?" + (onlySharedStories ? "shared_only=1" : ""),
-      data => setStories(prev => ([...prev, ...data.stories]))
+    scrollable_element,
+    "/api/stories?" + (onlySharedStories ? "shared_only=1" : ""),
+    data => {
+      Sefaria._stories.stories = Sefaria._stories.stories.concat(data.stories);
+      Sefaria._stories.page = data.page + 1;
+      setStories(Sefaria._stories.stories)
+    },
+    Sefaria._stories.page
   );
 
   return (
@@ -210,13 +211,13 @@ function HomeFeed(props) {
             </div>
         </div>
 
-        <div className="homeFeedColumns">
-            <div className="storyFeed">
+        <div className="columnLayout">
+            <div className="mainColumn">
                 <div className="storyFeedInner">
                 {stories.length ? stories.map((s,i) => Story(s, i, props)) : <LoadingMessage />}
                 </div>
             </div>
-            <HomeFeedSidebar showLibrary={props.showLibrary} />
+            <HomeFeedSidebar />
         </div>
         </div>
       </div>
@@ -225,7 +226,6 @@ function HomeFeed(props) {
 HomeFeed.propTypes = {
   interfaceLang:      PropTypes.string,
   toggleSignUpModal:  PropTypes.func.isRequired,
-  showLibrary:   PropTypes.func.isRequired,
   onlySharedStories:  PropTypes.bool,
 };
 
@@ -287,11 +287,11 @@ class NewHomeFeedbackBox extends Component {
     return (
         <div className={"feedbackBoxOverlay" + (this.state.goodbyePrompt ? " open" : "")}>
         <div className="feedbackBox">
-            
-            {this.state.goodbyePrompt ? 
+
+            {this.state.goodbyePrompt ?
             <div><p className="int-en">Before you go, would you tell why you're going back?</p>
             <p className="int-he">עוזבים? ספרו לנו מדוע אתם חוזרים למצב הישן</p></div>
-            : 
+            :
             <div><p className="int-en">Thanks for trying out the new homepage!</p>
             <p className="int-he">תודה שניסיתם את דף הבית החדש!</p></div>}
 
@@ -318,7 +318,7 @@ class NewHomeFeedbackBox extends Component {
              <div className="button white" role="button" onClick={this.toggleGoodbyePrompt}>
                  <span className="int-en">Stay on new homepage</span>
                  <span className="int-he">המשך שימוש בדף הבית החדש</span>
-             </div></div>           
+             </div></div>
              :
              <div><div className="button" role="button" onClick={this.sendFeedback}>
                  <span className="int-en">Submit Feedback</span>
@@ -340,4 +340,4 @@ class NewHomeFeedbackBox extends Component {
 }
 */
 
-module.exports = HomeFeed;
+export default HomeFeed;

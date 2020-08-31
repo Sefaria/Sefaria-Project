@@ -64,9 +64,6 @@ def global_settings(request):
         "GLOBAL_WARNING_MESSAGE": GLOBAL_WARNING_MESSAGE,
         "GOOGLE_MAPS_API_KEY":    GOOGLE_MAPS_API_KEY,
         "SITE_SETTINGS":          SITE_SETTINGS,
-        #"USE_VARNISH":            USE_VARNISH,
-        #"VARNISH_ADDR":           VARNISH_ADDR,
-        #"USE_VARNISH_ESI":        USE_VARNISH_ESI
         }
 
 
@@ -77,7 +74,12 @@ def titles_json(request):
 
 @data_only
 def toc(request):
-    return {"toc": library.get_toc(), "toc_json": library.get_toc_json(), "search_toc_json": library.get_search_filter_toc_json()}
+    return {
+        "toc": library.get_toc(),
+        "toc_json": library.get_toc_json(),
+        "search_toc_json": library.get_search_filter_toc_json(),
+        "topic_toc_json": library.get_topic_toc_json()
+    }
 
 
 @data_only

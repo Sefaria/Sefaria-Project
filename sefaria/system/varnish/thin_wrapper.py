@@ -1,6 +1,6 @@
 # Varnish wrapper that does not depend on core code.  Used for the multiserver monitor.
 
-from .common import manager, secret, purge_url, FRONT_END_URL
+from .common import ban_url, purge_url, FRONT_END_URL
 from sefaria.utils.util import graceful_exception
 
 import logging
@@ -23,6 +23,5 @@ def invalidate_title(title):
     purge_url("{}/api/v2/index/{}?with_content_counts=1".format(FRONT_END_URL, title))
 
     # Parallel to base of sefaria.system.varnish.wrapper.invalidate_title()
-    manager.run("ban", 'obj.http.url ~ "/api/texts/{}"'.format(title), secret=secret)
-    manager.run("ban", 'obj.http.url ~ "/api/links/{}"'.format(title), secret=secret)
-
+    ban_url("/api/texts/{}".format(title))
+    ban_url("/api/links/{}".format(title))

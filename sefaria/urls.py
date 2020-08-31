@@ -5,8 +5,7 @@ from django.conf.urls import handler404, handler500
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 import django.contrib.auth.views as django_auth_views
-
-from sefaria.forms import HTMLPasswordResetForm, SefariaLoginForm
+from sefaria.forms import SefariaPasswordResetForm, SefariaSetPasswordForm, SefariaLoginForm
 from sefaria.settings import DOWN_FOR_MAINTENANCE, STATIC_URL
 
 import reader.views as reader_views
@@ -30,15 +29,14 @@ urlpatterns = [
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
-    url(r'^sheets/?$', reader_views.sheets_list),
     url(r'^sheets/tags/?$', reader_views.sheets_tags_list),
     url(r'^sheets/tags/(?P<tag>.+)$', reader_views.sheets_by_tag),
     url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_list),
     url(r'^groups/?$', reader_views.public_groups),
     url(r'^groups/all$', reader_views.groups_admin_page),
     url(r'^groups/new$', reader_views.edit_group_page),
-    url(r'^groups/(?P<group>[^/]+)/settings$', reader_views.edit_group_page),
-    url(r'^groups/(?P<group>[^/]+)$', reader_views.group_page),
+    url(r'^groups/(?P<group>[^.]+)/settings$', reader_views.edit_group_page),
+    url(r'^groups/(?P<group>[^.]+)$', reader_views.group_page),
     url(r'^my/groups$', reader_views.my_groups),
     url(r'^partners/(?P<group>[^/]+)$', reader_views.group_page),
     url(r'^account/?$', reader_views.account),
@@ -49,7 +47,6 @@ urlpatterns = [
     url(r'^new-home/?$', reader_views.new_home),
     url(r'^story_editor/?$', reader_views.story_editor),
     url(r'^torahtracker/?$', reader_views.user_stats),
-
 ]
 
 # People Pages
@@ -92,6 +89,7 @@ urlpatterns += [
     url(r'^api/profile/sync$', reader_views.profile_sync_api),
     url(r'^api/profile/upload-photo$', reader_views.profile_upload_photo),
     url(r'^api/profile$', reader_views.profile_api),
+    url(r'settings/account/user$', reader_views.account_user_update),
     url(r'^api/profile/(?P<slug>[^/]+)$', reader_views.profile_get_api),
     url(r'^api/profile/(?P<slug>[^/]+)/(?P<ftype>followers|following)$', reader_views.profile_follow_api),
     url(r'^api/user_history/saved$', reader_views.saved_history_for_ref),
@@ -100,6 +98,7 @@ urlpatterns += [
 
 # Topics
 urlpatterns += [
+    url(r'^topics/category/(?P<topicCategory>.+)?$', reader_views.topics_toc_page),
     url(r'^topics$', reader_views.topics_page),
     url(r'^topics/(?P<topic>.+)$', reader_views.topic_page),
 ]
@@ -152,6 +151,7 @@ urlpatterns += [
     url(r'^api/shape/(?P<title>.+)$', reader_views.shape_api),
     url(r'^api/preview/(?P<title>.+)$', reader_views.text_preview_api),
     url(r'^api/terms/(?P<name>.+)$', reader_views.terms_api),
+    url(r'^api/calendars/next-read/(?P<parasha>.+)$', reader_views.parasha_next_read_api),
     url(r'^api/calendars/?$', reader_views.calendars_api),
     url(r'^api/name/(?P<name>.+)$', reader_views.name_api),
     url(r'^api/category/?(?P<path>.+)?$', reader_views.category_api),
@@ -177,7 +177,7 @@ urlpatterns += [
     url(r'^api/sheets/(?P<sheet_id>\d+)/add_ref$',                    sheets_views.add_ref_to_sheet_api),
     url(r'^api/sheets/(?P<parasha>.+)/get_aliyot$',                   sheets_views.get_aliyot_by_parasha_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/copy_source$',                sheets_views.copy_source_to_sheet_api),
-    url(r'^api/sheets/(?P<sheet_id>\d+)/tags$',                       sheets_views.update_sheet_tags_api),
+    url(r'^api/sheets/(?P<sheet_id>\d+)/topics$',                     sheets_views.update_sheet_topics_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)$',                            sheets_views.sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)\.(?P<node_id>\d+)$',          sheets_views.sheet_node_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/like$',                       sheets_views.like_sheet_api),
@@ -189,6 +189,8 @@ urlpatterns += [
     url(r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', sheets_views.check_sheet_modified_api),
     url(r'^api/sheets/create/(?P<ref>[^/]+)(/(?P<sources>.+))?$',     sheets_views.make_sheet_from_text_api),
     url(r'^api/sheets/tag/(?P<tag>[^/]+)?$',                          sheets_views.sheets_by_tag_api),
+    url(r'^api/v2/sheets/tag/(?P<tag>[^/]+)?$',                       sheets_views.story_form_sheets_by_tag),
+    url(r'^api/v2/sheets/bulk/(?P<sheet_id_list>.+)$',                sheets_views.bulksheet_api),
     url(r'^api/sheets/trending-tags/?$',                              sheets_views.trending_tags_api),
     url(r'^api/sheets/tag-list/?$',                                   sheets_views.tag_list_api),
     url(r'^api/sheets/tag-list/user/(?P<user_id>\d+)?$',              sheets_views.user_tag_list_api),
@@ -222,7 +224,10 @@ urlpatterns += [
 # Topics API
 urlpatterns += [
     url(r'^api/topics$', reader_views.topics_list_api),
+    url(r'^api/topics-graph/(?P<topic>.+)$', reader_views.topic_graph_api),
+    url(r'^api/ref-topic-links/(?P<tref>.+)$', reader_views.topic_ref_api),
     url(r'^api/topics/(?P<topic>.+)$', reader_views.topics_api),
+    url(r'^api/bulktopics$', reader_views.bulk_topic_api),
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
 ]
 
@@ -238,11 +243,6 @@ urlpatterns += [
     url(r'^api/history/(?P<tref>.+)$', reader_views.texts_history_api),
 ]
 
-# Translation Request API
-urlpatterns += [
-    url(r'^api/translation-request/(?P<tref>.+)$', reader_views.translation_request_api),
-]
-
 # Edit Locks API (temporary locks on segments during editing)
 urlpatterns += [
     url(r'^api/locks/set/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.set_lock_api),
@@ -254,15 +254,6 @@ urlpatterns += [
 urlpatterns += [
     url(r'^api/locktext/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.lock_text_api),
     url(r'^api/version/flags/(?P<title>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.flag_text_api),
-]
-
-# Campaigns
-urlpatterns += [
-    url(r'^translate/(?P<tref>.+)$', reader_views.translation_flow),
-    url(r'^translation-requests/completed?', reader_views.completed_translation_requests),
-    url(r'^translation-requests/featured-completed?', reader_views.completed_featured_translation_requests),
-    url(r'^translation-requests/?', reader_views.translation_requests),
-    url(r'^contests/(?P<slug>.+)$', reader_views.contest_splash),
 ]
 
 # Discussions
@@ -291,6 +282,8 @@ urlpatterns += [
 urlpatterns += [
     url(r'^random/link$',        reader_views.random_redirect),
     url(r'^random/?$',           reader_views.random_text_page),
+    url(r'^daf-roulette/?$',     reader_views.daf_roulette_redirect),
+    url(r'^chavruta/?$',     reader_views.chevruta_redirect),
 ]
 
 # Registration
@@ -298,8 +291,8 @@ urlpatterns += [
     url(r'^login/?$', django_auth_views.LoginView.as_view(authentication_form=SefariaLoginForm), name='login'),
     url(r'^register/?$', sefaria_views.register, name='register'),
     url(r'^logout/?$', django_auth_views.LogoutView.as_view(), name='logout'),
-    url(r'^password/reset/?$', django_auth_views.PasswordResetView.as_view(email_template_name='registration/password_reset_email.txt', html_email_template_name='registration/password_reset_email.html'), name='password_reset'),
-    url(r'^password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', django_auth_views.PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    url(r'^password/reset/?$', django_auth_views.PasswordResetView.as_view(form_class=SefariaPasswordResetForm, email_template_name='registration/password_reset_email.txt', html_email_template_name='registration/password_reset_email.html'), name='password_reset'),
+    url(r'^password/reset/confirm/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$', django_auth_views.PasswordResetConfirmView.as_view(form_class=SefariaSetPasswordForm), name='password_reset_confirm'),
     url(r'^password/reset/complete/$', django_auth_views.PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     url(r'^password/reset/done/$', django_auth_views.PasswordResetDoneView.as_view(), name='password_reset_done'),
     url(r'^api/register/$', sefaria_views.register_api),
@@ -340,6 +333,12 @@ urlpatterns += [
 
 ]
 
+# chavruta.js -
+urlpatterns += [
+    url(r'^chavruta\.js$', sefaria_views.chavruta_js)
+]
+
+
 urlpatterns += [
     url(r'^api/passages/(?P<refs>.+)$', sefaria_views.passages_api),
 ]
@@ -368,7 +367,6 @@ urlpatterns += [
     url(r'^admin/reset/counts/(?P<title>.+)$', sefaria_views.reset_counts),
     url(r'^admin/reset/toc$', sefaria_views.rebuild_toc),
     url(r'^admin/reset/ac$', sefaria_views.rebuild_auto_completer),
-    url(r'^admin/reset/topics$', sefaria_views.rebuild_topics),
     url(r'^admin/reset/api/(?P<apiurl>.+)$', sefaria_views.reset_cached_api),
     url(r'^admin/reset/(?P<tref>.+)$', sefaria_views.reset_ref),
     url(r'^admin/delete/orphaned-counts', sefaria_views.delete_orphaned_counts),
@@ -380,13 +378,12 @@ urlpatterns += [
     url(r'^admin/run/tests', sefaria_views.run_tests),
     url(r'^admin/export/all', sefaria_views.export_all),
     url(r'^admin/error', sefaria_views.cause_error),
-    url(r'^admin/contest-results', sefaria_views.list_contest_results),
-    url(r'^admin/translation-requests-stats', sefaria_views.translation_requests_stats),
     url(r'^admin/sheet-stats', sefaria_views.sheet_stats),
     url(r'^admin/untagged-sheets', sefaria_views.untagged_sheets),
     url(r'^admin/spam', sefaria_views.spam_dashboard),
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
+
     url(r'^admin/?', include(admin.site.urls)),
 ]
 

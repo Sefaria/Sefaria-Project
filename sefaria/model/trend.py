@@ -64,9 +64,10 @@ class DateRange(object):
     @classmethod
     def this_hebrew_year(cls):
         #todo: improve me!
-        return cls("this_hebrew_year", datetime(2018, 9, 10), datetime(2019, 9, 29))
+        return cls("this_hebrew_year", datetime(2019, 9, 30), datetime(2020, 9, 18))
 
-#       "5780": DateRange(datetime(2019, 9, 30), datetime(2020, 9, 18))
+        # last year
+        #return cls("this_hebrew_year", datetime(2018, 9, 10), datetime(2019, 9, 29))
 
     def needs_clause(self):
         return self.start or self.end
@@ -412,11 +413,12 @@ def user_stats_data(uid):
         ])
         most_viewed_sheets_ids = [s["_id"] for s in sorted(sheets_viewed, key=lambda o: o["cnt"], reverse=True) if s["cnt"] > 1 and s["_id"] not in usheet_ids][:3]
 
-        most_viewed_sheets = [Story._sheet_metadata(i, return_id=True) for i in most_viewed_sheets_ids]
+
+        most_viewed_sheets = [Story.sheet_metadata(i, return_id=True) for i in most_viewed_sheets_ids]
         most_viewed_sheets = [a for a in most_viewed_sheets if a]
 
         for sheet_dict in most_viewed_sheets:
-            sheet_dict.update(Story._publisher_metadata(sheet_dict["publisher_id"]))
+            sheet_dict.update(Story.publisher_metadata(sheet_dict["publisher_id"]))
 
         # Construct returned data
         user_stats_dict[daterange.key] = {

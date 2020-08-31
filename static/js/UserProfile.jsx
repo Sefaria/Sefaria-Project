@@ -1,4 +1,4 @@
-const {
+import {
   LoadingMessage,
   TabView,
   FilterableList,
@@ -7,14 +7,14 @@ const {
   ProfileListing,
   ProfilePic,
   FollowButton,
-}               = require('./Misc');
-const React      = require('react');
-const PropTypes = require('prop-types');
-const Sefaria   = require('./sefaria/sefaria');
-const { GroupListing } = require('./MyGroupsPanel');
-const NoteListing = require('./NoteListing');
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import Sefaria  from './sefaria/sefaria';
+import { GroupListing } from './MyGroupsPanel';
+import NoteListing  from './NoteListing';
 import Component from 'react-class';
-const Footer    = require('./Footer');
+import Footer  from './Footer';
 
 class UserProfile extends Component {
   constructor(props) {
@@ -34,7 +34,7 @@ class UserProfile extends Component {
       { text: Sefaria._("Groups"), icon: "/static/img/group.svg" },
       { text: Sefaria._("Followers"), invisible: true },
       { text: Sefaria._("Following"), invisible: true },
-      { text: Sefaria._("Torah Tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true}
+      { text: Sefaria._("Torah Tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
       tabs.splice(1, 0, { text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
@@ -50,11 +50,11 @@ class UserProfile extends Component {
   }
   _getMessageModalRef(ref) { this._messageModalRef = ref; }
   _getTabViewRef(ref) { this._tabViewRef = ref; }
-  _getSheetListRef(ref) { this._sheetListRef = ref; }
-  _getNoteListRef(ref) { this._noteListRef = ref; }
-  _getGroupListRef(ref) { this._groupListRef = ref; }
   getGroups() {
-    return Sefaria.userGroups(this.props.profile.id);
+    return Sefaria.getUserGroups(this.props.profile.id);
+  }
+  getGroupsFromCache() {
+    return Sefaria.getUserGroupsFromCache(this.props.profile.id);
   }
   filterGroup(currFilter, group) {
     const n = text => text.toLowerCase();
@@ -108,8 +108,12 @@ class UserProfile extends Component {
       });
     });
   }
+  getNotesFromCache() {
+    return Sefaria.allPrivateNotes();
+  }
   onDeleteNote() {
-    if (this._noteListRef) { this._noteListRef.reload(); }
+    Sefaria.clearPrivateNotes();
+    this.getNotes().then(() => this.setState({ refreshNoteData: Math.random() }));
   }
   filterNote(currFilter, note) {
     const n = text => text.toLowerCase();
@@ -138,22 +142,23 @@ class UserProfile extends Component {
       />
     );
   }
-  getSheets(ignoreCache) {
+  getSheets() {
     return new Promise((resolve, reject) => {
       Sefaria.sheets.userSheets(this.props.profile.id, sheets => {
-        // add urls to sheets for rendering with SheetListing
-        sheets.forEach(s => {
-          s.options.language = "en";
-          s.sheetUrl = `/sheets/${s.id}`;
-        });
+        // What was the below for?
+        // s.options.language = "en";
         resolve(sheets);
-      }, undefined, 0, 0, ignoreCache);
+      }, undefined, 0, 0);
     });
+  }
+  getSheetsFromCache() {
+    return Sefaria.sheets.userSheets(this.props.profile.id, null, undefined, 0, 0);
   }
   filterSheet(currFilter, sheet) {
     const n = text => text.toLowerCase();
     currFilter = n(currFilter);
-    return n(sheet.title).indexOf(currFilter) > -1 || sheet.tags.reduce((accum, curr) => accum || n(curr).indexOf(currFilter) > -1, false);
+    const filterText = sheet.title.stripHtml() + " " + sheet.topics.map(topic => topic.asTyped).join(" ")
+    return n(filterText).indexOf(currFilter) > -1;
   }
   sortSheet(currSortOption, sheetA, sheetB) {
     if (currSortOption === "Recent") { return 0; /* already in order */}
@@ -192,7 +197,8 @@ class UserProfile extends Component {
     );
   }
   handleSheetDelete() {
-    if (this._sheetListRef) { this._sheetListRef.reload(); }
+    Sefaria.sheets.clearUserSheets(Sefaria._uid);
+    this.getSheets().then(() => this.setState({ refreshSheetData: Math.random() }));
   }
   renderSheet(sheet) {
     return (
@@ -200,7 +206,6 @@ class UserProfile extends Component {
         key={sheet.id}
         sheet={sheet}
         hideAuthor={true}
-        handleSheetClick={this.props.handleInAppLinkClick}
         handleSheetDelete={this.handleSheetDelete}
         editable={Sefaria._uid === this.props.profile.id}
         deletable={Sefaria._uid === this.props.profile.id}
@@ -251,7 +256,6 @@ class UserProfile extends Component {
     return (
       <ProfileListing
         key={item.id}
-        openProfile={this.props.openProfile}
         uid={item.id}
         slug={item.slug}
         url={`/profile/${item.slug}`}
@@ -285,7 +289,7 @@ class UserProfile extends Component {
     if (tab.applink) {
       return (
           <div className="tab">
-            <a href={tab.href} onClick={this.props.handleInAppLinkClick}>
+            <a href={tab.href}>
               <img src={tab.icon} alt={`${tab.text} icon`}/>
               {tab.text}
             </a>
@@ -304,7 +308,9 @@ class UserProfile extends Component {
     if (!Sefaria._uid) { this.props.toggleSignUpModal(); return; }
     this._messageModalRef.makeVisible();
   }
-  follow() { Sefaria.followAPI(this.props.profile.id); }
+  follow() { 
+    Sefaria.followAPI(this.props.profile.id);
+  }
   openFollowers(e) {
     e.preventDefault();
     this._tabViewRef.openTab(this.state.tabs.findIndex(t => t.text === Sefaria._('Followers')));
@@ -333,7 +339,6 @@ class UserProfile extends Component {
                   follow={this.follow}
                   openFollowers={this.openFollowers}
                   openFollowing={this.openFollowing}
-                  openProfile={this.props.openProfile}
                   toggleSignUpModal={this.props.toggleSignUpModal}
                 />
                 <TabView
@@ -343,7 +348,7 @@ class UserProfile extends Component {
                 >
                   <FilterableList
                     key="sheet"
-                    ref={this._getSheetListRef}
+                    pageSize={1e6}
                     filterFunc={this.filterSheet}
                     sortFunc={this.sortSheet}
                     renderItem={this.renderSheet}
@@ -351,24 +356,28 @@ class UserProfile extends Component {
                     renderHeader={this.renderSheetHeader}
                     sortOptions={["Recent", "Views"]}
                     getData={this.getSheets}
+                    data={this.getSheetsFromCache()}
+                    refreshData={this.state.refreshSheetData}
                   />
                   {
                     this.state.showNotes ? (
                       <FilterableList
                         key="note"
-                        ref={this._getNoteListRef}
+                        pageSize={1e6}
                         filterFunc={this.filterNote}
                         sortFunc={this.sortNote}
                         renderItem={this.renderNote}
                         renderEmptyList={this.renderEmptyNoteList}
                         sortOptions={[]}
                         getData={this.getNotes}
+                        data={this.getNotesFromCache()}
+                        refreshData={this.state.refreshNoteData}
                       />
                     ) : null
                   }
                   <FilterableList
                     key="group"
-                    ref={this._getGroupListRef}
+                    pageSize={1e6}
                     filterFunc={this.filterGroup}
                     sortFunc={this.sortGroup}
                     renderItem={this.renderGroup}
@@ -376,9 +385,11 @@ class UserProfile extends Component {
                     renderHeader={this.renderGroupHeader}
                     sortOptions={["Members", "Sheets"]}
                     getData={this.getGroups}
+                    data={this.getGroupsFromCache()}
                   />
                   <FilterableList
                     key="follower"
+                    pageSize={1e6}
                     filterFunc={this.filterFollower}
                     sortFunc={() => { return 0; }}
                     renderItem={this.renderFollower}
@@ -389,6 +400,7 @@ class UserProfile extends Component {
                   />
                   <FilterableList
                     key="following"
+                    pageSize={1e6}
                     filterFunc={this.filterFollower}
                     sortFunc={() => { return 0; }}
                     renderItem={this.renderFollower}
@@ -397,6 +409,7 @@ class UserProfile extends Component {
                     sortOptions={[]}
                     getData={this.getFollowing}
                   />
+                  <div className="torahTrackerPlaceholder filterable-list" />
                   { this.state.showBio ?
                     <div className="systemText filterable-list">
                       <div  className="aboutText" dangerouslySetInnerHTML={{ __html: this.props.profile.bio }} />
@@ -415,18 +428,16 @@ class UserProfile extends Component {
 }
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
-  openProfile: PropTypes.func.isRequired,
-  handleInAppLinkClick: PropTypes.func.isRequired,
 };
 
-const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, openProfile, toggleSignUpModal }) => {
+const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`
   const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
   let infoList = [];
   if (p.location) { infoList.push(p.location); }
   infoList = infoList.concat(p.jewish_education);
   if (p.website) {
-    infoList.push(<span><a href={p.website}>{"website"}</a></span>);
+    infoList.push(<span><a href={p.website} target="_blank">{"website"}</a></span>);
   }
   const socialList = social.filter(s => !!p[s]);
   if (socialList.length) {
@@ -440,7 +451,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
   }
   return (
     <div className="profile-summary">
-      <div className="summary-column start">
+      <div className="summary-column profile-summary-content start">
         <div className="title pageTitle">
           <span className="int-en">{p.full_name}</span>
           <span className="int-he">{p.full_name}</span>
@@ -504,7 +515,6 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
         <ProfilePic
           url={p.profile_pic_url}
           name={p.full_name}
-          openProfile={openProfile}
           len={175}
           hideOnDefault={Sefaria._uid !== p.id}
           showButtons={Sefaria._uid === p.id}
@@ -561,4 +571,4 @@ MessageModal.propTypes = {
   name: PropTypes.string.isRequired,
   uid:  PropTypes.number.isRequired,
 };
-module.exports = UserProfile;
+export default UserProfile;

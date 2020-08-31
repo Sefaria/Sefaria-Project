@@ -1,16 +1,17 @@
-const {
+import {
   CategoryColorLine,
   ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuDisplaySettingsButton,
+  SinglePanelNavHeader,
   TextBlockLink,
   LanguageToggleButton,
   LoadingMessage,
-}               = require('./Misc');
-const React      = require('react');
-const PropTypes = require('prop-types');
-const classNames = require('classnames');
-const Sefaria     = require('./sefaria/sefaria');
-const Footer     = require('./Footer');
+} from './Misc';
+import React  from 'react';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import Sefaria  from './sefaria/sefaria';
+import Footer  from './Footer';
 import Component from 'react-class';
 
 
@@ -18,21 +19,25 @@ class UserHistoryPanel extends Component {
   constructor(props) {
     super(props);
 
-    this.state = {
-      items: null,
-    };
+    if (props.menuOpen === "saved") {
+      this.state = {
+        items: Sefaria.saved
+      };
+    } else if (props.menuOpen === "history") {
+      this.state = {
+        items: Sefaria._userHistory.history
+      }
+    }
   }
   componentDidMount() {
     this._isMounted = true;
-    this.get_items(this.props);
+    this.getItems(this.props);
   }
   componentWillUnmount() {
     this._isMounted = false;
   }
-  get_items(props) {
-    if (props.menuOpen === "saved") { this.setState({ items: Sefaria.saved })}
-    else {
-      //history
+  getItems(props) {
+    if (props.menuOpen === "history") {
       Sefaria.userHistoryAPI().then( items => {
         if (this._isMounted) {
           this.setState({ items });
@@ -74,20 +79,17 @@ class UserHistoryPanel extends Component {
     return (
       <div onClick={this.props.handleClick} className={navMenuClasses}>
         {this.props.hideNavHeader ? null :
-          <div className={navTopClasses}>
-            <CategoryColorLine category={"Other"} />
-            <ReaderNavigationMenuMenuButton onClick={this.navHome} compare={this.props.compare} interfaceLang={this.props.interfaceLang}/>
-            <h2>
-              <span className="int-en">Recent</span>
-              <span className="int-he">נצפו לאחרונה</span>
-            </h2>
-            {this.props.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} /> : null}
-        </div>}
+          <SinglePanelNavHeader
+            enTitle={title}
+            heTitle={title}
+            navHome={this.navHome}
+            showDisplaySettings={this.props.interfaceLang !== "hebrew"}
+            openDisplaySettings={this.props.openDisplaySettings}/>}
         <div className={contentClasses}>
           <div className="contentInner">
             {this.props.hideNavHeader ?
               <h1>
-              {this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ? 
+              {this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
                 <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null}
               <span className="int-en">{ title }</span>
               <span className="int-he">{ title }</span>
@@ -112,4 +114,4 @@ UserHistoryPanel.propTypes = {
   menuOpen:            PropTypes.string.isRequired,
 };
 
-module.exports = UserHistoryPanel;
+export default UserHistoryPanel;

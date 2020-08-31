@@ -7,7 +7,7 @@ relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
 
 # These are things you need to change!
 
-################ YOU ONLY NEED TO CHANGE "NAME" TO THE PATH OF YOUR SQLITE DATA FILE ########################################
+################ YOU ONLY NEED TO CHANGE "NAME" TO THE PATH OF YOUR SQLITE DATA FILE (If the db.sqlite file does not exist, simply create it) ########################################
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3', # Add 'postgresql_psycopg2', 'mysql', 'sqlite3' or 'oracle'.
@@ -31,8 +31,17 @@ DATABASES = {
     }
 }"""
 
+# Map domain to an interface language that the domain should be pinned to.
+# Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
+DOMAIN_LANGUAGES = {
+    "http://hebrew.example.org": "hebrew",
+    "http://english.example.org": "english",
+}
+
 
 ################ These are things you can change! ###########################################################################
+#SILENCED_SYSTEM_CHECKS = ['captcha.recaptcha_test_key_error']
+
 ALLOWED_HOSTS = ["localhost", "127.0.0.1","0.0.0.0"]
 
 ADMINS = (
@@ -82,7 +91,7 @@ MAINTENANCE_MESSAGE = ""
 GLOBAL_WARNING = False
 GLOBAL_WARNING_MESSAGE = ""
 
-GLOBAL_INTERRUPTING_MESSAGE = None
+# GLOBAL_INTERRUPTING_MESSAGE = None
 """
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "messageName",
@@ -139,12 +148,9 @@ NODE_TIMEOUT = 10
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts
 
-# Map domain to an interface language that the domain should be pinned to.
-# Leave as {} to prevent language pinning, in which case one domain can serve either Hebrew or English
-DOMAIN_LANGUAGES = {
-    "http://hebrew.example.org": "hebrew",
-    "http://english.example.org": "english",
-}
+
+# DafRoulette server
+RTC_SERVER = '' # Root URL/IP of the server
 
 GOOGLE_TAG_MANAGER_CODE = 'you tag manager code here'
 GOOGLE_ANALYTICS_CODE = 'your google analytics code'
@@ -315,4 +321,3 @@ LOGGING = {
         },
     }
 }
-

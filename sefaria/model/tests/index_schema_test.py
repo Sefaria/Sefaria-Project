@@ -8,7 +8,7 @@ from sefaria.system.exceptions import InputError
 
 class Test_Schema(object):
     # This needs a bunch of hebrew titles to validate
-    @pytest.mark.failing
+    @pytest.mark.xfail(reason="unknown")
     def test_schema_load(self):
         i = Index().load({"title": "Mishnah Torah Test"})
         if i:

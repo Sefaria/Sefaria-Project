@@ -125,7 +125,12 @@ def index_sheet(index_name, id):
     pud = public_user_data(sheet["owner"])
     tag_terms_simple = make_sheet_tags(sheet)
     tags = [t["en"] for t in tag_terms_simple]
-    topics = [t['slug'] for t in sheet.get('topics', [])]
+    topics = []
+    for t in sheet.get('topics', []):
+        topic_obj = Topic.init(t['slug'])
+        if not topic_obj:
+            continue
+        topics += [topic_obj]
     try:
         doc = {
             "title": strip_tags(sheet["title"]),
@@ -136,7 +141,9 @@ def index_sheet(index_name, id):
             "profile_url": pud["profileUrl"],
             "version": "Source Sheet by " + user_link(sheet["owner"]),
             "tags": tags,
-            "topics": topics,
+            "topic_slugs": [topic_obj.slug for topic_obj in topics],
+            "topics_en": [topic_obj.get_primary_title('en') for topic_obj in topics],
+            "topics_he": [topic_obj.get_primary_title('he') for topic_obj in topics],
             "sheetId": id,
             "summary": sheet.get("summary", None),
             "group": sheet.get("group", ''),
@@ -341,8 +348,14 @@ def put_sheet_mapping(index_name):
             'tags': {
                 'type': 'keyword'
             },
-            'topics': {
-                'type': 'keyword'
+            "topics_en": {
+                "type": "keyword"
+            },
+            "topics_he": {
+                "type": "keyword"
+            },
+            "topic_slugs": {
+                "type": "keyword"
             },
             'owner_image': {
                 'type': 'keyword'
@@ -439,6 +452,9 @@ class TextIndexer(object):
     def get_ref_version_list(oref, tries=0):
         try:
             return oref.version_list()
+        except InputError as e:
+            print(f"InputError: {oref.normal()}")
+            return []
         except pymongo.errors.AutoReconnect as e:
             if tries < 200:
                 pytime.sleep(5)
@@ -549,7 +565,7 @@ class TextIndexer(object):
         tref = oref.normal()
         doc = cls.make_text_index_document(tref, oref.he_normal(), version_title, lang, version_priority, content, categories)
         id = make_text_doc_id(tref, version_title, lang)
-        es_client.index(index_name, "text", doc, id)
+        es_client.index(index_name, doc, id=id)
 
     @classmethod
     def _cache_action(cls, segment_str, tref, heTref, version):
@@ -720,9 +736,6 @@ def index_from_queue():
             TextIndexer.index_ref(index_name_merged, Ref(item["ref"]), None, item["lang"], True)
             db.index_queue.remove(item)
         except Exception as e:
-            import sys
-            reload(sys)
-            sys.setdefaultencoding("utf-8")
             logging.error("Error indexing from queue ({} / {} / {}) : {}".format(item["ref"], item["version"], item["lang"], e))
 
 
@@ -742,6 +755,7 @@ def add_recent_to_queue(ndays):
         refs.add((a["ref"], a["version"], a["language"]))
     for ref in list(refs):
         add_ref_to_index_queue(ref[0], ref[1], ref[2])
+
 
 def get_new_and_current_index_names(type, debug=False):
     base_index_name_dict = {
@@ -779,7 +793,9 @@ def index_all(skip=0, merged=False, debug=False):
         index_all_of_type('text', skip=skip, merged=merged, debug=debug)
         index_all_of_type('sheet', skip=skip, merged=merged, debug=debug)
     end = datetime.now()
+    db.index_queue.delete_many({})  # index queue is now stale
     print("Elapsed time: %s" % str(end-start))
+
 
 def index_all_of_type(type, skip=0, merged=False, debug=False):
     index_names_dict = get_new_and_current_index_names(type=type, debug=debug)

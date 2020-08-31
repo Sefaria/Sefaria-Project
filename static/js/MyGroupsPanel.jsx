@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-const {
+import {
   LoadingMessage,
   SinglePanelNavHeader,
-}                = require('./Misc');
-const PropTypes  = require('prop-types');
-const classNames = require('classnames');
-const Footer     = require('./Footer');
-const Sefaria    = require('./sefaria/sefaria');
+} from './Misc';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import Footer  from './Footer';
+import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
+
 
 function MyGroupsPanel({multiPanel, navHome}) {
   const [groupsList, setGroupsList] = useState(null);
@@ -59,10 +60,27 @@ function MyGroupsPanel({multiPanel, navHome}) {
 }
 MyGroupsPanel.propTypes = {};
 
+
 function PublicGroupsPanel({multiPanel, navHome}) {
-  const [groupsList, setGroupsList] = useState(null);
+  const [groupsList, setGroupsList] = useState(Sefaria.getGroupsListFromCache());
+  
+  const sortGroupList = d => {
+    if (Sefaria.interfaceLang == "hebrew") {
+      d.public.sort((a, b) => {
+        const [aHe, bHe] = [a.name, b.name].map(Sefaria.hebrew.isHebrew);
+        return aHe == bHe ? a.name - b.name : (aHe ? -1 : 1)
+      });
+    }
+    return d;
+  };
+
+  if (groupsList) {
+    sortGroupList(groupsList);
+  }
+
   useEffect(() => {
     Sefaria.getGroupsList()
+        .then(d => sortGroupList(d))
         .then(d => setGroupsList(d));
   });
 
@@ -92,7 +110,7 @@ function PublicGroupsPanel({multiPanel, navHome}) {
           </center> : null}
 
           <div className="groupsList">
-            { groupsList ?
+            { !!groupsList ?
                 (groupsList.public.length ?
                   groupsList.public.map(function(item) {
                     return <GroupListing data={item} key={item.name} />
@@ -146,6 +164,8 @@ GroupListing.propTypes = {
   showMembership: PropTypes.bool,
 };
 
-module.exports.GroupListing = GroupListing;
-module.exports.MyGroupsPanel = MyGroupsPanel;
-module.exports.PublicGroupsPanel = PublicGroupsPanel;
+export {
+  GroupListing,
+  MyGroupsPanel,
+  PublicGroupsPanel,
+};

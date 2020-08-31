@@ -1,20 +1,20 @@
-const {
-  SheetTagLink,
+import {
+  SheetTopicLink,
   SheetAccessIcon,
   CategoryColorLine,
   ReaderNavigationMenuMenuButton,
   LoadingMessage,
   TwoOrThreeBox,
   ProfilePic,
-}                = require('./Misc');
-const React      = require('react');
-const ReactDOM   = require('react-dom');
-const $          = require('./sefaria/sefariaJquery');
-const Sefaria    = require('./sefaria/sefaria');
-const classNames = require('classnames');
-const PropTypes  = require('prop-types');
-const GroupPage  = require('./GroupPage');
-const Footer     = require('./Footer');
+} from './Misc';
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
+import GroupPage  from './GroupPage';
+import Footer  from './Footer';
 import Component from 'react-class';
 
 
@@ -67,7 +67,6 @@ class SheetsNav extends Component {
                         searchInGroup={this.props.searchInGroup}
                         toggleLanguage={this.props.toggleLanguage}
                         interfaceLang={this.props.interfaceLang}
-                        openProfile={this.props.openProfile}
                       />);
       enTitle = "Groups";
       heTitle = Sefaria._(enTitle);
@@ -119,7 +118,6 @@ SheetsNav.propTypes = {
   hideNavHeader:   PropTypes.bool,
   multiPanel:      PropTypes.bool,
   interfaceLang:   PropTypes.string,
-  openProfile:     PropTypes.func.isRequired,
 };
 
 
@@ -595,10 +593,8 @@ class PrivateSheetListing extends Component {
     var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
     var url = "/sheets/" + sheet.id;
 
-    if (sheet.tags === undefined) sheet.tags = [];
-      var tagString = sheet.tags.map(function (tag) {
-          return(<SheetTagLink setSheetTag={this.props.setSheetTag} tag={tag} key={tag} />);
-    }, this);
+    if (sheet.topics === undefined) sheet.topics = [];
+    const topicString = sheet.topics.map(topic => (<SheetTopicLink setSheetTag={this.props.setSheetTag} topic={topic} key={topic.slug} />));
 
    return (<div className="sheet userSheet" href={url} key={url}>
               <div className="userSheetTitle">
@@ -607,7 +603,7 @@ class PrivateSheetListing extends Component {
                 <a className="button white mini" href={url+"?editor=1"}><span className="int-en">Edit Sheet</span><span className="int-he">ערוך</span></a>
               </div>
               <div className="userSheetInfo">
-                <span>{sheet.views} {Sefaria._('Views')}</span><span>{sheet.modified}</span><span className="tagString">{tagString}</span>
+                <span>{sheet.views} {Sefaria._('Views')}</span><span>{sheet.modified}</span><span className="tagString">{topicString}</span>
               </div>
           </div>);
   }
@@ -618,4 +614,4 @@ PrivateSheetListing.propTypes = {
 };
 
 
-module.exports = SheetsNav;
+export default SheetsNav;

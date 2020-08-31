@@ -37,7 +37,10 @@ class TitleGroup(object):
     ]
     optional_attrs = [
         "primary",
-        "presentation"
+        "presentation",
+        "transliteration",  # bool flag to indicate if title is transliteration
+        "disambiguation",   # str to help disambiguate this title from other similar titles (often on other objects)
+        "fromTerm"          # bool flag to indicate if title originated from term (used in topics)
     ]
 
     def __init__(self, serial=None):
@@ -82,6 +85,19 @@ class TitleGroup(object):
             self._primary_title[lang] = ""
 
         return self._primary_title.get(lang)
+
+    def get_title_attr(self, title, lang, attr):
+        """
+        Get attribute `attr` for title `title`.
+        For example, get attribute 'transliteration' for a certain title
+        :param title: str
+        :param lang: en or he
+        :param attr: str
+        :return: value of attribute `attr`
+        """
+        for t in self.titles:
+            if t.get('lang') == lang and t.get('text') == title:
+                return t.get(attr, None)
 
     def all_titles(self, lang=None):
         """
@@ -207,6 +223,7 @@ class AbstractTitledOrTermedObject(AbstractTitledObject):
             self.sharedTitle = None
             self.title_group = self.title_group.copy()
             return 1
+
 
 class Term(abst.AbstractMongoRecord, AbstractTitledObject):
     """
@@ -928,15 +945,39 @@ class NumberedTitledTreeNode(TitledTreeNode):
         Different address type / language combinations produce different internal regexes in the innermost portions of the above, where the comments say 'digits'.
 
         """
-        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"), kwargs.get("escape_titles"))
+        parentheses = kwargs.get("parentheses", False)
+        prefixes = 'בכ|וב|וה|וכ|ול|ומ|וש|כב|ככ|כל|כמ|כש|לכ|מב|מה|מכ|מל|מש|שב|שה|שכ|של|שמ|ב|כ|ל|מ|ש|ה|ו|ד' if lang == 'he' else ''
+        prefix_group = rf'(?:{prefixes})?'
+        key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"), kwargs.get("escape_titles"), parentheses)
         if not self._regexes.get(key):
-            reg = r"^" if anchored else ""
+            if anchored:
+                reg = r"^"
+            elif parentheses:
+                parens_lookbehind = r'(?<=[(\[](?:[^)\]]*?\s)?'
+                if kwargs.get("for_js"):
+                    reg = rf"{parens_lookbehind}){prefix_group}"  # prefix group should be outside lookbehind in js to be consistent with when parentheses == False
+                else:
+                    reg = rf"{parens_lookbehind}{prefix_group})"
+            else:
+                word_break_group = r'(?:^|\s|\(|\[)'
+                if kwargs.get("for_js"):
+                    reg = rf"{word_break_group}{prefix_group}"  # safari still does not support lookbehinds (although this issue shows they're working on it https://bugs.webkit.org/show_bug.cgi?id=174931)
+                else:
+                    reg = rf"(?<={word_break_group}{prefix_group})"
             title_block = regex.escape(title) if escape_titles else title
+            if kwargs.get("for_js"):
+                reg += r"("  # use capture group to distinguish prefixes from captured ref
             reg += r"(?P<title>" + title_block + r")" if capture_title else title_block
             reg += self.after_title_delimiter_re
             addr_regex = self.address_regex(lang, **kwargs)
-            reg += r'(?:(?:' + addr_regex + r')|(?:[\[({]' + addr_regex + r'[\])}]))'  # Match expressions with internal parenthesis around the address portion
-            reg += r"(?=[.,:;?!\s})\]<]|$)" if kwargs.get("for_js") else r"(?=\W|$)" if not kwargs.get("terminated") else r"$"
+            reg += r'(?:(?:' + addr_regex + r')|(?:[\[({]' + addr_regex + r'[\])}]))'  # Match expressions with internal parentheses around the address portion
+            if kwargs.get("for_js"):
+                reg += r")"  # use capture group to distinguish prefixes from captured ref
+            if parentheses:
+                reg += r"(?=(?:[)\]])|(?:[.,:;?!\s<][^\])]*?[)\]]))"
+            else:
+                reg += r"(?=[.,:;?!\s})\]<]|$)" if kwargs.get("for_js") else r"(?=\W|$)" if not kwargs.get(
+                    "terminated") else r"$"
             self._regexes[key] = regex.compile(reg, regex.VERBOSE) if compiled else reg
         return self._regexes[key]
 
@@ -1007,7 +1048,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
     (e.g., Parsha structures of chapter/verse stored Tanach, or Perek structures of Daf/Line stored Talmud)
     """
     required_param_keys = ["depth", "wholeRef"]
-    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
+    optional_param_keys = ["lengths", "addressTypes", "sectionNames", "refs", "includeSections", "startingAddress"]  # "addressTypes", "sectionNames", "refs" are not required for depth 0, but are required for depth 1 +
     has_key = False  # This is not used as schema for content
 
     def get_ref_from_sections(self, sections):
@@ -1018,7 +1059,7 @@ class ArrayMapNode(NumberedTitledTreeNode):
     def serialize(self, **kwargs):
         d = super(ArrayMapNode, self).serialize(**kwargs)
         if kwargs.get("expand_refs"):
-            if getattr(self, "includeSections", None):
+            if getattr(self, "includeSections", False):
                 # We assume that with "includeSections", we're going from depth 0 to depth 1, and expanding "wholeRef"
                 from . import text
 
@@ -1031,7 +1072,8 @@ class ArrayMapNode(NumberedTitledTreeNode):
                 d["sectionNames"] = first.index_node.sectionNames[-2:-1]
                 d["depth"] += 1
                 d["offset"] = offset
-
+            elif getattr(self, "startingAddress", False):
+                d["offset"] = self.address_class(0).toIndex("en", self.startingAddress)
             if (kwargs.get("include_previews", False)):
                 d["wholeRefPreview"] = self.expand_ref(self.wholeRef, kwargs.get("he_text_ja"), kwargs.get("en_text_ja"))
                 if d.get("refs"):
@@ -1854,12 +1896,12 @@ class AddressType(object):
         \p{Hebrew} ~= [\\u05d0–\\u05ea]
         """
         return r"""                                    # 1 of 3 styles:
-        ((?=[\u05d0-\u05ea]+(?:"|\u05f4|'')[\u05d0-\u05ea])    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, or gershayim, followed by  one letter
-                \u05ea*(?:"|\u05f4|'')?				    # Many Tavs (400), maybe dbl quote
-                [\u05e7-\u05ea]?(?:"|\u05f4|'')?	    # One or zero kuf-tav (100-400), maybe dbl quote
-                [\u05d8-\u05e6]?(?:"|\u05f4|'')?	    # One or zero tet-tzaddi (9-90), maybe dbl quote
+        ((?=[\u05d0-\u05ea]+(?:"|\u05f4|\u201d|'')[\u05d0-\u05ea])    # (1: ") Lookahead:  At least one letter, followed by double-quote, two single quotes, right fancy double quote, or gershayim, followed by  one letter
+                \u05ea*(?:"|\u05f4|\u201d|'')?				    # Many Tavs (400), maybe dbl quote
+                [\u05e7-\u05ea]?(?:"|\u05f4|\u201d|'')?	    # One or zero kuf-tav (100-400), maybe dbl quote
+                [\u05d8-\u05e6]?(?:"|\u05f4|\u201d|'')?	    # One or zero tet-tzaddi (9-90), maybe dbl quote
                 [\u05d0-\u05d8]?					    # One or zero alef-tet (1-9)															#
-            |[\u05d0-\u05ea]['\u05f3]					# (2: ') single letter, followed by a single quote or geresh
+            |[\u05d0-\u05ea]['\u05f3\u2018\u2019]					# (2: ') single letter, followed by a single quote, geresh, or right fancy quote
             |(?=[\u05d0-\u05ea])					    # (3: no punc) Lookahead: at least one Hebrew letter
                 \u05ea*								    # Many Tavs (400)
                 [\u05e7-\u05ea]?					    # One or zero kuf-tav (100-400)
@@ -1912,6 +1954,7 @@ class AddressType(object):
             raise IndexSchemaError("No matching class for addressType {}".format(atype))
         return klass(0).toStr(lang, i)
 
+    # Is this used?
     def storage_offset(self):
         return 0
 
@@ -1940,7 +1983,7 @@ class AddressTalmud(AddressType):
     """
     section_patterns = {
         "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
-        "he": r"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3'\"״]\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
+        "he": r"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
     }
 
     def _core_regex(self, lang, group_id=None):
@@ -2037,6 +2080,121 @@ class AddressTalmud(AddressType):
         return 2
 
 
+class AddressFolio(AddressType):
+    """
+    :class:`AddressType` for Folio style #[abcd] addresses
+    """
+    section_patterns = {
+        "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
+        "he": r"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
+    }
+
+    def _core_regex(self, lang, group_id=None):
+        if group_id:
+            reg = r"(?P<" + group_id + r">"
+        else:
+            reg = r"("
+
+        if lang == "en":
+            reg += r"\d+[abcdᵃᵇᶜᵈ]?)"
+        elif lang == "he":
+            # todo: How do these references look in Hebrew?
+            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
+
+        return reg
+
+    def stop_parsing(self, lang):
+        if lang == "he":
+            return True
+        return False
+
+    def toNumber(self, lang, s):
+        if lang == "en":
+            try:
+                if s[-1] in ["a", "b", "c", "d", 'ᵃ', 'ᵇ', 'ᶜ', 'ᵈ']:
+                    amud = s[-1]
+                    daf = int(s[:-1])
+                else:
+                    amud = "a"
+                    daf = int(s)
+            except ValueError:
+                raise InputError("Couldn't parse Talmud reference: {}".format(s))
+
+            if self.length and daf > self.length:
+                #todo: Catch this above and put the book name on it.  Proably change Exception type.
+                raise InputError("{} exceeds max of {} dafs.".format(daf, self.length))
+
+            indx = daf * 4
+            if amud == "a" or amud == "ᵃ":
+                indx -= 3
+            if amud == "b" or amud == "ᵇ":
+                indx -= 2
+            if amud == "c" or amud == "ᶜ":
+                indx -= 1
+            return indx
+        elif lang == "he":
+            # todo: This needs work
+            num = re.split("[.:,\s]", s)[0]
+            daf = decode_hebrew_numeral(num) * 2
+            if s[-1] == ":" or (
+                    s[-1] == "\u05d1"    #bet
+                        and
+                    ((len(s) > 2 and s[-2] in ", ")  # simple bet
+                     or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"bet
+                     or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''bet
+                    )
+            ):
+                return daf  # amud B
+            return daf - 1
+
+            #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
+
+    @classmethod
+    def toStr(cls, lang, i, **kwargs):
+        """
+
+        1 => 1a
+        2 => 1b
+        3 => 1c
+        4 => 1d
+        5 => 2a
+        6 => 2b
+        etc.
+
+        (i // 4) + 1
+        """
+        daf_num = ((i - 1) // 4) + 1
+        mod = i % 4
+        folio = "a" if mod == 1 else "b" if mod == 2 else "c" if mod == 3 else "d"
+        daf = str(daf_num) + folio
+
+        # todo
+        if lang == "he":
+            dotted = kwargs.get("dotted")
+            if dotted:
+                daf = encode_hebrew_daf(daf)
+            else:
+                punctuation = kwargs.get("punctuation", True)
+                if i > daf_num * 2:
+                    daf = ("%s " % sanitize(encode_small_hebrew_numeral(daf_num), punctuation) if daf_num < 1200 else encode_hebrew_numeral(daf_num, punctuation=punctuation)) + "\u05d1"
+                else:
+                    daf = ("%s " % sanitize(encode_small_hebrew_numeral(daf_num), punctuation) if daf_num < 1200 else encode_hebrew_numeral(daf_num, punctuation=punctuation)) + "\u05d0"
+
+        return daf
+
+    def format_count(self, name, number):
+        if name == "Daf":
+            return {
+                "Amud": number,
+                "Daf": number / 2
+            }
+        else:  #shouldn't get here
+            return {name: number}
+
+    def storage_offset(self):
+        return 0
+
+
 class AddressInteger(AddressType):
     """
     :class:`AddressType` for Integer addresses
@@ -2060,7 +2218,7 @@ class AddressInteger(AddressType):
         elif lang == "he":
             return decode_hebrew_numeral(s)
 
-
+''' Never used
 class AddressYear(AddressInteger):
     """
     :class: AddressYear stores Hebrew years as numbers, for example 778 for the year תשע״ח
@@ -2079,6 +2237,7 @@ class AddressYear(AddressInteger):
         elif lang == "he":
             punctuation = kwargs.get("punctuation", True)
             return sanitize(encode_small_hebrew_numeral(i), punctuation) if i < 1200 else encode_hebrew_numeral(i, punctuation=punctuation)
+'''
 
 
 class AddressAliyah(AddressInteger):
@@ -2100,7 +2259,7 @@ class AddressPerek(AddressInteger):
         |\u05e4\u05bc?\u05b6?\u05e8\u05b6?\u05e7(?:\u05d9\u05b4?\u05dd)?\s*                  # or 'perek(ym)' spelled out, followed by space
         )"""
     }
-    
+
 
 class AddressPasuk(AddressInteger):
     section_patterns = {
@@ -2129,7 +2288,7 @@ class AddressVolume(AddressInteger):
     section_patterns = {
         "en": r"""(?:(?:[Vv](olumes?|\.))?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"""(?:\u05d1?                                 # optional ב in front
-        (?:\u05d7\u05b5?(?:\u05dc\u05b6?\u05e7|'|\u05f3)\s+)  # Helek - spelled out with nikkud possibly or followed by a ' or a geresh - followed by space
+        (?:\u05d7\u05b5?(?:\u05dc\u05b6?\u05e7|'|\u05f3|\u2018|\u2019)\s+)  # Helek - spelled out with nikkud possibly or followed by a ' or a geresh - followed by space
          |(?:\u05d7["\u05f4])                     # chet followed by gershayim or double quote
         )
         """
@@ -2141,7 +2300,7 @@ class AddressSiman(AddressInteger):
         "en": r"""(?:(?:[Ss]iman)?\s*)""",
         "he": r"""(?:\u05d1?
             (?:\u05e1\u05b4?\u05d9\u05de\u05b8?\u05df\s+)			# Siman spelled out with optional nikud, with a space after
-            |(?:\u05e1\u05d9(?:["\u05f4'\u05f3](?:['\u05f3]|\s+)))		# or Samech, Yued (for 'Siman') maybe followed by a quote of some sort
+            |(?:\u05e1\u05d9(?:["\u05f4'\u05f3\u2018\u2019](?:['\u05f3\u2018\u2019]|\s+)))		# or Samech, Yued (for 'Siman') maybe followed by a quote of some sort
         )"""
     }
 
@@ -2152,9 +2311,9 @@ class AddressHalakhah(AddressInteger):
     """
     section_patterns = {
         "en": r"""(?:(?:[Hh]ala[ck]hah?)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
-        "he": r"""(?:\u05d1? 
+        "he": r"""(?:\u05d1?
             (?:\u05d4\u05bb?\u05dc\u05b8?\u05db(?:\u05b8?\u05d4|\u05d5\u05b9?\u05ea)\s+)			# Halakhah spelled out, with a space after
-            |(?:\u05d4\u05dc?(?:["\u05f4'\u05f3](?:['\u05f3\u05db]|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
+            |(?:\u05d4\u05dc?(?:["\u05f4'\u05f3\u2018\u2019](?:['\u05f3\u2018\u2019\u05db]|\s+)))		# or Haeh and possible Lamed(for 'halakhah') maybe followed by a quote of some sort
         )"""
     }
 
@@ -2164,7 +2323,7 @@ class AddressSeif(AddressInteger):
         "en": r"""(?:(?:[Ss][ae]if)?\s*)""",  #  the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"""(?:\u05d1?
             (?:\u05e1[\u05b0\u05b8]?\u05e2\u05b4?\u05d9\u05e3\s+(?:\u05e7\u05d8\u05df)?)			# Seif spelled out, with a space after or Seif katan spelled out or with nikud
-            |(?:\u05e1(?:\u05e2\u05d9?|\u05e7)?(?:['\u05f3"\u05f4](?:['\u05f3]|\s+)))|	# or trie of first three letters followed by a quote of some sort
+            |(?:\u05e1(?:\u05e2\u05d9?|\u05e7)?(?:['\u2018\u2019\u05f3"\u05f4](?:['\u2018\u2019\u05f3]|\s+)))|	# or trie of first three letters followed by a quote of some sort
         )"""
     }
 

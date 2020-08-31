@@ -43,15 +43,17 @@ static_pages = [
     "torah-tab",
     "dicta-thanks",
     "daf-yomi",
-    "remote-learning"
+    "remote-learning",
+    "sheets",
+    "contest"
 ]
 
 
 # Static and Semi Static Content
 site_urlpatterns = [
     url(r'^$', reader_views.home, name="home"),
-    url(r'^enable_feed/?$', reader_views.enable_home_feed),
-    url(r'^disable_feed/?$', reader_views.disable_home_feed),
+    url(r'^enable_new_editor/?$', reader_views.enable_new_editor),
+    url(r'^disable_new_editor/?$', reader_views.disable_new_editor),
     url(r'^metrics/?$', reader_views.metrics),
     url(r'^digitized-by-sefaria/?$', reader_views.digitized_by_sefaria),
     url(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),
@@ -68,7 +70,7 @@ site_urlpatterns += [
     url(r'^request-a-text/?$', lambda x: HttpResponseRedirect('https://goo.gl/forms/ru33ivawo7EllQxa2')),
     url(r'^request-a-training/?$', lambda x: HttpResponseRedirect(' https://docs.google.com/forms/d/1CJZHRivM2qFeF2AE2afpvE1m86AgJPCxUEFu5EG92F8/edit?usp=sharing_eil&ts=5a4dc5e0')),
     url(r'^contribute/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki/Guide-to-Contributing')),
-    url(r'^faq/?$', lambda x: HttpResponseRedirect('https://github.com/Sefaria/Sefaria-Project/wiki#frequently-asked-questions')),
+    url(r'^faq/?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/groups/Sefaria-FAQs' if x.interfaceLang == 'english' else 'https://www.sefaria.org/groups/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90')),
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
     url(r'^[nN]echama/?', lambda x: HttpResponseRedirect("/groups/גיליונות-נחמה")),
@@ -80,4 +82,5 @@ site_urlpatterns +=[
     url(r'^workshop/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_SummerMeeting_2016.pdf')),
     url(r'^ideasforteaching/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
     url(r'^strategicplan/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Strategic_Plan.pdf')),
+    url(r'^annualreport/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Annual_Report_71420.pdf')),
 ]

@@ -1,7 +1,7 @@
-const React      = require('react');
-const Sefaria    = require('./sefaria/sefaria');
-const PropTypes  = require('prop-types');
-const classNames = require('classnames');
+import React  from 'react';
+import Sefaria  from './sefaria/sefaria';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
 import Component      from 'react-class';
 
 
@@ -40,7 +40,7 @@ class SearchTextResult extends Component {
             event.preventDefault();
             const s = this.props.data._source;
             const textHighlights = this.getHighlights();
-            console.log(textHighlights);
+            //console.log(textHighlights);
             Sefaria.track.event("Search", "Search Result Text Click", `${this.props.query} - ${s.ref}/${s.version}/${s.lang}`);
             this.props.onResultClick(s.ref, {[s.lang]: s.version}, { textHighlights });
         }
@@ -67,7 +67,7 @@ class SearchTextResult extends Component {
     render () {
         var data = this.props.data;
         var s = this.props.data._source;
-        const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${s.version.replace(/ /g, "_")}&qh=${this.props.query}`;
+        const href = `/${Sefaria.normRef(s.ref)}?v${s.lang}=${Sefaria.util.encodeVtitle(s.version)}&qh=${this.props.query}`;
 
         const more_results_caret =
             (this.state.duplicatesShown)
@@ -123,4 +123,4 @@ SearchTextResult.propTypes = {
 };
 
 
-module.exports = SearchTextResult;
+export default SearchTextResult;

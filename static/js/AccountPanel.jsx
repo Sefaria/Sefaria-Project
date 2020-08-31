@@ -1,30 +1,27 @@
-
-const {
+import {
   TwoOrThreeBox,
   BlockLink,
   ReaderNavigationMenuSection
-}                = require('./Misc');
-const React      = require('react');
-const PropTypes  = require('prop-types');
-const classNames = require('classnames');
-const Footer     = require('./Footer');
-const $          = require('./sefaria/sefariaJquery');
+} from './Misc';
+import React from 'react';
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
+import Sefaria  from './sefaria/sefaria';
+import Footer from './Footer';
+import $ from './sefaria/sefariaJquery';
 import Component from 'react-class';
 
 
 class AccountPanel extends Component {
-  componentDidMount() {
-    $(".inAppLink").on("click", this.props.handleInAppLinkClick);
-  }
   render() {
     const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
     const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
     var width = typeof window !== "undefined" ? $(window).width() : 1000;
     var accountContent = [
       (<BlockLink interfaceLink={true} target="/my/profile" title="Profile" heTitle="פרופיל" image="/static/img/profile.svg" />),
-      (<BlockLink interfaceLink={true} target="/sheets/private" inAppLink={true} title="Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
-      (<BlockLink interfaceLink={true} target="/my/notes" inAppLink={true} title="Notes" heTitle="הערות" image="/static/img/tools-write-note.svg" />),
-      (<BlockLink interfaceLink={true} target="/my/groups" inAppLink={true} title="Groups" heTitle="קבוצות" image="/static/img/group.svg" />),
+      (<BlockLink interfaceLink={true} target="/sheets/private" title="Sheets" heTitle="דפי מקורות" image="/static/img/sheet.svg" />),
+      (<BlockLink interfaceLink={true} target="/my/notes" title="Notes" heTitle="הערות" image="/static/img/tools-write-note.svg" />),
+      (<BlockLink interfaceLink={true} target="/my/groups" title="Groups" heTitle="קבוצות" image="/static/img/group.svg" />),
       (<BlockLink interfaceLink={true} target="/texts/recent" title="Reading History" heTitle="היסטורית קריאה" image="/static/img/readinghistory.svg" />),
       (<BlockLink interfaceLink={true} target="/settings/account" title="Settings" heTitle="הגדרות" image="/static/img/settings.svg" />),
     ];
@@ -59,7 +56,7 @@ class AccountPanel extends Component {
       (<BlockLink interfaceLink={true} target="mailto:hello@sefaria.org" title="Email" heTitle='אימייל' />)
     ];
     connectContent = (<TwoOrThreeBox content={connectContent} width={width} />);
-    
+
 
     var classes = {accountPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
     var classStr = classNames(classes);
@@ -91,4 +88,4 @@ AccountPanel.propTypes = {
 };
 
 
-module.exports = AccountPanel;
+export default AccountPanel;
