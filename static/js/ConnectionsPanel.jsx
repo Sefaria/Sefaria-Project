@@ -441,14 +441,14 @@ class ConnectionsPanel extends Component {
                     onSave={() => this.props.setConnectionsMode("Notes")}
                     onCancel={() => this.props.setConnectionsMode("Notes")} />
                   { Sefaria._uid ?
+                  <>
                   <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth">
                     <span className="int-en">Go to My Notes</span>
                     <span className="int-he">הרשומות שלי</span>
                   </a>
-                  : null }
                   <MyNotes
                     srefs={this.props.srefs}
-                    editNote={this.props.editNote} />
+                    editNote={this.props.editNote} /> </> : null }
                 </div>);
 
     } else if (this.props.mode === "Lexicon") {
