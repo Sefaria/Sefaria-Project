@@ -1124,6 +1124,7 @@ Sefaria = extend(Sefaria, {
   privateNotes: function(refs, callback) {
     // Returns an array of private notes for `refs` (a string or array or strings)
     // or `null` if notes have not yet been loaded.
+    if(!Sefaria.loggedIn) return;
     var notes = null;
     if (typeof refs == "string") {
       if (refs in this._privateNotes) {
