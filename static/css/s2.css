@@ -1653,7 +1653,7 @@ a.readerNavCategory {
 }
 @media (max-width: 450px) {
   .readerNavCategory {
-    font-size: 13px;
+    font-size: 16px;
   }
 }
 .readerNavMenu .readerNavMore span {
@@ -1863,8 +1863,9 @@ a.readerNavCategory {
   .readerNavMenu .refLink,
   .readerNavMenu .catLink,
   .readerNavMenu .navButton,
+  .readerNavMenu .sheetLink,
   .readerTextTableOfContents .refLink {
-    font-size: 14px;
+    font-size: 18px;
   }
 }
 .readerSheetsNav .navButton:hover {
