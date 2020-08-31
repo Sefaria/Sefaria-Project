@@ -235,8 +235,7 @@ class ReaderPanel extends Component {
     
     } else if (linkType === "sheet") {
       const ref = target.attr("data-ref");
-      const onTextClick = this.props.onNavTextClick || this.showBaseText;
-      onTextClick(ref);
+      this.openSheet(ref);
     
     } else if (linkType === "history") {
       this.openMenu("history");
@@ -360,6 +359,12 @@ class ReaderPanel extends Component {
       connectionsMode: "Resources",
       settings: this.state.settings
     });
+  }
+  async openSheet(sheetRef) {
+    const parsedRef = Sefaria.parseRef(sheetRef);
+    const [sheetId, sheetNode] = parsedRef.sections;
+    const sheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(sheetId, sheet => resolve(sheet))));
+    this.conditionalSetState({mode: 'Sheet', sheet, menuOpen: null});
   }
   toggleSheetEditMode(buttonstate) {
       if (buttonstate == true) {
