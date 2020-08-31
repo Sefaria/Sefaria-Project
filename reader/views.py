@@ -75,6 +75,25 @@ if server_coordinator:
     server_coordinator.connect()
 #    #    #
 
+
+def user_credentials(request):
+    if request.user.is_authenticated:
+        return {"user_type": "session", "user_id": request.user.id}
+    else:
+        req_key = request.POST.get("apikey", None)
+        header_key = request.META.get("HTTP_X_API_KEY", None) #request.META["HTTP_AUTHORIZATION"]?
+        key = req_key if req_key else header_key
+        if not key:
+            return {"user_type": "session", "user_id": None, "error": "You must be logged in or use an API key to add, edit or delete links."}
+        apikey = db.apikeys.find_one({"key": key})
+        if not apikey:
+            return {"user_type": "API", "user_id": None, "error": "Unrecognized API key."}
+        #user = User.objects.get(id=apikey["uid"])
+        return {"user_type": "API", "user_id": apikey["uid"]}
+
+
+
+
 @ensure_csrf_cookie
 def catchall(request, tref, sheet=None):
     """
@@ -1850,12 +1869,13 @@ def notes_api(request, note_id_or_ref):
     A call to this API with GET returns the list of public notes and private notes belong to the current user on this Ref.
     """
     if request.method == "GET":
+        creds = user_credentials(request)
         if not note_id_or_ref:
             raise Http404
         oref = Ref(note_id_or_ref)
         cb = request.GET.get("callback", None)
         private = request.GET.get("private", False)
-        res = get_notes(oref, uid=request.user.id, public=(not private))
+        res = get_notes(oref, uid=creds["user_id"], public=(not private))
         return jsonResponse(res, cb)
 
     if request.method == "POST":
