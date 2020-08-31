@@ -447,6 +447,7 @@ class ReaderPanel extends Component {
   openMenu(menu) {
     this.conditionalSetState({
       menuOpen: menu,
+      mode: "Text",
       initialAnalyticsTracked: false,
       // searchQuery: null,
       // appliedSearchFilters: [],
@@ -454,6 +455,7 @@ class ReaderPanel extends Component {
       navigationTopic: null,
       navigationTopicTitle: null,
       topicTitle: null,
+      sheet: null,
     });
   }
   setNavigationCategories(categories) {
