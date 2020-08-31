@@ -276,7 +276,7 @@ class ReaderPanel extends Component {
           this.props.onSegmentClick(sheetRef, source.node)
         }
       } else {
-          this.openSheetConnectionsInPanel(sheetRef, source.node);
+          this.openSheetConnectionsInPanel(source.ref || sheetRef, source.node);
       }
     }
   }
@@ -615,7 +615,9 @@ class ReaderPanel extends Component {
   }
   currentRef() {
     // Returns a string of the current ref, the first if there are many
-    return this.state.refs && this.state.refs.length ? this.state.refs[0] : null;
+    return this.state.refs && this.state.refs.length ? this.state.refs[0] 
+            : this.state.highlightedRefs && this.state.highlightedRefs ? this.state.highlightedRefs[0]
+              : null;
   }
   currentData() {
     // Returns the data from the library of the current ref
