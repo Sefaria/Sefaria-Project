@@ -106,9 +106,6 @@ class Sheet extends Component {
            }
         }}>
             {this.props.editor == true && sheet ? <div className="sheetContent"><SefariaEditor data={sheet} /></div> : content}
-
-
-
         </div>
     )
   }
@@ -130,7 +127,7 @@ class SheetContent extends Component {
     var segment = $(event.target).closest(".readerPanel").find('.segment.highlight');
 
     if (segment.length == 0) {
-        return
+        return;
     }
 
     //scroll down
@@ -148,12 +145,9 @@ class SheetContent extends Component {
 
   }
   scrollToHighlighted() {
-    var $container   = $(ReactDOM.findDOMNode(this));
-    var $readerPanel = $container.closest(".readerPanel");
+    var $container   = $(ReactDOM.findDOMNode(this)).closest(".sheetsInPanel");
     var $highlighted = $container.find(".segment.highlight").first();
     if ($highlighted.length) {
-      this.scrolledToHighlight = true;
-      this.justScrolled = true;
       var offset = 20;
       $container.scrollTo($highlighted, 0, {offset: -offset});
       $highlighted.focus();

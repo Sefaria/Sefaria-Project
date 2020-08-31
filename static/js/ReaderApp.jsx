@@ -1713,7 +1713,7 @@ class ReaderApp extends Component {
   getHistoryObject(panel, hasSidebar) {
     // get rave to send to /api/profile/user_history
     let ref, sheet_owner, sheet_title;
-    if (panel.mode === 'Sheet') {
+    if (panel.mode === 'Sheet' || panel.mode === "SheetAndConnections") {
       ref = `Sheet ${panel.sheet.id}${panel.highlightedNodes ? `:${panel.highlightedNodes}`: ''}`;
       sheet_owner = panel.sheet.ownerName;
       sheet_title = panel.sheet.title;
@@ -1721,6 +1721,7 @@ class ReaderApp extends Component {
       ref = (hasSidebar && panel.highlightedRefs && panel.highlightedRefs.length) ? Sefaria.normRef(panel.highlightedRefs) : (panel.currentlyVisibleRef || panel.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
     }
     const parsedRef = Sefaria.parseRef(ref);
+    if (!ref) { debugger; }
     return {
       ref,
       versions: panel.currVersions,

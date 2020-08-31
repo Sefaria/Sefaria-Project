@@ -280,6 +280,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         "highlightedNodes": highlighted_node
     }
 
+    ref = None
     if highlighted_node:
         ref = next((element["ref"] for element in sheet["sources"] if element.get("ref") and element["node"] == int(highlighted_node)), None)
 

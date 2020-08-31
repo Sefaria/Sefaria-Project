@@ -244,8 +244,6 @@ class ReaderPanel extends Component {
       Sefaria._uid ? this.openMenu("saved") : this.props.toggleSignUpModal();
 
     }
-
-
   }
   clonePanel(panel) {
     // Todo: Move the multiple instances of this out to a utils file
@@ -265,6 +263,7 @@ class ReaderPanel extends Component {
   handleSheetSegmentClick(source) {
     // console.log(source);
     this.conditionalSetState({highlightedNodes: source.node});
+    const sheetRef = "Sheet " + this.state.sheet.id + ":" + source.node;
     if (this.state.mode ==="SheetAndConnections") {
       this.closeSheetConnectionsInPanel();
     }
@@ -274,12 +273,10 @@ class ReaderPanel extends Component {
           this.props.onSegmentClick(Sefaria.splitRangingRef(source.ref), source.node);
         }
         else {
-          this.props.onSegmentClick("Sheet " + this.state.sheet.id+":"+source.node, source.node)
+          this.props.onSegmentClick(sheetRef, source.node)
         }
       } else {
-          if (source.ref) {
-            this.openSheetConnectionsInPanel(source.ref, source.node);
-          }
+          this.openSheetConnectionsInPanel(sheetRef, source.node);
       }
     }
   }
