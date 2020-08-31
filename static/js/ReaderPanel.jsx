@@ -235,7 +235,7 @@ class ReaderPanel extends Component {
     
     } else if (linkType === "sheet") {
       const ref = target.attr("data-ref");
-      this.openSheet(ref);
+      this.props.onNavTextClick ? this.props.onNavTextClick(ref) : this.openSheet(ref);
     
     } else if (linkType === "history") {
       this.openMenu("history");
