@@ -2173,6 +2173,10 @@ sjs.sheetTagger = {
 			select: function(event, ui) {
 				sjs.sheetTagger.addTagFromInput(ui.item.value);
 			},
+			focus: ( event, ui ) => {
+                $(".ui-menu-item.ui-state-focus").removeClass("ui-state-focus");
+                $("a.ui-state-focus").parent().addClass("ui-state-focus");
+            },
 			minLength: 3
 		});
 	},

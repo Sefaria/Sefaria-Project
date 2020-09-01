@@ -697,7 +697,11 @@ class Util {
                 },
                 position: {my: this.dropdownAnchorSide + " top", at: this.dropdownAnchorSide + " bottom"},
                 select: (event, ui) => this._lookupAndRoute(ui.item.value),
-                minLength: 3
+                minLength: 3,
+                focus: ( event, ui ) => {
+                  $(".ui-menu-item.ui-state-focus").removeClass("ui-state-focus");
+                  $("a.ui-state-focus").parent().addClass("ui-state-focus");
+                }
             });
     };
 }
