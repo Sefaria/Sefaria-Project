@@ -180,32 +180,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	text-align: left;
 }
 
-#controls .circleButton {
-	display: block;
-	text-align: center;
-	margin-bottom: 10px;
-	cursor: pointer;
-	color: white;
-	background-color: #06c;
-	position: relative;
-	font-size: 18px;
-	width: 60px;
-	height: 60px;
-	line-height: 60px;
-	vertical-align: middle;
-	border-radius: 50%;
-	box-shadow: 0 0 4px rgba(0,0,0,.14),0 4px 8px rgba(0,0,0,.28);
-}
-
-#controls .circleButton:hover {
-	background-color: #08c;
-}
-
-#controls .circleButton > .fa {
-	position: relative;
-	top: 2px;
-}
-
 .optionsMenu {
 	color: black;
 	position: absolute;
@@ -1979,9 +1953,14 @@ body.hasBannerMessage .sheetsEditNavTop {
 }
 
 #customTextLanguageToggle .toggleOption {
-	height: 30px;
+	height: 35px;
 	line-height: inherit;
 	width: 50px;
+	margin-left: -5px;
+}
+
+#customTextLanguageToggle .toggleOption:hover {
+	background-color: #ccc;
 }
 
 #customTextLanguageToggle .toggleOption img {
@@ -2017,7 +1996,6 @@ body.hasBannerMessage .sheetsEditNavTop {
 	margin-bottom:40px;
 }
 
-
 .contentToAdd {
 	padding: 10px;
 	border: 1px solid #cecece;
@@ -2030,17 +2008,16 @@ body.hasBannerMessage .sheetsEditNavTop {
 	margin-left:6px;
 }
 
-
 .contentToAdd > * {
 	margin:0 !important;
 }
 
-
-.customTextEditables.en {
+#sheet #addcustomTextDiv .customTextEditables.en {
 	font-family: "Times New Roman", "Georgia", serif;
 }
-.customTextEditables.he {
+#sheet #addcustomTextDiv .customTextEditables.he {
 	text-align: right;
+	display: block;
 }
 #sheetsContent #inlineAddMediaInput {
 	width: 280px;

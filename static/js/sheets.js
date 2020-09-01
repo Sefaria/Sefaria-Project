@@ -75,19 +75,6 @@ window.onerror = function (errorMsg, url, lineNumber) {
 
 $(function() {
 
-	// ------------- Top Controls -------------------
-
-
-		$( ".circleButton" ).hover(
-	  function() {
-		$('.cke_editable').each(function() {
-			sjs.removeCKEditorByElement(this);
-	  });
-	  },
-	  function() {
-
-	  }
-	);
 
 	function makeMediaEmbedLink(mediaURL) {
     	let embedHTML;
@@ -669,11 +656,8 @@ $(function() {
 					// Outside (bilingual)
 					} else if ($el.closest(".outsideBi").length) {
 						var $outsideBi = $el.closest(".outsideBiWrapper");
-						if ($outsideBi.find(".he").text() === "עברית") {
-							$outsideBi.find(".en").html("<i>English</i>");
-						} else if ($outsideBi.find(".en").text() === "English") {
-							$outsideBi.find(".he").html("<i>עברית</i>");
-						} else {
+						if ($outsideBi.find(".text .he").text() === "" &&
+							$outsideBi.find(".text .en").text() === "") {
 							$outsideBi.remove();
 						}
 					}
@@ -747,7 +731,6 @@ $(function() {
 						sjs.removeCKEditor(e);
 						e.cancel();
 					}
-
 				});
 			}
 		    var ed = $(this).ckeditorGet();
@@ -1274,16 +1257,22 @@ $(function() {
     $("#addcustomTextDiv").on("click", ".button", function(e) {
       var $target = $("#addInterface").prev(".sheetItem");
       if ($(this).prev(".flexContainer").find(".contentToAdd:visible").length == 1) {
+      	var text = $(this).prev(".flexContainer").find(".contentToAdd:visible").html();
+      	text = text.stripHtml() == "English" || text == "עברית" ? "" : text;
         source = {
-          outsideText: $(this).prev(".flexContainer").find(".contentToAdd:visible").html(),
+          outsideText: text,
           isNew: true
         };
       }
       else {
+        var en = $(this).prev(".flexContainer").find(".en").html();
+        var he = $(this).prev(".flexContainer").find(".he").html();
+        en = en.stripHtml() == "English" ? "" : en;
+        he = he.stripHtml() == "עברית" ? "" : he;
         source = {
           outsideBiText: {
-            en: $(this).prev(".flexContainer").find(".en").html(),
-            he: $(this).prev(".flexContainer").find(".he").html()
+            en: en,
+            he: he,
           }, isNew: true
         };
       }
@@ -1296,7 +1285,12 @@ $(function() {
       $("#customTextContainer .contentToAdd.en").html('English');
       $("#customTextContainer .contentToAdd.he").html('עברית');
       $("#sheet").click();
-      //	$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
+    });
+
+    $("#addcustomTextDiv").on("focus", ".contentToAdd", function(e) {
+    	if ($(this).html() == "English" || $(this).html() == "עברית") {
+    		$(this).html("");
+    	}
     });
 
     $("#addcustomTextDiv").on("keydown", ".button", function(e) {
@@ -2357,10 +2351,8 @@ function addSource(q, source, appendOrInsert, $target) {
 		$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he, .contentToAdd").off("mouseup")
 			.on("mouseup", sjs.initCKEditor);
 	}
-
-
-
 }
+
 
 function placed_segment_mapper(lang, segmented, includeNumbers, s) {
     if (!s[lang]) {return ""}
@@ -2376,6 +2368,7 @@ function placed_segment_mapper(lang, segmented, includeNumbers, s) {
     }
     return str;
 }
+
 
 function loadSource(data, $target, optionStr) {
 
