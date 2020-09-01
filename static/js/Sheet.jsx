@@ -1,3 +1,12 @@
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import sanitizeHtml  from 'sanitize-html';
+import Component from 'react-class'
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import SefariaEditor from './Editor';
 import {
   LoadingMessage,
   ReaderMessage,
@@ -7,16 +16,6 @@ import {
   GroupStatement,
   ProfilePic,
 } from './Misc';
-
-import React  from 'react';
-import ReactDOM  from 'react-dom';
-import PropTypes  from 'prop-types';
-import classNames  from 'classnames';
-import SefariaEditor from './Editor';
-import $  from './sefaria/sefariaJquery';
-import Sefaria  from './sefaria/sefaria';
-import sanitizeHtml  from 'sanitize-html';
-import Component from 'react-class'
 
 
 class Sheet extends Component {
@@ -67,6 +66,13 @@ class Sheet extends Component {
     var width = Sefaria.util.getScrollbarWidth();
     this.$container.css({paddingRight: 0, paddingLeft: width});
   }
+  setScrollDir(event) {
+    if (event.nativeEvent.wheelDelta > 0) {
+      this.setState({scrollDir: "up"});
+    } else {
+      this.setState({scrollDir: "down"});
+    }
+  }
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
@@ -96,16 +102,11 @@ class Sheet extends Component {
           />
       )
     }
-
     return (
-        <div className={classes} onWheel={ event => {
-           if (event.nativeEvent.wheelDelta > 0) {
-             this.setState({scrollDir: "up"});
-           } else {
-             this.setState({scrollDir: "down"});
-           }
-        }}>
-            {this.props.editor == true && sheet ? <div className="sheetContent"><SefariaEditor data={sheet} /></div> : content}
+        <div className={classes} onWheel={this.setScrollDir}>
+          {this.props.editor == true && sheet ? 
+            <div className="sheetContent"><SefariaEditor data={sheet} /></div> 
+            : content}
         </div>
     )
   }
