@@ -51,7 +51,7 @@ $(window).on("beforeunload", function() {
 	}
 });
 
-//hide
+//hide dixed bottom message when scrolled to the bottom of the page so footer is visible
 $(window).scroll(function() {
   var fixedBottom = $("#fileControls");
   if ($('body').height() <= ($(window).height() + $(window).scrollTop())) {
@@ -60,6 +60,7 @@ $(window).scroll(function() {
     fixedBottom.css("display", "block");
   }
 })
+
 var oldOnError = window.onerror || function(){};
 function errorWarning(errorMsg, url, lineNumber) {
 	if (sjs.can_edit || sjs.can_add) {
@@ -67,6 +68,7 @@ function errorWarning(errorMsg, url, lineNumber) {
 		" your work is properly saved."))
 	}
 }
+
 window.onerror = function (errorMsg, url, lineNumber) {
  	oldOnError(errorMsg, url, lineNumber);
 	errorWarning(errorMsg, url, lineNumber);
@@ -74,7 +76,6 @@ window.onerror = function (errorMsg, url, lineNumber) {
 };
 
 $(function() {
-
 
 	function makeMediaEmbedLink(mediaURL) {
     	let embedHTML;
@@ -784,10 +785,6 @@ $(function() {
 		}
 	}
 
-
-
-
-
 	// ---------- Save Sheet --------------
 	$("#save").click(handleSave);
 	$("#save").keydown(function(e){
@@ -795,9 +792,6 @@ $(function() {
 			handleSave();
 		}
 	});
-
-
-
 
 	// ---------- Share Sheet --------------
 	$("#share").click(showShareModal);
@@ -808,14 +802,11 @@ $(function() {
 	});
 	$("#sheetMetadata span.editButton").click(showShareModal);
 
-
 	// ---------- Copy Sheet ----------------
 	$("#copySheet").click(copySheet);
 
-
 	// ---------- Embed Sheet ----------------
 	$("#embedSheet").click(showEmebed);
-
 
 	// ---------- Delete Sheet ----------------
 	$("#deleteSheet").click(deleteSheet);
@@ -1012,7 +1003,6 @@ $(function() {
             "</div>";
 
 
-
   // Add Interface
   if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
 
@@ -1163,7 +1153,6 @@ $(function() {
           connectionsToSource += "</div>";
 
           $("#connectionsToAdd").html(connectionsToSource);
-
         }
       });
     });
@@ -1184,7 +1173,6 @@ $(function() {
       autoSave();
       $("#addcommentDiv .contentToAdd").html('<br>');
       $("#sheet").click();
-      //$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
     });
 
     $("#addcommentDiv").on("keydown", ".button", function(e) {
@@ -1308,8 +1296,8 @@ $(function() {
       $("#connectionButton").hide();
 
       if ($("#textBrowser").is(":visible")) {
-      	return
-			};
+      	return;
+	  };
 
       cleanupActiveSource(e.target);
     });
@@ -1431,6 +1419,7 @@ $(function() {
 
     $("#sheet").click();
   } // End Setup for editors / adders
+
 
 	$("#sheet").on( "mouseenter", ".sheetItem", function(e) {
 
@@ -1579,7 +1568,6 @@ $(function() {
 		Sefaria.track.sheets("Edit Source Title", ref);
 	});
 
-
 	// Reset Source Text
 	$(".resetSource").on("click", function() {
 		var options = {
@@ -1598,9 +1586,7 @@ $(function() {
 		};
 
 		sjs.alert.options(options, resetSource);
-
-	 });
-
+	});
 
 	$(".parshahToAdd").click(function(){
 		$("#addParashaToSheetModal, #overlay").hide();
@@ -1633,9 +1619,7 @@ $(function() {
 		$("#overlay").show();
 	});
 
-
 	$("#addParashaToSheetModal .cancel").click(function() {
-
 		$("#addParashaToSheetModal, #overlay").hide();
 	});
 
@@ -1647,13 +1631,13 @@ $(function() {
 		$("#shareWithOthers, #overlay").hide();
 		$("#sheetSummary").text($("#sheetSummaryInput").val());
 
-    //save whole sheet if possible, otherwise, just save sheet tags:
-    if (sjs.can_save) {
-			autoSave();
-	} else {
-    	var topics = JSON.stringify(sjs.sheetTagger.topics());
-    	$.post("/api/sheets/" + sjs.current.id + "/topics", {"topics": topics});
-    }
+	    //save whole sheet if possible, otherwise, just save sheet tags:
+	    if (sjs.can_save) {
+				autoSave();
+		} else {
+	    	var topics = JSON.stringify(sjs.sheetTagger.topics());
+	    	$.post("/api/sheets/" + sjs.current.id + "/topics", {"topics": topics});
+	    }
 	});
 
 	$("#shareWithOthers").on("change keyup keydown paste cut", "#sheetSummaryInput", function (){
@@ -1711,8 +1695,6 @@ $(function() {
 
 	$(".highlighterTagWindow").on('click','.close-button', function() {closeHighlighterTagWindow()});
 
-
-
 	function saveNewlyCreatedTag(newTagName,newTagColor) {
 		if (newTagName !== _('Create New') && newTagName !== "") {
 			$(".sheetHighlighterTags").append('<div class="splitHighlighterSegment" data-tagname="' + newTagName + '"><div class="colorSwatch active" style="background-color: ' + newTagColor + '"></div><div class="tagName">' + newTagName + '</div><div class="editCheckToggle">✎</div></div>');
@@ -1740,8 +1722,6 @@ $(function() {
 			}
 		}
 	}
-
-
 
 	$(".createNewHighlighterTag .tagName").keydown(function(e){
 		if (e.which == 13) {
@@ -1857,17 +1837,11 @@ $(function() {
 
 	resetSplitHighlighterSegment();
 
-
 	resetHighlighterInteractivity();
 
 	resetHighlighterFilterTags();
 
-
-
-
-
 	$("#overrideLayoutModal .ok").click(function(){
-
 		//check to see if current source layout matches sheet layout -- if so, remove classes & let the parent be in charge
 		if (
 		$("#sheetLayoutToggle").find(".active").attr("id") == $("#sheetLayoutToggleSource").find(".active").attr("id").replace("Source","")
@@ -1882,11 +1856,7 @@ $(function() {
 		autoSave();
 	});
 
-
-
-
 	// Change Source Layout via modal
-
 	$("#sideBySideSource, #stackedSource").click(function(){
 		var $target = $("#overrideLayoutModal").data("target");
 		$("#sheetLayoutToggleSource .toggleOption").removeClass("active");
@@ -1902,7 +1872,6 @@ $(function() {
 		}
 		Sefaria.track.sheets("Change Source Layout Button");
 	});
-
 
 	// Change Source Language via modal
 	$("#hebrewSource, #englishSource, #bilingualSource").click(function(){
@@ -1934,9 +1903,6 @@ $(function() {
 		Sefaria.track.sheets("Change Source Language Layout Button");
 	});
 
-
-
-
 	// Remove all custom source language/layout overrides:
 	$("#resetToDefaults").on("click", function() {
 		var $target = $("#overrideLayoutModal").data("target");
@@ -1945,8 +1911,6 @@ $(function() {
 		autoSave();
 		Sefaria.track.sheets("Reset Source Layout to Default");
 	});
-
-
 
 	// Add All Connections
     function SortBySourceRef(x,y) {
@@ -1958,8 +1922,6 @@ $(function() {
 		  if (x.commentaryNum > y.commentaryNum) return 1;
 		  return 0;
     }
-
-
 
 	var autoAddConnetions =  function() {
 		var ref = $(this).parents(".source").attr("data-ref");
@@ -2093,7 +2055,7 @@ $(function() {
 	}
 
 	// fix for touchscreens to access hover elements (in particular menubar)
-  $('*').on('touchstart', function () {
+    $('*').on('touchstart', function () {
 		$(this).trigger('hover');
 	}).on('touchend', function () {
 		$(this).trigger('hover');
@@ -2123,9 +2085,7 @@ if( navigator.userAgent.match(/iPhone|iPad|iPod/i) ) {
 				$(document).off('scroll', updateSheetsEditNavTopPosOnScroll);
 			}
 		});
-
 }
-
 
 
 }); // ------------------ End DOM Ready  ------------------
@@ -2531,7 +2491,7 @@ function readSheet() {
 	}
 
 	return sheet;
-}
+} // end readSheet
 
 
 function readSources($target) {
@@ -2691,7 +2651,6 @@ function readSource($target) {
 							 indented: sourceIndentLevel,
 							 sourcePrefix: $target.attr("data-sourceprefix") ? $target.attr("data-sourceprefix") : "",
 		};
-
 	}
 
 	 else if ($target.hasClass("mediaWrapper")) {
@@ -2721,7 +2680,6 @@ function readSource($target) {
 		}
 	}
 
-
 	// Add attributions info if present
 	var addedBy = $target.attr("data-added-by");
 	if (addedBy) {
@@ -2729,7 +2687,7 @@ function readSource($target) {
 	}
 	source.node = parseInt($target.attr("data-node"));
 	return source;
-}
+} // end readSource
 
 
 function validateSheet(sheet) {
@@ -2894,7 +2852,6 @@ function buildSheet(data){
 			$(".highlighterFilterTags").append('<div class="optionItem highlightFilterSelection"><input type="checkbox" name="highlighterFilterTags" id="'+data.highlighterTags[i].name+'_highlighterTag" value="'+data.highlighterTags[i].name+'" checked="checked"> <label for="'+ data.highlighterTags[i].name +'_highlighterTag" style="background-color: '+data.highlighterTags[i].color+'">'+data.highlighterTags[i].name+'</label></div>');
 		}
 	}
-
 }
 
 
@@ -2904,6 +2861,7 @@ function buildSources($target, sources) {
 		buildSource($target, sources[i]);
 	}
 }
+
 
 function buildSource($target, source, appendOrInsert) {
 	appendOrInsert = typeof appendOrInsert !== 'undefined' ? appendOrInsert : 'append';
@@ -2927,7 +2885,6 @@ function buildSource($target, source, appendOrInsert) {
 		if ("options" in source) {
 			$(".sheetItem").last().addClass(source.options.sourceLayout+" "+source.options.sourceLanguage+" "+source.options.sourceLangLayout+" "+source.options.indented)
 		}
-
 
 		if (source.title) {
 			$(".customTitle").last().html(source.title).css('display', 'inline-block');
@@ -3126,9 +3083,8 @@ function buildSource($target, source, appendOrInsert) {
 		$(".addedByMe .comment, .addedByMe  .outside, .addedByMe .customTitle, .addedByMe .text .en, .addedByMe .text .he, .contentToAdd").off("mouseup")
 			.on("mouseup", sjs.initCKEditor);
 	}
+} // end buildSource
 
-
-}
 
 function appendInlineAddButton(source) {
 		if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
@@ -3139,7 +3095,6 @@ function appendInlineAddButton(source) {
 		}
 	return button
 }
-
 
 
 function attributionDataString(uid, newItem, classStr) {
@@ -3190,8 +3145,6 @@ sjs.saveLastEdit = function($el) {
 	}
 
 	$el.removeClass("new");
-
-
 };
 
 
@@ -3386,7 +3339,6 @@ function rebuildUpdatedSheet(data) {
 	resetHighlighterInteractivity();
 
 	sjs.changesPending = false;
-
 }
 
 
@@ -3432,7 +3384,6 @@ $("#addToSheetModal .cancel").click(function() {
 
 $("#assignmentsModal .ok").click(function() {
 	$("#overlay, #assignmentsModal").hide();
-
 });
 
 $("#addToSheetModal .ok").click(function(){
@@ -3512,6 +3463,7 @@ function copySheet() {
 
 }
 
+
 function exportToDrive() {
 	$("#overlay").show();
 	sjs.alert.message('<span class="int-en">Syncing with Google Docs...</span><span class="int-he">מייצא לגוגל דרייב...</span>');
@@ -3540,6 +3492,7 @@ function exportToDrive() {
 	});
 }
 
+
 function fillEmptyHighlighterSegments() {
 		$( ".highlighter" ).each(function( index ) {
 			if ($(this).find(".en").html() == "") {
@@ -3548,9 +3501,9 @@ function fillEmptyHighlighterSegments() {
 			if ($(this).find(".he").html() == "") {
 				$(this).find(".he").html("<div class='highlighterSegment'>"+$(this).siblings('.text').find('.he').html().stripHtml()+"</div>")
 			}
-
 		});
 }
+
 
 function toggleHighlighter() {
 	if ($("#sheet").hasClass("highlightMode")) {
@@ -3579,6 +3532,7 @@ function toggleHighlighter() {
 		}
 }
 
+
 function showEmebed() {
 	$("#embedSheetModal").show().position({of: window})
 			.find("textarea").focus()
@@ -3588,6 +3542,7 @@ function showEmebed() {
 			});
 	$("#overlay").show();
 }
+
 
 function showShareModal(){
 	$("#shareWithOthers").show().position({of: window});
@@ -3684,8 +3639,6 @@ function substituteDivineNamesInNode(node) {
 		find: sjs.elokaRE,
 		replace:  "$1$2$3"+elokaiSub+"$5"
 	});
-
-
 }
 
 
@@ -3713,8 +3666,6 @@ function promptToPublish() {
 	$("#publishPromptModal").show();
 	$("#overlay").show();
 	Sefaria.track.sheets("Publish Prompt");
-
-
 }
 
 
@@ -3727,6 +3678,7 @@ var afterAction = function() {
 	}
 	resetHighlighterInteractivity();
 };
+
 
 // ------------------ Upload locally stored images to Imgur ------------------
 
@@ -3755,6 +3707,7 @@ var addmediaChooseFile = function() {
   }
 };
 
+
 var addmediaUploadImageToImgur = function(imageData) {
   $.ajax({
     url: "https://api.imgur.com/3/image",
@@ -3778,7 +3731,6 @@ var addmediaUploadImageToImgur = function(imageData) {
     }
   });
 };
-
 $("#addmediaFileSelector").change(addmediaChooseFile);
 
 
@@ -3814,6 +3766,7 @@ function resetSplitHighlighterSegment() {
 	});
 }
 
+
 function injectSelectionColor(color) {
 	var sel = window.getSelection();
 	sel.removeAllRanges();
@@ -3823,6 +3776,7 @@ function injectSelectionColor(color) {
   }).appendTo("body");
 	setTimeout(function(){ sel.addRange(sjs.selection); }, 20);
 }
+
 
 function resetHighlighterInteractivity() {
 	if (sjs.is_owner) {
@@ -3866,11 +3820,13 @@ function resetHighlighterInteractivity() {
 	}
 }
 
+
 function closeHighlighterTagWindow() {
 	$("#tempSelectOverride").remove();
 	$(".highlighterTagWindow").hide();
 	$(".splitHighlighterSegment").removeClass('active');
 }
+
 
 function resetHighlighterFilterTags() {
 	$(".highlighterFilterTags").off();
@@ -3884,6 +3840,7 @@ function resetHighlighterFilterTags() {
 	});
 }
 
+
 function saveSelection() {
 		if (window.getSelection) {
 				var sel = window.getSelection();
@@ -3895,6 +3852,7 @@ function saveSelection() {
 		}
 		return null;
 }
+
 
 function restoreSelection(range) {
 		if (range) {
