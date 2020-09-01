@@ -341,12 +341,6 @@ class ConnectionsPanel extends Component {
                     fullPanel={this.props.fullPanel}
                     toggleSignUpModal = {this.props.toggleSignUpModal}
                     setConnectionsMode={this.props.setConnectionsMode}/>
-                  { Sefaria._uid ?
-                  <a href="/sheets/private" className="allSheetsLink button transparent bordered fillWidth">
-                    <span className="int-en">Go to My Sheets</span>
-                    <span className="int-he">דפי המקורות שלי</span>
-                  </a>
-                  : null }
                   { this.props.srefs[0].indexOf("Sheet") == -1 ?
                   <MySheetsList
                     srefs={this.props.srefs}

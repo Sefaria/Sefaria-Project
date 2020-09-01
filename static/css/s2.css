@@ -3999,6 +3999,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   filter: invert(100%);
   -webkit-filter: invert(100%);
 }
+.readerPanel .segment .segmentNumber .en,
+.readerPanel .segment .segmentNumber .he {
+  text-align: center;
+}
 .readerPanel.english .segment .segmentNumber {
   left: -48px;
 }
@@ -4041,6 +4045,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .singlePanel .readerPanel.english .sheetItem.segment .linkCount {
   left: auto;
   right: -30px;
+}
+.readerPanel.english .segment.heOnly .segmentNumber .he,
+.readerPanel.bilingual .segment.heOnly .segmentNumber .he,
+.readerPanel.hebrew .segment.enOnly .segmentNumber .en {
+  display: none;
+}
+.readerPanel.english .segment.heOnly .segmentNumber .en,
+.readerPanel.bilingual .segment.heOnly .segmentNumber .en,
+.readerPanel.hebrew .segment.enOnly .segmentNumber .he {
+  display: block;
 }
 .segment .refLink {
   font-size: .8em;
@@ -7028,14 +7042,10 @@ span.purim-emoji img{
   position: absolute;
   text-align: center;
 }
-.readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
-.readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber {
-  left: -48px;
-  top: 0px;
-}
 .singlePanel .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
 .singlePanel .readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber {
   left: -32px;
+  right: auto;
 }
 .readerPanel.bilingual.heLeft .sheetItem.segment .segmentNumber.sheetSegmentNumber,
 .readerPanel.bilingual.heRight .sheetItem.segment .segmentNumber.sheetSegmentNumber {
@@ -7043,15 +7053,15 @@ span.purim-emoji img{
   margin-left: -15px;
 }
 .readerPanel.bilingual.heLeft .sheetItem.segment.enOnly .segmentNumber.sheetSegmentNumber,
-.readerPanel.bilingual.heRight .sheetItem.segment.enOnly .segmentNumber.sheetSegmentNumber,
+.readerPanel.bilingual.heRight .sheetItem.segment.enOnly .segmentNumber.sheetSegmentNumber {
+  right: 0px;
+  left: auto;
+  margin-left: 0;
+}
 .readerPanel.bilingual.heLeft .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber, 
 .readerPanel.bilingual.heRight .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber {
   left: 0px;
   margin-left: 0;
-}
-.readerPanel.hebrew .sheetItem.segment .segmentNumber.sheetSegmentNumber {
-  margin-left: auto;
-  right: -32px;
 }
 .readerPanel.english .sheetItem.segment.heOnly .segmentNumber .en,
 .readerPanel.hebrew .sheetItem.segment.enOnly .segmentNumber .he {
