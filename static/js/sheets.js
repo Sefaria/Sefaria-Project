@@ -145,7 +145,6 @@ $(function() {
 	     })
 	}
 
-
 	$("#inlineAddBrowse").click(function() {
 		$("#closeAddSource").trigger("click");
 		sjs.textBrowser.show({
@@ -161,12 +160,12 @@ $(function() {
 			}
 		})
 	});
+
 	$("#inlineAddBrowse").keydown(function(e) {
 		if (e.which == 13) {
 			$("#inlineAddBrowse").click();
 		}
-  });
-
+    });
 
 	$(document).on("click", "#inlineAddSourceOK", function() {
 		var $target = $("#addInterface").prev(".sheetItem");
@@ -182,11 +181,12 @@ $(function() {
         });
 		Sefaria.track.sheets("Add Source", ref);
 	});
+
 	$(document).on("keydown", "#inlineAddSourceOK", function(e) {
 		if (e.which == 13) {
 			$("#inlineAddSourceOK").click();
 		}
-  });
+    });
 
 	function toggleSheetsMenu(menu) {
 		if ($(menu).parent().hasClass("open")) {
@@ -200,6 +200,7 @@ $(function() {
 			$(menu).parent().toggleClass("open");
 		}
 	}
+
 	$(".menuHeader").keydown(function(e) {
 		if (e.which == 13) {
 			toggleSheetsMenu($(this));
@@ -223,7 +224,6 @@ $(function() {
 				toggleSheetsMenu($target);
 		}
 		else if (e.which == 38) {
-			//console.($(this).closest(".optionsMenu").find)
 				e.preventDefault();
 				if (!$(this).parent().hasClass("open")) {
 					toggleSheetsMenu($(this));
@@ -242,10 +242,7 @@ $(function() {
           $(this).closest(".optionItem,.optionGroup").nextAll(".optionItem,.optionGroup,#sheetLayoutLanguageMenuItems,#sourceLayoutLanguageMenuItems").find(":focusable").addBack(":focusable").first().focus();
         }
 		}
-
-
-
-  });
+    });
 
 	$(".optionItem").keydown(function(e) {
 		if (e.which == 40) {
@@ -284,9 +281,8 @@ $(function() {
         e.stopPropagation();
 				$(".optionGroup.open").removeClass("open");
 				$(".sheetsMenuBarItem.open").removeClass("open");
-    }
+    	}
 	});
-
 
     // This object is instantiated and sets up its own events.
     // It doesn't need to be interacted with from the outside.
@@ -301,7 +297,6 @@ $(function() {
 		Sefaria.track.sheets("Print Sheet");
 		window.print()
 	});
-
 
 	// General Options
 	$("#options .optionItem,#formatMenu .optionItem, #assignmentsModal .optionItem").click(function() {
@@ -349,8 +344,6 @@ $(function() {
 		}
 		autoSave();
 	});
-
-
 
 	$(".languageToggleOption div").click(function(){
 		if ($(".activeSource").length) {
@@ -404,7 +397,6 @@ $(function() {
 			autoSave();
 		}
 	});
-
 
 	$(".layoutToggleOption div").click(function(){
 		if ($(".activeSource").length) {
@@ -936,52 +928,66 @@ $(function() {
 			sjs.flags.sorting = true;
 			$( this ).sortable( 'refreshPositions' );
 			$(".inlineAddButton").hide();
-			$("#addInterface").hide();
 		};
 
 		sjs.sortStop = function(e, ui) {
 			sjs.flags.sorting = false;
+			sjs.scrollOn("stop");
 			setSourceNumbers();
 			$(".inlineAddButton").show();
-			$("#addInterface").show();
 			autoSave();
 		};
+
+		sjs.scrollOn = function(dir) {
+			// Continuously scroll the page up or down
+			var scroll = () => {
+				if (this.timer) {clearTimeout (sjs.timer); }
+				var top = $("html").scrollTop();
+				$("html").scrollTop(top + this.increment);
+				this.timer = setTimeout(scroll, 10);
+			}
+			switch (dir) {
+				case "stop":
+					if (this.timer) {clearTimeout (this.timer); }
+					break;
+				case "up":
+					this.increment = -20;
+					scroll();
+					break;
+				case "down":
+					this.increment = 20;
+					scroll();
+					break;
+			}
+		}
 
 		sjs.sortOptions = {
 							start: sjs.sortStart,
 							stop: sjs.sortStop,
 							cancel: ':input, button, .cke_editable, #addInterface',
 							placeholder: 'sortPlaceholder',
-							cursorAt: {bottom:5},
+							cursorAt: false,
 							revert: 100,
 							delay: 300,
 							scroll: false,
-							scrollSpeed: 40,
-							scrollSensitivity: 60,
 							helper: function(e,ui) {
 								var helper = $(ui[0]).clone();
-								helper.css({'height': '300px','overflow':'hidden',"background-color":"#FBFBFA","opacity":0.9});
+								helper.css({'maxHeight': '300px','overflow':'hidden',"background-color":"#FBFBFA","opacity":0.9});
 								return helper;
 							},
 							sort: function(e,ui) {
-								var top = $("body").scrollTop();
+								var top = $("html").scrollTop();
 								if (e.clientY < 120) {
-									top = top - 30;
-									$("html, body").scrollTop(top);
+									sjs.scrollOn("up");
 								}
 								else if (e.clientY > $(window).height()-60) {
-									top = top + 30;
-									$("html, body").scrollTop(top);
+									sjs.scrollOn("down");
 								}
-
-
-
-								//$("html, body").animate({scrollTop: top}, 300);
-
+								else {
+									sjs.scrollOn("stop");
+								}
 							}
-
 						};
-
 
 		$("#sources").sortable(sjs.sortOptions);
 		if ($("#sheet").hasClass("highlightMode")) {
@@ -1041,7 +1047,6 @@ $(function() {
       }
     }
 
-
     $("#addInterface").on("click", ".buttonBar .addInterfaceButton", function(e) {
       toggleAddInterface(e, $(this), "click");
     });
@@ -1051,7 +1056,6 @@ $(function() {
         toggleAddInterface(e, $(this), "keyboard");
       }
     });
-
 
     $("#connectionsToAdd").on("click", ".sourceConnection", function(e) {
       $(this).hasClass("active") ? $(this).removeClass("active").attr("aria-checked", "false") : $(this).addClass("active").attr("aria-checked", "true");
@@ -1178,8 +1182,6 @@ $(function() {
           $("#connectionsToAdd").html(connectionsToSource);
 
         }
-
-
       });
     });
 
@@ -1479,7 +1481,7 @@ $(function() {
 		$(".moveSourceUp").on("click", function() {
 			$(this).closest(".sheetItem").insertBefore($(this).closest(".sheetItem").prev());
 
-			var top = $(this).offset().top - 200;
+			var top = $(this).offset().top - 300;
 			$("html, body").animate({scrollTop: top}, 750);
 			setSourceNumbers();
 
@@ -1490,7 +1492,7 @@ $(function() {
 		$(".moveSourceDown").on("click", function() {
 			$(this).closest(".sheetItem").insertAfter($(this).closest(".sheetItem").next());
 
-			var top = $(this).offset().top - 200;
+			var top = $(this).offset().top - 300;
 			$("html, body").animate({scrollTop: top}, 750);
 			setSourceNumbers();
 
@@ -1770,7 +1772,6 @@ $(function() {
 	});
 
 	$(".createNewHighlighterTag").on('mousedown', '.colorSwatch', function() {
-		console.log('clicked')
 		if ($('.createNewHighlighterTag .colorSwatch:visible').length > 1) {
 			$(".createNewHighlighterTag .colorSwatch").removeClass('active');
 			$(this).addClass('active');
@@ -3646,9 +3647,6 @@ sjs.divineSubs = {
 					"h": "ה'"
 				};
 
-
-
-
 function substituteDivineNames(text) {
 	// Returns 'text' with divine names substituted according to the current
 	// setting in sjs.current.options.divineNames
@@ -3889,7 +3887,7 @@ function resetHighlighterFilterTags() {
 	});
 }
 
- function saveSelection() {
+function saveSelection() {
 		if (window.getSelection) {
 				var sel = window.getSelection();
 				if (sel.getRangeAt && sel.rangeCount) {
@@ -3899,7 +3897,7 @@ function resetHighlighterFilterTags() {
 				return document.selection.createRange();
 		}
 		return null;
- }
+}
 
 function restoreSelection(range) {
 		if (range) {
