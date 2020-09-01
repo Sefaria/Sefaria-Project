@@ -422,8 +422,8 @@ class ReaderPanel extends Component {
   }
   closeSheetMetaData() {
     var state = {
-      // If there's no content to show, return to home
       menuOpen: null,
+      mode: "Sheet",
       navigationCategories: null,
       navigationTopicCategory: null,
       navigationSheetTag: null
@@ -455,7 +455,7 @@ class ReaderPanel extends Component {
       navigationTopic: null,
       navigationTopicTitle: null,
       topicTitle: null,
-      sheet: null,
+      sheet: menu == "sheet meta" ? this.state.sheet : null,
     });
   }
   setNavigationCategories(categories) {
@@ -1318,12 +1318,14 @@ class ReaderControls extends Component {
           </div>
         </div>
       </div>);
+
     var leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
           {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")}/>)}
           <SaveButton placeholder={true}/>
         </div>);
+
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
           {this.props.sheet && Sefaria._uid == this.props.sheet.owner && $.cookie("new_editor") ?
@@ -1340,6 +1342,7 @@ class ReaderControls extends Component {
           />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
+
     var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel, sheetReaderControls: !!this.props.sheet});
     var readerControls = hideHeader ? null :
         (<div className={classes}>
