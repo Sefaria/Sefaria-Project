@@ -42,7 +42,7 @@ humanRef = Sefaria.humanRef.bind(Sefaria);
 
 $(window).on("beforeunload", function() {
 	if (!($("#save").data("mode") == "saving")) {
-		if (sjs._uid && !(sjs.current.id) && $("#empty").length === 0) {
+		if (Sefaria._uid && !(sjs.current.id) && $("#empty").length === 0) {
 			return _("Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.");
 		}
 		else if ($("#lastSaved").text() == "Saving...") {
@@ -456,12 +456,19 @@ $(function() {
 			}
 		});
 
-
-	// Language Options specific to Sheets
-	// General behavior covered in sjs.changeContentLang in headers.js
+	// Sheet Language Options 
 	$("#hebrew, #english, #bilingual").click(function(){
-		$("#sheet").removeClass("english bilingual hebrew")
-			.addClass($(this).attr("id"));
+		var mode = this.id;
+		var shortMode = this.id.substring(0,2);
+		$.cookie("contentLang", mode);
+
+		$("#languageToggle .toggleOption").removeClass("active");
+		$(this).addClass("active");
+
+		$("body, #content, #sheet").removeClass("english hebrew bilingual")
+			.addClass(mode)
+            .trigger("languageChange");
+
 		if ($(this).attr("id") != "bilingual") {
 			$("#biLayoutToggle, #sheetLayoutToggle").hide();
 		} else {
@@ -833,7 +840,7 @@ $(function() {
 
 	$("#likeButton").click(function(e) {
 		e.preventDefault();
-		if (!sjs._uid) { return sjs.loginPrompt(); }
+		if (!Sefaria._uid) { return sjs.loginPrompt(); }
 
 		var likeCount = parseInt($("#likeCount").text());
 		if ($(this).hasClass("liked")) {
@@ -874,7 +881,7 @@ $(function() {
 		}
 
 	} else if (sjs.assignment_id) {
-		if (!sjs._uid) {
+		if (!Sefaria._uid) {
 			$("#fileControlMsg").hide();
 			return sjs.loginPrompt();
 		}
@@ -1425,7 +1432,7 @@ $(function() {
 
 	    if ($(".cke_editable").length) { return; }
 
-		var isOwner = sjs.is_owner || $(this).attr("data-added-by") == String(sjs._uid);
+		var isOwner = sjs.is_owner || $(this).attr("data-added-by") == String(Sefaria._uid);
 		var controlsHtml = "";
 		if (isOwner||sjs.can_edit) {
 			if ($(this).hasClass("source")) {
@@ -2230,7 +2237,7 @@ function addSource(q, source, appendOrInsert, $target) {
 		};
 	}
 
-	var addedByMe = (source && source.addedBy && source.addedBy == sjs._uid) ||
+	var addedByMe = (source && source.addedBy && source.addedBy == Sefaria._uid) ||
 					(!source && sjs.can_add);
 
 	var attributionLink = (source && "userLink" in source ?
@@ -2696,7 +2703,7 @@ function validateSheet(sheet) {
 
 
 function handleSave() {
-	if (!sjs._uid) {
+	if (!Sefaria._uid) {
 		Sefaria.track.sheets("Logged out Save Attempt");
 		return alert("Sorry I can't save what you've got here: you need to be signed in to save.");
 	}
@@ -3105,10 +3112,10 @@ function attributionDataString(uid, newItem, classStr) {
 
 	if (newItem && sjs.can_add) {
 		addedByMe = true;
-		addedBy = sjs._uid;
+		addedBy = Sefaria._uid;
 	} else if (!newItem && uid) {
 		addedBy = uid;
-		addedByMe = (uid == sjs._uid && !sjs.can_edit);
+		addedByMe = (uid == Sefaria._uid && !sjs.can_edit);
 	}
 
 	var str = "class='" + classStr + " sheetItem" +
@@ -3197,7 +3204,7 @@ sjs.replayLastEdit = function() {
 	if (source) {
 		if (sjs.can_add) {
 			source.userLink = sjs._userLink;
-			source.addedBy  = sjs._uid;
+			source.addedBy  = Sefaria._uid;
 		}
 		buildSource($target, source);
 	}
@@ -3345,13 +3352,13 @@ function rebuildUpdatedSheet(data) {
 // --------------- Copy to Sheet ----------------
 
 function copyToSheet(source) {
-	if (!sjs._uid) { return sjs.loginPrompt(); }
+	if (!Sefaria._uid) { return sjs.loginPrompt(); }
 	sjs.copySource = source;
 
 	// Get sheet list if necessary
 	if (!$("#sheetList .sheet").length) {
 		$("#sheetList").html(Sefaria._("Loading..."));
-		$.getJSON("/api/sheets/user/" + sjs._uid, function(data) {
+		$.getJSON("/api/sheets/user/" + Sefaria._uid, function(data) {
 			$("#sheetList").empty();
 			var sheets = "";
 			sheets += '<li class="sheet new"><i>'+Sefaria._("Start a New Source Sheet")+'</i></li>';
@@ -3445,7 +3452,7 @@ function copySheet() {
 	delete sheet.group;
 	delete sheet.id;
 
-	if (sjs._uid != sjs.current.owner) {
+	if (Sefaria._uid != sjs.current.owner) {
 		sheet.via = sjs.current.id;
 		sheet.viaOwner = sjs.current.owner;
 	}
@@ -3672,7 +3679,7 @@ function promptToPublish() {
 var afterAction = function() {
 	// Called after sheet action (adding sources, comments) to remove video, show save button
 	$("#empty").remove();
-	if (sjs._uid) {
+	if (Sefaria._uid) {
 		$("#save").show();
 		$("#fileControlMsg").hide();
 	}

@@ -4,6 +4,7 @@ html {
 body {
 	overflow-x: visible;
 	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
+    background-color:#f8f8f8;
 }
 body:not(.user-is-tabbing) #sheet .cke_editable:focus {
   	outline: auto;
@@ -19,12 +20,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 .interface-english .int-he, .interface-english #sheetsContent .int-he, .interface-english.alertBox .int-he, .interface-english.s2Modal .int-he{
   display: none;
 }
-/*.interface-hebrew #sheetsContent{
-  direction: rtl;
-}
-.interface-english #sheetsContent{
-  direction: ltr;
-}*/
 
 .interface-hebrew #sheetsContent, .interface-hebrew #sheetsContent .sheetsEditNavTop, .interface-hebrew #fileControls{
 	direction: rtl;
