@@ -1025,7 +1025,6 @@ $(function() {
 
 
   // Add Interface
-
   if (sjs.is_owner||sjs.can_edit||sjs.can_add) {
 
     function toggleAddInterface(e, target, trigger) {
@@ -1079,7 +1078,6 @@ $(function() {
           };
           buildSource($target, source, "insert");
         }
-
       });
 
       $("#addconnectionDiv").on("keydown", ".button", function(e) {
@@ -1088,13 +1086,10 @@ $(function() {
         }
       });
 
-
       autoSave();
       $(".sourceConnection").removeClass('active').attr("aria-checked", "false");
       $("#sheet").click();
       $("#sourceButton").click();
-
-
     });
 
     $("#addSourceMenu").click(function() {
@@ -1124,7 +1119,6 @@ $(function() {
       var top = $("#mediaButton").offset().top - 200;
       $("html, body").animate({scrollTop: top}, 300);
     });
-
 
     $("#addInterface").on("click", "#connectionButton", function(e) {
 
@@ -1206,7 +1200,6 @@ $(function() {
       $("#addcommentDiv .contentToAdd").html('<br>');
       $("#sheet").click();
       //$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
-
     });
 
     $("#addcommentDiv").on("keydown", ".button", function(e) {
@@ -1214,7 +1207,6 @@ $(function() {
         $("#addcommentDiv .button").click();
       }
     });
-
 
     $("#addcommentDiv .contentToAdd").keypress(function(e) {
       if (isHebrew($(this).text()) && $(this).text().length > 0) {
@@ -1254,13 +1246,11 @@ $(function() {
       }
     });
 
-
     $("#addmediaDiv").on("keydown", "#addmediaFileSelector", function(e) {
       if (e.which == 13) {
         $("#addmediaDiv #addmediaFileSelector").click();
       }
     });
-
 
     $("#addcustomTextDiv").on("click", "#customTextLanguageToggle .toggleOption", function(e) {
 
@@ -1277,7 +1267,6 @@ $(function() {
         $("#addcustomTextDiv").find(".he").show();
         $("#addcustomTextDiv").find(".en").hide();
       }
-
     });
 
     $("#addcustomTextDiv").on("click", ".button", function(e) {
@@ -1306,7 +1295,6 @@ $(function() {
       $("#customTextContainer .contentToAdd.he").html('עברית');
       $("#sheet").click();
       //	$target.next(".sheetItem").find(".comment").last().trigger("mouseup").focus();
-
     });
 
     $("#addcustomTextDiv").on("keydown", ".button", function(e) {
@@ -1338,7 +1326,6 @@ $(function() {
       $("#sourceButton").click();
       e.stopImmediatePropagation();
     });
-
 
     function cleanupActiveSource(target) {
       $(".inlineAddButtonIcon").removeClass("active");
@@ -1417,7 +1404,6 @@ $(function() {
           $("#sourceLayoutLanguageMenuItems").find(".heRight .fa-check").removeClass("hidden")
         }
       }
-
     }
 
     $("#sheet").on("click", ".sheetItem", function(e) {
@@ -1448,11 +1434,11 @@ $(function() {
     });
 
     $("#sheet").click();
-  }
+  } // End Setup for editors / adders
 
 	$("#sheet").on( "mouseenter", ".sheetItem", function(e) {
 
-	if ($(".cke_editable").length) { return; }
+	    if ($(".cke_editable").length) { return; }
 
 		var isOwner = sjs.is_owner || $(this).attr("data-added-by") == String(sjs._uid);
 		var controlsHtml = "";
@@ -1474,10 +1460,8 @@ $(function() {
 
 		$(".sourceControlsOpen").removeClass("sourceControlsOpen");
 		$(".sourceControlsTop").removeClass("sourceControlsTop");
+		if (sjs.removeSourceControlsTimer) { clearTimeout(sjs.removeSourceControlsTimer); }
 		$(this).addClass("sourceControlsOpen");
-		if ($(this).offset().top + $(this).height() >= $(window).scrollTop() + $(window).height()) {
-			$(this).addClass("sourceControlsTop");
-		}
 		$("#sourceControls").remove();
 		$(this).append(controlsHtml);
 		$("#sourceControls div").tooltipster({
@@ -1485,6 +1469,13 @@ $(function() {
 			position: "bottom"
 		});
 
+		var sourceHeight = $(this).outerHeight();
+		var sourceControlsHeight = 134;
+		if (sourceHeight < sourceControlsHeight + 20) {
+			$("#sourceControls").css({top: -(sourceControlsHeight - sourceHeight) / 2});
+		}
+
+		// Move Source Up
 		$(".moveSourceUp").on("click", function() {
 			$(this).closest(".sheetItem").insertBefore($(this).closest(".sheetItem").prev());
 
@@ -1493,10 +1484,9 @@ $(function() {
 			setSourceNumbers();
 
 			autoSave();
-
 		});
 
-
+		// Move Source Donw
 		$(".moveSourceDown").on("click", function() {
 			$(this).closest(".sheetItem").insertAfter($(this).closest(".sheetItem").next());
 
@@ -1505,10 +1495,9 @@ $(function() {
 			setSourceNumbers();
 
 			autoSave();
-
 		});
 
-
+		// Indent Source
 		$(".moveSourceRight").on("click", function() {
 
 			if ($(this).closest(".sheetItem").hasClass("indented-1")) {
@@ -1525,10 +1514,9 @@ $(function() {
 			$(this).closest(".sheetItem").addClass(toIndent);
 
 			autoSave();
-
 		});
 
-
+		// Outdent Source
 		$(".moveSourceLeft").on("click", function() {
 
 			if ($(this).closest(".sheetItem").hasClass("indented-1")) {
@@ -1545,9 +1533,7 @@ $(function() {
 			$(this).closest(".sheetItem").addClass(toIndent);
 
 			autoSave();
-
 		});
-
 
 		// Remove Source
 		$(".removeSource").on("click", function() {
@@ -1558,7 +1544,6 @@ $(function() {
 				setSourceNumbers();
 			}
 			Sefaria.track.sheets("Remove Source");
-
 		 });
 
 		// Copy a Source
@@ -1566,10 +1551,8 @@ $(function() {
 			var source = readSource($(this).closest(".sheetItem"));
 			copyToSheet(source);
 		});
-
-
-
 	});
+
 	$("#sheet").on("mouseleave", ".sheetItem", function(e) {
 		$(this).removeClass("sourceControlsOpen");
 		$("#sourceControls").remove();
