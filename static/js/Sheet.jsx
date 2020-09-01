@@ -46,18 +46,22 @@ class Sheet extends Component {
   }
   onDataLoad(data) {
     this.forceUpdate();
-
-    for (let i = 0; i < data.sources.length; i++) {
-      if ("ref" in data.sources[i]) {
-        Sefaria.getRef(data.sources[i].ref)
-            .then(ref => ref.sectionRef)
-            .then(ref => Sefaria.related(ref, () => this.forceUpdate));
-      }
-    }
+    this.preloadConnections();
   }
   ensureData() {
     if (!this.getSheetFromCache()) {
       this.getSheetFromAPI();
+    } else {
+      this.preloadConnections();
+    }
+  }
+  preloadConnections() {
+    const data = this.getSheetFromCache();
+    if (!data) {return; }
+    for (let i = 0; i < data.sources.length; i++) {
+      if ("ref" in data.sources[i]) {
+        Sefaria.related(data.sources[i].ref, () => this.forceUpdate);
+      }
     }
   }
   setPaddingForScrollbar() {

@@ -7042,11 +7042,6 @@ span.purim-emoji img{
   position: absolute;
   text-align: center;
 }
-.singlePanel .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
-.singlePanel .readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber {
-  left: -32px;
-  right: auto;
-}
 .readerPanel.bilingual.heLeft .sheetItem.segment .segmentNumber.sheetSegmentNumber,
 .readerPanel.bilingual.heRight .sheetItem.segment .segmentNumber.sheetSegmentNumber {
   left: 50%;
