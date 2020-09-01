@@ -1,3 +1,4 @@
+
 {% autoescape off %}
 //call with sefaria.link();
 
@@ -98,6 +99,12 @@
                 'text-decoration: none;' +
                 'margin: 12px 0;' +
                 'padding: 0;' +
+            '}' +
+            '#sefaria-title .en {' +
+                'text-align: center;' +
+            '}' +
+            '#sefaria-title .he {' +
+                'text-align: center;' +
             '}' +
             '.en {' +
                 'font-family: "Crimson Text";' +
@@ -415,7 +422,7 @@
                     preset: 'prose',
                     find: r,
                     replace: (function(book, portion, match) {
-                        var matched_ref = match[0]
+                        var matched_ref = match[1]
                             .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                             .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
                         //  the following regex recognizes 'quotationOnly' citations. by reading the book name and then allowing a single Hebrew letter or numbers or multiple Hebrew letters with the different quotations (gershayim) options somewhere in them
@@ -425,13 +432,24 @@
                            return portion.text;
                         }
                         else { ns.matches.push(matched_ref);
-                            var node = document.createElement("a");
-                            node.target = "_blank";
-                            node.className = "sefaria-ref";
-                            node.href = base_url + matched_ref;
-                            node.setAttribute('data-ref', matched_ref);
-                            node.setAttribute('aria-controls', 'sefaria-popup');
-                            node.textContent = portion.text;
+                            var atag = document.createElement("a");
+                            atag.target = "_blank";
+                            atag.className = "sefaria-ref";
+                            atag.href = base_url + matched_ref;
+                            atag.setAttribute('data-ref', matched_ref);
+                            atag.setAttribute('aria-controls', 'sefaria-popup');
+                            atag.textContent = match[1];
+
+                            // due to the fact that safari doesn't support lookbehinds, we need to include prefix group in match
+                            // however, we don't want the prefix group to end up in the final a-tag
+                            var preText = match[0].substr(0, match[0].indexOf(match[1]));
+                            if (preText.length === 0) {
+                                return atag;
+                            }
+                            // there is some text in the prefix group that needs to be wrapped in a span
+                            var node = document.createElement("span");
+                            node.textContent = preText;
+                            node.appendChild(atag);
                             return node;
 
                         }

@@ -101,7 +101,6 @@ class Sheet extends Component {
             hasSidebar = {this.props.hasSidebar}
             sheetNumbered = {sheet.options.numbered}
             sheetID = {sheet.id}
-            openProfile={this.props.openProfile}
           />
       )
     }
@@ -176,13 +175,6 @@ class SheetContent extends Component {
     e.preventDefault();
     e.stopPropagation();
     this.props.onRefClick(ref);
-  }
-
-  openProfile(e) {
-    e.preventDefault();
-    const slugMatch = this.props.authorUrl.match(/profile\/(.+)$/);
-    const slug = !!slugMatch ? slugMatch[1] : '';
-    this.props.openProfile(slug, this.props.authorStatement);
   }
 
   render() {
@@ -274,7 +266,6 @@ class SheetContent extends Component {
 
     return (
       <div className="sheetContent">
-
         <SheetMetaDataBox>
             <SheetTitle title={this.props.title} />
             <SheetAuthorStatement
@@ -294,7 +285,6 @@ class SheetContent extends Component {
                 groupLogo={this.props.groupLogo}
             />
         </SheetMetaDataBox>
-
 
         <div className="text">
             <div className="textInner">{sources}</div>
@@ -343,8 +333,8 @@ class SheetSource extends Component {
       var containerClasses = classNames("sheetItem",
           "segment",
           this.props.highlighted ? "highlight" : null,
-          (this.props.source.text && this.props.source.text.en && this.props.source.text.en.stripHtml() == "...") || (this.props.source.text && !this.props.source.text.en) ? "heOnly" : null,
-          (this.props.source.text && this.props.source.text.he && this.props.source.text.he.stripHtml() == "...") || (this.props.source.text && !this.props.source.text.he) ? "enOnly" : null,
+          (this.props.source.text && this.props.source.text.en && this.props.source.text.en.stripHtml() == "...") || (this.props.source.text && !this.props.source.text.en.stripHtml()) ? "heOnly" : null,
+          (this.props.source.text && this.props.source.text.he && this.props.source.text.he.stripHtml() == "...") || (this.props.source.text && !this.props.source.text.he.stripHtml()) ? "enOnly" : null,
           this.props.source.options ? this.props.source.options.indented : null,
           this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null
       );
@@ -605,7 +595,6 @@ class SheetMedia extends Component {
     else if (mediaURL.toLowerCase().indexOf('vimeo') > 0) {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0"  allow="autoplay; fullscreen" allowfullscreen></iframe></div>';
     }
-
 
     else if (mediaURL.toLowerCase().indexOf('soundcloud') > 0) {
       mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>';

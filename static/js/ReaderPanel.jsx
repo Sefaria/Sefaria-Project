@@ -190,7 +190,7 @@ class ReaderPanel extends Component {
       // go up known data-ref-children
       target = target.parent();
     }
-    if (target.parent().hasClass("refLink") || target.parent().hasClass("catLink")) {
+    if (["refLink", "catLink", "resourcesLink"].some(cls => target.parent().hasClass(cls))) {
       target = target.parent();
     }
     if (target.hasClass("refLink")) {
@@ -199,38 +199,54 @@ class ReaderPanel extends Component {
       linkType = "cat";
     } else if (target.hasClass("sheetLink")) {
       linkType = "sheet";
+    } else if (target.attr('href') === "/texts/history") {
+      linkType = "history";
+    } else if (target.attr('href') === "/texts/saved") {
+      linkType = "saved";
     } else {
       return {};  // couldn't find a known link
     }
     return { target, linkType };
   }
-  handleClick(event) {
-    if (!$(event.target).hasClass("outOfAppLink") && !$(event.target.parentElement).hasClass("outOfAppLink")) {
-      event.preventDefault();
-    }
+  handleNavigationClick(event) {
+    // Handles clicks within a ReaderNavigationMenu panel.
+    // This logic for handling these links could be replaced by ReaderApp.handleInAppLinkClick()
+    // except for the fact that navigation can occur inside a "compare" panel.
     const { target, linkType } = this._getClickTarget(event);
-    if (!target) { return; }
+    if (!linkType) { return; }
+    event.preventDefault();
+   
     if (linkType === "ref") {
       const ref       = target.attr("data-ref");
       const pos       = target.attr("data-position");
       const enVersion = target.attr("data-ven");
       const heVersion = target.attr("data-vhe");
-      if (target.hasClass("recentItem")) {
-        this.props.onRecentClick(parseInt(pos), ref, {en: enVersion, he: heVersion});
+      if (this.props.onNavTextClick && this.state.menuOpen !== "compare") {
+        this.props.onNavTextClick(ref, {en: enVersion, he: heVersion});
       } else {
-        const onTextClick = this.props.onNavTextClick || this.showBaseText;
-        onTextClick(ref, {en: enVersion, he: heVersion});
+        this.showBaseText(ref, false, {en: enVersion, he: heVersion});
       }
       if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Text Click", ref); }
+    
     } else if (linkType === "cat") {
       const cats = target.attr("data-cats").split("|");
       this.setNavigationCategories(cats);
       if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Sub Category Click", cats.join(" / ")); }
+    
     } else if (linkType === "sheet") {
       const ref = target.attr("data-ref");
       const onTextClick = this.props.onNavTextClick || this.showBaseText;
       onTextClick(ref);
+    
+    } else if (linkType === "history") {
+      this.openMenu("history");
+    
+    } else if (linkType === "saved") {
+      Sefaria._uid ? this.openMenu("saved") : this.props.toggleSignUpModal();
+
     }
+
+
   }
   clonePanel(panel) {
     // Todo: Move the multiple instances of this out to a utils file
@@ -248,7 +264,7 @@ class ReaderPanel extends Component {
     }
   }
   handleSheetSegmentClick(source) {
-    console.log(source);
+    // console.log(source);
     this.conditionalSetState({highlightedNodes: source.node});
     if (this.state.mode ==="SheetAndConnections") {
       this.closeSheetConnectionsInPanel();
@@ -310,8 +326,8 @@ class ReaderPanel extends Component {
     // Set the current primary text `ref`, which may be either a string or an array of strings.
     // `replaceHistory` - bool whether to replace browser history rather than push for this change
     if (!ref) { return; }
-    //console.log("showBaseText", ref)
     this.replaceHistory = Boolean(replaceHistory);
+    //console.log("showBaseText", ref, replaceHistory);
     if (this.state.mode == "Connections" && this.props.masterPanelLanguage == "bilingual") {
       // Connections panels are forced to be mono-lingual. When opening a text from a connections panel,
       // allow it to return to bilingual.
@@ -345,7 +361,6 @@ class ReaderPanel extends Component {
       settings: this.state.settings
     });
   }
-
   toggleSheetEditMode(buttonstate) {
       if (buttonstate == true) {
           this.conditionalSetState({
@@ -359,7 +374,6 @@ class ReaderPanel extends Component {
             this.props.closeConnectionPanel(this.props.panelPosition)
           }
       }
-
   }
   updateTextColumn(refs) {
     // Change the refs in the current TextColumn, for infinite scroll up/down.
@@ -445,6 +459,14 @@ class ReaderPanel extends Component {
   }
   setNavigationTopic(topic, topicTitle) {
     this.conditionalSetState({menuOpen: 'navigation', navigationTopicCategory: topic, navigationTopicTitle: topicTitle, navigationTopic: null, topicTitle: null});
+  }
+  setMoreTexts(val) {
+    this.replaceHistory = true;
+    this.conditionalSetState({showMoreTexts: val});
+  }
+  setMoreTopics(val) {
+    this.replaceHistory = true;
+    this.conditionalSetState({showMoreTopics: val});
   }
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
@@ -676,7 +698,6 @@ class ReaderPanel extends Component {
           contentLang={this.state.settings.language}
           interfaceLang={this.props.interfaceLang}
           onSegmentClick={this.handleSheetSegmentClick}
-          openProfile={this.props.openProfile}
       />);
     }
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
@@ -774,14 +795,12 @@ class ReaderPanel extends Component {
           setVersionFilter={this.setVersionFilter}
           viewExtendedNotes={this.props.viewExtendedNotes.bind(null, "Connections")}
           checkIntentTimer={this.props.checkIntentTimer}
-          openProfile={this.props.openProfile}
           key="connections" />
       );
     }
     if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
       var openInPanel   = function(pos, ref) { this.showBaseText(ref) }.bind(this);
       var openNav       = this.state.menuOpen === "compare" ? this.openMenu.bind(null, "compare") : this.openMenu.bind(null, "navigation");
-      var onRecentClick = this.state.menuOpen === "compare" || !this.props.onRecentClick ? openInPanel : this.props.onRecentClick;
 
       menu = (<ReaderNavigationMenu
                     key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory: "navHome"}
@@ -791,21 +810,24 @@ class ReaderPanel extends Component {
                     multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
                     topic={this.state.navigationTopicCategory || ""}
+                    topicTitle={this.state.navigationTopicTitle}
+                    showMoreTexts={this.state.showMoreTexts}
+                    showMoreTopics={this.state.showMoreTopics}
                     settings={this.state.settings}
                     setCategories={this.setNavigationCategories}
                     setNavTopic={this.setNavigationTopic}
                     setTopic={this.setTopic}
+                    setMoreTexts={this.setMoreTexts}
+                    setMoreTopics={this.setMoreTopics}
                     setOption={this.setOption}
                     toggleLanguage={this.toggleLanguage}
                     onClose={this.onClose}
                     closePanel={this.props.closePanel}
-                    handleClick={this.handleClick}
+                    handleClick={this.handleNavigationClick}
                     openNav={openNav}
                     openSearch={this.openSearch}
                     openMenu={this.openMenu}
                     openDisplaySettings={this.openDisplaySettings}
-                    onTextClick={this.props.onNavTextClick || this.showBaseText}
-                    onRecentClick={onRecentClick}
                     hideNavHeader={this.props.hideNavHeader}
                     toggleSignUpModal={this.props.toggleSignUpModal}
                   />);
@@ -907,7 +929,6 @@ class ReaderPanel extends Component {
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
                     registerAvailableFilters={this.props.registerAvailableFilters}
-                    openProfile={this.props.openProfile}
                   />);
 
     } else if (this.state.menuOpen === "sheets") {
@@ -928,9 +949,7 @@ class ReaderPanel extends Component {
                     setSheetTag={this.setSheetTag}
                     setGroupTag={this.setGroupTag}
                     searchInGroup={this.props.searchInGroup}
-                    openProfile={this.props.openProfile}
                     key={"SheetsNav"}
-                    openProfile={this.props.openProfile}
                   />);
 
     } else if (this.state.menuOpen === "topics") {
@@ -944,6 +963,7 @@ class ReaderPanel extends Component {
           <TopicPage
             tab={this.state.topicsTab}
             topic={this.state.navigationTopic}
+            topicTitle={this.state.topicTitle}
             interfaceLang={this.props.interfaceLang}
             setTopic={this.setTopic}
             setNavTopic={this.setNavigationTopic}
@@ -980,7 +1000,6 @@ class ReaderPanel extends Component {
 
     } else if (this.state.menuOpen === "account") {
       menu = (<AccountPanel
-                    handleInAppLinkClick={this.props.handleInAppLinkClick}
                     interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.state.menuOpen === "notifications") {
@@ -1016,7 +1035,6 @@ class ReaderPanel extends Component {
       menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
                     toggleSignUpModal={this.props.toggleSignUpModal}
-                    showLibrary={this.props.showLibrary}
       />);
 
     } else if (this.state.menuOpen === "story_editor") {
@@ -1052,6 +1070,7 @@ class ReaderPanel extends Component {
           openNav={this.openMenu.bind(null, "navigation")}
           openDisplaySettings={this.openDisplaySettings}
           toggleLanguage={this.toggleLanguage}
+          handleClick={this.handleNavigationClick}
           compare={this.state.menuOpen === "compare"}
           hideNavHeader={this.props.hideNavHeader}
           interfaceLang={this.props.interfaceLang}
@@ -1061,8 +1080,6 @@ class ReaderPanel extends Component {
       menu = (
         <UserProfile
           profile={this.state.profile}
-          handleInAppLinkClick={this.props.handleInAppLinkClick}
-          openProfile={this.props.openProfile}
           toggleSignUpModal={this.props.toggleSignUpModal}
           multiPanel={this.props.multiPanel}
           navHome={this.openMenu.bind(null, "navigation")}
@@ -1164,7 +1181,6 @@ ReaderPanel.propTypes = {
   onSegmentClick:              PropTypes.func,
   onCitationClick:             PropTypes.func,
   onNavTextClick:              PropTypes.func,
-  onRecentClick:               PropTypes.func,
   onSearchResultClick:         PropTypes.func,
   onUpdate:                    PropTypes.func,
   onError:                     PropTypes.func,
@@ -1205,8 +1221,6 @@ ReaderPanel.propTypes = {
   toggleSignUpModal:           PropTypes.func.isRequired,
   getHistoryRef:               PropTypes.func,
   profile:                     PropTypes.object,
-  openProfile:                 PropTypes.func,
-  showLibrary:                 PropTypes.func,
 };
 
 

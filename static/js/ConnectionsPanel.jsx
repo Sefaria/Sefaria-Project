@@ -7,6 +7,7 @@ import {
   SheetListing,
   Note,
   FeedbackBox,
+  ProfilePic,
   ToolTipped,
 } from './Misc';
 import {  CategoryFilter,} from './ConnectionFilters';
@@ -352,7 +353,6 @@ class ConnectionsPanel extends Component {
                     connectedSheet = {connectedSheet}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
-                    openProfile={this.props.openProfile}
                   /> : null }
 
                   { this.props.srefs[0].indexOf("Sheet") == -1 ?
@@ -361,10 +361,62 @@ class ConnectionsPanel extends Component {
                     connectedSheet = {connectedSheet}
                     fullPanel={this.props.fullPanel}
                     handleSheetClick={this.props.handleSheetClick}
-                    openProfile={this.props.openProfile}
                   /> : null }
 
                 </div>);
+    } else if (this.props.mode === "Chavruta") {
+        const uuid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+        const chevrutaURL = `${window.location.host}/chavruta?ref=${window.location.pathname.replace(/\//, '')}&rid=${uuid}`
+
+        content = (<div className="chavruta">
+                    <div className="headerText">Learn with a Chavruta</div>
+
+                    <div className="fakeBrowser">
+                      <div className="fakeBrowserHeader">
+                        <div className="fakeBrowserButtons">
+                          <div className="fakeBrowserButton red"></div>
+                          <div className="fakeBrowserButton yellow"></div>
+                          <div className="fakeBrowserButton green"></div>
+                        </div>
+                        <div className="fakeBrowserURLBar">sefaria.org</div>
+                      </div>
+                      <div className="fakeBrowserMain">
+                        <div className="fakeBrowserLeft">
+                          <div className="fakeBrowserButtonAvatar"><ProfilePic len={68} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></div>
+                          <div className="fakeBrowserButtonAvatar"><img src="/static/img/anon_user.svg"/></div>
+                        </div>
+                        <div className="fakeBrowserRight">
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                          <hr/>
+                        </div>
+                      </div>
+                    </div>
+                    <p>Share this link with your chavruta to start a video call with this text</p>
+                    <p>
+                    <input
+                      id="chavrutaURL"
+                      type="text"
+                      value={chevrutaURL}
+                      onFocus={(e) => event.target.select()}
+                    />
+                    </p>
+
+                    <p>
+                    <a className="button fillWidth startChavrutaButton" href={"//"+chevrutaURL}><img src="/static/img/video.svg" />Start Call</a>
+                    </p>
+                  </div>);
+
+
 
     } else if (this.props.mode == "Add Connection To Sheet"){
         let refForSheet = (this.props.connectionData && "connectionRefs" in this.props.connectionData) ? this.props.connectionData["connectionRefs"] : this.props.srefs;
@@ -564,7 +616,6 @@ ConnectionsPanel.propTypes = {
   recentVersionFilters:    PropTypes.array,
   setVersionFilter:        PropTypes.func.isRequired,
   checkIntentTimer:        PropTypes.func.isRequired,
-  openProfile:             PropTypes.func.isRequired,
 };
 
 
@@ -576,6 +627,9 @@ class ResourcesList extends Component {
                 <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
               : null }
               <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
+              {/*
+              <ToolsButton en="Chavruta" he="חברותא" image="video.svg" onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Chavruta")} />
+              */}
               <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={this.props.topicsCount} onClick={() => this.props.setConnectionsMode("Topics")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
@@ -718,7 +772,7 @@ class MySheetsList extends Component {
       // Don't show sheets as connections to themselves
       return sheet.id !== this.props.connectedSheet;
     }).map(sheet => {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} openProfile={this.props.openProfile} />)
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }
@@ -737,7 +791,7 @@ class PublicSheetsList extends Component {
       // My sheets are shown already in MySheetList
       return sheet.owner !== Sefaria._uid && sheet.id !== this.props.connectedSheet;
     }).map(sheet => {
-      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} openProfile={this.props.openProfile} />)
+      return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
     }, this) : null;
     return content && content.length ? (<div className="sheetList">{content}</div>) : null;
   }

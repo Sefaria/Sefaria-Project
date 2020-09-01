@@ -2447,7 +2447,7 @@ function loadSource(data, $target, optionStr) {
 }
 
 function setSourceNumbers() {
-	$("#sources > .sheetItem").not(".commentWrapper").each(function(index, value) {
+	$("#sources > .sheetItem").each(function(index, value) {
 		index += 1;
 		$(this).find(".sourceNumber.en").html(index + ".");
 		$(this).find(".sourceNumber.he").html(encodeHebrewNumeral(index) + ".");
@@ -2993,11 +2993,12 @@ function buildSource($target, source, appendOrInsert) {
 			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
 		}
 
-		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'"+additionalRefData+"><span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
+		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'" + additionalRefData + ">" + 
+			"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +
+			"<span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
 			("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
 			"<div class='comment " + (isHebrew(source.comment) ? "he " : "") + (sjs.loading ? "" : "new") + " '>" + source.comment + "</div>" +
 			appendInlineAddButton() + "</div>";
-
 
 		if (appendOrInsert == "append") {
 			$target.append(commentHtml);

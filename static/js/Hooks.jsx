@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import $  from './sefaria/sefariaJquery';
 
 
@@ -27,10 +27,14 @@ function useDebounce(value, delay) {
   return debouncedValue;
 }
 
-function usePaginatedScroll(scrollable_element_ref, url, setter) {
-  const [page, setPage] = useState(0);
-  const [nextPage, setNextPage] = useState(1);
+function usePaginatedScroll(scrollable_element_ref, url, setter, pagesPreLoaded = 0) {
+  // Fetches and sets data from `url` when user scrolls to the
+  // bottom of `scollable_element_ref`
+
+  const [page, setPage] = useState(pagesPreLoaded > 0 ? pagesPreLoaded - 1 : 0);
+  const [nextPage, setNextPage] = useState(pagesPreLoaded > 0 ? pagesPreLoaded : 1);
   const [loadedToEnd, setLoadedToEnd] = useState(false);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     const scrollable_element = $(scrollable_element_ref.current);
@@ -46,6 +50,7 @@ function usePaginatedScroll(scrollable_element_ref, url, setter) {
   }, [scrollable_element_ref.current, loadedToEnd, page, nextPage]);
 
   useEffect(() => {
+    if (pagesPreLoaded > 0 && isFirstRender.current) { return; }
     const paged_url = url + "&page=" + page;
     $.getJSON(paged_url, (data) => {
       setter(data);
@@ -56,16 +61,24 @@ function usePaginatedScroll(scrollable_element_ref, url, setter) {
       }
     });
   }, [page]);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+    }
+  }, [])
 }
 
-function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMargin) {
+function usePaginatedDisplay(scrollable_element_ref, input, pageSize, bottomMargin, initialRenderSize) {
   /*
-  listens until user is scrolled within `bottomMargin` of `scrollable_element_ref`
-  when this happens, show `pageSize` more elements from `input`
+  Listens until user is scrolled within `bottomMargin` of `scrollable_element_ref`
+  when this happens, show `pageSize` more elements from `input`.
+  On initial run, return `initialRenderSize` items if greater than `pageSize`.
   */
-  const [page, setPage] = useState(0);
+  initialRenderSize = Math.max(initialRenderSize, pageSize); 
+  const [page, setPage] = useState(parseInt(initialRenderSize/pageSize)-1);
   const [loadedToEnd, setLoadedToEnd] = useState(false);
-  const [inputUpToPage, setInputUpToPage] = useState([]);
+  const [inputUpToPage, setInputUpToPage] = useState(input.slice(0, initialRenderSize));
   useEffect(() => () => {
     setInputUpToPage(prev => {
       // use `setInputUpToPage` to get access to previous value

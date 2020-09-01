@@ -3135,6 +3135,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 15px 0 20px 0;
   padding-bottom: 30px;
 }
+.searchContent .result + .loadingMessage {
+  margin-top: 30px;
+}
 .readerNavMenu .content.sheetList {
   padding: 80px 15px 15px;
 }
@@ -3771,18 +3774,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 6px;
   text-align: left;
 }
-
 .stacked.bilingual .sheetContent .segment > .en {
   margin-top: 0;
 }
-
 .stacked.bilingual .basetext .segment > .en {
   margin: 10px 0 20px;
   color: #666;
 }
 .stacked.bilingual .segment.heOnly > .he,
 .stacked.bilingual .segment.enOnly > .en {
-  display: inline;
+  display: block;
 }
 .heLeft.bilingual .basetext .text,
 .heRight.bilingual .basetext .text,
@@ -3798,29 +3799,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   box-sizing: border-box;
   display: block;
 }
-.heLeft.bilingual .sheetItem.segment.enOnly > .en,
-.heLeft.bilingual .sheetItem.segment.heOnly > .he,
-.heRight.bilingual .sheetItem.segment.enOnly > .en,
-.heRight.bilingual .sheetItem.segment.heOnly > .he {
+.heLeft.bilingual .sheetItem.enOnly > .en,
+.heLeft.bilingual .sheetItem.heOnly > .he,
+.heRight.bilingual .sheetItem.enOnly > .en,
+.heRight.bilingual .sheetItem.heOnly > .he {
   width: 100%;
-  padding-left: 0;
   padding-right: 0;
+  padding-left: 0;
 }
-.readerPanel.english .sheetItem.heOnly .en,
-.readerPanel.bilingual .sheetItem.heOnly .en {
+.readerPanel .sheetItem.heOnly > .en {
   display: none;
 }
-.readerPanel.hebrew .sheetItem.heOnly .he,
-.readerPanel.bilingual .sheetItem.heOnly .he {
-  display: inline;
+.readerPanel .sheetItem.heOnly > .he {
+  display: block;
 }
-.readerPanel.hebrew .sheetItem.enOnly .he,
-.readerPanel.bilingual .sheetItem.enOnly .he {
+.readerPanel .sheetItem.enOnly > .he {
   display: none;
 }
-.readerPanel.english .sheetItem.enOnly .en,
-.readerPanel.bilingual .sheetItem.enOnly .en {
-  display: inline;
+.readerPanel .sheetItem.enOnly > .en {
+  display: block;
 }
 .heLeft.bilingual .segment > .en,
 .heRight.bilingual .segment > .he {
@@ -4012,15 +4009,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerPanel.bilingual .segment .linkCount {
   left: -48px;
 }
-.readerPanel.english .segment .linkCount,
-.readerPanel.bilingual .sheetItem.segment .linkCount
-{
+.readerPanel.english .segment .linkCount {
   right: -46px;
-  left:auto;
-}
-.readerApp.interface-hebrew .readerPanel.bilingual.stacked .sheetItem.segment .linkCount {
-  left: -46px;
-  right: auto;
+  left: auto;
 }
 .readerPanel.heLeft.bilingual .segment .segmentNumber,
 .readerPanel.heRight.bilingual .segment .segmentNumber {
@@ -4037,23 +4028,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .singlePanel .readerPanel.hebrew .segment .segmentNumber,
 .singlePanel .readerPanel.bilingual .segment .segmentNumber {
-  right: -28px;
+  right: -30px;
 }
 .singlePanel .readerPanel.english .segment .linkCount {
-  right: -37px;
+  right: -30px;
 }
 .singlePanel .readerPanel.hebrew .segment .linkCount,
 .singlePanel .readerPanel.bilingual .segment .linkCount {
-  left: -20px;
+  left: -30px;
 }
-.singlePanel .readerPanel.english .sheetItem.segment .linkCount,
-.singlePanel .readerPanel.bilingual .sheetItem.segment .linkCount {
+.singlePanel .readerPanel.english .sheetItem.segment .linkCount {
   left: auto;
   right: -30px;
-}
-.singlePanel .readerPanel.hebrew .sheetItem.segment .linkCount {
-  left: -48px;
-  right: auto;
 }
 .segment .refLink {
   font-size: .8em;
@@ -5127,6 +5113,155 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 20px;
   margin: 0 8px;
 }
+
+.connectionsPanel .chavruta #chavrutaURL {
+  background: #FBFBFA;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  border: none;
+  width: calc(100% - 22px);
+  padding: 15px 11px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #666;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 16px;
+  line-height: 19px;
+}
+
+.connectionsPanel .chavruta .buttonContainer {
+width: 100%;
+margin-top: 15px;
+text-align: center;
+}
+
+
+.connectionsPanel .chavruta .startChavrutaButton {
+color: #fff;
+}
+
+.connectionsPanel .chavruta .startChavrutaButton img {
+  filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(181deg) brightness(118%) contrast(111%);
+  margin-inline-end: 10px;
+}
+
+.connectionsPanel .chavruta .headerText {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 26px;
+  padding-bottom: 13px;
+
+  /* Dark Grey */
+  color: #666666;
+  border-bottom: 1px solid #CCCCCC;
+}
+
+.connectionsPanel .chavruta p {
+font-size: 16px;
+font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+line-height: 19px;
+color: #666666;
+}
+
+.connectionsPanel .chavruta .fakeBrowser {
+  width: 100%;
+  margin: 30px auto 30px;
+}
+
+.fakeBrowser .fakeBrowserHeader {
+  background: #C4C4C4;
+  width: 100%;
+  height: 30px;
+  display: inline-flex;
+  border-radius: 3px 3px 0 0;
+}
+
+.fakeBrowser .fakeBrowserButtons {
+  padding: 7px;
+}
+
+.fakeBrowser .fakeBrowserButton {
+  width: 8px;
+  height: 8px;
+  border-radius: 8px;
+  display: inline-block;
+  margin: 0px 1px;
+}
+
+.fakeBrowserButton.red {
+  background: #E96E4C;
+}
+.fakeBrowserButton.yellow {
+  background: #E6A935;
+}
+.fakeBrowserButton.green {
+  background: #85C33D;
+}
+
+.fakeBrowser .fakeBrowserURLBar {
+  background: #fff;
+  flex: 1;
+  align-self: center;
+  margin-right: 10px;
+  text-align: center;
+  opacity: 0.85;
+  border-radius: 4px;
+  color: #9B9B9B;
+}
+
+.fakeBrowser .fakeBrowserMain {
+  width: 100%;
+  height: 190px;
+  background-color: #fff;
+  border-radius: 0 0 3px 0;
+}
+
+.fakeBrowser .fakeBrowserMain .fakeBrowserLeft {
+  padding: 10px;
+  background-color: #EDEDEC;
+  width: 85px;
+  display: inline-block;
+  border-radius: 0 0 0 3px;
+}
+
+
+.fakeBrowser .fakeBrowserMain .fakeBrowserRight {
+  padding: 0 10px;
+  background-color: #fff;
+  width: calc(100% - 127px);
+  display: inline-block;
+}
+
+.fakeBrowser .fakeBrowserMain .fakeBrowserRight hr {
+  border: none;
+  margin-top: 8px;
+  border-top: 3px solid #ccc;
+}
+
+.fakeBrowser .fakeBrowserMain .fakeBrowserRight hr:nth-child(4n+0) {
+  margin-bottom: 16px;
+  width: 80%;
+  margin-inline-start: 0;
+}
+
+
+.fakeBrowser .fakeBrowserButtonAvatar {
+  margin: 10px auto 5px;
+  width: 80%;
+  text-align: center;
+}
+
+.fakeBrowser .fakeBrowserButtonAvatar img {
+  width: 100%;
+}
+
+.fakeBrowser .fakeBrowserButtonAvatar .default-profile-img {
+  line-height: 68px;
+  background: #212E50;
+}
+
 .addConnectionBox {
   font-size: 18px;
   text-align: center;
@@ -5192,7 +5327,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .profile-page .profile-pic .profile-pic-button {
   position: absolute;
 }
-
 .profile-pic-cropper-modal {
   max-width: unset !important;
   max-height: unset !important;
@@ -6861,24 +6995,21 @@ span.purim-emoji img{
 .sheetContent tbody {
   width: 100%;
 }
-.readerPanel.hebrew .sheetItem .he {
-  display: block;
+.readerPanel .sheetItem {
+  position: relative;
 }
-.readerPanel.english .sheetItem .en {
-  display: block;
-}
-.readerPanel .sheetItem.indented-1 > .en,
-.readerPanel .sheetItem.indented-1 > .he {
+.readerPanel .sheetItem.indented-1,
+.readerPanel .sheetItem.indented-1 {
   padding-left:  30px;
   padding-right: 30px;
 }
-.readerPanel .sheetItem.indented-2 > .en,
-.readerPanel .sheetItem.indented-2 > .he {
+.readerPanel .sheetItem.indented-2,
+.readerPanel .sheetItem.indented-2 {
   padding-left:  60px;
   padding-right: 60px;
 }
-.readerPanel .sheetItem.indented-3 > .en,
-.readerPanel .sheetItem.indented-3 > .he {
+.readerPanel .sheetItem.indented-3,
+.readerPanel .sheetItem.indented-3 {
   padding-left:  90px;
   padding-right: 90px;
 }
@@ -6892,20 +7023,14 @@ span.purim-emoji img{
   margin: 0 0 1em 0;
 }
 .segmentNumber.sheetSegmentNumber {
-  display: none;
-  position: relative;
+  display: block;
+  position: absolute;
+  text-align: center;
 }
 .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
 .readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber {
   left: -48px;
-  top: 28px;
-  text-align: center;
-}
-.interface-hebrew .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber {
-  float: left;
-  left: -48px;
-  margin-right: -30px;
-  top: 0;
+  top: 0px;
 }
 .singlePanel .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
 .singlePanel .readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber {
@@ -6913,19 +7038,23 @@ span.purim-emoji img{
 }
 .readerPanel.bilingual.heLeft .sheetItem.segment .segmentNumber.sheetSegmentNumber,
 .readerPanel.bilingual.heRight .sheetItem.segment .segmentNumber.sheetSegmentNumber {
-  left: 0;
-  margin: auto;
-  top: 23px;
-  text-align: center;
+  left: 50%;
+  margin-left: -15px;
+}
+.readerPanel.bilingual.heLeft .sheetItem.segment.enOnly .segmentNumber.sheetSegmentNumber,
+.readerPanel.bilingual.heRight .sheetItem.segment.enOnly .segmentNumber.sheetSegmentNumber,
+.readerPanel.bilingual.heLeft .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber, 
+.readerPanel.bilingual.heRight .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber {
+  left: 0px;
+  margin-left: 0;
 }
 .readerPanel.hebrew .sheetItem.segment .segmentNumber.sheetSegmentNumber {
   margin-left: auto;
   right: -32px;
-  top: 26px;
-  text-align: center;
 }
-.singlePanel .readerPanel.hebrew .sheetItem.segment .segmentNumber.sheetSegmentNumber {
-  right: -18px;
+.readerPanel.english .sheetItem.segment.heOnly .segmentNumber .en,
+.readerPanel.hebrew .sheetItem.segment.enOnly .segmentNumber .he {
+  display: block;
 }
 .sheetTocIcon {
   color: #ccc;
@@ -7097,11 +7226,9 @@ span.purim-emoji img{
   text-decoration: underline;
   color: inherit;
 }
-
 .groupImageContainer img {
   max-width: 100%;
 }
-
 .he sup.sourcePrefix {
     margin-right: -35px;
     position: absolute;
@@ -7120,7 +7247,6 @@ span.purim-emoji img{
 .heRight.bilingual .sheetContent .text sup.sourcePrefix {
     margin-right: -28px;
 }
-
 .heLeft.bilingual .sheetContent .text .en sup.sourcePrefix,
 .heRight.bilingual .sheetContent .text .en sup.sourcePrefix {
   display: none
@@ -7128,7 +7254,6 @@ span.purim-emoji img{
 .sheetItem.ref-display-none .ref {
   display: none;
 }
-
 .sheetItem .SheetSource {
   border-inline-start: 4px solid;
   padding-inline-start: 11px;
@@ -7169,15 +7294,12 @@ span.purim-emoji img{
   pointer-events: none;
   user-select: none;
 }
-
 .sheetItem .SheetOutsideBiText {
   border-left: 4px solid;
   margin-left: -34px;
   padding-left: 34px;
   border-color: #073570;
 }
-
-
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;
@@ -7217,6 +7339,12 @@ span.purim-emoji img{
   padding: 10px 0;
   margin: 0 30px 0 0;
   cursor: pointer;
+}
+.tab-view .tab-list .tab a {
+  color: inherit;
+}
+.tab-view .tab-list .tab a:hover {
+  text-decoration: none;
 }
 .tab-view .tab-list .active .tab {
   border-bottom: 4px solid #CCC;
@@ -7475,7 +7603,7 @@ span.purim-emoji img{
 .profile-page .groupListing + .groupListing {
   border-top: 0;
 }
-.profile-page .profile-summary a {
+.profile-page .profile-summary-content a {
   color: inherit;
 }
 .profile-page .profile-summary a.logoutLink {
@@ -8186,12 +8314,10 @@ img.smallProfileImage {
   padding-left: 2px;
   padding-right: 2px;
 }
-
 body .homeFeedWrapper.userStats {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   background-color: #faf9f9;
 }
-
 .userStats h1 {
   text-align: center;
   font-weight: normal;
@@ -8200,19 +8326,16 @@ body .homeFeedWrapper.userStats {
   padding: 60px 0 30px;
   margin: 0;
 }
-
 .userStats h2 {
   text-transform: none;
   padding: 40px 0 30px;
   font-size: 21px;
   color: #888;
 }
-
 .userStats .statcardRow {
   display: flex;
   justify-content: space-around;
 }
-
 .userStats .statcardRow .statcard {
   background-color: #fff;
   height: 190px;
@@ -8223,26 +8346,22 @@ body .homeFeedWrapper.userStats {
   flex-direction: column;
   justify-content: center;
 }
-
 .userStats .statcardRow .statcard img {
   opacity: 0.3;
   height: 60px;
   width: 60px;
   margin: 0 auto 20px;
 }
-
 .userStats .statcardRow .statcard .statcardValue {
   font-size: 24px;
   text-align: center;
 }
-
 .userStats .statcardRow .statcard .statcardLabel {
   font-size: 21px;
   padding-top: 5px;
   text-align: center;
   color: #aaa;
 }
-
 .userStats .chartRow {
   display: flex;
   justify-content: space-between;
@@ -8259,7 +8378,6 @@ body .homeFeedWrapper.userStats {
   letter-spacing: 0.7px;
   line-height: 23px;
 }
-
 .userStats .chartRow .chartWrapper {
   font: 11px sans-serif;
   padding: 0;
@@ -8279,7 +8397,6 @@ body .homeFeedWrapper.userStats {
 .hebrew .userStats .blockLink .he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
-
 .userStatModeChooser {
   padding: 0;
   display:  flex;
@@ -8301,40 +8418,33 @@ body .homeFeedWrapper.userStats {
   cursor: pointer;
   font-size: 16px;
 }
-
 .userStatModeButton.active {
   background-color: #19365d;
   color: #fff;
 }
-
 .userStatModeButton span {
   display: block;
   margin: 15px 0;
 }
-
 .userStats .blockLink {
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-
 .userStats .yourPopularSheetsBlock > div {
   padding: 10px 0;
 }
-
 .userStats .chartLabel {
   text-align: center;
   padding-top: 8px;
 }
-
 .editorToolbar {
   position:fixed;
   top: 0;
   left: 0;
   z-index: 100000;
 }
-
 #sheetEditToggle {
   padding-top: 0;
   padding-bottom: 0;
@@ -8354,7 +8464,6 @@ body .homeFeedWrapper.userStats {
   box-sizing: border-box;
   border-radius: 6px;
 }
-
 #sheetEditToggle img {
   height: 13px;
   margin-top: 0;
@@ -8365,11 +8474,9 @@ body .homeFeedWrapper.userStats {
   position: relative;
   filter: invert(67%) sepia(32%) saturate(0%) hue-rotate(54deg) brightness(85%) contrast(91%); /* #999 */
 }
-
 #sheetEditToggle i {
   margin: 5px;
 }
-
 .hoverMenu {
   padding: 8px 10px 6px;
   position: absolute;
@@ -8384,7 +8491,6 @@ body .homeFeedWrapper.userStats {
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 
 }
-
 .markButton {
   padding: 10px;
 }
@@ -8401,12 +8507,9 @@ body .homeFeedWrapper.userStats {
     padding: 3px;
     font-size: 12px;
 }
-
 .inlineTextRef {
     color: #4B71B7
 }
-
-
 /* start css code for loading bezel */
 .sourceLoader {
   margin-left: -34px;

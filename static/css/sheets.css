@@ -702,12 +702,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	font-weight: bold;
 }
 
-
 #sheet #sources .sheetItem .sourceNumber.en {
 	position: absolute;
 	width: 50px;
 	text-align: right;
-	top: 35px;
+	top: 28px;
 	left: 6px;
 }
 
@@ -715,7 +714,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	position: absolute;
 	width: 50px;
 	text-align: left;
-	top: 37px;
+	top: 29px;
 	right: 6px;
 }
 
@@ -1578,15 +1577,12 @@ line-height: normal;
 
 }
 
-
-
 #sheet .source.sheetItem.stacked > .en,
 #sheet .source.sheetItem.stacked > .he {
 	float: none;
 	width: 100%;
 	margin-bottom: 12px;
 }
-
 
 #sheet .source.bilingual .en,
 #sheet .source.bilingual .he,
@@ -1595,18 +1591,13 @@ line-height: normal;
 	display: block;
 }
 
-#sheet .source.english > .he,
-#sheet.numbered #sources .source.english > .sourceNumber.he
-{
+#sheet .source.english > .he {
 	display: none;
 }
 
-#sheet .source.hebrew > .en,
-#sheet.numbered #sources .source.hebrew > .sourceNumber.en
-{
+#sheet .source.hebrew > .en {
 	display: none;
 }
-
 
 #resetToDefaults {
 	margin-top:10px;

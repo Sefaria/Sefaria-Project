@@ -35,8 +35,8 @@ urlpatterns = [
     url(r'^groups/?$', reader_views.public_groups),
     url(r'^groups/all$', reader_views.groups_admin_page),
     url(r'^groups/new$', reader_views.edit_group_page),
-    url(r'^groups/(?P<group>[^/]+)/settings$', reader_views.edit_group_page),
-    url(r'^groups/(?P<group>[^/]+)$', reader_views.group_page),
+    url(r'^groups/(?P<group>[^.]+)/settings$', reader_views.edit_group_page),
+    url(r'^groups/(?P<group>[^.]+)$', reader_views.group_page),
     url(r'^my/groups$', reader_views.my_groups),
     url(r'^partners/(?P<group>[^/]+)$', reader_views.group_page),
     url(r'^account/?$', reader_views.account),
@@ -283,7 +283,7 @@ urlpatterns += [
     url(r'^random/link$',        reader_views.random_redirect),
     url(r'^random/?$',           reader_views.random_text_page),
     url(r'^daf-roulette/?$',     reader_views.daf_roulette_redirect),
-    url(r'^chevruta/?$',     reader_views.chevruta_redirect),
+    url(r'^chavruta/?$',     reader_views.chevruta_redirect),
 ]
 
 # Registration
@@ -333,9 +333,9 @@ urlpatterns += [
 
 ]
 
-# dafroulette.js -
+# chavruta.js -
 urlpatterns += [
-    url(r'^dafroulette\.js$', sefaria_views.dafroulette_js)
+    url(r'^chavruta\.js$', sefaria_views.chavruta_js)
 ]
 
 

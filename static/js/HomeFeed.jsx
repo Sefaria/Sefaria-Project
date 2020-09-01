@@ -11,18 +11,17 @@ import {
     LoadingMessage 
 } from './Misc';
 
-function CategoryLink({category, showLibrary}) {
-    return ( <a className="sideCatLink refLink inAppLink" href={"/texts/" + category} style={{borderColor: Sefaria.palette.categoryColor(category)}} onClick={()=>{showLibrary(category)}}>
+function CategoryLink({category}) {
+    return ( <a className="sideCatLink refLink" href={"/texts/" + category} style={{borderColor: Sefaria.palette.categoryColor(category)}}>
                 <span className="int-en">{category}</span>
                 <span className="int-he">{Sefaria.hebrewTerm(category)}</span>
             </a>);
 }
 CategoryLink.propTypes = {
-  showLibrary:   PropTypes.func.isRequired,
-  category:      PropTypes.string
+    category: PropTypes.string.isRequired,
 };
 
-function HomeFeedSidebar({showLibrary}) {
+function HomeFeedSidebar() {
     return (<div className="sideColumn">
             <div id="homeLearn" className="section">
                 <div className="sectionInner">
@@ -37,13 +36,13 @@ function HomeFeedSidebar({showLibrary}) {
                         </div>
                     </div>
                     <div className="imageBox">
-                        <CategoryLink category={"Tanakh"} showLibrary={showLibrary} />
-                        <CategoryLink category={"Mishnah"} showLibrary={showLibrary} />
-                        <CategoryLink category={"Talmud"} showLibrary={showLibrary} />
-                        <CategoryLink category={"Midrash"} showLibrary={showLibrary} />
-                        <CategoryLink category={"Halakhah"} showLibrary={showLibrary} />
+                        <CategoryLink category={"Tanakh"} />
+                        <CategoryLink category={"Mishnah"} />
+                        <CategoryLink category={"Talmud"} />
+                        <CategoryLink category={"Midrash"} />
+                        <CategoryLink category={"Halakhah"} />
                     </div>
-                    <a href="/texts" className="button white fillWidth control-elem" onClick={showLibrary}>
+                    <a href="/texts" className="button white fillWidth control-elem">
                         <i className="fa fa-bars"></i>
                         <span className="int-en">Browse the Library</span>
                         <span className="int-he">עיינו בספריה הוירטואלית</span>
@@ -175,19 +174,21 @@ function HomeFeedSidebar({showLibrary}) {
           </div>
     );
 }
-HomeFeedSidebar.propTypes = {
-  showLibrary:   PropTypes.func.isRequired,
-};
 
 function HomeFeed(props) {
   const {interfaceLang, toggleSignUpModal, onlySharedStories} = props;
-  const [stories, setStories] = useState([]);
+  const [stories, setStories] = useState(Sefaria._stories.stories);
   const scrollable_element = useRef();
 
   usePaginatedScroll(
-      scrollable_element,
-      "/api/stories?" + (onlySharedStories ? "shared_only=1" : ""),
-      data => setStories(prev => ([...prev, ...data.stories]))
+    scrollable_element,
+    "/api/stories?" + (onlySharedStories ? "shared_only=1" : ""),
+    data => {
+      Sefaria._stories.stories = Sefaria._stories.stories.concat(data.stories);
+      Sefaria._stories.page = data.page + 1;
+      setStories(Sefaria._stories.stories)
+    },
+    Sefaria._stories.page
   );
 
   return (
@@ -216,7 +217,7 @@ function HomeFeed(props) {
                 {stories.length ? stories.map((s,i) => Story(s, i, props)) : <LoadingMessage />}
                 </div>
             </div>
-            <HomeFeedSidebar showLibrary={props.showLibrary} />
+            <HomeFeedSidebar />
         </div>
         </div>
       </div>
@@ -225,7 +226,6 @@ function HomeFeed(props) {
 HomeFeed.propTypes = {
   interfaceLang:      PropTypes.string,
   toggleSignUpModal:  PropTypes.func.isRequired,
-  showLibrary:   PropTypes.func.isRequired,
   onlySharedStories:  PropTypes.bool,
 };
 

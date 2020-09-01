@@ -210,6 +210,7 @@ class TextList extends Component {
                                     handleSheetClick={this.props.handleSheetClick}
                                     connectedRefs={this.props.srefs}
                                     hideAuthor={hideAuthor}
+                                    openInNewTab={true}
                                     key={i + link.anchorRef} />);
                         } else {
                           var hideTitle = link.category === "Commentary" && this.props.filter[0] !== "Commentary";

@@ -271,9 +271,7 @@ class TextRange extends Component {
       heTitle          = "טעינה...";
       ref              = null;
     }
-    const showNumberLabel    =  data &&
-                              data.categories &&
-                              data.categories[0] !== "Talmud" &&
+    const showNumberLabel =  data && data.categories &&
                               data.categories[0] !== "Liturgy" &&
                               data.categories[0] !== "Reference";
 
@@ -523,6 +521,7 @@ class TextSegment extends Component {
     if (!!this.props.textHighlights) {
       const highList = this.props.textHighlights.map(h => Sefaria.hebrew.isHebrew(h) ? Sefaria.hebrew.getNikkudRegex(h) : h);
       const reg = new RegExp(`(${highList.join("|")})`, 'g');
+      
       return text.replace(reg, '<span class="queryTextHighlight">$1</span>');
     }
     return text;

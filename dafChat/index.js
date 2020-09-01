@@ -1,29 +1,23 @@
 'use strict';
 
+
+// import various libraries
 const socketIO = require('socket.io');
 const fetch = require('node-fetch');
 const jwt_decode = require('jwt-decode');
 const sqlite3 = require('sqlite3').verbose();
-const db = new sqlite3.Database('./db/chatrooms.db');
-db.run(`DROP TABLE IF EXISTS "chatrooms"`);
-console.log('creating and clearing db');
-db.run(`CREATE TABLE IF NOT EXISTS "chatrooms" ("name"	TEXT UNIQUE, "clients"	INTEGER DEFAULT 0, "roomStarted"	INTEGER, PRIMARY KEY("name"));`)
-const os = require('os');
-
 const nodeStatic = require('node-static');
 const http = require('http');
 
-const PORT = process.env.PORT || 8080;
-const fileServer = new(nodeStatic.Server)();
-const app = http.createServer(function(req, res) {
-    fileServer.serve(req, res);
-    // console.log(req.headers)
-}).listen(PORT);
+// initialize db
+const db = new sqlite3.Database('./db/chatrooms.db');
+db.run(`DROP TABLE IF EXISTS "chatrooms"`);
+console.log('creating and clearing db');
+db.run(`CREATE TABLE IF NOT EXISTS "chatrooms" ("name"	TEXT UNIQUE, "clients"	INTEGER DEFAULT 0, "roomStarted"	INTEGER, "namespace"	TEXT, PRIMARY KEY("name"));`)
+const os = require('os');
 
-const io = socketIO.listen(app);
-
+// configure Turn & Stun servers:
 const TURN_SERVER = `turn:${process.env.TURN_SERVER}?transport=udp`;
-
 const pcConfig = {
   'iceServers': [{
       'urls': 'stun:stun.l.google.com:19302'
@@ -36,6 +30,17 @@ const pcConfig = {
   ]
 };
 
+//setup static server and initialize sockets
+const PORT = process.env.PORT || 8080;
+const fileServer = new(nodeStatic.Server)();
+const app = http.createServer(function(req, res) {
+    fileServer.serve(req, res);
+    // console.log(req.headers)
+}).listen(PORT);
+
+const io = socketIO.listen(app);
+
+
 
 io.sockets.on('connection', function(socket) {
 
@@ -43,18 +48,21 @@ io.sockets.on('connection', function(socket) {
     socket.to(roomId).emit('message', message);
   });
 
-  function createNewRoom(uid) {
-    const room = Math.random().toString(36).substring(7);
+  function createNewRoom(uid, namespace="dafRoulette", uroom=false) {
+    const room = uroom ? uroom : Math.random().toString(36).substring(7);
     socket.join(room, () => {
       console.log(`${socket.id} created room ${room}`);
       socket.emit('created', room);
-      db.run(`INSERT INTO chatrooms(name, clients, roomStarted) VALUES(?, ?, ?)`, [room, uid, +new Date], function(err) {
+      db.run(`INSERT INTO chatrooms(name, clients, roomStarted, namespace) VALUES(?, ?, ?, ?)`, [room, uid, +new Date, namespace], function(err) {
         if (err) {
           console.log(err.message);
         }
       });
     });
   }
+
+
+
 
   socket.on('does room exist', function(roomID) {
     let sql = `SELECT name FROM chatrooms WHERE name = ?`;
@@ -70,49 +78,59 @@ io.sockets.on('connection', function(socket) {
     });
   });
 
-  socket.on('enter room', function(uid, room) {
+
+  //default private chevruta path
+  socket.on('start chevruta', function(uid, room) {
     socket.emit('creds', pcConfig)
 
-    if (!io.sockets.adapter.rooms[room] || io.sockets.adapter.rooms[room].length == 1) {
-      socket.join(room, () => {
 
-        if (io.sockets.adapter.rooms[room].length == 1) {
-          console.log(`${socket.id} created room ${room}`);
-          socket.emit('created', room);
-          db.run(`INSERT INTO chatrooms(name, clients, roomStarted) VALUES(?, ?, ?)`, [room, 0, +new Date], function(err) {
-            if (err) {
-              console.log(err.message);
-            }
-          });
-        }
+    db.get(`SELECT name, clients from chatrooms WHERE name = ? AND namespace = ?`, [room, "private"], (err, row) => {
 
-        else {
-          console.log('Client ID ' + socket.id + ' joined room ' + room);
-          socket.to(room).emit('join', room);
-          socket.emit('join', room);
-        }
-
-      });
-    }
-  else {
-    socket.emit('room full');
-  }
-
-  });
-
-  socket.on('how many rooms', function(uid, lastChevrutaID) {
-    socket.emit('creds', pcConfig)
-
-    db.get(`SELECT COUNT(*) FROM chatrooms`, (err, rows) => {
       if (err) {
         return console.error(err.message);
       }
 
-      let numRows = rows["COUNT(*)"];
-      socket.broadcast.emit('return rooms', numRows);
-      socket.emit('return rooms', numRows);
+      if (!row) {
+        createNewRoom(uid, "private", room);
+      }
+
+      else if (row.clients != 0) {
+        console.log(socket.id +' attempting to join room: '+ room)
+        socket.join(room, () => {
+          console.log('Client ID ' + socket.id + ' joined room ' + room);
+          socket.to(room).emit('join', room);
+          socket.emit('join', room);
+          db.run(`UPDATE chatrooms SET clients=? WHERE name=?`, [0, room]);
+        })
+      }
+
+      else {
+        socket.emit('room full');
+      }
+
+      });
+  })
+
+
+
+
+
+  // Default Roulette Pathway:
+  socket.on('start roulette', function(uid, lastChevrutaID, namespace='dafRoulette' ) {
+    socket.emit('creds', pcConfig)
+
+    db.get(`SELECT COUNT(*) FROM chatrooms WHERE namespace=?`, [namespace], (err, rows) => {
+      if (err) {
+        return console.error(err.message);
+      }
+
+      if (namespace == 'dafRoulette') {
+        let numRows = rows["COUNT(*)"];
+        socket.broadcast.emit('return rooms', numRows);
+        socket.emit('return rooms', numRows);
+      }
         console.log('trying to find a room...')
-        db.all(`SELECT name, clients from chatrooms WHERE clients != 0 ORDER BY roomStarted`, [], (err, rows) => {
+        db.all(`SELECT name, clients from chatrooms WHERE clients != 0 AND namespace = ? ORDER BY roomStarted`, [namespace], (err, rows) => {
 
           if (err) {
             return console.error(err.message);
@@ -122,7 +140,7 @@ io.sockets.on('connection', function(socket) {
 
           while (foundRoom == false) {
             if (rows.length == rowIndex) {
-              createNewRoom(uid);
+              createNewRoom(uid, namespace);
               foundRoom = true;
             }
             else if (rows[rowIndex].clients == lastChevrutaID) {

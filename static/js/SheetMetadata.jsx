@@ -264,11 +264,11 @@ class SheetMetadata extends Component {
                         <h2 className="tagsTitle int-he">תוית</h2>
 
                         <div className="sheetTags">
-                          {this.props.sheet.topics.map(topic => (
+                          {this.props.sheet.topics.map((topic, i) => (
                               <a href={"/topics/" + topic.slug}
                                 target="_blank"
                                 className="sheetTag button"
-                                key={topic.slug}
+                                key={i}
                               >
                                 <InterfaceTextWithFallback en={topic.en} he={topic.he} />
                               </a>
