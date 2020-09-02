@@ -170,7 +170,8 @@ Sefaria = extend(Sefaria, {
     return Sefaria.makeRef(nRef);
   },
   joinRefList: function(refs, lang){
-      //should check that these are actually refs
+    // Returns a string Ref in `lang` that corresponds to the range of refs in `refs`
+    // Hebrew results depend on `refs` being available in the refs cache.
       //only use for display as it doesn't rely on any ref parsing!
       //since this is just string manipulation it works language agnostically.
       //does not work well in cases like Genesis 1:10, Genesis 1:15 (will return Genesis 1:10-5). Needs fixing
@@ -183,10 +184,14 @@ Sefaria = extend(Sefaria, {
       let start, end;
       if (refs[0].indexOf("-") != -1) { // did we get a ranged ref for some reason inside the arguemnts
           let startSplit = Sefaria.splitRangingRef(refs[0])
-          start = Sefaria.getRefFromCache(startSplit[0])[refStrAttr];
+          start = Sefaria.getRefFromCache(startSplit[0]);
       }else{
-          start = Sefaria.getRefFromCache(refs[0])[refStrAttr];
+          start = Sefaria.getRefFromCache(refs[0]);
       }
+      if (!start) { // We don't have this ref in cache, fall back to normRefList and sorry no Hebrew
+        return Sefaria.humanRef(Sefaria.normRefList(refs));
+      }
+      start = start[refStrAttr]
       if (refs[refs.length - 1].indexOf("-") != -1) {
           let endSplit = Sefaria.splitRangingRef(refs[refs.length - 1]);
           end = Sefaria.getRefFromCache(endSplit[endSplit.length -1])[refStrAttr];
@@ -224,7 +229,6 @@ Sefaria = extend(Sefaria, {
           const addrStr = similaraddrs.join(":")+(index == 0? "" : ":")+addressPartStart.slice(index).join(":")+"-"+addressPartEnd.slice(index).join(":");
           return `${namedPartStart} ${addrStr}`
       }
-
   },
   refContains: function(ref1, ref2) {
     // Returns true is `ref1` contains `ref2`
