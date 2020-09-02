@@ -78,6 +78,10 @@ class WebPage(abst.AbstractMongoRecord):
         return urlparse(url).netloc
 
     def should_be_excluded(self):
+        """ Returns true if this webpage should not be included in our index
+        because it matches a title/url we want to exclude or has no refs"""
+        if len(self.refs) == 0:
+            return True
         url_regex = WebPage.excluded_pages_url_regex()
         title_regex = WebPage.excluded_pages_title_regex()
         return bool(re.search(url_regex, self.url) or re.search(title_regex, self.title))
