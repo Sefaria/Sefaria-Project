@@ -31,8 +31,9 @@
     "watch-timeline": "webpack --config ./node/webpack.timeline.js --progress -w --stdin",
     "setup": "npm install -g nodemon; npm install -g babel-cli; npm install -g forever",
     "b": "npm run build",
-    "w": "npm run watch",
+    "w": "npm run watch-client-server",
     "wc": "npm run watch-client",
+    "wa": "npm run watch",
     "t": "npm run test",
     "to": "npm run test-one"
   },
