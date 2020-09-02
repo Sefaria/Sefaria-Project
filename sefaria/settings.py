@@ -108,6 +108,7 @@ TEMPLATES = [
 ]
 
 MIDDLEWARE = [
+    'easy_timezones.middleware.EasyTimezoneMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -121,7 +122,6 @@ MIDDLEWARE = [
     'sefaria.system.middleware.ProfileMiddleware',
     'sefaria.system.middleware.CORSDebugMiddleware',
     'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
-    'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
 ]
