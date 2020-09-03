@@ -362,7 +362,7 @@ def generate_all_topic_links_from_sheets(topic=None):
 
 def generate_sheet_topic_links():
     projection = {"topics": 1, "id": 1, "status": 1}
-    sheet_list = db.sheets.find({"status": "public"}, projection)
+    sheet_list = db.sheets.find({"status": "public", "assignment_id": {"$exists": 0}}, projection)
     sheet_links = []
     for sheet in tqdm(sheet_list, desc="getting sheet topic links"):
         if sheet.get('id', None) is None:
@@ -764,6 +764,7 @@ def recalculate_secondary_topic_data():
 
     # now that we've gathered all the new links, delete old ones and insert new ones
     RefTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
+    RefTopicLinkSet({"is_sheet": True}).delete()
     IntraTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
     print(f"Num Ref Links {len(all_ref_links)}")
     print(f"Num Intra Links {len(related_links)}")
