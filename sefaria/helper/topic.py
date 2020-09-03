@@ -303,7 +303,10 @@ def generate_all_topic_links_from_sheets(topic=None):
         topic_scores = [(slug, (numerator / denominator) * topic_idf_dict[slug], owners) for slug, numerator, owners in
                   zip(related_topics_to_tref.keys(), numerator_list, owner_counts)]
         # transform data to more convenient format
-        oref = Ref(tref)
+        try:
+            oref = Ref(tref)
+        except InputError:
+            continue
         for slug, _, owners in filter(lambda x: x[1] >= TFIDF_CUTOFF and x[2] >= OWNER_THRESH, topic_scores):
             raw_topic_ref_links[slug] += [(oref, owners)]
 
@@ -571,7 +574,7 @@ def calculate_other_ref_scores(ref_topic_map):
                 seg_ref_counter[seg_ref] += 1
         for tref in ref_list:
             range_list = tref_range_lists.get(tref, None)
-            num_datasource_map[(topic, tref)] = 0 if range_list is None else max(seg_ref_counter[seg_ref] for seg_ref in range_list)
+            num_datasource_map[(topic, tref)] = 0 if (range_list is None or len(range_list) == 0) else max(seg_ref_counter[seg_ref] for seg_ref in range_list)
     return num_datasource_map, langs_available, comp_date_map, order_id_map
 
 
