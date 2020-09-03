@@ -499,7 +499,7 @@
                     </div>
                 </div>
 
-                <div class="sheetsMenuBarItem">
+                <div class="sheetsMenuBarItem" id="lastSavedMenu">
                     <span id="lastSaved">
                     {% if sheet.dateModified %}
                         {% if can_edit or can_add %}
@@ -524,7 +524,7 @@
                     {% endif %}
                     </span>
                 </div>
-                <div class="sheetsMenuBarItem">
+                <div class="sheetsMenuBarItem" id="higlightModeMenu">
                     <span id="highlightModeDisplay">
                         <span class="int-en">Highlight Mode is On</span>
                         <span class="int-he">מצב סימון וצביעה פעיל</span>

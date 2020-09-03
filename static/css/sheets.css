@@ -1285,10 +1285,9 @@ a:active {
 		height: auto;
 	}
 
-	#lastSaved, .sheetsEditNavTop, .inlineAddButton, #addInterface, #sourceControls {
+	#lastSavedMenu, #highlightMenu, #highlightModeMenu {
 		display: none;
 	}
-
 }
 
 @media screen and (max-width: 520px) {
