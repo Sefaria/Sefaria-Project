@@ -581,7 +581,7 @@ class ReaderApp extends Component {
             if (states[i].navigationTopic) {
               const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
               hist.url = `topics/${state.navigationTopic}?tab=${state.topicsTab}`;
-              hist.title = `${state.topicTitle[shortLang]} | ${Sefaria._(siteName)}`;
+              hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")}`;
               hist.mode  = "topic";
             } else {
               hist.url   = "topics";

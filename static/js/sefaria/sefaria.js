@@ -2176,6 +2176,7 @@ Sefaria = extend(Sefaria, {
       "Sefaria Account": "חשבון בספריא",
       "New Additions to the Sefaria Library":"חידושים בארון הספרים של ספריא",
       "My Notes on Sefaria": "ההערות שלי בספריא",
+      "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.": "טקסטים ודפי מקורות מן התורה, התלמוד וספריית המקורות של ספריא.",
       "Moderator Tools": "כלי מנהלים",
       " with " : " עם ",
       "Connections" : "קשרים",
