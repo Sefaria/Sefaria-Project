@@ -416,7 +416,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
     sub_collection_query = {"class": "refTopic"}
     required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']  # is_sheet  and expandedRef attrs are defaulted automatically in normalize
-    optional_attrs = TopicLinkHelper.optional_attrs + ['text']
+    optional_attrs = TopicLinkHelper.optional_attrs + ['text', 'charLevelData']
 
     def _normalize(self):
         super(RefTopicLink, self)._normalize()
