@@ -7985,7 +7985,6 @@ body .homeFeedWrapper .content {
   letter-spacing: 0.05em;
   color: #333;
 }
-
 .sideColumn .newsletterInput {
   height: 53px;
 }
@@ -8013,11 +8012,9 @@ body .homeFeedWrapper .content {
 .interface-english .sideColumn .newsletterInput, .interface-english .sideColumn .newsletterInput::placeholder  {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-
 .interface-hebrew .sideColumn .newsletterInput, .interface-hebrew .sideColumn .newsletterInput::placeholder   {
   font-family: "Heebo", sans-serif;
 }
-
 .sideColumn #homeSocialButtons {
   margin-top: 15px;
 }
@@ -8353,7 +8350,6 @@ body .homeFeedWrapper.userStats {
   font: 11px sans-serif;
   padding: 0;
 }
-
 .bilingual .userStats .blockLink .he,
 .english .userStats .blockLink .he {
   display: none;
@@ -8480,6 +8476,39 @@ body .homeFeedWrapper.userStats {
 }
 .inlineTextRef {
     color: #4B71B7
+}
+.headerWithButtons {
+  display: flex;
+  align-items: center;
+  margin-bottom: 60px;
+}
+.headerWithButtons h1,
+.static .headerWithButtons h1 {
+  margin: 0;
+}
+.headerWithButtons .start,
+.headerWithButtons .end {
+  flex: 1;
+}
+.headerWithButtons .start {
+  text-align: start;
+}
+.headerWithButtons .end {
+  text-align: end;
+}
+@media screen and (max-width: 700px) {
+  .headerWithButtons {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .headerWithButtons h1 {
+    margin-bottom: 20px;
+  }
+  .headerWithButtons .start, 
+  .headerWithButtons .end {
+    text-align: center;
+  }
 }
 /* start css code for loading bezel */
 .sourceLoader {
