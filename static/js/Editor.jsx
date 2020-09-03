@@ -505,6 +505,9 @@ function isSourceEditable(e, editor) {
   if (editor.children[0]["edittingSource"]) {return true}
 
   const isEditable = (!Range.isCollapsed(editor.selection))
+  if (isEditable) {
+    Transforms.collapse(editor, { edge: 'focus' })
+  }
   Transforms.setNodes(editor, {edittingSource: isEditable}, {at: [0]});
   return (isEditable)
 }
@@ -1433,7 +1436,6 @@ const SefariaEditor = (props) => {
 
       if(currentSelection.length > 0) {
         if (editor.children[0]["edittingSource"]) {
-          Transforms.collapse(editor, { edge: 'focus' })
           return
         }
 
@@ -1442,7 +1444,7 @@ const SefariaEditor = (props) => {
 
         if (Range.isBackward(editor.selection)) {
           const anchorLoc = Point.isAfter(lastSourceEdge, editor.selection.anchor) ? lastSourceEdge : editor.selection.anchor;
-          if (Point.isBefore(firstSourceEdge, editor.selection.focus)) {
+          if (Point.isBefore(firstSourceEdge, editor.selection.focus) || Point.equals(firstSourceEdge, editor.selection.focus)) {
             Transforms.select(editor, {
               focus: { path: firstSourceEdge["path"], offset: firstSourceEdge["offset"]},
               anchor: { path: anchorLoc.path, offset: anchorLoc.offset}
@@ -1452,7 +1454,8 @@ const SefariaEditor = (props) => {
         }
         else {
           const anchorLoc = Point.isBefore(firstSourceEdge, editor.selection.anchor) ? firstSourceEdge : editor.selection.anchor;
-          if (Point.isAfter(lastSourceEdge, editor.selection.focus, )) {
+          console.log(anchorLoc)
+          if (Point.isAfter(lastSourceEdge, editor.selection.focus, ) || Point.equals(lastSourceEdge, editor.selection.focus, )) {
             Transforms.select(editor, {
               focus: { path: lastSourceEdge["path"], offset: lastSourceEdge["offset"]},
               anchor: { path: anchorLoc.path, offset: anchorLoc.offset}
