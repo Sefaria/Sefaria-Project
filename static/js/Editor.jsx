@@ -993,18 +993,18 @@ const withSefariaSheet = editor => {
       }
 
 
-      if (node.type == "SheetSource") {
-        //If a sheet source's Hebrew element AND english element are both missing their header or their source content, delete the whole sheetItem
-        if (
-              (node.children[0].children.length < 2 || Node.string(node.children[0].children[1]) == "..." ) &&
-              (node.children.length < 2 || node.children[1].children.length < 2 || Node.string(node.children[1].children[1]) == "...")
-            ) {
-
-              // Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: path});
-              Transforms.removeNodes(editor, {at: Path.parent(path)});
-
-        }
-      }
+      // if (node.type == "SheetSource") {
+      //   //If a sheet source's Hebrew element AND english element are both missing their header or their source content, delete the whole sheetItem
+      //   if (
+      //         (node.children[0].children.length < 2 || Node.string(node.children[0].children[1]) == "..." ) &&
+      //         (node.children.length < 2 || node.children[1].children.length < 2 || Node.string(node.children[1].children[1]) == "...")
+      //       ) {
+      //
+      //         // Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: path});
+      //         Transforms.removeNodes(editor, {at: Path.parent(path)});
+      //
+      //   }
+      // }
 
       // if extra content is in sheet source -- merge it with the previous element
       // if (node.type == "SheetSource") {
@@ -1430,14 +1430,13 @@ const SefariaEditor = (props) => {
 
     function ensureSelectOfEntireSource(currentSelection) {
 
-
       if(currentSelection.length > 0) {
         if (editor.children[0]["edittingSource"]) {
           return
         }
 
-        const firstSourceEdge = Editor.edges(editor, (currentSelection[0][1]))[0]
-        const lastSourceEdge = Editor.edges(editor, (currentSelection[currentSelection.length - 1][1]))[1]
+        const firstSourceEdge = Editor.before(editor, (currentSelection[0][1]))
+        const lastSourceEdge = Editor.after(editor, (currentSelection[currentSelection.length - 1][1]))
 
         if (Range.isBackward(editor.selection)) {
           const anchorLoc = Point.isAfter(lastSourceEdge, editor.selection.anchor) ? lastSourceEdge : editor.selection.anchor;
@@ -1451,7 +1450,6 @@ const SefariaEditor = (props) => {
         }
         else {
           const anchorLoc = Point.isBefore(firstSourceEdge, editor.selection.anchor) ? firstSourceEdge : editor.selection.anchor;
-          console.log(anchorLoc)
           if (Point.isAfter(lastSourceEdge, editor.selection.focus, ) || Point.equals(lastSourceEdge, editor.selection.focus, )) {
             Transforms.select(editor, {
               focus: { path: lastSourceEdge["path"], offset: lastSourceEdge["offset"]},
