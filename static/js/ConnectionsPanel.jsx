@@ -993,7 +993,7 @@ class ToolsButton extends Component {
     var count = this.props.count ? (<span className="connectionsCount">({this.props.count})</span>) : null;
     var url = Sefaria.util.replaceUrlParam("with", this.props.en);
     return (
-      <a href={url} className="toolsButton sans noselect" onClick={this.onClick}>
+      <a href={url} className="toolsButton sans noselect" data-name={this.props.en} onClick={this.onClick}>
         {icon}
         <span className="toolsButtonText">
           <span className="int-en noselect">{this.props.en} {count}</span>

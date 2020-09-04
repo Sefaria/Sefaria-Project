@@ -332,40 +332,8 @@ class AbstractTest(object):
     def click_resources_on_sidebar(self):
         self.click_object_by_css_selector('.connectionsHeaderTitle')
 
-    def click_other_text_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(1) > span:nth-child(2)')
-
-    def click_sheets_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(2) > span:nth-child(2)')
-
-    def click_notes_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(3) > span:nth-child(2)')
-        try:
-            self.close_join_sefaria_popup()
-        except NoSuchElementException:
-            # you're signed in which means you opened notes. go back to resources
-            self.click_resources_on_sidebar()
-
-    def click_about_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(5) > span:nth-child(2)')
-
-    def click_versions_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(6) > span:nth-child(2)')
-
-    def click_webpages_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(8) > span:nth-child(2)')
-
-    def click_tools_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(9) > span:nth-child(2)')
-
-    def click_share_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(1) > span:nth-child(2)')
-
-    def click_add_translation_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(2) > span:nth-child(2)')
-
-    def click_add_connection_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(3) > span:nth-child(2)')
+    def click_sidebar_button(self, name):
+        self.click_object_by_css_selector('a.toolsButton[data-name="{}"]'.format(name))
 
     def close_join_sefaria_popup(self):
         self.driver.find_element_by_css_selector('#interruptingMessage #interruptingMessageClose')
