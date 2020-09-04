@@ -739,76 +739,29 @@ def my_notes(request):
     return menu_page(request, props, "myNotes", title)
 
 
-@sanitize_get_params
-def sheets_by_tag(request, tag):
+def topic_page_redirect(request, tag):
     """
-    Page of sheets by tag.
-    Currently used to for "My Sheets" and  "All Sheets" as well.
+    Redirect legacy URLs to topics pages.
     """
-    if tag != Term.normalize(tag):
-        return redirect("/sheets/tags/%s" % Term.normalize(tag))
-
-    props = base_props(request)
-    props.update({
-        "initialMenu":     "sheets",
-        "initialSheetsTag": tag,
-    })
-    if tag == "My Sheets" and request.user.is_authenticated:
-        props["userSheets"] = user_sheets(request.user.id)["sheets"]
-        props["userTags"]   = user_tags(request.user.id)
-        title = _("My Source Sheets | Sefaria Source Sheets")
-        desc  = _("My Sources Sheets on Sefaria, both private and public.")
-
-    elif tag == "My Sheets" and not request.user.is_authenticated:
-        return redirect("/login?next=/sheets/private")
-
-    elif tag == "All Sheets":
-        props["publicSheets"] = {"offset0num50": public_sheets(limit=50)["sheets"]}
-        title = _("Public Source Sheets | Sefaria Source Sheets")
-        desc  = _("Explore thousands of public Source Sheets drawing on Sefaria's library of Jewish texts.")
-
-    else:
-        # redirect to topics
-        return redirect("/topics/{}".format(tag), permanent=True)
-
-    propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request,'base.html', {
-        "propsJSON":      propsJSON,
-        "title":          title,
-        "desc":           desc,
-        "html":           html,
-    })
+    return redirect("/topics/{}".format(tag), permanent=True)
 
 
-## Sheet Views
-def sheets_list(request, type=None):
+def sheets_pages_redirect(request, type=None):
     """
-    List of all public/your/all sheets
-    either as a full page or as an HTML fragment
+    Redirects old sheet pages URLs
     """
-    if not type:
-        # Topics Splash page (for now while waiting for sheets landing page)
-        return topics_page(request)
-
-    response = { "status": 0 }
-
     if type == "public":
-        return sheets_by_tag(request,"All Sheets")
+        return redirect("/sheets", permanent=True)
 
-    elif type == "private" and request.user.is_authenticated:
-        return sheets_by_tag(request,"My Sheets")
-
-    elif type == "private" and not request.user.is_authenticated:
-        return redirect("/login?next=/sheets/private")
+    elif type == "private":
+        return redirect("/my/profile", permanent=True)
 
 
-def sheets_tags_list(request):
+def topics_redirect(request):
     """
-    Redirect to Sheets homepage which has tags list.
-    Previously: View public sheets organized by tags.
+    Redirect legacy URLs (sheet tags page) to topics
     """
-    return redirect("/sheets")
+    return redirect("/topics", permanent=True)
 
 
 def group_page(request, group):

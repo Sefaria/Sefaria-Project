@@ -3583,7 +3583,7 @@ function deleteSheet() {
 					"<span class='int-en'>Source Sheet deleted.</span>" +
 					"<span class='int-he'>דף המקורות נמחק בהצלחה.</span>" +
 					"<br><br>" +
-					"<a href='/sheets/private'>" +
+					"<a href='/my/profile'>" +
 						"<div class='ok btn'>" +
 							"<span class='int-en'>OK</span>" +
 							"<span class='int-he'>המשך</span>" +

@@ -1118,9 +1118,9 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#place-map")))
         return self
 
-    def load_account(self):
-        self.driver.get(self.base_url + "/account")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".accountPanel .blockLink")))
+    def load_my_profile(self):
+        self.driver.get(self.base_url + "/my/profile")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".profile-page")))
         return self
 
     def load_notifications(self):
@@ -1129,15 +1129,6 @@ class AbstractTest(object):
             element_to_be_clickable((By.CSS_SELECTOR, ".notificationsList > .notification")))
         return self
 
-    def load_private_sheets(self):
-        self.driver.get(self.base_url + "/sheets/private")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheet")))
-        return self
-
-    def load_private_groups(self):
-        self.driver.get(self.base_url + "/my/groups")
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".groupsList")))
-        return self
 
     # Editing
     def load_translate(self, ref):
