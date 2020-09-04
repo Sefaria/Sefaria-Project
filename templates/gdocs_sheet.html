@@ -2246,50 +2246,5 @@ a {
 	</div>
 	{% endif %}
 
-	<!-- <div id="belowSheet"></div> -->
-
-	<!--
-	Footer depends on full bootstrap grid, which isn't loaded in sheets.html
-	{% include "elements/footer.html" %}
-	-->
-
-	<!--
-	<script type="text/javascript" src="{% static 'js/lib/jquery.scrollTo-1.4.2-min.js' %}"></script>
-	<script type="text/javascript" src="{% static 'js/lib/jquery.easing.1.3.js' %}"></script>
-	<script type="text/javascript" src="{% static 'js/lib/jquery-tooltip/jquery.tooltip.js' %}"></script>
-	<script src="{% static 'js/lib/jquery.tag-it.min.js' %}"></script>
-
-
-	{% include "js/headers.js" %}
-
-	<script type="text/javascript">
-	{% autoescape off %}
-		var sjs = sjs || {};
-
-		$.extend(sjs, {
-			current: {{ sheetJSON|default:"null" }},
-			assignment_id: {{ assignment_id|default:"null" }},
-			assigner_id: {{ assigner_id|default:"null" }},
-			can_edit: {% if can_edit %}true{% else %}false{% endif %},
-	        can_add: {% if can_add %}true{% else %}false{% endif %},
-			is_owner: {% if is_owner %}true{% else %}false{% endif %},
-			editing: {},
-			ref: {},
-			loading: 0,
-			autosave: false,
-			changes: false,
-			{% if user.id %}
-			_fullname: "{{ user.first_name }} {{ user.last_name }}",
-			_userLink: "{{ user.id|user_link }}"
-			{% endif %}
-		});
-	{% endautoescape %}
-	</script>
-	{% if can_edit or can_add %}
-	<script src="{% static 'ckeditor/ckeditor.js' %}"></script>
-	<script src="{% static 'ckeditor/adapters/jquery.js' %}"></script>
-	{% endif %}
-	<script src="{% static 'js/sheets.js' %}"></script>
-	-->
 </body>
 </html>

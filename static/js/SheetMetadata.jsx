@@ -63,15 +63,12 @@ class SheetMetadata extends Component {
       e.preventDefault();
     }
   }
-
   getSheetFromCache() {
     return Sefaria.sheets.loadSheetByID(this.props.id);
   }
-
   getSheetFromAPI() {
     Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad);
   }
-
   onDataLoad(data) {
 
     this.forceUpdate();
@@ -84,7 +81,6 @@ class SheetMetadata extends Component {
       }
     }
   }
-
   ensureSheetData() {
       if (Sefaria.sheets.loadSheetByID(this.props.sheet.id)) {
           var data = Sefaria.sheets.loadSheetByID(this.props.sheet.id)
@@ -96,7 +92,6 @@ class SheetMetadata extends Component {
         });
       }
   }
-
   filterAndSaveCopiedSheetData(data) {
     var newSheet = data;
     newSheet.status = "unlisted";
@@ -132,7 +127,6 @@ class SheetMetadata extends Component {
         }
     })
   }
-
   copySheet() {
     if (!Sefaria._uid) {
         this.props.toggleSignUpModal();
@@ -141,33 +135,40 @@ class SheetMetadata extends Component {
         this.ensureSheetData();
     }
   }
-
   generateSheetMetaDataButtons() {
       return (
          <div>
-            <div className="int-en">
-            {Sefaria._uid == this.props.sheet.owner && !document.cookie.includes("new_editor") ?
-                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">Edit Sheet</a> :
-                null
-            }
-                <a href="#" className="button white" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
+            <div>
+            {Sefaria._uid == this.props.sheet.owner && !$.cookie("new_editor") ?
+              <span>
+                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-en" role="button">Edit Sheet</a>
+                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-he" role="button">ערוך</a>
+              </span> : null }
+
+              <a href="#" className="button white int-en" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
+              <a href="#" className="button white int-he" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
+
+            {Sefaria._uid !== this.props.sheet.owner && !$.cookie("new_editor") ?
+              <span>
+                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-en" role="button">View in Editor</a>
+                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-he" role="button">לתצוגת עריכה</a>
+              </span> : null }
             </div>
-            <div className="int-he">
-            {Sefaria._uid == this.props.sheet.owner && !document.cookie.includes("new_editor") ?
-                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">ערוך</a> :
-                null
-            }
-                <a href="#" className="button white" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
-            </div>
-            <div>{this.state.sheetCopyStatus == "Copied" ? <a href={"/sheets/"+this.state.copiedSheetId}><span className="int-en">View copy &raquo;</span><span className="int-he">צפה בהעתק &raquo;</span> </a> : null}</div>
-            <a className="smallText" href={"/sheets/"+this.props.sheet.id+"?editor=1"}><span className="int-en">View in the old sheets experience</span><span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span></a>
+
+            {this.state.sheetCopyStatus == "Copied" ? 
+              <div><a href={"/sheets/"+this.state.copiedSheetId}>
+                  <span className="int-en">View copy &raquo;</span>
+                  <span className="int-he">צפה בהעתק &raquo;</span> 
+                </a></div> : null }
+
+            {$.cookie("new_editor") ? 
+              <a className="smallText" href={"/sheets/"+this.props.sheet.id+"?editor=1"}>
+                <span className="int-en">View in the old sheets experience</span>
+                <span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span>
+              </a> : null }
          </div>
       )
-
-
   }
-
-
   render() {
     var title = this.props.sheet.title;
     var authorStatement;

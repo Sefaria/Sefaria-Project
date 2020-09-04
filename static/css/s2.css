@@ -986,7 +986,8 @@ input.noselect {
   margin: 30px 0 70px;
   height: calc(100% - 128px);  /* The 128px here appears to be the minimum needed to keep a line on the screen when scrolling passes loaded content) */
 }
-.textColumn .loadingMessage.base.next.final {
+.textColumn .textRange.loading + .textRange.loading {
+  display: none;
 }
 .he {
   font-size: 122%;
@@ -1653,7 +1654,7 @@ a.readerNavCategory {
 }
 @media (max-width: 450px) {
   .readerNavCategory {
-    font-size: 13px;
+    font-size: 16px;
   }
 }
 .readerNavMenu .readerNavMore span {
@@ -1863,8 +1864,9 @@ a.readerNavCategory {
   .readerNavMenu .refLink,
   .readerNavMenu .catLink,
   .readerNavMenu .navButton,
+  .readerNavMenu .sheetLink,
   .readerTextTableOfContents .refLink {
-    font-size: 14px;
+    font-size: 18px;
   }
 }
 .readerSheetsNav .navButton:hover {
@@ -3998,6 +4000,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   filter: invert(100%);
   -webkit-filter: invert(100%);
 }
+.readerPanel .segment .segmentNumber .en,
+.readerPanel .segment .segmentNumber .he {
+  text-align: center;
+}
 .readerPanel.english .segment .segmentNumber {
   left: -48px;
 }
@@ -4040,6 +4046,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .singlePanel .readerPanel.english .sheetItem.segment .linkCount {
   left: auto;
   right: -30px;
+}
+.readerPanel.english .segment.heOnly .segmentNumber .he,
+.readerPanel.bilingual .segment.heOnly .segmentNumber .he,
+.readerPanel.hebrew .segment.enOnly .segmentNumber .en {
+  display: none;
+}
+.readerPanel.english .segment.heOnly .segmentNumber .en,
+.readerPanel.bilingual .segment.heOnly .segmentNumber .en,
+.readerPanel.hebrew .segment.enOnly .segmentNumber .he {
+  display: block;
 }
 .segment .refLink {
   font-size: .8em;
@@ -7027,30 +7043,21 @@ span.purim-emoji img{
   position: absolute;
   text-align: center;
 }
-.readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
-.readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber {
-  left: -48px;
-  top: 0px;
-}
-.singlePanel .readerPanel.english .sheetItem.segment .segmentNumber.sheetSegmentNumber,
-.singlePanel .readerPanel.bilingual.stacked .sheetItem.segment .segmentNumber.sheetSegmentNumber {
-  left: -32px;
-}
 .readerPanel.bilingual.heLeft .sheetItem.segment .segmentNumber.sheetSegmentNumber,
 .readerPanel.bilingual.heRight .sheetItem.segment .segmentNumber.sheetSegmentNumber {
   left: 50%;
   margin-left: -15px;
 }
 .readerPanel.bilingual.heLeft .sheetItem.segment.enOnly .segmentNumber.sheetSegmentNumber,
-.readerPanel.bilingual.heRight .sheetItem.segment.enOnly .segmentNumber.sheetSegmentNumber,
+.readerPanel.bilingual.heRight .sheetItem.segment.enOnly .segmentNumber.sheetSegmentNumber {
+  right: 0px;
+  left: auto;
+  margin-left: 0;
+}
 .readerPanel.bilingual.heLeft .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber, 
 .readerPanel.bilingual.heRight .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber {
   left: 0px;
   margin-left: 0;
-}
-.readerPanel.hebrew .sheetItem.segment .segmentNumber.sheetSegmentNumber {
-  margin-left: auto;
-  right: -32px;
 }
 .readerPanel.english .sheetItem.segment.heOnly .segmentNumber .en,
 .readerPanel.hebrew .sheetItem.segment.enOnly .segmentNumber .he {
@@ -8019,7 +8026,6 @@ body .homeFeedWrapper .content {
   letter-spacing: 0.05em;
   color: #333;
 }
-
 .sideColumn .newsletterInput {
   height: 53px;
 }
@@ -8047,11 +8053,9 @@ body .homeFeedWrapper .content {
 .interface-english .sideColumn .newsletterInput, .interface-english .sideColumn .newsletterInput::placeholder  {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-
 .interface-hebrew .sideColumn .newsletterInput, .interface-hebrew .sideColumn .newsletterInput::placeholder   {
   font-family: "Heebo", sans-serif;
 }
-
 .sideColumn #homeSocialButtons {
   margin-top: 15px;
 }
@@ -8387,7 +8391,6 @@ body .homeFeedWrapper.userStats {
   font: 11px sans-serif;
   padding: 0;
 }
-
 .bilingual .userStats .blockLink .he,
 .english .userStats .blockLink .he {
   display: none;
@@ -8514,6 +8517,39 @@ body .homeFeedWrapper.userStats {
 }
 .inlineTextRef {
     color: #4B71B7
+}
+.headerWithButtons {
+  display: flex;
+  align-items: center;
+  margin-bottom: 60px;
+}
+.headerWithButtons h1,
+.static .headerWithButtons h1 {
+  margin: 0;
+}
+.headerWithButtons .start,
+.headerWithButtons .end {
+  flex: 1;
+}
+.headerWithButtons .start {
+  text-align: start;
+}
+.headerWithButtons .end {
+  text-align: end;
+}
+@media screen and (max-width: 700px) {
+  .headerWithButtons {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .headerWithButtons h1 {
+    margin-bottom: 20px;
+  }
+  .headerWithButtons .start, 
+  .headerWithButtons .end {
+    text-align: center;
+  }
 }
 /* start css code for loading bezel */
 .sourceLoader {

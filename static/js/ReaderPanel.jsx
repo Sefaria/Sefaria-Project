@@ -235,8 +235,7 @@ class ReaderPanel extends Component {
     
     } else if (linkType === "sheet") {
       const ref = target.attr("data-ref");
-      const onTextClick = this.props.onNavTextClick || this.showBaseText;
-      onTextClick(ref);
+      this.props.onNavTextClick ? this.props.onNavTextClick(ref) : this.openSheet(ref);
     
     } else if (linkType === "history") {
       this.openMenu("history");
@@ -245,8 +244,6 @@ class ReaderPanel extends Component {
       Sefaria._uid ? this.openMenu("saved") : this.props.toggleSignUpModal();
 
     }
-
-
   }
   clonePanel(panel) {
     // Todo: Move the multiple instances of this out to a utils file
@@ -266,6 +263,7 @@ class ReaderPanel extends Component {
   handleSheetSegmentClick(source) {
     // console.log(source);
     this.conditionalSetState({highlightedNodes: source.node});
+    const sheetRef = "Sheet " + this.state.sheet.id + ":" + source.node;
     if (this.state.mode ==="SheetAndConnections") {
       this.closeSheetConnectionsInPanel();
     }
@@ -275,12 +273,10 @@ class ReaderPanel extends Component {
           this.props.onSegmentClick(Sefaria.splitRangingRef(source.ref), source.node);
         }
         else {
-          this.props.onSegmentClick("Sheet " + this.state.sheet.id+":"+source.node, source.node)
+          this.props.onSegmentClick(sheetRef, source.node)
         }
       } else {
-          if (source.ref) {
-            this.openSheetConnectionsInPanel(source.ref, source.node);
-          }
+          this.openSheetConnectionsInPanel(source.ref || sheetRef, source.node);
       }
     }
   }
@@ -361,6 +357,12 @@ class ReaderPanel extends Component {
       settings: this.state.settings
     });
   }
+  async openSheet(sheetRef) {
+    const parsedRef = Sefaria.parseRef(sheetRef);
+    const [sheetId, sheetNode] = parsedRef.sections;
+    const sheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(sheetId, sheet => resolve(sheet))));
+    this.conditionalSetState({mode: 'Sheet', sheet, menuOpen: null});
+  }
   toggleSheetEditMode(buttonstate) {
       if (buttonstate == true) {
           this.conditionalSetState({
@@ -420,8 +422,8 @@ class ReaderPanel extends Component {
   }
   closeSheetMetaData() {
     var state = {
-      // If there's no content to show, return to home
       menuOpen: null,
+      mode: "Sheet",
       navigationCategories: null,
       navigationTopicCategory: null,
       navigationSheetTag: null
@@ -445,6 +447,7 @@ class ReaderPanel extends Component {
   openMenu(menu) {
     this.conditionalSetState({
       menuOpen: menu,
+      mode: "Text",
       initialAnalyticsTracked: false,
       // searchQuery: null,
       // appliedSearchFilters: [],
@@ -452,6 +455,7 @@ class ReaderPanel extends Component {
       navigationTopic: null,
       navigationTopicTitle: null,
       topicTitle: null,
+      sheet: menu == "sheet meta" ? this.state.sheet : null,
     });
   }
   setNavigationCategories(categories) {
@@ -613,7 +617,9 @@ class ReaderPanel extends Component {
   }
   currentRef() {
     // Returns a string of the current ref, the first if there are many
-    return this.state.refs && this.state.refs.length ? this.state.refs[0] : null;
+    return this.state.refs && this.state.refs.length ? this.state.refs[0] 
+            : this.state.highlightedRefs && this.state.highlightedRefs ? this.state.highlightedRefs[0]
+              : null;
   }
   currentData() {
     // Returns the data from the library of the current ref
@@ -1312,15 +1318,17 @@ class ReaderControls extends Component {
           </div>
         </div>
       </div>);
+
     var leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
           {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")}/>)}
           <SaveButton placeholder={true}/>
         </div>);
+
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          {this.props.sheet && Sefaria._uid == this.props.sheet.owner && document.cookie.includes("new_editor") ?
+          {this.props.sheet && Sefaria._uid == this.props.sheet.owner && $.cookie("new_editor") ?
               <button id="sheetEditToggle" onClick={() => this.props.toggleSheetEditMode(this.props.editSheet)}>
                 {this.props.editSheet == true ? <img src={"/static/icons/iconmonstr-eye-4.svg"} alt="Eye icon" />:<img src={"/static/icons/iconmonstr-pencil-2.svg"} alt="Pencil icon" />}
                 <span className="int-en">{this.props.editSheet == true ? "View" : "Edit"}</span>
@@ -1334,6 +1342,7 @@ class ReaderControls extends Component {
           />
           <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
         </div>);
+
     var classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel, sheetReaderControls: !!this.props.sheet});
     var readerControls = hideHeader ? null :
         (<div className={classes}>
