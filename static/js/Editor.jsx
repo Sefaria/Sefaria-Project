@@ -504,10 +504,7 @@ function transformSheetJsonToDraft(sheet) {
 function isSourceEditable(e, editor) {
   if (editor.children[0]["edittingSource"]) {return true}
 
-  const isEditable = (!Range.isCollapsed(editor.selection))
-  if (isEditable) {
-    Transforms.collapse(editor, { edge: 'focus' })
-  }
+  const isEditable = (Range.isRange(editor.selection) && !Range.isCollapsed(editor.selection))
   Transforms.setNodes(editor, {edittingSource: isEditable}, {at: [0]});
   return (isEditable)
 }
@@ -527,7 +524,7 @@ const Element = ({attributes, children, element}) => {
             const selected = useSelected();
             const classes = {SheetSource: 1, segment: 1, selected: selected };
             return (
-                <div onClick={(e) => console.log(isSourceEditable(e, editor))} className={classNames(classes)} {...attributes} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
+                <div onMouseDown={(e) => console.log(isSourceEditable(e, editor))} className={classNames(classes)} {...attributes} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
                     {children}
                 </div>
             );
