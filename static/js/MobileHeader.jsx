@@ -1,12 +1,14 @@
-const {
+import {
   CategoryColorLine,
   ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuDisplaySettingsButton,
   ReaderNavigationMenuSearchButton,
-}                         = require('./Misc');
-const React               = require('react');
-const classNames          = require('classnames');
-const PropTypes           = require('prop-types');
+} from './Misc';
+import React  from 'react';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
+import Sefaria  from './sefaria/sefaria';
+
 
 const MobileHeader = ({
   mode, hideNavHeader, interfaceLang, category, openDisplaySettings, navHome,
@@ -64,4 +66,5 @@ const MobileHeader = ({
   }
 }
 
-module.exports = MobileHeader;
+
+export default MobileHeader;

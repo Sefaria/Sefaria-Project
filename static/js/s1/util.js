@@ -1796,7 +1796,9 @@ function encodeHebrewDaf(daf, form) {
 
 
 function stripNikkud(rawString) {
-	return rawString.replace(/[\u0591-\u05C7]/g,"");
+	var stripped = rawString.replace(/\u05BE/g, " "); // replace maqaf / hyphen with space
+	stripped = stripped.replace(/[\u0591-\u05C7]/g,"");
+	return stripped;
 }
 
 

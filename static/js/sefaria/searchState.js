@@ -9,23 +9,25 @@ class SearchState {
     availableFilters,
     filterRegistry,
     filtersValid,
+    lastAppliedAggType,
     orphanFilters,
     fieldExact,
     fieldBroad,
     field,
     sortType,
   } = {}) {
-    this.type             = type;  // always required
-    this.appliedFilters   = appliedFilters   || [];
+    this.type                  = type;  // always required
+    this.appliedFilters        = appliedFilters   || [];
     this.appliedFilterAggTypes = appliedFilterAggTypes || [];
-    this.availableFilters = typeof availableFilters === 'undefined' ? [] : availableFilters.map(f => f instanceof FilterNode ? f : new FilterNode(f));
-    this.filterRegistry   = this._recreateRegistry(this.availableFilters);
-    this.filtersValid     = filtersValid     || false;
-    this.orphanFilters    = orphanFilters    || [];
-    this.fieldExact       = fieldExact       || SearchState.metadataByType[type].fieldExact;
-    this.fieldBroad       = fieldBroad       || SearchState.metadataByType[type].fieldBroad;
-    this.field            = field            || SearchState.metadataByType[type].field;
-    this.sortType         = sortType         || SearchState.metadataByType[type].sortType;
+    this.availableFilters      = typeof availableFilters === 'undefined' ? [] : availableFilters.map(f => f instanceof FilterNode ? f : new FilterNode(f));
+    this.filterRegistry        = typeof filterRegistry !== "undefined" ? filterRegistry : this._recreateRegistry(this.availableFilters);
+    this.filtersValid          = filtersValid       || false;
+    this.lastAppliedAggType    = lastAppliedAggType || null;
+    this.orphanFilters         = orphanFilters      || [];
+    this.fieldExact            = fieldExact         || SearchState.metadataByType[type].fieldExact;
+    this.fieldBroad            = fieldBroad         || SearchState.metadataByType[type].fieldBroad;
+    this.field                 = field              || SearchState.metadataByType[type].field;
+    this.sortType              = sortType           || SearchState.metadataByType[type].sortType;
   }
 
   _recreateRegistry(filters) {
@@ -47,12 +49,13 @@ class SearchState {
       availableFilters: trimFilters ? [] : this.availableFilters,
       filterRegistry:   trimFilters ? {} : this.filterRegistry,
       filtersValid:     trimFilters ? false : this.filtersValid,
-      orphanFilters:    this.orphanFilters,
-      type:             this.type,
-      fieldExact:       this.fieldExact,
-      fieldBroad:       this.fieldBroad,
-      field:            this.field,
-      sortType:         this.sortType,
+      lastAppliedAggType: this.lastAppliedAggType,
+      orphanFilters:      this.orphanFilters,
+      type:               this.type,
+      fieldExact:         this.fieldExact,
+      fieldBroad:         this.fieldBroad,
+      field:              this.field,
+      sortType:           this.sortType,
     });
   }
 
@@ -63,6 +66,7 @@ class SearchState {
     availableFilters,
     filterRegistry,
     filtersValid,
+    lastAppliedAggType,
     orphanFilters,
     fieldExact,
     fieldBroad,
@@ -74,6 +78,7 @@ class SearchState {
     appliedFilters   = typeof appliedFilters   === 'undefined' ? this.appliedFilters   : appliedFilters;
     appliedFilterAggTypes = typeof appliedFilterAggTypes === 'undefined' ? this.appliedFilterAggTypes : appliedFilterAggTypes;
     filtersValid     = typeof filtersValid     === 'undefined' ? this.filtersValid     : filtersValid;
+    lastAppliedAggType = typeof lastAppliedAggType === 'undefined' ? this.lastAppliedAggType : lastAppliedAggType;
     orphanFilters    = typeof orphanFilters    === 'undefined' ? this.orphanFilters    : orphanFilters;
     fieldExact       = typeof fieldExact       === 'undefined' ? this.fieldExact       : fieldExact;
     fieldBroad       = typeof fieldBroad       === 'undefined' ? this.fieldBroad       : fieldBroad;
@@ -95,6 +100,7 @@ class SearchState {
       appliedFilters,
       appliedFilterAggTypes,
       availableFilters,
+      lastAppliedAggType,
       filterRegistry,
       filtersValid,
       orphanFilters,
@@ -128,8 +134,24 @@ class SearchState {
     // prefix: string prepended to every parameter. meant to distinguish between different type of searchState URL parameters (e.g. sheet and text)
     //         oneOf({'t': 'text', 's': sheet, 'g': group, 'u': user})
     const aggTypes = SearchState.metadataByType[this.type].aggregation_field_array;
-    const url = aggTypes.reduce( (accum, aggType) => {
-        const aggTypeFilters = aggTypes.length > 1 ? Util.zip(this.appliedFilters, this.appliedFilterAggTypes).filter( f => f[1] === aggType).map( x => x[0]) : this.appliedFilters;
+    const aggTypesSuffixes = SearchState.metadataByType[this.type].aggregation_field_lang_suffix_array;
+    const aggTypesWithSuffixes = []
+    Sefaria.util // 
+      .zip(aggTypes, aggTypesSuffixes)
+      .map(([agg, suffixMap]) => {
+        if (suffixMap) {
+          Object.values(suffixMap).map(suffix => {aggTypesWithSuffixes.push(agg+suffix)});
+        } else {
+          aggTypesWithSuffixes.push(agg);
+        }
+      });
+
+    const url = aggTypesWithSuffixes.reduce( (accum, aggType) => {  
+        const aggTypeFilters = aggTypes.length > 1 ? 
+          Util.zip(this.appliedFilters, this.appliedFilterAggTypes)
+          .filter( f => f[1] === aggType)
+          .map( x => x[0]) 
+          : this.appliedFilters;
         return accum + (aggTypeFilters.length > 0 ? `&${prefix}${aggType}Filters=${aggTypeFilters.map( f => encodeURIComponent(f)).join('|')}` : '');
       }, '') +
       `&${prefix}var=` + (this.field !== this.fieldExact ? '1' : '0') +
@@ -174,7 +196,7 @@ SearchState.metadataByType = {
     fieldBroad: null,
     field: 'content',
     aggregation_field_array: ['group', 'topics'],
-    aggregation_field_lang_suffix_array: [null, {'english': '_en.keyword', 'hebrew': '_he.keyword'}],
+    aggregation_field_lang_suffix_array: [null, {'english': '_en', 'hebrew': '_he'}],
     build_and_apply_filters: 'buildAndApplySheetFilters',  // func name from Search.js
     sortType: 'relevance',
     sortTypeArray: [

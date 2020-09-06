@@ -214,20 +214,22 @@ def sefaria_js(request):
 
     return render(request, "js/sefaria.js", attrs, content_type= "text/javascript")
 
-def dafroulette_js(request):
+def chavruta_js(request):
     """
-    Javascript for dafroulette [required to pass server attribute].
+    Javascript for chavruta [required to pass server attribute].
     """
     client_user = UserProfile(id=request.user.id)
+    roulette = request.GET.get("roulette", "0")
 
     attrs = {
         "rtc_server": RTC_SERVER,
         "client_name": client_user.first_name + " " + client_user.last_name,
-        "client_uid": client_user.id
+        "client_uid": client_user.id,
+        "roulette": roulette
     }
 
 
-    return render(request, "js/dafroulette.js", attrs, content_type="text/javascript")
+    return render(request, "js/chavruta.js", attrs, content_type="text/javascript")
 
 
 

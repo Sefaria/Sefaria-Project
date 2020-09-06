@@ -92,9 +92,9 @@ class SearchFilters extends Component {
     this.setState({isExactSearch: newExactSearch});
 
   }
-  _type_button(en, he, total, on_click, active) {
+  _typeButton(en, he, total, on_click, active) {
     // if (!total) { return "" }
-      var total_with_commas = this._add_commas(total);
+      var total = this._addCommas(total);
       var classes = classNames({"search-dropdown-button": 1, active});
 
       return (
@@ -106,7 +106,7 @@ class SearchFilters extends Component {
         </div>
       );
   }
-  _add_commas(number) {
+  _addCommas(number) {
     return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   }
   render() {
@@ -115,8 +115,8 @@ class SearchFilters extends Component {
 
     var buttons = (
       <div className="type-buttons">
-        {this._type_button("Texts", "טקסטים", this.props.textTotal, this.props.clickTextButton, (this.props.type == "text"))}
-        {this._type_button("Sheets", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, (this.props.type == "sheet"))}
+        {this._typeButton("Texts", "טקסטים", this.props.textTotal, this.props.clickTextButton, (this.props.type == "text"))}
+        {this._typeButton("Sheets", "דפי מקורות", this.props.sheetTotal, this.props.clickSheetButton, (this.props.type == "sheet"))}
       </div>
     );
 
@@ -141,7 +141,6 @@ class SearchFilters extends Component {
         isExactSearch={this.props.searchState.fieldExact === this.props.searchState.field}
         handleFocusCategory={this.handleFocusCategory}
         resetOpenedCategoryBooks={this.resetOpenedCategoryBooks}
-        updateLastAppliedAggType={this.props.updateLastAppliedAggType}
       /> :
       <SheetSearchFilterPanel
         toggleFilterView={this.props.toggleFilterView}
@@ -149,7 +148,6 @@ class SearchFilters extends Component {
         updateAppliedFilter={this.props.updateAppliedFilter}
         availableFilters={this.props.searchState.availableFilters}
         closeBox={this.props.closeFilterView}
-        updateLastAppliedAggType={this.props.updateLastAppliedAggType}
       />
     );
 
@@ -185,9 +183,8 @@ SearchFilters.propTypes = {
   updateAppliedFilter:  PropTypes.func,
   updateAppliedOptionField: PropTypes.func,
   updateAppliedOptionSort: PropTypes.func,
-  updateLastAppliedAggType: PropTypes.func,
   isQueryRunning:       PropTypes.bool,
-  type:            PropTypes.string,
+  type:                 PropTypes.string,
   clickTextButton:      PropTypes.func,
   clickSheetButton:     PropTypes.func,
   showResultsOverlay:   PropTypes.func,
@@ -224,7 +221,7 @@ class SheetSearchFilterPanel extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      activeTab: 'Groups',
+      activeTab: 'Topics',
     }
   }
   changeTab(tab) {
@@ -245,9 +242,10 @@ class SheetSearchFilterPanel extends Component {
           enText={"Filter"}
           heText={"סינון"}
         />
-        <div key={this.state.activeTab} className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
+        {this.props.displayFilters ? 
+        <div key={this.state.activeTab} className="searchFilterBoxes" role="dialog">
           <SearchFilterTabRow
-            tabs={[{en: 'Groups', he: 'קבוצות'}, {en: 'Topics', he: 'נושאים'}]}
+            tabs={[ {en: 'Topics', he: 'נושאים'}, {en: 'Groups', he: 'קבוצות'}]}
             activeTab={this.state.activeTab}
             changeTab={this.changeTab}
           />
@@ -258,7 +256,6 @@ class SheetSearchFilterPanel extends Component {
                     filter={filter}
                     isInFocus={false}
                     updateSelected={this.props.updateAppliedFilter}
-                    updateLastAppliedAggType={this.props.updateLastAppliedAggType}
                     closeBox={this.props.closeBox}
                     key={filter.aggKey}
                   />
@@ -270,13 +267,13 @@ class SheetSearchFilterPanel extends Component {
                 <SearchTagFilter
                   filter={filter}
                   updateSelected={this.props.updateAppliedFilter}
-                  updateLastAppliedAggType={this.props.updateLastAppliedAggType}
                   key={filter.aggKey}
                 />
               ))}
             </div>
           }
         </div>
+        : null }
       </DropdownModal>
     );
   }
@@ -287,7 +284,6 @@ SheetSearchFilterPanel.propTypes = {
   updateAppliedFilter: PropTypes.func.isRequired,
   availableFilters:    PropTypes.array.isRequired,
   closeBox:            PropTypes.func.isRequired,
-  updateLastAppliedAggType: PropTypes.func.isRequired,
 };
 
 class TextSearchFilterPanel extends Component {
@@ -311,7 +307,8 @@ class TextSearchFilterPanel extends Component {
           enText={"Filter"}
           heText={"סינון"}
         />
-        <div className={(this.props.displayFilters) ? "searchFilterBoxes":"searchFilterBoxes hidden"} role="dialog">
+        {this.props.displayFilters ? 
+        <div className="searchFilterBoxes" role="dialog">
           <SearchFilterTabRow
             tabs={[{en: 'Titles', he: 'מקורות'}, {en: 'Options', he: 'אופציות'}]}
             activeTab={this.state.activeTab}
@@ -326,7 +323,6 @@ class TextSearchFilterPanel extends Component {
                       isInFocus={this.props.openedCategory === filter}
                       focusCategory={this.props.handleFocusCategory}
                       updateSelected={this.props.updateAppliedFilter}
-                      updateLastAppliedAggType={this.props.updateLastAppliedAggType}
                       closeBox={this.props.closeBox}
                       key={filter.aggKey}/>);
               })}
@@ -338,7 +334,6 @@ class TextSearchFilterPanel extends Component {
                   openedCategory={this.props.openedCategory}
                   resetOpenedCategoryBooks={this.props.resetOpenedCategoryBooks}
                   updateSelected={this.props.updateAppliedFilter}
-                  updateLastAppliedAggType={this.props.updateLastAppliedAggType}
                   key={filter.aggKey}/>
               ))}
               </div>
@@ -353,6 +348,7 @@ class TextSearchFilterPanel extends Component {
           }
           <div style={{clear: "both"}}/>
         </div>
+        : null }
       </DropdownModal>
     );
   }
@@ -368,7 +364,6 @@ TextSearchFilterPanel.propTypes = {
   toggleExactSearch:   PropTypes.func,
   closeBox:            PropTypes.func,
   handleFocusCategory: PropTypes.func,
-  updateLastAppliedAggType: PropTypes.func.isRequired,
 };
 
 
@@ -463,8 +458,6 @@ class SearchTagFilter extends Component {
     }
   }
   handleClick(evt) {
-    //evt.preventDefault();
-    this.props.updateLastAppliedAggType(this.props.filter.aggType);
     this.props.updateSelected(this.props.filter, 'tags')
   }
   handleKeyPress(e) {
@@ -492,7 +485,6 @@ class SearchTagFilter extends Component {
 }
 SearchTagFilter.propTypes = {
   updateSelected: PropTypes.func.isRequired,
-  updateLastAppliedAggType: PropTypes.func.isRequired,
   filter:         PropTypes.object.isRequired,
 }
 
@@ -531,8 +523,6 @@ class SearchFilter extends Component {
 
   }
   handleFilterClick(evt) {
-    //evt.preventDefault();
-    this.props.updateLastAppliedAggType(this.props.filter.aggType);
     this.props.updateSelected(this.props.filter)
   }
   handleFocusCategory() {
@@ -603,7 +593,6 @@ SearchFilter.propTypes = {
   filter:         PropTypes.object.isRequired,
   isInFocus:      PropTypes.bool,
   updateSelected: PropTypes.func.isRequired,
-  updateLastAppliedAggType: PropTypes.func.isRequired,
   focusCategory:  PropTypes.func,
 };
 

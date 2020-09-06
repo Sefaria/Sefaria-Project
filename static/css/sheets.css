@@ -4,6 +4,7 @@ html {
 body {
 	overflow-x: visible;
 	font-family: "Roboto","Helvetica Neue","Helvetica",sans-serif;
+    background-color:#f8f8f8;
 }
 body:not(.user-is-tabbing) #sheet .cke_editable:focus {
   	outline: auto;
@@ -19,12 +20,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 .interface-english .int-he, .interface-english #sheetsContent .int-he, .interface-english.alertBox .int-he, .interface-english.s2Modal .int-he{
   display: none;
 }
-/*.interface-hebrew #sheetsContent{
-  direction: rtl;
-}
-.interface-english #sheetsContent{
-  direction: ltr;
-}*/
 
 .interface-hebrew #sheetsContent, .interface-hebrew #sheetsContent .sheetsEditNavTop, .interface-hebrew #fileControls{
 	direction: rtl;
@@ -178,32 +173,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-left: -455px;
 	z-index: 25;
 	text-align: left;
-}
-
-#controls .circleButton {
-	display: block;
-	text-align: center;
-	margin-bottom: 10px;
-	cursor: pointer;
-	color: white;
-	background-color: #06c;
-	position: relative;
-	font-size: 18px;
-	width: 60px;
-	height: 60px;
-	line-height: 60px;
-	vertical-align: middle;
-	border-radius: 50%;
-	box-shadow: 0 0 4px rgba(0,0,0,.14),0 4px 8px rgba(0,0,0,.28);
-}
-
-#controls .circleButton:hover {
-	background-color: #08c;
-}
-
-#controls .circleButton > .fa {
-	position: relative;
-	top: 2px;
 }
 
 .optionsMenu {
@@ -702,12 +671,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	font-weight: bold;
 }
 
-
 #sheet #sources .sheetItem .sourceNumber.en {
 	position: absolute;
 	width: 50px;
 	text-align: right;
-	top: 35px;
+	top: 28px;
 	left: 6px;
 }
 
@@ -715,7 +683,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	position: absolute;
 	width: 50px;
 	text-align: left;
-	top: 37px;
+	top: 29px;
 	right: 6px;
 }
 
@@ -726,28 +694,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	border-bottom:solid 1px #F2F2F2;
 }
 
-.interface-english #sourceControls {
+#sourceControls {
 	text-align: center;
 	position: absolute;
-	bottom: 7px;
-	width: 300px;
-	background-color: #eee;
-	left: 50%;
-	margin-left: -150px;
-}
-.interface-hebrew #sourceControls {
-	text-align: center;
-	position: absolute;
-	bottom: 7px;
-	width: 300px;
-	background-color: #eee;
-	right: 50%;
-	margin-right: -150px;
-}
-
-.sourceControlsTop #sourceControls {
-	bottom: auto;
-	top: 7px;
+	background-color: #FBFBFA !important;
+	border: 1px solid #F2F2F2;
 }
 
 #sourceControls div {
@@ -755,19 +706,13 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin: 0 5px;
 	font-size: 15px;
 	cursor: pointer;
-	background-color: #FBFBFA !important;
 }
 
-#sourceControls div:hover {
-	color: #08c;
-	background-color: #FBFBFA !important;
-
-}
 .interface-english #sourceControls.sideControls {
 	width: auto;
 	left: 23px;
 	margin-left: 0;
-	top: 32px;
+	top: 20px;
 	bottom: auto;
 	background-color: inherit;
 }
@@ -776,7 +721,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	width: auto;
 	right: 23px;
 	margin-right: 0;
-	top: 32px;
+	top: 20px;
 	bottom: auto;
 	background-color: inherit;
 }
@@ -784,7 +729,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 #sourceControls.sideControls div:hover {
 	color: #999;
 	background-color: #FBFBFA !important;
-
 }
 
 .tooltipster-default {
@@ -793,8 +737,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-left:5px;
 }
 
-
-
 .sideControls div {
 	display: block !important
 }
@@ -802,7 +744,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 .sideControls div img {
 	margin: 3px 0;
 }
-
 
 .source {
 	position: relative;
@@ -872,13 +813,12 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	font-size: 24px;
 }
 
-
 #sheet.english .en {
-	display: block;
+	display: initial;
 }
 
 #sheet.hebrew .he {
-	display: block;
+	display: initial;
 }
 
 #sheet.english .he {
@@ -967,7 +907,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 #sources .sortPlaceholder {
 	min-height: 60px;
 	margin: 20px 0;
-	background-color: #DAE83F;
+	background-color: #e7f086;
 }
 
 .indented-1 {
@@ -1345,10 +1285,9 @@ a:active {
 		height: auto;
 	}
 
-	#lastSaved, .sheetsEditNavTop, .inlineAddButton, #addInterface, #sourceControls {
+	#lastSavedMenu, #highlightMenu, #highlightModeMenu {
 		display: none;
 	}
-
 }
 
 @media screen and (max-width: 520px) {
@@ -1578,15 +1517,12 @@ line-height: normal;
 
 }
 
-
-
 #sheet .source.sheetItem.stacked > .en,
 #sheet .source.sheetItem.stacked > .he {
 	float: none;
 	width: 100%;
 	margin-bottom: 12px;
 }
-
 
 #sheet .source.bilingual .en,
 #sheet .source.bilingual .he,
@@ -1595,18 +1531,13 @@ line-height: normal;
 	display: block;
 }
 
-#sheet .source.english > .he,
-#sheet.numbered #sources .source.english > .sourceNumber.he
-{
+#sheet .source.english > .he {
 	display: none;
 }
 
-#sheet .source.hebrew > .en,
-#sheet.numbered #sources .source.hebrew > .sourceNumber.en
-{
+#sheet .source.hebrew > .en {
 	display: none;
 }
-
 
 #resetToDefaults {
 	margin-top:10px;
@@ -1840,9 +1771,10 @@ body.hasBannerMessage .sheetsEditNavTop {
 
 .inlineAddButton {
     text-align: center;
-    width: 100%;
+    width: 50px;
     padding: 0;
-    left: 0;
+    left: 50%;
+    margin-left: -25px;
     bottom: -21px;
 	position: absolute;
     font-size: 30px;
@@ -2015,9 +1947,14 @@ body.hasBannerMessage .sheetsEditNavTop {
 }
 
 #customTextLanguageToggle .toggleOption {
-	height: 30px;
+	height: 35px;
 	line-height: inherit;
 	width: 50px;
+	margin-left: -5px;
+}
+
+#customTextLanguageToggle .toggleOption:hover {
+	background-color: #ccc;
 }
 
 #customTextLanguageToggle .toggleOption img {
@@ -2053,7 +1990,6 @@ body.hasBannerMessage .sheetsEditNavTop {
 	margin-bottom:40px;
 }
 
-
 .contentToAdd {
 	padding: 10px;
 	border: 1px solid #cecece;
@@ -2066,17 +2002,16 @@ body.hasBannerMessage .sheetsEditNavTop {
 	margin-left:6px;
 }
 
-
 .contentToAdd > * {
 	margin:0 !important;
 }
 
-
-.customTextEditables.en {
+#sheet #addcustomTextDiv .customTextEditables.en {
 	font-family: "Times New Roman", "Georgia", serif;
 }
-.customTextEditables.he {
+#sheet #addcustomTextDiv .customTextEditables.he {
 	text-align: right;
+	display: block;
 }
 #sheetsContent #inlineAddMediaInput {
 	width: 280px;

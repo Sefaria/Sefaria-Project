@@ -16,7 +16,7 @@ import pytz
 from rest_framework.decorators import api_view
 from django.template.loader import render_to_string, get_template
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import Http404
+from django.http import Http404, QueryDict
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
@@ -55,6 +55,8 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref
 from django.utils.html import strip_tags
+from bson.objectid import ObjectId
+
 
 
 if USE_VARNISH:
@@ -280,6 +282,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         "highlightedNodes": highlighted_node
     }
 
+    ref = None
     if highlighted_node:
         ref = next((element["ref"] for element in sheet["sources"] if element.get("ref") and element["node"] == int(highlighted_node)), None)
 
@@ -568,7 +571,7 @@ def texts_category_list(request, cats):
 @sanitize_get_params
 def topics_toc_page(request, topicCategory):
     """
-    List of texts in a category.
+    List of topics in a category.
     """
     props = base_props(request)
     topic_obj = Topic.init(topicCategory)
@@ -591,28 +594,31 @@ def topics_toc_page(request, topicCategory):
     })
 
 
-def get_param(param, i=None):
-    return "{}{}".format(param, "" if i is None else i)
-
-
 def get_search_params(get_dict, i=None):
-    gp = get_param
-    sheet_group_search_filters = [urllib.parse.unquote(f) for f in get_dict.get(gp("sgroupFilters", i)).split("|")] if get_dict.get(gp("sgroupFilters", i),
-                                                                                                     "") else []
-    sheet_tags_search_filters = [urllib.parse.unquote(f) for f in get_dict.get(gp("stagsFilters", i), "").split("|")] if get_dict.get(gp("stagsFilters", i),
-                                                                                                       "") else []
-    sheet_agg_types = ['group'] * len(sheet_group_search_filters) + ['tags'] * len(
-        sheet_tags_search_filters)  # i got a tingly feeling writing this
-    text_filters = [urllib.parse.unquote(f) for f in get_dict.get(gp("tpathFilters", i)).split("|")] if get_dict.get(gp("tpathFilters", i)) else []
+    def get_param(param, i=None):
+        return "{}{}".format(param, "" if i is None else i)
+    
+    def get_filters(prefix, filter_type):
+        return [urllib.parse.unquote(f) for f in get_dict.get(get_param(prefix+filter_type+"Filters", i)).split("|")] if get_dict.get(get_param(prefix+filter_type+"Filters", i), "") else []
+
+    sheet_filters_types = ("group", "topics_en", "topics_he")
+    sheet_filters = []
+    sheet_agg_types = []
+    for filter_type in sheet_filters_types:
+        filters = get_filters("s", filter_type)
+        sheet_filters += filters
+        sheet_agg_types += [filter_type] * len(filters)
+    text_filters = get_filters("t", "path")
+    
     return {
-        "query": urllib.parse.unquote(get_dict.get(gp("q", i), "")),
-        "tab": urllib.parse.unquote(get_dict.get(gp("tab", i), "text")),
-        "textField": ("naive_lemmatizer" if get_dict.get(gp("tvar", i)) == "1" else "exact") if get_dict.get(gp("tvar", i)) else "",
-        "textSort": get_dict.get(gp("tsort", i), None),
+        "query": urllib.parse.unquote(get_dict.get(get_param("q", i), "")),
+        "tab": urllib.parse.unquote(get_dict.get(get_param("tab", i), "text")),
+        "textField": ("naive_lemmatizer" if get_dict.get(get_param("tvar", i)) == "1" else "exact") if get_dict.get(get_param("tvar", i)) else "",
+        "textSort": get_dict.get(get_param("tsort", i), None),
         "textFilters": text_filters,
         "textFilterAggTypes": [None for _ in text_filters],  # currently unused. just needs to be equal len as text_filters
-        "sheetSort": get_dict.get(gp("ssort", i), None),
-        "sheetFilters": (sheet_group_search_filters + sheet_tags_search_filters),
+        "sheetSort": get_dict.get(get_param("ssort", i), None),
+        "sheetFilters": sheet_filters,
         "sheetFilterAggTypes": sheet_agg_types,
     }
 
@@ -1775,7 +1781,8 @@ def links_api(request, link_id_or_ref=None):
         return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
     if not request.user.is_authenticated:
-        key = request.POST.get("apikey")
+        delete_query = QueryDict(request.body)
+        key = delete_query.get("apikey") #key = request.POST.get("apikey")
         if not key:
             return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
         apikey = db.apikeys.find_one({"key": key})
@@ -1819,11 +1826,41 @@ def links_api(request, link_id_or_ref=None):
     if request.method == "DELETE":
         if not link_id_or_ref:
             return jsonResponse({"error": "No link id given for deletion."})
+        
         if not user.is_staff:
             return jsonResponse({"error": "Only Sefaria Moderators can delete links."})
+        
         retval = _internal_do_delete(request, link_id_or_ref, uid)
 
-        return jsonResponse(retval)
+        try:
+            ref = Ref(link_id_or_ref)
+        except InputError as e:
+            if ObjectId.is_valid(link_id_or_ref):
+                # link_id_or_ref is id so just delete this link
+                retval = _internal_do_delete(request, link_id_or_ref, uid)
+                return jsonResponse(retval)
+            else:
+                return jsonResponse({"error": "{} is neither a valid Ref nor a valid Mongo ObjectID. {}".format(link_id_or_ref, e)})
+
+        ls = LinkSet(ref)
+        if ls.count() == 0:
+            return jsonResponse({"error": "No links found for {}".format(ref)})
+
+        results = []
+        for l in ls:
+            link_id = str(l._id)
+            refs = l.refs
+            try:
+                retval = _internal_do_delete(request, link_id, uid)
+                if "error" in retval:
+                    raise Exception(retval["error"])
+                else:
+                    results.append({"status": "ok. Link: {} | {} Deleted".format(refs[0], refs[1])})
+            except Exception as e:
+                results.append({"error": "Link: {} | {} Error: {}".format(refs[0], refs[1], str(e))})
+
+        return jsonResponse(results)
+
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -3000,11 +3037,11 @@ def topic_page(request, topic):
     })
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
-    title = topic_obj.get_primary_title(short_lang) + _(' | Sefaria')
-    desc = _('Explore %(topic)s on Sefaria, drawing from our library of Jewish texts.') % {'topic': topic_obj.get_primary_title(short_lang)}
+    title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
+    desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
-        desc += topic_desc
+        desc += " " + topic_desc
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request,'base.html', {
@@ -4177,21 +4214,27 @@ def application_health_api_nonlibrary(request):
 
 @login_required
 def daf_roulette_redirect(request):
-    return render(request,'static/dafroulette.html',
+    return render(request,'static/chavruta.html',
                              {
                               "rtc_server": RTC_SERVER,
                               "room_id": "",
-                              "starting_ref": "todays-daf-yomi"
+                              "starting_ref": "todays-daf-yomi",
+                              "roulette": "1",
                               })
 
 @login_required
 def chevruta_redirect(request):
     room_id = request.GET.get("rid", None)
     starting_ref = request.GET.get("ref", "Genesis 1")
+    roulette = request.GET.get("roulette", "0")
 
-    return render(request,'static/dafroulette.html',
+    if room_id is None:
+        raise Http404('Missing room ID.')
+
+    return render(request,'static/chavruta.html',
                              {
                               "rtc_server": RTC_SERVER,
                               "room_id": room_id,
-                              "starting_ref": starting_ref
+                              "starting_ref": starting_ref,
+                              "roulette": roulette
                               })

@@ -51,7 +51,10 @@ class UserProfile extends Component {
   _getMessageModalRef(ref) { this._messageModalRef = ref; }
   _getTabViewRef(ref) { this._tabViewRef = ref; }
   getGroups() {
-    return Sefaria.userGroups(this.props.profile.id);
+    return Sefaria.getUserGroups(this.props.profile.id);
+  }
+  getGroupsFromCache() {
+    return Sefaria.getUserGroupsFromCache(this.props.profile.id);
   }
   filterGroup(currFilter, group) {
     const n = text => text.toLowerCase();
@@ -105,8 +108,12 @@ class UserProfile extends Component {
       });
     });
   }
+  getNotesFromCache() {
+    return Sefaria.allPrivateNotes();
+  }
   onDeleteNote() {
-    this.setState({ ignoreNoteCache: Math.random() });
+    Sefaria.clearPrivateNotes();
+    this.getNotes().then(() => this.setState({ refreshNoteData: Math.random() }));
   }
   filterNote(currFilter, note) {
     const n = text => text.toLowerCase();
@@ -135,17 +142,17 @@ class UserProfile extends Component {
       />
     );
   }
-  getSheets(ignoreCache) {
+  getSheets() {
     return new Promise((resolve, reject) => {
       Sefaria.sheets.userSheets(this.props.profile.id, sheets => {
-        // add urls to sheets for rendering with SheetListing
-        sheets.forEach(s => {
-          s.options.language = "en";
-          s.sheetUrl = `/sheets/${s.id}`;
-        });
+        // What was the below for?
+        // s.options.language = "en";
         resolve(sheets);
-      }, undefined, 0, 0, ignoreCache);
+      }, undefined, 0, 0);
     });
+  }
+  getSheetsFromCache() {
+    return Sefaria.sheets.userSheets(this.props.profile.id, null, undefined, 0, 0);
   }
   filterSheet(currFilter, sheet) {
     const n = text => text.toLowerCase();
@@ -190,7 +197,8 @@ class UserProfile extends Component {
     );
   }
   handleSheetDelete() {
-    this.setState({ ignoreSheetCache: Math.random() });
+    Sefaria.sheets.clearUserSheets(Sefaria._uid);
+    this.getSheets().then(() => this.setState({ refreshSheetData: Math.random() }));
   }
   renderSheet(sheet) {
     return (
@@ -198,7 +206,6 @@ class UserProfile extends Component {
         key={sheet.id}
         sheet={sheet}
         hideAuthor={true}
-        handleSheetClick={this.props.handleInAppLinkClick}
         handleSheetDelete={this.handleSheetDelete}
         editable={Sefaria._uid === this.props.profile.id}
         deletable={Sefaria._uid === this.props.profile.id}
@@ -249,7 +256,6 @@ class UserProfile extends Component {
     return (
       <ProfileListing
         key={item.id}
-        openProfile={this.props.openProfile}
         uid={item.id}
         slug={item.slug}
         url={`/profile/${item.slug}`}
@@ -283,7 +289,7 @@ class UserProfile extends Component {
     if (tab.applink) {
       return (
           <div className="tab">
-            <a href={tab.href} onClick={this.props.handleInAppLinkClick}>
+            <a href={tab.href}>
               <img src={tab.icon} alt={`${tab.text} icon`}/>
               {tab.text}
             </a>
@@ -302,7 +308,9 @@ class UserProfile extends Component {
     if (!Sefaria._uid) { this.props.toggleSignUpModal(); return; }
     this._messageModalRef.makeVisible();
   }
-  follow() { Sefaria.followAPI(this.props.profile.id); }
+  follow() { 
+    Sefaria.followAPI(this.props.profile.id);
+  }
   openFollowers(e) {
     e.preventDefault();
     this._tabViewRef.openTab(this.state.tabs.findIndex(t => t.text === Sefaria._('Followers')));
@@ -331,7 +339,6 @@ class UserProfile extends Component {
                   follow={this.follow}
                   openFollowers={this.openFollowers}
                   openFollowing={this.openFollowing}
-                  openProfile={this.props.openProfile}
                   toggleSignUpModal={this.props.toggleSignUpModal}
                 />
                 <TabView
@@ -342,7 +349,6 @@ class UserProfile extends Component {
                   <FilterableList
                     key="sheet"
                     pageSize={1e6}
-                    ignoreCache={this.state.ignoreSheetCache}
                     filterFunc={this.filterSheet}
                     sortFunc={this.sortSheet}
                     renderItem={this.renderSheet}
@@ -350,19 +356,22 @@ class UserProfile extends Component {
                     renderHeader={this.renderSheetHeader}
                     sortOptions={["Recent", "Views"]}
                     getData={this.getSheets}
+                    data={this.getSheetsFromCache()}
+                    refreshData={this.state.refreshSheetData}
                   />
                   {
                     this.state.showNotes ? (
                       <FilterableList
                         key="note"
                         pageSize={1e6}
-                        ignoreCache={this.state.ignoreNoteCache}
                         filterFunc={this.filterNote}
                         sortFunc={this.sortNote}
                         renderItem={this.renderNote}
                         renderEmptyList={this.renderEmptyNoteList}
                         sortOptions={[]}
                         getData={this.getNotes}
+                        data={this.getNotesFromCache()}
+                        refreshData={this.state.refreshNoteData}
                       />
                     ) : null
                   }
@@ -376,6 +385,7 @@ class UserProfile extends Component {
                     renderHeader={this.renderGroupHeader}
                     sortOptions={["Members", "Sheets"]}
                     getData={this.getGroups}
+                    data={this.getGroupsFromCache()}
                   />
                   <FilterableList
                     key="follower"
@@ -418,18 +428,16 @@ class UserProfile extends Component {
 }
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
-  openProfile: PropTypes.func.isRequired,
-  handleInAppLinkClick: PropTypes.func.isRequired,
 };
 
-const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, openProfile, toggleSignUpModal }) => {
+const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`
   const social = ['facebook', 'twitter', 'youtube', 'linkedin'];
   let infoList = [];
   if (p.location) { infoList.push(p.location); }
   infoList = infoList.concat(p.jewish_education);
   if (p.website) {
-    infoList.push(<span><a href={p.website}>{"website"}</a></span>);
+    infoList.push(<span><a href={p.website} target="_blank">{"website"}</a></span>);
   }
   const socialList = social.filter(s => !!p[s]);
   if (socialList.length) {
@@ -443,7 +451,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
   }
   return (
     <div className="profile-summary">
-      <div className="summary-column start">
+      <div className="summary-column profile-summary-content start">
         <div className="title pageTitle">
           <span className="int-en">{p.full_name}</span>
           <span className="int-he">{p.full_name}</span>
@@ -507,7 +515,6 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
         <ProfilePic
           url={p.profile_pic_url}
           name={p.full_name}
-          openProfile={openProfile}
           len={175}
           hideOnDefault={Sefaria._uid !== p.id}
           showButtons={Sefaria._uid === p.id}
