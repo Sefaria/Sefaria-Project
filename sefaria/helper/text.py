@@ -584,13 +584,13 @@ class WorkflowyParser(object):
         schema_root.validate()
         idx = self.create_index_from_schema(categories)
         if self._c_index:
-            idx = Index(idx).save()
+            idx_obj = Index(idx).save()
             res = "Index record [{}] created.".format(self.parsed_schema.primary_title())
             if self._c_version:
                 self.save_version_from_outline_notes()
                 res += " Version record created."
             else:
-                self.save_version_default(idx)
+                self.save_version_default(idx_obj)
                 res += " No text, Default empty Version record created."
         else:
             res = "Returning index outline without saving."
