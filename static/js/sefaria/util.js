@@ -697,7 +697,11 @@ class Util {
                 },
                 position: {my: this.dropdownAnchorSide + " top", at: this.dropdownAnchorSide + " bottom"},
                 select: (event, ui) => this._lookupAndRoute(ui.item.value),
-                minLength: 3
+                minLength: 3,
+                focus: ( event, ui ) => {
+                  $(".ui-menu-item.ui-state-focus").removeClass("ui-state-focus");
+                  $("a.ui-state-focus").parent().addClass("ui-state-focus");
+                }
             });
     };
 }
@@ -841,8 +845,6 @@ Util.RefValidator.prototype = {
 
         // Handle missing text cases
         var path = parseURL(document.URL).path;
-        if (!en.length) { en.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add English for " + ref + "</a></div>"); }
-        if (!he.length) { he.push("<div class='previewNoText'><a href='/add/" + normRef(ref) + "?after=" + path + "' class='btn'>Add Hebrew for " + ref + "</a></div>"); }
         if (!en.length && !he.length) {this.$msg.html("<i>No text available. Click below to add this text.</i>");}
 
         // Set it on the DOM

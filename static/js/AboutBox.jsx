@@ -12,7 +12,6 @@ class AboutBox extends Component {
       details: null,
     }
   }
-
   setTextMetaData() {
     if (this.props.title == "Sheet") {
       const sheetID = (Sefaria.sheets.extractIdFromSheetRef(this.props.srefs));
@@ -34,7 +33,6 @@ class AboutBox extends Component {
       });
     }
   }
-
   componentDidMount() {
       this.setTextMetaData();
   }
@@ -44,7 +42,6 @@ class AboutBox extends Component {
       this.setTextMetaData();
     }
   }
-
   render() {
     const d = this.state.details;
     const vh = this.props.currObjectVersions.he;
@@ -54,29 +51,24 @@ class AboutBox extends Component {
       let detailSection = null;
 
       if (d) {
-
           detailSection = (<div className="detailsSection">
                   <h2 className="aboutHeader">
                       <span className="int-en">About This Text</span>
                       <span className="int-he">אודות ספר זה</span>
                   </h2>
                   <div className="aboutTitle">
-                      <span className="en">{d.title}</span>
+                      {d.title.stripHtml()}
                   </div>
                   <div className="aboutSubtitle">
-                      <span className="en">By: {d.ownerName}</span>
+                      By: {d.ownerName}
                   </div>
                   <div className="aboutDesc">
-                      <span className="en">{d.summary}</span>
+                      {d.summary}
                   </div>
               </div>
           )
       }
-      return(
-
-      <section className="aboutBox">{detailSection}</section>
-      )
-
+      return <section className="aboutBox">{detailSection}</section>;
     }
 
     let detailSection = null;
@@ -203,8 +195,6 @@ AboutBox.propTypes = {
   srefs:               PropTypes.array.isRequired,
   getLicenseMap:       PropTypes.func.isRequired,
 };
-
-
 
 
 export default AboutBox;

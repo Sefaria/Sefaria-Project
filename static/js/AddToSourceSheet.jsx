@@ -157,8 +157,8 @@ class AddToSourceSheetBox extends Component {
         disallowedTagsMode: 'discard',
       });
       let titleRetval = {
-        "en": `Source Sheet: ${sheetTitle} [Section #${nodeID}]`,
-        "he": `דף מקורות: ${sheetTitle} [סעיף ${nodeID}]`
+        "en": `${sheetTitle}, Section #${nodeID}`,
+        "he": `${sheetTitle}, סעיף ${nodeID}`
       }
       if (refTitles){ //show the refs also of a source, just to be nice
         titleRetval["en"] += `(${refTitles["en"]})`;
@@ -240,7 +240,7 @@ class ConfirmAddToSheet extends Component {
     let sref = null;
     let srefTitles = {};
     if(!this.props.nodeRef){
-      sref = `/${Sefaria.getRefFromCache(this.props.srefs[0]).ref}`;
+      sref = `/${Sefaria.normRefList(this.props.srefs)}`;
       srefTitles = {
         "en": Sefaria.joinRefList(this.props.srefs, "en"),
         "he": Sefaria.joinRefList(this.props.srefs, "he"),
@@ -318,3 +318,4 @@ export {
   AddToSourceSheetBox,
   AddToSourceSheetWindow,
 };
+Sefaria.AddToSourceSheetWindow = AddToSourceSheetWindow;

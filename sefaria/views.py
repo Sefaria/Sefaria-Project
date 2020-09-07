@@ -940,6 +940,26 @@ def text_upload_api(request):
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
 
+@staff_member_required
+def modtools_upload_workflowy(request):
+    from sefaria.helper.text import WorkflowyParser
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
+
+    file = request.FILES['wf_file']
+    c_index = request.POST.get("c_index", False)
+    c_version = request.POST.get("c_version", False)
+    delims = request.POST.get("delims", None) if len(request.POST.get("delims", None)) else None
+    term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", None)) else None
+
+    uid = request.user.id
+    try:
+        wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
+        res = wfparser.parse()
+    except Exception as e:
+        raise e #this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want
+
+    return jsonResponse({"status": "ok", "data": res})
 
 def compare(request, secRef=None, lang=None, v1=None, v2=None):
     if secRef and Ref.is_ref(secRef):
