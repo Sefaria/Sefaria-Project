@@ -303,7 +303,10 @@ def generate_all_topic_links_from_sheets(topic=None):
         topic_scores = [(slug, (numerator / denominator) * topic_idf_dict[slug], owners) for slug, numerator, owners in
                   zip(related_topics_to_tref.keys(), numerator_list, owner_counts)]
         # transform data to more convenient format
-        oref = Ref(tref)
+        try:
+            oref = Ref(tref)
+        except InputError:
+            continue
         for slug, _, owners in filter(lambda x: x[1] >= TFIDF_CUTOFF and x[2] >= OWNER_THRESH, topic_scores):
             raw_topic_ref_links[slug] += [(oref, owners)]
 
@@ -362,7 +365,7 @@ def generate_all_topic_links_from_sheets(topic=None):
 
 def generate_sheet_topic_links():
     projection = {"topics": 1, "id": 1, "status": 1}
-    sheet_list = db.sheets.find({"status": "public"}, projection)
+    sheet_list = db.sheets.find({"status": "public", "assignment_id": {"$exists": 0}}, projection)
     sheet_links = []
     for sheet in tqdm(sheet_list, desc="getting sheet topic links"):
         if sheet.get('id', None) is None:
@@ -571,7 +574,7 @@ def calculate_other_ref_scores(ref_topic_map):
                 seg_ref_counter[seg_ref] += 1
         for tref in ref_list:
             range_list = tref_range_lists.get(tref, None)
-            num_datasource_map[(topic, tref)] = 0 if range_list is None else max(seg_ref_counter[seg_ref] for seg_ref in range_list)
+            num_datasource_map[(topic, tref)] = 0 if (range_list is None or len(range_list) == 0) else max(seg_ref_counter[seg_ref] for seg_ref in range_list)
     return num_datasource_map, langs_available, comp_date_map, order_id_map
 
 
@@ -764,6 +767,7 @@ def recalculate_secondary_topic_data():
 
     # now that we've gathered all the new links, delete old ones and insert new ones
     RefTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
+    RefTopicLinkSet({"is_sheet": True}).delete()
     IntraTopicLinkSet({"generatedBy": TopicLinkHelper.generated_by_sheets}).delete()
     print(f"Num Ref Links {len(all_ref_links)}")
     print(f"Num Intra Links {len(related_links)}")

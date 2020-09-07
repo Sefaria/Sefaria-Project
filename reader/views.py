@@ -16,7 +16,7 @@ import pytz
 from rest_framework.decorators import api_view
 from django.template.loader import render_to_string, get_template
 from django.shortcuts import render, get_object_or_404, redirect
-from django.http import Http404
+from django.http import Http404, QueryDict
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
 from django.utils.encoding import iri_to_uri
@@ -55,6 +55,8 @@ from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref
 from django.utils.html import strip_tags
+from bson.objectid import ObjectId
+
 
 
 if USE_VARNISH:
@@ -74,6 +76,25 @@ library.build_cross_lexicon_auto_completer()
 if server_coordinator:
     server_coordinator.connect()
 #    #    #
+
+
+def user_credentials(request):
+    if request.user.is_authenticated:
+        return {"user_type": "session", "user_id": request.user.id}
+    else:
+        req_key = request.POST.get("apikey", None)
+        header_key = request.META.get("HTTP_X_API_KEY", None) #request.META["HTTP_AUTHORIZATION"]?
+        key = req_key if req_key else header_key
+        if not key:
+            return {"user_type": "session", "user_id": None, "error": "You must be logged in or use an API key to add, edit or delete links."}
+        apikey = db.apikeys.find_one({"key": key})
+        if not apikey:
+            return {"user_type": "API", "user_id": None, "error": "Unrecognized API key."}
+        #user = User.objects.get(id=apikey["uid"])
+        return {"user_type": "API", "user_id": apikey["uid"]}
+
+
+
 
 @ensure_csrf_cookie
 def catchall(request, tref, sheet=None):
@@ -280,6 +301,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         "highlightedNodes": highlighted_node
     }
 
+    ref = None
     if highlighted_node:
         ref = next((element["ref"] for element in sheet["sources"] if element.get("ref") and element["node"] == int(highlighted_node)), None)
 
@@ -932,7 +954,7 @@ def notifications(request):
     return menu_page(request, props, "notifications", title)
 
 
-@login_required
+@staff_member_required
 def modtools(request):
     title = _("Moderator Tools")
     props = base_props(request)
@@ -1778,7 +1800,8 @@ def links_api(request, link_id_or_ref=None):
         return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
 
     if not request.user.is_authenticated:
-        key = request.POST.get("apikey")
+        delete_query = QueryDict(request.body)
+        key = delete_query.get("apikey") #key = request.POST.get("apikey")
         if not key:
             return jsonResponse({"error": "You must be logged in or use an API key to add, edit or delete links."})
         apikey = db.apikeys.find_one({"key": key})
@@ -1822,11 +1845,41 @@ def links_api(request, link_id_or_ref=None):
     if request.method == "DELETE":
         if not link_id_or_ref:
             return jsonResponse({"error": "No link id given for deletion."})
+        
         if not user.is_staff:
             return jsonResponse({"error": "Only Sefaria Moderators can delete links."})
+        
         retval = _internal_do_delete(request, link_id_or_ref, uid)
 
-        return jsonResponse(retval)
+        try:
+            ref = Ref(link_id_or_ref)
+        except InputError as e:
+            if ObjectId.is_valid(link_id_or_ref):
+                # link_id_or_ref is id so just delete this link
+                retval = _internal_do_delete(request, link_id_or_ref, uid)
+                return jsonResponse(retval)
+            else:
+                return jsonResponse({"error": "{} is neither a valid Ref nor a valid Mongo ObjectID. {}".format(link_id_or_ref, e)})
+
+        ls = LinkSet(ref)
+        if ls.count() == 0:
+            return jsonResponse({"error": "No links found for {}".format(ref)})
+
+        results = []
+        for l in ls:
+            link_id = str(l._id)
+            refs = l.refs
+            try:
+                retval = _internal_do_delete(request, link_id, uid)
+                if "error" in retval:
+                    raise Exception(retval["error"])
+                else:
+                    results.append({"status": "ok. Link: {} | {} Deleted".format(refs[0], refs[1])})
+            except Exception as e:
+                results.append({"error": "Link: {} | {} Error: {}".format(refs[0], refs[1], str(e))})
+
+        return jsonResponse(results)
+
 
     return jsonResponse({"error": "Unsupported HTTP method."})
 
@@ -1850,12 +1903,13 @@ def notes_api(request, note_id_or_ref):
     A call to this API with GET returns the list of public notes and private notes belong to the current user on this Ref.
     """
     if request.method == "GET":
+        creds = user_credentials(request)
         if not note_id_or_ref:
             raise Http404
         oref = Ref(note_id_or_ref)
         cb = request.GET.get("callback", None)
         private = request.GET.get("private", False)
-        res = get_notes(oref, uid=request.user.id, public=(not private))
+        res = get_notes(oref, uid=creds["user_id"], public=(not private))
         return jsonResponse(res, cb)
 
     if request.method == "POST":
@@ -3007,7 +3061,7 @@ def topic_page(request, topic):
     desc = _("Jewish texts and source sheets about %(topic)s from Torah, Talmud and other sources in Sefaria's library.") % {'topic': topic_obj.get_primary_title(short_lang)}
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
-        desc += topic_desc
+        desc += " " + topic_desc
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request,'base.html', {
