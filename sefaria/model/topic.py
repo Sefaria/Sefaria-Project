@@ -430,9 +430,14 @@ class RefTopicLink(abst.AbstractMongoRecord):
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
             # check for duplicates
-            duplicate = RefTopicLink().load(
-                {"linkType": self.linkType, "ref": self.ref, "toTopic": self.toTopic, "dataSource": getattr(self, 'dataSource', {"$exists": False}),
-                 "class": getattr(self, 'class')})
+            query = {"linkType": self.linkType, "ref": self.ref, "toTopic": self.toTopic, "dataSource": getattr(self, 'dataSource', {"$exists": False}), "class": getattr(self, 'class')}
+            if getattr(self, "charLevelData", None):
+                query["charLevelData.startChar"] = self.charLevelData['startChar']
+                query["charLevelData.endChar"] = self.charLevelData['endChar']
+                query["charLevelData.versionTitle"] = self.charLevelData['versionTitle']
+                query["charLevelData.language"] = self.charLevelData['language']
+
+            duplicate = RefTopicLink().load(query)
             if duplicate is not None:
                 raise DuplicateRecordError("Duplicate ref topic link for linkType '{}', ref '{}', toTopic '{}', dataSource '{}'".format(
                 self.linkType, self.ref, self.toTopic, getattr(self, 'dataSource', 'N/A')))
