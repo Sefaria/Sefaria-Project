@@ -315,3 +315,17 @@ class Test_Depth_0(object):
         assert j.mask() == ja.JaggedIntArray(1)
         assert j.flatten_to_array() == ["Fee Fi Fo Fum"]
 
+
+class Test_Modify_by_Func():
+
+    def test_modify_by_func(self):
+        j = ja.JaggedTextArray(threeby_empty_section)
+        self.modifier_input = []
+        j.modify_by_function(self.modifier)
+        assert self.modifier_input[0][1] == [0,0,0]
+        assert self.modifier_input[-1][1] == [3,2,2]
+        assert self.modifier_input[-1][0] == threeby_empty_section[3][2][2]
+
+    def modifier(self, s, sections):
+        self.modifier_input += [(s, sections)]
+

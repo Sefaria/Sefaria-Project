@@ -629,14 +629,18 @@ class JaggedTextArray(JaggedArray):
         else:
             return 0
 
-    def modify_by_function(self, func, _cur=None):
-        """ Returns the jagged array but with each terminal string processed by func"""
+    def modify_by_function(self, func, _cur=None, _curSections=None):
+        """
+        Returns the jagged array but with each terminal string processed by func
+        Func should accept two parameters: 1) text of current segment 2) zero-indexed indices of segment
+        """
+        _curSections = _curSections or []
         if _cur is None:
-            return self.modify_by_function(func, _cur=self._store)
+            _cur = self._store
         if isinstance(_cur, str):
-            return func(_cur)
+            return func(_cur, _curSections)
         elif isinstance(_cur, list):
-            return [self.modify_by_function(func, i) for i in _cur]
+            return [self.modify_by_function(func, temp_curr, _curSections + [i]) for i, temp_curr in enumerate(_cur)]
 
     def flatten_to_array(self, _cur=None):
         # Flatten deep jagged array to flat array
