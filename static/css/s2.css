@@ -4096,6 +4096,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .refLink:hover {
   text-decoration: underline;
 }
+.segment .namedEntityLink {
+  color: inherit;
+}
+.segment .namedEntityLink:hover {
+  text-decoration: none;
+  border-bottom: 1px dashed #000;
+}
+.stacked.bilingual .segment .en .namedEntityLink:hover {
+  border-bottom-color: #666;
+}
 .textRange .actionLinks {
   text-align: right;
 }

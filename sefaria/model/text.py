@@ -5355,7 +5355,7 @@ class Library(object):
                 mention, slug = start_char_to_slug[match.start()]
             except KeyError:
                 return match.group()
-            return f"""<a href="https://www.sefaria.org/topics/{slug}" class="refLink">{mention}</a>"""
+            return f"""<a href="https://www.sefaria.org/topics/{slug}" class="namedEntityLink">{mention}</a>"""
         return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
 
