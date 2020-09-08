@@ -1573,6 +1573,7 @@ class InterruptingMessage extends Component {
       this.setState({timesUp: true});
       $("#interruptingMessage .button").click(this.close);
       $("#interruptingMessage .trackedAction").click(this.trackAction);
+      this.showAorB();
       this.animateOpen();
     }.bind(this), this.settings.showDelay);
   }
@@ -1582,6 +1583,14 @@ class InterruptingMessage extends Component {
       this.setState({animationStarted: true});
       this.trackOpen();
     }.bind(this), 50);
+  }
+  showAorB() {
+    // Allow random A/B testing if items are tagged ".optionA", ".optionB"
+    const $message = $(ReactDOM.findDOMNode(this));
+    if ($message.find(".optionA").length) {
+      console.log("rand show")
+      Math.random() > 0.5 ? $(".optionA").show() : $(".optionB").show();
+    }
   }
   close() {
     this.markAsRead();
