@@ -480,6 +480,14 @@ class TextSegment extends Component {
       this.props.onCitationClick(ref, this.props.sref);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Citation Link Click", ref);
+    } else if ($(event.target).hasClass("namedEntityLink")) {
+      //Click of named entity
+      event.preventDefault();
+      let topicSlug = $(event.target).attr("data-slug");
+      console.log("SLUG", topicSlug);
+      this.props.onNamedEntityClick(topicSlug, this.props.sref);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Named Entity Link Click", topicSlug);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
       this.props.onFootnoteClick(event);
       event.stopPropagation();
