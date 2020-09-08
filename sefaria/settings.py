@@ -171,6 +171,8 @@ REST_FRAMEWORK = {
     )
 }
 
+SESSION_SAVE_EVERY_REQUEST = True
+
 LOCALE_PATHS = (
     relative_to_abs_path('../locale'),
 )

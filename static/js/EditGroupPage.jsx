@@ -130,27 +130,26 @@ class EditGroupPage extends Component {
     });
   }
   render() {
+    const enTitle = this.props.initialData ? "Edit Group" : "Create a Group";
+    const heTitle = this.props.initialData ? "ערוך קבוצה" : "צור קבוצה";
     return (
       <div id="editGroupPage">
-        {this.props.initialData
-          ? <h1>
-              <span className="int-en">Edit Group</span>
-              <span className="int-he">ערוך קבוצה</span>
-            </h1>
-          : <h1>
-              <span className="int-en">Create a Group</span>
-              <span className="int-he">צור קבוצה</span>
-            </h1>}
-
-        <div id="saveCancelButtons">
-            <a className="button transparent control-elem" href={this.props.initialData ? "/groups/" + this.state.name.replace(/ /g, "-") : "/my/groups"}>
-                <span className="int-en">Cancel</span>
-                <span className="int-he">בטל</span>
-            </a>
-            <div id="saveGroup" className="button blue control-elem" onClick={this.save}>
-                <span className="int-en">Save</span>
-                <span className="int-he">שמור</span>
-            </div>
+        <div className="headerWithButtons">
+          <div className="start"></div>
+          <h1>
+            <span className="int-en">{enTitle}</span>
+            <span className="int-he">{heTitle}</span>
+          </h1>
+          <div className="end">
+              <a className="button transparent control-elem" href={this.props.initialData ? "/groups/" + this.state.name.replace(/ /g, "-") : "/my/groups"}>
+                  <span className="int-en">Cancel</span>
+                  <span className="int-he">בטל</span>
+              </a>
+              <div id="saveGroup" className="button blue control-elem" onClick={this.save}>
+                  <span className="int-en">Save</span>
+                  <span className="int-he">שמור</span>
+              </div>
+          </div>
         </div>
 
         <div className="field halfWidth">

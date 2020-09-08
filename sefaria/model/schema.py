@@ -947,19 +947,32 @@ class NumberedTitledTreeNode(TitledTreeNode):
         """
         parentheses = kwargs.get("parentheses", False)
         prefixes = 'בכ|וב|וה|וכ|ול|ומ|וש|כב|ככ|כל|כמ|כש|לכ|מב|מה|מכ|מל|מש|שב|שה|שכ|של|שמ|ב|כ|ל|מ|ש|ה|ו|ד' if lang == 'he' else ''
+        prefix_group = rf'(?:{prefixes})?'
         key = (title, lang, anchored, compiled, kwargs.get("for_js"), kwargs.get("match_range"), kwargs.get("strict"), kwargs.get("terminated"), kwargs.get("escape_titles"), parentheses)
         if not self._regexes.get(key):
             if anchored:
                 reg = r"^"
             elif parentheses:
-                reg = rf"(?<=[(\[](?:[^)\]]*?\s)?(?:{prefixes})?)"
+                parens_lookbehind = r'(?<=[(\[](?:[^)\]]*?\s)?'
+                if kwargs.get("for_js"):
+                    reg = rf"{parens_lookbehind}){prefix_group}"  # prefix group should be outside lookbehind in js to be consistent with when parentheses == False
+                else:
+                    reg = rf"{parens_lookbehind}{prefix_group})"
             else:
-                reg = rf"(?<=(?:^|\s|\(|\[)(?:{prefixes})?)"
+                word_break_group = r'(?:^|\s|\(|\[)'
+                if kwargs.get("for_js"):
+                    reg = rf"{word_break_group}{prefix_group}"  # safari still does not support lookbehinds (although this issue shows they're working on it https://bugs.webkit.org/show_bug.cgi?id=174931)
+                else:
+                    reg = rf"(?<={word_break_group}{prefix_group})"
             title_block = regex.escape(title) if escape_titles else title
+            if kwargs.get("for_js"):
+                reg += r"("  # use capture group to distinguish prefixes from captured ref
             reg += r"(?P<title>" + title_block + r")" if capture_title else title_block
             reg += self.after_title_delimiter_re
             addr_regex = self.address_regex(lang, **kwargs)
             reg += r'(?:(?:' + addr_regex + r')|(?:[\[({]' + addr_regex + r'[\])}]))'  # Match expressions with internal parentheses around the address portion
+            if kwargs.get("for_js"):
+                reg += r")"  # use capture group to distinguish prefixes from captured ref
             if parentheses:
                 reg += r"(?=(?:[)\]])|(?:[.,:;?!\s<][^\])]*?[)\]]))"
             else:

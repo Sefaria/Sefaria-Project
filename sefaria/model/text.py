@@ -3291,6 +3291,13 @@ class Ref(object, metaclass=RefCacheType):
 
         return db.texts.count_documents(self.condition_query(lang)) == 0
 
+    def word_count(self, lang="he"):
+        try:
+            return TextChunk(self, lang).word_count()
+        except InputError:
+            lns = self.index_node.get_leaf_nodes()
+            return sum([TextChunk(n.ref(), lang).word_count() for n in lns])
+
     def _iter_text_section(self, forward=True, depth_up=1, vstate=None):
         """
         Iterate forwards or backwards to the next available :class:`Ref` in a text
@@ -5360,6 +5367,26 @@ class Library(object):
             }
         else:
             return simple_nodes
+
+    def word_count(self, ref_or_cat, lang="he", dependents_regex=None):
+        """
+
+        :param ref_or_cat:
+        :param lang:
+        :param dependents_regex: string - filter dependents by those that have this string (treat this as a category))
+        :return:
+        """
+        if isinstance(ref_or_cat, Ref):
+            return ref_or_cat.word_count(lang)
+        try:
+            return Ref(ref_or_cat).word_count(lang)
+        except InputError:
+            if dependents_regex:
+                raw_ins = library.get_indexes_in_category(ref_or_cat, True)
+                ins = filter(lambda s: re.search(dependents_regex,s), raw_ins)
+            else:
+                ins = library.get_indexes_in_category(ref_or_cat)
+            return sum([Ref(r).word_count(lang) for r in ins])
 
     def is_initialized(self):
         """
