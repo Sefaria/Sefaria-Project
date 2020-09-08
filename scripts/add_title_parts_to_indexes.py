@@ -252,6 +252,7 @@ def rambam_name_table():
     name_dict['מ"א'] = name_dict['מאכלות אסורות']
     name_dict['מא"ס'] = name_dict['מאכלות אסורות']
     name_dict['אסורות'] = name_dict['מאכלות אסורות']
+    name_dict['מאכ"א'] = name_dict['מאכלות אסורות']
     # name_dict["ממרי'"] = name_dict['ממרים']
     # name_dict["שכירו'"] = name_dict['שכירות']
     name_dict["תרומה"] = name_dict['תרומות']
