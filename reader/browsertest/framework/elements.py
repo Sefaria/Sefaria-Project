@@ -1580,19 +1580,19 @@ class Trial(object):
     default_local_driver = webdriver.Chrome
     # default_local_driver = webdriver.Firefox
     # default_local_driver = webdriver.Safari
-    def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None, verbose=False):
+    def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None, verbose=False, seleniumServerHostname=""):
         """
         :param caps: If local: webdriver classes, if remote, dictionaries of capabilities
         :param platform: "sauce", "bstack", "local", "travis"
         :return:
         """
-        assert platform in ["sauce", "bstack", "local", "travis"]
+        assert platform in ["sauce", "bstack", "local", "travis", "remote"]
         if platform == "travis":
             global SAUCE_USERNAME, SAUCE_ACCESS_KEY
             SAUCE_USERNAME = os.getenv('SAUCE_USERNAME')
             SAUCE_ACCESS_KEY = os.getenv('SAUCE_ACCESS_KEY')
             self.BASE_URL = LOCAL_URL
-            self.caps = caps if caps else SAUCE_CORE_CAPS
+            self.caps = caps if caps else F
             for cap in self.caps:
                 cap["tunnelIdentifier"] = os.getenv('TRAVIS_JOB_NUMBER')
             self.is_local = False
@@ -1605,6 +1605,12 @@ class Trial(object):
             self.is_local = False
             self.BASE_URL = LOCAL_URL
             self.caps = caps if caps else SAUCE_CORE_CAPS
+        elif platform == "remote":
+            self.is_local = False
+            self.seleniumServerHostname = seleniumServerHostname
+            self.BASE_URL = REMOTE_URL
+            self.caps = [ { 'browserName': "chrome", 'version': "latest",
+                            'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10', "extendedDebugging": True},]
         else:
             self.is_local = False
             self.BASE_URL = REMOTE_URL
@@ -1646,6 +1652,14 @@ class Trial(object):
             driver = webdriver.Remote(
                 command_executor='http://{}:{}@hub.browserstack.com:80/wd/hub'.format(BS_USER, BS_KEY),
                 desired_capabilities=cap)
+        elif self.platform == "remote":
+            assert cap is not None
+            copt = webdriver.ChromeOptions()
+            copt.add_argument('--no-sandbox')
+            copt.add_argument('--headless')
+            driver = webdriver.Remote(
+                command_executor=self.seleniumServerHostname, 
+                options=copt)
         else:
             raise Exception("Unrecognized platform: {}".format(self.platform))
 
