@@ -271,16 +271,14 @@ class TextRange extends Component {
       heTitle          = "טעינה...";
       ref              = null;
     }
-    const showNumberLabel    =  data &&
-                              data.categories &&
-                              data.categories[0] !== "Talmud" &&
+    const showNumberLabel =  data && data.categories &&
                               data.categories[0] !== "Liturgy" &&
                               data.categories[0] !== "Reference";
 
     const showSegmentNumbers = showNumberLabel && this.props.basetext;
 
-    const nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5]/g;
-    const cnre = /[\u0591-\u05bd\u05bf-\u05c5\u05c7]/g;
+    const nre = /[\u0591-\u05af\u05bd\u05bf\u05c0\u05c4\u05c5\u200d]/g;
+    const cnre = /[\u0591-\u05bd\u05bf-\u05c5\u05c7\u200d]/g;
     let strip_text_re = null;
     if(this.props.settings && this.props.settings.language !== "english" && this.props.settings.vowels !== "all"){
       strip_text_re = (this.props.settings.vowels == "partial") ? nre : cnre;
@@ -523,6 +521,7 @@ class TextSegment extends Component {
     if (!!this.props.textHighlights) {
       const highList = this.props.textHighlights.map(h => Sefaria.hebrew.isHebrew(h) ? Sefaria.hebrew.getNikkudRegex(h) : h);
       const reg = new RegExp(`(${highList.join("|")})`, 'g');
+      
       return text.replace(reg, '<span class="queryTextHighlight">$1</span>');
     }
     return text;

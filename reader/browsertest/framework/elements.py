@@ -329,82 +329,11 @@ class AbstractTest(object):
     def click_start_a_sheet(self):
         self.click_object_by_css_selector('#homeSheets > div > div.textBox > a:nth-child(3) > div > span.int-en')
 
-    def click_commentary_on_sidebar(self):
-        self.click_sidebar_entry('Commentary')
-
-    def click_tanakh_on_sidebar(self):
-        self.click_sidebar_entry('Tanakh')
-
-    def click_targum_on_sidebar(self):
-        self.click_sidebar_entry('Targum')
-
-    def click_mishnah_on_sidebar(self):
-        self.click_sidebar_entry('Mishnah')
-
-    def click_talmud_on_sidebar(self):
-        self.click_sidebar_entry('Talmud')
-
-    def click_midrash_on_sidebar(self):
-        self.click_sidebar_entry('Midrash')
-
-    def click_halakhah_on_sidebar(self):
-        self.click_sidebar_entry('Halakhah')
-
-    def click_kabbalah_on_sidebar(self):
-        self.click_sidebar_entry('Kabbalah')
-
-    def click_philosophy_on_sidebar(self):
-        self.click_sidebar_entry('Philosophy')
-
-    def click_chasidut_on_sidebar(self):
-        self.click_sidebar_entry('Chasidut')
-
-    def click_musar_on_sidebar(self):
-        self.click_sidebar_entry('Musar')
-
-    def click_other_on_sidebar(self):
-        self.click_sidebar_entry('Other')
-
-    def click_grammar_on_sidebar(self):
-        self.click_sidebar_entry('Grammar')
-
     def click_resources_on_sidebar(self):
         self.click_object_by_css_selector('.connectionsHeaderTitle')
 
-    def click_other_text_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(1) > span:nth-child(2)')
-
-    def click_sheets_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(2) > span:nth-child(2)')
-
-    def click_notes_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(3) > span:nth-child(2)')
-        try:
-            self.close_join_sefaria_popup()
-        except NoSuchElementException:
-            # you're signed in which means you opened notes. go back to resources
-            self.click_resources_on_sidebar()
-
-    def click_about_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(5) > span:nth-child(2)')
-
-    def click_versions_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(6) > span:nth-child(2)')
-
-    def click_webpages_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(8) > span:nth-child(2)')
-
-    def click_tools_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(9) > span:nth-child(2)')
-
-    def click_share_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(1) > span:nth-child(2)')
-
-    def click_add_translation_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(2) > span:nth-child(2)')
-
-    def click_add_connection_on_sidebar(self):
-        self.click_object_by_css_selector('a.toolsButton:nth-child(3) > span:nth-child(2)')
+    def click_sidebar_button(self, name):
+        self.click_object_by_css_selector('a.toolsButton[data-name="{}"]'.format(name))
 
     def close_join_sefaria_popup(self):
         self.driver.find_element_by_css_selector('#interruptingMessage #interruptingMessageClose')
@@ -417,9 +346,6 @@ class AbstractTest(object):
         except NoAlertPresentException:
             print('A <<NoAlertPresentException>> was thrown')
             pass
-
-    def click_explore_sheets(self):
-        self.click_object_by_css_selector('#homeSheets > div > div.textBox > a.inAppLink > div > span.int-en')
 
     def click_source_sheet_img(self):
         self.click_object_by_css_selector('#homeSheets > div > div.imageBox.bordered > a > img')
@@ -1049,6 +975,15 @@ class AbstractTest(object):
         # todo
         return self
 
+    def scroll_content_to_position(self, pixels):
+        self.driver.execute_script(
+            "var a = document.getElementsByClassName('content')[0]; a.scrollTop = {}".format(pixels)
+        )
+        return self
+
+    def get_content_scroll_position(self):
+        return self.driver.execute_script("var a = document.getElementsByClassName('content')[0]; return a.scrollTop;")
+
     def scroll_to_segment(self, ref):
         if isinstance(ref, str):
             ref = Ref(ref)
@@ -1125,6 +1060,11 @@ class AbstractTest(object):
         self.set_modal_cookie()
         return self
 
+    def load_topic_page(self, slug):
+        self.driver.get(self.base_url + "/topics/" + slug)
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".storyTitle")))
+        return self
+
     def load_gardens(self):
         self.driver.get(self.base_url + "/garden/jerusalem")
         WebDriverWait(self.driver, TEMPER).until(
@@ -1146,9 +1086,9 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#place-map")))
         return self
 
-    def load_account(self):
-        self.driver.get(self.base_url + "/account")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".accountPanel .blockLink")))
+    def load_my_profile(self):
+        self.driver.get(self.base_url + "/my/profile")
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".profile-page")))
         return self
 
     def load_notifications(self):
@@ -1157,15 +1097,6 @@ class AbstractTest(object):
             element_to_be_clickable((By.CSS_SELECTOR, ".notificationsList > .notification")))
         return self
 
-    def load_private_sheets(self):
-        self.driver.get(self.base_url + "/sheets/private")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheet")))
-        return self
-
-    def load_private_groups(self):
-        self.driver.get(self.base_url + "/my/groups")
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".groupsList")))
-        return self
 
     # Editing
     def load_translate(self, ref):
@@ -1655,7 +1586,7 @@ class Trial(object):
         """
         if self.platform == "local":
             cap = cap if cap else self.default_local_driver
-            if isinstance(cap, appium_webdriver.Remote):
+            if isinstance(cap, appium_webdriver.Remote) or isinstance(cap, webdriver.chrome.webdriver.WebDriver):
                 driver = cap
             else:
                 driver = cap()

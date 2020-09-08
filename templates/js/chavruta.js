@@ -130,11 +130,11 @@ navigator.mediaDevices.getUserMedia({
       localStorage.setItem('lastChevrutaID', null);
     }
 
-    if (startingRoom !="") {
-      socket.emit('enter room', {{ client_uid }}, startingRoom);
+    if (startingRoom !="" && {{roulette}} == 0 ) {
+      socket.emit('start chevruta', {{ client_uid }}, startingRoom);
     }
     else {
-      socket.emit('how many rooms', {{ client_uid }}, localStorage.getItem('lastChevrutaID'));
+      socket.emit('start roulette', {{ client_uid }}, localStorage.getItem('lastChevrutaID'), startingRoom == "" ? "dafRoulette" : startingRoom);
     }
     console.log('Adding local stream.');
   })
@@ -143,9 +143,12 @@ navigator.mediaDevices.getUserMedia({
   });
 
 function addAdditionalHTML() {
-  const newRoomButton = document.createElement('div');
-  newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()"><span class="int-en">New Person</span><span class="int-he">משתמש חדש</span></button>';
-  document.getElementById("buttonContainer").appendChild(newRoomButton)
+
+  if ({{roulette}} == "1") {
+    const newRoomButton = document.createElement('div');
+    newRoomButton.innerHTML = '<button id="newRoom" onclick="getNewChevruta()"><span class="int-en">New Person</span><span class="int-he">משתמש חדש</span></button>';
+    document.getElementById("buttonContainer").appendChild(newRoomButton)
+  }
 
   document.body.classList.remove("hasBannerMessage");
 

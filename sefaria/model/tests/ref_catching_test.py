@@ -18,23 +18,20 @@ class Test_find_citation_in_text(object):
         title = 'Ruth'
 
         lang = "he" if is_hebrew(title) else "en"
-        res = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False)
-        match = re.search(res, st)
-        match_string = match.group()  # 'no match' if not match else match.group()
-        resp = requests.get("https://www.sefaria.org.il/{}".format(match_string))
-        assert resp.status_code == 200
+        reg_str = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False)
+        reg = re.compile(reg_str, re.VERBOSE)
+        match = reg.search(st)
+        assert m.Ref(match.group(1)).normal() == "Ruth 1:1"
 
     def test_regex_string_he_js_with_prefix(self):
         st = 'ובויקרא כ"ה'
         title = 'ויקרא'
 
         lang = "he" if is_hebrew(title) else "en"
-        res = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False)
-        res_no_comments = re.sub('\s+', '', re.sub('\s*?#.*?\n', '', res))
-        match = re.search(res_no_comments, st)
-        match_string = 'no match' if not match else match.group().replace(match.group(1), '')
-        resp = requests.get("https://www.sefaria.org.il/{}".format(match_string))
-        assert resp.status_code == 200
+        reg_str = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False)
+        reg = re.compile(reg_str, re.VERBOSE)
+        match = reg.search(st)
+        assert m.Ref(match.group(1)).normal() == "Leviticus 25"
 
     def test_regex_string_he_in_parentheses_only(self):
         st1 = '(ובויקרא כ"ה)'
@@ -42,52 +39,28 @@ class Test_find_citation_in_text(object):
         title = 'ויקרא'
 
         lang = "he" if is_hebrew(title) else "en"
-        res = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False, parentheses=True)
-        res_no_comments = re.sub('\s+', '', re.sub('\s*?#.*?\n', '', res))
+        reg_str = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False, parentheses=True)
+        reg = re.compile(reg_str, re.VERBOSE)
+        match = reg.search(st1)
+        assert m.Ref(match.group(1)).normal() == "Leviticus 25"
 
-        match = re.search(res_no_comments, st1)
-        match_string = '' if not match else match.group().replace(match.group(1), '')
-        resp = requests.get("https://www.sefaria.org.il/{}".format(match_string))
-        assert resp.status_code == 200
-
-        match = re.search(res_no_comments, st2)
-        match_string = 'no match' if not match else match.group().replace(match.group(1), '')
-        resp = requests.get("https://www.sefaria.org.il/{}".format(match_string))
-        assert resp.status_code == 404
+        match = reg.search(st1)
+        assert m.Ref(match.group(1)).normal() == "Leviticus 25"
 
     def test_regex_string_he_in_parentheses(self):
         st3 = '(בדברים לב ובספרות ג ב)'
         titles = ['דברים', 'רות']
 
-
         for title in titles:
             lang = "he" if is_hebrew(title) else "en"
-            res = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False, parentheses=True)
-            res_no_comments = re.sub('\s+', '', re.sub('\s*?#.*?\n', '', res))
+            reg_str = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False, parentheses=True)
+            reg = re.compile(reg_str, re.VERBOSE)
 
-            match = re.search(res_no_comments, st3)
-            match_string = 'no match' if not match else match.group()
-            resp = requests.get("https://www.sefaria.org.il/{}".format(match_string))
-            assert resp.status_code == 200 if title == 'דברים' else resp.status_code in [400, 404]
-            print(resp.url)
-            assert resp.url == 'https://www.sefaria.org.il/Deuteronomy.32' if title == 'דברים' else 'https://www.sefaria.org.il/no%20match'
-
-    def test_regex_string_he_in_parentheses_1(self):
-        st3 = '(בדברים לב ובספרות ג ב)'
-        titles = ['דברים', 'רות']
-
-        for title in titles:
-            lang = "he" if is_hebrew(title) else "en"
-            res = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False,
-                                             parentheses=True)
-            res_no_comments = re.sub('\s+', '', re.sub('\s*?#.*?\n', '', res))
-
-            match = re.search(res_no_comments, st3)
-            match_string = 'no match' if not match else match.group()
-            resp = requests.get("https://www.sefaria.org.il/{}".format(match_string))
-            assert resp.status_code == 200 if title == 'דברים' else 404
-            print(resp.url)
-            assert resp.url == 'https://www.sefaria.org.il/Deuteronomy.32' if title == 'דברים' else 'https://www.sefaria.org.il/no%20match'
+            match = reg.search(st3)
+            if title == 'דברים':
+                assert m.Ref(match.group(1)).normal() == "Deuteronomy 32"
+            else:
+                assert match is None
 
     def test_regex_string_he_in_parentheses_3(self):
         st3 = '<p>[שיר השירים א ירושלמי כתובות (דף כח:) בשורות א]'
@@ -95,12 +68,11 @@ class Test_find_citation_in_text(object):
 
         for title in titles:
             lang = "he" if is_hebrew(title) else "en"
-            res = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False,
+            reg_str = m.library.get_regex_string(title, lang, for_js=True, anchored=False, capture_title=False,
                                              parentheses=True)
-            res_no_comments = re.compile(res, re.VERBOSE)
-            match = res_no_comments.search(st3)
-            match_string = 'no match' if not match else match.group()
-            resp = requests.get("https://www.sefaria.org.il/{}".format(match_string))
-            assert resp.status_code == 200
-            print(resp.url)
-            assert resp.url == 'https://www.sefaria.org.il/Song_of_Songs.1' if title == 'שיר השירים' else 'https://www.sefaria.org.il/Jerusalem_Talmud_Ketubot.28b' if title ==  'ירושלמי כתובות' else ''
+            reg = re.compile(reg_str, re.VERBOSE)
+            match = reg.search(st3)
+            if title == "ירושלמי כתובות":
+                assert m.Ref(match.group(1)).normal() == "Jerusalem Talmud Ketubot 28b"
+            else:
+                assert m.Ref(match.group(1)).normal() == "Song of Songs 1"

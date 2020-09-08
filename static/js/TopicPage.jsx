@@ -25,7 +25,9 @@ import {
 import Footer from './Footer';
 import { useIncrementalLoad } from './Hooks';
 
+
 const norm_hebrew_ref = tref => tref.replace(/[׳״]/g, '');
+
 
 const fetchBulkText = inRefs =>
   Sefaria.getBulkText(
@@ -43,6 +45,7 @@ const fetchBulkText = inRefs =>
   }
 );
 
+
 const fetchBulkSheet = inSheets =>
     Sefaria.getBulkSheets(inSheets.map(x => x.sid)).then(outSheets => {
     for (let tempSheet of inSheets) {
@@ -53,6 +56,7 @@ const fetchBulkSheet = inSheets =>
     return Object.values(outSheets);
   }
 );
+
 
 const refSort = (currSortOption, a, b, { interfaceLang }) => {
   a = a[1]; b = b[1];
@@ -107,9 +111,10 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
 };
 
 
-const TopicCategory = ({topic, setTopic, setNavTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang, openDisplaySettings, openSearch, onClose}) => {
-    const [topicData, setTopicData] = useState(false);   // For root topic
-    const [subtopics, setSubtopics] = useState([]);
+const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang, openDisplaySettings, openSearch, onClose}) => {
+    
+    const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
+    const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
 
     useEffect(() => {
         Sefaria.getTopic(topic).then(setTopicData);
@@ -188,9 +193,9 @@ const TopicHeader = ({
   topic, topicData, multiPanel, interfaceLang, isCat, setNavTopic, hideNavHeader,
   onClose, openDisplaySettings, openSearch
 }) => {
-  const { en, he } = !!topicData ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
+  const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
-  const category = Sefaria.topicTocCategory(topicData.slug);
+  const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
   return (
     <div>
         {hideNavHeader ? null : (<MobileHeader
@@ -206,101 +211,115 @@ const TopicHeader = ({
             <InterfaceTextWithFallback en={en} he={he} isItalics={false} />
           </h1>
         </div>
-       {!topicData && !isCat ?<LoadingMessage/>:""}
-       {!isCat && category?
+       {!topicData && !isCat ?<LoadingMessage/> : null}
+       {!isCat && category ?
            <div className="topicCategory sectionTitleText">
              <a href={`/topics/category/${category.slug}`} onClick={e=>{ e.preventDefault(); setNavTopic(category.slug, category); }}>
               <span className="int-en">{category.en}</span>
               <span className="int-he">{category.he}</span>
              </a>
            </div>
-       :""}
-       {topicData.description?
+       : null}
+       {topicData && topicData.description ?
            <div className="topicDescription systemText">
               <span className="int-en">{topicData.description.en}</span>
               <span className="int-he">{topicData.description.he}</span>
             </div>
-       :""}
-       {topicData.ref?
+       : null}
+       {topicData && topicData.ref ?
          <a href={`/${topicData.ref.url}`} className="resourcesLink blue">
            <img src="/static/img/book-icon-black.svg" alt="Book Icon" />
            <span className="int-en">{ topicData.parasha ? Sefaria._('Read the Portion') : topicData.ref.en }</span>
            <span className="int-he">{ topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he) }</span>
          </a>
-       :""}
+       : null}
     </div>
 );}
 
+
 const TopicPage = ({
-  tab, topic, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel,
+  tab, topic, topicTitle, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel,
   hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings,
   updateTopicsTab, onClose, openSearch
 }) => {
-    const [topicData, setTopicData] = useState(false);
-    const [topicRefs, setTopicRefs] = useState(false);
-    const [topicSheets, setTopicSheets] = useState(false);
-    const [sheetData, setSheetData] = useState(null);
-    const [textData, setTextData] = useState(null);
+    const defaultTopicData = {primaryTitle: topicTitle, textRefs: false, sheetRefs: false, isLoading: true};
+    const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || defaultTopicData);
+    const [sheetData, setSheetData] = useState(topicData ? topicData.sheetData : null);
+    const [textData, setTextData]   = useState(topicData ? topicData.textData : null);
+    const [textRefsToFetch, setTextRefsToFetch] = useState(false);
+    const [sheetRefsToFetch, setSheetRefsToFetch] = useState(false);
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
     const scrollableElement = useRef();
+    const textRefs  = topicData ? topicData.textRefs : false;
+    const sheetRefs = topicData ? topicData.sheetRefs : false;
+
     let textCancel, sheetCancel;
-    const clearAndSetTopic = (topic, topicTitle) => {setTopicData(false); setTopic(topic, topicTitle)};
+    const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};
+    
+    // Initial Topic Data, updates when `topic` changes
     useEffect(() => {
+      setTopicData(defaultTopicData); // Ensures topicTitle displays while loading
       const { promise, cancel } = Sefaria.makeCancelable((async () => {
         const d = await Sefaria.getTopic(topic);
         if (d.parasha) { Sefaria.getParashaNextRead(d.parasha).then(setParashaData); }
         setTopicData(d);
-        let refMap = {};
-        for (let refObj of d.refs.filter(s => !s.is_sheet)) {
-          refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSources: refObj.dataSources};
-        }
-        const refs = Object.values(refMap);
-        let sheetMap = {};
-        for (let refObj of d.refs.filter(s => s.is_sheet)) {
-          const sid = refObj.ref.replace('Sheet ', '');
-          sheetMap[sid] = {sid, order: refObj.order};
-        }
-        const sheets = Object.values(sheetMap);
-        setTopicRefs(refs);
-        setTopicSheets(sheets);
+        // Data remaining to fetch that was not already in the cache
+        const textRefsWithoutData = d.textData ? d.textRefs.slice(d.textData.length) : d.textRefs;
+        const sheetRefsWithoutData = d.sheetData ? d.sheetRefs.slice(d.sheetData.length) : d.sheetRefs;
+        if (textRefsWithoutData.length) { setTextRefsToFetch(textRefsWithoutData); }
+        else { setTextData(d.textData); }
+        if (sheetRefsWithoutData.length) { setSheetRefsToFetch(sheetRefsWithoutData); }
+        else { setSheetData(d.sheetData); }
       })());
       promise.catch((error) => { if (!error.isCanceled) { console.log('TopicPage Error', error); } });
       return () => {
         cancel();
         setTopicData(false);
-        setTopicRefs(false);
-        setTopicSheets(false);
+        setTextData(null);
+        setSheetData(null);
+        setTextRefsToFetch(false);
+        setSheetRefsToFetch(false);
       }
     }, [topic]);
 
+    // Fetching textual data in chunks
     useIncrementalLoad(
       fetchBulkText,
-      topicRefs,
+      textRefsToFetch,
       70,
-      data => setTextData(prev => (!prev || data === false) ? data : [...prev, ...data]),
+      data => setTextData(prev => {
+        const updatedData = (!prev || data === false) ? data : [...prev, ...data];
+        if (topicData) { topicData.textData = updatedData; } // Persist textData in cache
+        return updatedData;
+      }),
       topic
     );
 
+    // Fetching sheet data in chunks
     useIncrementalLoad(
       fetchBulkSheet,
-      topicSheets,
+      sheetRefsToFetch,
       70,
-      data => setSheetData(prev => (!prev || data === false) ? data : [...prev, ...data]),
+      data => setSheetData(prev => {
+        const updatedData = (!prev || data === false) ? data : [...prev, ...data];
+        if (topicData) { topicData.sheetData = updatedData; } // Persist sheetData in cache
+        return updatedData;
+      }),
       topic
     );
 
+    // Set up Tabs
     const tabs = [];
-    if (!!topicRefs.length) { tabs.push({text: Sefaria._("Sources"), id: 'sources'}); }
-    if (!!topicSheets.length) { tabs.push({text: Sefaria._("Sheets"), id: 'sheets'}); }
+    if (!!textRefs.length) { tabs.push({text: Sefaria._("Sources"), id: 'sources'}); }
+    if (!!sheetRefs.length) { tabs.push({text: Sefaria._("Sheets"), id: 'sheets'}); }
     let onClickFilterIndex = 2;
-    if (!!topicRefs.length || !!topicSheets.length) {
+    if (!!textRefs.length || !!sheetRefs.length) {
       tabs.push({text: Sefaria._("Filter"), icon: `/static/img/arrow-${showFilterHeader ? 'up' : 'down'}-bold.svg`, justifyright: true });
       onClickFilterIndex = tabs.length - 1;
     }
     let tabIndex = tabs.findIndex(t => t.id === tab);
-    if (Array.isArray(topicSheets) && Array.isArray(topicSheets) && tabIndex == -1 && tabs.length > 0) {
-      // check topicSheets isArray which means setTopicSheets() has run
+    if (tabIndex == -1 && tabs.length > 0) {
       tabIndex = 0;
     }
     useEffect(() => {
@@ -308,13 +327,14 @@ const TopicPage = ({
         updateTopicsTab(tabs[tabIndex].id);
       }
     }, [tabIndex]);
+
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
         <div className="content hasFooter noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic} onClose={onClose} openSearch={openSearch} openDisplaySettings={openDisplaySettings} hideNavHeader={hideNavHeader}/>
-                   {!!topicData?
+                    {!topicData.isLoading ?
                        <TabView
                           currTabIndex={tabIndex}
                           setTab={(tabIndex, tempTabs) => { updateTopicsTab(tempTabs[tabIndex].id); }}
@@ -327,7 +347,7 @@ const TopicPage = ({
                           )}
                           onClickArray={{[onClickFilterIndex]: ()=>setShowFilterHeader(!showFilterHeader)}}
                         >
-                          { !!topicRefs.length ? (
+                          { !!textRefs.length ? (
                             <TopicPageTab
                               scrollableElement={scrollableElement}
                               showFilterHeader={showFilterHeader}
@@ -342,6 +362,10 @@ const TopicPage = ({
                                 }
                               }}
                               sortFunc={refSort}
+                              onDisplayedDataChange={(data) => {
+                                topicData._textRefsDisplayed = data.length;
+                              }}
+                              initialRenderSize={topicData._textRefsDisplayed || 0}
                               extraData={{ interfaceLang }}
                               renderItem={item=>(
                                 <TextPassage
@@ -355,7 +379,7 @@ const TopicPage = ({
                               />
                             ) : null
                           }
-                          { !!topicSheets.length ? (
+                          { !!sheetRefs.length ? (
                             <TopicPageTab
                               scrollableElement={scrollableElement}
                               showFilterHeader={showFilterHeader}
@@ -370,6 +394,10 @@ const TopicPage = ({
                                 }
                               }}
                               sortFunc={sheetSort}
+                              onDisplayedDataChange={(data) => {
+                                topicData._sheetRefsDisplayed = data.length;
+                              }}
+                              initialRenderSize={topicData._sheetRefsDisplayed || 0}
                               extraData={{ interfaceLang }}
                               renderItem={item=>(
                                 <SheetBlock key={item.sheet_id} sheet={item} compact toggleSignUpModal={toggleSignUpModal}/>
@@ -378,13 +406,15 @@ const TopicPage = ({
                             ) : null
                           }
                         </TabView>
-                   :""}
+                    : <LoadingMessage /> }
                 </div>
                 <div className="sideColumn">
+                    { topicData ?
                     <TopicSideColumn key={topic} slug={topic} links={topicData.links}
                       clearAndSetTopic={clearAndSetTopic} setNavTopic={setNavTopic}
                       parashaData={parashaData} tref={topicData.ref} interfaceLang={interfaceLang}
                     />
+                    : null }
                 </div>
             </div>
             <Footer />
@@ -410,9 +440,8 @@ TopicPage.propTypes = {
 
 const TopicPageTab = ({
   data, renderItem, classes, sortOptions, sortFunc, filterFunc, extraData,
-  showFilterHeader, scrollableElement
+  showFilterHeader, scrollableElement, onDisplayedDataChange, initialRenderSize
 }) => {
-  const getData = useCallback(() => Promise.resolve(data), [data]);
   return (
     <div className="story topicTabContents">
       {!!data ?
@@ -428,8 +457,10 @@ const TopicPageTab = ({
             renderEmptyList={()=>null}
             renderHeader={()=>null}
             sortOptions={sortOptions}
+            onDisplayedDataChange={onDisplayedDataChange}
+            initialRenderSize={initialRenderSize}
             extraData={extraData}
-            getData={getData}
+            data={data}
           />
         </div> : <LoadingMessage />
       }
@@ -521,7 +552,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
         <div key={title.en} className="link-section">
           <h2>
             <span className="int-en">{(links.length > 1 && pluralTitle) ? pluralTitle.en : title.en}</span>
-            <span className="int-he">{(links.length > 1 && pluralTitle) ? pluralTitle.he :title.he}</span>
+            <span className="int-he">{(links.length > 1 && pluralTitle) ? pluralTitle.he : title.he}</span>
           </h2>
           <div className="sideList">
             {
@@ -559,7 +590,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
           }
         </div>
       ))
-    : ""
+    : null
   );
   return (
     <div>

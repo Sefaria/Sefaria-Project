@@ -1,3 +1,12 @@
+import React  from 'react';
+import ReactDOM  from 'react-dom';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import sanitizeHtml  from 'sanitize-html';
+import Component from 'react-class'
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import SefariaEditor from './Editor';
 import {
   LoadingMessage,
   ReaderMessage,
@@ -8,16 +17,6 @@ import {
   ProfilePic,
 } from './Misc';
 
-import React  from 'react';
-import ReactDOM  from 'react-dom';
-import PropTypes  from 'prop-types';
-import classNames  from 'classnames';
-import SefariaEditor from './Editor';
-import $  from './sefaria/sefariaJquery';
-import Sefaria  from './sefaria/sefaria';
-import sanitizeHtml  from 'sanitize-html';
-import Component from 'react-class'
-
 
 class Sheet extends Component {
   constructor(props) {
@@ -27,54 +26,57 @@ class Sheet extends Component {
         scrollDir: "down",
     }
   }
-
   componentDidMount() {
     this.$container = $(ReactDOM.findDOMNode(this));
     this.setPaddingForScrollbar();
     this.ensureData();
 
   }
-
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.editor == true && this.props.editor == false) {
       Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad, true);
       console.log('reloading')
     }
   }
-
   getSheetFromCache() {
     return Sefaria.sheets.loadSheetByID(this.props.id);
   }
-
   getSheetFromAPI() {
     Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad);
   }
-
   onDataLoad(data) {
     this.forceUpdate();
-
-    for (let i = 0; i < data.sources.length; i++) {
-      if ("ref" in data.sources[i]) {
-        Sefaria.getRef(data.sources[i].ref)
-            .then(ref => ref.sectionRef)
-            .then(ref => Sefaria.related(ref, () => this.forceUpdate));
-      }
-    }
+    this.preloadConnections();
   }
-
   ensureData() {
     if (!this.getSheetFromCache()) {
       this.getSheetFromAPI();
+    } else {
+      this.preloadConnections();
     }
   }
-
+  preloadConnections() {
+    const data = this.getSheetFromCache();
+    if (!data) {return; }
+    for (let i = 0; i < data.sources.length; i++) {
+      if ("ref" in data.sources[i]) {
+        Sefaria.related(data.sources[i].ref, () => this.forceUpdate);
+      }
+    }
+  }
   setPaddingForScrollbar() {
     // Scrollbars take up spacing, causing the centering of Sheet to be slightly off center
     // compared to the header. This functions sets appropriate padding to compensate.
     var width = Sefaria.util.getScrollbarWidth();
     this.$container.css({paddingRight: 0, paddingLeft: width});
   }
-
+  setScrollDir(event) {
+    if (event.nativeEvent.wheelDelta > 0) {
+      this.setState({scrollDir: "up"});
+    } else {
+      this.setState({scrollDir: "down"});
+    }
+  }
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
@@ -101,23 +103,14 @@ class Sheet extends Component {
             hasSidebar = {this.props.hasSidebar}
             sheetNumbered = {sheet.options.numbered}
             sheetID = {sheet.id}
-            openProfile={this.props.openProfile}
           />
       )
     }
-
     return (
-        <div className={classes} onWheel={ event => {
-           if (event.nativeEvent.wheelDelta > 0) {
-             this.setState({scrollDir: "up"});
-           } else {
-             this.setState({scrollDir: "down"});
-           }
-        }}>
-            {this.props.editor == true && sheet ? <div className="sheetContent"><SefariaEditor data={sheet} /></div> : content}
-
-
-
+        <div className={classes} onWheel={this.setScrollDir}>
+          {this.props.editor == true && sheet ? 
+            <div className="sheetContent"><SefariaEditor data={sheet} /></div> 
+            : content}
         </div>
     )
   }
@@ -131,17 +124,15 @@ class SheetContent extends Component {
       this.windowMiddle = $(window).outerHeight() / 2;
       this.scrollToHighlighted();
   }
-
   componentWillUnmount() {
     var node = ReactDOM.findDOMNode(this).parentNode;
     node.removeEventListener("scroll", this.handleScroll);
   }
-
   handleScroll(event) {
     var segment = $(event.target).closest(".readerPanel").find('.segment.highlight');
 
     if (segment.length == 0) {
-        return
+        return;
     }
 
     //scroll down
@@ -158,33 +149,20 @@ class SheetContent extends Component {
     }
 
   }
-
   scrollToHighlighted() {
-    var $container   = $(ReactDOM.findDOMNode(this));
-    var $readerPanel = $container.closest(".readerPanel");
+    var $container   = $(ReactDOM.findDOMNode(this)).closest(".sheetsInPanel");
     var $highlighted = $container.find(".segment.highlight").first();
     if ($highlighted.length) {
-      this.scrolledToHighlight = true;
-      this.justScrolled = true;
       var offset = 20;
       $container.scrollTo($highlighted, 0, {offset: -offset});
       $highlighted.focus();
     }
   }
-
   handleClick(ref, e) {
     e.preventDefault();
     e.stopPropagation();
     this.props.onRefClick(ref);
   }
-
-  openProfile(e) {
-    e.preventDefault();
-    const slugMatch = this.props.authorUrl.match(/profile\/(.+)$/);
-    const slug = !!slugMatch ? slugMatch[1] : '';
-    this.props.openProfile(slug, this.props.authorStatement);
-  }
-
   render() {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
       const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
@@ -271,10 +249,8 @@ class SheetContent extends Component {
 
     }, this) : null;
 
-
     return (
       <div className="sheetContent">
-
         <SheetMetaDataBox>
             <SheetTitle title={this.props.title} />
             <SheetAuthorStatement
@@ -295,7 +271,6 @@ class SheetContent extends Component {
             />
         </SheetMetaDataBox>
 
-
         <div className="text">
             <div className="textInner">{sources}</div>
         </div>
@@ -307,6 +282,7 @@ class SheetContent extends Component {
     )
   }
 }
+
 
 class SheetSource extends Component {
   sheetSourceClick(event) {
@@ -343,8 +319,8 @@ class SheetSource extends Component {
       var containerClasses = classNames("sheetItem",
           "segment",
           this.props.highlighted ? "highlight" : null,
-          (this.props.source.text && this.props.source.text.en && this.props.source.text.en.stripHtml() == "...") || (this.props.source.text && !this.props.source.text.en) ? "heOnly" : null,
-          (this.props.source.text && this.props.source.text.he && this.props.source.text.he.stripHtml() == "...") || (this.props.source.text && !this.props.source.text.he) ? "enOnly" : null,
+          (this.props.source.text && this.props.source.text.en && this.props.source.text.en.stripHtml() == "...") || (this.props.source.text && !this.props.source.text.en.stripHtml()) ? "heOnly" : null,
+          (this.props.source.text && this.props.source.text.he && this.props.source.text.he.stripHtml() == "...") || (this.props.source.text && !this.props.source.text.he.stripHtml()) ? "enOnly" : null,
           this.props.source.options ? this.props.source.options.indented : null,
           this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null
       );
@@ -395,6 +371,7 @@ class SheetSource extends Component {
   }
 }
 
+
 class SheetComment extends Component {
   sheetSourceClick(event) {
     if(event.target.tagName.toLowerCase() === 'a') {
@@ -416,7 +393,6 @@ class SheetComment extends Component {
         this.props.onSegmentClick(this.props.source);
     }
   }
-
   render() {
       var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
       var containerClasses = classNames("sheetItem",
@@ -447,6 +423,7 @@ class SheetComment extends Component {
     )
   }
 }
+
 
 class SheetOutsideText extends Component {
   sheetSourceClick(event) {
@@ -503,6 +480,7 @@ class SheetOutsideText extends Component {
   }
 }
 
+
 class SheetOutsideBiText extends Component {
   sheetSourceClick(event) {
     if(event.target.tagName.toLowerCase() === 'a') {
@@ -524,7 +502,6 @@ class SheetOutsideBiText extends Component {
         this.props.onSegmentClick(this.props.source);
     }
   }
-
   render() {
       var containerClasses = classNames("sheetItem",
           "segment",
@@ -565,6 +542,7 @@ class SheetOutsideBiText extends Component {
 
 }
 
+
 class SheetMedia extends Component {
   sheetSourceClick(event) {
     if(event.target.tagName.toLowerCase() === 'a') {
@@ -585,7 +563,6 @@ class SheetMedia extends Component {
       this.props.onSegmentClick(this.props.source);
     }
   }
-
   makeMediaEmbedContent() {
     var mediaLink;
     var mediaCaption = "";
@@ -605,7 +582,6 @@ class SheetMedia extends Component {
     else if (mediaURL.toLowerCase().indexOf('vimeo') > 0) {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0"  allow="autoplay; fullscreen" allowfullscreen></iframe></div>';
     }
-
 
     else if (mediaURL.toLowerCase().indexOf('soundcloud') > 0) {
       mediaLink = '<iframe width="100%" height="166" scrolling="no" frameborder="no" src="' + mediaURL + '"></iframe>';
@@ -629,7 +605,6 @@ class SheetMedia extends Component {
 
     return "<div class='" + mediaClass + "'>" + mediaLink + mediaCaption + "</div>";
   }
-
   render() {
       var containerClasses = classNames("sheetItem",
           "segment",

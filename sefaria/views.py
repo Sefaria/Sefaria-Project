@@ -214,20 +214,22 @@ def sefaria_js(request):
 
     return render(request, "js/sefaria.js", attrs, content_type= "text/javascript")
 
-def dafroulette_js(request):
+def chavruta_js(request):
     """
-    Javascript for dafroulette [required to pass server attribute].
+    Javascript for chavruta [required to pass server attribute].
     """
     client_user = UserProfile(id=request.user.id)
+    roulette = request.GET.get("roulette", "0")
 
     attrs = {
         "rtc_server": RTC_SERVER,
         "client_name": client_user.first_name + " " + client_user.last_name,
-        "client_uid": client_user.id
+        "client_uid": client_user.id,
+        "roulette": roulette
     }
 
 
-    return render(request, "js/dafroulette.js", attrs, content_type="text/javascript")
+    return render(request, "js/chavruta.js", attrs, content_type="text/javascript")
 
 
 
@@ -938,6 +940,26 @@ def text_upload_api(request):
     message = "Successfully imported {} versions".format(len(files))
     return jsonResponse({"status": "ok", "message": message})
 
+@staff_member_required
+def modtools_upload_workflowy(request):
+    from sefaria.helper.text import WorkflowyParser
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported Method: {}".format(request.method)})
+
+    file = request.FILES['wf_file']
+    c_index = request.POST.get("c_index", False)
+    c_version = request.POST.get("c_version", False)
+    delims = request.POST.get("delims", None) if len(request.POST.get("delims", None)) else None
+    term_scheme = request.POST.get("term_scheme", None) if len(request.POST.get("term_scheme", None)) else None
+
+    uid = request.user.id
+    try:
+        wfparser = WorkflowyParser(file, uid, term_scheme=term_scheme, c_index=c_index, c_version=c_version, delims=delims)
+        res = wfparser.parse()
+    except Exception as e:
+        raise e #this will send the django error html down to the client... ¯\_(ツ)_/¯ which is apparently what we want
+
+    return jsonResponse({"status": "ok", "data": res})
 
 def compare(request, secRef=None, lang=None, v1=None, v2=None):
     if secRef and Ref.is_ref(secRef):

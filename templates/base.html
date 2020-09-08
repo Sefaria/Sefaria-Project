@@ -177,26 +177,33 @@
                   container.appendChild(selection.getRangeAt(i).cloneContents());
               }
 
-            //remove line numbers
-              var lineNumbers = container.getElementsByClassName('segmentNumber');
-              while(lineNumbers.length > 0){
-                  lineNumbers[0].parentNode.removeChild(lineNumbers[0]);
-              }
+              var classesToRemove = ["segmentNumber", "linkCount", "clearFix"];
+              classesToRemove.map(function(cls) {
+                var elsToRemove = container.getElementsByClassName(cls);
+                while(elsToRemove.length > 0){
+                    elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+                }
+              });
 
-              var curReaderPanel = (selection.getRangeAt(0).commonAncestorContainer.closest('.readerPanel'))
+              var selectionAncestor = selection.getRangeAt(0).commonAncestorContainer;
 
-              if (curReaderPanel && curReaderPanel.classList.contains('hebrew')) {
-                  var elsToRemove = container.getElementsByClassName('en')
-                  while(elsToRemove.length > 0){
-                      elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
-                  }
-              }
+              if (selectionAncestor.nodeType == 1) {
 
-              else if (curReaderPanel && curReaderPanel.classList.contains('english')) {
-                  var elsToRemove = container.getElementsByClassName('he')
-                  while(elsToRemove.length > 0){
-                      elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
-                  }
+                var curReaderPanel = selectionAncestor.closest('.readerPanel');
+
+                if (curReaderPanel && curReaderPanel.classList.contains('hebrew')) {
+                    var elsToRemove = container.getElementsByClassName('en')
+                    while(elsToRemove.length > 0){
+                        elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+                    }
+                }
+
+                else if (curReaderPanel && curReaderPanel.classList.contains('english')) {
+                    var elsToRemove = container.getElementsByClassName('he')
+                    while(elsToRemove.length > 0){
+                        elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+                    }
+                }
               }
 
               html = container.innerHTML;
@@ -206,7 +213,6 @@
           }
 
           const clipdata = e.clipboardData || window.clipboardData;
-
           clipdata.setData('text/plain', text_only);
           clipdata.setData('text/html', html);
           e.preventDefault();

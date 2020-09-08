@@ -484,9 +484,6 @@ def groups_post_api(request, user_id, group_name=None):
             existing.load_from_dict(group)
             existing.save()
         else:
-            reservedChars = ['-', '_', '|']
-            if any([c in group["name"] for c in reservedChars]):
-                return jsonResponse({"error": 'Group names may not contain the following characters: {}'.format(', '.join(reservedChars))})
             del group["new"]
             group["admins"] = [user_id]
             group["publishers"] = []
