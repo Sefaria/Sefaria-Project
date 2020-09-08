@@ -642,6 +642,8 @@ class JaggedTextArray(JaggedArray):
                 # _curSections are actually absolute since you called this on a Version
                 sections = _curSections
             else:
+                # _curSections is only as deep as ja. however, top-level ja could be deeper
+                # use start_sections as a starting point and then update with _curSections to get absolute section indexes
                 sections = start_sections[:]
                 for i, abs_section_index in enumerate(range(len(sections)-len(_curSections), len(sections))):
                     rel_section_index = abs_section_index-len(sections)+len(_curSections)
