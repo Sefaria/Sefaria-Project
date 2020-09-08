@@ -1785,6 +1785,7 @@ Sefaria = extend(Sefaria, {
   },
   processTopicsData: function(data) {
     if (!data) { return null; }
+    if (!data.refs) { return data; }
     // Split  `refs` in `sourceRefs` and `sheetRefs`
     let refMap = {};
     for (let refObj of data.refs.filter(s => !s.is_sheet)) {

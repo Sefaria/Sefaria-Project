@@ -327,6 +327,7 @@ class TextRange extends Component {
             onSegmentClick={this.props.onSegmentClick}
             onCitationClick={this.props.onCitationClick}
             onFootnoteClick={this.onFootnoteClick}
+            onNamedEntityClick={this.props.onNamedEntityClick}
             unsetTextHighlight={this.props.unsetTextHighlight}
           />
         </span>
@@ -440,6 +441,7 @@ TextRange.propTypes = {
   onNavigationClick:      PropTypes.func,
   onCompareClick:         PropTypes.func,
   onOpenConnectionsClick: PropTypes.func,
+  onNamedEntityClick:     PropTypes.func,
   showBaseText:           PropTypes.func,
   unsetTextHighlight:     PropTypes.func,
   panelsOpen:             PropTypes.number, // used?
@@ -484,7 +486,6 @@ class TextSegment extends Component {
       //Click of named entity
       event.preventDefault();
       let topicSlug = $(event.target).attr("data-slug");
-      console.log("SLUG", topicSlug);
       this.props.onNamedEntityClick(topicSlug, this.props.sref);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Named Entity Link Click", topicSlug);
@@ -594,6 +595,7 @@ TextSegment.propTypes = {
   onCitationClick: PropTypes.func,
   onSegmentClick:  PropTypes.func,
   onFootnoteClick: PropTypes.func,
+  onNamedEntityClick: PropTypes.func,
   unsetTextHighlight: PropTypes.func,
 };
 

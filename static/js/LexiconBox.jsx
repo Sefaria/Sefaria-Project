@@ -21,6 +21,8 @@ class LexiconBox extends Component {
   componentDidMount() {
     if(this.props.selectedWords){
       this.getLookups(this.props.selectedWords, this.props.oref);
+    } else if (this.props.selectedNamedEntity) {
+      this.getNamedEntity(this.props.selectedNamedEntity);
     }
   }
   componentWillReceiveProps(nextProps) {
@@ -61,6 +63,15 @@ class LexiconBox extends Component {
         // console.log('gotten data from Sefaria.js, state re-set: ', this, data);
       });
     }
+  }
+  getNamedEntity(slug) {
+    Sefaria.getTopic(slug, false, false, false, false).then(data => {
+      console.log("getTopic", data);
+      // this.setState({
+      //   loaded: true,
+      //   namedEntity: data,
+      // });
+    })
   }
   shouldActivate(selectedWords){
     if (this.state.searchedWord) {
