@@ -1849,8 +1849,6 @@ def links_api(request, link_id_or_ref=None):
         if not user.is_staff:
             return jsonResponse({"error": "Only Sefaria Moderators can delete links."})
         
-        retval = _internal_do_delete(request, link_id_or_ref, uid)
-
         try:
             ref = Ref(link_id_or_ref)
         except InputError as e:
