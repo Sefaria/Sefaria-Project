@@ -1051,19 +1051,12 @@ class AbstractTextRecord(object):
         if len(text_modification_funcs) == 0:
             return getattr(self, self.text_attr)
 
-        def modifier(string, relative_sections):
-            if start_sections is None:
-                # relative_sections are actually absolute since you called this on a Version
-                sections = relative_sections
-            else:
-                sections = [s-1 for s in start_sections]  # zero-indexed
-                for i in range(len(sections)-len(relative_sections), len(sections)):
-                    sections[i] = relative_sections[i-len(sections)+len(relative_sections)]
+        def modifier(string, sections):
             for func in text_modification_funcs:
                 string = func(string, sections)
             return string
-
-        return self.ja().modify_by_function(modifier)
+        start_sections = [s-1 for s in start_sections]  # zero-indexed for ja
+        return self.ja().modify_by_function(modifier, start_sections)
 
     # Currently assumes that text is JA
     def _sanitize(self):
@@ -2007,9 +2000,9 @@ class TextFamily(object):
                 c = TextChunk(oref, language)
             self._chunks[language] = c
             text_modification_funcs = []
-            if wrapNamedEntities:
+            if wrapNamedEntities and len(c._versions) > 0:
                 from . import RefTopicLinkSet
-                named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in oref.all_segment_refs()]}, "charLevelData.versionTitle": c.version().versionTitle, "charLevelData.language": c.version().language})  # TODO check performance
+                named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in oref.all_segment_refs()]}, "$or": [{"charLevelData.versionTitle": v.versionTitle} for v in c._versions], "charLevelData.language": language})  # TODO check performance
                 if named_entities.count() > 0:
                     # assumption is that refTopicLinks are all to an unranged ref
                     ne_by_secs = defaultdict(list)
@@ -5355,7 +5348,7 @@ class Library(object):
                 mention, slug = start_char_to_slug[match.start()]
             except KeyError:
                 return match.group()
-            return f"""<a href="https://www.sefaria.org/topics/{slug}" class="namedEntityLink">{mention}</a>"""
+            return f"""<a href="/topics/{slug}" class="namedEntityLink" data-slug="{slug}">{mention}</a>"""
         return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
 

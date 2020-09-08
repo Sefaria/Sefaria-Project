@@ -629,7 +629,7 @@ class JaggedTextArray(JaggedArray):
         else:
             return 0
 
-    def modify_by_function(self, func, _cur=None, _curSections=None):
+    def modify_by_function(self, func, start_sections=None, _cur=None, _curSections=None):
         """
         Returns the jagged array but with each terminal string processed by func
         Func should accept two parameters: 1) text of current segment 2) zero-indexed indices of segment
@@ -638,9 +638,20 @@ class JaggedTextArray(JaggedArray):
         if _cur is None:
             _cur = self._store
         if isinstance(_cur, str):
-            return func(_cur, _curSections)
+            if start_sections is None:
+                # _curSections are actually absolute since you called this on a Version
+                sections = _curSections
+            else:
+                sections = start_sections[:]
+                for i, abs_section_index in enumerate(range(len(sections)-len(_curSections), len(sections))):
+                    rel_section_index = abs_section_index-len(sections)+len(_curSections)
+                    sections[abs_section_index] = _curSections[rel_section_index]
+                    if i == 0 or _curSections[0] == 0:
+                        # first section should always be offset by start_sections. later sections should only be offset if first section is 0
+                        sections[abs_section_index] += start_sections[abs_section_index]
+            return func(_cur, sections)
         elif isinstance(_cur, list):
-            return [self.modify_by_function(func, temp_curr, _curSections + [i]) for i, temp_curr in enumerate(_cur)]
+            return [self.modify_by_function(func, start_sections, temp_curr, _curSections + [i]) for i, temp_curr in enumerate(_cur)]
 
     def flatten_to_array(self, _cur=None):
         # Flatten deep jagged array to flat array
