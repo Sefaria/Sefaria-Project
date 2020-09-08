@@ -2498,14 +2498,14 @@ a.readerNavCategory {
 .modTools {
   width: 50%;
   margin: 0 auto;
+  overflow-y: scroll;
+  height: 100%;
 }
 .modTools .modToolsSection {
-  clear: both;
   padding: 50px;
   border-top: 1px solid #ccc;
 }
 .readerTextTableOfContents .content .dlSection {
-  clear: both;
   padding-top: 50px;
   border-top: 1px solid #ccc;
 }
@@ -2590,6 +2590,35 @@ a.readerNavCategory {
 .readerTextTableOfContents .content a .versionDownloadButton {
     border-color: #212E50;
     background-color: #212E50;
+}
+
+.modTools .workflowy-tool{
+  width: 60%;
+  margin: auto;
+}
+
+.modTools .workflowy-tool .dlSectionTitle{
+  width: unset;
+}
+
+.modTools .workflowy-tool .versionDownloadButton{
+  color: black;
+}
+.modTools .workflowy-tool .versionDownloadButton:hover{
+  background-color: #999;
+}
+
+.modTools .workflowy-tool textarea {
+  width: 100%;
+  min-height: 30rem;
+  font-family: "Lucida Console", Monaco, monospace;
+  font-size: 0.8rem;
+  line-height: 1.2;
+}
+
+.modTools .workflowy-tool .workflowy-tool-form{
+  display: flex;
+  flex-flow: column;
 }
 
 .dictionarySearchBox {
@@ -7262,9 +7291,49 @@ span.purim-emoji img{
   display: none;
 }
 .sheetItem .SheetSource {
-  border-left: 4px solid;
-  margin-left: -34px;
-  padding-left: 34px;
+  border-inline-start: 4px solid;
+  padding-inline-start: 11px;
+  padding-inline-end: 15px;
+  box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
+}
+
+.sheetItem .SheetSource.selected,
+.sheetItem .SheetSource.selected .en {
+  background-color: #F0F8FF;
+}
+
+.sheetItem .SheetSource *::selection {
+  background-color: rgba(255,0,0,0)
+}
+
+
+.sheetItem .SheetSource .he,
+.sheetItem .SheetSource .en {
+  padding-inline-start: 11px;
+  padding-inline-end: 15px;
+  margin-inline-start: -11px;
+  margin-inline-end: -15px;
+}
+
+.sheetItem .SheetSource .he.editable.selected .sourceContentText,
+.sheetItem .SheetSource .en.editable.selected .sourceContentText {
+  background-color: #FFFFFF;
+  box-shadow: inset 0px 0px 3px rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+}
+
+.sheetItem .SheetSource .he.editable.selected .sourceContentText ::selection,
+.sheetItem .SheetSource .en.editable.selected .sourceContentText ::selection {
+  background-color: #D2DCFF;
+}
+
+.sheetItem .SheetSource .en {
+  background-color: #FBFBFA;
+}
+
+.sheetItem .SheetSource .ref {
+  pointer-events: none;
+  user-select: none;
 }
 .sheetItem .SheetOutsideBiText {
   border-left: 4px solid;
