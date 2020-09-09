@@ -60,8 +60,9 @@ function MyGroupsPanel({multiPanel, navHome}) {
 }
 MyGroupsPanel.propTypes = {};
 
+
 function PublicGroupsPanel({multiPanel, navHome}) {
-  const [groupsList, setGroupsList] = useState(null);
+  const [groupsList, setGroupsList] = useState(Sefaria.getGroupsListFromCache());
   
   const sortGroupList = d => {
     if (Sefaria.interfaceLang == "hebrew") {
@@ -72,6 +73,10 @@ function PublicGroupsPanel({multiPanel, navHome}) {
     }
     return d;
   };
+
+  if (groupsList) {
+    sortGroupList(groupsList);
+  }
 
   useEffect(() => {
     Sefaria.getGroupsList()
@@ -105,7 +110,7 @@ function PublicGroupsPanel({multiPanel, navHome}) {
           </center> : null}
 
           <div className="groupsList">
-            { groupsList ?
+            { !!groupsList ?
                 (groupsList.public.length ?
                   groupsList.public.map(function(item) {
                     return <GroupListing data={item} key={item.name} />

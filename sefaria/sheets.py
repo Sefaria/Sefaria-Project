@@ -201,6 +201,7 @@ def sheet_to_dict(sheet):
 		"author": sheet["owner"],
 		"ownerName": profile["name"],
 		"ownerImageUrl": profile["imageUrl"],
+		"sheetUrl": "/sheets/" + str(sheet["id"]),
 		"views": sheet["views"],
 		"group": sheet.get("group", None),
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),

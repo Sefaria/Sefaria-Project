@@ -3,11 +3,14 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import Component from 'react-class';
+import Cookies from 'js-cookie';
 
 
 class ModeratorToolsPanel extends Component {
   constructor(props) {
     super(props);
+    this.handleWfSubmit = this.handleWfSubmit.bind(this);
+    this.wfFileInput = React.createRef();
 
     this.state = {
       // Bulk Download
@@ -19,7 +22,7 @@ class ModeratorToolsPanel extends Component {
       files: [],
       uploading: false,
       uploadError: null,
-      uploadMessage: null
+      uploadMessage: null,
     };
   }
   handleFiles(event) {
@@ -28,9 +31,9 @@ class ModeratorToolsPanel extends Component {
   uploadFiles(event) {
     event.preventDefault();
     this.setState({uploading: true, uploadMessage:"Uploading..."});
-    var formData = new FormData();
-    for (var i = 0; i < this.state.files.length; i++) {
-      var file = this.state.files[i];
+    let formData = new FormData();
+    for (let i = 0; i < this.state.files.length; i++) {
+      let file = this.state.files[i];
       formData.append('texts[]', file, file.name);
     }
     $.ajax({
@@ -66,21 +69,39 @@ class ModeratorToolsPanel extends Component {
     this.setState({bulk_format: event.target.value});
   }
   bulkVersionDlLink() {
-    var args = ["format","title_pattern","version_title_pattern","language"].map(
+    let args = ["format","title_pattern","version_title_pattern","language"].map(
         arg => this.state["bulk_" + arg]?`${arg}=${encodeURIComponent(this.state["bulk_"+arg])}`:""
     ).filter(a => a).join("&");
     return "download/bulk/versions/?" + args;
   }
+
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
+  }
+
+  handleWfSubmit(event) {
+    event.preventDefault();
+    alert(
+      `Selected file - ${this.wfFileInput.current.files[0].name}`
+    );
+  }
+
   render () {
     // Bulk Download
-    var dlReady = (this.state.bulk_format && (this.state.bulk_title_pattern || this.state.bulk_version_title_pattern));
-    var downloadButton = <div className="versionDownloadButton">
+    const dlReady = (this.state.bulk_format && (this.state.bulk_title_pattern || this.state.bulk_version_title_pattern));
+    const downloadButton = <div className="versionDownloadButton">
         <div className="downloadButtonInner">
           <span className="int-en">Download</span>
           <span className="int-he">הורדה</span>
         </div>
       </div>;
-    var downloadSection = (
+    const downloadSection = (
       <div className="modToolsSection dlSection">
         <div className="dlSectionTitle">
           <span className="int-en">Bulk Download Text</span>
@@ -105,12 +126,12 @@ class ModeratorToolsPanel extends Component {
       </div>);
 
     // Uploading
-    var ulReady = (!this.state.uploading) && this.state.files.length > 0;
-    var uploadButton = <a><div className="versionDownloadButton" onClick={this.uploadFiles}><div className="downloadButtonInner">
+    const ulReady = (!this.state.uploading) && this.state.files.length > 0;
+    const uploadButton = <a><div className="versionDownloadButton" onClick={this.uploadFiles}><div className="downloadButtonInner">
        <span className="int-en">Upload</span>
        <span className="int-he">העלאה</span>
       </div></div></a>;
-    var uploadForm = (
+    const uploadForm = (
       <div className="modToolsSection">
         <div className="dlSectionTitle">
           <span className="int-en">Bulk Upload CSV</span>
@@ -123,13 +144,148 @@ class ModeratorToolsPanel extends Component {
         {this.state.uploadMessage?<div className="message">{this.state.uploadMessage}</div>:""}
         {this.state.uploadError?<div className="error">{this.state.uploadError}</div>:""}
       </div>);
-
-    return (Sefaria.is_moderator)?<div className="modTools">{downloadSection}{uploadForm}</div>:<div>Tools are only available to logged in moderators.</div>;
+    const wflowyUpl = (
+      <div className="modToolsSection">
+          <WorkflowyModeratorTool />
+      </div>);
+    return (Sefaria.is_moderator)?
+        <div className="modTools"> {downloadSection}{uploadForm}{wflowyUpl} </div> :
+        <div className="modTools"> Tools are only available to logged in moderators.</div>;
   }
 }
 ModeratorToolsPanel.propTypes = {
   interfaceLang: PropTypes.string
 };
+
+
+class WorkflowyModeratorTool extends Component{
+    constructor(props) {
+    super(props);
+    this.handleWfSubmit = this.handleWfSubmit.bind(this);
+    this.wfFileInput = React.createRef();
+    this.state = {c_index: true};
+  }
+
+  handleInputChange(event) {
+    const target = event.target;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
+    const name = target.name;
+
+    this.setState({
+      [name]: value
+    });
+  }
+
+  handleWfSubmit(event) {
+    event.preventDefault();
+    /*console.log(
+      `Selected file - ${this.wfFileInput.current.files[0].name}`
+    );*/
+    this.setState({uploading: true, uploadMessage:"Uploading..."});
+    const data = new FormData(event.target);
+    console.log(data);
+    const request = new Request(
+        '/modtools/upload_text',
+        {headers: {'X-CSRFToken': Cookies.get('csrftoken')}}
+    );
+    fetch(request, {
+      method: 'POST',
+      mode: 'same-origin',
+      credentials: 'same-origin',
+      body: data,
+    }).then(response => {
+        this.setState({uploading: false, uploadMessage:""});
+        if (!response.ok) {
+            response.text().then(resp_text=> {
+                console.log("error in html form", resp_text);
+                this.setState({uploading: false,
+                    error: true,
+                    errorIsHTML: true,
+                     uploadResult: resp_text});
+            })
+        }else{
+            response.json().then(resp_json=>{
+                console.log("okay response", resp_json);
+                this.setState({uploading: false,
+                    error: false,
+                    uploadMessage:resp_json["data"]["message"],
+                    uploadResult: JSON.stringify(resp_json["data"]["index"], undefined, 4)})
+            });
+        }
+    }).catch(error => {
+        console.log("network error", error);
+        this.setState({uploading: false, error: true, errorIsHTML: false, uploadMessage:error.message});
+    });
+  }
+
+  parseErrorHTML(htmltext){
+    console.log("pparsing html", htmltext);
+    // Initialize the DOM parser
+    let parser = new DOMParser();
+    // Parse the text
+    let doc = parser.parseFromString(htmltext, "text/html");
+    //return {__html: doc};
+    return doc
+  }
+
+  render() {
+    return(
+        <div className="workflowy-tool">
+        <div className="dlSectionTitle">
+          <span className="int-en">Workflowy Outline Upload</span>
+          <span className="int-he">העלאת קובץ - workflowy</span>
+        </div>
+        <form id="wf-file-form" className="workflowy-tool-form" onSubmit={this.handleWfSubmit}>
+           <label>
+              Upload Workflowy file:
+              <input type="file" name="wf_file" ref={this.wfFileInput} />
+           </label>
+           <label>
+              Create Index Record:
+              <input
+                name="c_index"
+                type="checkbox"
+                checked={this.state.c_index}
+                onChange={this.handleInputChange} />
+           </label>
+           <label>
+              Create Version From Notes on Outline:
+              <input
+                name="c_version"
+                type="checkbox"
+                checked={this.state.c_version || false}
+                onChange={this.handleInputChange} />
+           </label>
+           <label>
+            Custom Delimiters (In the following Order- 1. Title Language 2. Alt Titles 3. Categories):
+              <input
+                className="dlVersionSelect"
+                name="delims"
+                type="text"
+                value={this.state.delims}
+                onChange={this.handleInputChange} />
+            </label>
+            <label>
+              Optional Term Scheme Name:
+              <input
+                className="dlVersionSelect"
+                name="term_scheme"
+                type="text"
+                value={this.state.term_scheme}
+                onChange={this.handleInputChange} />
+            </label>
+             <button className="versionDownloadButton" name="wf-submit" type="submit">
+                <span className="int-en">Upload</span>
+                <span className="int-he">Upload</span>
+             </button>
+         </form>
+        <div id="wf-upl-msg" className="wf-upl-msg">{this.state.uploadMessage || ""}</div>
+        { (this.state.error && this.state.errorIsHTML) ?
+              <div id="wf-upl-message" className="wf-upl-message" dangerouslySetInnerHTML={{__html: this.state.uploadResult}}/> :
+              <textarea id="wf-upl-message" className="wf-upl-message" cols="80" rows="30" value={this.state.uploadResult}></textarea> }
+        </div>);
+  }
+}
 
 
 export default ModeratorToolsPanel;

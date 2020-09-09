@@ -1,3 +1,5 @@
+import Sefaria from './sefaria';
+
 class Hebrew {
   static decodeHebrewNumeral(h) {
     // Takes a string representing a Hebrew numeral and returns it integer value.

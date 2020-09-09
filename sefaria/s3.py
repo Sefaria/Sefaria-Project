@@ -31,7 +31,10 @@ class HostedFile(object):
 			raise Exception("No filepath set to upload.")
 		path, extension = os.path.splitext(self.filepath)
 		filename = "%s%s" % (str(uuid.uuid4()), extension)
-		bucket.upload_file(self.filepath, filename, ExtraArgs={'ACL': 'public-read', 'ContentType': self.content_type})
+		bucket.upload_file(self.filepath, filename, ExtraArgs={
+			'ACL': 'public-read', 
+			'ContentType': self.content_type, 
+			'CacheControl':'public,max-age=2592000,immutable'})
 		self.url = "https://s3.amazonaws.com/%s/%s" % (S3_BUCKET, filename)
 		self.add_to_orphaned_list()
 		return self.url

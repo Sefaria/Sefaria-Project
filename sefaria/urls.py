@@ -29,21 +29,17 @@ urlpatterns = [
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
-    url(r'^sheets/tags/?$', reader_views.sheets_tags_list),
-    url(r'^sheets/tags/(?P<tag>.+)$', reader_views.sheets_by_tag),
-    url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_list),
     url(r'^groups/?$', reader_views.public_groups),
     url(r'^groups/all$', reader_views.groups_admin_page),
     url(r'^groups/new$', reader_views.edit_group_page),
-    url(r'^groups/(?P<group>[^/]+)/settings$', reader_views.edit_group_page),
-    url(r'^groups/(?P<group>[^/]+)$', reader_views.group_page),
+    url(r'^groups/(?P<group>[^.]+)/settings$', reader_views.edit_group_page),
+    url(r'^groups/(?P<group>[^.]+)$', reader_views.group_page),
     url(r'^my/groups$', reader_views.my_groups),
-    url(r'^partners/(?P<group>[^/]+)$', reader_views.group_page),
-    url(r'^account/?$', reader_views.account),
     url(r'^notifications/?$', reader_views.notifications),
     url(r'^my/notes/?$', reader_views.my_notes),
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
+    url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
     url(r'^new-home/?$', reader_views.new_home),
     url(r'^story_editor/?$', reader_views.story_editor),
     url(r'^torahtracker/?$', reader_views.user_stats),
@@ -54,6 +50,16 @@ urlpatterns += [
     url(r'^person/(?P<name>.+)$', reader_views.person_page),
     url(r'^people/Talmud/?$', reader_views.talmud_person_index),
     url(r'^people/?$', reader_views.person_index),
+]
+
+# Redirects for legacy URLs
+urlpatterns += [
+    url(r'^account/?$', reader_views.my_profile),
+    url(r'^sheets/tags/?$', reader_views.topics_redirect),
+    url(r'^sheets/tags/(?P<topic>.+)$', reader_views.topic_page_redirect),
+    url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_pages_redirect),
+    url(r'^partners/(?P<group>[^/]+)$', reader_views.group_page),
+    url(r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
 ]
 
 # Visualizations / Link Explorer
@@ -81,7 +87,6 @@ urlpatterns += [
 urlpatterns += [
     url(r'^my/profile', reader_views.my_profile),
     url(r'^profile/(?P<username>[^/]+)/?$', reader_views.user_profile),
-    url(r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
     url(r'^settings/account?$', reader_views.account_settings),
     url(r'^settings/profile?$', reader_views.edit_profile),
     url(r'^interface/(?P<language>english|hebrew)$', reader_views.interface_language_redirect),
@@ -283,7 +288,7 @@ urlpatterns += [
     url(r'^random/link$',        reader_views.random_redirect),
     url(r'^random/?$',           reader_views.random_text_page),
     url(r'^daf-roulette/?$',     reader_views.daf_roulette_redirect),
-    url(r'^chevruta/?$',     reader_views.chevruta_redirect),
+    url(r'^chavruta/?$',     reader_views.chevruta_redirect),
 ]
 
 # Registration
@@ -333,9 +338,9 @@ urlpatterns += [
 
 ]
 
-# dafroulette.js -
+# chavruta.js -
 urlpatterns += [
-    url(r'^dafroulette\.js$', sefaria_views.dafroulette_js)
+    url(r'^chavruta\.js$', sefaria_views.chavruta_js)
 ]
 
 

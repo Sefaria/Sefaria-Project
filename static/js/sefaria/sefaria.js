@@ -64,7 +64,11 @@ Sefaria = extend(Sefaria, {
               break;
           }
           if (book in Sefaria.booksDict || book === "Sheet") {
-              nums = first.slice(i+1);
+              const remainder = first.slice(i);
+              if (remainder && remainder[0] !== " ") { 
+                continue; // book name must be followed by a space, Jobs != Job
+              }
+              nums = remainder.slice(1);
               break;
           }
       }
@@ -78,7 +82,7 @@ Sefaria = extend(Sefaria, {
           return Sefaria._parseRef[q];
       }
 
-      if (nums && !nums.match(/\d+[ab]?( \d+)*/)) {
+      if (nums && !nums.match(/\d+[ab]?( \d+)*$/)) {
           Sefaria._parseRef[q] = {"error": "Bad section string."};
           console.log(Sefaria._parseRef[q]);
           return Sefaria._parseRef[q];
@@ -166,7 +170,8 @@ Sefaria = extend(Sefaria, {
     return Sefaria.makeRef(nRef);
   },
   joinRefList: function(refs, lang){
-      //should check that these are actually refs
+    // Returns a string Ref in `lang` that corresponds to the range of refs in `refs`
+    // Hebrew results depend on `refs` being available in the refs cache.
       //only use for display as it doesn't rely on any ref parsing!
       //since this is just string manipulation it works language agnostically.
       //does not work well in cases like Genesis 1:10, Genesis 1:15 (will return Genesis 1:10-5). Needs fixing
@@ -179,10 +184,14 @@ Sefaria = extend(Sefaria, {
       let start, end;
       if (refs[0].indexOf("-") != -1) { // did we get a ranged ref for some reason inside the arguemnts
           let startSplit = Sefaria.splitRangingRef(refs[0])
-          start = Sefaria.getRefFromCache(startSplit[0])[refStrAttr];
+          start = Sefaria.getRefFromCache(startSplit[0]);
       }else{
-          start = Sefaria.getRefFromCache(refs[0])[refStrAttr];
+          start = Sefaria.getRefFromCache(refs[0]);
       }
+      if (!start) { // We don't have this ref in cache, fall back to normRefList and sorry no Hebrew
+        return Sefaria.humanRef(Sefaria.normRefList(refs));
+      }
+      start = start[refStrAttr]
       if (refs[refs.length - 1].indexOf("-") != -1) {
           let endSplit = Sefaria.splitRangingRef(refs[refs.length - 1]);
           end = Sefaria.getRefFromCache(endSplit[endSplit.length -1])[refStrAttr];
@@ -220,7 +229,6 @@ Sefaria = extend(Sefaria, {
           const addrStr = similaraddrs.join(":")+(index == 0? "" : ":")+addressPartStart.slice(index).join(":")+"-"+addressPartEnd.slice(index).join(":");
           return `${namedPartStart} ${addrStr}`
       }
-
   },
   refContains: function(ref1, ref2) {
     // Returns true is `ref1` contains `ref2`
@@ -374,8 +382,8 @@ Sefaria = extend(Sefaria, {
     return this._ApiPromise(Sefaria.apiHost + this._textUrl(ref, settings))
         .then(d => { this._saveText(d, settings); return d; });
   },
+  _bulkTexts: {},
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null) {
-    // todo: fish existing texts out of cache first
     if (refs.length === 0) { return Promise.resolve({}); }
 
     const MAX_URL_LENGTH = 3800;
@@ -385,6 +393,7 @@ Sefaria = extend(Sefaria, {
     for (let [paramKey, paramVal] of Object.entries({asSizedString, minChar, maxChar})) {
       paramStr = !!paramVal ? paramStr + `&${paramKey}=${paramVal}` : paramStr;
     }
+    paramStr = paramStr.replace(/&/,'?');
 
     // Split into multipe requests if URL length goes above limit
     let refStrs = [""];
@@ -397,14 +406,23 @@ Sefaria = extend(Sefaria, {
       }
     });
 
-    let promises = refStrs.map(refStr => this._ApiPromise(`${hostStr}${refStr}${paramStr.replace(/&/,'?')}`));
+    let promises = refStrs.map(refStr => this._cachedApiPromise({
+      url: `${hostStr}${refStr}${paramStr}`,
+      key: refStr + paramStr,
+      store: this._bulkTexts
+    }));
 
     return Promise.all(promises).then(results => Object.assign({}, ...results));
   },
+  _bulkSheets: {},
   getBulkSheets: function(sheetIds) {
-    // todo: fish existing texts out of cache first
     if (sheetIds.length === 0) { return Promise.resolve({}); }
-    return this._ApiPromise(`${Sefaria.apiHost}/api/v2/sheets/bulk/${sheetIds.join("|")}`);
+    const idStr = sheetIds.join("|");
+    return this._cachedApiPromise({
+      url: `${Sefaria.apiHost}/api/v2/sheets/bulk/${idStr}`,
+      key: idStr,
+      store: this._bulkSheets
+    });
   },
   text: function(ref, settings = null, cb = null) {
     // To be deprecated in favor of `getText`
@@ -1110,6 +1128,7 @@ Sefaria = extend(Sefaria, {
   privateNotes: function(refs, callback) {
     // Returns an array of private notes for `refs` (a string or array or strings)
     // or `null` if notes have not yet been loaded.
+    if(!Sefaria.loggedIn) return;
     var notes = null;
     if (typeof refs == "string") {
       if (refs in this._privateNotes) {
@@ -1173,17 +1192,22 @@ Sefaria = extend(Sefaria, {
   },
   _allPrivateNotes: null,
   allPrivateNotes: function(callback) {
-    if (this._allPrivateNote || !callback) { return this._allPrivateNotes; }
+    if (!callback)  { return this._allPrivateNotes; }
 
-    var url = Sefaria.apiHost + "/api/notes/all?private=1";
-    this._api(url, (data) => {
-      if ("error" in data) {
-        return;
-      }
-      this._savePrivateNoteData(null, data);
-      this._allPrivateNotes = data;
-      callback(data);
-    });
+    if (this._allPrivateNotes) {
+      callback(this._allPrivateNotes);
+    } else {
+      const url = Sefaria.apiHost + "/api/notes/all?private=1";
+      this._api(url, (data) => {
+        if ("error" in data) {
+          return;
+        }
+        this._savePrivateNoteData(null, data);
+        this._allPrivateNotes = data;
+        callback(data);
+      });
+    }
+    return this._allPrivateNotes;
   },
   _savePrivateNoteData: function(ref, data) {
     return this._saveItemsByRef(data, this._privateNotes);
@@ -1657,11 +1681,21 @@ _media: {},
   getRefSavedHistory: tref => {
     return Sefaria._ApiPromise(Sefaria.apiHost + `/api/user_history/saved?tref=${tref}`);
   },
+  _profiles: {},
   profileAPI: slug => {
-    return Sefaria._ApiPromise(`${Sefaria.apiHost}/api/profile/${slug}`);
+    return Sefaria._cachedApiPromise({
+      url:   Sefaria.apiHost + "/api/profile/" + slug,
+      key:   slug,
+      store: Sefaria._profiles
+    });
   },
+  _userHistory: {},
   userHistoryAPI: () => {
-    return Sefaria._ApiPromise(Sefaria.apiHost + "/api/profile/user_history?secondary=0");
+    return Sefaria._cachedApiPromise({
+      url: Sefaria.apiHost + "/api/profile/user_history?secondary=0",
+      key: "history",
+      store: Sefaria._userHistory
+    });
   },
   saveUserHistory: function(history_item) {
     // history_item contains:
@@ -1673,7 +1707,13 @@ _media: {},
     if (Sefaria._uid) {
         $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1",
               {user_history: JSON.stringify(history_item_array)},
-              data => { /*console.log("sync resp", data)*/ } );
+              data => { 
+                //console.log("sync resp", data)
+                if ("history" in Sefaria._userHistory) {
+                  // If full user history has already been loaded into cache, then modify cache to keep it up to date
+                  Sefaria._userHistory.history.splice(0,0, data.created[0]);
+                }
+              } );
     } else {
       // we need to get the heRef for each history item
       Promise.all(history_item_array.filter(x=>!x.secondary).map(h => new Promise((resolve, reject) => {
@@ -1686,6 +1726,8 @@ _media: {},
         const user_history_cookie = cookie("user_history");
         const user_history = !!user_history_cookie ? JSON.parse(user_history_cookie) : [];
         cookie("user_history", JSON.stringify(new_hist_array.concat(user_history)), {path: "/"});
+        Sefaria._userHistory.history = new_hist_array.concat(user_history);
+
         //console.log("saving history cookie", new_hist_array);
         if (Sefaria._inBrowser) {
           // check if we've reached the cookie size limit
@@ -1734,23 +1776,11 @@ _media: {},
         .then(d => { this._topicList = d; return d; });
   },
   _tableOfContentsDedications: {},
-  _topics: {},
-/*
-  topic: function(topic, callback) {
-    if (topic in this._topics) {
-      var data = this._topics[topic];
-      if (callback) { callback(data); }
-    } else if (callback) {
-      var data = null;
-      var url = Sefaria.apiHost + "/api/topics/" + topic;
-      Sefaria._api(url, function(data) {
-        this._topics[topic] = data;
-        if (callback) { callback(data); }
-      }.bind(this));
-    }
-    return data;
+  _stories: {
+    stories: [],
+    page: 0
   },
-*/
+  _parashaNextRead: {},
   getParashaNextRead: function(parasha) {
     return this._cachedApiPromise({
       url:   `${this.apiHost}/api/calendars/next-read/${parasha}`,
@@ -1758,22 +1788,38 @@ _media: {},
       store: this._parashaNextRead,
     });
   },
-  _parashaNextRead: {},
+  _topics: {},
   getTopic: function(topic, with_links=true, annotate_links=true, with_refs=true, group_related=true) {
       return this._cachedApiPromise({
           url:   `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}`,
           key:   topic,
-          store: this._topics
+          store: this._topics,
+          processor: this.processTopicsData,
     });
   },
+  processTopicsData: function(data) {
+    if (!data) { return null; }
+    // Split  `refs` in `sourceRefs` and `sheetRefs`
+    let refMap = {};
+    for (let refObj of data.refs.filter(s => !s.is_sheet)) {
+      refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSources: refObj.dataSources};
+    }
+    data.textRefs = Object.values(refMap);
+    let sheetMap = {};
+    for (let refObj of data.refs.filter(s => s.is_sheet)) {
+      const sid = refObj.ref.replace('Sheet ', '');
+      sheetMap[sid] = {sid, order: refObj.order};
+    }
+    data.sheetRefs = Object.values(sheetMap);
+    return data;
+  },
+  getTopicFromCache: function(topic) {
+    return this._topics[topic];
+  },
   _topicTocPages: null,
-  _topicTocCategory: null,
   _initTopicTocPages: function() {
     this._topicTocPages = this.topic_toc.reduce(this._initTopicTocReducer, {});
     this._topicTocPages[this._topicTocPageKey()] = this.topic_toc.map(({children, ...goodstuff}) => goodstuff);
-  },
-  _initTopicTocCategory: function() {
-    this._topicTocCategory = this.topic_toc.reduce(this._initTopicTocCategoryReducer, {});
   },
   _initTopicTocReducer: function(a,c) {
     if (!c.children) { return a; }
@@ -1782,6 +1828,10 @@ _media: {},
       Sefaria._initTopicTocReducer(a, sub_c);
     }
     return a;
+  },
+  _topicTocCategory: null,
+  _initTopicTocCategory: function() {
+    this._topicTocCategory = this.topic_toc.reduce(this._initTopicTocCategoryReducer, {});
   },
   _initTopicTocCategoryReducer: function(a,c) {
     if (!c.children) {
@@ -1913,11 +1963,11 @@ _media: {},
         });
     },
     _userSheets: {},
-    userSheets: function(uid, callback, sortBy = "date", offset = 0, numberToRetrieve = 0, ignoreCache=false) {
+    userSheets: function(uid, callback, sortBy = "date", offset = 0, numberToRetrieve = 0) {
       // Returns a list of source sheets belonging to `uid`
       // Only a user logged in as `uid` will get private data from this API.
       // Otherwise, only public data will be returned
-      const sheets = ignoreCache ? null : this._userSheets[uid+sortBy+offset+numberToRetrieve];
+      const sheets = this._userSheets[uid+sortBy+offset+numberToRetrieve];
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
@@ -2069,23 +2119,34 @@ _media: {},
   },
   _groups: {},
   getGroup: function(key) {
-      const url = Sefaria.apiHost + "/api/groups/" + key;
+      const url = Sefaria.apiHost + "/api/groups/" + encodeURIComponent(key);
       const store = this._groups;
       return this._cachedApiPromise({url, key, store});
   },
-  _groupsList: null,
-  getGroupsList: function() {
-      // Is there other cases where the cache isn't keyed?   Could refactor _cachedApiPromise for a no key case.
-      return (this._groupsList) ?
-          Promise.resolve(this._groupsList) :
-          Sefaria._ApiPromise(Sefaria.apiHost + "/api/groups")
-              .then(data => {
-                  this._groupsList = data;
-                  return data;
-              })
+  getGroupFromCache: function(key) {
+    return Sefaria._groups[key];
   },
-  userGroups: function(uid) {
-    return Sefaria._ApiPromise(`${Sefaria.apiHost}/api/groups/user-groups/${uid}`);
+  _groupsList: {},
+  getGroupsList: function() {
+      return this._cachedApiPromise({
+        url: Sefaria.apiHost + "/api/groups",
+        key: "list",
+        store: Sefaria._groupsList
+      });
+  },
+  getGroupsListFromCache() {
+    return Sefaria._groupsList.list;
+  },
+  _userGroups: {},
+  getUserGroups: function(uid) {
+    return this._cachedApiPromise({
+      url: `${Sefaria.apiHost}/api/groups/user-groups/${uid}`,
+      key: uid,
+      store: Sefaria._userGroups
+    });
+  },
+  getUserGroupsFromCache(uid) {
+    return Sefaria._userGroups[uid];
   },
   calendarRef: function(calendarTitle) {
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
@@ -2132,6 +2193,7 @@ _media: {},
       "Sefaria Account": "חשבון בספריא",
       "New Additions to the Sefaria Library":"חידושים בארון הספרים של ספריא",
       "My Notes on Sefaria": "ההערות שלי בספריא",
+      "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.": "טקסטים ודפי מקורות מן התורה, התלמוד וספריית המקורות של ספריא.",
       "Moderator Tools": "כלי מנהלים",
       " with " : " עם ",
       "Connections" : "קשרים",
@@ -2188,6 +2250,8 @@ _media: {},
       "מחיקת דף מקורות היא פעולה בלתי הפיכה. האם אתם בטוחים?",
       "Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.":
       "לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
+      "Are you sure you want to remove this?": "בטוח שברצונך למחוק?",
+      "Would you like to save this sheet? You only need to save once, after that changes are saved automatically.": "רוצה לשמור את הדף הזה? כל שעליך לעשות הוא לשמור פעם אחת – לאחר מכן השינויים יישמרו באופן אוטומטי.",
       //"Untitled Source Sheet": "דף מקורות ללא שם",
       "Like": "אהבתי",
       "Unlike": "ביטול סימון אהבתי",
@@ -2409,13 +2473,14 @@ _media: {},
     this._ajaxObjects[url] = $.getJSON(url).always(_ => {delete this._ajaxObjects[url];});
     return this._ajaxObjects[url];
   },
-  _cachedApiPromise: function({url, key, store}) {
+  _cachedApiPromise: function({url, key, store, processor}) {
       // Checks store[key].  Resolves to this value, if present.
       // Otherwise, calls Promise(url), caches in store[key], and returns
       return (key in store) ?
           Promise.resolve(store[key]) :
           Sefaria._ApiPromise(url)
               .then(data => {
+                  if (processor) { data = processor(data); }
                   store[key] = data;
                   return data;
               })
@@ -2468,6 +2533,9 @@ Sefaria.unpackDataFromProps = function(props) {
       if (panel.indexDetails) {
         Sefaria._indexDetails[panel.bookRef] = panel.indexDetails;
       }
+      if (panel.sheet) {
+        Sefaria.sheets._loadSheetByID[panel.sheet.id] = panel.sheet;
+      }
       // versions and bookRef are located in different places, depending on if you're in book TOC or reader
       const panelVersions = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
       const panelBook     = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
@@ -2508,7 +2576,7 @@ Sefaria.unpackDataFromProps = function(props) {
     Sefaria._groups[props.initialGroup] = props.groupData;
   }
   if (props.topicData) {
-    Sefaria._topics[props.initialTopic] = props.topicData;
+    Sefaria._topics[props.initialTopic] = Sefaria.processTopicsData(props.topicData);
   }
   if (props.topicList) {
     Sefaria._topicList = props.topicList;
