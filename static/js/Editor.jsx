@@ -1155,7 +1155,8 @@ const insertSource = (editor, ref) => {
 
         const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")[1];
 
-        Transforms.removeNodes(editor, { at: closestSheetItem })
+        Transforms.setNodes(editor, { loading: false }, { at: currentNode[1] });
+        Transforms.insertText(editor, '', { at: currentNode[1] })
 
         Transforms.move(editor, { unit: 'block', distance: 8 })
 
