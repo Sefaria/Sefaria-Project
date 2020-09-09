@@ -574,6 +574,27 @@ class JaggedArray(object):
                 return self.prev_index(res)
         return res
 
+    @staticmethod
+    def get_offset_sections(relative_sections, start_sections):
+        """
+        Gets absolute section (according to some outside context, e.g. textchunk or version) indices given `relative_sections`
+        :param relative_sections: array(int). sections into current jagged array
+        :param start_sections: array(int). absolute sections from outside context. usually textchunk or version
+        """
+        if start_sections is None:
+            # relative_sections are actually absolute in this case
+            sections = relative_sections
+        else:
+            # relative_sections is only as deep as ja. however, top-level ja could be deeper
+            # use start_sections as a starting point and then update with relative_sections to get absolute section indexes
+            sections = start_sections[:]
+            for rel_section_index, abs_section_index in enumerate(range(len(sections)-len(relative_sections), len(sections))):
+                sections[abs_section_index] = relative_sections[rel_section_index]
+                if rel_section_index == 0 or relative_sections[0] == 0:
+                    # first section should always be offset by start_sections. later sections should only be offset if first section is 0
+                    sections[abs_section_index] += start_sections[abs_section_index]
+        return sections
+
     def __eq__(self, other):
         return self._store == other._store
 
@@ -633,25 +654,13 @@ class JaggedTextArray(JaggedArray):
         """
         Returns the jagged array but with each terminal string processed by func
         Func should accept two parameters: 1) text of current segment 2) zero-indexed indices of segment
+        :param start_sections: array(int), optional param. Sections passed to `func` will be offset by `start_sections`, if passed
         """
         _curSections = _curSections or []
         if _cur is None:
             _cur = self._store
         if isinstance(_cur, str):
-            if start_sections is None:
-                # _curSections are actually absolute since you called this on a Version
-                sections = _curSections
-            else:
-                # _curSections is only as deep as ja. however, top-level ja could be deeper
-                # use start_sections as a starting point and then update with _curSections to get absolute section indexes
-                sections = start_sections[:]
-                for i, abs_section_index in enumerate(range(len(sections)-len(_curSections), len(sections))):
-                    rel_section_index = abs_section_index-len(sections)+len(_curSections)
-                    sections[abs_section_index] = _curSections[rel_section_index]
-                    if i == 0 or _curSections[0] == 0:
-                        # first section should always be offset by start_sections. later sections should only be offset if first section is 0
-                        sections[abs_section_index] += start_sections[abs_section_index]
-            return func(_cur, sections)
+            return func(_cur, self.get_offset_sections(_curSections, start_sections))
         elif isinstance(_cur, list):
             return [self.modify_by_function(func, start_sections, temp_curr, _curSections + [i]) for i, temp_curr in enumerate(_cur)]
 
