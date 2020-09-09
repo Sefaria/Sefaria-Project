@@ -2004,7 +2004,7 @@ class TextFamily(object):
                 from . import RefTopicLinkSet
                 named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in oref.all_segment_refs()]}, "$or": [{"charLevelData.versionTitle": v.versionTitle} for v in c._versions], "charLevelData.language": language})  # TODO check performance
                 if named_entities.count() > 0:
-                    # assumption is that refTopicLinks are all to an unranged ref
+                    # assumption is that refTopicLinks are all to unranged refs
                     ne_by_secs = defaultdict(list)
                     for ne in named_entities:
                         try:
