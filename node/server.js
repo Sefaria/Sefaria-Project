@@ -4,7 +4,8 @@
                      require('css-modules-require-hook')({  // so that node can handle require statements for css files
                          generateScopedName: '[name]',
                      });
-var http           = require('http'),
+const redis = require('redis');
+const http           = require('http'),
     express        = require('express'),
     bodyParser     = require('body-parser'),
     cookieParser   = require('cookie-parser'),
@@ -15,14 +16,24 @@ var http           = require('http'),
     SefariaReact   = require('../static/js/ReaderApp.jsx'),
     ReaderApp      = React.createFactory(SefariaReact.ReaderApp);
 
-var server = express();
+const server = express();
 
 server.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
 server.use(bodyParser.json({limit: '50mb'}));
 
-var log = settings.DEBUG ? console.log : function() {};
+const log = settings.DEBUG ? console.log : function() {};
 
-var renderReaderApp = function(props, data, timer) {
+const cache = redis.createClient(settings.REDIS_PORT, settings.REDIS_HOST, {});
+
+cache.on('error', function (err) {
+    console.log('Redis Connection Error ' + err);
+});
+
+cache.on('connect', function() {
+    console.log('Connected to Redis');
+});
+
+const renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
   data.initialPath    = props.initialPath;
   data.loggedIn       = props.loggedIn;
@@ -86,6 +97,8 @@ server.post('/Footer/:cachekey', function(req, res) {
 server.listen(settings.NODEJS_PORT, function() {
   console.log('Django Host: ' + settings.DJANGO_HOST);
   console.log('Django Port: ' + settings.DJANGO_PORT);
+  console.log('Redis Host: ' + settings.REDIS_HOST);
+  console.log('Redis Port: ' + settings.REDIS_PORT);
   console.log('Debug: ' + settings.DEBUG);
   console.log('Listening on ' + settings.NODEJS_PORT);
 });
