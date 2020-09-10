@@ -398,6 +398,8 @@ function getInitialSheetNodes(sheet) {
 function transformSheetJsonToDraft(sheet) {
     const sheetTitle = sheet.title.stripHtmlKeepLineBreaks();
 
+    let curNextNode = sheet.nextNode;
+
     let sourceNodes = [];
     let lastItemWasSource = false;
 
@@ -408,8 +410,9 @@ function transformSheetJsonToDraft(sheet) {
         if (lastItemWasSource) {
           sourceNodes.push({
             type: "SheetItem",
-            children: [renderSheetItem({outsideText: ""})]
+            children: [renderSheetItem({node: curNextNode, outsideText: ""})]
           })
+          curNextNode++;
         }
         lastItemWasSource = true;
       }
@@ -425,11 +428,14 @@ function transformSheetJsonToDraft(sheet) {
 
 
     });
+    //Ensure there's always something to edit at bottom of sheet.
     if (sourceNodes.length == 0 || (sourceNodes[sourceNodes.length - 1]["children"][0]["type"] != "SheetOutsideText")) {
         sourceNodes.push({
           type: "SheetItem",
-          children: [renderSheetItem({outsideText: ""})]
+          children: [renderSheetItem({node: curNextNode, outsideText: ""})]
         })
+        curNextNode++;
+
     }
 
     let initValue = [
@@ -448,7 +454,7 @@ function transformSheetJsonToDraft(sheet) {
             dateCreated: sheet.dateCreated,
             promptedToPublish: sheet.promptedToPublish,
             options: sheet.options,
-            nextNode: sheet.nextNode,
+            nextNode: curNextNode,
             edittingSource: false,
             authorUrl: sheet.ownerProfileUrl,
             authorStatement: sheet.ownerName,
