@@ -425,6 +425,12 @@ function transformSheetJsonToDraft(sheet) {
 
 
     });
+    if (sourceNodes.length == 0 || (sourceNodes[sourceNodes.length - 1]["children"][0]["type"] != "SheetOutsideText")) {
+        sourceNodes.push({
+          type: "SheetItem",
+          children: [renderSheetItem({outsideText: ""})]
+        })
+    }
 
     let initValue = [
         {
