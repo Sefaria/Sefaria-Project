@@ -398,13 +398,34 @@ function getInitialSheetNodes(sheet) {
 function transformSheetJsonToDraft(sheet) {
     const sheetTitle = sheet.title.stripHtmlKeepLineBreaks();
 
-    let sourceNodes = sheet.sources.map(source => (
-            {
-                type: "SheetItem",
-                children: [renderSheetItem(source)]
-            }
-        )
-    );
+    let sourceNodes = [];
+    let lastItemWasSource = false;
+
+    sheet.sources.forEach( source => {
+      // this snippet of code exists to create placeholder outsideTexts in between souces to allow for easier editting.
+      // blank outsidetexts are removed down in saveSheetContent()
+      if (source["ref"]) {
+        if (lastItemWasSource) {
+          sourceNodes.push({
+            type: "SheetItem",
+            children: [renderSheetItem({outsideText: ""})]
+          })
+        }
+        lastItemWasSource = true;
+      }
+      else {
+        lastItemWasSource = false;
+      }
+      //-------//
+
+      sourceNodes.push({
+          type: "SheetItem",
+          children: [renderSheetItem(source)]
+      });
+
+
+    });
+
     let initValue = [
         {
             type: 'Sheet',
@@ -1380,8 +1401,12 @@ function saveSheetContent(doc, lastModified) {
                 });
 
             case 'SheetOutsideText':
+                const outsideTextText = serialize(sheetItem)
+               //don't save empty outsideTexts
+               if (outsideTextText=="<p></p>") {return}
+
                return ({
-                    "outsideText": serialize(sheetItem),
+                    "outsideText": outsideTextText,
                     "node": sheetItem.node,
                 });
 
