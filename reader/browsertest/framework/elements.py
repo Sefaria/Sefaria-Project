@@ -1592,7 +1592,7 @@ class Trial(object):
             SAUCE_USERNAME = os.getenv('SAUCE_USERNAME')
             SAUCE_ACCESS_KEY = os.getenv('SAUCE_ACCESS_KEY')
             self.BASE_URL = LOCAL_URL
-            self.caps = caps if caps else F
+            self.caps = caps if caps else False
             for cap in self.caps:
                 cap["tunnelIdentifier"] = os.getenv('TRAVIS_JOB_NUMBER')
             self.is_local = False
@@ -1609,8 +1609,8 @@ class Trial(object):
             self.is_local = False
             self.seleniumServerHostname = seleniumServerHostname
             self.BASE_URL = REMOTE_URL
-            self.caps = [ { 'browserName': "chrome", 'version': "latest",
-                            'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10', "extendedDebugging": True},]
+            self.caps = caps if caps else SAUCE_CORE_CAPS
+            # self.caps = [ { 'browserName': "chrome", 'version': "latest", 'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10', "extendedDebugging": True},]
         else:
             self.is_local = False
             self.BASE_URL = REMOTE_URL
@@ -1657,6 +1657,8 @@ class Trial(object):
             copt = webdriver.ChromeOptions()
             copt.add_argument('--no-sandbox')
             copt.add_argument('--headless')
+            copt.add_argument('--verbose')
+            copt.add_argument('--log-path=/home/seluser/logs')
             driver = webdriver.Remote(
                 command_executor=self.seleniumServerHostname, 
                 options=copt)

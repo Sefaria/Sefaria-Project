@@ -7,6 +7,7 @@ from .framework import Trial
 from . import basic_tests    # This is in fact needed - to register subclasses Trial, etc.
 import sys
 
+# t = Trial(platform="remote", build=None, verbose=True, seleniumServerHostname="https://seforenzo:f5d18673-f960-44fb-9a0c-6e3252ef246b@ondemand.us-west-1.saucelabs.com:443/wd/hub")
 t = Trial(platform="remote", build=None, verbose=True, seleniumServerHostname="http://selenium-deadbeef:4444/wd/hub")
 t.run()
 results = t.results()

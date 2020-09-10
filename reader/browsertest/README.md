@@ -27,11 +27,22 @@ $ python3 ./run_local.py
      chmod -R 777 /log
      ```
      
+5. 
 
 ```sh
 apt-get install -y chromium-driver
 adduser appium
 chmod -R 777 /log
+
+```
+
+.
+.
+.
+
+mo
+
+```
 
 ```
 
