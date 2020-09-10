@@ -225,11 +225,11 @@ class SheetStats(object):
 		save_sheet(sheet, 1)
 
 	def save_top_for_category(self, cat, collapse=False):
- 		top_books_list = []
- 		for book in self.sorted_books:
- 			idx = library.get_index(book[0])
- 			if idx.categories[0] == cat and "Commentary" not in idx.categories:
- 				top_books_list.append("{} ({:,})".format(book[0], book[1]))
+		top_books_list = []
+		for book in self.sorted_books:
+			idx = library.get_index(book[0])
+			if idx.categories[0] == cat and "Commentary" not in idx.categories:
+				top_books_list.append("{} ({:,})".format(book[0], book[1]))
 		top_books = "<ol><li>" + "</li><li>".join(top_books_list[:10]) + "</li></ol>"
 		sources = [{"comment": "Most frequently used tractates (full list below):<br>%s" % top_books}]
 
@@ -252,3 +252,18 @@ class SheetStats(object):
 		self.save_top_sources_sheet()
 		self.save_top_sources_by_tag()
 		self.save_top_sources_by_category()
+
+
+def total_sheet_views_by_query(query):
+	"""Returns the total number of views for sheets that match `query`"""
+	result = db.sheets.aggregate([ 
+		{ "$match": query},
+		{ 
+			"$group": { 
+				"_id": None, 
+				"total": { 
+					"$sum": "$views" 
+				} 
+			} 
+		} ] )
+	return list(result)[0]["total"]
