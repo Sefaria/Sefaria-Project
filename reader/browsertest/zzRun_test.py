@@ -1,6 +1,11 @@
+__package__ = "reader.browsertest"
+
 from selenium import webdriver
 import os
 import requests
+
+from . import basic_tests
+from .framework import Trial
 
 # Use environment variables for tests
 
@@ -13,21 +18,17 @@ CAPABILITIES = [
 ]
 
 def ensureEnvVars():
-    if 'SELENIUM_SERVER_URL' in os.environ:
-        seleniumServerUrl = os.environ['SELENIUM_SERVER_URL']
-    else:
+    if 'SELENIUM_SERVER_URL' not in os.environ:
         print("Please set the SELENIUM_SERVER_HOSTNAME environment variable and rerun.")
         exit(1)
 
-    if 'APPLICATION_HOSTNAME' in os.environ:
-        applicationUrl = os.environ['APPLICATION_HOSTNAME'] # maybe add trailing slash if missing
-    else:
+    if 'APPLICATION_HOSTNAME' not in os.environ:
         print("Please set the APPLICATION_HOSTNAME environment variable and rerun.")
         exit(1)
 
 def ensureServerReachability():
     # Check reachability of named servers
-    for site in [applicationUrl, seleniumServerUrl]:
+    for site in [os.environ['APPLICATION_HOSTNAME'], os.environ['SELENIUM_SERVER_URL']]:
         resp = requests.get(site).status_code
         if resp > 399:
             print("Site {} not reachable. Please make sure it is running and rerun this script".format(site))
@@ -68,6 +69,37 @@ def createFirefoxDriver(seleniumServerUrl="http://localhost:4444/wd/hub",):
     fopt.add_argument('--headless')
     return webdriver.Remote(command_executor=seleniumServerUrl, options=fopt)
 
+
+def setup():
+    ensureEnvVars()
+    ensureServerReachability()
+    ensureSeleniumCapabilities()
+
+    # Create and test driver
+    seleniumServerUrl = os.environ['SELENIUM_SERVER_URL']
+    driver = createFirefoxDriver(seleniumServerUrl=seleniumServerUrl)
+    ensureDriverFunctionality(driver)
+
+    # get homepage and get title, and test
+    applicationUrl = os.environ['APPLICATION_HOSTNAME'] # maybe add trailing slash if missing
+    driver.get(applicationUrl)
+    print("Current URL: {}".format(driver.current_url))
+    print("Current title: {}".format(driver.title))
+
+    assert driver.current_url == applicationUrl
+    assert driver.title == "Sefaria: a Living Library of Jewish Texts Online"
+
+    print("Preliminary tests finished")
+    return driver
+
+
+def run_single_test():
+    return
+
+
+
+
+
 if __name__ == "__main__":
     """
     Script entrypoint
@@ -75,36 +107,8 @@ if __name__ == "__main__":
     Example invocation:
     SELENIUM_SERVER_URL="http://localhost:4444/wd/hub" APPLICATION_HOSTNAME="https://vecino.cauldron.sefaria.org/" python3 ./run_test.py
     """
+    driver = setup()
 
-    if 'SELENIUM_SERVER_URL' in os.environ:
-        seleniumServerUrl = os.environ['SELENIUM_SERVER_URL']
-    else:
-        print("Please set the SELENIUM_SERVER_HOSTNAME environment variable and rerun.")
-        exit(1)
+    # Now I need to pass this driver into a test runner
 
-    if 'APPLICATION_HOSTNAME' in os.environ:
-        applicationUrl = os.environ['APPLICATION_HOSTNAME'] # maybe add trailing slash if missing
-    else:
-        print("Please set the APPLICATION_HOSTNAME environment variable and rerun.")
-        exit(1)
-
-    # Make sure the tests are ready to go
-    #args = ensureEnvVars()
-    ensureServerReachability()
-    ensureSeleniumCapabilities()
-
-    # Create Driver
-    driver = createFirefoxDriver(seleniumServerUrl=seleniumServerUrl)
-    ensureDriverFunctionality(driver)
-
-    
-    # get homepage and get title, and test
-    driver.get(applicationUrl)
-    print("Current URL: {}".format(driver.current_url))
-    print("Current title: {}".format(driver.title))
-
-
-    assert driver.current_url == applicationUrl
-    assert driver.title == "Sefaria: a Living Library of Jewish Texts Online"
-
-    print("Preliminary tests finishedTests finished")
+    exit(0)
