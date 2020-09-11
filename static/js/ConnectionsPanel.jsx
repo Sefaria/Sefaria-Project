@@ -10,6 +10,11 @@ import {
   ProfilePic,
   ToolTipped,
 } from './Misc';
+
+import {
+  MediaList
+} from './Media';
+
 import {  CategoryFilter,} from './ConnectionFilters';
 import React,{useRef, useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
@@ -470,11 +475,11 @@ class ConnectionsPanel extends Component {
                     interfaceLang={this.props.interfaceLang}
                     key="WebPages"/>);
 
-	} else if (this.props.mode === "Audio" || this.props.mode === "AudioList") {
-      content = (<AudioList
+	} else if (this.props.mode === "Audio" || this.props.mode === "Media") {
+      content = (<MediaList
 					          srefs={this.props.srefs}
                     interfaceLang={this.props.interfaceLang}
-                    key="Audio"/>);
+                    key="Media"/>);
 
     } else if (this.props.mode === "Tools") {
       content = (<ToolsList
@@ -629,7 +634,7 @@ class ResourcesList extends Component {
               : null }
               <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
               <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} />
-              <ToolsButton en="Audio" he="שמיעה" image="audio.svg" count={this.props.audioCount} onClick={() => this.props.setConnectionsMode("Audio")} />
+              <ToolsButton en="Audio" he="שמיעה" image="audio.svg" count={this.props.audioCount} onClick={() => this.props.setConnectionsMode("Media")} />
               <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={this.props.topicsCount} onClick={() => this.props.setConnectionsMode("Topics")} />
               <ToolsButton en="Translations" he="תרגומים" image="layers.png" onClick={() => this.props.setConnectionsMode("Translations")} />
               <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
@@ -932,128 +937,6 @@ class WebPagesList extends Component {
 WebPagesList.propTypes = {
   srefs: PropTypes.array.isRequired,
 };
-
-const Audio = ({audioUrl, startTime, endTime, source, license, source_site, description, anchor}) => {
-   const audioElement = useRef();
-   const [currTime, setCurrTime] = useState(true);
-   const [playing, setPlaying] = useState(false); //true for autoplay
-   const [clipEndTime, setClipEndTime] = useState();
-   const [clipStartTime, setClipStartTime] = useState();
-   const handleChange = (value) => {
-		   setCurrTime(value);
-		   setCurrTime(value.currentTarget.value);
-		   audioElement.current.currentTime = value.currentTarget.value
-		};
-
-    function formatTime(totalSeconds) {
-        const seconds = Math.floor(totalSeconds % 60);
-        const minutes = Math.floor(totalSeconds / 60);
-
-        const padWithZero = number => {
-            const string = number.toString();
-            if (number < 10) {
-                return "0" + string;
-            }
-            return string;
-        };
-        return (minutes) + ":" + padWithZero(seconds);
-    }
-
-
-   useEffect(() => {
-       const setAudioData = () => {
-		   if (startTime < clipStartTime){
-		   if (clipStartTime != currTime) setPlaying(true);
-		   setCurrTime(null)};
-           setClipEndTime(endTime);
-		   setClipStartTime(startTime);
-       };
-
-       const setAudioTime = () => setCurrTime(audioElement.current.currentTime); //control range component
-
-
-       audioElement.current.addEventListener("timeupdate", setAudioTime);
-	   setAudioData();
-
-	   if (clipStartTime && currTime < clipStartTime){
-			audioElement.current.currentTime = clipStartTime;
-	   };
-
-
-       playing ? audioElement.current.play() : audioElement.current.pause();
-
-       if (clipEndTime && currTime > clipEndTime) {
-           setPlaying(false);
-		   setCurrTime(null);
-       }
-
-
-       return () => { //pretty sure these are both unnecassary
-           audioElement.current.removeEventListener("loadeddata", setAudioData);
-           audioElement.current.removeEventListener("timeupdate", setAudioTime);
-       }
-   });
-      return (
-		<div className="media"  key={anchor+"_"+"audio"}>
-			  <div className="title">{source}</div>
-			  <div className="description">{description}</div>
-			  <div className="panel">
-          <div className="playTimeContainer">
-            <input type="image" src = {playing ? "static/img/pause.svg" : "static/img/play.svg"} alt={playing ? "Pause Audio" : "Play Audio"} onClick={() => setPlaying(playing ? false : true)} id="pause"/>
-            <span>{formatTime((clipEndTime-clipStartTime) - (clipEndTime - currTime)) + " / " + formatTime(clipEndTime-clipStartTime)}</span>
-          </div>
-				  <div className="sliderContainer"><input type="range" min={startTime} max={endTime} value = {currTime} step="any" className="slider" onChange={(value) => {handleChange(value)}}/></div>
-			  </div>
-			  <audio id="my-audio" ref = {audioElement}>
-				 <source src={audioUrl} type="audio/mpeg"/>
-			  </audio>
-			  <div className="meta">
-				<span className="int-en">License: {license}</span>
-				<span className="int-he">עסק רשיון: {license}</span>
-        <br/>
-				<span className="int-en">Source: <a href={"//"+source_site} target="_blank">{source}</a></span>
-				<span className="int-he">מקור: {source_site}</span>
-			  </div>
-
-		</div>
-   )
-};
-class AudioList extends Component {
-	render() {
-		let audios = Sefaria.mediaByRef(this.props.srefs)
-		let content = [];
-    console.log(content)
-		  content = audios.map(audio => {
-			return <Audio
-				audioUrl = {audio.media_url}
-				startTime = {audio.start_time}
-				endTime = {audio.end_time}
-				source = {audio.source}
-				license = {audio.license}
-				source_site = {audio.source_site}
-				description = {audio.description}
-				anchor = {audio.anchorRef}
-				/>
-		  });
-		 if (!content.length) {
-			return <div className="mediaList empty">
-                  <LoadingMessage />
-                </div>;
-		 }
-
-		return <div className="mediaList">
-				<div className="mediaTitle">
-					<div className="en">Torah Reading </div>
-					<div className="he">קריאת התורה </div>
-				</div>
-				  {content}
-			   </div>;
-	}
-}
-AudioList.propTypes = {
-  srefs: PropTypes.array.isRequired,
-};
-
 
 class ToolsList extends Component {
   render() {
