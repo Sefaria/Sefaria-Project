@@ -962,6 +962,14 @@ const withSefariaSheet = editor => {
 
           }
         }
+        if ((node.children[node.children.length-1].children[0].type) != "SheetOutsideText") {
+          console.log('missing outside text at bottom')
+          Transforms.select(editor, Editor.end(editor, []));
+          Editor.insertBreak(editor)
+          // Transforms.insertNodes(editor, fragment, {at: []});
+
+
+        }
       }
 
 
