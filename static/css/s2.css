@@ -4698,6 +4698,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .textListTextRangeBox + .sheet {
   margin-top: 24px;
 }
+.webpageList .website {
+  text-align: start;
+}
 .webpageList .website .icon {
   height: 16px;
   width: 16px;
