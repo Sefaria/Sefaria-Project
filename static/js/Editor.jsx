@@ -884,17 +884,26 @@ const withSefariaSheet = editor => {
       }
 
 
-      // If SheetMetaDataBox is missing a title or authorStatement or groupStatement, reset it
       if (node.type == "SheetMetaDataBox") {
+        // If SheetMetaDataBox is missing a title or authorStatement or groupStatement, reset it
           if (node.children.length < 3) {
               const editorSheetMeta = editor.children[0];
               const newMetaBox = defaultsheetMetaDataBox(
-                  defaultSheetTitle(""),
+                  defaultSheetTitle(node.children[0].type == "SheetTitle" ? Node.string(node.children[0]) : ""),
                   defaultSheetAuthorStatement(editorSheetMeta['authorUrl'], editorSheetMeta['authorStatement'], editorSheetMeta['authorImage']),
                   defaultSheetGroupStatement(editorSheetMeta['group'], editorSheetMeta['groupLogo'])
               );
               Transforms.delete(editor, {at: path});
               Transforms.insertNodes(editor, newMetaBox, { at: path });
+          }
+
+          //Only allow SheetTitle, SheetAuthorStatement & GroupStatement in SheetMeta
+          for (const [child, childPath] of Node.children(editor, path)) {
+            console.log(child)
+            if (!["SheetTitle", "SheetAuthorStatement", "GroupStatement"].includes(child.type)) {
+              Transforms.removeNodes(editor, { at: childPath })
+              return
+            }
           }
       }
 
