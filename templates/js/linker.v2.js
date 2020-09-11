@@ -409,55 +409,54 @@
     };
 
     ns._wrapMatches = function() {
-        var books = Object.getOwnPropertyNames(ns.regexes).sort(function(a, b) {
+        const books = Object.getOwnPropertyNames(ns.regexes).sort(function(a, b) {
           return b.length - a.length; // ASC -> a - b; DESC -> b - a
         });
-        for (var k = 0; k < books.length; k++) {
-            var book = books[k];
+        for (let k = 0; k < books.length; k++) {
+            const book = books[k];
             // Run each regex over the document, and wrap results
-            var r = XRegExp(ns.regexes[book],"xgm");
+            const r = XRegExp(ns.regexes[book],"xgm");
             // find the refrences and push them into ns.matches
-            for (var i = 0; i < ns.elems.length; i++) {
+            for (let i = 0; i < ns.elems.length; i++) {
                 findAndReplaceDOMText(ns.elems[i], {
                     preset: 'prose',
                     find: r,
                     replace: (function(book, portion, match) {
-                        var matched_ref = match[1]
+                        const matched_ref = match[1]
                             .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                             .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
                         //  the following regex recognizes 'quotationOnly' citations. by reading the book name and then allowing a single Hebrew letter or numbers or multiple Hebrew letters with the different quotations (gershayim) options somewhere in them
-                        var quotation_reg = new RegExp(`${book}\\s+(\u05d3\u05e3\\s+)?(([\u05d0-\u05ea]+?['\u05f3"\u05f4”’][\u05d0-\u05ea]*?|[\u05d0-\u05ea](\\.|:)?|\\d+(a|b|:|\\.)?)\\s*(\\s|$|:|\\.|,|[-\u2010-\u2015\u05be])\\s*)+`, 'g');
+                        const quotation_reg = new RegExp(`${book}\\s+(\u05d3\u05e3\\s+)?(([\u05d0-\u05ea]+?['\u05f3"\u05f4”’][\u05d0-\u05ea]*?|[\u05d0-\u05ea](\\.|:)?|\\d+(a|b|:|\\.)?)\\s*(\\s|$|:|\\.|,|[-\u2010-\u2015\u05be])\\s*)+`, 'g');
                         // this line tests if the match of the full Ref found is a quotaionOnly and should/n't be wrapped
                         if (ns.quotationOnly && (matched_ref.match(quotation_reg) == null || matched_ref.match(quotation_reg)[0]!==matched_ref)) {
                            return portion.text;
                         }
                         else { ns.matches.push(matched_ref);
-                            var atag = document.createElement("a");
+                            const atag = document.createElement("a");
                             atag.target = "_blank";
                             atag.className = "sefaria-ref";
                             atag.href = base_url + matched_ref;
                             atag.setAttribute('data-ref', matched_ref);
                             atag.setAttribute('aria-controls', 'sefaria-popup');
-                            atag.textContent = match[1];
+                            atag.textContent = portion.text;
 
                             // due to the fact that safari doesn't support lookbehinds, we need to include prefix group in match
                             // however, we don't want the prefix group to end up in the final a-tag
-                            var preText = match[0].substr(0, match[0].indexOf(match[1]));
+                            const preText = match[0].substr(0, match[0].indexOf(match[1]));
                             if (preText.length === 0) {
                                 return atag;
                             }
                             // there is some text in the prefix group that needs to be wrapped in a span
-                            var node = document.createElement("span");
+                            const node = document.createElement("span");
                             node.textContent = preText;
                             node.appendChild(atag);
                             return node;
-
                         }
                     }).bind(null, book),
                     filterElements: function(el) {
                         return !(
                             hasOwn.call(findAndReplaceDOMText.NON_PROSE_ELEMENTS, el.nodeName.toLowerCase())
-                            || (el.tagName == "A")
+                            || (el.tagName === "A")
                         );
                     }
                 });
