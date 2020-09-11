@@ -668,7 +668,7 @@ const Element = ({attributes, children, element}) => {
             );
         case 'TextRef':
             return (
-              <div className="ref">{children}</div>
+              <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{children}</div>
             )
         case 'SourceContentText':
             return (
