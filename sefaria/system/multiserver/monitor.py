@@ -31,7 +31,11 @@ class MultiServerMonitor(MessagingNode):
 
         :return:
         """
-        msg = self.pubsub.get_message()
+        try:
+            msg = self.pubsub.get_message()
+        except ConnectionError:
+            logger.error("Failed to connect to Redis instance while getting new message")
+            return
         if not msg:
             return
 
@@ -57,7 +61,11 @@ class MultiServerMonitor(MessagingNode):
         :return:
         """
         event_id = data["id"]
-        (_, subscribers) = self.redis_client.execute_command('PUBSUB', 'NUMSUB', MULTISERVER_REDIS_EVENT_CHANNEL)
+        try:
+            (_, subscribers) = self.redis_client.execute_command('PUBSUB', 'NUMSUB', MULTISERVER_REDIS_EVENT_CHANNEL)
+        except ConnectionError:
+            logger.error("Failed to connect to Redis instance while getting subscriber count")
+            return
         expected = int(subscribers - 2)  # No confirms from the publisher or the monitor => subscribers - 2
         self.events[event_id] = {
             "data": data,
