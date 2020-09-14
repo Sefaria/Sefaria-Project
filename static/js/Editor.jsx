@@ -1569,6 +1569,12 @@ const SefariaEditor = (props) => {
     }
 
     function onChange(value) {
+      if(!ReactEditor.isFocused(editor)) {
+        ReactEditor.focus(editor);
+        Transforms.select(editor, Editor.end(editor, []));
+        // Prevents sources from being selected by clicks outside of editor
+        return
+      }
         // setFullSheetItemSelectedPath(isWholeSheetItemSelected(editor));
         const selectedSheetSources = activeSheetSources(editor);
         if (currentSelection != selectedSheetSources) {
