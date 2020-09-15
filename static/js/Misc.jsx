@@ -1621,7 +1621,7 @@ class InterruptingMessage extends Component {
 
     } else if (this.props.style === "modal") {
       return  <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
-          <div id="interruptingMessageOverlay" onClick={this.close}></div>
+          <div id="interruptingMessageOverlay"></div>
           <div id="interruptingMessage">
             <div id="interruptingMessageContentBox">
               <div id="interruptingMessageClose" onClick={this.close}>×</div>
