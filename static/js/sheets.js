@@ -1530,7 +1530,7 @@ $(function() {
 		// Remove Source
 		$(".removeSource").on("click", function() {
 			var $item = $(this).closest(".sheetItem"); // Firefox triggers mouseout when opening confirm
-			if (confirm("Are you sure you want to remove this?")) {
+			if (confirm(_("Are you sure you want to remove this?"))) {
 				$item.remove();
 				autoSave();
 				setSourceNumbers();
@@ -2721,6 +2721,17 @@ function autoSave() {
 		$("#lastSaved").find(".saving").show().siblings().hide();
 		var sheet = readSheet();
 		saveSheet(sheet);
+	} else if (sjs.can_save && !sjs.current.id && !sjs.promptedToSave) {
+		var sheet = readSheet();
+		if (sheet.sources.length > 2) {
+			setTimeout(function() {
+				var save = confirm(_("Would you like to save this sheet? You only need to save once, after that changes are saved automatically."));
+				if (save) {
+					handleSave();
+				}
+				sjs.promptedToSave = true;
+			}, 500);
+		}
 	}
 }
 
@@ -3572,7 +3583,7 @@ function deleteSheet() {
 					"<span class='int-en'>Source Sheet deleted.</span>" +
 					"<span class='int-he'>דף המקורות נמחק בהצלחה.</span>" +
 					"<br><br>" +
-					"<a href='/sheets/private'>" +
+					"<a href='/my/profile'>" +
 						"<div class='ok btn'>" +
 							"<span class='int-en'>OK</span>" +
 							"<span class='int-he'>המשך</span>" +

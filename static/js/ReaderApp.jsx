@@ -555,22 +555,6 @@ class ReaderApp extends Component {
                 }
                 hist.title = state.sheetsGroup + " | " + Sefaria._(siteName + " Group");
                 hist.mode  = "sheets tag";
-            } else if (states[i].navigationSheetTag) {
-              if (states[i].navigationSheetTag == "My Sheets") {
-                hist.url   = "sheets/private";
-                hist.title = Sefaria._("My Source Sheets | " + siteName + " Source Sheets");
-                hist.mode  = "sheets tag";
-              }
-              else if (states[i].navigationSheetTag == "All Sheets") {
-                hist.url   = "sheets/tags/" + state.navigationSheetTag;
-                hist.title = Sefaria._("Public Source Sheets | " + siteName + " Source Sheets");
-                hist.mode  = "sheets tag";
-              }
-              else {
-                hist.url   = "sheets/tags/" + state.navigationSheetTag.replace("#","%23");
-                hist.title = state.navigationSheetTag + " | " + Sefaria._(siteName + " Source Sheets");
-                hist.mode  = "sheets tag";
-              }
             } else {
               hist.url   = "sheets";
               hist.title = Sefaria._(siteName + " Source Sheets");
@@ -1097,9 +1081,6 @@ class ReaderApp extends Component {
 
     } else if (path == "/groups") {
       this.showGroups();
-
-    } else if (path == "/sheets/private") {
-      this.showMySheets();
 
     } else if (path == "/my/profile") {
       this.openProfile(Sefaria.slug);
@@ -1684,9 +1665,6 @@ class ReaderApp extends Component {
   }
   showUserStats() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "user_stats"});
-  }
-  showMySheets() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "sheets", navigationSheetTag: "My Sheets"});
   }
   showGroups() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "publicGroups"});

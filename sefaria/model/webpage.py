@@ -99,6 +99,7 @@ class WebPage(abst.AbstractMongoRecord):
             "judaism.codidact\.com\/.+\/posts\/new\/",
             "jewishexponent\.com\/page\/\d",
             "hebrewcollege\.edu\/blog\/(author|category|tag)\/",  # these function like indices of articles
+            "roshyeshivamaharat.org\/(author|category|tag)\/",
             "webcache\.googleusercontent\.com",
             "translate\.googleusercotent\.com",
             "dailympails\.gq\/",
@@ -522,5 +523,15 @@ sites_data = [
         "name": "Pardes Institute of Jewish Studies",
         "domains": ["pardes.org"],
         "title_branding": ["Elmad Online Learning Torah Podcasts, Online Jewish Learning"]
+    },
+    {
+        "name": "Yeshivat Chovevei Torah",
+        "domains": ["yctorah.org"],
+        "title_branding": ["Torah Library of Yeshivat Chovevei Torah"]
+    },
+    {
+        "name": "Rabbi Jeff Fox (Rosh ha-Yeshiva, Yeshivat Maharat)",
+        "domains": ["roshyeshivatmaharat.org"],
+        "title_branding": ["Rosh Yeshiva Maharat"]
     },
 ]

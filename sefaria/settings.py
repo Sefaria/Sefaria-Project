@@ -295,22 +295,18 @@ CACHES = {
     }
 }
 
-"""
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "sustainers-august-2020",
+    "name":       "highHolidayDonation-2020",
+    "style":      "modal", # "modal" or "banner"
     "repetition": 1,
-    "style":      "banner",
-    "condition": {
-        "returning_only": False,
-        "desktop_only": False,
+    "condition":  {
+        "returning_only": True,
         "english_only": False,
-        "hebrew_only": False,
+        "desktop_only": False,
         "debug": False
     }
 }
-"""
-
-GLOBAL_INTERRUPTING_MESSAGE = None
+# GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab environment specific settings from a file which
 # is left out of the repo.

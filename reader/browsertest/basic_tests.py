@@ -126,10 +126,8 @@ class PagesLoad(AtomicTest):
         self.load_people()
         #logged in stuff
         self.login_user()
+        self.load_my_profile()
         # self.load_notifications()
-        self.load_account()
-        self.load_private_sheets()
-        self.load_private_groups()
 
 
 class SectionContentAsExpectedMasechtotAndChapters(AtomicTest):
@@ -491,18 +489,23 @@ class SideBarEntries(AtomicTest):
             self.click_sidebar_entry(section)
             self.click_resources_on_sidebar()
 
-        self.click_resources_on_sidebar()
-        self.click_other_text_on_sidebar()
+        self.click_sidebar_button("Other Text")
         assert self.is_sidebar_browse_title_displayed()
         assert self.is_sidebar_calendar_title_displayed()
         self.driver.find_element_by_css_selector('.readerNavMenuMenuButton').click()
-        # self.click_sheets_on_sidebar()    #commented out as sheets is being worked on
-        self.click_notes_on_sidebar()
-        self.click_about_on_sidebar()
+
+        self.click_sidebar_button("Sheets")
+        self.click_resources_on_sidebar()
+
+        self.click_sidebar_button("Notes")
+        self.click_resources_on_sidebar()
+
+        self.click_sidebar_button("About")
         msg = self.driver.find_element_by_css_selector('#panel-1 > div.readerContent > div > div > div > section > div.detailsSection > h2 > span.int-en').get_attribute('innerHTML')
         assert msg == 'About This Text'
         self.click_resources_on_sidebar()
-        self.click_versions_on_sidebar()
+
+        self.click_sidebar_button("Translations")
         #todo: This version doesn't show up on title bar.  Rework this to change to a version that will show on bar.
         #url1 = self.get_current_url()
         #title1 = self.get_current_content_title()
@@ -514,18 +517,17 @@ class SideBarEntries(AtomicTest):
         #assert url1 != url2, u"'{}' equals '{}'".format(url1, url2)
         #assert title1 != title2,  u"'{}' equals '{}'".format(title1, title2)
         time.sleep(1)
-
         assert self.get_sidebar_nth_version_button(1).text in ['Select Translation', 'בחירת תרגום'],  u"'{}' does not equal 'Select Translation'".format(self.get_sidebar_nth_version_button(1).text)
         assert self.get_sidebar_nth_version_button(2).text in ['Current Translation', 'מהדורה נוכחית'], u"'{}' does not equal 'Current Translation'".format(self.get_sidebar_nth_version_button(2).text)
         self.click_resources_on_sidebar()
-        self.click_webpages_on_sidebar()
+        
+        self.click_sidebar_button("Web Pages")
         self.click_resources_on_sidebar()
-        self.click_tools_on_sidebar()
-        self.click_share_on_sidebar()
 
+        self.click_sidebar_button("Tools")
+        self.click_sidebar_button("Share")
         '''
         Buggy.  Doesn't work on Safari. Mobile?
-
         self.click_sidebar_facebook_link()
         url1 = self.get_newly_opened_tab_url()
         assert 'facebook.com' in url1, u"'{}' not in '{}'".format('facebook.com', url1)
@@ -538,18 +540,17 @@ class SideBarEntries(AtomicTest):
         assert 'twitter.com' in url1, u"'{}' not in '{}'".format('twitter.com', url1)
         self.close_tab_and_return_to_prev_tab()
         '''
-
         self.click_resources_on_sidebar()
-
-            # self.click_tools_on_sidebar()     #NOT checking the email option, not to open an email client. Leaving here thoupgh, just in case.
-            # self.click_share_on_sidebar()
-            # self.click_email_twitter_link()
-            # self.click_resources_on_sidebar()
+        # self.click_tools_on_sidebar()     #NOT checking the email option, not to open an email client. Leaving here thoupgh, just in case.
+        # self.click_share_on_sidebar()
+        # self.click_email_twitter_link()
+        # self.click_resources_on_sidebar()
         # self.click_tools_on_sidebar()
         # self.click_add_translation_on_sidebar()   # Time out. Is this a bug?
         # self.back()
-        self.click_tools_on_sidebar()
-        self.click_add_connection_on_sidebar()
+        
+        self.click_sidebar_button("Tools")
+        self.click_sidebar_button("Add Connection")
         time.sleep(1)
         assert self.is_sidebar_browse_title_displayed()
         assert self.is_sidebar_calendar_title_displayed()
