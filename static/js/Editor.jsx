@@ -557,7 +557,7 @@ const Element = ({attributes, children, element}) => {
             const selected = useSelected();
             const classes = {SheetSource: 1, segment: 1, selected: selected };
             return (
-                <div onMouseDown={(e) => console.log(isSourceEditable(e, editor))} className={classNames(classes)} {...attributes} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
+                <div onMouseDown={(e) => isSourceEditable(e, editor)} className={classNames(classes)} {...attributes} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
                     {children}
                 </div>
             );
@@ -1475,12 +1475,39 @@ const SefariaEditor = (props) => {
     function ensureSelectOfEntireSource(currentSelection) {
 
       if(currentSelection.length > 0) {
+
         if (editor.children[0]["edittingSource"]) {
+          const textBox = getClosestSheetElement(editor, editor.selection.anchor["path"], "SourceContentText")
+
+          if (!textBox) {return}
+
+          const textBoxEnd = Editor.end(editor, textBox[1])
+          const textBoxStart = Editor.start(editor, textBox[1])
+
+          // debugger;
+
+          if (Range.isBackward(editor.selection) && Point.isBefore(editor.selection.focus, Editor.start(editor, textBox[1]))) {
+            console.log("out of bounds top")
+            Transforms.select(editor, {
+              focus: { path: textBoxStart["path"], offset: textBoxStart["offset"]},
+              anchor: { path: editor.selection.anchor["path"], offset: editor.selection.anchor["offset"]}
+            });
+
+          }
+
+          else if (!(Range.isBackward(editor.selection)) && Point.isAfter(editor.selection.focus, Editor.end(editor, textBox[1]))) {
+            console.log("out of bounds below")
+            Transforms.select(editor, {
+              focus: { path: textBoxEnd["path"], offset: textBoxEnd["offset"]},
+              anchor: { path: editor.selection.anchor["path"], offset: editor.selection.anchor["offset"]}
+            });
+          }
           return
         }
 
         const firstSourceEdge = Editor.before(editor, (currentSelection[0][1]))
         const lastSourceEdge = Editor.after(editor, (currentSelection[currentSelection.length - 1][1]))
+
 
         if (Range.isBackward(editor.selection)) {
           const anchorLoc = Point.isAfter(lastSourceEdge, editor.selection.anchor) ? lastSourceEdge : editor.selection.anchor;
