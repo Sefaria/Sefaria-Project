@@ -33,6 +33,10 @@ cache.on('connect', function() {
     console.log('Connected to Redis');
 });
 
+cache.get(":1:toc_json_cache", function(err, resp){
+  let data = JSON.parse(resp);
+});
+
 const renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
   data.initialPath    = props.initialPath;

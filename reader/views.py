@@ -347,7 +347,7 @@ def base_props(request):
     """
     from sefaria.system.context_processors import user_and_notifications
     return {
-        "multiPanel": not request.user_agent.is_mobile and not "mobile" in request.GET,
+        "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "loggedIn": True if request.user.is_authenticated else False, # Django 1.10 changed this to a CallableBool, so it doesnt have a direct value of True/False,
         "_uid": request.user.id,
