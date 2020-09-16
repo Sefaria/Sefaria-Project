@@ -33,16 +33,14 @@ class GroupPage extends Component {
     };
   }
   componentDidMount() {
-    Sefaria.getGroup(this.props.group)
-        .then(groupData => {
-          this.sortSheetData(groupData, this.state.sheetSort);
-          this.setState({
-            groupData,
-            showTopics: !!groupData.showTagsByDefault && !this.props.tag
-          });
-        });
+    this.loadData();
   }
   componentDidUpdate(prevProps, prevState) {
+    if (this.props.group !== prevProps.group) {
+      this.setState({groupData: null});
+      this.loadData();
+    }
+
     if (!this.state.showTopics && prevState.showTopics && $(".content").scrollTop() > 570) {
       $(".content").scrollTop(570);
     }
@@ -57,6 +55,16 @@ class GroupPage extends Component {
         this.setState({showTopics: false});
       }
     }
+  }
+  loadData() {
+    Sefaria.getGroup(this.props.group)
+      .then(groupData => {
+        this.sortSheetData(groupData, this.state.sheetSort);
+        this.setState({
+          groupData,
+          showTopics: !!groupData.showTagsByDefault && !this.props.tag
+        });
+      });
   }
   onDataChange() {
     this.setState({groupData: Sefaria._groups[this.props.group]});
