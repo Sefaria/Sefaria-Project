@@ -64,7 +64,7 @@ class ConnectionsPanel extends Component {
       this.props.setConnectionsMode("Lexicon");
     }
     // Go back to main sidebar when words are unselected
-    if (prevProps.selectedWords && prevProps.mode === "Lexicon" && !this.props.selectedWords) {
+    if (prevProps.selectedWords && prevProps.mode === "Lexicon" && !this.props.selectedWords && !this.props.selectedNamedEntity) {
       this.props.setConnectionsMode("Resources");
     }
 
@@ -452,6 +452,8 @@ class ConnectionsPanel extends Component {
                     oref={Sefaria.ref(this.props.srefs[0])}
                     onEntryClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
+                    clearSelectedWords={this.props.clearSelectedWords}
+                    clearNamedEntity={this.props.clearNamedEntity}
                     interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.props.mode === "Topics") {
@@ -612,6 +614,8 @@ ConnectionsPanel.propTypes = {
   recentVersionFilters:    PropTypes.array,
   setVersionFilter:        PropTypes.func.isRequired,
   checkIntentTimer:        PropTypes.func.isRequired,
+  clearSelectedWords:      PropTypes.func.isRequired,
+  clearNamedEntity:        PropTypes.func.isRequired,
 };
 
 

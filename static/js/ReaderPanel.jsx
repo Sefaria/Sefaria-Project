@@ -401,6 +401,14 @@ class ReaderPanel extends Component {
       this.conditionalSetState({'selectedWords':  words});
     }
   }
+  clearSelectedWords() {
+    this.replaceHistory = false;
+    if (this.props.multiPanel) {
+      this.props.clearSelectedWords();
+    } else {
+      this.conditionalSetState({'selectedWords':  ''});
+    }
+  }
   closeMenus() {
     var state = {
       // If there's no content to show, return to home
@@ -796,6 +804,8 @@ class ReaderPanel extends Component {
           closePanel={this.props.closePanel}
           selectedWords={this.state.selectedWords}
           selectedNamedEntity={this.state.selectedNamedEntity}
+          clearSelectedWords={this.clearSelectedWords}
+          clearNamedEntity={this.props.clearNamedEntity}
           getLicenseMap={this.props.getLicenseMap}
           masterPanelLanguage={this.props.masterPanelLanguage}
           translateISOLanguageCode={this.props.translateISOLanguageCode}

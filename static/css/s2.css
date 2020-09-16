@@ -5711,6 +5711,13 @@ a .button:hover {
 .lexicon-results {
   padding-top: 20px;
 }
+.lexicon-results .named-entity-description {
+  margin-top: 13px;
+}
+.lexicon-results .named-entity-description .en,
+.lexicon-results .named-entity-description .he {
+  color: #666;
+}
 .lexicon-results .entry > div {
   padding: 1% 0 1% 0;
   margin: auto;

@@ -1025,9 +1025,14 @@ class ReaderApp extends Component {
     this.openPanelAt(n, citationRef);
   }
   handleNamedEntityClick(n, slug, textRef) {
-    console.log('slug', slug);
     //this.setTextListHighlight(n, [textRef]);
     this.openTextListAt(n+1, [textRef], null, { connectionsMode: "Lexicon", selectedNamedEntity: slug });
+  }
+  clearSelectedWords(n) {
+    this.setPanelState(n, {selectedWords: ""});
+  }
+  clearNamedEntity(n) {
+    this.setPanelState(n, {selectedNamedEntity: null});
   }
   handleCompareSearchClick(n, ref, currVersions, options) {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
@@ -1831,6 +1836,8 @@ class ReaderApp extends Component {
       var onOpenConnectionsClick         = this.openTextListAt.bind(null, i+1);
       var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
+      var clearSelectedWords             = this.clearSelectedWords.bind(null, i);
+      var clearNamedEntity               = this.clearNamedEntity.bind(null, i);
       var openComparePanel               = this.openComparePanel.bind(null, i);
       var closePanel                     = panel.menuOpen == "compare" ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
       var setPanelState                  = this.setPanelState.bind(null, i);
@@ -1893,6 +1900,8 @@ class ReaderApp extends Component {
                       checkIntentTimer={this.checkIntentTimer}
                       toggleSignUpModal={this.toggleSignUpModal}
                       getHistoryObject={this.getHistoryObject}
+                      clearSelectedWords={clearSelectedWords}
+                      clearNamedEntity={clearNamedEntity}
                     />
                   </div>);
     }

@@ -14,6 +14,7 @@ class LexiconBox extends Component {
     super(props);
     this.state = {
       searchedWord: null,   // This is used only to counteract the influence of a ref, currently, but should really be show in the search box after search, and bubble up to state.
+      selectedNamedEntity: null,
       entries: [],
       loaded: false
     };
@@ -25,24 +26,28 @@ class LexiconBox extends Component {
       this.getNamedEntity(this.props.selectedNamedEntity);
     }
   }
-  componentWillReceiveProps(nextProps) {
-    // console.log("component will receive props: ", nextProps.selectedWords);
-    // if (!nextProps.selectedWords) {
-    //   this.clearLookups();
-    // } else if (this.props.selectedWords !== nextProps.selectedWords) {
-    //   this.clearLookups();
-    //   this.getLookups(nextProps.selectedWords, nextProps.oref);
-    // }
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.selectedWords && this.props.selectedWords !== prevProps.selectedWords) {
+      this.clearLookups();
+      this.props.clearNamedEntity();
+      this.getLookups(this.props.selectedWords, this.props.oref);
+    } else if (this.props.selectedNamedEntity && this.props.selectedNamedEntity !== prevProps.selectedNamedEntity) {
+      this.clearLookups();
+      this.props.clearSelectedWords();
+      this.getNamedEntity(this.props.selectedNamedEntity);
+    }
   }
   clearLookups() {
     this.setState({
       searchedWord: null,
+      namedEntity: null,
       loaded: false,
       entries: []
     });
   }
   searchWord(word) {
     this.clearLookups();
+    this.props.clearNamedEntity();
     this.setState({searchedWord: word});
     this.getLookups(word);
   }
@@ -111,11 +116,6 @@ class LexiconBox extends Component {
           if (this.props.selectedWords.length > 0) {
             content = (<LoadingMessage message={enEmpty} heMessage={heEmpty}/>);
           }
-      } else if (this.state.namedEntity) {
-        content = (<div>
-          <div>{this.state.namedEntity.primaryTitle.en}</div>
-          <div>{this.state.namedEntity.description.en}</div>
-        </div>)
       } else {
           let entries = this.state.entries;
           content =  entries.filter(e => (!refCats) || e['parent_lexicon_details']['text_categories'].length === 0 || e['parent_lexicon_details']['text_categories'].indexOf(refCats) > -1).map(function(entry, i) {
@@ -126,6 +126,25 @@ class LexiconBox extends Component {
                     key={i} />)
               }.bind(this));
           content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
+      }
+    } else if (!!this.props.selectedNamedEntity) {
+      if (!this.state.loaded) {
+        content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
+      } else {
+          content = (<div>
+            <div className="contentText">
+              <span className="en">{this.state.namedEntity.primaryTitle.en}</span>
+              <span className="he">{this.state.namedEntity.primaryTitle.he}</span>
+            </div>
+            {
+              this.state.namedEntity.description ? (
+                <div className="contentText named-entity-description">
+                  <span className="en">{this.state.namedEntity.description.en}</span>
+                  <span className="he">{this.state.namedEntity.description.he}</span>
+                </div>
+              ) : null
+            }
+          </div>)
       }
     }
 
