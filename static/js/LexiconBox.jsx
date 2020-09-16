@@ -27,12 +27,12 @@ class LexiconBox extends Component {
   }
   componentWillReceiveProps(nextProps) {
     // console.log("component will receive props: ", nextProps.selectedWords);
-    if (!nextProps.selectedWords) {
-      this.clearLookups();
-    } else if (this.props.selectedWords !== nextProps.selectedWords) {
-      this.clearLookups();
-      this.getLookups(nextProps.selectedWords, nextProps.oref);
-    }
+    // if (!nextProps.selectedWords) {
+    //   this.clearLookups();
+    // } else if (this.props.selectedWords !== nextProps.selectedWords) {
+    //   this.clearLookups();
+    //   this.getLookups(nextProps.selectedWords, nextProps.oref);
+    // }
   }
   clearLookups() {
     this.setState({
@@ -64,15 +64,17 @@ class LexiconBox extends Component {
       });
     }
   }
+
   getNamedEntity(slug) {
     Sefaria.getTopic(slug, false, false, false, false).then(data => {
       console.log("getTopic", data);
-      // this.setState({
-      //   loaded: true,
-      //   namedEntity: data,
-      // });
+      this.setState({
+        loaded: true,
+        namedEntity: data,
+      });
     })
   }
+
   shouldActivate(selectedWords){
     if (this.state.searchedWord) {
       return true;
@@ -109,6 +111,11 @@ class LexiconBox extends Component {
           if (this.props.selectedWords.length > 0) {
             content = (<LoadingMessage message={enEmpty} heMessage={heEmpty}/>);
           }
+      } else if (this.state.namedEntity) {
+        content = (<div>
+          <div>{this.state.namedEntity.primaryTitle.en}</div>
+          <div>{this.state.namedEntity.description.en}</div>
+        </div>)
       } else {
           let entries = this.state.entries;
           content =  entries.filter(e => (!refCats) || e['parent_lexicon_details']['text_categories'].length === 0 || e['parent_lexicon_details']['text_categories'].indexOf(refCats) > -1).map(function(entry, i) {
