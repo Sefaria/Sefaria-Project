@@ -936,8 +936,6 @@ const withSefariaSheet = editor => {
       //   }
       // }
 
-
-
       if (node.type == "SheetContent") {
         // If sheet elements are in sheetcontent and not wrapped in sheetItem, wrap it.
         for (const [child, childPath] of Node.children(editor, path)) {
@@ -963,12 +961,9 @@ const withSefariaSheet = editor => {
           }
         }
         if ((node.children[node.children.length-1].children[0].type) != "SheetOutsideText") {
-          console.log('missing outside text at bottom')
-          Transforms.select(editor, Editor.end(editor, []));
-          Editor.insertBreak(editor)
-          // Transforms.insertNodes(editor, fragment, {at: []});
-
-
+            Transforms.select(editor, Editor.end(editor, []));
+            Editor.insertBreak(editor)
+            return
         }
       }
 
@@ -1157,6 +1152,10 @@ const insertSource = (editor, ref) => {
         const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
         const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
 
+        //add an empty outside text to serve as a placeholder after the source to be added below to allow for easy editing
+        const emptyFragment = defaultEmptyOutsideText(editor.children[0].nextNode, "")
+        addItemToSheet(editor, emptyFragment, "bottom");
+
         const fragment = {
             type: "SheetItem",
             children: [{
@@ -1202,19 +1201,9 @@ const insertSource = (editor, ref) => {
             }]
         };
         addItemToSheet(editor, fragment, "bottom");
-
-        const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")[1];
-
         Transforms.setNodes(editor, { loading: false }, { at: currentNode[1] });
         Transforms.insertText(editor, '', { at: currentNode[1] })
-
         Transforms.move(editor, { unit: 'block', distance: 8 })
-
-        const emptyFragment = defaultEmptyOutsideText(editor.children[0].nextNode, "")
-        addItemToSheet(editor, emptyFragment, "bottom");
-
-        Transforms.move(editor, { unit: 'block', distance: 1 })
-
     });
 };
 
