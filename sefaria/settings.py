@@ -298,7 +298,7 @@ CACHES = {
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "highHolidayDonation-2020",
     "style":      "modal", # "modal" or "banner"
-    "repetition": 1,
+    "repetition": 2,
     "condition":  {
         "returning_only": True,
         "english_only": False,
