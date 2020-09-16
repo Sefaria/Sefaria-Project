@@ -172,6 +172,7 @@ REST_FRAMEWORK = {
 }
 
 SESSION_SAVE_EVERY_REQUEST = True
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer' # this is the default anyway right now, but make sure
 
 LOCALE_PATHS = (
     relative_to_abs_path('../locale'),
