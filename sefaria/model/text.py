@@ -4268,10 +4268,13 @@ class Ref(object, metaclass=RefCacheType):
         from . import LinkSet
         return LinkSet(self)
 
-    def topiclinkset(self):
+    def topiclinkset(self, with_char_level_links=False):
         from . import RefTopicLinkSet
         regex_list = self.regex(as_list=True)
-        return RefTopicLinkSet({"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]})
+        query = {"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]}
+        if not with_char_level_links:
+            query["charLevelData"] = {"$exists": False}
+        return RefTopicLinkSet(query)
 
     def autolinker(self, **kwargs):
         """
