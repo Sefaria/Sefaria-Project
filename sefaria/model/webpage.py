@@ -190,9 +190,16 @@ class WebPageSet(abst.AbstractMongoSet):
 
 
 def get_webpages_for_ref(tref):
+    from pymongo.errors import OperationFailure
     oref = text.Ref(tref)
     segment_refs = [r.normal() for r in oref.all_segment_refs()]
     results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}}, hint="expandedRefs_1")
+    try:
+        results = results.array()
+    except OperationFailure as e:
+        # If documents are too large or there are too many results, fail gracefully
+        logger.warn(f"WebPageSet for ref {tref} failed due to Error: {repr(e)}")
+        return []
     client_results = []
     for webpage in results:
         if not webpage.whitelisted:
