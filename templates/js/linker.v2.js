@@ -24,6 +24,8 @@
 
     /* filter array to distinct values */
     function distinct(value, index, self) {return self.indexOf(value) === index;}
+    /* see https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript/3561711#3561711 */
+    function escapeRegex(string) {return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');}
 
     var base_url = '{% if DEBUG %}http://localhost:8000/{% else %}https://www.sefaria.org/{% endif %}';
     var bookTitles = {{ book_titles }};
@@ -418,10 +420,17 @@
             const r = XRegExp(ns.regexes[book],"xgm");
             // find the refrences and push them into ns.matches
             for (let i = 0; i < ns.elems.length; i++) {
+                const portionHasMatched = {};
                 findAndReplaceDOMText(ns.elems[i], {
                     preset: 'prose',
                     find: r,
                     replace: (function(book, portion, match) {
+                        // each match for a given book is uniquely identified by start and end index
+                        // this this id to see if this is the first portion to match the `match`
+                        const matchKey = match.startIndex + "|" + match.endIndex;
+                        let isFirstMatchInPortion = !portionHasMatched[matchKey];
+                        portionHasMatched[matchKey] = true;
+
                         const matched_ref = match[1]
                             .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                             .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
@@ -439,14 +448,14 @@
                             atag.setAttribute('data-ref', matched_ref);
                             atag.setAttribute('aria-controls', 'sefaria-popup');
                             atag.textContent = portion.text;
+                            const preText = match[0].substr(0, match[0].indexOf(match[1]));
+                            if (!isFirstMatchInPortion || preText.length === 0) { return atag; }
+
+                            // remove prefix from portionText
+                            atag.textContent = portion.text.replace(new RegExp("^" + escapeRegex(preText)), '');
 
                             // due to the fact that safari doesn't support lookbehinds, we need to include prefix group in match
                             // however, we don't want the prefix group to end up in the final a-tag
-                            const preText = match[0].substr(0, match[0].indexOf(match[1]));
-                            if (preText.length === 0) {
-                                return atag;
-                            }
-                            // there is some text in the prefix group that needs to be wrapped in a span
                             const node = document.createElement("span");
                             node.textContent = preText;
                             node.appendChild(atag);
