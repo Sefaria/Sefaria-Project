@@ -252,7 +252,7 @@ const FilterableList = ({
   const [rawData, setRawData] = useState(cachedData);
   const [displayData, setDisplayData] = useState(processData(rawData));
   
-  // Initial loading of data
+  // If `getData` function is passed, load data through this effect
   useEffect(() => {
     let isMounted = true;
     if (!rawData) {
@@ -269,6 +269,12 @@ const FilterableList = ({
       isMounted = false;
     };
   }, [getData, rawData]);
+
+  // Alternatively, if there is no `getData` function passed, we expect data to be fed in directly through the `data` prop
+  useEffect(() => {
+    setRawData(data);
+    setDisplayData(processData(data));
+  }, [data]);
 
   // After initial load, when refreshData changes, trigger a new call for data.
   const mounted = useRef(false);
