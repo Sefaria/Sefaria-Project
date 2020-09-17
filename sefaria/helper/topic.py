@@ -481,6 +481,9 @@ def calculate_mean_tfidf(ref_topic_links):
             except InputError:
                 print(l.ref)
                 continue
+            except IndexError:
+                print("Index Error", l.ref)
+                continue
 
             ref_words_map[l.ref] = tokenize_words_for_tfidf(oref.text('he').as_string(), stopwords)
 
