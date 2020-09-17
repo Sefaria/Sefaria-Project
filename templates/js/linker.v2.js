@@ -428,7 +428,7 @@
                         // each match for a given book is uniquely identified by start and end index
                         // this this id to see if this is the first portion to match the `match`
                         const matchKey = match.startIndex + "|" + match.endIndex;
-                        let isFirstMatchInPortion = !portionHasMatched[matchKey];
+                        let isFirstPortionInMatch = !portionHasMatched[matchKey];
                         portionHasMatched[matchKey] = true;
 
                         const matched_ref = match[1]
@@ -449,7 +449,7 @@
                             atag.setAttribute('aria-controls', 'sefaria-popup');
                             atag.textContent = portion.text;
                             const preText = match[0].substr(0, match[0].indexOf(match[1]));
-                            if (!isFirstMatchInPortion || preText.length === 0) { return atag; }
+                            if (!isFirstPortionInMatch || preText.length === 0) { return atag; }
 
                             // remove prefix from portionText
                             atag.textContent = portion.text.replace(new RegExp("^" + escapeRegex(preText)), '');
