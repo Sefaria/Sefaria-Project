@@ -4511,10 +4511,10 @@ class Library(object):
         """
         if rebuild or not self._toc:
             if not rebuild:
-                self._toc = scache.get_cache_elem('toc_cache')
+                self._toc = scache.get_cache_elem('toc')
             if rebuild or not self._toc:
                 self._toc = self.get_toc_tree().get_serialized_toc()  # update_table_of_contents()
-                scache.set_cache_elem('toc_cache', self._toc)
+                scache.set_cache_elem('toc', self._toc)
         return self._toc
 
     def get_toc_json(self, rebuild=False):
@@ -4523,10 +4523,10 @@ class Library(object):
         """
         if rebuild or not self._toc_json:
             if not rebuild:
-                self._toc_json = scache.get_cache_elem('toc_json_cache')
+                self._toc_json = scache.get_shared_cache_elem('toc_json')
             if rebuild or not self._toc_json:
                 self._toc_json = json.dumps(self.get_toc())
-                scache.set_cache_elem('toc_json_cache', self._toc_json)
+                scache.set_shared_cache_elem('toc_json', self._toc_json)
         return self._toc_json
 
     def get_toc_tree(self, rebuild=False):
