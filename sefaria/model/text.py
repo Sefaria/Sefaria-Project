@@ -4537,8 +4537,15 @@ class Library(object):
         return self._toc_tree
 
     def get_topic_toc_json(self, rebuild=False):
-        if not self._topic_toc_json or rebuild:
-            self._topic_toc_json = json.dumps(self.get_topic_toc_json_recursive())
+        """
+        Returns JSON representation of TOC.
+        """
+        if rebuild or not self._topic_toc_json:
+            if not rebuild:
+                self._topic_toc_json = scache.get_shared_cache_elem('topic_toc_json')
+            if rebuild or not self._topic_toc_json:
+                self._topic_toc_json = json.dumps(self.get_topic_toc_json_recursive())
+                scache.set_shared_cache_elem('topic_toc_json', self._topic_toc_json)
         return self._topic_toc_json
 
     def get_topic_toc_json_recursive(self, topic=None, explored=None, with_descriptions=False):
