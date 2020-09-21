@@ -4521,7 +4521,7 @@ class Library(object):
 
     def get_topic_toc_json(self, rebuild=False):
         """
-        Returns JSON representation of TOC.
+        Returns JSON representation of Topics TOC.
         """
         if rebuild or not self._topic_toc_json:
             if not rebuild:
@@ -4953,9 +4953,13 @@ class Library(object):
                     for title in term.get_titles(lang):
                         self._term_ref_maps[lang][title] = term.ref
 
-    def get_simple_term_mapping(self):
-        if not self._simple_term_mapping:
-            self.build_term_mappings()
+    def get_simple_term_mapping(self, rebuild=False):
+        if rebuild or not self._simple_term_mapping:
+            if not rebuild:
+                self._simple_term_mapping = scache.get_shared_cache_elem('term_mapping_json')
+            if rebuild or not self._simple_term_mapping:
+                self.build_term_mappings()
+                scache.set_shared_cache_elem('term_mapping_json', json.dumps(self._simple_term_mapping))
         return self._simple_term_mapping
 
     def get_term(self, term_name):
