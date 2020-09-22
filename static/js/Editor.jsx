@@ -557,7 +557,7 @@ const Element = ({attributes, children, element}) => {
             const selected = useSelected();
             const classes = {SheetSource: 1, segment: 1, selected: selected };
             return (
-                <div onMouseDown={(e) => console.log(isSourceEditable(e, editor))} className={classNames(classes)} {...attributes} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
+                <div onMouseDown={(e) => isSourceEditable(e, editor)} className={classNames(classes)} {...attributes} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
                     {children}
                 </div>
             );
@@ -668,7 +668,7 @@ const Element = ({attributes, children, element}) => {
             );
         case 'TextRef':
             return (
-              <div className="ref">{children}</div>
+              <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{children}</div>
             )
         case 'SourceContentText':
             return (
@@ -884,17 +884,26 @@ const withSefariaSheet = editor => {
       }
 
 
-      // If SheetMetaDataBox is missing a title or authorStatement or groupStatement, reset it
       if (node.type == "SheetMetaDataBox") {
+        // If SheetMetaDataBox is missing a title or authorStatement or groupStatement, reset it
           if (node.children.length < 3) {
               const editorSheetMeta = editor.children[0];
               const newMetaBox = defaultsheetMetaDataBox(
-                  defaultSheetTitle(""),
+                  defaultSheetTitle(node.children[0].type == "SheetTitle" ? Node.string(node.children[0]) : ""),
                   defaultSheetAuthorStatement(editorSheetMeta['authorUrl'], editorSheetMeta['authorStatement'], editorSheetMeta['authorImage']),
                   defaultSheetGroupStatement(editorSheetMeta['group'], editorSheetMeta['groupLogo'])
               );
               Transforms.delete(editor, {at: path});
               Transforms.insertNodes(editor, newMetaBox, { at: path });
+          }
+
+          //Only allow SheetTitle, SheetAuthorStatement & GroupStatement in SheetMeta
+          for (const [child, childPath] of Node.children(editor, path)) {
+            console.log(child)
+            if (!["SheetTitle", "SheetAuthorStatement", "GroupStatement"].includes(child.type)) {
+              Transforms.removeNodes(editor, { at: childPath })
+              return
+            }
           }
       }
 
@@ -927,8 +936,6 @@ const withSefariaSheet = editor => {
       //   }
       // }
 
-
-
       if (node.type == "SheetContent") {
         // If sheet elements are in sheetcontent and not wrapped in sheetItem, wrap it.
         for (const [child, childPath] of Node.children(editor, path)) {
@@ -952,6 +959,11 @@ const withSefariaSheet = editor => {
             return
 
           }
+        }
+        if ((node.children[node.children.length-1].children[0].type) != "SheetOutsideText") {
+            Transforms.select(editor, Editor.end(editor, []));
+            Editor.insertBreak(editor)
+            return
         }
       }
 
@@ -1140,6 +1152,10 @@ const insertSource = (editor, ref) => {
         const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
         const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
 
+        //add an empty outside text to serve as a placeholder after the source to be added below to allow for easy editing
+        const emptyFragment = defaultEmptyOutsideText(editor.children[0].nextNode, "")
+        addItemToSheet(editor, emptyFragment, "bottom");
+
         const fragment = {
             type: "SheetItem",
             children: [{
@@ -1185,19 +1201,9 @@ const insertSource = (editor, ref) => {
             }]
         };
         addItemToSheet(editor, fragment, "bottom");
-
-        const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")[1];
-
         Transforms.setNodes(editor, { loading: false }, { at: currentNode[1] });
         Transforms.insertText(editor, '', { at: currentNode[1] })
-
         Transforms.move(editor, { unit: 'block', distance: 8 })
-
-        const emptyFragment = defaultEmptyOutsideText(editor.children[0].nextNode, "")
-        addItemToSheet(editor, emptyFragment, "bottom");
-
-        Transforms.move(editor, { unit: 'block', distance: 1 })
-
     });
 };
 
@@ -1469,12 +1475,39 @@ const SefariaEditor = (props) => {
     function ensureSelectOfEntireSource(currentSelection) {
 
       if(currentSelection.length > 0) {
+
         if (editor.children[0]["edittingSource"]) {
+          const textBox = getClosestSheetElement(editor, editor.selection.anchor["path"], "SourceContentText")
+
+          if (!textBox) {return}
+
+          const textBoxEnd = Editor.end(editor, textBox[1])
+          const textBoxStart = Editor.start(editor, textBox[1])
+
+          // debugger;
+
+          if (Range.isBackward(editor.selection) && Point.isBefore(editor.selection.focus, Editor.start(editor, textBox[1]))) {
+            console.log("out of bounds top")
+            Transforms.select(editor, {
+              focus: { path: textBoxStart["path"], offset: textBoxStart["offset"]},
+              anchor: { path: editor.selection.anchor["path"], offset: editor.selection.anchor["offset"]}
+            });
+
+          }
+
+          else if (!(Range.isBackward(editor.selection)) && Point.isAfter(editor.selection.focus, Editor.end(editor, textBox[1]))) {
+            console.log("out of bounds below")
+            Transforms.select(editor, {
+              focus: { path: textBoxEnd["path"], offset: textBoxEnd["offset"]},
+              anchor: { path: editor.selection.anchor["path"], offset: editor.selection.anchor["offset"]}
+            });
+          }
           return
         }
 
         const firstSourceEdge = Editor.before(editor, (currentSelection[0][1]))
         const lastSourceEdge = Editor.after(editor, (currentSelection[currentSelection.length - 1][1]))
+
 
         if (Range.isBackward(editor.selection)) {
           const anchorLoc = Point.isAfter(lastSourceEdge, editor.selection.anchor) ? lastSourceEdge : editor.selection.anchor;
@@ -1552,6 +1585,12 @@ const SefariaEditor = (props) => {
     }
 
     function onChange(value) {
+      if(!ReactEditor.isFocused(editor)) {
+        ReactEditor.focus(editor);
+        Transforms.select(editor, Editor.end(editor, []));
+        // Prevents sources from being selected by clicks outside of editor
+        return
+      }
         // setFullSheetItemSelectedPath(isWholeSheetItemSelected(editor));
         const selectedSheetSources = activeSheetSources(editor);
         if (currentSelection != selectedSheetSources) {

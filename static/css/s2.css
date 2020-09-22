@@ -1951,9 +1951,6 @@ a.readerNavCategory {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
 }
-.hebrew .readerNavMenu .dedication {
-  direction: rtl;
-}
 .readerTextTableOfContents .tocTop {
   padding-bottom: 15px;
 }

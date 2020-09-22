@@ -325,8 +325,6 @@ class UserProfile(object):
         self.followers = FollowersSet(self.id)
         self.followees = FolloweesSet(self.id)
 
-        # Gravatar
-
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
         profile = self.migrateFromOldRecents(profile)
@@ -341,6 +339,7 @@ class UserProfile(object):
             self.save()
 
 
+        # Profile Pic default to Gravatar
         if len(self.profile_pic_url) == 0:
             default_image           = "https://www.sefaria.org/static/img/profile-default.png"
             gravatar_base           = "https://www.gravatar.com/avatar/" + hashlib.md5(self.email.lower().encode('utf-8')).hexdigest() + "?"

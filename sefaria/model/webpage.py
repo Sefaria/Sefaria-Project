@@ -99,6 +99,7 @@ class WebPage(abst.AbstractMongoRecord):
             "judaism.codidact\.com\/.+\/posts\/new\/",
             "jewishexponent\.com\/page\/\d",
             "hebrewcollege\.edu\/blog\/(author|category|tag)\/",  # these function like indices of articles
+            "roshyeshivamaharat.org\/(author|category|tag)\/",
             "webcache\.googleusercontent\.com",
             "translate\.googleusercotent\.com",
             "dailympails\.gq\/",
@@ -189,9 +190,16 @@ class WebPageSet(abst.AbstractMongoSet):
 
 
 def get_webpages_for_ref(tref):
+    from pymongo.errors import OperationFailure
     oref = text.Ref(tref)
     segment_refs = [r.normal() for r in oref.all_segment_refs()]
     results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}}, hint="expandedRefs_1")
+    try:
+        results = results.array()
+    except OperationFailure as e:
+        # If documents are too large or there are too many results, fail gracefully
+        logger.warn(f"WebPageSet for ref {tref} failed due to Error: {repr(e)}")
+        return []
     client_results = []
     for webpage in results:
         if not webpage.whitelisted:
@@ -522,5 +530,15 @@ sites_data = [
         "name": "Pardes Institute of Jewish Studies",
         "domains": ["pardes.org"],
         "title_branding": ["Elmad Online Learning Torah Podcasts, Online Jewish Learning"]
+    },
+    {
+        "name": "Yeshivat Chovevei Torah",
+        "domains": ["yctorah.org"],
+        "title_branding": ["Torah Library of Yeshivat Chovevei Torah"]
+    },
+    {
+        "name": "Rabbi Jeff Fox (Rosh ha-Yeshiva, Yeshivat Maharat)",
+        "domains": ["roshyeshivatmaharat.org"],
+        "title_branding": ["Rosh Yeshiva Maharat"]
     },
 ]

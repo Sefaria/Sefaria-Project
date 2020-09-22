@@ -664,6 +664,8 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
     generic_rewrite(UserHistorySet(construct_query('ref', identifier)))
     print('Updating Ref Data')
     generic_rewrite(RefDataSet(construct_query('ref', identifier)))
+    print('Updating Topic Links')
+    generic_rewrite(RefTopicLinkSet(construct_query('ref', identifier)))
     print('Updating Garden Stops')
     generic_rewrite(GardenStopSet(construct_query('ref', identifier)))
     print('Updating Sheets')
