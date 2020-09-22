@@ -2,8 +2,10 @@
 
 import pytest
 from sefaria.model import *
+from sefaria.model.schema import TitleGroup
 import re
 from sefaria.system.exceptions import InputError, BookNameError
+from sefaria.system.database import db
 
 
 
@@ -167,7 +169,7 @@ def test_ancestors():
 
 def test_text_index_map():
     def tokenizer(s):
-        s = re.sub(r'<.+?>','',s).strip()
+        s = re.sub(r'<.+?>', '', s).strip()
         return re.split(r'\s+', s)
 
 
@@ -185,7 +187,7 @@ def test_text_index_map():
         lambda n, _: TextChunk(n.ref(), "he").ja().flatten_to_array() if not n.children else [])
     mes_str_array = [w for seg in mes_list for w in tokenizer(seg)]
 
-    rand_inds = [1,20,45,1046,len(index_list)-2]
+    rand_inds = [1, 20, 45, 1046, len(index_list)-2]
     for ri in rand_inds:
         assert ' '.join(tokenizer(ref_list[ri].text("he").text)) == ' '.join(mes_str_array[index_list[ri]:index_list[ri+1]])
 
@@ -232,13 +234,13 @@ def test_nodes_missing_content():
 
     # construct a more complex schema. First, ensure that the index does not exist in the system
     try:
-        test_index = library.get_index("test text")
+        test_index = library.get_index("Test text")
         test_index.delete()
     except BookNameError:
         pass
 
     root_node = SchemaNode()
-    root_node.add_primary_titles('test text', 'מבחן')
+    root_node.add_primary_titles('Test text', 'מבחן')
     middle1 = SchemaNode()
     middle1.add_primary_titles('mid1', 'אמצע1')
     for i in range(1, 4):
@@ -257,21 +259,35 @@ def test_nodes_missing_content():
     root_node.append(middle2)
     root_node.validate()
     test_index = Index({
-        'title': 'test text',
+        'title': 'Test text',
         'categories': ['Other'],
         'schema': root_node.serialize()
     })
     test_index.save()
 
     # add text
-    chunk = Ref('test text, mid1, leaf1').text('en', 'test version')
+    chunk = Ref('Test text, mid1, leaf1').text('en', 'test version')
     chunk.text = ['Lorem ipsum']
     chunk.save()
+
+    # add titleParts
+    # db.index.update_one({"title": test_index.title}, {"$set": {"schema.titleParts":  [{'lang': 'en', 'parts': [['a'], ['b', 'c']]}, {'lang': 'he', 'parts': [['א'], ['ב']]}]}})
+    library.refresh_index_record_in_cache(test_index)
+    test_index = library.get_index("Test text") #), reload=True)
+    test_index.save()
+    # assert test_index.all_titles() == []
 
     result = test_index.nodes.nodes_missing_content()
     assert result[0] is False
     assert len(result[1]) == 3
     test_index.delete()
+
+class TestTitleGroup():
+
+    def test_duplicate_titles(self):
+        tg = TitleGroup([{'lang': 'en', 'text':'ab', 'primary': True}, {'lang': 'he', 'text': 'אב', 'primary': True}], [{'lang': 'en', 'parts': [['a'], ['b', 'c']]}, {'lang': 'he', 'parts': [['א'], ['ב']]}])
+        assert tg.titles == [{'lang': 'en', 'text': 'ab', 'primary': True}, {'lang': 'he', 'text': 'אב', 'primary': True}, {'lang': 'en', 'text': 'ac'}]
+        tg.validate()
 
 # Todo parametrize for all address types
 def test_folio_type():
