@@ -88,8 +88,8 @@ class ReaderApp extends Component {
           navigationTopicTitle: props.initialNavigationTopicTitle,
           topicTitle: props.initialTopicTitle,
           profile: props.initialProfile,
-          sheetsTag: props.initialSheetsTag,
-          group: props.initialGroup,
+          navigationSheetTag: props.initialSheetsTag,
+          sheetsGroup: props.initialGroup,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
@@ -133,8 +133,8 @@ class ReaderApp extends Component {
           navigationTopicTitle: props.initialNavigationTopicTitle,
           topicTitle: props.initialTopicTitle,
           profile: props.initialProfile,
-          sheetsTag: props.initialSheetsTag,
-          group: props.initialGroup,
+          navigationSheetTag: props.initialSheetsTag,
+          sheetsGroup: props.initialGroup,
           navigationGroupTag: props.initialGroupTag,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
@@ -173,8 +173,8 @@ class ReaderApp extends Component {
         navigationTopicTitle: props.initialNavigationTopicTitle,
         topicTitle: props.initialTopicTitle,
         profile: props.initialProfile,
-        sheetsTag: props.initialSheetsTag,
-        group: props.initialGroup,
+        navigationSheetTag: props.initialSheetsTag,
+        sheetsGroup: props.initialGroup,
         navigationGroupTag: props.initialGroupTag,
         settings: Sefaria.util.clone(defaultPanelSettings)
       };
@@ -879,7 +879,7 @@ class ReaderApp extends Component {
       navigationTopicCategory: state.navigationTopicCategory || "",
       showMoreTexts:           state.showMoreTexts           || Sefaria.toc.length < 9,
       showMoreTopics:          state.showMoreTopics          || false,
-      navigationSheetTag:      state.sheetsTag               || null,
+      navigationSheetTag:      state.navigationSheetTag      || null,
       navigationGroupTag:      state.navigationGroupTag      || null,
       sheet:                   state.sheet                   || null,
       sheetNodes:              state.sheetNodes              || null,
@@ -887,7 +887,7 @@ class ReaderApp extends Component {
       navigationTopic:         state.navigationTopic         || null,
       navigationTopicTitle:    state.navigationTopicTitle    || null,
       topicTitle:              state.topicTitle              || null,
-      sheetsGroup:             state.group                   || null,
+      sheetsGroup:             state.sheetsGroup             || null,
       searchQuery:             state.searchQuery             || null,
       searchTab:               state.searchTab               || 'text',
       topicsTab:               state.topicsTab               || 'sources',

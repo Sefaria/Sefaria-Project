@@ -256,8 +256,10 @@ body.hasBannerMessage #s2.headerOnly {
   display: none;
 }
 @media (max-width: 540px) {
-  #bannerButtonBox {
-    margin: 15px 0 0;
+  #bannerButtonBox,
+  .interface-hebrew #bannerButtonBox {
+    margin:0;
+    margin-inline-start: 10px;
   }
   #bannerMessage .mobileOnly {
     display: block;
@@ -266,7 +268,7 @@ body.hasBannerMessage #s2.headerOnly {
     padding: 0 10px;
   }
 }
-@media (max-width: 375px) {
+@media (max-width: 450px) {
   #bannerMessage {
     font-size: 13px;
   }
@@ -1947,9 +1949,6 @@ a.readerNavCategory {
 .readerNavMenu .dedication .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
-}
-.hebrew .readerNavMenu .dedication {
-  direction: rtl;
 }
 .readerTextTableOfContents .tocTop {
   padding-bottom: 15px;
@@ -4695,6 +4694,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textList .textListTextRangeBox + .sheet {
   margin-top: 24px;
+}
+.webpageList .website {
+  text-align: start;
 }
 .webpageList .website .icon {
   height: 16px;

@@ -859,7 +859,7 @@ p.registration-links a:hover{
   letter-spacing: 2px;
   color: #999;
   text-align: center;
-  padding-bottom: 40px;
+  margin-bottom: 40px;
 }
 #teamPage .team-members, #teamPage .board-members{
   display: flex;
@@ -871,23 +871,20 @@ p.registration-links a:hover{
   font-size: 20px;
   line-height: 1.2em;
   display: inline-block;
-  margin-bottom: 35px;
-  padding-bottom: 35px;
-  margin-left: auto;
-  margin-right: auto;
-  /*width: 32%;*/
+  margin-bottom: 20px;
+}
+#teamPage .teamMember.placeholder, #teamPage .teamBoardMember.placeholder {
+  width: 200px;
 }
 #teamPage .teamMember {
   flex: 0 0 30%;
 }
 #teamPage .teamBoardMember {
   border-bottom: none;
-  margin-bottom: 10px;
-  flex: 0 0 29%;
+  flex: 0 0 30%;
 }
 #teamPage .teamMember .teamMemberImage {
   display: block;
-  /*float: left;*/
 }
 #teamPage .teamMember .teamMemberDetails, #teamPage .teamBoardMember .teamMemberDetails {
   display: block;
@@ -904,12 +901,19 @@ p.registration-links a:hover{
   vertical-align:middle;
 }
 #teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   font-size: 24px;
   color: #555;
 }
-#teamPage .teamMember .teamTitle, #teamPage .teamBoardMember .teamTitle {
-
+#teamPage .teamBoardMember .teamName {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+#teamPage .teamMember .teamTitle {
+  font-size: 18px;
+}
+#teamPage .teamBoardMember .teamTitle {
+  font-size: 16px;
 }
 #teamPage .teamMember .teamEmail {
   color: #999;
@@ -924,11 +928,6 @@ p.registration-links a:hover{
 #editProfilePage .inner {
   position: relative;
 }
-/*#saveCancelButtons {
-  position: absolute;
-  top: 145px;
-  right: 0px;
-}*/
 #saveCancelButtons .button {
   padding: 10px 16px;
   font-weight: normal;
