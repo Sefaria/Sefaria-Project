@@ -2379,7 +2379,12 @@ Sefaria = extend(Sefaria, {
       "Sheets Read" : "דפי מקורות שנקראו",
       "Sheets Created" : "דפי מקורות שנוצרו",
       "Average Sefaria User" : "משתמש ממוצע בספריא",
-      "Etc": "שאר"
+      "Etc": "שאר",
+
+      //chavruta
+      "Learn with a Chavruta": "ללמוד עם חברותא",
+      "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הזה:",
+      "Start Call": "התחלת שיחה"
 
   },
   _v: function(inputVar){
