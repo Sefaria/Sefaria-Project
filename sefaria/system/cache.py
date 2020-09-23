@@ -22,9 +22,8 @@ SHARED_DATA_CACHE_ALIAS = getattr(settings, 'SHARED_DATA_CACHE_ALIAS', DEFAULT_C
 
 
 def get_cache_factory(cache_type):
-    if cache_type is None or cache_type not in caches:
+    if cache_type is None:
         cache_type = 'default'
-
     return caches[cache_type]
 
 
