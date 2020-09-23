@@ -1024,7 +1024,6 @@ const withSefariaSheet = editor => {
           if (node.children && node.children.length > 2) {
           for (const [child, childPath] of Node.children(editor, path)) {
               if (!["SourceContentText", "TextRef"].includes(child.type)) {
-                [prev, prevPath] = Editor.previous(editor, { at: childPath });
                 Transforms.mergeNodes(editor, { at: childPath})
                 return
               }
