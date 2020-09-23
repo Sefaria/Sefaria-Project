@@ -5001,7 +5001,16 @@ class Library(object):
         title = title.replace("_", " ")
         return self.get_title_node_dict(lang).get(title)
 
-    def get_text_titles_json(self, lang="en"):
+    def get_text_titles_json(self, lang="en", rebuild=False):
+        if rebuild or not self._full_title_list_jsons.get(lang):
+            if not rebuild:
+                self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_'+lang)
+            if rebuild or not self._full_title_list_jsons.get(lang):
+                self.build_text_titles_json(lang=lang)
+                scache.set_shared_cache_elem('books_'+lang, self._full_title_list_jsons.get(lang))
+        return self._full_title_list_jsons[lang]
+
+    def build_text_titles_json(self, lang="en"):
         """
         :return: JSON of full texts list, (cached)
         """
