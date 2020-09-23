@@ -499,12 +499,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             start = year - error_margin
             end = year + error_margin
         except ValueError as e:
-            years = getattr(self, date_field).split("-")
-            if years[0] == "" and len(years) == 3:  #Fix for first value being negative
-                years[0] = -int(years[1])
-                years[1] = int(years[2])
-            start = int(years[0]) - error_margin
-            end = int(years[1]) + error_margin
+            try:
+                years = getattr(self, date_field).split("-")
+                if years[0] == "" and len(years) == 3:  #Fix for first value being negative
+                    years[0] = -int(years[1])
+                    years[1] = int(years[2])
+                start = int(years[0]) - error_margin
+                end = int(years[1]) + error_margin
+            except ValueError as e:
+                return None
         return timeperiod.TimePeriod({
             "start": start,
             "startIsApprox": startIsApprox,
