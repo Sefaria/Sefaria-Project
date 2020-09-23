@@ -56,7 +56,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^account/?$', reader_views.my_profile),
     url(r'^sheets/tags/?$', reader_views.topics_redirect),
-    url(r'^sheets/tags/(?P<topic>.+)$', reader_views.topic_page_redirect),
+    url(r'^sheets/tags/(?P<tag>.+)$', reader_views.topic_page_redirect),
     url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_pages_redirect),
     url(r'^partners/(?P<group>[^/]+)$', reader_views.group_page),
     url(r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
