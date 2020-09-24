@@ -58,6 +58,7 @@ class Footer extends Component {
     }
   }
   render() {
+    return null;  // Disabled as not needed for now
     if (!Sefaria._siteSettings.TORAH_SPECIFIC) { return null; }
 
     const fbURL = Sefaria.interfaceLang == "hebrew" ? "https://www.facebook.com/sefaria.org.il" : "https://www.facebook.com/sefaria.org";
