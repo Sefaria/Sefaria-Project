@@ -4611,11 +4611,11 @@ class Library(object):
         """
         if rebuild or not self._search_filter_toc:
             if not rebuild:
-                self._search_filter_toc = scache.get_shared_cache_elem('search_filter_toc_cache')
+                self._search_filter_toc = scache.get_shared_cache_elem('search_filter_toc')
             if rebuild or not self._search_filter_toc:
                 from sefaria.summaries import update_search_filter_table_of_contents
                 self._search_filter_toc = update_search_filter_table_of_contents()
-                scache.set_shared_cache_elem('search_filter_toc_cache', self._search_filter_toc)
+                scache.set_shared_cache_elem('search_filter_toc', self._search_filter_toc)
         return self._search_filter_toc
 
     def get_search_filter_toc_json(self, rebuild=False):
@@ -4624,10 +4624,10 @@ class Library(object):
         """
         if rebuild or not self._search_filter_toc_json:
             if not rebuild:
-                self._search_filter_toc_json = scache.get_shared_cache_elem('search_filter_toc_json_cache')
+                self._search_filter_toc_json = scache.get_shared_cache_elem('search_filter_toc_json')
             if rebuild or not self._search_filter_toc_json:
                 self._search_filter_toc_json = json.dumps(self.get_search_filter_toc())
-                scache.set_shared_cache_elem('search_filter_toc_json_cache', self._search_filter_toc_json)
+                scache.set_shared_cache_elem('search_filter_toc_json', self._search_filter_toc_json)
         return self._search_filter_toc_json
 
     def build_full_auto_completer(self):
