@@ -7,7 +7,7 @@ var DJANGO_DATA_VARS = {
   toc:                  {{ toc_json }},
   search_toc:           {{ search_toc_json }},
   topic_toc:            {{ topic_toc_json }},
-  terms:                {{ terms_json}},
+  terms:                {{ terms_json | jsonify}},
   books:                {{ titlesJSON }},
   calendars:            {{ calendars }},
   searchIndexText:     '{{ SEARCH_INDEX_NAME_TEXT }}',
