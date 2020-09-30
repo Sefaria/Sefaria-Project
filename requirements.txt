@@ -37,7 +37,7 @@ ua-parser
 user-agents
 django-user-agents
 psycopg2
-djangorestframework
+djangorestframework==3.11.*
 djangorestframework_simplejwt==3.3.0
 undecorated
 apscheduler
