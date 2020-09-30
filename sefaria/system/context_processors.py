@@ -69,7 +69,7 @@ def global_settings(request):
 
 @data_only
 def titles_json(request):
-    return {"titlesJSON": library.get_text_titles_json()}
+    return {"titles_json": library.get_text_titles_json()}
 
 
 @data_only
@@ -77,14 +77,16 @@ def toc(request):
     return {
         "toc": library.get_toc(),
         "toc_json": library.get_toc_json(),
+        "search_toc": library.get_search_filter_toc(),
         "search_toc_json": library.get_search_filter_toc_json(),
+        "topic_toc": library.get_topic_toc(),
         "topic_toc_json": library.get_topic_toc_json()
     }
 
 
 @data_only
 def terms(request):
-    return {"terms_json": library.get_simple_term_mapping()}
+    return {"terms_json": library.get_simple_term_mapping_json()}
 
 
 @user_only
