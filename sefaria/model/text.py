@@ -4525,10 +4525,10 @@ class Library(object):
         """
         if rebuild or not self._topic_toc_json:
             if not rebuild:
-                self._topic_toc_json = scache.get_shared_cache_elem('topic_toc_json')
+                self._topic_toc_json = scache.get_shared_cache_elem('topics_toc')
             if rebuild or not self._topic_toc_json:
-                self._topic_toc_json = json.dumps(self.get_topic_toc_json_recursive())
-                scache.set_shared_cache_elem('topic_toc_json', self._topic_toc_json)
+                self._topic_toc_json = self.get_topic_toc_json_recursive()
+                scache.set_shared_cache_elem('topics_toc', self._topic_toc_json)
         return self._topic_toc_json
 
 
@@ -4956,10 +4956,10 @@ class Library(object):
     def get_simple_term_mapping(self, rebuild=False):
         if rebuild or not self._simple_term_mapping:
             if not rebuild:
-                self._simple_term_mapping = scache.get_shared_cache_elem('term_mapping_json')
+                self._simple_term_mapping = scache.get_shared_cache_elem('term_mapping')
             if rebuild or not self._simple_term_mapping:
                 self.build_term_mappings()
-                scache.set_shared_cache_elem('term_mapping_json', json.dumps(self._simple_term_mapping))
+                scache.set_shared_cache_elem('term_mapping', self._simple_term_mapping)
         return self._simple_term_mapping
 
     def get_term(self, term_name):

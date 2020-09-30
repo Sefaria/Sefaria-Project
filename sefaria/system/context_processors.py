@@ -84,7 +84,7 @@ def toc(request):
 
 @data_only
 def terms(request):
-    return {"terms_json": json.dumps(library.get_simple_term_mapping())}
+    return {"terms_json": library.get_simple_term_mapping()}
 
 
 @user_only
