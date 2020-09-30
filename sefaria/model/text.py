@@ -4444,7 +4444,7 @@ class Library(object):
 
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
-            self.build_term_mappings()
+            self.get_simple_term_mapping() #this will implicitly call self.build_term_mappings() but also make sure its cached.
 
     def _build_index_maps(self):
         # Build index and title node dicts in an efficient way
