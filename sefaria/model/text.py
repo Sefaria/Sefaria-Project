@@ -4528,9 +4528,9 @@ class Library(object):
         if rebuild or not self._topic_toc:
             if not rebuild:
                 self._topic_toc = scache.get_shared_cache_elem('topic_toc')
-            if rebuild or not self._topic_toc_json:
-                self._topic_toc_json = self.get_topic_toc_json_recursive()
-                scache.set_shared_cache_elem('topic_toc', self._topic_toc_json)
+            if rebuild or not self._topic_toc:
+                self._topic_toc = self.get_topic_toc_json_recursive()
+                scache.set_shared_cache_elem('topic_toc', self._topic_toc)
         return self._topic_toc
 
     def get_topic_toc_json(self, rebuild=False):
