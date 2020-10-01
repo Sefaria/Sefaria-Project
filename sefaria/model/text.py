@@ -4539,10 +4539,10 @@ class Library(object):
         """
         if rebuild or not self._topic_toc_json:
             if not rebuild:
-                self._topic_toc_json = scache.get_shared_cache_elem('topics_toc')
+                self._topic_toc_json = scache.get_shared_cache_elem('topic_toc_json')
             if rebuild or not self._topic_toc_json:
                 self._topic_toc_json = json.dumps(self.get_topic_toc())
-                scache.set_shared_cache_elem('topics_toc', self._topic_toc_json)
+                scache.set_shared_cache_elem('topic_toc_json', self._topic_toc_json)
         return self._topic_toc_json
 
 
@@ -5030,10 +5030,10 @@ class Library(object):
     def get_text_titles_json(self, lang="en", rebuild=False):
         if rebuild or not self._full_title_list_jsons.get(lang):
             if not rebuild:
-                self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_'+lang)
+                self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_'+lang+'_json')
             if rebuild or not self._full_title_list_jsons.get(lang):
                 self.build_text_titles_json(lang=lang)
-                scache.set_shared_cache_elem('books_'+lang, self._full_title_list_jsons.get(lang))
+                scache.set_shared_cache_elem('books_'+lang+'_json', self._full_title_list_jsons.get(lang))
         return self._full_title_list_jsons[lang]
 
     def build_text_titles_json(self, lang="en"):
