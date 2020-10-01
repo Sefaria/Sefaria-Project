@@ -814,6 +814,30 @@ const withSefariaSheet = editor => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
     };
 
+    editor.deleteBackward = (unit) => {
+        //If backspace is pressed at the start of an outside text that is surrounded by sheet sources, don't delete it
+        const textBox = getClosestSheetElement(editor, editor.selection.focus["path"], "SheetOutsideText")
+        if (textBox && Point.equals(editor.selection.focus, Editor.start(editor, textBox[1]))) {
+            if (Point.equals(Editor.start(editor, textBox[1]), Editor.start(editor, Node.first(editor, [0,1])[1]))) {
+                Transforms.move(editor, {unit: "character", distance: 1, reverse: true})
+                return
+            }
+            else if (Point.equals(Editor.end(editor, textBox[1]), Editor.end(editor, Node.last(editor, [0,1])[1]))) {
+                Transforms.move(editor, {unit: "character", distance: 1, reverse: true})
+                return
+            }
+
+            else if (Node.get(editor, (Path.previous(Path.parent(textBox[1])))).children[0].type === "SheetSource" &&
+                Node.get(editor, (Path.next(Path.parent(textBox[1])))).children[0].type === "SheetSource"
+            ) {
+                Transforms.move(editor, {unit: "character", distance: 1, reverse: true})
+                return
+            }
+        }
+
+        //default normal backspace behavior
+        Transforms.delete(editor, {unit, reverse: true});
+    }
 
     editor.insertBreak = () => {
 
@@ -1000,7 +1024,6 @@ const withSefariaSheet = editor => {
           if (node.children && node.children.length > 2) {
           for (const [child, childPath] of Node.children(editor, path)) {
               if (!["SourceContentText", "TextRef"].includes(child.type)) {
-                [prev, prevPath] = Editor.previous(editor, { at: childPath });
                 Transforms.mergeNodes(editor, { at: childPath})
                 return
               }
@@ -1203,7 +1226,7 @@ const insertSource = (editor, ref) => {
         addItemToSheet(editor, fragment, "bottom");
         Transforms.setNodes(editor, { loading: false }, { at: currentNode[1] });
         Transforms.insertText(editor, '', { at: currentNode[1] })
-        Transforms.move(editor, { unit: 'block', distance: 8 })
+        Transforms.move(editor, { unit: 'block', distance: 9 })
     });
 };
 

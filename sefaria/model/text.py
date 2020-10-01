@@ -499,12 +499,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             start = year - error_margin
             end = year + error_margin
         except ValueError as e:
-            years = getattr(self, date_field).split("-")
-            if years[0] == "" and len(years) == 3:  #Fix for first value being negative
-                years[0] = -int(years[1])
-                years[1] = int(years[2])
-            start = int(years[0]) - error_margin
-            end = int(years[1]) + error_margin
+            try:
+                years = getattr(self, date_field).split("-")
+                if years[0] == "" and len(years) == 3:  #Fix for first value being negative
+                    years[0] = -int(years[1])
+                    years[1] = int(years[2])
+                start = int(years[0]) - error_margin
+                end = int(years[1]) + error_margin
+            except ValueError as e:
+                return None
         return timeperiod.TimePeriod({
             "start": start,
             "startIsApprox": startIsApprox,
@@ -3757,62 +3760,76 @@ class Ref(object, metaclass=RefCacheType):
     def contains(self, other):
         """
         Does this Ref completely contain ``other`` Ref?
-        See NOTE in Ref.overlaps for conditions when this function runs optimally
+        In the case where other is less specific than self, a database lookup is required
 
         :param other:
-        :return bool:
-        """
-        return self.overlaps(other, strictly_contains=True)
-
-    def overlaps(self, other, strictly_contains=False):
-        """
-        Does this Ref overlap ``other`` Ref?
-        NOTE: Can run without database lookups as long as either
-        - other is segment level
-        - self is defined to the same section depth as other (e.g. both are section-level)
-
-        Otherwise, will need to use `Ref.as_ranged_segment_ref()` to accurately determine if there's an overlap
-
-        :param other: Ref
-        :param strictly_contains: bool. If true, checks that self fully contains other
         :return bool:
         """
         assert isinstance(other, Ref)
         if not self.index_node == other.index_node:
             return self.index_node.is_ancestor_of(other.index_node)
-        
-        SECTION_END = None
-        me_start, me_end = self.get_padded_sections(SECTION_END)
-        you_start, you_end = other.get_padded_sections(SECTION_END)
 
-        ambiguous_end = any(temp_you_end is SECTION_END and temp_me_end is not SECTION_END for temp_you_end, temp_me_end in zip(you_end, me_end))
-        if ambiguous_end:
-            # We can't know where the exact end of the toSection is without pulling up the refs
-            me = self.as_ranged_segment_ref()
-            you = other.as_ranged_segment_ref()
-            if strictly_contains:
-                return not (you.starting_ref().precedes(me.starting_ref()) or you.ending_ref().follows(me.ending_ref()))
-            return not (you.ending_ref().precedes(me.starting_ref()) or you.starting_ref().follows(me.ending_ref()))
-        
-        # Otherwise, we can optimize and simply compare sections and toSections mathematically
-        before_me_start, after_me_end = False, False
-        for me_section, you_section in zip(me_start, you_start if strictly_contains else you_end):
-            if you_section is SECTION_END or me_section < you_section:
-                # already contained from this section and on
-                before_me_start = False
+        # If other is less specific than self, we need to get its true extent
+        if len(self.sections) > len(other.sections):
+            other = other.as_ranged_segment_ref()
+
+        smallest_section_len = min([len(self.sections), len(other.sections)])
+
+        # at each level of shared specificity
+        for i in range(smallest_section_len):
+            # If other's end is after my end, I don't contain it
+            if other.toSections[i] > self.toSections[i]:
+                return False
+
+            # if other's end is before my end, I don't need to keep checking
+            if other.toSections[i] < self.toSections[i]:
                 break
-            if you_section < me_section:
-                before_me_start = True
+
+        # at each level of shared specificity
+        for i in range(smallest_section_len):
+            # If other's start is before my start, I don't contain it
+            if other.sections[i] < self.sections[i]:
+                return False
+
+            # If other's start is after my start, I don't need to keep checking
+            if other.sections[i] > self.toSections[i]:
                 break
-        for me_toSection, you_toSection in zip(me_end, you_end if strictly_contains else you_start):
-            if me_toSection is SECTION_END or me_toSection > you_toSection:
-                # already contained from this section and on
-                after_me_end = False
+
+        return True
+
+    def overlaps(self, other):
+        """
+        Does this Ref overlap ``other`` Ref?
+
+        :param other: Ref
+        :return bool:
+        """
+        assert isinstance(other, Ref)
+        if not self.index_node == other.index_node:
+            return self.index_node.is_ancestor_of(other.index_node)
+
+        smallest_section_len = min([len(self.sections), len(other.sections)])
+
+        # at each level of shared specificity
+        for i in range(smallest_section_len):
+            # If I start after your end, we don't overlap
+            if self.sections[i] > other.toSections[i]:
+                return False
+            # If I start before your end, we don't need to keep checking
+            if self.sections[i] < other.toSections[i]:
                 break
-            if you_toSection > me_toSection:
-                after_me_end = True
+
+        # at each level of shared specificity
+        for i in range(smallest_section_len):
+            # If I end before your start, we don't overlap
+            if self.toSections[i] < other.sections[i]:
+                return False
+
+            # If I end after your start, we don't need to keep checking
+            if self.toSections[i] > other.sections[i]:
                 break
-        return not (before_me_start or after_me_end)
+
+        return True
 
     def precedes(self, other):
         """

@@ -369,7 +369,7 @@ class ConnectionsPanel extends Component {
         const chevrutaURL = `${window.location.host}/chavruta?ref=${window.location.pathname.replace(/\//, '')}&rid=${uuid}`
 
         content = (<div className="chavruta">
-                    <div className="headerText">Learn with a Chavruta</div>
+                    <div className="headerText">{Sefaria._("Learn with a Chavruta")}</div>
 
                     <div className="fakeBrowser">
                       <div className="fakeBrowserHeader">
@@ -401,7 +401,7 @@ class ConnectionsPanel extends Component {
                         </div>
                       </div>
                     </div>
-                    <p>Share this link with your chavruta to start a video call with this text</p>
+                    <p>{Sefaria._("Share this link with your chavruta to start a video call with this text")}</p>
                     <p>
                     <input
                       id="chavrutaURL"
@@ -412,7 +412,7 @@ class ConnectionsPanel extends Component {
                     </p>
 
                     <p>
-                    <a className="button fillWidth startChavrutaButton" href={"//"+chevrutaURL}><img src="/static/img/video.svg" />Start Call</a>
+                    <a className="button fillWidth startChavrutaButton" href={"//"+chevrutaURL}><img src="/static/img/video.svg" />{Sefaria._("Start Call")}</a>
                     </p>
                   </div>);
 
