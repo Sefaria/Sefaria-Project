@@ -260,6 +260,7 @@ body.hasBannerMessage #s2.headerOnly {
   .interface-hebrew #bannerButtonBox {
     margin:0;
     margin-inline-start: 10px;
+    max-width: 170px;
   }
   #bannerMessage .mobileOnly {
     display: block;
