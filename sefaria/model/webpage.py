@@ -541,4 +541,9 @@ sites_data = [
         "domains": ["roshyeshivatmaharat.org"],
         "title_branding": ["Rosh Yeshiva Maharat"]
     },
+    {
+        "name": "Cleveland Jewish News",
+        "domains": ["clevelandjewishnews.com"],
+        "title_branding": ["clevelandjewishnews.com"]
+    },
 ]
