@@ -324,7 +324,8 @@ def clean_webpages(test=True):
     """ Delete webpages matching patterns deemed not worth including"""
     pages = WebPageSet({"$or": [
             {"url": {"$regex": WebPage.excluded_pages_url_regex()}},
-            {"title": {"$regex": WebPage.excluded_pages_title_regex()}}
+            {"title": {"$regex": WebPage.excluded_pages_title_regex()}},
+            {"refs": {"$eq": []}}
         ]})
 
     if not test:
