@@ -255,7 +255,7 @@ const FilterableList = ({
   // If `getData` function is passed, load data through this effect
   useEffect(() => {
     let isMounted = true;
-    if (!rawData) {
+    if (!rawData) { // Don't try calling getData when `data` as intially passed
       setLoading(true);
       getData().then(data => {
         if (isMounted) {
@@ -270,7 +270,8 @@ const FilterableList = ({
     };
   }, [getData, rawData]);
 
-  // Alternatively, if there is no `getData` function passed, we expect data to be fed in directly through the `data` prop
+  // Alternatively, if there is no `getData` function passed, we expect data 
+  // to be fed in directly through the `data` prop
   useEffect(() => {
     setRawData(data);
     setDisplayData(processData(data));
