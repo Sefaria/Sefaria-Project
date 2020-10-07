@@ -513,8 +513,9 @@ function isSourceEditable(e, editor) {
 
 const SheetSourceElement = ({ attributes, children, element }) => {
   const editor = useSlate();
-  const sheetSourceEnEditor = useMemo(() => withReact(createEditor()), [])
-  const sheetSourceHeEditor = useMemo(() => withReact(createEditor()), [])
+
+  const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
+  const sheetSourceHeEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
   const [sheetEnSourceValue, sheetEnSourceSetValue] = useState(element.enText)
   const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(element.heText)
   const [unsavedChanges, setUnsavedChanges] = useState(false)
@@ -571,6 +572,7 @@ const SheetSourceElement = ({ attributes, children, element }) => {
         <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div>
         <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
+          <HoverMenu/>
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
@@ -583,6 +585,7 @@ const SheetSourceElement = ({ attributes, children, element }) => {
         <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.ref}</div>
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
+          <HoverMenu/>
             <Editable
               readOnly={!sourceActive}
               renderLeaf={props => <Leaf {...props} />}
