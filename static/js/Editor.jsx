@@ -1399,17 +1399,21 @@ function saveSheetContent(doc, lastModified) {
         const sheetItem = item.children[0];
         switch (sheetItem.type) {
             case 'SheetSource':
-                console.log(sheetItem)
 
-                const enBlock = sheetItem.enText[0];
-                const heBlock = sheetItem.heText[0];
+                const enSerializedText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
+                  return concatenatedSegments + serialize(currentSegment)
+                }, "" ) );
+
+                const heSerializedText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
+                  return concatenatedSegments + serialize(currentSegment)
+                }, "" ) );
 
                 let source = {
                     "ref": sheetItem.ref,
                     "heRef": sheetItem.heRef,
                     "text": {
-                        "en": enBlock ? serialize(enBlock) : "...",
-                        "he": heBlock ? serialize(heBlock) : "...",
+                        "en": enSerializedText !== "" ? enSerializedText : "...",
+                        "he": heSerializedText !== "" ? heSerializedText : "...",
                     },
                     "node": sheetItem.node,
                 };
