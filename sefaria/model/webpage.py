@@ -324,7 +324,8 @@ def clean_webpages(test=True):
     """ Delete webpages matching patterns deemed not worth including"""
     pages = WebPageSet({"$or": [
             {"url": {"$regex": WebPage.excluded_pages_url_regex()}},
-            {"title": {"$regex": WebPage.excluded_pages_title_regex()}}
+            {"title": {"$regex": WebPage.excluded_pages_title_regex()}},
+            {"refs": {"$eq": []}}
         ]})
 
     if not test:
@@ -540,5 +541,10 @@ sites_data = [
         "name": "Rabbi Jeff Fox (Rosh ha-Yeshiva, Yeshivat Maharat)",
         "domains": ["roshyeshivatmaharat.org"],
         "title_branding": ["Rosh Yeshiva Maharat"]
+    },
+    {
+        "name": "Cleveland Jewish News",
+        "domains": ["clevelandjewishnews.com"],
+        "title_branding": ["clevelandjewishnews.com"]
     },
 ]

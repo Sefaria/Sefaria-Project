@@ -211,7 +211,7 @@ function renderSheetItem(source) {
             return content
         }
         case 'outsideText': {
-            const lang = Sefaria.hebrew.isHebrew(source.outsideText.stripHtml()) ? 'he' : 'en';
+            const lang = Sefaria.hebrew.isHebrew(source.outsideText) ? 'he' : 'en';
 
             const content = (
                 {
