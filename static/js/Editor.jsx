@@ -968,7 +968,6 @@ const withSefariaSheet = editor => {
 
           //Only allow SheetTitle, SheetAuthorStatement & GroupStatement in SheetMeta
           for (const [child, childPath] of Node.children(editor, path)) {
-            console.log(child)
             if (!["SheetTitle", "SheetAuthorStatement", "GroupStatement"].includes(child.type)) {
               Transforms.removeNodes(editor, { at: childPath })
               return
