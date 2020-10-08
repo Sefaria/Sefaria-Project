@@ -35,7 +35,8 @@
     "wc": "npm run watch-client",
     "wa": "npm run watch",
     "t": "npm run test",
-    "to": "npm run test-one"
+    "to": "npm run test-one",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "babel-polyfill": "^6.26.0",
@@ -55,6 +56,7 @@
     "jquery.cookie": "^1.4.1",
     "jquery.scrollto": "^2.1.2",
     "js-cookie": "^2.2.1",
+    "patch-package": "^6.2.2",
     "prop-types": "^15.6.0",
     "querystring": "^0.2.0",
     "react": "^16.8.6",
