@@ -7086,7 +7086,7 @@ span.purim-emoji img{
   left: auto;
   margin-left: 0;
 }
-.readerPanel.bilingual.heLeft .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber, 
+.readerPanel.bilingual.heLeft .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber,
 .readerPanel.bilingual.heRight .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber {
   left: 0px;
   margin-left: 0;
@@ -7304,11 +7304,6 @@ span.purim-emoji img{
 .sheetItem .SheetSource.selected .en {
   background-color: #F0F8FF;
 }
-
-.sheetItem .SheetSource *::selection {
-  background-color: rgba(255,0,0,0)
-}
-
 
 .sheetItem .SheetSource .he,
 .sheetItem .SheetSource .en {
@@ -8578,7 +8573,7 @@ body .homeFeedWrapper.userStats {
   .headerWithButtons h1 {
     margin-bottom: 20px;
   }
-  .headerWithButtons .start, 
+  .headerWithButtons .start,
   .headerWithButtons .end {
     text-align: center;
   }
