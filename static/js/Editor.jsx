@@ -1090,23 +1090,16 @@ const withSefariaSheet = editor => {
           }
       }
 
-      // Anything pasted into SourceContentText will be treated as text
-      if (node.type == "SourceContentText") {
-        for (const [child, childPath] of Node.children(editor, path)) {
-          if (child.type != "paragraph" && !child.text) {
-            Transforms.unwrapNodes(editor, { at: childPath })
-            return
-          }
-        }
-        if (Node.string(node) == "") {
-          editor.insertText("...")
-        }
-      }
-
       //if a sheetitem is stuck somewhere it shouldnt be raise it up to proper doc level
       if (node.type == "SheetItem" && (Node.parent(editor, path)).type != "SheetContent") {
           Transforms.liftNodes(editor, { at: path })
       }
+
+      //if a sheetSource is stuck somewhere it shouldnt be raise it up to proper doc level
+      if (node.type == "SheetSource" && (Node.parent(editor, path)).type != "SheetItem") {
+          Transforms.liftNodes(editor, { at: path })
+      }
+
 
       // Fall back to the original `normalizeNode` to enforce other constraints.
       normalizeNode(entry)
@@ -1387,6 +1380,7 @@ const FormatButton = ({format}) => {
 };
 
 function saveSheetContent(doc, lastModified) {
+  console.log(doc)
 
     const sheetMetaData = doc.children.find(el => el.type == "SheetMetaDataBox");
 
