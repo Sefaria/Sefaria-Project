@@ -548,7 +548,7 @@ sites_data = [
         "title_branding": ["clevelandjewishnews.com"]
     },
     {
-        "name": "Rabbi Noah Farkas",
+        "name": "Rabbi Noah Zvi Farkas",
         "domains": ["noahfarkas.com"],
         "title_branding": ["Rabbi Noah farkas"]
     },
