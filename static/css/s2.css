@@ -7320,8 +7320,12 @@ span.purim-emoji img{
   border-radius: 6px;
 }
 
-.sheetItem .SheetSource .he.editable.selected .sourceContentText ::selection,
-.sheetItem .SheetSource .en.editable.selected .sourceContentText ::selection {
+.sheetItem .SheetSource ::selection {
+  background-color: rgba(0,0,0,0);
+}
+
+.sheetItem .SheetSource .he.editable.selected ::selection,
+.sheetItem .SheetSource .en.editable.selected ::selection {
   background-color: #D2DCFF;
 }
 
