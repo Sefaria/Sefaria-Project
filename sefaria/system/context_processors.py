@@ -17,7 +17,7 @@ from sefaria.model.interrupting_message import InterruptingMessage
 from sefaria.utils import calendars
 from sefaria.utils.util import short_to_long_lang_code
 from sefaria.utils.hebrew import hebrew_parasha_name
-from reader.views import render_react_component
+from reader.views import render_react_component, _get_user_calendar_params
 
 import logging
 logger = logging.getLogger(__name__)
@@ -186,9 +186,4 @@ def footer_html(request):
 
 @data_only
 def calendar_links(request):
-    if request.user.is_authenticated:
-        profile = UserProfile(id=request.user.id)
-        custom = profile.settings.get("textual_custom", "ashkenazi")
-    else:
-        custom = "ashkenazi" # this is default because this is the most complete data set
-    return {"calendars": json.dumps(calendars.get_todays_calendar_items(diaspora=request.diaspora, custom=custom))}
+    return {"calendars": json.dumps(calendars.get_todays_calendar_items(**_get_user_calendar_params(request)))}

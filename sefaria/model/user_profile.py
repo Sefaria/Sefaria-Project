@@ -260,7 +260,8 @@ class UserWrapper(object):
 
 class UserProfile(object):
     def __init__(self, id=None, slug=None, email=None):
-
+        #TODO: Can we optimize the init to be able to load a profile without a call to user db?
+        # say in a case where we already have an id and just want some fields from the profile object
         if slug:  # Load profile by slug, if passed
             profile = db.profiles.find_one({"slug": slug})
             if profile:
