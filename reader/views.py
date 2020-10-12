@@ -345,13 +345,15 @@ def base_props(request):
     """
     Returns a dictionary of props that all App pages get based on the request.
     """
-    from sefaria.system.context_processors import user_and_notifications
+    from sefaria.model.user_profile import UserProfile, UserWrapper
+    profile = UserProfile(user_obj=request.user) if request.user.is_authenticated else None
     return {
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "_uid": request.user.id,
         "is_moderator": request.user.is_staff,
         "is_editor": UserWrapper(user_obj=request.user).has_group("Editors"),
+        "notificationsCount": profile.unread_notification_count() if profile else 0,
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
             "language":      request.contentLang,
