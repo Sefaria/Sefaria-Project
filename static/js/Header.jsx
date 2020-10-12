@@ -327,8 +327,8 @@ class Header extends Component {
                 </div>
                 <div className="headerLinksSection">
                   { headerMessage }
-                  { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
-                  { !Sefaria.loggedIn && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
+                  { Sefaria._uid ? loggedInLinks : loggedOutLinks }
+                  { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
                 </div>
               </div>
               { viewContent ?

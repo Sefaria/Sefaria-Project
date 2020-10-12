@@ -1922,7 +1922,6 @@ class ReaderApp extends Component {
 ReaderApp.propTypes = {
   multiPanel:                  PropTypes.bool,
   headerMode:                  PropTypes.bool,  // is the App serving only as a header on top of another page?
-  loggedIn:                    PropTypes.bool,
   interfaceLang:               PropTypes.string,
   initialRefs:                 PropTypes.array,
   initialFilter:               PropTypes.array,

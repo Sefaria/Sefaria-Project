@@ -512,10 +512,10 @@ class Util {
             console.log = function() {};
         }
     }
-    static handleUserCookie(loggedIn, uid, partner_group, partner_role) {
+    static handleUserCookie(uid, partner_group, partner_role) {
         var cookie = INBROWSER ? $.cookie : this.cookie;
 
-        if (loggedIn) {
+        if (uid) {
             // If logged in, replace cookie with current system details
 
             var expires = new Date(); // starts with current time

@@ -77,8 +77,8 @@ class Track {
         ga(SET, 'userId', sval);
         ga(SET, 'dimension10', sval);
     }
-    static setUserData(loggedIn, partner_group, partner_role, analytics_uid) {
-        this.setUserLoggedIn(loggedIn);
+    static setUserData(uid, partner_group, partner_role, analytics_uid) {
+        this.setUserLoggedIn(!!Sefaria._uid);
         if (partner_group) this.setUserPartnerGroup(partner_group);
         if (partner_role) this.setUserPartnerRole(partner_role);
         if (analytics_uid) this.setUserID(analytics_uid);

@@ -500,7 +500,7 @@ class DiffRow extends Component {
   }
 
   acceptChange(segRef, vtitle, lang, text) {
-    if (!Sefaria.loggedIn) {
+    if (!Sefaria._uid) {
       alert("Please sign in before making a change");
       return;
     }
@@ -630,9 +630,9 @@ class DiffElement extends Component {
     this.setState({mouseover: false});
   }
   openConfirm() {
-    if (Sefaria.loggedIn & (Sefaria.is_moderator || Sefaria.is_editor)) {
+    if (Sefaria._uid & (Sefaria.is_moderator || Sefaria.is_editor)) {
       this.setState({confirmOpen: true, mouseover: false});
-    } else if (Sefaria.loggedIn) {
+    } else if (Sefaria._uid) {
       alert("Only Sefaria Moderators Can Edit Texts");
     } else {
       alert("Not signed in. You must be signed in as a Sefaria Moderator to use this feature.");
