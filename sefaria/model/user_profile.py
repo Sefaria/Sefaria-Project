@@ -226,8 +226,13 @@ class UserHistorySet(abst.AbstractMongoSet):
 Wrapper class for operations on the user object. Currently only for changing primary email.
 """
 class UserWrapper(object):
-    def __init__(self, email=None):
-        self.user = get_user(email)
+    def __init__(self, email=None, user_obj=None):
+        if email:
+            self.user = get_user(email)
+        elif user_obj:
+            self.user = user_obj
+        else:
+            raise InputError("No user provided")
         self._errors = []
 
     def set_email(self, new_email):
@@ -258,6 +263,13 @@ class UserWrapper(object):
             self.user.save()
         else:
             raise ValueError(self.errors())
+
+    def has_group(self, group_name):
+        try:
+            group = Group.objects.get(name=group_name)
+            return group in self.user.groups.all()
+        except:
+            return False
 
 
 class UserProfile(object):
@@ -350,7 +362,6 @@ class UserProfile(object):
             gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
             self.profile_pic_url = gravatar_url
             self.profile_pic_url_small = gravatar_url_small
-
 
     @property
     def full_name(self):
@@ -603,7 +614,6 @@ class UserProfile(object):
             "profile_pic_url":       self.profile_pic_url,
             "profile_pic_url_small": self.profile_pic_url_small
         }
-
 
     def to_api_dict(self, basic=False):
         """
