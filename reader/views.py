@@ -45,7 +45,7 @@ from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_topi
 from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.talmud import daf_to_section
-from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, get_parasha
+from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache
@@ -843,9 +843,19 @@ def mobile_home(request):
     props = base_props(request)
     return menu_page(request, props, "home")
 
+def _get_user_calendar_params(request):
+    if request.user.is_authenticated:
+        profile = UserProfile(id=request.user.id)
+        custom = profile.settings.get("textual_custom", "ashkenazi")
+    else:
+        custom = "ashkenazi" # this is default because this is the most complete data set
+    return {"diaspora": request.diaspora, "custom": custom}
 
 def texts_list(request):
     props = base_props(request)
+    props.update({
+        "calendars": get_todays_calendar_items(**_get_user_calendar_params(request))
+    })
     title = _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
     desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
     return menu_page(request, props, "navigation", title, desc)
@@ -874,6 +884,9 @@ def updates(request):
 
 def new_home(request):
     props = base_props(request)
+    props.update({
+        "calendars": get_todays_calendar_items(**_get_user_calendar_params(request))
+    })
     title = _("Sefaria: a Living Library of Jewish Texts Online")
     desc  = _( "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
     return menu_page(request, props, "homefeed", title, desc)
