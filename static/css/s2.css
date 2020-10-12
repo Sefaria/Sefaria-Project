@@ -5929,12 +5929,11 @@ h2.splitHeader .he {
 .tocTop .groupListingImageBox {
   background-color: transparent;
 }
-.sheetMetaDataBox .title.empty:before {
+.sheetMetaDataBox .title.empty:not(.focused):before {
   content: "Untitled";
   color: #999;
   position: relative;
   pointer-events: none;
-
 }
 .groupListingImage {
   height: 100%;

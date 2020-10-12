@@ -715,7 +715,7 @@ const Element = props => {
             );
         case 'SheetTitle':
             return (
-                <SheetTitle empty={Node.string(element) ? false:true} title={element.title}>{children}</SheetTitle>
+                <SheetTitle focused={useSelected()} empty={Node.string(element) ? false:true} title={element.title}>{children}</SheetTitle>
             );
         case 'TextRef':
             return (
