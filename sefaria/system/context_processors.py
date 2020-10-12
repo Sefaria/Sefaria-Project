@@ -12,7 +12,7 @@ from django.template.loader import render_to_string
 from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model import library
-from sefaria.model.user_profile import UserProfile, UserHistorySet
+from sefaria.model.user_profile import UserProfile, UserHistorySet, UserWrapper
 from sefaria.model.interrupting_message import InterruptingMessage
 from sefaria.utils import calendars
 from sefaria.utils.util import short_to_long_lang_code
@@ -132,7 +132,9 @@ def user_and_notifications(request):
         "slug": profile.slug,
         "full_name": profile.full_name,
         "profile_pic_url": profile.profile_pic_url,
-        "following": json.dumps(profile.followees.uids)
+        "following": json.dumps(profile.followees.uids),
+        "is_moderator": request.user.is_moderator,
+        "is_editor": UserWrapper(user_obj=request.user).has_group("Editors")
     }
 
 

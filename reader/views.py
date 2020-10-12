@@ -350,6 +350,8 @@ def base_props(request):
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "_uid": request.user.id,
+        "is_moderator": request.user.is_staff,
+        "is_editor": UserWrapper(user_obj=request.user).has_group("Editors"),
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
             "language":      request.contentLang,

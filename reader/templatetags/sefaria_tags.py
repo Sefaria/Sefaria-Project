@@ -156,13 +156,6 @@ def person_link(person):
 	return mark_safe(link)
 
 
-@register.filter(name='has_group')
-def has_group(user, group_name):
-	try:
-		group =  Group.objects.get(name=group_name)
-		return group in user.groups.all()
-	except:
-		return False
 
 
 @register.filter(is_safe=True)
