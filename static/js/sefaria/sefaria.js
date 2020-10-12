@@ -1128,7 +1128,7 @@ Sefaria = extend(Sefaria, {
   privateNotes: function(refs, callback) {
     // Returns an array of private notes for `refs` (a string or array or strings)
     // or `null` if notes have not yet been loaded.
-    if(!Sefaria.loggedIn) return;
+    if(!Sefaria._uid) return;
     var notes = null;
     if (typeof refs == "string") {
       if (refs in this._privateNotes) {
@@ -2598,7 +2598,7 @@ Sefaria.setup = function(data) {
     }
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupMisc();
-    var cookie = Sefaria.util.handleUserCookie(Sefaria.loggedIn, Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role);
+    var cookie = Sefaria.util.handleUserCookie(Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role);
     // And store current uid in analytics id
     Sefaria._analytics_uid = Sefaria._uid;
     if (cookie) {
@@ -2616,7 +2616,7 @@ Sefaria.setup = function(data) {
     }
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
-    Sefaria.track.setUserData(Sefaria.loggedIn, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
+    Sefaria.track.setUserData(Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
     Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
 Sefaria.setup();

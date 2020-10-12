@@ -12,7 +12,6 @@ var DJANGO_DATA_VARS = {
   calendars:            {{ calendars }},
   searchIndexText:     '{{ SEARCH_INDEX_NAME_TEXT }}',
   searchIndexSheet:    '{{ SEARCH_INDEX_NAME_SHEET }}',
-  loggedIn:             {% if user.is_authenticated %}true{% else %}false{% endif %},
   is_moderator:         {% if user.is_staff %}true{% else %}false{% endif %},
   is_editor:            {% if user|has_group:"Editors" %}true{% else %}false{% endif %},
   notificationCount:    {{ notifications_count|default:'0' }},
