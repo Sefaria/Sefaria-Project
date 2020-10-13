@@ -231,10 +231,28 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def contents(self, **kwargs):
         mini = kwargs.get('minify', False)
+        annotate_time_period = kwargs.get('annotate_time_period', False)
+
         d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
+        if annotate_time_period:
+            gen_symbol, _ = self.get_property("generation")
+            if gen_symbol is not None:
+                from sefaria.model.timeperiod import TimePeriod
+                tp = TimePeriod().load({"symbol": gen_symbol})
+                if tp is not None:
+                    d['timePeriod'] = {
+                        "name": {
+                            "en": tp.primary_name("en"),
+                            "he": tp.primary_name("he")
+                        },
+                        "yearRange": {
+                            "en": tp.period_string("en"),
+                            "he": tp.period_string("he")
+                        }
+                    }
         return d
 
     def get_primary_title(self, lang='en', with_disambiguation=True):

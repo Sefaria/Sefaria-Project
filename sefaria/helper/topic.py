@@ -13,9 +13,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_topic(topic, with_links, annotate_links, with_refs, group_related):
+def get_topic(topic, with_links, annotate_links, with_refs, group_related, annotate_time_period):
     topic_obj = Topic.init(topic)
-    response = topic_obj.contents()
+    response = topic_obj.contents(annotate_time_period=annotate_time_period)
     response['primaryTitle'] = {
         'en': topic_obj.get_primary_title('en'),
         'he': topic_obj.get_primary_title('he')
