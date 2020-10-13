@@ -5709,6 +5709,16 @@ a .button:hover {
 .lexicon-results {
   padding-top: 20px;
 }
+.named-entity-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+.readerPanel.english .named-entity-wrapper {
+  direction: ltr;
+}
+.readerPanel.hebrew .named-entity-wrapper {
+  direction: rtl;
+} 
 .lexicon-results .named-entity-description {
   margin-top: 13px;
 }
@@ -8493,6 +8503,9 @@ body .homeFeedWrapper.userStats {
 .userStats .chartLabel {
   text-align: center;
   padding-top: 8px;
+}
+a.topicLexiconTitle.contentText {
+  color: black;
 }
 .editorToolbar {
   position:fixed;

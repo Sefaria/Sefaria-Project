@@ -131,11 +131,11 @@ class LexiconBox extends Component {
       if (!this.state.loaded) {
         content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
       } else {
-          content = (<div>
-            <div className="contentText">
+          content = (<div className="named-entity-wrapper">
+            <a className="contentText topicLexiconTitle" href={`/topics/${this.state.namedEntity.slug}`} target="_blank">
               <span className="en">{this.state.namedEntity.primaryTitle.en}</span>
               <span className="he">{this.state.namedEntity.primaryTitle.he}</span>
-            </div>
+            </a>
             {
               this.state.namedEntity.description ? (
                 <div className="contentText named-entity-description">
