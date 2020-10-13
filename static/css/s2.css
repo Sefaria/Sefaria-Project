@@ -260,6 +260,7 @@ body.hasBannerMessage #s2.headerOnly {
   .interface-hebrew #bannerButtonBox {
     margin:0;
     margin-inline-start: 10px;
+    max-width: 170px;
   }
   #bannerMessage .mobileOnly {
     display: block;
@@ -5945,12 +5946,11 @@ h2.splitHeader .he {
 .tocTop .groupListingImageBox {
   background-color: transparent;
 }
-.sheetMetaDataBox .title.empty:before {
+.sheetMetaDataBox .title.empty:not(.focused):before {
   content: "Untitled";
   color: #999;
   position: relative;
   pointer-events: none;
-
 }
 .groupListingImage {
   height: 100%;
@@ -7102,7 +7102,7 @@ span.purim-emoji img{
   left: auto;
   margin-left: 0;
 }
-.readerPanel.bilingual.heLeft .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber, 
+.readerPanel.bilingual.heLeft .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber,
 .readerPanel.bilingual.heRight .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber {
   left: 0px;
   margin-left: 0;
@@ -7321,11 +7321,6 @@ span.purim-emoji img{
   background-color: #F0F8FF;
 }
 
-.sheetItem .SheetSource *::selection {
-  background-color: rgba(255,0,0,0)
-}
-
-
 .sheetItem .SheetSource .he,
 .sheetItem .SheetSource .en {
   padding-inline-start: 11px;
@@ -7341,8 +7336,12 @@ span.purim-emoji img{
   border-radius: 6px;
 }
 
-.sheetItem .SheetSource .he.editable.selected .sourceContentText ::selection,
-.sheetItem .SheetSource .en.editable.selected .sourceContentText ::selection {
+.sheetItem .SheetSource ::selection {
+  background-color: rgba(0,0,0,0);
+}
+
+.sheetItem .SheetSource .he.editable.selected ::selection,
+.sheetItem .SheetSource .en.editable.selected ::selection {
   background-color: #D2DCFF;
 }
 
@@ -8594,7 +8593,7 @@ body .homeFeedWrapper.userStats {
   .headerWithButtons h1 {
     margin-bottom: 20px;
   }
-  .headerWithButtons .start, 
+  .headerWithButtons .start,
   .headerWithButtons .end {
     text-align: center;
   }

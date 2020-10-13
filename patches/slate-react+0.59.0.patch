@@ -1,0 +1,23 @@
+diff --git a/node_modules/slate-react/dist/index.es.js b/node_modules/slate-react/dist/index.es.js
+index 267c4df..f5ff9f4 100644
+--- a/node_modules/slate-react/dist/index.es.js
++++ b/node_modules/slate-react/dist/index.es.js
+@@ -1956,9 +1956,18 @@ var Editable = props => {
+         var {
+           selection
+         } = editor;
++        var node = ReactEditor.toSlateNode(editor, event.target);
++        var path = ReactEditor.findPath(editor, node);
++        var voidMatch = Editor.void(editor, {
++          at: path
++        });
+ 
+         if (selection && Range.isExpanded(selection)) {
+           Editor.deleteFragment(editor);
++        } else if (selection && voidMatch) {
++          Transforms.delete(editor, {
++            at: voidMatch[1]
++          });
+         }
+       }
+     }, [readOnly, attributes.onCut]),

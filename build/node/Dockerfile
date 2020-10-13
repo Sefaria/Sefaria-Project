@@ -9,7 +9,7 @@ ENV DEBUG       false
 COPY . /app/
 WORKDIR /app/
 
-RUN npm install && npm run build-prod
+RUN npm install --unsafe-perm && npm run build-prod
 
 RUN npm install forever -g \
  && mkdir -p /app/log \

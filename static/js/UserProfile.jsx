@@ -96,7 +96,7 @@ class UserProfile extends Component {
         <a href="/groups/new" className="resourcesLink">
           <img src="/static/img/group.svg" alt="Group icon" />
           <span className="int-en">Create a New Group</span>
-          <span className="int-he">צור קבוצה חדשה</span>
+          <span className="int-he">יצירת קבוצה</span>
         </a>
       </div>
     );
@@ -222,7 +222,7 @@ class UserProfile extends Component {
         <a href="/sheets/new" className="resourcesLink">
           <img src="/static/img/sheet.svg" alt="Source sheet icon" />
           <span className="int-en">Create a New Sheet</span>
-          <span className="int-he">צור דף חדש</span>
+          <span className="int-he">יצירת דף מקורות</span>
         </a>
       </div>
     );

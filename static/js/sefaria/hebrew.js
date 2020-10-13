@@ -68,31 +68,25 @@ class Hebrew {
     // todo:
     return daf;
   }
-  static stripNikkud(rawString) {
-    return rawString.replace(/[\u0591-\u05C7]/g,"");
-  }
   static getNikkudRegex(rawString) {
     // given a Hebrew string, return regex that allows for arbitrary nikkud in between letters
-    return this.stripNikkud(rawString).split("").join("[\u0591-\u05C7]*");
+    return rawString.stripNikkud().split("").join("[\u0591-\u05C7]*");
   }
   static isHebrew(text) {
     // Returns true if text is (mostly) Hebrew
-    // Examines up to the first 60 characters, ignoring punctuation and numbers
-    // 60 is needed to cover cases where a Hebrew text starts with 31 chars like: <big><strong>גמ׳</strong></big>
+    // Examines up to the first 200 characters, ignoring html tags, punctuation and numbers
+    text = text.stripHtml().stripNikkud();
     var heCount = 0;
     var enCount = 0;
     var punctuationRE = /[0-9 .,'"?!;:\-=@#$%^&*()/<>]/;
 
-    for (var i = 0; i < Math.min(60, text.length); i++) {
+    for (var i = 0; i < Math.min(200, text.length); i++) {
       if (punctuationRE.test(text[i])) { continue; }
       if ((text.charCodeAt(i) > 0x590) && (text.charCodeAt(i) < 0x5FF)) {
         heCount++;
       } else {
         enCount++;
       }
-    }
-    if (heCount == enCount) {
-      return (Sefaria.interfaceLang === 'hebrew')
     }
     return (heCount > enCount);
   }

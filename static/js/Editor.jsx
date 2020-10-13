@@ -29,6 +29,7 @@ const sheet_item_els = {
 const voidElements = [
     "ProfilePic",
     "SheetMedia",
+    "SheetSource",
 ];
 
 
@@ -136,10 +137,6 @@ export const deserialize = el => {
     return children
 };
 
-
-
-
-
 export const serialize = (content) => {
     //serialize formatting to html
     if (content.text) {
@@ -193,39 +190,11 @@ function renderSheetItem(source) {
                     heRef: source.heRef,
                     title: source.title || null,
                     node: source.node,
+                    heText: parseSheetItemHTML(source.text.he),
+                    enText: parseSheetItemHTML(source.text.en),
+                    title: null,
                     children: [
-                        {
-                            type: "he",
-                            children:  [
-                              {
-                                  type: "TextRef",
-                                  ref: source.ref,
-                                  refText: source.heRef,
-                                  lang: "he",
-                                  children: [{text: source.heRef}]
-                              },
-                              {
-                                type: "SourceContentText",
-                                children: parseSheetItemHTML(source.text.he)
-                              }
-                            ]
-                        },
-                        {
-                          type: "en",
-                          children:  [
-                            {
-                                type: "TextRef",
-                                ref: source.ref,
-                                refText: source.ref,
-                                lang: "en",
-                                children: [{text: source.ref}]
-                            },
-                            {
-                              type: "SourceContentText",
-                              children: parseSheetItemHTML(source.text.en)
-                            }
-                          ]
-                        }
+                        {text: ""},
                     ]
                 }
             );
@@ -242,7 +211,7 @@ function renderSheetItem(source) {
             return content
         }
         case 'outsideText': {
-            const lang = Sefaria.hebrew.isHebrew(source.outsideText.stripHtml()) ? 'he' : 'en';
+            const lang = Sefaria.hebrew.isHebrew(source.outsideText) ? 'he' : 'en';
 
             const content = (
                 {
@@ -542,7 +511,94 @@ function isSourceEditable(e, editor) {
   return (isEditable)
 }
 
-const Element = ({attributes, children, element}) => {
+const SheetSourceElement = ({ attributes, children, element }) => {
+  const editor = useSlate();
+
+  const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
+  const sheetSourceHeEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
+  const [sheetEnSourceValue, sheetEnSourceSetValue] = useState(element.enText)
+  const [sheetHeSourceValue, sheetHeSourceSetValue] = useState(element.heText)
+  const [unsavedChanges, setUnsavedChanges] = useState(false)
+  const [sourceActive, setSourceActive] = useState(false)
+  const [activeSourceLangContent, setActiveSourceLangContent] = useState(null)
+  const selected = useSelected()
+  const focused = useFocused()
+  const cancelEvent = (event) => event.preventDefault()
+
+  const onHeChange = (value) => {
+    sheetHeSourceSetValue(value)
+  }
+
+  const onEnChange = (value) => {
+    sheetEnSourceSetValue(value)
+  }
+
+  useEffect(
+      () => {
+        Transforms.setNodes(editor, {heText: sheetHeSourceValue, enText: sheetEnSourceValue}, {at: ReactEditor.findPath(editor, element)});
+      },
+      [sourceActive]
+  );
+
+
+  const onClick = (e) => {
+    if ((e.target).closest('.he') && sourceActive) {
+      setActiveSourceLangContent('he')
+    }
+    else if ((e.target).closest('.en') && sourceActive) {
+      setActiveSourceLangContent('en')
+    }
+    else {
+      setActiveSourceLangContent(null)
+    }
+    setSourceActive(true)
+  }
+
+  const onBlur = (e) => {
+    setSourceActive(false)
+    setActiveSourceLangContent(null)
+  }
+
+
+  const isActive = selected && focused;
+
+  const classes = {SheetSource: 1, segment: 1, selected: isActive };
+  const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false };
+  const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
+
+  return (
+    <div {...attributes} contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
+      <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
+        <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div>
+        <div className="sourceContentText">
+          <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
+          <HoverMenu/>
+            <Editable
+              readOnly={!sourceActive}
+              renderLeaf={props => <Leaf {...props} />}
+            />
+          </Slate>
+        </div>
+      </div>
+        {children}
+      <div className={classNames(enClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
+        <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.ref}</div>
+        <div className="sourceContentText">
+          <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
+          <HoverMenu/>
+            <Editable
+              readOnly={!sourceActive}
+              renderLeaf={props => <Leaf {...props} />}
+            />
+          </Slate>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const Element = props => {
+    const { attributes, children, element } = props
     switch (element.type) {
         case 'SheetItem':
             const sheetItemClasses = `sheetItem ${Node.string(element) ? '':'empty'}`;
@@ -553,14 +609,9 @@ const Element = ({attributes, children, element}) => {
                 </div>
             );
         case 'SheetSource':
-            const editor = useSlate();
-            const selected = useSelected();
-            const classes = {SheetSource: 1, segment: 1, selected: selected };
             return (
-                <div onMouseDown={(e) => isSourceEditable(e, editor)} className={classNames(classes)} {...attributes} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
-                    {children}
-                </div>
-            );
+              <SheetSourceElement {...props} />
+            )
 
         case 'SheetComment':
             return (
@@ -664,7 +715,7 @@ const Element = ({attributes, children, element}) => {
             );
         case 'SheetTitle':
             return (
-                <SheetTitle empty={Node.string(element) ? false:true} title={element.title}>{children}</SheetTitle>
+                <SheetTitle focused={useSelected()} empty={Node.string(element) ? false:true} title={element.title}>{children}</SheetTitle>
             );
         case 'TextRef':
             return (
@@ -793,12 +844,6 @@ async function getRefInText(editor) {
 
     return d
 
-    // if (d["is_ref"] && (d["is_segment"] || d["is_section"]) ) {
-    //   return(d["ref"]);  //todo: pass an onError function through here to the panel onError function
-    // }
-    // else {
-    //   return null;
-    // }
   });
   return ref
 }
@@ -923,7 +968,6 @@ const withSefariaSheet = editor => {
 
           //Only allow SheetTitle, SheetAuthorStatement & GroupStatement in SheetMeta
           for (const [child, childPath] of Node.children(editor, path)) {
-            console.log(child)
             if (!["SheetTitle", "SheetAuthorStatement", "GroupStatement"].includes(child.type)) {
               Transforms.removeNodes(editor, { at: childPath })
               return
@@ -995,7 +1039,11 @@ const withSefariaSheet = editor => {
       // SheetItems should only be of a specific type and only one per sheet item
       if (node.type == "SheetItem") {
         for (const [child, childPath] of Node.children(editor, path)) {
-          if (!sheetElementTypes.includes(child.type)) {
+          if (child.text === "") {
+            Transforms.delete(editor, {at: path});
+          }
+          else if (!sheetElementTypes.includes(child.type)) {
+            console.log('unwrap')
             Transforms.unwrapNodes(editor, { at: childPath })
             return
           }
@@ -1042,50 +1090,15 @@ const withSefariaSheet = editor => {
           }
       }
 
-      // Anything pasted into SourceContentText will be treated as text
-      if (node.type == "SourceContentText") {
-        for (const [child, childPath] of Node.children(editor, path)) {
-          if (child.type != "paragraph" && !child.text) {
-            Transforms.unwrapNodes(editor, { at: childPath })
-            return
-          }
-        }
-        if (Node.string(node) == "") {
-          editor.insertText("...")
-        }
-      }
-
       //if a sheetitem is stuck somewhere it shouldnt be raise it up to proper doc level
       if (node.type == "SheetItem" && (Node.parent(editor, path)).type != "SheetContent") {
           Transforms.liftNodes(editor, { at: path })
       }
 
-
-      // if (node.type == "SheetSource") {
-      //   //If a sheet source's Hebrew element AND english element are both missing their header or their source content, delete the whole sheetItem
-      //   if (
-      //         (node.children[0].children.length < 2 || Node.string(node.children[0].children[1]) == "..." ) &&
-      //         (node.children.length < 2 || node.children[1].children.length < 2 || Node.string(node.children[1].children[1]) == "...")
-      //       ) {
-      //
-      //         // Transforms.setNodes(editor, {type: "SheetOutsideText"}, {at: path});
-      //         Transforms.removeNodes(editor, {at: Path.parent(path)});
-      //
-      //   }
-      // }
-
-      // if extra content is in sheet source -- merge it with the previous element
-      // if (node.type == "SheetSource") {
-      //     if (node.children && node.children.length > 4) {
-      //     for (const [child, childPath] of Node.children(editor, path)) {
-      //         if (!["en", "he", "TextRef"].includes(child.type)) {
-      //           [prev, prevPath] = Editor.previous(editor, { at: childPath });
-      //           Transforms.mergeNodes(editor, { at: childPath})
-      //           return
-      //         }
-      //       }
-      //     }
-      // }
+      //if a sheetSource is stuck somewhere it shouldnt be raise it up to proper doc level
+      if (node.type == "SheetSource" && (Node.parent(editor, path)).type != "SheetItem") {
+          Transforms.liftNodes(editor, { at: path })
+      }
 
 
       // Fall back to the original `normalizeNode` to enforce other constraints.
@@ -1186,40 +1199,11 @@ const insertSource = (editor, ref) => {
                 node: editor.children[0].nextNode,
                 ref: text.ref,
                 heRef: text.heRef,
+                heText: parseSheetItemHTML(heText),
+                enText: parseSheetItemHTML(enText),
                 title: null,
                 children: [
-                    {
-                        type: "he",
-                        children:  [
-                          {
-                              type: "TextRef",
-                              ref: text.ref,
-                              refText: text.heRef,
-                              lang: "he",
-                              children: [{text: text.heRef}]
-                          },
-                          {
-                            type: "SourceContentText",
-                            children: parseSheetItemHTML(heText)
-                          }
-                        ]
-                    },
-                    {
-                      type: "en",
-                      children:  [
-                        {
-                            type: "TextRef",
-                            ref: text.ref,
-                            refText: text.ref,
-                            lang: "en",
-                            children: [{text: text.ref}]
-                        },
-                        {
-                          type: "SourceContentText",
-                          children: parseSheetItemHTML(enText)
-                        }
-                      ]
-                    }
+                    {text: ""},
                 ]
             }]
         };
@@ -1396,7 +1380,6 @@ const FormatButton = ({format}) => {
 };
 
 function saveSheetContent(doc, lastModified) {
-
     const sheetMetaData = doc.children.find(el => el.type == "SheetMetaDataBox");
 
     const sheetTitle = sheetMetaData.children.find(el => el.type == "SheetTitle").children.reduce((htmlString, fragment) => {
@@ -1411,15 +1394,20 @@ function saveSheetContent(doc, lastModified) {
         switch (sheetItem.type) {
             case 'SheetSource':
 
-                const enBlock = sheetItem.children.find(el => el.type == "en");
-                const heBlock = sheetItem.children.find(el => el.type == "he");
+                const enSerializedText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
+                  return concatenatedSegments + serialize(currentSegment)
+                }, "" ) );
+
+                const heSerializedText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
+                  return concatenatedSegments + serialize(currentSegment)
+                }, "" ) );
 
                 let source = {
                     "ref": sheetItem.ref,
                     "heRef": sheetItem.heRef,
                     "text": {
-                        "en": enBlock ? serialize(enBlock.children[1]) : "...",
-                        "he": heBlock ? serialize(heBlock.children[1]) : "...",
+                        "en": enSerializedText !== "" ? enSerializedText : "...",
+                        "he": heSerializedText !== "" ? heSerializedText : "...",
                     },
                     "node": sheetItem.node,
                 };
@@ -1492,91 +1480,7 @@ const SefariaEditor = (props) => {
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
-    const [fullSheetItemSelectedPath, setFullSheetItemSelectedPath] = useState(null);
     const [currentSelection, setCurrentSelection] = useState([]);
-
-    function ensureSelectOfEntireSource(currentSelection) {
-
-      if(currentSelection.length > 0) {
-
-        if (editor.children[0]["edittingSource"]) {
-          const textBox = getClosestSheetElement(editor, editor.selection.anchor["path"], "SourceContentText")
-
-          if (!textBox) {return}
-
-          const textBoxEnd = Editor.end(editor, textBox[1])
-          const textBoxStart = Editor.start(editor, textBox[1])
-
-          // debugger;
-
-          if (Range.isBackward(editor.selection) && Point.isBefore(editor.selection.focus, Editor.start(editor, textBox[1]))) {
-            console.log("out of bounds top")
-            Transforms.select(editor, {
-              focus: { path: textBoxStart["path"], offset: textBoxStart["offset"]},
-              anchor: { path: editor.selection.anchor["path"], offset: editor.selection.anchor["offset"]}
-            });
-
-          }
-
-          else if (!(Range.isBackward(editor.selection)) && Point.isAfter(editor.selection.focus, Editor.end(editor, textBox[1]))) {
-            console.log("out of bounds below")
-            Transforms.select(editor, {
-              focus: { path: textBoxEnd["path"], offset: textBoxEnd["offset"]},
-              anchor: { path: editor.selection.anchor["path"], offset: editor.selection.anchor["offset"]}
-            });
-          }
-          return
-        }
-
-        const firstSourceEdge = Editor.before(editor, (currentSelection[0][1]))
-        const lastSourceEdge = Editor.after(editor, (currentSelection[currentSelection.length - 1][1]))
-
-
-        if (Range.isBackward(editor.selection)) {
-          const anchorLoc = Point.isAfter(lastSourceEdge, editor.selection.anchor) ? lastSourceEdge : editor.selection.anchor;
-          if (Point.isBefore(firstSourceEdge, editor.selection.focus) || Point.equals(firstSourceEdge, editor.selection.focus)) {
-            Transforms.select(editor, {
-              focus: { path: firstSourceEdge["path"], offset: firstSourceEdge["offset"]},
-              anchor: { path: anchorLoc.path, offset: anchorLoc.offset}
-
-            });
-          }
-        }
-        else {
-          const anchorLoc = Point.isBefore(firstSourceEdge, editor.selection.anchor) ? firstSourceEdge : editor.selection.anchor;
-          if (Point.isAfter(lastSourceEdge, editor.selection.focus, ) || Point.equals(lastSourceEdge, editor.selection.focus, )) {
-            Transforms.select(editor, {
-              focus: { path: lastSourceEdge["path"], offset: lastSourceEdge["offset"]},
-              anchor: { path: anchorLoc.path, offset: anchorLoc.offset}
-            });
-          }
-        }
-
-      }
-
-      else {
-        Transforms.setNodes(editor, {edittingSource: false}, {at: [0]});
-      }
-
-    }
-
-    useEffect(
-        () => {
-            // Update debounced value after delay
-            const handler = setTimeout(() => {
-                ensureSelectOfEntireSource(currentSelection);
-            }, 250);
-
-            // Cancel the timeout if value changes (also on delay change or unmount)
-            // This is how we prevent debounced value from updating if value is changed ...
-            // .. within the delay period. Timeout gets cleared and restarted.
-            return () => {
-                clearTimeout(handler);
-            };
-        },
-        [currentSelection] // Only re-call effect if value or delay changes
-    );
-
 
     useEffect(
         () => {
@@ -1614,7 +1518,6 @@ const SefariaEditor = (props) => {
         // Prevents sources from being selected by clicks outside of editor
         return
       }
-        // setFullSheetItemSelectedPath(isWholeSheetItemSelected(editor));
         const selectedSheetSources = activeSheetSources(editor);
         if (currentSelection != selectedSheetSources) {
           setCurrentSelection(selectedSheetSources)
@@ -1649,12 +1552,18 @@ const SefariaEditor = (props) => {
           }
         }
 
-        if (fullSheetItemSelectedPath && (event.key == "Backspace" || event.key == "Delete")) {
-          event.preventDefault();
-          Transforms.delete(editor, {at: fullSheetItemSelectedPath});
+        if ((event.key == "Backspace" || event.key == "Delete")) {
+          var path = editor.selection.focus.path
+          var voidMatch = Editor.void(editor, {
+            at: path
+          });
+
+          if (voidMatch) {
+                   Transforms.delete(editor, {
+                      at: voidMatch[1]
+                    });
+              }
         }
-
-
 
         // add ref on space if end of line
         if (event.key == " ") {
