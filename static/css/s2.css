@@ -7139,6 +7139,12 @@ span.purim-emoji img{
 .readerPanel.english .sheetContent .sheetItem.segment.heOnly .sourceContentText.outsideBiText.he {
   display: inline;
 }
+.readerPanel.english .sheetContent .sheetItem .SheetOutsideText.segment.he,
+.readerPanel.hebrew .sheetContent .sheetItem .SheetOutsideText.segment.en,
+.readerPanel.english .sheetContent .sheetItem .SheetComment.segment.he,
+.readerPanel.hebrew .sheetContent .sheetItem .SheetComment.segment.en {
+  display: inline;
+}
 .sourceContentText.centeredSheetContent {
   text-align: center;
 }
