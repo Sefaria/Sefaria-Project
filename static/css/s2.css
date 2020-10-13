@@ -7336,6 +7336,12 @@ span.purim-emoji img{
   pointer-events: none;
   user-select: none;
 }
+.sheetItem .SheetSource:after {
+    content: " ";
+    display: block;
+    clear: both;
+}
+
 .sheetItem .SheetOutsideBiText {
   border-left: 4px solid;
   margin-left: -34px;
