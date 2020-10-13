@@ -251,7 +251,7 @@ const FilterableList = ({
   const [loading, setLoading] = useState(!cachedData);
   const [rawData, setRawData] = useState(cachedData);
   const [displayData, setDisplayData] = useState(processData(rawData));
-  
+
   // If `getData` function is passed, load data through this effect
   useEffect(() => {
     let isMounted = true;
@@ -263,14 +263,14 @@ const FilterableList = ({
           setDisplayData(processData(data));
           setLoading(false);
         }
-      });      
+      });
     }
     return () => {
       isMounted = false;
     };
   }, [getData, rawData]);
 
-  // Alternatively, if there is no `getData` function passed, we expect data 
+  // Alternatively, if there is no `getData` function passed, we expect data
   // to be fed in directly through the `data` prop
   useEffect(() => {
     setRawData(data);
@@ -290,7 +290,7 @@ const FilterableList = ({
   }, [filter, sortOption, extraData]);
 
   const dataUpToPage = usePaginatedDisplay(scrollableElement, displayData, pageSize, bottomMargin, initialRenderSize || pageSize);
-  
+
   if (onDisplayedDataChange) {
     useEffect(() => {
       onDisplayedDataChange(dataUpToPage);
@@ -1245,7 +1245,7 @@ class SheetListing extends Component {
       Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString());
       this.props.handleSheetClick(e, this.props.sheet, null, this.props.connectedRefs);
       e.preventDefault();
-    } 
+    }
   }
   handleSheetOwnerClick(e) {
     Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
@@ -2053,7 +2053,7 @@ class CookiesNotification extends Component {
 }
 
 const SheetTitle = (props) => (
-        <div className={`title ${props.empty ? 'empty': ''}`} role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
+        <div className={`title ${props.empty ? 'empty': ''} ${props.focused ? 'focused': ''}`} role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
             {props.children? props.children : props.title.stripHtmlKeepLineBreaks()}
         </div>
     )
@@ -2082,8 +2082,8 @@ const GroupStatement = (props) => (
             </a>
           </div>
           <a href={"/groups/" + props.group.replace(/ /g, "-")}>{props.children ? props.children : props.group}</a>
-        </div> 
-        : 
+        </div>
+        :
         <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
           {props.children}
         </div>

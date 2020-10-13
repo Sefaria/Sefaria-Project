@@ -715,7 +715,7 @@ const Element = props => {
             );
         case 'SheetTitle':
             return (
-                <SheetTitle empty={Node.string(element) ? false:true} title={element.title}>{children}</SheetTitle>
+                <SheetTitle focused={useSelected()} empty={Node.string(element) ? false:true} title={element.title}>{children}</SheetTitle>
             );
         case 'TextRef':
             return (
@@ -1380,8 +1380,6 @@ const FormatButton = ({format}) => {
 };
 
 function saveSheetContent(doc, lastModified) {
-  console.log(doc)
-
     const sheetMetaData = doc.children.find(el => el.type == "SheetMetaDataBox");
 
     const sheetTitle = sheetMetaData.children.find(el => el.type == "SheetTitle").children.reduce((htmlString, fragment) => {
@@ -1482,7 +1480,6 @@ const SefariaEditor = (props) => {
     const [currentDocument, setCurrentDocument] = useState(initValue);
     const [unsavedChanges, setUnsavedChanges] = useState(false);
     const [lastModified, setlastModified] = useState(props.data.dateModified);
-    const [fullSheetItemSelectedPath, setFullSheetItemSelectedPath] = useState(null);
     const [currentSelection, setCurrentSelection] = useState([]);
 
     useEffect(
@@ -1521,7 +1518,6 @@ const SefariaEditor = (props) => {
         // Prevents sources from being selected by clicks outside of editor
         return
       }
-        // setFullSheetItemSelectedPath(isWholeSheetItemSelected(editor));
         const selectedSheetSources = activeSheetSources(editor);
         if (currentSelection != selectedSheetSources) {
           setCurrentSelection(selectedSheetSources)
@@ -1556,12 +1552,18 @@ const SefariaEditor = (props) => {
           }
         }
 
-        if (fullSheetItemSelectedPath && (event.key == "Backspace" || event.key == "Delete")) {
-          event.preventDefault();
-          Transforms.delete(editor, {at: fullSheetItemSelectedPath});
+        if ((event.key == "Backspace" || event.key == "Delete")) {
+          var path = editor.selection.focus.path
+          var voidMatch = Editor.void(editor, {
+            at: path
+          });
+
+          if (voidMatch) {
+                   Transforms.delete(editor, {
+                      at: voidMatch[1]
+                    });
+              }
         }
-
-
 
         // add ref on space if end of line
         if (event.key == " ") {
