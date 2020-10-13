@@ -552,4 +552,8 @@ sites_data = [
         "domains": ["noahfarkas.com"],
         "title_branding": ["Rabbi Noah farkas"]
     },
+    {
+        "name": "Reconstructing Judaism",
+        "domains": ["reconstructingjudaism.org"],
+    },
 ]
