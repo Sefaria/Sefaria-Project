@@ -71,7 +71,7 @@ class LexiconBox extends Component {
   }
 
   getNamedEntity(slug) {
-    Sefaria.getTopic(slug, false, false, false, false).then(data => {
+    Sefaria.getTopic(slug, false, false, false, false, true).then(data => {
       console.log("getTopic", data);
       this.setState({
         loaded: true,
@@ -131,16 +131,31 @@ class LexiconBox extends Component {
       if (!this.state.loaded) {
         content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
       } else {
+          const ne = this.state.namedEntity;
           content = (<div className="named-entity-wrapper">
-            <a className="contentText topicLexiconTitle" href={`/topics/${this.state.namedEntity.slug}`} target="_blank">
-              <span className="en">{this.state.namedEntity.primaryTitle.en}</span>
-              <span className="he">{this.state.namedEntity.primaryTitle.he}</span>
+            <a className="contentText topicLexiconTitle" href={`/topics/${ne.slug}`} target="_blank">
+              <span className="en">{ne.primaryTitle.en}</span>
+              <span className="he">{ne.primaryTitle.he}</span>
             </a>
             {
-              this.state.namedEntity.description ? (
+              ne.timePeriod ? (
+                <div className="named-entity-time-period">
+                  <div className="smallText">
+                    <span className="int-en">{ne.timePeriod.name.en}</span>
+                    <span className="int-he">{ne.timePeriod.name.he}</span>
+                  </div>
+                  <div className="smallText">
+                    <span className="int-en">{ne.timePeriod.yearRange.en}</span>
+                    <span className="int-he">{ne.timePeriod.yearRange.he}</span>
+                  </div>
+                </div>
+              ) : null
+            }
+            {
+              ne.description ? (
                 <div className="contentText named-entity-description">
-                  <span className="en">{this.state.namedEntity.description.en}</span>
-                  <span className="he">{this.state.namedEntity.description.he}</span>
+                  <span className="en">{ne.description.en}</span>
+                  <span className="he">{ne.description.he}</span>
                 </div>
               ) : null
             }

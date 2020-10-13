@@ -5719,6 +5719,9 @@ a .button:hover {
 .readerPanel.hebrew .named-entity-wrapper {
   direction: rtl;
 } 
+.lexicon-results .named-entity-time-period {
+  margin-top: 13px;
+}
 .lexicon-results .named-entity-description {
   margin-top: 13px;
 }
