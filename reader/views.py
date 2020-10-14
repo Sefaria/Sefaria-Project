@@ -904,7 +904,7 @@ def mobile_home(request):
 
 def _get_user_calendar_params(request):
     if request.user.is_authenticated:
-        profile = UserProfile(id=request.user.id)
+        profile = UserProfile(user_obj=request.user)
         custom = profile.settings.get("textual_custom", "ashkenazi")
     else:
         custom = "ashkenazi" # this is default because this is the most complete data set
