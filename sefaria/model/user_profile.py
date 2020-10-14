@@ -13,7 +13,7 @@ from sefaria.system.exceptions import InputError, SheetNotFoundError
 from functools import reduce
 
 if not hasattr(sys, '_doc_build'):
-    from django.contrib.auth.models import User
+    from django.contrib.auth.models import User, Group
     from emailusernames.utils import get_user, user_exists
     from django.core.mail import EmailMultiAlternatives
     from django.template.loader import render_to_string
@@ -264,7 +264,7 @@ class UserWrapper(object):
         else:
             raise ValueError(self.errors())
 
-    def has_group(self, group_name):
+    def has_permission_group(self, group_name):
         try:
             group = Group.objects.get(name=group_name)
             return group in self.user.groups.all()
