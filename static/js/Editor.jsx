@@ -862,16 +862,21 @@ const withSefariaSheet = editor => {
     editor.deleteBackward = (unit) => {
         //If backspace is pressed at the start of an outside text that is surrounded by sheet sources, don't delete it
         const textBox = getClosestSheetElement(editor, editor.selection.focus["path"], "SheetOutsideText")
+        //are you at the start of an outsideText
         if (textBox && Point.equals(editor.selection.focus, Editor.start(editor, textBox[1]))) {
+            //is this the first SheetItem?
             if (Point.equals(Editor.start(editor, textBox[1]), Editor.start(editor, Node.first(editor, [0,1])[1]))) {
                 Transforms.move(editor, {unit: "character", distance: 1, reverse: true})
                 return
             }
-            else if (Point.equals(Editor.end(editor, textBox[1]), Editor.end(editor, Node.last(editor, [0,1])[1]))) {
+            //is this the last SheetItem?
+            else if (Point.equals(Editor.end(editor, textBox[1]), Editor.end(editor, Node.last(editor, [0,1])[1])) &&
+                    Node.get(editor, (Path.previous(Path.parent(textBox[1])))).children[0].type !== "SheetOutsideText" )
+            {
                 Transforms.move(editor, {unit: "character", distance: 1, reverse: true})
                 return
             }
-
+            // Am I surrounded by sheetsources?
             else if (Node.get(editor, (Path.previous(Path.parent(textBox[1])))).children[0].type === "SheetSource" &&
                 Node.get(editor, (Path.next(Path.parent(textBox[1])))).children[0].type === "SheetSource"
             ) {
@@ -900,13 +905,14 @@ const withSefariaSheet = editor => {
 
           const selectionAtEdge = isSelectionFocusAtEdgeOfSheetItem(editor);
           if (selectionAtEdge) {
-              const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, "")
-              addItemToSheet(editor, fragment, selectionAtEdge);
-              Transforms.move(editor);
+              //the extra space after the line break is required to keep things working right
+              editor.insertText("\n ");
+              Transforms.move(editor, {unit: "character", distance: 1, reverse: true})
               return
           }
 
           editor.insertText("\n");
+
         })
 
     };
@@ -945,11 +951,45 @@ const withSefariaSheet = editor => {
           }
       }
 
-      // Autoset language of an outside text for proper RTL/LTR handling
+
+      if (node.type == "SheetOutsideText" || node.type == "SheetComment") {
+        const content = Node.string(node);
+
+        // Make new outside sources on 2 consecutive line breaks
+        if (content.indexOf('\n\n') !== -1) {
+          for (const [n, p] of Node.texts(node)) {
+            const offset = n.text.indexOf('\n\n')
+            if (offset !== -1) {
+              const targetPath = path.concat(p)
+              const target = {path: targetPath, offset: offset}
+              Transforms.delete(editor, {distance: 2, unit: 'character', at: target});
+              Transforms.splitNodes(editor, { at: target })
+              // Transforms.liftNodes(editor, { at: (Editor.after(editor, targetPath)) })
+              console.log(Editor.after(editor, targetPath))
+              Transforms.wrapNodes(editor,
+                {
+                    type: "SheetOutsideText",
+                    children: [],
+                    node: editor.children[0].nextNode,
+                    }
+                              ,{ at: Editor.after(editor, targetPath) })
+
+                              incrementNextSheetNode(editor)
+
+
+              return
+            }
+
+          }
+        }
+      }
+
       if (node.type == "SheetOutsideText") {
+        // Autoset language of an outside text for proper RTL/LTR handling
           const content = Node.string(node);
           const lang = Sefaria.hebrew.isHebrew(content) ? 'he' : 'en';
           Transforms.setNodes(editor, { lang: lang }, {at: path});
+
       }
 
 
@@ -1004,6 +1044,7 @@ const withSefariaSheet = editor => {
       //   }
       // }
 
+
       if (node.type == "SheetContent") {
         // If sheet elements are in sheetcontent and not wrapped in sheetItem, wrap it.
         for (const [child, childPath] of Node.children(editor, path)) {
@@ -1028,16 +1069,20 @@ const withSefariaSheet = editor => {
 
           }
         }
-        if ((node.children[node.children.length-1].children[0].type) != "SheetOutsideText") {
-            Transforms.select(editor, Editor.end(editor, []));
-            Editor.insertBreak(editor)
-            return
-        }
+        // if ((node.children[node.children.length-1].children[0].type) != "SheetOutsideText") {
+        //     Transforms.select(editor, Editor.end(editor, []));
+        //     Editor.insertBreak(editor)
+        //     return
+        // }
       }
-
 
       // SheetItems should only be of a specific type and only one per sheet item
       if (node.type == "SheetItem") {
+        if (Node.parent(editor, path).type != "SheetContent") {
+          Transforms.liftNodes(editor, { at: path })
+            return
+        }
+
         for (const [child, childPath] of Node.children(editor, path)) {
           if (child.text === "") {
             Transforms.delete(editor, {at: path});
@@ -1054,6 +1099,12 @@ const withSefariaSheet = editor => {
         }
       }
 
+      //Any nested sheet element should be lifted
+      if (sheetElementTypes.includes(node.type)) {
+        if (Node.parent(editor, path).type != "SheetItem") {
+          Transforms.liftNodes(editor, { at: path })
+        }
+      }
 
       //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
       if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
@@ -1553,6 +1604,7 @@ const SefariaEditor = (props) => {
         }
 
         if ((event.key == "Backspace" || event.key == "Delete")) {
+          console.log('1')
           var path = editor.selection.focus.path
           var voidMatch = Editor.void(editor, {
             at: path
