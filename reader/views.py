@@ -346,14 +346,17 @@ def base_props(request):
     Returns a dictionary of props that all App pages get based on the request AND are able to be sent over the wire to the Node SSR server.
     """
     from sefaria.model.user_profile import UserProfile, UserWrapper
-    profile = UserProfile(user_obj=request.user) if request.user.is_authenticated else None
+    profile = UserProfile(user_obj=request.user)
     return {
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "_uid": request.user.id,
         "is_moderator": request.user.is_staff,
         "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
-        "notificationsCount": profile.unread_notification_count() if profile else 0,
+        "notificationsCount": profile.unread_notification_count(),
+        "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
+        "full_name": profile.full_name,
+        "profile_pic_url": profile.profile_pic_url,
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
             "language":      request.contentLang,
@@ -560,6 +563,9 @@ def texts_category_list(request, cats):
         return redirect("/texts/%s" % cats)
 
     props = base_props(request)
+    props.update({
+        "last_place": UserProfile(user_obj=request.user).get_user_history(last_place=True, secondary=False, serialized=True),
+    })
     cats  = cats.split("/")
     if cats != ["recent"]:
         toc        = library.get_toc()
