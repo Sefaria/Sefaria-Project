@@ -302,10 +302,13 @@ class AbstractMongoSet(collections.abc.Iterable):
     """
     recordClass = AbstractMongoRecord
 
-    def __init__(self, query=None, page=0, limit=0, sort=[("_id", 1)], proj=None, hint=None, record_kwargs=None):
+    def __init__(self, query=None, page=0, limit=0, sort=None, proj=None, hint=None, record_kwargs=None):   # default sort used to be =[("_id", 1)]
         self.query = query or {}
         self.record_kwargs = record_kwargs or {}  # kwargs to pass to record when instantiating
-        self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj).sort(sort).skip(page * limit).limit(limit)
+        self.raw_records = getattr(db, self.recordClass.collection).find(self.query, proj)
+        if sort:
+            self.raw_records = self.raw_records.sort(sort)
+        self.raw_records = self.raw_records.skip(page * limit).limit(limit)
         self.hint = hint
         self.limit = limit
         self.skip = page * limit

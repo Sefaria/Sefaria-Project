@@ -363,7 +363,7 @@ class ConnectionsPanel extends Component {
         const chevrutaURL = `${window.location.host}/chavruta?ref=${window.location.pathname.replace(/\//, '')}&rid=${uuid}`
 
         content = (<div className="chavruta">
-                    <div className="headerText">Learn with a Chavruta</div>
+                    <div className="headerText">{Sefaria._("Learn with a Chavruta")}</div>
 
                     <div className="fakeBrowser">
                       <div className="fakeBrowserHeader">
@@ -395,7 +395,7 @@ class ConnectionsPanel extends Component {
                         </div>
                       </div>
                     </div>
-                    <p>Share this link with your chavruta to start a video call with this text</p>
+                    <p>{Sefaria._("Share this link with your chavruta to start a video call with this text")}</p>
                     <p>
                     <input
                       id="chavrutaURL"
@@ -406,7 +406,7 @@ class ConnectionsPanel extends Component {
                     </p>
 
                     <p>
-                    <a className="button fillWidth startChavrutaButton" href={"//"+chevrutaURL}><img src="/static/img/video.svg" />Start Call</a>
+                    <a className="button fillWidth startChavrutaButton" href={"//"+chevrutaURL}><img src="/static/img/video.svg" />{Sefaria._("Start Call")}</a>
                     </p>
                   </div>);
 
@@ -959,7 +959,7 @@ class ToolsList extends Component {
         <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
         <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={addTranslation} />
         <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={() => !Sefaria._uid  ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Add Connection")} />
-        { editText ? (<ToolsButton en="Edit Text" he="ערוך טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
+        { editText ? (<ToolsButton en="Edit Text" he="עריכת טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
       </div>);
   }
 }
