@@ -346,6 +346,7 @@ def base_props(request):
     Returns a dictionary of props that all App pages get based on the request AND are able to be sent over the wire to the Node SSR server.
     """
     from sefaria.model.user_profile import UserProfile, UserWrapper
+    from sefaria.site.site_settings import SITE_SETTINGS, DEBUG
     profile = UserProfile(user_obj=request.user)
     return {
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
@@ -369,6 +370,8 @@ def base_props(request):
             "color":         request.COOKIES.get("color", "light"),
             "fontSize":      request.COOKIES.get("fontSize", 62.5),
         },
+        "_siteSettings": SITE_SETTINGS,
+        #"_debug": DEBUG,
     }
 
 
