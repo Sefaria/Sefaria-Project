@@ -114,14 +114,12 @@ def user_and_notifications(request):
         }
 
     notifications = profile.recent_notifications()
-    notifications_json = "[" + ",".join([n.to_JSON() for n in notifications]) + "]"
 
     interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
     interrupting_message      = InterruptingMessage(attrs=interrupting_message_dict, request=request)
     interrupting_message_json = interrupting_message.json()
     return {
-        "notifications": notifications,
-        "notifications_json": notifications_json,
+        "notifications_json": notifications.to_JSON(),
         "notifications_html": notifications.to_HTML(),
         "notifications_count": profile.unread_notification_count(),
         "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
