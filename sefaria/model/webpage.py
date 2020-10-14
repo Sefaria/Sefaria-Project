@@ -556,4 +556,10 @@ sites_data = [
         "name": "Reconstructing Judaism",
         "domains": ["reconstructingjudaism.org"],
     },
+    {
+        "name": "The Institute for Jewish Ideas and Ideals",
+        "domains": ["jewishideas.org"],
+        "title_branding": ["jewishideas.org"]
+    },
+
 ]
