@@ -106,7 +106,7 @@ def user_and_notifications(request):
             "interrupting_message_json": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json()
         }
 
-    profile = UserProfile(id=request.user.id)
+    profile = UserProfile(user_obj=request.user)
     if request.path == "/texts":
         return {
             "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
