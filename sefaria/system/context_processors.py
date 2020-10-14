@@ -60,8 +60,6 @@ def global_settings(request):
         "GOOGLE_TAG_MANAGER_CODE":GOOGLE_TAG_MANAGER_CODE,
         "DEBUG":                  DEBUG,
         "OFFLINE":                OFFLINE,
-        "GLOBAL_WARNING":         GLOBAL_WARNING,
-        "GLOBAL_WARNING_MESSAGE": GLOBAL_WARNING_MESSAGE,
         "GOOGLE_MAPS_API_KEY":    GOOGLE_MAPS_API_KEY,
         "SITE_SETTINGS":          SITE_SETTINGS,
         }
