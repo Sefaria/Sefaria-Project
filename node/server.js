@@ -23,7 +23,7 @@ server.use(bodyParser.json({limit: '50mb'}));
 
 const log = settings.DEBUG ? console.log : function() {};
 
-const cache = redis.createClient(settings.REDIS_PORT, settings.REDIS_HOST, {});
+const cache = redis.createClient(settings.REDIS_PORT, settings.REDIS_HOST, {prefix: ':1:'});
 
 cache.on('error', function (err) {
     console.log('Redis Connection Error ' + err);
@@ -33,9 +33,10 @@ cache.on('connect', function() {
     console.log('Connected to Redis');
 });
 
-cache.get(":1:toc_json_cache", function(err, resp){
+cache.get("toc_json", function(err, resp){
   let data = JSON.parse(resp);
 });
+
 
 const renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
