@@ -13,7 +13,7 @@ from sefaria.system.exceptions import InputError, SheetNotFoundError
 from functools import reduce
 
 if not hasattr(sys, '_doc_build'):
-    from django.contrib.auth.models import User, Group
+    from django.contrib.auth.models import User, Group, AnonymousUser
     from emailusernames.utils import get_user, user_exists
     from django.core.mail import EmailMultiAlternatives
     from django.template.loader import render_to_string
@@ -283,7 +283,7 @@ class UserProfile(object):
         try:
             if user_obj:
                 user = user_obj
-                id = user.id
+                id = user.id if not isinstance(user_obj, AnonymousUser) else 0 #can this be used to have profile methods work, but return empty data?
             elif email and not id:  # Load profile by email, if passed.
                 user = User.objects.get(email__iexact=email)
                 id = user.id
@@ -554,7 +554,8 @@ class UserProfile(object):
         return NotificationSet().recent_for_user(self.id)
 
     def unread_notification_count(self):
-        return unread_notifications_count_for_user(self.id)
+        from sefaria.model.notification import NotificationSet
+        return NotificationSet().unread_for_user(self.id).count()
 
     def interrupting_message(self):
         """
@@ -701,13 +702,6 @@ def email_unread_notifications(timeframe):
 
         if "interface_language" in profile.settings:
             translation.deactivate()
-
-
-def unread_notifications_count_for_user(uid):
-    """Returns the number of unread notifications belonging to user uid"""
-    # Check for globals to add...
-    from sefaria.model.notification import NotificationSet
-    return NotificationSet().unread_for_user(uid).count()
 
 
 public_user_data_cache = {}
