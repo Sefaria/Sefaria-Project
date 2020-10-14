@@ -3298,6 +3298,9 @@ def user_profile(request, username):
         raise Http404('Profile is inactive.')
 
     props = base_props(request)
+    props.update({
+        "following": profile.followees.uids,
+    })
     profileJSON = profile.to_api_dict()
     props.update({
         "initialMenu":  "profile",
