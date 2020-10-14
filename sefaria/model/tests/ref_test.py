@@ -622,6 +622,8 @@ class Test_comparisons(object):
         assert Ref("Shabbat 5b:10-20").overlaps(Ref("Shabbat 5b:18-20"))
         assert not Ref("Shabbat 5b:10-20").overlaps(Ref("Shabbat 5b:23-29"))
 
+        assert Ref("Genesis 1:10-4:10").overlaps(Ref("Genesis 3:15-5:5"))
+
 
     def test_contains(self):
         assert Ref("Genesis 5:10-20").contains(Ref("Genesis 5:10-20"))

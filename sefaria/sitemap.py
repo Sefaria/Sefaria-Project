@@ -151,9 +151,12 @@ class SefariaSiteMapGenerator(object):
         """
         Writes the list of `urls` to `filename`.
         """
+        def escape_url(url):
+            return url.replace("&", "&amp;")
+
         content = ""
         for url in urls:
-            content += ("<url><loc>{}</loc></url>\n".format(url))
+            content += ("<url><loc>{}</loc></url>\n".format(escape_url(url)))
 
         xml = ('<?xml version="1.0" encoding="UTF-8"?>'
                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'

@@ -193,7 +193,7 @@ def get_webpages_for_ref(tref):
     from pymongo.errors import OperationFailure
     oref = text.Ref(tref)
     segment_refs = [r.normal() for r in oref.all_segment_refs()]
-    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}}, hint="expandedRefs_1")
+    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}}, hint="expandedRefs_1", sort=None)
     try:
         results = results.array()
     except OperationFailure as e:
@@ -324,7 +324,8 @@ def clean_webpages(test=True):
     """ Delete webpages matching patterns deemed not worth including"""
     pages = WebPageSet({"$or": [
             {"url": {"$regex": WebPage.excluded_pages_url_regex()}},
-            {"title": {"$regex": WebPage.excluded_pages_title_regex()}}
+            {"title": {"$regex": WebPage.excluded_pages_title_regex()}},
+            {"refs": {"$eq": []}}
         ]})
 
     if not test:
@@ -540,5 +541,19 @@ sites_data = [
         "name": "Rabbi Jeff Fox (Rosh ha-Yeshiva, Yeshivat Maharat)",
         "domains": ["roshyeshivatmaharat.org"],
         "title_branding": ["Rosh Yeshiva Maharat"]
+    },
+    {
+        "name": "Cleveland Jewish News",
+        "domains": ["clevelandjewishnews.com"],
+        "title_branding": ["clevelandjewishnews.com"]
+    },
+    {
+        "name": "Rabbi Noah Farkas",
+        "domains": ["noahfarkas.com"],
+        "title_branding": ["Rabbi Noah farkas"]
+    },
+    {
+        "name": "Reconstructing Judaism",
+        "domains": ["reconstructingjudaism.org"],
     },
 ]
