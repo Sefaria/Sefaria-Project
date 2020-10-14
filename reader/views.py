@@ -30,7 +30,7 @@ from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
+from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.schema import SheetLibraryNode
@@ -343,7 +343,7 @@ def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_pa
 
 def base_props(request):
     """
-    Returns a dictionary of props that all App pages get based on the request.
+    Returns a dictionary of props that all App pages get based on the request AND are able to be sent over the wire to the Node SSR server.
     """
     from sefaria.model.user_profile import UserProfile, UserWrapper
     profile = UserProfile(user_obj=request.user) if request.user.is_authenticated else None
@@ -352,7 +352,7 @@ def base_props(request):
         "initialPath": request.get_full_path(),
         "_uid": request.user.id,
         "is_moderator": request.user.is_staff,
-        "is_editor": UserWrapper(user_obj=request.user).has_group("Editors"),
+        "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
         "notificationsCount": profile.unread_notification_count() if profile else 0,
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
@@ -2856,7 +2856,7 @@ def notifications_read_api(request):
 
         return jsonResponse({
                                 "status": "ok",
-                                "unreadCount": unread_notifications_count_for_user(request.user.id)
+                                "unreadCount": UserProfile(user_obj=request.user).unread_notifications_count()
                             })
 
     else:

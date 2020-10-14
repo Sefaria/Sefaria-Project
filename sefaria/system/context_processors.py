@@ -134,7 +134,7 @@ def user_and_notifications(request):
         "profile_pic_url": profile.profile_pic_url,
         "following": json.dumps(profile.followees.uids),
         "is_moderator": request.user.is_staff,
-        "is_editor": UserWrapper(user_obj=request.user).has_group("Editors")
+        "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors")
     }
 
 
