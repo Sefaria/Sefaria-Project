@@ -355,7 +355,6 @@ def base_props(request):
         "is_moderator": request.user.is_staff,
         "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
         "notificationsCount": profile.unread_notification_count(),
-        "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
         "full_name": profile.full_name,
         "profile_pic_url": profile.profile_pic_url,
         "interfaceLang": request.interfaceLang,
@@ -922,6 +921,9 @@ def texts_list(request):
 
 def saved(request):
     props = base_props(request)
+    props.update({
+        "saved": UserProfile(user_obj=request.user).get_user_history(saved=True, secondary=False, serialized=True)
+    })
     title = _("My Saved Content")
     desc = _("See your saved content on Sefaria")
     return menu_page(request, props, "saved", title, desc)
