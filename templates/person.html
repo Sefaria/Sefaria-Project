@@ -65,10 +65,12 @@
                 <span class="int-he">{{ time_period_name.he }}</span>
             </h2>
         {% endif %}
+        {% if time_period %}
         <h2 id="yearLine">
             <span class="int-en">{{ time_period.en }}</span>
             <span class="int-he">{{ time_period.he }}</span>
         </h2>
+        {% endif %}
         <div class="section">
             {% if enBio or heBio %}
             <p id="bio">
