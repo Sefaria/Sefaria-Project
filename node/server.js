@@ -17,26 +17,51 @@ const http           = require('http'),
     ReaderApp      = React.createFactory(SefariaReact.ReaderApp);
 
 const server = express();
-
 server.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
 server.use(bodyParser.json({limit: '50mb'}));
 
 const log = settings.DEBUG ? console.log : function() {};
 
+const cacheKeyMapping = {"toc": "toc", "topic_toc": "topic_toc", "terms": "term_mapping", "books": "books_en" }
+const sharedCacheData = {
+  "toc": null,
+  "topics_toc": null,
+  "terms": null,
+  "books": null
+};
 const cache = redis.createClient(settings.REDIS_PORT, settings.REDIS_HOST, {prefix: ':1:'});
-
 cache.on('error', function (err) {
     console.log('Redis Connection Error ' + err);
 });
-
 cache.on('connect', function() {
     console.log('Connected to Redis');
 });
 
-cache.get("toc_json", function(err, resp){
-  let data = JSON.parse(resp);
-});
+const ensureSharedDataAvailability = async function(){
+    let expiredkeys = [];
+    for (const cachekey in cacheKeyMapping) {
+      if(await needsUpdating(cachekey)){
+        expiredkeys.push(cachekey);
+      }
+    }
+    await getDataFromRedis(expiredkeys);
+}
 
+const getDataFromRedis = async function(keys){
+  let transformedkeys = keys.map(k => cacheKeyMapping[k]);
+  cache.mget(transformedkeys, function(err, resp){
+    for(const el in resp){
+      console.log(el);
+    }
+    for(const key in keys){
+      sharedCacheData[key] = resp[cacheKeyMapping[key]];
+    }
+  });
+}
+
+const needsUpdating = async function(cachekey){
+  return !sharedCacheData[cachekey];
+}
 
 const renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
@@ -97,6 +122,8 @@ server.post('/Footer/:cachekey', function(req, res) {
   var html  = ReactDOMServer.renderToStaticMarkup(React.createElement(SefariaReact.Footer));
   res.send(html);
 });
+
+ensureSharedDataAvailability();
 
 server.listen(settings.NODEJS_PORT, function() {
   console.log('Django Host: ' + settings.DJANGO_HOST);
