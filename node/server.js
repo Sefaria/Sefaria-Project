@@ -123,13 +123,18 @@ server.post('/Footer/:cachekey', function(req, res) {
   res.send(html);
 });
 
-ensureSharedDataAvailability();
 
-server.listen(settings.NODEJS_PORT, function() {
-  console.log('Django Host: ' + settings.DJANGO_HOST);
-  console.log('Django Port: ' + settings.DJANGO_PORT);
-  console.log('Redis Host: ' + settings.REDIS_HOST);
-  console.log('Redis Port: ' + settings.REDIS_PORT);
-  console.log('Debug: ' + settings.DEBUG);
-  console.log('Listening on ' + settings.NODEJS_PORT);
-});
+const main = async function (){
+  await ensureSharedDataAvailability();
+  server.listen(settings.NODEJS_PORT, function() {
+    console.log('Django Host: ' + settings.DJANGO_HOST);
+    console.log('Django Port: ' + settings.DJANGO_PORT);
+    console.log('Redis Host: ' + settings.REDIS_HOST);
+    console.log('Redis Port: ' + settings.REDIS_PORT);
+    console.log('Debug: ' + settings.DEBUG);
+    console.log('Listening on ' + settings.NODEJS_PORT);
+  });
+}
+
+main();
+
