@@ -829,23 +829,69 @@ const getNextSheetItemPath = (SheetItemPath) => {
 async function getRefInText(editor) {
   const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")
   if (!closestSheetItem) {return {}}
-  const query = Node.string(closestSheetItem[0]).trim();
+  const initQuery = Node.string(closestSheetItem[0]).trim();
 
-  //return null if query length is too long to be a ref or if query is empty
-  if (query.length > 50 || query == "") {return {}}
+  const match = (initQuery.match(/^.+|\n.+/g));
 
-  const ref = await Sefaria.getName(query)
-      .then(d => {
-    // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-    if (Sefaria.isACaseVariant(query, d)) {
-      this.submitSearch(Sefaria.repairCaseVariant(query, d));
-      return;
+  for (const query of match) {
+    console.log(query)
+    if (query.length > 50 || query == "") {return {}}
+
+    const ref = await Sefaria.getName(query)
+        .then(d => {
+      // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+      if (Sefaria.isACaseVariant(query, d)) {
+        this.submitSearch(Sefaria.repairCaseVariant(query, d));
+        return;
+      }
+
+      return d
+
+
+    });
+
+
+    if (ref["is_ref"]) {
+        Transforms.move(editor, { distance: query.length, unit: 'character', reverse: true, edge: 'anchor' })
+        Editor.addMark(editor, "isRef", true)
+        Transforms.collapse(editor, {edge: 'focus'})
+
+
+        // Transforms.select(editor, )
+      if(ref["is_segment"] || ref["is_section"]) {
+        Transforms.move(editor, { distance: query.length, unit: 'character', reverse: true, edge: 'anchor' })
+        Editor.removeMark(editor, "isRef")
+        Transforms.delete(editor);
+
+        insertSource(editor, ref["ref"])
+      }
+      return ref
     }
 
-    return d
+    else {
+      Transforms.move(editor, { distance: query.length, unit: 'character', reverse: true, edge: 'anchor' })
+      Editor.removeMark(editor, "isRef")
+      Transforms.collapse(editor, {edge: 'focus'})
+    }
 
-  });
-  return ref
+
+  }
+  return {}
+  //return null if query length is too long to be a ref or if query is empty
+  // if (query.length > 50 || query == "") {return {}}
+  //
+  // const ref = await Sefaria.getName(query)
+  //     .then(d => {
+  //   // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+  //   if (Sefaria.isACaseVariant(query, d)) {
+  //     this.submitSearch(Sefaria.repairCaseVariant(query, d));
+  //     return;
+  //   }
+  //
+  //   return d
+  //
+  // });
+  // return ref
 }
 
 
@@ -897,10 +943,10 @@ const withSefariaSheet = editor => {
         }
 
         getRefInText(editor).then(query =>{
-          if (query["is_ref"] && (query["is_segment"] || query["is_section"]) ) {
-          insertSource(editor, query["ref"])
-          return
-        }
+          // if (query["is_ref"] && (query["is_segment"] || query["is_section"]) ) {
+          // insertSource(editor, query["ref"])
+          // return
+        // }
 
 
           const selectionAtEdge = isSelectionFocusAtEdgeOfSheetItem(editor);
@@ -1260,7 +1306,7 @@ const insertSource = (editor, ref) => {
         };
         addItemToSheet(editor, fragment, "bottom");
         Transforms.setNodes(editor, { loading: false }, { at: currentNode[1] });
-        Transforms.insertText(editor, '', { at: currentNode[1] })
+        // Transforms.insertText(editor, '', { at: currentNode[1] })
         Transforms.move(editor, { unit: 'block', distance: 9 })
     });
 };
@@ -1620,16 +1666,17 @@ const SefariaEditor = (props) => {
         // add ref on space if end of line
         if (event.key == " ") {
             getRefInText(editor).then(query =>{
-              if (query["is_ref"]){
-                Transforms.setNodes(editor, { isRef: true }, {at: editor.selection.focus.path});
-                if ((query["is_segment"] || query["is_section"]) ) {
-                  insertSource(editor, query["ref"])
-                  return
-                }
+              if (query["is_ref"] && !(query["is_segment"] || query["is_section"])) {
+
+
+                // Transforms.setNodes(editor, { isRef: true }, {at: editor.selection.focus.path});
+              //   if ((query["is_segment"] || query["is_section"]) ) {
+              //     insertSource(editor, query["ref"])
+              //     return
+              //   }
               }
               else {
-                Transforms.setNodes(editor, { isRef: false }, {at: editor.selection.focus.path});
-
+                // Transforms.setNodes(editor, { isRef: false }, {at: editor.selection.focus.path});
               }
             })
         }
