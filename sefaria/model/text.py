@@ -5032,24 +5032,23 @@ class Library(object):
             if not rebuild:
                 self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_'+lang+'_json')
             if rebuild or not self._full_title_list_jsons.get(lang):
-                self.build_text_titles_json(lang=lang)
-                scache.set_shared_cache_elem('books_'+lang+'_json', self._full_title_list_jsons.get(lang))
+                title_list = self.build_text_titles_json(lang=lang)
+                title_list_json = json.dumps(title_list)
+                self._full_title_list_jsons[lang] = title_list_json
+                scache.set_shared_cache_elem('books_' + lang, title_list)
+                scache.set_shared_cache_elem('books_'+lang+'_json', title_list_json)
         return self._full_title_list_jsons[lang]
 
     def build_text_titles_json(self, lang="en"):
         """
         :return: JSON of full texts list, (cached)
         """
-        title_json = self._full_title_list_jsons.get(lang)
-        if not title_json:
-            title_list = self.full_title_list(lang=lang)
-            if lang == "en":
-                toc_titles = self.get_toc_tree().flatten()
-                secondary_list = list(set(title_list) - set(toc_titles))
-                title_list = toc_titles + secondary_list
-            title_json = json.dumps(title_list)
-            self._full_title_list_jsons[lang] = title_json
-        return title_json
+        title_list = self.full_title_list(lang=lang)
+        if lang == "en":
+            toc_titles = self.get_toc_tree().flatten()
+            secondary_list = list(set(title_list) - set(toc_titles))
+            title_list = toc_titles + secondary_list
+        return title_list
 
     def get_text_categories(self):
         """
