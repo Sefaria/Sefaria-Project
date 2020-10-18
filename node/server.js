@@ -61,12 +61,6 @@ const getDataFromRedis = function(keys){
   }).catch(error => {
     console.error(error.message);
   });
-  /*cache.mget(transformedkeys, function(err, resp){
-    for(const el in resp){
-      console.log(el);
-    }*/
-
-  });
 }
 
 const needsUpdating = function(cachekey){
