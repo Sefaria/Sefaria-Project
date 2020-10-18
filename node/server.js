@@ -37,30 +37,23 @@ cache.on('error', function (err) {
   console.error('Redis Connection Error ' + err);
 });
 cache.on('connect', function() {
-    console.log('Connected to Redis');
+  console.log('Connected to Redis');
 });
 
 
 const ensureSharedDataAvailability = async function(){
-    let expiredkeys = [];
-    for (const cachekey in cacheKeyMapping) {
-      if(await needsUpdating(cachekey)){
-        expiredkeys.push(cachekey);
+    let redisCalls = [];
+    for (const [key, value] of Object.entries(cacheKeyMapping)) {
+      console.log(`${key}: ${value}`);
+      if(await needsUpdating(key)){
+        redisCalls.push(getAsync(value).then(resp => {
+          sharedCacheData[key] = resp;
+        }).catch(error => {
+          console.error(error.message);
+        }));
       }
     }
-    await getDataFromRedis(expiredkeys);
-    return;
-}
-
-const getDataFromRedis = function(keys){
-  let transformedkeys = keys.map(k => cacheKeyMapping[k]);
-  return Promise.all(transformedkeys.map(cache.get)).then(resp => {
-    for(const key in keys){
-      sharedCacheData[key] = resp[cacheKeyMapping[key]];
-    }
-  }).catch(error => {
-    console.error(error.message);
-  });
+    return Promise.all(redisCalls);
 }
 
 const needsUpdating = function(cachekey){
@@ -128,14 +121,17 @@ server.post('/Footer/:cachekey', function(req, res) {
 });
 
 
-ensureSharedDataAvailability();
-server.listen(settings.NODEJS_PORT, function() {
-  console.log('Django Host: ' + settings.DJANGO_HOST);
-  console.log('Django Port: ' + settings.DJANGO_PORT);
-  console.log('Redis Host: ' + settings.REDIS_HOST);
-  console.log('Redis Port: ' + settings.REDIS_PORT);
-  console.log('Debug: ' + settings.DEBUG);
-  console.log('Listening on ' + settings.NODEJS_PORT);
-});
+const main = async function(){
+  await ensureSharedDataAvailability();
+  server.listen(settings.NODEJS_PORT, function() {
+    console.log('Django Host: ' + settings.DJANGO_HOST);
+    console.log('Django Port: ' + settings.DJANGO_PORT);
+    console.log('Redis Host: ' + settings.REDIS_HOST);
+    console.log('Redis Port: ' + settings.REDIS_PORT);
+    console.log('Debug: ' + settings.DEBUG);
+    console.log('Listening on ' + settings.NODEJS_PORT);
+  });
+}
 
+main();
 
