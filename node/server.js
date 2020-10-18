@@ -5,6 +5,7 @@
                          generateScopedName: '[name]',
                      });
 const redis = require('redis');
+const { promisify } = require("util");
 const http           = require('http'),
     express        = require('express'),
     bodyParser     = require('body-parser'),
@@ -30,12 +31,15 @@ const sharedCacheData = {
   "books": null
 };
 const cache = redis.createClient(settings.REDIS_PORT, settings.REDIS_HOST, {prefix: ':1:'});
+const mgetAsync = promisify(cache.mget).bind(cache);
+const getAsync = promisify(cache.get).bind(cache);
 cache.on('error', function (err) {
-    console.log('Redis Connection Error ' + err);
+  console.error('Redis Connection Error ' + err);
 });
 cache.on('connect', function() {
     console.log('Connected to Redis');
 });
+
 
 const ensureSharedDataAvailability = async function(){
     let expiredkeys = [];
@@ -45,21 +49,27 @@ const ensureSharedDataAvailability = async function(){
       }
     }
     await getDataFromRedis(expiredkeys);
+    return;
 }
 
-const getDataFromRedis = async function(keys){
+const getDataFromRedis = function(keys){
   let transformedkeys = keys.map(k => cacheKeyMapping[k]);
-  cache.mget(transformedkeys, function(err, resp){
-    for(const el in resp){
-      console.log(el);
-    }
+  return Promise.all(transformedkeys.map(cache.get)).then(resp => {
     for(const key in keys){
       sharedCacheData[key] = resp[cacheKeyMapping[key]];
     }
+  }).catch(error => {
+    console.error(error.message);
+  });
+  /*cache.mget(transformedkeys, function(err, resp){
+    for(const el in resp){
+      console.log(el);
+    }*/
+
   });
 }
 
-const needsUpdating = async function(cachekey){
+const needsUpdating = function(cachekey){
   return !sharedCacheData[cachekey];
 }
 
@@ -124,17 +134,14 @@ server.post('/Footer/:cachekey', function(req, res) {
 });
 
 
-const main = async function (){
-  await ensureSharedDataAvailability();
-  server.listen(settings.NODEJS_PORT, function() {
-    console.log('Django Host: ' + settings.DJANGO_HOST);
-    console.log('Django Port: ' + settings.DJANGO_PORT);
-    console.log('Redis Host: ' + settings.REDIS_HOST);
-    console.log('Redis Port: ' + settings.REDIS_PORT);
-    console.log('Debug: ' + settings.DEBUG);
-    console.log('Listening on ' + settings.NODEJS_PORT);
-  });
-}
+ensureSharedDataAvailability();
+server.listen(settings.NODEJS_PORT, function() {
+  console.log('Django Host: ' + settings.DJANGO_HOST);
+  console.log('Django Port: ' + settings.DJANGO_PORT);
+  console.log('Redis Host: ' + settings.REDIS_HOST);
+  console.log('Redis Port: ' + settings.REDIS_PORT);
+  console.log('Debug: ' + settings.DEBUG);
+  console.log('Listening on ' + settings.NODEJS_PORT);
+});
 
-main();
 
