@@ -24,9 +24,9 @@ server.use(bodyParser.json({limit: '50mb'}));
 const log = settings.DEBUG ? console.log : function() {};
 
 const cacheKeyMapping = {"toc": "toc", "topic_toc": "topic_toc", "terms": "term_mapping", "books": "books_en" }
-const sharedCacheData = {
+let sharedCacheData = {
   "toc": null,
-  "topics_toc": null,
+  "topic_toc": null,
   "terms": null,
   "books": null
 };
@@ -47,9 +47,10 @@ const ensureSharedDataAvailability = async function(){
       console.log(`${key}: ${value}`);
       if(await needsUpdating(key)){
         redisCalls.push(getAsync(value).then(resp => {
+          console.log(`${value}: ${resp}`);
           sharedCacheData[key] = resp;
         }).catch(error => {
-          console.error(error.message);
+          console.log(`${value}: ${error.message}`);
         }));
       }
     }
