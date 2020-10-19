@@ -2564,7 +2564,26 @@ Sefaria.unpackDataFromProps = function(props) {
     Sefaria._topicList = props.topicList;
   }
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
-  Sefaria.interfaceLang = props.interfaceLang;
+  const dataPassedAsProps = [
+      "_uid",
+      "interfaceLang",
+      "calendars",
+      "is_moderator",
+      "is_editor",
+      "notificationCount",
+      "notificationsHtml",
+      "saved",
+      "last_place",
+      "full_name",
+      "profile_pic_url",
+      "_siteSettings",
+      "_debug",
+  ];
+  for (const element of dataPassedAsProps) {
+      if (element in props) {
+        Sefaria[element] = props[element];
+      }
+  }
 };
 
 
