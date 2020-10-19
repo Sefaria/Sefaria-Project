@@ -31,7 +31,7 @@ const sharedCacheData = {
   "books": null
 };
 const cache = redis.createClient(settings.REDIS_PORT, settings.REDIS_HOST, {prefix: ':1:'});
-const mgetAsync = promisify(cache.mget).bind(cache);
+//const mgetAsync = promisify(cache.mget).bind(cache);
 const getAsync = promisify(cache.get).bind(cache);
 cache.on('error', function (err) {
   console.error('Redis Connection Error ' + err);
