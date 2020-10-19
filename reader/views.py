@@ -934,7 +934,6 @@ def notifications(request):
     props = base_props(request)
     notifications = UserProfile(user_obj=request.user).recent_notifications()
     props.update({
-        "notifications_json": notifications.to_JSON(),
         "notifications_html": notifications.to_HTML(),
     })
     return menu_page(request, props, "notifications", title)
