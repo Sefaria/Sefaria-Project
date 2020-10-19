@@ -30,8 +30,8 @@ const sharedCacheData = {
   "terms": null,
   "books": null
 };
+
 const cache = redis.createClient(settings.REDIS_PORT, settings.REDIS_HOST, {prefix: ':1:'});
-//const mgetAsync = promisify(cache.mget).bind(cache);
 const getAsync = promisify(cache.get).bind(cache);
 cache.on('error', function (err) {
   console.error('Redis Connection Error ' + err);
@@ -53,7 +53,12 @@ const ensureSharedDataAvailability = async function(){
         }));
       }
     }
-    return Promise.all(redisCalls);
+    try{
+      return await Promise.all(redisCalls);
+    }catch(e) {
+      console.error(e.message);
+      return Promise.reject(e); //Is this the correct way??
+    }
 }
 
 const needsUpdating = function(cachekey){
@@ -62,56 +67,33 @@ const needsUpdating = function(cachekey){
 
 const renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
-  data.initialPath    = props.initialPath;
-  data._uid           = props._uid;
-  data.recentlyViewed = props.recentlyViewed;
+  log(props.initialPath);
 
-  log(data.initialPath);
-
-  SefariaReact.sefariaSetup(data);
+  SefariaReact.sefariaSetup(data); //Do we really need to do Sefaria.setup every request?
   SefariaReact.unpackDataFromProps(props);
   log("Time to set data: %dms", timer.elapsed());
-  // Why yes, I'd love a console.
-  // var repl = require("repl");
-  // var r = repl.start("node> ");
-  // r.context.data = data;
-  // r.context.props = props;
-  // r.context.Sefaria = require("../static/js/sefaria");
-
-  var html  = ReactDOMServer.renderToString(ReaderApp(props));
+  const html  = ReactDOMServer.renderToString(ReaderApp(props));
   log("Time to render: %dms", timer.elapsed());
   console.log("%s %dms", data.initialPath,  timer.elapsed());
-
   return html;
 };
 
 server.post('/ReaderApp/:cachekey', function(req, res) {
-  var timer = {
+  const timer = {
     start: new Date(),
     elapsed: function() { return (new Date() - this.start); }
   };
-  var props = JSON.parse(req.body.propsJSON);
+  const props = JSON.parse(req.body.propsJSON);
   // var cacheKey = req.params.cachekey
   log(props.initialRefs || props.initialMenu);
   log("Time to props: %dms", timer.elapsed());
-  var options = {
-    url: "http://".concat(settings.DJANGO_HOST, ":", settings.DJANGO_PORT, "/data.js"),
-    headers: {
-      "User-Agent": "sefaria-node"
-    }
-  };
-  request(options, function(error, response, body) {
-    if (!error && response.statusCode == 200) {
-      log("Time to get data.js: %dms", timer.elapsed());
-      (0, eval)(body); // to understand why this is necessary, see: https://stackoverflow.com/questions/19357978/indirect-eval-call-in-strict-mode
-      log("Time to eval data.js: %dms", timer.elapsed());
-      var html = renderReaderApp(props, DJANGO_DATA_VARS, timer);
-      res.end(html);
-      log("Time to complete: %dms", timer.elapsed());
-    } else {
-      console.error("ERROR: %s %s", response && response.statusCode, error);
-      res.end("There was an error accessing /data.js.");
-    }
+  ensureSharedDataAvailability().then(response => {
+    log("Time to validate cache data: %dms", timer.elapsed());
+    const resphtml = renderReaderApp(props, sharedCacheData, timer);
+    log("Time to complete: %dms", timer.elapsed());
+    res.end(resphtml);
+  }).catch(error => {
+    res.status(500).end('something blew up: ' + error.message);
   });
 });
 
@@ -124,8 +106,6 @@ server.post('/Footer/:cachekey', function(req, res) {
 const main = async function(){
   await ensureSharedDataAvailability();
   server.listen(settings.NODEJS_PORT, function() {
-    console.log('Django Host: ' + settings.DJANGO_HOST);
-    console.log('Django Port: ' + settings.DJANGO_PORT);
     console.log('Redis Host: ' + settings.REDIS_HOST);
     console.log('Redis Port: ' + settings.REDIS_PORT);
     console.log('Debug: ' + settings.DEBUG);
