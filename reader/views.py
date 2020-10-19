@@ -371,7 +371,7 @@ def base_props(request):
             "fontSize":      request.COOKIES.get("fontSize", 62.5),
         },
         "_siteSettings": SITE_SETTINGS,
-        #"_debug": DEBUG,
+        "_debug": DEBUG,
     }
 
 
