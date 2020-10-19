@@ -169,11 +169,12 @@ def header_html(request):
 FOOTER = None
 @user_only
 def footer_html(request):
+    from sefaria.site.site_settings import SITE_SETTINGS
     if request.path == "/data.js":
         return {}
     global FOOTER
     if USE_NODE:
-        FOOTER = FOOTER or render_react_component("Footer", {})
+        FOOTER = FOOTER or render_react_component("Footer", {"interfaceLang": request.interfaceLang, "_siteSettings": SITE_SETTINGS})
         FOOTER = "" if "appLoading" in FOOTER else FOOTER
     else:
         FOOTER = ""
