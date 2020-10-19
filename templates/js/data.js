@@ -15,7 +15,6 @@ var DJANGO_DATA_VARS = {
   is_moderator:         {{ is_moderator|yesno:'true, false' }},
   is_editor:            {{ is_editor|yesno:'true, false' }},
   notificationCount:    {{ notifications_count|default:'0' }},
-  notifications:        {{ notifications_json|default:'[]' }},
   notificationsHtml:    "{{ notifications_html|escape_quotes }}",
   saved:                {{ saved|jsonify }},
   slug:                 "{{ slug|default:'' }}",
