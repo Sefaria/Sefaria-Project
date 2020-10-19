@@ -8513,7 +8513,12 @@ body .homeFeedWrapper.userStats {
   font-size: 13px;
   box-sizing: border-box;
   border-radius: 6px;
+
+  visibility: hidden; 
 }
+
+
+
 #sheetEditToggle img {
   height: 13px;
   margin-top: 0;

@@ -54,6 +54,7 @@ class Sheet extends Component {
     } else {
       this.preloadConnections();
     }
+    document.getElementById('sheetEditToggle').click()
   }
   preloadConnections() {
     const data = this.getSheetFromCache();
@@ -108,8 +109,8 @@ class Sheet extends Component {
     }
     return (
         <div className={classes} onWheel={this.setScrollDir}>
-          { /* this.props.editor == true && sheet ? */
-            sheet && Sefaria._uid == sheet.owner && $.cookie("new_editor") ?
+          {  this.props.editor == true && sheet ?
+            /*sheet && Sefaria._uid == sheet.owner && $.cookie("new_editor") ? */
             <div className="sheetContent"><SefariaEditor data={sheet} /></div>
             : content}
         </div>
