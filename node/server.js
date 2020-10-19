@@ -4,18 +4,18 @@
                      require('css-modules-require-hook')({  // so that node can handle require statements for css files
                          generateScopedName: '[name]',
                      });
-const redis = require('redis');
+const redis         = require('redis');
 const { promisify } = require("util");
-const http           = require('http'),
-    express        = require('express'),
-    bodyParser     = require('body-parser'),
-    cookieParser   = require('cookie-parser'),
-    request        = require('request'),
-    settings       = require('./local_settings.js'),
-    React          = require('react'),
-    ReactDOMServer = require('react-dom/server'),
-    SefariaReact   = require('../static/js/ReaderApp.jsx'),
-    ReaderApp      = React.createFactory(SefariaReact.ReaderApp);
+const http          = require('http'),
+    express         = require('express'),
+    bodyParser      = require('body-parser'),
+    cookieParser    = require('cookie-parser'),
+    request         = require('request'),
+    settings        = require('./local_settings.js'),
+    React           = require('react'),
+    ReactDOMServer  = require('react-dom/server'),
+    SefariaReact    = require('../static/js/ReaderApp.jsx'),
+    ReaderApp       = React.createFactory(SefariaReact.ReaderApp);
 
 const server = express();
 server.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
