@@ -1964,12 +1964,13 @@ ReaderApp.defaultProps = {
 };
 
 const sefariaSetup = Sefaria.setup;
-const { unpackDataFromProps } = Sefaria;
+const { unpackDataFromProps, loadServerData } = Sefaria;
 export {
   ReaderApp,
   Footer,
   sefariaSetup,
   unpackDataFromProps,
+  loadServerData,
   EditGroupPage,
   ContestLandingPage,
   RemoteLearningPage,
