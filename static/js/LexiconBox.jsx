@@ -151,14 +151,10 @@ class LexiconBox extends Component {
                 </div>
               ) : null
             }
-            {
-              ne.description ? (
-                <div className="contentText named-entity-description">
-                  <span className="en">{ne.description.en}</span>
-                  <span className="he">{ne.description.he}</span>
-                </div>
-              ) : null
-            }
+            <div className="contentText named-entity-description">
+              <span className="en">{ne.description ? ne.description.en : `No description known for '${ne.primaryTitle.en}'`}</span>
+              <span className="he">{ne.description ? ne.description.he : `אין הסבר ידוע בשביל '${ne.primaryTitle.he}'`}</span>
+            </div>
           </div>)
       }
     }
