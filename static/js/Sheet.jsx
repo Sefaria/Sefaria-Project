@@ -47,7 +47,7 @@ class Sheet extends Component {
   onDataLoad(data) {
     this.forceUpdate();
     this.preloadConnections();
-    if (!this.props.editor) {document.getElementById('sheetEditToggle').click()}
+    if (!(this.props.editor) && document.getElementById('sheetEditToggle')) {document.getElementById('sheetEditToggle').click()}
   }
   ensureData() {
     if (!this.getSheetFromCache()) {
@@ -55,7 +55,8 @@ class Sheet extends Component {
     } else {
       this.preloadConnections();
     }
-    if (!this.props.editor) {document.getElementById('sheetEditToggle').click()}
+    console.log(document.getElementById('sheetEditToggle'))
+    if (!(this.props.editor) && document.getElementById('sheetEditToggle')) {document.getElementById('sheetEditToggle').click()}
   }
   preloadConnections() {
     const data = this.getSheetFromCache();
