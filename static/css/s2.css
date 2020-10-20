@@ -7298,11 +7298,15 @@ span.purim-emoji img{
 .sheetItem.ref-display-none .ref {
   display: none;
 }
-.sheetItem .SheetSource {
+.sheetItem .SheetSource, section.SheetSource {
   border-inline-start: 4px solid;
   padding-inline-start: 11px;
   padding-inline-end: 15px;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
+}
+
+section.SheetSource.highlight {
+  background-color: #E9E9E7;  
 }
 
 .sheetItem .SheetSource.selected,
@@ -8514,7 +8518,7 @@ body .homeFeedWrapper.userStats {
   box-sizing: border-box;
   border-radius: 6px;
 
-  visibility: hidden; 
+  visibility: hidden;
 }
 
 
