@@ -55,7 +55,6 @@ class Sheet extends Component {
     } else {
       this.preloadConnections();
     }
-    console.log(document.getElementById('sheetEditToggle'))
     if (!(this.props.editor) && document.getElementById('sheetEditToggle')) {document.getElementById('sheetEditToggle').click()}
   }
   preloadConnections() {

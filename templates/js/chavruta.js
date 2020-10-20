@@ -139,7 +139,7 @@ navigator.mediaDevices.getUserMedia({
     console.log('Adding local stream.');
   })
   .catch(function(e) {
-    alert('getUserMedia() error: ' + e.name);
+    alert("There was an error starting your video. Usually this is because your camera is being used by another program. Please check and try again.");
   });
 
 function addAdditionalHTML() {
