@@ -3472,7 +3472,12 @@ def profile_sync_api(request):
         if not no_return:
             # determine return value after new history saved to include new saved and deleted saves
             # send back items after `last_sync`
-            last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
+            from json.decoder import JSONDecodeError
+            try:
+                last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
+            except JSONDecodeError as e:
+                logger.warning(f"JSONDecoderError. post['last_sync']: {post.get('last_sync', None)}. profile.last_sync_web: {profile.last_sync_web}")
+                raise e
             uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}}, hint="uid_1_server_time_stamp_1")
             ret["last_sync"] = now
             ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
@@ -4019,14 +4024,19 @@ def person_page(request, name):
         "en": person.secondary_names("en"),
         "he": person.secondary_names("he")
     }
-    template_vars["time_period_name"] = {
-        "en": person.mostAccurateTimePeriod().primary_name("en"),
-        "he": person.mostAccurateTimePeriod().primary_name("he")
-    }
-    template_vars["time_period"] = {
-        "en": person.mostAccurateTimePeriod().period_string("en"),
-        "he": person.mostAccurateTimePeriod().period_string("he")
-    }
+    try:
+        tp = person.mostAccurateTimePeriod()
+
+        template_vars["time_period_name"] = {
+            "en": tp.primary_name("en"),
+            "he": tp.primary_name("he")
+        }
+        template_vars["time_period"] = {
+            "en": tp.period_string("en"),
+            "he": tp.period_string("he")
+        }
+    except AttributeError:
+        pass
     template_vars["relationships"] = person.get_grouped_relationships()
     template_vars["indexes"] = person.get_indexes()
     template_vars["post_talmudic"] = person.is_post_talmudic()
