@@ -33,21 +33,15 @@ let sharedCacheData = {
 
 const cache = redis.createClient(settings.REDIS_PORT, settings.REDIS_HOST, {prefix: ':1:'});
 const getAsync = promisify(cache.get).bind(cache);
-cache.on('error', function (err) {
-  console.error('Redis Connection Error ' + err);
-});
-cache.on('connect', function() {
-  console.log('Connected to Redis');
-});
 
 
-const ensureSharedDataAvailability = async function(){
+const loadSharedData = async function(){
+    //TODO: If the data wasnt placed in Redis by django to begin with, well, we're screwed.
+    // Or you know, fix it so Node does send a signal to Django to populate cache.
     let redisCalls = [];
     for (const [key, value] of Object.entries(cacheKeyMapping)) {
-      console.log(`${key}: ${value}`);
       if(await needsUpdating(key)){
         redisCalls.push(getAsync(value).then(resp => {
-          console.log(`${value}: ${resp}`);
           sharedCacheData[key] = resp;
         }).catch(error => {
           console.log(`${value}: ${error.message}`);
@@ -63,6 +57,7 @@ const ensureSharedDataAvailability = async function(){
 }
 
 const needsUpdating = function(cachekey){
+  //TODO: add timestamp liveness checks here
   return !sharedCacheData[cachekey];
 }
 
@@ -88,7 +83,7 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
   // var cacheKey = req.params.cachekey
   log(props.initialRefs || props.initialMenu);
   log("Time to props: %dms", timer.elapsed());
-  ensureSharedDataAvailability().then(response => {
+  loadSharedData().then(response => {
     log("Time to validate cache data: %dms", timer.elapsed());
     const resphtml = renderReaderApp(props, sharedCacheData, timer);
     log("Time to complete: %dms", timer.elapsed());
@@ -107,7 +102,7 @@ server.post('/Footer/:cachekey', function(req, res) {
 
 
 const main = async function(){
-  await ensureSharedDataAvailability();
+  await loadSharedData();
   server.listen(settings.NODEJS_PORT, function() {
     console.log('Redis Host: ' + settings.REDIS_HOST);
     console.log('Redis Port: ' + settings.REDIS_PORT);
@@ -116,5 +111,15 @@ const main = async function(){
   });
 }
 
-main();
+cache.on('error', function (err) {
+  console.error('Redis Connection Error ' + err);
+});
+cache.on('connect', function() {
+  console.log('Connected to Redis');
+  cache.select(1, function (){
+    console.log("REDIS DB: ", cache.selected_db);
+    main();
+  })
+});
+
 
