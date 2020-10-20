@@ -567,6 +567,7 @@ sites_data = [
     {
         "name": "The Jewish Virtual Library",
         "domains": ["jewishvirtuallibrary.org"],
+        "normalization_rules": ["use https"],
     },
     {
         "name": "Lilith Magazine",
