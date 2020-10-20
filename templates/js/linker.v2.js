@@ -226,7 +226,7 @@
         popUpElem.style.position = "fixed";
         popUpElem.style.overflow = "hidden";
         popUpElem.style.display = "none";
-        popUpElem.style.zIndex = 9000;
+        popUpElem.style.zIndex = 999999;
 
         // Accessibility Whatnot
         popUpElem.setAttribute('role', 'dialog');

@@ -4021,14 +4021,19 @@ def person_page(request, name):
         "en": person.secondary_names("en"),
         "he": person.secondary_names("he")
     }
-    template_vars["time_period_name"] = {
-        "en": person.mostAccurateTimePeriod().primary_name("en"),
-        "he": person.mostAccurateTimePeriod().primary_name("he")
-    }
-    template_vars["time_period"] = {
-        "en": person.mostAccurateTimePeriod().period_string("en"),
-        "he": person.mostAccurateTimePeriod().period_string("he")
-    }
+    try:
+        tp = person.mostAccurateTimePeriod()
+
+        template_vars["time_period_name"] = {
+            "en": tp.primary_name("en"),
+            "he": tp.primary_name("he")
+        }
+        template_vars["time_period"] = {
+            "en": tp.period_string("en"),
+            "he": tp.period_string("he")
+        }
+    except AttributeError:
+        pass
     template_vars["relationships"] = person.get_grouped_relationships()
     template_vars["indexes"] = person.get_indexes()
     template_vars["post_talmudic"] = person.is_post_talmudic()

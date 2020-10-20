@@ -829,23 +829,69 @@ const getNextSheetItemPath = (SheetItemPath) => {
 async function getRefInText(editor) {
   const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")
   if (!closestSheetItem) {return {}}
-  const query = Node.string(closestSheetItem[0]).trim();
+  const initQuery = Node.string(closestSheetItem[0]).trim();
 
-  //return null if query length is too long to be a ref or if query is empty
-  if (query.length > 50 || query == "") {return {}}
+  const match = (initQuery.match(/^.+|\n.+/g));
 
-  const ref = await Sefaria.getName(query)
-      .then(d => {
-    // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-    if (Sefaria.isACaseVariant(query, d)) {
-      this.submitSearch(Sefaria.repairCaseVariant(query, d));
-      return;
+  for (const query of match) {
+    console.log(query)
+    if (query.length > 50 || query == "") {return {}}
+
+    const ref = await Sefaria.getName(query)
+        .then(d => {
+      // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+      if (Sefaria.isACaseVariant(query, d)) {
+        this.submitSearch(Sefaria.repairCaseVariant(query, d));
+        return;
+      }
+
+      return d
+
+
+    });
+
+
+    if (ref["is_ref"]) {
+        Transforms.move(editor, { distance: query.length, unit: 'character', reverse: true, edge: 'anchor' })
+        Editor.addMark(editor, "isRef", true)
+        Transforms.collapse(editor, {edge: 'focus'})
+
+
+        // Transforms.select(editor, )
+      if(ref["is_segment"] || ref["is_section"]) {
+        Transforms.move(editor, { distance: query.length, unit: 'character', reverse: true, edge: 'anchor' })
+        Editor.removeMark(editor, "isRef")
+        Transforms.delete(editor);
+
+        insertSource(editor, ref["ref"])
+      }
+      return ref
     }
 
-    return d
+    else {
+      Transforms.move(editor, { distance: query.length, unit: 'character', reverse: true, edge: 'anchor' })
+      Editor.removeMark(editor, "isRef")
+      Transforms.collapse(editor, {edge: 'focus'})
+    }
 
-  });
-  return ref
+
+  }
+  return {}
+  //return null if query length is too long to be a ref or if query is empty
+  // if (query.length > 50 || query == "") {return {}}
+  //
+  // const ref = await Sefaria.getName(query)
+  //     .then(d => {
+  //   // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
+  //   if (Sefaria.isACaseVariant(query, d)) {
+  //     this.submitSearch(Sefaria.repairCaseVariant(query, d));
+  //     return;
+  //   }
+  //
+  //   return d
+  //
+  // });
+  // return ref
 }
 
 
@@ -862,16 +908,21 @@ const withSefariaSheet = editor => {
     editor.deleteBackward = (unit) => {
         //If backspace is pressed at the start of an outside text that is surrounded by sheet sources, don't delete it
         const textBox = getClosestSheetElement(editor, editor.selection.focus["path"], "SheetOutsideText")
+        //are you at the start of an outsideText
         if (textBox && Point.equals(editor.selection.focus, Editor.start(editor, textBox[1]))) {
+            //is this the first SheetItem?
             if (Point.equals(Editor.start(editor, textBox[1]), Editor.start(editor, Node.first(editor, [0,1])[1]))) {
                 Transforms.move(editor, {unit: "character", distance: 1, reverse: true})
                 return
             }
-            else if (Point.equals(Editor.end(editor, textBox[1]), Editor.end(editor, Node.last(editor, [0,1])[1]))) {
+            //is this the last SheetItem?
+            else if (Point.equals(Editor.end(editor, textBox[1]), Editor.end(editor, Node.last(editor, [0,1])[1])) &&
+                    Node.get(editor, (Path.previous(Path.parent(textBox[1])))).children[0].type !== "SheetOutsideText" )
+            {
                 Transforms.move(editor, {unit: "character", distance: 1, reverse: true})
                 return
             }
-
+            // Am I surrounded by sheetsources?
             else if (Node.get(editor, (Path.previous(Path.parent(textBox[1])))).children[0].type === "SheetSource" &&
                 Node.get(editor, (Path.next(Path.parent(textBox[1])))).children[0].type === "SheetSource"
             ) {
@@ -892,21 +943,22 @@ const withSefariaSheet = editor => {
         }
 
         getRefInText(editor).then(query =>{
-          if (query["is_ref"] && (query["is_segment"] || query["is_section"]) ) {
-          insertSource(editor, query["ref"])
-          return
-        }
+          // if (query["is_ref"] && (query["is_segment"] || query["is_section"]) ) {
+          // insertSource(editor, query["ref"])
+          // return
+        // }
 
 
           const selectionAtEdge = isSelectionFocusAtEdgeOfSheetItem(editor);
           if (selectionAtEdge) {
-              const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, "")
-              addItemToSheet(editor, fragment, selectionAtEdge);
-              Transforms.move(editor);
+              //the extra space after the line break is required to keep things working right
+              editor.insertText("\n ");
+              Transforms.move(editor, {unit: "character", distance: 1, reverse: true})
               return
           }
 
           editor.insertText("\n");
+
         })
 
     };
@@ -945,11 +997,45 @@ const withSefariaSheet = editor => {
           }
       }
 
-      // Autoset language of an outside text for proper RTL/LTR handling
+
+      if (node.type == "SheetOutsideText" || node.type == "SheetComment") {
+        const content = Node.string(node);
+
+        // Make new outside sources on 2 consecutive line breaks
+        if (content.indexOf('\n\n') !== -1) {
+          for (const [n, p] of Node.texts(node)) {
+            const offset = n.text.indexOf('\n\n')
+            if (offset !== -1) {
+              const targetPath = path.concat(p)
+              const target = {path: targetPath, offset: offset}
+              Transforms.delete(editor, {distance: 2, unit: 'character', at: target});
+              Transforms.splitNodes(editor, { at: target })
+              // Transforms.liftNodes(editor, { at: (Editor.after(editor, targetPath)) })
+              console.log(Editor.after(editor, targetPath))
+              Transforms.wrapNodes(editor,
+                {
+                    type: "SheetOutsideText",
+                    children: [],
+                    node: editor.children[0].nextNode,
+                    }
+                              ,{ at: Editor.after(editor, targetPath) })
+
+                              incrementNextSheetNode(editor)
+
+
+              return
+            }
+
+          }
+        }
+      }
+
       if (node.type == "SheetOutsideText") {
+        // Autoset language of an outside text for proper RTL/LTR handling
           const content = Node.string(node);
           const lang = Sefaria.hebrew.isHebrew(content) ? 'he' : 'en';
           Transforms.setNodes(editor, { lang: lang }, {at: path});
+
       }
 
 
@@ -1004,6 +1090,7 @@ const withSefariaSheet = editor => {
       //   }
       // }
 
+
       if (node.type == "SheetContent") {
         // If sheet elements are in sheetcontent and not wrapped in sheetItem, wrap it.
         for (const [child, childPath] of Node.children(editor, path)) {
@@ -1028,16 +1115,20 @@ const withSefariaSheet = editor => {
 
           }
         }
-        if ((node.children[node.children.length-1].children[0].type) != "SheetOutsideText") {
-            Transforms.select(editor, Editor.end(editor, []));
-            Editor.insertBreak(editor)
-            return
-        }
+        // if ((node.children[node.children.length-1].children[0].type) != "SheetOutsideText") {
+        //     Transforms.select(editor, Editor.end(editor, []));
+        //     Editor.insertBreak(editor)
+        //     return
+        // }
       }
-
 
       // SheetItems should only be of a specific type and only one per sheet item
       if (node.type == "SheetItem") {
+        if (Node.parent(editor, path).type != "SheetContent") {
+          Transforms.liftNodes(editor, { at: path })
+            return
+        }
+
         for (const [child, childPath] of Node.children(editor, path)) {
           if (child.text === "") {
             Transforms.delete(editor, {at: path});
@@ -1054,6 +1145,12 @@ const withSefariaSheet = editor => {
         }
       }
 
+      //Any nested sheet element should be lifted
+      if (sheetElementTypes.includes(node.type)) {
+        if (Node.parent(editor, path).type != "SheetItem") {
+          Transforms.liftNodes(editor, { at: path })
+        }
+      }
 
       //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
       if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
@@ -1209,7 +1306,7 @@ const insertSource = (editor, ref) => {
         };
         addItemToSheet(editor, fragment, "bottom");
         Transforms.setNodes(editor, { loading: false }, { at: currentNode[1] });
-        Transforms.insertText(editor, '', { at: currentNode[1] })
+        // Transforms.insertText(editor, '', { at: currentNode[1] })
         Transforms.move(editor, { unit: 'block', distance: 9 })
     });
 };
@@ -1553,6 +1650,7 @@ const SefariaEditor = (props) => {
         }
 
         if ((event.key == "Backspace" || event.key == "Delete")) {
+          console.log('1')
           var path = editor.selection.focus.path
           var voidMatch = Editor.void(editor, {
             at: path
@@ -1568,16 +1666,17 @@ const SefariaEditor = (props) => {
         // add ref on space if end of line
         if (event.key == " ") {
             getRefInText(editor).then(query =>{
-              if (query["is_ref"]){
-                Transforms.setNodes(editor, { isRef: true }, {at: editor.selection.focus.path});
-                if ((query["is_segment"] || query["is_section"]) ) {
-                  insertSource(editor, query["ref"])
-                  return
-                }
+              if (query["is_ref"] && !(query["is_segment"] || query["is_section"])) {
+
+
+                // Transforms.setNodes(editor, { isRef: true }, {at: editor.selection.focus.path});
+              //   if ((query["is_segment"] || query["is_section"]) ) {
+              //     insertSource(editor, query["ref"])
+              //     return
+              //   }
               }
               else {
-                Transforms.setNodes(editor, { isRef: false }, {at: editor.selection.focus.path});
-
+                // Transforms.setNodes(editor, { isRef: false }, {at: editor.selection.focus.path});
               }
             })
         }

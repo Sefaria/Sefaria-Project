@@ -7139,6 +7139,12 @@ span.purim-emoji img{
 .readerPanel.english .sheetContent .sheetItem.segment.heOnly .sourceContentText.outsideBiText.he {
   display: inline;
 }
+.readerPanel.english .sheetContent .sheetItem .SheetOutsideText.segment.he,
+.readerPanel.hebrew .sheetContent .sheetItem .SheetOutsideText.segment.en,
+.readerPanel.english .sheetContent .sheetItem .SheetComment.segment.he,
+.readerPanel.hebrew .sheetContent .sheetItem .SheetComment.segment.en {
+  display: inline;
+}
 .sourceContentText.centeredSheetContent {
   text-align: center;
 }
@@ -7336,6 +7342,12 @@ span.purim-emoji img{
   pointer-events: none;
   user-select: none;
 }
+.sheetItem .SheetSource:after {
+    content: " ";
+    display: block;
+    clear: both;
+}
+
 .sheetItem .SheetOutsideBiText {
   border-left: 4px solid;
   margin-left: -34px;
@@ -8501,7 +8513,12 @@ body .homeFeedWrapper.userStats {
   font-size: 13px;
   box-sizing: border-box;
   border-radius: 6px;
+
+  visibility: hidden; 
 }
+
+
+
 #sheetEditToggle img {
   height: 13px;
   margin-top: 0;
