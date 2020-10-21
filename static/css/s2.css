@@ -4101,7 +4101,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .segment .namedEntityLink:hover {
   text-decoration: none;
-  border-bottom: 1px dotted #000;
+  border-bottom: 2px dotted #666;
 }
 .stacked.bilingual .segment .en .namedEntityLink:hover {
   border-bottom-color: #666;
