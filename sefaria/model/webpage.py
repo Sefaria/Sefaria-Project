@@ -581,4 +581,9 @@ sites_data = [
         "name": "Sinai and Synapses",
         "domains": ["sinaiandsynapses.org"],
     },
+    {
+        "name": "The Times of Israel",
+        "domains": ["timesofisrael.com"],
+        "title_branding": ["The Blogs"]
+    },
 ]
