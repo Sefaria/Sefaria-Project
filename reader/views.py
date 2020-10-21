@@ -3472,12 +3472,11 @@ def profile_sync_api(request):
         if not no_return:
             # determine return value after new history saved to include new saved and deleted saves
             # send back items after `last_sync`
-            from json.decoder import JSONDecodeError
-            try:
+            if post.get("last_sync", None) == 'undefined':  # in certain rare sitatuations, last_sync is literally 'undefined'. This should be equivalent to sending '0'.
+                last_sync = 0
+            else:
                 last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
-            except JSONDecodeError as e:
-                logger.warning(f"JSONDecoderError. post['last_sync']: {post.get('last_sync', None)}. profile.last_sync_web: {profile.last_sync_web}")
-                raise e
+                
             uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}}, hint="uid_1_server_time_stamp_1")
             ret["last_sync"] = now
             ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
