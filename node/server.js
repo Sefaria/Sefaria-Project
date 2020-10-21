@@ -84,10 +84,14 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
   log(props.initialRefs || props.initialMenu);
   log("Time to props: %dms", timer.elapsed());
   loadSharedData().then(response => {
-    log("Time to validate cache data: %dms", timer.elapsed());
-    const resphtml = renderReaderApp(props, sharedCacheData, timer);
-    log("Time to complete: %dms", timer.elapsed());
-    res.end(resphtml);
+    try{
+      log("Time to validate cache data: %dms", timer.elapsed());
+      const resphtml = renderReaderApp(props, sharedCacheData, timer);
+      res.end(resphtml);
+      log("Time to complete: %dms", timer.elapsed());
+    }catch (render_e){
+      console.log(render_e);
+    }
   }).catch(error => {
     res.status(500).end('something blew up: ' + error.message);
   });
