@@ -2447,7 +2447,7 @@ Sefaria = extend(Sefaria, {
     // Which is worse: the cycles wasted in computing this on the client
     // or the bandwidth wasted in letting the server computer once and transmitting the same data twice in different form?
     this.booksDict = {};
-    for (var i = 0; i < this.books.length; i++) {
+    for (let i = 0; i < this.books.length; i++) {
       this.booksDict[this.books[i]] = 1;
     }
   },
@@ -2610,7 +2610,7 @@ Sefaria.loadServerData = function(data){
     }
     if (typeof data !== 'undefined') {
         for (const [key, value] of Object.entries(data)) {
-            Sefaria[key] = value;
+            this[key] = value;
         }
     }
 };
@@ -2631,7 +2631,19 @@ Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(re
 
 
 Sefaria.setup = function(data) {
-    Sefaria.loadServerData(data);
+    // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
+    // data should but defined server-side and undefined client-side
+
+    if (typeof data === "undefined") {
+        data = typeof DJANGO_DATA_VARS === "undefined" ? undefined : DJANGO_DATA_VARS;
+    }
+    if (typeof data !== 'undefined') {
+        for (var prop in data) {
+            if (data.hasOwnProperty(prop)) {
+                Sefaria[prop] = data[prop];
+            }
+        }
+    }
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupMisc();
     var cookie = Sefaria.util.handleUserCookie(Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role);
