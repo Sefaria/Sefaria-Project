@@ -93,13 +93,16 @@ class WebPage(abst.AbstractMongoRecord):
             "halachipedia\.com\/index\.php\?search=", # Halachipedia search results
             "halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
             "myjewishlearning\.com\/\?post_type=evergreen", # These urls end up not working
-            "judaism.codidact\.com\/.+\/edit",
-            "judaism.codidact\.com\/.+\/history",
-            "judaism.codidact\.com\/.+\/suggested-edit\/",
-            "judaism.codidact\.com\/.+\/posts\/new\/",
+            "judaism\.codidact\.com\/.+\/edit",
+            "judaism\.codidact\.com\/.+\/history",
+            "judaism\.codidact\.com\/.+\/suggested-edit\/",
+            "judaism\.codidact\.com\/.+\/posts\/new\/",
             "jewishexponent\.com\/page\/\d",
             "hebrewcollege\.edu\/blog\/(author|category|tag)\/",  # these function like indices of articles
             "roshyeshivamaharat.org\/(author|category|tag)\/",
+            "lilith\.org\/\?gl=1&s=",                  # Lilith Magazine search results
+            "lilith\.org\/(tag|author|category)\/",
+            "https://torah.org$",                      
             "webcache\.googleusercontent\.com",
             "translate\.googleusercotent\.com",
             "dailympails\.gq\/",
@@ -120,7 +123,7 @@ class WebPage(abst.AbstractMongoRecord):
     def site_data_for_domain(domain):
         for site in sites_data:
             for site_domain in site["domains"]:
-                if domain.endswith(site_domain):
+                if domain.endswith("." + site_domain) or domain.endswith("//" + site_domain):
                     return site
         return None
 
@@ -161,7 +164,7 @@ class WebPage(abst.AbstractMongoRecord):
         title = str(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
-        separators = ["-", "|", "—", "»"]
+        separators = ["-", "|", "—", "»", "•"]
         for separator in separators:
             for brand in brands:
                 if self._site_data.get("initial_title_branding", False):
@@ -193,7 +196,7 @@ def get_webpages_for_ref(tref):
     from pymongo.errors import OperationFailure
     oref = text.Ref(tref)
     segment_refs = [r.normal() for r in oref.all_segment_refs()]
-    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}}, hint="expandedRefs_1")
+    results = WebPageSet(query={"expandedRefs": {"$in": segment_refs}}, hint="expandedRefs_1", sort=None)
     try:
         results = results.array()
     except OperationFailure as e:
@@ -324,7 +327,8 @@ def clean_webpages(test=True):
     """ Delete webpages matching patterns deemed not worth including"""
     pages = WebPageSet({"$or": [
             {"url": {"$regex": WebPage.excluded_pages_url_regex()}},
-            {"title": {"$regex": WebPage.excluded_pages_title_regex()}}
+            {"title": {"$regex": WebPage.excluded_pages_title_regex()}},
+            {"refs": {"$eq": []}}
         ]})
 
     if not test:
@@ -540,5 +544,41 @@ sites_data = [
         "name": "Rabbi Jeff Fox (Rosh ha-Yeshiva, Yeshivat Maharat)",
         "domains": ["roshyeshivatmaharat.org"],
         "title_branding": ["Rosh Yeshiva Maharat"]
+    },
+    {
+        "name": "Cleveland Jewish News",
+        "domains": ["clevelandjewishnews.com"],
+        "title_branding": ["clevelandjewishnews.com"]
+    },
+    {
+        "name": "Rabbi Noah Farkas",
+        "domains": ["noahfarkas.com"],
+        "title_branding": ["Rabbi Noah farkas"]
+    },
+    {
+        "name": "Reconstructing Judaism",
+        "domains": ["reconstructingjudaism.org"],
+    },
+    {
+        "name": "The Institute for Jewish Ideas and Ideals",
+        "domains": ["jewishideas.org"],
+        "title_branding": ["jewishideas.org"]
+    },
+    {
+        "name": "The Jewish Virtual Library",
+        "domains": ["jewishvirtuallibrary.org"],
+        "normalization_rules": ["use https"],
+    },
+    {
+        "name": "Lilith Magazine",
+        "domains": ["lilith.org"],
+    },
+    {
+        "name": "Torah.org",
+        "domains": ["torah.org"],
+    },
+    {
+        "name": "Sinai and Synapses",
+        "domains": ["sinaiandsynapses.org"],
     },
 ]

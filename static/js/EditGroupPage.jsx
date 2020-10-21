@@ -131,7 +131,7 @@ class EditGroupPage extends Component {
   }
   render() {
     const enTitle = this.props.initialData ? "Edit Group" : "Create a Group";
-    const heTitle = this.props.initialData ? "ערוך קבוצה" : "צור קבוצה";
+    const heTitle = this.props.initialData ? "עריכת קבוצה" : "יצירת קבוצה";
     return (
       <div id="editGroupPage">
         <div className="headerWithButtons">

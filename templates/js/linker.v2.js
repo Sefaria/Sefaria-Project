@@ -226,7 +226,7 @@
         popUpElem.style.position = "fixed";
         popUpElem.style.overflow = "hidden";
         popUpElem.style.display = "none";
-        popUpElem.style.zIndex = 9000;
+        popUpElem.style.zIndex = 999999;
 
         // Accessibility Whatnot
         popUpElem.setAttribute('role', 'dialog');
@@ -363,6 +363,7 @@
         options.contentLang = options.contentLang || "bilingual";
         options.parenthesesOnly = options.parenthesesOnly || false;
         options.quotationOnly = options.quotationOnly || false;
+        options.dynamic = options.dynamic || false;
 
         var selector = options.selector || "body";
         if (window.screen.width < 820 || options.mode == "link") { mode = "link"; }  // If the screen is small, fallback to link mode
@@ -373,6 +374,7 @@
         ns.elems = document.querySelectorAll(selector);
         ns.quotationOnly = options.quotationOnly;
         ns.parenthesesOnly = options.parenthesesOnly;
+        ns.dynamic = options.dynamic;
         // Find text titles in the document
         // todo: hold locations of title matches?
         const full_text = [].reduce.call(ns.elems, (prev, current) => prev + current.textContent, "");
@@ -512,7 +514,7 @@
         if (robots && robots.content.includes("noindex")) { return; }
 
         var canonical = document.head.querySelector("link[rel~=canonical]");
-        var url = canonical ? canonical.href : window.location.href;
+        var url = (canonical && !ns.dynamic) ? canonical.href : window.location.href;  // don't use canonical url if dynamic site b/c canonical urls tend to only be correct on initial load
         var meta = document.head.querySelector("meta[name~=description]")
                    || document.head.querySelector("meta[property~=description]")
                    || document.head.querySelector("meta[name~='og:description']")
@@ -526,6 +528,10 @@
             "description": description,
             "refs": ns.matches,
         };
+        if (ns.dynamic) {
+            // don't send description because we can't be sure if the description is still correct after navigating on the dynamic site
+            delete data.description;
+        }
         //console.log("TRACK");
         //console.log(data);
         var json = JSON.stringify(data);

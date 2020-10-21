@@ -215,7 +215,7 @@ class ReaderPanel extends Component {
     const { target, linkType } = this._getClickTarget(event);
     if (!linkType) { return; }
     event.preventDefault();
-   
+
     if (linkType === "ref") {
       const ref       = target.attr("data-ref");
       const pos       = target.attr("data-position");
@@ -227,19 +227,19 @@ class ReaderPanel extends Component {
         this.showBaseText(ref, false, {en: enVersion, he: heVersion});
       }
       if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Text Click", ref); }
-    
+
     } else if (linkType === "cat") {
       const cats = target.attr("data-cats").split("|");
       this.setNavigationCategories(cats);
       if (Sefaria.site) { Sefaria.track.event("Reader", "Navigation Sub Category Click", cats.join(" / ")); }
-    
+
     } else if (linkType === "sheet") {
       const ref = target.attr("data-ref");
       this.props.onNavTextClick ? this.props.onNavTextClick(ref) : this.openSheet(ref);
-    
+
     } else if (linkType === "history") {
       this.openMenu("history");
-    
+
     } else if (linkType === "saved") {
       Sefaria._uid ? this.openMenu("saved") : this.props.toggleSignUpModal();
 
@@ -617,7 +617,7 @@ class ReaderPanel extends Component {
   }
   currentRef() {
     // Returns a string of the current ref, the first if there are many
-    return this.state.refs && this.state.refs.length ? this.state.refs[0] 
+    return this.state.refs && this.state.refs.length ? this.state.refs[0]
             : this.state.highlightedRefs && this.state.highlightedRefs ? this.state.highlightedRefs[0]
               : null;
   }
@@ -1332,7 +1332,7 @@ class ReaderControls extends Component {
               <button id="sheetEditToggle" onClick={() => this.props.toggleSheetEditMode(this.props.editSheet)}>
                 {this.props.editSheet == true ? <img src={"/static/icons/iconmonstr-eye-4.svg"} alt="Eye icon" />:<img src={"/static/icons/iconmonstr-pencil-2.svg"} alt="Pencil icon" />}
                 <span className="int-en">{this.props.editSheet == true ? "View" : "Edit"}</span>
-                <span className="int-he">{this.props.editSheet == true ? "צפייה" : "עריכה"}</span> 
+                <span className="int-he">{this.props.editSheet == true ? "צפייה" : "עריכה"}</span>
               </button>
             : null }
           <SaveButton

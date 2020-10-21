@@ -57,6 +57,8 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
             del link['class']
             if annotate_links:
                 link = annotate_topic_link(link, link_topic_dict)
+                if link is None:
+                    continue
             if link_type_slug in response['links']:
                 response['links'][link_type_slug]['links'] += [link]
             else:
@@ -216,7 +218,7 @@ def get_topics_for_ref(tref, annotate=False):
             link_topic_dict = {topic.slug: topic for topic in TopicSet({"$or": [{"slug": link['topic']} for link in serialized]})}
         else:
             link_topic_dict = {}
-        serialized = [annotate_topic_link(link, link_topic_dict) for link in serialized]
+        serialized = list(filter(None, (annotate_topic_link(link, link_topic_dict) for link in serialized)))
     for link in serialized:
         link['anchorRef'] = link['ref']
         link['anchorRefExpanded'] = link['expandedRefs']

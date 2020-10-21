@@ -39,6 +39,7 @@ parseRef = Sefaria.parseRef.bind(Sefaria);
 makeRef = Sefaria.makeRef.bind(Sefaria);
 normRef = Sefaria.normRef.bind(Sefaria);
 humanRef = Sefaria.humanRef.bind(Sefaria);
+isHebrew = Sefaria.hebrew.isHebrew;
 
 $(window).on("beforeunload", function() {
 	if (!($("#save").data("mode") == "saving")) {
@@ -678,6 +679,14 @@ $(function() {
 				if ($el.hasClass("he") || $el.hasClass("outside")) {
 					if (sjs.current.options.divineNames !== "noSub") {
 						substituteDivineNamesInNode($el[0]);
+					}
+				}
+				// Update hebrew/english classes which are determined by content
+				if ($el.hasClass("outside") || $el.hasClass("comment")) {
+					if (isHebrew(text)) {
+						$el.addClass("he").removeClass("en");
+					} else {
+						$el.addClass("en").removeClass("he");
 					}
 				}
 				// Mark author as customized
