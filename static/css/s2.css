@@ -3776,7 +3776,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0;
   padding: .3333em 0;
 }
-.readerPanel.english .continuous .segment {
+.readerPanel.english.continuous .segment {
   padding: .15em 0;  /* underline of named entities is cut off if padding is higher */
 }
 .continuous .clearFix {
