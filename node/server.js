@@ -42,7 +42,7 @@ const loadSharedData = async function(){
     for (const [key, value] of Object.entries(cacheKeyMapping)) {
       if(await needsUpdating(key)){
         redisCalls.push(getAsync(value).then(resp => {
-          sharedCacheData[key] = resp;
+          sharedCacheData[key] = JSON.parse(resp);
         }).catch(error => {
           console.log(`${value}: ${error.message}`);
         }));
