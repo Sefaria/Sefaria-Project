@@ -762,13 +762,11 @@ def generate_segment_mapping(title, mapping, output_file=None, mapped_title=lamb
 
                 segment_map[each_ref.normal()] = Ref(_obj=core_dict).normal()
 
-    #output results so that this map can be used again for other purposes
+    # output results so that this map can be used again for other purposes
     if output_file:
-        output_file = open(output_file, 'w')
-        assert type(output_file) is file
-        for key in segment_map:
-            output_file.write("KEY: {}, VALUE: {}".format(key, segment_map[key])+"\n")
-        output_file.close()
+        with open(output_file, 'w') as output_file:
+            for key in segment_map:
+                output_file.write("KEY: {}, VALUE: {}".format(key, segment_map[key])+"\n")
     return segment_map
 
 

@@ -152,7 +152,11 @@ def setup_module():
     }).save()
 
     VersionState("Delete Me").refresh()
-    sheet = save_sheet(create_test_sheet(['Delete Me, Part1 1:1']), 1)
+    sheet = save_sheet(create_test_sheet([
+        'Delete Me, Part1 1:1',
+        'MigrateBook 1:1',
+        'MigrateBook 4:1'
+    ]), 1)
     global TEST_SHEET_ID
     TEST_SHEET_ID = sheet['id']
     print('End of test setup')
@@ -173,15 +177,19 @@ def teardown_module():
     if TEST_SHEET_ID:
         db.sheets.delete_one({'id': TEST_SHEET_ID})
         TEST_SHEET_ID = None
+    try:
+        library.get_index("MigrateBook").delete()
+    except BookNameError:
+        pass
 
 
-@pytest.mark.xfail(reason="unknown")
 @pytest.mark.deep
 def test_migrate_to_complex_structure():
-    mappings = {}
-    mappings["MigrateBook 1-2"] = "MigrateBook, Part 1"
-    mappings["MigrateBook 3:1-3"] = "MigrateBook, Part 2"
-    mappings["MigrateBook 4"] = "MigrateBook, Part 3"
+    mappings = {
+        "MigrateBook 1-2": "MigrateBook, Part 1",
+        "MigrateBook 3:1-3": "MigrateBook, Part 2",
+        "MigrateBook 4": "MigrateBook, Part 3"
+    }
 
     try:
         library.get_index("Complex MigrateBook").delete()
@@ -279,8 +287,6 @@ def test_migrate_to_complex_structure():
         'type': 'None'
     }).save()
 
-
-
     VersionState("MigrateBook").refresh()
 
     new_schema = SchemaNode()
@@ -318,6 +324,11 @@ def test_migrate_to_complex_structure():
     assert Link().load({'refs': ['MigrateBook 5:4', 'Guide for the Perplexed, Introduction, Introduction, 3'],}) is None
     assert isinstance(Link().load({'refs': ['MigrateBook, Part 1 1:2-5', 'Genesis 3'],}), Link)
     assert isinstance(Link().load({'refs': ['MigrateBook, Part 1 2', 'Genesis 2'],}), Link)
+
+    sheet_sources = get_sheet_refs(TEST_SHEET_ID)
+    assert all(not re.match(r'^MigrateBook [0-9]', source) for source in sheet_sources)
+    assert any('MigrateBook, Part 1' in source for source in sheet_sources)
+    assert any('MigrateBook, Part 3' in source for source in sheet_sources)
 
     library.get_index("MigrateBook").delete()
 
