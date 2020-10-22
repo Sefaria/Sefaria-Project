@@ -543,7 +543,7 @@ Sefaria = extend(Sefaria, {
     }
 
     if (settings.context) {
-      // Save a copy of the data at section level without context flag
+      // Save a copy of the data at section level with & without context flag
       var newData         = Sefaria.util.clone(data);
       newData.ref         = data.sectionRef;
       newData.heRef       = data.heSectionRef;
@@ -552,6 +552,13 @@ Sefaria = extend(Sefaria, {
         newData.toSections  = data.toSections.slice(0,-1);
       }
       const newSettings   = Sefaria.util.clone(settings);
+      // Note: data for section level refs is identical when called with or without context,
+      // but both are saved in cache for code paths that may always call with or without context.
+      if (!isSectionLevel) {
+        // Segment level ref with context, save section level marked with context
+        this._saveText(newData, newSettings);
+      }
+      // Any level ref with context, save section level marked without context
       newSettings.context = 0;
       this._saveText(newData, newSettings);
     }

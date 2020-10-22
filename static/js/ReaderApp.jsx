@@ -1571,7 +1571,8 @@ class ReaderApp extends Component {
         const parent = this.state.panels[n-1];
         parent.filter = [];
         parent.highlightedRefs = [];
-        parent.currentlyVisibleRef = !parent.currentlyVisibleRef ? parent.currentlyVisibleRef : Sefaria.ref(parent.currentlyVisibleRef).sectionRef;
+        parent.refs = parent.refs.map(ref => Sefaria.ref(ref).sectionRef);
+        parent.currentlyVisibleRef = Sefaria.ref(parent.currentlyVisibleRef).sectionRef;
       }
       this.state.panels.splice(n, 1);
       if (this.state.panels[n] && this.state.panels[n].mode === "Connections") {
