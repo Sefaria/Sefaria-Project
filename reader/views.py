@@ -1776,10 +1776,13 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
         j = json.loads(j)
-        if isinstance(j, list):
+        skip_check = "_skip_lang_check" in j and j["_skip_lang_check"]
+        if isinstance(j["contents"], list):
             res = []
-            for i in j:
+            for i in j["contents"]:
                 try:
+                    if skip_check:
+                        i["_skip_lang_check"] = True
                     retval = _internal_do_post(request, i, uid, **kwargs)
                     res.append({"status": "ok. Link: {} | {} Saved".format(retval["ref"], retval["anchorRef"])})
                 except Exception as e:
@@ -1793,7 +1796,9 @@ def links_api(request, link_id_or_ref=None):
                 res_slice = None
             return jsonResponse(res[:res_slice])
         else:
-            return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
+            if skip_check:
+                j["contents"]["_skip_lang_check"] = True
+            return jsonResponse(_internal_do_post(request, j["contents"], uid, **kwargs))
 
     if request.method == "DELETE":
         if not link_id_or_ref:

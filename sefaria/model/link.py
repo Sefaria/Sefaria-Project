@@ -101,6 +101,13 @@ class Link(abst.AbstractMongoRecord):
         if not getattr(self, "_skip_expanded_refs_set", False):
             self._set_expanded_refs()
 
+    def _sanitize(self):
+        all_attrs = self.required_attrs + self.optional_attrs
+        for attr in all_attrs:
+            val = getattr(self, attr, None)
+            if isinstance(val, str):
+                setattr(self, attr, val)
+
     def _set_available_langs(self):
         LANGS_CHECKED = ["he", "en"]
         
