@@ -135,11 +135,19 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def add_or_update_from_linker(data):
-        """Adds of entry for the WebPage represented by `data` or updates an existing entry with the same normalized URL
+        """Adds an entry for the WebPage represented by `data` or updates an existing entry with the same normalized URL
         Returns True is data was saved, False if data was determined to be exluded"""
         data["url"] = WebPage.normalize_url(data["url"])
-        webpage = WebPage().load(data["url"]) or WebPage(data)
+        webpage = WebPage().load(data["url"])
+        if webpage:
+            existing = True
+        else:
+            webpage = WebPage(data)
+            existing = False
+        webpage._normalize() # to remove bad refs, so pages with empty ref list aren't saved
         if webpage.should_be_excluded():
+            if existing:
+                webpage.delete()
             return "excluded"
         webpage.update_from_linker(data)
         return "saved"
@@ -580,5 +588,10 @@ sites_data = [
     {
         "name": "Sinai and Synapses",
         "domains": ["sinaiandsynapses.org"],
+    },
+    {
+        "name": "The Times of Israel",
+        "domains": ["timesofisrael.com"],
+        "title_branding": ["The Blogs"]
     },
 ]
