@@ -65,7 +65,7 @@ Sefaria = extend(Sefaria, {
           }
           if (book in Sefaria.booksDict || book === "Sheet") {
               const remainder = first.slice(i);
-              if (remainder && remainder[0] !== " ") { 
+              if (remainder && remainder[0] !== " ") {
                 continue; // book name must be followed by a space, Jobs != Job
               }
               nums = remainder.slice(1);
@@ -144,6 +144,7 @@ Sefaria = extend(Sefaria, {
       // `ref` may be a string, or an array of strings. If ref is an array of strings, it is passed to normRefList.
       ref = Sefaria.normRef(ref);
       const pRef = Sefaria.parseRef(ref);
+      if (pRef.error) {return ref}
       if (pRef.sections.length === 0) { return pRef.book; }
       const book = pRef.book + " ";
       const hRef = pRef.ref.replace(/ /g, ":");
@@ -1698,7 +1699,7 @@ Sefaria = extend(Sefaria, {
     if (Sefaria._uid) {
         $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1",
               {user_history: JSON.stringify(history_item_array)},
-              data => { 
+              data => {
                 //console.log("sync resp", data)
                 if ("history" in Sefaria._userHistory) {
                   // If full user history has already been loaded into cache, then modify cache to keep it up to date

@@ -264,7 +264,7 @@ class ConnectionsPanel extends Component {
                     nodeRef = {this.props.nodeRef}
                     />
                  </div>);
-    } else if (this.props.mode == "Resources") {
+    } else if (this.props.mode === "Resources") {
       content = (<div>
                   { this.state.flashMessage ?
                     <div className="flashMessage sans">{this.state.flashMessage}</div>
@@ -341,7 +341,7 @@ class ConnectionsPanel extends Component {
                     fullPanel={this.props.fullPanel}
                     toggleSignUpModal = {this.props.toggleSignUpModal}
                     setConnectionsMode={this.props.setConnectionsMode}/>
-                  { this.props.srefs[0].indexOf("Sheet") == -1 ?
+                  { this.props.srefs[0].indexOf("Sheet") === -1 ?
                   <MySheetsList
                     srefs={this.props.srefs}
                     connectedSheet = {connectedSheet}
@@ -349,7 +349,7 @@ class ConnectionsPanel extends Component {
                     handleSheetClick={this.props.handleSheetClick}
                   /> : null }
 
-                  { this.props.srefs[0].indexOf("Sheet") == -1 ?
+                  { this.props.srefs[0].indexOf("Sheet") === -1 ?
                   <PublicSheetsList
                     srefs={this.props.srefs}
                     connectedSheet = {connectedSheet}
@@ -675,7 +675,7 @@ class ConnectionsSummary extends Component {
     const baseCat       = oref ? oref["categories"][0] : null;
     let summary       = Sefaria.linkSummary(refs, excludedSheet);
 
-    if (!summary) { return (<div className="connectionsSummaryLoading"><LoadingMessage /></div>); }
+    if (!summary) { return null; }
 
     if (this.props.category === "Commentary" ) {
       // Show Quoting Commentary & Modern Commentary together with Commentary
