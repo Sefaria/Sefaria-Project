@@ -6,6 +6,9 @@ from sefaria.model import *
 from sefaria.system import exceptions
 from sefaria.system.database import db
 
+
+db.media.drop()
+
 directory = 'data/tmp/pockettorah_audio/'
 for filename in os.listdir(directory):
     with open(directory + filename) as json_file:
