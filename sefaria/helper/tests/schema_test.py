@@ -1,10 +1,40 @@
 # encoding=utf-8
+import re
 import django
 django.setup()
 from sefaria.model import *
 from sefaria.helper import schema
+from sefaria.sheets import save_sheet
+from sefaria.system.database import db
 from sefaria.system.exceptions import BookNameError
 import pytest
+
+
+TEST_SHEET_ID = None
+
+
+def create_test_sheet(list_of_trefs):
+    sheet = {
+        'title': 'schema test sheet',
+        'status': 'unlisted',
+        'tags': [],
+        'options': {
+            'language': 'english',
+            'numbered': False,
+        },
+        'sources': []
+    }
+    for tref in list_of_trefs:
+        sheet['sources'].append(
+            {'ref': tref}
+        )
+    return sheet
+
+
+def get_sheet_refs(sheet_id):
+    sheet_json = db.sheets.find_one({'id': sheet_id})
+    assert sheet_json is not None
+    return [source.get('ref', '') for source in sheet_json['sources']]
 
 
 @pytest.mark.deep
@@ -122,6 +152,9 @@ def setup_module():
     }).save()
 
     VersionState("Delete Me").refresh()
+    sheet = save_sheet(create_test_sheet(['Delete Me, Part1 1:1']), 1)
+    global TEST_SHEET_ID
+    TEST_SHEET_ID = sheet['id']
     print('End of test setup')
 
 
@@ -136,6 +169,10 @@ def teardown_module():
     v.delete()
     i = Index().load({'title': 'Delete Me'})
     i.delete()
+    global TEST_SHEET_ID
+    if TEST_SHEET_ID:
+        db.sheets.delete_one({'id': TEST_SHEET_ID})
+        TEST_SHEET_ID = None
 
 
 @pytest.mark.xfail(reason="unknown")
@@ -285,9 +322,6 @@ def test_migrate_to_complex_structure():
     library.get_index("MigrateBook").delete()
 
 
-
-
-
 @pytest.mark.deep
 def test_change_node_title():
     node = library.get_index("Delete Me").nodes.children[0]
@@ -300,6 +334,9 @@ def test_change_node_title():
     assert isinstance(Note().load({'ref': 'Delete Me, 1st Part 1:1'}), Note)
     assert Link().load({'refs': ['Delete Me, Part1 2:1', 'Delete Me, Part2 2:1']}) is None
     assert Note().load({'ref': 'Delete Me, Part1 1:1'}) is None
+    sheet_refs = get_sheet_refs(TEST_SHEET_ID)
+    assert any('Delete Me, 1st Part' in s for s in sheet_refs)
+    assert all('Delete Me, Part1' not in s for s in sheet_refs)
 
     schema.change_node_title(node, "1st Part", "en", "Part1")
     node = library.get_index("Delete Me").nodes.children[0]
@@ -313,6 +350,10 @@ def test_change_node_title():
     schema.change_node_title(node, "Part One", "en", "Partone")
     assert len(node.get_titles_object()) == 3
     assert any([title['text'] == 'Partone' for title in node.get_titles_object()])
+
+    sheet_refs = get_sheet_refs(TEST_SHEET_ID)
+    assert any('Delete Me, Part1' in s for s in sheet_refs)
+    assert all('Delete Me, 1st Part' not in s for s in sheet_refs)
 
 
 @pytest.mark.deep
@@ -335,6 +376,10 @@ def test_change_node_structure():
     assert isinstance(Note().load({'ref': 'Delete Me, Part1 1:1:1'}), Note)
     assert library.get_index('Delete Me').get_alt_structure('alt').wholeRef == 'Delete Me, Part1 1:2:1-3:1:1'
 
+    sheet_refs = get_sheet_refs(TEST_SHEET_ID)
+    assert any('Delete Me, Part1 1:1:1' in s for s in sheet_refs)
+    assert all(not re.search(r'Delete Me, Part 1 1:1$', s) for s in sheet_refs)
+
     # decrease depth
     node = library.get_index('Delete Me').nodes.children[0]
     schema.change_node_structure(node, ['Section', 'Segment'])
@@ -349,3 +394,7 @@ def test_change_node_structure():
     assert isinstance(Link().load({'refs': ['Delete Me, Part2 3', 'Shabbat 2a:5'], }), Link)
     assert isinstance(Note().load({'ref': 'Delete Me, Part1 1:1'}), Note)
     assert library.get_index('Delete Me').get_alt_structure('alt').wholeRef == 'Delete Me, Part1 1:2-3:1'
+
+    sheet_refs = get_sheet_refs(TEST_SHEET_ID)
+    assert all('Delete Me, Part1 1:1:1' not in s for s in sheet_refs)
+    assert any(re.search(r'Delete Me, Part1 1:1$', s) for s in sheet_refs)
