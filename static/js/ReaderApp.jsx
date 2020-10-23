@@ -1100,7 +1100,7 @@ class ReaderApp extends Component {
     } else if (path.match(/\/profile\/.+/)) {
       this.openProfile(path.slice(9));
 
-    } else if (path.match(/\/groups\/.+/) && !path.endsWith("/settings")) {
+    } else if (path.match(/\/groups\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
       this.openGroup(path.slice(8).replace(/-/g, " "));
 
     } else if (Sefaria.isRef(path.slice(1))) {
