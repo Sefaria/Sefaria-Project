@@ -65,7 +65,7 @@ Sefaria = extend(Sefaria, {
           }
           if (book in Sefaria.booksDict || book === "Sheet") {
               const remainder = first.slice(i);
-              if (remainder && remainder[0] !== " ") { 
+              if (remainder && remainder[0] !== " ") {
                 continue; // book name must be followed by a space, Jobs != Job
               }
               nums = remainder.slice(1);
@@ -144,6 +144,7 @@ Sefaria = extend(Sefaria, {
       // `ref` may be a string, or an array of strings. If ref is an array of strings, it is passed to normRefList.
       ref = Sefaria.normRef(ref);
       const pRef = Sefaria.parseRef(ref);
+      if (pRef.error) {return ref}
       if (pRef.sections.length === 0) { return pRef.book; }
       const book = pRef.book + " ";
       const hRef = pRef.ref.replace(/ /g, ":");
@@ -543,7 +544,7 @@ Sefaria = extend(Sefaria, {
     }
 
     if (settings.context) {
-      // Save a copy of the data at section level without context flag
+      // Save a copy of the data at section level with & without context flag
       var newData         = Sefaria.util.clone(data);
       newData.ref         = data.sectionRef;
       newData.heRef       = data.heSectionRef;
@@ -552,6 +553,13 @@ Sefaria = extend(Sefaria, {
         newData.toSections  = data.toSections.slice(0,-1);
       }
       const newSettings   = Sefaria.util.clone(settings);
+      // Note: data for section level refs is identical when called with or without context,
+      // but both are saved in cache for code paths that may always call with or without context.
+      if (!isSectionLevel) {
+        // Segment level ref with context, save section level marked with context
+        this._saveText(newData, newSettings);
+      }
+      // Any level ref with context, save section level marked without context
       newSettings.context = 0;
       this._saveText(newData, newSettings);
     }
@@ -1691,7 +1699,7 @@ Sefaria = extend(Sefaria, {
     if (Sefaria._uid) {
         $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1",
               {user_history: JSON.stringify(history_item_array)},
-              data => { 
+              data => {
                 //console.log("sync resp", data)
                 if ("history" in Sefaria._userHistory) {
                   // If full user history has already been loaded into cache, then modify cache to keep it up to date

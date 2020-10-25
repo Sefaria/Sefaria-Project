@@ -826,16 +826,15 @@ const getNextSheetItemPath = (SheetItemPath) => {
     return path
 };
 
-async function getRefInText(editor) {
+async function getRefInText(editor, additionalOffset=0) {
   const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")
   if (!closestSheetItem) {return {}}
-  const initQuery = Node.string(closestSheetItem[0]).trim();
+  const initQuery = Node.string(closestSheetItem[0]);
 
   const match = (initQuery.match(/^.+|\n.+/g));
-
+  if (!match) {return {}}
   for (const query of match) {
-    console.log(query)
-    if (query.length > 50 || query == "") {return {}}
+    if (query.length > 50 || query.trim() == "") {return {}}
 
     const ref = await Sefaria.getName(query)
         .then(d => {
@@ -850,16 +849,17 @@ async function getRefInText(editor) {
 
     });
 
+    const selectDistance = query.length + additionalOffset;
+
 
     if (ref["is_ref"]) {
-        Transforms.move(editor, { distance: query.length, unit: 'character', reverse: true, edge: 'anchor' })
+        Transforms.move(editor, { distance: selectDistance, unit: 'character', reverse: true, edge: 'anchor' })
         Editor.addMark(editor, "isRef", true)
         Transforms.collapse(editor, {edge: 'focus'})
 
-
         // Transforms.select(editor, )
       if(ref["is_segment"] || ref["is_section"]) {
-        Transforms.move(editor, { distance: query.length, unit: 'character', reverse: true, edge: 'anchor' })
+        Transforms.move(editor, { distance: selectDistance, unit: 'character', reverse: true, edge: 'anchor' })
         Editor.removeMark(editor, "isRef")
         Transforms.delete(editor);
 
@@ -869,7 +869,7 @@ async function getRefInText(editor) {
     }
 
     else {
-      Transforms.move(editor, { distance: query.length, unit: 'character', reverse: true, edge: 'anchor' })
+      Transforms.move(editor, { distance: selectDistance, unit: 'character', reverse: true, edge: 'anchor' })
       Editor.removeMark(editor, "isRef")
       Transforms.collapse(editor, {edge: 'focus'})
     }
@@ -943,11 +943,6 @@ const withSefariaSheet = editor => {
         }
 
         getRefInText(editor).then(query =>{
-          // if (query["is_ref"] && (query["is_segment"] || query["is_section"]) ) {
-          // insertSource(editor, query["ref"])
-          // return
-        // }
-
 
           const selectionAtEdge = isSelectionFocusAtEdgeOfSheetItem(editor);
           if (selectionAtEdge) {
@@ -1650,35 +1645,22 @@ const SefariaEditor = (props) => {
         }
 
         if ((event.key == "Backspace" || event.key == "Delete")) {
-          console.log('1')
           var path = editor.selection.focus.path
           var voidMatch = Editor.void(editor, {
             at: path
           });
 
           if (voidMatch) {
-                   Transforms.delete(editor, {
-                      at: voidMatch[1]
-                    });
-              }
+            event.preventDefault()
+            Transforms.delete(editor, {
+              at: voidMatch[1]
+            });
+          }
         }
 
         // add ref on space if end of line
         if (event.key == " ") {
-            getRefInText(editor).then(query =>{
-              if (query["is_ref"] && !(query["is_segment"] || query["is_section"])) {
-
-
-                // Transforms.setNodes(editor, { isRef: true }, {at: editor.selection.focus.path});
-              //   if ((query["is_segment"] || query["is_section"]) ) {
-              //     insertSource(editor, query["ref"])
-              //     return
-              //   }
-              }
-              else {
-                // Transforms.setNodes(editor, { isRef: false }, {at: editor.selection.focus.path});
-              }
-            })
+            getRefInText(editor, 1)
         }
     };
 

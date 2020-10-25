@@ -371,6 +371,7 @@
 
         setupPopup(options, mode);
 
+        ns.matches = [];
         ns.elems = document.querySelectorAll(selector);
         ns.quotationOnly = options.quotationOnly;
         ns.parenthesesOnly = options.parenthesesOnly;
