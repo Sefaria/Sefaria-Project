@@ -10,6 +10,38 @@ from sefaria.system.exceptions import BookNameError
 import pytest
 
 
+"""
+Here is the text structure for the simple text MigrateBook
+[
+    [
+        'This should eventually end up in MigrateBook, Part 1, 1:1',
+        'This text is for 1:2-5',
+        'This text is for 1:2-5', 'This text is for 1:2-5',
+        'This text is for 1:2-5'
+    ],
+    [
+        '',
+        'This should eventually end up in MigrateBook, Part 1, 2:2'
+    ],
+    [
+        '',
+        '',
+        'This should eventually end up in MigrateBook, Part 2, 3',
+        '',
+        'This text is just to allow for range 3:1-5'
+    ],
+    [
+        'This should eventually end up in MigrateBook, Part 3, 1'
+    ],
+    [
+        '',
+        '',
+        '',
+        'This will eventually go nowhere'
+    ]
+]
+"""
+
 TEST_SHEET_ID = None
 
 
@@ -35,6 +67,113 @@ def get_sheet_refs(sheet_id):
     sheet_json = db.sheets.find_one({'id': sheet_id})
     assert sheet_json is not None
     return [source.get('ref', '') for source in sheet_json['sources']]
+
+
+def get_text_for_simple_text():
+    return [
+        "This should eventually end up in MigrateBook, Part 1, 1:1",
+        "This should eventually end up in MigrateBook, Part 1, 2:2",
+        "This should eventually end up in MigrateBook, Part 2, 3",
+        "This should eventually end up in MigrateBook, Part 3, 1",
+        "This will eventually go nowhere",
+        "This text is just to allow for range 3:1-5",
+        "This text is for 1:2-5",
+    ]
+
+
+def create_simple_text():
+    try:
+        library.get_index("Complex MigrateBook").delete()
+        library.get_index("MigrateBook").delete()
+    except BookNameError:
+        pass
+
+    index = Index().load({'title': 'MigrateBook'})
+    if index is not None:
+        ls = LinkSet(Ref("MigrateBook"))
+        ls.delete()
+        ns = NoteSet({"ref": {"$regex": "MigrateBook.*"}})
+        ns.delete()
+        index.delete()
+
+    # Build an index with some nodes
+    root = JaggedArrayNode()
+    root.add_title('MigrateBook', 'en', primary=True)
+    root.add_title('הספר', 'he', primary=True)
+    root.key = 'MigrateBook'
+    root.depth = 2
+    root.addressTypes = ["Integer", "Integer"]
+    root.sectionNames = ["Siman", "Paragraph"]
+    root.validate()
+
+    index = Index({
+        'schema': root.serialize(),
+        'title': 'MigrateBook',
+        'categories': ['Other'],
+    })
+    index.save()
+
+    p1, p2, p3, p4, p5, p6, p7 = get_text_for_simple_text()
+
+    chunk = TextChunk(Ref('MigrateBook 1:1'), 'en', 'Schema Test')
+    chunk.text = p1
+    chunk.save()
+    for i in range(4):
+        chunk = TextChunk(Ref("MigrateBook 1:{}".format(i+2)), 'en', 'Schema Test')
+        chunk.text = p7
+        chunk.save()
+    chunk = TextChunk(Ref("MigrateBook 2:2"), 'en', 'Schema Test')
+    chunk.text = p2
+    chunk.save()
+    chunk = TextChunk(Ref("MigrateBook 3:3"), 'en', 'Schema Test')
+    chunk.text = p3
+    chunk.save()
+    chunk = TextChunk(Ref("MigrateBook 3:5"), 'en', 'Schema Test')
+    chunk.text = p6
+    chunk.save()
+    chunk = TextChunk(Ref("MigrateBook 4:1"), 'en', 'Schema Test')
+    chunk.text = p4
+    chunk.save()
+    chunk = TextChunk(Ref("MigrateBook 5:4"), 'en', 'Schema Test')
+    chunk.text = p5
+    chunk.save()
+
+    Link({
+        'refs': ['MigrateBook 1:1', 'Guide for the Perplexed, Part 1'],
+        'type': 'None'
+    }).save()
+
+    Link({
+        'refs': ['MigrateBook 2:2', 'Guide for the Perplexed, Part 1 2'],
+        'type': 'None'
+    }).save()
+
+    Link({
+        'refs': ['MigrateBook 3:3', 'Guide for the Perplexed, Part 2 4-8'],
+        'type': 'None'
+    }).save()
+
+    Link({
+        'refs': ['MigrateBook 4:1', 'Guide for the Perplexed, Part 3 1'],
+        'type': 'None'
+    }).save()
+
+    Link({
+        'refs': ['MigrateBook 5:4', 'Guide for the Perplexed, Introduction, Introduction 3'],
+        'type': 'None'
+    }).save()
+
+    Link({
+        'refs': ['MigrateBook 1:2-5', 'Genesis 3'],
+        'type': 'None'
+    }).save()
+
+    Link({
+        'refs': ['MigrateBook 2', 'Genesis 2'],
+        'type': 'None'
+    }).save()
+
+    VersionState("MigrateBook").refresh()
 
 
 @pytest.mark.deep
@@ -159,6 +298,10 @@ def setup_module():
     ]), 1)
     global TEST_SHEET_ID
     TEST_SHEET_ID = sheet['id']
+
+    # set up the simple text
+    create_simple_text()
+
     print('End of test setup')
 
 
@@ -191,104 +334,6 @@ def test_migrate_to_complex_structure():
         "MigrateBook 4": "MigrateBook, Part 3"
     }
 
-    try:
-        library.get_index("Complex MigrateBook").delete()
-        library.get_index("MigrateBook").delete()
-    except BookNameError:
-        pass
-
-    index = Index().load({'title': 'MigrateBook'})
-    if index is not None:
-        ls = LinkSet(Ref("MigrateBook"))
-        ls.delete()
-        ns = NoteSet({"ref": {"$regex": "MigrateBook.*"}})
-        ns.delete()
-        index.delete()
-
-    # Build an index with some nodes
-    root = JaggedArrayNode()
-    root.add_title('MigrateBook', 'en', primary=True)
-    root.add_title('הספר', 'he', primary=True)
-    root.key = 'MigrateBook'
-    root.depth = 2
-    root.addressTypes = ["Integer", "Integer"]
-    root.sectionNames = ["Siman", "Paragraph"]
-    root.validate()
-
-    index = Index({
-        'schema': root.serialize(),
-        'title': 'MigrateBook',
-        'categories': ['Other'],
-    })
-    index.save()
-
-    p1 = "This should eventually end up in MigrateBook, Part 1, 1:1"
-    p2 = "This should eventually end up in MigrateBook, Part 1, 2:2"
-    p3 = "This should eventually end up in MigrateBook, Part 2, 3"
-    p4 = "This should eventually end up in MigrateBook, Part 3, 1"
-    p5 = "This will eventually go nowhere"
-    p6 = "This text is just to allow for range 3:1-5"
-    p7 = "This text is for 1:2-5"
-    chunk = TextChunk(Ref('MigrateBook 1:1'), 'en', 'Schema Test')
-    chunk.text = p1
-    chunk.save()
-    for i in range(4):
-        chunk = TextChunk(Ref("MigrateBook 1:{}".format(i+2)), 'en', 'Schema Test')
-        chunk.text = p7
-        chunk.save()
-    chunk = TextChunk(Ref("MigrateBook 2:2"), 'en', 'Schema Test')
-    chunk.text = p2
-    chunk.save()
-    chunk = TextChunk(Ref("MigrateBook 3:3"), 'en', 'Schema Test')
-    chunk.text = p3
-    chunk.save()
-    chunk = TextChunk(Ref("MigrateBook 3:5"), 'en', 'Schema Test')
-    chunk.text = p6
-    chunk.save()
-    chunk = TextChunk(Ref("MigrateBook 4:1"), 'en', 'Schema Test')
-    chunk.text = p4
-    chunk.save()
-    chunk = TextChunk(Ref("MigrateBook 5:4"), 'en', 'Schema Test')
-    chunk.text = p5
-    chunk.save()
-
-    Link({
-        'refs': ['MigrateBook 1:1', 'Guide for the Perplexed, Part 1'],
-        'type': 'None'
-    }).save()
-
-    Link({
-        'refs': ['MigrateBook 2:2', 'Guide for the Perplexed, Part 1 2'],
-        'type': 'None'
-    }).save()
-
-    Link({
-        'refs': ['MigrateBook 3:3', 'Guide for the Perplexed, Part 2 4-8'],
-        'type': 'None'
-    }).save()
-
-    Link({
-        'refs': ['MigrateBook 4:1', 'Guide for the Perplexed, Part 3 1'],
-        'type': 'None'
-    }).save()
-
-    Link({
-        'refs': ['MigrateBook 5:4', 'Guide for the Perplexed, Introduction, Introduction 3'],
-        'type': 'None'
-    }).save()
-
-    Link({
-        'refs': ['MigrateBook 1:2-5', 'Genesis 3'],
-        'type': 'None'
-    }).save()
-
-    Link({
-        'refs': ['MigrateBook 2', 'Genesis 2'],
-        'type': 'None'
-    }).save()
-
-    VersionState("MigrateBook").refresh()
-
     new_schema = SchemaNode()
     new_schema.key = "MigrateBook"
     new_schema.add_title("MigrateBook", "en", primary=True)
@@ -308,10 +353,14 @@ def test_migrate_to_complex_structure():
     new_schema.validate()
 
     schema.migrate_to_complex_structure("MigrateBook", new_schema.serialize(), mappings)
+    with pytest.raises(BookNameError):
+        library.get_index("Complex MigrateBook")
     children = library.get_index("MigrateBook").nodes.children
 
     assert children[0].full_title() == "MigrateBook, Part 1"
     assert children[1].full_title() == "MigrateBook, Part 2"
+
+    p1, p2, p3, p4, p5, p6, p7 = get_text_for_simple_text()
 
     assert TextChunk(children[0].ref(), "en", 'Schema Test').text == [[p1, p7, p7, p7, p7], ["", p2]]
     assert TextChunk(children[1].ref(), "en", "Schema Test").text == ["", "", p3]
@@ -330,7 +379,10 @@ def test_migrate_to_complex_structure():
     assert any('MigrateBook, Part 1' in source for source in sheet_sources)
     assert any('MigrateBook, Part 3' in source for source in sheet_sources)
 
+    # we don't go from complex back to simple, so we'll delete and recreate the simple index\
+    # idempotency is broken in the event of a failed test
     library.get_index("MigrateBook").delete()
+    create_simple_text()
 
 
 @pytest.mark.deep
@@ -368,7 +420,7 @@ def test_change_node_title():
 
 
 @pytest.mark.deep
-def test_change_node_structure():
+def test_change_node_structure_complex():
 
     # increase depth
     node = library.get_index('Delete Me').nodes.children[0]
@@ -409,3 +461,22 @@ def test_change_node_structure():
     sheet_refs = get_sheet_refs(TEST_SHEET_ID)
     assert all('Delete Me, Part1 1:1:1' not in s for s in sheet_refs)
     assert any(re.search(r'Delete Me, Part1 1:1$', s) for s in sheet_refs)
+
+
+@pytest.mark.deep
+def test_change_node_structure_simple():
+    # increase depth
+    node = library.get_index("MigrateBook").nodes
+    schema.change_node_structure(node, ['SuperSection', 'Section', 'Segment'])
+
+    assert node.depth == 3
+    tc = TextChunk(Ref("MigrateBook 2:2:1"), "en", "Schema Test")
+    assert tc.text == 'This should eventually end up in MigrateBook, Part 1, 2:2'
+
+    # change depth back to 2
+    node = library.get_index("MigrateBook").nodes
+    schema.change_node_structure(node, ['Section', 'Segment'])
+    assert node.depth == 2
+    tc = TextChunk(Ref("MigrateBook 2:2"), "en", "Schema Test")
+    assert tc.text == 'This should eventually end up in MigrateBook, Part 1, 2:2'
+
