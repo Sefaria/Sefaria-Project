@@ -1,5 +1,5 @@
 
-# Giant list ordering or categories
+# Giant list ordering of categories
 # indentation and inclusion of duplicate categories (like "Seder Moed")
 # is for readability only. The table of contents will follow this structure.
 CATEGORY_ORDER = [
@@ -69,7 +69,21 @@ CATEGORY_ORDER = [
             'Sefer Kinyan',
             'Sefer Mishpatim',
             'Sefer Shoftim',
-        "Shulchan Arukh",
+        'Shulchan Arukh',
+        'Tur and Commentaries',
+            'Tur',
+            'Beit Yosef',
+            'Darchei Moshe',
+            'Bach',
+            'Prisha',
+            'Drisha',
+        'Halakhot Gedolot',
+        'Chayei Adam',
+        'Chokhmat Adam',
+        'Kitzur Shulchan Arukh',
+        'Arukh HaShulchan',
+        'Arukh HaShulchan HeAtid',
+        'Ben Ish Hai',
     "Kabbalah",
         "Zohar",
     'Liturgy',
@@ -77,7 +91,8 @@ CATEGORY_ORDER = [
         'Haggadah',
         'High Holidays',
         'Piyutim',
-    'Philosophy',
+    "Jewish Thought",
+    'Philosophy',   # todo: delete me after reorg
     "Tanaitic",
         "Tosefta",
             "Seder Zeraim",
@@ -110,15 +125,13 @@ TOP_CATEGORIES = [
     "Halakhah",
     "Kabbalah",
     "Liturgy",
-    "Philosophy",
-    "Tanaitic",
+    "Jewish Thought",
+    "Tosefta"
     "Chasidut",
     "Musar",
     "Responsa",
     "Apocrypha",
-    "Modern Works",
     "Reference",
-    "Other"
 ]
 
 REVERSE_ORDER = [

@@ -49,7 +49,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
 
     def _validate(self):
         super(Category, self)._validate()
-        assert self.lastPath == self.path[-1] == self.get_primary_title("en"), "Category name not matching"
+        assert self.lastPath == self.path[-1] == self.get_primary_title("en"), "Category name not matching" + " - " + self.lastPath + " / " + self.path[-1] + " / " + self.get_primary_title("en")
 
         if not self.sharedTitle and not self.get_titles_object():
             raise InputError("Category {} must have titles or a shared title".format(self))
