@@ -7251,6 +7251,7 @@ span.purim-emoji img{
 .cookiesNotification a {
   text-decoration: underline;
   color: inherit;
+  margin-inline-start: 5px;
 }
 .readerMessageBox {
   z-index: 9999;

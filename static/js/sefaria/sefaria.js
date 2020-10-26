@@ -2351,7 +2351,6 @@ Sefaria = extend(Sefaria, {
       "Request a feature": "בקשה להוספת אפשרות באתר",
       "Give thanks": "תודה",
       "Other": "אחר",
-      "Please enter a valid email address": "אנא הקלידו כתובת אימייל תקנית",
       "Please select a feedback type": "אנא בחרו סוג משוב",
       "Unfortunately, there was an error sending this feedback. Please try again or try reloading this page.": "לצערנו ארעה שגיאה בשליחת המשוב. אנא נסו שוב או רעננו את הדף הנוכחי",
       "Tell us what you think..." : "ספרו לנו מה אתם חושבים...",
@@ -2392,8 +2391,12 @@ Sefaria = extend(Sefaria, {
       //chavruta
       "Learn with a Chavruta": "ללמוד עם חברותא",
       "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הזה:",
-      "Start Call": "התחלת שיחה"
+      "Start Call": "התחלת שיחה",
 
+      //subscribe & register
+      "Please enter a valid email address.": "כתובת האימייל שהוזנה אינה תקינה.",
+      "Subscribed! Welcome to our list.": "הרשמה בוצעה בהצלחה!",
+      "Sorry, there was an error.": "סליחה, ארעה שגיאה",
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
