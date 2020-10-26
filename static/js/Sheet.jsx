@@ -109,7 +109,7 @@ class Sheet extends Component {
       )
     }
     return (
-        <div className={classes} onWheel={this.setScrollDir}>
+        <div className={classes}>
           {  this.props.editor == true && sheet ?
             /*sheet && Sefaria._uid == sheet.owner && $.cookie("new_editor") ? */
             <div className="sheetContent"><SefariaEditor data={sheet} /></div>
