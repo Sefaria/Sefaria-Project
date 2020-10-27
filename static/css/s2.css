@@ -7462,6 +7462,11 @@ span.purim-emoji img{
   padding-left: 34px;
   border-color: #073570;
 }
+
+.sheetItem .SheetMedia {
+    margin-bottom: 14px;
+}
+
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;
@@ -8622,7 +8627,7 @@ body .homeFeedWrapper.userStats {
   box-sizing: border-box;
   border-radius: 6px;
 
-  visibility: hidden; 
+  visibility: hidden;
 }
 
 
