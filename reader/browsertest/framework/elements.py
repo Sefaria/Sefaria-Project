@@ -809,7 +809,7 @@ class AbstractTest(object):
         """
         # The logic that we're following here is implemented on ReaderNavigationCategoryMenuContents
         # Cats which normally would nest, but are special cased to be subcats.
-        special_subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"]
+        special_subcats = ["Mishneh Torah", "Shulchan Arukh", "Tur"]
 
         click_cats = []
         for i, cat in enumerate(cats):

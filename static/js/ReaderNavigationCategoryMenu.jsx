@@ -173,7 +173,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
           // Category
           var newCats = cats.concat(item.category);
           // Special Case categories which should nest but normally wouldn't given their depth
-          var subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
+          var subcats = ["Mishneh Torah", "Shulchan Arukh", "Tur"];
           if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
             if(item.contents && item.contents.length == 1 && !("category" in item.contents[0])){
                 var chItem = item.contents[0];

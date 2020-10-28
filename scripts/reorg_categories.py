@@ -69,6 +69,7 @@ def create_category(path, en=None, he=None):
         term = Term()
         term.name = en
         term.add_primary_titles(en, he)
+        term.scheme = "toc_categories"
         term.save()
     c.add_shared_term(path[-1])
     c.path = path
@@ -218,7 +219,7 @@ for t in ts:
 #
 i = library.get_index("A New Israeli Commentary on Pirkei Avot")
 c = Category().load({"path": ["Mishnah", "Commentary"]})   # deeper cat?
-
+moveIndexInto(i, c)
 
 c = create_category(["Reference", "Grammar"])
 ts = ["Sefer haBachur", "Mahberet Menachem", "Sefat Yeter"]
@@ -271,25 +272,75 @@ for ind in IndexSet({"categories.0": "Philosophy"}):
     ind.save(override_dependencies=True)
 
 
-# Move Works of Eliezer Berkovits -> Philosophy
+# Move Works of Eliezer Berkovits -> Jewish Thought
 c = Category().load({"path": ["Modern Works", "Works of Eliezer Berkovits"]})
 p = Category().load({"path": ["Jewish Thought"]})
 moveCategoryInto(c, p)
 
-ts = ['The Midrash of Philo',
- 'The Third Beit HaMikdash',
- 'Derush Chidushei HaLevana',
- 'Halacha and Aggadah',
- 'Revealment and Concealment in Language',
- 'Against Apion',
- 'The Antiquities of the Jews',
- 'The War of the Jews',
- 'Imrei Binah',
- 'Kol HaTor']
+cat_ancient = create_category(["Jewish Thought", "Ancient"], "Ancient", "קדום")
+books_ancient = ['The Midrash of Philo',
+      'Against Apion',
+      'The Antiquities of the Jews',
+      'The War of the Jews',
+                 'On the Life of Moses']
 
-for t in ts:
-    i = library.get_index(t)
-    moveIndexInto(i, p)
+cat_rishonim = create_category(["Jewish Thought", "Rishonim"], "Rishonim","ראשונים")
+books_rishonim = ["Eight Chapters",
+    "Guide for the Perplexed",
+    "Treatise on Logic",
+    "Duties of the Heart",
+    "Duties of the Heart (abridged)",
+    "Darashos HaRan",
+    "Ma'amar al Yishmael",
+    "Akeidat Yitzchak",
+    "Sefer Kuzari",
+    "Sefer HaIkkarim",
+    "Ohr Hashem",
+    "The Wars of the Lord",
+    "Minhat Kenaot",
+    "Yesod Mora"]
+
+cat_acharonim = create_category(["Jewish Thought", "Acharonim"], "Acharonim","אחרונים")
+books_acharonim = ["Derech Hashem",
+    "Essay on Fundamentals",
+    "Vilna Gaon's students letter to the Lost Tribes of Israel",
+    "Nefesh HaChayim",
+    "Kol HaTor",
+    "Torat HaOlah",
+    "Derush Chidushei HaLevana",
+    "The Third Beit HaMikdash"]
+
+cat_kook = create_category(["Jewish Thought", "Rav Kook"], "Rav Kook","רב קוק")
+books_kook = ["Orot",
+    "Orot HaKodesh",
+    "Orot HaTorah",
+    "For the Perplexed of the Generation",
+    "Maamar Hador",
+    "Shmonah Kvatzim",
+    "Midbar Shur"]
+
+cat_modern = create_category(["Jewish Thought", "Modern"], "Modern", "מודרני")
+books_modern = ["Nineteen Letters",
+    "Sefer Yesodei HaTorah",
+    "Gan Naul",
+    "Words of Peace and Truth",
+    "Imrei Binah",
+    "Kol Dodi Dofek",
+    "Hegyonei Uziel",
+    "Revealment and Concealment in Language",
+    "Halacha and Aggadah"]
+
+for cat, books in [
+    (cat_ancient, books_ancient),
+    (cat_kook, books_kook),
+    (cat_rishonim, books_rishonim),
+    (cat_acharonim, books_acharonim),
+    (cat_modern, books_modern)
+]:
+    for book in books:
+        i = library.get_index(book)
+        moveIndexInto(i, cat)
+
 
 p = Category().load({"path": ["Jewish Thought", "Commentary"]})
 ts = ["Ali Be'er on Revealment and Concealment in Language",
@@ -306,6 +357,10 @@ for t in ts:
     i = library.get_index(t)
     moveIndexInto(i, p)
 
+#    "Ein Ayah",
+i = library.get_index("Ein Ayah")
+c = Category().load({"path": ["Talmud", "Bavli", "Commentary"]})
+moveIndexInto(i, c)
 
 # Tanakh > Parshanut
 p = create_category(["Tanakh", "Parshanut"], "Parshanut", "פרשנות")
@@ -373,34 +428,100 @@ books_mono = ['Chofetz Chaim',
 "Sha'ar HaMayim HaAroch",
 "Sha'ar HaMayim HaKatzar",
 'Shulchan Shel Arba',
-'Care of the Critically Ill']
+'Care of the Critically Ill', 'Simla Chadasha']
 
-cat_other = create_category(["Halakhah", "Other"], None, None)
-books_other = ['Abudarham',
-'Avodat HaKodesh',
+cat_other_r = create_category(["Halakhah", "Other Rishonim"], "Other Rishonim", "ראשונים נוספים")
+books_other_r = ['Ohr Zarua',
 'Kol Bo',
-'Maaseh Rav',
+'Abudarham',
+'Avodat HaKodesh',
 'Machzor Vitry',
-'Mateh Efrayim',
-'Nehar Misrayim',
-'Ohr Zarua',
 'Sefer Chasidim',
 'Sefer HaParnas',
 "Sheiltot d'Rav Achai Gaon",
+                 ]
+
+cat_other_a = create_category(["Halakhah", "Other Achronim"], "Other Achronim", "אחרונים נוספים")
+books_other_a =  ['Maaseh Rav',
+'Mateh Efrayim',
+'Nehar Misrayim',
 "Shev Shmat'ta",
-'Shulchan Aruch HaRav',
-'Simla Chadasha']
+'Shulchan Aruch HaRav']
 
 
 for cat, books in [
     (cat_mono, books_mono),
     (cat_mitzvot, books_mitzvot),
     (cat_ivh, books_ivh),
-    (cat_other, books_other)
+    (cat_other_r, books_other_r),
+    (cat_other_a, books_other_a),
 ]:
     for book in books:
         i = library.get_index(book)
         moveIndexInto(i, cat)
+
+# Change 'Tur and Commentaries' -> 'Tur'
+c = Category().load({"path": ["Halakhah", "Tur and Commentaries"]})
+c.change_key_name("Tur")
+c.save()
+
+for ind in IndexSet({"categories": ["Halakhah", "Tur and Commentaries"]}):
+    assert isinstance(ind, Index)
+    ind.categories = ["Halakhah", "Tur"]
+    print("Moving - " + ind.get_title() + " to " + str(ind.categories))
+    ind.save(override_dependencies=True)
+
+
+# Musar
+r_cat = create_category(["Musar", "Rishonim"], "Rishonim", "ראשונים")
+a_cat = create_category(["Musar", "Acharonim"], "Acharonim", "אחרונים")
+m_cat = create_category(["Musar", "Modern"], "Modern", "מודרני")
+
+r_books = [
+    'Mivchar HaPeninim',
+    'The Improvement of the Moral Qualities',
+    'Shekel HaKodesh',
+    'Letter from Ramban to his Son',
+    'Toras Habayis',
+    'Shaarei Teshuvah',
+    "Sha'ar Ha'Gemul of the Ramban",
+    'Iggeret HaRamban',
+    'Kad HaKemach',
+    "Orchot Chaim L'HaRosh",
+    'Sefer HaYashar',
+    'Bechinat Olam',
+    'Orchot Tzadikim',
+    'Sefer Tomer Devorah']
+
+a_books = [
+    'Kav HaYashar',
+    'Shenei Luchot HaBerit',
+    'Yaarot Devash I',
+    'Shevet Musar',
+    'Ahavat David',
+    'Iggeret HaGra',
+    'Messilat Yesharim',
+    'Ohr Yisrael',
+    'Pele Yoetz',
+    'Shemirat HaLashon']
+m_books = [
+    "Tzipita L'Yeshuah",
+    'Sichot Avodat Levi',
+    'Shuvah Yisrael',
+    'Yesod HaYirah',
+    'Maamar Mezake HaRabim'
+]
+
+for cat, books in [
+    (r_cat, r_books),
+    (a_cat, a_books),
+    (m_cat, m_books)
+]:
+    for book in books:
+        i = library.get_index(book)
+        moveIndexInto(i, cat)
+
+
 
 
 
@@ -409,24 +530,24 @@ library.rebuild(include_toc=True)
 for p in [
         ["Other", "Grammar"],
         ["Other", "Dictionary"],
-        ["Other"],
         ["Modern Works", "Commentary"],
-        ["Modern Works"]
+        ["Tanaitic", "Commentary"],
+    ]:
+    c = Category().load({"path": p})
+    c.delete()
+
+library.rebuild(include_toc=True)
+for p in [
+        ["Other"],
+        ["Modern Works"],
+        ["Tanaitic"]
     ]:
     c = Category().load({"path": p})
     c.delete()
 
 
-
-#	Subsections:
-#		Rishonim
-#		Achronim
-#		Modern
-
-
 # Get rid of "modern commentary" on the sidebar.
-
-# Pin major commentaries on Mishnah
+# Pin major commentaries on Mishnah,
 
 
 # Tanakh Commentary

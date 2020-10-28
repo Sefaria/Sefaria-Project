@@ -70,7 +70,7 @@ CATEGORY_ORDER = [
             'Sefer Mishpatim',
             'Sefer Shoftim',
         'Shulchan Arukh',
-        'Tur and Commentaries',
+        'Tur and Commentaries',  # todo: remove/rename
             'Tur',
             'Beit Yosef',
             'Darchei Moshe',
@@ -84,6 +84,15 @@ CATEGORY_ORDER = [
         'Arukh HaShulchan',
         'Arukh HaShulchan HeAtid',
         'Ben Ish Hai',
+        "Sifrei Mitzvot",
+        "Issur v'Heter",
+        "Monographs",
+        "Other Rishonim",
+        "Avodat HaKodesh (Chida)",
+        "Other Achronim",
+        "Peninei Halakhah",
+        "Contemporary Halakhic Problems",
+        "Gray Matter",
     "Kabbalah",
         "Zohar",
     'Liturgy',
@@ -92,9 +101,16 @@ CATEGORY_ORDER = [
         'High Holidays',
         'Piyutim',
     "Jewish Thought",
+        "Ancient",
+        "Rishonim",
+        "Maharal",
+        "Acharonim",
+        "Rav Kook",
+        "Works of Eliezer Berkovits",
+        "Modern",
     'Philosophy',   # todo: delete me after reorg
-    "Tanaitic",
-        "Tosefta",
+    "Tanaitic",     # todo: delete me after reorg
+        "Tosefta",  # todo: move me after reorg
             "Seder Zeraim",
             "Seder Moed",
             "Seder Nashim",
@@ -114,7 +130,11 @@ CATEGORY_ORDER = [
     'Modern Works',
     "Reference",
     'Other',
-    'Tosafot',
+    'Tosafot',  # Commentators
+    'Bartenura',
+    'Rambam'
+    'Yachin',
+    'Boaz'
 ]
 
 TOP_CATEGORIES = [
