@@ -41,7 +41,7 @@ pathos
 pillow
 psycopg2
 py2-py3-django-email-as-username
-pymongo>=3.7
+pymongo
 pytest
 pytz
 pyyaml
