@@ -87,12 +87,19 @@ CATEGORY_ORDER = [
         "Sifrei Mitzvot",
         "Issur v'Heter",
         "Monographs",
-        "Other Rishonim",
+        "Geonim",
+        "Rashba",
+        "Rambam",
+        "Other Rishonim",   #hack Because they both used the terms "Other Rishonim" and "Other Acharonim", we list Responsa subcats here.  #hack
         "Avodat HaKodesh (Chida)",
-        "Other Achronim",
+        "Radbaz",
+        "Shoel uMeshiv",
+        "Other Acharonim",
         "Peninei Halakhah",
+        "B'Mareh HaBazak",
         "Contemporary Halakhic Problems",
         "Gray Matter",
+        "Other Modern",
     "Kabbalah",
         "Zohar",
         "Tikkunei Zohar",
@@ -126,23 +133,13 @@ CATEGORY_ORDER = [
         "Izhbitz",
         "R' Tzadok HaKohen",
     'Musar',
-    'Responsa',
-        "Geonim"
-        "Rashba",
-        "Rambam",
-        "Other Rishonim",
-        "Radbaz",
-        "Shoel uMeshiv",
-        "Other Acharonim",
-        "B'Mareh HaBazak",
-        "Other Modern",
+    'Responsa',  # See list under Halacha
     'Apocrypha',
     'Modern Works',
     "Reference",
     'Other',
     'Tosafot',  # Commentators
     'Bartenura',
-    'Rambam'
     'Yachin',
     'Boaz'
 ]

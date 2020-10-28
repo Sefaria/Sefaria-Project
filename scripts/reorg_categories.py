@@ -601,7 +601,7 @@ books_other_r = [
     'Mahari Bruna'
 ]
 
-cat_other_a = create_category(["Responsa", "Other Achronim"], "Other Achronim", "אחרונים נוספים")
+cat_other_a = create_category(["Responsa", "Other Acharonim"], "Other Acharonim", "אחרונים נוספים")
 books_other_a =  [
     'Shut min haShamayim',
     'Chazeh Hatenufa',
@@ -619,13 +619,13 @@ books_other_a =  [
     'Binyan Tziyon',
     'HaElef Lekha Shlomo',
     'Responsa Rav Pealim',
-    'Mateh Levi'
+    'Mateh Levi',
+    "Melamed Leho'il Part II",
 ]
 
 cat_other_m = create_category(["Responsa", "Other Modern"], "Other Modern", "מודרני נוספים")
 books_other_m = ['Responsa Benei Banim',
 'Mishpetei Uziel',
-'Musafia Teshuvot HaGeonim',
 'Collected Responsa in Wartime',
 'Collected Responsa to Chaplains']
 
@@ -639,6 +639,9 @@ for cat, books in [
         i = library.get_index(book)
         moveIndexInto(i, cat)
 
+g = Group().load({"name":"Lindenbaum Center at YCT Rabbinical School"})
+g.toc["categories"] = ["Responsa", "Other Modern"]
+g.save()
 
 # remove empty categories
 library.rebuild(include_toc=True)
