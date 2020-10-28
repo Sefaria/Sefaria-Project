@@ -542,6 +542,7 @@ for t in [
 i = library.get_index("Be'er Mayim Chaim")
 del i.dependence
 del i.base_text_titles
+i.save()
 
 # remove empty categories
 library.rebuild(include_toc=True)

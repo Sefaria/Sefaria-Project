@@ -249,7 +249,8 @@ class ReaderNavigationCategoryMenuContents extends Component {
       }
       const boxedContent = [];
       let currentRun   = [];
-      for (let i = 0; i < content.length; i++) {
+      let i;
+      for (i = 0; i < content.length; i++) {
         // Walk through content looking for runs of texts/subcats to group together into a table
         if (content[i].type === "div") { // this is a subcategory
           if (currentRun.length) {
