@@ -537,7 +537,7 @@ sites_data = [
     },
     {
         "name": ["מכון הדר"],
-        "domains": ["mechohadar.org.il"]
+        "domains": ["mechonhadar.org.il"]
     },
     {
         "name": "Pardes Institute of Jewish Studies",
