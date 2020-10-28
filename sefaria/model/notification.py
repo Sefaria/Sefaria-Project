@@ -249,7 +249,7 @@ class Notification(abst.AbstractMongoRecord):
 
     def to_HTML(self):
         html = render_to_string("elements/notification.html", {"notification": self}).strip()
-        html = re.sub("[\n\r]", "", html)
+        html = re.sub(r"[\n\r]", "", html)
         return html
 
     @property

@@ -89,25 +89,28 @@ class WebPage(abst.AbstractMongoRecord):
 
     @staticmethod
     def excluded_pages_url_regex():
+        """
+        We use raw strings here to properly process escape characters
+        """
         bad_urls = [
-            "rabbisacks\.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
-            "halachipedia\.com\/index\.php\?search=", # Halachipedia search results
-            "halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
-            "myjewishlearning\.com\/\?post_type=evergreen", # These urls end up not working
-            "judaism\.codidact\.com\/.+\/edit",
-            "judaism\.codidact\.com\/.+\/history",
-            "judaism\.codidact\.com\/.+\/suggested-edit\/",
-            "judaism\.codidact\.com\/.+\/posts\/new\/",
-            "jewishexponent\.com\/page\/\d",
-            "hebrewcollege\.edu\/blog\/(author|category|tag)\/",  # these function like indices of articles
-            "roshyeshivamaharat.org\/(author|category|tag)\/",
-            "lilith\.org\/\?gl=1&s=",                  # Lilith Magazine search results
-            "lilith\.org\/(tag|author|category)\/",
-            "https://torah.org$",                      
-            "webcache\.googleusercontent\.com",
-            "translate\.googleusercotent\.com",
-            "dailympails\.gq\/",
-            "http:\/\/:localhost(:\d+)?",
+            r"rabbisacks\.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
+            r"halachipedia\.com\/index\.php\?search=", # Halachipedia search results
+            r"halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
+            r"myjewishlearning\.com\/\?post_type=evergreen", # These urls end up not working
+            r"judaism\.codidact\.com\/.+\/edit",
+            r"judaism\.codidact\.com\/.+\/history",
+            r"judaism\.codidact\.com\/.+\/suggested-edit\/",
+            r"judaism\.codidact\.com\/.+\/posts\/new\/",
+            r"jewishexponent\.com\/page\/\d",
+            r"hebrewcollege\.edu\/blog\/(author|category|tag)\/",  # these function like indices of articles
+            r"roshyeshivamaharat.org\/(author|category|tag)\/",
+            r"lilith\.org\/\?gl=1&s=",                  # Lilith Magazine search results
+            r"lilith\.org\/(tag|author|category)\/",
+            r"https://torah.org$",                      
+            r"webcache\.googleusercontent\.com",
+            r"translate\.googleusercotent\.com",
+            r"dailympails\.gq\/",
+            r"http:\/\/:localhost(:\d+)?",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -210,7 +213,7 @@ def get_webpages_for_ref(tref):
         results = results.array()
     except OperationFailure as e:
         # If documents are too large or there are too many results, fail gracefully
-        logger.warn(f"WebPageSet for ref {tref} failed due to Error: {repr(e)}")
+        logger.warning(f"WebPageSet for ref {tref} failed due to Error: {repr(e)}")
         return []
     client_results = []
     for webpage in results:

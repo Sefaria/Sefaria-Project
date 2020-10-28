@@ -69,7 +69,7 @@ def rewrite(ref):
 	m = re.search("^Mishneh Torah (\d+):(\d+)", ref)
 	if not m: return ref
 	i, j = int(m.group(1)), int(m.group(2))
-	ref = re.sub("Mishneh Torah %d:%d:" % (i, j), index[i][j-1] + " ", ref)
+	ref = re.sub(r"Mishneh Torah %d:%d:" % (i, j), index[i][j-1] + " ", ref)
 	return ref
 
 

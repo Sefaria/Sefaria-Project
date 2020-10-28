@@ -389,7 +389,7 @@ urlpatterns += [
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
 
-    url(r'^admin/?', include(admin.site.urls)),
+    url(r'^admin/?', admin.site.urls),
 ]
 
 # Stats API - return CSV
@@ -426,7 +426,7 @@ if DOWN_FOR_MAINTENANCE:
     # Keep admin accessible
     urlpatterns = [
         url(r'^admin/reset/cache', sefaria_views.reset_cache),
-        url(r'^admin/?', include(admin.site.urls)),
+        url(r'^admin/?', admin.site.urls),
     ]
     # Everything else gets maintenance message
     urlpatterns += [

@@ -75,6 +75,6 @@ class SefariaCloudflareManager(object):
         r = requests.delete(url, data=json.dumps(payload), headers=headers)
         r = r.json()
         if not r["success"]:
-            logger.warn(r)
+            logger.warning(r)
         else:
             logger.info(r)

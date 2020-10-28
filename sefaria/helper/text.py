@@ -637,7 +637,7 @@ class WorkflowyParser(object):
             return None
         # print title
         # title = re.sub(ur"</b>|<b>|#.*#|'", u"", title)
-        title = self.comment_strip_re.sub("", title)
+        title = self.comment_strip_re.sub(r"", title)
         spl_title = title.split(self.title_lang_delim)
         titles = {}
         if len(spl_title) == 2:

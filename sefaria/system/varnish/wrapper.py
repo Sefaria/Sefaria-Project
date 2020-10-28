@@ -67,7 +67,7 @@ def invalidate_linked(oref):
         try:
             invalidate_ref(linkref)
         except UnicodeDecodeError:
-            logger.warn("Unable to invalidate {}. We cannot invalidate unicode at this time".format(linkref.normal()))
+            logger.warning("Unable to invalidate {}. We cannot invalidate unicode at this time".format(linkref.normal()))
 
 
 @graceful_exception(logger=logger, return_value=None, exception_type=UnicodeDecodeError)
@@ -78,7 +78,7 @@ def invalidate_counts(indx):
     elif isinstance(indx, str):
         url = indx.replace(" ", "_").replace(":", ".")
     else:
-        logger.warn("Could not parse index '{}' to purge counts from Varnish.".format(indx))
+        logger.warning("Could not parse index '{}' to purge counts from Varnish.".format(indx))
         return
 
     purge_url("{}/api/preview/{}".format(FRONT_END_URL, url))
@@ -97,12 +97,12 @@ def invalidate_index(indx):
             oref = Ref(indx.title)
             url = oref.url()
         except InputError as e:
-            logger.warn("In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {}".format(indx.title))
+            logger.warning("In sf.varnish.invalidate_index(): failed to instantiate ref for index name: {}".format(indx.title))
             return
     elif isinstance(indx, str):
         url = indx.replace(" ", "_").replace(":", ".")
     else:
-        logger.warn("Could not parse index '{}' to purge from Varnish.".format(indx))
+        logger.warning("Could not parse index '{}' to purge from Varnish.".format(indx))
         return
 
     purge_url("{}/api/index/{}".format(FRONT_END_URL, url))
@@ -145,13 +145,13 @@ def url_regex(ref):
             normals = [r.normal() for r in ref.range_list()]
 
         for r in normals:
-            sections = re.sub("^%s" % re.escape(ref.book), '', r).replace(":", r"\\.").replace(" ", r"\\.")
-            patterns.append("%s$" % sections)   # exact match
+            sections = re.sub(r"^%s" % re.escape(ref.book), '', r).replace(":", r"\\.").replace(" ", r"\\.")
+            patterns.append(r"%s$" % sections)   # exact match
             patterns.append(r"%s\\?" % sections) # Exact match with '?' afterwards
             patterns.append(r"%s\\/" % sections) # Exact match with '/' afterwards
             patterns.append(r"%s\\." % sections)   # more granualar, exact match followed by .
     else:
-        sections = re.sub("^%s" % re.escape(ref.book), '', ref.normal()).replace(":", r"\\.").replace(" ", r"\\.")
+        sections = re.sub(r"^%s" % re.escape(ref.book), '', ref.normal()).replace(":", r"\\.").replace(" ", r"\\.")
         patterns.append("%s$" % sections)   # exact match
         patterns.append(r"%s\\?" % sections)  # Exact match with '?' afterwards
         patterns.append(r"%s\\/" % sections) # Exact match with '/' afterwards

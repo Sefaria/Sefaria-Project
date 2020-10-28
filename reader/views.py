@@ -67,7 +67,7 @@ logger = logging.getLogger(__name__)
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
-logger.warn("Initializing library objects.")
+logger.warning("Initializing library objects.")
 library.get_toc_tree()
 library.build_full_auto_completer()
 library.build_ref_auto_completer()
@@ -950,14 +950,14 @@ def canonical_url(request):
     path = request.get_full_path()
     if request.interfaceLang == "hebrew":
         host = "https://www.sefaria.org.il"
-        # Default params for texts, text toc, and text category
-        path = re.sub("\?lang=he(&aliyot=0)?$", "", path)
+        # Default params for retexts, text toc, and text category
+        path = re.sub(r"\?lang=he(&aliyot=0)?$", "", path)
     else:
         host = "https://www.sefaria.org"
         # Default params for texts, text toc, and text category
-        path = re.sub("\?lang=bi(&aliyot=0)?$", "", path)
+        path = re.sub(r"\?lang=bi(&aliyot=0)?$", "", path)
 
-    path = re.sub("\?home$", "", path) # remove param to force homepage load
+    path = re.sub(r"\?home$", "", path) # remove param to force homepage load
 
     path = "" if path == "/" else path
     return host + path

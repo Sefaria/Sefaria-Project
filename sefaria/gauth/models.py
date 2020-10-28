@@ -50,7 +50,7 @@ class FlowField(models.Field):
 
 
 class FlowModel(models.Model):
-    id = models.OneToOneField(User, primary_key=True)
+    id = models.OneToOneField(User, primary_key=True, on_delete=models.CASCADE)
     flow = FlowField()
 
 
@@ -59,7 +59,7 @@ class FlowAdmin(admin.ModelAdmin):
 
 
 class CredentialsModel(models.Model):
-    id = models.OneToOneField(User, primary_key=True)
+    id = models.OneToOneField(User, primary_key=True, on_delete=models.CASCADE)
     credential = CredentialsField()
 
 

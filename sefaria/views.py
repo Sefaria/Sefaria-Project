@@ -480,10 +480,10 @@ def reset_cached_api(request, apiurl):
             raise Http404("API not in cache")
 
     except Resolver404 as re:
-        logger.warn("Attempted to reset invalid url")
+        logger.warning("Attempted to reset invalid url")
         raise Http404()
     except Exception as e:
-        logger.warn("Unable to reset cache for {}".format(apiurl))
+        logger.warning("Unable to reset cache for {}".format(apiurl))
         raise Http404()
 
 
