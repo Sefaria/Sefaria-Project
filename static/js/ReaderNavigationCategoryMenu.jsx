@@ -121,7 +121,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
         "he": ['תלמוד ירושלמי', displayHeCategory]
       };
       var replaceOther = {
-        "en" : [", ", " on ", " to ", " of "],
+        "en" : [", ", "; ", " on ", " to ", " of "],
         "he" : [", ", " על "]
       };
       //this will replace a category name at the beginning of the title string and any connector strings (0 or 1) that follow.

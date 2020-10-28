@@ -191,18 +191,19 @@ for t in ts:
 
 # Marei HaBazak to subcat
 c = create_category(["Responsa", "B'Mareh HaBazak"], en="B'Mareh HaBazak", he='שו"ת במראה הבזק')
-ts = ["B'Mareh HaBazak Volume I",
-"B'Mareh HaBazak Volume III",
-"B'Mareh HaBazak Volume IV",
-"B'Mareh HaBazak Volume IX",
-"B'Mareh HaBazak Volume V",
-"B'Mareh HaBazak Volume VI",
-"B'Mareh HaBazak Volume VII",
-"B'Mareh HaBazak Volume VIII"]
+mb = {"B'Mareh HaBazak Volume I": 1,
+    "B'Mareh HaBazak Volume III": 3,
+    "B'Mareh HaBazak Volume IV": 4,
+    "B'Mareh HaBazak Volume IX": 9,
+    "B'Mareh HaBazak Volume V": 5,
+    "B'Mareh HaBazak Volume VI": 6,
+    "B'Mareh HaBazak Volume VII": 7,
+    "B'Mareh HaBazak Volume VIII": 8}
 
-for t in ts:
+for t, o in mb.items():
     i = library.get_index(t)
-    moveIndexInto(i, c)
+    i.order = [o]
+    moveIndexInto(i, c)  #saves i
 
 # Daf Shevui -> Talmud Commentary
 c = create_category(["Talmud", "Bavli", "Commentary", "Daf Shevui"], en="Daf Shevui", he="דף שבועי")
@@ -442,7 +443,7 @@ books_other_r = ['Ohr Zarua',
 "Sheiltot d'Rav Achai Gaon",
                  ]
 
-cat_other_a = create_category(["Halakhah", "Other Achronim"], "Other Achronim", "אחרונים נוספים")
+cat_other_a = create_category(["Halakhah", "Other Acharonim"], "Other Acharonim", "אחרונים נוספים")
 books_other_a =  ['Maaseh Rav',
 'Mateh Efrayim',
 'Nehar Misrayim',
@@ -543,6 +544,101 @@ i = library.get_index("Be'er Mayim Chaim")
 del i.dependence
 del i.base_text_titles
 i.save()
+
+# Kabbalah
+c = create_category(["Kabbalah", "Zohar"], None, None)
+for t in ["Zohar", "Tikkunei Zohar", "Zohar Chadash", "Baal HaSulam's Introduction to Zohar"]:
+    i = library.get_index(t)
+    moveIndexInto(i, c)
+
+
+# Responsa
+rashba = {
+'Teshuvot haRashba part I':1,
+'Teshuvot haRashba part IV':4,
+'Teshuvot haRashba part V':5,
+'Teshuvot haRashba part VI':6,
+'Teshuvot haRashba part VII':7,
+'Teshuvot haRashba Meyuchas LehaRamban':10,
+'Footnotes to Teshuvot haRashba part IV':14,
+'Footnotes to Teshuvot haRashba part V':15,
+'Footnotes to Teshuvot haRashba part VI':16,
+'Footnotes to Teshuvot haRashba part VII':17,
+}
+for t, o in rashba.items():
+    i = library.get_index(t)
+    i.order = [o]
+    i.save(override_dependencies=True)
+
+c = Category().load({"path": ["Responsa", "Rambam"]})
+i = library.get_index("Pe'er HaDor Teshuvot HaRambam")
+moveIndexInto(i, c)
+
+
+
+cat_geonim = create_category(["Responsa", "Geonim"], "Geonim", "גאונים")
+books_geonim = [
+    'Epistle of Rav Sherira Gaon',
+    "Musafia Teshuvot HaGeonim",
+    'Teshuvot HaGeonim',
+    'Toratan shel Rishonim'
+]
+cat_other_r = create_category(["Responsa", "Other Rishonim"], "Other Rishonim", "ראשונים נוספים")
+books_other_r = [
+    'Teshuvot Rashi',
+    'Teshuvot HaRi Migash',
+    'Teshuvot Maharam',
+    'Maharach Or Zarua Responsa',
+    'Teshuvot HaRitva',
+    'Teshuvot HaRosh',
+    'Teshuvot HaRivash',
+    'Teshuvot Maharil',
+    'Sefer HaTashbetz',
+    'Mahari Weil',
+    'Terumat HaDeshen',
+    'Teshuvot HaRashbash',
+    'Teshuvot Maharik',
+    'Mahari Bruna'
+]
+
+cat_other_a = create_category(["Responsa", "Other Achronim"], "Other Achronim", "אחרונים נוספים")
+books_other_a =  [
+    'Shut min haShamayim',
+    'Chazeh Hatenufa',
+    'Responsa of Remah',
+    'Teshuvot Maharshal',
+    'Responsa Maharashdam',
+    'Teshuvot Maharit',
+    'Havot Yair',
+    'Hakham Tzvi',
+    'Torat Netanel',
+    'Noda BiYhudah I',
+    'Noda BiYhudah II',
+    'Teshuva MeAhava Part I',
+    'Responsa Chatam Sofer',
+    'Binyan Tziyon',
+    'HaElef Lekha Shlomo',
+    'Responsa Rav Pealim',
+    'Mateh Levi'
+]
+
+cat_other_m = create_category(["Responsa", "Other Modern"], "Other Modern", "מודרני נוספים")
+books_other_m = ['Responsa Benei Banim',
+'Mishpetei Uziel',
+'Musafia Teshuvot HaGeonim',
+'Collected Responsa in Wartime',
+'Collected Responsa to Chaplains']
+
+for cat, books in [
+    (cat_geonim, books_geonim),
+    (cat_other_m, books_other_m),
+    (cat_other_r, books_other_r),
+    (cat_other_a, books_other_a)
+]:
+    for book in books:
+        i = library.get_index(book)
+        moveIndexInto(i, cat)
+
 
 # remove empty categories
 library.rebuild(include_toc=True)
