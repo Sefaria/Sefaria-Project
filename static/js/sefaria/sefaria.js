@@ -2634,7 +2634,7 @@ Sefaria.setup = function(data) {
     // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
     // data should but defined server-side and undefined client-side
 
-    if (typeof data === "undefined") {
+    /*if (typeof data === "undefined") {
         data = typeof DJANGO_DATA_VARS === "undefined" ? undefined : DJANGO_DATA_VARS;
     }
     if (typeof data !== 'undefined') {
@@ -2643,7 +2643,8 @@ Sefaria.setup = function(data) {
                 Sefaria[prop] = data[prop];
             }
         }
-    }
+    }*/
+    Sefaria.loadServerData(data);
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupMisc();
     var cookie = Sefaria.util.handleUserCookie(Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role);
@@ -2656,12 +2657,6 @@ Sefaria.setup = function(data) {
     Sefaria._makeBooksDict();
     Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1};  //Todo: Wire this up to the server
     Sefaria._cacheIndexFromToc(Sefaria.toc);
-    if (!Sefaria.saved) {
-      Sefaria.saved = [];
-    }
-    if (!Sefaria.last_place) {
-        Sefaria.last_place = [];
-    }
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
     Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
