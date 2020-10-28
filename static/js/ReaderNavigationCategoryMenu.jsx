@@ -18,7 +18,7 @@ class ReaderNavigationCategoryMenu extends Component {
   render() {
 
     // Show Talmud with Toggles
-    var categories  = this.props.categories[0] === "Talmud" && this.props.categories.length == 1 ?
+    var categories  = this.props.categories[0] === "Talmud" && this.props.categories.length === 1 ?
                         ["Talmud", "Bavli"] : this.props.categories;
 
     if (categories[0] === "Talmud" && categories.length <= 2) {
@@ -56,7 +56,7 @@ class ReaderNavigationCategoryMenu extends Component {
 
     }
     var catContents    = Sefaria.tocItemsByCategories(categories);
-    var nestLevel      = this.props.category == "Commentary" ? 1 : 0;
+    var nestLevel      = this.props.category === "Commentary" ? 1 : 0;
     var footer         = this.props.compare ? null : <Footer />;
     var navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, noLangToggleInHebrew: 1});
     var contentClasses = classNames({content: 1, hasFooter: footer != null});
@@ -115,7 +115,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
     var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
     var displayCategory = this.props.category;
     var displayHeCategory = Sefaria.hebrewTerm(this.props.category);
-    if (whiteList.indexOf(title) == -1){
+    if (whiteList.indexOf(title) === -1){
       var replaceTitles = {
         "en": ['Jerusalem Talmud', displayCategory],
         "he": ['תלמוד ירושלמי', displayHeCategory]
@@ -164,7 +164,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
   render() {
       var content = [];
       var cats = this.props.categories || [];
-      var contents = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ?
+      var contents = this.props.contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew" ?
                       this.hebrewContentSort(this.props.contents)
                       : this.props.contents;
       for (let i = 0; i < contents.length; i++) {
@@ -175,11 +175,11 @@ class ReaderNavigationCategoryMenuContents extends Component {
           // Special Case categories which should nest but normally wouldn't given their depth
           var subcats = ["Mishneh Torah", "Shulchan Arukh", "Tur"];
           if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
-            if(item.contents && item.contents.length == 1 && !("category" in item.contents[0])){
+            if(item.contents && item.contents.length === 1 && !("category" in item.contents[0])){
                 var chItem = item.contents[0];
                 var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
                 var url     = "/" + Sefaria.normRef(chItem.firstSection);
-                var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !chItem.heComplete : !chItem.enComplete;
+                var incomplete = this.props.contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew" ? !chItem.heComplete : !chItem.enComplete;
                 var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
                 content.push((<a href={url} className={classes} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
                                 <span className='en'>{title}</span>
@@ -190,7 +190,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
             } else {
               // Create a link to a subcategory
               var url = "/texts/" + newCats.join("/");
-              var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
+              var incomplete = this.props.contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew" ? !item.heComplete : !item.enComplete;
               var classes = classNames({catLink: 1, blockLink: 1, incomplete: incomplete});
               content.push((<a href={url} className={classes} data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
                               <span className='en'>{item.category}</span>
@@ -233,7 +233,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
             const lastPlace = Sefaria.lastPlaceForText(item.title);
             var ref =  lastPlace ? lastPlace.ref : item.firstSection;
             var url = "/" + Sefaria.normRef(ref);
-            var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
+            var incomplete = this.props.contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew" ? !item.heComplete : !item.enComplete;
             var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
             content.push((<a href={url}
                             className={classes}
@@ -247,11 +247,11 @@ class ReaderNavigationCategoryMenuContents extends Component {
           }
         }
       }
-      var boxedContent = [];
-      var currentRun   = [];
-      for (var i = 0; i < content.length; i++) {
+      const boxedContent = [];
+      let currentRun   = [];
+      for (let i = 0; i < content.length; i++) {
         // Walk through content looking for runs of texts/subcats to group together into a table
-        if (content[i].type == "div") { // this is a subcategory
+        if (content[i].type === "div") { // this is a subcategory
           if (currentRun.length) {
             boxedContent.push((<TwoOrThreeBox content={currentRun} width={this.props.width} key={i} />));
             currentRun = [];

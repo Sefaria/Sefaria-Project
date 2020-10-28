@@ -282,7 +282,8 @@ books_ancient = ['The Midrash of Philo',
       'Against Apion',
       'The Antiquities of the Jews',
       'The War of the Jews',
-                 'On the Life of Moses']
+                 'On the Life of Moses',
+                 "HaEmunot veHaDeot"]
 
 cat_rishonim = create_category(["Jewish Thought", "Rishonim"], "Rishonim","ראשונים")
 books_rishonim = ["Eight Chapters",
@@ -522,8 +523,25 @@ for cat, books in [
         moveIndexInto(i, cat)
 
 
+# Chassidut
+c = Category().load({"path": ["Chasidut", "R' Tzadok HaKohen"]})
+i = library.get_index("Pri Tzadik")
+moveIndexInto(i, c)
 
+c = create_category(["Chasidut", "Izhbitz"], "Izhbitz", "איזביצה")
+for t in [
+    "Tiferet Yosef",
+    "Sod Yesharim",
+    "Mei HaShiloach",
+    "Beit Yaakov on Torah",
+    "Shaar HaEmunah Ve'Yesod HaChassidut"
+    ]:
+    i = library.get_index(t)
+    moveIndexInto(i, c)
 
+i = library.get_index("Be'er Mayim Chaim")
+del i.dependence
+del i.base_text_titles
 
 # remove empty categories
 library.rebuild(include_toc=True)

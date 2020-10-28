@@ -121,6 +121,7 @@ CATEGORY_ORDER = [
     'Chasidut',
         "Early Works",
         "Breslov",
+        "Izhbitz",
         "R' Tzadok HaKohen",
     'Musar',
     'Responsa',
