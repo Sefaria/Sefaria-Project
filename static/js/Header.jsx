@@ -293,11 +293,11 @@ class Header extends Component {
     var loggedOutLinks = (<div className="accountLinks anon">
                           <a className="login loginLink" href={"/login" + nextParam}>
                              <span className="int-en">Log in</span>
-                             <span className="int-he">התחבר</span>
+                             <span className="int-he">התחברות</span>
                            </a>
                            <a className="login signupLink" href={"/register" + nextParam}>
                              <span className="int-en">Sign up</span>
-                             <span className="int-he">הרשם</span>
+                             <span className="int-he">הרשמה</span>
                            </a>
                          </div>);
     // Header should not show box-shadow over panels that have color line

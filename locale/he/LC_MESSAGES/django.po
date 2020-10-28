@@ -247,7 +247,7 @@ msgstr "אודות %(name)s. יצירות שחוברו, ביוגרפיה, תאר
 #: templates/static/educators.html:359 templates/static/home.html:362
 #: templates/static/newsletter.html:24
 msgid "Email Address"
-msgstr "כתובת אימייל"
+msgstr "כתובת דוא\"ל"
 
 #: sefaria/forms.py:29 sefaria/forms.py:36 templates/account_settings.html:92
 msgid "Password"
