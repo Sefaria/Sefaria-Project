@@ -17,7 +17,7 @@ WORKDIR /app/
 RUN mkdir -p /app/log && mkdir -p /app/sefaria && mkdir -p /log && touch /app/dev-db.sqlite
 
 RUN apt-get update && apt-get install --yes npm varnish && apt-get clean
-RUN pip3 install --no-cache-dir -r /app/requirements.txt
+RUN pip3 install --no-cache-dir --upgrade --upgrade-strategy eager -r /app/requirements.txt --use-feature=2020-resolver
 RUN npm install --unsafe-perm && npm run build-prod
 RUN python manage.py collectstatic
 
