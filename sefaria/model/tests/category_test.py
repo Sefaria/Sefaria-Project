@@ -89,6 +89,10 @@ class Test_Categories(object):
         assert len(base_json) == len(new_json)
 
 
+"""
+Are these tests necessary anymore?
+They were useful in validating 1st class categories against older forms. 
+"""
 class Test_OO_Toc(object):
     def test_round_trip(self):
         base_toc = library.get_toc()

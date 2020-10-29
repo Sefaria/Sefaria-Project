@@ -135,6 +135,7 @@ def process_category_name_change_in_categories_and_indexes(changed_cat, **kwargs
 def toc_serial_to_objects(toc):
     """
     Build TOC object tree from serial representation
+    Was used to derive 1st class objects from TOC.  Not used in production.
     :param toc: Serialized TOC
     :return:
     """
@@ -256,9 +257,14 @@ class TocTree(object):
         d["firstSection"] = vs.get("first_section_ref", None)
         d["heComplete"]   = vs.get("heComplete", False)
         d["enComplete"]   = vs.get("enComplete", False)
+
+        """
+        Now part of TocNode instanciation
         if title in CATEGORY_ORDER:
             # If this text is listed in ORDER, consider its position in ORDER as its order field.
             d["order"] = CATEGORY_ORDER.index(title)
+        """
+
 
         if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
             d["refs_to_base_texts"] = {btitle:
@@ -270,7 +276,6 @@ class TocTree(object):
 
     def _add_category(self, cat):
         tc = TocCategory(category_object=cat)
-        tc.add_primary_titles(cat.get_primary_title("en"), cat.get_primary_title("he"))
         parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
         parent.append(tc)
         self._path_hash[tuple(cat.path)] = tc
@@ -326,7 +331,7 @@ class TocTree(object):
                 logger.warning("Failed to find VersionState for {} in TocTree.update_title()".format(title))
                 return
             vs.refresh()
-            sn = vs.state_node(index.nodes)
+            # sn = vs.state_node(index.nodes)
             self._vs_lookup[title] = {
                 "first_section_ref": vs.first_section_ref,
                 "heComplete": vs.get_flag("heComplete"),
@@ -394,6 +399,11 @@ class TocCategory(TocNode):
     def __init__(self, serial=None, **kwargs):
         self._category_object = kwargs.pop("category_object", None)
         super(TocCategory, self).__init__(serial, **kwargs)
+        if self._category_object:
+            self.add_primary_titles(self._category_object.get_primary_title("en"), self._category_object.get_primary_title("he"))
+        if self.primary_title() in CATEGORY_ORDER:
+            # If this text is listed in ORDER, consider its position in ORDER as its order field.
+            self.order = CATEGORY_ORDER.index(self.primary_title())
 
     optional_param_keys = [
         "order",
@@ -425,6 +435,9 @@ class TocTextIndex(TocNode):
     def __init__(self, serial=None, **kwargs):
         self._index_object = kwargs.pop("index_object", None)
         super(TocTextIndex, self).__init__(serial, **kwargs)
+        if self.primary_title() in CATEGORY_ORDER:
+            # If this text is listed in ORDER, consider its position in ORDER as its order field.
+            self.order = CATEGORY_ORDER.index(self.primary_title())
 
     def get_index_object(self):
         return self._index_object
@@ -476,6 +489,9 @@ class TocGroupNode(TocNode):
             self._group_object = group.Group().load({"name": serial["name"]})
 
         super(TocGroupNode, self).__init__(serial)
+        if self.primary_title() in CATEGORY_ORDER:
+            # If this text is listed in ORDER, consider its position in ORDER as its order field.
+            self.order = CATEGORY_ORDER.index(self.primary_title())
 
     def get_group_object(self):
         return self._group_object

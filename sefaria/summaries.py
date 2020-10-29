@@ -12,21 +12,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-""" Not used?
-def update_table_of_contents():
-    toc = []
-    # Add an entry for every text we know about
-    indices = IndexSet()
-    for i in indices:
-        cats = get_toc_categories(i)
-        node = get_or_make_summary_node(toc, cats)
-        text_dict = i.toc_contents()
-        node.append(text_dict)
-    # Recursively sort categories and texts
-    return sort_toc_node(toc, recur=True)
-"""
-
-
 def update_search_filter_table_of_contents():
     search_toc = []
     # Add an entry for every text we know about
@@ -176,6 +161,7 @@ def sort_toc_node(node, recur=False):
     return node
 
 
+# next three are to deprecate.  Used only in workflows.py
 def get_texts_summaries_for_category(category):
     """
     Returns the list of texts records in the table of contents corresponding to "category".
@@ -209,7 +195,7 @@ def extract_text_records_from_toc(toc):
             summary += [elem]
     return summary
 
-
+'''
 def flatten_toc(toc, include_categories=False, categories_in_titles=False, version_granularity=False):
     # Being deprecated.  Moving to TocTree.flatten()
     """
@@ -241,4 +227,4 @@ def flatten_toc(toc, include_categories=False, categories_in_titles=False, versi
                     results += ["%s > %s > %s.json" % (name, lang, v["versionTitle"])]
 
     return results
-
+'''

@@ -88,8 +88,8 @@ CATEGORY_ORDER = [
         "Issur v'Heter",
         "Monographs",
         "Geonim",
-        "Rashba",
         "Rambam",
+        "Rashba",
         "Other Rishonim",   #hack Because they both used the terms "Other Rishonim" and "Other Acharonim", we list Responsa subcats here.  #hack
         "Avodat HaKodesh (Chida)",
         "Radbaz",

@@ -111,24 +111,24 @@ ReaderNavigationCategoryMenu.propTypes = {
 
 class ReaderNavigationCategoryMenuContents extends Component {
   // Inner content of Category menu (just category title and boxes of texts/subcategories)
-  getRenderedTextTitleString(title, heTitle){
-    var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
-    var displayCategory = this.props.category;
-    var displayHeCategory = Sefaria.hebrewTerm(this.props.category);
-    if (whiteList.indexOf(title) === -1){
-      var replaceTitles = {
+  getRenderedTextTitleString(title, heTitle) {
+    const whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
+    const displayCategory = this.props.category;
+    const displayHeCategory = Sefaria.hebrewTerm(this.props.category);
+    if (whiteList.indexOf(title) === -1) {
+      const replaceTitles = {
         "en": ['Jerusalem Talmud', displayCategory],
         "he": ['תלמוד ירושלמי', displayHeCategory]
       };
-      var replaceOther = {
+      const replaceOther = {
         "en" : [", ", "; ", " on ", " to ", " of "],
         "he" : [", ", " על "]
       };
       //this will replace a category name at the beginning of the title string and any connector strings (0 or 1) that follow.
-      var titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
-      var heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
-      title   = title == displayCategory ? title : title.replace(titleRe, "");
-      heTitle = heTitle == displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
+      const titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
+      const heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
+      title   = title === displayCategory ? title : title.replace(titleRe, "");
+      heTitle = heTitle === displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
     }
     return [title, heTitle];
   }
