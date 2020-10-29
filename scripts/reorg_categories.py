@@ -234,11 +234,13 @@ ts = ['Jastrow', 'Klein Dictionary', 'Otzar Laazei Rashi']
 for t in ts:
     i = library.get_index(t)
     moveIndexInto(i, c)
+
 # Into reference
+c = Category().load({"path": "Reference"})
 ts = ["The Jewish Spiritual Heroes", "Ein Zocher", "Devash Lefi", "Midbar Kedemot"]
 for t in ts:
     i = library.get_index(t)
-    moveIndexInto(i, p)
+    moveIndexInto(i, c)
 
 
 # Rename Philosophy -> Jewish Thought
