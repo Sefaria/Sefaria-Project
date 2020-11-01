@@ -4513,13 +4513,13 @@ class Library(object):
 
     def get_last_cahed_time(self):
         if not self.last_cached:
-            self.last_cached = scache.get_shared_cache_elem("last_updated")
+            self.last_cached = scache.get_shared_cache_elem("last_cached")
         return self.last_cached
 
 
     def set_last_cached_time(self):
         self.last_cached = time.time() # just use the unix timestamp, we dont need any fancy timezone faffing, just objective point in time.
-        scache.set_shared_cache_elem("last_updated", self.last_cached)
+        scache.set_shared_cache_elem("last_cached", self.last_cached)
 
 
     def get_toc(self, rebuild=False):
