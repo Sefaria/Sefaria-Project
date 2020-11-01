@@ -350,6 +350,7 @@ def base_props(request):
     from sefaria.settings import DEBUG
     profile = UserProfile(user_obj=request.user)
     return {
+        "last_cached": library.get_last_cahed_time(),
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "_uid": request.user.id,
