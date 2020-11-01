@@ -89,6 +89,7 @@ TEMPLATES = [
                     "django.contrib.messages.context_processors.messages",
                     "django.template.context_processors.request",
                     "sefaria.system.context_processors.global_settings",
+                    "sefaria.system.context_processors.last_cached",
                     "sefaria.system.context_processors.titles_json",
                     "sefaria.system.context_processors.toc",
                     "sefaria.system.context_processors.terms",
