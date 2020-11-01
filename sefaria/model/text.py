@@ -4516,6 +4516,7 @@ class Library(object):
             if rebuild or not self._toc:
                 self._toc = self.get_toc_tree().get_serialized_toc()  # update_table_of_contents()
                 scache.set_shared_cache_elem('toc', self._toc)
+                self.set_last_cached_time()
         return self._toc
 
     def get_toc_json(self, rebuild=False):
@@ -4528,6 +4529,7 @@ class Library(object):
             if rebuild or not self._toc_json:
                 self._toc_json = json.dumps(self.get_toc())
                 scache.set_shared_cache_elem('toc_json', self._toc_json)
+                self.set_last_cached_time()
         return self._toc_json
 
     def get_toc_tree(self, rebuild=False):
@@ -4547,6 +4549,7 @@ class Library(object):
             if rebuild or not self._topic_toc:
                 self._topic_toc = self.get_topic_toc_json_recursive()
                 scache.set_shared_cache_elem('topic_toc', self._topic_toc)
+                self.set_last_cached_time()
         return self._topic_toc
 
     def get_topic_toc_json(self, rebuild=False):
@@ -4559,6 +4562,7 @@ class Library(object):
             if rebuild or not self._topic_toc_json:
                 self._topic_toc_json = json.dumps(self.get_topic_toc())
                 scache.set_shared_cache_elem('topic_toc_json', self._topic_toc_json)
+                self.set_last_cached_time()
         return self._topic_toc_json
 
 
@@ -4626,6 +4630,7 @@ class Library(object):
                 from sefaria.summaries import update_search_filter_table_of_contents
                 self._search_filter_toc = update_search_filter_table_of_contents()
                 scache.set_shared_cache_elem('search_filter_toc', self._search_filter_toc)
+                self.set_last_cached_time()
         return self._search_filter_toc
 
     def get_search_filter_toc_json(self, rebuild=False):
@@ -4638,6 +4643,7 @@ class Library(object):
             if rebuild or not self._search_filter_toc_json:
                 self._search_filter_toc_json = json.dumps(self.get_search_filter_toc())
                 scache.set_shared_cache_elem('search_filter_toc_json', self._search_filter_toc_json)
+                self.set_last_cached_time()
         return self._search_filter_toc_json
 
     def build_full_auto_completer(self):
@@ -4990,6 +4996,7 @@ class Library(object):
             if rebuild or not self._simple_term_mapping:
                 self.build_term_mappings()
                 scache.set_shared_cache_elem('term_mapping', self._simple_term_mapping)
+                self.set_last_cached_time()
         return self._simple_term_mapping
 
     def get_simple_term_mapping_json(self, rebuild=False):
@@ -5002,6 +5009,7 @@ class Library(object):
             if rebuild or not self._simple_term_mapping_json:
                 self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping())
                 scache.set_shared_cache_elem('term_mapping_json', self._simple_term_mapping_json)
+                self.set_last_cached_time()
         return self._simple_term_mapping_json
 
     def get_term(self, term_name):
@@ -5053,6 +5061,7 @@ class Library(object):
                 self._full_title_list_jsons[lang] = title_list_json
                 scache.set_shared_cache_elem('books_' + lang, title_list)
                 scache.set_shared_cache_elem('books_'+lang+'_json', title_list_json)
+                self.set_last_cached_time()
         return self._full_title_list_jsons[lang]
 
     def build_text_titles_json(self, lang="en"):
