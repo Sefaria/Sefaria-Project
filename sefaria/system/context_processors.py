@@ -66,6 +66,10 @@ def global_settings(request):
 
 
 @data_only
+def cacche_timestamp(request):
+    return {"last_cached": library.get_last_cahed_time()}
+
+@data_only
 def titles_json(request):
     return {"titles_json": library.get_text_titles_json()}
 
