@@ -25,6 +25,12 @@ const log = settings.DEBUG ? console.log : function() {};
 
 const cacheKeyMapping = {"toc": "toc", "topic_toc": "topic_toc", "terms": "term_mapping", "books": "books_en" }
 let sharedCacheData = {
+  /*
+  Not data, but a unix timestamp (originally) passed from django indicating when data was last updated on this node process. i
+  if a later date comes in on a request, it will trigger an update
+   */
+  "last_cached": null,
+  /* data */
   "toc": null,
   "topic_toc": null,
   "terms": null,
@@ -35,12 +41,12 @@ const cache = redis.createClient(settings.REDIS_PORT, settings.REDIS_HOST, {pref
 const getAsync = promisify(cache.get).bind(cache);
 
 
-const loadSharedData = async function(){
+const loadSharedData = async function(last_cached_to_compare){
     //TODO: If the data wasnt placed in Redis by django to begin with, well, we're screwed.
     // Or you know, fix it so Node does send a signal to Django to populate cache.
     let redisCalls = [];
     for (const [key, value] of Object.entries(cacheKeyMapping)) {
-      if(await needsUpdating(key)){
+      if(await needsUpdating(key, last_cached_to_compare)){
         redisCalls.push(getAsync(value).then(resp => {
           sharedCacheData[key] = JSON.parse(resp);
         }).catch(error => {
@@ -49,16 +55,24 @@ const loadSharedData = async function(){
       }
     }
     try{
-      return await Promise.all(redisCalls);
+      await Promise.all(redisCalls);
+      if(cacheTimestampNeedsUpdating("last_cached", last_cached_to_compare)){
+        sharedCacheData["last_cached"] = last_cached_to_compare;
+      }
+      return Promise.resolve();
     }catch(e) {
       console.error(e.message);
       return Promise.reject(e); //Is this the correct way??
     }
 }
 
-const needsUpdating = function(cachekey){
+const cacheTimestampNeedsUpdating = function(cache_timestamp = "last_cached", timestamp_to_compare){
+  return sharedCacheData[cache_timestamp] < timestamp_to_compare;
+}
+
+const needsUpdating = function(cachekey, last_cached_to_compare){
   //TODO: add timestamp liveness checks here
-  return !sharedCacheData[cachekey];
+  return !sharedCacheData[cachekey] || cacheTimestampNeedsUpdating("last_cached", last_cached_to_compare);
 }
 
 const renderReaderApp = function(props, data, timer) {
@@ -80,10 +94,11 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
     elapsed: function() { return (new Date() - this.start); }
   };
   const props = JSON.parse(req.body.propsJSON);
+  let request_last_cached = props["last_cached"];
   // var cacheKey = req.params.cachekey
   log(props.initialRefs || props.initialMenu);
   log("Time to props: %dms", timer.elapsed());
-  loadSharedData().then(response => {
+  loadSharedData(request_last_cached).then(response => {
     try{
       log("Time to validate cache data: %dms", timer.elapsed());
       const resphtml = renderReaderApp(props, sharedCacheData, timer);
