@@ -3,6 +3,7 @@
 text.py
 """
 
+import time
 import logging
 from functools import reduce
 logger = logging.getLogger(__name__)
@@ -4370,6 +4371,9 @@ class Library(object):
     """
 
     def __init__(self):
+        #Timestamp when library last stored shared cache items (toc, terms, etc)
+        self.last_cached = None
+
         self.langs = ["en", "he"]
 
         # Maps, keyed by language, from index key to array of titles
@@ -4488,6 +4492,18 @@ class Library(object):
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
         """
+
+
+    def get_last_cahed_time(self):
+        if not self.last_cached:
+            self.last_cached = scache.get_shared_cache_elem("last_updated")
+        return self.last_cached
+
+
+    def set_last_cached_time(self):
+        self.last_cached = time.time() # just use the unix timestamp, we dont need any fancy timezone faffing, just objective point in time.
+        scache.set_shared_cache_elem("last_updated", self.last_cached)
+
 
     def get_toc(self, rebuild=False):
         """
