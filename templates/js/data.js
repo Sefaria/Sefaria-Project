@@ -3,6 +3,7 @@
 //all vars in this file will be available in global js scope
 
 var DJANGO_DATA_VARS = {
+  last_cached:          {{ last_cached }}
   _dataLoaded:          true,
   toc:                  {{ toc_json }},
   search_toc:           {{ search_toc_json }},
