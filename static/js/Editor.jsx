@@ -837,19 +837,9 @@ async function getRefInText(editor, additionalOffset=0) {
     if (query.length > 50 || query.trim() == "") {return {}}
 
     const ref = await Sefaria.getName(query)
-        .then(d => {
-      // If the query isn't recognized as a ref, but only for reasons of capitalization. Resubmit with recognizable caps.
-      if (Sefaria.isACaseVariant(query, d)) {
-        this.submitSearch(Sefaria.repairCaseVariant(query, d));
-        return;
-      }
+    .then(d => {  return d    });
 
-      return d
-
-
-    });
-
-    const selectDistance = query.length + additionalOffset;
+    const selectDistance = query.replace("\n","").length + additionalOffset;
 
 
     if (ref["is_ref"]) {

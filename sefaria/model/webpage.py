@@ -59,12 +59,13 @@ class WebPage(abst.AbstractMongoRecord):
             "use https": lambda url: re.sub(r"^http://", "https://", url),
             "remove hash": lambda url: re.sub(r"#.+", "", url),
             "remove utm params": lambda url: re.sub(r"\?utm_.+", "", url),
+            "remove fbclid params": lambda url: re.sub(r"\?fbclid=.+", "", url),
             "add www": lambda url: re.sub(r"^(https?://)(?!www\.)", r"\1www.", url),
             "remove www": lambda url: re.sub(r"^(https?://)www\.", r"\1", url),
             "remove mediawiki params": lambda url: re.sub(r"&amp;.+", "", url),
             "remove sort param": lambda url: re.sub(r"\?sort=.+", "", url),
         }
-        global_rules = ["remove hash", "remove utm params"]
+        global_rules = ["remove hash", "remove utm params", "remove fbclid param"]
         domain = WebPage.domain_for_url(url)
         site_data = WebPage.site_data_for_domain(domain) or {}
         site_rules = global_rules + site_data.get("normalization_rules", [])
@@ -536,7 +537,7 @@ sites_data = [
     },
     {
         "name": ["מכון הדר"],
-        "domains": ["mechohadar.org.il"]
+        "domains": ["mechonhadar.org.il"]
     },
     {
         "name": "Pardes Institute of Jewish Studies",
@@ -593,5 +594,14 @@ sites_data = [
         "name": "The Times of Israel",
         "domains": ["timesofisrael.com"],
         "title_branding": ["The Blogs"]
+    },
+    {
+        "name": "Rav Kook Torah",
+        "domains": ["ravkooktorah.org"],
+    },
+    {
+        "name": "YUTorah Online",
+        "domains": ["yutorah.org"],
+        "initial_title_branding": True,
     },
 ]
