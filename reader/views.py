@@ -353,9 +353,9 @@ def base_props(request):
     from sefaria.settings import DEBUG
     profile = UserProfile(user_obj=request.user)
 
-    if request.get("init_shared_cache", False):
+    if hasattr(request, "init_shared_cache"):
         logger.warning("Shared cache disappeared while application was running")
-        library.init_shared_cache()
+        library.init_shared_cache(rebuild=True)
 
     return {
         "last_cached": library.get_last_cached_time(),
