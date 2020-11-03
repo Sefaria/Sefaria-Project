@@ -94,10 +94,10 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
   };
   const props = JSON.parse(req.body.propsJSON);
   let request_last_cached = props["last_cached"];
+  log("Processing request: ", props.initialRefs || props.initialMenu, props.initialPath);
   console.log("Last cached time from server: ", request_last_cached, new Date(request_last_cached*1000).toUTCString())
   console.log("last cached time stored: ", sharedCacheData["last_cached"], new Date(sharedCacheData["last_cached"]*1000).toUTCString())
   // var cacheKey = req.params.cachekey
-  log(props.initialRefs || props.initialMenu);
   log("Time to props: %dms", timer.elapsed());
   loadSharedData(request_last_cached).then(response => {
     try{

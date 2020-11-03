@@ -21,7 +21,7 @@ class SharedCacheMiddleware(MiddlewareMixin):
     def process_request(self, request):
         last_cached = get_shared_cache_elem("last_cached")
         if not last_cached:
-            request["init_shared_cache"] = True
+            request.init_shared_cache = True
 
 
 class LocationSettingsMiddleware(MiddlewareMixin):

@@ -4513,15 +4513,15 @@ class Library(object):
         self._full_term_mapping = {}
         """
 
-    def init_shared_cache(self):
-        self.get_toc()
-        self.get_toc_json()
-        self.get_search_filter_toc()
-        self.get_search_filter_toc_json()
-        self.get_topic_toc()
-        self.get_topic_toc_json()
-        self.get_text_titles_json()
-        self.get_simple_term_mapping_json()
+    def init_shared_cache(self, rebuild=False):
+        self.get_toc(rebuild=rebuild)
+        self.get_toc_json(rebuild=rebuild)
+        self.get_search_filter_toc(rebuild=rebuild)
+        self.get_search_filter_toc_json(rebuild=rebuild)
+        self.get_topic_toc(rebuild=rebuild)
+        self.get_topic_toc_json(rebuild=rebuild)
+        self.get_text_titles_json(rebuild=rebuild)
+        self.get_simple_term_mapping_json(rebuild=rebuild)
 
     def get_last_cached_time(self):
         if not self.last_cached:
