@@ -4466,6 +4466,7 @@ class Library(object):
         self._build_index_maps()
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
+        self.reset_text_titles_cache()
         self._title_regex_strings = {}
         self._title_regexes = {}
         Ref.clear_cache()
@@ -4479,6 +4480,8 @@ class Library(object):
         self._toc_json = self.get_toc_json(rebuild=True)
         if not skip_filter_toc:
             self._search_filter_toc = self.get_search_filter_toc(rebuild=True)
+        else: # TODO: Dont love this, it breaks the pattern of where we do cache invalidation toward redis,  but the way these objects are created currently makes it diffucult to make sure the cache is updated anywhere else. In any dependecy trigger, the search toc is updated in the library, and that becomes more recent than whats in cache, when usually the reverse is true. if we can clean up all the methods relating to the large library objects and standardize, that'd be good
+            scache.set_shared_cache_elem('search_filter_toc', self._search_filter_toc)
         self._search_filter_toc_json = self.get_search_filter_toc_json(rebuild=True)
         self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
         self._category_id_dict = None
@@ -4920,37 +4923,6 @@ class Library(object):
             self._title_regexes[key] = reg
         return reg
 
-    def full_title_list(self, lang="en", with_terms=False):
-        """
-        :return: list of strings of all possible titles
-        :param lang: "he" or "en"
-        :param with_terms: if True, includes shared titles ('terms')
-        """
-
-        key = lang
-        key += "_terms" if with_terms else ""
-        titles = self._full_title_lists.get(key)
-        if not titles:
-            titles = list(self.get_title_node_dict(lang).keys())
-            if with_terms:
-                titles += list(self.get_term_dict(lang).keys())
-            self._full_title_lists[key] = titles
-        return titles
-
-    def citing_title_list(self, lang="en"):
-        """
-        :param lang: "he" or "en"
-        :return: list of all titles that can be recognized as an inline citation
-        """
-        key = "citing-{}".format(lang)
-        titles = self._full_title_lists.get(key)
-        if not titles:
-            titles = []
-            for i in IndexSet({"is_cited": True}):
-                titles.extend(self._index_title_maps[lang][i.title])
-            self._full_title_lists[key] = titles
-        return titles
-
     def ref_list(self):
         """
         :return: list of all section-level Refs in the library
@@ -5051,6 +5023,50 @@ class Library(object):
         title = title.replace("_", " ")
         return self.get_title_node_dict(lang).get(title)
 
+
+    def citing_title_list(self, lang="en"):
+        """
+        :param lang: "he" or "en"
+        :return: list of all titles that can be recognized as an inline citation
+        """
+        key = "citing-{}".format(lang)
+        titles = self._full_title_lists.get(key)
+        if not titles:
+            titles = []
+            for i in IndexSet({"is_cited": True}):
+                titles.extend(self._index_title_maps[lang][i.title])
+            self._full_title_lists[key] = titles
+        return titles
+
+
+    def full_title_list(self, lang="en", with_terms=False):
+        """
+        :return: list of strings of all possible titles
+        :param lang: "he" or "en"
+        :param with_terms: if True, includes shared titles ('terms')
+        """
+
+        key = lang
+        key += "_terms" if with_terms else ""
+        titles = self._full_title_lists.get(key)
+        if not titles:
+            titles = list(self.get_title_node_dict(lang).keys())
+            if with_terms:
+                titles += list(self.get_term_dict(lang).keys())
+            self._full_title_lists[key] = titles
+        return titles
+
+    def build_text_titles_json(self, lang="en"):
+        """
+        :return: JSON of full texts list, (cached)
+        """
+        title_list = self.full_title_list(lang=lang)
+        if lang == "en":
+            toc_titles = self.get_toc_tree().flatten()
+            secondary_list = list(set(title_list) - set(toc_titles))
+            title_list = toc_titles + secondary_list
+        return title_list
+
     def get_text_titles_json(self, lang="en", rebuild=False):
         if rebuild or not self._full_title_list_jsons.get(lang):
             if not rebuild:
@@ -5064,16 +5080,10 @@ class Library(object):
                 self.set_last_cached_time()
         return self._full_title_list_jsons[lang]
 
-    def build_text_titles_json(self, lang="en"):
-        """
-        :return: JSON of full texts list, (cached)
-        """
-        title_list = self.full_title_list(lang=lang)
-        if lang == "en":
-            toc_titles = self.get_toc_tree().flatten()
-            secondary_list = list(set(title_list) - set(toc_titles))
-            title_list = toc_titles + secondary_list
-        return title_list
+    def reset_text_titles_cache(self):
+        for lang in self.langs:
+            scache.delete_shared_cache_elem('books_' + lang)
+            scache.delete_shared_cache_elem('books_' + lang + '_json')
 
     def get_text_categories(self):
         """
@@ -5536,6 +5546,7 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
     old_title = kwargs["old"]
 
     library.refresh_index_record_in_cache(indx, old_title=old_title)
+    library.reset_text_titles_cache()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title, old_title])
@@ -5547,12 +5558,14 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
 def process_index_change_in_core_cache(indx, **kwargs):
     if kwargs.get("is_new"):
         library.add_index_record_to_cache(indx)
+        library.reset_text_titles_cache()
 
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "add_index_record_to_cache", [indx.title])
 
     else:
         library.refresh_index_record_in_cache(indx)
+        library.reset_text_titles_cache()
 
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title])
@@ -5578,6 +5591,7 @@ def process_index_delete_in_toc(indx, **kwargs):
 
 def process_index_delete_in_core_cache(indx, **kwargs):
     library.remove_index_record_from_cache(indx)
+    library.reset_text_titles_cache()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "remove_index_record_from_cache", [indx.title])
@@ -5587,7 +5601,8 @@ def process_index_delete_in_core_cache(indx, **kwargs):
 
 
 def reset_simple_term_mapping(o, **kwargs):
-    library.build_term_mappings()
+    library.get_simple_term_mapping(rebuild=True)
+
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_term_mappings")
