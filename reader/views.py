@@ -74,14 +74,8 @@ library.build_ref_auto_completer()
 library.build_lexicon_auto_completers()
 library.build_cross_lexicon_auto_completer()
 
-library.get_toc()
-library.get_toc_json()
-library.get_search_filter_toc()
-library.get_search_filter_toc_json()
-library.get_topic_toc()
-library.get_topic_toc_json()
-library.get_text_titles_json()
-library.get_simple_term_mapping_json()
+library.init_shared_cache()
+
 if server_coordinator:
     server_coordinator.connect()
 #    #    #
@@ -358,8 +352,13 @@ def base_props(request):
     from sefaria.site.site_settings import SITE_SETTINGS
     from sefaria.settings import DEBUG
     profile = UserProfile(user_obj=request.user)
+
+    if request.get("init_shared_cache", False):
+        logger.warning("Shared cache disappeared while application was running")
+        library.init_shared_cache()
+
     return {
-        "last_cached": library.get_last_cahed_time(),
+        "last_cached": library.get_last_cached_time(),
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
         "_uid": request.user.id,

@@ -4496,10 +4496,21 @@ class Library(object):
         self._full_term_mapping = {}
         """
 
+    def init_shared_cache(self):
+        self.get_toc()
+        self.get_toc_json()
+        self.get_search_filter_toc()
+        self.get_search_filter_toc_json()
+        self.get_topic_toc()
+        self.get_topic_toc_json()
+        self.get_text_titles_json()
+        self.get_simple_term_mapping_json()
 
-    def get_last_cahed_time(self):
+    def get_last_cached_time(self):
         if not self.last_cached:
             self.last_cached = scache.get_shared_cache_elem("last_cached")
+        if not self.last_cached:
+            self.set_last_cached_time()
         return self.last_cached
 
 

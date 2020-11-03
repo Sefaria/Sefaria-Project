@@ -67,7 +67,7 @@ def global_settings(request):
 
 @data_only
 def cache_timestamp(request):
-    return {"last_cached": library.get_last_cahed_time()}
+    return {"last_cached": library.get_last_cached_time()}
 
 
 @data_only
