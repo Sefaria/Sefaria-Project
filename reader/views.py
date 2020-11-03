@@ -73,6 +73,15 @@ library.build_full_auto_completer()
 library.build_ref_auto_completer()
 library.build_lexicon_auto_completers()
 library.build_cross_lexicon_auto_completer()
+
+library.get_toc()
+library.get_toc_json()
+library.get_search_filter_toc()
+library.get_search_filter_toc_json()
+library.get_topic_toc()
+library.get_topic_toc_json()
+library.get_text_titles_json()
+library.get_simple_term_mapping_json()
 if server_coordinator:
     server_coordinator.connect()
 #    #    #
