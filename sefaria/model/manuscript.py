@@ -1,6 +1,7 @@
 # encoding=utf-8
 
-from sefaria.system.exceptions import InputError
+from sefaria.system.exceptions import InputError, DuplicateRecordError
+from sefaria.system.database import db
 from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
 from sefaria.model import *
 
@@ -10,16 +11,39 @@ class ManuscriptError(Exception):
 
 
 class Manuscript(AbstractMongoRecord):
+    pkeys = ['slug']
+    track_pkeys = True
 
     collection = 'manuscript'
     required_attrs = [
-        'id',  # unique
+        'slug',  # unique, derived from title.
         'title',
         'he_title',
         'source',
         'description',
         'he_description'
     ]
+
+    def normalize_slug_field(self, slug_field: str) -> str:
+        """
+        Duplicates are forbidden for Manuscript slugs. Character normalization only, duplicates raise
+        a DuplicateRecordError
+        :param slug_field: not an attribute, this should just be a string that will be normalized.
+        :return: normalized string
+        """
+        slug = self.normalize_slug(slug_field)
+        mongo_id = getattr(self, '_id', None)
+        duplicate = getattr(db, self.collection).find_one({'slug': slug, "_id": {"$ne": mongo_id}})
+        if duplicate:
+            raise DuplicateRecordError(f"Record with the title {slug_field} already exists")
+
+        return slug
+
+    def _normalize(self):
+        title = getattr(self, 'title', None)
+        if not title:
+            raise InputError('title not set')
+        self.slug = self.normalize_slug_field(title)
 
 
 class ManuscriptSet(AbstractMongoSet):
@@ -30,7 +54,7 @@ class ManuscriptPage(AbstractMongoRecord):
 
     collection = 'manuscript_page'
     required_attrs = [
-        'manuscript_id',
+        'manuscript_slug',
         'page_id',  # manuscript_id & page_id must be unique
         'image_url',
         'thumbnail_url',
@@ -45,8 +69,25 @@ class ManuscriptPage(AbstractMongoRecord):
     def _pre_save(self):
         self.expanded_refs = list(set(self.expanded_refs))  # clear out duplicates
 
+        # make sure we're not adding duplicates
+        manuscript_id, page_id = getattr(self, 'manuscript_id', None), getattr(self, 'page_id', None)
+        if not manuscript_id or not page_id:
+            raise ManuscriptError('No manuscript_id or page_id')
+        if self.is_new():
+            duplicate = ManuscriptPage().load({
+                'manuscript_id': manuscript_id,
+                'page_id': page_id
+            })
+            if duplicate:
+                raise DuplicateRecordError("Record already exists. Please update existing instead of adding new.")
+
     def _validate(self):
         super(ManuscriptPage, self)._validate()
+
+        # check that the manuscript this page is part of exists in the database
+        if self.get_manuscript() is None:
+            raise ManuscriptError("Manuscript missing in database")
+
         for tref in self.contained_refs:
             if not Ref.is_ref(tref):
                 raise ManuscriptError(f'{tref} is not a valid Ref')
@@ -102,6 +143,31 @@ class ManuscriptPage(AbstractMongoRecord):
         self.contained_refs.append(tref)
         self.expanded_refs.extend(self.get_expanded_refs_for_source(new_oref))
 
+    def remove_ref(self, tref):
+        try:
+            tref_index = self.contained_refs.index(tref)
+        except ValueError:
+            raise ValueError(f'Cannot remove {tref}: it is not contained on this image')
+
+        self.contained_refs.pop(tref_index)
+        self.set_expanded_refs()
+
+    def get_manuscript(self):
+        return Manuscript().load({'slug': self.manuscript_slug})
+
 
 class ManuscriptPageSet(AbstractMongoSet):
-    pass
+    recordClass = ManuscriptPage
+
+    @classmethod
+    def load_by_ref(cls, oref):
+        ref_clauses = [{'expanded_refs': {'$regex': r}} for r in oref.regex(as_list=True)]
+        return cls({'$or': ref_clauses})
+
+
+def process_slug_change_in_manuscript(man, **kwargs):
+    ManuscriptPageSet({"manuscript_slug": kwargs["old"]}).update({"manuscript_slug": kwargs["new"]})
+
+
+def process_manucript_deletion(man, **kwargs):
+    ManuscriptPageSet({"manuscript_slug": man.slug}).delete()
