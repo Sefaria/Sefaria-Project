@@ -84,7 +84,6 @@ const renderReaderApp = function(props, data, timer) {
   log("Time to set data: %dms", timer.elapsed());
   const html  = ReactDOMServer.renderToString(ReaderApp(props));
   log("Time to render: %dms", timer.elapsed());
-  console.log("%s %dms", data.initialPath,  timer.elapsed());
   return html;
 };
 
