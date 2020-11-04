@@ -44,7 +44,6 @@ class Header extends Component {
     if (nextProps.initialState) {
       this.setState(nextProps.initialState);
     }
-    this.setState({notificationCount: Sefaria.notificationCount || 0});
   }
   _searchOverrideRegex() {
     return RegExp(`^${RegExp.escape(this._searchOverridePre)}(.*)${RegExp.escape(this._searchOverridePost)}`);
@@ -281,13 +280,13 @@ class Header extends Component {
                         />) : null;
 
 
-    var notificationsClasses = classNames({notifications: 1, unread: this.state.notificationCount > 0});
+    var notificationsClasses = classNames({notifications: 1, unread: Sefaria.notificationCount > 0});
     var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
     var headerMessage = this.props.headerMessage ?
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
     var loggedInLinks  = (<div className="accountLinks">
-                            <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses}>{this.state.notificationCount}</a>
+                            <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses}>{Sefaria.notificationCount}</a>
                             <a href="/my/profile" className="my-profile"><ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></a>
                          </div>);
     var loggedOutLinks = (<div className="accountLinks anon">
