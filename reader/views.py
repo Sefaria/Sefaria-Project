@@ -364,7 +364,7 @@ def base_props(request):
         "_uid": request.user.id,
         "is_moderator": request.user.is_staff,
         "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
-        "notificationsCount": profile.unread_notification_count(),
+        "notificationCount": profile.unread_notification_count(),
         "full_name": profile.full_name,
         "profile_pic_url": profile.profile_pic_url,
         "interfaceLang": request.interfaceLang,
