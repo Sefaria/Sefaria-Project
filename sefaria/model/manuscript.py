@@ -14,7 +14,7 @@ class Manuscript(AbstractMongoRecord):
     pkeys = ['slug']
     track_pkeys = True
 
-    collection = 'manuscript'
+    collection = 'manuscripts'
     required_attrs = [
         'slug',  # unique, derived from title.
         'title',
@@ -47,31 +47,32 @@ class Manuscript(AbstractMongoRecord):
 
 
 class ManuscriptSet(AbstractMongoSet):
-    pass
+    recordClass = Manuscript
 
 
 class ManuscriptPage(AbstractMongoRecord):
 
-    collection = 'manuscript_page'
+    collection = 'manuscript_pages'
     required_attrs = [
         'manuscript_slug',
         'page_id',  # manuscript_id & page_id must be unique
         'image_url',
         'thumbnail_url',
-        'contained_refs'  # list of section level (possibly ranged) refs
-        'expanded_refs'  # list of segment level refs
+        'contained_refs',  # list of section level (possibly ranged) refs
+        'expanded_refs',   # list of segment level refs
     ]
 
     def __init__(self, attrs=None):
-        self.contained_refs = []  # this field is referenced in nearly every method, we want to ensure it is defined
+        self.contained_refs = []  # an empty list is a valid value
+        self.expanded_refs = []
         super(ManuscriptPage, self).__init__(attrs)
 
     def _pre_save(self):
         self.expanded_refs = list(set(self.expanded_refs))  # clear out duplicates
 
         # make sure we're not adding duplicates
-        manuscript_id, page_id = getattr(self, 'manuscript_id', None), getattr(self, 'page_id', None)
-        if not manuscript_id or not page_id:
+        manuscript_id, page_id = getattr(self, 'manuscript_slug', None), getattr(self, 'page_id', None)
+        if manuscript_id is None or page_id is None:  # important to check for None explicitly, page_id=0 is valid
             raise ManuscriptError('No manuscript_id or page_id')
         if self.is_new():
             duplicate = ManuscriptPage().load({
@@ -93,7 +94,7 @@ class ManuscriptPage(AbstractMongoRecord):
                 raise ManuscriptError(f'{tref} is not a valid Ref')
 
         test_refs = self.get_ref_objects()
-        while True:
+        while test_refs:
             current_ref = test_refs.pop()
             for tr in test_refs:
                 if current_ref.overlaps(tr):
@@ -154,6 +155,10 @@ class ManuscriptPage(AbstractMongoRecord):
 
     def get_manuscript(self):
         return Manuscript().load({'slug': self.manuscript_slug})
+
+    @staticmethod
+    def get_slug_for_title(title):
+        return Manuscript.normalize_slug(title)
 
 
 class ManuscriptPageSet(AbstractMongoSet):
