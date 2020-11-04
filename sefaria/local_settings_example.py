@@ -54,6 +54,19 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     }
 }
+
+CACHES = {
+    "shared": {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    },
+    "default": {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    },
+}
+
+SESSION_CACHE_ALIAS = "default"
+USER_AGENTS_CACHE = 'default'
+SHARED_DATA_CACHE_ALIAS = 'shared'
 """ These are some other examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
 """CACHES = {
     'default': {
@@ -63,6 +76,15 @@ CACHES = {
 }
 
 CACHES = {
+    "shared": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1", #The URI used to look like this "127.0.0.1:6379:0"
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
+        },
+        "TIMEOUT": None,
+    },
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/0", #The URI used to look like this "127.0.0.1:6379:0"
@@ -71,8 +93,13 @@ CACHES = {
             #"PASSWORD": "secretpassword", # Optional
         },
         "TIMEOUT": 60 * 60 * 24 * 30,
-    }
-}"""
+    },
+}
+
+SESSION_CACHE_ALIAS = "default"
+USER_AGENTS_CACHE = 'default'
+SHARED_DATA_CACHE_ALIAS = 'shared'
+"""
 
 SITE_PACKAGE = "sites.sefaria"
 
