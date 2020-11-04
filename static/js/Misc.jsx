@@ -153,22 +153,18 @@ class ProfilePic extends Component {
     const imageSrc = url.replace("profile-default.png", 'profile-default-404.png');  // replace default with non-existant image to force onLoad to fail
     return (
       <div style={outerStyle} className="profile-pic">
-        <div
-          className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
-          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}
-        >
+        <div className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
+          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}>
           { showButtons ? null : `${initials}` }
         </div>
-        { Sefaria._inBrowser ?
-          <img
-            className="img-circle profile-img"
-            style={{display: profileViz, width: len, height: len, fontSize: len/2}}
-            src={imageSrc}
-            alt="User Profile Picture"
-            onLoad={this.setShowNonDefault}
-            onError={this.setShowDefault}
-          /> : null
-        }
+        <img
+          className="img-circle profile-img"
+          style={{display: profileViz, width: len, height: len, fontSize: len/2}}
+          src={imageSrc}
+          alt="User Profile Picture"
+          onLoad={this.setShowNonDefault}
+          onError={this.setShowDefault}
+        />
         {this.props.children ? this.props.children : null /*required for slate.js*/}
         { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
             (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
