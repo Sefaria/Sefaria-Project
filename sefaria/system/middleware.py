@@ -13,7 +13,7 @@ from sefaria.settings import *
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.model.user_profile import UserProfile
 from sefaria.utils.util import short_to_long_lang_code
-from sefaria.system.cache import get_shared_cache_elem
+from sefaria.system.cache import get_shared_cache_elem, set_shared_cache_elem
 from django.utils.deprecation import MiddlewareMixin
 
 
@@ -21,7 +21,10 @@ class SharedCacheMiddleware(MiddlewareMixin):
     def process_request(self, request):
         last_cached = get_shared_cache_elem("last_cached")
         if not last_cached:
-            request.init_shared_cache = True
+            regen_in_progress = get_shared_cache_elem("regenerating")
+            if not regen_in_progress:
+                set_shared_cache_elem("regenerating", True)
+                request.init_shared_cache = True
 
 
 class LocationSettingsMiddleware(MiddlewareMixin):
