@@ -4505,6 +4505,8 @@ class Library(object):
         self.get_topic_toc_json(rebuild=rebuild)
         self.get_text_titles_json(rebuild=rebuild)
         self.get_simple_term_mapping_json(rebuild=rebuild)
+        if rebuild:
+            scache.delete_shared_cache_elem("regenerating")
 
     def get_last_cached_time(self):
         if not self.last_cached:
