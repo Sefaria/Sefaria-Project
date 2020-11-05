@@ -97,6 +97,15 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related, annot
                     subset_ref_map[seg_ref] += [len(new_refs) - 1]
 
         response['refs'] = new_refs
+    if getattr(topic_obj, 'isAmbiguous', False):
+        possibility_links = topic_obj.link_set(_class="intraTopic", query_kwargs={"linkType": TopicLinkType.possibility_type})
+        possibilities = []
+        for link in possibility_links:
+            possible_topic = Topic.init(link.topic)
+            if possible_topic is None:
+                continue
+            possibilities += [possible_topic.contents(annotate_time_period=annotate_time_period)]
+        response['possibilities'] = possibilities
     return response
 
 

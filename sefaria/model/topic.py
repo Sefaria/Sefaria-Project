@@ -29,6 +29,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'ref',  # for topics with refs associated with them, this stores the tref (e.g. for a parashah)
         'good_to_promote',
         'description_published',  # bool to keep track of which descriptions we've vetted
+        'isAmbiguous',  # True if topic primary title can refer to multiple other topics
     ]
 
     @staticmethod
@@ -523,6 +524,7 @@ class TopicLinkType(abst.AbstractMongoRecord):
     ]
     related_type = 'related-to'
     isa_type = 'is-a'
+    possibility_type = 'possibility-for'
 
     def _validate(self):
         super(TopicLinkType, self)._validate()

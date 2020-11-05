@@ -72,7 +72,6 @@ class LexiconBox extends Component {
 
   getNamedEntity(slug) {
     Sefaria.getTopic(slug, false, false, false, false, true).then(data => {
-      console.log("getTopic", data);
       this.setState({
         loaded: true,
         namedEntity: data,
@@ -131,8 +130,9 @@ class LexiconBox extends Component {
       if (!this.state.loaded) {
         content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
       } else {
-          const ne = this.state.namedEntity;
-          content = (<div className="named-entity-wrapper">
+          const neArray = this.state.namedEntity.possibilities || [this.state.namedEntity];
+
+          content = neArray.map(ne => (<div key={ne.slug} className="named-entity-wrapper">
             <a className="contentText topicLexiconTitle" href={`/topics/${ne.slug}`} target="_blank">
               <span className="en">{ne.primaryTitle.en}</span>
               <span className="he">{ne.primaryTitle.he}</span>
@@ -155,7 +155,7 @@ class LexiconBox extends Component {
               <span className="en">{ne.description ? ne.description.en : `No description known for '${ne.primaryTitle.en}'`}</span>
               <span className="he">{ne.description ? ne.description.he : `אין הסבר ידוע בשביל '${ne.primaryTitle.he}'`}</span>
             </div>
-          </div>)
+          </div>))
       }
     }
 
