@@ -3945,7 +3945,7 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
         "Tosefta": {
             "title": "Tosefta",
             "heTitle": "התוספתא",
-            "shapeParam": "Tanaitic/Tosefta",
+            "shapeParam": "Tosefta",
             "linkCountParam": "Tosefta",
         },
         "MidrashRabbah": {

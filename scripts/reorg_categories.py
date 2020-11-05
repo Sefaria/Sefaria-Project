@@ -285,11 +285,10 @@ books_ancient = ['The Midrash of Philo',
       'Against Apion',
       'The Antiquities of the Jews',
       'The War of the Jews',
-                 'On the Life of Moses',
-                 "HaEmunot veHaDeot"]
+                 'On the Life of Moses']
 
 cat_rishonim = create_category(["Jewish Thought", "Rishonim"], "Rishonim","ראשונים")
-books_rishonim = ["Eight Chapters",
+books_rishonim = [  "HaEmunot veHaDeot", "Eight Chapters",
     "Guide for the Perplexed",
     "Treatise on Logic",
     "Duties of the Heart",
@@ -641,9 +640,21 @@ for cat, books in [
         i = library.get_index(book)
         moveIndexInto(i, cat)
 
-g = Group().load({"name":"Lindenbaum Center at YCT Rabbinical School"})
+g = Group().load({"name": "Lindenbaum Center at YCT Rabbinical School"})
 g.toc["categories"] = ["Responsa", "Other Modern"]
 g.save()
+
+"""
+i = library.get_index("Footnotes on Teshuvot haRashba Meyuchas LehaRamban"),
+ currently: 
+"categories": [
+"Responsa",
+"Commentary",
+"Footnotes",
+"Rashba"
+],
+"""
+
 
 # remove empty categories
 library.rebuild(include_toc=True)
