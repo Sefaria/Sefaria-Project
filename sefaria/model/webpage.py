@@ -59,7 +59,7 @@ class WebPage(abst.AbstractMongoRecord):
             "use https": lambda url: re.sub(r"^http://", "https://", url),
             "remove hash": lambda url: re.sub(r"#.+", "", url),
             "remove utm params": lambda url: re.sub(r"\?utm_.+", "", url),
-            "remove fbclid params": lambda url: re.sub(r"\?fbclid=.+", "", url),
+            "remove fbclid param": lambda url: re.sub(r"\?fbclid=.+", "", url),
             "add www": lambda url: re.sub(r"^(https?://)(?!www\.)", r"\1www.", url),
             "remove www": lambda url: re.sub(r"^(https?://)www\.", r"\1", url),
             "remove mediawiki params": lambda url: re.sub(r"&amp;.+", "", url),
@@ -103,7 +103,9 @@ class WebPage(abst.AbstractMongoRecord):
             "roshyeshivamaharat.org\/(author|category|tag)\/",
             "lilith\.org\/\?gl=1&s=",                  # Lilith Magazine search results
             "lilith\.org\/(tag|author|category)\/",
-            "https://torah.org$",                      
+            "https://torah\.org$",
+            "test\.hadran\.org\.il",
+            "www.jtsa.edu\/search\/index\.php",              
             "webcache\.googleusercontent\.com",
             "translate\.googleusercotent\.com",
             "dailympails\.gq\/",
@@ -591,9 +593,13 @@ sites_data = [
         "domains": ["sinaiandsynapses.org"],
     },
     {
-        "name": "The Times of Israel",
-        "domains": ["timesofisrael.com"],
+        "name": "Times of Israel Blogs",
+        "domains": ["blogs.timesofisrael.com"],
         "title_branding": ["The Blogs"]
+    },
+    {
+        "name": "The Jewish Standard",
+        "domains": ["jewishstandard.timesofisrael.com"],
     },
     {
         "name": "Rav Kook Torah",
@@ -603,5 +609,17 @@ sites_data = [
         "name": "YUTorah Online",
         "domains": ["yutorah.org"],
         "initial_title_branding": True,
+    },
+    {
+        "name": "Hadran",
+        "domains": ["hadran.org.il"],
+    },
+    {
+        "name": "Julian Ungar-Sargon",
+        "domains": ["jyungar.com"],
+    },
+    {
+        "name": "Aish HaTorah",
+        "domains": ["aish.com"],
     },
 ]
