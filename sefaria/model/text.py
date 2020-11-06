@@ -4559,7 +4559,7 @@ class Library(object):
             }
             if with_descriptions:
                 description = getattr(topic, "description", None)
-                if description is not None:
+                if description is not None and getattr(topic, "description_published", False):
                     topic_json['description'] = description
             explored.add(topic.slug)
         if len(children) > 0 or topic is None:  # make sure root gets children no matter what
