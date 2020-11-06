@@ -228,6 +228,8 @@ class ReaderNavigationCategoryMenuContents extends Component {
                           </a>
                           ));
           } else {
+            if (item.hidden) { continue; }
+
             // Add a Text
             var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
             const lastPlace = Sefaria.lastPlaceForText(item.title);

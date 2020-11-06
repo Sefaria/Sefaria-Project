@@ -456,7 +456,8 @@ class TocTextIndex(TocNode):
         "heCollectiveTitle",
         "commentator",
         "heCommentator",
-        "refs_to_base_texts"
+        "refs_to_base_texts",
+        "hidden"
     ]
     title_attrs = {
         "en": "title",

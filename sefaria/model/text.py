@@ -201,7 +201,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "collective_title",     # (str) string value for a group of index records - the former commentator name. Requires a matching term.
         "is_cited",             # (bool) only indexes with this attribute set to True will be picked up as a citation in a text by default
         "lexiconName",          # (str) For dictionaries - the name used in the Lexicon collection
-        "dedication"            # (dict) Dedication texts, keyed by language
+        "dedication",           # (dict) Dedication texts, keyed by language
+        "hidden"                # (bool) Default false.  If not present, Index is visible in all TOCs.  True value hides the text in the main TOC, but keeps it in the search toc.
     ]
 
     def __str__(self):
@@ -761,6 +762,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         if hasattr(self, 'base_text_mapping'):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping
+
+        if hasattr(self, 'hidden'):
+            toc_contents_dict["hidden"] = self.hidden
 
         return toc_contents_dict
 
