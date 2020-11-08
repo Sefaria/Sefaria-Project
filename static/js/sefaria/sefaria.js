@@ -2635,19 +2635,15 @@ Sefaria.setup = function(data) {
     Sefaria.loadServerData(data);
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupMisc();
-    var cookie = Sefaria.util.handleUserCookie(Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role);
+    var cookie = Sefaria.util.handleUserCookie(Sefaria._uid);
     // And store current uid in analytics id
     Sefaria._analytics_uid = Sefaria._uid;
-    if (cookie) {
-      Sefaria._partner_group = cookie._partner_group;
-      Sefaria._partner_role = cookie._partner_role;
-    }
     Sefaria._makeBooksDict();
     Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1};  //Todo: Wire this up to the server
     Sefaria._cacheIndexFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
-    Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
+    Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._analytics_uid);
     Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
 Sefaria.setup();

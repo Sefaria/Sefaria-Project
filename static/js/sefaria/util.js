@@ -509,7 +509,7 @@ class Util {
             console.log = function() {};
         }
     }
-    static handleUserCookie(uid, partner_group, partner_role) {
+    static handleUserCookie(uid) {
         var cookie = INBROWSER ? $.cookie : this.cookie;
 
         if (uid) {
@@ -520,8 +520,6 @@ class Util {
 
             cookie("_user", JSON.stringify({
                _uid: uid,
-               _partner_group: partner_group,
-               _partner_role: partner_role
             }), { path: "/", expires: expires });
         } else {
             // If not logged in, get details from cookie

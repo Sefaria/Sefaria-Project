@@ -120,8 +120,6 @@ def user_and_notifications(request):
         "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
         "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True),
         "interrupting_message_json": interrupting_message_json,
-        "partner_group": profile.partner_group,
-        "partner_role": profile.partner_role,
         "slug": profile.slug,
         "full_name": profile.full_name,
         "profile_pic_url": profile.profile_pic_url,
