@@ -3,6 +3,7 @@ import extend from 'extend';
 import striptags from 'striptags';
 import humanizeDuration from 'humanize-duration';
 import sanitizeHtml from 'sanitize-html';
+import Sefaria  from './sefaria';
 
 
 var INBROWSER = (typeof document !== 'undefined');

@@ -2578,6 +2578,9 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.topicList) {
     Sefaria._topicList = props.topicList;
   }
+  if (props.user_history) {
+      Sefaria._userHistory.history = props.user_history;
+  }
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
   const dataPassedAsProps = [
       "_uid",

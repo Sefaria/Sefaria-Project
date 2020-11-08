@@ -894,6 +894,9 @@ def saved(request):
 
 def user_history(request):
     props = base_props(request)
+    props.update({
+        "user_history": UserProfile(user_obj=request.user).get_user_history(secondary=False, serialized=True)
+    })
     title = _("My User History")
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, "history", title, desc)
@@ -3569,16 +3572,17 @@ def profile_get_user_history(request):
     :secondary: bool. True if you only want secondary items. None if you dont care
     :tref: Ref associated with history item
     """
-    if not request.user.is_authenticated:
-        import urllib.parse
-        recents = json.loads(urllib.parse.unquote(request.COOKIES.get("recentlyViewed", '[]')))  # for backwards compat
-        recents = UserProfile.transformOldRecents(None, recents)
-        history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
-        return jsonResponse(history + recents)
     if request.method == "GET":
-        saved, secondary, last_place, oref = get_url_params_user_history(request)
-        user = UserProfile(id=request.user.id)
-        return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place))
+        if not request.user.is_authenticated:
+            import urllib.parse
+            recents = json.loads(urllib.parse.unquote(request.COOKIES.get("recentlyViewed", '[]')))  # for backwards compat
+            recents = UserProfile.transformOldRecents(None, recents)
+            history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
+            return jsonResponse(history + recents)
+        else:
+            saved, secondary, last_place, oref = get_url_params_user_history(request)
+            user = UserProfile(id=request.user.id)
+            return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
