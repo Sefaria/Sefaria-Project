@@ -321,8 +321,6 @@ class UserProfile(object):
         self.linkedin              = ""
         self.pinned_sheets         = []
         self.interrupting_messages = ["newUserWelcome"]
-        self.partner_group        = ""
-        self.partner_role         = ""
         self.last_sync_web        = 0  # epoch time for last sync of web app
         self.profile_pic_url      = ""
         self.profile_pic_url_small = ""
@@ -520,19 +518,6 @@ class UserProfile(object):
 
         return self
 
-    def add_partner_group_by_email(self):
-        """
-        Sets the partner group if email pattern matches known school
-        """
-        email_pattern = self.email.split("@")[1]
-        tsv_file = csv.reader(open(PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, "rt"), delimiter="\t")
-        for row in tsv_file:
-            # if current rows 2nd value is equal to input, print that row
-            if email_pattern == row[1]:
-                self.partner_group = row[0]
-                return self
-        return self
-
     def join_invited_groups(self):
         """
         Add this user as a member of any group for which there is an outstanding invitation.
@@ -612,8 +597,6 @@ class UserProfile(object):
             "attr_time_stamps":      self.attr_time_stamps,
             "interrupting_messages": getattr(self, "interrupting_messages", []),
             "tag_order":             getattr(self, "tag_order", None),
-            "partner_group":         self.partner_group,
-            "partner_role":          self.partner_role,
             "last_sync_web":         self.last_sync_web,
             "profile_pic_url":       self.profile_pic_url,
             "profile_pic_url_small": self.profile_pic_url_small

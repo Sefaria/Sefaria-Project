@@ -29,7 +29,5 @@ var DJANGO_DATA_VARS = {
   _email:               "{{ request.user.email|default:'' }}",
   _debug:               {% if DEBUG %}true{% else %}false{% endif %},
   _uid:                 {{ request.user.id|default:"null" }},
-  _partner_group:       "{{ partner_group }}",
-  _partner_role:        "{{ partner_role }}"
 };
 {% endautoescape %}

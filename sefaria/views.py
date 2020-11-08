@@ -73,8 +73,6 @@ def process_register_form(request, auth_method='session'):
             p = UserProfile(id=user.id)
             p.assign_slug()
             p.join_invited_groups()
-            if PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE:
-                p.add_partner_group_by_email()
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
 
