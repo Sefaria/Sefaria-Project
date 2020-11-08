@@ -164,10 +164,51 @@ class ManuscriptPage(AbstractMongoRecord):
 class ManuscriptPageSet(AbstractMongoSet):
     recordClass = ManuscriptPage
 
+    @staticmethod
+    def expanded_ref_query_for_ref(oref: Ref):
+        return [{'expanded_refs': {'$regex': r}} for r in oref.regex(as_list=True)]
+
     @classmethod
     def load_by_ref(cls, oref):
-        ref_clauses = [{'expanded_refs': {'$regex': r}} for r in oref.regex(as_list=True)]
-        return cls({'$or': ref_clauses})
+        return cls({'$or': cls.expanded_ref_query_for_ref(oref)})
+
+    @classmethod
+    def load_set_for_client(cls, oref: Ref):
+        """
+        This method returns an array of results that can be converted to JSON instead of Sefaria MongoSet instances.
+        This method uses a mongo aggregation to JOIN the manuscript with the manuscript page.
+        :param oref:
+        :return:
+        """
+        cursor = getattr(db, cls.recordClass.collection).aggregate(
+            [
+                {
+                    "$match": {"$or": cls.expanded_ref_query_for_ref(oref)}
+                },
+                {
+                    "$lookup": {
+                        "from": f"{Manuscript.collection}",
+                        "localField": "manuscript_slug",
+                        "foreignField": "slug",
+                        "as": "manuscript"
+                    }
+                }
+            ]
+        )
+        results = [r for r in cursor]
+        for r in results:
+            if '_id' in r:
+                del r['_id']
+            manuscript = r.get('manuscript', {})
+            if isinstance(manuscript, list):
+                try:
+                    manuscript = manuscript[0]  # there really should only be one manuscript per page
+                except IndexError:
+                    manuscript = {}
+            if '_id' in manuscript:
+                del manuscript['_id']
+            r['manuscript'] = manuscript
+        return results
 
 
 def process_slug_change_in_manuscript(man, **kwargs):

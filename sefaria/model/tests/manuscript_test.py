@@ -120,6 +120,22 @@ class TestPageRefs:
         test_specific = [m for m in mps if m.manuscript_slug == Manuscript.normalize_slug('Delete Me')]
         assert len(test_specific) == 2
 
+    def test_load_for_client(self):
+        slug = Manuscript.normalize_slug('Delete Me')
+        data = ManuscriptPageSet.load_set_for_client(Ref("Job 4"))
+        data = [d for d in data if d['manuscript_slug'] == slug][0]
+
+        mock_page = make_testing_manuscript_page(slug, 1)
+        mock_page.add_ref("Job 4")
+        mock_page = mock_page.contents()
+        mock_page['manuscript'] = make_testing_manuscript('Delete Me').contents()
+        mock_page['manuscript']['slug'] = slug
+        for key, value in mock_page.items():
+            if isinstance(value, list):
+                assert sorted(data[key]) == sorted(value)
+            else:
+                assert data[key] == value
+
 
 class TestDependencies:
 

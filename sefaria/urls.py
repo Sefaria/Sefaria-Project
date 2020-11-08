@@ -172,6 +172,7 @@ urlpatterns += [
     url(r'^api/user_stats/(?P<uid>.+)/?$', reader_views.user_stats_api),
     url(r'^api/site_stats/?$', reader_views.site_stats_api),
     url(r'^api/messages/?$', reader_views.messages_api),
+    url(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source)
 ]
 
 # Source Sheets API

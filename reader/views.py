@@ -35,6 +35,7 @@ from sefaria.model.group import GroupSet
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
+from sefaria.model.manuscript import ManuscriptPageSet
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.client.util import jsonResponse
@@ -4151,6 +4152,19 @@ def visual_garden_page(request, g):
 
     return render(request,'visual_garden.html', template_vars)
 
+
+@catch_error_as_json
+@csrf_exempt
+def manuscripts_for_source(request, tref):
+    if request.method == "GET":
+        try:
+            oref = Ref(tref)
+        except InputError:
+            return jsonResponse({"error": "Unrecognized Reference"})
+        return jsonResponse(ManuscriptPageSet.load_set_for_client(oref))
+
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @requires_csrf_token
