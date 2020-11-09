@@ -475,6 +475,14 @@ for ind in IndexSet({"categories": ["Halakhah", "Tur and Commentaries"]}):
     ind.save(override_dependencies=True)
 
 
+# Move into Shulchan Arukh / Mishneh Torah subcats
+sac = ["Summary of Shakh",
+"Summary of Taz", "Biur Halacha"]
+
+mtc = ["Kessef Mishneh"]
+
+
+
 # Musar
 r_cat = create_category(["Musar", "Rishonim"], "Rishonim", "ראשונים")
 a_cat = create_category(["Musar", "Acharonim"], "Acharonim", "אחרונים")
@@ -645,6 +653,7 @@ g.toc["categories"] = ["Responsa", "Other Modern"]
 g.save()
 
 """
+Now an empty cat
 i = library.get_index("Footnotes on Teshuvot haRashba Meyuchas LehaRamban"),
  currently: 
 "categories": [
@@ -654,6 +663,38 @@ i = library.get_index("Footnotes on Teshuvot haRashba Meyuchas LehaRamban"),
 "Rashba"
 ],
 """
+
+# The Jewish Spiritual Heroes
+# -> Reference
+
+#Hide
+tohide = [
+    "Abraham Cohen Footnotes to the English Translation of Masechet Berakhot",
+    "Footnotes on Teshuvot haRashba Meyuchas LehaRamban",
+    "Footnotes on Orot",
+    "Footnotes on Mekhilta DeRabbi Shimon Bar Yochai",
+    "Footnotes to Kohelet by Bruce Heitler",
+    "Footnotes to Teshuvot haRashba part IV",
+    "Footnotes to Teshuvot haRashba part V",
+    "Footnotes to Teshuvot haRashba part VI",
+    "Footnotes to Teshuvot haRashba part VII",
+    "Footnotes and Annotations on Derech Chaim",
+    "Footnotes and Annotations on Be'er HaGolah",
+    "Footnotes and Annotations on Ner Mitzvah",
+    "Footnotes and Annotations on Ohr Chadash",
+    "Nishmat Adam",
+    "Binat Adam",
+    "Commentary on Selected Paragraphs of Arpilei Tohar",
+    "Ali Be'er on Revealment and Concealment in Language",
+    "Bein HaShitin on Halacha and Aggadah",
+    "Commentaries on Revealment and Concealment in Language",
+    "Mekor Mayim Chayim on Baal Shem Tov",
+    "Publisher's Haggahot on Sefer HaParnas"
+]
+for t in tohide:
+    i = library.get_index(t)
+    i.hidden = True
+    i.save(override_dependencies=True)
 
 
 # remove empty categories

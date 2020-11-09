@@ -162,25 +162,29 @@ class ReaderNavigationCategoryMenuContents extends Component {
     return heCats;
   }
   render() {
-      var content = [];
-      var cats = this.props.categories || [];
-      var contents = this.props.contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew" ?
+      const content = [];
+      const cats = this.props.categories || [];
+      const contents = this.props.contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew" ?
                       this.hebrewContentSort(this.props.contents)
                       : this.props.contents;
+      const subcats = ["Mishneh Torah", "Shulchan Arukh", "Tur"];
+
       for (let i = 0; i < contents.length; i++) {
-        var item = contents[i];
+        const item = contents[i];
         if (item.category) {
           // Category
-          var newCats = cats.concat(item.category);
-          // Special Case categories which should nest but normally wouldn't given their depth
-          var subcats = ["Mishneh Torah", "Shulchan Arukh", "Tur"];
+          const newCats = cats.concat(item.category);
+
+          // Special Case categories which should nest but normally wouldn't given their depth   ["Mishneh Torah", "Shulchan Arukh", "Tur"]
           if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
-            if(item.contents && item.contents.length === 1 && !("category" in item.contents[0])){
-                var chItem = item.contents[0];
-                var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
-                var url     = "/" + Sefaria.normRef(chItem.firstSection);
-                var incomplete = this.props.contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew" ? !chItem.heComplete : !chItem.enComplete;
-                var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
+            // There's just one text in this category, render the text.
+            if(item.contents && item.contents.length === 1 && !("category" in item.contents[0])) {
+                const chItem = item.contents[0];
+                if (chItem.hidden) { continue; }
+                const [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
+                const url     = "/" + Sefaria.normRef(chItem.firstSection);
+                const incomplete = this.props.contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew" ? !chItem.heComplete : !chItem.enComplete;
+                const classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
                 content.push((<a href={url} className={classes} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
                                 <span className='en'>{title}</span>
                                 <span className='he'>{heTitle}</span>
@@ -189,9 +193,9 @@ class ReaderNavigationCategoryMenuContents extends Component {
 
             } else {
               // Create a link to a subcategory
-              var url = "/texts/" + newCats.join("/");
-              var incomplete = this.props.contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew" ? !item.heComplete : !item.enComplete;
-              var classes = classNames({catLink: 1, blockLink: 1, incomplete: incomplete});
+              const url = "/texts/" + newCats.join("/");
+              const incomplete = this.props.contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew" ? !item.heComplete : !item.enComplete;
+              const classes = classNames({catLink: 1, blockLink: 1, incomplete: incomplete});
               content.push((<a href={url} className={classes} data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
                               <span className='en'>{item.category}</span>
                               <span className='he'>{item.heCategory}</span>
@@ -217,8 +221,8 @@ class ReaderNavigationCategoryMenuContents extends Component {
         } else {
           if (item.isGroup) {
             // Add a Group
-            var url = "/groups/" + item.name.replace(/\s/g, "-");
-            var classes = classNames({groupLink: 1, blockLink: 1});
+            const url = "/groups/" + item.name.replace(/\s/g, "-");
+            const classes = classNames({groupLink: 1, blockLink: 1});
             content.push((<a href={url}
                             className={classes}
                             data-group={item.name}
@@ -231,12 +235,12 @@ class ReaderNavigationCategoryMenuContents extends Component {
             if (item.hidden) { continue; }
 
             // Add a Text
-            var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
+            const [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
             const lastPlace = Sefaria.lastPlaceForText(item.title);
-            var ref =  lastPlace ? lastPlace.ref : item.firstSection;
-            var url = "/" + Sefaria.normRef(ref);
-            var incomplete = this.props.contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew" ? !item.heComplete : !item.enComplete;
-            var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
+            const ref =  lastPlace ? lastPlace.ref : item.firstSection;
+            const url = "/" + Sefaria.normRef(ref);
+            const incomplete = this.props.contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew" ? !item.heComplete : !item.enComplete;
+            const classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
             content.push((<a href={url}
                             className={classes}
                             data-ref={ref}
