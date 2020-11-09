@@ -3314,23 +3314,22 @@ def user_profile(request, username):
     """
     User's profile page.
     """
-    profile = UserProfile(slug=username)
-    if profile.user is None:
+    requested_profile = UserProfile(slug=username)
+    if requested_profile.user is None:
         raise Http404
-    if not profile.user.is_active:
+    if not requested_profile.user.is_active:
         raise Http404('Profile is inactive.')
-
     props = base_props(request)
     props.update({
-        "following": profile.followees.uids,
+        "following": UserProfile(user_obj=request.user).followees.uids,
     })
-    profileJSON = profile.to_api_dict()
+    profileJSON = requested_profile.to_api_dict()
     props.update({
         "initialMenu":  "profile",
         "initialProfile": profileJSON,
     })
-    title = "%(full_name)s on Sefaria" % {"full_name": profile.full_name}
-    desc = '%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": profile.full_name}
+    title = "%(full_name)s on Sefaria" % {"full_name": requested_profile.full_name}
+    desc = '%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": requested_profile.full_name}
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)

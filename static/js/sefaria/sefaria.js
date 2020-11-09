@@ -2594,6 +2594,7 @@ Sefaria.unpackDataFromProps = function(props) {
       "last_place",
       "full_name",
       "profile_pic_url",
+      "following",
       "_siteSettings",
       "_debug",
   ];
