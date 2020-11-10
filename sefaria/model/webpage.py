@@ -126,7 +126,7 @@ class WebPage(abst.AbstractMongoRecord):
     def site_data_for_domain(domain):
         for site in sites_data:
             for site_domain in site["domains"]:
-                if domain.endswith("." + site_domain) or domain.endswith("//" + site_domain):
+                if site_domain == domain or domain.endswith("." + site_domain):
                     return site
         return None
 
