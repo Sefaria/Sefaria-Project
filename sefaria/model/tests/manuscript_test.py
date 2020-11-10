@@ -122,14 +122,18 @@ class TestPageRefs:
 
     def test_load_for_client(self):
         slug = Manuscript.normalize_slug('Delete Me')
-        data = ManuscriptPageSet.load_set_for_client(Ref("Job 4"))
-        data = [d for d in data if d['manuscript_slug'] == slug][0]
+        data = ManuscriptPageSet.load_set_for_client("Job 4")
+        data = [d for d in data if d['manuscript_slug'] == slug][0]  # this is here to limit us to just the testing data
 
         mock_page = make_testing_manuscript_page(slug, 1)
         mock_page.add_ref("Job 4")
         mock_page = mock_page.contents()
         mock_page['manuscript'] = make_testing_manuscript('Delete Me').contents()
         mock_page['manuscript']['slug'] = slug
+        mock_page['anchorRef'] = "Job 4"
+        mock_page['anchorRefExpanded'] = mock_page['expanded_refs']
+        del mock_page['expanded_refs']
+        del mock_page['contained_refs']
         for key, value in mock_page.items():
             if isinstance(value, list):
                 assert sorted(data[key]) == sorted(value)

@@ -119,7 +119,8 @@ def ensure_indices(active_db=None):
         ('trend', ["name"],{}),
         ('trend', ["uid"],{}),
         ('webpages', ["refs"],{}),
-        ('webpages', ["expandedRefs"],{})
+        ('webpages', ["expandedRefs"],{}),
+        ('manuscript_pages', ['expanded_refs'], {})
     ]
 
     for col, args, kwargs in indices:

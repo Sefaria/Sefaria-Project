@@ -170,44 +170,45 @@ class ManuscriptPageSet(AbstractMongoSet):
 
     @classmethod
     def load_by_ref(cls, oref):
-        return cls({'$or': cls.expanded_ref_query_for_ref(oref)})
+        return cls({'$or': cls.expanded_ref_query_for_ref(oref)}, hint='expanded_refs_1')
 
     @classmethod
-    def load_set_for_client(cls, oref: Ref):
+    def load_set_for_client(cls, tref: str):
         """
         This method returns an array of results that can be converted to JSON instead of Sefaria MongoSet instances.
         This method uses a mongo aggregation to JOIN the manuscript with the manuscript page.
-        :param oref:
+        :param tref:
         :return:
         """
-        cursor = getattr(db, cls.recordClass.collection).aggregate(
-            [
-                {
-                    "$match": {"$or": cls.expanded_ref_query_for_ref(oref)}
-                },
-                {
-                    "$lookup": {
-                        "from": f"{Manuscript.collection}",
-                        "localField": "manuscript_slug",
-                        "foreignField": "slug",
-                        "as": "manuscript"
-                    }
-                }
-            ]
-        )
-        results = [r for r in cursor]
-        for r in results:
-            if '_id' in r:
-                del r['_id']
-            manuscript = r.get('manuscript', {})
-            if isinstance(manuscript, list):
-                try:
-                    manuscript = manuscript[0]  # there really should only be one manuscript per page
-                except IndexError:
-                    manuscript = {}
-            if '_id' in manuscript:
-                del manuscript['_id']
-            r['manuscript'] = manuscript
+        try:
+            oref = Ref(tref)
+        except InputError:
+            return []
+
+        segment_refs = [r.normal() for r in oref.all_segment_refs()]
+        results, manuscripts = [], {}
+        documents = cls.load_by_ref(oref)
+
+        for document in documents:
+            contained_refs, expanded = document.contained_refs, document.expanded_refs
+            anchor_ref_list, anchor_ref_expanded_list = oref.get_all_anchor_refs(segment_refs, contained_refs, expanded)
+
+            for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
+                contents = document.contents()
+                contents["anchorRef"] = anchor_ref.normal()
+                contents["anchorRefExpanded"] = [r.normal() for r in anchor_ref_expanded]
+                del contents['contained_refs']
+                del contents['expanded_refs']
+
+                if document.manuscript_slug in manuscripts:
+                    manuscript = manuscripts[document.manuscript_slug]
+                else:
+                    manuscript = Manuscript().load({'slug': document.manuscript_slug})
+                    manuscripts[manuscript.slug] = manuscript
+                man_contents = manuscript.contents()
+                contents['manuscript'] = man_contents
+
+                results.append(contents)
         return results
 
 
