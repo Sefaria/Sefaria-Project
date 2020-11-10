@@ -316,7 +316,7 @@ def dedupe_identical_urls(test=True):
             merged_page_data["linkerHits"] += page.linkerHits
             if merged_page_data["lastUpdated"] < page.lastUpdated:
                 merged_page_data.update({
-                    "ref": page.refs,
+                    "refs": page.refs,
                     "expandedRefs": text.Ref.expand_refs(page.refs),
                     "title": page.title,
                     "description": page.description
