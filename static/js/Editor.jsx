@@ -866,12 +866,9 @@ const withSefariaSheet = editor => {
       const { selection } = editor
 
       if (selection && Range.isCollapsed(selection)) {
-        console.log(selection)
         const [match] = Editor.nodes(editor, {
           match: n => n.type === 'spacer',
         })
-
-        console.log(match)
 
         if (match) {
           const [, path] = match
@@ -903,7 +900,6 @@ const withSefariaSheet = editor => {
         // }
 
         getRefInText(editor).then(query =>{
-            console.log(query)
 
             if(query["is_segment"] || query["is_section"]) {
               return
@@ -1087,9 +1083,7 @@ const withSefariaSheet = editor => {
 
 
       if (node.type == "spacer") {
-        console.log('spacer?')
         if (Node.string(node) !== "") {
-          console.log('am i here?')
 
           const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, Node.string(node))
           const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,1]))
@@ -1109,7 +1103,6 @@ const withSefariaSheet = editor => {
           return
         }
         if (Node.parent(editor, path).type != "SheetContent") {
-          console.log(1112)
           Transforms.liftNodes(editor, { at: path })
             return
         }
@@ -1125,7 +1118,6 @@ const withSefariaSheet = editor => {
       if (node.type == "SheetItem") {
         // All SheetItems should be children of Sheetcontent
         if (Node.parent(editor, path).type != "SheetContent") {
-          console.log('lift at sheetitem')
           Transforms.liftNodes(editor, { at: path })
             return
         }
@@ -1142,13 +1134,11 @@ const withSefariaSheet = editor => {
           }
           //enforce requirement that sheetItems only be of a specific type
           else if (!sheetElementTypes.includes(child.type)) {
-            console.log('unwrap')
             Transforms.unwrapNodes(editor, { at: childPath })
             return
           }
           //don't allow more than a single block element in a sheet Item
           else if (node.children && node.children.length > 1) {
-            console.log(1150)
             Transforms.liftNodes(editor, { at: childPath })
             return
           }
@@ -1186,11 +1176,6 @@ const withSefariaSheet = editor => {
         }
 
         if (Node.parent(editor, path).type !== "SheetItem") {
-          console.log(Node.parent(editor, path))
-          console.log(node)
-          console.log(path)
-
-          console.log(1177)
           Transforms.liftNodes(editor, { at: path })
         }
       }
@@ -1232,7 +1217,6 @@ const withSefariaSheet = editor => {
 
       //if a sheetitem is stuck somewhere it shouldnt be raise it up to proper doc level
       if (node.type == "SheetItem" && (Node.parent(editor, path)).type != "SheetContent") {
-        console.log(1219)
           Transforms.liftNodes(editor, { at: path })
       }
 
