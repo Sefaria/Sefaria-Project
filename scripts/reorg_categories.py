@@ -476,11 +476,27 @@ for ind in IndexSet({"categories": ["Halakhah", "Tur and Commentaries"]}):
 
 
 # Move into Shulchan Arukh / Mishneh Torah subcats
-sac = ["Summary of Shakh",
-"Summary of Taz", "Biur Halacha"]
 
-mtc = ["Kessef Mishneh"]
 
+c = Category().load({"path": ["Halakhah", "Shulchan Arukh", "Commentary", "Siftei Kohen"]})
+i = library.get_index("Summary of Shakh on Shulchan Arukh, Yoreh De'ah")
+moveIndexInto(i, c)
+
+c = Category().load({"path": ["Halakhah", "Shulchan Arukh", "Commentary", "Turei Zahav"]})
+i = library.get_index("Summary of Taz on Shulchan Arukh, Yoreh De'ah")
+moveIndexInto(i, c)
+
+c = Category().load({"path":  ["Halakhah", "Shulchan Arukh", "Commentary", "Mishnah Berurah"]})
+i = library.get_index("Biur Halacha")
+moveIndexInto(i, c)
+
+# Move categories of Kesef Mishnah to correct place
+new_parent = Category().load({"path": ["Halakhah", "Mishneh Torah", "Commentary", "Kessef Mishneh"] })
+cs = CategorySet({"$and": [{"path.0": "Halakhah"}, {"path.1": "Commentary"}, {"path.2": "Kessef Mishneh"}, {"path.3": "Mishneh Torah"}]})
+for c in cs:
+    if len(c.path) == 4:
+        continue
+    moveCategoryInto(c, new_parent)
 
 
 # Musar
@@ -653,7 +669,7 @@ g.toc["categories"] = ["Responsa", "Other Modern"]
 g.save()
 
 """
-Now an empty cat
+Now an empty cat, because single text is hidden
 i = library.get_index("Footnotes on Teshuvot haRashba Meyuchas LehaRamban"),
  currently: 
 "categories": [
@@ -699,7 +715,12 @@ for t in tohide:
 
 # remove empty categories
 library.rebuild(include_toc=True)
+for c in CategorySet({"$and": [{"path.0":"Halakhah"},{"path.1":"Commentary"},{"path.2":"Kessef Mishneh"}]}):
+    c.delete()
+
 for p in [
+        ["Halakhah", "Commentary", "Summary of Taz", "Shulchan Arukh"],
+        ["Halakhah", "Commentary", "Summary of Shakh", "Shulchan Arukh"],
         ["Other", "Grammar"],
         ["Other", "Dictionary"],
         ["Modern Works", "Commentary"],
