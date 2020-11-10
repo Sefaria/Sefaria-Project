@@ -143,7 +143,7 @@ def text_toc_link(indx):
 
 	en = indx.nodes.primary_title("en")
 	he = indx.nodes.primary_title("he")
-	link = '<a href="/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(indx.title, en, he)
+	link = '<a href="/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(urllib.parse.quote(indx.title), en, he)
 	return mark_safe(link)
 
 
