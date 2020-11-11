@@ -2578,8 +2578,11 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.topicList) {
     Sefaria._topicList = props.topicList;
   }
-  if (props.user_history) {
+  if (props.userHistory) {
       Sefaria._userHistory.history = props.user_history;
+  }
+  if (props.groupListing) {
+      Sefaria._groupsList.list = props.groupListing;
   }
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
   const dataPassedAsProps = [

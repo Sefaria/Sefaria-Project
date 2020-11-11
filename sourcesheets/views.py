@@ -451,11 +451,7 @@ def protected_groups_post_api(request, user_id, group_name=None):
 @csrf_protect
 def groups_get_api(request, group=None):
     if not group:
-        return jsonResponse({
-            "private": [g.listing_contents() for g in GroupSet().for_user(request.user.id)],
-            "public": [g.listing_contents() for g in
-                       GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])]
-        })
+        return jsonResponse(GroupSet.get_group_listing(request.user.id))
     group_obj = Group().load({"name": group})
     if not group_obj:
         return jsonResponse({"error": "No group named '%s'" % group})

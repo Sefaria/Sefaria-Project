@@ -761,6 +761,9 @@ def get_group_page(request, group, authenticated):
 
 def public_groups(request):
     props = base_props(request)
+    props.update({
+        "groupListing": GroupSet.get_group_listing(request.user.id)
+    })
     title = _("Sefaria Groups")
     return menu_page(request, props, "publicGroups")
 
@@ -895,7 +898,7 @@ def saved(request):
 def user_history(request):
     props = base_props(request)
     props.update({
-        "user_history": UserProfile(user_obj=request.user).get_user_history(secondary=False, serialized=True)
+        "userHistory": UserProfile(user_obj=request.user).get_user_history(secondary=False, serialized=True)
     })
     title = _("My User History")
     desc = _("See your user history on Sefaria")
