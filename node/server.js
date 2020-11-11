@@ -71,7 +71,6 @@ const cacheTimestampNeedsUpdating = function(cache_timestamp = "last_cached", ti
 }
 
 const needsUpdating = function(cachekey, last_cached_to_compare){
-  //TODO: add timestamp liveness checks here
   return !sharedCacheData[cachekey] || cacheTimestampNeedsUpdating("last_cached", last_cached_to_compare);
 }
 
