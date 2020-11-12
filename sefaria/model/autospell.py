@@ -9,9 +9,11 @@ from collections import defaultdict
 
 import datrie
 from unidecode import unidecode
+from django.contrib.auth.models import User
 from sefaria.model import *
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.utils import hebrew
+from sefaria.system.database import db
 
 import logging
 logger = logging.getLogger(__name__)
@@ -47,7 +49,7 @@ class AutoCompleter(object):
     It instantiates objects that provide string completion according to different algorithms.
     """
     def __init__(self, lang, lib, include_titles=True, include_people=False, include_categories=False,
-                 include_parasha=False, include_lexicons=False, include_groups=False, include_topics=False, *args, **kwargs):
+                 include_parasha=False, include_lexicons=False, include_users=False, include_groups=False, include_topics=False, *args, **kwargs):
         """
 
         :param lang:
@@ -107,6 +109,39 @@ class AutoCompleter(object):
             self.title_trie.add_titles_from_set(ps, "all_names", "primary_name", "key")
             self.spell_checker.train_phrases(person_names)
             self.ngram_matcher.train_phrases(person_names, normal_person_names)
+        if include_users:
+            pipeline = [
+                {"$match": {
+                   "status": "public"}},
+                {"$sortByCount": "$owner"},
+                {"$lookup": {
+                    "from": "profiles",
+                    "localField": "_id",
+                    "foreignField": "id",
+                    "as": "user"}},
+                {"$unwind": {
+                    "path": "$user",
+                    "preserveNullAndEmptyArrays": True
+                }}
+            ]
+            results = db.sheets.aggregate(pipeline)
+            profiles = {r["user"]["id"]:r for r in results}
+            users = User.objects.in_bulk(profiles.keys())
+            unames = []
+            normal_user_names = []
+            for id, u in users.items():
+                fullname = u.first_name + " " + u.last_name
+                normal_name = self.normalizer(fullname)
+                self.title_trie[normal_name] = {
+                    "title": fullname,
+                    "type": "User",
+                    "key": (profiles[id]["user"]["slug"],  profiles[id]["user"]["profile_pic_url_small"]),
+                    "is_primary": True,
+                }
+                unames += [fullname]
+                normal_user_names += [normal_name]
+            self.spell_checker.train_phrases(unames)
+            self.ngram_matcher.train_phrases(unames, normal_user_names)
         if include_groups:
             gs = GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}})
             gnames = [name for g in gs for name in g.all_names(lang)]

@@ -32,6 +32,13 @@ class Header extends Component {
       "Term": "iconmonstr-script-2.svg",
     }
   }
+  _type_icon(type, key) {
+    if (type === "User") {
+      return key[1];
+    } else {
+      return `/static/icons/${this._type_icon_map[type]}`;
+    }
+  }
   componentDidMount() {
     this.initAutocomplete();
     window.addEventListener('keydown', this.handleFirstTab);
@@ -74,7 +81,7 @@ class Header extends Component {
           .toggleClass("search-override", !!override)
           .toggleClass("hebrew-result", !!is_hebrew)
           .toggleClass("english-result", !is_hebrew)
-          .append(`<img alt="${item.type}" src="/static/icons/${this._type_icon_map[item.type]}">`)
+          .append(`<img alt="${item.type}" class="ac-img-${item.type}" src="${this._type_icon(item.type, item.key)}">`)
           .append( $(`<a href="${this.getURLForObject(item.type, item.key)}" role='option' data-type-key="${item.type}-${item.key}"></a>` ).text( item.label ) )
           .appendTo( ul );
       }.bind(this)
@@ -184,6 +191,8 @@ class Header extends Component {
       return `/topics/${key}`;
     } else if (type === "ref") {
       return `/${key.replace(/ /g, '_')}`;
+    } else if (type === "User") {
+      return `/profile/${key[0]}`;
     }
   }
   redirectToObject(type, key) {
