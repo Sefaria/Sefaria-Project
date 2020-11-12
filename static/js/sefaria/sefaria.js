@@ -2579,7 +2579,7 @@ Sefaria.unpackDataFromProps = function(props) {
     Sefaria._topicList = props.topicList;
   }
   if (props.userHistory) {
-      Sefaria._userHistory.history = props.user_history;
+      Sefaria._userHistory.history = props.userHistory;
   }
   if (props.groupListing) {
       Sefaria._groupsList.list = props.groupListing;
