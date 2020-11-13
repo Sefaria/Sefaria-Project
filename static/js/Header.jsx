@@ -32,11 +32,11 @@ class Header extends Component {
       "Term": "iconmonstr-script-2.svg",
     }
   }
-  _type_icon(type, key) {
-    if (type === "User") {
-      return key[1];
+  _type_icon(item) {
+    if (item.type === "User") {
+      return item.pic;
     } else {
-      return `/static/icons/${this._type_icon_map[type]}`;
+      return `/static/icons/${this._type_icon_map[item.type]}`;
     }
   }
   componentDidMount() {
@@ -81,7 +81,7 @@ class Header extends Component {
           .toggleClass("search-override", !!override)
           .toggleClass("hebrew-result", !!is_hebrew)
           .toggleClass("english-result", !is_hebrew)
-          .append(`<img alt="${item.type}" class="ac-img-${item.type}" src="${this._type_icon(item.type, item.key)}">`)
+          .append(`<img alt="${item.type}" class="ac-img-${item.type}" src="${this._type_icon(item)}">`)
           .append( $(`<a href="${this.getURLForObject(item.type, item.key)}" role='option' data-type-key="${item.type}-${item.key}"></a>` ).text( item.label ) )
           .appendTo( ul );
       }.bind(this)
@@ -113,11 +113,12 @@ class Header extends Component {
       },
       source: (request, response) => Sefaria.getName(request.term)
         .then(d => {
-          const comps = d["completion_objects"].map(o => ({
-            value: `${o['title']}${o["type"] === "ref" ? "" :` (${o["type"]})`}`,
-            label: o["title"],
-            key:   o["key"],
-            type:  o["type"]}));
+          const comps = d["completion_objects"].map(o => {
+            const c = {...o};
+            c["value"] = `${o['title']}${o["type"] === "ref" ? "" :` (${o["type"]})`}`;
+            c["label"] = o["title"];
+            return c;
+          });
           if (comps.length > 0) {
             const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
             response(comps.concat([{value: "SEARCH_OVERRIDE", label: q, type: "search"}]));
@@ -192,7 +193,7 @@ class Header extends Component {
     } else if (type === "ref") {
       return `/${key.replace(/ /g, '_')}`;
     } else if (type === "User") {
-      return `/profile/${key[0]}`;
+      return `/profile/${key}`;
     }
   }
   redirectToObject(type, key) {

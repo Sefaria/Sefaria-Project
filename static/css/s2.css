@@ -886,7 +886,7 @@ input.noselect {
   width: 18px;
 }
 .ui-autocomplete .ui-menu-item img.ac-img-User {
-  opacity: .8;
+  opacity: 1;
 }
 .ui-autocomplete .ui-menu-item a {
   display: inline-block;

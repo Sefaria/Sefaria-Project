@@ -135,7 +135,9 @@ class AutoCompleter(object):
                 self.title_trie[normal_name] = {
                     "title": fullname,
                     "type": "User",
-                    "key": (profiles[id]["user"]["slug"],  profiles[id]["user"]["profile_pic_url_small"]),
+                    "key": profiles[id]["user"]["slug"],
+                    "pic": profiles[id]["user"]["profile_pic_url_small"],
+                    "count": profiles[id]["count"],
                     "is_primary": True,
                 }
                 unames += [fullname]
@@ -288,8 +290,14 @@ class Completions(object):
         """
         # Match titles that begin exactly this way
         [completions, completion_objects] = self.get_new_continuations_from_string(self.normal_string)
-        self.completions += completions
-        self.completion_objects += completion_objects
+
+        joined = list(zip(completions, completion_objects))
+        y = iter(sorted([w for w in joined if w[1]["type"] == "User"], key=lambda w: w[1]["count"], reverse=True))
+        users_sorted = [w if not w[1]["type"] == "User" else next(y) for w in joined]
+
+        self.completions += [a for a, b in users_sorted]
+        self.completion_objects += [b for a, b in users_sorted]
+
         if self.limit and len(self.completions) >= self.limit:
             return self.completions[:self.limit or None]   # todo: the return value isn't used, so this (and other) slices on return are a waste
         if not self.do_autocorrect:
