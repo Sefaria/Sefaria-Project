@@ -1973,7 +1973,6 @@ export {
   sefariaSetup,
   unpackDataFromProps,
   EditGroupPage,
-  ContestLandingPage,
   RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,

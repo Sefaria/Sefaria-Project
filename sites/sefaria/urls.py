@@ -45,7 +45,6 @@ static_pages = [
     "daf-yomi",
     "remote-learning",
     "sheets",
-    "contest",
     "powered-by-sefaria-contest-2020",
 ]
 
@@ -75,6 +74,7 @@ site_urlpatterns += [
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
     url(r'^[nN]echama/?', lambda x: HttpResponseRedirect("/groups/גיליונות-נחמה")),
+    url(r'^contest?', lambda x: HttpResponseRedirect("/powered-by-sefaria-contest-2020")),    
 ]
 
 

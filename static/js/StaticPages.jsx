@@ -58,7 +58,7 @@ import classNames from 'classnames';
         />
  */
 
-
+/* Saving for next year....
 const ContestLandingPage = () => (
     <StaticPage>
         <Header
@@ -236,7 +236,7 @@ const ContestLandingPage = () => (
         />
     </StaticPage>
 );
-
+*/
 
 const SheetsLandingPage = () => (
     <StaticPage>
@@ -1093,6 +1093,5 @@ const ConditionalLink = ({ link, children }) =>
 export {
     RemoteLearningPage,
     SheetsLandingPage,
-    ContestLandingPage,
     PBSC2020LandingPage,
 }
