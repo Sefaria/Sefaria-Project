@@ -13,6 +13,7 @@ import {
   ContestLandingPage,
   RemoteLearningPage,
   SheetsLandingPage,
+  PBSC2020LandingPage,
 } from './StaticPages';
 import {
   SignUpModal,
@@ -1975,4 +1976,5 @@ export {
   ContestLandingPage,
   RemoteLearningPage,
   SheetsLandingPage,
+  PBSC2020LandingPage,
 };

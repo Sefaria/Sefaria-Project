@@ -2765,8 +2765,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   width: 800px;
   margin: 0 auto;
   max-width: 90%;
-  /* margin: 20px; */
-  /* display: block; */
 }
 .staticPage .blockVerticalPadding {
   padding-top: 80px;
@@ -2792,7 +2790,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .lightgreyBackground {
   background-color: #FBFBFA;
 }
-
 .staticPage .staticPageHeader {
   background-color: #212E50;
   padding: 70px 0 0 0;
@@ -2834,7 +2831,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .staticPageH2 {
   padding: 55px 0 10px;
   margin: 0;
-  width: 35%;
 }
 .staticPage .staticPageH2 span {
   font-style: normal;
@@ -2843,38 +2839,54 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   line-height: 35px;
   color: #666666;
 }
-
 .staticPage .staticPageSpacer {
 }
-
-.staticPage .staticPageSheetList {
-  padding: 30px 0 0;
+.staticPage .staticPageSection {
+  padding: 30px 0;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem {
+.staticPage .staticPageSheetItem {
   padding: 20px 0;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem + .staticPageSheetItem {
+.staticPage .staticPageSheetItem + .staticPageSheetItem {
   border-top: 1px solid #ccc;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem a {
+.staticPage .staticPageSheetItem a {
   padding-bottom: 20px;
   display: block;
   color: #000;
 }
-.staticPage .int-en .staticPageSheetList .staticPageSheetItem a {
+.staticPage .int-en .staticPageSheetItem a {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 24px;
 }
-.staticPage .int-he .staticPageSheetList .staticPageSheetItem a {
+.staticPage .int-he .staticPageSheetItem a {
   font-family: "Heebo", sans-serif;
   font-size: 24px;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem img {
+.staticPage .staticPageSheetItem img {
   height: 46px;
   width: 46px;
   vertical-align: middle;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem .staticPageSheetAuthor {
+.staticPage .staticPageSheetAuthor {
+  padding: 0 20px;
+}
+.staticPage .staticPageUserQuote {
+  padding: 26px 0;
+}
+.staticPage .staticPageUserQuote + .staticPageUserQuote {
+  border-top: 1px solid #ccc;
+}
+.staticPage .staticPageUserQuoteNameBox {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+}
+.staticPage .staticPageUserQuote img {
+  height: 46px;
+  width: 46px;
+}
+.staticPage .staticPageUserQuoteName {
   padding: 0 20px;
 }
 .staticPage .simpleButtonWrapper {
@@ -2930,7 +2942,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 16px;
   line-height: 19px;
 }
-
 .staticPage .feature .featureText {
   font-family: "Roboto", sans-serif;
   font-style: normal;
@@ -2948,13 +2959,17 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .feature .featureImage img {
   width: 454px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  /* max-width: 100%; */
 }
 .staticPage .feature {
     padding: 40px 0;
     background-color: #FBFBFA;
 }
-.staticPage .feature .featureHeader {}
+.staticPage .feature .featureHeader a {
+  color: inherit;
+}
+.staticPage .feature .featureHeader a:hover h3 {
+  text-decoration: underline;
+}
 .staticPage .feature .featureHeader h3 {
   margin: 20px 0 20px 0;
   font-size: 30px;
@@ -2962,7 +2977,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-weight: normal;
   display: inline-block;
 }
-
 .staticPage .feature .featureHeader h3 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }

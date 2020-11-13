@@ -1,9 +1,10 @@
-const React      = require('react');
-const {
+import React from 'react';
+import {
     SimpleInterfaceBlock,
     NewsletterSignUpForm,
-}                   = require('./Misc');
-const classNames = require('classnames');
+} from './Misc';
+import palette from './sefaria/palette';
+import classNames from 'classnames';
 
 
 /*  Templates:
@@ -55,11 +56,9 @@ const classNames = require('classnames');
             heText=""
             backgroundColor=""
         />
-
-
-
-
  */
+
+
 const ContestLandingPage = () => (
     <StaticPage>
         <Header
@@ -238,6 +237,7 @@ const ContestLandingPage = () => (
     </StaticPage>
 );
 
+
 const SheetsLandingPage = () => (
     <StaticPage>
         <Header
@@ -309,7 +309,7 @@ const SheetsLandingPage = () => (
             he="ראו מה משתמשים אחרים יוצרים בעזרת דפי המקורות שלהם"
         />
         <EnBlock>
-            <SheetList>
+            <Section>
                 <Sheet
                     title="Creation and Consciousness"
                     link="/sheets/17566?lang=bi&utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
@@ -334,10 +334,10 @@ const SheetsLandingPage = () => (
                     author="Dasi Fruchter"
                     image="/static/img/sheets-landing-page/dasi.png"
                 />
-            </SheetList>
+            </Section>
         </EnBlock>
         <HeBlock>
-            <SheetList>
+            <Section>
                 <Sheet
                     title="תפילת הדרך"
                     link="/sheets/216261?lang=he&utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
@@ -362,16 +362,17 @@ const SheetsLandingPage = () => (
                     author="יורם גלילי (בואו נלמד משפט ויושר)"
                     image="/static/img/sheets-landing-page/yoram.png"
                 />
-            </SheetList>
+            </Section>
         </HeBlock>
-        <ButtonRow white={true}>
+        <Section>
             <SimpleButton
                 he="חפשו עוד לפי נושא"
                 en="Explore More by Topic"
                 href="/topics?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
                 he_href="/topics?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
             />
-        </ButtonRow>
+        </Section>
+        <Spacer />
         <CallToActionFooterWithButton
             href="/sheets/228095?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets"
             he_href="/sheets/226003?utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
@@ -382,6 +383,8 @@ const SheetsLandingPage = () => (
         />
     </StaticPage>
 );
+
+
 const RemoteLearningPage = () => (
     <StaticPage>
         <Header
@@ -548,6 +551,385 @@ const RemoteLearningPage = () => (
     </StaticPage>
 );
 
+
+const PBSC2020LandingPage = () => (
+    <StaticPage>
+        <Header
+            enTitle="Powered by Sefaria Contest 2020"
+            enText="Explore the Projects"
+            enImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
+            enImgAlt=""
+            heTitle="תחרות פיתוח תוכנה"
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
+            heImgAlt=""
+        />
+
+        <GreyBox>
+            <H2Block en="Inviting Innovation" he=""/>
+            <EnBlock padded={true}>
+                <p>In an effort to seed the digital future of Jewish texts, the Powered by Sefaria Contest was launched in July 2020 — inviting the global Sefaria community to make use of our free and open digital dataset of Jewish texts, translations, and interconnections. Over the years, dozens of third parties have created apps, visualizations, and conducted research using our data or API, and we wanted to see what else our community could dream up. We saw tremendous enthusiasm and welcomed 50 high quality submissions from Sefaria users around the world. <b>Keep reading to learn more about the two winners and some incredibly innovative honorable mentions.</b></p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p></p>
+            </HeBlock>
+            <Spacer/>
+        </GreyBox>
+
+        <GreyBox light={true}>
+            <H2Block en="Grand Prize Winner" he=""/>
+        </GreyBox>
+
+        <Feature
+            enTitle="Talmud Sidebar Extension"
+            enText="By Dov Katz<br/><br/>The Talmud Sidebar Extension brings Sefaria’s learning resources to Daf Yomi sites across the web. Created in response to the move to Zoom for Daf Yomi classes the world over in the wake of COVID-19, the extension recognizes what daf you’re learning or listening to on nearly a dozen Daf Yomi sites, and enables a sidebar to see connections from Sefaria’s library, or link straight back to Sefaria."
+            enImg="/static/img/pbsc-2020-landing-page/talmudsidebar.png"
+            enImgAlt="Talmud Sidebar Extension"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/talmudsidebar.png"
+            heImgAlt="Talmud Sidebar Extension"
+            borderColor={palette.colors.yellow}
+            link="https://chrome.google.com/webstore/detail/talmud-sidebar-extension/dmpiiciebnbekblfbcdeogjkbbmeeimi"
+        />
+
+        <GreyBox>
+            <H2Block en="Meet the Grand Prize Winner" he=""/>
+            <EnBlock padded={true}>
+                <p>Originally from Memphis, TN and now living in Modiin, Israel, Dov Katz leads a developer productivity group for the technology arm of a large financial services firm and enjoys tinkering with tech in his free time. Long interested in the ways technology could increase access to Jewish life and Torah study – he created the popular Jewish site OnlySimchas.com back in 1999! – he invented the Sidebar Extension this summer to meet the new digital needs of his own formerly in-person Daf Yomi shiur. Dov’s passion for access leads him to be a strong advocate of Open Source and he currently sits as the Chairman of the board on the Fintech Open Source Foundation.</p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p></p>
+            </HeBlock>
+            <Spacer/>
+        </GreyBox>
+
+        <GreyBox light={true}>
+            <H2Block en="Youth Prize Winner" he=""/>
+        </GreyBox>
+
+        <Feature
+            enTitle="Mizmor Shir"
+            enText="By Immanuel Bissel, Simon Landau, and Ben Kotton<br/><br/>Mizmor Shir explores the intersections of Torah and music as two forms of holy language. Using the Kabbalistic tradition of gematria, Mizmor Shir transforms the text of the Torah into music, in keys and scales that you choose, to reveal unseen (and unheard) patterns within it. "
+            enImg="/static/img/pbsc-2020-landing-page/mizmorshir.png"
+            enImgAlt="Talmud Sidebar Extension"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/mizmorshir.png"
+            heImgAlt="Mizmor Shir"
+            borderColor={palette.colors.raspberry}
+            link="http://mizmor-shir.herokuapp.com/"
+        />
+
+        <GreyBox>
+            <H2Block en="Meet the Youth Prize Winners" he=""/>
+            <EnBlock padded={true}>
+                <p>Mizmor Shir was created by three college students – Simon Landau, a junior at USC majoring in Computer Science; Immanuel Bissel, a rising sophomore at Yale majoring in Earth and Planetary Science; and Ben Kotton, also a rising Sophomore at Yale, majoring in applied mathematics. Friends from a childhood shared in Los Angeles, all three are avid music lovers – Simon plays both orchestral bass as well as guitar in a three-piece band, Emmanuel the guitar, and Ben the Mandolin. It was this love that got them excited to respond to Sefaria’s PBS challenge with an idea that combined music with Torah and harnessed the power of technology to reveal the beauty of each in new ways.</p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p></p>
+            </HeBlock>
+            <Spacer/>
+        </GreyBox>
+
+        <H2Block en="What the Judges Had to Say" he=""/>
+
+        <Section>
+            <UserQuote
+                enText="It was very exciting to see all of the creative applications to the Powered by Sefaria Contest. There was such a wide range of ideas, truly displaying the power of Sefaria to engage a range of audiences. At the core of all of the ideas was creating innovative ways to allow more people to engage with text in a deeper way, from bringing the text to life through interactive museums to creating additional features and ease for the toolbar and the Sefaria browsing experience.<br/><br/>Many of the ideas are very promising and I hope the contestants continue to explore their ideas and bring their passion to life. Thanks to Sefaria for creating such an accessible and open platform to allow for such a meaningful and collaborative competition."
+                heText=""
+                enName="Libby Novak, Chief Operations Officer, Maapilim; Sefaria advisory board member"
+                heName=""
+                image="/static/img/pbsc-2020-landing-page/libby.png"
+            />
+            <UserQuote
+                enText="Each of the top projects that I looked into were intriguing and useful.The Sidebar extension won deservedly because it is so obviously helpful for increasing Sefaria's efficiency. But I greatly admired the cleverness of the Shulkhan tool, the mathematical sophistication of the Sefer Similarity Map, and the ingenuity and resourcefulness of all the submissions."
+                heText=""
+                enName="Moshe Koppel, Professor of Computer Science at Bar-Ilan University; Founder of DICTA, a laboratory creating computational linguistics tools for the analysis of Jewish and Hebrew texts"
+                heName=""
+                image="/static/img/pbsc-2020-landing-page/moshe.png"
+            />
+            <UserQuote
+                enText="I was incredibly impressed by the submissions to the Powered by Sefaria contest. When Sefaria started, we could not have imagined the level of technical talent that would be applied to enhancing Sefaria's texts and platform. The submissions to the contest were both interesting and often quite practical, many adding useful features on top of Sefaria's existing platform. I was especially excited to see such wonderful energy from our younger supporters who brought creativity and vision to the contest. Congratulations to all the submitters!"
+                heText=""
+                enName="Mo Koyfman, Founder of early-stage venture capital firm, Shine Capital; founding Sefaria board member"
+                heName=""
+                image="/static/img/pbsc-2020-landing-page/mo.png"
+            />
+        </Section>
+
+        <GreyBox light={true}>
+            <H2Block en="Honorable Mentions" he=""/>
+        </GreyBox>
+
+        <Feature
+            enTitle="Shulkhan"
+            enText="By Joseph Tepperman<br/><br/>Shulkhan is a touch interface for the printed Talmud. Using a camera and projector, Shulkan can watch as you learn with a book and project translations to the passages of text that you touch."
+            enImg="/static/img/pbsc-2020-landing-page/shulkhan.png"
+            enImgAlt="Shulkhan"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/shulkhan.png"
+            heImgAlt=""
+            borderColor={palette.colors.green}
+            link="http://josephtepperman.com/shulkhan.htm"
+        />
+
+
+        <Feature
+            enTitle="Goof - Body parts in Tefillah"
+            enText="By Judah Kaunfer and Matan Kotler-Berkowitz<br/><br/>Goof lets you explore texts of Tefillah through the lens of the body. Pick a body part and see texts that relate to it. <b>Goof has the honor of being the project submitted to the contest by the youngest entrant, Mr. Kaunfer, at 11 years old.</b>"
+            enImg="/static/img/pbsc-2020-landing-page/goof.png"
+            enImgAlt="Goof - Body parts in Tefillah"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/goof.png"
+            heImgAlt=""
+            borderColor={palette.colors.paleblue}
+            link="https://goof.surge.sh/"
+        />
+
+
+        <Feature
+            enTitle="Capish - Interactive Learning"
+            enText="By Chanah Emunah Deitch and Shalva Eisenberg<br/><br/>Capish is an interactive learning environment for Jewish texts. For this contest, Capish added a feature that allows users to record themselves reading lines of text. As they play back their recordings the users see words highlighted as they are spoken, or jump to parts of the recording by clicking words."
+            enImg="/static/img/pbsc-2020-landing-page/capish.png"
+            enImgAlt="Capish - Interactive Learning"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/capish.png"
+            heImgAlt=""
+            borderColor={palette.colors.blue}
+            link="https://capish.me/"
+        />
+
+
+        <Feature
+            enTitle="Daf Yomi Crossword"
+            enText="By Chanoch Goldfarb<br/><br/>Daf Yomi Crossword automatically generates a crossword puzzle based on any page of Talmud. The clues ask you to find words used on the page based on their context, or to find the words that commentaries choose to comment on."
+            enImg="/static/img/pbsc-2020-landing-page/dafyomicrossword.png"
+            enImgAlt="Daf Yomi Crossword"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/dafyomicrossword.png"
+            heImgAlt=""
+            borderColor={palette.colors.orange}
+            link="http://ee.cooper.edu/~goldfarb/daf/"
+        />
+
+
+        <Feature
+            enTitle="Sefer Similarity Map"
+            enText="By Joseph Hostyk and Alex Zaloum<br/><br/>Sefer Similarity Map visualizes relationships among Jewish texts by analyzing their usage of words or phrases to show which texts and sections have the most in common. Exploring the results in graphical form can illuminate historical, authorial, linguistic, and stylistic connections between texts."
+            enImg="/static/img/pbsc-2020-landing-page/sefersimilarity.png"
+            enImgAlt="Sefer Similarity Map"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/sefersimilarity.png"
+            heImgAlt=""
+            borderColor={palette.colors.lightpink}
+            link="https://jhostyk.github.io/SeferSimilarityMap/"
+        />
+
+
+        <Feature
+            enTitle="Custom Mikraot Gedolot"
+            enText="By Eshel Sinclair and Ben Gold<br/><br/>Custom Mikraot Gedolot lets you create your own Mikraot Gedolot. You choose the texts, translations and up to 9 commentaries, and the app will automatically generate a PDF that you can download and print."
+            enImg="/static/img/pbsc-2020-landing-page/mikraotgedolot.png"
+            enImgAlt="Custom Mikraot Gedolot"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/mikraotgedolot.png"
+            heImgAlt=""
+            borderColor={palette.colors.darkblue}
+            link="http://ec2-3-129-165-55.us-east-2.compute.amazonaws.com:3002/"
+        />
+
+
+        <Feature
+            enTitle="Sefaria Space: (Topic Museum + Text Mania)"
+            enText="By David Komer<br/><br/>The Sefaria Space has two parts: the Topic Museum creates an immersive 3D environment where you can explore texts related to a topic as though they were paintings hanging on a wall. Text Mania is a 3D game based on the letters of a text of your choosing."
+            enImg="/static/img/pbsc-2020-landing-page/sefariaspace.png"
+            enImgAlt="Sefaria Space: (Topic Museum + Text Mania)"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/sefariaspace.png"
+            heImgAlt=""
+            borderColor={palette.colors.darkpink}
+            link=" https://sefaria-space.web.app/"
+        />
+
+
+        <Feature
+            enTitle="The Rabbinic Citation Network"
+            enText="By Michael Satlow and Mike Sperling<br/><br/>Using Sefaria's digital text of the Bavli, the Rabbinic Citation Networks extracts the names and links of rabbis who cite (or who are cited by) other rabbis and visualizes the resulting network."
+            enImg="/static/img/pbsc-2020-landing-page/rabbiniccitation.png"
+            enImgAlt="The Rabbinic Citation Network"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/rabbiniccitation.png"
+            heImgAlt=""
+            borderColor={palette.colors.lavender}
+            link="http://www.rabbiniccitations.jewishstudies.digitalscholarship.brown.edu/blog/"
+        />
+
+
+        <Feature
+            enTitle="T'Feeling"
+            enText="By Matan Kotler-Berkowitz<br/><br/>T’Feeling encourages people to think deeply and intentionally about the connections between t'fillot and emotions. The site allows users to browse t’fillot by emotion (either what they’re currently feeling or what they hope to be feeling), as well as contribute their own ratings for which t’fillot connect most to which emotions."
+            enImg="/static/img/pbsc-2020-landing-page/tfeeling.png"
+            enImgAlt="T'Feeling"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/tfeeling.png"
+            heImgAlt=""
+            borderColor={palette.colors.yellow}
+            link="https://tfeeling.netlify.app"
+        />
+
+
+        <Feature
+            enTitle="CiteMakor"
+            enText="By Ariel Caplan<br/><br/>CiteMakor is a Twitter bot which accepts requests for citations and responds by tweeting back one or more images that include the cited text. The goal of CiteMakor is to make it easy to bring source texts into discussions of Jewish topics on Twitter."
+            enImg="/static/img/pbsc-2020-landing-page/citemakor.png"
+            enImgAlt="CiteMakor"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/citemakor.png"
+            heImgAlt=""
+            borderColor={palette.colors.purple}
+            link="https://twitter.com/CiteMakor"
+        />
+
+
+        <Feature
+            enTitle="Gifaria"
+            enText="By John Cassil and Tiger Tang<br/><br/>For a little bit of fun, gifaria finds gifs relevant to any verse in Tanakh. This project provides an engaging way for people to interact with biblical texts in a lighthearted way."
+            enImg="/static/img/pbsc-2020-landing-page/gifaria.png"
+            enImgAlt="Gifaria"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/gifaria.png"
+            heImgAlt=""
+            borderColor={palette.colors.lightblue}
+            link="https://tiger-tang.shinyapps.io/gifaria/"
+        />
+
+
+        <Feature
+            enTitle="The Taryag Mitzvos"
+            enText="By Rafi Wolfe<br/><br/>The Taryag Mitzvos is an interactive visualization of the 613 commandments, and the different ways that different scholars have enumerated that list. The interface lets users view and sort according to which opinions support each mitzvah’s inclusion, as well as compare the differences between different lists."
+            enImg="/static/img/pbsc-2020-landing-page/thetaryag.png"
+            enImgAlt="The Taryag Mitzvos"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/thetaryag.png"
+            heImgAlt=""
+            borderColor={palette.colors.lightgreen}
+            link="https://thetaryag.com/"
+        />
+
+
+        <Feature
+            enTitle="3D Tanach Family Tree"
+            enText='By Moshe Escott, Shlomo Gordon, Simcha Schaum, Aaron Farntrog and Ari Abramowitz<br/><br/>The 3D Tanach Family Tree is an interactive 3D visualization of characters mentioned in Tanach. As you float through the tree you can find information about each character, search relationships between them, and find verses on Tanach where they appear.  Select "Tanach Family Tree" from the menu at top right to view.'
+            enImg="/static/img/pbsc-2020-landing-page/familytree.jpg"
+            enImgAlt="3D Tanach Family Tree"
+            heTitle='אילן יוחסין תנ"כי תלת ממדי'
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/familytree.jpg"
+            heImgAlt=""
+            borderColor={palette.colors.red}
+            link="http://www.basehasefer.com/"
+        />
+
+
+        <Feature
+            enTitle="Gematriaphone"
+            enText="By Alexander Boxer<br/><br/>Gematriaphone lets you hear the Torah's hidden mathematical music. Starting from any word of Torah, users can hear tones corresponding to the gematria of each word as it is highlighted on the screen."
+            enImg="/static/img/pbsc-2020-landing-page/gematriaphone.png"
+            enImgAlt="Gematriaphone"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/gematriaphone.png"
+            heImgAlt=""
+            borderColor={palette.colors.teal}
+            link="http://alexboxer.com/gematriaphone/"
+        />
+
+
+        <Feature
+            enTitle="SefariAcrostic"
+            enText="Ezra Gordon<br/><br/>SefariaAcrostic searches books of Tanakh for acrostics that match a person’s Hebrew name. Acrostics can be used to create digital art or to inspire personalized artwork for a simcha, such as finding an acrostic with the couple's names for a wedding."
+            enImg="/static/img/pbsc-2020-landing-page/acrostic.png"
+            enImgAlt="SefariAcrostic"
+            heTitle=""
+            heText=""
+            heImg="/static/img/pbsc-2020-landing-page/acrostic.png"
+            heImgAlt=""
+            borderColor={palette.colors.lightbg}
+            borderColor={palette.colors.lightbg}
+            link="https://20gordone.github.io/SefariaContest/"
+        />
+
+
+        <CallToActionFooterWithButton
+            href="https://github.com/Sefaria/Sefaria-Project"
+            he_href="https://github.com/Sefaria/Sefaria-Project"
+            enText="Want to create something of your own?"
+            heText=""
+            enButtonText="GitHub"
+            heButtonText="GitHub"
+        />
+
+
+        <H2Block en="Explore more projects" he=""/>
+
+        <ButtonRow white={true}>
+            { [ 
+                ["Abba Saul", "", "https://github.com/scopreon/abba-saul/"],
+                ["Amud-anan", "", "https://github.com/Binyomin-Cohen/sefaria"],
+                ["Bashamayim Hi", "", "https://yosefsklar.github.io/bashamayim-hi/"],
+                ["Chiddushim and Biurim", "", " https://torah.yiddishe-kop.com/"],
+                ["Daily Daf Tracker", "", "https://mattpolanieckidev.github.io/dailydaf/"],
+                ["I’m Learning Lucky", "", "https://github.com/jmcaplan/sefariaExtension"],
+                ["Jew And A", "", "https://seph-efd35.web.app/"],
+                ["Leiner", "", "https://appetize.io/app/w380pbm112n7ar9m4n6er9kpm8?device=iphone11promax&scale=100&orientation=portrait&osVersion=13.3"],
+                ["Memorize Plus", "", "https://www.dropbox.com/sh/cd5xhc1gg8oqqk7/AAAeFSscagGfesVgyBkBwEiIa?dl=0"],
+                ["NLP-Talmud", "", "https://github.com/adinabruce/NLP-Talmud"],
+                ["Pninim", "", "https://pninim.yiddishe-kop.com/"],
+                ["QUIZARIA", "", "https://www.figma.com/proto/wk07O8t1I9Wxw989SGopwr/QUIZARIA!?node-id=11%3A14&scaling=scale-down"],
+                ["Quran Tanakh Kabbalah Project", "", "https://bref-saucisson-56522.herokuapp.com/"],
+                ["RecurrentRav", "", "https://github.com/leerosenthalj/RecurrentRav"],
+                ["Scribe", "", "https://www.youtube.com/watch?v=BkCKrLf6pvk&feature=youtu.be"],
+                ["Shelita", "", "https://www.sheilta.ml/"],
+                ["Talmud Note", "", "https://play.google.com/store/apps/details?id=com.graytapps.talmudnote"],
+                ["The Jewish Story Through Books", "", "https://joshcooper417.github.io/"],
+                ["Torah for the Blind", "", "https://torahfortheblind.com/"],
+                ["Tweet Yomi", "", "https://tweetyomi.org/"],
+                ["Visualizations of Sefaria", "", "https://guedalia.github.io/testab/test"],
+                ["Visualizing Talmud Topics", "", "https://notebooks.azure.com/HagaiG/projects/Visualizing-Talmud-Topics"],
+                ["Visualizing Works Influence", "", "https://adinabechhofer.github.io/"],
+                ["Yamim Noraim Machzor", "", "https://play.google.com/store/apps/details?id=com.machzoryamimnoraim"],
+                ["Yomyomishna", "", "https://yomyomishna.web.app/"]
+            ].map(i => 
+                <SimpleButton
+                    white={true}
+                    rounded={false}
+                    tall={true}
+                    newTab={true}
+                    href={i[2]}
+                    he_href={i[2]}
+                    he={i[1]}
+                    en={i[0]}
+                />)
+            }
+        </ButtonRow>
+
+    </StaticPage>
+);
+
+
 const StaticPage = ({children}) => (
     <div className="staticPage">
         {children}
@@ -555,7 +937,9 @@ const StaticPage = ({children}) => (
 );
 
 const Spacer = ({height}) => <div className={"staticPageSpacer"} style={{height: height || 60}}></div>;
+
 const HeBlock = ({children, padded}) => <div className={"int-he" + (padded ? " staticPageBlockInner" : "")}>{children}</div>;
+
 const EnBlock = ({children, padded}) => <div className={"int-en" + (padded ? " staticPageBlockInner" : "")}>{children}</div>;
 
 const GreyBox = ({children, light}) => <div className={light ? "lightgreyBackground" : "greyBackground"}>{children}</div>;
@@ -586,18 +970,27 @@ const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImg
     </div>
 );
 
-/*
-    <div className="staticPageHeaderAction">
-        <a className="button int-en" href={enActionURL}>{enActionText}</a>
-        <a className="button int-he" href={heActionURL}>{heActionText}</a>
-    </div>
- */
-const SheetList = ({children}) =>
-    <div className={"staticPageBlockInner staticPageSheetList"}>
+const Section = ({children}) =>
+    <div className={"staticPageBlockInner staticPageSection"}>
         {children}
     </div>;
 
-const Sheet = ({title,link,author,image}) =>
+const UserQuote = ({enText, heText, image, enName, heName}) =>
+    <div className="staticPageUserQuote">
+        <div className="staticPageUserQuoteContent">
+            <div className="int-en" dangerouslySetInnerHTML={{__html:enText}} />
+            <div className="int-he" dangerouslySetInnerHTML={{__html:heText}} />
+        </div>
+        <div className="staticPageUserQuoteNameBox">
+            <img src={image} />
+            <div className="staticPageUserQuoteName">
+                <span className="int-en">{enName}</span>
+                <span className="int-he">{heName}</span>
+            </div>
+        </div>
+    </div>;
+
+const Sheet = ({title, link, author, image}) =>
     <div className="staticPageSheetItem">
         <a href={link}>{title}</a>
         <img src={image}/>
@@ -612,6 +1005,7 @@ const CallToActionFooterWithButton = ({href, he_href, enText, heText, enButtonTe
         </div>
     </div>
 );
+
 const CallToActionFooterWithNewsletter = ({enText, heText, includeEducatorOption}) => (
     <div className="staticPageCallToActionFooter">
         <div className="staticPageBlockInner flexContainer">
@@ -648,23 +1042,27 @@ const ImageWithText = ({enText, heText, enImg, heImg, enImgAlt, heImgAlt}) => (
     </div>
 );
 
-const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, borderColor}) => (
+const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, borderColor, link}) => (
     <div className="feature">
         <div className="staticPageBlockInner flexContainer">
             <div className="featureText" style={{borderColor: borderColor}}>
                 <div className="featureHeader">
-                    <h3>
-                        <span className="int-en">{enTitle}</span>
-                        <span className="int-he">{heTitle}</span>
-                    </h3>
+                    <ConditionalLink link={link}>
+                        <h3>
+                            <span className="int-en">{enTitle}</span>
+                            <span className="int-he">{heTitle}</span>
+                        </h3>
+                    </ConditionalLink>
                 </div>
                 <div className="int-en" dangerouslySetInnerHTML={{__html:enText}} />
                 <div className="int-he" dangerouslySetInnerHTML={{__html:heText}} />
             </div>
-            <div className="featureImage">
-                <img className="int-en" src={enImg} alt={enImgAlt}/>
-                <img className="int-he" src={heImg} alt={heImgAlt}/>
-            </div>
+            <ConditionalLink link={link}>
+                <div className="featureImage">
+                    <img className="int-en" src={enImg} alt={enImgAlt}/>
+                    <img className="int-he" src={heImg} alt={heImgAlt}/>
+                </div>
+            </ConditionalLink>
         </div>
     </div>
 );
@@ -677,9 +1075,9 @@ const ButtonRow = ({children, light, white}) => (
           </GreyBox>
 );
 
-const SimpleButton = ({href, he_href, he, en, white, rounded=true, tall=false}) => (
+const SimpleButton = ({href, he_href, he, en, white, rounded=true, tall=false, newTab=false}) => (
     <div className="simpleButtonWrapper">
-        <a href={href} className={classNames({button:1, flexContainer:1, "int-en":1, white: white, tall: tall, rounded:rounded})}>
+        <a href={href} className={classNames({button:1, flexContainer:1, "int-en":1, white: white, tall: tall, rounded:rounded})} target={newTab ? "_blank" : "_self"}>
             <span className="int-en">{en}</span>
         </a>
         <a href={he_href || href} className={classNames({button:1, flexContainer:1, "int-he":1, white: white, tall: tall, rounded:rounded})}>
@@ -688,9 +1086,13 @@ const SimpleButton = ({href, he_href, he, en, white, rounded=true, tall=false}) 
     </div>
 );
 
+const ConditionalLink = ({ link, children }) => 
+  link ? <a href={link} target="_blank">{children}</a> : children;
 
 
-
-module.exports.RemoteLearningPage = RemoteLearningPage;
-module.exports.SheetsLandingPage = SheetsLandingPage;
-module.exports.ContestLandingPage = ContestLandingPage;
+export {
+    RemoteLearningPage,
+    SheetsLandingPage,
+    ContestLandingPage,
+    PBSC2020LandingPage,
+}

@@ -45,7 +45,8 @@ static_pages = [
     "daf-yomi",
     "remote-learning",
     "sheets",
-    "contest"
+    "contest",
+    "powered-by-sefaria-contest-2020",
 ]
 
 
