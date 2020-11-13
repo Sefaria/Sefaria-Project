@@ -2980,6 +2980,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .feature .featureHeader h3 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
+.staticPage .buttonRow h2 {
+  padding: 0 0 30px 0;
+}
 @media (max-width: 540px) {
   .staticPage .flexContainer {
     flex-direction: column;

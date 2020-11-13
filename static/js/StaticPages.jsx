@@ -882,10 +882,7 @@ const PBSC2020LandingPage = () => (
             heButtonText="GitHub"
         />
 
-
-        <H2Block en="Explore more projects" he=""/>
-
-        <ButtonRow white={true}>
+        <ButtonRow white={true} enTitle="Explore more projects" heTitle="Explore">
             { [ 
                 ["Abba Saul", "", "https://github.com/scopreon/abba-saul/"],
                 ["Amud-anan", "", "https://github.com/Binyomin-Cohen/sefaria"],
@@ -1067,12 +1064,21 @@ const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heIm
     </div>
 );
 
-const ButtonRow = ({children, light, white}) => (
-    white
-        ? <div className="staticPageBlockInner blockVerticalPadding flexContainer">{children}</div>
-        : <GreyBox light={light}>
-            <div className="staticPageBlockInner blockVerticalPadding flexContainer">{children}</div>
-          </GreyBox>
+const ButtonRow = ({children, light, white, enTitle, heTitle}) => (
+    <div className={classNames({
+        "buttonRow": 1,
+        "staticPageBlockInner": 1, 
+        "blockVerticalPadding": 1, 
+        "lightgreyBackground": light,
+        "greyBackground": !white && !light
+    })}>
+        {enTitle && heTitle ? 
+            <h2 className="staticPageH2">
+                <SimpleInterfaceBlock en={enTitle} he={heTitle} />
+            </h2>
+            : null }
+        <div className="flexContainer">{children}</div>
+    </div>
 );
 
 const SimpleButton = ({href, he_href, he, en, white, rounded=true, tall=false, newTab=false}) => (
