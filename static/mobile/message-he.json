@@ -1,1 +1,11 @@
-null
+{
+	"title": "",
+	"text": [
+		"נשמח אם תהיו שותפים בעיצוב עתידה של ספריא!",
+        "אנא ענו על הסקר שלנו- כדי לסייע לנו להתקדם ולהשתפר."
+  	],
+	"buttonLink": "https://www.surveymonkey.com/r/Sefaria-2020-Mobile-Hebrew",
+	"buttonText": "ענה על הסקר",
+	"name": "survey-2020",
+	"schemaVersion": 1
+}
