@@ -105,7 +105,7 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
 
        if (clipEndTime && currTime > clipEndTime) {
            setPlaying(false);
-		   setCurrTime(null);
+		   		 setCurrTime(0);
        }
 
 
