@@ -17,15 +17,17 @@ class Media(abst.AbstractMongoRecord):
     """
     Media for sidebar connection pannel.
     """
-    collection = 'media'    
+    collection = 'media'
     required_attrs = [
         "media_url",
+        "source_he",
         "source",
         "media_type",
         "ref",
         "license",
         "source_site",
         "description",
+        "description_he",
     ]
 
     def _normalize(self): # what does this do?
@@ -34,14 +36,16 @@ class Media(abst.AbstractMongoRecord):
     def client_contents(self, ref):
         d = self.contents()
         t = {}
-        t["media_url"]     = ref["media_url"] 
+        t["media_url"]     = ref["media_url"]
         t["source"]   = d["source"]
+        t["source_he"]   = d["source_he"]
         t['start_time'] = ref['start_time']
         t['end_time'] = ref['end_time']
         t['anchorRef'] = ref['sefaria_ref']
         t['license'] = d['license']
         t['source_site'] = d['source_site']
         t['description'] = d['description']
+        t['description_he'] = d['description_he']
         return t
 
 class MediaSet(abst.AbstractMongoSet):
@@ -60,11 +64,9 @@ def get_media_for_ref(tref):
         for r in media.ref:
             if re.match(ref_re, r['sefaria_ref']):
                 r['media_url'] = media.media_url
-                matched_ref.append(r)           
+                matched_ref.append(r)
     for ref in matched_ref:
-        media_contents = media.client_contents(ref) 
+        media_contents = media.client_contents(ref)
         client_results.append(media_contents)
 
-    return client_results        
-
-
+    return client_results

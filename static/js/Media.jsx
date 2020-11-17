@@ -6,6 +6,10 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component from 'react-class';
 
+import {
+	LoadingMessage
+} from './Misc';
+
 class MediaList extends Component {
 	render() {
 		let audios = Sefaria.mediaByRef(this.props.srefs)
@@ -16,10 +20,13 @@ class MediaList extends Component {
 				startTime = {audio.start_time}
 				endTime = {audio.end_time}
 				source = {audio.source}
+				source_he = {audio.source_he}
 				license = {audio.license}
 				source_site = {audio.source_site}
 				description = {audio.description}
+				description_he = {audio.description_he}
 				anchor = {audio.anchorRef}
+				key = {audio.anchorRef}
 				/>
 		  });
 		 if (!content.length) {
@@ -42,7 +49,7 @@ MediaList.propTypes = {
 };
 
 
-const Audio = ({audioUrl, startTime, endTime, source, license, source_site, description, anchor}) => {
+const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source_site, description, description_he, anchor}) => {
    const audioElement = useRef();
    const [currTime, setCurrTime] = useState(true);
    const [playing, setPlaying] = useState(false); //true for autoplay
@@ -55,6 +62,10 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
 		};
 
     function formatTime(totalSeconds) {
+				if (totalSeconds == "NaN" || totalSeconds < 0) {
+					return("0:00")
+				}
+
         const seconds = Math.floor(totalSeconds % 60);
         const minutes = Math.floor(totalSeconds / 60);
 
@@ -71,11 +82,12 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
 
    useEffect(() => {
        const setAudioData = () => {
-		   if (startTime < clipStartTime){
-		   if (clipStartTime != currTime) setPlaying(true);
-		   setCurrTime(null)};
-           setClipEndTime(endTime);
-		   setClipStartTime(startTime);
+			   if (startTime < clipStartTime){
+			   		if (clipStartTime != currTime) {setPlaying(true)};
+			   		setCurrTime(0)
+				 };
+	       setClipEndTime(endTime);
+			   setClipStartTime(startTime);
        };
 
        const setAudioTime = () => setCurrTime(audioElement.current.currentTime); //control range component
@@ -104,8 +116,10 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
    });
       return (
 		<div className="media"  key={anchor+"_"+"audio"}>
-			  <div className="title">{source}</div>
-			  <div className="description">{description}</div>
+			  <div className="title int-en">{source}</div>
+				<div className="title int-he">{source_he}</div>
+			  <div className="description int-en">{description}</div>
+				<div className="description int-he">{description_he}</div>
 			  <div className="panel">
           <div className="playTimeContainer">
             <input type="image" src = {playing ? "static/img/pause.svg" : "static/img/play.svg"} alt={playing ? "Pause Audio" : "Play Audio"} onClick={() => setPlaying(playing ? false : true)} id="pause"/>
@@ -120,8 +134,8 @@ const Audio = ({audioUrl, startTime, endTime, source, license, source_site, desc
 				<span className="int-en">License: {license}</span>
 				<span className="int-he">עסק רשיון: {license}</span>
         <br/>
-				<span className="int-en">Source: <a href={"//"+source_site} target="_blank">{source}</a></span>
-				<span className="int-he">מקור: {source_site}</span>
+				<span className="int-en">Source: <a href={source_site} target="_blank">{source}</a></span>
+				<span className="int-he">מקור: <a href={source_site} target="_blank">{source_he}</a></span>
 			  </div>
 
 		</div>

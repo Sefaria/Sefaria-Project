@@ -29,7 +29,6 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
 .int-he {
   font-family: "Heebo", sans-serif;
   direction: rtl;
-  display: flex;
 }
 .int-he.but-text-is-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -4698,33 +4697,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 24px;
 }
 
-.mediaList {
-	padding: 40px 40px 80px;
-}
-
 .mediaList .media {
   border-top: solid 1px #CCC;
   padding: 20px 0;
-  text-align: left;
-  direction: ltr;
 }
 
 .mediaList .mediaTitle {
-    font-family: roboto,helvetica neue,helvetica,sans-serif;
-    letter-spacing: 1px;
-    font-style: normal;
-    font-weight: 400;
-    font-size: 16px;
-    line-height: 19px;
-    color: #666;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  color: #666;
 	padding-bottom: 15px;
 }
 
 
 .mediaList .media .title {
 	font-size: 22px;
-    color: #000;
-	display: flex;
+  color: #000;
 }
 
 
@@ -4738,14 +4729,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   flex-flow: row;
   justify-content: space-between;
-  color: #999;
+  color: #666;
 }
 
 .mediaList .media .panel{
 	background: #e6e6e6;
 	border-radius: 50px;
 	text-align: center;
-	margin: 10px 0;
+	margin: 15px 0;
 	padding: 15px;
   font-size: 13px;
   line-height: 15px;
@@ -4753,11 +4744,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   flex-wrap: nowrap;
   justify-content: space-between;
+  text-align: left;
+  direction: ltr;
 }
 
 .mediaList .media .panel .playTimeContainer {
   display: inline-flex;
   align-self: center;
+  font-size: 13px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 
 .mediaList .media .panel .playTimeContainer span {
@@ -4772,8 +4767,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 
 .mediaList .media .panel input[type='image'] {
-	  width: 15px;
-    height: 15px;
+	  width: 10px;
+    height: 10px;
+    padding: 2.5px;
 }
 
 .slider {
@@ -4789,13 +4785,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   opacity: 5;
 }
 
+
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #000080;
+  background: #4871bf;
   cursor: pointer;
 }
 
@@ -4803,8 +4800,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: #4CAF50;
+  background: #4871bf;
   cursor: pointer;
+}
+
+/* All the same stuff for IE */
+.slider::-ms-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4871bf;
+  cursor: pointer;
+}
+
+.webpageList .website {
+  text-align: start;
 }
 
 .webpageList .website .icon {
@@ -4846,7 +4856,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 18px;
   color: #999;
 }
-.webpageList .webpage .stats, .mediaList .media .meta {
+.webpageList .webpage .stats,
+.mediaList .media .meta {
   font-size: 13px;
   color: #999;
   margin-top: 5px;
@@ -6630,7 +6641,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-bottom: 10px;
   cursor: pointer;
 }
-.addToSourceSheetBox .dropdownMain.noselect, .mediaList .media .feedback{
+.addToSourceSheetBox .dropdownMain.noselect {
   display: flex;
   justify-content: space-between;
   align-items: center;
