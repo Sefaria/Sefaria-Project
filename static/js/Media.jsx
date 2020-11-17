@@ -55,6 +55,7 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
    const [playing, setPlaying] = useState(false); //true for autoplay
    const [clipEndTime, setClipEndTime] = useState(endTime);
    const [clipStartTime, setClipStartTime] = useState(startTime);
+	 const [audioUrlWithTime, setAudioUrlWithTime] = useState(`${audioUrl}#t=${startTime},${endTime}`)
    const handleChange = (value) => {
 		   setCurrTime(value.currentTarget.value);
 		   audioElement.current.currentTime = value.currentTarget.value
@@ -80,20 +81,21 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
 
 
 	 useEffect(() => {
-		 setClipEndTime(endTime);
-		 setClipStartTime(startTime);
-
-		 audioElement.current.currentTime = startTime;
-
 		 const setAudioTime = () => {
 			 setCurrTime(audioElement.current.currentTime)
 		 };
 
-		 audioElement.current.addEventListener("timeupdate", setAudioTime);
+		 const setAudioData = () => {
+			 audioElement.current.currentTime = startTime;
+		 }
 
+
+		 audioElement.current.addEventListener("timeupdate", setAudioTime);
+		 audioElement.current.addEventListener("canplay", setAudioData);
 
 		 return () => {
 			 audioElement.current.removeEventListener("timeupdate", setAudioTime);
+			 audioElement.current.removeEventListener("canplay", setAudioData);
 		 }
 	 },
 	 [clipStartTime, clipEndTime]
@@ -101,12 +103,12 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
 
 
    useEffect(() => {
-		 playing ? audioElement.current.play() : audioElement.current.pause();
+		 playing ? audioElement.current.play().then(()=>{
+			 if (audioElement.current.currentTime < clipStartTime) {
+				 audioElement.current.currentTime = clipStartTime;
+			 }
+		 }) : audioElement.current.pause();
 
-		 if (audioElement.current.currentTime < clipStartTime) {
-			 setCurrTime(startTime);
-			 audioElement.current.currentTime = clipStartTime;
-		 }
    }, [playing]);
 
 
@@ -133,8 +135,8 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
           </div>
 				  <div className="sliderContainer"><input type="range" min={startTime} max={endTime} value = {currTime} step="any" className="slider" onChange={(value) => {handleChange(value)}}/></div>
 			  </div>
-			  <audio id="my-audio" ref={audioElement}>
-				 <source src={audioUrl} type="audio/mpeg"/>
+			  <audio id="my-audio" ref={audioElement} preload="metadata">
+				 <source src={audioUrlWithTime} type="audio/mpeg"/>
 			  </audio>
 			  <div className="meta">
 				<span className="int-en">License: {license}</span>
