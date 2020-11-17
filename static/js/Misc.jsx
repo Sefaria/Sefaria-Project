@@ -34,9 +34,21 @@ class ProfilePic extends Component {
       croppedImageBlob: null,
       error: null,
     };
+    this.imgFile = React.createRef();
   }
-  setShowDefault() {this.setState({showDefault: true});  }
-  setShowNonDefault() {this.setState({showDefault: false});  }
+  componentDidMount() {
+      const img = this.imgFile.current;
+
+      if (img && img.complete) {
+          if (img.naturalWidth === 0) {
+              this.setShowDefault();
+          } else {
+              this.setShowNonDefault();
+          }
+      }
+  }
+  setShowDefault() {console.log("default profile pic"); this.setState({showDefault: true});  }
+  setShowNonDefault() {console.log("non-default profile pic"); this.setState({showDefault: false});  }
   onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
       if (!e.target.files[0].type.startsWith('image/')) {
@@ -159,9 +171,10 @@ class ProfilePic extends Component {
         </div>
         <img
           className="img-circle profile-img"
+          ref={this.imgFile}
           style={{display: profileViz, width: len, height: len, fontSize: len/2}}
           src={imageSrc}
-          alt="User Profile Picture"
+          alt={this.state.showDefault ? "--" : "User Profile Picture"}
           onLoad={this.setShowNonDefault}
           onError={this.setShowDefault}
         />
