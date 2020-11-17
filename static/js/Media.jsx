@@ -38,7 +38,7 @@ class MediaList extends Component {
 		return <div className="mediaList">
 				<div className="mediaTitle">
 					<div className="en">Torah Reading </div>
-					<div className="he">קריאת התורה </div>
+					<div className="he">קריאה בתורה</div>
 				</div>
 				  {content}
 			   </div>;
