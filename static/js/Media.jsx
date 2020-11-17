@@ -52,7 +52,7 @@ MediaList.propTypes = {
 const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source_site, description, description_he, anchor}) => {
    const audioElement = useRef();
    const [currTime, setCurrTime] = useState(startTime);
-   const [playing, setPlaying] = useState(false); //true for autoplay
+   const [playing, setPlaying] = useState(false);
    const [clipEndTime, setClipEndTime] = useState(endTime);
    const [clipStartTime, setClipStartTime] = useState(startTime);
 	 const [audioUrlWithTime, setAudioUrlWithTime] = useState(`${audioUrl}#t=${startTime},${endTime}`)
@@ -84,18 +84,19 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
 		 const setAudioTime = () => {
 			 setCurrTime(audioElement.current.currentTime)
 		 };
-
 		 const setAudioData = () => {
 			 audioElement.current.currentTime = startTime;
-		 }
+		 };
+
+		 audioElement.current.load()
 
 
+		 audioElement.current.addEventListener("loadeddata", setAudioData);
 		 audioElement.current.addEventListener("timeupdate", setAudioTime);
-		 audioElement.current.addEventListener("canplay", setAudioData);
 
 		 return () => {
 			 audioElement.current.removeEventListener("timeupdate", setAudioTime);
-			 audioElement.current.removeEventListener("canplay", setAudioData);
+			 audioElement.current.removeEventListener("loadeddata", setAudioData);
 		 }
 	 },
 	 [clipStartTime, clipEndTime]
@@ -103,12 +104,7 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
 
 
    useEffect(() => {
-		 playing ? audioElement.current.play().then(()=>{
-			 if (audioElement.current.currentTime < clipStartTime) {
-				 audioElement.current.currentTime = clipStartTime;
-			 }
-		 }) : audioElement.current.pause();
-
+			 playing ? audioElement.current.play() : audioElement.current.pause();
    }, [playing]);
 
 
@@ -130,7 +126,7 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
 				<div className="description int-he">{description_he}</div>
 			  <div className="panel">
           <div className="playTimeContainer">
-            <input type="image" src = {playing ? "static/img/pause.svg" : "static/img/play.svg"} alt={playing ? "Pause Audio" : "Play Audio"} onClick={() => setPlaying(playing ? false : true)} id="pause"/>
+            <input type="image" src = {playing ? "static/img/pause.svg" : "static/img/play.svg"} alt={playing ? "Pause Audio" : "Play Audio"} onClick={() => setPlaying(!playing)} id="pause"/>
             <span>{formatTime((clipEndTime-clipStartTime) - (clipEndTime - currTime)) + " / " + formatTime(clipEndTime-clipStartTime)}</span>
           </div>
 				  <div className="sliderContainer"><input type="range" min={startTime} max={endTime} value = {currTime} step="any" className="slider" onChange={(value) => {handleChange(value)}}/></div>
