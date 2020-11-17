@@ -51,12 +51,11 @@ MediaList.propTypes = {
 
 const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source_site, description, description_he, anchor}) => {
    const audioElement = useRef();
-   const [currTime, setCurrTime] = useState(true);
+   const [currTime, setCurrTime] = useState(startTime);
    const [playing, setPlaying] = useState(false); //true for autoplay
-   const [clipEndTime, setClipEndTime] = useState();
-   const [clipStartTime, setClipStartTime] = useState();
+   const [clipEndTime, setClipEndTime] = useState(endTime);
+   const [clipStartTime, setClipStartTime] = useState(startTime);
    const handleChange = (value) => {
-		   setCurrTime(value);
 		   setCurrTime(value.currentTarget.value);
 		   audioElement.current.currentTime = value.currentTarget.value
 		};
@@ -80,40 +79,47 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
     }
 
 
+	 useEffect(() => {
+		 setClipEndTime(endTime);
+		 setClipStartTime(startTime);
+
+		 audioElement.current.currentTime = startTime;
+
+		 const setAudioTime = () => {
+			 setCurrTime(audioElement.current.currentTime)
+		 };
+
+		 audioElement.current.addEventListener("timeupdate", setAudioTime);
+
+
+		 return () => {
+			 audioElement.current.removeEventListener("timeupdate", setAudioTime);
+		 }
+	 },
+	 [clipStartTime, clipEndTime]
+);
+
+
    useEffect(() => {
-       const setAudioData = () => {
-			   if (startTime < clipStartTime){
-			   		if (clipStartTime != currTime) {setPlaying(true)};
-			   		setCurrTime(0)
-				 };
-	       setClipEndTime(endTime);
-			   setClipStartTime(startTime);
-       };
+		 playing ? audioElement.current.play() : audioElement.current.pause();
 
-       const setAudioTime = () => setCurrTime(audioElement.current.currentTime); //control range component
+		 if (audioElement.current.currentTime < clipStartTime) {
+			 setCurrTime(startTime);
+			 audioElement.current.currentTime = clipStartTime;
+		 }
+   }, [playing]);
 
 
-       audioElement.current.addEventListener("timeupdate", setAudioTime);
-	   setAudioData();
-
-	   if (clipStartTime && currTime < clipStartTime){
-			audioElement.current.currentTime = clipStartTime;
-	   };
-
-
-       playing ? audioElement.current.play() : audioElement.current.pause();
-
-       if (clipEndTime && currTime > clipEndTime) {
-           setPlaying(false);
-		   		 setCurrTime(0);
-       }
+	 useEffect(() => {
+		 if (currTime > clipEndTime) {
+				 setPlaying(false);
+				 setCurrTime(startTime);
+				 audioElement.current.currentTime = startTime
+		 }
+   }, [currTime]);
 
 
-       return () => { //pretty sure these are both unnecassary
-           audioElement.current.removeEventListener("loadeddata", setAudioData);
-           audioElement.current.removeEventListener("timeupdate", setAudioTime);
-       }
-   });
+
       return (
 		<div className="media"  key={anchor+"_"+"audio"}>
 			  <div className="title int-en">{source}</div>
@@ -127,7 +133,7 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
           </div>
 				  <div className="sliderContainer"><input type="range" min={startTime} max={endTime} value = {currTime} step="any" className="slider" onChange={(value) => {handleChange(value)}}/></div>
 			  </div>
-			  <audio id="my-audio" ref = {audioElement}>
+			  <audio id="my-audio" ref={audioElement}>
 				 <source src={audioUrl} type="audio/mpeg"/>
 			  </audio>
 			  <div className="meta">
