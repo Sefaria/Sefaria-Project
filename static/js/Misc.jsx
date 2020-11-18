@@ -37,14 +37,22 @@ class ProfilePic extends Component {
     this.imgFile = React.createRef();
   }
   componentDidMount() {
-      const img = this.imgFile.current;
-
+    if (this.isImageNotPresent()) {
+      this.setShowDefault();
+    } else {
+      this.setShowNonDefault();
+    }
+  }
+  isImageNotPresent(){
+    const img = this.imgFile.current;
       if (img && img.complete) {
-          if (img.naturalWidth === 0) {
-              this.setShowDefault();
+          if(img.naturalWidth === 0) {
+              return true;
           } else {
-              this.setShowNonDefault();
+              return false
           }
+      }else{
+        return true;
       }
   }
   setShowDefault() {console.log("default profile pic"); this.setState({showDefault: true});  }
@@ -160,8 +168,9 @@ class ProfilePic extends Component {
     const { showDefault, src, crop, error, uploading, isFirstCropChange } = this.state;
     const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
     const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
-    const defaultViz = showDefault ? 'flex' : 'none';
-    const profileViz = showDefault ? 'none' : 'block';
+    const defaultViz = (showDefault || this.isImageNotPresent()) ? 'flex' : 'none';
+    const profileViz = (showDefault || this.isImageNotPresent()) ? 'none' : 'block';
+    const fontSize = this.isImageNotPresent() ? 0 : len/2;
     const imageSrc = url.replace("profile-default.png", 'profile-default-404.png');  // replace default with non-existant image to force onLoad to fail
     return (
       <div style={outerStyle} className="profile-pic">
@@ -172,9 +181,9 @@ class ProfilePic extends Component {
         <img
           className="img-circle profile-img"
           ref={this.imgFile}
-          style={{display: profileViz, width: len, height: len, fontSize: len/2}}
+          style={{display: profileViz, width: len, height: len, fontSize: fontSize}}
           src={imageSrc}
-          alt={this.state.showDefault ? "--" : "User Profile Picture"}
+          alt="User Profile Picture"
           onLoad={this.setShowNonDefault}
           onError={this.setShowDefault}
         />
@@ -184,7 +193,7 @@ class ProfilePic extends Component {
               <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
               <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
                 <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
-                <span className="int-he">{ showDefault ? "הוסף תמונה" : "ייבא תמונה" }</span>
+                <span className="int-he">{ showDefault ? "הוספת תמונה" : "עדכון תמונה" }</span>
               </label>
             </div>) : null
           }
