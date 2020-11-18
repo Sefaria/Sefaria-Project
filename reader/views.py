@@ -351,7 +351,7 @@ def base_props(request):
     from sefaria.model.user_profile import UserProfile, UserWrapper
     from sefaria.site.site_settings import SITE_SETTINGS
     from sefaria.settings import DEBUG
-    profile = UserProfile(user_obj=request.user)
+    profile = UserProfile(user_obj=request.user) if request.user.is_authenticated else None
 
     if hasattr(request, "init_shared_cache"):
         logger.warning("Shared cache disappeared while application was running")
@@ -364,9 +364,9 @@ def base_props(request):
         "_uid": request.user.id,
         "is_moderator": request.user.is_staff,
         "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
-        "notificationCount": profile.unread_notification_count(),
-        "full_name": profile.full_name,
-        "profile_pic_url": profile.profile_pic_url,
+        "notificationCount": profile.unread_notification_count() if profile else 0,
+        "full_name": profile.full_name if profile else "",
+        "profile_pic_url": profile.profile_pic_url if profile else "",
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
             "language":      request.contentLang,
