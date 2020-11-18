@@ -4712,6 +4712,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 	padding-bottom: 15px;
 }
 
+.mediaList .mediaTitle .he {
+  font-size: 16px;
+}
+
+
 
 .mediaList .media .title {
 	font-size: 22px;
@@ -4725,7 +4730,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 
 .mediaList .media .description {
 	margin: 10px 0;
-  font-size: 14px;
+  font-size: 13px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   flex-flow: row;
   justify-content: space-between;

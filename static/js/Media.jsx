@@ -120,8 +120,8 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
 
       return (
 		<div className="media"  key={anchor+"_"+"audio"}>
-			  <div className="title int-en">{source}</div>
-				<div className="title int-he">{source_he}</div>
+			  <div className="title en">{source}</div>
+				<div className="title he">{source_he}</div>
 			  <div className="description int-en">{description}</div>
 				<div className="description int-he">{description_he}</div>
 			  <div className="panel">
