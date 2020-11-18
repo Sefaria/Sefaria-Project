@@ -55,8 +55,8 @@ class ProfilePic extends Component {
         return true;
       }
   }
-  setShowDefault() {console.log("default profile pic"); this.setState({showDefault: true});  }
-  setShowNonDefault() {console.log("non-default profile pic"); this.setState({showDefault: false});  }
+  setShowDefault() {this.setState({showDefault: true});  }
+  setShowNonDefault() {this.setState({showDefault: false});  }
   onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
       if (!e.target.files[0].type.startsWith('image/')) {
