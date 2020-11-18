@@ -71,7 +71,7 @@
         var html = "";
         // Set default content for the popup
         html += '<style scoped>' +
-            '@import url("https://fonts.googleapis.com/css?family=Crimson+Text|Frank+Ruhl+Libre|Heebo");' +
+            '@import url("https://fonts.googleapis.com/css?family=Crimson+Text:ital,wght@0,400;0,700;1,400;1,700|Frank+Ruhl+Libre|Heebo");' +
             '#sefaria-popup {'+
                 'width: 400px;'+
                 'max-height: 560px;' +
@@ -95,8 +95,7 @@
                 'outline: none;'+
             '}' +
             '#sefaria-title {' +
-                'font-weight: bold;' +
-                'font-size: 16px;'+
+                'font-size: 18px;'+
                 'text-align: center;' +
                 'text-decoration: none;' +
                 'margin: 12px 0;' +
@@ -108,11 +107,15 @@
             '#sefaria-title .he {' +
                 'text-align: center;' +
             '}' +
-            '.en {' +
+            '#sefaria-popup .en, #sefaria-popup .en * {' +
                 'font-family: "Crimson Text";' +
+                'font-size: 18px;' +
+                'line-height: 1.2;' +
             '}' +
-            '.he {' +
+            '#sefaria-popup .he, #sefaria-popup .he * {' +
                 'font-family: "Frank Ruhl Libre";' +
+                'font-size: 21px;' +
+                'line-height: 1.5;' +
             '}' +
             '.content-hebrew .sefaria-text .en {' +
                 'display: none;' +
@@ -371,6 +374,7 @@
 
         setupPopup(options, mode);
 
+        ns.matches = [];
         ns.elems = document.querySelectorAll(selector);
         ns.quotationOnly = options.quotationOnly;
         ns.parenthesesOnly = options.parenthesesOnly;

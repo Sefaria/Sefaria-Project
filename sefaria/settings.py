@@ -294,10 +294,10 @@ CACHES = {
         'LOCATION': '/var/tmp/django_cache',
     }
 }
-"""
+
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "sukkot-2020",
-    "style":      "banner", # "modal" or "banner"
+    "name":       "survey-2020",
+    "style":      "modal", # "modal" or "banner"
     "repetition": 1,
     "condition":  {
         "returning_only": True,
@@ -306,8 +306,8 @@ GLOBAL_INTERRUPTING_MESSAGE = {
         "debug": False,
     }
 }
-"""
-GLOBAL_INTERRUPTING_MESSAGE = None
+
+# GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab environment specific settings from a file which
 # is left out of the repo.

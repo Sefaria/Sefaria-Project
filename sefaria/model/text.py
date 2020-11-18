@@ -4541,7 +4541,7 @@ class Library(object):
             self._topic_toc_json = json.dumps(self.get_topic_toc_json_recursive())
         return self._topic_toc_json
 
-    def get_topic_toc_json_recursive(self, topic=None, explored=None):
+    def get_topic_toc_json_recursive(self, topic=None, explored=None, with_descriptions=False):
         from .topic import Topic, TopicSet, IntraTopicLinkSet
         explored = explored or set()
         if topic is None:
@@ -4557,6 +4557,10 @@ class Library(object):
                 "he": topic.get_primary_title("he"),
                 "displayOrder": getattr(topic, "displayOrder", 10000)
             }
+            if with_descriptions:
+                description = getattr(topic, "description", None)
+                if description is not None and getattr(topic, "description_published", False):
+                    topic_json['description'] = description
             explored.add(topic.slug)
         if len(children) > 0 or topic is None:  # make sure root gets children no matter what
             topic_json['children'] = []
@@ -4565,7 +4569,7 @@ class Library(object):
             if child_topic is None:
                 logger.warning("While building topic TOC, encountered non-existant topic slug: {}".format(child))
                 continue
-            topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored)]
+            topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored, with_descriptions)]
         if len(children) > 0:
             topic_json['children'].sort(key=lambda x: x['displayOrder'])
         if topic is None:
