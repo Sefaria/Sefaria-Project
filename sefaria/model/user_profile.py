@@ -283,9 +283,9 @@ class UserProfile(object):
                 return
 
         try:
-            if user_obj:
+            if user_obj and not isinstance(user_obj, AnonymousUser):
                 user = user_obj
-                id = user.id if not isinstance(user_obj, AnonymousUser) else 0 #can this be used to have profile methods work, but return empty data?
+                id = user.id
             elif email and not id:  # Load profile by email, if passed.
                 user = User.objects.get(email__iexact=email)
                 id = user.id
