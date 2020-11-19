@@ -314,7 +314,6 @@ class Header extends Component {
                         profileURL={Sefaria.profile_pic_url}
                         name={Sefaria.full_name}
                         notificationCount={Sefaria.notificationCount}
-                        key={"loggedin"+Sefaria._uid||0}
                       />
                       :
                       <LoggedOutButtons nextURL={encodeURIComponent(Sefaria.util.currentPath())} key={"anonymous"+Math.random()}/>
@@ -379,10 +378,10 @@ function LoggedOutButtons({nextURL}){
 function LoggedInButtons({profileURL, name, notificationCount}){
   const notificationsClasses = classNames({notifications: 1, unread: notificationCount > 0});
   return(
-      <div className="accountLinks" key={"account"+name+notificationCount+profileURL}>
+      <div className="accountLinks">
           <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses}>{notificationCount}</a>
           <a href="/my/profile" className="my-profile">
-            {<ProfilePic len={24} url={profileURL} name={name} />}
+            <ProfilePic len={24} url={profileURL} name={name} key={name} />
           </a>
        </div>
   );

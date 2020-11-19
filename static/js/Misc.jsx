@@ -178,6 +178,7 @@ class ProfilePic extends Component {
           style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}>
           { showButtons ? null : `${initials}` }
         </div>
+        { !!imageSrc ?
         <img
           className="img-circle profile-img"
           ref={this.imgFile}
@@ -186,7 +187,7 @@ class ProfilePic extends Component {
           alt="User Profile Picture"
           onLoad={this.setShowNonDefault}
           onError={this.setShowDefault}
-        />
+        /> : null}
         {this.props.children ? this.props.children : null /*required for slate.js*/}
         { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
             (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
