@@ -1,5 +1,5 @@
 # Descended from python3
-FROM gcr.io/production-deployment/pyre2:3e01eba
+FROM gcr.io/production-deployment/pyre2:20201028
 
 # Django Environment Variables
 ENV PYTHONUNBUFFERED 1
