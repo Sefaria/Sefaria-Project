@@ -2400,19 +2400,19 @@ class Ref(object, metaclass=RefCacheType):
             raise InputError("Couldn't understand ref '{}' (beginning or ending -)".format(self.tref))
 
         base = parts[0]
+        title = None
 
-        # Term name
+        tndict = library.get_title_node_dict(self._lang)
         termdict = library.get_term_dict(self._lang)
-        new_tref = termdict.get(base)
 
-        if new_tref:
-            # If a term is matched, reinit with the real tref
-            self.__reinit_tref(new_tref)
-            return
+        self.index_node = tndict.get(base)  # Match index node before term
+        if not self.index_node:
+            new_tref = termdict.get(base)   # Check if there's a term match, reinit w/ term
+            if new_tref:
+                self.__reinit_tref(new_tref)
+                return
 
         # Remove letter from end of base reference until TitleNode matched, set `title` variable with matched title
-        title = None
-        tndict = library.get_title_node_dict(self._lang)
         for l in range(len(base), 0, -1):
             self.index_node = tndict.get(base[0:l])
 

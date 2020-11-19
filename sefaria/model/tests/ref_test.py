@@ -580,6 +580,14 @@ class Test_term_refs(object):
         assert Ref("משפטים") == Ref("Exodus 21:1-24:18")
         assert Ref("Shemot") == Ref("Exodus")  # This behavior may change, if we spec it more carefully
 
+    def test_term_only(self):
+        with pytest.raises(InputError):
+            Ref("bo and then something")
+        with pytest.raises(InputError):
+            assert not Ref("botox")
+        with pytest.raises(InputError):
+            assert not Ref("משפטים ועוד")
+
 
 class Test_Ambiguous_Forms(object):
     def test_mishnah_check_first(self):
