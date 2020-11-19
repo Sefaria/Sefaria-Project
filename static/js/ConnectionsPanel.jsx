@@ -1386,10 +1386,6 @@ function ManuscriptImage(props) {
         ? <p className={"hebrew manuscriptCaptionHe"}>{`${manuscript.manuscript.he_title} ${manuscript['page_id']}`}</p>
         : <p className={"english manuscriptCaption"}>{`${manuscript.manuscript.title} ${manuscript.page_id}`}</p>
     }
-    {/*<p className={"manuscriptCaption"}>{*/}
-    {/*  (props.interfaceLang === 'hebrew') ? `${manuscript['manuscript']['he_title']} ${manuscript['page_id']}`*/}
-    {/*    : `${manuscript['manuscript']['title']} ${manuscript['page_id']}`*/}
-    {/*}</p>*/}
     <a className="fullSizeImageLink" href={manuscript['image_url']} target="_blank">{
       (props.interfaceLang === 'hebrew') ? 'לצפייה בגודל מלא' : 'Open Full Size Image'
     }</a>
