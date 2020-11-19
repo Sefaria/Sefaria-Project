@@ -10,8 +10,13 @@ import {
   ProfilePic,
   ToolTipped,
 } from './Misc';
+
+import {
+  MediaList
+} from './Media';
+
 import {  CategoryFilter,} from './ConnectionFilters';
-import React from 'react';
+import React,{useRef, useState, useEffect} from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
@@ -269,6 +274,7 @@ class ConnectionsPanel extends Component {
                   { this.state.flashMessage ?
                     <div className="flashMessage sans">{this.state.flashMessage}</div>
                     : null }
+                  <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
                   <ConnectionsSummary
                     srefs={this.props.srefs}
                     showBooks={false}
@@ -287,6 +293,7 @@ class ConnectionsPanel extends Component {
                     sheetsCount={Sefaria.sheets.sheetsTotalCount(this.props.srefs)}
                     notesCount={Sefaria.notesTotalCount(this.props.srefs)}
                     webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length}
+					          audioCount={Sefaria.mediaByRef(this.props.srefs).length}
                     topicsCount={Sefaria.topicsByRefCount(this.props.srefs)}
                     manuscriptsCount={Sefaria.manuscriptsByRef(this.props.srefs).length}
                   />
@@ -470,6 +477,12 @@ class ConnectionsPanel extends Component {
                     interfaceLang={this.props.interfaceLang}
                     key="WebPages"/>);
 
+	} else if (this.props.mode === "Audio" || this.props.mode === "Media") {
+      content = (<MediaList
+					          srefs={this.props.srefs}
+                    interfaceLang={this.props.interfaceLang}
+                    key="Media"/>);
+
     } else if (this.props.mode === "Tools") {
       content = (<ToolsList
                     srefs={this.props.srefs}
@@ -554,7 +567,7 @@ class ConnectionsPanel extends Component {
         contentLang={this.props.contentLang}
       />);
     }
-    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics"].indexOf(this.props.mode) != -1;
+    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics", "Audio"].indexOf(this.props.mode) != -1;
 
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
@@ -628,17 +641,17 @@ class ResourcesList extends Component {
                 <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
               : null }
               <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
-              <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} />
-              <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={this.props.topicsCount} onClick={() => this.props.setConnectionsMode("Topics")} />
+              {this.props.webpagesCount && this.props.webpagesCount > 0 ? <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} /> : null }
+              {this.props.topicsCount && this.props.topicsCount > 0 ? <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={this.props.topicsCount} onClick={() => this.props.setConnectionsMode("Topics")} /> : null }
               <ToolsButton en="Translations" he="תרגומים" image="layers.png" onClick={() => this.props.setConnectionsMode("Translations")} />
               <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
-              <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               {
                 this.props.manuscriptsCount ?
                   <ToolsButton en={"Manuscripts"} he={"כתבי יד"} image={"images.png"} count={this.props.manuscriptsCount} onClick={() => this.props.setConnectionsMode("manuscripts")}/>
                   : null
               }
+              {this.props.audioCount && this.props.audioCount > 0 ? <ToolsButton en="Torah Readings" he="קריאת בתורה " image="audio.svg" onClick={() => this.props.setConnectionsMode("Media")} /> : null }
               <ToolsButton en="Chavruta" he="חברותא" image="video.svg" onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Chavruta")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
@@ -935,7 +948,6 @@ WebPagesList.propTypes = {
   srefs: PropTypes.array.isRequired,
 };
 
-
 class ToolsList extends Component {
   render() {
     var editText  = this.props.canEditText ? function() {
@@ -1155,7 +1167,6 @@ class AddNoteBox extends Component {
     /* Leaving out public / private toggle until public notes are reintroduced
     <div className="noteSharingToggle">
       <div className={privateClasses} onClick={this.setPrivate}>
-
         <span className="int-en"><i className="fa fa-lock"></i> Private</span>
         <span className="int-he"><i className="fa fa-lock"></i>רשומה פרטית</span>
       </div>
@@ -1365,7 +1376,7 @@ AddConnectionBox.propTypes = {
   srefs:    PropTypes.array.isRequired,
   onSave:   PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired
-};
+}
 
 function ManuscriptImageList(props) {
   const content = props.manuscriptList.map(x => <ManuscriptImage
