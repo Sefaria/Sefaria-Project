@@ -1,1 +1,11 @@
-null
+{
+	"title": "",
+	"text": [
+		"Your opinion matters — Be a part of Sefaria's future!",
+		"Please take our user survey to help us understand your experience and improve our offerings.  You will receive a special thank you for your participation."
+  	],
+	"buttonLink": "https://www.surveymonkey.com/r/Sefaria2020mobile-EN",
+	"buttonText": "Take the Survey",
+	"name": "survey-2020",
+	"schemaVersion": 1
+}

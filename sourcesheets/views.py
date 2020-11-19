@@ -61,13 +61,8 @@ def new_sheet(request):
 		sheet = {
 				'status': 'unlisted',
 				'title': '',
-				'sources': [
-					{
-						"outsideText": "",
-						"node": 1,
-					}
-				],
-				'nextNode': 2,
+				'sources': [],
+				'nextNode': 1,
 				'options': {
 					'layout':    "stacked",
 					'boxed':  0,
