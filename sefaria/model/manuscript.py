@@ -55,7 +55,7 @@ class ManuscriptPage(AbstractMongoRecord):
     collection = 'manuscript_pages'
     required_attrs = [
         'manuscript_slug',
-        'page_id',  # manuscript_id & page_id must be unique
+        'page_id',  # manuscript_slug & page_id must be unique
         'image_url',
         'thumbnail_url',
         'contained_refs',  # list of section level (possibly ranged) refs

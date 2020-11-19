@@ -4759,6 +4759,48 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #999;
   text-decoration: underline;
 }
+.manuscriptImage {
+  width: 256px;
+}
+.manuscriptCaption {
+  font-family: "Adobe Garamond Pro", "sans-serif";
+  font-size: 18px;
+  line-height: 22px;
+}
+.manuscriptCaptionHe {
+  font-family: "Heebo", "sans-serif";
+  font-size: 18px;
+  line-height: 22px;
+}
+.fullSizeImageLink {
+  width: 292px;
+  height: 23px;
+  left: 830px;
+  top: 367px;
+
+  font-family: "Roboto", "sans-serif";
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 15px;
+  color: #999999
+}
+.manuscript {
+  border-bottom: 1px solid #DDDDDD;
+  margin: 2rem;
+  padding-bottom: 1rem;
+}
+/*.manuscriptBorder {*/
+/*  border: 1px solid #dddddd;*/
+/*  position: absolute;*/
+/*  width: 292px;*/
+/*  height: 0px;*/
+/*  left: 830px;*/
+/*  top: 409px;*/
+/*}*/
+.manuscriptList :last-child {
+  border-bottom: 0px solid red;
+}
 .textList.marginless .webpageList.empty .loadingMessage {
   margin: 50px 40px;
 }

@@ -1965,6 +1965,7 @@ def related_api(request, tref):
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
             "topics": get_topics_for_ref(tref, annotate=True),
+            "manuscripts": ManuscriptPageSet.load_set_for_client(tref)
         }
     return jsonResponse(response, callback=request.GET.get("callback", None))
 

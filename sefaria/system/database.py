@@ -120,7 +120,10 @@ def ensure_indices(active_db=None):
         ('trend', ["uid"],{}),
         ('webpages', ["refs"],{}),
         ('webpages', ["expandedRefs"],{}),
-        ('manuscript_pages', ['expanded_refs'], {})
+        ('manuscript_pages', ['expanded_refs'], {}),
+        ('manuscript_pages', [[("manuscript_slug", pymongo.ASCENDING), ("page_id", pymongo.ASCENDING)]], {'unique': True}),
+        ('manuscripts', ['slug'], {}),
+        ('manuscripts', ['title'], {}),
     ]
 
     for col, args, kwargs in indices:

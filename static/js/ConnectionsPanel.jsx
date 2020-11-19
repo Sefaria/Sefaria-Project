@@ -288,6 +288,7 @@ class ConnectionsPanel extends Component {
                     notesCount={Sefaria.notesTotalCount(this.props.srefs)}
                     webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length}
                     topicsCount={Sefaria.topicsByRefCount(this.props.srefs)}
+                    manuscriptsCount={Sefaria.manuscriptsByRef(this.props.srefs).length}
                   />
                   </div>);
 
@@ -546,6 +547,12 @@ class ConnectionsPanel extends Component {
       content = (<ExtendedNotes
                   currVersions={this.props.currVersions}
                   title={this.props.title}/>);
+    } else if (this.props.mode === "manuscripts") {
+      content = (<ManuscriptImageList
+        manuscriptList={Sefaria.manuscriptsByRef(this.props.srefs)}
+        interfaceLang={this.props.interfaceLang}
+        contentLang={this.props.contentLang}
+      />);
     }
     var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics"].indexOf(this.props.mode) != -1;
 
@@ -627,6 +634,11 @@ class ResourcesList extends Component {
               <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
+              {
+                this.props.manuscriptsCount ?
+                  <ToolsButton en={"Manuscripts"} he={"כתבי יד"} image={"images.png"} count={this.props.manuscriptsCount} onClick={() => this.props.setConnectionsMode("manuscripts")}/>
+                  : null
+              }
               <ToolsButton en="Chavruta" he="חברותא" image="video.svg" onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Chavruta")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
@@ -1353,6 +1365,48 @@ AddConnectionBox.propTypes = {
   srefs:    PropTypes.array.isRequired,
   onSave:   PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired
+};
+
+function ManuscriptImageList(props) {
+  const content = props.manuscriptList.map(x => <ManuscriptImage
+    manuscript={x}
+    interfaceLang={props.interfaceLang}
+    contentLang={props.contentLang}
+    key={`${x['manuscript_slug']}-${x['page_id']}`}
+  /> );
+  return <div className={"manuscriptList"}>{content}</div>
+}
+
+function ManuscriptImage(props) {
+  let manuscript = props.manuscript;
+  return <div className={"manuscript"} >
+    <img className={"manuscriptImage"} src={manuscript["thumbnail_url"]} alt={"Ancient Manuscript"}/>
+    {
+      (props.interfaceLang === 'hebrew')
+        ? <p className={"hebrew manuscriptCaptionHe"}>{`${manuscript.manuscript.he_title} ${manuscript['page_id']}`}</p>
+        : <p className={"english manuscriptCaption"}>{`${manuscript.manuscript.title} ${manuscript.page_id}`}</p>
+    }
+    {/*<p className={"manuscriptCaption"}>{*/}
+    {/*  (props.interfaceLang === 'hebrew') ? `${manuscript['manuscript']['he_title']} ${manuscript['page_id']}`*/}
+    {/*    : `${manuscript['manuscript']['title']} ${manuscript['page_id']}`*/}
+    {/*}</p>*/}
+    <a className="fullSizeImageLink" href={manuscript['image_url']} target="_blank">{
+      (props.interfaceLang === 'hebrew') ? 'לצפייה בגודל מלא' : 'Open Full Size Image'
+    }</a>
+
+  </div>
+}
+
+ManuscriptImage.propTypes = {
+  manuscript: PropTypes.object.isRequired,
+  interfaceLang: PropTypes.string.isRequired,
+  contentLang: PropTypes.string.isRequired,
+};
+
+ManuscriptImageList.propTypes = {
+  manuscriptList: PropTypes.array.isRequired,
+  interfaceLang: PropTypes.string.isRequired,
+  contentLang: PropTypes.string.isRequired,
 };
 
 export {

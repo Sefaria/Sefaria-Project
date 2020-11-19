@@ -1322,6 +1322,17 @@ Sefaria = extend(Sefaria, {
        this.relatedApi(ref, callback);
     }
   },
+  _manuscripts: {},
+  manuscriptsByRef: function(refs) {
+    refs = typeof refs === "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
+    let manuscriptPages = [];
+    refs.forEach(r => {
+      if (this._manuscripts[r]) {
+        manuscriptPages = manuscriptPages.concat(this._manuscripts[r]);
+      }
+    })
+    return manuscriptPages
+  },
   relatedApi: function(ref, callback) {
     var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "?with_sheet_links=1";
     return this._api(url, data => {
@@ -1337,6 +1348,7 @@ Sefaria = extend(Sefaria, {
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
           topics: this._saveTopicByRef(ref, data.topics || []),
+          manuscripts: this._saveItemsByRef(data.manuscripts, this._manuscripts)
       };
 
        // Build split related data from individual split data arrays
