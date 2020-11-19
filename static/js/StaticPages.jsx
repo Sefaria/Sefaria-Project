@@ -582,7 +582,7 @@ const PBSC2020LandingPage = () => (
 
         <Feature
             enTitle="Talmud Sidebar Extension"
-            enText="By Dov Katz<br/><br/>The Talmud Sidebar Extension brings Sefaria’s learning resources to Daf Yomi sites across the web. Created in response to the move to Zoom for Daf Yomi classes the world over in the wake of COVID-19, the extension recognizes what daf you’re learning or listening to on nearly a dozen Daf Yomi sites, and enables a sidebar to see connections from Sefaria’s library, or link straight back to Sefaria."
+            enText="By Dov Katz<br/><br/>The Talmud Sidebar Extension brings Sefaria’s learning resources to Daf Yomi sites across the web. Created in response to the move to Zoom for Daf Yomi classes the world over in the wake of COVID-19, the extension recognizes what daf you’re learning or listening to on nearly a dozen Daf Yomi sites. It then enables a sidebar to see connections from Sefaria’s library or link straight back to Sefaria."
             enImg="/static/img/pbsc-2020-landing-page/talmudsidebar.png"
             enImgAlt="Talmud Sidebar Extension"
             heTitle=""
@@ -624,7 +624,7 @@ const PBSC2020LandingPage = () => (
         <GreyBox>
             <H2Block en="Meet the Youth Prize Winners" he=""/>
             <EnBlock padded={true}>
-                <p>Mizmor Shir was created by three college students – Simon Landau, a junior at USC majoring in Computer Science; Immanuel Bissel, a rising sophomore at Yale majoring in Earth and Planetary Science; and Ben Kotton, also a rising Sophomore at Yale, majoring in applied mathematics. Friends from a childhood shared in Los Angeles, all three are avid music lovers – Simon plays both orchestral bass as well as guitar in a three-piece band, Emmanuel the guitar, and Ben the Mandolin. It was this love that got them excited to respond to Sefaria’s PBS challenge with an idea that combined music with Torah and harnessed the power of technology to reveal the beauty of each in new ways.</p>
+                <p>Mizmor Shir was created by three college students – Simon Landau, a junior at USC majoring in Computer Science; Immanuel Bissel, a rising sophomore at Yale majoring in Earth and Planetary Science; and Ben Kotton, also a rising Sophomore at Yale, majoring in applied mathematics. Friends from a childhood shared in Los Angeles, all three are avid music lovers – Simon plays both orchestral bass as well as guitar in a three-piece band, Emmanuel the guitar, and Ben the mandolin. It was this love that got them excited to respond to Sefaria’s PBS challenge with an idea that combined music with Torah and harnessed the power of technology to reveal the beauty of each in new ways.</p>
             </EnBlock>
             <HeBlock padded={true}>
                 <p></p>
@@ -638,21 +638,21 @@ const PBSC2020LandingPage = () => (
             <UserQuote
                 enText="It was very exciting to see all of the creative applications to the Powered by Sefaria Contest. There was such a wide range of ideas, truly displaying the power of Sefaria to engage a range of audiences. At the core of all of the ideas was creating innovative ways to allow more people to engage with text in a deeper way, from bringing the text to life through interactive museums to creating additional features and ease for the toolbar and the Sefaria browsing experience.<br/><br/>Many of the ideas are very promising and I hope the contestants continue to explore their ideas and bring their passion to life. Thanks to Sefaria for creating such an accessible and open platform to allow for such a meaningful and collaborative competition."
                 heText=""
-                enName="Libby Novak, Chief Operations Officer, Maapilim; Sefaria advisory board member"
+                enName="Libby Novak, <i>Chief Operations Officer, Maapilim; Sefaria advisory board member</i>"
                 heName=""
                 image="/static/img/pbsc-2020-landing-page/libby.png"
             />
             <UserQuote
                 enText="Each of the top projects that I looked into were intriguing and useful.The Sidebar extension won deservedly because it is so obviously helpful for increasing Sefaria's efficiency. But I greatly admired the cleverness of the Shulkhan tool, the mathematical sophistication of the Sefer Similarity Map, and the ingenuity and resourcefulness of all the submissions."
                 heText=""
-                enName="Moshe Koppel, Professor of Computer Science at Bar-Ilan University; Founder of DICTA, a laboratory creating computational linguistics tools for the analysis of Jewish and Hebrew texts"
+                enName="Moshe Koppel, <i>Professor of Computer Science at Bar-Ilan University; Founder of DICTA, a laboratory creating computational linguistics tools for the analysis of Jewish and Hebrew texts</i>"
                 heName=""
                 image="/static/img/pbsc-2020-landing-page/moshe.png"
             />
             <UserQuote
                 enText="I was incredibly impressed by the submissions to the Powered by Sefaria contest. When Sefaria started, we could not have imagined the level of technical talent that would be applied to enhancing Sefaria's texts and platform. The submissions to the contest were both interesting and often quite practical, many adding useful features on top of Sefaria's existing platform. I was especially excited to see such wonderful energy from our younger supporters who brought creativity and vision to the contest. Congratulations to all the submitters!"
                 heText=""
-                enName="Mo Koyfman, Founder of early-stage venture capital firm, Shine Capital; founding Sefaria board member"
+                enName="Mo Koyfman, <i>Founder of early-stage venture capital firm, Shine Capital; founding Sefaria board member</i>"
                 heName=""
                 image="/static/img/pbsc-2020-landing-page/mo.png"
             />
@@ -887,7 +887,6 @@ const PBSC2020LandingPage = () => (
                 ["Abba Saul", "", "https://github.com/scopreon/abba-saul/"],
                 ["Amud-anan", "", "https://github.com/Binyomin-Cohen/sefaria"],
                 ["Bashamayim Hi", "", "https://yosefsklar.github.io/bashamayim-hi/"],
-                ["Chiddushim and Biurim", "", " https://torah.yiddishe-kop.com/"],
                 ["Daily Daf Tracker", "", "https://mattpolanieckidev.github.io/dailydaf/"],
                 ["I’m Learning Lucky", "", "https://github.com/jmcaplan/sefariaExtension"],
                 ["Jew And A", "", "https://seph-efd35.web.app/"],
@@ -899,8 +898,9 @@ const PBSC2020LandingPage = () => (
                 ["Quran Tanakh Kabbalah Project", "", "https://bref-saucisson-56522.herokuapp.com/"],
                 ["RecurrentRav", "", "https://github.com/leerosenthalj/RecurrentRav"],
                 ["Scribe", "", "https://www.youtube.com/watch?v=BkCKrLf6pvk&feature=youtu.be"],
-                ["Shelita", "", "https://www.sheilta.ml/"],
+                ["Sheilta", "", "https://www.sheilta.ml/"],
                 ["Talmud Note", "", "https://play.google.com/store/apps/details?id=com.graytapps.talmudnote"],
+                ["Talmudoi Beyodoi", "", " https://torah.yiddishe-kop.com/"],
                 ["The Jewish Story Through Books", "", "https://joshcooper417.github.io/"],
                 ["Torah for the Blind", "", "https://torahfortheblind.com/"],
                 ["Tweet Yomi", "", "https://tweetyomi.org/"],
@@ -981,8 +981,8 @@ const UserQuote = ({enText, heText, image, enName, heName}) =>
         <div className="staticPageUserQuoteNameBox">
             <img src={image} />
             <div className="staticPageUserQuoteName">
-                <span className="int-en">{enName}</span>
-                <span className="int-he">{heName}</span>
+                <span className="int-en" dangerouslySetInnerHTML={{__html:enName}} />
+                <span className="int-he" dangerouslySetInnerHTML={{__html:heName}} />
             </div>
         </div>
     </div>;
