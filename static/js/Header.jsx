@@ -5,7 +5,7 @@ import {
   ProfilePic,
   InterfaceLanguageMenu,
 } from './Misc';
-import React  from 'react';
+import React, { useState, useEffect, useRef} from 'react';
 import PropTypes  from 'prop-types';
 import ReactDOM  from 'react-dom';
 import classNames  from 'classnames';
@@ -279,26 +279,9 @@ class Header extends Component {
                           toggleSignUpModal={this.props.toggleSignUpModal}
                         />) : null;
 
-
-    var notificationsClasses = classNames({notifications: 1, unread: Sefaria.notificationCount > 0});
-    var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
-    var headerMessage = this.props.headerMessage ?
+    const headerMessage = this.props.headerMessage ?
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
-    var loggedInLinks  = (<div className="accountLinks">
-                            <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses}>{Sefaria.notificationCount}</a>
-                            <a href="/my/profile" className="my-profile"><ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></a>
-                         </div>);
-    var loggedOutLinks = (<div className="accountLinks anon">
-                          <a className="login loginLink" href={"/login" + nextParam}>
-                             <span className="int-en">Log in</span>
-                             <span className="int-he">התחבר</span>
-                           </a>
-                           <a className="login signupLink" href={"/register" + nextParam}>
-                             <span className="int-en">Sign up</span>
-                             <span className="int-he">הרשם</span>
-                           </a>
-                         </div>);
     // Header should not show box-shadow over panels that have color line
     const hasColorLine = ["sheets", "sheets meta"];
     const hasBoxShadow = (!!this.state.menuOpen && hasColorLine.indexOf(this.state.menuOpen) === -1);
@@ -326,7 +309,16 @@ class Header extends Component {
                 </div>
                 <div className="headerLinksSection">
                   { headerMessage }
-                  { Sefaria._uid ? loggedInLinks : loggedOutLinks }
+                  { Sefaria._uid ?
+                      <LoggedInButtons
+                        profileURL={Sefaria.profile_pic_url}
+                        name={Sefaria.full_name}
+                        notificationCount={Sefaria.notificationCount}
+                        key={"loggedin"+Sefaria._uid||0}
+                      />
+                      :
+                      <LoggedOutButtons nextURL={encodeURIComponent(Sefaria.util.currentPath())} key={"anonymous"+Math.random()}/>
+                  }
                   { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
                 </div>
               </div>
@@ -363,5 +355,38 @@ Header.propTypes = {
   toggleSignUpModal:           PropTypes.func.isRequired,
 };
 
+function LoggedOutButtons({nextURL}){
+  const [loginLink, setLoginLink] = useState("/login?next="+nextURL);
+  const [registerLink, setRegisterLink] = useState("/register?next="+nextURL);
+  const wrapperRef = useRef(null);
+  useEffect(() => {
+    setLoginLink("/login?next="+nextURL);
+    setRegisterLink("/register?next="+nextURL);
+  }, [nextURL]);
+  return(
+    <div className="accountLinks anon"  ref={wrapperRef} key={"anonymous-user-"+nextURL}>
+      <a className="login loginLink" href={loginLink} key={loginLink}>
+         <span className="int-en">Log in</span>
+         <span className="int-he">התחבר</span>
+       </a>
+      <a className="login signupLink" href={registerLink} key={registerLink}>
+         <span className="int-en">Sign up</span>
+         <span className="int-he">הרשם</span>
+      </a>
+    </div>
+  );
+}
+
+function LoggedInButtons({profileURL, name, notificationCount}){
+  const notificationsClasses = classNames({notifications: 1, unread: notificationCount > 0});
+  return(
+      <div className="accountLinks" key={"account"+name+notificationCount+profileURL}>
+          <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses}>{notificationCount}</a>
+          <a href="/my/profile" className="my-profile">
+            {<ProfilePic len={24} url={profileURL} name={name} />}
+          </a>
+       </div>
+  );
+}
 
 export default Header;
