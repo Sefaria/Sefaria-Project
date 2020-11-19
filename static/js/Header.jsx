@@ -358,18 +358,17 @@ Header.propTypes = {
 function LoggedOutButtons({nextURL}){
   const [loginLink, setLoginLink] = useState("/login?next="+nextURL);
   const [registerLink, setRegisterLink] = useState("/register?next="+nextURL);
-  const wrapperRef = useRef(null);
   useEffect(() => {
     setLoginLink("/login?next="+nextURL);
     setRegisterLink("/register?next="+nextURL);
   }, [nextURL]);
   return(
-    <div className="accountLinks anon"  ref={wrapperRef} key={"anonymous-user-"+nextURL}>
-      <a className="login loginLink" href={loginLink} key={loginLink}>
+    <div className="accountLinks anon">
+      <a className="login loginLink" href={loginLink}>
          <span className="int-en">Log in</span>
          <span className="int-he">התחבר</span>
        </a>
-      <a className="login signupLink" href={registerLink} key={registerLink}>
+      <a className="login signupLink" href={registerLink}>
          <span className="int-en">Sign up</span>
          <span className="int-he">הרשם</span>
       </a>
