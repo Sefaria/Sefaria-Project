@@ -156,8 +156,8 @@ def header_html(request):
                                                                                              "_siteSettings": SITE_SETTINGS})
         LOGGED_OUT_HEADER = "" if "appLoading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
         LOGGED_IN_HEADER = "" if "appLoading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
-        #HEADER['logged_out'][lang] = LOGGED_OUT_HEADER
-        #HEADER['logged_in'][lang] = LOGGED_IN_HEADER
+        HEADER['logged_out'][lang] = LOGGED_OUT_HEADER
+        HEADER['logged_in'][lang] = LOGGED_IN_HEADER
     else:
         LOGGED_OUT_HEADER = ""
         LOGGED_IN_HEADER = ""
