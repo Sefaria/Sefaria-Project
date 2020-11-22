@@ -456,6 +456,7 @@ class ConnectionsPanel extends Component {
       content = (<LexiconBox
                     selectedWords={this.props.selectedWords}
                     selectedNamedEntity={this.props.selectedNamedEntity}
+                    selectedNamedEntityText={this.props.selectedNamedEntityText}
                     oref={Sefaria.ref(this.props.srefs[0])}
                     onEntryClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
@@ -618,6 +619,7 @@ ConnectionsPanel.propTypes = {
   toggleLanguage:          PropTypes.func,
   selectedWords:           PropTypes.string,
   selectedNamedEntity:     PropTypes.string,
+  selectedNamedEntityText: PropTypes.string,
   interfaceLang:           PropTypes.string,
   contentLang:             PropTypes.string,
   getLicenseMap:           PropTypes.func.isRequired,

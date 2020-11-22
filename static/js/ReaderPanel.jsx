@@ -108,6 +108,7 @@ class ReaderPanel extends Component {
       }),
       selectedWords:        "",
       selectedNamedEntity:  null,
+      selectedNamedEntityText: null,
       displaySettingsOpen:  false,
       tagSort: "count",
       mySheetSort: "date",
@@ -804,6 +805,7 @@ class ReaderPanel extends Component {
           closePanel={this.props.closePanel}
           selectedWords={this.state.selectedWords}
           selectedNamedEntity={this.state.selectedNamedEntity}
+          selectedNamedEntityText={this.state.selectedNamedEntityText}
           clearSelectedWords={this.clearSelectedWords}
           clearNamedEntity={this.props.clearNamedEntity}
           getLicenseMap={this.props.getLicenseMap}

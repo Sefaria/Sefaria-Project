@@ -486,7 +486,7 @@ class TextSegment extends Component {
       //Click of named entity
       event.preventDefault();
       let topicSlug = $(event.target).attr("data-slug");
-      this.props.onNamedEntityClick(topicSlug, this.props.sref);
+      this.props.onNamedEntityClick(topicSlug, this.props.sref, event.target.innerText);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Named Entity Link Click", topicSlug);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {

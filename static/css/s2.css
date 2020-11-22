@@ -5840,6 +5840,11 @@ a .button:hover {
   display: flex;
   flex-direction: column;
 }
+.named-entity-wrapper + .named-entity-wrapper {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: solid 1px #ccc;
+}
 .readerPanel.english .named-entity-wrapper {
   direction: ltr;
 }

@@ -902,6 +902,7 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: state.initialAnalyticsTracked || false,
       selectedWords:           state.selectedWords           || "",
       selectedNamedEntity:     state.selectedNamedEntity     || null,
+      selectedNamedEntityText: state.selectedNamedEntityText || null,
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
     };
@@ -1024,15 +1025,15 @@ class ReaderApp extends Component {
     this.setTextListHighlight(n, [textRef]);
     this.openPanelAt(n, citationRef);
   }
-  handleNamedEntityClick(n, slug, textRef) {
+  handleNamedEntityClick(n, slug, textRef, namedEntityText) {
     //this.setTextListHighlight(n, [textRef]);
-    this.openTextListAt(n+1, [textRef], null, { connectionsMode: "Lexicon", selectedNamedEntity: slug });
+    this.openTextListAt(n+1, [textRef], null, { connectionsMode: "Lexicon", selectedNamedEntity: slug, selectedNamedEntityText: namedEntityText });
   }
   clearSelectedWords(n) {
     this.setPanelState(n, {selectedWords: ""});
   }
   clearNamedEntity(n) {
-    this.setPanelState(n, {selectedNamedEntity: null});
+    this.setPanelState(n, {selectedNamedEntity: null, selectedNamedEntityText: null});
   }
   handleCompareSearchClick(n, ref, currVersions, options) {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
