@@ -43,7 +43,7 @@ socket.on('created', function(room) {
   // are received by the original client. This code runs every 7.5 seconds to make sure the room still exists and
   // prevents a user from getting stuck in a room that no one would join
   setInterval(function(){
-    socket.emit('does room exist', clientRoom);
+    socket.emit('does room exist', clientRoom, {{ client_uid }});
     }, 7500);
 });
 
