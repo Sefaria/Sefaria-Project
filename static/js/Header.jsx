@@ -310,11 +310,7 @@ class Header extends Component {
                 <div className="headerLinksSection">
                   { headerMessage }
                   { Sefaria._uid ?
-                      <LoggedInButtons
-                        profileURL={Sefaria.profile_pic_url}
-                        name={Sefaria.full_name}
-                        notificationCount={Sefaria.notificationCount}
-                      />
+                      <LoggedInButtons/>
                       :
                       <LoggedOutButtons />
                   }
@@ -383,13 +379,13 @@ function LoggedOutButtons(){
   );
 }
 
-function LoggedInButtons({profileURL, name, notificationCount}){
-  const notificationsClasses = classNames({notifications: 1, unread: notificationCount > 0});
+function LoggedInButtons(){
+  const notificationsClasses = classNames({notifications: 1, unread: Sefaria.notificationCount > 0});
   return(
       <div className="accountLinks">
-          <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses}>{notificationCount}</a>
+          <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses}>{Sefaria.notificationCount}</a>
           <a href="/my/profile" className="my-profile">
-            <ProfilePic len={24} url={profileURL} name={name} key={name} />
+            <ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={Sefaria.full_name} />
           </a>
        </div>
   );
