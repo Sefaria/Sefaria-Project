@@ -890,9 +890,10 @@ def texts_list(request):
 @login_required
 def saved(request):
     props = base_props(request)
-    props.update({
-        "saved": UserProfile(user_obj=request.user).get_user_history(saved=True, secondary=False, serialized=True)
-    })
+    if request.user.is_authenticated:
+        props.update({
+            "saved": UserProfile(user_obj=request.user).get_user_history(saved=True, secondary=False, serialized=True)
+        })
     title = _("My Saved Content")
     desc = _("See your saved content on Sefaria")
     return menu_page(request, props, "saved", title, desc)
@@ -900,8 +901,12 @@ def saved(request):
 
 def user_history(request):
     props = base_props(request)
+    if request.user.is_authenticated:
+        uhistory = UserProfile(user_obj=request.user).get_user_history(secondary=False, serialized=True)
+    else:
+        uhistory = _get_anonymous_user_history(request)
     props.update({
-        "userHistory": UserProfile(user_obj=request.user).get_user_history(secondary=False, serialized=True)
+        "userHistory": uhistory
     })
     title = _("My User History")
     desc = _("See your user history on Sefaria")
@@ -3570,6 +3575,12 @@ def saved_history_for_ref(request):
         return jsonResponse(UserHistory.get_user_history(oref=oref, saved=True, serialized=True))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+def _get_anonymous_user_history(request):
+    import urllib.parse
+    recents = json.loads(urllib.parse.unquote(request.COOKIES.get("recentlyViewed", '[]')))  # for backwards compat
+    recents = UserProfile.transformOldRecents(None, recents)
+    history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
+    return recents+history
 
 def profile_get_user_history(request):
     """
@@ -3580,11 +3591,7 @@ def profile_get_user_history(request):
     """
     if request.method == "GET":
         if not request.user.is_authenticated:
-            import urllib.parse
-            recents = json.loads(urllib.parse.unquote(request.COOKIES.get("recentlyViewed", '[]')))  # for backwards compat
-            recents = UserProfile.transformOldRecents(None, recents)
-            history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
-            return jsonResponse(history + recents)
+            return jsonResponse(_get_anonymous_user_history(request))
         else:
             saved, secondary, last_place, oref = get_url_params_user_history(request)
             user = UserProfile(id=request.user.id)
