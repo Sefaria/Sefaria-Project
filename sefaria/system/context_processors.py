@@ -160,7 +160,7 @@ def header_html(request):
     }
 
 
-FOOTER = None
+FOOTER = {'english': None, 'hebrew': None}
 @user_only
 def footer_html(request):
     from sefaria.site.site_settings import SITE_SETTINGS
@@ -168,12 +168,13 @@ def footer_html(request):
         return {}
     global FOOTER
     if USE_NODE:
-        FOOTER = FOOTER or render_react_component("Footer", {"interfaceLang": request.interfaceLang, "_siteSettings": SITE_SETTINGS})
-        FOOTER = "" if "appLoading" in FOOTER else FOOTER
+        lang = request.interfaceLang
+        FOOTER[lang] = FOOTER[lang] or render_react_component("Footer", {"interfaceLang": request.interfaceLang, "_siteSettings": SITE_SETTINGS})
+        FOOTER[lang] = "" if "appLoading" in FOOTER[lang] else FOOTER[lang]
     else:
-        FOOTER = ""
+        FOOTER[lang] = ""
     return {
-        "footer": FOOTER
+        "footer": FOOTER[lang]
     }
 
 @user_only
