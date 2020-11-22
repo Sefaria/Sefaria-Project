@@ -19,7 +19,7 @@ var DJANGO_DATA_VARS = {
   saved:                {{ saved|jsonify }},
   slug:                 "{{ slug|default:'' }}",
   full_name:            "{{ full_name|escape_quotes|default:'' }}",
-  following:            {{ following|default:'[]' }},
+  following:            {{ following|jsonify|default:'[]' }},
   profile_pic_url:      "{{ profile_pic_url|default:'' }}",
   last_place:           {{ last_place|jsonify}},
   following:            {{ following|default:'[]' }},
