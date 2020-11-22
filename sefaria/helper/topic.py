@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_topic(topic, with_links, annotate_links, with_refs, group_related, annotate_time_period):
+def get_topic(topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters):
     topic_obj = Topic.init(topic)
     response = topic_obj.contents(annotate_time_period=annotate_time_period)
     response['primaryTitle'] = {
@@ -30,12 +30,13 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related, annot
         # can load faster by querying `topic_links` query just once
         all_links = topic_obj.link_set(_class=None)
         intra_links = [l.contents() for l in all_links if isinstance(l, IntraTopicLink)]
-        response['refs'] = [l.contents() for l in all_links if isinstance(l, RefTopicLink)]
+        response['refs'] = [l.contents() for l in all_links if isinstance(l, RefTopicLink) and (len(ref_link_type_filters) == 0 or l.linkType in ref_link_type_filters)]
     else:
         if with_links:
             intra_links = [l.contents() for l in topic_obj.link_set(_class='intraTopic')]
         if with_refs:
-            response['refs'] = [l.contents() for l in topic_obj.link_set(_class='refTopic')]
+            query_kwargs = {"linkType": {"$in": list(ref_link_type_filters)}} if len(ref_link_type_filters) > 0 else None
+            response['refs'] = [l.contents() for l in topic_obj.link_set(_class='refTopic', query_kwargs=query_kwargs)]
     if with_links:
         response['links'] = {}
         link_dups_by_type = defaultdict(set)  # duplicates can crop up when group_related is true

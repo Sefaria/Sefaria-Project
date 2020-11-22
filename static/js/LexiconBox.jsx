@@ -71,7 +71,13 @@ class LexiconBox extends Component {
   }
 
   getNamedEntity(slug) {
-    Sefaria.getTopic(slug, false, false, false, false, true).then(data => {
+    Sefaria.getTopic(slug, {
+      with_links: false,
+      annotate_links: false,
+      with_refs: false,
+      group_related: false,
+      annotate_time_period: true,
+    }).then(data => {
       this.setState({
         loaded: true,
         namedEntity: data,

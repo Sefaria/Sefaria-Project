@@ -3049,8 +3049,8 @@ def topics_api(request, topic):
     group_related = bool(int(request.GET.get("group_related", False)))
     with_refs = bool(int(request.GET.get("with_refs", False)))
     annotate_time_period = bool(int(request.GET.get("annotate_time_period", False)))
-
-    response = get_topic(topic, with_links, annotate_links, with_refs, group_related, annotate_time_period)
+    ref_link_type_filters = set(filter(lambda x: len(x) > 0, request.GET.get("ref_link_type_filters", "").split("|")))
+    response = get_topic(topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters)
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
