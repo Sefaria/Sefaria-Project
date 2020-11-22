@@ -380,12 +380,16 @@ function LoggedOutButtons(){
 }
 
 function LoggedInButtons(){
-  const notificationsClasses = classNames({notifications: 1, unread: Sefaria.notificationCount > 0});
+  const [isClient, setIsClient] = useState(false);
+  useEffect(()=>{
+    setIsClient(true);
+  }, []);
+  const notificationsClasses = classNames({notifications: 1, unread: isClient && Sefaria.notificationCount > 0});
   return(
       <div className="accountLinks">
-          <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses}>{Sefaria.notificationCount}</a>
+          <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${isClient}`} className={notificationsClasses}>{Sefaria.notificationCount}</a>
           <a href="/my/profile" className="my-profile">
-            <ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={Sefaria.full_name} />
+            <ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`${Sefaria.full_name}-C-${isClient}`} />
           </a>
        </div>
   );
