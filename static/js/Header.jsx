@@ -316,7 +316,7 @@ class Header extends Component {
                         notificationCount={Sefaria.notificationCount}
                       />
                       :
-                      <LoggedOutButtons nextURL={encodeURIComponent(Sefaria.util.currentPath())} key={"anonymous"+Math.random()}/>
+                      <LoggedOutButtons />
                   }
                   { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
                 </div>
@@ -354,20 +354,28 @@ Header.propTypes = {
   toggleSignUpModal:           PropTypes.func.isRequired,
 };
 
-function LoggedOutButtons({nextURL}){
-  const [loginLink, setLoginLink] = useState("/login?next="+nextURL);
-  const [registerLink, setRegisterLink] = useState("/register?next="+nextURL);
-  useEffect(() => {
-    setLoginLink("/login?next="+nextURL);
-    setRegisterLink("/register?next="+nextURL);
-  }, [nextURL]);
+function LoggedOutButtons(){
+  const [isClient, setIsClient] = useState(false);
+  const [next, setNext] = useState("/");
+  const [loginLink, setLoginLink] = useState("/login?next=/");
+  const [registerLink, setRegisterLink] = useState("/register?next=/");
+  useEffect(()=>{
+    setIsClient(true);
+  }, []);
+  useEffect(()=> {
+    if(isClient){
+      setNext(encodeURIComponent(Sefaria.util.currentPath()));
+      setLoginLink("/login?next="+next);
+      setRegisterLink("/register?next="+next);
+    }
+  })
   return(
     <div className="accountLinks anon">
-      <a className="login loginLink" href={loginLink}>
+      <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
          <span className="int-en">Log in</span>
          <span className="int-he">התחבר</span>
        </a>
-      <a className="login signupLink" href={registerLink}>
+      <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
          <span className="int-en">Sign up</span>
          <span className="int-he">הרשם</span>
       </a>

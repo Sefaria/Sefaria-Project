@@ -29,7 +29,7 @@ letter_scope = "\u05b0\u05b1\u05b2\u05b3\u05b4\u05b5\u05b6\u05b7\u05b8\u05b9\u05
             + "\u05e0\u05e1\u05e2\u05e3\u05e4\u05e5\u05e6\u05e7\u05e8\u05e9\u05ea" \
             + "\u05f3\u05f4" \
             + "\u200e\u200f\u2013\u201d\ufeff" \
-            + " abcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*()'&?/\""
+            + " abcdefghijklmnopqrstuvwxyz1234567890[]`:;.-,*$()'&?/\""
 
 
 def normalizer(lang):
@@ -279,7 +279,7 @@ class Completions(object):
                 try:
                     all_v = self.auto_completer.title_trie[k]
                 except KeyError:
-                    pass
+                    all_v = []
                 added_to_completions = False
                 for v in all_v:
                     if (v["type"], v["key"]) not in self.keys_covered:
