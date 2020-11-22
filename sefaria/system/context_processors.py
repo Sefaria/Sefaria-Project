@@ -30,7 +30,7 @@ def data_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        if (request.path in ("/data.js", "/sefaria.js", "/texts") or
+        if (request.path in ("/data.js", "/sefaria.js") or
               request.path.startswith("/sheets/")):
             return view(request)
         else:
