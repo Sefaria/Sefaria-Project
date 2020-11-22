@@ -295,7 +295,7 @@ CACHES = {
         'LOCATION': '/var/tmp/django_cache',
     }
 }
-"""
+
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "survey-2020",
     "style":      "modal", # "modal" or "banner"
