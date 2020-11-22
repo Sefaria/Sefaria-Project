@@ -84,9 +84,9 @@ def large_data(request):
     }
 
 
-@user_only
-def body_flags(request):
-    return {"EMBED": "embed" in request.GET}
+@data_only
+def calendar_links(request):
+    return {"calendars": json.dumps(calendars.get_todays_calendar_items(**_get_user_calendar_params(request)))}
 
 
 @data_only
@@ -176,7 +176,6 @@ def footer_html(request):
         "footer": FOOTER
     }
 
-
-@data_only
-def calendar_links(request):
-    return {"calendars": json.dumps(calendars.get_todays_calendar_items(**_get_user_calendar_params(request)))}
+@user_only
+def body_flags(request):
+    return {"EMBED": "embed" in request.GET}
