@@ -789,7 +789,7 @@ const PBSC2020LandingPage = () => (
 
 
         <Feature
-            enTitle="המצ'טט"
+            enTitle="CiteMakor"
             enText="By Ariel Caplan<br/><br/>CiteMakor is a Twitter bot which accepts requests for citations and responds by tweeting back one or more images that include the cited text. The goal of CiteMakor is to make it easy to bring source texts into discussions of Jewish topics on Twitter."
             enImg="/static/img/pbsc-2020-landing-page/citemakor.png"
             enImgAlt="CiteMakor"
