@@ -102,14 +102,7 @@ def user_and_notifications(request):
         }
 
     profile = UserProfile(user_obj=request.user)
-    if request.path == "/texts":
-        return {
-            "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
-            "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True)
-        }
-
     notifications = profile.recent_notifications()
-
     interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
     interrupting_message      = InterruptingMessage(attrs=interrupting_message_dict, request=request)
     interrupting_message_json = interrupting_message.json()
