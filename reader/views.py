@@ -577,9 +577,10 @@ def texts_category_list(request, cats):
         return redirect("/texts/%s" % cats)
 
     props = base_props(request)
-    props.update({
-        "last_place": UserProfile(user_obj=request.user).get_user_history(last_place=True, secondary=False, serialized=True),
-    })
+    if request.user.is_authenticated:
+        props.update({
+            "last_place": UserProfile(user_obj=request.user).get_user_history(last_place=True, secondary=False, serialized=True),
+        })
     cats  = cats.split("/")
     if cats != ["recent"]:
         toc        = library.get_toc()
