@@ -887,6 +887,7 @@ def texts_list(request):
     return menu_page(request, props, "navigation", title, desc)
 
 
+@login_required
 def saved(request):
     props = base_props(request)
     props.update({
