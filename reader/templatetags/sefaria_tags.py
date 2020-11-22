@@ -409,6 +409,8 @@ def hebrew_term(value):
 def jsonify(object):
 	if isinstance(object, QuerySet):
 		return mark_safe(serialize('json', object))
+	elif isinstance(object, str):
+		return mark_safe(object)
 	return mark_safe(json.dumps(object))
 
 
