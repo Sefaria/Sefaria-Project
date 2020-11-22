@@ -804,7 +804,7 @@ const PBSC2020LandingPage = () => (
 
         <Feature
             enTitle="Gifaria"
-            enText="By John Cassil and Tiger Tang<br/><br/>For a little bit of fun, gifaria finds gifs relevant to any verse in Tanakh. This project provides an engaging way for people to interact with biblical texts in a lighthearted way."
+            enText="By John Cassil and Tiger Tang<br/><br/>For a little bit of fun, gifaria finds GIFs relevant to any verse in Tanakh. This project provides an engaging way for people to interact with biblical texts in a lighthearted way."
             enImg="/static/img/pbsc-2020-landing-page/gifaria.png"
             enImgAlt="Gifaria"
             heTitle="גיפַריא"
