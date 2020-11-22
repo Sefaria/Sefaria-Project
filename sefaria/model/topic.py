@@ -262,7 +262,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             disambig_text = self.title_group.get_title_attr(title, lang, 'disambiguation')
             if disambig_text:
                 title += f' ({disambig_text})'
-            elif getattr(self, 'isAmbiguous', False):
+            elif getattr(self, 'isAmbiguous', False) and len(title) > 0:
                 title += ' (Ambiguous)'
         return title
 
