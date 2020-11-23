@@ -71,34 +71,36 @@ class AutoCompleter(object):
         self.max_autocorrect_length = 20   # Max # of chars of input string, beyond which no autocorrect search is done
         # self.prefer_longest = True  # True for titles, False for dictionary entries.  AC w/ combo of two may be tricky.
 
+        PAD = 1000000 # padding for object type ordering.  Allows for internal ordering within type.
+
         # Titles in library
         if include_titles:
             title_node_dict = self.library.get_title_node_dict(lang)
             tnd_items = [(t, d) for t, d in list(title_node_dict.items()) if not isinstance(d, SheetLibraryNode)]
             titles = [t for t, d in tnd_items]
             normal_titles = [self.normalizer(t) for t, d in tnd_items]
-            self.title_trie.add_titles_from_title_node_dict(tnd_items, normal_titles)
+            self.title_trie.add_titles_from_title_node_dict(tnd_items, normal_titles, 1 * PAD)
             self.spell_checker.train_phrases(normal_titles)
             self.ngram_matcher.train_phrases(titles, normal_titles)
         if include_categories:
             categories = self._get_main_categories(library.get_toc_tree().get_root())
             category_names = [c.primary_title(lang) for c in categories]
             normal_category_names = [self.normalizer(c) for c in category_names]
-            self.title_trie.add_titles_from_set(categories, "all_node_titles", "primary_title", "full_path")
+            self.title_trie.add_titles_from_set(categories, "all_node_titles", "primary_title", "full_path", 2 * PAD)
             self.spell_checker.train_phrases(category_names)
             self.ngram_matcher.train_phrases(category_names, normal_category_names)
         if include_parasha:
             parashot = TermSet({"scheme": "Parasha"})
             parasha_names = [n for p in parashot for n in p.get_titles(lang)]
             normal_parasha_names = [self.normalizer(p) for p in parasha_names]
-            self.title_trie.add_titles_from_set(parashot, "get_titles", "get_primary_title", "name")
+            self.title_trie.add_titles_from_set(parashot, "get_titles", "get_primary_title", "name", 3 * PAD)
             self.spell_checker.train_phrases(parasha_names)
             self.ngram_matcher.train_phrases(parasha_names, normal_parasha_names)
         if include_topics:
             ts = TopicSet({"shouldDisplay":{"$ne":False}, "numSources":{"$gte":10}})
             tnames = [name for t in ts for name in t.get_titles(lang)]
             normal_topics_names = [self.normalizer(n) for n in tnames]
-            self.title_trie.add_titles_from_set(ts, "get_titles", "get_primary_title", "slug")
+            self.title_trie.add_titles_from_set(ts, "get_titles", "get_primary_title", "slug", 4 * PAD)
             self.spell_checker.train_phrases(tnames)
             self.ngram_matcher.train_phrases(tnames, normal_topics_names)
         if include_people:
@@ -106,7 +108,7 @@ class AutoCompleter(object):
             ps = PersonSet({"era": {"$in": eras}})
             person_names = [n for p in ps for n in p.all_names(lang)]
             normal_person_names = [self.normalizer(n) for n in person_names]
-            self.title_trie.add_titles_from_set(ps, "all_names", "primary_name", "key")
+            self.title_trie.add_titles_from_set(ps, "all_names", "primary_name", "key", 5 * PAD)
             self.spell_checker.train_phrases(person_names)
             self.ngram_matcher.train_phrases(person_names, normal_person_names)
         if include_users:
@@ -137,7 +139,7 @@ class AutoCompleter(object):
                     "type": "User",
                     "key": profiles[id]["user"]["slug"],
                     "pic": profiles[id]["user"]["profile_pic_url_small"],
-                    "count": profiles[id]["count"],
+                    "order": (7 * PAD) - profiles[id]["count"],  # lower is earlier
                     "is_primary": True,
                 }
                 unames += [fullname]
@@ -148,7 +150,7 @@ class AutoCompleter(object):
             gs = GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}})
             gnames = [name for g in gs for name in g.all_names(lang)]
             normal_group_names = [self.normalizer(n) for n in gnames]
-            self.title_trie.add_titles_from_set(gs, "all_names", "primary_name", "name")
+            self.title_trie.add_titles_from_set(gs, "all_names", "primary_name", "name", 6 * PAD)
             self.spell_checker.train_phrases(gnames)
             self.ngram_matcher.train_phrases(gnames, normal_group_names)
         if include_lexicons:
@@ -161,7 +163,8 @@ class AutoCompleter(object):
                     "title": wf.form,
                     "key": wf.form,
                     "type": "word_form",
-                    "is_primary": True
+                    "is_primary": True,
+                    "order": (2 * PAD),
                 }
                 if not hasattr(wf, "c_form"):
                     continue
@@ -169,7 +172,8 @@ class AutoCompleter(object):
                     "title": wf.c_form,
                     "key": wf.form,
                     "type": "word_form",
-                    "is_primary": True
+                    "is_primary": True,
+                    "order": (2 * PAD),
                 }
 
             forms = [getattr(wf, "c_form", wf.form) for wf in wfs]
@@ -292,14 +296,12 @@ class Completions(object):
         [completions, completion_objects] = self.get_new_continuations_from_string(self.normal_string)
 
         joined = list(zip(completions, completion_objects))
-        y = iter(sorted([w for w in joined if w[1]["type"] == "User"], key=lambda w: w[1]["count"], reverse=True))
-        users_sorted = [w if not w[1]["type"] == "User" else next(y) for w in joined]
+        joined.sort(key=lambda w: w[1]["order"])
 
-        self.completions += [a for a, b in users_sorted]
-        self.completion_objects += [b for a, b in users_sorted]
+        self.completions, self.completion_objects = [list(_) for _ in zip(*joined)]
 
         if self.limit and len(self.completions) >= self.limit:
-            return self.completions[:self.limit or None]   # todo: the return value isn't used, so this (and other) slices on return are a waste
+            return
         if not self.do_autocorrect:
             return 
 
@@ -426,16 +428,17 @@ class TitleTrie(datrie.Trie):
         except KeyError:
             super(TitleTrie, self).__setitem__(key, [value])
 
-    def add_titles_from_title_node_dict(self, tnd_items, normal_titles):
+    def add_titles_from_title_node_dict(self, tnd_items, normal_titles, order):
         for (title, snode), norm_title in zip(tnd_items, normal_titles):
             self[norm_title] = {
                 "title": title,
                 "key": snode.full_title("en"),
                 "type": "ref",
-                "is_primary": title == snode.full_title(self.lang)
+                "is_primary": title == snode.full_title(self.lang),
+                "order": order
             }
 
-    def add_titles_from_set(self, recordset, all_names_method, primary_name_method, keyattr):
+    def add_titles_from_set(self, recordset, all_names_method, primary_name_method, keyattr, order):
         """
 
         :param recordset: Instance of a subclass of AbstractMongoSet, or a List of objects
@@ -456,7 +459,8 @@ class TitleTrie(datrie.Trie):
                     "title": title,
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
-                    "is_primary": True
+                    "is_primary": True,
+                    "order": order
                 }
 
             titles = getattr(obj, all_names_method)(self.lang)
@@ -469,7 +473,8 @@ class TitleTrie(datrie.Trie):
                     "title": title,
                     "type": obj.__class__.__name__,
                     "key": tuple(key) if isinstance(key, list) else key,
-                    "is_primary": False
+                    "is_primary": False,
+                    "order": order
                 }
 
 
