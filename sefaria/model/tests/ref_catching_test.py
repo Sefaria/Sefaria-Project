@@ -7,7 +7,6 @@ from sefaria.utils.hebrew import is_hebrew
 import sefaria.model as m
 
 
-
 class In(object):
     """
     Support test assertions for `library.get_regex_string`
@@ -71,3 +70,6 @@ class Test_find_citation_in_text(object):
 
         assert In('<p>[שיר השירים א ירושלמי כתובות (דף כח:) בשורות א]')\
             .looking_for('שיר השירים').with_parenthesis().finds("Song of Songs 1")
+
+    def test_comma_separated_refs(self):
+        assert In(' (Genesis 11:31-32, 12:1,2) ').looking_for("Genesis").finds("Genesis 11:31-32")
