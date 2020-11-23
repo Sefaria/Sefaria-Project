@@ -164,6 +164,22 @@ function getNewChevruta() {
 }
 
 
+function toggleMute() {
+  localStream.getAudioTracks()[0].enabled = !(localStream.getAudioTracks()[0].enabled);
+
+  const videoDiv = document.getElementById("videos");
+  if(videoDiv.classList.contains("muted")) {
+    videoDiv.classList.remove("muted");
+    document.getElementById("enMute").setAttribute("title", "Turn off microphone");
+    document.getElementById("heMute").setAttribute("title", "כבה את המיקרופון");
+  }
+  else {
+    videoDiv.classList.add("muted")
+    document.getElementById("enMute").setAttribute("title", "Turn on microphone");
+    document.getElementById("heMute").setAttribute("title", "הפעל את המיקרופון");
+  }
+}
+
 function reportUser() {
   remoteVideo.srcObject = null;
   socket.emit('report user', clientRoom)
