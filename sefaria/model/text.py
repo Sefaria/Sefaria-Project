@@ -2402,24 +2402,25 @@ class Ref(object, metaclass=RefCacheType):
         base = parts[0]
         title = None
 
-        # Remove letter from end of base reference until TitleNode or Term name matched, set `title` variable with matched title
         tndict = library.get_title_node_dict(self._lang)
         termdict = library.get_term_dict(self._lang)
+
+        self.index_node = tndict.get(base)  # Match index node before term
+        if not self.index_node:
+            new_tref = termdict.get(base)   # Check if there's a term match, reinit w/ term
+            if new_tref:
+                self.__reinit_tref(new_tref)
+                return
+
+        # Remove letter from end of base reference until TitleNode matched, set `title` variable with matched title
         for l in range(len(base), 0, -1):
             self.index_node = tndict.get(base[0:l])
-            new_tref = termdict.get(base[0:l])
 
             if self.index_node:
                 title = base[0:l]
                 if base[l - 1] == "." and l < len(base):   # Take care of Refs like "Exo.14.15", where the period shouldn't get swallowed in the name.
                     title = base[0:l - 1]
                 break
-            if new_tref:
-                if l < len(base) and base[l] not in " .":
-                    continue
-                # If a term is matched, reinit with the real tref
-                self.__reinit_tref(new_tref)
-                return
 
         # At this point, `title` is something like "Exodus" or "Rashi on Exodus" or "Pesach Haggadah, Magid, Four Sons"
         if title:

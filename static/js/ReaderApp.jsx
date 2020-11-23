@@ -13,6 +13,7 @@ import {
   ContestLandingPage,
   RemoteLearningPage,
   SheetsLandingPage,
+  PBSC2020LandingPage,
 } from './StaticPages';
 import {
   SignUpModal,
@@ -1972,7 +1973,7 @@ export {
   sefariaSetup,
   unpackDataFromProps,
   EditGroupPage,
-  ContestLandingPage,
   RemoteLearningPage,
   SheetsLandingPage,
+  PBSC2020LandingPage,
 };

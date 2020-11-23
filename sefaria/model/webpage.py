@@ -106,6 +106,9 @@ class WebPage(abst.AbstractMongoRecord):
             r"https://torah\.org$",
             r"test\.hadran\.org\.il",
             r"www\.jtsa.edu\/search\/index\.php",
+            r"jewschool\.com\/page\/",
+            r"truah.org\/\?s=",
+            r"truah.org\/(holiday|page|resource-types)\/"
             r"webcache\.googleusercontent\.com",
             r"translate\.googleusercontent\.com",
             r"dailympails\.gq\/",
@@ -117,8 +120,8 @@ class WebPage(abst.AbstractMongoRecord):
     def excluded_pages_title_regex():
         bad_titles = [
             r"Page \d+ of \d+",  # Rabbi Sacks paged archives
-            r"Page not found",   # JTS 404 pages include links to content
-            r"JTS Torah Online"  # JTS search result pages
+            r"^Page not found$",   # JTS 404 pages include links to content
+            r"^JTS Torah Online$"  # JTS search result pages
         ]
         return "({})".format("|".join(bad_titles))
 
@@ -621,5 +624,13 @@ sites_data = [
     {
         "name": "Aish HaTorah",
         "domains": ["aish.com"],
+    },
+    {
+        "name": "Jewschool",
+        "domains": ["jewschool.com"],
+    },
+    {
+        "name": "T'ruah",
+        "domains": ["truah.org"],
     },
 ]

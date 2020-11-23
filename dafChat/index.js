@@ -64,8 +64,8 @@ io.sockets.on('connection', function(socket) {
 
 
 
-  socket.on('does room exist', function(roomID) {
-    let sql = `SELECT name FROM chatrooms WHERE name = ?`;
+  socket.on('does room exist', function(roomID, uid) {
+    let sql = `SELECT name, clients FROM chatrooms WHERE name = ?`;
     let room = roomID;
     db.get(sql, [room], (err, row) => {
       if (err) {
@@ -73,6 +73,9 @@ io.sockets.on('connection', function(socket) {
       }
 
       if (!row) {
+        socket.emit('byeReceived');
+      }
+      else if (row.clients != 0 && row.clients != uid) {
         socket.emit('byeReceived');
       }
     });
