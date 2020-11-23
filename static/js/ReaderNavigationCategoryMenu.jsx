@@ -112,21 +112,21 @@ ReaderNavigationCategoryMenu.propTypes = {
 class ReaderNavigationCategoryMenuContents extends Component {
   // Inner content of Category menu (just category title and boxes of texts/subcategories)
   getRenderedTextTitleString(title, heTitle){
-    var whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
-    var displayCategory = this.props.category;
-    var displayHeCategory = Sefaria.hebrewTerm(this.props.category);
+    const whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
+    const displayCategory = this.props.category;
+    const displayHeCategory = Sefaria.hebrewTerm(this.props.category);
     if (whiteList.indexOf(title) == -1){
-      var replaceTitles = {
+      const replaceTitles = {
         "en": ['Jerusalem Talmud', displayCategory],
         "he": ['תלמוד ירושלמי', displayHeCategory]
       };
-      var replaceOther = {
+      const replaceOther = {
         "en" : [", ", " on ", " to ", " of "],
         "he" : [", ", " על "]
       };
       //this will replace a category name at the beginning of the title string and any connector strings (0 or 1) that follow.
-      var titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
-      var heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
+      let titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
+      let heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
       title   = title == displayCategory ? title : title.replace(titleRe, "");
       heTitle = heTitle == displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
     }
@@ -162,25 +162,25 @@ class ReaderNavigationCategoryMenuContents extends Component {
     return heCats;
   }
   render() {
-      var content = [];
-      var cats = this.props.categories || [];
-      var contents = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ?
+      let content = [];
+      let cats = this.props.categories || [];
+      let contents = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ?
                       this.hebrewContentSort(this.props.contents)
                       : this.props.contents;
       for (let i = 0; i < contents.length; i++) {
-        var item = contents[i];
+        let item = contents[i];
         if (item.category) {
           // Category
-          var newCats = cats.concat(item.category);
+          let newCats = cats.concat(item.category);
           // Special Case categories which should nest but normally wouldn't given their depth
-          var subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
+          let subcats = ["Mishneh Torah", "Shulchan Arukh", "Maharal"];
           if (Sefaria.util.inArray(item.category, subcats) > -1 || this.props.nestLevel > 0) {
             if(item.contents && item.contents.length == 1 && !("category" in item.contents[0])){
-                var chItem = item.contents[0];
-                var [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
-                var url     = "/" + Sefaria.normRef(chItem.firstSection);
-                var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !chItem.heComplete : !chItem.enComplete;
-                var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
+                let chItem = item.contents[0];
+                let [title, heTitle] = this.getRenderedTextTitleString(chItem.title, chItem.heTitle);
+                let url     = "/" + Sefaria.normRef(chItem.firstSection);
+                let incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !chItem.heComplete : !chItem.enComplete;
+                let classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
                 content.push((<a href={url} className={classes} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
                                 <span className='en'>{title}</span>
                                 <span className='he'>{heTitle}</span>
@@ -189,9 +189,9 @@ class ReaderNavigationCategoryMenuContents extends Component {
 
             } else {
               // Create a link to a subcategory
-              var url = "/texts/" + newCats.join("/");
-              var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
-              var classes = classNames({catLink: 1, blockLink: 1, incomplete: incomplete});
+              let url = "/texts/" + newCats.join("/");
+              let incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
+              let classes = classNames({catLink: 1, blockLink: 1, incomplete: incomplete});
               content.push((<a href={url} className={classes} data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
                               <span className='en'>{item.category}</span>
                               <span className='he'>{item.heCategory}</span>
@@ -217,8 +217,8 @@ class ReaderNavigationCategoryMenuContents extends Component {
         } else {
           if (item.isGroup) {
             // Add a Group
-            var url = "/groups/" + item.name.replace(/\s/g, "-");
-            var classes = classNames({groupLink: 1, blockLink: 1});
+            let url = "/groups/" + item.name.replace(/\s/g, "-");
+            let classes = classNames({groupLink: 1, blockLink: 1});
             content.push((<a href={url}
                             className={classes}
                             data-group={item.name}
@@ -229,12 +229,12 @@ class ReaderNavigationCategoryMenuContents extends Component {
                           ));
           } else {
             // Add a Text
-            var [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
+            let [title, heTitle] = this.getRenderedTextTitleString(item.title, item.heTitle);
             const lastPlace = Sefaria.lastPlaceForText(item.title);
-            var ref =  lastPlace ? lastPlace.ref : item.firstSection;
-            var url = "/" + Sefaria.normRef(ref);
-            var incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
-            var classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
+            let ref =  lastPlace ? lastPlace.ref : item.firstSection;
+            let url = "/" + Sefaria.normRef(ref);
+            let incomplete = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ? !item.heComplete : !item.enComplete;
+            let classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
             content.push((<a href={url}
                             className={classes}
                             data-ref={ref}
@@ -247,8 +247,8 @@ class ReaderNavigationCategoryMenuContents extends Component {
           }
         }
       }
-      var boxedContent = [];
-      var currentRun   = [];
+      let boxedContent = [];
+      let currentRun   = [];
       for (var i = 0; i < content.length; i++) {
         // Walk through content looking for runs of texts/subcats to group together into a table
         if (content[i].type == "div") { // this is a subcategory
