@@ -132,7 +132,8 @@ class LexiconBox extends Component {
           content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
       }
     } else if (!!this.props.selectedNamedEntity) {
-      if (!this.state.loaded) {
+      if (!this.state.loaded || !this.state.namedEntity) {
+        // not sure why I also need to check for this.state.namedEntity but I've seen situations where loaded is true and namedEntity is null
         content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
       } else {
           const neArray = this.state.namedEntity.possibilities || [this.state.namedEntity]; 
