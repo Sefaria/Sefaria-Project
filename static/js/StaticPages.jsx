@@ -402,37 +402,36 @@ const RemoteLearningPage = () => (
             heActionText={null}
         />
         <GreyBox>
-            <H2Block en="Browse our Latest Resources" he="מקורות בספריא" />
+            <ButtonRow enTitle="Browse our Latest Resources" heTitle="מקורות בספריא">
+                <SimpleButton
+                    white={true}
+                    rounded={false}
+                    tall={true}
+                    href="/groups/Educator-Newsletters?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he_href="/sheets/219410?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he="דפי מקורות אקטואליים"
+                    en="Educator Newsletters"
+                />
+                <SimpleButton
+                    white={true}
+                    rounded={false}
+                    tall={true}
+                    href="/groups/A-Jewish-Response-to-Coronavirus?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he_href="/sheets/227981.5?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he="נגיף הקורונה"
+                    en="A Jewish Response to COVID-19"
+                />
+                <SimpleButton
+                    white={true}
+                    rounded={false}
+                    tall={true}
+                    href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he_href="/sheets/228257?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he="עשרת הדיברות ללמידה מרחוק"
+                    en="Online Learning Resources"
+                />
+            </ButtonRow>
         </GreyBox>
-        <ButtonRow>
-            <SimpleButton
-                white={true}
-                rounded={false}
-                tall={true}
-                href="/groups/Educator-Newsletters?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he_href="/sheets/219410?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he="דפי מקורות אקטואליים"
-                en="Educator Newsletters"
-            />
-            <SimpleButton
-                white={true}
-                rounded={false}
-                tall={true}
-                href="/groups/A-Jewish-Response-to-Coronavirus?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he_href="/sheets/227981.5?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he="נגיף הקורונה"
-                en="A Jewish Response to COVID-19"
-            />
-            <SimpleButton
-                white={true}
-                rounded={false}
-                tall={true}
-                href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he_href="/sheets/228257?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he="עשרת הדיברות ללמידה מרחוק"
-                en="Online Learning Resources"
-            />
-        </ButtonRow>
         <GreyBox light={true}>
             <H2Block en="Resources for Everyone" he="לומדים עם ספריא" />
         </GreyBox>
