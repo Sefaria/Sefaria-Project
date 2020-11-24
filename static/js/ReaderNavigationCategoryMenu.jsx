@@ -23,12 +23,12 @@ class ReaderNavigationCategoryMenu extends Component {
     let catTitle = '', heCatTitle = '', toggle = '';
 
     if (categories[0] === "Talmud" && categories.length <= 2) {
-      const setBavli = function() {
+      const setBavli = () => {
         this.props.setCategories(["Talmud", "Bavli"]);
-      }.bind(this);
-      const setYerushalmi = function() {
+      };
+      const setYerushalmi = ()=> {
         this.props.setCategories(["Talmud", "Yerushalmi"]);
-      }.bind(this);
+      };
       const bClasses = classNames({navToggle:1, active: categories[1] === "Bavli"});
       const yClasses = classNames({navToggle:1, active: categories[1] === "Yerushalmi", second: 1});
 
