@@ -136,25 +136,26 @@ class ReaderNavigationCategoryMenuContents extends Component {
   hebrewContentSort(cats) {
     // Sorts contents of this category by Hebrew Alphabetical
     //console.log(cats);
-    let heCats = cats.slice().map(function(item, indx) {
+    const heCats = cats.slice().map(function(item, indx) {
       item.enOrder = indx;
       return item;
     });
     //console.log(heCats.slice())
     heCats.sort(function(a, b) {
-      if (("order" in a || "order" in b) && (a.order !== b.order)) {
+      if ("order" in a || "order" in b) {
         const aOrder = "order" in a ? a.order : 9999;
         const bOrder = "order" in b ? b.order : 9999;
         return aOrder > bOrder ? 1 : -1;
 
-      } else if (("category" in a || "category" in b) && a.enOrder !== b.enOrder) {
+      } else if (("category" in a) !== ("category" in b)) {
         return a.enOrder > b.enOrder ? 1 : -1;
 
       } else if (a.heComplete !== b.heComplete) {
         return a.heComplete ? -1 : 1;
 
-      } else if ((a.heTitle && b.heTitle) && a.heTitle !== b.heTitle) {
+      } else if (a.heTitle && b.heTitle) {
         return a.heTitle > b.heTitle ? 1 : -1;
+
       }
       return a.enOrder > b.enOrder ? 1 : -1;
     });
@@ -164,10 +165,9 @@ class ReaderNavigationCategoryMenuContents extends Component {
   render() {
       let content = [];
       let cats = this.props.categories || [];
-      /*let contents = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ?
+      let contents = this.props.contentLang == "hebrew" || Sefaria.interfaceLang == "hebrew" ?
                       this.hebrewContentSort(this.props.contents)
-                      : this.props.contents;*/
-      let contents = this.props.contents;
+                      : this.props.contents;
       for (let i = 0; i < contents.length; i++) {
         let item = contents[i];
         if (item.category) {
