@@ -296,9 +296,11 @@ class Completions(object):
         [completions, completion_objects] = self.get_new_continuations_from_string(self.normal_string)
 
         joined = list(zip(completions, completion_objects))
-        joined.sort(key=lambda w: w[1]["order"])
-
-        self.completions, self.completion_objects = [list(_) for _ in zip(*joined)]
+        if len(joined):
+            joined.sort(key=lambda w: w[1]["order"])
+            self.completions, self.completion_objects = [list(_) for _ in zip(*joined)]
+        else:
+            self.completions, self.completion_objects = [], []
 
         if self.limit and len(self.completions) >= self.limit:
             return
