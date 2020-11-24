@@ -85,6 +85,7 @@
             '.sefaria-text .en, .sefaria-text .he {' +
                 'padding: 10px 20px;'+
                 'text-align: justify;'+
+                'font-weight: normal' +
             '}' +
             '.sefaria-text {' +
                 'max-height: 430px;'+
