@@ -370,8 +370,8 @@
         options.dynamic = options.dynamic || false;
 
         var selector = options.selector || "body";
+        var mode = "popup-click";
         if (window.screen.width < 820 || options.mode == "link") { mode = "link"; }  // If the screen is small, fallback to link mode
-        else { mode = "popup-click"; }
 
         setupPopup(options, mode);
 
@@ -390,12 +390,12 @@
             return;
         }
 
-        ns._getRegexesThenTexts();
+        ns._getRegexesThenTexts(mode);
     };
 
 
     // Private API
-    ns._getRegexesThenTexts = function() {
+    ns._getRegexesThenTexts = function(mode) {
         // Get regexes for each of the titles
         atomic.get(base_url + "api/regexs/" + ns.matchedTitles.join("|") + '?' + 'parentheses='+(0+ns.parenthesesOnly))
             .success(function (data, xhr) {
@@ -410,8 +410,10 @@
                     //console.log("No references found to link to Sefaria.");
                     return;
                 }
-
-                ns._getTexts();
+                if (mode != 'link') {
+                    // no need to get texts if mode is link
+                    ns._getTexts(mode);
+                }
                 ns._trackPage();
             })
             .error(function (data, xhr) { });
@@ -481,7 +483,7 @@
         ns.matches = ns.matches.filter(distinct)
     };
 
-    ns._getTexts = function() {
+    ns._getTexts = function(mode) {
         atomic.get(base_url + "api/bulktext/" + ns.matches.join("|")+"?useTextFamily=1")
             .success(function (data, xhr) {
                 //Put text data into sefaria.sources
