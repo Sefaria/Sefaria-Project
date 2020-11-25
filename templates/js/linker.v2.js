@@ -484,36 +484,73 @@
     };
 
     ns._getTexts = function(mode) {
-        atomic.get(base_url + "api/bulktext/" + ns.matches.join("|")+"?useTextFamily=1")
+        const MAX_URL_LENGTH = 3800;
+        const hostStr = base_url + 'api/bulktext/';
+        var paramStr = '?useTextFamily=1';
+    
+        if (typeof Promise == "undefined" || Promise.toString().indexOf("[native code]") == -1) {
+            //promises not defined. fallback to one request
+            atomic.get(base_url + "api/bulktext/" + ns.matches.join("|")+"?useTextFamily=1")
             .success(function (data, xhr) {
-                //Put text data into sefaria.sources
-                ns.sources = data;
-
-                // Bind a click event and a mouseover event to each link
-                [].forEach.call(document.querySelectorAll('.sefaria-ref'),function(e) {
-                    if ("error" in ns.sources[e.getAttribute('data-ref')]) {
-                        unwrap(e);
-                        return;
-                    }
-                    var source = ns.sources[e.getAttribute('data-ref')];
-                    var utm_source = window.location.hostname ? window.location.hostname.replace(/^www\./, "") : "(not%20set)";
-                    e.setAttribute('href', base_url + source.url + "?lang=" + (source.lang == "en"?"he-en":"he") + "&utm_source=" + utm_source + "&utm_medium=sefaria_linker");
-                    if (mode == "popup-hover") {
-                        e.addEventListener('mouseover', function(event) {
-                            showPopup(this, mode);
-                        }, false);
-                        e.addEventListener('mouseout', hidePopup, false);
-                    } else if (mode == "popup-click") {
-                        e.addEventListener('click', function(event) {
-                            showPopup(this, mode);
-                            event.preventDefault();
-                            event.stopPropagation();
-                            document.getElementById("sefaria-linker-text").focus();
-                        }, false);
-                    }
-                });
+                ns._getTextsSuccess(mode, data);
             })
             .error(function (data, xhr) { });
+        }
+
+        // Split into multipe requests if URL length goes above limit
+        var refStrs = [""];
+        ns.matches.map(function (ref) {
+          var last = refStrs[refStrs.length-1];
+          if (encodeURI(hostStr + last + '|' + ref + paramStr).length > MAX_URL_LENGTH) {
+            refStrs.push(ref)
+          } else {
+            refStrs[refStrs.length-1] += last.length ? ('|' + ref) : ref;
+          }
+        });
+
+        var promises = refStrs.map(function (refStr) {
+            return new Promise(function (resolve, reject) {
+                atomic.get(hostStr + refStr + paramStr)
+                .success(function (data, xhr) {
+                    resolve(data);
+                })
+                .error(function (data, xhr) { });
+            });
+        });
+    
+        return Promise.all(promises).then(function (results) {
+            var mergedResults = Object.assign.apply(null, results);
+            ns._getTextsSuccess(mode, mergedResults);
+        });
+    };
+
+    ns._getTextsSuccess = function(mode, data) {
+        //Put text data into sefaria.sources
+        ns.sources = data;
+
+        // Bind a click event and a mouseover event to each link
+        [].forEach.call(document.querySelectorAll('.sefaria-ref'),function(e) {
+            if ("error" in ns.sources[e.getAttribute('data-ref')]) {
+                unwrap(e);
+                return;
+            }
+            var source = ns.sources[e.getAttribute('data-ref')];
+            var utm_source = window.location.hostname ? window.location.hostname.replace(/^www\./, "") : "(not%20set)";
+            e.setAttribute('href', base_url + source.url + "?lang=" + (source.lang == "en"?"he-en":"he") + "&utm_source=" + utm_source + "&utm_medium=sefaria_linker");
+            if (mode == "popup-hover") {
+                e.addEventListener('mouseover', function(event) {
+                    showPopup(this, mode);
+                }, false);
+                e.addEventListener('mouseout', hidePopup, false);
+            } else if (mode == "popup-click") {
+                e.addEventListener('click', function(event) {
+                    showPopup(this, mode);
+                    event.preventDefault();
+                    event.stopPropagation();
+                    document.getElementById("sefaria-linker-text").focus();
+                }, false);
+            }
+        });
     };
 
     ns._trackPage = function() {
