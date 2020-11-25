@@ -402,37 +402,36 @@ const RemoteLearningPage = () => (
             heActionText={null}
         />
         <GreyBox>
-            <H2Block en="Browse our Latest Resources" he="מקורות בספריא" />
+            <ButtonRow enTitle="Browse our Latest Resources" heTitle="מקורות בספריא">
+                <SimpleButton
+                    white={true}
+                    rounded={false}
+                    tall={true}
+                    href="/groups/Educator-Newsletters?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he_href="/sheets/219410?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he="דפי מקורות אקטואליים"
+                    en="Educator Newsletters"
+                />
+                <SimpleButton
+                    white={true}
+                    rounded={false}
+                    tall={true}
+                    href="/groups/A-Jewish-Response-to-Coronavirus?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he_href="/sheets/227981.5?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he="נגיף הקורונה"
+                    en="A Jewish Response to COVID-19"
+                />
+                <SimpleButton
+                    white={true}
+                    rounded={false}
+                    tall={true}
+                    href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he_href="/sheets/228257?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    he="עשרת הדיברות ללמידה מרחוק"
+                    en="Online Learning Resources"
+                />
+            </ButtonRow>
         </GreyBox>
-        <ButtonRow>
-            <SimpleButton
-                white={true}
-                rounded={false}
-                tall={true}
-                href="/groups/Educator-Newsletters?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he_href="/sheets/219410?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he="דפי מקורות אקטואליים"
-                en="Educator Newsletters"
-            />
-            <SimpleButton
-                white={true}
-                rounded={false}
-                tall={true}
-                href="/groups/A-Jewish-Response-to-Coronavirus?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he_href="/sheets/227981.5?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he="נגיף הקורונה"
-                en="A Jewish Response to COVID-19"
-            />
-            <SimpleButton
-                white={true}
-                rounded={false}
-                tall={true}
-                href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he_href="/sheets/228257?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
-                he="עשרת הדיברות ללמידה מרחוק"
-                en="Online Learning Resources"
-            />
-        </ButtonRow>
         <GreyBox light={true}>
             <H2Block en="Resources for Everyone" he="לומדים עם ספריא" />
         </GreyBox>
@@ -638,7 +637,7 @@ const PBSC2020LandingPage = () => (
             <UserQuote
                 enText="It was very exciting to see all of the creative applications to the Powered by Sefaria Contest. There was such a wide range of ideas, truly displaying the power of Sefaria to engage a range of audiences. At the core of all of the ideas was creating innovative ways to allow more people to engage with text in a deeper way, from bringing the text to life through interactive museums to creating additional features and ease for the toolbar and the Sefaria browsing experience.<br/><br/>Many of the ideas are very promising and I hope the contestants continue to explore their ideas and bring their passion to life. Thanks to Sefaria for creating such an accessible and open platform to allow for such a meaningful and collaborative competition."
                 heText="התרגשנו מאוד לראות את המיזמים היצירתיים שנשלחו לתחרות פיתוח התוכנה של ספריא. מנעד הרעיונות היה רחב במיוחד וחשף את כוחה של ספריא לרתום מגוון קהלים. הלב של כל הרעיונות הללו היה אחד – יצירת דרכים חדשניות לאפשר לעוד ועוד אנשים לעסוק בטקסט באופן עמוק יותר, החל במוזיאונים אינטראקטיביים המפיחים חיים בטקסטים עצמם וכלה בשלל כלים שמטרתם להוסיף נוחות ויעילות לחוויית הגלישה בספריא או לשימוש בסרגל הכלים שלה. רבים מן הרעיונות האלה מבטיחים מאוד, ואנו מקווים שהמשתתפים והמשתתפות ימשיכו לחקור את הרעיונות שלהם ולהגשים את שאיפותיהם. תודה לספריא על יצירת פלטפורמה נגישה ופתוחה כל כך המאפשרת תחרות בעלת ערך ושיתופי פעולה."
-                enName="Libby Novak, <i>Chief Operations Officer, Maapilim; Sefaria advisory board member</i>"
+                enName="Libby Novack, <i>Chief Operations Officer, Maapilim; Sefaria advisory board member</i>"
                 heName='ליבי נובאק, סמנכ"ל תפעול בחברת "מעפילים"; חברה בצוות הייעוץ לספריא.'
                 image="/static/img/pbsc-2020-landing-page/libby.png"
             />
