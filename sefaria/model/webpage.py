@@ -108,7 +108,9 @@ class WebPage(abst.AbstractMongoRecord):
             r"www\.jtsa.edu\/search\/index\.php",
             r"jewschool\.com\/page\/",
             r"truah.org\/\?s=",
-            r"truah.org\/(holiday|page|resource-types)\/"
+            r"truah.org\/(holiday|page|resource-types)\/",
+            r"clevelandjewishnews\.cpm\/news\/",
+            r"929.org.il\/(lang\/en\/)?author/\d+$",  # Author index pages
             r"webcache\.googleusercontent\.com",
             r"translate\.googleusercontent\.com",
             r"dailympails\.gq\/",
@@ -633,4 +635,17 @@ sites_data = [
         "name": "T'ruah",
         "domains": ["truah.org"],
     },
+    # Keeping off for now while we try to resolve empty titles from dynamic pages.
+    # {
+    #     "name": "929",
+    #     "domains": ["929.org.il"],
+    #     "title_branding": ["929 – תנך ביחד", "Tanakh - Age Old Text, New Perspectives"]
+    #     "initial_title_branding": True
+    # },
+    # Off to review exclusion rules
+    # {
+    #     "name": ["תורה ועבודה"],
+    #     "domains": ["toravoda.org.il"],
+    #     "title_branding": ["נאמני תורה ועבודה"],
+    # }
 ]
