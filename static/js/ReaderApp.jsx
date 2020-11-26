@@ -491,8 +491,8 @@ class ReaderApp extends Component {
     var states = headerPanel ? [this.state.header] : this.state.panels;
     var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
 
-    // List of mode that the ConnectionsPanel may have which can be represented in a URL. 
-    const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open", "About", "WebPages", "extended notes", "Topics", "Media"]);
+    // List of modes that the ConnectionsPanel may have which can be represented in a URL. 
+    const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open", "About", "WebPages", "extended notes", "Topics"]);
 
     for (var i = 0; i < states.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
