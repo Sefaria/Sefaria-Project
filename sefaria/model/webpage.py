@@ -109,6 +109,7 @@ class WebPage(abst.AbstractMongoRecord):
             r"jewschool\.com\/page\/",
             r"truah.org\/\?s=",
             r"truah.org\/(holiday|page|resource-types)\/",
+            r"clevelandjewishnews\.com$",
             r"clevelandjewishnews\.cpm\/news\/",
             r"929.org.il\/(lang\/en\/)?author/\d+$",  # Author index pages
             r"webcache\.googleusercontent\.com",
