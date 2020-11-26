@@ -422,7 +422,40 @@ def webpages_stats():
 
         print("{}: {}%".format(cat, round(covered * 100.0 / total, 2)))
 
+"""
+Web Pages Whitelist
+*******************
+Web pages are visible to users on the site only after being whitelisted by adding an 
+entry to the `sites_data` list below. Entries have the following fields:
 
+- `name`: required, string - the name of overall website, how pages are displayed 
+    and grouped in the sidebar.
+- `domains`: required, list of strings - all the domains that as part of this website. 
+    Root domains will match any subdomain.
+- `title_branding`: optional, list of strings - branding words which are appended to 
+    every page title which should be removed when displayed to the user. The site name 
+    is used by default, additional phrases here will also be removed for display when 
+    they follow any of the separators (like " | ") listed in WebPage.clean_title().
+- `initial_title_branding`: optional, boolean - if True, also remove title branding from
+    the beginning of the title as well as the end. 
+- `normalization_rulse`: optional, list of strings - which URL rewrite rules to apply to
+    URLs from this site, for example to rewrite `http` to `https` or remove specific URL
+    params. Rewrite rules are named and defined in WebPage.normalize_url().
+
+To add a site to the whitelist:
+1. Add an entry with name and domains.
+2. Examine titles of data collected to determine if additional `title_branding` entries
+    are needed, or if `initial_title_branding` should be True.
+3. Examine data to find patterns of URLs that should be excluded. These include things like
+    search result pages, 404 pages, index pages that include snippets text from full 
+    articles (like author or tag pages), or anything else that may be irrelevant. Add  to 
+    regexs either WebPage.exclude_pages_urls_regex() or WebPage.exclude_page_title_regex()
+4. After deploying code updates, you may need to clean up bad that had already been 
+    collected in the database. If you've added normalization rules, run dedupe_webpages()
+    to remove records that we now know should be excluded. If you've adding exclusion rules
+    run clean_webpages() to remove records that we now know we want to exclude.
+
+"""
 sites_data = [
     {
         "name":           "My Jewish Learning",
