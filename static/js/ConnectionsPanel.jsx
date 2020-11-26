@@ -442,14 +442,15 @@ class ConnectionsPanel extends Component {
                     onSave={() => this.props.setConnectionsMode("Notes")}
                     onCancel={() => this.props.setConnectionsMode("Notes")} />
                   { Sefaria._uid ?
-                  <>
-                  <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth">
-                    <span className="int-en">Go to My Notes</span>
-                    <span className="int-he">הרשומות שלי</span>
-                  </a>
-                  <MyNotes
-                    srefs={this.props.srefs}
-                    editNote={this.props.editNote} /> </> : null }
+                  <div>
+                    <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth">
+                      <span className="int-en">Go to My Notes</span>
+                      <span className="int-he">הרשומות שלי</span>
+                    </a>
+                    <MyNotes
+                      srefs={this.props.srefs}
+                      editNote={this.props.editNote} /> 
+                  </div> : null }
                 </div>);
 
     } else if (this.props.mode === "Lexicon") {
@@ -476,7 +477,7 @@ class ConnectionsPanel extends Component {
                     interfaceLang={this.props.interfaceLang}
                     key="WebPages"/>);
 
-	} else if (this.props.mode === "Audio" || this.props.mode === "Media") {
+	} else if (this.props.mode === "Media") {
       content = (<MediaList
 					          srefs={this.props.srefs}
                     interfaceLang={this.props.interfaceLang}
@@ -560,8 +561,8 @@ class ConnectionsPanel extends Component {
                   currVersions={this.props.currVersions}
                   title={this.props.title}/>);
     }
-    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics", "Audio"].indexOf(this.props.mode) != -1;
-
+    
+    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics"].indexOf(this.props.mode) != -1;
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
