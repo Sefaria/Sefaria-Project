@@ -250,16 +250,16 @@ class GroupPage extends Component {
                     <a className="groupWebsite" target="_blank" href={group.websiteUrl}>{group.websiteUrl}</a>
                     : null }
 
-                  {group.description || group.toc ?
+                  {group.toc ?
                     <div className="groupDescription">
-                      {group.toc ?
                       <span>
                         <span className="en" dangerouslySetInnerHTML={ {__html: group.toc.description} }></span>
                         <span className="he"dangerouslySetInnerHTML={ {__html: group.toc.heDescription} }></span>
                       </span>
-                      : group.description }
                     </div>
-                    : null }
+                  : group.description ?
+                    <div className="groupDescription"  dangerouslySetInnerHTML={ {__html: group.description} }></div>
+                  : null }
                 </div>
 
                 <div className="tabs">

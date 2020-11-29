@@ -2402,24 +2402,25 @@ class Ref(object, metaclass=RefCacheType):
         base = parts[0]
         title = None
 
-        # Remove letter from end of base reference until TitleNode or Term name matched, set `title` variable with matched title
         tndict = library.get_title_node_dict(self._lang)
         termdict = library.get_term_dict(self._lang)
+
+        self.index_node = tndict.get(base)  # Match index node before term
+        if not self.index_node:
+            new_tref = termdict.get(base)   # Check if there's a term match, reinit w/ term
+            if new_tref:
+                self.__reinit_tref(new_tref)
+                return
+
+        # Remove letter from end of base reference until TitleNode matched, set `title` variable with matched title
         for l in range(len(base), 0, -1):
             self.index_node = tndict.get(base[0:l])
-            new_tref = termdict.get(base[0:l])
 
             if self.index_node:
                 title = base[0:l]
                 if base[l - 1] == "." and l < len(base):   # Take care of Refs like "Exo.14.15", where the period shouldn't get swallowed in the name.
                     title = base[0:l - 1]
                 break
-            if new_tref:
-                if l < len(base) and base[l] not in " .":
-                    continue
-                # If a term is matched, reinit with the real tref
-                self.__reinit_tref(new_tref)
-                return
 
         # At this point, `title` is something like "Exodus" or "Rashi on Exodus" or "Pesach Haggadah, Magid, Four Sons"
         if title:
@@ -4541,7 +4542,7 @@ class Library(object):
             self._topic_toc_json = json.dumps(self.get_topic_toc_json_recursive())
         return self._topic_toc_json
 
-    def get_topic_toc_json_recursive(self, topic=None, explored=None):
+    def get_topic_toc_json_recursive(self, topic=None, explored=None, with_descriptions=False):
         from .topic import Topic, TopicSet, IntraTopicLinkSet
         explored = explored or set()
         if topic is None:
@@ -4557,6 +4558,10 @@ class Library(object):
                 "he": topic.get_primary_title("he"),
                 "displayOrder": getattr(topic, "displayOrder", 10000)
             }
+            if with_descriptions:
+                description = getattr(topic, "description", None)
+                if description is not None and getattr(topic, "description_published", False):
+                    topic_json['description'] = description
             explored.add(topic.slug)
         if len(children) > 0 or topic is None:  # make sure root gets children no matter what
             topic_json['children'] = []
@@ -4565,7 +4570,7 @@ class Library(object):
             if child_topic is None:
                 logger.warning("While building topic TOC, encountered non-existant topic slug: {}".format(child))
                 continue
-            topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored)]
+            topic_json['children'] += [self.get_topic_toc_json_recursive(child_topic, explored, with_descriptions)]
         if len(children) > 0:
             topic_json['children'].sort(key=lambda x: x['displayOrder'])
         if topic is None:

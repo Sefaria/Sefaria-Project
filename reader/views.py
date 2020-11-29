@@ -33,6 +33,7 @@ from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.webpage import get_webpages_for_ref
+from sefaria.model.media import get_media_for_ref
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
@@ -222,7 +223,9 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter[0] in ("Sheets", "Notes", "About", "Translations", "Translation Open", "WebPages", "extended notes", "Topics"):
+            # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
+            sidebarModes = ("Sheets", "Notes", "About", "Translations", "Translation Open", "WebPages", "extended notes", "Topics", "Torah Readings")
+            if filter[0] in sidebarModes:
                 panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
@@ -1776,10 +1779,13 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
         j = json.loads(j)
+        skip_check = request.GET.get("skip_lang_check", 0)
         if isinstance(j, list):
             res = []
             for i in j:
                 try:
+                    if skip_check:
+                        i["_skip_lang_check"] = True
                     retval = _internal_do_post(request, i, uid, **kwargs)
                     res.append({"status": "ok. Link: {} | {} Saved".format(retval["ref"], retval["anchorRef"])})
                 except Exception as e:
@@ -1793,6 +1799,8 @@ def links_api(request, link_id_or_ref=None):
                 res_slice = None
             return jsonResponse(res[:res_slice])
         else:
+            if skip_check:
+                j["_skip_lang_check"] = True
             return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
@@ -1964,7 +1972,8 @@ def related_api(request, tref):
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
             "topics": get_topics_for_ref(tref, annotate=True),
-        }
+            "media": get_media_for_ref(tref),
+        } 
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
@@ -3469,7 +3478,11 @@ def profile_sync_api(request):
         if not no_return:
             # determine return value after new history saved to include new saved and deleted saves
             # send back items after `last_sync`
-            last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
+            if post.get("last_sync", None) == 'undefined':  # in certain rare sitatuations, last_sync is literally 'undefined'. This should be equivalent to sending '0'.
+                last_sync = 0
+            else:
+                last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
+                
             uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}}, hint="uid_1_server_time_stamp_1")
             ret["last_sync"] = now
             ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
@@ -4016,14 +4029,19 @@ def person_page(request, name):
         "en": person.secondary_names("en"),
         "he": person.secondary_names("he")
     }
-    template_vars["time_period_name"] = {
-        "en": person.mostAccurateTimePeriod().primary_name("en"),
-        "he": person.mostAccurateTimePeriod().primary_name("he")
-    }
-    template_vars["time_period"] = {
-        "en": person.mostAccurateTimePeriod().period_string("en"),
-        "he": person.mostAccurateTimePeriod().period_string("he")
-    }
+    try:
+        tp = person.mostAccurateTimePeriod()
+
+        template_vars["time_period_name"] = {
+            "en": tp.primary_name("en"),
+            "he": tp.primary_name("he")
+        }
+        template_vars["time_period"] = {
+            "en": tp.period_string("en"),
+            "he": tp.period_string("he")
+        }
+    except AttributeError:
+        pass
     template_vars["relationships"] = person.get_grouped_relationships()
     template_vars["indexes"] = person.get_indexes()
     template_vars["post_talmudic"] = person.is_post_talmudic()

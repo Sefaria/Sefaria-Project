@@ -57,6 +57,8 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
             del link['class']
             if annotate_links:
                 link = annotate_topic_link(link, link_topic_dict)
+                if link is None:
+                    continue
             if link_type_slug in response['links']:
                 response['links'][link_type_slug]['links'] += [link]
             else:
@@ -216,7 +218,7 @@ def get_topics_for_ref(tref, annotate=False):
             link_topic_dict = {topic.slug: topic for topic in TopicSet({"$or": [{"slug": link['topic']} for link in serialized]})}
         else:
             link_topic_dict = {}
-        serialized = [annotate_topic_link(link, link_topic_dict) for link in serialized]
+        serialized = list(filter(None, (annotate_topic_link(link, link_topic_dict) for link in serialized)))
     for link in serialized:
         link['anchorRef'] = link['ref']
         link['anchorRefExpanded'] = link['expandedRefs']
@@ -303,9 +305,8 @@ def generate_all_topic_links_from_sheets(topic=None):
         topic_scores = [(slug, (numerator / denominator) * topic_idf_dict[slug], owners) for slug, numerator, owners in
                   zip(related_topics_to_tref.keys(), numerator_list, owner_counts)]
         # transform data to more convenient format
-        try:
-            oref = Ref(tref)
-        except InputError:
+        oref = get_ref_safely(tref)
+        if oref is None:
             continue
         for slug, _, owners in filter(lambda x: x[1] >= TFIDF_CUTOFF and x[2] >= OWNER_THRESH, topic_scores):
             raw_topic_ref_links[slug] += [(oref, owners)]
@@ -476,13 +477,8 @@ def calculate_mean_tfidf(ref_topic_links):
     for l in tqdm(ref_topic_links, total=len(ref_topic_links), desc='process text'):
         ref_topic_map[l.toTopic] += [l.ref]
         if l.ref not in ref_words_map:
-            try:
-                oref = Ref(l.ref)
-            except InputError:
-                print(l.ref)
-                continue
-            except IndexError:
-                print("Index Error", l.ref)
+            oref = get_ref_safely(l.ref)
+            if oref is None:
                 continue
 
             ref_words_map[l.ref] = tokenize_words_for_tfidf(oref.text('he').as_string(), stopwords)
@@ -538,10 +534,11 @@ def calculate_pagerank_scores(ref_topic_map):
     for topic, ref_list in tqdm(ref_topic_map.items(), desc='calculate pr'):
         oref_list = []
         for tref in ref_list:
-            try:
-                oref_list += [Ref(tref)]
-            except InputError:
+            oref = get_ref_safely(tref)
+            if oref is None:
                 continue
+            oref_list += [oref]
+
         oref_pr_list = pagerank_rank_ref_list(oref_list, normalize=True)
         for oref, pr in oref_pr_list:
             pr_map[(topic, oref.normal())] = pr
@@ -560,9 +557,8 @@ def calculate_other_ref_scores(ref_topic_map):
         seg_ref_counter = defaultdict(int)
         tref_range_lists = {}
         for tref in ref_list:
-            try:
-                oref = Ref(tref)
-            except InputError:
+            oref = get_ref_safely(tref)
+            if oref is None:
                 continue
             tref_range_lists[tref] = [seg_ref.normal() for seg_ref in oref.range_list()]
             try:
@@ -597,9 +593,11 @@ def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
         else:
             sheet = db.sheets.find_one({"id": sheet_id}, {"views": 1, "includedRefs": 1, "dateCreated": 1, "options": 1, "title": 1, "topics": 1})
             includedRefs = []
-            for tref in sheet['includedRefs']:
+            for tref in sheet['includedRefs']:                
                 try:
-                    oref = Ref(tref)
+                    oref = get_ref_safely(tref)
+                    if oref is None:
+                        continue
                     includedRefs += [[sub_oref.normal() for sub_oref in oref.all_segment_refs()]]
                 except InputError:
                     continue
@@ -761,6 +759,19 @@ def add_num_sources_to_topics():
     db.topics.bulk_write([
         UpdateOne({"_id": t['_id']}, {"$set": {"numSources": t['numSources']}}) for t in updates
     ])
+
+
+def get_ref_safely(tref):
+    try:
+        oref = Ref(tref)
+        return oref
+    except InputError:
+        print("Input Error", tref)
+    except IndexError:
+        print("IndexError", tref)
+    except AssertionError:
+        print("AssertionError", tref)
+    return None
 
 
 def recalculate_secondary_topic_data():
