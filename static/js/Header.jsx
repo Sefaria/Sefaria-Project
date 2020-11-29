@@ -310,9 +310,9 @@ class Header extends Component {
                 <div className="headerLinksSection">
                   { headerMessage }
                   { Sefaria._uid ?
-                      <LoggedInButtons/>
+                      <LoggedInButtons headerMode={this.props.headerMode}/>
                       :
-                      <LoggedOutButtons />
+                      <LoggedOutButtons headerMode={this.props.headerMode}/>
                   }
                   { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
                 </div>
@@ -350,7 +350,7 @@ Header.propTypes = {
   toggleSignUpModal:           PropTypes.func.isRequired,
 };
 
-function LoggedOutButtons(){
+function LoggedOutButtons({headerMode}){
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
   const [loginLink, setLoginLink] = useState("/login?next=/");
@@ -379,17 +379,20 @@ function LoggedOutButtons(){
   );
 }
 
-function LoggedInButtons(){
+function LoggedInButtons({headerMode}){
   const [isClient, setIsClient] = useState(false);
   useEffect(()=>{
-    setIsClient(true);
+    if(headerMode){
+      setIsClient(true);
+    }
   }, []);
-  const notificationsClasses = classNames({notifications: 1, unread: isClient && Sefaria.notificationCount > 0});
+  const unread = headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
+  const notificationsClasses = classNames({notifications: 1, unread: unread});
   return(
       <div className="accountLinks">
-          <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${isClient}`} className={notificationsClasses}>{Sefaria.notificationCount}</a>
+          <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>{Sefaria.notificationCount}</a>
           <a href="/my/profile" className="my-profile">
-            <ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`${Sefaria.full_name}-C-${isClient}`} />
+            <ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name}/>
           </a>
        </div>
   );

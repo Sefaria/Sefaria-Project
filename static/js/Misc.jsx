@@ -45,15 +45,15 @@ class ProfilePic extends Component {
   }
   isImageNotPresent(){
     const img = this.imgFile.current;
-      if (img && img.complete) {
-          if(img.naturalWidth === 0) {
-              return true;
-          } else {
-              return false
-          }
-      }else{
-        return true;
-      }
+    if (img && img.complete) {
+        if(img.naturalWidth === 0) {
+            return true;
+        } else {
+            return false
+        }
+    }else{
+      return true;
+    }
   }
   setShowDefault() {this.setState({showDefault: true});  }
   setShowNonDefault() {this.setState({showDefault: false});  }
@@ -168,8 +168,8 @@ class ProfilePic extends Component {
     const { showDefault, src, crop, error, uploading, isFirstCropChange } = this.state;
     const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
     const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
-    const defaultViz = (showDefault || this.isImageNotPresent()) ? 'flex' : 'none';
-    const profileViz = (showDefault || this.isImageNotPresent()) ? 'none' : 'block';
+    const defaultViz = (showDefault /*|| this.isImageNotPresent()*/) ? 'flex' : 'none';
+    const profileViz = (showDefault /*|| this.isImageNotPresent()*/) ? 'none' : 'block';
     const fontSize = this.isImageNotPresent() ? 0 : len/2;
     const imageSrc = url.replace("profile-default.png", 'profile-default-404.png');  // replace default with non-existant image to force onLoad to fail
     return (
@@ -178,7 +178,6 @@ class ProfilePic extends Component {
           style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}>
           { showButtons ? null : `${initials}` }
         </div>
-        { !!imageSrc ?
         <img
           className="img-circle profile-img"
           ref={this.imgFile}
@@ -187,7 +186,7 @@ class ProfilePic extends Component {
           alt="User Profile Picture"
           onLoad={this.setShowNonDefault}
           onError={this.setShowDefault}
-        /> : null}
+        />
         {this.props.children ? this.props.children : null /*required for slate.js*/}
         { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
             (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
