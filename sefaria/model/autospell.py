@@ -233,14 +233,11 @@ class AutoCompleter(object):
         instring = instring.strip()  # A terminal space causes some kind of awful "include everything" behavior
         if len(instring) >= self.max_completion_length:
             return [], []
-        completion_manager = Completions(self, self.lang, instring, limit,
-                                         do_autocorrect=len(instring) < self.max_autocorrect_length)
-        completion_manager.process()
-        completions = completion_manager.completions
-        completion_objects = completion_manager.completion_objects
-
-        if len(completions):
-            return completions, completion_objects
+        cm = Completions(self, self.lang, instring, limit,
+                         do_autocorrect=len(instring) < self.max_autocorrect_length)
+        cm.process()
+        if cm.has_results():
+            return cm.get_completion_strings(), cm.get_completion_objects()
 
         # No results. Try letter swap
         if not redirected and self.other_lang_ac:
@@ -286,35 +283,75 @@ class Completions(object):
         self.completions = []  # titles to return
         self.completion_objects = []
         self.do_autocorrect = do_autocorrect
+        self._completion_strings = []
+        self._raw_completion_strings = []  # May have dupes
+        self._completion_objects = []
+
+    def has_results(self):
+        return len(self._completion_objects) > 0
+
+    def get_completion_objects(self):
+        return self._completion_objects
+
+    def get_completion_strings(self):
+        return self._completion_strings
 
     def process(self):
         """
         Execute the completion search
         :return:
         """
-        # Match titles that begin exactly this way
-        [completions, completion_objects] = self.get_new_continuations_from_string(self.normal_string)
+        self._collect_candidates()
+        self._trim_results()
 
-        joined = list(zip(completions, completion_objects))
+    def _trim_results(self):
+        seen = set()
+
+        if self.limit == 0:
+            self._completion_strings = [x for x in self._raw_completion_strings if x not in seen and not seen.add(x)]
+            return
+
+        obj_count = 0
+        for x in self._raw_completion_strings:
+            obj_count += 1
+            if x in seen:
+                continue
+            else:
+                seen.add(x)
+                self._completion_strings += [x]
+            if len(seen) >= self.limit:
+                break
+
+        self._completion_objects = self._completion_objects[:obj_count]
+
+        return
+
+
+    def _collect_candidates(self):
+        # Match titles that begin exactly this way
+        [cs, co] = self.get_new_continuations_from_string(self.normal_string)
+
+        joined = list(zip(cs, co))
         if len(joined):
             joined.sort(key=lambda w: w[1]["order"])
-            self.completions, self.completion_objects = [list(_) for _ in zip(*joined)]
+            self._raw_completion_strings, self._completion_objects = [list(_) for _ in zip(*joined)]
         else:
-            self.completions, self.completion_objects = [], []
+            self._raw_completion_strings, self._completion_objects = [], []
 
-        if self.limit and len(self.completions) >= self.limit:
+        if self.limit and len(set(self._raw_completion_strings)) >= self.limit:
             return
+
         if not self.do_autocorrect:
             return 
 
         # single misspellings
         single_edits = self.auto_completer.spell_checker.single_edits(self.normal_string)
         for edit in single_edits:
-            [completions, completion_objects] = self.get_new_continuations_from_string(edit)
-            self.completions += completions
-            self.completion_objects += completion_objects
-            if self.limit and len(self.completions) >= self.limit:
-                return self.completions[:self.limit or None]
+            [cs, co] = self.get_new_continuations_from_string(edit)
+            self._raw_completion_strings += cs
+            self._completion_objects += co
+            if self.limit and len(set(self._raw_completion_strings)) >= self.limit:
+                return
 
 
         # This string of characters, or a minor variations thereof, deeper in the string
@@ -327,18 +364,14 @@ class Completions(object):
                     all_v = self.auto_completer.title_trie[k]
                 except KeyError:
                     all_v = []
-                added_to_completions = False
                 for v in all_v:
                     if (v["type"], v["key"]) not in self.keys_covered:
-                        self.completion_objects += [v]
-                        if not added_to_completions:
-                            self.completions += [v["title"]]
-                            added_to_completions = True
+                        self._completion_objects += [v]
+                        self._raw_completion_strings += [v["title"]]
         except ValueError:
             pass
 
-        self.completions = self.completions[:self.limit or None]
-        return self.completions
+        return
 
     def get_new_continuations_from_string(self, str):
         """
@@ -362,19 +395,14 @@ class Completions(object):
         completion_objects = []
         non_primary_matches = []
         for k, all_v in all_continuations:
-            added_to_completions = False
             for v in all_v:
                 if v["is_primary"] and (v["type"], v["key"]) not in self.keys_covered:
                     if v["type"] == "ref" or v["type"] == "word_form" or v["type"] == "Topic":
                         completion_objects += [v]
-                        if not added_to_completions:
-                            completions += [v["title"]]
-                            added_to_completions = True
+                        completions += [v["title"]]
                     else:
                         completion_objects.insert(0, v)
-                        if not added_to_completions:
-                            completions.insert(0, v["title"])
-                            added_to_completions = True
+                        completions.insert(0, v["title"])
                     self.keys_covered.add((v["type"], v["key"]))
                 else:
                     non_primary_matches += [(k, v)]

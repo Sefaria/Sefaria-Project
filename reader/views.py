@@ -2388,8 +2388,8 @@ def get_name_completions(name, limit, ref_only):
         object_data = completer.get_object(name)
 
     return {
-        "completions": completions[:limit or None],
-        "completion_objects": completion_objects[:limit or None],
+        "completions": completions,
+        "completion_objects": completion_objects,
         "lang": lang,
         "object_data": object_data,
         "ref": ref
@@ -2425,9 +2425,9 @@ def name_api(request, name):
             "internalToSections": ref.toSections,
             "sections": ref.normal_sections(),  # this switch is to match legacy behavior of parseRef
             "toSections": ref.normal_toSections(),
-            "completions": completions_dict["completions"] if LIMIT == 0 else completions_dict["completions"][:LIMIT],
+            "completions": completions_dict["completions"],
             "completion_objects": completions_dict["completion_objects"],
-            # todo: ADD textual completions as well
+            # todo: ADD textual completions as well (huh?)
             "examples": []
         }
         if inode.has_numeric_continuation():
