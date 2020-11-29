@@ -142,6 +142,14 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     def should_display(self):
         return getattr(self, 'shouldDisplay', True) and getattr(self, 'numSources', 0) > 0
 
+    def set_slug_to_primary_title(self):
+        new_slug = self.get_primary_title('en')
+        if len(new_slug) == 0:
+            new_slug = self.get_primary_title('he')
+        new_slug = self.normalize_slug(new_slug)
+        if new_slug != self.slug:
+            self.set_slug(new_slug)
+
     def set_slug(self, new_slug):
         slug_field = self.slug_fields[0]
         old_slug = getattr(self, slug_field)
