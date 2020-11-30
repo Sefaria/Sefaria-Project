@@ -310,7 +310,8 @@ class TopicLinkHelper(object):
     ]
     optional_attrs = [
         'generatedBy',
-        'order'
+        'order',
+        'isJudgementCall',
     ]
     generated_by_sheets = "sheet-topic-aggregator"
 
