@@ -442,14 +442,15 @@ class ConnectionsPanel extends Component {
                     onSave={() => this.props.setConnectionsMode("Notes")}
                     onCancel={() => this.props.setConnectionsMode("Notes")} />
                   { Sefaria._uid ?
-                  <>
-                  <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth">
-                    <span className="int-en">Go to My Notes</span>
-                    <span className="int-he">הרשומות שלי</span>
-                  </a>
-                  <MyNotes
-                    srefs={this.props.srefs}
-                    editNote={this.props.editNote} /> </> : null }
+                  <div>
+                    <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth">
+                      <span className="int-en">Go to My Notes</span>
+                      <span className="int-he">הרשומות שלי</span>
+                    </a>
+                    <MyNotes
+                      srefs={this.props.srefs}
+                      editNote={this.props.editNote} /> 
+                  </div> : null }
                 </div>);
 
     } else if (this.props.mode === "Lexicon") {
@@ -480,7 +481,7 @@ class ConnectionsPanel extends Component {
                     interfaceLang={this.props.interfaceLang}
                     key="WebPages"/>);
 
-	} else if (this.props.mode === "Audio" || this.props.mode === "Media") {
+	} else if (this.props.mode === "Torah Readings") {
       content = (<MediaList
 					          srefs={this.props.srefs}
                     interfaceLang={this.props.interfaceLang}
@@ -564,8 +565,8 @@ class ConnectionsPanel extends Component {
                   currVersions={this.props.currVersions}
                   title={this.props.title}/>);
     }
-    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics", "Audio"].indexOf(this.props.mode) != -1;
 
+    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics"].indexOf(this.props.mode) != -1;
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
@@ -647,7 +648,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Translations" he="תרגומים" image="layers.png" onClick={() => this.props.setConnectionsMode("Translations")} />
               <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
-              {this.props.audioCount && this.props.audioCount > 0 ? <ToolsButton en="Torah Readings" he="קריאת בתורה " image="audio.svg" onClick={() => this.props.setConnectionsMode("Media")} /> : null }
+              {this.props.audioCount && this.props.audioCount > 0 ? <ToolsButton en="Torah Readings" he="קריאה בתורה" image="audio.svg" onClick={() => this.props.setConnectionsMode("Torah Readings")} /> : null }
               <ToolsButton en="Chavruta" he="חברותא" image="video.svg" onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Chavruta")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />

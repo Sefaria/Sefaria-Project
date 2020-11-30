@@ -805,3 +805,10 @@ def recalculate_secondary_topic_data():
         for l in (all_ref_links + related_links)
     ])
     add_num_sources_to_topics()
+
+
+def set_all_slugs_to_primary_title():
+    # reset all slugs to their primary titles, if they have drifted away
+    # no-op if slug already corresponds to primary title
+    for t in TopicSet():
+        t.set_slug_to_primary_title()
