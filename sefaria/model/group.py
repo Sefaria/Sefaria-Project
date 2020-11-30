@@ -74,6 +74,10 @@ class Group(abst.AbstractMongoRecord):
         if any([c in self.name for c in reserved_chars]):
             raise InputError(_('Group names may not contain the following characters:') + ' {}'.format(', '.join(reservedChars)))
 
+        if len(group.name) == 0:
+            raise InputError(_("Please set a name for your group."))
+
+
         if getattr(self, "listed", False):
             if not getattr(self, "imageUrl", False):
                 raise InputError(_("Public Groups are required to include a group image (a square image will work best)."))
