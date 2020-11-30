@@ -28,6 +28,7 @@ class Group(abst.AbstractMongoRecord):
         "members",       # list of uids
     ]
     optional_attrs = [
+        "sheets",           # list of sheet ids included in this collection
         "invitations",      # list of dictionaries representing outstanding invitations
         "description",      # string text of short description
         "websiteUrl",       # url for group website
