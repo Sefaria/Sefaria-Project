@@ -90,7 +90,7 @@ class WebPage(abst.AbstractMongoRecord):
     @staticmethod
     def excluded_pages_url_regex():
         bad_urls = [
-            r"rabbisacks.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
+            r"rabbisacks\.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
             r"halachipedia\.com\/index\.php\?search=", # Halachipedia search results
             r"halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
             r"myjewishlearning\.com\/\?post_type=evergreen", # These urls end up not working
@@ -107,10 +107,13 @@ class WebPage(abst.AbstractMongoRecord):
             r"test\.hadran\.org\.il",
             r"www\.jtsa.edu\/search\/index\.php",
             r"jewschool\.com\/page\/",
-            r"truah.org\/\?s=",
-            r"truah.org\/(holiday|page|resource-types)\/",
+            r"truah\.org\/\?s=",
+            r"truah\.org\/(holiday|page|resource-types)\/",
             r"clevelandjewishnews\.com$",
             r"clevelandjewishnews\.cpm\/news\/",
+            r"ots\.org\.il\/news\/",
+            r"ots\.org\.il\/parsha\/page\/\d+\/",
+            r"ots\.org\.il\/tag\/.+",
             r"toravoda\.org\.il\/%D7%90%D7%99%D7%A8%D7%95%D7%A2%D7%99%D7%9D-%D7%97%D7%9C%D7%95%D7%A4%D7%99\/",  # Neemanei Torah Vavoda list of past events
             r"929.org.il\/(lang\/en\/)?author/\d+$",  # Author index pages
             r"webcache\.googleusercontent\.com",
@@ -578,7 +581,7 @@ sites_data = [
         "domains": ["hebrewcollege.edu"]
     },
     {
-        "name": ["מכון הדר"],
+        "name": "מכון הדר",
         "domains": ["mechonhadar.org.il"]
     },
     {
@@ -678,7 +681,17 @@ sites_data = [
     #     "initial_title_branding": True
     # },
     {
-        "name": ["נאמני תורה ועבודה"],
+        "name": "נאמני תורה ועבודה",
         "domains": ["toravoda.org.il"],
-    }
+    },
+    {
+        "name": "Ohr Torah Stone",
+        "domains": ["ots.org.il"],
+        "title_branding": ["אור תורה סטון"]
+    },
+    {
+        "name": "Orthodox Union",
+        "domains": ["ou.org"],
+        "title_branding": ["OU Torah", "OU Life"]
+    },
 ]
