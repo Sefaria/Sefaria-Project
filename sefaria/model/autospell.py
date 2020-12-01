@@ -326,7 +326,6 @@ class Completions(object):
 
         return
 
-
     def _collect_candidates(self):
         # Match titles that begin exactly this way
         [cs, co] = self.get_new_continuations_from_string(self.normal_string)
