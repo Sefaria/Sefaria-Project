@@ -179,7 +179,7 @@ class LexiconBox extends Component {
                   </a>
                   <div>
                     <span className="int-en">Creator: Rabbi Pinchas Hayman</span>
-                    <span className="int-he">יוצר: הרב פנחס היימן</span>
+                    <span className="int-he">יוצר: הרב פנחס הימן</span>
                   </div>
                 </div>
               ) : null
