@@ -5035,13 +5035,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 30px;
   margin-left: 0;
 }
-.topicButton .three-dots-button.tooltip-toggle::before {
+.topicButton .three-dots-button.tooltip-toggle::before,
+.named-entity-title-bar .three-dots-button.tooltip-toggle::before {
   transform: none;
   left: unset;
   right: 30px;
   width: 180px;
 }
-.topicsHe .topicButton .three-dots-button.tooltip-toggle::before {
+.readerPanel.hebrew .topicButton .three-dots-button.tooltip-toggle::before,
+.readerPanel.hebrew .named-entity-title-bar .three-dots-button.tooltip-toggle::before {
   right: unset;
   left: 30px;
   text-align: right;
@@ -5836,6 +5838,11 @@ a .button:hover {
 .lexicon-results {
   padding-top: 20px;
 }
+.named-entity-title-bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
 .named-entity-wrapper {
   display: flex;
   flex-direction: column;
@@ -5917,7 +5924,8 @@ a .button:hover {
 
 }
 
-.lexicon-results .attribution div {
+.lexicon-results .attribution div,
+.named-entity-wrapper .attribution div {
   display: block;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;

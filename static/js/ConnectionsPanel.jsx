@@ -459,6 +459,7 @@ class ConnectionsPanel extends Component {
                     selectedNamedEntity={this.props.selectedNamedEntity}
                     selectedNamedEntityText={this.props.selectedNamedEntityText}
                     oref={Sefaria.ref(this.props.srefs[0])}
+                    srefs={this.props.srefs}
                     onEntryClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
                     clearSelectedWords={this.props.clearSelectedWords}

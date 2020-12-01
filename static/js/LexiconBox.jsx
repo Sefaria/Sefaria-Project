@@ -1,5 +1,6 @@
 import {
   LoadingMessage,
+  ToolTipped,
 } from './Misc';
 import React  from 'react';
 import Sefaria  from './sefaria/sefaria';
@@ -136,12 +137,19 @@ class LexiconBox extends Component {
         // not sure why I also need to check for this.state.namedEntity but I've seen situations where loaded is true and namedEntity is null
         content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
       } else {
+          const dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(this.props.srefs[0])}" ${Sefaria._('based on')} ${Sefaria._('research of Prof. Michael Sperling')}.`;
+          
           const neArray = this.state.namedEntity.possibilities || [this.state.namedEntity]; 
           const namedEntityContent = neArray.map(ne => (<div key={ne.slug} className="named-entity-wrapper">
-            <a className="contentText topicLexiconTitle" href={`/topics/${ne.slug}`} target="_blank">
-              <span className="en">{ne.primaryTitle.en}</span>
-              <span className="he">{ne.primaryTitle.he}</span>
-            </a>
+            <div className="named-entity-title-bar">
+              <a className="contentText topicLexiconTitle" href={`/topics/${ne.slug}`} target="_blank">
+                <span className="en">{ne.primaryTitle.en}</span>
+                <span className="he">{ne.primaryTitle.he}</span>
+              </a>
+              <ToolTipped altText={dataSourceText} classes={"saveButton tooltip-toggle three-dots-button"}>
+                <img src="/static/img/three-dots.svg" alt={dataSourceText}/>
+              </ToolTipped>
+            </div>
             {
               ne.timePeriod ? (
                 <div className="named-entity-time-period">
@@ -160,6 +168,24 @@ class LexiconBox extends Component {
               <span className="en">{ne.description ? ne.description.en : `No description known for '${ne.primaryTitle.en}'`}</span>
               <span className="he">{ne.description ? ne.description.he : `אין הסבר ידוע בשביל '${ne.primaryTitle.he}'`}</span>
             </div>
+            {
+              (ne.alt_ids && ne.alt_ids.bonayich) ? (
+                <div className="attribution">
+                  <a target="_blank" href="https://www.bonayich.com">
+                    <div>
+                      <span className="int-en">Source: </span>
+                      <span className="int-he">מקור: </span>
+                      {'Bonayich'}
+                    </div>
+                  </a>
+                  <div>
+                    <span className="int-en">Creator: </span>
+                    <span className="int-he">יוצר: </span>
+                    {'Rabbi Pinchas Hayman'}
+                  </div>
+                </div>
+              ) : null
+            }
           </div>));
           content = (!!this.state.namedEntity.possibilities ? (
             <div>
@@ -187,6 +213,7 @@ LexiconBox.propTypes = {
   interfaceLang:    PropTypes.string.isRequired,
   selectedWords: PropTypes.string,
   oref:          PropTypes.object,
+  srefs:         PropTypes.array,
   onEntryClick:  PropTypes.func,
   onCitationClick: PropTypes.func
 };
@@ -242,13 +269,13 @@ class LexiconEntry extends Component {
 
     var sourceContent = <div>
       <span className="int-en">Source: </span>
-      <span className="int-he">מקור:</span>
+      <span className="int-he">מקור: </span>
       {'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']}
     </div>;
 
     var attributionContent = <div>
       <span className="int-en">Creator: </span>
-      <span className="int-he">יוצר:</span>
+      <span className="int-he">יוצר: </span>
       {'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']}
     </div>;
 
