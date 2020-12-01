@@ -885,6 +885,9 @@ input.noselect {
   height: 18px;
   width: 18px;
 }
+.ui-autocomplete .ui-menu-item img.ac-img-User {
+  opacity: 1;
+}
 .ui-autocomplete .ui-menu-item a {
   display: inline-block;
   line-height: 21px;
@@ -4696,9 +4699,132 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .textListTextRangeBox + .sheet {
   margin-top: 24px;
 }
+
+.mediaList .media {
+  border-top: solid 1px #CCC;
+  padding: 20px 0;
+}
+
+.mediaList .mediaTitle {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  color: #666;
+	padding-bottom: 15px;
+}
+
+.mediaList .mediaTitle .he {
+  font-size: 16px;
+}
+
+
+
+.mediaList .media .title {
+	font-size: 22px;
+  color: #000;
+}
+
+
+.mediaList .media a {
+	color: #999;
+}
+
+.mediaList .media .description {
+	margin: 10px 0;
+  font-size: 13px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  flex-flow: row;
+  justify-content: space-between;
+  color: #666;
+}
+
+.mediaList .media .panel{
+	background: #e6e6e6;
+	border-radius: 50px;
+	text-align: center;
+	margin: 15px 0;
+	padding: 15px;
+  font-size: 13px;
+  line-height: 15px;
+  flex-direction: row;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  text-align: left;
+  direction: ltr;
+}
+
+.mediaList .media .panel .playTimeContainer {
+  display: inline-flex;
+  align-self: center;
+  font-size: 13px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+
+.mediaList .media .panel .playTimeContainer span {
+  margin: 0 15px;
+}
+
+.mediaList .media .panel .sliderContainer {
+  display: inline-flex;
+  flex: 2;
+  align-self: center;
+}
+
+
+.mediaList .media .panel input[type='image'] {
+	  width: 10px;
+    height: 10px;
+    padding: 2.5px;
+}
+
+.slider {
+  -webkit-appearance: none;
+  height: 2px;
+  background: #4d4d4d;
+  outline: none;
+  opacity: 0.7;
+  width: 100%;
+}
+
+.slider:hover {
+  opacity: 5;
+}
+
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4871bf;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4871bf;
+  cursor: pointer;
+}
+
+/* All the same stuff for IE */
+.slider::-ms-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4871bf;
+  cursor: pointer;
+}
+
 .webpageList .website {
   text-align: start;
 }
+
 .webpageList .website .icon {
   height: 16px;
   width: 16px;
@@ -4709,7 +4835,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: left;
   direction: ltr;
 }
-.webpageList .webpage.hebrew {
+.webpageList .webpage.hebrew{
   text-align: right;
   direction: rtl;
 }
@@ -4738,7 +4864,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 18px;
   color: #999;
 }
-.webpageList .webpage .stats {
+.webpageList .webpage .stats,
+.mediaList .media .meta {
   font-size: 13px;
   color: #999;
   margin-top: 5px;
@@ -6522,7 +6649,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-bottom: 10px;
   cursor: pointer;
 }
-.addToSourceSheetBox .dropdownMain.noselect{
+.addToSourceSheetBox .dropdownMain.noselect {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -7149,8 +7276,7 @@ span.purim-emoji img{
 .sourceContentText.centeredSheetContent {
   text-align: center;
 }
-.sheetContent .sheetItem.segment .sourceContentText p:last-child,
-.sheetContent .sheetItem.segment .sourceContentText p:last-child {
+.sheetContent .sheetItem.segment .sourceContentText p {
   margin-bottom: 0;
 }
 .sheetContent .sheetItem.segment .addedBy {
@@ -7210,6 +7336,11 @@ span.purim-emoji img{
 .sheetContent .media .mediaCaption.enOnly .he {
   display: none;
 }
+.sheetContent .spacer {
+  line-height: 18px;
+  font-size: 18px;
+}
+
 .sheetItem:only-of-type.empty .SheetOutsideText:after,
 .spacer:only-of-type.empty:after {
   color: #999;

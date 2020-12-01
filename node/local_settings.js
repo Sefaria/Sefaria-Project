@@ -24,6 +24,22 @@ const local_settings = {
     } 
   }(),
 
+  REDIS_HOST: function(){
+    if ('REDIS_HOST' in process.env) {
+      return process.env.REDIS_HOST;
+    } else {
+      return "127.0.0.1"; // default;
+    }
+  }(),
+
+  REDIS_PORT: function(){
+    if ('REDIS_PORT' in process.env) {
+      return process.env.REDIS_PORT;
+    } else {
+      return 6379; // default;
+    }
+  }(),
+
   DEBUG: function(){
     if ('DEBUG' in process.env) {
       return process.env.DEBUG;

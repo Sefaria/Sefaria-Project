@@ -18,20 +18,22 @@ class ReaderNavigationCategoryMenu extends Component {
   render() {
 
     // Show Talmud with Toggles
-    var categories  = this.props.categories[0] === "Talmud" && this.props.categories.length === 1 ?
+
+    const categories  = this.props.categories[0] === "Talmud" && this.props.categories.length === 1 ?
                         ["Talmud", "Bavli"] : this.props.categories;
+    let catTitle = '', heCatTitle = '', toggle = '';
 
     if (categories[0] === "Talmud" && categories.length <= 2) {
-      var setBavli = function() {
+      const setBavli = () => {
         this.props.setCategories(["Talmud", "Bavli"]);
-      }.bind(this);
-      var setYerushalmi = function() {
+      };
+      const setYerushalmi = ()=> {
         this.props.setCategories(["Talmud", "Yerushalmi"]);
-      }.bind(this);
-      var bClasses = classNames({navToggle:1, active: categories[1] === "Bavli"});
-      var yClasses = classNames({navToggle:1, active: categories[1] === "Yerushalmi", second: 1});
+      };
+      const bClasses = classNames({navToggle:1, active: categories[1] === "Bavli"});
+      const yClasses = classNames({navToggle:1, active: categories[1] === "Yerushalmi", second: 1});
 
-      var toggle =(<div className="navToggles">
+      toggle =(<div className="navToggles">
                             <span className={bClasses} onClick={setBavli}>
                               <span className="en">Bavli</span>
                               <span className="he">בבלי</span>
@@ -42,24 +44,24 @@ class ReaderNavigationCategoryMenu extends Component {
                               <span className="he">ירושלמי</span>
                             </span>
                          </div>);
-      var catTitle   = (categories.length > 1) ? categories[0] +  " " + categories[1] : categories[0];
-      var heCatTitle = (categories.length > 1) ? Sefaria.hebrewTerm(categories[0]) + " " + Sefaria.hebrewTerm(categories[1]): Sefaria.hebrewTerm(categories[0]);
+      catTitle   = (categories.length > 1) ? categories[0] +  " " + categories[1] : categories[0];
+      heCatTitle = (categories.length > 1) ? Sefaria.hebrewTerm(categories[0]) + " " + Sefaria.hebrewTerm(categories[1]): Sefaria.hebrewTerm(categories[0]);
     } else {
-      var toggle = null;
+      toggle = null;
       if (this.props.category === "Commentary") {
-        var catTitle   = this.props.categories[0] + " Commentary";
-        var heCatTitle = Sefaria.hebrewTerm(this.props.categories[0]) + " " + Sefaria.hebrewTerm("Commentary"); // HEBREW NEEDED
+        catTitle   = this.props.categories[0] + " Commentary";
+        heCatTitle = Sefaria.hebrewTerm(this.props.categories[0]) + " " + Sefaria.hebrewTerm("Commentary"); // HEBREW NEEDED
       } else {
-        var catTitle   = this.props.category;
-        var heCatTitle = Sefaria.hebrewTerm(this.props.category);
+        catTitle   = this.props.category;
+        heCatTitle = Sefaria.hebrewTerm(this.props.category);
       }
 
     }
-    var catContents    = Sefaria.tocItemsByCategories(categories);
-    var nestLevel      = this.props.category === "Commentary" ? 1 : 0;
-    var footer         = this.props.compare ? null : <Footer />;
-    var navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, noLangToggleInHebrew: 1});
-    var contentClasses = classNames({content: 1, hasFooter: footer != null});
+    const catContents    = Sefaria.tocItemsByCategories(categories);
+    const nestLevel      = this.props.category == "Commentary" ? 1 : 0;
+    const footer         = this.props.compare ? null : <Footer />;
+    const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, noLangToggleInHebrew: 1});
+    const contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (<div className={navMenuClasses}>
               <MobileHeader
                 mode={'innerTOC'}
@@ -185,6 +187,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
                 const url     = "/" + Sefaria.normRef(chItem.firstSection);
                 const incomplete = this.props.contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew" ? !chItem.heComplete : !chItem.enComplete;
                 const classes = classNames({refLink: 1, blockLink: 1, incomplete: incomplete});
+
                 content.push((<a href={url} className={classes} data-ref={chItem.firstSection} key={"text." + this.props.nestLevel + "." + i}>
                                 <span className='en'>{title}</span>
                                 <span className='he'>{heTitle}</span>

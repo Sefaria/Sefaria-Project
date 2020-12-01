@@ -3,6 +3,7 @@
 text.py
 """
 
+import time
 import logging
 from functools import reduce
 logger = logging.getLogger(__name__)
@@ -2398,24 +2399,25 @@ class Ref(object, metaclass=RefCacheType):
         base = parts[0]
         title = None
 
-        # Remove letter from end of base reference until TitleNode or Term name matched, set `title` variable with matched title
         tndict = library.get_title_node_dict(self._lang)
         termdict = library.get_term_dict(self._lang)
+
+        self.index_node = tndict.get(base)  # Match index node before term
+        if not self.index_node:
+            new_tref = termdict.get(base)   # Check if there's a term match, reinit w/ term
+            if new_tref:
+                self.__reinit_tref(new_tref)
+                return
+
+        # Remove letter from end of base reference until TitleNode matched, set `title` variable with matched title
         for l in range(len(base), 0, -1):
             self.index_node = tndict.get(base[0:l])
-            new_tref = termdict.get(base[0:l])
 
             if self.index_node:
                 title = base[0:l]
                 if base[l - 1] == "." and l < len(base):   # Take care of Refs like "Exo.14.15", where the period shouldn't get swallowed in the name.
                     title = base[0:l - 1]
                 break
-            if new_tref:
-                if l < len(base) and base[l] not in " .":
-                    continue
-                # If a term is matched, reinit with the real tref
-                self.__reinit_tref(new_tref)
-                return
 
         # At this point, `title` is something like "Exodus" or "Rashi on Exodus" or "Pesach Haggadah, Magid, Four Sons"
         if title:
@@ -4383,6 +4385,9 @@ class Library(object):
     """
 
     def __init__(self):
+        #Timestamp when library last stored shared cache items (toc, terms, etc)
+        self.last_cached = None
+
         self.langs = ["en", "he"]
 
         # Maps, keyed by language, from index key to array of titles
@@ -4412,6 +4417,7 @@ class Library(object):
         self._toc = None
         self._toc_json = None
         self._toc_tree = None
+        self._topic_toc = None
         self._topic_toc_json = None
         self._topic_link_types = None
         self._topic_data_sources = None
@@ -4429,6 +4435,7 @@ class Library(object):
         # Term Mapping
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
+        self._simple_term_mapping_json = None
 
         # Initialization Checks
         # These values are set to True once their initialization is complete
@@ -4440,7 +4447,7 @@ class Library(object):
 
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
-            self.build_term_mappings()
+            self.get_simple_term_mapping() #this will implicitly call self.build_term_mappings() but also make sure its cached.
 
     def _build_index_maps(self):
         # Build index and title node dicts in an efficient way
@@ -4473,6 +4480,7 @@ class Library(object):
         self._build_index_maps()
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
+        self.reset_text_titles_cache()
         self._title_regex_strings = {}
         self._title_regexes = {}
         Ref.clear_cache()
@@ -4486,6 +4494,8 @@ class Library(object):
         self._toc_json = self.get_toc_json(rebuild=True)
         if not skip_filter_toc:
             self._search_filter_toc = self.get_search_filter_toc(rebuild=True)
+        else: # TODO: Dont love this, it breaks the pattern of where we do cache invalidation toward redis,  but the way these objects are created currently makes it diffucult to make sure the cache is updated anywhere else. In any dependecy trigger, the search toc is updated in the library, and that becomes more recent than whats in cache, when usually the reverse is true. if we can clean up all the methods relating to the large library objects and standardize, that'd be good
+            scache.set_shared_cache_elem('search_filter_toc', self._search_filter_toc)
         self._search_filter_toc_json = self.get_search_filter_toc_json(rebuild=True)
         self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
         self._category_id_dict = None
@@ -4500,6 +4510,31 @@ class Library(object):
         self._full_term_mapping = {}
         """
 
+    def init_shared_cache(self, rebuild=False):
+        self.get_toc(rebuild=rebuild)
+        self.get_toc_json(rebuild=rebuild)
+        self.get_search_filter_toc(rebuild=rebuild)
+        self.get_search_filter_toc_json(rebuild=rebuild)
+        self.get_topic_toc(rebuild=rebuild)
+        self.get_topic_toc_json(rebuild=rebuild)
+        self.get_text_titles_json(rebuild=rebuild)
+        self.get_simple_term_mapping_json(rebuild=rebuild)
+        if rebuild:
+            scache.delete_shared_cache_elem("regenerating")
+
+    def get_last_cached_time(self):
+        if not self.last_cached:
+            self.last_cached = scache.get_shared_cache_elem("last_cached")
+        if not self.last_cached:
+            self.set_last_cached_time()
+        return self.last_cached
+
+
+    def set_last_cached_time(self):
+        self.last_cached = time.time() # just use the unix timestamp, we dont need any fancy timezone faffing, just objective point in time.
+        scache.set_shared_cache_elem("last_cached", self.last_cached)
+
+
     def get_toc(self, rebuild=False):
         """
         Returns table of contents object from cache,
@@ -4507,10 +4542,11 @@ class Library(object):
         """
         if rebuild or not self._toc:
             if not rebuild:
-                self._toc = scache.get_cache_elem('toc_cache')
+                self._toc = scache.get_shared_cache_elem('toc')
             if rebuild or not self._toc:
                 self._toc = self.get_toc_tree().get_serialized_toc()  # update_table_of_contents()
-                scache.set_cache_elem('toc_cache', self._toc)
+                scache.set_shared_cache_elem('toc', self._toc)
+                self.set_last_cached_time()
         return self._toc
 
     def get_toc_json(self, rebuild=False):
@@ -4519,10 +4555,11 @@ class Library(object):
         """
         if rebuild or not self._toc_json:
             if not rebuild:
-                self._toc_json = scache.get_cache_elem('toc_json_cache')
+                self._toc_json = scache.get_shared_cache_elem('toc_json')
             if rebuild or not self._toc_json:
                 self._toc_json = json.dumps(self.get_toc())
-                scache.set_cache_elem('toc_json_cache', self._toc_json)
+                scache.set_shared_cache_elem('toc_json', self._toc_json)
+                self.set_last_cached_time()
         return self._toc_json
 
     def get_toc_tree(self, rebuild=False):
@@ -4532,9 +4569,30 @@ class Library(object):
         self._toc_tree_is_ready = True
         return self._toc_tree
 
+    def get_topic_toc(self, rebuild=False):
+        """
+        Returns dict representation of Topics TOC.
+         """
+        if rebuild or not self._topic_toc:
+            if not rebuild:
+                self._topic_toc = scache.get_shared_cache_elem('topic_toc')
+            if rebuild or not self._topic_toc:
+                self._topic_toc = self.get_topic_toc_json_recursive()
+                scache.set_shared_cache_elem('topic_toc', self._topic_toc)
+                self.set_last_cached_time()
+        return self._topic_toc
+
     def get_topic_toc_json(self, rebuild=False):
-        if not self._topic_toc_json or rebuild:
-            self._topic_toc_json = json.dumps(self.get_topic_toc_json_recursive())
+        """
+        Returns JSON representation of Topics TOC.
+        """
+        if rebuild or not self._topic_toc_json:
+            if not rebuild:
+                self._topic_toc_json = scache.get_shared_cache_elem('topic_toc_json')
+            if rebuild or not self._topic_toc_json:
+                self._topic_toc_json = json.dumps(self.get_topic_toc())
+                scache.set_shared_cache_elem('topic_toc_json', self._topic_toc_json)
+                self.set_last_cached_time()
         return self._topic_toc_json
 
     def get_topic_toc_json_recursive(self, topic=None, explored=None, with_descriptions=False):
@@ -4600,11 +4658,12 @@ class Library(object):
         """
         if rebuild or not self._search_filter_toc:
             if not rebuild:
-                self._search_filter_toc = scache.get_cache_elem('search_filter_toc_cache')
+                self._search_filter_toc = scache.get_shared_cache_elem('search_filter_toc')
             if rebuild or not self._search_filter_toc:
                 from sefaria.summaries import update_search_filter_table_of_contents
                 self._search_filter_toc = update_search_filter_table_of_contents()
-                scache.set_cache_elem('search_filter_toc_cache', self._search_filter_toc)
+                scache.set_shared_cache_elem('search_filter_toc', self._search_filter_toc)
+                self.set_last_cached_time()
         return self._search_filter_toc
 
     def get_search_filter_toc_json(self, rebuild=False):
@@ -4613,16 +4672,17 @@ class Library(object):
         """
         if rebuild or not self._search_filter_toc_json:
             if not rebuild:
-                self._search_filter_toc_json = scache.get_cache_elem('search_filter_toc_json_cache')
+                self._search_filter_toc_json = scache.get_shared_cache_elem('search_filter_toc_json')
             if rebuild or not self._search_filter_toc_json:
                 self._search_filter_toc_json = json.dumps(self.get_search_filter_toc())
-                scache.set_cache_elem('search_filter_toc_json_cache', self._search_filter_toc_json)
+                scache.set_shared_cache_elem('search_filter_toc_json', self._search_filter_toc_json)
+                self.set_last_cached_time()
         return self._search_filter_toc_json
 
     def build_full_auto_completer(self):
         from .autospell import AutoCompleter
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_groups=True) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_groups=True) for lang in self.langs
         }
 
         for lang in self.langs:
@@ -4893,37 +4953,6 @@ class Library(object):
             self._title_regexes[key] = reg
         return reg
 
-    def full_title_list(self, lang="en", with_terms=False):
-        """
-        :return: list of strings of all possible titles
-        :param lang: "he" or "en"
-        :param with_terms: if True, includes shared titles ('terms')
-        """
-
-        key = lang
-        key += "_terms" if with_terms else ""
-        titles = self._full_title_lists.get(key)
-        if not titles:
-            titles = list(self.get_title_node_dict(lang).keys())
-            if with_terms:
-                titles += list(self.get_term_dict(lang).keys())
-            self._full_title_lists[key] = titles
-        return titles
-
-    def citing_title_list(self, lang="en"):
-        """
-        :param lang: "he" or "en"
-        :return: list of all titles that can be recognized as an inline citation
-        """
-        key = "citing-{}".format(lang)
-        titles = self._full_title_lists.get(key)
-        if not titles:
-            titles = []
-            for i in IndexSet({"is_cited": True}):
-                titles.extend(self._index_title_maps[lang][i.title])
-            self._full_title_lists[key] = titles
-        return titles
-
     def ref_list(self):
         """
         :return: list of all section-level Refs in the library
@@ -4962,10 +4991,28 @@ class Library(object):
                     for title in term.get_titles(lang):
                         self._term_ref_maps[lang][title] = term.ref
 
-    def get_simple_term_mapping(self):
-        if not self._simple_term_mapping:
-            self.build_term_mappings()
+    def get_simple_term_mapping(self, rebuild=False):
+        if rebuild or not self._simple_term_mapping:
+            if not rebuild:
+                self._simple_term_mapping = scache.get_shared_cache_elem('term_mapping')
+            if rebuild or not self._simple_term_mapping:
+                self.build_term_mappings()
+                scache.set_shared_cache_elem('term_mapping', self._simple_term_mapping)
+                self.set_last_cached_time()
         return self._simple_term_mapping
+
+    def get_simple_term_mapping_json(self, rebuild=False):
+        """
+        Returns JSON representation of terms.
+        """
+        if rebuild or not self._simple_term_mapping_json:
+            if not rebuild:
+                self._simple_term_mapping_json = scache.get_shared_cache_elem('term_mapping_json')
+            if rebuild or not self._simple_term_mapping_json:
+                self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping())
+                scache.set_shared_cache_elem('term_mapping_json', self._simple_term_mapping_json)
+                self.set_last_cached_time()
+        return self._simple_term_mapping_json
 
     def get_term(self, term_name):
         if not self._full_term_mapping:
@@ -5006,20 +5053,67 @@ class Library(object):
         title = title.replace("_", " ")
         return self.get_title_node_dict(lang).get(title)
 
-    def get_text_titles_json(self, lang="en"):
+
+    def citing_title_list(self, lang="en"):
+        """
+        :param lang: "he" or "en"
+        :return: list of all titles that can be recognized as an inline citation
+        """
+        key = "citing-{}".format(lang)
+        titles = self._full_title_lists.get(key)
+        if not titles:
+            titles = []
+            for i in IndexSet({"is_cited": True}):
+                titles.extend(self._index_title_maps[lang][i.title])
+            self._full_title_lists[key] = titles
+        return titles
+
+
+    def full_title_list(self, lang="en", with_terms=False):
+        """
+        :return: list of strings of all possible titles
+        :param lang: "he" or "en"
+        :param with_terms: if True, includes shared titles ('terms')
+        """
+
+        key = lang
+        key += "_terms" if with_terms else ""
+        titles = self._full_title_lists.get(key)
+        if not titles:
+            titles = list(self.get_title_node_dict(lang).keys())
+            if with_terms:
+                titles += list(self.get_term_dict(lang).keys())
+            self._full_title_lists[key] = titles
+        return titles
+
+    def build_text_titles_json(self, lang="en"):
         """
         :return: JSON of full texts list, (cached)
         """
-        title_json = self._full_title_list_jsons.get(lang)
-        if not title_json:
-            title_list = self.full_title_list(lang=lang)
-            if lang == "en":
-                toc_titles = self.get_toc_tree().flatten()
-                secondary_list = list(set(title_list) - set(toc_titles))
-                title_list = toc_titles + secondary_list
-            title_json = json.dumps(title_list)
-            self._full_title_list_jsons[lang] = title_json
-        return title_json
+        title_list = self.full_title_list(lang=lang)
+        if lang == "en":
+            toc_titles = self.get_toc_tree().flatten()
+            secondary_list = list(set(title_list) - set(toc_titles))
+            title_list = toc_titles + secondary_list
+        return title_list
+
+    def get_text_titles_json(self, lang="en", rebuild=False):
+        if rebuild or not self._full_title_list_jsons.get(lang):
+            if not rebuild:
+                self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_'+lang+'_json')
+            if rebuild or not self._full_title_list_jsons.get(lang):
+                title_list = self.build_text_titles_json(lang=lang)
+                title_list_json = json.dumps(title_list)
+                self._full_title_list_jsons[lang] = title_list_json
+                scache.set_shared_cache_elem('books_' + lang, title_list)
+                scache.set_shared_cache_elem('books_'+lang+'_json', title_list_json)
+                self.set_last_cached_time()
+        return self._full_title_list_jsons[lang]
+
+    def reset_text_titles_cache(self):
+        for lang in self.langs:
+            scache.delete_shared_cache_elem('books_' + lang)
+            scache.delete_shared_cache_elem('books_' + lang + '_json')
 
     def get_text_categories(self):
         """
@@ -5482,6 +5576,7 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
     old_title = kwargs["old"]
 
     library.refresh_index_record_in_cache(indx, old_title=old_title)
+    library.reset_text_titles_cache()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title, old_title])
@@ -5493,12 +5588,14 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
 def process_index_change_in_core_cache(indx, **kwargs):
     if kwargs.get("is_new"):
         library.add_index_record_to_cache(indx)
+        library.reset_text_titles_cache()
 
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "add_index_record_to_cache", [indx.title])
 
     else:
         library.refresh_index_record_in_cache(indx)
+        library.reset_text_titles_cache()
 
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title])
@@ -5524,6 +5621,7 @@ def process_index_delete_in_toc(indx, **kwargs):
 
 def process_index_delete_in_core_cache(indx, **kwargs):
     library.remove_index_record_from_cache(indx)
+    library.reset_text_titles_cache()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "remove_index_record_from_cache", [indx.title])
@@ -5533,7 +5631,8 @@ def process_index_delete_in_core_cache(indx, **kwargs):
 
 
 def reset_simple_term_mapping(o, **kwargs):
-    library.build_term_mappings()
+    library.get_simple_term_mapping(rebuild=True)
+
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_term_mappings")

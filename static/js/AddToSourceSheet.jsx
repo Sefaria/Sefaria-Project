@@ -291,12 +291,12 @@ class AddToSourceSheetWindow extends Component {
     return (<div className="addToSourceSheetModal">
       <div className="sourceSheetBoxTitle">
         <img src="/static/img/circled-x.svg" className="closeButton" aria-hidden="true" alt="Close" onClick={this.close}/>
-        {Sefaria.loggedIn ? null : <span>
+        {Sefaria._uid ? null : <span>
             In order to add this source to a sheet, please <a href={"/login" + nextParam}>log in.</a>
         </span>}
         <div className="clearFix"></div>
       </div>
-      {Sefaria.loggedIn ?
+      {Sefaria._uid ?
         <AddToSourceSheetBox
           srefs = {this.props.srefs}
           en = {this.props.en}
