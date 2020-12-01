@@ -7276,7 +7276,8 @@ span.purim-emoji img{
 .sourceContentText.centeredSheetContent {
   text-align: center;
 }
-.sheetContent .sheetItem.segment .sourceContentText p {
+.sheetContent .sheetItem.segment .sourceContentText p:last-child,
+.sheetContent .editorContent .sheetItem.segment .sourceContentText p {
   margin-bottom: 0;
 }
 .sheetContent .sheetItem.segment .addedBy {
@@ -7340,9 +7341,11 @@ span.purim-emoji img{
   line-height: 18px;
   font-size: 18px;
 }
-
+.sheetContent .spacer:only-of-type.empty {
+  line-height: inherit;
+}
 .sheetItem:only-of-type.empty .SheetOutsideText:after,
-.spacer:only-of-type.empty:after {
+.sheetContent .spacer:only-of-type.empty:after {
   color: #999;
   position: relative;
   pointer-events: none;
