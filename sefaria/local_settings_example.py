@@ -49,12 +49,7 @@ ADMINS = (
 )
 PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
 
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-    }
-}
-
+""" These are some examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
 CACHES = {
     "shared": {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
@@ -63,18 +58,25 @@ CACHES = {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
     },
 }
-
-SESSION_CACHE_ALIAS = "default"
-USER_AGENTS_CACHE = 'default'
-SHARED_DATA_CACHE_ALIAS = 'shared'
-""" These are some other examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
-"""CACHES = {
+"""
+CACHES = {
+    'shared': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/home/ephraim/www/sefaria/django_cache/',
+    },
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/home/ephraim/www/sefaria/django_cache/',
     }
 }
+"""
 
+SESSION_CACHE_ALIAS = "default"
+USER_AGENTS_CACHE = 'default'
+SHARED_DATA_CACHE_ALIAS = 'shared'
+
+"""THIS CACHE DEFINITION IS FOR USE WITH NODE AND SERVER SIDE RENDERING"""
+"""
 CACHES = {
     "shared": {
         "BACKEND": "django_redis.cache.RedisCache",
@@ -95,10 +97,6 @@ CACHES = {
         "TIMEOUT": 60 * 60 * 24 * 30,
     },
 }
-
-SESSION_CACHE_ALIAS = "default"
-USER_AGENTS_CACHE = 'default'
-SHARED_DATA_CACHE_ALIAS = 'shared'
 """
 
 SITE_PACKAGE = "sites.sefaria"
