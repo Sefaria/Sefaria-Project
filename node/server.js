@@ -41,12 +41,14 @@ const cache = redis.createClient(`redis://${settings.REDIS_HOST}:${settings.REDI
 const getAsync = promisify(cache.get).bind(cache);
 
 
-const loadSharedData = async function(last_cached_to_compare){
+const loadSharedData = async function({ last_cached_to_compare = null, startup = false } = {}){
+    console.log("Load Shared Data- Input last cached timestamp to compare: " + last_cached_to_compare);
     //TODO: If the data wasnt placed in Redis by django to begin with, well, we're screwed.
     // Or you know, fix it so Node does send a signal to Django to populate cache.
     let redisCalls = [];
     for (const [key, value] of Object.entries(cacheKeyMapping)) {
-      if(await needsUpdating(key, last_cached_to_compare)){
+      if(startup || last_cached_to_compare == null || await needsUpdating(key, last_cached_to_compare)){
+        //console.log("Fetching: " + key + "|" + value )
         redisCalls.push(getAsync(value).then(resp => {
           sharedCacheData[key] = JSON.parse(resp);
         }).catch(error => {
@@ -96,7 +98,7 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
   console.log("last cached time stored: ", sharedCacheData["last_cached"], new Date(sharedCacheData["last_cached"]*1000).toUTCString())
   // var cacheKey = req.params.cachekey
   log("Time to props: %dms", timer.elapsed());
-  loadSharedData(request_last_cached).then(response => {
+  loadSharedData({last_cached_to_compare: request_last_cached}).then(response => {
     try{
       log("Time to validate cache data: %dms", timer.elapsed());
       const resphtml = renderReaderApp(props, sharedCacheData, timer);
@@ -119,7 +121,13 @@ server.post('/Footer/:cachekey', function(req, res) {
 
 
 const main = async function(){
-  await loadSharedData();
+  console.log("Startup. Prefetching cached data:");
+  try{
+    await loadSharedData({startup: true});
+  }
+  catch (e){
+    console.log("Redis data not ready yet");
+  }
   server.listen(settings.NODEJS_PORT, function() {
     console.log('Redis Host: ' + settings.REDIS_HOST);
     console.log('Redis Port: ' + settings.REDIS_PORT);
