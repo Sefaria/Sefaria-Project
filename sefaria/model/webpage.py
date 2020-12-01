@@ -90,7 +90,7 @@ class WebPage(abst.AbstractMongoRecord):
     @staticmethod
     def excluded_pages_url_regex():
         bad_urls = [
-            r"rabbisacks.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
+            r"rabbisacks\.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
             r"halachipedia\.com\/index\.php\?search=", # Halachipedia search results
             r"halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
             r"myjewishlearning\.com\/\?post_type=evergreen", # These urls end up not working
@@ -107,8 +107,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"test\.hadran\.org\.il",
             r"www\.jtsa.edu\/search\/index\.php",
             r"jewschool\.com\/page\/",
-            r"truah.org\/\?s=",
-            r"truah.org\/(holiday|page|resource-types)\/",
+            r"truah\.org\/\?s=",
+            r"truah\.org\/(holiday|page|resource-types)\/",
             r"clevelandjewishnews\.com$",
             r"clevelandjewishnews\.cpm\/news\/",
             r"ots\.org\.il\/news\/",
@@ -688,5 +688,10 @@ sites_data = [
         "name": "Ohr Torah Stone",
         "domains": ["ots.org.il"],
         "title_branding": ["אור תורה סטון"]
-    }
+    },
+    {
+        "name": "Orthodox Union",
+        "domains": ["ou.org"],
+        "title_branding": ["OU Torah", "OU Life"]
+    },
 ]
