@@ -37,7 +37,7 @@ let sharedCacheData = {
   "books": null
 };
 
-const cache = redis.createClient(`redis://${settings.REDIS_HOST}:${settings.REDIS_PORT}/1`)
+const cache = redis.createClient(`redis://${settings.REDIS_HOST}:${settings.REDIS_PORT}/1`, {prefix: ':1:'})
 const getAsync = promisify(cache.get).bind(cache);
 
 
