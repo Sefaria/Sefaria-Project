@@ -5838,6 +5838,16 @@ a .button:hover {
 .lexicon-results {
   padding-top: 20px;
 }
+.named-entity-attribution {
+  margin-top: 13px;
+}
+.named-entity-ambiguous {
+  margin-bottom: 24px;
+}
+.named-entity-ambiguous .systemText .int-en,
+.named-entity-ambiguous .systemText .int-he {
+  color: #999;
+}
 .named-entity-title-bar {
   display: flex;
   flex-direction: row;
@@ -5848,18 +5858,13 @@ a .button:hover {
   flex-direction: column;
 }
 .named-entity-wrapper + .named-entity-wrapper {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: solid 1px #ccc;
+  margin-top: 26px;
 }
 .readerPanel.english .named-entity-wrapper {
   direction: ltr;
 }
 .readerPanel.hebrew .named-entity-wrapper {
   direction: rtl;
-} 
-.lexicon-results .named-entity-time-period {
-  margin-top: 13px;
 }
 .lexicon-results .named-entity-description {
   margin-top: 13px;

@@ -2397,7 +2397,7 @@ _media: {},
       "This topic is connected to ": "נושא הזה קשור ל-",
       "by": "על ידי",
       "based on": "על ידי",
-      "research of Prof. Michael Sperling": "המחקר של פרופ. מיכאל ספרלינג",
+      "research of Prof. Michael Sperling and Bonayich": "המחקר של פרופ. מיכאל ספרלינג ובונייך",
       "Read the Portion": "קראו את הפרשה",
 
       //user stats
