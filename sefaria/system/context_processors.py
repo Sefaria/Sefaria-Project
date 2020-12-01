@@ -167,8 +167,8 @@ def footer_html(request):
     if request.path == "/data.js":
         return {}
     global FOOTER
+    lang = request.interfaceLang
     if USE_NODE:
-        lang = request.interfaceLang
         FOOTER[lang] = FOOTER[lang] or render_react_component("Footer", {"interfaceLang": request.interfaceLang, "_siteSettings": SITE_SETTINGS})
         FOOTER[lang] = "" if "appLoading" in FOOTER[lang] else FOOTER[lang]
     else:
