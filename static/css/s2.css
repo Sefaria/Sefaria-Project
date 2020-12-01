@@ -679,7 +679,7 @@ input.noselect {
 #interruptingMessageBox.hidden {
   opacity: 0;
 }
-#interruptingMessageOverlay {
+#interruptingMessageOverlay, .whiteOverlay {
   width: 100%;
   height: 100%;
   background-color: white;
@@ -6029,14 +6029,6 @@ h2.splitHeader .he {
   flex-direction: row;
   align-items: center;
 }
-.groupListing .right-content {
-  align-self: flex-start;
-  padding: 10px 10px 0 10px;
-  font-size: 16px;
-  color: #666;
-  text-transform: capitalize;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
 .groupListing + .groupListing {
   border-top: 1px solid #ccc;
 }
@@ -6088,6 +6080,9 @@ h2.splitHeader .he {
 .groupListingDetails {
   color: #999;
   font-size: 13px;
+}
+.groupListingMembership {
+  text-transform: capitalize;
 }
 .groupListingDetailSeparator {
   margin: 8px;
@@ -7797,6 +7792,9 @@ span.purim-emoji img{
   flex-direction: column;
   align-items: flex-start;
   margin-bottom: 10px;
+}
+.profile-page .groupListingImageBox {
+  margin: 0;
 }
 .profile-page .groupListingImage {
   width: 75%;

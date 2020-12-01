@@ -6,13 +6,21 @@ from sefaria.model import Group, GroupSet
 from sefaria.system.database import db
 
 
-# Add Sheet IDs to Collections
-GroupSet().update({"sheets": []})
-sheets = db.sheets.find({"$and": [{"group": {"$exists":1}}, {"group": {"$nin": ["", None]}}]})
+# Phase 1
+# - "sheets" field allowed on Group
 
-for sheet in sheets:
-	group = Group().load({"name": sheet["group"]})
-	groop.sheets.append(sheet["id"])
+
+# Add Sheet IDs to Collections
+groups = GroupSet({})
+for group in groups:
+	print(group.name)
+	group.sheets = []
+	sheets = db.sheets.find({"group": group.name})
+	for sheet in sheets:
+		group.sheets.append(sheet["id"])
+	
+	if group.public_sheet_count() < 3:
+		group.listed = False
 	group.save()
 
 

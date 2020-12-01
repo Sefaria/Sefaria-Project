@@ -31,13 +31,13 @@ class UserProfile extends Component {
     const showBio = !!props.profile.bio;
     const tabs = [
       { text: Sefaria._("Sheets"), icon: "/static/img/sheet.svg" },
-      { text: Sefaria._("Groups"), icon: "/static/img/group.svg" },
+      { text: Sefaria._("Collections"), icon: "/static/img/collection.svg" },
       { text: Sefaria._("Followers"), invisible: true },
       { text: Sefaria._("Following"), invisible: true },
       { text: Sefaria._("Torah Tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
-      tabs.splice(1, 0, { text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
+      tabs.splice(2, 0, { text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
     }
     if (showBio) {
       tabs.push({ text: Sefaria._("About"), icon: "/static/img/info.svg" });
@@ -76,9 +76,9 @@ class UserProfile extends Component {
         </div>
         { Sefaria._uid === this.props.profile.id ?
           <a href="/groups/new" className="resourcesLink">
-            <img src="/static/img/group.svg" alt="Group icon" />
-            <span className="int-en">Create a New Group</span>
-            <span className="int-he">צור קבוצה חדשה</span>
+            <img src="/static/img/collection.svg" alt="Collection icon" />
+            <span className="int-en">Create a New Collection</span>
+            <span className="int-he">צור קבוצה חדשה TODO HEBREW</span>
           </a> : null
          }
       </div>
@@ -94,9 +94,9 @@ class UserProfile extends Component {
     return (
       <div className="sheet-header">
         <a href="/groups/new" className="resourcesLink">
-          <img src="/static/img/group.svg" alt="Group icon" />
-          <span className="int-en">Create a New Group</span>
-          <span className="int-he">יצירת קבוצה</span>
+          <img src="/static/img/collection.svg" alt="Collection icon" />
+          <span className="int-en">Create a New Collection</span>
+          <span className="int-he">יצירת קבוצה TODO HEBREW</span>
         </a>
       </div>
     );
@@ -359,6 +359,18 @@ class UserProfile extends Component {
                     data={this.getSheetsFromCache()}
                     refreshData={this.state.refreshSheetData}
                   />
+                  <FilterableList
+                    key="group"
+                    pageSize={1e6}
+                    filterFunc={this.filterGroup}
+                    sortFunc={this.sortGroup}
+                    renderItem={this.renderGroup}
+                    renderEmptyList={this.renderEmptyGroupList}
+                    renderHeader={this.renderGroupHeader}
+                    sortOptions={["Members", "Sheets"]}
+                    getData={this.getGroups}
+                    data={this.getGroupsFromCache()}
+                  />
                   {
                     this.state.showNotes ? (
                       <FilterableList
@@ -375,18 +387,6 @@ class UserProfile extends Component {
                       />
                     ) : null
                   }
-                  <FilterableList
-                    key="group"
-                    pageSize={1e6}
-                    filterFunc={this.filterGroup}
-                    sortFunc={this.sortGroup}
-                    renderItem={this.renderGroup}
-                    renderEmptyList={this.renderEmptyGroupList}
-                    renderHeader={this.renderGroupHeader}
-                    sortOptions={["Members", "Sheets"]}
-                    getData={this.getGroups}
-                    data={this.getGroupsFromCache()}
-                  />
                   <FilterableList
                     key="follower"
                     pageSize={1e6}

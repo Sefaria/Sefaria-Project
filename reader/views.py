@@ -42,7 +42,7 @@ from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.summaries import get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_topic, user_sheets, user_tags, trending_topics, sheet_to_dict, get_top_sheets, public_tag_list, group_sheets, get_sheet_for_panel, annotate_user_links
+from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_topic, user_sheets, user_tags, trending_topics, sheet_to_dict, get_top_sheets, public_tag_list, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.talmud import daf_to_section

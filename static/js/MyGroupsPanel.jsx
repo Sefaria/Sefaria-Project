@@ -129,7 +129,7 @@ function PublicGroupsPanel({multiPanel, navHome}) {
 PublicGroupsPanel.propTypes = {};
 
 function GroupListing({data, showMembership}) {
-  const imageUrl = data.imageUrl || "/static/img/group.svg";
+  const imageUrl = data.imageUrl || "/static/img/collection.svg";
   const imageClass = classNames({groupListingImage: 1, default: !data.imageUrl});
   const groupUrl = "/groups/" + data.name.replace(/\s/g, "-");
   return (<div className="groupListing">
@@ -142,6 +142,14 @@ function GroupListing({data, showMembership}) {
               <div className="groupListingText">
                 <a href={groupUrl} className="groupListingName">{data.name}</a>
                 <div className="groupListingDetails">
+
+                  { showMembership ?
+                  <span className="groupListingDetail groupListingMembership">
+                    <span className="int-en">{data.membership}</span>
+                    <span className="int-he">Sefaria._({data.membership})</span>
+                  </span> : null }
+                  {showMembership ? 
+                  <span className="groupListingDetailSeparator">•</span> : null }
                   <span className="groupListingDetail groupListingMemberCount">
                     <span className="int-en">{data.memberCount} Members</span>
                     <span className="int-he">{data.memberCount} חברים</span>
@@ -153,9 +161,6 @@ function GroupListing({data, showMembership}) {
                   </span>
                 </div>
               </div>
-            </div>
-            <div className="right-content">
-              { showMembership ? data.membership : null }
             </div>
           </div>);
 }

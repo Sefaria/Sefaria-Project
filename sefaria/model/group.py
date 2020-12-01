@@ -70,19 +70,13 @@ class Group(abst.AbstractMongoRecord):
     def _validate(self):
         assert super(Group, self)._validate()
 
-        reserved_chars = ['-', '_', '|']
-        if any([c in self.name for c in reserved_chars]):
-            raise InputError(_('Group names may not contain the following characters:') + ' {}'.format(', '.join(reservedChars)))
-
         if len(group.name) == 0:
             raise InputError(_("Please set a name for your group."))
-
 
         if getattr(self, "listed", False):
             if not getattr(self, "imageUrl", False):
                 raise InputError(_("Public Groups are required to include a group image (a square image will work best)."))
-            contents = self.contents(with_content=True)
-            if len(contents["sheets"]) < 3:
+            if self.public_sheet_count() < 3:
                 raise InputError(_("Public Groups are required to have at least 3 public sheets."))
 
         return True
@@ -108,10 +102,10 @@ class Group(abst.AbstractMongoRecord):
         return self.name if (hebrew.is_hebrew(self.name) == (lang == "he")) else None
 
     def contents(self, with_content=False, authenticated=False):
-        from sefaria.sheets import group_sheets, sheet_topics_counts
+        from sefaria.sheets import sheet_topics_counts
         contents = super(Group, self).contents()
         if with_content:
-            contents["sheets"]       = group_sheets(self, authenticated)["sheets"]
+            contents["sheets"]       = self.sheet_contents(authenticated=authenticated)
             contents["topics"]       = sheet_topics_counts({"group": self.name})
             contents["admins"]       = [public_user_data(uid) for uid in contents["admins"]]
             contents["publishers"]   = [public_user_data(uid) for uid in contents["publishers"]]
@@ -133,6 +127,15 @@ class Group(abst.AbstractMongoRecord):
             contents["canPublish"] = self.can_publish(uid)
             contents["membership"] = self.membership_role(uid)
         return contents
+
+    def sheet_contents(self, authenticated=False):
+        from sefaria.sheets import sheet_list
+        if authenticated == False and self.listed:
+            query = {"status": "public", "id": {"$in": self.sheets}}
+        else:
+            query = {"status": {"$in": ["unlisted", "public"]}, "id": {"$in": self.sheets}}
+
+        return sheet_list(query=query)
 
     def membership_role(self, uid):
         """
@@ -239,6 +242,11 @@ class Group(abst.AbstractMongoRecord):
         """Returns the number of sheets in this group"""
         from sefaria.sheets import SheetSet
         return SheetSet({"group": self.name}).count()
+
+    def public_sheet_count(self):
+        """Returns the number of public sheets in this group"""
+        from sefaria.sheets import SheetSet
+        return SheetSet({"group": self.name, "status": "public"}).count()      
 
     @property
     def url(self):

@@ -504,6 +504,40 @@ def groups_post_api(request, user_id, group_name=None):
 
 
 @login_required
+def collections_inclusion_api(request, collection_name, action, sheet_id):
+    """
+    API for adding or removing a sheet from a collection
+    """
+    if request.method != "POST":
+        return jsonResponse({"error": "Unsupported HTTP method."})
+    collection = Group().load({"name": collection_name})    
+    if not collection:
+        return jsonResponse({"error": "No collection named {}.".format(collection_name)})
+    if not collection.is_member(request.user.id):
+        return jsonResponse({"error": "Only members of this collection my change its contents."})
+    sheet = Sheet().load({"id": int(sheet_id)})
+    if not sheet:
+        return jsonResponse({"error": "No sheet with id {}.".format(sheet_id)})
+    
+    if action == "remove":
+        if sheet_id in collection.sheets:
+            colletion.sheets.remove(sheet_id)
+        else:
+            return jsonResponse({"error": "Sheet with id {} is not in this collection.".format(sheet_id)})
+    if action == "add":
+        if sheet_id not in collection.sheets:
+            collection.sheets.append(sheet_id)
+            # If a sheets owner adds it to a collection, and the sheet is no highlighted
+            # in another collection, set it to highlight this collection.
+            if request.user.id == sheet["owner"] and not bool(sheet["group"]):
+                sheet["group"] = collection_name
+                sheet.save()
+
+    group.save()
+    return {"status": "ok", "collection": group.contents(authenticated=True)}
+
+
+@login_required
 def groups_role_api(request, group_name, uid, role):
     """
     API for setting a group members role, or removing them from a group.
@@ -695,17 +729,6 @@ def user_sheet_list_api_with_sort(request, user_id, sort_by="date", limiter=0, o
     offset   = int(offset)
     private = int(user_id) == request.user.id
     return jsonResponse(user_sheets(user_id, sort_by, private=private, limit=limiter, skip=offset), callback=request.GET.get("callback", None))
-
-
-def private_sheet_list_api(request, group):
-    group = group.replace("-", " ").replace("_", " ")
-    group   = Group().load({"name": group})
-    if not group:
-        raise Http404
-    if request.user.is_authenticated and group.is_member(request.user.id):
-        return jsonResponse(group_sheets(group, True), callback=request.GET.get("callback", None))
-    else:
-        return jsonResponse(group_sheets(group, False), callback=request.GET.get("callback", None))
 
 
 def sheet_api(request, sheet_id):

@@ -141,19 +141,6 @@ def public_sheets(sort=[["dateModified", -1]], limit=50, skip=0):
 	return response
 
 
-def group_sheets(group, authenticated):
-	islisted = getattr(group, "listed", False)
-	if authenticated == False and islisted:
-		query = {"status": "public", "group": group.name}
-	else:
-		query = {"status": {"$in": ["unlisted", "public"]}, "group": group.name}
-
-	response = {
-		"sheets": sheet_list(query=query),
-	}
-	return response
-
-
 def sheet_list(query=None, sort=None, skip=0, limit=None):
 	"""
 	Returns a list of sheets with only fields needed for displaying a list.

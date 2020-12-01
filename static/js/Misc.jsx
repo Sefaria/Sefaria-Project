@@ -18,6 +18,14 @@ const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
   </span>
 );
 
+const IntText = ({children}) => {
+  // Renders a single span for interface string with either int-en of int-he
+  // depending on Sefaria.interfaceLang.
+  // `children` is the English string, which will be translated with Sefaria._ if needed. 
+  const isHebrew = Sefaria.interfaceLang !== "hebrew";
+  return <span className={classNames("int-en": !isHebrew. "int-he": isHebrew)}>Sefaria._({children})</span>
+};
+
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
 );
