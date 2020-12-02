@@ -14,7 +14,7 @@ class MessagingNode(object):
         try:
             self.redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
             self.pubsub = self.redis_client.pubsub()
-        except ConnectionError:
+        except Exception:
             logger.error("Failed to establish connection to Redis")
         if len(self.subscription_channels):
             self.pubsub.subscribe(*self.subscription_channels)

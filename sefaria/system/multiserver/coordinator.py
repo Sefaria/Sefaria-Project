@@ -44,7 +44,7 @@ class ServerCoordinator(MessagingNode):
         logger.info("publish_event from {}:{} - {}".format(socket.gethostname(), os.getpid(), msg_data))
         try:
             self.redis_client.publish(MULTISERVER_REDIS_EVENT_CHANNEL, msg_data)
-        except ConnectionError:
+        except Exception:
             logger.error("Failed to connect to Redis instance while doing message publish.")
             return
 
@@ -53,7 +53,7 @@ class ServerCoordinator(MessagingNode):
         # But the below should insulate against even that case ##
         try:
             popped_msg = self.pubsub.get_message()
-        except ConnectionError:
+        except Exception:
             logger.error("Failed to connect to Redis instance while doing message publish listen.")
             popped_msg = None
 
@@ -63,7 +63,7 @@ class ServerCoordinator(MessagingNode):
                 self._process_message(popped_msg)
             try:
                 popped_msg = self.pubsub.get_message()
-            except ConnectionError:
+            except Exception:
                 logger.error("Failed to connect to Redis instance while doing message publish listen.")
                 popped_msg = None
 
@@ -71,7 +71,7 @@ class ServerCoordinator(MessagingNode):
         self._check_initialization()
         try:
             msg = self.pubsub.get_message()
-        except ConnectionError:
+        except Exception:
             logger.error("Failed to connect to Redis instance while doing multiserver sync.")
         if not msg or msg["type"] == "subscribe":
             return
@@ -143,7 +143,7 @@ class ServerCoordinator(MessagingNode):
         logger.info("Sending confirm from {}:{} - {}".format(host, pid, msg["data"]))
         try:
             self.redis_client.publish(MULTISERVER_REDIS_CONFIRM_CHANNEL, msg_data)
-        except ConnectionError:
+        except Exception:
             logger.error("Failed to connect to Redis instance while doing confirm publish")
 
 
