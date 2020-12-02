@@ -50,7 +50,11 @@ const loadSharedData = async function({ last_cached_to_compare = null, startup =
       if(startup || last_cached_to_compare == null || await needsUpdating(key, last_cached_to_compare)){
         //console.log("Fetching: " + key + "|" + value )
         redisCalls.push(getAsync(value).then(resp => {
-          sharedCacheData[key] = JSON.parse(resp);
+          if(!resp){
+            throw new Error(`Error with ${key}: ${value} not found in cache`);
+          }else{
+            sharedCacheData[key] = JSON.parse(resp);
+          }
         }).catch(error => {
           console.log(`${value}: ${error.message}`);
         }));
@@ -108,7 +112,7 @@ server.post('/ReaderApp/:cachekey', function(req, res) {
       console.log(render_e);
     }
   }).catch(error => {
-    res.status(500).end('something blew up: ' + error.message);
+    res.status(500).end('Data required for render is missing:  ' + error.message);
   });
 });
 
