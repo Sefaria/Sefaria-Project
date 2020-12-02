@@ -402,7 +402,7 @@ function LoggedInButtons({headerMode}){
       <div className="accountLinks">
           <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>{Sefaria.notificationCount}</a>
           <a href="/my/profile" className="my-profile">
-            <ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name}/>
+            <ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
           </a>
        </div>
   );
