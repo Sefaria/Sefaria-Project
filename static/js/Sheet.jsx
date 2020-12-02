@@ -47,6 +47,7 @@ class Sheet extends Component {
   onDataLoad(data) {
     this.forceUpdate();
     this.preloadConnections();
+    if (!(this.props.editor) && document.getElementById('sheetEditToggle')) {document.getElementById('sheetEditToggle').click()}
   }
   ensureData() {
     if (!this.getSheetFromCache()) {
@@ -54,6 +55,7 @@ class Sheet extends Component {
     } else {
       this.preloadConnections();
     }
+    if (!(this.props.editor) && document.getElementById('sheetEditToggle')) {document.getElementById('sheetEditToggle').click()}
   }
   preloadConnections() {
     const data = this.getSheetFromCache();
@@ -107,9 +109,10 @@ class Sheet extends Component {
       )
     }
     return (
-        <div className={classes} onWheel={this.setScrollDir}>
-          {this.props.editor == true && sheet ? 
-            <div className="sheetContent"><SefariaEditor data={sheet} /></div> 
+        <div className={classes}>
+          {  this.props.editor == true && sheet ?
+            /*sheet && Sefaria._uid == sheet.owner && $.cookie("new_editor") ? */
+            <div className="sheetContent"><SefariaEditor data={sheet} /></div>
             : content}
         </div>
     )
@@ -119,49 +122,106 @@ class Sheet extends Component {
 
 class SheetContent extends Component {
   componentDidMount() {
+      this.$container          = $(ReactDOM.findDOMNode(this).parentNode);
+      this._isMounted          = true;
       var node = ReactDOM.findDOMNode(this).parentNode;
       node.addEventListener("scroll", this.handleScroll);
       this.windowMiddle = $(window).outerHeight() / 2;
+      this.debouncedAdjustHighlightedAndVisible = Sefaria.util.debounce(this.adjustHighlightedAndVisible, 100);
       this.scrollToHighlighted();
   }
   componentWillUnmount() {
+    this._isMounted = false;
     var node = ReactDOM.findDOMNode(this).parentNode;
     node.removeEventListener("scroll", this.handleScroll);
   }
   handleScroll(event) {
-    var segment = $(event.target).closest(".readerPanel").find('.segment.highlight');
-
-    if (segment.length == 0) {
-        return;
+    if (this.justScrolled) {
+      this.justScrolled = false;
+      return;
     }
-
-    //scroll down
-    const nextSegment = segment.closest("section").next().find('.segment');
-    const segmentBottomDistanceFromTop = segment.offset().top+segment.height()-160;
-    if (segmentBottomDistanceFromTop < 0 && this.props.hasSidebar) {
-      nextSegment.click();
-    }
-    //scroll up
-    const prevSegment = segment.closest("section").prev().find('.segment');
-    const segmentTopDistanceFromBottom = segment.offset().top;
-    if (segmentTopDistanceFromBottom > this.windowMiddle && this.props.scrollDir == "up" && this.props.hasSidebar) {
-      prevSegment.click();
-    }
-
+    this.debouncedAdjustHighlightedAndVisible();
   }
+
+  getHighlightThreshhold() {
+    // Returns the distance from the top of screen that we want highlighted segments to appear below.
+    return this.props.multiPanel ? 200 : 70;
+  }
+  adjustHighlightedAndVisible() {
+    //console.log("adjustHighlightedAndVisible");
+    // Adjust which ref is current consider visible for header and URL,
+    // and while the TextList is open, update which segment should be highlighted.
+    // Keeping the highlightedRefs value in the panel ensures it will return
+    // to the right location after closing other panels.
+    if (!this._isMounted) { return; }
+
+    // When using tab to navigate (i.e. a11y) set ref to currently focused ref
+    var $segment = null;
+    if ($("body").hasClass("user-is-tabbing") && $(".segment:focus").length > 0) {
+      $segment = $(".segment:focus").eq(0);
+    } else {
+      var $container = this.$container;
+      var topThreshhold = this.getHighlightThreshhold();
+      $container.find("section .segment").each(function(i, segment) {
+        var top = $(segment).offset().top - $container.offset().top;
+        var bottom = $(segment).outerHeight() + top;
+        if (bottom > this.windowMiddle || top >= topThreshhold) {
+          $segment = $(segment);
+          return false;
+        }
+      }.bind(this));
+    }
+    if (!$segment) { return; }
+
+    // don't move around highlighted segment when scrolling a single panel,
+    var shouldHighlight = this.props.hasSidebar || this.props.mode === "SheetAndConnections";
+    if (shouldHighlight) {
+      const ref = $segment.attr("data-ref");
+      if (!(this.props.highlightedNodes == ref)) {
+        $segment.click()
+      }
+    }
+  }
+
   scrollToHighlighted() {
-    var $container   = $(ReactDOM.findDOMNode(this)).closest(".sheetsInPanel");
+    if (!this._isMounted) { return; }
+    //console.log("scroll to highlighted - animation frame");
+    var $container   = this.$container;
+    var $readerPanel = $container.closest(".readerPanel");
     var $highlighted = $container.find(".segment.highlight").first();
     if ($highlighted.length) {
-      var offset = 20;
+      this.scrolledToHighlight = true;
+      this.justScrolled = true;
+      var offset = this.getHighlightThreshhold();
       $container.scrollTo($highlighted, 0, {offset: -offset});
-      $highlighted.focus();
+      if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id")) {
+        $highlighted.focus();
+      }
     }
   }
   handleClick(ref, e) {
     e.preventDefault();
     e.stopPropagation();
     this.props.onRefClick(ref);
+  }
+  sheetSourceClick(source, event) {
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
+    }
+
+    if(event.target.tagName.toLowerCase() === 'a') {
+      window.open(event.target.href, "_blank");
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    else {
+      this.props.onSegmentClick(source);
+    }
   }
   render() {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
@@ -180,7 +240,7 @@ class SheetContent extends Component {
             linkCount={Sefaria.linkCount(source.ref)}
             handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
-            onSegmentClick={this.props.onSegmentClick}
+            sheetSourceClick={this.sheetSourceClick.bind(this, source)}
             highlighted={highlighted}
             sheetNumbered={this.props.sheetNumbered}
           />
@@ -195,7 +255,7 @@ class SheetContent extends Component {
             source={source}
             handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
-            onSegmentClick={this.props.onSegmentClick}
+            sheetSourceClick={this.sheetSourceClick.bind(this, source)}
             highlightedNodes={this.props.highlightedNodes}
             sheetNumbered={this.props.sheetNumbered}
           />
@@ -210,7 +270,7 @@ class SheetContent extends Component {
             source={source}
             handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
-            onSegmentClick={this.props.onSegmentClick}
+            sheetSourceClick={this.sheetSourceClick.bind(this, source)}
             highlightedNodes={this.props.highlightedNodes}
             sheetNumbered={this.props.sheetNumbered}
          />
@@ -225,7 +285,7 @@ class SheetContent extends Component {
             source={source}
             handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
-            onSegmentClick={this.props.onSegmentClick}
+            sheetSourceClick={this.sheetSourceClick.bind(this, source)}
             highlightedNodes={this.props.highlightedNodes}
             sheetNumbered={this.props.sheetNumbered}
           />
@@ -240,7 +300,7 @@ class SheetContent extends Component {
             handleClick={this.handleClick}
             cleanHTML={this.cleanHTML}
             source={source}
-            onSegmentClick={this.props.onSegmentClick}
+            sheetSourceClick={this.sheetSourceClick.bind(this, source)}
             highlightedNodes={this.props.highlightedNodes}
             sheetNumbered={this.props.sheetNumbered}
           />
@@ -284,27 +344,11 @@ class SheetContent extends Component {
 }
 
 
+class SheetItem extends Component {
+
+}
+
 class SheetSource extends Component {
-  sheetSourceClick(event) {
-      if(event.target.tagName.toLowerCase() === 'a') {
-      if( !(location.hostname === event.target.hostname || !event.target.hostname.length) ) {
-        window.open(event.target.href, "_blank");
-        event.preventDefault();
-      }
-    }
-
-    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
-      event.preventDefault();
-      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
-      this.props.handleClick(ref, event);
-      event.stopPropagation();
-      Sefaria.track.event("Reader", "Citation Link Click", ref);
-    }
-
-    else {
-        this.props.onSegmentClick(this.props.source);
-    }
-  }
   render() {
     var linkCountElement;
       var linkCount = this.props.linkCount;
@@ -328,7 +372,7 @@ class SheetSource extends Component {
     return (
 
         <section className="SheetSource">
-      <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
+      <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
           {this.props.source.title ? <div className="customSourceTitle" role="heading" aria-level="3"><div className="titleBox">{this.props.source.title.stripHtml()}</div></div> : null}
 
 
@@ -373,26 +417,6 @@ class SheetSource extends Component {
 
 
 class SheetComment extends Component {
-  sheetSourceClick(event) {
-    if(event.target.tagName.toLowerCase() === 'a') {
-      if( !(location.hostname === event.target.hostname || !event.target.hostname.length) ) {
-        window.open(event.target.href, "_blank");
-        event.preventDefault();
-      }
-    }
-
-    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
-      event.preventDefault();
-      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
-      this.props.handleClick(ref, event);
-      event.stopPropagation();
-      Sefaria.track.event("Reader", "Citation Link Click", ref);
-    }
-
-    else {
-        this.props.onSegmentClick(this.props.source);
-    }
-  }
   render() {
       var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
       var containerClasses = classNames("sheetItem",
@@ -404,7 +428,7 @@ class SheetComment extends Component {
 
     return (
         <section className="SheetComment">
-      <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
+      <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
             <div className="segmentNumber sheetSegmentNumber sans">
               <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
               <span className="he"> <span
@@ -426,26 +450,6 @@ class SheetComment extends Component {
 
 
 class SheetOutsideText extends Component {
-  sheetSourceClick(event) {
-    if(event.target.tagName.toLowerCase() === 'a') {
-      if( !(location.hostname === event.target.hostname || !event.target.hostname.length) ) {
-        window.open(event.target.href, "_blank");
-        event.preventDefault();
-      }
-    }
-
-    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
-      event.preventDefault();
-      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
-      this.props.handleClick(ref, event);
-      event.stopPropagation();
-      Sefaria.track.event("Reader", "Citation Link Click", ref);
-    }
-
-    else {
-        this.props.onSegmentClick(this.props.source);
-    }
-  }
   render() {
     var lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
 
@@ -459,7 +463,7 @@ class SheetOutsideText extends Component {
 
     return (
                 <section className="SheetOutsideText">
-      <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
+      <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
             <div className="segmentNumber sheetSegmentNumber sans">
               <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
               <span className="he"> <span
@@ -482,26 +486,6 @@ class SheetOutsideText extends Component {
 
 
 class SheetOutsideBiText extends Component {
-  sheetSourceClick(event) {
-    if(event.target.tagName.toLowerCase() === 'a') {
-      if( !(location.hostname === event.target.hostname || !event.target.hostname.length) ) {
-        window.open(event.target.href, "_blank");
-        event.preventDefault();
-      }
-    }
-
-    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
-      event.preventDefault();
-      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
-      this.props.handleClick(ref, event);
-      event.stopPropagation();
-      Sefaria.track.event("Reader", "Citation Link Click", ref);
-    }
-
-    else {
-        this.props.onSegmentClick(this.props.source);
-    }
-  }
   render() {
       var containerClasses = classNames("sheetItem",
           "segment",
@@ -512,7 +496,7 @@ class SheetOutsideBiText extends Component {
       )
     return (
         <section className="SheetOutsideBiText">
-      <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
+      <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
             <div className="segmentNumber sheetSegmentNumber sans">
               <span className="en">
                   <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
@@ -539,30 +523,10 @@ class SheetOutsideBiText extends Component {
             </section>
     )
   }
-
 }
 
 
 class SheetMedia extends Component {
-  sheetSourceClick(event) {
-    if(event.target.tagName.toLowerCase() === 'a') {
-      if( !(location.hostname === event.target.hostname || !event.target.hostname.length) ) {
-        window.open(event.target.href, "_blank");
-        event.preventDefault();
-      }
-    }
-
-    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
-      event.preventDefault();
-      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
-      this.props.handleClick(ref, event);
-      event.stopPropagation();
-      Sefaria.track.event("Reader", "Citation Link Click", ref);
-    }
-    else {
-      this.props.onSegmentClick(this.props.source);
-    }
-  }
   makeMediaEmbedContent() {
     var mediaLink;
     var mediaCaption = "";
@@ -610,10 +574,10 @@ class SheetMedia extends Component {
           "segment",
           this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
           this.props.source.options ? this.props.source.options.indented : null
-      )
+      );
     return (
-        <section className="SheetMedia">
-      <div className={containerClasses} onClick={this.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.sheetSourceClick(e):null}.bind(this)} >
+      <section className="SheetMedia">
+      <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
             <div className="segmentNumber sheetSegmentNumber sans">
               <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
               <span className="he"> <span
@@ -628,7 +592,7 @@ class SheetMedia extends Component {
         }
 
       </div>
-            </section>
+      </section>
 
     )
   }

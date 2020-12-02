@@ -49,20 +49,44 @@ ADMINS = (
 )
 PINNED_IPCOUNTRY = "IL" #change if you want parashat hashavua to be diaspora.
 
+""" These are some examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
 CACHES = {
-    'default': {
+    "shared": {
         'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
-    }
+    },
+    "default": {
+        'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
+    },
 }
-""" These are some other examples of possible caches. more here: https://docs.djangoproject.com/en/1.11/topics/cache/"""
-"""CACHES = {
+"""
+CACHES = {
+    'shared': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '/home/ephraim/www/sefaria/django_cache/',
+    },
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '/home/ephraim/www/sefaria/django_cache/',
     }
 }
+"""
 
+SESSION_CACHE_ALIAS = "default"
+USER_AGENTS_CACHE = 'default'
+SHARED_DATA_CACHE_ALIAS = 'shared'
+
+"""THIS CACHE DEFINITION IS FOR USE WITH NODE AND SERVER SIDE RENDERING"""
+"""
 CACHES = {
+    "shared": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379/1", #The URI used to look like this "127.0.0.1:6379:0"
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
+        },
+        "TIMEOUT": None,
+    },
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
         "LOCATION": "redis://127.0.0.1:6379/0", #The URI used to look like this "127.0.0.1:6379:0"
@@ -71,8 +95,9 @@ CACHES = {
             #"PASSWORD": "secretpassword", # Optional
         },
         "TIMEOUT": 60 * 60 * 24 * 30,
-    }
-}"""
+    },
+}
+"""
 
 SITE_PACKAGE = "sites.sefaria"
 
@@ -88,8 +113,6 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', '[::1]']
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
-GLOBAL_WARNING = False
-GLOBAL_WARNING_MESSAGE = ""
 
 # GLOBAL_INTERRUPTING_MESSAGE = None
 """
@@ -205,7 +228,6 @@ GOOGLE_APPLICATION_CREDENTIALS_FILEPATH = ""
 GEOIP_DATABASE = 'data/geoip/GeoLiteCity.dat'
 GEOIPV6_DATABASE = 'data/geoip/GeoLiteCityv6.dat'
 
-PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE = None
 
 # Simple JWT
 SIMPLE_JWT = {

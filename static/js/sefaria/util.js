@@ -3,6 +3,7 @@ import extend from 'extend';
 import striptags from 'striptags';
 import humanizeDuration from 'humanize-duration';
 import sanitizeHtml from 'sanitize-html';
+import Sefaria  from './sefaria';
 
 
 var INBROWSER = (typeof document !== 'undefined');
@@ -301,6 +302,10 @@ class Util {
            //}
         };
 
+        String.prototype.stripNikkud = function() {
+          return this.replace(/[\u0591-\u05C7]/g,"");
+        }
+
         String.prototype.stripHtmlKeepLineBreaks = function() {
             return striptags(this.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ').replace(/<p>/g, ' <p>').replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' '));
         };
@@ -508,10 +513,10 @@ class Util {
             console.log = function() {};
         }
     }
-    static handleUserCookie(loggedIn, uid, partner_group, partner_role) {
+    static handleUserCookie(uid) {
         var cookie = INBROWSER ? $.cookie : this.cookie;
 
-        if (loggedIn) {
+        if (uid) {
             // If logged in, replace cookie with current system details
 
             var expires = new Date(); // starts with current time
@@ -519,8 +524,6 @@ class Util {
 
             cookie("_user", JSON.stringify({
                _uid: uid,
-               _partner_group: partner_group,
-               _partner_role: partner_role
             }), { path: "/", expires: expires });
         } else {
             // If not logged in, get details from cookie

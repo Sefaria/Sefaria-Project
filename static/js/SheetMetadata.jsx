@@ -142,7 +142,7 @@ class SheetMetadata extends Component {
             {Sefaria._uid == this.props.sheet.owner && !$.cookie("new_editor") ?
               <span>
                 <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-en" role="button">Edit Sheet</a>
-                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-he" role="button">ערוך</a>
+                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-he" role="button">עריכה</a>
               </span> : null }
 
               <a href="#" className="button white int-en" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
@@ -158,7 +158,7 @@ class SheetMetadata extends Component {
             {this.state.sheetCopyStatus == "Copied" ? 
               <div><a href={"/sheets/"+this.state.copiedSheetId}>
                   <span className="int-en">View copy &raquo;</span>
-                  <span className="int-he">צפה בהעתק &raquo;</span> 
+                  <span className="int-he">צפייה בהעתק &raquo;</span>
                 </a></div> : null }
 
             {$.cookie("new_editor") ? 

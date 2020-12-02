@@ -260,6 +260,7 @@ body.hasBannerMessage #s2.headerOnly {
   .interface-hebrew #bannerButtonBox {
     margin:0;
     margin-inline-start: 10px;
+    max-width: 170px;
   }
   #bannerMessage .mobileOnly {
     display: block;
@@ -883,6 +884,9 @@ input.noselect {
   opacity: .4;
   height: 18px;
   width: 18px;
+}
+.ui-autocomplete .ui-menu-item img.ac-img-User {
+  opacity: 1;
 }
 .ui-autocomplete .ui-menu-item a {
   display: inline-block;
@@ -1949,9 +1953,6 @@ a.readerNavCategory {
 .readerNavMenu .dedication .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
-}
-.hebrew .readerNavMenu .dedication {
-  direction: rtl;
 }
 .readerTextTableOfContents .tocTop {
   padding-bottom: 15px;
@@ -4698,6 +4699,132 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .textListTextRangeBox + .sheet {
   margin-top: 24px;
 }
+
+.mediaList .media {
+  border-top: solid 1px #CCC;
+  padding: 20px 0;
+}
+
+.mediaList .mediaTitle {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  color: #666;
+	padding-bottom: 15px;
+}
+
+.mediaList .mediaTitle .he {
+  font-size: 16px;
+}
+
+
+
+.mediaList .media .title {
+	font-size: 22px;
+  color: #000;
+}
+
+
+.mediaList .media a {
+	color: #999;
+}
+
+.mediaList .media .description {
+	margin: 10px 0;
+  font-size: 13px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  flex-flow: row;
+  justify-content: space-between;
+  color: #666;
+}
+
+.mediaList .media .panel{
+	background: #e6e6e6;
+	border-radius: 50px;
+	text-align: center;
+	margin: 15px 0;
+	padding: 15px;
+  font-size: 13px;
+  line-height: 15px;
+  flex-direction: row;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  text-align: left;
+  direction: ltr;
+}
+
+.mediaList .media .panel .playTimeContainer {
+  display: inline-flex;
+  align-self: center;
+  font-size: 13px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+
+.mediaList .media .panel .playTimeContainer span {
+  margin: 0 15px;
+}
+
+.mediaList .media .panel .sliderContainer {
+  display: inline-flex;
+  flex: 2;
+  align-self: center;
+}
+
+
+.mediaList .media .panel input[type='image'] {
+	  width: 10px;
+    height: 10px;
+    padding: 2.5px;
+}
+
+.slider {
+  -webkit-appearance: none;
+  height: 2px;
+  background: #4d4d4d;
+  outline: none;
+  opacity: 0.7;
+  width: 100%;
+}
+
+.slider:hover {
+  opacity: 5;
+}
+
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4871bf;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4871bf;
+  cursor: pointer;
+}
+
+/* All the same stuff for IE */
+.slider::-ms-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4871bf;
+  cursor: pointer;
+}
+
+.webpageList .website {
+  text-align: start;
+}
+
 .webpageList .website .icon {
   height: 16px;
   width: 16px;
@@ -4708,7 +4835,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: left;
   direction: ltr;
 }
-.webpageList .webpage.hebrew {
+.webpageList .webpage.hebrew{
   text-align: right;
   direction: rtl;
 }
@@ -4737,7 +4864,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 18px;
   color: #999;
 }
-.webpageList .webpage .stats {
+.webpageList .webpage .stats,
+.mediaList .media .meta {
   font-size: 13px;
   color: #999;
   margin-top: 5px;
@@ -5928,12 +6056,11 @@ h2.splitHeader .he {
 .tocTop .groupListingImageBox {
   background-color: transparent;
 }
-.sheetMetaDataBox .title.empty:before {
+.sheetMetaDataBox .title.empty:not(.focused):before {
   content: "Untitled";
   color: #999;
   position: relative;
   pointer-events: none;
-
 }
 .groupListingImage {
   height: 100%;
@@ -6522,7 +6649,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-bottom: 10px;
   cursor: pointer;
 }
-.addToSourceSheetBox .dropdownMain.noselect{
+.addToSourceSheetBox .dropdownMain.noselect {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -7085,7 +7212,7 @@ span.purim-emoji img{
   left: auto;
   margin-left: 0;
 }
-.readerPanel.bilingual.heLeft .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber, 
+.readerPanel.bilingual.heLeft .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber,
 .readerPanel.bilingual.heRight .sheetItem.segment.heOnly .segmentNumber.sheetSegmentNumber {
   left: 0px;
   margin-left: 0;
@@ -7127,6 +7254,7 @@ span.purim-emoji img{
   margin-bottom: 18px;
   display: block;
 }
+
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
 }
@@ -7139,11 +7267,17 @@ span.purim-emoji img{
 .readerPanel.english .sheetContent .sheetItem.segment.heOnly .sourceContentText.outsideBiText.he {
   display: inline;
 }
+.readerPanel.english .sheetContent .sheetItem .SheetOutsideText.segment.he,
+.readerPanel.hebrew .sheetContent .sheetItem .SheetOutsideText.segment.en,
+.readerPanel.english .sheetContent .sheetItem .SheetComment.segment.he,
+.readerPanel.hebrew .sheetContent .sheetItem .SheetComment.segment.en {
+  display: inline;
+}
 .sourceContentText.centeredSheetContent {
   text-align: center;
 }
 .sheetContent .sheetItem.segment .sourceContentText p:last-child,
-.sheetContent .sheetItem.segment .sourceContentText p:last-child {
+.sheetContent .editorContent .sheetItem.segment .sourceContentText p {
   margin-bottom: 0;
 }
 .sheetContent .sheetItem.segment .addedBy {
@@ -7203,22 +7337,48 @@ span.purim-emoji img{
 .sheetContent .media .mediaCaption.enOnly .he {
   display: none;
 }
-.sheetItem:only-of-type.empty .SheetOutsideText:after {
+.sheetContent .spacer {
+  line-height: 18px;
+  font-size: 18px;
+}
+.sheetContent .spacer:only-of-type.empty {
+  line-height: inherit;
+}
+.sheetItem:only-of-type.empty .SheetOutsideText:after,
+.sheetContent .spacer:only-of-type.empty:after {
   color: #999;
   position: relative;
   pointer-events: none;
 }
-.interface-english .sheetItem:only-of-type.empty .SheetOutsideText:after {
+.interface-english .sheetItem:only-of-type.empty .SheetOutsideText:after,
+.interface-english .spacer:only-of-type.empty:after,
+.interface-english .spacer:only-of-type.empty:after {
   content: "Write some text or type a citation (ex. 'Genesis 1:1-5') ";
-  top: -45px;
-  margin-bottom: -45px;
+  top: -31px;
+  margin-bottom: -31px;
 }
-.interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:after {
+.interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:after,
+.interface-hebrew .spacer:only-of-type.empty:after,
+.interface-hebrew .spacer:only-of-type.empty:after {
   content: "הקלידו טקסט חופשי או מראה מקום (לדוגמא, בראשית א, א-ה)";
-  top: -56px;
-  margin-bottom: -56px;
+  top: -44px;
+  margin-bottom: -44px;
+}
+.sheetContent .sheetItem .SheetOutsideText.segment p {
+  margin: 0
 }
 
+.sheetContent .sheetItem .SheetOutsideText.segment {
+  margin: 0
+}
+
+.sheetContent .sheetItem .SheetSource.segment {
+  margin-top: 14px
+}
+
+.sheetContent .text.loading {
+  cursor: wait;
+}
 
 .oldSheetNotice,
 .oldSheetNotice a,
@@ -7304,11 +7464,6 @@ span.purim-emoji img{
   background-color: #F0F8FF;
 }
 
-.sheetItem .SheetSource *::selection {
-  background-color: rgba(255,0,0,0)
-}
-
-
 .sheetItem .SheetSource .he,
 .sheetItem .SheetSource .en {
   padding-inline-start: 11px;
@@ -7324,8 +7479,12 @@ span.purim-emoji img{
   border-radius: 6px;
 }
 
-.sheetItem .SheetSource .he.editable.selected .sourceContentText ::selection,
-.sheetItem .SheetSource .en.editable.selected .sourceContentText ::selection {
+.sheetItem .SheetSource ::selection {
+  background-color: rgba(0,0,0,0);
+}
+
+.sheetItem .SheetSource .he.editable.selected ::selection,
+.sheetItem .SheetSource .en.editable.selected ::selection {
   background-color: #D2DCFF;
 }
 
@@ -7337,12 +7496,23 @@ span.purim-emoji img{
   pointer-events: none;
   user-select: none;
 }
+.sheetItem .SheetSource:after {
+    content: " ";
+    display: block;
+    clear: both;
+}
+
 .sheetItem .SheetOutsideBiText {
   border-left: 4px solid;
   margin-left: -34px;
   padding-left: 34px;
   border-color: #073570;
 }
+
+.sheetItem .SheetMedia {
+    margin-bottom: 14px;
+}
+
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;
@@ -8502,7 +8672,12 @@ body .homeFeedWrapper.userStats {
   font-size: 13px;
   box-sizing: border-box;
   border-radius: 6px;
+
+  visibility: hidden;
 }
+
+
+
 #sheetEditToggle img {
   height: 13px;
   margin-top: 0;
@@ -8577,7 +8752,7 @@ body .homeFeedWrapper.userStats {
   .headerWithButtons h1 {
     margin-bottom: 20px;
   }
-  .headerWithButtons .start, 
+  .headerWithButtons .start,
   .headerWithButtons .end {
     text-align: center;
   }

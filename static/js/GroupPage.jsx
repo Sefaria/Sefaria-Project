@@ -33,16 +33,14 @@ class GroupPage extends Component {
     };
   }
   componentDidMount() {
-    Sefaria.getGroup(this.props.group)
-        .then(groupData => {
-          this.sortSheetData(groupData, this.state.sheetSort);
-          this.setState({
-            groupData,
-            showTopics: !!groupData.showTagsByDefault && !this.props.tag
-          });
-        });
+    this.loadData();
   }
   componentDidUpdate(prevProps, prevState) {
+    if (this.props.group !== prevProps.group) {
+      this.setState({groupData: null});
+      this.loadData();
+    }
+
     if (!this.state.showTopics && prevState.showTopics && $(".content").scrollTop() > 570) {
       $(".content").scrollTop(570);
     }
@@ -57,6 +55,16 @@ class GroupPage extends Component {
         this.setState({showTopics: false});
       }
     }
+  }
+  loadData() {
+    Sefaria.getGroup(this.props.group)
+      .then(groupData => {
+        this.sortSheetData(groupData, this.state.sheetSort);
+        this.setState({
+          groupData,
+          showTopics: !!groupData.showTagsByDefault && !this.props.tag
+        });
+      });
   }
   onDataChange() {
     this.setState({groupData: Sefaria._groups[this.props.group]});
@@ -242,16 +250,16 @@ class GroupPage extends Component {
                     <a className="groupWebsite" target="_blank" href={group.websiteUrl}>{group.websiteUrl}</a>
                     : null }
 
-                  {group.description || group.toc ?
+                  {group.toc ?
                     <div className="groupDescription">
-                      {group.toc ?
                       <span>
                         <span className="en" dangerouslySetInnerHTML={ {__html: group.toc.description} }></span>
                         <span className="he"dangerouslySetInnerHTML={ {__html: group.toc.heDescription} }></span>
                       </span>
-                      : group.description }
                     </div>
-                    : null }
+                  : group.description ?
+                    <div className="groupDescription"  dangerouslySetInnerHTML={ {__html: group.description} }></div>
+                  : null }
                 </div>
 
                 <div className="tabs">

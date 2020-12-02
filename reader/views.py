@@ -30,9 +30,10 @@ from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.google_storage_manager import GoogleStorageManager
-from sefaria.model.user_profile import user_link, user_started_text, unread_notifications_count_for_user, public_user_data
+from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data
 from sefaria.model.group import GroupSet
 from sefaria.model.webpage import get_webpages_for_ref
+from sefaria.model.media import get_media_for_ref
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
@@ -45,7 +46,7 @@ from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_topi
 from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.talmud import daf_to_section
-from sefaria.utils.calendars import get_all_calendar_items, get_keyed_calendar_items, get_parasha
+from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
 from sefaria.utils.util import short_to_long_lang_code, titlecase
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache
@@ -73,6 +74,9 @@ library.build_full_auto_completer()
 library.build_ref_auto_completer()
 library.build_lexicon_auto_completers()
 library.build_cross_lexicon_auto_completer()
+
+library.init_shared_cache()
+
 if server_coordinator:
     server_coordinator.connect()
 #    #    #
@@ -222,7 +226,9 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             "versionFilter": versionFilter,
         }
         if filter and len(filter):
-            if filter[0] in ("Sheets", "Notes", "About", "Translations", "Translation Open", "WebPages", "extended notes", "Topics"):
+            # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
+            sidebarModes = ("Sheets", "Notes", "About", "Translations", "Translation Open", "WebPages", "extended notes", "Topics", "Torah Readings")
+            if filter[0] in sidebarModes:
                 panel["connectionsMode"] = filter[0]
             else:
                 panel["connectionsMode"] = "TextList"
@@ -343,14 +349,27 @@ def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_pa
 
 def base_props(request):
     """
-    Returns a dictionary of props that all App pages get based on the request.
+    Returns a dictionary of props that all App pages get based on the request AND are able to be sent over the wire to the Node SSR server.
     """
-    from sefaria.system.context_processors import user_and_notifications
+    from sefaria.model.user_profile import UserProfile, UserWrapper
+    from sefaria.site.site_settings import SITE_SETTINGS
+    from sefaria.settings import DEBUG
+    profile = UserProfile(user_obj=request.user) if request.user.is_authenticated else None
+
+    if hasattr(request, "init_shared_cache"):
+        logger.warning("Shared cache disappeared while application was running")
+        library.init_shared_cache(rebuild=True)
+
     return {
-        "multiPanel": not request.user_agent.is_mobile and not "mobile" in request.GET,
+        "last_cached": library.get_last_cached_time(),
+        "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
-        "loggedIn": True if request.user.is_authenticated else False, # Django 1.10 changed this to a CallableBool, so it doesnt have a direct value of True/False,
         "_uid": request.user.id,
+        "is_moderator": request.user.is_staff,
+        "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
+        "notificationCount": profile.unread_notification_count() if profile else 0,
+        "full_name": profile.full_name if profile else "",
+        "profile_pic_url": profile.profile_pic_url if profile else "",
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
             "language":      request.contentLang,
@@ -363,6 +382,8 @@ def base_props(request):
             "color":         request.COOKIES.get("color", "light"),
             "fontSize":      request.COOKIES.get("fontSize", 62.5),
         },
+        "_siteSettings": SITE_SETTINGS,
+        "_debug": DEBUG,
     }
 
 
@@ -557,6 +578,10 @@ def texts_category_list(request, cats):
         return redirect("/texts/%s" % cats)
 
     props = base_props(request)
+    if request.user.is_authenticated:
+        props.update({
+            "last_place": UserProfile(user_obj=request.user).get_user_history(last_place=True, secondary=False, serialized=True),
+        })
     cats  = cats.split("/")
     if cats != ["recent"]:
         toc        = library.get_toc()
@@ -740,6 +765,9 @@ def get_group_page(request, group, authenticated):
 
 def public_groups(request):
     props = base_props(request)
+    props.update({
+        "groupListing": GroupSet.get_group_listing(request.user.id)
+    })
     title = _("Sefaria Groups")
     return menu_page(request, props, "publicGroups")
 
@@ -843,16 +871,31 @@ def mobile_home(request):
     props = base_props(request)
     return menu_page(request, props, "home")
 
+def _get_user_calendar_params(request):
+    if request.user.is_authenticated:
+        profile = UserProfile(user_obj=request.user)
+        custom = profile.settings.get("textual_custom", "ashkenazi")
+    else:
+        custom = "ashkenazi" # this is default because this is the most complete data set
+    return {"diaspora": request.diaspora, "custom": custom}
 
 def texts_list(request):
     props = base_props(request)
+    props.update({
+        "calendars": get_todays_calendar_items(**_get_user_calendar_params(request))
+    })
     title = _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
     desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
     return menu_page(request, props, "navigation", title, desc)
 
 
+@login_required
 def saved(request):
     props = base_props(request)
+    if request.user.is_authenticated:
+        props.update({
+            "saved": UserProfile(user_obj=request.user).get_user_history(saved=True, secondary=False, serialized=True)
+        })
     title = _("My Saved Content")
     desc = _("See your saved content on Sefaria")
     return menu_page(request, props, "saved", title, desc)
@@ -860,6 +903,13 @@ def saved(request):
 
 def user_history(request):
     props = base_props(request)
+    if request.user.is_authenticated:
+        uhistory = UserProfile(user_obj=request.user).get_user_history(secondary=False, serialized=True)
+    else:
+        uhistory = _get_anonymous_user_history(request)
+    props.update({
+        "userHistory": uhistory
+    })
     title = _("My User History")
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, "history", title, desc)
@@ -874,6 +924,9 @@ def updates(request):
 
 def new_home(request):
     props = base_props(request)
+    props.update({
+        "calendars": get_todays_calendar_items(**_get_user_calendar_params(request))
+    })
     title = _("Sefaria: a Living Library of Jewish Texts Online")
     desc  = _( "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
     return menu_page(request, props, "homefeed", title, desc)
@@ -904,6 +957,10 @@ def notifications(request):
     # Notifications content is not rendered server side
     title = _("Sefaria Notifications")
     props = base_props(request)
+    notifications = UserProfile(user_obj=request.user).recent_notifications()
+    props.update({
+        "notificationsHtml": notifications.to_HTML(),
+    })
     return menu_page(request, props, "notifications", title)
 
 
@@ -1776,10 +1833,13 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
 
         j = json.loads(j)
+        skip_check = request.GET.get("skip_lang_check", 0)
         if isinstance(j, list):
             res = []
             for i in j:
                 try:
+                    if skip_check:
+                        i["_skip_lang_check"] = True
                     retval = _internal_do_post(request, i, uid, **kwargs)
                     res.append({"status": "ok. Link: {} | {} Saved".format(retval["ref"], retval["anchorRef"])})
                 except Exception as e:
@@ -1793,6 +1853,8 @@ def links_api(request, link_id_or_ref=None):
                 res_slice = None
             return jsonResponse(res[:res_slice])
         else:
+            if skip_check:
+                j["_skip_lang_check"] = True
             return jsonResponse(_internal_do_post(request, j, uid, **kwargs))
 
     if request.method == "DELETE":
@@ -1964,7 +2026,8 @@ def related_api(request, tref):
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
             "topics": get_topics_for_ref(tref, annotate=True),
-        }
+            "media": get_media_for_ref(tref),
+        } 
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
@@ -2379,8 +2442,8 @@ def get_name_completions(name, limit, ref_only):
         object_data = completer.get_object(name)
 
     return {
-        "completions": completions[:limit or None],
-        "completion_objects": completion_objects[:limit or None],
+        "completions": completions,
+        "completion_objects": completion_objects,
         "lang": lang,
         "object_data": object_data,
         "ref": ref
@@ -2416,9 +2479,9 @@ def name_api(request, name):
             "internalToSections": ref.toSections,
             "sections": ref.normal_sections(),  # this switch is to match legacy behavior of parseRef
             "toSections": ref.normal_toSections(),
-            "completions": completions_dict["completions"] if LIMIT == 0 else completions_dict["completions"][:LIMIT],
+            "completions": completions_dict["completions"],
             "completion_objects": completions_dict["completion_objects"],
-            # todo: ADD textual completions as well
+            # todo: ADD textual completions as well (huh?)
             "examples": []
         }
         if inode.has_numeric_continuation():
@@ -2791,7 +2854,7 @@ def notifications_read_api(request):
 
         return jsonResponse({
                                 "status": "ok",
-                                "unreadCount": unread_notifications_count_for_user(request.user.id)
+                                "unreadCount": UserProfile(user_obj=request.user).unread_notifications_count()
                             })
 
     else:
@@ -3270,20 +3333,27 @@ def user_profile(request, username):
     """
     User's profile page.
     """
-    profile = UserProfile(slug=username)
-    if profile.user is None:
+    requested_profile = UserProfile(slug=username)
+    if requested_profile.user is None:
         raise Http404
-    if not profile.user.is_active:
+    if not requested_profile.user.is_active:
         raise Http404('Profile is inactive.')
-
     props = base_props(request)
-    profileJSON = profile.to_api_dict()
+    if request.user.is_authenticated:
+        props.update({
+            "following": UserProfile(user_obj=request.user).followees.uids,
+        })
+    else:
+        props.update({
+            "following": [],
+        })
+    profileJSON = requested_profile.to_api_dict()
     props.update({
         "initialMenu":  "profile",
         "initialProfile": profileJSON,
     })
-    title = "%(full_name)s on Sefaria" % {"full_name": profile.full_name}
-    desc = '%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": profile.full_name}
+    title = "%(full_name)s on Sefaria" % {"full_name": requested_profile.full_name}
+    desc = '%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": requested_profile.full_name}
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -3469,7 +3539,11 @@ def profile_sync_api(request):
         if not no_return:
             # determine return value after new history saved to include new saved and deleted saves
             # send back items after `last_sync`
-            last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
+            if post.get("last_sync", None) == 'undefined':  # in certain rare sitatuations, last_sync is literally 'undefined'. This should be equivalent to sending '0'.
+                last_sync = 0
+            else:
+                last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
+                
             uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}}, hint="uid_1_server_time_stamp_1")
             ret["last_sync"] = now
             ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
@@ -3513,6 +3587,12 @@ def saved_history_for_ref(request):
         return jsonResponse(UserHistory.get_user_history(oref=oref, saved=True, serialized=True))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+def _get_anonymous_user_history(request):
+    import urllib.parse
+    recents = json.loads(urllib.parse.unquote(request.COOKIES.get("recentlyViewed", '[]')))  # for backwards compat
+    recents = UserProfile.transformOldRecents(None, recents)
+    history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
+    return recents+history
 
 def profile_get_user_history(request):
     """
@@ -3521,16 +3601,13 @@ def profile_get_user_history(request):
     :secondary: bool. True if you only want secondary items. None if you dont care
     :tref: Ref associated with history item
     """
-    if not request.user.is_authenticated:
-        import urllib.parse
-        recents = json.loads(urllib.parse.unquote(request.COOKIES.get("recentlyViewed", '[]')))  # for backwards compat
-        recents = UserProfile.transformOldRecents(None, recents)
-        history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
-        return jsonResponse(history + recents)
     if request.method == "GET":
-        saved, secondary, last_place, oref = get_url_params_user_history(request)
-        user = UserProfile(id=request.user.id)
-        return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place))
+        if not request.user.is_authenticated:
+            return jsonResponse(_get_anonymous_user_history(request))
+        else:
+            saved, secondary, last_place, oref = get_url_params_user_history(request)
+            user = UserProfile(id=request.user.id)
+            return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
@@ -4016,14 +4093,19 @@ def person_page(request, name):
         "en": person.secondary_names("en"),
         "he": person.secondary_names("he")
     }
-    template_vars["time_period_name"] = {
-        "en": person.mostAccurateTimePeriod().primary_name("en"),
-        "he": person.mostAccurateTimePeriod().primary_name("he")
-    }
-    template_vars["time_period"] = {
-        "en": person.mostAccurateTimePeriod().period_string("en"),
-        "he": person.mostAccurateTimePeriod().period_string("he")
-    }
+    try:
+        tp = person.mostAccurateTimePeriod()
+
+        template_vars["time_period_name"] = {
+            "en": tp.primary_name("en"),
+            "he": tp.primary_name("he")
+        }
+        template_vars["time_period"] = {
+            "en": tp.period_string("en"),
+            "he": tp.period_string("he")
+        }
+    except AttributeError:
+        pass
     template_vars["relationships"] = person.get_grouped_relationships()
     template_vars["indexes"] = person.get_indexes()
     template_vars["post_talmudic"] = person.is_post_talmudic()

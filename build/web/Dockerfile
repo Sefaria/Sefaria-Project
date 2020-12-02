@@ -1,5 +1,5 @@
 # Descended from python3
-FROM gcr.io/production-deployment/pyre2:3e01eba
+FROM gcr.io/production-deployment/pyre2:20201028
 
 # Django Environment Variables
 ENV PYTHONUNBUFFERED 1
@@ -17,8 +17,8 @@ WORKDIR /app/
 RUN mkdir -p /app/log && mkdir -p /app/sefaria && mkdir -p /log && touch /app/dev-db.sqlite
 
 RUN apt-get update && apt-get install --yes npm varnish && apt-get clean
-RUN pip3 install --no-cache-dir -r /app/requirements.txt
-RUN npm install && npm run build-prod
+RUN pip3 install --no-cache-dir -r /app/requirements.txt --use-feature=2020-resolver
+RUN npm install --unsafe-perm && npm run build-prod
 RUN python manage.py collectstatic
 
 ENTRYPOINT ["/bin/bash", "-c"]

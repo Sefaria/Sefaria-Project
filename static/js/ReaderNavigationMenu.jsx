@@ -162,8 +162,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
                 heDisplayValue={item.displayValue["he"]}
                 category={item.category}
                 showSections={false}
-                recentItem={false}
-                csrRequired={true}/>)
+                recentItem={false}/>)
   });
   calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={width} /></div>);
 

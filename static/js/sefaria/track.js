@@ -66,21 +66,13 @@ class Track {
     static setUserLoggedIn(bool) {
         ga(SET, 'dimension7', bool? "Logged In": "Logged Out");
     }
-    static setUserPartnerGroup(val) {
-        ga(SET, 'dimension8', val);
-    }
-    static setUserPartnerRole(val) {
-        ga(SET, 'dimension9', val);
-    }
     static setUserID(val) {
         var sval = String(val);
         ga(SET, 'userId', sval);
         ga(SET, 'dimension10', sval);
     }
-    static setUserData(loggedIn, partner_group, partner_role, analytics_uid) {
+    static setUserData(loggedIn, analytics_uid) {
         this.setUserLoggedIn(loggedIn);
-        if (partner_group) this.setUserPartnerGroup(partner_group);
-        if (partner_role) this.setUserPartnerRole(partner_role);
         if (analytics_uid) this.setUserID(analytics_uid);
     }
     static sheets(action, label) {

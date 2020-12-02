@@ -859,7 +859,7 @@ p.registration-links a:hover{
   letter-spacing: 2px;
   color: #999;
   text-align: center;
-  padding-bottom: 40px;
+  margin-bottom: 40px;
 }
 #teamPage .team-members, #teamPage .board-members{
   display: flex;
@@ -871,23 +871,20 @@ p.registration-links a:hover{
   font-size: 20px;
   line-height: 1.2em;
   display: inline-block;
-  margin-bottom: 35px;
-  padding-bottom: 35px;
-  margin-left: auto;
-  margin-right: auto;
-  /*width: 32%;*/
+  margin-bottom: 20px;
+}
+#teamPage .teamMember.placeholder, #teamPage .teamBoardMember.placeholder {
+  width: 200px;
 }
 #teamPage .teamMember {
   flex: 0 0 30%;
 }
 #teamPage .teamBoardMember {
   border-bottom: none;
-  margin-bottom: 10px;
-  flex: 0 0 29%;
+  flex: 0 0 30%;
 }
 #teamPage .teamMember .teamMemberImage {
   display: block;
-  /*float: left;*/
 }
 #teamPage .teamMember .teamMemberDetails, #teamPage .teamBoardMember .teamMemberDetails {
   display: block;
@@ -904,12 +901,19 @@ p.registration-links a:hover{
   vertical-align:middle;
 }
 #teamPage .teamMember .teamName, #teamPage .teamBoardMember .teamName {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   font-size: 24px;
   color: #555;
 }
-#teamPage .teamMember .teamTitle, #teamPage .teamBoardMember .teamTitle {
-
+#teamPage .teamBoardMember .teamName {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+#teamPage .teamMember .teamTitle {
+  font-size: 18px;
+}
+#teamPage .teamBoardMember .teamTitle {
+  font-size: 16px;
 }
 #teamPage .teamMember .teamEmail {
   color: #999;
@@ -924,11 +928,6 @@ p.registration-links a:hover{
 #editProfilePage .inner {
   position: relative;
 }
-/*#saveCancelButtons {
-  position: absolute;
-  top: 145px;
-  right: 0px;
-}*/
 #saveCancelButtons .button {
   padding: 10px 16px;
   font-weight: normal;
@@ -2766,8 +2765,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   width: 800px;
   margin: 0 auto;
   max-width: 90%;
-  /* margin: 20px; */
-  /* display: block; */
 }
 .staticPage .blockVerticalPadding {
   padding-top: 80px;
@@ -2793,7 +2790,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .lightgreyBackground {
   background-color: #FBFBFA;
 }
-
 .staticPage .staticPageHeader {
   background-color: #212E50;
   padding: 70px 0 0 0;
@@ -2835,7 +2831,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .staticPageH2 {
   padding: 55px 0 10px;
   margin: 0;
-  width: 35%;
 }
 .staticPage .staticPageH2 span {
   font-style: normal;
@@ -2844,38 +2839,54 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   line-height: 35px;
   color: #666666;
 }
-
 .staticPage .staticPageSpacer {
 }
-
-.staticPage .staticPageSheetList {
-  padding: 30px 0 0;
+.staticPage .staticPageSection {
+  padding: 30px 0;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem {
+.staticPage .staticPageSheetItem {
   padding: 20px 0;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem + .staticPageSheetItem {
+.staticPage .staticPageSheetItem + .staticPageSheetItem {
   border-top: 1px solid #ccc;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem a {
+.staticPage .staticPageSheetItem a {
   padding-bottom: 20px;
   display: block;
   color: #000;
 }
-.staticPage .int-en .staticPageSheetList .staticPageSheetItem a {
+.staticPage .int-en .staticPageSheetItem a {
   font-family: "adobe-garamond-pro", Georgia, serif;
   font-size: 24px;
 }
-.staticPage .int-he .staticPageSheetList .staticPageSheetItem a {
+.staticPage .int-he .staticPageSheetItem a {
   font-family: "Heebo", sans-serif;
   font-size: 24px;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem img {
+.staticPage .staticPageSheetItem img {
   height: 46px;
   width: 46px;
   vertical-align: middle;
 }
-.staticPage .staticPageSheetList .staticPageSheetItem .staticPageSheetAuthor {
+.staticPage .staticPageSheetAuthor {
+  padding: 0 20px;
+}
+.staticPage .staticPageUserQuote {
+  padding: 26px 0;
+}
+.staticPage .staticPageUserQuote + .staticPageUserQuote {
+  border-top: 1px solid #ccc;
+}
+.staticPage .staticPageUserQuoteNameBox {
+  display: flex;
+  align-items: center;
+  margin-top: 20px;
+}
+.staticPage .staticPageUserQuote img {
+  height: 46px;
+  width: 46px;
+}
+.staticPage .staticPageUserQuoteName {
   padding: 0 20px;
 }
 .staticPage .simpleButtonWrapper {
@@ -2931,7 +2942,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 16px;
   line-height: 19px;
 }
-
 .staticPage .feature .featureText {
   font-family: "Roboto", sans-serif;
   font-style: normal;
@@ -2949,13 +2959,18 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .feature .featureImage img {
   width: 454px;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  /* max-width: 100%; */
+  border-radius: 6px;
 }
 .staticPage .feature {
     padding: 40px 0;
     background-color: #FBFBFA;
 }
-.staticPage .feature .featureHeader {}
+.staticPage .feature .featureHeader a {
+  color: inherit;
+}
+.staticPage .feature .featureHeader a:hover h3 {
+  text-decoration: underline;
+}
 .staticPage .feature .featureHeader h3 {
   margin: 20px 0 20px 0;
   font-size: 30px;
@@ -2963,9 +2978,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-weight: normal;
   display: inline-block;
 }
-
 .staticPage .feature .featureHeader h3 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
+}
+.staticPage .buttonRow h2 {
+  padding: 0 0 30px 0;
 }
 @media (max-width: 540px) {
   .staticPage .flexContainer {

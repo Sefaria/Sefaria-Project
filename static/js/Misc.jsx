@@ -34,6 +34,26 @@ class ProfilePic extends Component {
       croppedImageBlob: null,
       error: null,
     };
+    this.imgFile = React.createRef();
+  }
+  componentDidMount() {
+    if (this.isImageNotPresent()) {
+      this.setShowDefault();
+    } else {
+      this.setShowNonDefault();
+    }
+  }
+  isImageNotPresent(){
+    const img = this.imgFile.current;
+    if (img && img.complete) {
+        if(img.naturalWidth === 0) {
+            return true;
+        } else {
+            return false
+        }
+    }else{
+      return true;
+    }
   }
   setShowDefault() {this.setState({showDefault: true});  }
   setShowNonDefault() {this.setState({showDefault: false});  }
@@ -148,34 +168,32 @@ class ProfilePic extends Component {
     const { showDefault, src, crop, error, uploading, isFirstCropChange } = this.state;
     const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
     const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
-    const defaultViz = showDefault ? 'flex' : 'none';
-    const profileViz = showDefault ? 'none' : 'block';
+    const defaultViz = (showDefault /*|| this.isImageNotPresent()*/) ? 'flex' : 'none';
+    const profileViz = (showDefault /*|| this.isImageNotPresent()*/) ? 'none' : 'block';
+    const fontSize = this.isImageNotPresent() ? 0 : len/2;
     const imageSrc = url.replace("profile-default.png", 'profile-default-404.png');  // replace default with non-existant image to force onLoad to fail
     return (
       <div style={outerStyle} className="profile-pic">
-        <div
-          className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
-          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}
-        >
+        <div className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
+          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}>
           { showButtons ? null : `${initials}` }
         </div>
-        { Sefaria._inBrowser ?
-          <img
-            className="img-circle profile-img"
-            style={{display: profileViz, width: len, height: len, fontSize: len/2}}
-            src={imageSrc}
-            alt="User Profile Picture"
-            onLoad={this.setShowNonDefault}
-            onError={this.setShowDefault}
-          /> : null
-        }
+        <img
+          className="img-circle profile-img"
+          ref={this.imgFile}
+          style={{display: profileViz, width: len, height: len, fontSize: fontSize}}
+          src={imageSrc}
+          alt="User Profile Picture"
+          onLoad={this.setShowNonDefault}
+          onError={this.setShowDefault}
+        />
         {this.props.children ? this.props.children : null /*required for slate.js*/}
         { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
             (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
               <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
               <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
                 <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
-                <span className="int-he">{ showDefault ? "הוסף תמונה" : "ייבא תמונה" }</span>
+                <span className="int-he">{ showDefault ? "הוספת תמונה" : "עדכון תמונה" }</span>
               </label>
             </div>) : null
           }
@@ -251,11 +269,11 @@ const FilterableList = ({
   const [loading, setLoading] = useState(!cachedData);
   const [rawData, setRawData] = useState(cachedData);
   const [displayData, setDisplayData] = useState(processData(rawData));
-  
-  // Initial loading of data
+
+  // If `getData` function is passed, load data through this effect
   useEffect(() => {
     let isMounted = true;
-    if (!rawData) {
+    if (!rawData) { // Don't try calling getData when `data` as intially passed
       setLoading(true);
       getData().then(data => {
         if (isMounted) {
@@ -263,12 +281,19 @@ const FilterableList = ({
           setDisplayData(processData(data));
           setLoading(false);
         }
-      });      
+      });
     }
     return () => {
       isMounted = false;
     };
   }, [getData, rawData]);
+
+  // Alternatively, if there is no `getData` function passed, we expect data
+  // to be fed in directly through the `data` prop
+  useEffect(() => {
+    setRawData(data);
+    setDisplayData(processData(data));
+  }, [data]);
 
   // After initial load, when refreshData changes, trigger a new call for data.
   const mounted = useRef(false);
@@ -283,7 +308,7 @@ const FilterableList = ({
   }, [filter, sortOption, extraData]);
 
   const dataUpToPage = usePaginatedDisplay(scrollableElement, displayData, pageSize, bottomMargin, initialRenderSize || pageSize);
-  
+
   if (onDisplayedDataChange) {
     useEffect(() => {
       onDisplayedDataChange(dataUpToPage);
@@ -585,14 +610,9 @@ ReaderNavigationMenuSection.defaultProps = {
 class TextBlockLink extends Component {
   // Monopoly card style link with category color at top
   // This component is seriously overloaded :grimacing:
-  componentDidMount(){
-    if(this.props.csrRequired) {
-      this.setState({csrActive: true});
-    }
-  }
 
   render() {
-    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang, csrRequired } = this.props;
+    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang } = this.props;
     const index    = Sefaria.index(book);
     category = category || (index ? index.primary_category : "Other");
     const style    = {"borderColor": Sefaria.palette.categoryColor(category)};
@@ -600,7 +620,6 @@ class TextBlockLink extends Component {
     heTitle  = heTitle || (showSections ? heRef : index.heTitle);
     const hlang = intlang ? "int-he": "he";
     const elang = intlang ? "int-en": "en";
-    const fullRender = !csrRequired || (this.state && this.state.csrActive);
     let byLine;
     if (!!sheetOwner && sideColor) {
       title = sheetTitle.stripHtml();
@@ -631,7 +650,7 @@ class TextBlockLink extends Component {
 
     if (sideColor) {
       return (
-        <a href={fullRender ? url : ""} className={classes} data-ref={fullRender ? sref : ""} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
+        <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
@@ -651,7 +670,7 @@ class TextBlockLink extends Component {
         </a>
       );
     }
-    return (<a href={fullRender ? url : ""} className={classes} data-ref={fullRender ? sref : ""} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
+    return (<a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
               <span className={elang}>{title}</span>
               <span className={hlang}>{heTitle}</span>
                 {subtitle}
@@ -677,11 +696,9 @@ TextBlockLink.propTypes = {
   sheetTitle:      PropTypes.string,
   sheetOwner:      PropTypes.string,
   timeStamp:       PropTypes.number,
-  csrRequired:     PropTypes.bool,
 };
 TextBlockLink.defaultProps = {
   currVersions: {en:null, he:null},
-  csrRequired: false,
 };
 
 
@@ -1238,7 +1255,7 @@ class SheetListing extends Component {
       Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString());
       this.props.handleSheetClick(e, this.props.sheet, null, this.props.connectedRefs);
       e.preventDefault();
-    } 
+    }
   }
   handleSheetOwnerClick(e) {
     Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
@@ -1621,7 +1638,7 @@ class InterruptingMessage extends Component {
 
     } else if (this.props.style === "modal") {
       return  <div id="interruptingMessageBox" className={this.state.animationStarted ? "" : "hidden"}>
-          <div id="interruptingMessageOverlay" onClick={this.close}></div>
+          <div id="interruptingMessageOverlay"></div>
           <div id="interruptingMessage">
             <div id="interruptingMessageContentBox">
               <div id="interruptingMessageClose" onClick={this.close}>×</div>
@@ -2046,7 +2063,7 @@ class CookiesNotification extends Component {
 }
 
 const SheetTitle = (props) => (
-        <div className={`title ${props.empty ? 'empty': ''}`} role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
+        <div className={`title ${props.empty ? 'empty': ''} ${props.focused ? 'focused': ''}`} role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
             {props.children? props.children : props.title.stripHtmlKeepLineBreaks()}
         </div>
     )
@@ -2075,8 +2092,8 @@ const GroupStatement = (props) => (
             </a>
           </div>
           <a href={"/groups/" + props.group.replace(/ /g, "-")}>{props.children ? props.children : props.group}</a>
-        </div> 
-        : 
+        </div>
+        :
         <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
           {props.children}
         </div>

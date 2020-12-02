@@ -15,7 +15,6 @@ from django.utils.safestring import mark_safe
 from django.core.serializers import serialize
 from django.db.models.query import QuerySet
 from django.contrib.sites.models import Site
-from django.contrib.auth.models import Group
 from django.utils.translation import ugettext as _
 
 from sefaria.sheets import get_sheet
@@ -143,7 +142,7 @@ def text_toc_link(indx):
 
 	en = indx.nodes.primary_title("en")
 	he = indx.nodes.primary_title("he")
-	link = '<a href="/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(indx.title, en, he)
+	link = '<a href="/{}"><span class="int-en">{}</span><span class="int-he">{}</span></a>'.format(urllib.parse.quote(indx.title), en, he)
 	return mark_safe(link)
 
 
@@ -156,13 +155,6 @@ def person_link(person):
 	return mark_safe(link)
 
 
-@register.filter(name='has_group')
-def has_group(user, group_name):
-	try:
-		group =  Group.objects.get(name=group_name)
-		return group in user.groups.all()
-	except:
-		return False
 
 
 @register.filter(is_safe=True)
@@ -417,6 +409,8 @@ def hebrew_term(value):
 def jsonify(object):
 	if isinstance(object, QuerySet):
 		return mark_safe(serialize('json', object))
+	elif isinstance(object, str):
+		return mark_safe(object)
 	return mark_safe(json.dumps(object))
 
 

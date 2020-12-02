@@ -120,7 +120,6 @@ class SearchResultList extends Component {
 
       var $scrollable = $(ReactDOM.findDOMNode(this)).closest(".content");
       var margin = 300;
-
       if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
         this._loadNextPage(tab);
       }
@@ -182,7 +181,7 @@ class SearchResultList extends Component {
                   pagesLoaded: extend(this.state.pagesLoaded, {[type]: 1}),
                   moreToLoad: extend(this.state.moreToLoad, {[type]: data.hits.total > this.querySize[type]})
                 };
-                this.setState(state);
+                this.setState(state, () => this.handleScroll());
                 const filter_label = (request_applied && request_applied.length > 0) ? (' - ' + request_applied.join('|')) : '';
                 const query_label = props.query + filter_label;
                 Sefaria.track.event("Search", `Query: ${type}`, query_label, data.hits.total); 

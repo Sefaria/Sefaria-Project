@@ -43,7 +43,7 @@ socket.on('created', function(room) {
   // are received by the original client. This code runs every 7.5 seconds to make sure the room still exists and
   // prevents a user from getting stuck in a room that no one would join
   setInterval(function(){
-    socket.emit('does room exist', clientRoom);
+    socket.emit('does room exist', clientRoom, {{ client_uid }});
     }, 7500);
 });
 
@@ -139,7 +139,7 @@ navigator.mediaDevices.getUserMedia({
     console.log('Adding local stream.');
   })
   .catch(function(e) {
-    alert('getUserMedia() error: ' + e.name);
+    alert("There was an error starting your video. Usually this is because your camera is being used by another program. Please check and try again.");
   });
 
 function addAdditionalHTML() {
@@ -163,6 +163,22 @@ function getNewChevruta() {
   socket.emit('bye', clientRoom);
 }
 
+
+function toggleMute() {
+  localStream.getAudioTracks()[0].enabled = !(localStream.getAudioTracks()[0].enabled);
+
+  const videoDiv = document.getElementById("videos");
+  if(videoDiv.classList.contains("muted")) {
+    videoDiv.classList.remove("muted");
+    document.getElementById("enMute").setAttribute("title", "Turn off microphone");
+    document.getElementById("heMute").setAttribute("title", "כבה את המיקרופון");
+  }
+  else {
+    videoDiv.classList.add("muted")
+    document.getElementById("enMute").setAttribute("title", "Turn on microphone");
+    document.getElementById("heMute").setAttribute("title", "הפעל את המיקרופון");
+  }
+}
 
 function reportUser() {
   remoteVideo.srcObject = null;

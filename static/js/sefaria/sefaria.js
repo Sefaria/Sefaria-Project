@@ -65,7 +65,7 @@ Sefaria = extend(Sefaria, {
           }
           if (book in Sefaria.booksDict || book === "Sheet") {
               const remainder = first.slice(i);
-              if (remainder && remainder[0] !== " ") { 
+              if (remainder && remainder[0] !== " ") {
                 continue; // book name must be followed by a space, Jobs != Job
               }
               nums = remainder.slice(1);
@@ -144,6 +144,7 @@ Sefaria = extend(Sefaria, {
       // `ref` may be a string, or an array of strings. If ref is an array of strings, it is passed to normRefList.
       ref = Sefaria.normRef(ref);
       const pRef = Sefaria.parseRef(ref);
+      if (pRef.error) {return ref}
       if (pRef.sections.length === 0) { return pRef.book; }
       const book = pRef.book + " ";
       const hRef = pRef.ref.replace(/ /g, ":");
@@ -543,7 +544,7 @@ Sefaria = extend(Sefaria, {
     }
 
     if (settings.context) {
-      // Save a copy of the data at section level without context flag
+      // Save a copy of the data at section level with & without context flag
       var newData         = Sefaria.util.clone(data);
       newData.ref         = data.sectionRef;
       newData.heRef       = data.heSectionRef;
@@ -552,6 +553,13 @@ Sefaria = extend(Sefaria, {
         newData.toSections  = data.toSections.slice(0,-1);
       }
       const newSettings   = Sefaria.util.clone(settings);
+      // Note: data for section level refs is identical when called with or without context,
+      // but both are saved in cache for code paths that may always call with or without context.
+      if (!isSectionLevel) {
+        // Segment level ref with context, save section level marked with context
+        this._saveText(newData, newSettings);
+      }
+      // Any level ref with context, save section level marked without context
       newSettings.context = 0;
       this._saveText(newData, newSettings);
     }
@@ -1128,7 +1136,7 @@ Sefaria = extend(Sefaria, {
   privateNotes: function(refs, callback) {
     // Returns an array of private notes for `refs` (a string or array or strings)
     // or `null` if notes have not yet been loaded.
-    if(!Sefaria.loggedIn) return;
+    if(!Sefaria._uid) return;
     var notes = null;
     if (typeof refs == "string") {
       if (refs in this._privateNotes) {
@@ -1235,6 +1243,21 @@ Sefaria = extend(Sefaria, {
       });
     });
   },
+
+
+_media: {},
+  mediaByRef: function(refs) {
+    refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
+    var ref = Sefaria.normRefList(refs);
+
+    var media = [];
+    refs.map(r => {
+      if (this._media[r]) { media = media.concat(this._media[r]); }
+    }, this);
+	return media;
+  },
+
+
   _webpages: {},
   webPagesByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
@@ -1262,8 +1285,8 @@ Sefaria = extend(Sefaria, {
 
       // 3: exact match, 2: range match: 1: section match
       var aSpecificity, bSpecificity;
-      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRefExpanded.length);
-      if (aSpecificity !== bSpecificity) {return aSpecificity - bSpecificity};
+      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRef === ref ? 3 : (page.anchorRef.indexOf("-") !== -1 ? 2 : 1));
+      if (aSpecificity !== bSpecificity) {return aSpecificity > bSpecificity ? -1 : 1};
 
       return (a.linkerHits > b.linkerHits) ? -1 : 1
     });
@@ -1329,14 +1352,15 @@ Sefaria = extend(Sefaria, {
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
           topics: this._saveTopicByRef(ref, data.topics || []),
+		  media: this._saveItemsByRef(data.media, this._media),
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets", "webpages"].forEach(obj_type => {
+      ["links", "notes", "sheets", "webpages", "media"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], topics: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], media: [], topics: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }
@@ -1691,7 +1715,7 @@ Sefaria = extend(Sefaria, {
     if (Sefaria._uid) {
         $.post(Sefaria.apiHost + "/api/profile/sync?no_return=1",
               {user_history: JSON.stringify(history_item_array)},
-              data => { 
+              data => {
                 //console.log("sync resp", data)
                 if ("history" in Sefaria._userHistory) {
                   // If full user history has already been loaded into cache, then modify cache to keep it up to date
@@ -2379,7 +2403,12 @@ Sefaria = extend(Sefaria, {
       "Sheets Read" : "דפי מקורות שנקראו",
       "Sheets Created" : "דפי מקורות שנוצרו",
       "Average Sefaria User" : "משתמש ממוצע בספריא",
-      "Etc": "שאר"
+      "Etc": "שאר",
+
+      //chavruta
+      "Learn with a Chavruta": "ללמוד עם חברותא",
+      "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הזה:",
+      "Start Call": "התחלת שיחה"
 
   },
   _v: function(inputVar){
@@ -2434,7 +2463,7 @@ Sefaria = extend(Sefaria, {
     // Which is worse: the cycles wasted in computing this on the client
     // or the bandwidth wasted in letting the server computer once and transmitting the same data twice in different form?
     this.booksDict = {};
-    for (var i = 0; i < this.books.length; i++) {
+    for (let i = 0; i < this.books.length; i++) {
       this.booksDict[this.books[i]] = 1;
     }
   },
@@ -2565,8 +2594,48 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.topicList) {
     Sefaria._topicList = props.topicList;
   }
+  if (props.userHistory) {
+      Sefaria._userHistory.history = props.userHistory;
+  }
+  if (props.groupListing) {
+      Sefaria._groupsList.list = props.groupListing;
+  }
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
-  Sefaria.interfaceLang = props.interfaceLang;
+  const dataPassedAsProps = [
+      "_uid",
+      "interfaceLang",
+      "calendars",
+      "is_moderator",
+      "is_editor",
+      "notificationCount",
+      "notificationsHtml",
+      "saved",
+      "last_place",
+      "full_name",
+      "profile_pic_url",
+      "following",
+      "_siteSettings",
+      "_debug",
+  ];
+  for (const element of dataPassedAsProps) {
+      if (element in props) {
+        Sefaria[element] = props[element];
+      }
+  }
+};
+
+Sefaria.loadServerData = function(data){
+    // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
+    // data should but defined server-side and undefined client-side
+    //TODO: Can we get rid of this global scope thing?
+    if (typeof data === "undefined") {
+        data = typeof DJANGO_DATA_VARS === "undefined" ? undefined : DJANGO_DATA_VARS;
+    }
+    if (typeof data !== 'undefined') {
+        for (const [key, value] of Object.entries(data)) {
+            this[key] = value;
+        }
+    }
 };
 
 
@@ -2588,7 +2657,7 @@ Sefaria.setup = function(data) {
     // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
     // data should but defined server-side and undefined client-side
 
-    if (typeof data === "undefined") {
+    /*if (typeof data === "undefined") {
         data = typeof DJANGO_DATA_VARS === "undefined" ? undefined : DJANGO_DATA_VARS;
     }
     if (typeof data !== 'undefined') {
@@ -2597,28 +2666,19 @@ Sefaria.setup = function(data) {
                 Sefaria[prop] = data[prop];
             }
         }
-    }
+    }*/
+    Sefaria.loadServerData(data);
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupMisc();
-    var cookie = Sefaria.util.handleUserCookie(Sefaria.loggedIn, Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role);
+    var cookie = Sefaria.util.handleUserCookie(Sefaria._uid);
     // And store current uid in analytics id
     Sefaria._analytics_uid = Sefaria._uid;
-    if (cookie) {
-      Sefaria._partner_group = cookie._partner_group;
-      Sefaria._partner_role = cookie._partner_role;
-    }
     Sefaria._makeBooksDict();
     Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1};  //Todo: Wire this up to the server
     Sefaria._cacheIndexFromToc(Sefaria.toc);
-    if (!Sefaria.saved) {
-      Sefaria.saved = [];
-    }
-    if (!Sefaria.last_place) {
-        Sefaria.last_place = [];
-    }
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
-    Sefaria.track.setUserData(Sefaria.loggedIn, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
+    Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._analytics_uid);
     Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
 Sefaria.setup();

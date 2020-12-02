@@ -28,6 +28,7 @@ class Group(abst.AbstractMongoRecord):
         "members",       # list of uids
     ]
     optional_attrs = [
+        "sheets",           # list of sheet ids included in this collection
         "invitations",      # list of dictionaries representing outstanding invitations
         "description",      # string text of short description
         "websiteUrl",       # url for group website
@@ -72,6 +73,10 @@ class Group(abst.AbstractMongoRecord):
         reserved_chars = ['-', '_', '|']
         if any([c in self.name for c in reserved_chars]):
             raise InputError(_('Group names may not contain the following characters:') + ' {}'.format(', '.join(reservedChars)))
+
+        if len(group.name) == 0:
+            raise InputError(_("Please set a name for your group."))
+
 
         if getattr(self, "listed", False):
             if not getattr(self, "imageUrl", False):
@@ -274,6 +279,14 @@ class GroupSet(abst.AbstractMongoSet):
             query["listed"] = True
         self.__init__(query, sort=[("name", 1)])
         return self
+
+    @classmethod
+    def get_group_listing(cls, userid):
+        return {
+            "private": [g.listing_contents() for g in cls().for_user(userid)],
+            "public": [g.listing_contents() for g in
+                       GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])]
+        }
 
 
 def process_group_name_change_in_sheets(group, **kwargs):

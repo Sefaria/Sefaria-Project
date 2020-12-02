@@ -1,8 +1,8 @@
 {
 	"title": "",
-	"text": ["Sefaria is here for you with texts, resources, and inspiration this Elul. Can you support Sefaria with a gift of $18 — or whatever you can give — to keep the library open and accessible?"],
-	"buttonLink": "https://sefaria.nationbuilder.com/give_ae",
-	"buttonText": "Donate",
-	"name": "elul-2020",
+	"text": ["Sefaria is a non-profit organization and we depend on donations from users like you to support the library. The future of Jewish learning is in your hands, can you donate $10 today?"],
+	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
+	"buttonText": "DONATE",
+	"name": "end-of-year-2020-2",
 	"schemaVersion": 1
 }
