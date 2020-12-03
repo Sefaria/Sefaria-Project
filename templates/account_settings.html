@@ -57,6 +57,22 @@
             </div>
 		</div>
 	</div>
+    <div id="readingHistory" class="section">
+		<label class="control-elem">
+            <span class="int-en">Reading History</span>
+			<span class="int-he">היסטורית קריאה</span>
+        </label>
+		<div class="toggleSet doubleOption control-elem" role="radiogroup">
+			<div role="radio" data-value=true class="toggleOption {% if profile.settings.reading_history %} active{% endif %}" tabindex="{% if profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+                <span class="int-en">On</span>
+                <span class="int-he">פעילה</span>
+            </div><!--
+			--><div role="radio" data-value=false class="toggleOption {% if not profile.settings.reading_history %} active{% endif %}" tabindex="{% if not profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+                <span class="int-en">Off</span>
+                <span class="int-he">כבויה</span>
+            </div>
+		</div>
+	</div>
     <div id="textualCustom" class="section">
 		<label class="control-elem">
             <span class="int-en">Preferred Custom (Weekly Haftarot)</span>
@@ -106,7 +122,7 @@
 {% block js %}
 	<script>
 		$(function(){
-		    var $curLang = $("#siteLanguage .toggleOption.active").attr("data-value");
+		    const $curLang = $("#siteLanguage .toggleOption.active").attr("data-value");
 			$(".toggleOption").click(function() {
 				$(this).closest(".toggleSet").find(".toggleOption").removeClass("active").attr("tabIndex","-1").attr("ariaChecked","false");
 				$(this).addClass("active").attr("tabIndex","0").attr("ariaChecked","true");
@@ -123,11 +139,12 @@
 
 
 			$("#saveAccountSettings").click(function(){
-				var profile = {
+				let profile = {
 						settings: {
 							email_notifications: $("#emailNotifications .toggleOption.active").attr("data-value"),
 							interface_language: $("#siteLanguage .toggleOption.active").attr("data-value"),
-                            textual_custom: $("#textualCustom .toggleOption.active").attr("data-value")
+                            textual_custom: $("#textualCustom .toggleOption.active").attr("data-value"),
+                            reading_history: $("#readingHistory .toggleOption.active").attr("data-value") === "true" ? true : false,
 						}
 				};
 
@@ -137,7 +154,7 @@
 					} else {
 						alert("Settings Saved.");
 						Sefaria.track.event("Settings", "Settings Save", $("#emailNotifications input:checked").val());
-						var $newLang = $("#siteLanguage .toggleOption.active").attr("data-value");
+						const $newLang = $("#siteLanguage .toggleOption.active").attr("data-value");
 						if($newLang != $curLang){
 						    Sefaria.track.setInterfaceLanguage("interface language account settings", $newLang);
                         }

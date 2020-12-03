@@ -339,7 +339,8 @@ class UserProfile(object):
         self.settings     =  {
             "email_notifications": "daily",
             "interface_language": "english",
-            "textual_custom" : "sephardi"
+            "textual_custom" : "sephardi",
+            "reading_history" : True
         }
         # dict that stores the last time an attr has been modified
         self.attr_time_stamps = {
