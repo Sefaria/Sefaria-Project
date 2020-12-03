@@ -127,7 +127,11 @@ class AutoCompleter(object):
                 }}
             ]
             results = db.sheets.aggregate(pipeline)
-            profiles = {r["user"]["id"]:r for r in results}
+            try:
+                profiles = {r["user"]["id"]:r for r in results}
+            except KeyError:
+                logger.error("Encountered sheet owner with no profile record.  No users will be shown in autocomplete.")
+                profiles = {}
             users = User.objects.in_bulk(profiles.keys())
             unames = []
             normal_user_names = []

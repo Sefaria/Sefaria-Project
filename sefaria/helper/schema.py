@@ -5,7 +5,7 @@ from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.sheets import save_sheet
-from sefaria.utils.util import list_depth
+from sefaria.utils.util import list_depth, traverse_dict_tree
 
 import re
 
@@ -502,6 +502,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     print('Updating Versions')
     for v in vs:
         assert isinstance(v, Version)
+
         if v.get_index() == index:
             chunk = TextChunk(ja_node.ref(), lang=v.language, vtitle=v.versionTitle)
         else:
@@ -521,8 +522,15 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
             chunk.save()
 
         else:
-            chunk.text = ja.resize(delta).array()
-            chunk.save()
+            # we're going to save directly on the version to avoid weird mid change Ref bugs
+            new_text = ja.resize(delta).trim_ending_whitespace().array()
+            if isinstance(v.chapter, dict):  # complex text
+                version_address = ja_node.version_address()
+                parent = traverse_dict_tree(v.chapter, version_address[:-1])
+                parent[version_address[-1]] = new_text
+            else:
+                v.chapter = new_text
+            v.save()
 
     # For upsizing, we are editing refs to a structure that would not be valid till after the change, therefore
     # cascading must be performed here
@@ -754,13 +762,11 @@ def generate_segment_mapping(title, mapping, output_file=None, mapped_title=lamb
 
                 segment_map[each_ref.normal()] = Ref(_obj=core_dict).normal()
 
-    #output results so that this map can be used again for other purposes
+    # output results so that this map can be used again for other purposes
     if output_file:
-        output_file = open(output_file, 'w')
-        assert type(output_file) is file
-        for key in segment_map:
-            output_file.write("KEY: {}, VALUE: {}".format(key, segment_map[key])+"\n")
-        output_file.close()
+        with open(output_file, 'w') as output_file:
+            for key in segment_map:
+                output_file.write("KEY: {}, VALUE: {}".format(key, segment_map[key])+"\n")
     return segment_map
 
 
