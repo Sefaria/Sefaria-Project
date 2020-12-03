@@ -233,19 +233,6 @@ const TopicHeader = ({
            <span className="int-he">{ topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he) }</span>
          </a>
        : null}
-       {topicData && !isCat && topicData.possibilities ? 
-          <div>
-            {"Can refer to:"}
-            {topicData.possibilities.map(p => (
-              <a key={p.slug} href={`/topics/${p.slug}`}>
-                <div>
-                <span className="int-en">{p.primaryTitle.en}</span>
-                <span className="int-he">{p.primaryTitle.he}</span>
-                </div>
-              </a>
-            ))}
-          </div>
-       : null}
     </div>
 );}
 
