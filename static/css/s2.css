@@ -4636,16 +4636,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   flex-direction: row;
   align-items: flex-start;
+  justify-content: space-between;
   padding-top: 5px;
+  margin: 0 -4px;
 }
 .sheet .sheetRight img {
   display: none;
+  opacity: 0.4;
+  padding: 0 4px;
+  width: 22px;
+  height: 22px;
 }
 .sheet:hover .sheetRight img {
-  opacity: 0.4;
-  width: 17px;
-  height: 17px;
-  display: inline-block;
+  display: block;
 }
 .sheet:hover .sheetRight img:hover {
   opacity: 0.6;
@@ -4696,12 +4699,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .textListTextRangeBox + .sheet {
   margin-top: 24px;
 }
-
 .mediaList .media {
   border-top: solid 1px #CCC;
   padding: 20px 0;
 }
-
 .mediaList .mediaTitle {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: normal;
@@ -4711,23 +4712,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #666;
 	padding-bottom: 15px;
 }
-
 .mediaList .mediaTitle .he {
   font-size: 16px;
 }
-
-
-
 .mediaList .media .title {
 	font-size: 22px;
   color: #000;
 }
-
-
 .mediaList .media a {
 	color: #999;
 }
-
 .mediaList .media .description {
 	margin: 10px 0;
   font-size: 13px;
@@ -4736,7 +4730,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   justify-content: space-between;
   color: #666;
 }
-
 .mediaList .media .panel{
 	background: #e6e6e6;
 	border-radius: 50px;
@@ -4752,31 +4745,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: left;
   direction: ltr;
 }
-
 .mediaList .media .panel .playTimeContainer {
   display: inline-flex;
   align-self: center;
   font-size: 13px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-
 .mediaList .media .panel .playTimeContainer span {
   margin: 0 15px;
 }
-
 .mediaList .media .panel .sliderContainer {
   display: inline-flex;
   flex: 2;
   align-self: center;
 }
-
-
 .mediaList .media .panel input[type='image'] {
 	  width: 10px;
     height: 10px;
     padding: 2.5px;
 }
-
 .slider {
   -webkit-appearance: none;
   height: 2px;
@@ -4785,12 +4772,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   opacity: 0.7;
   width: 100%;
 }
-
 .slider:hover {
   opacity: 5;
 }
-
-
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
@@ -4800,7 +4784,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background: #4871bf;
   cursor: pointer;
 }
-
 .slider::-moz-range-thumb {
   width: 10px;
   height: 10px;
@@ -4808,7 +4791,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background: #4871bf;
   cursor: pointer;
 }
-
 /* All the same stuff for IE */
 .slider::-ms-thumb {
   width: 10px;
@@ -4817,11 +4799,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background: #4871bf;
   cursor: pointer;
 }
-
 .webpageList .website {
   text-align: start;
 }
-
 .webpageList .website .icon {
   height: 16px;
   width: 16px;
@@ -6465,12 +6445,10 @@ h2.splitHeader .he {
   height: 16px;
   opacity: 0.4;
 }
-.noteListing .actionButtons img + img,
-.sheet .sheetRight a + img {
+.noteListing .actionButtons img + img {
   margin: 0 0 0 10px;
 }
-.interface-hebrew .noteListing .actionButtons img + img,
-.interface-hebrew .sheet .sheetRight a + img {
+.interface-hebrew .noteListing .actionButtons img + img {
   margin: 0 10px 0 0;
 }
 .noteListing:hover .actionButtons img:hover {
@@ -8520,6 +8498,74 @@ body .homeFeedWrapper.userStats {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   background-color: #faf9f9;
 }
+.collectionsModalBox {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.collectionsModalBox .collectionsWidget {
+  width: 340px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.2);
+}
+.collectionsWidget {
+  background-color: white;
+  border-radius: 8px;
+  z-index: 1;
+}
+.collectionsWidgetTop {
+  display: flex;
+  padding: 15px 20px;
+  border-bottom: 1px solid #DDD;
+}
+.collectionsWidgetTitle {
+  flex-grow: 1;
+  font-size: 18px;
+  vertical-align: middle;
+  display: block;
+}
+.collectionsWidgetClose {
+  font-size: 40px;
+  color: #CCC;
+  line-height: 14px;
+  cursor: pointer;
+}
+.collectionsWidgetList {
+  height: 200px;
+  padding: 5px 20px;
+  overflow-y: scroll;
+  border-bottom: 1px solid #DDD;
+}
+.collectionsWidgetList .checkmarkLabel {
+  display: block;
+  letter-spacing: 1.1px;
+  font-size: 18px;
+  margin: 22px 0;
+}
+.collectionsWidgetCreate {
+  display: flex;
+  padding: 15px 20px;
+}
+.collectionsWidget .collectionsWidgetCreateInputBox {
+  flex: 1;
+  margin-inline-end: 10px;
+}
+
+.collectionsWidget input.collectionsWidgetCreateInput {
+  border-radius: 7px;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  font-size: 18px;
+  color: #666;
+  padding: 15px 26px;
+  width: 100%;
+  box-sizing: border-box;
+}
 .userStats h1 {
   text-align: center;
   font-weight: normal;
@@ -8664,12 +8710,8 @@ body .homeFeedWrapper.userStats {
   font-size: 13px;
   box-sizing: border-box;
   border-radius: 6px;
-
   visibility: hidden;
 }
-
-
-
 #sheetEditToggle img {
   height: 13px;
   margin-top: 0;
@@ -8695,7 +8737,6 @@ body .homeFeedWrapper.userStats {
   border-radius: 4px;
   transition: opacity 0.75s;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-
 }
 .markButton {
   padding: 10px;
@@ -8748,6 +8789,62 @@ body .homeFeedWrapper.userStats {
   .headerWithButtons .end {
     text-align: center;
   }
+}
+/* Customize checkmark inputs */
+.checkmarkLabel {
+  display: block;
+  position: relative;
+  padding-inline-start: 35px;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+/* Hide the browser's default checkbox */
+.checkmarkLabel input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+/* Create a custom checkbox */
+.checkmark {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 20px;
+  width: 20px;
+  background-color: white;
+  border: 1px solid #CCC;
+  border-radius: 6px;
+}
+/* On mouse-over, add a grey background color */
+.checkmarkLabel:hover input ~ .checkmark {
+  background-color: #EEE;
+}
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+/* Show the checkmark when checked */
+.checkmarkLabel input:checked ~ .checkmark:after {
+  display: block;
+}
+/* Style the checkmark/indicator */
+.checkmarkLabel .checkmark:after {
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid #666;
+  border-width: 0 3px 3px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
 }
 /* start css code for loading bezel */
 .sourceLoader {

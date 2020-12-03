@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
+import { CollectionsModal } from "./CollectionsWidget";
 import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
@@ -18,12 +19,13 @@ const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
   </span>
 );
 
-const IntText = ({children}) => {
-  // Renders a single span for interface string with either int-en of int-he
+const IntText = ({className, children}) => {
+  // Renders a single span for interface string with either class `int-en`` or `int-he`
   // depending on Sefaria.interfaceLang.
   // `children` is the English string, which will be translated with Sefaria._ if needed. 
-  const isHebrew = Sefaria.interfaceLang !== "hebrew";
-  return <span className={classNames("int-en": !isHebrew. "int-he": isHebrew)}>Sefaria._({children})</span>
+  const isHebrew = Sefaria.interfaceLang === "hebrew";
+  const cls = classNames({"int-en": !isHebrew, "int-he": isHebrew}) + (className ? " " + className : "");
+  return <span className={cls}>{Sefaria._(children)}</span>
 };
 
 const LoadingRing = () => (
@@ -1240,7 +1242,13 @@ ProfileListing.propTypes = {
 
 
 class SheetListing extends Component {
-  // A source sheet listed in the Sidebar
+  // A source sheet presented in lists, like sidebar or profile page
+  constructor(props) {
+    super(props);
+    this.state = {
+      showCollectionsModal: false
+    };
+  }
   handleSheetClick(e) {
     //console.log("Sheet Click Handled");
     // TODO: There more contexts to distinguish / track. Profile, groups, search
@@ -1311,6 +1319,10 @@ class SheetListing extends Component {
         !!sheet.group ? (<a href={`/groups/${sheet.group}`} target={this.props.openInNewTab ? "_blank" : "_self"}>{sheet.group}</a>) : undefined,
       ].filter(x => x !== undefined) : [topics];
 
+    const toggleCollectionsModal = () => {
+      this.setState({"showCollectionsModal": !this.state.showCollectionsModal});
+    }
+
     return (
       <div className="sheet" key={sheet.sheetUrl}>
         <div className="sheetLeft">
@@ -1333,7 +1345,12 @@ class SheetListing extends Component {
         <div className="sheetRight">
           {
             this.props.editable && !document.cookie.includes("new_editor") ?
-            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg"/></a>
+              <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg"/></a>
+              : null
+          }
+          {
+            this.props.editable ?
+              <img src="/static/img/collection.svg" onClick={toggleCollectionsModal} />
               : null
           }
           {
@@ -1347,6 +1364,12 @@ class SheetListing extends Component {
               : null
           }
         </div>
+        {this.state.showCollectionsModal ? 
+          <CollectionsModal 
+            sheetID={sheet.id}
+            close={toggleCollectionsModal} />
+          : null
+        }
       </div>);
   }
 }
@@ -1392,7 +1415,6 @@ class Note extends Component {
               </div>);
   }
 }
-
 Note.propTypes = {
   text:            PropTypes.string.isRequired,
   ownerName:       PropTypes.string,
@@ -2139,6 +2161,7 @@ export {
   GlobalWarningMessage,
   InterruptingMessage,
   InterfaceTextWithFallback,
+  IntText,
   LanguageToggleButton,
   Link,
   LoadingMessage,

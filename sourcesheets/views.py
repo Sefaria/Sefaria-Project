@@ -538,6 +538,18 @@ def collections_inclusion_api(request, collection_name, action, sheet_id):
 
 
 @login_required
+def collections_for_sheet_api(request, sheet_id):
+    """
+    API for determining which collections that a user is a member of contain `sheet_id`.
+    """
+    sheet_id = int(sheet_id)
+    uid = request.user.id
+    groups = GroupSet({"$or": [{"admins": uid, "sheets": sheet_id}, {"members": uid, "sheets": sheet_id}]})
+
+    return jsonResponse([group.name for group in groups])
+
+
+@login_required
 def groups_role_api(request, group_name, uid, role):
     """
     API for setting a group members role, or removing them from a group.

@@ -2156,6 +2156,17 @@ _media: {},
   getUserGroupsFromCache(uid) {
     return Sefaria._userGroups[uid];
   },
+  _userCollectionsForSheet: {},
+  getUserCollectionsForSheet: function(sheetID) {
+    return this._cachedApiPromise({
+      url: `${Sefaria.apiHost}/api/collections/for-sheet/${sheetID}`,
+      key: sheetID,
+      store: Sefaria._userCollectionsForSheet
+    });
+  },
+  getUserCollectionsForSheetFromCache(sheetID) {
+    return Sefaria._userCollectionsForSheet[sheetID];
+  },
   calendarRef: function(calendarTitle) {
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
     return cal.length ? cal[0].ref : null;

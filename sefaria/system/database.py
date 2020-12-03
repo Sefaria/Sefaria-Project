@@ -51,6 +51,10 @@ def ensure_indices(active_db=None):
     indices = [
         ('following', ["follower"],{}),
         ('following', ["followee"],{}),
+        ('groups', ["name"], {}),
+        ('groups', ["sheets"], {}),
+        ('groups', ["members"], {}),
+        ('groups', ["admins"], {}),
         ('history', ["revision"],{}),
         ('history', ["method"],{}),
         ('history', [[("ref", pymongo.ASCENDING), ("version", pymongo.ASCENDING), ("language", pymongo.ASCENDING)]],{}),

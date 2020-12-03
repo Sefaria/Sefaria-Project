@@ -24,6 +24,8 @@ for group in groups:
 	group.save()
 
 
+db.groups.create_index(["sheets"])
+
 # Turn "publishers" into "members"
 
 # Update sheet "group" field to "highlightedCollection"
