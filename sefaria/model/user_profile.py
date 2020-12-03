@@ -215,7 +215,9 @@ class UserHistory(abst.AbstractMongoRecord):
         return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit)
 
     @staticmethod
-    def delete_user_history(uid, exclude_saved=False, exclude_last_place=True):
+    def delete_user_history(uid, exclude_saved=True, exclude_last_place=False):
+        if not uid:
+            raise InputError("Cannot delete user history without an id")
         query = {"uid": uid}
         if exclude_saved:
             query["saved"] = False
@@ -583,6 +585,10 @@ class UserProfile(object):
 
         return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
                                             last_place=last_place, serialized=serialized, limit=limit)
+
+    def delete_user_history(self):
+        UserHistory.delete_user_history(uid=self.id)
+
     def to_mongo_dict(self):
         """
         Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
