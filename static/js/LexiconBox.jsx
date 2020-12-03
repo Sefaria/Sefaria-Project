@@ -137,7 +137,7 @@ class LexiconBox extends Component {
         // not sure why I also need to check for this.state.namedEntity but I've seen situations where loaded is true and namedEntity is null
         content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
       } else {
-          const dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(this.props.srefs[0])}" ${Sefaria._('based on')} ${Sefaria._('research of Prof. Michael Sperling and Bonayich')}.`;
+          const dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(this.props.srefs[0])}" ${Sefaria._('based on')} ${Sefaria._('research of Dr. Michael Sperling and Bonayich')}.`;
           
           const neArray = this.state.namedEntity.possibilities || [this.state.namedEntity]; 
           const namedEntityContent = neArray.map(ne => (<div key={ne.slug} className="named-entity-wrapper">
