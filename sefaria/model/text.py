@@ -5364,16 +5364,17 @@ class Library(object):
         for link in links:
             start = link.charLevelData['startChar']
             end = link.charLevelData['endChar']
-            start_char_to_slug[start] = (s[start:end], link.toTopic)
+            start_char_to_slug[start] = (s[start:end], link.toTopic, getattr(link, 'unambiguousToTopic', None))
             char_list[start:end] = list(dummy_char*(end-start))
         dummy_text = "".join(char_list)
 
         def repl(match):
             try:
-                mention, slug = start_char_to_slug[match.start()]
+                mention, slug, unambiguous_slug = start_char_to_slug[match.start()]
             except KeyError:
                 return match.group()
-            return f"""<a href="/topics/{slug}" class="namedEntityLink" data-slug="{slug}">{mention}</a>"""
+            link_slug = unambiguous_slug or slug
+            return f"""<a href="/topics/{link_slug}" class="namedEntityLink" data-slug="{slug}">{mention}</a>"""
         return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
 
