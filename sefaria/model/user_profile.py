@@ -214,6 +214,15 @@ class UserHistory(abst.AbstractMongoRecord):
             return [uh.contents(for_api=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit)]
         return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit)
 
+    @staticmethod
+    def delete_user_history(uid, exclude_saved=False, exclude_last_place=True):
+        query = {"uid": uid}
+        if exclude_saved:
+            query["saved"] = False
+        if exclude_last_place:
+            query["last_place"] = False
+        UserHistorySet(query).delete(bulk_delete=True)
+
 
 class UserHistorySet(abst.AbstractMongoSet):
     recordClass = UserHistory
