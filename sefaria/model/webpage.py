@@ -689,9 +689,13 @@ sites_data = [
         "domains": ["ots.org.il"],
         "title_branding": ["אור תורה סטון"]
     },
+    #{
+    #    "name": "Orthodox Union",
+    #    "domains": ["ou.org"],
+    #    "title_branding": ["OU Torah", "OU Life"]
+    #},
     {
-        "name": "Orthodox Union",
-        "domains": ["ou.org"],
-        "title_branding": ["OU Torah", "OU Life"]
+        "name": "Jewish Action",
+        "domains": ["jewishaction.com"],
     },
 ]
