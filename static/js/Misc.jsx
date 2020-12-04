@@ -1359,7 +1359,7 @@ class SheetListing extends Component {
               : null
           }
           {
-            this.props.editable ?
+            this.props.collectable ?
               <img src="/static/img/collection.svg" onClick={toggleCollectionsModal} />
               : null
           }

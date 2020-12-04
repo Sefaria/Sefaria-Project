@@ -224,6 +224,7 @@ class UserProfile extends Component {
         editable={Sefaria._uid === this.props.profile.id}
         deletable={Sefaria._uid === this.props.profile.id}
         saveable={Sefaria._uid !== this.props.profile.id}
+        collectable={true}
         connectedRefs={[]}
         infoUnderneath={true}
       />
