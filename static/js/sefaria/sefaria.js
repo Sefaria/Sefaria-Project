@@ -2259,6 +2259,7 @@ _media: {},
       "Pinned Sheet" : "דף מקורות נעוץ",
       "Pin Sheet" : "נעיצת דף מקורות",
       "Created with": 'נוצר עבורך ע"י',
+      "hasn't shared any sheets yet.": "TODO Hebrew",
 
       //stuff moved from sheets.js
       "Loading..." : "טוען...",
@@ -2339,6 +2340,15 @@ _media: {},
       "followers": "עוקבים",
       "Recent": "תאריך",
       "Unlisted": "חסוי",
+
+      // collections
+      "Create a New Collection": "TODO Hebrew",
+      "You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.": "TODO Hebrew",
+      "You can add sheets to this collection on your profile.": "TODO Hebrew",
+      "Open Profile": "TODO Hebrew",
+      "There are no sheets in this collection yet.": "TODO Hebrew",
+      "Are you sure you want to delete this collection? This cannot be undone.": "TODO Hebrew",
+      "hasn't shared any collections yet.": "TODO Hebrew",
 
       //languages
       "English": "אנגלית",

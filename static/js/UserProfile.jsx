@@ -7,6 +7,7 @@ import {
   ProfileListing,
   ProfilePic,
   FollowButton,
+  IntText,
 } from './Misc';
 import React  from 'react';
 import PropTypes  from 'prop-types';
@@ -85,15 +86,17 @@ class UserProfile extends Component {
     return (
       <div className="emptyList">
         <div className="emptyListText">
-          <span className="int-en">0 Groups</span>
-          <span className="int-he">0 קבוצות</span>
+          <IntText>{this.props.profile.full_name} </IntText>
+          <IntText>hasn't shared any collections yet.</IntText>
         </div>
         { Sefaria._uid === this.props.profile.id ?
-          <a href="/groups/new" className="resourcesLink">
-            <img src="/static/img/collection.svg" alt="Collection icon" />
-            <span className="int-en">Create a New Collection</span>
-            <span className="int-he">צור קבוצה חדשה TODO HEBREW</span>
-          </a> : null
+          <div className="emptyListText">
+            <IntText>You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.</IntText>
+            <a href="/groups/new" className="resourcesLink">
+              <img src="/static/img/collection.svg" alt="Collection icon" />
+              <IntText>Create a New Collection</IntText>
+            </a>
+          </div> : null
          }
       </div>
     );
@@ -109,8 +112,7 @@ class UserProfile extends Component {
       <div className="sheet-header">
         <a href="/groups/new" className="resourcesLink">
           <img src="/static/img/collection.svg" alt="Collection icon" />
-          <span className="int-en">Create a New Collection</span>
-          <span className="int-he">יצירת קבוצה TODO HEBREW</span>
+            <IntText>Create a New Collection</IntText>
         </a>
       </div>
     );
@@ -185,8 +187,8 @@ class UserProfile extends Component {
       return (
         <div className="emptyList">
           <div className="emptyListText">
-            <span className="int-en">0 Sheets</span>
-            <span className="int-he">0 דפי מקורות</span>
+            <IntText>{this.props.profile.full_name} </IntText>
+            <IntText>hasn't shared any sheets yet.</IntText>
           </div>
         </div>
       );

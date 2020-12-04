@@ -96,6 +96,8 @@ const CollectionsWidget = ({sheetID, close}) => {
           {collection.name}
         </label>
       })}
+      {dataLoaded && collections.length == 0 ?
+        <IntText className="emptyMessage">You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.</IntText> : null }
     </div>
     <div className="collectionsWidgetCreate">
       <div className="collectionsWidgetCreateInputBox">

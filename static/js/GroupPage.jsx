@@ -6,6 +6,7 @@ import {
   SheetTopicLink,
   SheetAccessIcon,
   ProfilePic,
+  IntText,
 } from './Misc';
 import React  from 'react';
 import PropTypes  from 'prop-types';
@@ -320,12 +321,14 @@ class GroupPage extends Component {
 
                   {!sheets.length ? (isMember ?
                           <div className="emptyMessage">
-                            <span className="int-en">There are no sheets in this group yet. <a href="/sheets/new">Start a sheet</a>.</span>
-                            <span className="int-he"> לא קיימים דפי מקורות בקבוצה <a href="/sheets/new">צור דף מקורות</a>.</span>
+                            <IntText>You can add sheets to this collection on your profile.</IntText>
+                            <br />
+                            <a className="button" href="/my/profile">
+                              <IntText>Open Profile</IntText>
+                            </a>
                           </div>
                         : <div className="emptyMessage">
-                            <span className="int-en">There are no public sheets in this group yet.</span>
-                            <span className="int-he">לא קיימים דפי מקורות פומביים בקבוצה</span>
+                            <IntText>There are no sheets in this collection yet.</IntText>
                           </div>) : null}
                   </div>
                   : null }
@@ -339,13 +342,12 @@ class GroupPage extends Component {
                                 isAdmin={isAdmin}
                                 isSelf={member.uid == Sefaria._uid}
                                 groupName={this.props.group}
-                                onDataChange={this.onDataChange }
+                                onDataChange={this.onDataChange}
                                 key={i} />
                         }.bind(this) )
                       }
                     </div>
                   : null }
-
               </div>
               <Footer />
             </div>;

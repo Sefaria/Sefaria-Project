@@ -90,7 +90,7 @@ class EditGroupPage extends Component {
     this.setState({listed: !!e.target.checked});
   }
   delete() {
-    if (confirm("Are you sure you want to delete this group? This cannot be undone.")) {
+    if (confirm(Sefaria._("Are you sure you want to delete this collection? This cannot be undone."))) {
      $.ajax({
         url: "/api/groups/" + this.props.initialData.name,
         type: "DELETE",
@@ -98,7 +98,7 @@ class EditGroupPage extends Component {
           if ("error" in data) {
             alert(data.error);
           } else {
-            window.location = "/my/groups";
+            window.location = "/my/profile";
           }
         },
         fail: function() {

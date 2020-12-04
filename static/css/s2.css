@@ -5706,7 +5706,8 @@ color: #666666;
 a.button {
   color: white;
 }
-.button:hover {
+.button:hover,
+a.button:hover {
   color: white;
   text-decoration: none;
 }
@@ -6130,8 +6131,11 @@ h2.splitHeader .he {
 .groupPage .emptyMessage {
   text-align: center;
 }
-.groupPage .emptyMessage a {
-  text-decoration: underline;
+.groupPage .emptyMessage .button {
+  margin-top: 22px;
+}
+.groupPage .emptyMessage .button:hover {
+  color: white;
 }
 .groupPage .groupSearchBox {
   display: flex;
@@ -7928,6 +7932,7 @@ span.purim-emoji img{
   margin: 30px 0;
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  line-height: 1.5;
 }
 .profile-page .profile-summary .resourcesLink + .resourcesLink,
 .profile-page .profile-summary .largeFollowButton + .resourcesLink {
@@ -8554,6 +8559,12 @@ body .homeFeedWrapper.userStats {
   font-size: 18px;
   margin: 22px 0;
   text-align:  start;
+}
+.collectionsWidgetList .emptyMessage {
+  display: block;
+  color: #666;
+  padding: 20px 0px;
+  line-height: 1.5;
 }
 .collectionsWidgetCreate {
   display: flex;
