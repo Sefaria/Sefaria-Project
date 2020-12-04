@@ -62,10 +62,24 @@ class UserProfile extends Component {
     return n(group.name).indexOf(currFilter) > -1;
   }
   sortGroup(currSortOption, groupA, groupB) {
-    if (currSortOption == "Members") {
-      return groupB.memberCount - groupA.memberCount;
+    switch(currSortOption) {
+      case "Recent":
+        return groupB.lastModified > groupA.lastModified ? 1 : -1;
+        break;
+      case "Name":
+        return groupB.name > groupA.name ? 1 : -1;
+        break;
+      case "Members":
+        return groupB.memberCount - groupA.memberCount;
+        break;
+      case "Sheets":
+        return groupB.sheetCount - groupA.sheetCount;
+        break;
     }
-    return groupB.sheetCount - groupA.sheetCount;
+
+    if (currSortOption)
+    if (currSortOption == "Members") {
+    }
   }
   renderEmptyGroupList() {
     return (
@@ -367,7 +381,7 @@ class UserProfile extends Component {
                     renderItem={this.renderGroup}
                     renderEmptyList={this.renderEmptyGroupList}
                     renderHeader={this.renderGroupHeader}
-                    sortOptions={["Members", "Sheets"]}
+                    sortOptions={["Recent", "Name", "Members", "Sheets"]}
                     getData={this.getGroups}
                     data={this.getGroupsFromCache()}
                   />

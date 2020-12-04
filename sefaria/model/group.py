@@ -3,6 +3,7 @@ group.py
 Writes to MongoDB Collection: groups
 """
 import bleach
+from datetime import datetime
 
 from django.utils.translation import ugettext as _
 
@@ -29,6 +30,7 @@ class Group(abst.AbstractMongoRecord):
     ]
     optional_attrs = [
         "sheets",           # list of sheet ids included in this collection
+        "lastModified",     # 
         "invitations",      # list of dictionaries representing outstanding invitations
         "description",      # string text of short description
         "websiteUrl",       # url for group website
@@ -51,6 +53,11 @@ class Group(abst.AbstractMongoRecord):
     ]
 
     def _normalize(self):
+        defaults = (("members", []), ("publishers", []), ("sheets", []))
+        for default in defaults:
+            if not hasattr(self, default[0]):
+                setattr(self, default[0], default[1])
+
         website = getattr(self, "websiteUrl", False)
         if website and not website.startswith("https://"):
             if website.startswith("http://"):
@@ -70,7 +77,7 @@ class Group(abst.AbstractMongoRecord):
     def _validate(self):
         assert super(Group, self)._validate()
 
-        if len(group.name) == 0:
+        if len(self.name) == 0:
             raise InputError(_("Please set a name for your group."))
 
         if getattr(self, "listed", False):
@@ -82,6 +89,8 @@ class Group(abst.AbstractMongoRecord):
         return True
 
     def _pre_save(self):
+        self.lastModified = datetime.now()
+
         image_fields = ("imageUrl", "headerUrl", "coverUrl")
         for field in image_fields:
             old, new = self.pkeys_orig_values.get(field, None), getattr(self, field, None)
@@ -122,6 +131,7 @@ class Group(abst.AbstractMongoRecord):
             "headerUrl": getattr(self, "headerUrl", None),
             "memberCount": self.member_count(),
             "sheetCount": self.sheet_count(),
+            "lastModified": str(self.lastModified)
         }
         if uid is not None:
             contents["canPublish"] = self.can_publish(uid)
@@ -285,7 +295,7 @@ class GroupSet(abst.AbstractMongoSet):
         query = {"$or": [{"admins": uid}, {"publishers": uid}, {"members": uid}]}
         if not private:
             query["listed"] = True
-        self.__init__(query, sort=[("name", 1)])
+        self.__init__(query, sort=[("lastModified", -1)])
         return self
 
     @classmethod

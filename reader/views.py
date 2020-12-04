@@ -69,12 +69,22 @@ logger = logging.getLogger(__name__)
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
 logger.warn("Initializing library objects.")
+logger.warn("Initializing TOC Tree")
 library.get_toc_tree()
+
+logger.warn("Initializing Full Auto Completer")
 library.build_full_auto_completer()
+
+logger.warn("Initializing Ref Auto Completer")
 library.build_ref_auto_completer()
+
+logger.warn("Initializing Lexicon Auto Completers")
 library.build_lexicon_auto_completers()
+
+logger.warn("Initializing Cross Lexicon Auto Completer")
 library.build_cross_lexicon_auto_completer()
 
+logger.warn("Initializing Shared Cache")
 library.init_shared_cache()
 
 if server_coordinator:
@@ -833,6 +843,7 @@ def edit_group_page(request, group=None):
         if not group:
             raise Http404
         groupData = group.contents()
+        del groupDate["lastModified"]
     else:
         groupData = None
 

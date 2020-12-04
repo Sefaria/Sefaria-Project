@@ -14,9 +14,11 @@ const CollectionsModal = (props) => {
 
 
 const CollectionsWidget = ({sheetID, close}) => {
-  const collections = Sefaria.getUserGroupsFromCache(Sefaria._uid);
+  const [collections, setCollections] = useState(Sefaria.getUserGroupsFromCache(Sefaria._uid));
   const [collectionsSelected, setCollectionsSelected] = useState(Sefaria.getUserCollectionsForSheetFromCache(sheetID));
   const [dataLoaded, setDataLoaded] = useState(!!collections && !!collectionsSelected);
+  const [newName, setNewName] = useState("");
+
 
   useEffect(() => {
     if (!dataLoaded) {
@@ -25,30 +27,41 @@ const CollectionsWidget = ({sheetID, close}) => {
          Sefaria.getUserCollectionsForSheet(sheetID)
       ])
      .then(() => {
+        setCollections(Sefaria.getUserGroupsFromCache(Sefaria._uid));
         setCollectionsSelected(Sefaria.getUserCollectionsForSheetFromCache(sheetID));
         setDataLoaded(true);
       });
     }
   }, []);
 
-  const onCheckChange = (event) => {
-    const collection = event.target.getAttribute("label");
+  const onCheckChange = (collection, checked) => {
     let newCollectionsSelected;
-    if (event.target.checked) {
-      newCollectionsSelected = collectionsSelected + [collection];
-      $.ajax({
-        type: "post",
-        url: `/api/collections/${collection}/add/${sheetID}`,
-      });
+    if (checked) {
+      newCollectionsSelected = [...collectionsSelected, collection];
+      $.post(`/api/collections/${collection}/add/${sheetID}`);
     } else {
       newCollectionsSelected = collectionsSelected.filter(x => x !== collection);
-      $.ajax({
-        type: "post",
-        url: `/api/collections/${collection}/remove/${sheetID}`,
-      });
+      $.post(`/api/collections/${collection}/remove/${sheetID}`)
     }
     Sefaria._userCollectionsForSheet[sheetID] = newCollectionsSelected;
     setCollectionsSelected(newCollectionsSelected);
+  };
+
+  const onNameChange = event => setNewName(event.target.value);
+
+  const onCreateClick = () => {
+    const collection = {name: newName, "new": true};
+    $.post("/api/groups", {json: JSON.stringify(collection)}, (data) => {
+      if ("error" in data) {
+        alert(data.error);
+        return;
+      }
+      setNewName("");
+      const newCollections = [data.collection, ...collections];
+      Sefaria._userGroups[Sefaria._uid] = newCollections;
+      setCollections(newCollections);
+      onCheckChange(data.collection.name, true);
+    });
   };
 
   return <div className="collectionsWidget">
@@ -63,8 +76,8 @@ const CollectionsWidget = ({sheetID, close}) => {
           <input 
             type="checkbox"
             label={collection.name}
-            onChange={onCheckChange}
-            checked={collectionsSelected.includes(collection.name) ? "checked" : null} />
+            onChange={event => onCheckChange(event.target.getAttribute("label"), event.target.checked)}
+            checked={collectionsSelected.includes(collection.name) ? "checked" : ""} />
           <span className="checkmark"></span>
           {collection.name}
         </label>
@@ -72,9 +85,9 @@ const CollectionsWidget = ({sheetID, close}) => {
     </div>
     <div className="collectionsWidgetCreate">
       <div className="collectionsWidgetCreateInputBox">
-        <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("Name")} />
+        <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("Name")} value={newName} onChange={onNameChange} />
       </div>
-      <div className="button large collectionsWidgetCreateButton">
+      <div className="button large collectionsWidgetCreateButton" onClick={onCreateClick}>
         <IntText>Create</IntText>
       </div>
     </div>

@@ -452,6 +452,7 @@ def groups_get_api(request, group=None):
         return jsonResponse({"error": "No group named '%s'" % group})
     is_member = request.user.is_authenticated and group_obj.is_member(request.user.id)
     group_content = group_obj.contents(with_content=True, authenticated=is_member)
+    del group_content["lastModified"]
     return jsonResponse(group_content)
 
 
@@ -477,10 +478,9 @@ def groups_post_api(request, user_id, group_name=None):
         else:
             del group["new"]
             group["admins"] = [user_id]
-            group["publishers"] = []
-            group["members"] = []
-            Group(group).save()
-        return jsonResponse({"status": "ok"})
+            collection = Group(group)
+            collection.save()
+        return jsonResponse({"status": "ok", "collection": collection.listing_contents(request.user.id)})
 
     elif request.method == "DELETE":
         if not group_name:
@@ -511,26 +511,27 @@ def collections_inclusion_api(request, collection_name, action, sheet_id):
         return jsonResponse({"error": "No collection named {}.".format(collection_name)})
     if not collection.is_member(request.user.id):
         return jsonResponse({"error": "Only members of this collection my change its contents."})
-    sheet = Sheet().load({"id": int(sheet_id)})
+    sheet_id = int(sheet_id)
+    sheet = Sheet().load({"id": sheet_id})
     if not sheet:
         return jsonResponse({"error": "No sheet with id {}.".format(sheet_id)})
     
     if action == "remove":
         if sheet_id in collection.sheets:
-            colletion.sheets.remove(sheet_id)
+            collection.sheets.remove(sheet_id)
         else:
             return jsonResponse({"error": "Sheet with id {} is not in this collection.".format(sheet_id)})
     if action == "add":
         if sheet_id not in collection.sheets:
             collection.sheets.append(sheet_id)
-            # If a sheets owner adds it to a collection, and the sheet is no highlighted
+            # If a sheet's owner adds it to a collection, and the sheet is not highlighted
             # in another collection, set it to highlight this collection.
-            if request.user.id == sheet["owner"] and not bool(sheet["group"]):
-                sheet["group"] = collection_name
+            if request.user.id == sheet.owner and not bool(sheet.group):
+                sheet.group = collection_name
                 sheet.save()
 
-    group.save()
-    return {"status": "ok", "collection": group.contents(authenticated=True)}
+    collection.save()
+    return jsonResponse({"status": "ok", "collection": collection.listing_contents(request.user.id)})
 
 
 @login_required
