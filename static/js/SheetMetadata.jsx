@@ -139,7 +139,11 @@ class SheetMetadata extends Component {
     }
   }
   toggleCollectionsModal() {
-    this.setState({showCollectionsModal: !this.state.showCollectionsModal});
+    if (!Sefaria._uid) {
+      this.props.toggleSignUpModal();
+    } else {
+      this.setState({showCollectionsModal: !this.state.showCollectionsModal});      
+    }
   }
   generateSheetMetaDataButtons() {
     return (

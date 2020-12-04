@@ -1330,7 +1330,11 @@ class SheetListing extends Component {
       ].filter(x => x !== undefined) : [topics];
 
     const toggleCollectionsModal = () => {
-      this.setState({"showCollectionsModal": !this.state.showCollectionsModal});
+      if (Sefaria._uid) {
+        this.setState({"showCollectionsModal": !this.state.showCollectionsModal});
+      } else {
+        this.props.toggleSignUpModal();
+      }
     }
 
     return (
@@ -1370,7 +1374,8 @@ class SheetListing extends Component {
           }
           {
             this.props.saveable ?
-              <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }} />
+              <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }} 
+                toggleSignUpModal={this.props.toggleSignUpModal} />
               : null
           }
         </div>
@@ -1384,16 +1389,17 @@ class SheetListing extends Component {
   }
 }
 SheetListing.propTypes = {
-  sheet:            PropTypes.object.isRequired,
-  connectedRefs:    PropTypes.array.isRequired,
-  handleSheetClick: PropTypes.func,
-  handleSheetDelete:PropTypes.func,
-  handleSheetEdit:  PropTypes.func,
-  deletable:        PropTypes.bool,
-  saveable:         PropTypes.bool,
-  hideAuthor:       PropTypes.bool,
-  infoUnderneath:   PropTypes.bool,
-  openInNewTab:     PropTypes.bool,
+  sheet:             PropTypes.object.isRequired,
+  connectedRefs:     PropTypes.array.isRequired,
+  handleSheetClick:  PropTypes.func,
+  handleSheetDelete: PropTypes.func,
+  handleSheetEdit:   PropTypes.func,
+  deletable:         PropTypes.bool,
+  saveable:          PropTypes.bool,
+  hideAuthor:        PropTypes.bool,
+  infoUnderneath:    PropTypes.bool,
+  openInNewTab:      PropTypes.bool,
+  toggleSignUpModal: PropTypes.func,
 };
 
 

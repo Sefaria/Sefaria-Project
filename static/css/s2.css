@@ -4649,6 +4649,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 0 4px;
   width: 22px;
   height: 22px;
+  margin: 0;
 }
 .sheet:hover .sheetRight img {
   display: block;

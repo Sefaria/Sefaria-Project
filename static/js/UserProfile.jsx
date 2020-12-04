@@ -227,6 +227,7 @@ class UserProfile extends Component {
         collectable={true}
         connectedRefs={[]}
         infoUnderneath={true}
+        toggleSignUpModal={this.props.toggleSignUpModal}
       />
     );
   }
