@@ -67,7 +67,7 @@ class UserProfile extends Component {
         return groupB.lastModified > groupA.lastModified ? 1 : -1;
         break;
       case "Name":
-        return groupB.name > groupA.name ? 1 : -1;
+        return groupB.name > groupA.name ? -1 : 1;
         break;
       case "Members":
         return groupB.memberCount - groupA.memberCount;

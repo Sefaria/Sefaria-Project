@@ -4,10 +4,12 @@ import {
   ReaderNavigationMenuDisplaySettingsButton,
   CategoryAttribution,
   CategoryColorLine,
+  IntText,
   LoadingMessage,
   TwoBox,
   LoginPrompt,
 } from './Misc';
+import { CollectionsModal } from './CollectionsWidget'
 import React  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
@@ -28,6 +30,7 @@ class SheetMetadata extends Component {
       copiedSheetId: null,
       sheetSaves: null,
       sheetLikeAdjustment: 0,
+      showCollectionsModal: false,
     };
   }
   componentDidMount() {
@@ -135,39 +138,49 @@ class SheetMetadata extends Component {
         this.ensureSheetData();
     }
   }
+  toggleCollectionsModal() {
+    this.setState({showCollectionsModal: !this.state.showCollectionsModal});
+  }
   generateSheetMetaDataButtons() {
-      return (
-         <div>
-            <div>
-            {Sefaria._uid == this.props.sheet.owner && !$.cookie("new_editor") ?
-              <span>
-                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-en" role="button">Edit Sheet</a>
-                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-he" role="button">עריכה</a>
-              </span> : null }
+    return (
+      <div>
+        <div>
+          {Sefaria._uid == this.props.sheet.owner && !$.cookie("new_editor") ?
+          <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">
+            <IntText>Edit</IntText>
+          </a> : null }
 
-              <a href="#" className="button white int-en" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
-              <a href="#" className="button white int-he" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
+          <a href="#" className="button white" onClick={this.copySheet}>
+            <IntText>{this.state.sheetCopyStatus}</IntText>
+          </a>
 
-            {Sefaria._uid !== this.props.sheet.owner && !$.cookie("new_editor") ?
-              <span>
-                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-en" role="button">View in Editor</a>
-                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-he" role="button">לתצוגת עריכה</a>
-              </span> : null }
-            </div>
+          <a href="#" className="button white" onClick={this.toggleCollectionsModal}>
+            <IntText>Add to Collection</IntText>
+          </a>
 
-            {this.state.sheetCopyStatus == "Copied" ? 
-              <div><a href={"/sheets/"+this.state.copiedSheetId}>
-                  <span className="int-en">View copy &raquo;</span>
-                  <span className="int-he">צפייה בהעתק &raquo;</span>
-                </a></div> : null }
+          {Sefaria._uid !== this.props.sheet.owner && !$.cookie("new_editor") ?
+          <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white" role="button">
+            <IntText>View in Editor</IntText>
+          </a> : null }
+        </div>
 
-            {$.cookie("new_editor") ? 
-              <a className="smallText" href={"/sheets/"+this.props.sheet.id+"?editor=1"}>
-                <span className="int-en">View in the old sheets experience</span>
-                <span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span>
-              </a> : null }
-         </div>
-      )
+        {this.state.sheetCopyStatus == "Copied" ? 
+        <div><a href={"/sheets/"+this.state.copiedSheetId}>
+            <span className="int-en">View Copy &raquo;</span>
+            <span className="int-he">צפייה בהעתק &raquo;</span>
+        </a></div> : null }
+
+        {$.cookie("new_editor") ? 
+        <a className="smallText" href={"/sheets/"+this.props.sheet.id+"?editor=1"}>
+          <span className="int-en">View in the old sheets experience</span>
+          <span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span>
+        </a> : null }
+      
+        {this.state.showCollectionsModal ? 
+        <CollectionsModal sheetID={this.props.sheet.id} close={this.toggleCollectionsModal} /> : null }
+
+      </div>
+    );
   }
   render() {
     var title = this.props.sheet.title;

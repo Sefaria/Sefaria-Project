@@ -761,6 +761,7 @@ def get_group_page(request, group, authenticated):
     if not len(group):
         raise Http404
     props["groupData"] = group[0].contents(with_content=True, authenticated=authenticated)
+    del props["groupData"]["lastModified"]
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
@@ -843,7 +844,7 @@ def edit_group_page(request, group=None):
         if not group:
             raise Http404
         groupData = group.contents()
-        del groupDate["lastModified"]
+        del groupData["lastModified"]
     else:
         groupData = None
 

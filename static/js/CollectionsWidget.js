@@ -19,7 +19,8 @@ const CollectionsWidget = ({sheetID, close}) => {
   const [dataLoaded, setDataLoaded] = useState(!!collections && !!collectionsSelected);
   const [newName, setNewName] = useState("");
 
-
+  // Make sure we have loaded the user's list of collections, 
+  // and which collections this sheet belongs to for this user
   useEffect(() => {
     if (!dataLoaded) {
       Promise.all([
@@ -35,16 +36,29 @@ const CollectionsWidget = ({sheetID, close}) => {
   }, []);
 
   const onCheckChange = (collection, checked) => {
-    let newCollectionsSelected;
+    // When a checkmark changes, add or remove this sheet from that collection
+    let url, newCollectionsSelected;
     if (checked) {
       newCollectionsSelected = [...collectionsSelected, collection];
-      $.post(`/api/collections/${collection}/add/${sheetID}`);
+      url = `/api/collections/${collection}/add/${sheetID}`;
     } else {
       newCollectionsSelected = collectionsSelected.filter(x => x !== collection);
-      $.post(`/api/collections/${collection}/remove/${sheetID}`)
+      url = `/api/collections/${collection}/remove/${sheetID}`;
     }
+
+    $.post(url, data => handleCollectionInclusionChange(data.collection));
     Sefaria._userCollectionsForSheet[sheetID] = newCollectionsSelected;
     setCollectionsSelected(newCollectionsSelected);
+  };
+
+  const handleCollectionInclusionChange = (collection) => {
+    // When a sheet has been added or removed, update collections date in cache
+    let newCollections = Sefaria.getUserGroupsFromCache(Sefaria._uid).filter(c => c.name != collection.name);
+    // Put the new collection first since it's just been modified
+    newCollections = [collection, ...newCollections];
+    // Update in cache, but not in Component cache -- prevents the list from jumping around
+    // while you're looking at it, but show this collection first next time you see the list.
+    Sefaria._userGroups[Sefaria._uid] = newCollections;
   };
 
   const onNameChange = event => setNewName(event.target.value);

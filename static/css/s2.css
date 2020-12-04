@@ -8552,6 +8552,7 @@ body .homeFeedWrapper.userStats {
   letter-spacing: 1.1px;
   font-size: 18px;
   margin: 22px 0;
+  text-align:  start;
 }
 .collectionsWidgetCreate {
   display: flex;
