@@ -72,7 +72,7 @@ class NotificationsPanel extends Component {
               <span className="int-en">Notifications</span>
               <span className="int-he">התראות</span>
             </h1>
-            { Sefaria.loggedIn ?
+            { Sefaria._uid ?
               (<div className="notificationsList" dangerouslySetInnerHTML={ {__html: Sefaria.notificationsHtml } }></div>) :
               (<LoginPrompt fullPanel={true} />) }
           </div>

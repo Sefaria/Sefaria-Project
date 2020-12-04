@@ -489,3 +489,16 @@ def get_hebrew_date(dt_obj:datetime) -> tuple:
     en = "{} {}, {}".format(months[m-1][0], d, y)
     he = "{} {}, {}".format(months[m-1][1], d, y)
     return en, he
+
+
+def traverse_dict_tree(dict_tree: dict, key_list: list):
+    """
+    For a list [a, b, c] return dict_tree[a][b][c]
+    :param dict_tree: a list of nested dict objects
+    :param key_list: list of keys
+    :return:
+    """
+    current_node = dict_tree
+    for key in key_list:
+        current_node = current_node[key]
+    return current_node

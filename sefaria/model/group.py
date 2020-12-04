@@ -288,6 +288,14 @@ class GroupSet(abst.AbstractMongoSet):
         self.__init__(query, sort=[("name", 1)])
         return self
 
+    @classmethod
+    def get_group_listing(cls, userid):
+        return {
+            "private": [g.listing_contents() for g in cls().for_user(userid)],
+            "public": [g.listing_contents() for g in
+                       GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])]
+        }
+
 
 def process_group_name_change_in_sheets(group, **kwargs):
     """

@@ -1136,7 +1136,7 @@ Sefaria = extend(Sefaria, {
   privateNotes: function(refs, callback) {
     // Returns an array of private notes for `refs` (a string or array or strings)
     // or `null` if notes have not yet been loaded.
-    if(!Sefaria.loggedIn) return;
+    if(!Sefaria._uid) return;
     var notes = null;
     if (typeof refs == "string") {
       if (refs in this._privateNotes) {
@@ -2474,7 +2474,7 @@ _media: {},
     // Which is worse: the cycles wasted in computing this on the client
     // or the bandwidth wasted in letting the server computer once and transmitting the same data twice in different form?
     this.booksDict = {};
-    for (var i = 0; i < this.books.length; i++) {
+    for (let i = 0; i < this.books.length; i++) {
       this.booksDict[this.books[i]] = 1;
     }
   },
@@ -2605,8 +2605,48 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.topicList) {
     Sefaria._topicList = props.topicList;
   }
+  if (props.userHistory) {
+      Sefaria._userHistory.history = props.userHistory;
+  }
+  if (props.groupListing) {
+      Sefaria._groupsList.list = props.groupListing;
+  }
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
-  Sefaria.interfaceLang = props.interfaceLang;
+  const dataPassedAsProps = [
+      "_uid",
+      "interfaceLang",
+      "calendars",
+      "is_moderator",
+      "is_editor",
+      "notificationCount",
+      "notificationsHtml",
+      "saved",
+      "last_place",
+      "full_name",
+      "profile_pic_url",
+      "following",
+      "_siteSettings",
+      "_debug",
+  ];
+  for (const element of dataPassedAsProps) {
+      if (element in props) {
+        Sefaria[element] = props[element];
+      }
+  }
+};
+
+Sefaria.loadServerData = function(data){
+    // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
+    // data should but defined server-side and undefined client-side
+    //TODO: Can we get rid of this global scope thing?
+    if (typeof data === "undefined") {
+        data = typeof DJANGO_DATA_VARS === "undefined" ? undefined : DJANGO_DATA_VARS;
+    }
+    if (typeof data !== 'undefined') {
+        for (const [key, value] of Object.entries(data)) {
+            this[key] = value;
+        }
+    }
 };
 
 
@@ -2628,7 +2668,7 @@ Sefaria.setup = function(data) {
     // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
     // data should but defined server-side and undefined client-side
 
-    if (typeof data === "undefined") {
+    /*if (typeof data === "undefined") {
         data = typeof DJANGO_DATA_VARS === "undefined" ? undefined : DJANGO_DATA_VARS;
     }
     if (typeof data !== 'undefined') {
@@ -2637,28 +2677,19 @@ Sefaria.setup = function(data) {
                 Sefaria[prop] = data[prop];
             }
         }
-    }
+    }*/
+    Sefaria.loadServerData(data);
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupMisc();
-    var cookie = Sefaria.util.handleUserCookie(Sefaria.loggedIn, Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role);
+    var cookie = Sefaria.util.handleUserCookie(Sefaria._uid);
     // And store current uid in analytics id
     Sefaria._analytics_uid = Sefaria._uid;
-    if (cookie) {
-      Sefaria._partner_group = cookie._partner_group;
-      Sefaria._partner_role = cookie._partner_role;
-    }
     Sefaria._makeBooksDict();
     Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1};  //Todo: Wire this up to the server
     Sefaria._cacheIndexFromToc(Sefaria.toc);
-    if (!Sefaria.saved) {
-      Sefaria.saved = [];
-    }
-    if (!Sefaria.last_place) {
-        Sefaria.last_place = [];
-    }
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
-    Sefaria.track.setUserData(Sefaria.loggedIn, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
+    Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._analytics_uid);
     Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
 Sefaria.setup();
