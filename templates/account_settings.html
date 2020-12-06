@@ -63,14 +63,15 @@
 			<span class="int-he">היסטורית קריאה</span>
         </label>
 		<div class="toggleSet doubleOption control-elem" role="radiogroup">
-			<div role="radio" data-value=true class="toggleOption {% if profile.settings.reading_history %} active{% endif %}" tabindex="{% if profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+			<div role="radio" data-name="reading-history" data-value=true class="toggleOption {% if profile.settings.reading_history %} active{% endif %}" tabindex="{% if profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">On</span>
                 <span class="int-he">פעילה</span>
             </div><!--
-			--><div role="radio" data-value=false class="toggleOption {% if not profile.settings.reading_history %} active{% endif %}" tabindex="{% if not profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+			--><div role="radio" data-name="reading-history" data-value=false class="toggleOption {% if not profile.settings.reading_history %} active{% endif %}" tabindex="{% if not profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Off</span>
                 <span class="int-he">כבויה</span>
             </div>
+            <span id="reading-history-warning"></span>
 		</div>
 	</div>
     <div id="textualCustom" class="section">
@@ -124,8 +125,18 @@
 		$(function(){
 		    const $curLang = $("#siteLanguage .toggleOption.active").attr("data-value");
 			$(".toggleOption").click(function() {
-				$(this).closest(".toggleSet").find(".toggleOption").removeClass("active").attr("tabIndex","-1").attr("ariaChecked","false");
-				$(this).addClass("active").attr("tabIndex","0").attr("ariaChecked","true");
+			    let $this = $(this);
+				$this.closest(".toggleSet").find(".toggleOption").removeClass("active").attr("tabIndex","-1").attr("ariaChecked","false");
+				$this.addClass("active").attr("tabIndex","0").attr("ariaChecked","true");
+				if($this.attr("data-name") === "reading-history"){
+				    if($this.attr("data-value") == "false"){
+				        console.log("deleteing history");
+				        $('#readingHistory #reading-history-warning').text(Sefaria._("Turning this feature off will permanently delete your reading history.")).show();
+                    }else{
+				        console.log("enabling history");
+				        $('#readingHistory #reading-history-warning').hide();
+                    }
+                }
 			});
 
             $(".toggleOption").keyup(function(e){

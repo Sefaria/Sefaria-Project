@@ -1076,6 +1076,7 @@ p.registration-links a:hover{
 }
 #accountSettingsPage .toggleSet {
   width: 100%;
+  text-align: center;
 }
 #accountSettingsPage input {
     width: 100%;
@@ -1108,11 +1109,15 @@ p.registration-links a:hover{
   font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
 }
-#accountSettingsPage #email-edit-errors{
+#accountSettingsPage #email-edit-errors, #accountSettingsPage #reading-history-warning {
   color: #CB6158;
 }
 #accountSettingsPage #email-edit-ok{
   color: #666;
+}
+#accountSettingsPage #reading-history-warning{
+  margin: 10px;
+  display: inline-block;
 }
 .interface-hebrew #accountSettingsPage.static.biReady .toggleOption:first-child{
   border-top-right-radius: 4px;
