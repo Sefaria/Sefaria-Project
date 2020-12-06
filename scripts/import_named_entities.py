@@ -356,4 +356,5 @@ kubectl cp "/home/nss/sefaria/datasets/ner/sefaria/Fix Rabi and Rav Errors - rav
 kubectl cp /home/nss/sefaria/datasets/ner/sefaria/ner_output_talmud.json $POD:/app/data
 kubectl cp /home/nss/sefaria/project/scripts/import_named_entities.py $POD:/app/scripts
 kubectl cp /home/nss/sefaria/datasets/ner/sefaria/new_alt_titles.json $POD:/app/data
+kubectl cp /home/nss/sefaria/datasets/ner/sefaria/swap_rabbis.json $POD:/app/data
 """
