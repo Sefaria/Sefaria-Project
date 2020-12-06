@@ -209,7 +209,7 @@ msgstr "הנכם צריכים להיות מחוברים כדי לערוך את �
 
 #: reader/views.py:3342
 msgid "Email fields did not match"
-msgstr "כתובות האימייל אינן תואמות"
+msgstr "כתובות הדוא&quot;ל אינן תואמות"
 
 #: reader/views.py:3344
 msgid "Incorrect account password for this account"
@@ -229,7 +229,7 @@ msgstr "אודות %(name)s. יצירות שחוברו, ביוגרפיה, תאר
 #: templates/static/educators.html:359 templates/static/home.html:362
 #: templates/static/newsletter.html:24
 msgid "Email Address"
-msgstr "כתובת אימייל"
+msgstr "כתובת דוא״ל"
 
 #: sefaria/forms.py:29 sefaria/forms.py:36 templates/account_settings.html:93
 msgid "Password"
@@ -245,11 +245,11 @@ msgstr "שם משפחה"
 
 #: sefaria/forms.py:37
 msgid "I am an educator"
-msgstr "אני מחנך"
+msgstr "אני מחנך/ מחנכת"
 
 #: sefaria/forms.py:65
 msgid "A user with that email already exists."
-msgstr "משתמש עם כתובת האימייל לעיל כבר קיים"
+msgstr "משתמש עם כתובת הדוא״ל לעיל כבר קיים"
 
 #: sefaria/forms.py:117
 msgid "Incorrect mobile_app_key provided"
@@ -287,11 +287,11 @@ msgstr "קבוצות פומביות חייבות לכלול לפחות 3 דפי 
 
 #: sefaria/model/user_profile.py:246
 msgid "A user with that email already exists"
-msgstr "משתמש עם כתובת האימייל לעיל כבר קיים"
+msgstr "משתמש עם כתובת הדוא״ל לעיל כבר קיים"
 
 #: sefaria/model/user_profile.py:251
 msgid "The email address is not valid."
-msgstr "כתובת האימייל הזו אינה תקינה"
+msgstr "כתובת הדוא״ל הזו אינה תקינה"
 
 #: sefaria/views.py:156 sefaria/views.py:191 templates/static/app.html:383
 #: templates/static/aramaic-translation-contest.html:189
@@ -311,7 +311,7 @@ msgstr "שגיאת מערכת"
 
 #: templates/account_settings.html:91
 msgid "New Email"
-msgstr "כתובת אימייל חדשה"
+msgstr "כתובת דוא״ל חדשה"
 
 #: templates/account_settings.html:92
 msgid "Confirm New Email"
@@ -992,7 +992,7 @@ msgstr "רישום הסתיים. ברוך הבא לרשימת התפוצה של 
 #: templates/static/educators.html:392 templates/static/home.html:395
 #: templates/static/mobile.html:386 templates/static/newsletter.html:59
 msgid "Please enter a valid email address."
-msgstr "כתובת האימייל שהוזנה אינה תקינה."
+msgstr "כתובת הדוא״ל שהוזנה אינה תקינה."
 
 #: templates/static/chavruta.html:4
 #, fuzzy

@@ -9,6 +9,20 @@ import Sefaria  from './sefaria';
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
+    static selectElementContents(el) {
+      //source: https://stackoverflow.com/questions/4183401/can-you-set-and-or-change-the-user-s-text-selection-in-javascript
+      if (window.getSelection && document.createRange) {
+        var sel = window.getSelection();
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } else if (document.selection && document.body.createTextRange) {
+        var textRange = document.body.createTextRange();
+        textRange.moveToElementText(el);
+        textRange.select();
+      }
+    }
     static encodeVtitle(vtitle) {
       return vtitle.replace(/\s/g, '_').replace(/;/g, '%3B');
     }

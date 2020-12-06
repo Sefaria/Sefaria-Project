@@ -285,7 +285,7 @@ def find_and_replace_in_text(title, vtitle, lang, find_string, replace_string, u
     Replaces all instances of `find_string` with `replace_string` in the text specified by `title` / `vtitle` / `lang`.
     Changes are attributed to the user with `uid`. 
     """
-    def replacer(text):
+    def replacer(text, sections):
         return text.replace(find_string, replace_string)
 
     modify_text_by_function(title, vtitle, lang, replacer, uid)

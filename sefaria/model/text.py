@@ -1047,7 +1047,7 @@ class AbstractTextRecord(object):
             itag.decompose()
         return soup.root.encode_contents().decode()  # remove divs added
 
-    def _get_text_after_modifications(self, text_modification_funcs):
+    def _get_text_after_modifications(self, text_modification_funcs, start_sections=None):
         """
         :param text_modification_funcs: list(func). functions to apply in order on each segment in text chunk
         :return ja: Return jagged array after applying text_modification_funcs iteratively on each segment
@@ -1055,12 +1055,12 @@ class AbstractTextRecord(object):
         if len(text_modification_funcs) == 0:
             return getattr(self, self.text_attr)
 
-        def modifier(s):
+        def modifier(string, sections):
             for func in text_modification_funcs:
-                s = func(s)
-            return s
-
-        return self.ja().modify_by_function(modifier)
+                string = func(string, sections)
+            return string
+        start_sections = [s-1 for s in start_sections]  # zero-indexed for ja
+        return self.ja().modify_by_function(modifier, start_sections)
 
     # Currently assumes that text is JA
     def _sanitize(self):
@@ -1949,7 +1949,7 @@ class TextFamily(object):
         "he": "heSources"
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False):
         """
         :param oref:
         :param context:
@@ -1962,6 +1962,7 @@ class TextFamily(object):
         :param alts: Adds notes of where alt elements begin
         :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
         :param stripItags: whether to strip inline commentator tags and inline footnotes from text
+        :param wrapNamedEntities: whether to return the text requested with all known named entities marked up as html links <a>.
         :return:
         """
         if pad:
@@ -2003,8 +2004,22 @@ class TextFamily(object):
                 c = TextChunk(oref, language)
             self._chunks[language] = c
             text_modification_funcs = []
+            if wrapNamedEntities and len(c._versions) > 0:
+                from . import RefTopicLinkSet
+                named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in oref.all_segment_refs()]}, "charLevelData.versionTitle": c._versions[0].versionTitle, "charLevelData.language": language})
+                if named_entities.count() > 0:
+                    # assumption is that refTopicLinks are all to unranged refs
+                    ne_by_secs = defaultdict(list)
+                    for ne in named_entities:
+                        try:
+                            temp_ref = Ref(ne.ref)
+                        except InputError:
+                            continue
+                        temp_secs = tuple(s-1 for s in temp_ref.sections)
+                        ne_by_secs[temp_secs] += [ne]
+                    text_modification_funcs += [lambda s, secs: library.get_wrapped_named_entities_string(ne_by_secs[tuple(secs)], s)]
             if stripItags:
-                text_modification_funcs += [c._strip_itags, lambda x: ' '.join(x.split()).strip()]
+                text_modification_funcs += [lambda s, secs: c._strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
             if wrapLinks and c.version_ids():
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.
@@ -2012,8 +2027,9 @@ class TextFamily(object):
                 query = oref.ref_regex_query()
                 query.update({"generated_by": "add_links_from_text"})  # , "source_text_oid": {"$in": c.version_ids()}
                 if LinkSet(query).count() > 0:
-                    text_modification_funcs += [lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)]
-            setattr(self, self.text_attr_map[language], c._get_text_after_modifications(text_modification_funcs))
+                    text_modification_funcs += [lambda s, secs: library.get_wrapped_refs_string(s, lang=language, citing_only=True)]
+            padded_sections, _ = oref.get_padded_sections()
+            setattr(self, self.text_attr_map[language], c._get_text_after_modifications(text_modification_funcs, start_sections=padded_sections))
 
         if oref.is_spanning():
             self.spanning = True
@@ -4271,10 +4287,13 @@ class Ref(object, metaclass=RefCacheType):
         from . import LinkSet
         return LinkSet(self)
 
-    def topiclinkset(self):
+    def topiclinkset(self, with_char_level_links=False):
         from . import RefTopicLinkSet
         regex_list = self.regex(as_list=True)
-        return RefTopicLinkSet({"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]})
+        query = {"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]}
+        if not with_char_level_links:
+            query["charLevelData"] = {"$exists": False}
+        return RefTopicLinkSet(query)
 
     def autolinker(self, **kwargs):
         """
@@ -5420,6 +5439,37 @@ class Library(object):
             outer_regex_str = r"[({\[].+?[)}\]]"
             outer_regex = regex.compile(outer_regex_str, regex.VERBOSE)
             return outer_regex.sub(lambda match: titles_regex.sub(_wrap_ref_match, match.group(0)), st)
+
+    @staticmethod
+    def get_wrapped_named_entities_string(links, s):
+        """
+        Parallel to library.get_wrapped_refs_string
+        Returns `s` with every link in `links` wrapped in an a-tag
+        """
+        if len(links) == 0:
+            return s
+        links.sort(key=lambda x: x.charLevelData['startChar'])
+
+        # replace all mentions with `dummy_char` so they can later be easily replaced using re.sub()
+        # this ensures char locations are preserved
+        dummy_char = "█"
+        char_list = list(s)
+        start_char_to_slug = {}
+        for link in links:
+            start = link.charLevelData['startChar']
+            end = link.charLevelData['endChar']
+            start_char_to_slug[start] = (s[start:end], link.toTopic, getattr(link, 'unambiguousToTopic', None))
+            char_list[start:end] = list(dummy_char*(end-start))
+        dummy_text = "".join(char_list)
+
+        def repl(match):
+            try:
+                mention, slug, unambiguous_slug = start_char_to_slug[match.start()]
+            except KeyError:
+                return match.group()
+            link_slug = unambiguous_slug or slug
+            return f"""<a href="/topics/{link_slug}" class="namedEntityLink" data-slug="{slug}">{mention}</a>"""
+        return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
