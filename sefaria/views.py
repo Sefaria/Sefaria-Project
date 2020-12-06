@@ -73,8 +73,6 @@ def process_register_form(request, auth_method='session'):
             p = UserProfile(id=user.id)
             p.assign_slug()
             p.join_invited_groups()
-            if PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE:
-                p.add_partner_group_by_email()
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
 
@@ -441,6 +439,7 @@ def reset_index_cache_for_text(request, title):
 
     index = model.library.get_index(title)
     model.library.refresh_index_record_in_cache(index)
+    model.library.reset_text_titles_cache()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "refresh_index_record_in_cache", [index.title])
@@ -575,6 +574,7 @@ def reset_ref(request, tref):
     oref = model.Ref(tref)
     if oref.is_book_level():
         model.library.refresh_index_record_in_cache(oref.index)
+        model.library.reset_text_titles_cache()
         vs = model.VersionState(index=oref.index)
         vs.refresh()
         model.library.update_index_in_toc(oref.index)

@@ -678,7 +678,7 @@ const Element = props => {
             );
         case 'SheetContent':
             return (
-                <div className="text" {...attributes}>
+                <div className="text editorContent" {...attributes}>
                     {children}
                 </div>
             );
@@ -859,38 +859,6 @@ const withSefariaSheet = editor => {
     editor.isVoid = element => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
     };
-
-    const { deleteBackward } = editor
-
-    editor.deleteBackward = (...args) => {
-      const { selection } = editor
-
-      if (selection && Range.isCollapsed(selection)) {
-        const [match] = Editor.nodes(editor, {
-          match: n => n.type === 'spacer',
-        })
-
-        if (match) {
-          const [, path] = match
-          const start = Editor.start(editor, path)
-
-          if (Point.equals(selection.anchor, start)) {
-            Transforms.setNodes(
-              editor,
-              { type: 'SheetItem' },
-              { match: n => n.type === 'spacer' }
-            )
-            return
-          }
-        }
-      }
-
-      deleteBackward(...args)
-    }
-
-
-
-
 
     editor.insertBreak = () => {
 
@@ -1108,13 +1076,6 @@ const withSefariaSheet = editor => {
         }
       }
 
-      if (node.type == "SheetOutsideText") {
-
-        const belowNode = getNodeBelow(path)
-        const aboveNode = getNodeAbove(path)
-      }
-
-
       if (node.type == "SheetItem") {
         // All SheetItems should be children of Sheetcontent
         if (Node.parent(editor, path).type != "SheetContent") {
@@ -1157,9 +1118,16 @@ const withSefariaSheet = editor => {
             Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: belowNode.path });
             return
           }
+
+          if (!aboveNode.node) {
+            Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: Editor.start(editor, path) });
+            return
         }
-
-
+          else if (aboveNode.node.type !== "spacer") {
+            Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: aboveNode.path });
+            return
+          }
+        }
       }
 
       if (sheetElementTypes.includes(node.type)) {

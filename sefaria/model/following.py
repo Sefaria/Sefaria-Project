@@ -35,7 +35,7 @@ class FollowRelationship(object):
 
 class FollowSet(object):
 	def __init__(self):
-		uids = []
+		self.uids = []
 		return self
 
 	@property
