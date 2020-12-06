@@ -2006,7 +2006,7 @@ class TextFamily(object):
             text_modification_funcs = []
             if wrapNamedEntities and len(c._versions) > 0:
                 from . import RefTopicLinkSet
-                named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in oref.all_segment_refs()]}, "$or": [{"charLevelData.versionTitle": v.versionTitle} for v in c._versions], "charLevelData.language": language})  # TODO check performance
+                named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in oref.all_segment_refs()]}, "charLevelData.versionTitle": c._versions[0].versionTitle, "charLevelData.language": language})
                 if named_entities.count() > 0:
                     # assumption is that refTopicLinks are all to unranged refs
                     ne_by_secs = defaultdict(list)
