@@ -102,6 +102,49 @@ a {
       display: none;
     }
 
+    #muteButtonHolder {
+      height:0;
+      width: 258px;
+      text-align: right;
+    }
+
+    .muteButton {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border-radius: 15px;
+      z-index: 1;
+      background-color: #EDEDEC;
+      opacity: 0.5;
+      left: -5px;
+      top: -3px;
+      box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+    }
+
+    #micIcon {
+      display: inline-block;
+      position: relative;
+      background-image: url("/static/img/unmute.svg");
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: contain;
+      opacity: 1;
+      width: 20px;
+      height: 20px;
+      top: -40px;
+      right: 20px;
+
+    }
+
+    .muted #micIcon {
+      background-image: url("/static/img/mute.svg");
+    }
+    .muted .muteButton {
+      background-color: #CB6158;
+    }
+
+
+
 button {
   background: #FFFFFF;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
@@ -165,8 +208,15 @@ color: #666;
 
 <div id="container">
   <div id="videos">
-    <video id="localVideo" class="flippedVideo" autoplay playsinline muted></video>
-    <video id="remoteVideo" autoplay playsinline poster="/static/img/dafroulette-loading.png"></video>
+    <video id="localVideo" class="flippedVideo" autoplay playsinline disablePictureInPicture muted></video>
+    <div id="muteButtonHolder">
+      <span id="micIcon">
+        <span id="enMute" class="muteButton int-en" tabindex=0 title="Turn off microphone" onclick="toggleMute();"></span>
+        <span id="heMute" class="muteButton int-he" tabindex=0 title="כבה את המיקרופון" onclick="toggleMute();"></span>
+
+      </span>
+    </div>
+    <video id="remoteVideo" autoplay playsinline disablePictureInPicture poster="/static/img/dafroulette-loading.png"></video>
     <div id="chevrutaName"></div>
     <input type="hidden" id="chevrutaUID" value=false>
 

@@ -885,6 +885,9 @@ input.noselect {
   height: 18px;
   width: 18px;
 }
+.ui-autocomplete .ui-menu-item img.ac-img-User {
+  opacity: 1;
+}
 .ui-autocomplete .ui-menu-item a {
   display: inline-block;
   line-height: 21px;
@@ -3776,6 +3779,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0;
   padding: .3333em 0;
 }
+.readerPanel.english.continuous .segment {
+  padding: .15em 0;  /* underline of named entities is cut off if padding is higher */
+}
 .continuous .clearFix {
   display: none;
 }
@@ -4095,6 +4101,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .refLink:hover {
   text-decoration: underline;
+}
+.segment .namedEntityLink {
+  color: inherit;
+}
+.segment .namedEntityLink:hover {
+  text-decoration: none;
+  border-bottom: 2px dotted #666;
+}
+.stacked.bilingual .segment .en .namedEntityLink:hover {
+  border-bottom-color: #666;
 }
 .textRange .actionLinks {
   text-align: right;
@@ -4696,9 +4712,132 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .textListTextRangeBox + .sheet {
   margin-top: 24px;
 }
+
+.mediaList .media {
+  border-top: solid 1px #CCC;
+  padding: 20px 0;
+}
+
+.mediaList .mediaTitle {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-style: normal;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  color: #666;
+	padding-bottom: 15px;
+}
+
+.mediaList .mediaTitle .he {
+  font-size: 16px;
+}
+
+
+
+.mediaList .media .title {
+	font-size: 22px;
+  color: #000;
+}
+
+
+.mediaList .media a {
+	color: #999;
+}
+
+.mediaList .media .description {
+	margin: 10px 0;
+  font-size: 13px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  flex-flow: row;
+  justify-content: space-between;
+  color: #666;
+}
+
+.mediaList .media .panel{
+	background: #e6e6e6;
+	border-radius: 50px;
+	text-align: center;
+	margin: 15px 0;
+	padding: 15px;
+  font-size: 13px;
+  line-height: 15px;
+  flex-direction: row;
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  text-align: left;
+  direction: ltr;
+}
+
+.mediaList .media .panel .playTimeContainer {
+  display: inline-flex;
+  align-self: center;
+  font-size: 13px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+
+.mediaList .media .panel .playTimeContainer span {
+  margin: 0 15px;
+}
+
+.mediaList .media .panel .sliderContainer {
+  display: inline-flex;
+  flex: 2;
+  align-self: center;
+}
+
+
+.mediaList .media .panel input[type='image'] {
+	  width: 10px;
+    height: 10px;
+    padding: 2.5px;
+}
+
+.slider {
+  -webkit-appearance: none;
+  height: 2px;
+  background: #4d4d4d;
+  outline: none;
+  opacity: 0.7;
+  width: 100%;
+}
+
+.slider:hover {
+  opacity: 5;
+}
+
+
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4871bf;
+  cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4871bf;
+  cursor: pointer;
+}
+
+/* All the same stuff for IE */
+.slider::-ms-thumb {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #4871bf;
+  cursor: pointer;
+}
+
 .webpageList .website {
   text-align: start;
 }
+
 .webpageList .website .icon {
   height: 16px;
   width: 16px;
@@ -4709,7 +4848,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: left;
   direction: ltr;
 }
-.webpageList .webpage.hebrew {
+.webpageList .webpage.hebrew{
   text-align: right;
   direction: rtl;
 }
@@ -4738,7 +4877,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 18px;
   color: #999;
 }
-.webpageList .webpage .stats {
+.webpageList .webpage .stats,
+.mediaList .media .meta {
   font-size: 13px;
   color: #999;
   margin-top: 5px;
@@ -4898,13 +5038,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 30px;
   margin-left: 0;
 }
-.topicButton .three-dots-button.tooltip-toggle::before {
+.topicButton .three-dots-button.tooltip-toggle::before,
+.named-entity-title-bar .three-dots-button.tooltip-toggle::before {
   transform: none;
   left: unset;
   right: 30px;
   width: 180px;
 }
-.topicsHe .topicButton .three-dots-button.tooltip-toggle::before {
+.readerPanel.hebrew .topicButton .three-dots-button.tooltip-toggle::before,
+.readerPanel.hebrew .named-entity-title-bar .three-dots-button.tooltip-toggle::before {
   right: unset;
   left: 30px;
   text-align: right;
@@ -5699,6 +5841,41 @@ a .button:hover {
 .lexicon-results {
   padding-top: 20px;
 }
+.named-entity-attribution {
+  margin-top: 13px;
+}
+.named-entity-ambiguous {
+  margin-bottom: 24px;
+}
+.named-entity-ambiguous .systemText .int-en,
+.named-entity-ambiguous .systemText .int-he {
+  color: #999;
+}
+.named-entity-title-bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.named-entity-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+.named-entity-wrapper + .named-entity-wrapper {
+  margin-top: 26px;
+}
+.readerPanel.english .named-entity-wrapper {
+  direction: ltr;
+}
+.readerPanel.hebrew .named-entity-wrapper {
+  direction: rtl;
+}
+.lexicon-results .named-entity-description {
+  margin-top: 13px;
+}
+.lexicon-results .named-entity-description .en,
+.lexicon-results .named-entity-description .he {
+  color: #666;
+}
 .lexicon-results .entry > div {
   padding: 1% 0 1% 0;
   margin: auto;
@@ -5755,7 +5932,8 @@ a .button:hover {
 
 }
 
-.lexicon-results .attribution div {
+.lexicon-results .attribution div,
+.named-entity-wrapper .attribution div {
   display: block;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;
@@ -6522,7 +6700,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   margin-bottom: 10px;
   cursor: pointer;
 }
-.addToSourceSheetBox .dropdownMain.noselect{
+.addToSourceSheetBox .dropdownMain.noselect {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -7127,6 +7305,7 @@ span.purim-emoji img{
   margin-bottom: 18px;
   display: block;
 }
+
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
 }
@@ -7149,7 +7328,7 @@ span.purim-emoji img{
   text-align: center;
 }
 .sheetContent .sheetItem.segment .sourceContentText p:last-child,
-.sheetContent .sheetItem.segment .sourceContentText p:last-child {
+.sheetContent .editorContent .sheetItem.segment .sourceContentText p {
   margin-bottom: 0;
 }
 .sheetContent .sheetItem.segment .addedBy {
@@ -7209,22 +7388,48 @@ span.purim-emoji img{
 .sheetContent .media .mediaCaption.enOnly .he {
   display: none;
 }
-.sheetItem:only-of-type.empty .SheetOutsideText:after {
+.sheetContent .spacer {
+  line-height: 18px;
+  font-size: 18px;
+}
+.sheetContent .spacer:only-of-type.empty {
+  line-height: inherit;
+}
+.sheetItem:only-of-type.empty .SheetOutsideText:after,
+.sheetContent .spacer:only-of-type.empty:after {
   color: #999;
   position: relative;
   pointer-events: none;
 }
-.interface-english .sheetItem:only-of-type.empty .SheetOutsideText:after {
+.interface-english .sheetItem:only-of-type.empty .SheetOutsideText:after,
+.interface-english .spacer:only-of-type.empty:after,
+.interface-english .spacer:only-of-type.empty:after {
   content: "Write some text or type a citation (ex. 'Genesis 1:1-5') ";
-  top: -45px;
-  margin-bottom: -45px;
+  top: -31px;
+  margin-bottom: -31px;
 }
-.interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:after {
+.interface-hebrew .sheetItem:only-of-type.empty .SheetOutsideText:after,
+.interface-hebrew .spacer:only-of-type.empty:after,
+.interface-hebrew .spacer:only-of-type.empty:after {
   content: "הקלידו טקסט חופשי או מראה מקום (לדוגמא, בראשית א, א-ה)";
-  top: -56px;
-  margin-bottom: -56px;
+  top: -44px;
+  margin-bottom: -44px;
+}
+.sheetContent .sheetItem .SheetOutsideText.segment p {
+  margin: 0
 }
 
+.sheetContent .sheetItem .SheetOutsideText.segment {
+  margin: 0
+}
+
+.sheetContent .sheetItem .SheetSource.segment {
+  margin-top: 14px
+}
+
+.sheetContent .text.loading {
+  cursor: wait;
+}
 
 .oldSheetNotice,
 .oldSheetNotice a,
@@ -8494,6 +8699,9 @@ body .homeFeedWrapper.userStats {
 .userStats .chartLabel {
   text-align: center;
   padding-top: 8px;
+}
+a.topicLexiconTitle.contentText {
+  color: black;
 }
 .editorToolbar {
   position:fixed;

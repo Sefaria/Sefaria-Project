@@ -1,5 +1,6 @@
 import {
   LoadingMessage,
+  ToolTipped,
 } from './Misc';
 import React  from 'react';
 import Sefaria  from './sefaria/sefaria';
@@ -21,26 +22,32 @@ class LexiconBox extends Component {
   componentDidMount() {
     if(this.props.selectedWords){
       this.getLookups(this.props.selectedWords, this.props.oref);
+    } else if (this.props.selectedNamedEntity) {
+      this.getNamedEntity(this.props.selectedNamedEntity);
     }
   }
-  componentWillReceiveProps(nextProps) {
-    // console.log("component will receive props: ", nextProps.selectedWords);
-    if (!nextProps.selectedWords) {
+  componentDidUpdate(prevProps, prevState) {
+    if (this.props.selectedWords && this.props.selectedWords !== prevProps.selectedWords) {
       this.clearLookups();
-    } else if (this.props.selectedWords !== nextProps.selectedWords) {
+      this.props.clearNamedEntity();
+      this.getLookups(this.props.selectedWords, this.props.oref);
+    } else if (this.props.selectedNamedEntity && this.props.selectedNamedEntity !== prevProps.selectedNamedEntity) {
       this.clearLookups();
-      this.getLookups(nextProps.selectedWords, nextProps.oref);
+      this.props.clearSelectedWords();
+      this.getNamedEntity(this.props.selectedNamedEntity);
     }
   }
   clearLookups() {
     this.setState({
       searchedWord: null,
+      namedEntity: null,
       loaded: false,
       entries: []
     });
   }
   searchWord(word) {
     this.clearLookups();
+    this.props.clearNamedEntity();
     this.setState({searchedWord: word});
     this.getLookups(word);
   }
@@ -62,6 +69,22 @@ class LexiconBox extends Component {
       });
     }
   }
+
+  getNamedEntity(slug) {
+    Sefaria.getTopic(slug, {
+      with_links: false,
+      annotate_links: false,
+      with_refs: false,
+      group_related: false,
+      annotate_time_period: true,
+    }).then(data => {
+      this.setState({
+        loaded: true,
+        namedEntity: data,
+      });
+    })
+  }
+
   shouldActivate(selectedWords){
     if (this.state.searchedWord) {
       return true;
@@ -109,6 +132,55 @@ class LexiconBox extends Component {
               }.bind(this));
           content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
       }
+    } else if (!!this.props.selectedNamedEntity) {
+      if (!this.state.loaded || !this.state.namedEntity) {
+        // not sure why I also need to check for this.state.namedEntity but I've seen situations where loaded is true and namedEntity is null
+        content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
+      } else {
+          const dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(this.props.srefs[0])}" ${Sefaria._('based on')} ${Sefaria._('research of Dr. Michael Sperling')}.`;
+          
+          const neArray = this.state.namedEntity.possibilities || [this.state.namedEntity]; 
+          const namedEntityContent = neArray.map(ne => (<div key={ne.slug} className="named-entity-wrapper">
+            <div className="named-entity-title-bar">
+              <a className="contentText topicLexiconTitle" href={`/topics/${ne.slug}`} target="_blank">
+                <span className="en">{ne.primaryTitle.en}</span>
+                <span className="he">{ne.primaryTitle.he}</span>
+              </a>
+              <ToolTipped altText={dataSourceText} classes={"saveButton tooltip-toggle three-dots-button"}>
+                <img src="/static/img/three-dots.svg" alt={dataSourceText}/>
+              </ToolTipped>
+            </div>
+            {
+              ne.timePeriod ? (
+                <div className="named-entity-time-period">
+                  <div className="smallText">
+                    <span className="int-en">{ne.timePeriod.name.en}</span>
+                    <span className="int-he">{ne.timePeriod.name.he}</span>
+                  </div>
+                  <div className="smallText">
+                    <span className="int-en">{ne.timePeriod.yearRange.en}</span>
+                    <span className="int-he">{ne.timePeriod.yearRange.he}</span>
+                  </div>
+                </div>
+              ) : null
+            }
+            <div className="contentText named-entity-description">
+              <span className="en">{ne.description ? ne.description.en : `No description known for '${ne.primaryTitle.en}'`}</span>
+              <span className="he">{ne.description ? ne.description.he : `לא קיים מידע עבור '${ne.primaryTitle.he}'`}</span>
+            </div>
+          </div>));
+          content = (!!this.state.namedEntity.possibilities ? (
+            <div>
+              <div className="named-entity-ambiguous">
+                <i className="systemText">
+                  <span className="int-en">{`"${this.props.selectedNamedEntityText}" could refer to the following rabbis:`}</span>
+                  <span className="int-he">{`ישנם מספר אישים תחת הערך "${this.props.selectedNamedEntityText}":`}</span>
+                </i>
+              </div>
+              { namedEntityContent }
+            </div>
+          ) : namedEntityContent);
+      }
     }
 
     return (
@@ -128,6 +200,7 @@ LexiconBox.propTypes = {
   interfaceLang:    PropTypes.string.isRequired,
   selectedWords: PropTypes.string,
   oref:          PropTypes.object,
+  srefs:         PropTypes.array,
   onEntryClick:  PropTypes.func,
   onCitationClick: PropTypes.func
 };
@@ -183,13 +256,13 @@ class LexiconEntry extends Component {
 
     var sourceContent = <div>
       <span className="int-en">Source: </span>
-      <span className="int-he">מקור:</span>
+      <span className="int-he">מקור: </span>
       {'source' in lexicon_dtls ? lexicon_dtls['source'] : lexicon_dtls['source_url']}
     </div>;
 
     var attributionContent = <div>
       <span className="int-en">Creator: </span>
-      <span className="int-he">יוצר:</span>
+      <span className="int-he">יוצר: </span>
       {'attribution' in lexicon_dtls ? lexicon_dtls['attribution'] : lexicon_dtls['attribution_url']}
     </div>;
 

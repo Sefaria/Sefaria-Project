@@ -59,7 +59,7 @@ class WebPage(abst.AbstractMongoRecord):
             "use https": lambda url: re.sub(r"^http://", "https://", url),
             "remove hash": lambda url: re.sub(r"#.+", "", url),
             "remove utm params": lambda url: re.sub(r"\?utm_.+", "", url),
-            "remove fbclid params": lambda url: re.sub(r"\?fbclid=.+", "", url),
+            "remove fbclid param": lambda url: re.sub(r"\?fbclid=.+", "", url),
             "add www": lambda url: re.sub(r"^(https?://)(?!www\.)", r"\1www.", url),
             "remove www": lambda url: re.sub(r"^(https?://)www\.", r"\1", url),
             "remove mediawiki params": lambda url: re.sub(r"&amp;.+", "", url),
@@ -90,33 +90,45 @@ class WebPage(abst.AbstractMongoRecord):
     @staticmethod
     def excluded_pages_url_regex():
         bad_urls = [
-            "rabbisacks\.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
-            "halachipedia\.com\/index\.php\?search=", # Halachipedia search results
-            "halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
-            "myjewishlearning\.com\/\?post_type=evergreen", # These urls end up not working
-            "judaism\.codidact\.com\/.+\/edit",
-            "judaism\.codidact\.com\/.+\/history",
-            "judaism\.codidact\.com\/.+\/suggested-edit\/",
-            "judaism\.codidact\.com\/.+\/posts\/new\/",
-            "jewishexponent\.com\/page\/\d",
-            "hebrewcollege\.edu\/blog\/(author|category|tag)\/",  # these function like indices of articles
-            "roshyeshivamaharat.org\/(author|category|tag)\/",
-            "lilith\.org\/\?gl=1&s=",                  # Lilith Magazine search results
-            "lilith\.org\/(tag|author|category)\/",
-            "https://torah.org$",                      
-            "webcache\.googleusercontent\.com",
-            "translate\.googleusercotent\.com",
-            "dailympails\.gq\/",
-            "http:\/\/:localhost(:\d+)?",
+            r"rabbisacks\.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
+            r"halachipedia\.com\/index\.php\?search=", # Halachipedia search results
+            r"halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
+            r"myjewishlearning\.com\/\?post_type=evergreen", # These urls end up not working
+            r"judaism\.codidact\.com\/.+\/edit",
+            r"judaism\.codidact\.com\/.+\/history",
+            r"judaism\.codidact\.com\/.+\/suggested-edit\/",
+            r"judaism\.codidact\.com\/.+\/posts\/new\/",
+            r"jewishexponent\.com\/page\/\d",
+            r"hebrewcollege\.edu\/blog\/(author\|category\|tag)\/",  # these function like indices of articles
+            r"roshyeshivamaharat.org\/(author\|category\|tag)\/",
+            r"lilith\.org\/\?gl=1\&s=",                  # Lilith Magazine search results
+            r"lilith\.org\/(tag\|author\|category)\/",
+            r"https://torah\.org$",
+            r"test\.hadran\.org\.il",
+            r"www\.jtsa.edu\/search\/index\.php",
+            r"jewschool\.com\/page\/",
+            r"truah\.org\/\?s=",
+            r"truah\.org\/(holiday|page|resource-types)\/",
+            r"clevelandjewishnews\.com$",
+            r"clevelandjewishnews\.cpm\/news\/",
+            r"ots\.org\.il\/news\/",
+            r"ots\.org\.il\/parsha\/page\/\d+\/",
+            r"ots\.org\.il\/tag\/.+",
+            r"toravoda\.org\.il\/%D7%90%D7%99%D7%A8%D7%95%D7%A2%D7%99%D7%9D-%D7%97%D7%9C%D7%95%D7%A4%D7%99\/",  # Neemanei Torah Vavoda list of past events
+            r"929.org.il\/(lang\/en\/)?author/\d+$",  # Author index pages
+            r"webcache\.googleusercontent\.com",
+            r"translate\.googleusercontent\.com",
+            r"dailympails\.gq\/",
+            r"http:\/\/:localhost(:\d+)?",
         ]
         return "({})".format("|".join(bad_urls))
 
     @staticmethod
     def excluded_pages_title_regex():
         bad_titles = [
-            "Page \d+ of \d+",  # Rabbi Sacks paged archives
-            "Page not found",   # JTS 404 pages include links to content
-            "JTS Torah Online"  # JTS search result pages
+            r"Page \d+ of \d+",  # Rabbi Sacks paged archives
+            r"^Page not found$",   # JTS 404 pages include links to content
+            r"^JTS Torah Online$"  # JTS search result pages
         ]
         return "({})".format("|".join(bad_titles))
 
@@ -124,7 +136,7 @@ class WebPage(abst.AbstractMongoRecord):
     def site_data_for_domain(domain):
         for site in sites_data:
             for site_domain in site["domains"]:
-                if domain.endswith("." + site_domain) or domain.endswith("//" + site_domain):
+                if site_domain == domain or domain.endswith("." + site_domain):
                     return site
         return None
 
@@ -314,7 +326,7 @@ def dedupe_identical_urls(test=True):
             merged_page_data["linkerHits"] += page.linkerHits
             if merged_page_data["lastUpdated"] < page.lastUpdated:
                 merged_page_data.update({
-                    "ref": page.refs,
+                    "refs": page.refs,
                     "expandedRefs": text.Ref.expand_refs(page.refs),
                     "title": page.title,
                     "description": page.description
@@ -415,7 +427,40 @@ def webpages_stats():
 
         print("{}: {}%".format(cat, round(covered * 100.0 / total, 2)))
 
+"""
+Web Pages Whitelist
+*******************
+Web pages are visible to users on the site only after being whitelisted by adding an 
+entry to the `sites_data` list below. Entries have the following fields:
 
+- `name`: required, string - the name of overall website, how pages are displayed 
+    and grouped in the sidebar.
+- `domains`: required, list of strings - all the domains that are part of this website. 
+    Root domains will match any subdomain.
+- `title_branding`: optional, list of strings - branding words which are appended to 
+    every page title which should be removed when displayed to the user. The site name 
+    is used by default, additional phrases here will also be removed for display when 
+    they follow any of the separators (like " | ") listed in WebPage.clean_title().
+- `initial_title_branding`: optional, boolean - if True, also remove title branding from
+    the beginning of the title as well as the end. 
+- `normalization_rules`: optional, list of strings - which URL rewrite rules to apply to
+    URLs from this site, for example to rewrite `http` to `https` or remove specific URL
+    params. Rewrite rules are named and defined in WebPage.normalize_url().
+
+To add a site to the whitelist:
+1. Add an entry with name and domains.
+2. Examine titles of data collected to determine if additional `title_branding` entries
+    are needed, or if `initial_title_branding` should be True.
+3. Examine data to find patterns of URLs that should be excluded. These include things like
+    search result pages, 404 pages, index pages that include snippets text from full 
+    articles (like author or tag pages), or anything else that may be irrelevant. Add  to 
+    regexs either WebPage.excluded_pages_url_regex() or WebPage.excluded_pages_title_regex()
+4. After deploying code updates, you may need to clean up bad that had already been 
+    collected in the database. If you've added normalization rules, run dedupe_webpages()
+    to remove records that we now know should be excluded. If you've adding exclusion rules
+    run clean_webpages() to remove records that we now know we want to exclude.
+
+"""
 sites_data = [
     {
         "name":           "My Jewish Learning",
@@ -536,7 +581,7 @@ sites_data = [
         "domains": ["hebrewcollege.edu"]
     },
     {
-        "name": ["מכון הדר"],
+        "name": "מכון הדר",
         "domains": ["mechonhadar.org.il"]
     },
     {
@@ -591,9 +636,13 @@ sites_data = [
         "domains": ["sinaiandsynapses.org"],
     },
     {
-        "name": "The Times of Israel",
-        "domains": ["timesofisrael.com"],
+        "name": "Times of Israel Blogs",
+        "domains": ["blogs.timesofisrael.com"],
         "title_branding": ["The Blogs"]
+    },
+    {
+        "name": "The Jewish Standard",
+        "domains": ["jewishstandard.timesofisrael.com"],
     },
     {
         "name": "Rav Kook Torah",
@@ -603,5 +652,50 @@ sites_data = [
         "name": "YUTorah Online",
         "domains": ["yutorah.org"],
         "initial_title_branding": True,
+    },
+    {
+        "name": "Hadran",
+        "domains": ["hadran.org.il"],
+    },
+    {
+        "name": "Julian Ungar-Sargon",
+        "domains": ["jyungar.com"],
+    },
+    {
+        "name": "Aish HaTorah",
+        "domains": ["aish.com"],
+    },
+    {
+        "name": "Jewschool",
+        "domains": ["jewschool.com"],
+    },
+    {
+        "name": "T'ruah",
+        "domains": ["truah.org"],
+    },
+    # Keeping off for now while we try to resolve empty titles from dynamic pages.
+    # {
+    #     "name": "929",
+    #     "domains": ["929.org.il"],
+    #     "title_branding": ["929 – תנך ביחד", "Tanakh - Age Old Text, New Perspectives"]
+    #     "initial_title_branding": True
+    # },
+    {
+        "name": "נאמני תורה ועבודה",
+        "domains": ["toravoda.org.il"],
+    },
+    {
+        "name": "Ohr Torah Stone",
+        "domains": ["ots.org.il"],
+        "title_branding": ["אור תורה סטון"]
+    },
+    #{
+    #    "name": "Orthodox Union",
+    #    "domains": ["ou.org"],
+    #    "title_branding": ["OU Torah", "OU Life"]
+    #},
+    {
+        "name": "Jewish Action",
+        "domains": ["jewishaction.com"],
     },
 ]
