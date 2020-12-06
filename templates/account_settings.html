@@ -131,10 +131,10 @@
 				if($this.attr("data-name") === "reading-history"){
 				    if($this.attr("data-value") == "false"){
 				        console.log("deleteing history");
-				        $('#readingHistory #reading-history-warning').text(Sefaria._("Turning this feature off will permanently delete your reading history.")).show();
+				        $('#readingHistory #reading-history-warning').text(Sefaria._("Turning this feature off will permanently delete your reading history.")).addClass('active');
                     }else{
 				        console.log("enabling history");
-				        $('#readingHistory #reading-history-warning').hide();
+				        $('#readingHistory #reading-history-warning').removeClass('active');
                     }
                 }
 			});

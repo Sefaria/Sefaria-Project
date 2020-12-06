@@ -1116,6 +1116,9 @@ p.registration-links a:hover{
   color: #666;
 }
 #accountSettingsPage #reading-history-warning{
+  display: none;
+}
+#accountSettingsPage #reading-history-warning.active{
   margin: 10px;
   display: inline-block;
 }
