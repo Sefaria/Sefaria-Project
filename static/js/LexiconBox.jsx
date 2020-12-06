@@ -137,7 +137,7 @@ class LexiconBox extends Component {
         // not sure why I also need to check for this.state.namedEntity but I've seen situations where loaded is true and namedEntity is null
         content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
       } else {
-          const dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(this.props.srefs[0])}" ${Sefaria._('based on')} ${Sefaria._('research of Dr. Michael Sperling and Bonayich')}.`;
+          const dataSourceText = `${Sefaria._('This topic is connected to ')}"${Sefaria._r(this.props.srefs[0])}" ${Sefaria._('based on')} ${Sefaria._('research of Dr. Michael Sperling')}.`;
           
           const neArray = this.state.namedEntity.possibilities || [this.state.namedEntity]; 
           const namedEntityContent = neArray.map(ne => (<div key={ne.slug} className="named-entity-wrapper">
@@ -168,22 +168,6 @@ class LexiconBox extends Component {
               <span className="en">{ne.description ? ne.description.en : `No description known for '${ne.primaryTitle.en}'`}</span>
               <span className="he">{ne.description ? ne.description.he : `אין תאור ידוע בשביל '${ne.primaryTitle.he}'`}</span>
             </div>
-            {
-              (ne.alt_ids && ne.alt_ids.bonayich) ? (
-                <div className="smallText named-entity-attribution">
-                  <a target="_blank" href="https://www.bonayich.com">
-                    <div>
-                      <span className="int-en">Source: Bonayich</span>
-                      <span className="int-he">מקור: בונייך</span>
-                    </div>
-                  </a>
-                  <div>
-                    <span className="int-en">Creator: Rabbi Pinchas Hayman</span>
-                    <span className="int-he">יוצר: הרב פנחס הימן</span>
-                  </div>
-                </div>
-              ) : null
-            }
           </div>));
           content = (!!this.state.namedEntity.possibilities ? (
             <div>
