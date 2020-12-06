@@ -2396,8 +2396,8 @@ _media: {},
       "This source is connected to ": "מקור הזה קשור ל-",
       "This topic is connected to ": "נושא הזה קשור ל-",
       "by": "על ידי",
-      "based on": "על ידי",
-      "research of Dr. Michael Sperling": "המחקר של ד\"ר מיכאל ספרלינג",
+      "based on": "ע“פ",
+      "research of Dr. Michael Sperling": "מחקר של ד\"ר מיכאל ספרלינג",
       "Read the Portion": "קראו את הפרשה",
 
       //user stats

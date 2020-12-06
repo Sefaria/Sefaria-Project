@@ -166,7 +166,7 @@ class LexiconBox extends Component {
             }
             <div className="contentText named-entity-description">
               <span className="en">{ne.description ? ne.description.en : `No description known for '${ne.primaryTitle.en}'`}</span>
-              <span className="he">{ne.description ? ne.description.he : `אין תאור ידוע בשביל '${ne.primaryTitle.he}'`}</span>
+              <span className="he">{ne.description ? ne.description.he : `לא קיים מידע עבור '${ne.primaryTitle.he}'`}</span>
             </div>
           </div>));
           content = (!!this.state.namedEntity.possibilities ? (
@@ -174,7 +174,7 @@ class LexiconBox extends Component {
               <div className="named-entity-ambiguous">
                 <i className="systemText">
                   <span className="int-en">{`"${this.props.selectedNamedEntityText}" could refer to the following rabbis:`}</span>
-                  <span className="int-he">{`"${this.props.selectedNamedEntityText}" could refer to the following rabbis:`}</span>
+                  <span className="int-he">{`ישנם מספר אישים תחת הערך "${this.props.selectedNamedEntityText}":`}</span>
                 </i>
               </div>
               { namedEntityContent }
