@@ -177,6 +177,10 @@ def import_rabi_rav_rabbis_into_topics():
 
 def add_ambiguous_topics():
     from sefaria.utils.hebrew import is_hebrew
+
+    bon_rabbis = TopicSet({"alt_ids.bonayich": {"$exists": True}})
+    bon_set = {t.slug for t in bon_rabbis}
+
     topic_link_type_dict = {
         "slug" : "possibility-for", 
         "inverseSlug" : "has-possibility", 
@@ -204,6 +208,7 @@ def add_ambiguous_topics():
         j = json.load(fin)
     unique_ambiguities = defaultdict(set)
     for m in j:
+        m["id_matches"] = list(filter(lambda slug: slug not in bon_set, m["id_matches"]))
         if len(m['id_matches']) < 2:
             continue
         unique_ambiguities[tuple(m['id_matches'])].add(m['mention'])
@@ -244,6 +249,9 @@ def add_ambiguous_topics():
         json.dump(out, fout, ensure_ascii=False, indent=2)
 
 def add_mentions():
+    bon_rabbis = TopicSet({"alt_ids.bonayich": {"$exists": True}})
+    bon_set = {t.slug for t in bon_rabbis}
+
     RefTopicLinkSet({"linkType": "mention"}).delete()
 
     all_mentions = []
@@ -266,6 +274,9 @@ def add_mentions():
 
     out = {}
     for ne in tqdm(all_mentions):
+        # remove bonayich mentions
+        ne["id_matches"] = list(filter(lambda slug: slug not in bon_set, ne["id_matches"]))
+
         if len(ne["id_matches"]) == 0:
             continue
         id_match_to_link = None  # when ambiguous, should be set to arbitrary unambiguous topic so that we can link to an interesting page on frontend
@@ -299,13 +310,43 @@ def add_mentions():
         out[key] = mention_link
     db.topic_links.bulk_write([InsertOne(v) for _, v in out.items()])
 
+def merge_duplicate_rabbis():
+    with open(f"{DATASETS_NAMED_ENTITY_LOC}/swap_rabbis.json", "r") as fin:
+        j = json.load(fin)
+    for a, b in j.items():
+        at = Topic.init(a)
+        bt = Topic.init(b)
+        if at is None:
+            print("A is None", a)
+            continue
+        if bt is None:
+            print("B is None", b)
+            continue
+        if getattr(at, 'alt_ids', {}).get('bonayich', None) is not None:
+            del at.alt_ids['bonayich']
+            if len(at.alt_ids) == 0:
+                delattr(at, 'alt_ids')
+            at.save()
+        bt.merge(at)
 
+def delete_bonayich_rabbis_from_topics():
+    for t in TopicSet():
+        if getattr(t, 'alt_ids', {}).get('bonayich', None) is not None:
+            print("DELETE", t.slug)
+            [l.delete() for l in t.link_set(_class=None)]
+            t.delete()
+    # make sure there are no 'empty' ambiguous topics
+    for t in TopicSet({'isAmbiguous': True}):
+        if t.link_set(_class='intraTopic', query_kwargs={'linkType': "possibility-for"}).count() == 0:
+            t.delete()
 if __name__ == "__main__":
     # import_bonayich_into_topics()
     # import_rabi_rav_rabbis_into_topics()
-    add_ambiguous_topics()
-    add_mentions()
-    add_new_alt_titles()
+    # add_ambiguous_topics()
+    # add_mentions()
+    # add_new_alt_titles()
+    merge_duplicate_rabbis()
+    delete_bonayich_rabbis_from_topics()
 """
 kubectl cp commands
 POD=wordlevel-web-584cbc5958-lrr5m
