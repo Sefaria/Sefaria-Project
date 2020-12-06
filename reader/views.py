@@ -904,12 +904,17 @@ def saved(request):
 def user_history(request):
     props = base_props(request)
     if request.user.is_authenticated:
-        uhistory = UserProfile(user_obj=request.user).get_user_history(secondary=False, serialized=True)
+        profile = UserProfile(user_obj=request.user)
+        uhistory = {
+            "userHistory": profile.get_user_history(secondary=False, serialized=True),
+            "reading_history": profile.settings["reading_history"]
+        }
     else:
-        uhistory = _get_anonymous_user_history(request)
-    props.update({
-        "userHistory": uhistory
-    })
+        uhistory = {
+            "userHistory": _get_anonymous_user_history(request),
+            "reading_history": True
+        }
+    props.update(uhistory)
     title = _("My User History")
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, "history", title, desc)
