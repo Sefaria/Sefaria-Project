@@ -347,7 +347,9 @@ class UserProfile(object):
             "settings": 0
         }
 
+        # flags that indicate a change needing a cascade after save
         self._name_updated      = False
+        self._process_remove_history = False
 
         # Followers
         self.followers = FollowersSet(self.id)
@@ -357,7 +359,7 @@ class UserProfile(object):
         profile = db.profiles.find_one({"id": id})
         profile = self.migrateFromOldRecents(profile)
         if profile:
-            self.update(profile)
+            self.update(profile, ignore_flags_on_init=True)
         elif self.exists():
             # If we encounter a user that has a Django user record but not a profile document
             # create a profile for them. This allows two enviornments to share a user database,
@@ -384,6 +386,10 @@ class UserProfile(object):
         if "first_name" in obj or "last_name" in obj:
             if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
                 self._name_updated = True
+
+        if self.settings["reading_history"]:
+            if "settings" in obj and "reading_history" in obj["settings"] and obj["settings"]["reading_history"] == False:
+                self._process_remove_history = True
 
     @staticmethod
     def transformOldRecents(uid, recents):
@@ -435,11 +441,12 @@ class UserProfile(object):
             self.save()
         return profile
 
-    def update(self, obj):
+    def update(self, obj, ignore_flags_on_init=False):
         """
         Update this object with the fields in dictionry 'obj'
         """
-        self._set_flags_on_update(obj)
+        if not ignore_flags_on_init:
+            self._set_flags_on_update(obj)
         self.__dict__.update(obj)
 
         return self
@@ -470,6 +477,10 @@ class UserProfile(object):
             user.last_name  = self.last_name
             user.save()
             self._name_updated = False
+
+        if self._process_remove_history:
+            self.delete_user_history()
+            self._process_remove_history = False
 
         return self
 
