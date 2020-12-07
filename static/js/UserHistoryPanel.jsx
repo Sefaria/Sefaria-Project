@@ -49,7 +49,12 @@ class UserHistoryPanel extends Component {
     this.props.openNav();
   }
   render() {
-    const content = !!this.state.items ?
+    const content = (this.props.menuOpen === 'history' && !Sefaria.reading_history) ? (
+        <div className="history-disabled-msg">
+          <span className="int-en">Reading history is currently disabled. Go <a href="/settings/account">settings</a> to turn it back on</span>
+          <span className="int-he">היסטורית הקריאה שלך כבויה. ניתן להפעילה מחדש במסך <a href="/settings/account">ההגדרות</a></span>
+        </div>
+    ) : !!this.state.items ?
       this.state.items.reduce((accum, curr, index) => (  // reduce consecutive history items with the same ref
         (!accum.length || curr.ref !== accum[accum.length-1].ref) ? accum.concat([curr]) : accum
       ), [])
