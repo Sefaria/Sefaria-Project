@@ -906,7 +906,7 @@ def user_history(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
         uhistory = {
-            "userHistory": profile.get_user_history(secondary=False, saved=(None if profile.settings["reading_history"] else False), serialized=True),
+            "userHistory": profile.get_user_history(secondary=False, serialized=True) if profile.settings["reading_history"] else [],
             "reading_history": profile.settings["reading_history"]
         }
     else:
