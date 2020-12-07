@@ -3615,6 +3615,8 @@ def profile_get_user_history(request):
         else:
             saved, secondary, last_place, oref = get_url_params_user_history(request)
             user = UserProfile(id=request.user.id)
+            if not user.settings["reading_history"] and not saved:
+                return jsonResponse([])
             return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
