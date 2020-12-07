@@ -20,11 +20,11 @@ class LexiconBox extends Component {
     };
   }
   componentDidMount() {
-    if(this.props.selectedWords){
-      this.getLookups(this.props.selectedWords, this.props.oref);
-    } else if (this.props.selectedNamedEntity) {
+    if (this.props.selectedNamedEntity) {
       this.getNamedEntity(this.props.selectedNamedEntity);
-    }
+    } else if (this.props.selectedWords){
+      this.getLookups(this.props.selectedWords, this.props.oref);
+    } 
   }
   componentDidUpdate(prevProps, prevState) {
     if (this.props.selectedWords && this.props.selectedWords !== prevProps.selectedWords) {
@@ -112,27 +112,7 @@ class LexiconBox extends Component {
     const enEmpty = 'No definitions found for "' + this.props.selectedWords + '".';
     const heEmpty = 'לא נמצאו תוצאות "' + this.props.selectedWords + '".';
     let content = "";
-
-    if(this.shouldActivate(this.props.selectedWords)) {
-      if(!this.state.loaded) {
-          // console.log("lexicon not yet loaded");
-          content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
-      } else if(this.state.entries.length === 0) {
-          if (this.props.selectedWords.length > 0) {
-            content = (<LoadingMessage message={enEmpty} heMessage={heEmpty}/>);
-          }
-      } else {
-          let entries = this.state.entries;
-          content =  entries.filter(e => (!refCats) || e['parent_lexicon_details']['text_categories'].length === 0 || e['parent_lexicon_details']['text_categories'].indexOf(refCats) > -1).map(function(entry, i) {
-                return (<LexiconEntry
-                    data={entry}
-                    onEntryClick={this.props.onEntryClick}
-                    onCitationClick={this.props.onCitationClick}
-                    key={i} />)
-              }.bind(this));
-          content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
-      }
-    } else if (!!this.props.selectedNamedEntity) {
+    if (!!this.props.selectedNamedEntity) {
       if (!this.state.loaded || !this.state.namedEntity) {
         // not sure why I also need to check for this.state.namedEntity but I've seen situations where loaded is true and namedEntity is null
         content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
@@ -180,6 +160,25 @@ class LexiconBox extends Component {
               { namedEntityContent }
             </div>
           ) : namedEntityContent);
+      }
+    } else if(this.shouldActivate(this.props.selectedWords)) {
+      if(!this.state.loaded) {
+          // console.log("lexicon not yet loaded");
+          content = (<LoadingMessage message="Looking up words..." heMessage="מחפש מילים..."/>);
+      } else if(this.state.entries.length === 0) {
+          if (this.props.selectedWords.length > 0) {
+            content = (<LoadingMessage message={enEmpty} heMessage={heEmpty}/>);
+          }
+      } else {
+          let entries = this.state.entries;
+          content =  entries.filter(e => (!refCats) || e['parent_lexicon_details']['text_categories'].length === 0 || e['parent_lexicon_details']['text_categories'].indexOf(refCats) > -1).map(function(entry, i) {
+                return (<LexiconEntry
+                    data={entry}
+                    onEntryClick={this.props.onEntryClick}
+                    onCitationClick={this.props.onCitationClick}
+                    key={i} />)
+              }.bind(this));
+          content = content.length ? content : <LoadingMessage message={enEmpty} heMessage={heEmpty} />;
       }
     }
 
