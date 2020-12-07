@@ -196,13 +196,13 @@ def view_sheet(request, sheet_id, editorMode = False):
     """
     View the sheet with sheet_id.
     """
-    sheet_id = int(sheet_id)
     editor = request.GET.get('editor', '0')
     embed = request.GET.get('embed', '0')
 
     if editor != '1' and embed !='1' and editorMode is False:
         return catchall(request, sheet_id, True)
 
+    sheet_id = int(sheet_id)
     sheet = get_sheet(sheet_id)
     if "error" in sheet:
         return HttpResponse(sheet["error"])
@@ -507,6 +507,9 @@ def collections_inclusion_api(request, collection_name, action, sheet_id):
     if action == "remove":
         if sheet_id in collection.sheets:
             collection.sheets.remove(sheet_id)
+            if request.user.id == sheet.owner and sheet.group == collection_name:
+                sheet.group = None
+                sheet.save()
         else:
             return jsonResponse({"error": "Sheet with id {} is not in this collection.".format(sheet_id)})
     if action == "add":
