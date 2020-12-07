@@ -904,6 +904,8 @@ class ReaderApp extends Component {
       mySheetSort:             state.mySheetSort             || "date",
       initialAnalyticsTracked: state.initialAnalyticsTracked || false,
       selectedWords:           state.selectedWords           || "",
+      selectedNamedEntity:     state.selectedNamedEntity     || null,
+      selectedNamedEntityText: state.selectedNamedEntityText || null,
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
     };
@@ -1025,6 +1027,16 @@ class ReaderApp extends Component {
     }
     this.setTextListHighlight(n, [textRef]);
     this.openPanelAt(n, citationRef);
+  }
+  handleNamedEntityClick(n, slug, textRef, namedEntityText) {
+    //this.setTextListHighlight(n, [textRef]);
+    this.openTextListAt(n+1, [textRef], null, { connectionsMode: "Lexicon", selectedNamedEntity: slug, selectedNamedEntityText: namedEntityText });
+  }
+  clearSelectedWords(n) {
+    this.setPanelState(n, {selectedWords: ""});
+  }
+  clearNamedEntity(n) {
+    this.setPanelState(n, {selectedNamedEntity: null, selectedNamedEntityText: null});
   }
   handleCompareSearchClick(n, ref, currVersions, options) {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
@@ -1444,10 +1456,11 @@ class ReaderApp extends Component {
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
-  openTextListAt(n, refs, sheetNodes) {
+  openTextListAt(n, refs, sheetNodes, textListState) {
     // Open a connections panel at position `n` for `refs`
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
+    // `textListState` is an object of initial state to pass to the new panel. if `undefined`, no-op
     var newPanels = this.state.panels.slice();
     var panel = newPanels[n] || {};
     var parentPanel = (n >= 1 && newPanels[n-1].mode == 'Text' || n >= 1 && newPanels[n-1].mode == 'Sheet') ? newPanels[n-1] : null;
@@ -1474,6 +1487,9 @@ class ReaderApp extends Component {
       panel.recentFilters = parentPanel.recentFilters;
       panel.recentVersionFilters = parentPanel.recentVersionFilters;
       panel.currVersions = parentPanel.currVersions;
+    }
+    if (textListState) {
+      panel = {...panel, ...textListState};
     }
     newPanels[n] = this.makePanelState(panel);
     this.setState({panels: newPanels});
@@ -1811,6 +1827,7 @@ class ReaderApp extends Component {
       var style                          = (this.state.layoutOrientation=="ltr")?{width: width + unit, left: offset + unit}:{width: width + unit, right: offset + unit};
       var onSegmentClick                 = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick                = this.handleCitationClick.bind(null, i);
+      var onNamedEntityClick             = this.handleNamedEntityClick.bind(null, i);
       var onCloseConnectionClick         = this.closeConnectionPanel.bind(null,i);
       var onSearchResultClick            = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
@@ -1824,6 +1841,8 @@ class ReaderApp extends Component {
       var onOpenConnectionsClick         = this.openTextListAt.bind(null, i+1);
       var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
+      var clearSelectedWords             = this.clearSelectedWords.bind(null, i);
+      var clearNamedEntity               = this.clearNamedEntity.bind(null, i);
       var openComparePanel               = this.openComparePanel.bind(null, i);
       var closePanel                     = panel.menuOpen == "compare" ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
       var setPanelState                  = this.setPanelState.bind(null, i);
@@ -1849,6 +1868,7 @@ class ReaderApp extends Component {
                       multiPanel={this.props.multiPanel}
                       onSegmentClick={onSegmentClick}
                       onCitationClick={onCitationClick}
+                      onNamedEntityClick={onNamedEntityClick}
                       closeConnectionPanel={onCloseConnectionClick}
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
@@ -1885,6 +1905,8 @@ class ReaderApp extends Component {
                       checkIntentTimer={this.checkIntentTimer}
                       toggleSignUpModal={this.toggleSignUpModal}
                       getHistoryObject={this.getHistoryObject}
+                      clearSelectedWords={clearSelectedWords}
+                      clearNamedEntity={clearNamedEntity}
                     />
                   </div>);
     }

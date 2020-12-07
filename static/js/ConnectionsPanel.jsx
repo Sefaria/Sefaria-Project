@@ -69,7 +69,7 @@ class ConnectionsPanel extends Component {
       this.props.setConnectionsMode("Lexicon");
     }
     // Go back to main sidebar when words are unselected
-    if (prevProps.selectedWords && prevProps.mode === "Lexicon" && !this.props.selectedWords) {
+    if (prevProps.selectedWords && prevProps.mode === "Lexicon" && !this.props.selectedWords && !this.props.selectedNamedEntity) {
       this.props.setConnectionsMode("Resources");
     }
 
@@ -456,9 +456,14 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Lexicon") {
       content = (<LexiconBox
                     selectedWords={this.props.selectedWords}
+                    selectedNamedEntity={this.props.selectedNamedEntity}
+                    selectedNamedEntityText={this.props.selectedNamedEntityText}
                     oref={Sefaria.ref(this.props.srefs[0])}
+                    srefs={this.props.srefs}
                     onEntryClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
+                    clearSelectedWords={this.props.clearSelectedWords}
+                    clearNamedEntity={this.props.clearNamedEntity}
                     interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.props.mode === "Topics") {
@@ -615,6 +620,8 @@ ConnectionsPanel.propTypes = {
   closePanel:              PropTypes.func,
   toggleLanguage:          PropTypes.func,
   selectedWords:           PropTypes.string,
+  selectedNamedEntity:     PropTypes.string,
+  selectedNamedEntityText: PropTypes.string,
   interfaceLang:           PropTypes.string,
   contentLang:             PropTypes.string,
   getLicenseMap:           PropTypes.func.isRequired,
@@ -624,6 +631,8 @@ ConnectionsPanel.propTypes = {
   recentVersionFilters:    PropTypes.array,
   setVersionFilter:        PropTypes.func.isRequired,
   checkIntentTimer:        PropTypes.func.isRequired,
+  clearSelectedWords:      PropTypes.func.isRequired,
+  clearNamedEntity:        PropTypes.func.isRequired,
 };
 
 

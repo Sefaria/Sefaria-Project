@@ -107,6 +107,8 @@ class ReaderPanel extends Component {
         appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
       }),
       selectedWords:        "",
+      selectedNamedEntity:  null,
+      selectedNamedEntityText: null,
       displaySettingsOpen:  false,
       tagSort: "count",
       mySheetSort: "date",
@@ -398,6 +400,14 @@ class ReaderPanel extends Component {
       this.props.setSelectedWords(words);
     } else {
       this.conditionalSetState({'selectedWords':  words});
+    }
+  }
+  clearSelectedWords() {
+    this.replaceHistory = false;
+    if (this.props.multiPanel) {
+      this.props.clearSelectedWords();
+    } else {
+      this.conditionalSetState({'selectedWords':  ''});
     }
   }
   closeMenus() {
@@ -732,6 +742,7 @@ class ReaderPanel extends Component {
           updateTextColumn={this.updateTextColumn}
           onSegmentClick={this.handleBaseSegmentClick}
           onCitationClick={this.handleCitationClick}
+          onNamedEntityClick={this.props.onNamedEntityClick}
           setTextListHighlight={this.setTextListHighlight}
           setCurrentlyVisibleRef={this.setCurrentlyVisibleRef}
           setSelectedWords={this.setSelectedWords}
@@ -793,6 +804,10 @@ class ReaderPanel extends Component {
           openComparePanel={this.props.openComparePanel}
           closePanel={this.props.closePanel}
           selectedWords={this.state.selectedWords}
+          selectedNamedEntity={this.state.selectedNamedEntity}
+          selectedNamedEntityText={this.state.selectedNamedEntityText}
+          clearSelectedWords={this.clearSelectedWords}
+          clearNamedEntity={this.props.clearNamedEntity}
           getLicenseMap={this.props.getLicenseMap}
           masterPanelLanguage={this.props.masterPanelLanguage}
           translateISOLanguageCode={this.props.translateISOLanguageCode}
@@ -1186,6 +1201,7 @@ ReaderPanel.propTypes = {
   setCentralState:             PropTypes.func,
   onSegmentClick:              PropTypes.func,
   onCitationClick:             PropTypes.func,
+  onNamedEntityClick:          PropTypes.func,
   onNavTextClick:              PropTypes.func,
   onSearchResultClick:         PropTypes.func,
   onUpdate:                    PropTypes.func,

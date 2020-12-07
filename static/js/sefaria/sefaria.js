@@ -359,7 +359,8 @@ Sefaria = extend(Sefaria, {
       enVersion:  settings.enVersion  || null,
       heVersion:  settings.heVersion  || null,
       multiple:   settings.multiple   || 0,
-      wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1
+      wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
+      wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1, 
     };
 
     return settings;
@@ -479,6 +480,7 @@ Sefaria = extend(Sefaria, {
       context:    settings.context,
       pad:        settings.pad,
       wrapLinks:  settings.wrapLinks,
+      wrapNamedEntities: settings.wrapNamedEntities,
       multiple:   settings.multiple
     });
     let url = "/api/texts/" + Sefaria.normRef(ref);
@@ -1797,9 +1799,9 @@ _media: {},
     });
   },
   _topics: {},
-  getTopic: function(topic, with_links=true, annotate_links=true, with_refs=true, group_related=true) {
+  getTopic: function(topic, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about']}={}) {
       return this._cachedApiPromise({
-          url:   `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}`,
+          url:   `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}&annotate_time_period=${0+annotate_time_period}&ref_link_type_filters=${ref_link_type_filters.join('|')}`,
           key:   topic,
           store: this._topics,
           processor: this.processTopicsData,
@@ -1807,6 +1809,7 @@ _media: {},
   },
   processTopicsData: function(data) {
     if (!data) { return null; }
+    if (!data.refs) { return data; }
     // Split  `refs` in `sourceRefs` and `sheetRefs`
     let refMap = {};
     for (let refObj of data.refs.filter(s => !s.is_sheet)) {
@@ -2390,7 +2393,6 @@ _media: {},
       "Request a feature": "בקשה להוספת אפשרות באתר",
       "Give thanks": "תודה",
       "Other": "אחר",
-      "Please enter a valid email address": "אנא הקלידו כתובת אימייל תקנית",
       "Please select a feedback type": "אנא בחרו סוג משוב",
       "Unfortunately, there was an error sending this feedback. Please try again or try reloading this page.": "לצערנו ארעה שגיאה בשליחת המשוב. אנא נסו שוב או רעננו את הדף הנוכחי",
       "Tell us what you think..." : "ספרו לנו מה אתם חושבים...",
@@ -2416,6 +2418,8 @@ _media: {},
       "This source is connected to ": "מקור הזה קשור ל-",
       "This topic is connected to ": "נושא הזה קשור ל-",
       "by": "על ידי",
+      "based on": "ע“פ",
+      "research of Dr. Michael Sperling": "המחקר של ד\"ר מיכאל ספרלינג",
       "Read the Portion": "קראו את הפרשה",
 
       //user stats
@@ -2431,8 +2435,12 @@ _media: {},
       //chavruta
       "Learn with a Chavruta": "ללמוד עם חברותא",
       "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הזה:",
-      "Start Call": "התחלת שיחה"
+      "Start Call": "התחלת שיחה",
 
+      //subscribe & register
+      "Please enter a valid email address.": "כתובת האימייל שהוזנה אינה תקינה.",
+      "Subscribed! Welcome to our list.": "הרשמה בוצעה בהצלחה!",
+      "Sorry, there was an error.": "סליחה, ארעה שגיאה",
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){

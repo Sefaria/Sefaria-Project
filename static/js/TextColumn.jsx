@@ -305,6 +305,7 @@ class TextColumn extends Component {
         showBaseText={this.props.showBaseText}
         onSegmentClick={this.props.onSegmentClick}
         onCitationClick={this.props.onCitationClick}
+        onNamedEntityClick={this.props.onNamedEntityClick}
         onTextLoad={this.handleTextLoad.bind(this)}
         filter={this.props.filter}
         panelsOpen={this.props.panelsOpen}
@@ -361,6 +362,7 @@ TextColumn.propTypes = {
   updateTextColumn:       PropTypes.func,
   onSegmentClick:         PropTypes.func,
   onCitationClick:        PropTypes.func,
+  onNamedEntityClick:     PropTypes.func,
   setTextListHighlight:   PropTypes.func,
   setCurrentlyVisibleRef: PropTypes.func,
   setSelectedWords:       PropTypes.func,
