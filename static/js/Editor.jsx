@@ -101,7 +101,8 @@ const format_to_html_lookup = format_tag_pairs.reduce((obj, item) => {
 
 export const deserialize = el => {
     if (el.nodeType === 3) {
-        return el.textContent
+        const textToReturn = el.textContent.replace(/\u2800/g, ''); // this removes the temporary hacky braile character added to render empty paragraphs and br line breaks in parseSheetItemHTML()
+        return textToReturn
     } else if (el.nodeType !== 1) {
         return null
     } else if (el.nodeName === 'BR') {
@@ -269,7 +270,7 @@ function renderSheetItem(source) {
 }
 
 function parseSheetItemHTML(rawhtml) {
-    const preparseHtml = rawhtml.replace(/&nbsp;/g, ' ').replace(/(\r\n|\n|\r)/gm, "").replace(/(<p><br><\/p>|<p> <\/p>)/gm, "<p>&#xE007E;</p>")
+    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r)/gm, "").replace(/(<p><br><\/p>|<p> <\/p>)/gm, "<div>⠀</div>") // this is an ugly hack that adds the blank braile unicode character to ths string for a moment to ensure that the empty paragraph string gets rendered, this character will be removed later.
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
@@ -1582,8 +1583,8 @@ function saveSheetContent(doc, lastModified) {
             case 'SheetOutsideText':
                 const outsideTextText = serialize(sheetItem)
                //don't save empty outsideTexts
-               if (outsideTextText=="<p></p>") {return}
-               else if (outsideTextText=="<div></div>") {return}
+               console.log(outsideTextText)
+               if (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") {outsideTextText = "<p> </p>"}
 
                return ({
                     "outsideText": outsideTextText,
