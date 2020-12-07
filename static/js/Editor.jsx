@@ -52,6 +52,7 @@ const ELEMENT_TAGS = {
     LI: () => ({type: 'list-item'}),
     OL: () => ({type: 'numbered-list'}),
     P: () => ({type: 'paragraph'}),
+    DIV: () => ({type: 'paragraph'}),
     PRE: () => ({type: 'code'}),
     UL: () => ({type: 'bulleted-list'}),
 };
@@ -168,7 +169,7 @@ export const serialize = (content) => {
         const paragraphHTML =  content.children.reduce((acc, text) => {
             return (acc + serialize(text))
         },"");
-        return `<p>${paragraphHTML}</p>`
+        return `<div>${paragraphHTML}</div>`
     }
 
     const children = content.children ? content.children.map(serialize) : [];
@@ -724,7 +725,7 @@ const Element = props => {
             )
         case 'paragraph':
             return (
-                <p>{children}</p>
+                <div>{children}</div>
             );
         case 'byline':
             return (
@@ -859,6 +860,66 @@ const withSefariaSheet = editor => {
     editor.isVoid = element => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
     };
+
+
+    const { deleteBackward } = editor
+
+    editor.deleteBackward = (...args) => {
+      const { selection } = editor;
+
+      if (selection && Range.isCollapsed(selection)) {
+        //
+        // This is a bit of a hack to ensure back spacing into a spacer
+        // gives the expected behavior.
+        //
+        // Without this, if one backspaces into a spacer from another SheetItem
+        // the sheet item loses its node id and it deletes some of the children.
+        // Instead, this function moves a space back to see if one would backspace
+        // into a spacer. If so, it stays there and then backspaces from the spacer
+        // moving up the SheetItem and no one is the wiser.
+        //
+        // If it's not in a spacer, the cursor returns to its previous position
+        // and deletes as expected, again, with no one the wiser...
+        //
+
+        Transforms.move(editor, { reverse: true })
+        const [match] = Editor.nodes(editor, {
+          match: n => n.type === 'spacer',
+        })
+        if (!match) {
+          Transforms.move(editor)
+        }
+        // end hacky spacer delete function
+      }
+      deleteBackward(...args)
+    }
+
+    const { deleteForward } = editor
+
+    editor.deleteForward = (...args) => {
+      const { selection } = editor;
+
+      if (selection && Range.isCollapsed(selection)) {
+        //
+        // This is a bit of a hack to ensure that hitting delete in a spacer
+        // gives the expected behavior.
+        //
+        // Without this, if one hits delete in a spacer from another the SheetItem
+        // below loses its node id and it deletes some of the children.
+        //
+        const [match] = Editor.nodes(editor, {
+          match: n => n.type === 'spacer',
+        })
+        if (match) {
+          deleteBackward(...args)
+          Transforms.move(editor)
+          return
+        }
+        // end hacky spacer delete function
+      }
+      deleteForward(...args)
+    }
+
 
     editor.insertBreak = () => {
 
@@ -1522,6 +1583,7 @@ function saveSheetContent(doc, lastModified) {
                 const outsideTextText = serialize(sheetItem)
                //don't save empty outsideTexts
                if (outsideTextText=="<p></p>") {return}
+               else if (outsideTextText=="<div></div>") {return}
 
                return ({
                     "outsideText": outsideTextText,
