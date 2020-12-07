@@ -7,10 +7,10 @@ from collections import defaultdict
 from sefaria.system.database import db
 from sefaria.model.abstract import AbstractMongoRecord
 
-RESEARCH_NAMED_ENTITY_LOC = "/home/nss/sefaria/data/research/knowledge_graph/named_entity_recognition"
-DATASETS_NAMED_ENTITY_LOC = "/home/nss/sefaria/datasets/ner/sefaria"
-# RESEARCH_NAMED_ENTITY_LOC = "data"
-# DATASETS_NAMED_ENTITY_LOC = "data"
+# RESEARCH_NAMED_ENTITY_LOC = "/home/nss/sefaria/data/research/knowledge_graph/named_entity_recognition"
+# DATASETS_NAMED_ENTITY_LOC = "/home/nss/sefaria/datasets/ner/sefaria"
+RESEARCH_NAMED_ENTITY_LOC = "data"
+DATASETS_NAMED_ENTITY_LOC = "data"
 
 def add_new_alt_titles():
     with open(f"{DATASETS_NAMED_ENTITY_LOC}/new_alt_titles.json", "r") as fin:
@@ -340,16 +340,16 @@ def delete_bonayich_rabbis_from_topics():
         if t.link_set(_class='intraTopic', query_kwargs={'linkType': "possibility-for"}).count() == 0:
             t.delete()
 if __name__ == "__main__":
-    # import_bonayich_into_topics()
-    # import_rabi_rav_rabbis_into_topics()
-    # add_ambiguous_topics()
-    # add_mentions()
-    # add_new_alt_titles()
+    import_bonayich_into_topics()
+    import_rabi_rav_rabbis_into_topics()
+    add_ambiguous_topics()
+    add_mentions()
+    add_new_alt_titles()
     merge_duplicate_rabbis()
     delete_bonayich_rabbis_from_topics()
 """
 kubectl cp commands
-POD=wordlevel-web-584cbc5958-lrr5m
+POD=devpod-noah-846cdffc8b-8l5wl
 kubectl cp /home/nss/sefaria/data/research/knowledge_graph/named_entity_recognition/sperling_named_entities.json $POD:/app/data
 kubectl cp /home/nss/sefaria/datasets/ner/sefaria/new_rabbis.json $POD:/app/data
 kubectl cp "/home/nss/sefaria/datasets/ner/sefaria/Fix Rabi and Rav Errors - rav_rabbi_errors.csv" $POD:/app/data
