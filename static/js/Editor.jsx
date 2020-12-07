@@ -86,9 +86,6 @@ const format_tag_pairs = [
         tag: "SMALL",
         format: "small"
     },
-    {   tag: "BR",
-        format: "linebreak"
-    }
 ];
 
 const TEXT_TAGS = format_tag_pairs.reduce((obj, item) => {
@@ -275,7 +272,6 @@ function parseSheetItemHTML(rawhtml) {
     const preparseHtml = rawhtml.replace(/&nbsp;/g, ' ').replace(/(\r\n|\n|\r)/gm, "").replace(/(<p><br><\/p>|<p> <\/p>)/gm, "<p>&#xE007E;</p>")
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
-    console.log(fragment)
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
     return slateJSON[0].type == 'paragraph' ? slateJSON : [{type: 'paragraph', children: slateJSON}]
 }
@@ -1461,9 +1457,6 @@ const Leaf = ({attributes, children, leaf}) => {
     }
     if (leaf.isRef) {
         children = <span className="inlineTextRef">{children}</span>
-    }
-    if (leaf.linebreak) {
-        children = <span className="wut">{children}</span>
     }
     return <span {...attributes}>{children}</span>
 };
