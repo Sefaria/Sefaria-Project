@@ -8812,6 +8812,9 @@ a.topicLexiconTitle.contentText {
     text-align: center;
   }
 }
+#history-disabled-msg{
+  text-align: center;
+}
 /* start css code for loading bezel */
 .sourceLoader {
   margin-left: -34px;
