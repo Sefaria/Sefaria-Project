@@ -95,7 +95,6 @@ def new_sheet(request):
 			if db.sheets.find_one({"id": sheet_id})["options"]["assignable"] == 1:
 				return assigned_sheet(request, sheet_id)
 
-	owner_groups  = get_user_groups(request.user.id)
 	query         = {"owner": request.user.id or -1 }
 	hide_video    = db.sheets.count_documents(query) > 2
 
@@ -103,7 +102,6 @@ def new_sheet(request):
 												"new_sheet": True,
 												"is_owner": True,
 												"hide_video": hide_video,
-												"owner_groups": owner_groups,
 												"current_url": request.get_full_path,
 												})
 
@@ -178,6 +176,15 @@ def get_user_groups(uid, private=True):
     return groups
 
 
+def get_user_collections_for_sheet(uid, sheet_id):
+    """
+    Returns a list of `uid`'s collections that `sheet_id` is included in.
+    """
+    collections = GroupSet({"$or": [{"admins": uid, "sheets": sheet_id}, {"members": uid, "sheets": sheet_id}]})
+    collections = [collection.listing_contents(uid) for collection in collections]
+    return collections
+
+
 def make_sheet_class_string(sheet):
     """
     Returns a string of class names corresponding to the options of sheet.
@@ -194,7 +201,6 @@ def make_sheet_class_string(sheet):
     if sheet["status"] == "public":
         classes.append("public")
 
-
     return " ".join(classes)
 
 
@@ -203,6 +209,7 @@ def view_sheet(request, sheet_id, editorMode = False):
     """
     View the sheet with sheet_id.
     """
+    sheet_id = int(sheet_id)
     editor = request.GET.get('editor', '0')
     embed = request.GET.get('embed', '0')
 
@@ -216,15 +223,14 @@ def view_sheet(request, sheet_id, editorMode = False):
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Count this as a view
-    db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
+    db.sheets.update({"id": sheet_id}, {"$inc": {"views": 1}})
 
     try:
         owner = User.objects.get(id=sheet["owner"])
         author = owner.first_name + " " + owner.last_name
-        owner_groups = get_user_groups(request.user.id) if sheet["owner"] == request.user.id else None
+        sheet_collections = get_user_collections_for_sheet(request.user.id, sheet_id) if sheet["owner"] == request.user.id else None
     except User.DoesNotExist:
         author = "Someone Mysterious"
-        owner_groups = None
 
     sheet_class      = make_sheet_class_string(sheet)
     sheet_group      = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
@@ -244,6 +250,8 @@ def view_sheet(request, sheet_id, editorMode = False):
 
     canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
 
+    print(sheet_collections)
+
     return render(request,'sheets.html', {"sheetJSON": json.dumps(sheet),
                                                 "sheet": sheet,
                                                 "sheet_class": sheet_class,
@@ -254,13 +262,13 @@ def view_sheet(request, sheet_id, editorMode = False):
                                                 "author": author,
                                                 "is_owner": request.user.id == sheet["owner"],
                                                 "is_public": sheet["status"] == "public",
-                                                "owner_groups": owner_groups,
+                                                "sheet_collections": sheet_collections,
                                                 "sheet_group":  sheet_group,
                                                 "like_count": like_count,
                                                 "viewer_is_liker": viewer_is_liker,
                                                 "current_url": request.get_full_path,
                                                 "canonical_url": canonical_url,
-                                                  "assignments_from_sheet":assignments_from_sheet(sheet_id),
+                                                "assignments_from_sheet":assignments_from_sheet(sheet_id),
                                             })
 
 def assignments_from_sheet(sheet_id):
@@ -287,10 +295,8 @@ def view_visual_sheet(request, sheet_id):
     try:
         owner = User.objects.get(id=sheet["owner"])
         author = owner.first_name + " " + owner.last_name
-        owner_groups = get_user_groups(request.user.id) if sheet["owner"] == request.user.id else None
     except User.DoesNotExist:
         author = "Someone Mysterious"
-        owner_groups = None
 
     sheet_class     = make_sheet_class_string(sheet)
     can_edit_flag   = can_edit(request.user, sheet)
@@ -311,7 +317,6 @@ def view_visual_sheet(request, sheet_id):
                                                     "author": author,
                                                     "is_owner": request.user.id == sheet["owner"],
                                                     "is_public": sheet["status"] == "public",
-                                                    "owner_groups": owner_groups,
                                                     "sheet_group":  sheet_group,
                                                     "like_count": like_count,
                                                     "viewer_is_liker": viewer_is_liker,
@@ -335,18 +340,17 @@ def assigned_sheet(request, assignment_id):
         if key in sheet:
             del sheet[key]
 
-    assigner        = UserProfile(id=sheet["owner"])
-    assigner_id	    = assigner.id
-    owner_groups    = get_user_groups(request.user.id)
-
-    sheet_class     = make_sheet_class_string(sheet)
-    can_edit_flag   = True
-    can_add_flag    = can_add(request.user, sheet)
-    sheet_group     = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
-    embed_flag      = "embed" in request.GET
-    likes           = sheet.get("likes", [])
-    like_count      = len(likes)
-    viewer_is_liker = request.user.id in likes
+    assigner          = UserProfile(id=sheet["owner"])
+    assigner_id	      = assigner.id
+    sheet_collections = get_user_collections_for_sheet(request.user.id, sheet["id"])
+    sheet_class       = make_sheet_class_string(sheet)
+    can_edit_flag     = True
+    can_add_flag      = can_add(request.user, sheet)
+    sheet_group       = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
+    embed_flag        = "embed" in request.GET
+    likes             = sheet.get("likes", [])
+    like_count        = len(likes)
+    viewer_is_liker   = request.user.id in likes
 
     return render(request,'sheets.html', {"sheetJSON": json.dumps(sheet),
                                                 "sheet": sheet,
@@ -359,7 +363,7 @@ def assigned_sheet(request, assignment_id):
                                                 "title": sheet["title"],
                                                 "is_owner": True,
                                                 "is_public": sheet["status"] == "public",
-                                                "owner_groups": owner_groups,
+                                                "sheet_collections": sheet_collections,
                                                 "sheet_group":  sheet_group,
                                                 "like_count": like_count,
                                                 "viewer_is_liker": viewer_is_liker,
@@ -541,9 +545,9 @@ def collections_for_sheet_api(request, sheet_id):
     """
     sheet_id = int(sheet_id)
     uid = request.user.id
-    groups = GroupSet({"$or": [{"admins": uid, "sheets": sheet_id}, {"members": uid, "sheets": sheet_id}]})
+    collections = get_user_collections_for_sheet(uid, sheet_id)
 
-    return jsonResponse([group.name for group in groups])
+    return jsonResponse([collection["name"] for collection in collections])
 
 
 @login_required
@@ -1093,7 +1097,6 @@ def sheet_to_html_string(sheet):
         "author": author,
         "is_owner": False,
         "is_public": sheet["status"] == "public",
-        "owner_groups": None,
         "sheet_group":  sheet_group,
         "like_count": len(sheet.get("likes", [])),
         "viewer_is_liker": False,

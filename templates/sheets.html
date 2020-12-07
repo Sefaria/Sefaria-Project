@@ -1019,49 +1019,61 @@
     <div class="line"></div>
 
 
-    <div class="content">
-        <span class="labelforOnOffSwitch"><span class="int-en">List on Sefaria</span><span class="int-he">הצג לכלל משתמשי ספריא</span></span>
-        <div class="onoffswitch">
-            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="sheetPublicToggle">
-            <label class="onoffswitch-label" for="sheetPublicToggle">
-                <span class="onoffswitch-inner"></span>
-                <span class="onoffswitch-switch"></span>
-            </label>
+    <div class="content sideLabeled">
+        <label class="labelforOnOffSwitch">
+            <span class="int-en">List on Sefaria</span>
+            <span class="int-he">הצג לכלל משתמשי ספריא</span>
+        </label>
+        <div>
+            <div class="onoffswitch">
+                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="sheetPublicToggle">
+                <label class="onoffswitch-label" for="sheetPublicToggle">
+                    <span class="onoffswitch-inner"></span>
+                    <span class="onoffswitch-switch"></span>
+                </label>
+            </div>
         </div>
     </div>
 
-   {% if owner_groups %}
-    <div class="content" id="sourceSheetGroupOptions">
+   {% if sheet_collections %}
+    <div class="content sideLabeled" id="sourceSheetGroupOptions">
         <label for="sourceSheetGroupSelect">
-            <span class="int-en">List in Group</span>
-            <span class="int-he">שיוך קבוצה</span>
+            <span class="int-en">Display Collection</span>
+            <span class="int-he">TODO HEBREW</span>
         </label>
 
-        <select id="sourceSheetGroupSelect">
-            <option value="None">
-                {% trans 'None' %}
-            </option>
-
-    		{% for group in owner_groups %}
-                <option
-                    value="{{ group.name }}"
-                    data-group="{{ group.name }}"
-                    data-image="{{ group.headerUrl|default:'' }}"
-                    data-can-publish="{% if group.canPublish %}1{% else %}0{% endif %}">
-                    {{ group.name }}
+        <div>
+            <select id="sourceSheetGroupSelect">
+                <option value="None">
+                    {% trans 'None' %}
                 </option>
-			{% endfor %}
-        </select>
+
+        		{% for collection in sheet_collections %}
+                    <option
+                        value="{{ collection.name }}"
+                        data-group="{{ collection.name }}"
+                        data-image="{{ collection.headerUrl|default:'' }}">
+                        {{ collection.name }}
+                    </option>
+    			{% endfor %}
+            </select>
+            <div id="collectionsMessage">
+                <span class="int-en">To manage the collections this sheet appears in, visit your profile.</span>
+                <span class="int-he">TODO HEBREW</span>
+            </div>
+        </div>
     </div>
 	{% endif %}
 
 
-    <div class="content">
+    <div class="content sideLabeled">
         <label for="shareURL">
             <span class="int-en">Share a link</span>
             <span class="int-he">קישור לשיתוף</span>
         </label>
-        <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
+        <div>
+            <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
+        </div>
     </div>
 
     <div class="line"></div>
