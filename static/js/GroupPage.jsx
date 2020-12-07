@@ -172,12 +172,11 @@ class GroupPage extends Component {
   memberList() {
     var group = this.state.groupData;
     if (!group) { return null; }
-    var admins = group.admins.map(function(member) {member.role = "Admin"; return member; });
-    var publishers = group.publishers.map(function(member) {member.role = "Publisher"; return member; });
+    var admins = group.admins.map(function(member) {member.role = "Owner"; return member; });
     var members = group.members.map(function(member) {member.role = "Member"; return member; });
     var invitations = group.invitations.map(function(member) {member.role = "Invitation"; return member; });
 
-    return admins.concat(publishers, members, invitations);
+    return admins.concat(members, invitations);
   }
   pinSheet(sheetId) {
     if (this.pinning) { return; }
@@ -611,24 +610,18 @@ class GroupMemberListingActions extends Component {
         <div className="groupMemberListingActionsButton">
           <i className="fa fa-gear"></i>
         </div>
-        {this.state.menuOpen ?
+        {this.state.menuOpen ? // TODO Hebrew for all below
           <div className="groupMemberListingActionsMenu">
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "admin")}>
-                <span className={classNames({role: 1, current: this.props.member.role == "Admin"})}>Admin</span>
+                <span className={classNames({role: 1, current: this.props.member.role == "Owner"})}>Owner</span>
                 - can invite & edit settings
-              </div>
-              : null }
-            {this.props.isAdmin ?
-              <div className="action" onClick={this.setRole.bind(this, "publisher")}>
-                <span className={classNames({role: 1, current: this.props.member.role == "Publisher"})}>Publisher</span>
-                - can publish
               </div>
               : null }
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "member")}>
                 <span className={classNames({role: 1, current: this.props.member.role == "Member"})}>Member</span>
-                - can view & share within group
+                - can add & remove sheets
               </div>
               : null}
             {this.props.isAdmin || this.props.isSelf ?

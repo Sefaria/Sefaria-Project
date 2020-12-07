@@ -25,12 +25,12 @@ class Group(abst.AbstractMongoRecord):
     required_attrs = [
         "name",          # string name of group
         "admins",        # list or uids
-        "publishers",    # list of uids
         "members",       # list of uids
     ]
     optional_attrs = [
         "sheets",           # list of sheet ids included in this collection
-        "lastModified",     # 
+        "lastModified",     # Datetime of the last time this collection changed
+        "publishers",       # list of uids TODO deprecate post collections launch
         "invitations",      # list of dictionaries representing outstanding invitations
         "description",      # string text of short description
         "websiteUrl",       # url for group website
@@ -53,7 +53,7 @@ class Group(abst.AbstractMongoRecord):
     ]
 
     def _normalize(self):
-        defaults = (("members", []), ("publishers", []), ("sheets", []))
+        defaults = (("members", []), ("sheets", []))
         for default in defaults:
             if not hasattr(self, default[0]):
                 setattr(self, default[0], default[1])
@@ -117,7 +117,6 @@ class Group(abst.AbstractMongoRecord):
             contents["sheets"]       = self.sheet_contents(authenticated=authenticated)
             contents["topics"]       = sheet_topics_counts({"group": self.name})
             contents["admins"]       = [public_user_data(uid) for uid in contents["admins"]]
-            contents["publishers"]   = [public_user_data(uid) for uid in contents["publishers"]]
             contents["members"]      = [public_user_data(uid) for uid in contents["members"]]
             contents["invitations"]  = getattr(self, "invitations", []) if authenticated else []
             contents["pinnedSheets"] = getattr(self, "pinned_sheets", [])
@@ -134,7 +133,6 @@ class Group(abst.AbstractMongoRecord):
             "lastModified": str(self.lastModified)
         }
         if uid is not None:
-            contents["canPublish"] = self.can_publish(uid)
             contents["membership"] = self.membership_role(uid)
         return contents
 
@@ -151,12 +149,10 @@ class Group(abst.AbstractMongoRecord):
         """
         Get membership level in group
         :param uid:
-        :return: either "member", "admin" or "publisher"
+        :return: either "member", "admin"
         """
         if uid in self.members:
             return "member"
-        if uid in self.publishers:
-            return "publisher"
         if uid in self.admins:
             return "admin"
         return None
@@ -169,8 +165,6 @@ class Group(abst.AbstractMongoRecord):
         self.remove_member(uid)
         if role == "admin":
             self.admins.append(uid)
-        elif role == "publisher":
-            self.publishers.append(uid)
         else:
             self.members.append(uid)
         self.save()
@@ -180,7 +174,6 @@ class Group(abst.AbstractMongoRecord):
         Remove `uid` from this group.
         """
         self.admins     = [user_id for user_id in self.admins if user_id != uid]
-        self.publishers = [user_id for user_id in self.publishers if user_id != uid]
         self.members    = [user_id for user_id in self.members if user_id != uid]
         self.save()
 
@@ -232,17 +225,13 @@ class Group(abst.AbstractMongoRecord):
         """
         Returns a list of all group members, regardless of sole
         """
-        return (self.admins + self.publishers + self.members)
+        return (self.admins + self.members)
 
     def is_member(self, uid):
         """
         Returns True if `uid` is a member of this group, in any role
         """
         return uid in self.all_members()
-
-    def can_publish(self, uid):
-        """ Returns True if `uid` has permission to publish sheets in this group"""
-        return uid in (self.admins + self.publishers)
 
     def member_count(self):
         """Returns the number of members in this group"""
@@ -292,7 +281,7 @@ class GroupSet(abst.AbstractMongoSet):
     recordClass = Group
 
     def for_user(self, uid, private=True):
-        query = {"$or": [{"admins": uid}, {"publishers": uid}, {"members": uid}]}
+        query = {"$or": [{"admins": uid}, {"members": uid}]}
         if not private:
             query["listed"] = True
         self.__init__(query, sort=[("lastModified", -1)])

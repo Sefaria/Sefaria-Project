@@ -4,7 +4,7 @@ sjs.flags = {
 		ckfocus: false,
 	 };
 
-sjs.can_save = (sjs.can_edit || sjs.can_add || sjs.can_publish);
+sjs.can_save = (sjs.can_edit || sjs.can_add);
 
 sjs.current = sjs.current || {
 	options: {
@@ -1670,15 +1670,9 @@ $(function() {
 			$("#groupLogo").attr("src", groupLogo)
 				.closest("a").attr("href", "/groups/" + groupUrl);
 			if (groupLogo) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
-			if (parseInt($el.attr("data-can-publish"))) {
-				$("#sourceSheetsAccessOptions").show();
-			} else {
-				$("#sourceSheetsAccessOptions").hide();
-			}
 		}
 		else {
 			$("#sheetHeader").hide();
-			$("#sourceSheetsAccessOptions").show();
 		}
 	});
 
@@ -2453,7 +2447,7 @@ function readSheet() {
 		sheet.options.highlightMode = $("#sheet").hasClass("highlightMode") ? 1 : 0;
 	}
 
-	if (sjs.is_owner || sjs.can_publish) {
+	if (sjs.is_owner) {
 
 		sheet["status"] = $("#sheetPublicToggle").is(':checked') ? "public" : "unlisted";
 
@@ -2839,13 +2833,6 @@ function buildSheet(data){
 		var groupImage = $el.attr("data-image");
 		$("#groupLogo").attr("src", groupImage);
 		if (groupImage) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
-		if (parseInt($el.attr("data-can-publish")) || sjs.can_publish) {
-			$("#sourceSheetsAccessOptions").show();
-		} else {
-			$("#sourceSheetsAccessOptions").hide();
-		}
-	} else {
-		$("#sourceSheetsAccessOptions").show();
 	}
 
 	if (sjs.is_owner) {

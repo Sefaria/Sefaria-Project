@@ -152,19 +152,6 @@ def can_add(user, sheet):
     return False
 
 
-def can_publish(user, sheet):
-    """
-    Returns True if user and sheet both belong to the same Group, and user has publish rights in that group
-    Returns False otherwise, including if the sheet is not in a Group at all
-    """
-    if "group" in sheet:
-        try:
-            return Group().load({"name": sheet["group"]}).can_publish(user.id)
-        except:
-            return False
-    return False
-
-
 def get_user_groups(uid, private=True):
     """
     Returns a list of Groups that user belongs to.
@@ -240,12 +227,10 @@ def view_sheet(request, sheet_id, editorMode = False):
     if request.user.is_authenticated:
         can_edit_flag    = can_edit(request.user, sheet)
         can_add_flag     = can_add(request.user, sheet)
-        can_publish_flag = sheet_group.can_publish(request.user.id) if sheet_group else False
         viewer_is_liker  = request.user.id in likes
     else:
         can_edit_flag    = False
         can_add_flag     = False
-        can_publish_flag = False
         viewer_is_liker  = False
 
     canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
@@ -257,7 +242,6 @@ def view_sheet(request, sheet_id, editorMode = False):
                                                 "sheet_class": sheet_class,
                                                 "can_edit": can_edit_flag,
                                                 "can_add": can_add_flag,
-                                                "can_publish": can_publish_flag,
                                                 "title": sheet["title"],
                                                 "author": author,
                                                 "is_owner": request.user.id == sheet["owner"],
@@ -564,7 +548,7 @@ def groups_role_api(request, group_name, uid, role):
     if request.user.id not in group.admins:
         if not (uid == request.user.id and role == "remove"): # non admins can remove themselves
             return jsonResponse({"error": "You must be a group admin to change member roles."})
-    user = UserProfile(uid)
+    user = UserProfile(id=uid)
     if not user.exists():
         return jsonResponse({"error": "No user with the specified ID exists."})
     if role not in ("member", "publisher", "admin", "remove"):
@@ -615,6 +599,7 @@ def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
             message = "%s is already a member of this group." % user.full_name
 
     group_content = group.contents(with_content=True, authenticated=True)
+    del group_content["lastModified"]
     return jsonResponse({"group": group_content, "message": message})
 
 
@@ -674,8 +659,7 @@ def save_sheet_api(request):
             existing = get_sheet(sheet["id"])
             if "error" not in existing  and \
                 not can_edit(user, existing) and \
-                not can_add(request.user, existing) and \
-                not can_publish(request.user, existing):
+                not can_add(request.user, existing):
 
                 return jsonResponse({"error": "You don't have permission to edit this sheet."})
         else:
@@ -692,21 +676,9 @@ def save_sheet_api(request):
             sheet["summary"] = bleach_text(sheet["summary"])
 
         if sheet.get("group", None):
-            # Quietly enforce group permissions
+            # Don't allow non Group members to add a sheet to a group
             if sheet["group"] not in [g["name"] for g in get_user_groups(user.id)]:
-                # Don't allow non Group members to add a sheet to a group
                 sheet["group"] = None
-
-            if not can_publish(user, sheet):
-                if not existing:
-                    sheet["status"] = "unlisted"
-                else:
-                    if existing.get("group", None) != sheet["group"]:
-                        # Don't allow non Group publishers to add a new public sheet
-                        sheet["status"] = "unlisted"
-                    elif existing["status"] != sheet["status"]:
-                        # Don't allow non Group publishers from changing status of an existing sheet
-                        sheet["status"] = existing["status"]
 
         rebuild_nodes = request.POST.get('rebuildNodes', False)
         responseSheet = save_sheet(sheet, user.id, rebuild_nodes=rebuild_nodes)

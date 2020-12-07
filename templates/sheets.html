@@ -545,7 +545,7 @@
                         <span class="int-he">שמירה מתבצעת...</span>
                     </span>
                 </a>
-                {% elif is_owner or can_publish %}
+                {% elif is_owner %}
                 <a id="share" class="button" role="button" tabIndex="0">
                     <img src="{% static 'img/share.png' %}" alt="Share Icon">
                     <span class="int-en">Share</span>
@@ -1475,7 +1475,6 @@
 		assigner_id: {{ assigner_id|default:"null" }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
         can_add: {% if can_add %}true{% else %}false{% endif %},
-        can_publish: {% if can_publish %}true{% else %}false{% endif %}, // group dependent, only set for non owners
 		is_owner: {% if is_owner %}true{% else %}false{% endif %},
 		editing: {},
 		ref: {},
