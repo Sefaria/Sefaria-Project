@@ -38,6 +38,7 @@ steps:
       - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:latest
       - --cache=true
       - --dockerfile=build/web/Dockerfile
+      - --context=dir://.
     id: web_container
     wait_for: [ "-" ]
 
@@ -48,17 +49,19 @@ steps:
       - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:latest
       - --cache=true
       - --dockerfile=build/node/Dockerfile
+      - --context=dir://.
     id: nodejs_container
     wait_for: [ "-" ]
   
   - name: gcr.io/kaniko-project/executor:latest
     args:
-      - --destination=gcr.io/${PROJECT_ID}/sefaria-nginx-${_ENV_NAME}:$SHORT_SHA
-      - --destination=gcr.io/${PROJECT_ID}/sefaria-nginx-${_ENV_NAME}:$TAG_NAME
-      - --destination=gcr.io/${PROJECT_ID}/sefaria-nginx-${_ENV_NAME}:latest
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$TAG_NAME
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:latest
       - --cache=false
       - --dockerfile=build/nginx/Dockerfile
-      - --build-arg=SRC_IMG=gcr.io/${PROJECT_ID}/web-test:build-cache
+      - --build-arg=SRC_IMG=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA
+      - --context=dir://.
     id: nginx_container
     wait_for: [ web_container ]
 
@@ -144,17 +147,4 @@ steps:
     wait_for: 
       - print_k8s_admin_git_hash
       - deploy_sandbox
-
-images:
-  - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA"
-  - "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA"
-  - "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA"
-
-  - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$TAG_NAME"
-  - "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$TAG_NAME"
-  - "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$TAG_NAME"
-
-  - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:latest"
-  - "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:latest"
-  - "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:latest"
 ...
