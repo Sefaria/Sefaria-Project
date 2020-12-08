@@ -3495,7 +3495,7 @@ def profile_upload_photo(request):
 def profile_sync_api(request):
     """
     API for syncing history and settings with your profile
-    Required POST fields: settings, last_synce
+    Required POST fields: settings, last_sync
     POST payload should look like
     {
         settings: {..., time_stamp},
