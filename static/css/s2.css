@@ -7504,15 +7504,48 @@ span.purim-emoji img{
 .sheetItem.ref-display-none .ref {
   display: none;
 }
-.sheetItem .SheetSource, section.SheetSource {
-  border-inline-start: 4px solid;
-  padding-inline-start: 11px;
-  padding-inline-end: 15px;
-  box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
+section.SheetSource .en {
+  background-color: #FBFBFA;
 }
 
+section.SheetSource {
+  border-inline-start: 4px solid;
+  box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
+  margin-bottom: 30px;
+}
+
+.interface-english section.SheetSource .sheetItem .he,
+.interface-english section.SheetSource .sheetItem .en {
+  padding: 15px 20px 15px 16px;
+}
+.interface-hebrew section.SheetSource .sheetItem .he,
+.interface-hebrew section.SheetSource .sheetItem .en {
+  padding: 15px 16px 15px 20px;
+}
+
+.readerPanel.bilingual.stacked .sheetContent section.SheetSource .segment.highlight .he {
+  padding-bottom: 15px;
+}
+
+
 section.SheetSource.highlight {
-  background-color: #E9E9E7;  
+  background-color: #E9E9E7;
+}
+
+section.SheetSource .segmentNumber {
+  display: none;
+}
+
+.sheetContent section.SheetSource.highlight .sheetItem.segment.highlight .sourceContentText,
+.sheetContent section.SheetSource .sheetItem.segment .sourceContentText {
+  margin: 0;
+}
+
+.sheetItem .SheetSource {
+  border-inline-start: 4px solid;
+  padding-inline-start: 16px;
+  padding-inline-end: 20px;
+  box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
 }
 
 .sheetItem .SheetSource.selected,
@@ -7522,10 +7555,10 @@ section.SheetSource.highlight {
 
 .sheetItem .SheetSource .he,
 .sheetItem .SheetSource .en {
-  padding-inline-start: 11px;
-  padding-inline-end: 15px;
-  margin-inline-start: -11px;
-  margin-inline-end: -15px;
+  padding-inline-start: 16px;
+  padding-inline-end: 20px;
+  margin-inline-start: -16px;
+  margin-inline-end: -20px;
 }
 
 .sheetItem .SheetSource .he.editable.selected .sourceContentText,
@@ -7556,7 +7589,15 @@ section.SheetSource.highlight {
     content: " ";
     display: block;
     clear: both;
+    height: 15px;
+    background-color: #FBFBFA;
+
 }
+
+.sheetItem .SheetSource.selected:after {
+   background-color: #F0F8FF;
+}
+
 
 .sheetItem .SheetOutsideBiText {
   border-left: 4px solid;
