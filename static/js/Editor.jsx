@@ -885,10 +885,19 @@ const withSefariaSheet = editor => {
         //
 
         Transforms.move(editor, { reverse: true })
+
         const [match] = Editor.nodes(editor, {
           match: n => n.type === 'spacer',
         })
-        if (!match) {
+        if (match) {
+          Transforms.move(editor, { reverse: true }) //move back one more spot and see if it's a SheetSource
+          const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem");
+          if (closestSheetItem && closestSheetItem[0]["children"][0].type == "SheetSource") {
+            Transforms.move(editor)
+            return
+          }
+        }
+        else {
           Transforms.move(editor)
         }
         // end hacky spacer delete function
@@ -913,8 +922,8 @@ const withSefariaSheet = editor => {
           match: n => n.type === 'spacer',
         })
         if (match) {
-          deleteBackward(...args)
           Transforms.move(editor)
+          editor.deleteBackward(...args)
           return
         }
         // end hacky spacer delete function
@@ -1581,13 +1590,10 @@ function saveSheetContent(doc, lastModified) {
                 });
 
             case 'SheetOutsideText':
-                const outsideTextText = serialize(sheetItem)
-               //don't save empty outsideTexts
-               console.log(outsideTextText)
-               if (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") {outsideTextText = "<p> </p>"}
-
+               const outsideTextText = serialize(sheetItem)
+               //Add space to empty outside texts to preseve line breaks from old sheets.
                return ({
-                    "outsideText": outsideTextText,
+                    "outsideText": (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") ? "<p> </p>" : outsideTextText,
                     "node": sheetItem.node,
                 });
 
