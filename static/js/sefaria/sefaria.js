@@ -1710,6 +1710,9 @@ _media: {},
   saveUserHistory: function(history_item) {
     // history_item contains:
     // - ref, book, versions. optionally: secondary, he_ref, language
+    if(!Sefaria.is_history_enabled){
+        return;
+    }
     const history_item_array = Array.isArray(history_item) ? history_item : [history_item];
     for (let h of history_item_array) {
       h.time_stamp = Sefaria.util.epoch_time();
