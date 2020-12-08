@@ -65,6 +65,8 @@ def moveCategoryInto(category, parent):
 def create_category(path, en=None, he=None):
     c = Category()
     if not Term().load({"name": path[-1]}):
+        if en is None or he is None:
+            raise Exception("Need term names for {}".format(path[-1]))
         print("adding term for " + en)
         term = Term()
         term.name = en
@@ -280,7 +282,7 @@ c = Category().load({"path": ["Modern Works", "Works of Eliezer Berkovits"]})
 p = Category().load({"path": ["Jewish Thought"]})
 moveCategoryInto(c, p)
 
-cat_ancient = create_category(["Jewish Thought", "Ancient"], "Ancient", "קדום")
+cat_ancient = create_category(["Jewish Thought", "Ancient"], "Ancient", "ספרות קדומה")
 books_ancient = ['The Midrash of Philo',
       'Against Apion',
       'The Antiquities of the Jews',
@@ -313,7 +315,7 @@ books_acharonim = ["Derech Hashem",
     "Derush Chidushei HaLevana",
     "The Third Beit HaMikdash"]
 
-cat_kook = create_category(["Jewish Thought", "Rav Kook"], "Rav Kook","רב קוק")
+cat_kook = create_category(["Jewish Thought", "Rav Kook"], "Rav Kook","כתבי הרב קוק")
 books_kook = ["Orot",
     "Orot HaKodesh",
     "Orot HaTorah",
@@ -405,7 +407,7 @@ books_ivh = ["Issur V'Heter L'Rabbeinu Yerucham",
 'Torat HaBayit HaAroch',
 'Torat HaBayit HaKatzar']
 
-cat_mitzvot = create_category(["Halakhah", "Sifrei Mitzvot"], "Sifrei Mitzvot", "ספרי מצות")
+cat_mitzvot = create_category(["Halakhah", "Sifrei Mitzvot"], "Sifrei Mitzvot", "ספרי מצוות")
 books_mitzvot = ['Sefer Hamitzvot of Rasag',
 'Sefer Mitzvot Gadol',
 'Sefer Mitzvot Katan',
@@ -416,7 +418,7 @@ books_mitzvot = ['Sefer Hamitzvot of Rasag',
 'Sefer Yereim',
 'Kitzur Sefer Haredim of Rabbi Elazar Azcari']
 
-cat_mono = create_category(["Halakhah", "Monographs"], "Monographs", "מונוגרפיה")
+cat_mono = create_category(["Halakhah", "Monographs"], "Monographs", "ספרי מונוגרפיה")
 books_mono = ['Chofetz Chaim',
 'The Sabbath Epistle',
 'Treasures Hidden in the Sand',
@@ -491,7 +493,7 @@ i = library.get_index("Biur Halacha")
 moveIndexInto(i, c)
 
 # Move categories of Kesef Mishnah to correct place
-new_parent = Category().load({"path": ["Halakhah", "Mishneh Torah", "Commentary", "Kessef Mishneh"] })
+new_parent = create_category(["Halakhah", "Mishneh Torah", "Commentary", "Kessef Mishneh"] )
 cs = CategorySet({"$and": [{"path.0": "Halakhah"}, {"path.1": "Commentary"}, {"path.2": "Kessef Mishneh"}, {"path.3": "Mishneh Torah"}]})
 for c in cs:
     if len(c.path) == 4:
@@ -509,7 +511,6 @@ r_books = [
     'The Improvement of the Moral Qualities',
     'Shekel HaKodesh',
     'Letter from Ramban to his Son',
-    'Toras Habayis',
     'Shaarei Teshuvah',
     "Sha'ar Ha'Gemul of the Ramban",
     'Iggeret HaRamban',
@@ -518,6 +519,7 @@ r_books = [
     'Sefer HaYashar',
     'Bechinat Olam',
     'Orchot Tzadikim',
+    'Yesod HaYirah',
     'Sefer Tomer Devorah']
 
 a_books = [
@@ -535,7 +537,6 @@ m_books = [
     "Tzipita L'Yeshuah",
     'Sichot Avodat Levi',
     'Shuvah Yisrael',
-    'Yesod HaYirah',
     'Maamar Mezake HaRabim'
 ]
 
@@ -648,7 +649,7 @@ books_other_a =  [
     "Melamed Leho'il Part II",
 ]
 
-cat_other_m = create_category(["Responsa", "Other Modern"], "Other Modern", "מודרני נוספים")
+cat_other_m = create_category(["Responsa", "Other Modern"], "Other Modern", "שו”תים מודרניים נוספים")
 books_other_m = ['Responsa Benei Banim',
 'Mishpetei Uziel',
 'Collected Responsa in Wartime',
@@ -714,13 +715,18 @@ for t in tohide:
 
 
 # remove empty categories
+"""
 library.rebuild(include_toc=True)
 for c in CategorySet({"$and": [{"path.0":"Halakhah"},{"path.1":"Commentary"},{"path.2":"Kessef Mishneh"}]}):
+    if len(c.path) == 3:
+        continue
     c.delete()
+"""
 
 for p in [
         ["Halakhah", "Commentary", "Summary of Taz", "Shulchan Arukh"],
         ["Halakhah", "Commentary", "Summary of Shakh", "Shulchan Arukh"],
+        ["Halakhah", "Commentary", "Kessef Mishneh"],
         ["Other", "Grammar"],
         ["Other", "Dictionary"],
         ["Modern Works", "Commentary"],
@@ -733,7 +739,7 @@ library.rebuild(include_toc=True)
 for p in [
         ["Other"],
         ["Modern Works"],
-        ["Tanaitic"]
+        ["Tanaitic"],
     ]:
     c = Category().load({"path": p})
     c.delete()
