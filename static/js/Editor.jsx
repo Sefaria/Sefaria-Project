@@ -1126,7 +1126,12 @@ const withSefariaSheet = editor => {
         if (Node.string(node) !== "") {
 
           const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, Node.string(node))
-          const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,1]))
+          try {
+            const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,1]))
+          }
+          catch {
+            const atEndOfDoc = null
+          }
           Transforms.move(editor);
           Transforms.delete(editor, {at: path});
           Transforms.insertNodes(editor, fragment, { at: path });
@@ -1313,18 +1318,22 @@ const addItemToSheet = (editor, fragment, position) => {
 
 const checkAndFixDuplicateSheetNodeNumbers = (editor) => {
   let existingSheetNodes = []
-
-  for (const [child, childPath] of Node.children(editor, [0,1])) {
-    const sheetNode = child.children[0];
-    if (existingSheetNodes.includes(sheetNode.node)) {
-      const newNodeEditPath = childPath.concat([0]);
-      Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: newNodeEditPath});
-      existingSheetNodes.push(editor.children[0].nextNode);
-      incrementNextSheetNode(editor)
+  try {
+    for (const [child, childPath] of Node.children(editor, [0,1])) {
+      const sheetNode = child.children[0];
+      if (existingSheetNodes.includes(sheetNode.node)) {
+        const newNodeEditPath = childPath.concat([0]);
+        Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: newNodeEditPath});
+        existingSheetNodes.push(editor.children[0].nextNode);
+        incrementNextSheetNode(editor)
+      }
+      else {
+        existingSheetNodes.push(sheetNode.node)
+      }
     }
-    else {
-      existingSheetNodes.push(sheetNode.node)
-    }
+  }
+  catch {
+    return
   }
 }
 
@@ -1545,7 +1554,6 @@ function saveSheetContent(doc, lastModified) {
     const sheetTitle = sheetMetaData.children.find(el => el.type == "SheetTitle").children.reduce((htmlString, fragment) => {
         return htmlString + serialize(fragment)
     }, "");
-
 
     const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
 
