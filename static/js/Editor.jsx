@@ -52,6 +52,7 @@ const ELEMENT_TAGS = {
     LI: () => ({type: 'list-item'}),
     OL: () => ({type: 'numbered-list'}),
     P: () => ({type: 'paragraph'}),
+    DIV: () => ({type: 'paragraph'}),
     PRE: () => ({type: 'code'}),
     UL: () => ({type: 'bulleted-list'}),
 };
@@ -100,11 +101,12 @@ const format_to_html_lookup = format_tag_pairs.reduce((obj, item) => {
 
 export const deserialize = el => {
     if (el.nodeType === 3) {
-        return el.textContent
+        const textToReturn = el.textContent.replace(/\u2800/g, ''); // this removes the temporary hacky braile character added to render empty paragraphs and br line breaks in parseSheetItemHTML()
+        return textToReturn
     } else if (el.nodeType !== 1) {
         return null
     } else if (el.nodeName === 'BR') {
-        return '\n'
+        return null
     }
 
     const {nodeName} = el;
@@ -150,7 +152,7 @@ export const serialize = (content) => {
             return {preTags: tagString.preTags, postTags: tagString.postTags}
         }, {preTags: "", postTags: ""});
 
-        return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br/>')}${tagStringObj.postTags}`)
+        return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br>')}${tagStringObj.postTags}`)
     }
 
     if (content.type == "link") {
@@ -168,7 +170,7 @@ export const serialize = (content) => {
         const paragraphHTML =  content.children.reduce((acc, text) => {
             return (acc + serialize(text))
         },"");
-        return `<p>${paragraphHTML}</p>`
+        return `<div>${paragraphHTML}</div>`
     }
 
     const children = content.children ? content.children.map(serialize) : [];
@@ -268,7 +270,8 @@ function renderSheetItem(source) {
 }
 
 function parseSheetItemHTML(rawhtml) {
-    const parsed = new DOMParser().parseFromString(Sefaria.util.cleanHTML(rawhtml), 'text/html');
+    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r)/gm, "").replace(/(<p><br><\/p>|<p> <\/p>)/gm, "<div>⠀</div>") // this is an ugly hack that adds the blank braile unicode character to ths string for a moment to ensure that the empty paragraph string gets rendered, this character will be removed later.
+    const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
     return slateJSON[0].type == 'paragraph' ? slateJSON : [{type: 'paragraph', children: slateJSON}]
@@ -724,7 +727,7 @@ const Element = props => {
             )
         case 'paragraph':
             return (
-                <p>{children}</p>
+                <div>{children}</div>
             );
         case 'byline':
             return (
@@ -859,6 +862,66 @@ const withSefariaSheet = editor => {
     editor.isVoid = element => {
         return (voidElements.includes(element.type)) ? true : isVoid(element)
     };
+
+
+    const { deleteBackward } = editor
+
+    editor.deleteBackward = (...args) => {
+      const { selection } = editor;
+
+      if (selection && Range.isCollapsed(selection)) {
+        //
+        // This is a bit of a hack to ensure back spacing into a spacer
+        // gives the expected behavior.
+        //
+        // Without this, if one backspaces into a spacer from another SheetItem
+        // the sheet item loses its node id and it deletes some of the children.
+        // Instead, this function moves a space back to see if one would backspace
+        // into a spacer. If so, it stays there and then backspaces from the spacer
+        // moving up the SheetItem and no one is the wiser.
+        //
+        // If it's not in a spacer, the cursor returns to its previous position
+        // and deletes as expected, again, with no one the wiser...
+        //
+
+        Transforms.move(editor, { reverse: true })
+        const [match] = Editor.nodes(editor, {
+          match: n => n.type === 'spacer',
+        })
+        if (!match) {
+          Transforms.move(editor)
+        }
+        // end hacky spacer delete function
+      }
+      deleteBackward(...args)
+    }
+
+    const { deleteForward } = editor
+
+    editor.deleteForward = (...args) => {
+      const { selection } = editor;
+
+      if (selection && Range.isCollapsed(selection)) {
+        //
+        // This is a bit of a hack to ensure that hitting delete in a spacer
+        // gives the expected behavior.
+        //
+        // Without this, if one hits delete in a spacer from another the SheetItem
+        // below loses its node id and it deletes some of the children.
+        //
+        const [match] = Editor.nodes(editor, {
+          match: n => n.type === 'spacer',
+        })
+        if (match) {
+          deleteBackward(...args)
+          Transforms.move(editor)
+          return
+        }
+        // end hacky spacer delete function
+      }
+      deleteForward(...args)
+    }
+
 
     editor.insertBreak = () => {
 
@@ -1396,7 +1459,6 @@ const Leaf = ({attributes, children, leaf}) => {
     if (leaf.isRef) {
         children = <span className="inlineTextRef">{children}</span>
     }
-
     return <span {...attributes}>{children}</span>
 };
 
@@ -1521,7 +1583,8 @@ function saveSheetContent(doc, lastModified) {
             case 'SheetOutsideText':
                 const outsideTextText = serialize(sheetItem)
                //don't save empty outsideTexts
-               if (outsideTextText=="<p></p>") {return}
+               console.log(outsideTextText)
+               if (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") {outsideTextText = "<p> </p>"}
 
                return ({
                     "outsideText": outsideTextText,

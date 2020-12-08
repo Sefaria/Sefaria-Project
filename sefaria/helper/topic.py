@@ -13,9 +13,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_topic(topic, with_links, annotate_links, with_refs, group_related):
+def get_topic(topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters):
     topic_obj = Topic.init(topic)
-    response = topic_obj.contents()
+    response = topic_obj.contents(annotate_time_period=annotate_time_period)
     response['primaryTitle'] = {
         'en': topic_obj.get_primary_title('en'),
         'he': topic_obj.get_primary_title('he')
@@ -30,12 +30,13 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
         # can load faster by querying `topic_links` query just once
         all_links = topic_obj.link_set(_class=None)
         intra_links = [l.contents() for l in all_links if isinstance(l, IntraTopicLink)]
-        response['refs'] = [l.contents() for l in all_links if isinstance(l, RefTopicLink)]
+        response['refs'] = [l.contents() for l in all_links if isinstance(l, RefTopicLink) and (len(ref_link_type_filters) == 0 or l.linkType in ref_link_type_filters)]
     else:
         if with_links:
             intra_links = [l.contents() for l in topic_obj.link_set(_class='intraTopic')]
         if with_refs:
-            response['refs'] = [l.contents() for l in topic_obj.link_set(_class='refTopic')]
+            query_kwargs = {"linkType": {"$in": list(ref_link_type_filters)}} if len(ref_link_type_filters) > 0 else None
+            response['refs'] = [l.contents() for l in topic_obj.link_set(_class='refTopic', query_kwargs=query_kwargs)]
     if with_links:
         response['links'] = {}
         link_dups_by_type = defaultdict(set)  # duplicates can crop up when group_related is true
@@ -97,6 +98,15 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
                     subset_ref_map[seg_ref] += [len(new_refs) - 1]
 
         response['refs'] = new_refs
+    if getattr(topic_obj, 'isAmbiguous', False):
+        possibility_links = topic_obj.link_set(_class="intraTopic", query_kwargs={"linkType": TopicLinkType.possibility_type})
+        possibilities = []
+        for link in possibility_links:
+            possible_topic = Topic.init(link.topic)
+            if possible_topic is None:
+                continue
+            possibilities += [possible_topic.contents(annotate_time_period=annotate_time_period)]
+        response['possibilities'] = possibilities
     return response
 
 
