@@ -594,7 +594,8 @@ class UserProfile(object):
         :param limit: Passed on to Mongo to limit # of results
         :return:
         """
-
+        if not self.settings['reading_history'] and not saved:
+            return [] if serialized else None
         return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
                                             last_place=last_place, serialized=serialized, limit=limit)
 
