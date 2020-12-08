@@ -27,7 +27,7 @@
     /* see https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript/3561711#3561711 */
     function escapeRegex(string) {return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');}
 
-    var base_url = '{% if DEBUG %}http://localhost:8000/{% else %}https://www.sefaria.org/{% endif %}';
+    var base_url = '{% if DEBUG %}/{% else %}https://www.sefaria.org/{% endif %}';
     var bookTitles = {{ book_titles }};
     var popUpElem;
     var heBox;
@@ -74,6 +74,7 @@
             '@import url("https://fonts.googleapis.com/css?family=Crimson+Text:ital,wght@0,400;0,700;1,400;1,700|Frank+Ruhl+Libre|Heebo");' +
             '#sefaria-popup {'+
                 'width: 400px;'+
+                'max-width: 90%;'+
                 'max-height: 560px;' +
                 'font-size: 16px;' +
                 'border-left: 1px #ddd solid;'+
@@ -174,6 +175,10 @@
             '.interface-hebrew .sefaria-footer {' +
                 'direction: rtl;' +
                 'font-family: "Heebo", sans-serif' + 
+            '}'+
+            '#sefaria-popup.short-screen .sefaria-text{'+
+                'overflow-y: scroll;' + 
+                'max-height: calc(100% - 117px);' +
             '}';
 
         if (mode == "popup-click") {
@@ -320,10 +325,23 @@
         popUpElem.style.display = "block";
 
         var popUpRect = popUpElem.getBoundingClientRect();
-        if (window.innerHeight < popUpRect.bottom) { // popup drops off the screen
-            var pos = ((window.innerHeight - popUpRect.height) - 10);
-            popUpElem.style.top = (pos > 0)?pos + "px":"10px";
+        if (popUpRect.height > window.innerHeight) {
+            // if the popup is too long for window height, shrink it
+            popUpElem.classList.add("short-screen");
+            popUpElem.style.height = (window.innerHeight * 0.9) + "px";
         }
+        if (window.innerHeight < popUpRect.bottom) { 
+            // if popup drops off bottom screen, pull up
+            var pos = ((window.innerHeight - popUpRect.height) - 10);
+            popUpElem.style.top = (pos > 0) ? pos + "px" : "10px";
+        }
+        if (window.innerWidth < popUpRect.right || popUpRect.left < 0) { 
+            // popup drops off the side screen, center it
+            var pos = ((window.innerWidth - popUpRect.width) / 2);
+            popUpElem.style.left = pos + "px";
+            popUpElem.style.right = "auto";
+        }
+
 
         if (mode == "popup-click") {
             [].forEach.call(popUpElem.querySelectorAll(".sefaria-popup-ref"), function(link) {link.setAttribute('href', e.href);});
@@ -354,6 +372,8 @@
                 triggerLink.focus();
         }
         popUpElem.style.display = "none";
+        popUpElem.classList.remove("short-screen");
+        popUpElem.style.height = "auto";
     };
 
     // Public API
@@ -362,21 +382,27 @@
 
     ns.link = function(options) {
         options = options || {};
-        options.popupStyles = options.popupStyles || {};
-        options.interfaceLang = options.interfaceLang || "english";
-        options.contentLang = options.contentLang || "bilingual";
-        options.parenthesesOnly = options.parenthesesOnly || false;
-        options.quotationOnly = options.quotationOnly || false;
-        options.dynamic = options.dynamic || false;
+        var defaultOptions = {
+            mode: "popup-click",
+            selector: "body",
+            popupStyles: {},
+            interfaceLang: "english",
+            contentLang: "bilingual",
+            parenthesesOnly: false,
+            quotationOnly: false,
+            dynamic: false,
+            hidePopupsOnMobile: true
+        };
+        Object.assign(options, defaultOptions);
 
-        var selector = options.selector || "body";
-        var mode = "popup-click";
-        if (window.screen.width < 820 || options.mode == "link") { mode = "link"; }  // If the screen is small, fallback to link mode
-
-        setupPopup(options, mode);
+        if (window.innerWidth < 700 && options.hidePopupsOnMobile) { 
+            // If the screen is small, defautlt to link mode, unless override set
+            options.mode = "link";
+        }  
+        setupPopup(options, options.mode);
 
         ns.matches = [];
-        ns.elems = document.querySelectorAll(selector);
+        ns.elems = document.querySelectorAll(options.selector);
         ns.quotationOnly = options.quotationOnly;
         ns.parenthesesOnly = options.parenthesesOnly;
         ns.dynamic = options.dynamic;
@@ -390,7 +416,7 @@
             return;
         }
 
-        ns._getRegexesThenTexts(mode);
+        ns._getRegexesThenTexts(options.mode);
     };
 
 
