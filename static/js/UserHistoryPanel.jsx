@@ -29,7 +29,7 @@ class UserHistoryPanel extends Component {
       }
     }
   }
-  componentDidMount() {
+  /*componentDidMount() {
     this._isMounted = true;
     this.getItems(this.props);
   }
@@ -44,7 +44,7 @@ class UserHistoryPanel extends Component {
         }
       });
     }
-  }
+  }*/
   navHome() {
     this.props.openNav();
   }
