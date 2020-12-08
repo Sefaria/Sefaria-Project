@@ -66,7 +66,7 @@ class Footer extends Component {
     return (
       <footer id="footer" className="static sans">
         <div id="footerInner">
-            <Section en="About" he="אודות">
+            <Section en="About" he="על אודות">
                 <Link href="/about" en="What is Sefaria?" he="מהי ספריא" />
                 <Link href="/help" en="Help" he="עזרה" />
                 <Link href="/faq" en="FAQ" he="שאלות נפוצות" />
@@ -83,7 +83,7 @@ class Footer extends Component {
                 <Link href="/visualizations" en="Visualizations" he="תרשימים גרפיים" />
                 <Link href="/mobile" en="Mobile Apps" he="ספריא בנייד" />
                 <Link href="/daf-yomi" en="Daf Yomi" he="דף יומי" />
-                <Link href="/torah-tab" en="Torah Tab" he="תורה טאב" />
+                <Link href="/torah-tab" en="Torah Tab" he="תורה טאב (לשונית)" />
                 <Link href="/people" en="Authors" he="מחברים" />
                 <Link href="/groups" en="Groups" he="קבוצות" />
                 <Link href="/updates" en="New Additions" he="עדכונים" />
@@ -93,14 +93,14 @@ class Footer extends Component {
             <Section en="Developers" he="מפתחים">
                 <Link href="/developers" en="Get Involved" he="הצטרף אלינו" blank={true} />
                 <Link href="/developers#api" en="API Docs" he="מסמכי API" blank={true} />
-                <Link href="https://github.com/Sefaria/Sefaria-Project" en="Fork us on GitHub" he="זלגו חופשי מגיטהאב" blank={true} />
-                <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="הורד את בסיס הנתונים שלנו" blank={true} />
+                <Link href="https://github.com/Sefaria/Sefaria-Project" en="Fork us on GitHub" he="Github" blank={true} />
+                <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="הורדת בסיס הנתונים שלנו" blank={true} />
             </Section>
 
-            <Section en="Join Us" he="הצטרף אלינו">
+            <Section en="Join Us" he="הצטרפו אלינו">
                 <Link href="https://sefaria.nationbuilder.com/supportsefaria" en="Donate" he="תרומות" />
                 <Link href="/supporters" en="Supporters" he="תומכים" />
-                <Link href="/contribute" en="Contribute" he="הצטרף" blank={true} />
+                <Link href="/contribute" en="Contribute" he="להצטרפות" blank={true} />
                 <Link href="/jobs" en="Jobs" he="דרושים" />
                 <Link href="https://store.sefaria.org" en="Shop" he="חנות" />
             </Section>
@@ -108,7 +108,7 @@ class Footer extends Component {
           <div className="section last connect">
               <div className="header connect">
                   <span className="int-en">Connect</span>
-                  <span className="int-he">התחבר</span>
+                  <span className="int-he">התחברות</span>
               </div>
               <NewsletterSignUpForm contextName="Footer" />
               <LikeFollowButtons />

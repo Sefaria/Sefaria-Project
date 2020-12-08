@@ -1477,7 +1477,7 @@ function NewsletterSignUpForm(props) {
         </div>
       : null}
       { subscribeMessage ?
-      <div className="subscribeMessage">{subscribeMessage}</div>
+      <div className="subscribeMessage">{Sefaria._(subscribeMessage)}</div>
       : null }
     </div>);
 }
@@ -2035,7 +2035,7 @@ ReaderMessage.propTypes = {
 class CookiesNotification extends Component {
   constructor(props) {
     super(props);
-    const showNotification = !Sefaria._debug && Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
+    const showNotification = /*!Sefaria._debug && */Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
 
     this.state = {showNotification: showNotification};
   }
@@ -2053,8 +2053,10 @@ class CookiesNotification extends Component {
             <span className='int-en button small white' onClick={this.setCookie}>OK</span>
           </span>
           <span className="int-he">
-            <span>אנחנו משתמשים בעוגיות כדי לתת למשתמשים את חווית השימוש הטובה ביותר. <a href="/privacy-policy">קרא עוד בנושא</a>.</span>
-            <span className='int-he button small white' onClick={this.setCookie}>אישור</span>
+            <span>אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
+              <a href="/privacy-policy">קראו עוד בנושא</a>
+            </span>
+            <span className='int-he button small white' onClick={this.setCookie}>לחצו כאן לאישור</span>
           </span>
 
        </div>

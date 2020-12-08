@@ -663,19 +663,19 @@
   box-sizing: border-box;
 }
 .registrationContent input::placeholder { /* eventual spec? */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent input::-moz-placeholder { /* Firefox 19+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent input:-ms-input-placeholder { /* IE 10+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent input:-moz-placeholder { /* Firefox 18- */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
   width: auto;
@@ -693,7 +693,7 @@
 .registrationContent #register-form p:nth-of-type(5){
   padding-top: 10px;
 }
-.interface-hebrew input#id_email::-webkit-input-placeholder {
+.interface-hebrew input#id_email::placeholder {
   text-align: right;
 }
 input#id_email{
@@ -1093,7 +1093,7 @@ p.registration-links a:hover{
     background-color: #FBFBFA;
 }
 #accountSettingsPage input::placeholder{
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: normal;
   color: #999;
   padding-bottom: 15px;
@@ -1105,7 +1105,7 @@ p.registration-links a:hover{
   display: block;
   width 100%;
   margin: 10px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
 }
 #accountSettingsPage #email-edit-errors{
