@@ -49,7 +49,7 @@ class UserHistoryPanel extends Component {
     this.props.openNav();
   }
   render() {
-    const content = (this.props.menuOpen === 'history' && !Sefaria.reading_history) ? (
+    const content = (this.props.menuOpen === 'history' && !Sefaria.is_history_enabled) ? (
         <div id="history-disabled-msg">
           <span className="int-en">Reading history is currently disabled. Go <a href="/settings/account">settings</a> to turn it back on</span>
           <span className="int-he">היסטורית הקריאה שלך כבויה. ניתן להפעילה מחדש במסך <a href="/settings/account">ההגדרות</a></span>

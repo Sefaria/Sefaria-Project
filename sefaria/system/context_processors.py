@@ -119,7 +119,7 @@ def user_and_notifications(request):
         "following": profile.followees.uids,
         "is_moderator": request.user.is_staff,
         "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
-        "reading_history": profile.settings["reading_history"]
+        "is_history_enabled": profile.settings["reading_history"]
     }
 
 

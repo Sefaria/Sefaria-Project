@@ -367,6 +367,7 @@ def base_props(request):
         "_uid": request.user.id,
         "is_moderator": request.user.is_staff,
         "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
+        "is_history_enabled": profile.settings["reading_history"] if profile else True,
         "notificationCount": profile.unread_notification_count() if profile else 0,
         "full_name": profile.full_name if profile else "",
         "profile_pic_url": profile.profile_pic_url if profile else "",
