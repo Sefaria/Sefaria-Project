@@ -12,7 +12,7 @@ import {
 import React  from 'react';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
-import { GroupListing } from './MyGroupsPanel';
+import { GroupListing } from './PublicCollectionsPage';
 import NoteListing  from './NoteListing';
 import Component from 'react-class';
 import Footer  from './Footer';

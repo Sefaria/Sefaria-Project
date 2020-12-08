@@ -29,9 +29,8 @@ import StoryEditor  from './StoryEditor';
 import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
 import {
-  MyGroupsPanel,
-  PublicGroupsPanel
-} from './MyGroupsPanel';
+  PublicGroupsPage
+} from './PublicCollectionsPage';
 import {
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuMenuButton,
@@ -1038,12 +1037,7 @@ class ReaderPanel extends Component {
                     toggleLanguage={this.toggleLanguage} />);
 
     } else if (this.state.menuOpen === "publicGroups") {
-      menu = (<PublicGroupsPanel
-                    multiPanel={this.props.multiPanel}
-                    navHome={this.openMenu.bind(null, "navigation")}/>);
-
-    } else if (this.state.menuOpen === "myGroups") {
-      menu = (<MyGroupsPanel
+      menu = (<PublicGroupsPage
                     multiPanel={this.props.multiPanel}
                     navHome={this.openMenu.bind(null, "navigation")}/>);
 

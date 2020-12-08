@@ -770,7 +770,7 @@ def get_group_page(request, group, authenticated):
     return render(request, 'base.html', {
         "propsJSON": propsJSON,
         "html": html,
-        "title": group[0].name + " | " + _("Sefaria Groups"),
+        "title": group[0].name + " | " + _("Sefaria Collections"),
         "desc": props["groupData"].get("description", ""),
         "noindex": not getattr(group[0], "listed", False)
     })
@@ -781,15 +781,8 @@ def public_groups(request):
     props.update({
         "groupListing": GroupSet.get_group_listing(request.user.id)
     })
-    title = _("Sefaria Groups")
+    title = _("Sefaria Collections")
     return menu_page(request, props, "publicGroups")
-
-
-@login_required
-def my_groups(request):
-    props = base_props(request)
-    title = _("Sefaria Groups")
-    return menu_page(request, props, "myGroups")
 
 
 @login_required

@@ -34,7 +34,6 @@ urlpatterns = [
     url(r'^groups/new$', reader_views.edit_group_page),
     url(r'^groups/(?P<group>[^.]+)/settings$', reader_views.edit_group_page),
     url(r'^groups/(?P<group>[^.]+)$', reader_views.group_page),
-    url(r'^my/groups$', reader_views.my_groups),
     url(r'^notifications/?$', reader_views.notifications),
     url(r'^my/notes/?$', reader_views.my_notes),
     url(r'^updates/?$', reader_views.updates),

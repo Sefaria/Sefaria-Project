@@ -592,14 +592,9 @@ class ReaderApp extends Component {
             hist.mode  = "notifications";
             break;
           case "publicGroups":
-            hist.title = Sefaria._(siteName + " Groups");
+            hist.title = Sefaria._(siteName + " Collections");
             hist.url = "groups";
             hist.mode = "publicGroups";
-            break;
-          case "myGroups":
-            hist.title = Sefaria._(siteName + " Groups");
-            hist.url = "my/groups";
-            hist.mode = "myGroups";
             break;
           case "myNotes":
             hist.title = Sefaria._("My Notes on " + siteName);
@@ -1093,9 +1088,6 @@ class ReaderApp extends Component {
 
     } else if (path == "/my/profile") {
       this.openProfile(Sefaria.slug);
-
-    } else if (path == "/my/groups") {
-      this.showMyGroups();
 
     } else if (path == "/my/notes") {
       this.showMyNotes();
@@ -1678,9 +1670,6 @@ class ReaderApp extends Component {
   }
   showGroups() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "publicGroups"});
-  }
-  showMyGroups() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "myGroups"});
   }
   showMyNotes() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "myNotes"});

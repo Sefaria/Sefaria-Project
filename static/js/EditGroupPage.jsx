@@ -130,8 +130,8 @@ class EditGroupPage extends Component {
     });
   }
   render() {
-    const enTitle = this.props.initialData ? "Edit Group" : "Create a Group";
-    const heTitle = this.props.initialData ? "עריכת קבוצה" : "יצירת קבוצה";
+    const enTitle = this.props.initialData ? "Edit Collection" : "Create a Collection";
+    const heTitle = this.props.initialData ? "עריכת TODO HEBREW" : "יצירת TODO HEBREW";
     return (
       <div id="editGroupPage">
         <div className="headerWithButtons">
@@ -154,8 +154,8 @@ class EditGroupPage extends Component {
 
         <div className="field halfWidth">
           <label>
-            <span className="int-en">Group Name</span>
-            <span className="int-he">שם הקבוצה</span>
+            <span className="int-en">Collection Name</span>
+            <span className="int-he">שם ה TODO HEBREW</span>
           </label>
           <input id="groupName" value={this.state.name||""} onChange={this.handleInputChange}/>
         </div>
@@ -178,8 +178,8 @@ class EditGroupPage extends Component {
 
         <div className="field">
           <label>
-            <span className="int-en">Group Image</span>
-            <span className="int-he">תמונה לקבוצה</span>
+            <span className="int-en">Collection Image</span>
+            <span className="int-he">תמונה ל TODO HEBREW</span>
           </label>
           {this.state.imageUrl
             ? <img className="groupImage" src={this.state.imageUrl} alt="Group Image" />
@@ -237,20 +237,20 @@ class EditGroupPage extends Component {
                 <span className="onoffswitch-switch"></span>
             </label>
             <div className="helperText">
-              <span className="int-en">Your group will appear on the public groups page where others can find it.</span>
-              <span className="int-he">הקבוצה תופיע ברשימת הקבוצות הפתוחות, ומשתמשים אחרים יוכלו לראות אותה</span>
+              <span className="int-en">Your collection will appear on the public collections page where others can find it.</span>
+              <span className="int-he">ה TODO HEBREW תופיע ברשימת הקבוצות הפתוחות, ומשתמשים אחרים יוכלו לראות אותה</span>
             </div>
           </div>
           : <div>
-              <span className="int-en">Your group was previously made public, but our moderators determined it was not generally useful for all Sefaria users. Please contact <a href="mailto:hello@sefari.org">hello@sefaria.org</a> with any questions.</span>
-              <span className="int-he">הקבוצה הוגדרה בעבר כפתוחה, אך המנהלים שלנו הסיקו שהיא אינה שימושית לקהל המשתמשים הרחב. אנא צרו קשר עם <a href="mailto:hello@sefari.org">hello@sefaria.org</a> לשאלות נוספות. </span>
+              <span className="int-en">Your collection was previously made public, but our moderators determined it was not generally useful for all Sefaria users. Please contact <a href="mailto:hello@sefari.org">hello@sefaria.org</a> with any questions.</span>
+              <span className="int-he">ה TODO HEBREW הוגדרה בעבר כפתוחה, אך המנהלים שלנו הסיקו שהיא אינה שימושית לקהל המשתמשים הרחב. אנא צרו קשר עם <a href="mailto:hello@sefari.org">hello@sefaria.org</a> לשאלות נוספות. </span>
           </div> }
         </div>
 
         {this.props.initialData ?
           <div className="deleteGroup" onClick={this.delete}>
-            <span className="int-en">Delete Group</span>
-            <span className="int-he">מחק קבוצה</span>
+            <span className="int-en">Delete Collection</span>
+            <span className="int-he">מחק TODO HEBREW</span>
           </div>
           : null}
 

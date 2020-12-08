@@ -10,58 +10,7 @@ import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
 
 
-function MyGroupsPanel({multiPanel, navHome}) {
-  const [groupsList, setGroupsList] = useState(null);
-  useEffect(() => {
-    Sefaria.getGroupsList()
-        .then(d => setGroupsList(d));
-  });
-
-  const classStr = classNames( {myGroupsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 });
-  return (
-    <div className={classStr}>
-      {multiPanel ? null :
-        <SinglePanelNavHeader
-          enTitle="My Groups"
-          heTitle="הקבוצות שלי"
-          navHome={navHome}
-          showDisplaySettings={false}/>
-      }
-      <div className="content hasFooter">
-        <div className="contentInner">
-          {multiPanel ?
-          <h1>
-            <span className="int-en">My Groups</span>
-            <span className="int-he">הקבוצות שלי</span>
-          </h1> : null }
-          {multiPanel ?
-          <center>
-            <a className="button white" href="/groups/new">
-              <span className="int-en">Create a Group</span>
-              <span className="int-he">צור קבוצה</span>
-            </a>
-          </center> : null }
-
-          <div className="groupsList">
-            { groupsList ?
-                (groupsList.private.length ?
-                  groupsList.private.map(function(item) {
-                    return <GroupListing data={item} key={item.name} />
-                  })
-                  : <LoadingMessage message="You aren't a member of any groups yet." heMessage="אינך חבר כרגע באף קבוצה" />)
-                : <LoadingMessage />
-            }
-          </div>
-
-        </div>
-        <Footer />
-      </div>
-    </div>);
-}
-MyGroupsPanel.propTypes = {};
-
-
-function PublicGroupsPanel({multiPanel, navHome}) {
+function PublicGroupsPage({multiPanel, navHome}) {
   const [groupsList, setGroupsList] = useState(Sefaria.getGroupsListFromCache());
   
   const sortGroupList = d => {
@@ -84,13 +33,13 @@ function PublicGroupsPanel({multiPanel, navHome}) {
         .then(d => setGroupsList(d));
   });
 
-  const classStr = classNames( {myGroupsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 });
+  const classStr = classNames( {systemPanel: 1, readerNavMenu: 1, noHeader: 1 });
   return (
     <div className={classStr}>
       {multiPanel ? null :
         <SinglePanelNavHeader
-          enTitle="Groups"
-          heTitle={Sefaria._("Groups")}
+          enTitle="Collections"
+          heTitle={Sefaria._("Collections")}
           navHome={navHome}
           showDisplaySettings={false}/>
       }
@@ -98,14 +47,14 @@ function PublicGroupsPanel({multiPanel, navHome}) {
         <div className="contentInner">
           {multiPanel ?
           <h1>
-            <span className="int-en">Public Groups</span>
-            <span className="int-he">קבוצות</span>
+            <span className="int-en">Public Collections</span>
+            <span className="int-he">TODO Hebrew</span>
           </h1> : null}
           {multiPanel ?
           <center>
             <a className="button white" href="/groups/new">
-              <span className="int-en">Create a Group</span>
-              <span className="int-he">צור קבוצה</span>
+              <span className="int-en">Create a Collection</span>
+              <span className="int-he">צור TODO HEBREW</span>
             </a>
           </center> : null}
 
@@ -115,7 +64,7 @@ function PublicGroupsPanel({multiPanel, navHome}) {
                   groupsList.public.map(function(item) {
                     return <GroupListing data={item} key={item.name} />
                   })
-                  : <LoadingMessage message="You aren't a member of any groups yet." heMessage="אינך חבר כרגע באף קבוצה" />)
+                  : <LoadingMessage message="There are no public collections yet." heMessage="TODO Hebrew" />)
                 : <LoadingMessage />
             }
           </div>
@@ -126,7 +75,8 @@ function PublicGroupsPanel({multiPanel, navHome}) {
     </div>);
 
 }
-PublicGroupsPanel.propTypes = {};
+PublicGroupsPage.propTypes = {};
+
 
 function GroupListing({data, showMembership}) {
   const imageUrl = data.imageUrl || "/static/img/collection.svg";
@@ -171,6 +121,5 @@ GroupListing.propTypes = {
 
 export {
   GroupListing,
-  MyGroupsPanel,
-  PublicGroupsPanel,
+  PublicGroupsPage,
 };
