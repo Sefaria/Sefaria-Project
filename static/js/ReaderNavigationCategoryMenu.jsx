@@ -218,7 +218,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
         } else {
           if (item.isGroup) {
             // Add a Group
-            let url = "/groups/" + item.name.replace(/\s/g, "-");
+            let url = "/collections/" + item.name.replace(/\s/g, "-");
             let classes = classNames({groupLink: 1, blockLink: 1});
             content.push((<a href={url}
                             className={classes}

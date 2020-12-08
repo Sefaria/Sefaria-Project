@@ -92,7 +92,7 @@ class UserProfile extends Component {
         { Sefaria._uid === this.props.profile.id ?
           <div className="emptyListText">
             <IntText>You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.</IntText>
-            <a href="/groups/new" className="resourcesLink">
+            <a href="/collections/new" className="resourcesLink">
               <img src="/static/img/collection.svg" alt="Collection icon" />
               <IntText>Create a New Collection</IntText>
             </a>
@@ -110,7 +110,7 @@ class UserProfile extends Component {
     if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
       <div className="sheet-header">
-        <a href="/groups/new" className="resourcesLink">
+        <a href="/collections/new" className="resourcesLink">
           <img src="/static/img/collection.svg" alt="Collection icon" />
             <IntText>Create a New Collection</IntText>
         </a>

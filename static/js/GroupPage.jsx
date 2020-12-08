@@ -272,7 +272,7 @@ class GroupPage extends Component {
                     <span className="int-he">חברים</span>
                   </a>
                   { isAdmin ?
-                    <a className="bubbleTab" href={"/groups/" + this.props.group.replace(/\s/g, "-") + "/settings"}>
+                    <a className="bubbleTab" href={"/collections/" + this.props.group.replace(/\s/g, "-") + "/settings"}>
                       <span className="int-en">Settings</span>
                       <span className="int-he">הגדרות</span>
                     </a>

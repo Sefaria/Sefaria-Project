@@ -29,11 +29,10 @@ urlpatterns = [
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
-    url(r'^groups/?$', reader_views.public_groups),
-    url(r'^groups/all$', reader_views.groups_admin_page),
-    url(r'^groups/new$', reader_views.edit_group_page),
-    url(r'^groups/(?P<group>[^.]+)/settings$', reader_views.edit_group_page),
-    url(r'^groups/(?P<group>[^.]+)$', reader_views.group_page),
+    url(r'^collections/?$', reader_views.public_groups),
+    url(r'^collections/new$', reader_views.edit_group_page),
+    url(r'^collections/(?P<group>[^.]+)/settings$', reader_views.edit_group_page),
+    url(r'^collections/(?P<group>[^.]+)$', reader_views.group_page),
     url(r'^notifications/?$', reader_views.notifications),
     url(r'^my/notes/?$', reader_views.my_notes),
     url(r'^updates/?$', reader_views.updates),
@@ -49,16 +48,6 @@ urlpatterns += [
     url(r'^person/(?P<name>.+)$', reader_views.person_page),
     url(r'^people/Talmud/?$', reader_views.talmud_person_index),
     url(r'^people/?$', reader_views.person_index),
-]
-
-# Redirects for legacy URLs
-urlpatterns += [
-    url(r'^account/?$', reader_views.my_profile),
-    url(r'^sheets/tags/?$', reader_views.topics_redirect),
-    url(r'^sheets/tags/(?P<tag>.+)$', reader_views.topic_page_redirect),
-    url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_pages_redirect),
-    url(r'^partners/(?P<group>[^/]+)$', reader_views.group_page),
-    url(r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
 ]
 
 # Visualizations / Link Explorer
@@ -124,6 +113,17 @@ urlpatterns += [
     url(r'^add/terms/(?P<term>.+)$', reader_views.terms_editor),
     url(r'^edit/(?P<ref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.edit_text),
     url(r'^edit/(?P<ref>.+)$', reader_views.edit_text),
+]
+
+# Redirects for legacy URLs
+urlpatterns += [
+    url(r'^account/?$', reader_views.my_profile),
+    url(r'^sheets/tags/?$', reader_views.topics_redirect),
+    url(r'^sheets/tags/(?P<tag>.+)$', reader_views.topic_page_redirect),
+    url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_pages_redirect),
+    url(r'^partners(?P<group>\/[^/]+)$', reader_views.groups_redirect),
+    url(r'^groups(?P<group>\/[^/]+)?$', reader_views.groups_redirect),
+    url(r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
 ]
 
 # Texts / Index / Links etc API
@@ -387,6 +387,7 @@ urlpatterns += [
     url(r'^admin/error', sefaria_views.cause_error),
     url(r'^admin/sheet-stats', sefaria_views.sheet_stats),
     url(r'^admin/untagged-sheets', sefaria_views.untagged_sheets),
+    url(r'^admin/collections/all$', reader_views.groups_admin_page),
     url(r'^admin/spam', sefaria_views.spam_dashboard),
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),

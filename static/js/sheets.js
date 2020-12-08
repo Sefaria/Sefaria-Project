@@ -1668,7 +1668,7 @@ $(function() {
 			var groupUrl = $(this).val().replace(/ /g, "-");
 			var groupLogo = $el.attr("data-image");
 			$("#groupLogo").attr("src", groupLogo)
-				.closest("a").attr("href", "/groups/" + groupUrl);
+				.closest("a").attr("href", "/collections/" + groupUrl);
 			if (groupLogo) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 		}
 		else {

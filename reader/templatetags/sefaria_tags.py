@@ -212,7 +212,7 @@ def user_message_path(uid):
 
 @register.filter(is_safe=True)
 def group_link(group_name):
-	return mark_safe("<a href='/groups/%s'>%s</a>" % (group_name.replace(" ", "-"), group_name))
+	return mark_safe("<a href='/collections/%s'>%s</a>" % (group_name.replace(" ", "-"), group_name))
 
 
 @register.filter(is_safe=True)

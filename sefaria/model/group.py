@@ -250,7 +250,7 @@ class Group(abst.AbstractMongoRecord):
     @property
     def url(self):
         """Returns the URL path for this group"""
-        return "/groups/%s" % self.name.replace(" ", "-")
+        return "/collections/%s" % self.name.replace(" ", "-")
 
     def pin_sheet(self, sheet_id):
         """

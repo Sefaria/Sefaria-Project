@@ -52,7 +52,7 @@ function PublicGroupsPage({multiPanel, navHome}) {
           </h1> : null}
           {multiPanel ?
           <center>
-            <a className="button white" href="/groups/new">
+            <a className="button white" href="/collections/new">
               <span className="int-en">Create a Collection</span>
               <span className="int-he">צור TODO HEBREW</span>
             </a>
@@ -81,12 +81,12 @@ PublicGroupsPage.propTypes = {};
 function GroupListing({data, showMembership}) {
   const imageUrl = data.imageUrl || "/static/img/collection.svg";
   const imageClass = classNames({groupListingImage: 1, default: !data.imageUrl});
-  const groupUrl = "/groups/" + data.name.replace(/\s/g, "-");
+  const groupUrl = "/collections/" + data.name.replace(/\s/g, "-");
   return (<div className="groupListing">
             <div className="left-content">
               <a href={groupUrl}>
                 <div className="groupListingImageBox">
-                  <img className={imageClass} src={imageUrl} alt="Group Logo"/>
+                  <img className={imageClass} src={imageUrl} alt="Collection Logo"/>
                 </div>
               </a>
               <div className="groupListingText">

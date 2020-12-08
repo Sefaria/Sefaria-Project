@@ -552,11 +552,11 @@ class ReaderApp extends Component {
             break;
           case "sheets":
             if (states[i].sheetsGroup) {
-                hist.url   = "groups/" + state.sheetsGroup.replace(/\s/g,"-");
+                hist.url   = "collections/" + state.sheetsGroup.replace(/\s/g,"-");
                 if (states[i].navigationGroupTag) {
                   hist.url  += "?tag=" + state.navigationGroupTag.replace("#","%23");
                 }
-                hist.title = state.sheetsGroup + " | " + Sefaria._(siteName + " Group");
+                hist.title = state.sheetsGroup + " | " + Sefaria._(siteName + " Collections");
                 hist.mode  = "sheets tag";
             } else {
               hist.url   = "sheets";
@@ -593,7 +593,7 @@ class ReaderApp extends Component {
             break;
           case "publicGroups":
             hist.title = Sefaria._(siteName + " Collections");
-            hist.url = "groups";
+            hist.url = "collections";
             hist.mode = "publicGroups";
             break;
           case "myNotes":
@@ -1083,7 +1083,7 @@ class ReaderApp extends Component {
     } else if (path.match(/\/texts\/.+/)) {
       this.showLibrary(path.slice(7).split("/"));
 
-    } else if (path == "/groups") {
+    } else if (path == "/collections") {
       this.showGroups();
 
     } else if (path == "/my/profile") {
@@ -1107,8 +1107,8 @@ class ReaderApp extends Component {
     } else if (path.match(/\/profile\/.+/)) {
       this.openProfile(path.slice(9));
 
-    } else if (path.match(/\/groups\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
-      this.openGroup(path.slice(8).replace(/-/g, " "));
+    } else if (path.match(/\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
+      this.openGroup(path.slice(13).replace(/-/g, " "));
 
     } else if (Sefaria.isRef(path.slice(1))) {
       this.openPanel(Sefaria.humanRef(path.slice(1)));

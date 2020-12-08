@@ -42,7 +42,7 @@ class SefariaSiteMapGenerator(object):
         "/help",
         "/metrics",
         "/sheets",
-        "/groups",
+        "/collections",
         "/login",
         "/register",
         "/terms",

@@ -184,7 +184,7 @@ class Header extends Component {
     if (type === "Person") {
       return `/person/${key}`;
     } else if (type === "Group") {
-      return `/groups/${key.replace(/ /g,"-")}`;
+      return `/collections/${key.replace(/ /g,"-")}`;
     } else if (type === "TocCategory") {
       return `/texts/${key.join('/')}`;
     } else if (type === "Topic") {

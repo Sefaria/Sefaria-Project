@@ -254,11 +254,11 @@ class SheetMetadata extends Component {
                     {this.props.sheet.group && this.props.sheet.group != "" ?
                     <div className="tocDetail authorStatement">
                         <div className="groupListingImageBox imageBox">
-                            <a href={"/groups/"+this.props.sheet.group}>
+                            <a href={"/collections/" + this.props.sheet.group}>
                                 <img className="groupListingImage img-circle" src={this.props.sheet.groupLogo} alt="Group Logo" />
                             </a>
                         </div>
-                        <a href={"/groups/"+this.props.sheet.group}>{this.props.sheet.group}</a>
+                        <a href={"/collections/" + this.props.sheet.group}>{this.props.sheet.group}</a>
                     </div> : null }
                     <div className="sheetMeta">
                       <div className="int-en">

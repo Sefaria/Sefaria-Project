@@ -1326,7 +1326,7 @@ class SheetListing extends Component {
         `${sheet.views} ${Sefaria._('Views')}`,
         created,
         sheet.topics.length ? topics : undefined,
-        !!sheet.group ? (<a href={`/groups/${sheet.group}`} target={this.props.openInNewTab ? "_blank" : "_self"}>{sheet.group}</a>) : undefined,
+        !!sheet.group ? (<a href={`/collections/${sheet.group}`} target={this.props.openInNewTab ? "_blank" : "_self"}>{sheet.group}</a>) : undefined,
       ].filter(x => x !== undefined) : [topics];
 
     const toggleCollectionsModal = () => {
@@ -2100,6 +2100,7 @@ class CookiesNotification extends Component {
   }
 }
 
+
 const SheetTitle = (props) => (
         <div className={`title ${props.empty ? 'empty': ''} ${props.focused ? 'focused': ''}`} role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
             {props.children? props.children : props.title.stripHtmlKeepLineBreaks()}
@@ -2109,27 +2110,28 @@ SheetTitle.propTypes = {
     title:          PropTypes.string,
 };
 
+
 const SheetAuthorStatement = (props) => (
     <div className="authorStatement" contentEditable={false} style={{ userSelect: 'none' }}>
           {props.children}
     </div>
 )
-
 SheetAuthorStatement.propTypes = {
     authorImage:      PropTypes.string,
     authorStatement:  PropTypes.string,
     authorUrl:        PropTypes.string,
 };
 
+
 const GroupStatement = (props) => (
     props.group && props.group != "" ?
         <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none' }}>
           <div className="groupListingImageBox imageBox">
-            <a href={"/groups/" + props.group.replace(/-/g, "-")}>
-              <img className="groupListingImage img-circle" src={props.groupLogo} alt="Group Logo"/>
+            <a href={"/collections/" + props.group.replace(/-/g, "-")}>
+              <img className="groupListingImage img-circle" src={props.groupLogo} alt="Collection Logo"/>
             </a>
           </div>
-          <a href={"/groups/" + props.group.replace(/ /g, "-")}>{props.children ? props.children : props.group}</a>
+          <a href={"/collections/" + props.group.replace(/ /g, "-")}>{props.children ? props.children : props.group}</a>
         </div>
         :
         <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
@@ -2137,7 +2139,6 @@ const GroupStatement = (props) => (
         </div>
 
 )
-
 GroupStatement.propTypes = {
     group:      PropTypes.string,
     groupLogo:  PropTypes.string,
@@ -2149,7 +2150,6 @@ const SheetMetaDataBox = (props) => (
       {props.children}
     </div>
 );
-
 SheetMetaDataBox.propTypes = {
     title:          PropTypes.string,
     authorUrl:      PropTypes.string,

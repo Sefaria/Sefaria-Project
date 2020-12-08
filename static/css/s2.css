@@ -5940,7 +5940,6 @@ a .button:hover {
 h2.splitHeader {
   margin-bottom: 10px;
   text-align: left;
-  padding-bottom: 40px;
 }
 h2.splitHeader .en {
   font-size: 14px;
@@ -6156,8 +6155,9 @@ h2.splitHeader .he {
 .groupPage .groupDescription {
   font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #000;
+  color: #333;
   text-align: center;
+  line-height: 1.3;
 }
 .groupPage .groupDescription .he {
   font-family: "Heebo", sans-serif;

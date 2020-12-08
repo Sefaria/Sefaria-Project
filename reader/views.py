@@ -816,7 +816,6 @@ def topics_redirect(request):
     """
     return redirect("/topics", permanent=True)
 
-
 def group_page(request, group):
     """
     Main page for group `group`
@@ -853,6 +852,13 @@ def groups_admin_page(request):
     """
     groups = GroupSet(sort=[["name", 1]])
     return render(request, "groups.html", {"groups": groups})
+
+
+def groups_redirect(request, group):
+    """
+    Redirect legacy groups URLs to collections.
+    """
+    return redirect("/collections{}".format(group or ""))
 
 
 @sanitize_get_params

@@ -123,7 +123,7 @@ class EditGroupPage extends Component {
           alert(data.error);
         } else {
           this.changed = false;
-          window.location = "/groups/" + this.state.name.replace(/ /g, "-");
+          window.location = "/collections/" + this.state.name.replace(/ /g, "-");
         }
     }.bind(this)).fail(function() {
         alert("Sorry, an error occurred.");
@@ -141,7 +141,7 @@ class EditGroupPage extends Component {
             <span className="int-he">{heTitle}</span>
           </h1>
           <div className="end">
-              <a className="button transparent control-elem" href={this.props.initialData ? "/groups/" + this.state.name.replace(/ /g, "-") : "/my/groups"}>
+              <a className="button transparent control-elem" href={this.props.initialData ? "/collections/" + this.state.name.replace(/ /g, "-") : "/my/profile"}>
                   <span className="int-en">Cancel</span>
                   <span className="int-he">בטל</span>
               </a>
