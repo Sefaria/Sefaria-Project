@@ -1,11 +1,8 @@
 {
 	"title": "",
-	"text": [
-		"Your opinion matters — Be a part of Sefaria's future!",
-		"Please take our user survey to help us understand your experience and improve our offerings.  You will receive a special thank you for your participation."
-  	],
-	"buttonLink": "https://www.surveymonkey.com/r/Sefaria2020mobile-EN",
-	"buttonText": "Take the Survey",
-	"name": "survey-2020",
+	"text": ["Sefaria is a non-profit organization and we depend on donations from users like you to support the library. The future of Jewish learning is in your hands, can you donate $10 today?"],
+	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
+	"buttonText": "DONATE",
+	"name": "end-of-year-2020-2-2",
 	"schemaVersion": 1
 }

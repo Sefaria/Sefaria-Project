@@ -359,7 +359,8 @@ Sefaria = extend(Sefaria, {
       enVersion:  settings.enVersion  || null,
       heVersion:  settings.heVersion  || null,
       multiple:   settings.multiple   || 0,
-      wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1
+      wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
+      wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1, 
     };
 
     return settings;
@@ -479,6 +480,7 @@ Sefaria = extend(Sefaria, {
       context:    settings.context,
       pad:        settings.pad,
       wrapLinks:  settings.wrapLinks,
+      wrapNamedEntities: settings.wrapNamedEntities,
       multiple:   settings.multiple
     });
     let url = "/api/texts/" + Sefaria.normRef(ref);
@@ -1136,7 +1138,7 @@ Sefaria = extend(Sefaria, {
   privateNotes: function(refs, callback) {
     // Returns an array of private notes for `refs` (a string or array or strings)
     // or `null` if notes have not yet been loaded.
-    if(!Sefaria.loggedIn) return;
+    if(!Sefaria._uid) return;
     var notes = null;
     if (typeof refs == "string") {
       if (refs in this._privateNotes) {
@@ -1243,6 +1245,21 @@ Sefaria = extend(Sefaria, {
       });
     });
   },
+
+
+_media: {},
+  mediaByRef: function(refs) {
+    refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
+    var ref = Sefaria.normRefList(refs);
+
+    var media = [];
+    refs.map(r => {
+      if (this._media[r]) { media = media.concat(this._media[r]); }
+    }, this);
+	return media;
+  },
+
+
   _webpages: {},
   webPagesByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
@@ -1270,8 +1287,8 @@ Sefaria = extend(Sefaria, {
 
       // 3: exact match, 2: range match: 1: section match
       var aSpecificity, bSpecificity;
-      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRefExpanded.length);
-      if (aSpecificity !== bSpecificity) {return aSpecificity - bSpecificity};
+      [aSpecificity, bSpecificity] = [a, b].map(page => page.anchorRef === ref ? 3 : (page.anchorRef.indexOf("-") !== -1 ? 2 : 1));
+      if (aSpecificity !== bSpecificity) {return aSpecificity > bSpecificity ? -1 : 1};
 
       return (a.linkerHits > b.linkerHits) ? -1 : 1
     });
@@ -1337,14 +1354,15 @@ Sefaria = extend(Sefaria, {
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
           topics: this._saveTopicByRef(ref, data.topics || []),
+		  media: this._saveItemsByRef(data.media, this._media),
       };
 
        // Build split related data from individual split data arrays
-      ["links", "notes", "sheets", "webpages"].forEach(obj_type => {
+      ["links", "notes", "sheets", "webpages", "media"].forEach(obj_type => {
         for (var ref in split_data[obj_type]) {
           if (split_data[obj_type].hasOwnProperty(ref)) {
             if (!(ref in this._related)) {
-                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], topics: []};
+                this._related[ref] = {links: [], notes: [], sheets: [], webpages: [], media: [], topics: []};
             }
             this._related[ref][obj_type] = split_data[obj_type][ref];
           }
@@ -1781,9 +1799,9 @@ Sefaria = extend(Sefaria, {
     });
   },
   _topics: {},
-  getTopic: function(topic, with_links=true, annotate_links=true, with_refs=true, group_related=true) {
+  getTopic: function(topic, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about']}={}) {
       return this._cachedApiPromise({
-          url:   `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}`,
+          url:   `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}&annotate_time_period=${0+annotate_time_period}&ref_link_type_filters=${ref_link_type_filters.join('|')}`,
           key:   topic,
           store: this._topics,
           processor: this.processTopicsData,
@@ -1791,6 +1809,7 @@ Sefaria = extend(Sefaria, {
   },
   processTopicsData: function(data) {
     if (!data) { return null; }
+    if (!data.refs) { return data; }
     // Split  `refs` in `sourceRefs` and `sheetRefs`
     let refMap = {};
     for (let refObj of data.refs.filter(s => !s.is_sheet)) {
@@ -2351,7 +2370,6 @@ Sefaria = extend(Sefaria, {
       "Request a feature": "בקשה להוספת אפשרות באתר",
       "Give thanks": "תודה",
       "Other": "אחר",
-      "Please enter a valid email address": "אנא הקלידו כתובת אימייל תקנית",
       "Please select a feedback type": "אנא בחרו סוג משוב",
       "Unfortunately, there was an error sending this feedback. Please try again or try reloading this page.": "לצערנו ארעה שגיאה בשליחת המשוב. אנא נסו שוב או רעננו את הדף הנוכחי",
       "Tell us what you think..." : "ספרו לנו מה אתם חושבים...",
@@ -2377,6 +2395,8 @@ Sefaria = extend(Sefaria, {
       "This source is connected to ": "מקור הזה קשור ל-",
       "This topic is connected to ": "נושא הזה קשור ל-",
       "by": "על ידי",
+      "based on": "ע“פ",
+      "research of Dr. Michael Sperling": "המחקר של ד\"ר מיכאל ספרלינג",
       "Read the Portion": "קראו את הפרשה",
 
       //user stats
@@ -2392,8 +2412,12 @@ Sefaria = extend(Sefaria, {
       //chavruta
       "Learn with a Chavruta": "ללמוד עם חברותא",
       "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הזה:",
-      "Start Call": "התחלת שיחה"
+      "Start Call": "התחלת שיחה",
 
+      //subscribe & register
+      "Please enter a valid email address.": "כתובת האימייל שהוזנה אינה תקינה.",
+      "Subscribed! Welcome to our list.": "הרשמה בוצעה בהצלחה!",
+      "Sorry, there was an error.": "סליחה, ארעה שגיאה",
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
@@ -2447,7 +2471,7 @@ Sefaria = extend(Sefaria, {
     // Which is worse: the cycles wasted in computing this on the client
     // or the bandwidth wasted in letting the server computer once and transmitting the same data twice in different form?
     this.booksDict = {};
-    for (var i = 0; i < this.books.length; i++) {
+    for (let i = 0; i < this.books.length; i++) {
       this.booksDict[this.books[i]] = 1;
     }
   },
@@ -2578,8 +2602,48 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.topicList) {
     Sefaria._topicList = props.topicList;
   }
+  if (props.userHistory) {
+      Sefaria._userHistory.history = props.userHistory;
+  }
+  if (props.groupListing) {
+      Sefaria._groupsList.list = props.groupListing;
+  }
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
-  Sefaria.interfaceLang = props.interfaceLang;
+  const dataPassedAsProps = [
+      "_uid",
+      "interfaceLang",
+      "calendars",
+      "is_moderator",
+      "is_editor",
+      "notificationCount",
+      "notificationsHtml",
+      "saved",
+      "last_place",
+      "full_name",
+      "profile_pic_url",
+      "following",
+      "_siteSettings",
+      "_debug",
+  ];
+  for (const element of dataPassedAsProps) {
+      if (element in props) {
+        Sefaria[element] = props[element];
+      }
+  }
+};
+
+Sefaria.loadServerData = function(data){
+    // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
+    // data should but defined server-side and undefined client-side
+    //TODO: Can we get rid of this global scope thing?
+    if (typeof data === "undefined") {
+        data = typeof DJANGO_DATA_VARS === "undefined" ? undefined : DJANGO_DATA_VARS;
+    }
+    if (typeof data !== 'undefined') {
+        for (const [key, value] of Object.entries(data)) {
+            this[key] = value;
+        }
+    }
 };
 
 
@@ -2601,7 +2665,7 @@ Sefaria.setup = function(data) {
     // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
     // data should but defined server-side and undefined client-side
 
-    if (typeof data === "undefined") {
+    /*if (typeof data === "undefined") {
         data = typeof DJANGO_DATA_VARS === "undefined" ? undefined : DJANGO_DATA_VARS;
     }
     if (typeof data !== 'undefined') {
@@ -2610,28 +2674,19 @@ Sefaria.setup = function(data) {
                 Sefaria[prop] = data[prop];
             }
         }
-    }
+    }*/
+    Sefaria.loadServerData(data);
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupMisc();
-    var cookie = Sefaria.util.handleUserCookie(Sefaria.loggedIn, Sefaria._uid, Sefaria._partner_group, Sefaria._partner_role);
+    var cookie = Sefaria.util.handleUserCookie(Sefaria._uid);
     // And store current uid in analytics id
     Sefaria._analytics_uid = Sefaria._uid;
-    if (cookie) {
-      Sefaria._partner_group = cookie._partner_group;
-      Sefaria._partner_role = cookie._partner_role;
-    }
     Sefaria._makeBooksDict();
     Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1};  //Todo: Wire this up to the server
     Sefaria._cacheIndexFromToc(Sefaria.toc);
-    if (!Sefaria.saved) {
-      Sefaria.saved = [];
-    }
-    if (!Sefaria.last_place) {
-        Sefaria.last_place = [];
-    }
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
-    Sefaria.track.setUserData(Sefaria.loggedIn, Sefaria._partner_group, Sefaria._partner_role, Sefaria._analytics_uid);
+    Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._analytics_uid);
     Sefaria.search = new Search(Sefaria.searchIndexText, Sefaria.searchIndexSheet);
 };
 Sefaria.setup();

@@ -3,11 +3,26 @@ import extend from 'extend';
 import striptags from 'striptags';
 import humanizeDuration from 'humanize-duration';
 import sanitizeHtml from 'sanitize-html';
+import Sefaria  from './sefaria';
 
 
 var INBROWSER = (typeof document !== 'undefined');
 
 class Util {
+    static selectElementContents(el) {
+      //source: https://stackoverflow.com/questions/4183401/can-you-set-and-or-change-the-user-s-text-selection-in-javascript
+      if (window.getSelection && document.createRange) {
+        var sel = window.getSelection();
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      } else if (document.selection && document.body.createTextRange) {
+        var textRange = document.body.createTextRange();
+        textRange.moveToElementText(el);
+        textRange.select();
+      }
+    }
     static encodeVtitle(vtitle) {
       return vtitle.replace(/\s/g, '_').replace(/;/g, '%3B');
     }
@@ -512,10 +527,10 @@ class Util {
             console.log = function() {};
         }
     }
-    static handleUserCookie(loggedIn, uid, partner_group, partner_role) {
+    static handleUserCookie(uid) {
         var cookie = INBROWSER ? $.cookie : this.cookie;
 
-        if (loggedIn) {
+        if (uid) {
             // If logged in, replace cookie with current system details
 
             var expires = new Date(); // starts with current time
@@ -523,8 +538,6 @@ class Util {
 
             cookie("_user", JSON.stringify({
                _uid: uid,
-               _partner_group: partner_group,
-               _partner_role: partner_role
             }), { path: "/", expires: expires });
         } else {
             // If not logged in, get details from cookie
