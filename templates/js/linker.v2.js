@@ -385,6 +385,7 @@
         var defaultOptions = {
             mode: "popup-click",
             selector: "body",
+            exclude: null,
             popupStyles: {},
             interfaceLang: "english",
             contentLang: "bilingual",
@@ -394,6 +395,7 @@
             hidePopupsOnMobile: true
         };
         Object.assign(options, defaultOptions);
+        Object.assign(ns, options);
 
         if (window.innerWidth < 700 && options.hidePopupsOnMobile) { 
             // If the screen is small, defautlt to link mode, unless override set
@@ -404,9 +406,6 @@
         ns.matches = [];   // Matches that will be linked
         ns.allMatches =[]; // All matches, even if in excluded selectors
         ns.elems = document.querySelectorAll(options.selector);
-        ns.quotationOnly = options.quotationOnly;
-        ns.parenthesesOnly = options.parenthesesOnly;
-        ns.dynamic = options.dynamic;
         // Find text titles in the document
         // todo: hold locations of title matches?
         const full_text = [].reduce.call(ns.elems, (prev, current) => prev + current.textContent, "");
@@ -482,7 +481,7 @@
                             // Walk up node tree to see if this context should be excluded
                             let p = portion.node;
                             while (p) {
-                              if (p.nodeName === 'A') {
+                              if (p.nodeName === 'A' || (ns.exclude && p.matches && p.matches(ns.exclude))) {
                                 return portion.text;
                               }
                               p = p.parentNode;
