@@ -401,7 +401,8 @@
         }  
         setupPopup(options, options.mode);
 
-        ns.matches = [];
+        ns.matches = [];   // Matches that will be linked
+        ns.allMatches =[]; // All matches, even if in excluded selectors
         ns.elems = document.querySelectorAll(options.selector);
         ns.quotationOnly = options.quotationOnly;
         ns.parenthesesOnly = options.parenthesesOnly;
@@ -431,6 +432,7 @@
                 }
                 ns.regexes = data;
                 ns._wrapMatches();
+                ns._trackPage();
 
                 if (ns.matches.length == 0) {
                     //console.log("No references found to link to Sefaria.");
@@ -440,7 +442,6 @@
                     // no need to get texts if mode is link
                     ns._getTexts(mode);
                 }
-                ns._trackPage();
             })
             .error(function (data, xhr) { });
     };
@@ -453,7 +454,7 @@
             const book = books[k];
             // Run each regex over the document, and wrap results
             const r = XRegExp(ns.regexes[book],"xgm");
-            // find the refrences and push them into ns.matches
+            // find the references and push them into ns.matches
             for (let i = 0; i < ns.elems.length; i++) {
                 const portionHasMatched = {};
                 findAndReplaceDOMText(ns.elems[i], {
@@ -475,7 +476,19 @@
                         if (ns.quotationOnly && (matched_ref.match(quotation_reg) == null || matched_ref.match(quotation_reg)[0]!==matched_ref)) {
                            return portion.text;
                         }
-                        else { ns.matches.push(matched_ref);
+                        else {
+                            // Track this match regardless of context
+                            ns.allMatches.push(matched_ref);
+                            // Walk up node tree to see if this context should be excluded
+                            let p = portion.node;
+                            while (p) {
+                              if (p.nodeName === 'A') {
+                                return portion.text;
+                              }
+                              p = p.parentNode;
+                            }
+
+                            ns.matches.push(matched_ref);
                             const atag = document.createElement("a");
                             atag.target = "_blank";
                             atag.className = "sefaria-ref";
@@ -493,20 +506,15 @@
                             // however, we don't want the prefix group to end up in the final a-tag
                             const node = document.createElement("span");
                             node.textContent = preText;
-                            node.appendChild(atag);
+                            node.appendChild(atag);``
                             return node;
                         }
-                    }).bind(null, book),
-                    filterElements: function(el) {
-                        return !(
-                            hasOwn.call(findAndReplaceDOMText.NON_PROSE_ELEMENTS, el.nodeName.toLowerCase())
-                            || (el.tagName === "A")
-                        );
-                    }
+                    }).bind(null, book)
                 });
             }
         }
-        ns.matches = ns.matches.filter(distinct)
+        ns.matches = ns.matches.filter(distinct);
+        ns.allMatches = ns.allMatches.filter(distinct);
     };
 
     ns._getTexts = function(mode) {
@@ -580,6 +588,8 @@
     };
 
     ns._trackPage = function() {
+        if (ns.allMatches.length == 0) { return; }
+
         var robots = document.head.querySelector("meta[name~=robots]");
         if (robots && robots.content.includes("noindex")) { return; }
 
@@ -596,7 +606,7 @@
             "url": url,
             "title": document.title,
             "description": description,
-            "refs": ns.matches,
+            "refs": ns.allMatches,
         };
         if (ns.dynamic) {
             // don't send description because we can't be sure if the description is still correct after navigating on the dynamic site
