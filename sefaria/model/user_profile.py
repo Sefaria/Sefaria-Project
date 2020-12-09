@@ -153,8 +153,8 @@ class UserHistory(abst.AbstractMongoRecord):
         # UserHistory API is only open to post for your uid
         pass
 
-    @classmethod
-    def save_history_item(cls, uid, hist, time_stamp=None):
+    @staticmethod
+    def save_history_item(uid, hist, action=None, time_stamp=None):
         if time_stamp is None:
             time_stamp = epoch_time()
         hist["uid"] = uid
@@ -164,7 +164,6 @@ class UserHistory(abst.AbstractMongoRecord):
             hist["book"] = oref.index.title
         hist["server_time_stamp"] = time_stamp if "server_time_stamp" not in hist else hist["server_time_stamp"]  # DEBUG: helpful to include this field for debugging
 
-        action = hist.pop("action", None)
         saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
         uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
             "saved": saved,
@@ -175,23 +174,10 @@ class UserHistory(abst.AbstractMongoRecord):
         return uh
 
     @staticmethod
-    def timeclause(start=None, end=None):
-        """
-        Returns a time range clause, fit for use in a pymongo query
-        :param start: datetime
-        :param end: datetime
-        :return:
-        """
-        if start is None and end is None:
-            return {}
-
-        timerange = {}
-        if start:
-            timerange["$gte"] = start
-        if end:
-            timerange["$lte"] = end
-        return {"datetime": timerange}
-
+    def remove_history_item(uid, hist):
+        hist["uid"] = uid
+        uh = UserHistory(hist, load_existing=True)
+        uh.delete()
 
     @staticmethod
     def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, limit=0):
@@ -224,6 +210,24 @@ class UserHistory(abst.AbstractMongoRecord):
         if exclude_last_place:
             query["last_place"] = False
         UserHistorySet(query).delete(bulk_delete=True)
+
+    @staticmethod
+    def timeclause(start=None, end=None):
+        """
+        Returns a time range clause, fit for use in a pymongo query
+        :param start: datetime
+        :param end: datetime
+        :return:
+        """
+        if start is None and end is None:
+            return {}
+
+        timerange = {}
+        if start:
+            timerange["$gte"] = start
+        if end:
+            timerange["$lte"] = end
+        return {"datetime": timerange}
 
 
 class UserHistorySet(abst.AbstractMongoSet):
@@ -581,6 +585,17 @@ class UserProfile(object):
         if message in self.interrupting_messages:
             self.interrupting_messages.remove(message)
             self.save()
+
+    def process_history_item(self, hist, time_stamp):
+        action = hist.pop("action", None)
+        if self.settings["reading_history"]:  # regular case, save history, save/unsave saved item etc.
+            return UserHistory.save_history_item(self.id, hist, action, time_stamp)
+        elif action == "delete_saved":  # user has disabled history and is "unsaving", therefore deleting this item.
+            UserHistory.remove_history_item(self.id, hist)
+            return None
+        else:  # history disabled do nothing.
+            return None
+
 
     def get_user_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, limit=0):
         """

@@ -3542,8 +3542,9 @@ def profile_sync_api(request):
                     if 'ref' not in hist:
                         logger.warning(f'Ref not in hist. Post data: {post[field]}. User ID: {request.user.id}')
                         continue
-                    uh = UserHistory.save_history_item(request.user.id, hist, now)
-                    ret["created"] += [uh.contents(for_api=True)]
+                    uh = profile.process_history_item(hist, now)
+                    if uh:
+                        ret["created"] += [uh.contents(for_api=True)]
 
         if not no_return:
             # determine return value after new history saved to include new saved and deleted saves
@@ -3559,6 +3560,7 @@ def profile_sync_api(request):
             ret["settings"] = profile.settings
             ret["settings"]["time_stamp"] = profile.attr_time_stamps["settings"]
             if post.get("client", "") == "web":
+                # TODO: This future proofing might not work, because even if we did want to keep local history for browsers, they'd need to store last sync time locally anyway.
                 # request was made from web. update last_sync on profile
                 profile.update({"last_sync_web": now})
                 profile_updated = True
