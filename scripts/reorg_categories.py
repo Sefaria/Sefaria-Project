@@ -80,11 +80,33 @@ def create_category(path, en=None, he=None):
     c.save(override_dependencies=True)
     return c
 
-### Avot D'Rabbi Natan  -> Midrash Aggadic Midrash
-i = library.get_index("Avot D'Rabbi Natan")
-p = Category().load({"path": ["Midrash", "Aggadic Midrash"]})
-moveIndexInto(i, p)
 
+def change_term_hebrew(en_primary, new_he):
+    t = Term().load({"name": en_primary})
+    assert t
+    old_primary = t.get_primary_title("he")
+    t.add_title(new_he, "he", True, True)
+    t.remove_title(old_primary, "he")
+    t.save()
+
+
+# Change Hebrew primaries for categories
+for k, he in [
+    ("Aggadic Midrash", 'מדרשי אגדה'),
+    ("Halachic Midrash", 'מדרשי הלכה'),
+    ("Reference", "מילונים וספרי יעץ")
+]:
+    change_term_hebrew(k, he)
+
+i = library.get_index("Zohar")
+i.nodes.add_title("ספר הזהר", "he", True, True)
+i.save()
+
+### Avot D'Rabbi Natan, "Seder Olam Zutta"  -> Midrash Aggadic Midrash
+for n in ["Seder Olam Zutta", "Avot D'Rabbi Natan"]:
+    i = library.get_index(n)
+    p = Category().load({"path": ["Midrash", "Aggadic Midrash"]})
+    moveIndexInto(i, p)
 
 ### Commentaries of ADRN
 # e.g:
@@ -324,7 +346,7 @@ books_kook = ["Orot",
     "Shmonah Kvatzim",
     "Midbar Shur"]
 
-cat_modern = create_category(["Jewish Thought", "Modern"], "Modern", "מודרני")
+cat_modern = create_category(["Jewish Thought", "Modern"], "Modern", "ספרות מודרני")
 books_modern = ["Nineteen Letters",
     "Sefer Yesodei HaTorah",
     "Gan Naul",
@@ -504,7 +526,7 @@ for c in cs:
 # Musar
 r_cat = create_category(["Musar", "Rishonim"], "Rishonim", "ראשונים")
 a_cat = create_category(["Musar", "Acharonim"], "Acharonim", "אחרונים")
-m_cat = create_category(["Musar", "Modern"], "Modern", "מודרני")
+m_cat = create_category(["Musar", "Modern"], "Modern", "ספרות מודרני")
 
 r_books = [
     'Mivchar HaPeninim',
@@ -731,6 +753,7 @@ for p in [
         ["Other", "Dictionary"],
         ["Modern Works", "Commentary"],
         ["Tanaitic", "Commentary"],
+        ["Responsa", "Commentary", "Footnotes", "Rashba"],
     ]:
     c = Category().load({"path": p})
     c.delete()
@@ -740,7 +763,15 @@ for p in [
         ["Other"],
         ["Modern Works"],
         ["Tanaitic"],
-    ]:
+        ["Responsa", "Commentary", "Footnotes"],
+]:
+    c = Category().load({"path": p})
+    c.delete()
+
+library.rebuild(include_toc=True)
+for p in [
+    ["Responsa", "Commentary"],
+]:
     c = Category().load({"path": p})
     c.delete()
 
