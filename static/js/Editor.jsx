@@ -1499,6 +1499,11 @@ const HoverMenu = () => {
         const el = ref.current;
         const {selection} = editor;
 
+        const [match] = Editor.nodes(editor, {
+          match: n => n.type === 'SheetTitle',
+        })
+
+
         if (!el) {
             return
         }
@@ -1507,7 +1512,8 @@ const HoverMenu = () => {
             !selection ||
             !ReactEditor.isFocused(editor) ||
             Range.isCollapsed(selection) ||
-            Editor.string(editor, selection) === ''
+            Editor.string(editor, selection) === '' ||
+            match
         ) {
             el.removeAttribute('style');
             return
