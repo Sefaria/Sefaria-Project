@@ -588,7 +588,7 @@ class UserProfile(object):
 
     def process_history_item(self, hist, time_stamp):
         action = hist.pop("action", None)
-        if self.settings["reading_history"]:  # regular case, save history, save/unsave saved item etc.
+        if self.settings["reading_history"] or action == "add_saved":  # regular case where history enabled, save/unsave saved item etc. or save history in either case
             return UserHistory.save_history_item(self.id, hist, action, time_stamp)
         elif action == "delete_saved":  # user has disabled history and is "unsaving", therefore deleting this item.
             UserHistory.remove_history_item(self.id, hist)
