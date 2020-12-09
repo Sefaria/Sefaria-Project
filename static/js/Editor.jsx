@@ -270,7 +270,7 @@ function renderSheetItem(source) {
 }
 
 function parseSheetItemHTML(rawhtml) {
-    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r)/gm, "").replace(/(<p><br><\/p>|<p> <\/p>)/gm, "<div>⠀</div>") // this is an ugly hack that adds the blank braile unicode character to ths string for a moment to ensure that the empty paragraph string gets rendered, this character will be removed later.
+    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r)/gm, "").replace(/(<p><br><\/p>|<p> <\/p>|<div><\/div>|<p><\/p>)/gm, "<div>⠀</div>") // this is an ugly hack that adds the blank braile unicode character to ths string for a moment to ensure that the empty paragraph string gets rendered, this character will be removed later.
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
@@ -939,6 +939,16 @@ const withSefariaSheet = editor => {
         //     return
         // }
 
+
+        // Prevent line breaks in sheetTitle
+        const [match] = Editor.nodes(editor, {
+          match: n => n.type === 'SheetTitle',
+        })
+        if (match) {
+          return
+        } //
+
+
         getRefInText(editor).then(query =>{
 
             if(query["is_segment"] || query["is_section"]) {
@@ -1046,6 +1056,12 @@ const withSefariaSheet = editor => {
           const lang = Sefaria.hebrew.isHebrew(content) ? 'he' : 'en';
           Transforms.setNodes(editor, { lang: lang }, {at: path});
 
+      }
+
+      if (node.type == "Sheet") {
+        if (node.children.length < 2) {
+          console.log('bad state -- sheet lost children')
+        }
       }
 
       if (node.type == "SheetMetaDataBox") {
@@ -1318,22 +1334,17 @@ const addItemToSheet = (editor, fragment, position) => {
 
 const checkAndFixDuplicateSheetNodeNumbers = (editor) => {
   let existingSheetNodes = []
-  try {
-    for (const [child, childPath] of Node.children(editor, [0,1])) {
-      const sheetNode = child.children[0];
-      if (existingSheetNodes.includes(sheetNode.node)) {
-        const newNodeEditPath = childPath.concat([0]);
-        Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: newNodeEditPath});
-        existingSheetNodes.push(editor.children[0].nextNode);
-        incrementNextSheetNode(editor)
-      }
-      else {
-        existingSheetNodes.push(sheetNode.node)
-      }
+  for (const [child, childPath] of Node.children(editor, [0,1])) {
+    const sheetNode = child.children[0];
+    if (existingSheetNodes.includes(sheetNode.node)) {
+      const newNodeEditPath = childPath.concat([0]);
+      Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: newNodeEditPath});
+      existingSheetNodes.push(editor.children[0].nextNode);
+      incrementNextSheetNode(editor)
     }
-  }
-  catch {
-    return
+    else {
+      existingSheetNodes.push(sheetNode.node)
+    }
   }
 }
 
@@ -1379,7 +1390,7 @@ const insertSource = (editor, ref, path=null) => {
         };
         Transforms.setNodes(editor, { loading: false }, { at: currentNode[1] });
         addItemToSheet(editor, fragment, path ? path : "bottom");
-        checkAndFixDuplicateSheetNodeNumbers()
+        checkAndFixDuplicateSheetNodeNumbers(editor)
         Transforms.move(editor, { unit: 'block', distance: 9 })
     });
 };
