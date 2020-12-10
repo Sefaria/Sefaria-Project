@@ -969,6 +969,7 @@ class ReaderPanel extends Component {
                     setSheetTag={this.setSheetTag}
                     setGroupTag={this.setGroupTag}
                     searchInGroup={this.props.searchInGroup}
+                    toggleSignUpModal={this.props.toggleSignUpModal}
                     key={"SheetsNav"}
                   />);
 

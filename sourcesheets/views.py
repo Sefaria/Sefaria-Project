@@ -619,6 +619,7 @@ def groups_pin_sheet_api(request, group_name, sheet_id):
     sheet_id = int(sheet_id)
     group.pin_sheet(sheet_id)
     group_content = group.contents(with_content=True, authenticated=True)
+    del group_content["lastModified"]
     return jsonResponse({"group": group_content, "status": "success"})
 
 

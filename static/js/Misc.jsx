@@ -263,7 +263,8 @@ ProfilePic.propTypes = {
 const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
   renderHeader, renderFooter, showFilterHeader, extraData, refreshData,
-  scrollableElement, pageSize, bottomMargin, onDisplayedDataChange, initialRenderSize
+  scrollableElement, pageSize, onDisplayedDataChange, initialRenderSize,
+  bottomMargin, containerClass
 }) => {
   const [filter, setFilter] = useState('');
   const [sortOption, setSortOption] = useState(sortOptions[0]);
@@ -399,7 +400,7 @@ const FilterableList = ({
         loading ? <LoadingMessage /> :
         ( dataUpToPage.length ?
           (
-            <div className="filter-content">
+            <div className={"filter-content" + (containerClass ? " " + containerClass : "")}>
               { !!renderHeader ? renderHeader() : null }
               { dataUpToPage.map(renderItem) }
               { !!renderFooter ? renderFooter() : null }
@@ -1252,7 +1253,8 @@ ProfileListing.propTypes = {
 
 const SheetListing = ({
   sheet, connectedRefs, handleSheetClick, handleSheetDelete, handleCollectionsChange,
-  editable, deletable, saveable, collectable, hideAuthor, infoUnderneath, openInNewTab, toggleSignUpModal 
+  editable, deletable, saveable, collectable, pinnable, pinned, pinSheet,
+  hideAuthor, showAuthorUnderneath, infoUnderneath, hideCollection, openInNewTab, toggleSignUpModal 
 }) => {
   // A source sheet presented in lists, like sidebar or profile page
   const [showCollectionsModal, setShowCollectionsModal] = useState(false);
@@ -1294,6 +1296,8 @@ const SheetListing = ({
     }
   };
 
+  const title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
+
   const viewsIcon = sheet.public ?
     <div className="sheetViews sans"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
     : <div className="sheetViews sans"><i className="fa fa-lock" title="Private"></i></div>;
@@ -1331,11 +1335,19 @@ const SheetListing = ({
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
       sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
+      showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       `${sheet.views} ${Sefaria._('Views')}`,
       created,
       sheet.topics.length ? topics : undefined,
-      !!sheet.group ? (<a href={`/collections/${sheet.group}`} target={openInNewTab ? "_blank" : "_self"}>{sheet.group}</a>) : undefined,
+      !!sheet.group && !hideCollection ? (<a href={`/collections/${sheet.group}`} target={openInNewTab ? "_blank" : "_self"}>{sheet.group}</a>) : undefined,
     ].filter(x => x !== undefined) : [topics];
+
+
+  const pinButtonClasses = classNames({sheetListingPinButton: 1, pinned: pinned, active: pinnable});
+  const pinMessage = pinned && pinnable ? Sefaria._("Pinned Sheet - click to unpin") :
+                    pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
+  const pinButton = <img src="/static/img/pin.svg" className={pinButtonClasses} title={pinMessage} onClick={pinnable ? pinSheet : null} />
+
 
   return (
     <div className="sheet" key={sheet.sheetUrl}>
@@ -1343,7 +1355,7 @@ const SheetListing = ({
         {sheetInfo}
         <a href={sheet.sheetUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
           <img src="/static/img/sheet.svg" className="sheetIcon"/>
-          <span className="sheetTitleText">{sheet.title}</span>
+          <span className="sheetTitleText">{title}</span>
         </a>
         <div className="sheetTags">
           {
@@ -1376,6 +1388,10 @@ const SheetListing = ({
           saveable ?
             <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }} 
               toggleSignUpModal={toggleSignUpModal} />
+            : null
+        }
+        { pinnable || pinned ? 
+            pinButton
             : null
         }
       </div>

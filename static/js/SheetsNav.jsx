@@ -66,6 +66,7 @@ class SheetsNav extends Component {
                         width={this.state.width}
                         searchInGroup={this.props.searchInGroup}
                         toggleLanguage={this.props.toggleLanguage}
+                        toggleSignUpModal={this.props.toggleSignUpModal}
                         interfaceLang={this.props.interfaceLang}
                       />);
       enTitle = "Groups";

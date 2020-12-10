@@ -3,8 +3,7 @@ import {
   LanguageToggleButton,
   LoadingMessage,
   TwoOrThreeBox,
-  SheetTopicLink,
-  SheetAccessIcon,
+  SheetListing,
   ProfilePic,
   IntText,
 } from './Misc';
@@ -218,13 +217,19 @@ class GroupPage extends Component {
 
     sheets = sheets && this.state.sheetFilterTopic ? sheets.filter(sheet => sheet.topics && sheet.topics.reduce((accum, curr) => accum || this.state.sheetFilterTopic === curr.slug, false)) : sheets;
     sheets = sheets ? sheets.map(function(sheet) {
-      return (<GroupSheetListing
+      return (<SheetListing
                 sheet={sheet}
+                hideAuthor={true}
+                infoUnderneath={true}
+                showAuthorUnderneath={true}
+                hideCollection={true}
                 pinned={group.pinnedSheets.indexOf(sheet.id) != -1}
-                isAdmin={isAdmin}
-                multiPanel={this.props.multiPanel}
+                pinnable={isAdmin}
+                editable={sheet.author == Sefaria._uid}
+                saveable={sheet.author !== Sefaria._uid}
+                collectable={true}
                 pinSheet={this.pinSheet.bind(null, sheet.id)}
-                setSheetTag={this.setSheetTag}
+                toggleSignUpModal={this.props.toggleSignUpModal}
                 key={sheet.id} />);
     }.bind(this)) : <LoadingMessage />;
 
@@ -307,7 +312,7 @@ class GroupPage extends Component {
 
                   {group.listed ?
                     <div className="groupSearchBox">
-                      <i className="groupSearchIcon fa fa-search" onClick={this.handleSearchButtonClick}></i>
+                      <img className="groupSearchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" onClick={this.handleSearchButtonClick} />
                       <input
                         className="groupSearchInput"
                         placeholder={Sefaria.interfaceLang == "hebrew" ? "חפש" : "Search"}

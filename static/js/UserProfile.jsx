@@ -378,6 +378,7 @@ class UserProfile extends Component {
                     renderEmptyList={this.renderEmptySheetList}
                     renderHeader={this.renderSheetHeader}
                     sortOptions={["Recent", "Views"]}
+                    containerClass={"sheetList"}
                     getData={this.getSheets}
                     data={this.getSheetsFromCache()}
                     refreshData={this.state.refreshSheetData}

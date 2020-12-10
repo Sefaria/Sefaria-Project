@@ -4579,7 +4579,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .bilingual .textList .title .he {
   display: none;
 }
-.textList .sheet,
+.textList .sheetList .sheet,
 .textList .note {
   padding: 0 0 24px 0;
   display: flex;
@@ -4589,7 +4589,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 24px 0;
   border-top: 1px solid #E6E5E6;
 }
-.textList .sheet .sheetInfo{
+.textList .sheetList .sheet a.sheetTitle {
+  margin-bottom: 0;
+  align-items: flex-start;
+}
+.textList .sheet .sheetInfo {
   display: flex;
   justify-content: space-between;
 }
@@ -4622,11 +4626,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: left;
   color: #000;
 }
-.textList .sheet .sheetTitle .sheetIcon {
+.textList .sheetList .sheet .sheetLeft .sheetTitle img.sheetIcon {
   width: 14px;
   height: 14px;
-  opacity: 0.4;
-  margin-top: 3px;
+  margin: 3px 0 0 0;
 }
 .textList .sheet .sheetTitle .sheetTitleText{
   margin: auto 6px;
@@ -4664,6 +4667,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 22px;
   margin: 0;
 }
+.sheet .sheetRight img.pinned,
 .sheet:hover .sheetRight img {
   display: block;
 }
@@ -6192,11 +6196,13 @@ h2.splitHeader .he {
   display: flex;
   align-items: center;
   border-bottom: 1px solid #ccc;
-  margin-top: 20px;
+  margin-top: 14px;
+  margin-bottom: 20px;
 }
 .groupPage .groupSearchIcon {
-  font-size: 22px;
+  height: 18px;
   opacity: 0.4;
+  width: 18px;
 }
 .groupPage .groupSearchInput {
   padding: 12px 10px;
@@ -6204,7 +6210,7 @@ h2.splitHeader .he {
   box-sizing: border-box;
   border: none;
   background: transparent;
-  font-size: 24px;
+  font-size: 18px;
 }
 .groupPage .tagsList {
   margin-top: 30px;
@@ -6219,15 +6225,15 @@ h2.splitHeader .he {
 .groupSheetInnerContent {
   flex: 1;
 }
-.groupSheetListingPinButton {
+.sheetListingPinButton {
   display: none;
   opacity: 0.3;
   cursor: pointer;
 }
-.sheet:hover .groupSheetListingPinButton.active {
+.sheet:hover .sheetListingPinButton.active {
   display: block;
 }
-.groupSheetListingPinButton.pinned {
+.sheetListingPinButton.pinned {
   display: block;
   opacity: 0.6;
 }
@@ -7693,36 +7699,36 @@ span.purim-emoji img{
 .profile-page .social-icon:hover img {
   opacity: 0.6;
 }
-.readerNavMenu.profile-page .sheet {
+.sheetList .sheet {
   border-bottom: none;
 }
-.profile-page .sheet {
+.sheetList .sheet {
   display: flex;
   flex-direction: row;
 }
-.profile-page .sheet .sheetLeft {
+.sheetList .sheet .sheetLeft {
   display: flex;
   flex-direction: column;
 }
-.profile-page .sheet .sheetTags {
+.sheetList .sheet .sheetTags {
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.profile-page .sheet .sheetTags .bullet {
+.sheetList .sheet .sheetTags .bullet {
   margin: 0 5px;
 }
-.profile-page .sheet a {
+.sheetList .sheet a {
   color: inherit;
   cursor: pointer;
 }
-.profile-page .sheet a.sheetTitle {
+.sheetList .sheet a.sheetTitle {
   display: flex;
   flex-direction: row;
   align-items: center;
   margin-bottom: 10px;
   font-size: 18px;
 }
-.profile-page .sheet .sheetLeft a img {
+.sheetList .sheet .sheetLeft .sheetTitle img {
   width: 18px;
   height: 18px;
   opacity: 0.4;
@@ -7746,9 +7752,8 @@ span.purim-emoji img{
 .interface-hebrew .profile-page .sheet a img {
   margin: 0 0 0 10px;
 }
-
 .profile-page .filterable-list {
-  /* to distinguish top half of probile from bottom half*/
+  /* to distinguish top half of profile from bottom half */
     background-color: white;
     border: 1000px solid white;
     border-top: 4px solid white;
