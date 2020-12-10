@@ -1142,12 +1142,8 @@ const withSefariaSheet = editor => {
         if (Node.string(node) !== "") {
 
           const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, Node.string(node))
-          try {
-            const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,1]))
-          }
-          catch {
-            const atEndOfDoc = null
-          }
+          const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,1]))
+
           Transforms.move(editor);
           Transforms.delete(editor, {at: path});
           Transforms.insertNodes(editor, fragment, { at: path });
