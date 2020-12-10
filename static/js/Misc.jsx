@@ -1382,24 +1382,26 @@ class SheetListing extends Component {
         {this.state.showCollectionsModal ? 
           <CollectionsModal 
             sheetID={sheet.id}
-            close={toggleCollectionsModal} />
+            close={toggleCollectionsModal}
+            handleCollectionsChange={this.props.handleCollectionsChange} />
           : null
         }
       </div>);
   }
 }
 SheetListing.propTypes = {
-  sheet:             PropTypes.object.isRequired,
-  connectedRefs:     PropTypes.array.isRequired,
-  handleSheetClick:  PropTypes.func,
-  handleSheetDelete: PropTypes.func,
-  handleSheetEdit:   PropTypes.func,
-  deletable:         PropTypes.bool,
-  saveable:          PropTypes.bool,
-  hideAuthor:        PropTypes.bool,
-  infoUnderneath:    PropTypes.bool,
-  openInNewTab:      PropTypes.bool,
-  toggleSignUpModal: PropTypes.func,
+  sheet:                   PropTypes.object.isRequired,
+  connectedRefs:           PropTypes.array.isRequired,
+  handleSheetClick:        PropTypes.func,
+  handleSheetDelete:       PropTypes.func,
+  handleSheetEdit:         PropTypes.func,
+  handleCollectionsChange: PropTypes.func,
+  deletable:               PropTypes.bool,
+  saveable:                PropTypes.bool,
+  hideAuthor:              PropTypes.bool,
+  infoUnderneath:          PropTypes.bool,
+  openInNewTab:            PropTypes.bool,
+  toggleSignUpModal:       PropTypes.func,
 };
 
 

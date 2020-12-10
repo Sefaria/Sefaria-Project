@@ -13,7 +13,7 @@ const CollectionsModal = (props) => {
 };
 
 
-const CollectionsWidget = ({sheetID, close}) => {
+const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
   const [collections, setCollections] = useState(Sefaria.getUserGroupsFromCache(Sefaria._uid));
   const [collectionsSelected, setCollectionsSelected] = useState(Sefaria.getUserCollectionsForSheetFromCache(sheetID));
   const [dataLoaded, setDataLoaded] = useState(!!collections && !!collectionsSelected);
@@ -59,6 +59,7 @@ const CollectionsWidget = ({sheetID, close}) => {
     // Update in cache, but not in Component cache -- prevents the list from jumping around
     // while you're looking at it, but show this collection first next time you see the list.
     Sefaria._userGroups[Sefaria._uid] = newCollections;
+    handleCollectionsChange && handleCollectionsChange();
   };
 
   const onNameChange = event => setNewName(event.target.value);
@@ -75,6 +76,7 @@ const CollectionsWidget = ({sheetID, close}) => {
       Sefaria._userGroups[Sefaria._uid] = newCollections;
       setCollections(newCollections);
       onCheckChange(data.collection.name, true);
+      handleCollectionsChange && handleCollectionsChange();
     });
   };
 

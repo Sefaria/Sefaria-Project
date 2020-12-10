@@ -82,6 +82,10 @@ class UserProfile extends Component {
     if (currSortOption == "Members") {
     }
   }
+  handleCollectionsChange() {
+    // Rerender Collections tab when data changes in cache.
+    this.setState({ refreshCollectionsData: Math.random() });
+  }
   renderEmptyGroupList() {
     return (
       <div className="emptyList">
@@ -223,6 +227,7 @@ class UserProfile extends Component {
         sheet={sheet}
         hideAuthor={true}
         handleSheetDelete={this.handleSheetDelete}
+        handleCollectionsChange={this.handleCollectionsChange}
         editable={Sefaria._uid === this.props.profile.id}
         deletable={Sefaria._uid === this.props.profile.id}
         saveable={Sefaria._uid !== this.props.profile.id}
@@ -388,6 +393,7 @@ class UserProfile extends Component {
                     sortOptions={["Recent", "Name", "Members", "Sheets"]}
                     getData={this.getGroups}
                     data={this.getGroupsFromCache()}
+                    refreshData={this.state.refreshCollectionsData}
                   />
                   {
                     this.state.showNotes ? (
