@@ -71,3 +71,6 @@ class Test_find_citation_in_text(object):
 
         assert In('<p>[שיר השירים א ירושלמי כתובות (דף כח:) בשורות א]')\
             .looking_for('שיר השירים').with_parenthesis().finds("Song of Songs 1")
+
+    def test_check_first(self):
+        assert In('בבא מציעא פ"ד מ"ו, ועיין לעיל').looking_for('בבא מציעא').finds("Mishnah Bava Metzia 4:6")
