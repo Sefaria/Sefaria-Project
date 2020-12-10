@@ -1047,11 +1047,17 @@ Sefaria = extend(Sefaria, {
   linkSummaryBookSort: function(category, a, b, byHebrew) {
     // Sorter for links in a link summary, included a hard coded list of top spots by category
     // First sort by predefined "top"
-    const topByCategory = {
+    const hebrewTopByCategory = {
       "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
-      "Talmud": ["Rashi", "Tosafot"]
+      "Talmud": ["Rashi", "Tosafot"],
+      "Mishnah": ["Bartenura", "Rambam", "Ikar Tosafot Yom Tov", "Yachin", "Boaz"]
     };
-    const top = topByCategory[category] || [];
+    const englishTopByCategory = {
+      "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
+      "Talmud": ["Rashi", "Tosafot"],
+      "Mishnah": ["Bartenura", "English Explanation of Mishnah", "Rambam", "Ikar Tosafot Yom Tov", "Yachin", "Boaz"]
+    };
+    const top = (byHebrew ? hebrewTopByCategory[category] : englishTopByCategory[category]) || [];
     let aTop = top.indexOf(a.book);
     let bTop = top.indexOf(b.book);
     if (aTop !== -1 || bTop !== -1) {
