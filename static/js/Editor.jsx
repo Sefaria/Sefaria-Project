@@ -101,11 +101,12 @@ const format_to_html_lookup = format_tag_pairs.reduce((obj, item) => {
 
 export const deserialize = el => {
     if (el.nodeType === 3) {
-        return el.textContent
+        const textToReturn = el.textContent.replace(/\u2800/g, ''); // this removes the temporary hacky braile character added to render empty paragraphs and br line breaks in parseSheetItemHTML()
+        return textToReturn
     } else if (el.nodeType !== 1) {
         return null
     } else if (el.nodeName === 'BR') {
-        return '\n'
+        return null
     }
 
     const {nodeName} = el;
@@ -151,7 +152,7 @@ export const serialize = (content) => {
             return {preTags: tagString.preTags, postTags: tagString.postTags}
         }, {preTags: "", postTags: ""});
 
-        return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br/>')}${tagStringObj.postTags}`)
+        return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br>')}${tagStringObj.postTags}`)
     }
 
     if (content.type == "link") {
@@ -269,7 +270,8 @@ function renderSheetItem(source) {
 }
 
 function parseSheetItemHTML(rawhtml) {
-    const parsed = new DOMParser().parseFromString(Sefaria.util.cleanHTML(rawhtml), 'text/html');
+    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r)/gm, "").replace(/(<p><br><\/p>|<p> <\/p>|<div><\/div>|<p><\/p>)/gm, "<div>⠀</div>") // this is an ugly hack that adds the blank braile unicode character to ths string for a moment to ensure that the empty paragraph string gets rendered, this character will be removed later.
+    const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
     return slateJSON[0].type == 'paragraph' ? slateJSON : [{type: 'paragraph', children: slateJSON}]
@@ -883,10 +885,19 @@ const withSefariaSheet = editor => {
         //
 
         Transforms.move(editor, { reverse: true })
+
         const [match] = Editor.nodes(editor, {
           match: n => n.type === 'spacer',
         })
-        if (!match) {
+        if (match) {
+          Transforms.move(editor, { reverse: true }) //move back one more spot and see if it's a SheetSource
+          const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem");
+          if (closestSheetItem && closestSheetItem[0]["children"][0].type == "SheetSource") {
+            Transforms.move(editor)
+            return
+          }
+        }
+        else {
           Transforms.move(editor)
         }
         // end hacky spacer delete function
@@ -911,8 +922,8 @@ const withSefariaSheet = editor => {
           match: n => n.type === 'spacer',
         })
         if (match) {
-          deleteBackward(...args)
           Transforms.move(editor)
+          editor.deleteBackward(...args)
           return
         }
         // end hacky spacer delete function
@@ -927,6 +938,16 @@ const withSefariaSheet = editor => {
         //     editor.insertText("\n");
         //     return
         // }
+
+
+        // Prevent line breaks in sheetTitle
+        const [match] = Editor.nodes(editor, {
+          match: n => n.type === 'SheetTitle',
+        })
+        if (match) {
+          return
+        } //
+
 
         getRefInText(editor).then(query =>{
 
@@ -1037,6 +1058,12 @@ const withSefariaSheet = editor => {
 
       }
 
+      if (node.type == "Sheet") {
+        if (node.children.length < 2) {
+          console.log('bad state -- sheet lost children')
+        }
+      }
+
       if (node.type == "SheetMetaDataBox") {
         // If SheetMetaDataBox is missing a title or authorStatement or groupStatement, reset it
           if (node.children.length < 3) {
@@ -1115,7 +1142,12 @@ const withSefariaSheet = editor => {
         if (Node.string(node) !== "") {
 
           const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, Node.string(node))
-          const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,1]))
+          try {
+            const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,1]))
+          }
+          catch {
+            const atEndOfDoc = null
+          }
           Transforms.move(editor);
           Transforms.delete(editor, {at: path});
           Transforms.insertNodes(editor, fragment, { at: path });
@@ -1302,7 +1334,6 @@ const addItemToSheet = (editor, fragment, position) => {
 
 const checkAndFixDuplicateSheetNodeNumbers = (editor) => {
   let existingSheetNodes = []
-
   for (const [child, childPath] of Node.children(editor, [0,1])) {
     const sheetNode = child.children[0];
     if (existingSheetNodes.includes(sheetNode.node)) {
@@ -1359,7 +1390,7 @@ const insertSource = (editor, ref, path=null) => {
         };
         Transforms.setNodes(editor, { loading: false }, { at: currentNode[1] });
         addItemToSheet(editor, fragment, path ? path : "bottom");
-        checkAndFixDuplicateSheetNodeNumbers()
+        checkAndFixDuplicateSheetNodeNumbers(editor)
         Transforms.move(editor, { unit: 'block', distance: 9 })
     });
 };
@@ -1457,7 +1488,6 @@ const Leaf = ({attributes, children, leaf}) => {
     if (leaf.isRef) {
         children = <span className="inlineTextRef">{children}</span>
     }
-
     return <span {...attributes}>{children}</span>
 };
 
@@ -1469,6 +1499,11 @@ const HoverMenu = () => {
         const el = ref.current;
         const {selection} = editor;
 
+        const [match] = Editor.nodes(editor, {
+          match: n => n.type === 'SheetTitle',
+        })
+
+
         if (!el) {
             return
         }
@@ -1477,7 +1512,8 @@ const HoverMenu = () => {
             !selection ||
             !ReactEditor.isFocused(editor) ||
             Range.isCollapsed(selection) ||
-            Editor.string(editor, selection) === ''
+            Editor.string(editor, selection) === '' ||
+            match
         ) {
             el.removeAttribute('style');
             return
@@ -1536,7 +1572,6 @@ function saveSheetContent(doc, lastModified) {
         return htmlString + serialize(fragment)
     }, "");
 
-
     const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
 
     const sources = sheetContent.map(item => {
@@ -1580,13 +1615,10 @@ function saveSheetContent(doc, lastModified) {
                 });
 
             case 'SheetOutsideText':
-                const outsideTextText = serialize(sheetItem)
-               //don't save empty outsideTexts
-               if (outsideTextText=="<p></p>") {return}
-               else if (outsideTextText=="<div></div>") {return}
-
+               const outsideTextText = serialize(sheetItem)
+               //Add space to empty outside texts to preseve line breaks from old sheets.
                return ({
-                    "outsideText": outsideTextText,
+                    "outsideText": (outsideTextText=="<p></p>" || outsideTextText=="<div></div>") ? "<p> </p>" : outsideTextText,
                     "node": sheetItem.node,
                 });
 

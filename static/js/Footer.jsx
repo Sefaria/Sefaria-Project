@@ -100,7 +100,6 @@ class Footer extends Component {
             <Section en="Join Us" he="הצטרפו אלינו">
                 <Link href="https://sefaria.nationbuilder.com/supportsefaria" en="Donate" he="תרומות" />
                 <Link href="/supporters" en="Supporters" he="תומכים" />
-                <Link href="/contribute" en="Contribute" he="להצטרפות" blank={true} />
                 <Link href="/jobs" en="Jobs" he="דרושים" />
                 <Link href="https://store.sefaria.org" en="Shop" he="חנות" />
             </Section>
