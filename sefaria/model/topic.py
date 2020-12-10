@@ -53,7 +53,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     def get_types(self, types=None, curr_path=None, search_slug_set=None):
         """
         WARNING: Expensive, lots of database calls
-        Checks if `self` has `topic_slug` as an ancestor when traversing `is-a` links
+        Gets all `is-a` ancestors of self. Returns early if `search_slug_set` is passed and it reaches any element in `search_slug_set`
         :param types: set(str), current known types, for recursive calls
         :param curr_path: current path of this recursive call
         :param search_slug_set: if passed, will return early once/if any element of `search_slug_set` is found

@@ -3542,9 +3542,13 @@ def profile_sync_api(request):
                     if 'ref' not in hist:
                         logger.warning(f'Ref not in hist. Post data: {post[field]}. User ID: {request.user.id}')
                         continue
-                    uh = profile.process_history_item(hist, now)
-                    if uh:
-                        ret["created"] += [uh.contents(for_api=True)]
+                    try:
+                        uh = profile.process_history_item(hist, now)
+                        if uh:
+                            ret["created"] += [uh.contents(for_api=True)]
+                    except InputError:
+                        # validation failed
+                        continue
 
         if not no_return:
             # determine return value after new history saved to include new saved and deleted saves
