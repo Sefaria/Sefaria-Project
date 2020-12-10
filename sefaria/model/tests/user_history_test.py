@@ -1,6 +1,6 @@
 import pytest
 from sefaria.model.user_profile import UserHistory, UserHistorySet
-
+from sefaria.system.exceptions import InputError
 
 def make_uh(uid=0, ref="Genesis 1:1", he_ref="בראשית א:א", versions=None, time_stamp=0, server_time_stamp=0, last_place=False, book="Genesis", saved=False, secondary=False):
     versions = versions or {
@@ -49,3 +49,7 @@ def test_saved_with_secondary_item(uh_secondary_item):
     assert uh_secondary_item._id != uh._id
     assert not uh.secondary
     uh.delete()
+
+def test_validation_for_saved_and_secondary():
+    with pytest.raises(InputError):
+        make_uh(saved=True, secondary=True)

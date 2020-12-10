@@ -101,6 +101,10 @@ class UserHistory(abst.AbstractMongoRecord):
 
         super(UserHistory, self).__init__(attrs=attrs)
 
+    def _validate(self):
+        if self.secondary and self.saved:
+            raise InputError("UserHistory item cannot currently have both saved and secondary flags set at the same time")
+
     def _normalize(self):
         # Derived values - used to make downstream queries quicker
         self.datetime = datetime.utcfromtimestamp(self.time_stamp)
