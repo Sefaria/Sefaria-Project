@@ -21,7 +21,6 @@ import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
 import $ from './sefaria/sefariaJquery';
-import TextRange from './TextRange'
 import TextList from './TextList'
 import ConnectionsPanelHeader from './ConnectionsPanelHeader';
 import { AddToSourceSheetBox } from './AddToSourceSheet';
