@@ -6,15 +6,15 @@ ENV DJANGO_PORT 80
 ENV NODEJS_PORT 3000
 ENV DEBUG       false
 
+RUN npm install forever -g 
+RUN mkdir -p /app/log \
+ && mkdir -p /app/log/forever \
+ && touch /app/log/forever/forever.log
+
 COPY . /app/
 WORKDIR /app/
 
 RUN npm install --unsafe-perm && npm run build-prod
-
-RUN npm install forever -g \
- && mkdir -p /app/log \
- && mkdir -p /app/log/forever \
- && touch /app/log/forever/forever.log
 
 EXPOSE 3000
 
