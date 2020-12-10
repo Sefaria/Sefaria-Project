@@ -304,6 +304,18 @@ c = Category().load({"path": ["Modern Works", "Works of Eliezer Berkovits"]})
 p = Category().load({"path": ["Jewish Thought"]})
 moveCategoryInto(c, p)
 
+c =  Category().load({"path": ["Jewish Thought", "Works of Eliezer Berkovits"]})
+c.change_key_name("Eliezer Berkovits")
+c.save()
+
+# move all matching Indexes
+for ind in IndexSet({"categories.1": "Works of Eliezer Berkovits"}):
+    assert isinstance(ind, Index)
+    ind.categories = ["Jewish Thought", "Eliezer Berkovits"]
+    print("Moving - " + ind.get_title() + " to " + str(ind.categories))
+    ind.save(override_dependencies=True)
+
+
 cat_ancient = create_category(["Jewish Thought", "Ancient"], "Ancient", "ספרות קדומה")
 books_ancient = ['The Midrash of Philo',
       'Against Apion',
@@ -325,7 +337,8 @@ books_rishonim = [  "HaEmunot veHaDeot", "Eight Chapters",
     "Ohr Hashem",
     "The Wars of the Lord",
     "Minhat Kenaot",
-    "Yesod Mora"]
+    "Yesod Mora",
+    "Minhat Yehuda Sone haNashim"]
 
 cat_acharonim = create_category(["Jewish Thought", "Acharonim"], "Acharonim","אחרונים")
 books_acharonim = ["Derech Hashem",
@@ -366,6 +379,9 @@ for cat, books in [
 ]:
     for book in books:
         i = library.get_index(book)
+        if not i:
+            print("Didn't find book: {}".format(book))
+            continue
         moveIndexInto(i, cat)
 
 
@@ -673,6 +689,7 @@ books_other_a =  [
 
 cat_other_m = create_category(["Responsa", "Other Modern"], "Other Modern", "שו”תים מודרניים נוספים")
 books_other_m = ['Responsa Benei Banim',
+'LaKelal VeLaPerat',
 'Mishpetei Uziel',
 'Collected Responsa in Wartime',
 'Collected Responsa to Chaplains']
@@ -717,10 +734,6 @@ tohide = [
     "Footnotes to Teshuvot haRashba part V",
     "Footnotes to Teshuvot haRashba part VI",
     "Footnotes to Teshuvot haRashba part VII",
-    "Footnotes and Annotations on Derech Chaim",
-    "Footnotes and Annotations on Be'er HaGolah",
-    "Footnotes and Annotations on Ner Mitzvah",
-    "Footnotes and Annotations on Ohr Chadash",
     "Nishmat Adam",
     "Binat Adam",
     "Commentary on Selected Paragraphs of Arpilei Tohar",
@@ -735,41 +748,49 @@ for t in tohide:
     i.hidden = True
     i.save(override_dependencies=True)
 
+# Move Footnotes out of empty-display categories
+c = Category().load({"path": ["Responsa", "Rashba"]})
+i = library.get_index("Footnotes on Teshuvot haRashba Meyuchas LehaRamban")
+moveIndexInto(i, c)
+
+c = Category().load({"path": ["Jewish Thought"]})
+i = library.get_index("Footnotes on Orot")
+moveIndexInto(i, c)
+
+c = Category().load({"path": ["Midrash", "Halachic Midrash"]})
+i = library.get_index("Footnotes on Mekhilta DeRabbi Shimon Bar Yochai")
+moveIndexInto(i, c)
 
 # remove empty categories
-"""
-library.rebuild(include_toc=True)
-for c in CategorySet({"$and": [{"path.0":"Halakhah"},{"path.1":"Commentary"},{"path.2":"Kessef Mishneh"}]}):
-    if len(c.path) == 3:
-        continue
-    c.delete()
-"""
-
 for p in [
-        ["Halakhah", "Commentary", "Summary of Taz", "Shulchan Arukh"],
-        ["Halakhah", "Commentary", "Summary of Shakh", "Shulchan Arukh"],
-        ["Halakhah", "Commentary", "Kessef Mishneh"],
-        ["Other", "Grammar"],
-        ["Other", "Dictionary"],
-        ["Modern Works", "Commentary"],
-        ["Tanaitic", "Commentary"],
-        ["Responsa", "Commentary", "Footnotes", "Rashba"],
-    ]:
-    c = Category().load({"path": p})
-    c.delete()
-
-library.rebuild(include_toc=True)
-for p in [
-        ["Other"],
-        ["Modern Works"],
-        ["Tanaitic"],
-        ["Responsa", "Commentary", "Footnotes"],
+    ["Other", "Grammar"],
+    ["Other", "Dictionary"],
+    ["Modern Works", "Commentary"],
+    ["Tanaitic", "Commentary"],
+    ["Responsa", "Commentary", "Footnotes", "Rashba"],
+    ["Jewish Thought", "Commentary", "Footnotes"],
 ]:
     c = Category().load({"path": p})
     c.delete()
 
 library.rebuild(include_toc=True)
 for p in [
+    ["Halakhah", "Commentary", "Kessef Mishneh", "Mishneh Torah"],
+    ["Halakhah", "Commentary", "Summary of Taz", "Shulchan Arukh"],
+    ["Halakhah", "Commentary", "Summary of Shakh", "Shulchan Arukh"],
+    ["Other"],
+    ["Modern Works"],
+    ["Tanaitic"],
+    ["Responsa", "Commentary", "Footnotes"],
+    ["Midrash", "Commentary", "Footnotes", "Halachic Midrash"],
+]:
+    c = Category().load({"path": p})
+    c.delete()
+
+library.rebuild(include_toc=True)
+for p in [
+    ["Midrash", "Commentary", "Footnotes"],
+    ["Halakhah", "Commentary", "Kessef Mishneh"],
     ["Responsa", "Commentary"],
 ]:
     c = Category().load({"path": p})
