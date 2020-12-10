@@ -1247,161 +1247,146 @@ ProfileListing.propTypes = {
   name:        PropTypes.string.isRequired,
   is_followed: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
-
 };
 
 
-class SheetListing extends Component {
+const SheetListing = ({
+  sheet, connectedRefs, handleSheetClick, handleSheetDelete, handleCollectionsChange,
+  editable, deletable, saveable, collectable, hideAuthor, infoUnderneath, openInNewTab, toggleSignUpModal 
+}) => {
   // A source sheet presented in lists, like sidebar or profile page
-  constructor(props) {
-    super(props);
-    this.state = {
-      showCollectionsModal: false
-    };
-  }
-  handleSheetClick(e) {
+  const [showCollectionsModal, setShowCollectionsModal] = useState(false);
+  
+  const handleSheetClickLocal = (e) => {
     //console.log("Sheet Click Handled");
     // TODO: There more contexts to distinguish / track. Profile, groups, search
-    if (Sefaria._uid == this.props.sheet.owner) {
-      Sefaria.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
+    if (Sefaria._uid == sheet.owner) {
+      Sefaria.track.event("Tools", "My Sheet Click", sheet.sheetUrl);
     } else {
-      Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
+      Sefaria.track.event("Tools", "Sheet Click", sheet.sheetUrl);
     }
-    if (this.props.handleSheetClick) {
-      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString());
-      this.props.handleSheetClick(e, this.props.sheet, null, this.props.connectedRefs);
+    if (handleSheetClick) {
+      Sefaria.track.sheets("Opened via Connections Panel", connectedRefs.toString());
+      handleSheetClick(e, sheet, null, connectedRefs);
       e.preventDefault();
     }
-  }
-  handleSheetOwnerClick(e) {
-    Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
-  }
-  handleTopicClick(topic) {
+  };
+
+  const handleSheetOwnerClick = (e) => {
+    Sefaria.track.event("Tools", "Sheet Owner Click", sheet.ownerProfileUrl);
+  };
+
+  const handleTopicClick = (topic) => {
     Sefaria.track.event("Tools", "Topic Click", topic);
-  }
-  handleSheetDelete() {
+  };
+
+  const handleSheetDeleteClick = () => {
     if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
-      Sefaria.sheets.deleteSheetById(this.props.sheet.id).then(this.props.handleSheetDelete);
+      Sefaria.sheets.deleteSheetById(sheet.id).then(handleSheetDelete);
     }
-  }
-  render() {
-    var sheet = this.props.sheet;
-    var viewsIcon = sheet.public ?
-      <div className="sheetViews sans"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
-      : <div className="sheetViews sans"><i className="fa fa-lock" title="Private"></i></div>;
+  };
 
-    var sheetInfo = this.props.hideAuthor ? null :
-        <div className="sheetInfo">
-          <div className="sheetUser">
-            <a href={sheet.ownerProfileUrl} target={this.props.openInNewTab ? "_blank" : "_self"}>
-              <ProfilePic
-                outerStyle={{display: "inline-block"}}
-                name={sheet.ownerName}
-                url={sheet.ownerImageUrl}
-                len={26}
-              />
-            </a>
-            <a href={sheet.ownerProfileUrl} target={this.props.openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
-          </div>
-          {viewsIcon}
-        </div>
-
-    const topics = sheet.topics.map((topic, i) => {
-      const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
-      return (
-        <a href={`/topics/${topic.slug}`}
-          target={this.props.openInNewTab ? "_blank" : "_self"}
-          className="sheetTag"
-          key={i}
-          onClick={this.handleTopicClick.bind(null, topic.slug)}
-        >
-          <InterfaceTextWithFallback {...topic} />
-          {separator}
-        </a>
-      );
-    });
-    const created = Sefaria.util.localeDate(sheet.created);
-    const underInfo = this.props.infoUnderneath ? [
-        sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
-        `${sheet.views} ${Sefaria._('Views')}`,
-        created,
-        sheet.topics.length ? topics : undefined,
-        !!sheet.group ? (<a href={`/collections/${sheet.group}`} target={this.props.openInNewTab ? "_blank" : "_self"}>{sheet.group}</a>) : undefined,
-      ].filter(x => x !== undefined) : [topics];
-
-    const toggleCollectionsModal = () => {
-      if (Sefaria._uid) {
-        this.setState({"showCollectionsModal": !this.state.showCollectionsModal});
-      } else {
-        this.props.toggleSignUpModal();
-      }
+  const toggleCollectionsModal = () => {
+    if (Sefaria._uid) {
+      setShowCollectionsModal(!showCollectionsModal);
+    } else {
+      toggleSignUpModal();
     }
+  };
 
-    return (
-      <div className="sheet" key={sheet.sheetUrl}>
-        <div className="sheetLeft">
-          {sheetInfo}
-          <a href={sheet.sheetUrl} target={this.props.openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={this.handleSheetClick}>
-            <img src="/static/img/sheet.svg" className="sheetIcon"/>
-            <span className="sheetTitleText">{sheet.title}</span>
+  const viewsIcon = sheet.public ?
+    <div className="sheetViews sans"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
+    : <div className="sheetViews sans"><i className="fa fa-lock" title="Private"></i></div>;
+
+  const sheetInfo = hideAuthor ? null :
+      <div className="sheetInfo">
+        <div className="sheetUser">
+          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>
+            <ProfilePic
+              outerStyle={{display: "inline-block"}}
+              name={sheet.ownerName}
+              url={sheet.ownerImageUrl}
+              len={26}
+            />
           </a>
-          <div className="sheetTags">
-            {
-              underInfo.map((i, ii) => (
-                <span key={ii}>
-                  { ii !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
-                  {i}
-                </span>
-              ))
-            }
-          </div>
+          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick}>{sheet.ownerName}</a>
         </div>
-        <div className="sheetRight">
+        {viewsIcon}
+      </div>
+
+  const topics = sheet.topics.map((topic, i) => {
+    const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
+    return (
+      <a href={`/topics/${topic.slug}`}
+        target={openInNewTab ? "_blank" : "_self"}
+        className="sheetTag"
+        key={i}
+        onClick={handleTopicClick.bind(null, topic.slug)}
+      >
+        <InterfaceTextWithFallback {...topic} />
+        {separator}
+      </a>
+    );
+  });
+  const created = Sefaria.util.localeDate(sheet.created);
+  const underInfo = infoUnderneath ? [
+      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
+      `${sheet.views} ${Sefaria._('Views')}`,
+      created,
+      sheet.topics.length ? topics : undefined,
+      !!sheet.group ? (<a href={`/collections/${sheet.group}`} target={openInNewTab ? "_blank" : "_self"}>{sheet.group}</a>) : undefined,
+    ].filter(x => x !== undefined) : [topics];
+
+  return (
+    <div className="sheet" key={sheet.sheetUrl}>
+      <div className="sheetLeft">
+        {sheetInfo}
+        <a href={sheet.sheetUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
+          <img src="/static/img/sheet.svg" className="sheetIcon"/>
+          <span className="sheetTitleText">{sheet.title}</span>
+        </a>
+        <div className="sheetTags">
           {
-            this.props.editable && !document.cookie.includes("new_editor") ?
-              <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg"/></a>
-              : null
-          }
-          {
-            this.props.collectable ?
-              <img src="/static/img/collection.svg" onClick={toggleCollectionsModal} />
-              : null
-          }
-          {
-            this.props.deletable ?
-              <img src="/static/img/circled-x.svg" onClick={this.handleSheetDelete}/>
-              : null
-          }
-          {
-            this.props.saveable ?
-              <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }} 
-                toggleSignUpModal={this.props.toggleSignUpModal} />
-              : null
+            underInfo.map((item, i) => (
+              <span key={i}>
+                { i !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
+                {item}
+              </span>
+            ))
           }
         </div>
-        {this.state.showCollectionsModal ? 
-          <CollectionsModal 
-            sheetID={sheet.id}
-            close={toggleCollectionsModal}
-            handleCollectionsChange={this.props.handleCollectionsChange} />
-          : null
+      </div>
+      <div className="sheetRight">
+        {
+          editable && !document.cookie.includes("new_editor") ?
+            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg"/></a>
+            : null
         }
-      </div>);
-  }
-}
-SheetListing.propTypes = {
-  sheet:                   PropTypes.object.isRequired,
-  connectedRefs:           PropTypes.array.isRequired,
-  handleSheetClick:        PropTypes.func,
-  handleSheetDelete:       PropTypes.func,
-  handleSheetEdit:         PropTypes.func,
-  handleCollectionsChange: PropTypes.func,
-  deletable:               PropTypes.bool,
-  saveable:                PropTypes.bool,
-  hideAuthor:              PropTypes.bool,
-  infoUnderneath:          PropTypes.bool,
-  openInNewTab:            PropTypes.bool,
-  toggleSignUpModal:       PropTypes.func,
+        {
+          collectable ?
+            <img src="/static/img/collection.svg" onClick={toggleCollectionsModal} />
+            : null
+        }
+        {
+          deletable ?
+            <img src="/static/img/circled-x.svg" onClick={handleSheetDeleteClick}/>
+            : null
+        }
+        {
+          saveable ?
+            <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }} 
+              toggleSignUpModal={toggleSignUpModal} />
+            : null
+        }
+      </div>
+      {showCollectionsModal ? 
+        <CollectionsModal 
+          sheetID={sheet.id}
+          close={toggleCollectionsModal}
+          handleCollectionsChange={handleCollectionsChange} />
+        : null
+      }
+    </div>);
 };
 
 

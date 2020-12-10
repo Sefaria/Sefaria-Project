@@ -2479,7 +2479,7 @@ _media: {},
             }
         }
     }else{
-        console.warn("Missing Hebrew translation for: " + inputStr);
+        //console.warn("Missing Hebrew translation for: " + inputStr);
         return inputStr;
 	  }
   },
