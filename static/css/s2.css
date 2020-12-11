@@ -8622,6 +8622,7 @@ body .homeFeedWrapper.userStats {
   color: #666;
   padding: 20px 0px;
   line-height: 1.5;
+  text-align: start;
 }
 .collectionsWidgetCreate {
   display: flex;

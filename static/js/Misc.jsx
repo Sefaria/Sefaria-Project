@@ -1365,17 +1365,17 @@ const SheetListing = ({
       <div className="sheetRight">
         {
           editable && !document.cookie.includes("new_editor") ?
-            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg"/></a>
+            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg" title={Sefaria._("Edit")}/></a>
             : null
         }
         {
           collectable ?
-            <img src="/static/img/collection.svg" onClick={toggleCollectionsModal} />
+            <img src="/static/img/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
             : null
         }
         {
           deletable ?
-            <img src="/static/img/circled-x.svg" onClick={handleSheetDeleteClick}/>
+            <img src="/static/img/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} />
             : null
         }
         {
