@@ -5,15 +5,17 @@ from sefaria.model import *
 
 # root = library.get_toc_tree().get_root()
 
-def moveIndexInto(index, category):
-    assert isinstance(index, Index)
-    assert isinstance(category, Category)
+def moveIndexInto(index, cat):
+    if not isinstance(index, Index):
+        index = library.get_index(index)
+    if not isinstance(cat, Category):
+        cat = Category().load({"path": cat})
 
-    index.categories = category.path[:]
+    index.categories = cat.path[:]
     print("Moving - " + index.get_title() + " to " + str(index.categories) + " (moveIndexInto)")
     index.save(override_dependencies=True)
 
-def moveCategoryInto(category, parent):
+def moveCategoryInto(cat, parent):
     """
     c = Category().load({'path': ["Tanaitic", "Minor Tractates"]})
     p = Category().load({"path": ["Talmud", "Bavli"]})
@@ -21,15 +23,15 @@ def moveCategoryInto(category, parent):
 
     if parent is None, move to root.
 
-    :param category:
+    :param cat:
     :param parent:
     :return:
     """
-    assert isinstance(category, Category)
+    assert isinstance(cat, Category)
     assert isinstance(parent, Category) or parent is None
 
-    old_category_path = category.path[:]
-    old_parent_path = category.path[:-1]
+    old_category_path = cat.path[:]
+    old_parent_path = cat.path[:-1]
     new_parent_path = parent.path[:] if parent else []
 
     # move all matching categories
@@ -113,6 +115,9 @@ for n in ["Seder Olam Zutta", "Avot D'Rabbi Natan"]:
 # ["Tanaitic", "Commentary", "Kisse Rahamim", "Minor Tractates"]
 # -> ["Midrash", "Commentary", "Kisse Rahamim"]
 
+adrn_com = create_category(["Midrash", "Commentary", "Avot D'Rabbi Natan"], "Avot D'Rabbi Natan", "אבות דרבי נתן")
+sor_com = create_category(["Midrash", "Commentary", "Seder Olam Rabbah"],"Seder Olam Rabbah","סדר עולם רבה")
+
 adrn_comms = ["Binyan Yehoshua on Avot D'Rabbi Natan",
 "Gra's Nuschah on Avot D'Rabbi Natan",
 "Haggahot R' Yeshaya Berlin on Avot D'Rabbi Natan",
@@ -124,19 +129,32 @@ adrn_comms = ["Binyan Yehoshua on Avot D'Rabbi Natan",
 
 for comm in adrn_comms:
     i = library.get_index(comm)
-    name = i.categories[2]
-    c = create_category(["Midrash", "Commentary", name])
-    moveIndexInto(i, c)
+    moveIndexInto(i, adrn_com)
+
+sor_comms = ["Vilna_Gaon_on_Seder_Olam_Rabbah",
+             "Meir Ayin on Seder Olam Rabbah",
+             "Yaakov Emden on Seder Olam Rabbah"]
+
+for comm in sor_comms:
+    i = library.get_index(comm)
+    moveIndexInto(i, sor_com)
 
 library.rebuild(include_toc=True)
 # remove empty categories that had been just ADRN
-for p in [
+paths = [
     ["Tanaitic", "Commentary", "Binyan Yehoshua", "Minor Tractates" ],
     ["Tanaitic", "Commentary", "Mitzpeh Etan", "Minor Tractates" ],
     ["Tanaitic", "Commentary", "Tumat Yesharim", "Minor Tractates" ],
-    ]:
+    ]
+for p in paths:
     c = Category().load({"path": p})
     c.delete()
+
+library.rebuild(include_toc=True)
+for p in paths:
+    c = Category().load({"path": p[:-1]})
+    c.delete()
+
 
 ### The rest of the minor tractates -> Talmud/Bavli
 c = Category().load({'path': ["Tanaitic", "Minor Tractates"]})
@@ -150,6 +168,16 @@ p = Category().load({"path": ["Talmud", "Bavli", "Commentary"]})
 for kid in Category().load({'path': ["Tanaitic", "Commentary"]}).get_toc_object().children:
         c = kid.get_category_object()
         moveCategoryInto(c, p)
+"""
+todo: ^ -> v 
+#        "Tanaitic",         "Commentary",         "Nahalat Yaakov",         "Minor Tractates"
+#   =>   "Talmud",      "Bavli",    "Commentary",   "Minor Tractates"
+p = create_category(["Talmud", "Bavli", "Commentary", "Minor Tractates"])
+for kid in Category().load({'path': ["Tanaitic", "Commentary"]}).get_toc_object().children:
+        c = kid.get_category_object()
+        moveCategoryInto(c, p)
+
+"""
 
 ### 	Megillat Taanit -> Midrash
 i = library.get_index("Megillat Taanit")
@@ -303,6 +331,8 @@ for ind in IndexSet({"categories.0": "Philosophy"}):
 c = Category().load({"path": ["Modern Works", "Works of Eliezer Berkovits"]})
 p = Category().load({"path": ["Jewish Thought"]})
 moveCategoryInto(c, p)
+
+library.rebuild(include_toc=True)
 
 c =  Category().load({"path": ["Jewish Thought", "Works of Eliezer Berkovits"]})
 c.change_key_name("Eliezer Berkovits")
@@ -741,7 +771,10 @@ tohide = [
     "Bein HaShitin on Halacha and Aggadah",
     "Commentaries on Revealment and Concealment in Language",
     "Mekor Mayim Chayim on Baal Shem Tov",
-    "Publisher's Haggahot on Sefer HaParnas"
+    "Publisher's Haggahot on Sefer HaParnas",
+    "JPS 1985 Footnotes",
+    "Notes and Corrections on Midrash Aggadah",
+    "Buber footnotes on Midrash Mishlei"
 ]
 for t in tohide:
     i = library.get_index(t)
@@ -753,6 +786,9 @@ c = Category().load({"path": ["Responsa", "Rashba"]})
 i = library.get_index("Footnotes on Teshuvot haRashba Meyuchas LehaRamban")
 moveIndexInto(i, c)
 
+moveIndexInto("JPS 1985 Footnotes", ["Tanakh", "Commentary"])
+
+
 c = Category().load({"path": ["Jewish Thought"]})
 i = library.get_index("Footnotes on Orot")
 moveIndexInto(i, c)
@@ -760,6 +796,94 @@ moveIndexInto(i, c)
 c = Category().load({"path": ["Midrash", "Halachic Midrash"]})
 i = library.get_index("Footnotes on Mekhilta DeRabbi Shimon Bar Yochai")
 moveIndexInto(i, c)
+
+
+# Arrange Commentary
+ri = ["Ralbag",
+"Ralbag Beur HaMilot",
+"Joseph ibn Yahya",
+"Abarbanel",
+"Alshich",
+"Saadia Gaon",
+"Second Version of Ibn Ezra",
+"Rosh on Torah",
+"Paaneach Raza",
+"Rashi",
+"Immanuel of Rome on Esther",
+"Chizkuni",
+"Rabbeinu Bahya",
+"Rabbeinu Chananel",
+"Rashbam",
+"Tur HaAroch",
+"Baal HaTurim",
+"Bekhor Shor",
+"Daat Zkenim",
+"Ibn Ezra",
+"Kitzur Baal Haturim",
+"Radak",
+"Ramban",
+"Riva on Torah",
+"Toledot Yitzchak on Torah",
+"Minchat Shai"]
+
+ah = ["Avi Ezer",
+"Ba'alei Brit Avram",
+"Bartenura on Torah",
+"Beit HaLevi on Torah",
+"Chanukat HaTorah",
+"Chatam Sofer on Torah",
+"Gur Aryeh",
+"HaKtav VeHaKabalah",
+"Haamek Davar",
+"Harchev Davar",
+"Imrei Yosher on Ruth",
+"Kli Yakar",
+"Malbim",
+"Mashmia Yeshuah",
+"Megillat Setarim on Esther",
+"Meshech Hochma",
+"Mizrachi",
+"Nachal Sorek",
+"Palgei Mayim on Lamentations",
+"Penei David",
+"Rosh David",
+"Sepher Torat Elohim",
+"Shadal",
+"Ta'alumot Chokhmah on Ecclesiastes",
+"Tevat Gome",
+"Tzaverei Shalal",
+"Malbim Beur Hamilot",
+"Metzudat David",
+"Metzudat Zion",
+"Torah Temimah",
+"Chomat Anakh",
+"Nachal Eshkol",
+"Ohev Ger",
+"Tzafnat Pa'neach on Torah"]
+
+co = [
+"Nechama Leibowitz"   # Special Case
+]
+
+t_ri_cat = create_category(["Tanakh", "Rishonim on Tanakh"],"Rishonim on Tanakh","ראשונים על תנ״ך")
+t_ah_cat = create_category(["Tanakh", "Acharonim on Tanakh"],"Acharonim on Tanakh","אחרונים על תנ״ך")
+
+# Currently Tanakh, Commentary, <Index>
+# or        Tanakh, Commentary, <subcat>, <Index>
+for n in ri:
+    cs = CategorySet({"$and": [{"path.0": "Tanakh"}, {"path.1": "Commentary"}, {"path.2": n}]})
+    for c in cs:
+        moveCategoryInto(c, t_ri_cat)
+
+for n in ah:
+    cs = CategorySet({"$and": [{"path.0": "Tanakh"}, {"path.1": "Commentary"}, {"path.2": n}]})
+    for c in cs:
+        moveCategoryInto(c, t_ah_cat)
+
+g = Group().load({"name": "גיליונות נחמה"})
+g.toc["categories"] = ["Tanakh"]
+g.save()
+
 
 # remove empty categories
 for p in [
@@ -769,6 +893,10 @@ for p in [
     ["Tanaitic", "Commentary"],
     ["Responsa", "Commentary", "Footnotes", "Rashba"],
     ["Jewish Thought", "Commentary", "Footnotes"],
+    ["Midrash","Commentary","Buber footnotes","Aggadic Midrash"], # Merely hidden
+    ["Midrash","Commentary","Gra","Aggadic Midrash"], # empty
+    ["Midrash", "Commentary", "Meir Ayin", "Aggadic Midrash"],  # empty
+    ["Midrash", "Commentary", "Yaakov Emden", "Aggadic Midrash"],  # empty
 ]:
     c = Category().load({"path": p})
     c.delete()
@@ -783,6 +911,11 @@ for p in [
     ["Tanaitic"],
     ["Responsa", "Commentary", "Footnotes"],
     ["Midrash", "Commentary", "Footnotes", "Halachic Midrash"],
+    ["Tanakh", "Commentary", "JPS"],
+    ["Midrash","Commentary","Buber footnotes"], # merely hidden
+    ["Midrash", "Commentary", "Gra"],  # empty
+    ["Midrash", "Commentary", "Meir Ayin"],  # empty
+    ["Midrash", "Commentary", "Yaakov Emden"],  # empty
 ]:
     c = Category().load({"path": p})
     c.delete()
@@ -792,6 +925,7 @@ for p in [
     ["Midrash", "Commentary", "Footnotes"],
     ["Halakhah", "Commentary", "Kessef Mishneh"],
     ["Responsa", "Commentary"],
+    ["Tanakh", "Commentary"]
 ]:
     c = Category().load({"path": p})
     c.delete()
