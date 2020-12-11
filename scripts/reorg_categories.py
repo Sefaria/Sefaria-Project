@@ -105,19 +105,12 @@ i.nodes.add_title("ספר הזהר", "he", True, True)
 i.save()
 
 ### Avot D'Rabbi Natan, "Seder Olam Zutta"  -> Midrash Aggadic Midrash
+p = Category().load({"path": ["Midrash", "Aggadic Midrash"]})
 for n in ["Seder Olam Zutta", "Avot D'Rabbi Natan"]:
-    i = library.get_index(n)
-    p = Category().load({"path": ["Midrash", "Aggadic Midrash"]})
-    moveIndexInto(i, p)
+    moveIndexInto(n, p)
 
-### Commentaries of ADRN
-# e.g:
-# ["Tanaitic", "Commentary", "Kisse Rahamim", "Minor Tractates"]
-# -> ["Midrash", "Commentary", "Kisse Rahamim"]
 
 adrn_com = create_category(["Midrash", "Commentary", "Avot D'Rabbi Natan"], "Avot D'Rabbi Natan", "אבות דרבי נתן")
-sor_com = create_category(["Midrash", "Commentary", "Seder Olam Rabbah"],"Seder Olam Rabbah","סדר עולם רבה")
-
 adrn_comms = ["Binyan Yehoshua on Avot D'Rabbi Natan",
 "Gra's Nuschah on Avot D'Rabbi Natan",
 "Haggahot R' Yeshaya Berlin on Avot D'Rabbi Natan",
@@ -128,16 +121,15 @@ adrn_comms = ["Binyan Yehoshua on Avot D'Rabbi Natan",
 "Tumat Yesharim on Avot D'Rabbi Natan"]
 
 for comm in adrn_comms:
-    i = library.get_index(comm)
-    moveIndexInto(i, adrn_com)
+    moveIndexInto(comm, adrn_com)
 
+sor_com = create_category(["Midrash", "Commentary", "Seder Olam Rabbah"],"Seder Olam Rabbah","סדר עולם רבה")
 sor_comms = ["Vilna_Gaon_on_Seder_Olam_Rabbah",
              "Meir Ayin on Seder Olam Rabbah",
              "Yaakov Emden on Seder Olam Rabbah"]
 
 for comm in sor_comms:
-    i = library.get_index(comm)
-    moveIndexInto(i, sor_com)
+    moveIndexInto(comm, sor_com)
 
 library.rebuild(include_toc=True)
 # remove empty categories that had been just ADRN
@@ -179,10 +171,7 @@ for kid in Category().load({'path': ["Tanaitic", "Commentary"]}).get_toc_object(
 
 """
 
-### 	Megillat Taanit -> Midrash
-i = library.get_index("Megillat Taanit")
-c = Category().load({"path": ["Midrash"]})
-moveIndexInto(i, c)
+moveIndexInto("Megillat Taanit", ["Midrash"])
 
 ### Tosefta -> New top level category
 c = Category().load({"path": ["Tanaitic", "Tosefta"]})
@@ -213,8 +202,7 @@ ts = ["Shoel uMeshiv Mahadura I",
 "Shoel uMeshiv Mahadura VI"]
 
 for t in ts:
-    i = library.get_index(t)
-    moveIndexInto(i, c)
+    moveIndexInto(t, c)
 
 # Contemporary .. into Halacha
 c = create_category(["Halakhah", "Contemporary Halakhic Problems"], en="Contemporary Halakhic Problems", he='בעיות הלכתיות עכשוויות')
@@ -226,8 +214,7 @@ ts = [
 'Contemporary Halakhic Problems, Vol V',
 'Contemporary Halakhic Problems, Vol VI']
 for t in ts:
-    i = library.get_index(t)
-    moveIndexInto(i, c)
+    moveIndexInto(t, c)
 
 # Gray Matter into Halacha
 c = create_category(["Halakhah", "Gray Matter"], en="Gray Matter", he='גריי מאטר')
@@ -238,8 +225,7 @@ ts = [
 'Gray Matter IV',
 ]
 for t in ts:
-    i = library.get_index(t)
-    moveIndexInto(i, c)
+    moveIndexInto(t, c)
 
 # Marei HaBazak to subcat
 c = create_category(["Responsa", "B'Mareh HaBazak"], en="B'Mareh HaBazak", he='שו"ת במראה הבזק')
@@ -266,33 +252,26 @@ ts = ["Daf Shevui to Avodah Zarah",
  "Daf Shevui to Sukkah"]
 
 for t in ts:
-    i = library.get_index(t)
-    moveIndexInto(i, c)
+    moveIndexInto(t, c)
 
-#
-i = library.get_index("A New Israeli Commentary on Pirkei Avot")
-c = Category().load({"path": ["Mishnah", "Commentary"]})   # deeper cat?
-moveIndexInto(i, c)
+moveIndexInto("A New Israeli Commentary on Pirkei Avot",  ["Mishnah", "Commentary"])  # deeper cat?
 
 c = create_category(["Reference", "Grammar"])
 ts = ["Sefer haBachur", "Mahberet Menachem", "Sefat Yeter"]
 for t in ts:
-    i = library.get_index(t)
-    moveIndexInto(i, c)
+    moveIndexInto(t, c)
 
 # Jastrow, Klein Dictionary, Otzar Laazei Rashi  => Reference, Dictionary
 c = create_category(["Reference", "Dictionary"])
 ts = ['Jastrow', 'Klein Dictionary', 'Otzar Laazei Rashi']
 for t in ts:
-    i = library.get_index(t)
-    moveIndexInto(i, c)
+    moveIndexInto(t, c)
 
 # Into reference
 c = Category().load({"path": "Reference"})
 ts = ["The Jewish Spiritual Heroes", "Ein Zocher", "Devash Lefi", "Midbar Kedemot"]
 for t in ts:
-    i = library.get_index(t)
-    moveIndexInto(i, c)
+    moveIndexInto(t, c)
 
 
 # Rename Philosophy -> Jewish Thought
@@ -419,29 +398,18 @@ p = Category().load({"path": ["Jewish Thought", "Commentary"]})
 ts = ["Ali Be'er on Revealment and Concealment in Language",
 'Bein HaShitin on Halacha and Aggadah',
 'Commentaries on Revealment and Concealment in Language']
-
 for t in ts:
-    i = library.get_index(t)
-    moveIndexInto(i, p)
+    moveIndexInto(t, p)
 
-p = Category().load({"path": ["Chasidut"]})
-ts = ["Flames of Faith"]
-for t in ts:
-    i = library.get_index(t)
-    moveIndexInto(i, p)
-
-#    "Ein Ayah",
-i = library.get_index("Ein Ayah")
-c = Category().load({"path": ["Talmud", "Bavli", "Commentary"]})
-moveIndexInto(i, c)
+moveIndexInto("Flames of Faith", ["Chasidut"])
+moveIndexInto("Ein Ayah", ["Talmud", "Bavli", "Commentary"])
 
 # Tanakh > Parshanut
 p = create_category(["Tanakh", "Parshanut"], "Parshanut", "פרשנות")
 ts = ['Depths of Yonah',
  'From David to Destruction']
 for t in ts:
-    i = library.get_index(t)
-    moveIndexInto(i, p)
+    moveIndexInto(t, p)
 
 p = create_category(["Tanakh", "Parshanut", "Redeeming Relevance"], "Redeeming Relevance", "פדיון הרלוונטיות")
 ts = ['Redeeming Relevance; Deuteronomy',
@@ -449,22 +417,17 @@ ts = ['Redeeming Relevance; Deuteronomy',
  'Redeeming Relevance; Genesis',
  'Redeeming Relevance; Numbers']
 for t in ts:
-    i = library.get_index(t)
-    moveIndexInto(i, p)
+    moveIndexInto(t, p)
 
 p = Category().load({"path": ["Tanakh", "Commentary"]})
 ts = ['Birkat Asher on Torah',
 'Chibbah Yeteirah on Torah',
 'Footnotes to Kohelet by Bruce Heitler']
 for t in ts:
-    i = library.get_index(t)
-    moveIndexInto(i, p)
+    moveIndexInto(t, p)
 
-p = Category().load({"path": ["Talmud", "Bavli", "Commentary"]})
-ts = ['Abraham Cohen Footnotes to the English Translation of Masechet Berakhot']
-for t in ts:
-    i = library.get_index(t)
-    moveIndexInto(i, p)
+
+moveIndexInto('Abraham Cohen Footnotes to the English Translation of Masechet Berakhot', ["Talmud", "Bavli", "Commentary"])
 
 
 
@@ -530,8 +493,7 @@ for cat, books in [
     (cat_other_a, books_other_a),
 ]:
     for book in books:
-        i = library.get_index(book)
-        moveIndexInto(i, cat)
+        moveIndexInto(book, cat)
 
 # Change 'Tur and Commentaries' -> 'Tur'
 c = Category().load({"path": ["Halakhah", "Tur and Commentaries"]})
@@ -546,19 +508,9 @@ for ind in IndexSet({"categories": ["Halakhah", "Tur and Commentaries"]}):
 
 
 # Move into Shulchan Arukh / Mishneh Torah subcats
-
-
-c = Category().load({"path": ["Halakhah", "Shulchan Arukh", "Commentary", "Siftei Kohen"]})
-i = library.get_index("Summary of Shakh on Shulchan Arukh, Yoreh De'ah")
-moveIndexInto(i, c)
-
-c = Category().load({"path": ["Halakhah", "Shulchan Arukh", "Commentary", "Turei Zahav"]})
-i = library.get_index("Summary of Taz on Shulchan Arukh, Yoreh De'ah")
-moveIndexInto(i, c)
-
-c = Category().load({"path":  ["Halakhah", "Shulchan Arukh", "Commentary", "Mishnah Berurah"]})
-i = library.get_index("Biur Halacha")
-moveIndexInto(i, c)
+moveIndexInto("Summary of Shakh on Shulchan Arukh, Yoreh De'ah", ["Halakhah", "Shulchan Arukh", "Commentary", "Siftei Kohen"])
+moveIndexInto("Summary of Taz on Shulchan Arukh, Yoreh De'ah", ["Halakhah", "Shulchan Arukh", "Commentary", "Turei Zahav"])
+moveIndexInto("Biur Halacha", ["Halakhah", "Shulchan Arukh", "Commentary", "Mishnah Berurah"])
 
 # Move categories of Kesef Mishnah to correct place
 new_parent = create_category(["Halakhah", "Mishneh Torah", "Commentary", "Kessef Mishneh"] )
@@ -614,14 +566,11 @@ for cat, books in [
     (m_cat, m_books)
 ]:
     for book in books:
-        i = library.get_index(book)
-        moveIndexInto(i, cat)
+        moveIndexInto(book, cat)
 
 
 # Chassidut
-c = Category().load({"path": ["Chasidut", "R' Tzadok HaKohen"]})
-i = library.get_index("Pri Tzadik")
-moveIndexInto(i, c)
+moveIndexInto("Pri Tzadik", ["Chasidut", "R' Tzadok HaKohen"])
 
 c = create_category(["Chasidut", "Izhbitz"], "Izhbitz", "איזביצה")
 for t in [
@@ -631,8 +580,7 @@ for t in [
     "Beit Yaakov on Torah",
     "Shaar HaEmunah Ve'Yesod HaChassidut"
     ]:
-    i = library.get_index(t)
-    moveIndexInto(i, c)
+    moveIndexInto(t, c)
 
 i = library.get_index("Be'er Mayim Chaim")
 del i.dependence
@@ -642,8 +590,7 @@ i.save()
 # Kabbalah
 c = create_category(["Kabbalah", "Zohar"], None, None)
 for t in ["Zohar", "Tikkunei Zohar", "Zohar Chadash", "Baal HaSulam's Introduction to Zohar"]:
-    i = library.get_index(t)
-    moveIndexInto(i, c)
+    moveIndexInto(t, c)
 
 
 # Responsa
@@ -664,9 +611,7 @@ for t, o in rashba.items():
     i.order = [o]
     i.save(override_dependencies=True)
 
-c = Category().load({"path": ["Responsa", "Rambam"]})
-i = library.get_index("Pe'er HaDor Teshuvot HaRambam")
-moveIndexInto(i, c)
+moveIndexInto("Pe'er HaDor Teshuvot HaRambam", ["Responsa", "Rambam"])
 
 
 
@@ -731,8 +676,7 @@ for cat, books in [
     (cat_other_a, books_other_a)
 ]:
     for book in books:
-        i = library.get_index(book)
-        moveIndexInto(i, cat)
+        moveIndexInto(book, cat)
 
 g = Group().load({"name": "Lindenbaum Center at YCT Rabbinical School"})
 g.toc["categories"] = ["Responsa", "Other Modern"]
@@ -782,20 +726,10 @@ for t in tohide:
     i.save(override_dependencies=True)
 
 # Move Footnotes out of empty-display categories
-c = Category().load({"path": ["Responsa", "Rashba"]})
-i = library.get_index("Footnotes on Teshuvot haRashba Meyuchas LehaRamban")
-moveIndexInto(i, c)
-
+moveIndexInto("Footnotes on Teshuvot haRashba Meyuchas LehaRamban", ["Responsa", "Rashba"])
 moveIndexInto("JPS 1985 Footnotes", ["Tanakh", "Commentary"])
-
-
-c = Category().load({"path": ["Jewish Thought"]})
-i = library.get_index("Footnotes on Orot")
-moveIndexInto(i, c)
-
-c = Category().load({"path": ["Midrash", "Halachic Midrash"]})
-i = library.get_index("Footnotes on Mekhilta DeRabbi Shimon Bar Yochai")
-moveIndexInto(i, c)
+moveIndexInto("Footnotes on Orot", ["Jewish Thought"])
+moveIndexInto("Footnotes on Mekhilta DeRabbi Shimon Bar Yochai", ["Midrash", "Halachic Midrash"])
 
 
 # Arrange Commentary
