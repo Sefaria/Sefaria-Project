@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
+  IntText,
   LoadingMessage,
   SinglePanelNavHeader,
 } from './Misc';
@@ -78,37 +79,46 @@ function PublicGroupsPage({multiPanel, navHome}) {
 PublicGroupsPage.propTypes = {};
 
 
-function GroupListing({data, showMembership}) {
-  const imageUrl = data.imageUrl || "/static/img/collection.svg";
+function GroupListing({data, showMembership, small}) {
+  const imageUrl = data.imageUrl && !small ? data.imageUrl : "/static/img/collection.svg";
   const imageClass = classNames({groupListingImage: 1, default: !data.imageUrl});
   const groupUrl = "/collections/" + data.name.replace(/\s/g, "-");
   return (<div className="groupListing">
             <div className="left-content">
+              {!small ?
               <a href={groupUrl}>
                 <div className="groupListingImageBox">
                   <img className={imageClass} src={imageUrl} alt="Collection Logo"/>
                 </div>
               </a>
+              : null }
               <div className="groupListingText">
-                <a href={groupUrl} className="groupListingName">{data.name}</a>
+                
+                <a href={groupUrl} className="groupListingName">
+                  {small ? <img className={imageClass} src={imageUrl} alt="Collection Icon"/> : null}
+                  {data.name}
+                </a>
+               
                 <div className="groupListingDetails">
+                  {data.listed ? null :
+                    (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span><IntText>Unlisted</IntText></span></span>) }
 
-                  { showMembership ?
-                  <span className="groupListingDetail groupListingMembership">
-                    <span className="int-en">{data.membership}</span>
-                    <span className="int-he">Sefaria._({data.membership})</span>
-                  </span> : null }
-                  {showMembership ? 
-                  <span className="groupListingDetailSeparator">•</span> : null }
-                  <span className="groupListingDetail groupListingMemberCount">
-                    <span className="int-en">{data.memberCount} Members</span>
-                    <span className="int-he">{data.memberCount} חברים</span>
-                  </span>
-                  <span className="groupListingDetailSeparator">•</span>
+                  {data.listed ? null :
+                  <span className="groupListingDetailSeparator">•</span> }
+                  
                   <span className="groupListingDetail groupListingSheetCount">
                     <span className="int-en">{data.sheetCount} Sheets</span>
                     <span className="int-he">{data.sheetCount} דפים</span>
                   </span>
+
+                  {data.memberCount > 1 ? 
+                  <span className="groupListingDetailSeparator">•</span> : null }
+
+                  {data.memberCount > 1 ?
+                  <span className="groupListingDetail groupListingMemberCount">
+                    <span className="int-en">{data.memberCount} Members</span>
+                    <span className="int-he">{data.memberCount} חברים</span>
+                  </span> :null }
                 </div>
               </div>
             </div>
@@ -118,6 +128,7 @@ GroupListing.propTypes = {
   data: PropTypes.object.isRequired,
   showMembership: PropTypes.bool,
 };
+
 
 export {
   GroupListing,

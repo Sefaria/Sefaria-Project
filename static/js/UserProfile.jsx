@@ -107,7 +107,7 @@ class UserProfile extends Component {
   }
   renderGroup(group) {
     return (
-      <GroupListing key={group.name} data={group} showMembership={true} />
+      <GroupListing key={group.name} data={group} showMembership={true} small={true} />
     );
   }
   renderGroupHeader() {

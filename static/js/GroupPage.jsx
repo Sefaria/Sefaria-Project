@@ -287,27 +287,29 @@ class GroupPage extends Component {
                 { this.state.tab == "sheets" ?
                   <div>
                     {sheets.length ?
-                    <h2 className="splitHeader">
+                    <div className="splitHeader">
                       { groupTopicList && groupTopicList.length ?
                       <span className="filterByTag" onClick={this.toggleSheetTags}>
                         <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
                         <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
                        </span>
-                       : null }
+                       : <div /> }
 
                           <span className="int-en actionText">Sort By:
                             <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
                              <option value="date">Recent</option>
                              <option value="alphabetical">Alphabetical</option>
                              <option value="views">Most Viewed</option>
-                           </select> <i className="fa fa-angle-down"></i></span>
+                           </select>
+                          </span>
                           <span className="int-he actionText">סנן לפי:
                             <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
                              <option value="date">הכי חדש</option>
                              <option value="alphabetical">אלפביתי</option>
                              <option value="views">הכי נצפה</option>
-                           </select> <i className="fa fa-angle-down"></i></span>
-                    </h2>
+                           </select>
+                          </span>
+                    </div>
                     : null }
 
                   {group.listed ?

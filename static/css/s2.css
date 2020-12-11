@@ -4679,15 +4679,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
   margin-right: 8px;
 }
-.sheet .sheetTags .unlisted img {
+.sheet .sheetTags .unlisted img,
+.groupListing .groupListingDetails .unlisted img {
   width: 13px;
   height: 13px;
-  vertical-align: middle;
   opacity: 0.4;
-  margin: 0 3px 0 0;
-}
-.interface-hebrew .sheet .sheetTags .unlisted img {
-  margin: 0 0 0 3px;
+  margin-inline-end: 3px;
+  position: relative;
+  top: 2px;
 }
 .sheetTag.button,
 .sheetTag.button:hover,
@@ -5941,23 +5940,22 @@ a .button:hover {
   font-size: 15px;
   font-style: italic;
 }
-h2.splitHeader {
+.splitHeader {
   margin-bottom: 10px;
   text-align: left;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  color: #666;
+  font-weight: 300;
 }
-h2.splitHeader .en {
+.splitHeader .en {
   font-size: 14px;
 }
-h2.splitHeader .he {
+.splitHeader .he {
   font-size: 14px;
 }
-.splitHeader .actionText {
-  float:right;
-  text-transform: none;
-  cursor: pointer;
-  color: inherit;
-}
-.splitHeader .actionText select {
+.splitHeader select {
   margin-left: 6px;
 }
 .sheetsNewButton {
@@ -6057,11 +6055,7 @@ h2.splitHeader .he {
   justify-content: space-between;
 }
 .profile-page .groupListing {
-  padding: 15px 0;
-}
-.profile-page .groupListingImageBox {
-  display: flex;
-  align-items: center;
+  padding: 20px 0;
 }
 .groupListing .left-content {
   display: flex;
@@ -6102,11 +6096,6 @@ h2.splitHeader .he {
   margin: 10%;
   opacity: 0.4;
 }
-.profile-page .groupListingImage.default {
-  background-color: #D2DCFF;
-  object-fit: scale-down;
-  margin: 0;
-}
 .groupListingName {
   display: block;
   font-size: 30px;
@@ -6118,7 +6107,7 @@ h2.splitHeader .he {
 }
 .groupListingDetails {
   color: #999;
-  font-size: 13px;
+  font-size: 14px;
 }
 .groupListingMembership {
   text-transform: capitalize;
@@ -7732,7 +7721,7 @@ span.purim-emoji img{
   width: 18px;
   height: 18px;
   opacity: 0.4;
-  margin: 0 10px 0 0;
+  margin-inline-end: 10px;
 }
 .default-profile-img {
   width: 175px;
@@ -7748,9 +7737,6 @@ span.purim-emoji img{
 }
 .default-profile-img.invisible {
   visibility: hidden;
-}
-.interface-hebrew .profile-page .sheet a img {
-  margin: 0 0 0 10px;
 }
 .profile-page .filterable-list {
   /* to distinguish top half of profile from bottom half */
@@ -7839,17 +7825,20 @@ span.purim-emoji img{
   align-items: flex-start;
   margin-bottom: 10px;
 }
-.profile-page .groupListingImageBox {
-  margin: 0;
-}
 .profile-page .groupListingImage {
-  width: 75%;
-  height: 75%;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
+  vertical-align: middle;
+  margin: 0;
+  margin-inline-end: 10px;
+  opacity: 0.4;
+  position: relative;
+  top: -2px;
 }
 .profile-page .groupListingName {
-  font-size: 16px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-size: 18px;
+  margin-bottom: 10px;
 }
 .profile-page .groupListing + .groupListing {
   border-top: 0;
