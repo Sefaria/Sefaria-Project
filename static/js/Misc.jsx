@@ -37,7 +37,7 @@ class ProfilePic extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showDefault: null,  // can be `true`, `false` or `null`
+      showDefault: !this.props.url || this.props.url.startsWith("https://www.gravatar"), // We can't know in advance if a gravatar image exists of not, so start with the default beforing trying to load image
       src: null,
       isFirstCropChange: true,
       crop: {unit: "px", width: 250, aspect: 1},
@@ -46,27 +46,22 @@ class ProfilePic extends Component {
     };
     this.imgFile = React.createRef();
   }
+  setShowDefault() { console.log("load"); this.setState({showDefault: true});  }
+  setShowImage() {console.log("error"); this.setState({showDefault: false});  }
   componentDidMount() {
-    if (this.isImageNotPresent()) {
-      this.setShowDefault();
+    if (this.didImageLoad()) {
+      this.setShowImage();
     } else {
-      this.setShowNonDefault();
+      this.setShowDefault();
     }
   }
-  isImageNotPresent(){
+  didImageLoad(){
+    // When using React Hydrate, the onLoad event of the profile image will return before
+    // react code runs, so we check after mount as well to look replace bad images, or to 
+    // swap in a gravatar image that we now know is valid.
     const img = this.imgFile.current;
-    if (img && img.complete) {
-        if(img.naturalWidth === 0) {
-            return true;
-        } else {
-            return false
-        }
-    }else{
-      return true;
-    }
+    return (img && img.complete && img.naturalWidth !== 0);
   }
-  setShowDefault() {this.setState({showDefault: true});  }
-  setShowNonDefault() {this.setState({showDefault: false});  }
   onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
       if (!e.target.files[0].type.startsWith('image/')) {
@@ -81,7 +76,6 @@ class ProfilePic extends Component {
       reader.readAsDataURL(e.target.files[0]);
     }
   }
-  // If you setState the crop in here you should return false.
   onImageLoaded(image) {
     this.imageRef = image;
   }
@@ -177,11 +171,11 @@ class ProfilePic extends Component {
     const { name, url, len, hideOnDefault, showButtons, outerStyle } = this.props;
     const { showDefault, src, crop, error, uploading, isFirstCropChange } = this.state;
     const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
-    const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
-    const defaultViz = (showDefault /*|| this.isImageNotPresent()*/) ? 'flex' : 'none';
-    const profileViz = (showDefault /*|| this.isImageNotPresent()*/) ? 'none' : 'block';
-    const fontSize = this.isImageNotPresent() ? 0 : len/2;
+    const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "";
+    const defaultViz = showDefault ? 'flex' : 'none';
+    const profileViz = showDefault ? 'none' : 'block';
     const imageSrc = url.replace("profile-default.png", 'profile-default-404.png');  // replace default with non-existant image to force onLoad to fail
+
     return (
       <div style={outerStyle} className="profile-pic">
         <div className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
@@ -190,11 +184,11 @@ class ProfilePic extends Component {
         </div>
         <img
           className="img-circle profile-img"
-          ref={this.imgFile}
-          style={{display: profileViz, width: len, height: len, fontSize: fontSize}}
+          style={{display: profileViz, width: len, height: len, fontSize: len/2}}
           src={imageSrc}
           alt="User Profile Picture"
-          onLoad={this.setShowNonDefault}
+          ref={this.imgFile}
+          onLoad={this.setShowImage}
           onError={this.setShowDefault}
         />
         {this.props.children ? this.props.children : null /*required for slate.js*/}

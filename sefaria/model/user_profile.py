@@ -86,7 +86,7 @@ class UserHistory(abst.AbstractMongoRecord):
             if v is None:
                 del attrs["versions"][k]
         if load_existing:
-            temp = UserHistory().load({"uid": attrs["uid"], "ref": attrs["ref"], "versions": attrs["versions"]})
+            temp = UserHistory().load({"uid": attrs["uid"], "ref": attrs["ref"], "versions": attrs["versions"], "secondary": attrs['secondary']})
             if temp is not None:
                 attrs = temp._saveable_attrs()
             # in the race-condition case where you're creating the saved item before the history item, do the update outside the previous if
@@ -100,6 +100,10 @@ class UserHistory(abst.AbstractMongoRecord):
             attrs["last_place"] = True
 
         super(UserHistory, self).__init__(attrs=attrs)
+
+    def _validate(self):
+        if self.secondary and self.saved:
+            raise InputError("UserHistory item cannot currently have both saved and secondary flags set at the same time")
 
     def _normalize(self):
         # Derived values - used to make downstream queries quicker
