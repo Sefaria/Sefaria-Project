@@ -1140,6 +1140,7 @@ input.noselect {
 .readerNavMenu .content .contentInner {
   max-width: 660px;
   margin: 0 auto;
+  min-height: 520px;
 }
 .homeFeedWrapper .content .contentInner {
   max-width: none;
