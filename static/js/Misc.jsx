@@ -36,8 +36,8 @@ class ProfilePic extends Component {
     };
     this.imgFile = React.createRef();
   }
-  setShowDefault() { console.log("load"); this.setState({showDefault: true});  }
-  setShowImage() {console.log("error"); this.setState({showDefault: false});  }
+  setShowDefault() { console.log("error"); this.setState({showDefault: true});  }
+  setShowImage() {console.log("load"); this.setState({showDefault: false});  }
   componentDidMount() {
     if (this.didImageLoad()) {
       this.setShowImage();
