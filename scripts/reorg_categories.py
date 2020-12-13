@@ -753,7 +753,6 @@ ri = ["Ralbag",
       "Minchat Shai",
       'Bartenura',
       'Sforno',
-      'Riva',
       'Tzror HaMor on Torah',
       "Mashmia Yeshuah",
       ]
@@ -882,6 +881,7 @@ for p in [
     ["Midrash", "Commentary", "Gra"],  # empty
     ["Midrash", "Commentary", "Meir Ayin"],  # empty
     ["Midrash", "Commentary", "Yaakov Emden"],  # empty
+    ["Tanakh", "Commentary", "Riva"]
 ]:
     c = Category().load({"path": p})
     if c:
