@@ -1127,8 +1127,14 @@ class AbstractTest(object):
         return self
 
     # Editor
+    def enable_new_editor(self):
+        self.driver.get(self.base_url + "/enable_new_editor")
+
+    def disable_new_editor(self):
+        self.driver.get(self.base_url + "/disable_new_editor")
+
     def new_sheet_in_editor(self):
-        self.driver.get(self.base_url + "/sheets/new?editor=0")
+        self.driver.get(self.base_url + "/sheets/new")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheetContent")))
         return self
 
@@ -1151,14 +1157,15 @@ class AbstractTest(object):
         elem = self.driver.switch_to.active_element
         elem.send_keys(paragraph[language])
         elem.send_keys(Keys.RETURN)
-        time.sleep(3) #sheet won't save until there's a brief pause
+        elem.send_keys(Keys.RETURN)
+        time.sleep(1) #sheet won't save until there's a brief pause
         return self
 
     def add_source(self):
         elem = self.driver.switch_to.active_element
         elem.send_keys("Genesis 1:1")
         elem.send_keys(Keys.RETURN)
-        time.sleep(3) #sheet won't save until there's a brief pause
+        time.sleep(1) #sheet won't save until there's a brief pause
         return self
 
     def toggle_sheet_edit_view(self):

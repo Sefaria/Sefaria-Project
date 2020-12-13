@@ -84,14 +84,16 @@ class CreateNewSheet(AtomicTest):
 
     def body(self):
         self.login_user()
+        self.enable_new_editor()
         self.new_sheet_in_editor()
         self.nav_to_end_of_editor()
         self.generate_text("he")
         self.generate_text("en")
         self.add_source()
         edited_sheet = self.get_sheet_html()
-        self.driver.get(self.get_current_url())
-        self.toggle_sheet_edit_view()
+        sheetURL = self.get_current_url()
+        self.disable_new_editor()
+        self.driver.get(sheetURL)
         loaded_sheet = self.get_sheet_html()
         assert edited_sheet == loaded_sheet
 
@@ -483,7 +485,7 @@ class SideBarEntries(AtomicTest):
         self.login_user()
         self.browse_to_ref("Ecclesiastes 1")
         self.click_segment("Ecclesiastes 1:1")
-        
+
         sections = ("Commentary", "Targum", "Talmud", "Midrash", "Midrash")
         for section in sections:
             self.click_sidebar_entry(section)
@@ -520,7 +522,7 @@ class SideBarEntries(AtomicTest):
         assert self.get_sidebar_nth_version_button(1).text in ['Select Translation', 'בחירת תרגום'],  u"'{}' does not equal 'Select Translation'".format(self.get_sidebar_nth_version_button(1).text)
         assert self.get_sidebar_nth_version_button(2).text in ['Current Translation', 'מהדורה נוכחית'], u"'{}' does not equal 'Current Translation'".format(self.get_sidebar_nth_version_button(2).text)
         self.click_resources_on_sidebar()
-        
+
         self.click_sidebar_button("Web Pages")
         self.click_resources_on_sidebar()
 
@@ -548,7 +550,7 @@ class SideBarEntries(AtomicTest):
         # self.click_tools_on_sidebar()
         # self.click_add_translation_on_sidebar()   # Time out. Is this a bug?
         # self.back()
-        
+
         self.click_sidebar_button("Tools")
         self.click_sidebar_button("Add Connection")
         time.sleep(1)
@@ -1041,7 +1043,7 @@ class SpecialCasedSearchBarNavigations(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(title_contains("Yosef Giqatillah"))
         self.type_in_search_box("Midrash")
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerNavCategoryMenu")))
-        
+
         self.type_in_search_box("שבת")
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerTextTableOfContents")))
         self.type_in_search_box("שבת י״ד")

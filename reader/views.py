@@ -3536,7 +3536,11 @@ def profile_sync_api(request):
                     if 'ref' not in hist:
                         logger.warning(f'Ref not in hist. Post data: {post[field]}. User ID: {request.user.id}')
                         continue
-                    uh = UserHistory.save_history_item(request.user.id, hist, now)
+                    try:
+                        uh = UserHistory.save_history_item(request.user.id, hist, now)
+                    except InputError:
+                        # validation failed
+                        continue
                     ret["created"] += [uh.contents(for_api=True)]
 
         if not no_return:
