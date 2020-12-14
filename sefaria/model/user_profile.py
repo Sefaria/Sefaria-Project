@@ -13,7 +13,7 @@ from sefaria.system.exceptions import InputError, SheetNotFoundError
 from functools import reduce
 
 if not hasattr(sys, '_doc_build'):
-    from django.contrib.auth.models import User
+    from django.contrib.auth.models import User, Group, AnonymousUser
     from emailusernames.utils import get_user, user_exists
     from django.core.mail import EmailMultiAlternatives
     from django.template.loader import render_to_string
@@ -86,7 +86,7 @@ class UserHistory(abst.AbstractMongoRecord):
             if v is None:
                 del attrs["versions"][k]
         if load_existing:
-            temp = UserHistory().load({"uid": attrs["uid"], "ref": attrs["ref"], "versions": attrs["versions"]})
+            temp = UserHistory().load({"uid": attrs["uid"], "ref": attrs["ref"], "versions": attrs["versions"], "secondary": attrs['secondary']})
             if temp is not None:
                 attrs = temp._saveable_attrs()
             # in the race-condition case where you're creating the saved item before the history item, do the update outside the previous if
@@ -100,6 +100,10 @@ class UserHistory(abst.AbstractMongoRecord):
             attrs["last_place"] = True
 
         super(UserHistory, self).__init__(attrs=attrs)
+
+    def _validate(self):
+        if self.secondary and self.saved:
+            raise InputError("UserHistory item cannot currently have both saved and secondary flags set at the same time")
 
     def _normalize(self):
         # Derived values - used to make downstream queries quicker
@@ -226,8 +230,13 @@ class UserHistorySet(abst.AbstractMongoSet):
 Wrapper class for operations on the user object. Currently only for changing primary email.
 """
 class UserWrapper(object):
-    def __init__(self, email=None):
-        self.user = get_user(email)
+    def __init__(self, email=None, user_obj=None):
+        if email:
+            self.user = get_user(email)
+        elif user_obj:
+            self.user = user_obj
+        else:
+            raise InputError("No user provided")
         self._errors = []
 
     def set_email(self, new_email):
@@ -259,10 +268,18 @@ class UserWrapper(object):
         else:
             raise ValueError(self.errors())
 
+    def has_permission_group(self, group_name):
+        try:
+            group = Group.objects.get(name=group_name)
+            return group in self.user.groups.all()
+        except:
+            return False
+
 
 class UserProfile(object):
-    def __init__(self, id=None, slug=None, email=None):
-
+    def __init__(self, user_obj=None, id=None, slug=None, email=None):
+        #TODO: Can we optimize the init to be able to load a profile without a call to user db?
+        # say in a case where we already have an id and just want some fields from the profile object
         if slug:  # Load profile by slug, if passed
             profile = db.profiles.find_one({"slug": slug})
             if profile:
@@ -270,7 +287,10 @@ class UserProfile(object):
                 return
 
         try:
-            if email and not id:  # Load profile by email, if passed.
+            if user_obj and not isinstance(user_obj, AnonymousUser):
+                user = user_obj
+                id = user.id
+            elif email and not id:  # Load profile by email, if passed.
                 user = User.objects.get(email__iexact=email)
                 id = user.id
             else:
@@ -305,8 +325,6 @@ class UserProfile(object):
         self.linkedin              = ""
         self.pinned_sheets         = []
         self.interrupting_messages = ["newUserWelcome"]
-        self.partner_group        = ""
-        self.partner_role         = ""
         self.last_sync_web        = 0  # epoch time for last sync of web app
         self.profile_pic_url      = ""
         self.profile_pic_url_small = ""
@@ -349,7 +367,6 @@ class UserProfile(object):
             gravatar_url_small = gravatar_base + urllib.parse.urlencode({'d':default_image, 's':str(80)})
             self.profile_pic_url = gravatar_url
             self.profile_pic_url_small = gravatar_url_small
-
 
     @property
     def full_name(self):
@@ -505,19 +522,6 @@ class UserProfile(object):
 
         return self
 
-    def add_partner_group_by_email(self):
-        """
-        Sets the partner group if email pattern matches known school
-        """
-        email_pattern = self.email.split("@")[1]
-        tsv_file = csv.reader(open(PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, "rt"), delimiter="\t")
-        for row in tsv_file:
-            # if current rows 2nd value is equal to input, print that row
-            if email_pattern == row[1]:
-                self.partner_group = row[0]
-                return self
-        return self
-
     def join_invited_groups(self):
         """
         Add this user as a member of any group for which there is an outstanding invitation.
@@ -541,7 +545,8 @@ class UserProfile(object):
         return NotificationSet().recent_for_user(self.id)
 
     def unread_notification_count(self):
-        return unread_notifications_count_for_user(self.id)
+        from sefaria.model.notification import NotificationSet
+        return NotificationSet().unread_for_user(self.id).count()
 
     def interrupting_message(self):
         """
@@ -596,13 +601,10 @@ class UserProfile(object):
             "attr_time_stamps":      self.attr_time_stamps,
             "interrupting_messages": getattr(self, "interrupting_messages", []),
             "tag_order":             getattr(self, "tag_order", None),
-            "partner_group":         self.partner_group,
-            "partner_role":          self.partner_role,
             "last_sync_web":         self.last_sync_web,
             "profile_pic_url":       self.profile_pic_url,
             "profile_pic_url_small": self.profile_pic_url_small
         }
-
 
     def to_api_dict(self, basic=False):
         """
@@ -689,13 +691,6 @@ def email_unread_notifications(timeframe):
 
         if "interface_language" in profile.settings:
             translation.deactivate()
-
-
-def unread_notifications_count_for_user(uid):
-    """Returns the number of unread notifications belonging to user uid"""
-    # Check for globals to add...
-    from sefaria.model.notification import NotificationSet
-    return NotificationSet().unread_for_user(uid).count()
 
 
 public_user_data_cache = {}

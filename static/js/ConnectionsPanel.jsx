@@ -21,7 +21,6 @@ import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import Sefaria from './sefaria/sefaria';
 import $ from './sefaria/sefariaJquery';
-import TextRange from './TextRange'
 import TextList from './TextList'
 import ConnectionsPanelHeader from './ConnectionsPanelHeader';
 import { AddToSourceSheetBox } from './AddToSourceSheet';
@@ -69,7 +68,7 @@ class ConnectionsPanel extends Component {
       this.props.setConnectionsMode("Lexicon");
     }
     // Go back to main sidebar when words are unselected
-    if (prevProps.selectedWords && prevProps.mode === "Lexicon" && !this.props.selectedWords) {
+    if (prevProps.selectedWords && prevProps.mode === "Lexicon" && !this.props.selectedWords && !this.props.selectedNamedEntity) {
       this.props.setConnectionsMode("Resources");
     }
 
@@ -443,22 +442,28 @@ class ConnectionsPanel extends Component {
                     onSave={() => this.props.setConnectionsMode("Notes")}
                     onCancel={() => this.props.setConnectionsMode("Notes")} />
                   { Sefaria._uid ?
-                  <>
-                  <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth">
-                    <span className="int-en">Go to My Notes</span>
-                    <span className="int-he">הרשומות שלי</span>
-                  </a>
-                  <MyNotes
-                    srefs={this.props.srefs}
-                    editNote={this.props.editNote} /> </> : null }
+                  <div>
+                    <a href="/my/notes" className="allNotesLink button transparent bordered fillWidth">
+                      <span className="int-en">Go to My Notes</span>
+                      <span className="int-he">הרשומות שלי</span>
+                    </a>
+                    <MyNotes
+                      srefs={this.props.srefs}
+                      editNote={this.props.editNote} />
+                  </div> : null }
                 </div>);
 
     } else if (this.props.mode === "Lexicon") {
       content = (<LexiconBox
                     selectedWords={this.props.selectedWords}
+                    selectedNamedEntity={this.props.selectedNamedEntity}
+                    selectedNamedEntityText={this.props.selectedNamedEntityText}
                     oref={Sefaria.ref(this.props.srefs[0])}
+                    srefs={this.props.srefs}
                     onEntryClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
+                    clearSelectedWords={this.props.clearSelectedWords}
+                    clearNamedEntity={this.props.clearNamedEntity}
                     interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.props.mode === "Topics") {
@@ -477,7 +482,7 @@ class ConnectionsPanel extends Component {
                     interfaceLang={this.props.interfaceLang}
                     key="WebPages"/>);
 
-	} else if (this.props.mode === "Audio" || this.props.mode === "Media") {
+	} else if (this.props.mode === "Torah Readings") {
       content = (<MediaList
 					          srefs={this.props.srefs}
                     interfaceLang={this.props.interfaceLang}
@@ -567,8 +572,8 @@ class ConnectionsPanel extends Component {
         contentLang={this.props.contentLang}
       />);
     }
-    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics", "Audio"].indexOf(this.props.mode) != -1;
 
+    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics"].indexOf(this.props.mode) != -1;
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
@@ -621,6 +626,8 @@ ConnectionsPanel.propTypes = {
   closePanel:              PropTypes.func,
   toggleLanguage:          PropTypes.func,
   selectedWords:           PropTypes.string,
+  selectedNamedEntity:     PropTypes.string,
+  selectedNamedEntityText: PropTypes.string,
   interfaceLang:           PropTypes.string,
   contentLang:             PropTypes.string,
   getLicenseMap:           PropTypes.func.isRequired,
@@ -630,6 +637,8 @@ ConnectionsPanel.propTypes = {
   recentVersionFilters:    PropTypes.array,
   setVersionFilter:        PropTypes.func.isRequired,
   checkIntentTimer:        PropTypes.func.isRequired,
+  clearSelectedWords:      PropTypes.func.isRequired,
+  clearNamedEntity:        PropTypes.func.isRequired,
 };
 
 
@@ -651,7 +660,7 @@ class ResourcesList extends Component {
                   <ToolsButton en={"Manuscripts"} he={"כתבי יד"} image={"images.png"} count={this.props.manuscriptsCount} onClick={() => this.props.setConnectionsMode("manuscripts")}/>
                   : null
               }
-              {this.props.audioCount && this.props.audioCount > 0 ? <ToolsButton en="Torah Readings" he="קריאת בתורה " image="audio.svg" onClick={() => this.props.setConnectionsMode("Media")} /> : null }
+              {this.props.audioCount && this.props.audioCount > 0 ? <ToolsButton en="Torah Readings" he="קריאה בתורה" image="audio.svg" onClick={() => this.props.setConnectionsMode("Torah Readings")} /> : null }
               <ToolsButton en="Chavruta" he="חברותא" image="video.svg" onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Chavruta")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />

@@ -203,11 +203,11 @@ function HomeFeed(props) {
             </video>
             <h1 className="featureTitle">
                 <span className="int-en">A Living Library of Jewish Texts</span>
-                <span className="int-he">ספריה חיה של טקסטים יהודיים</span>
+                <span className="int-he">ספרייה חיה של טקסטים יהודיים</span>
             </h1>
             <div className="sub">
                 <span className="int-en">Explore 3,000 years of Jewish texts in Hebrew and English translation. <a href="/about">Learn More &rsaquo;</a></span>
-                <span className="int-he">3,000 שנה של טקסטים יהודיים בעברית ובתרגום לאנגלית פרושים לפניך. <a href="/about">קרא עוד&rsaquo;</a></span>
+                <span className="int-he">3,000 שנה של טקסטים יהודיים בעברית ובתרגום לאנגלית פרוסים לפניכם. <a href="/about">לקריאה נוספת&rsaquo;</a></span>
             </div>
         </div>
 

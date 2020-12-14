@@ -10,8 +10,6 @@ DEBUG = False
 OFFLINE = False
 DOWN_FOR_MAINTENANCE = False
 MAINTENANCE_MESSAGE = ""
-GLOBAL_WARNING = False
-GLOBAL_WARNING_MESSAGE = ""
 GLOBAL_INTERRUPTING_MESSAGE = None
 HOME_DIR = os.environ["TRAVIS_BUILD_DIR"]
 
@@ -43,8 +41,16 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
         'LOCATION': '{}/data/django_cache/'.format(HOME_DIR),  # can be any accessible path, not necessarily a path inside sefaria eg. /home/user/data/django_cache.
+    },
+    'shared': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': '{}/data/django_cache/'.format(HOME_DIR),  # can be any accessible path, not necessarily a path inside sefaria eg. /home/user/data/django_cache.
     }
 }
+
+SESSION_CACHE_ALIAS = "default"
+USER_AGENTS_CACHE = 'default'
+SHARED_DATA_CACHE_ALIAS = 'shared'
 
 SITE_PACKAGE = "sites.sefaria"
 

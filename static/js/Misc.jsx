@@ -27,16 +27,31 @@ class ProfilePic extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      showDefault: null,  // can be `true`, `false` or `null`
+      showDefault: !this.props.url || this.props.url.startsWith("https://www.gravatar"), // We can't know in advance if a gravatar image exists of not, so start with the default beforing trying to load image
       src: null,
       isFirstCropChange: true,
       crop: {unit: "px", width: 250, aspect: 1},
       croppedImageBlob: null,
       error: null,
     };
+    this.imgFile = React.createRef();
   }
-  setShowDefault() {this.setState({showDefault: true});  }
-  setShowNonDefault() {this.setState({showDefault: false});  }
+  setShowDefault() { console.log("load"); this.setState({showDefault: true});  }
+  setShowImage() {console.log("error"); this.setState({showDefault: false});  }
+  componentDidMount() {
+    if (this.didImageLoad()) {
+      this.setShowImage();
+    } else {
+      this.setShowDefault();
+    }
+  }
+  didImageLoad(){
+    // When using React Hydrate, the onLoad event of the profile image will return before
+    // react code runs, so we check after mount as well to look replace bad images, or to 
+    // swap in a gravatar image that we now know is valid.
+    const img = this.imgFile.current;
+    return (img && img.complete && img.naturalWidth !== 0);
+  }
   onSelectFile(e) {
     if (e.target.files && e.target.files.length > 0) {
       if (!e.target.files[0].type.startsWith('image/')) {
@@ -51,7 +66,6 @@ class ProfilePic extends Component {
       reader.readAsDataURL(e.target.files[0]);
     }
   }
-  // If you setState the crop in here you should return false.
   onImageLoaded(image) {
     this.imageRef = image;
   }
@@ -147,35 +161,33 @@ class ProfilePic extends Component {
     const { name, url, len, hideOnDefault, showButtons, outerStyle } = this.props;
     const { showDefault, src, crop, error, uploading, isFirstCropChange } = this.state;
     const nameArray = !!name.trim() ? name.trim().split(/\s/) : [];
-    const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "--";
+    const initials = nameArray.length > 0 ? (nameArray.length === 1 ? nameArray[0][0] : nameArray[0][0] + nameArray[nameArray.length-1][0]) : "";
     const defaultViz = showDefault ? 'flex' : 'none';
     const profileViz = showDefault ? 'none' : 'block';
     const imageSrc = url.replace("profile-default.png", 'profile-default-404.png');  // replace default with non-existant image to force onLoad to fail
+
     return (
       <div style={outerStyle} className="profile-pic">
-        <div
-          className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
-          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}
-        >
+        <div className={classNames({'default-profile-img': 1, noselect: 1, invisible: hideOnDefault})}
+          style={{display: defaultViz,  width: len, height: len, fontSize: len/2}}>
           { showButtons ? null : `${initials}` }
         </div>
-        { Sefaria._inBrowser ?
-          <img
-            className="img-circle profile-img"
-            style={{display: profileViz, width: len, height: len, fontSize: len/2}}
-            src={imageSrc}
-            alt="User Profile Picture"
-            onLoad={this.setShowNonDefault}
-            onError={this.setShowDefault}
-          /> : null
-        }
+        <img
+          className="img-circle profile-img"
+          style={{display: profileViz, width: len, height: len, fontSize: len/2}}
+          src={imageSrc}
+          alt="User Profile Picture"
+          ref={this.imgFile}
+          onLoad={this.setShowImage}
+          onError={this.setShowDefault}
+        />
         {this.props.children ? this.props.children : null /*required for slate.js*/}
         { showButtons ? /* cant style file input directly. see: https://stackoverflow.com/questions/572768/styling-an-input-type-file-button */
             (<div className={classNames({"profile-pic-button-visible": showDefault !== null, "profile-pic-hover-button": !showDefault, "profile-pic-button": 1})}>
               <input type="file" className="profile-pic-input-file" id="profile-pic-input-file" onChange={this.onSelectFile} onClick={(event)=> { event.target.value = null}}/>
               <label htmlFor="profile-pic-input-file" className={classNames({resourcesLink: 1, blue: showDefault})}>
                 <span className="int-en">{ showDefault ? "Add Picture" : "Upload New" }</span>
-                <span className="int-he">{ showDefault ? "הוסף תמונה" : "ייבא תמונה" }</span>
+                <span className="int-he">{ showDefault ? "הוספת תמונה" : "עדכון תמונה" }</span>
               </label>
             </div>) : null
           }
@@ -592,14 +604,9 @@ ReaderNavigationMenuSection.defaultProps = {
 class TextBlockLink extends Component {
   // Monopoly card style link with category color at top
   // This component is seriously overloaded :grimacing:
-  componentDidMount(){
-    if(this.props.csrRequired) {
-      this.setState({csrActive: true});
-    }
-  }
 
   render() {
-    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang, csrRequired } = this.props;
+    let { book, category, title, heTitle, showSections, sref, heRef, displayValue, heDisplayValue, position, url_string, recentItem, currVersions, sideColor, saved, sheetTitle, sheetOwner, timeStamp, intlang } = this.props;
     const index    = Sefaria.index(book);
     category = category || (index ? index.primary_category : "Other");
     const style    = {"borderColor": Sefaria.palette.categoryColor(category)};
@@ -607,7 +614,6 @@ class TextBlockLink extends Component {
     heTitle  = heTitle || (showSections ? heRef : index.heTitle);
     const hlang = intlang ? "int-he": "he";
     const elang = intlang ? "int-en": "en";
-    const fullRender = !csrRequired || (this.state && this.state.csrActive);
     let byLine;
     if (!!sheetOwner && sideColor) {
       title = sheetTitle.stripHtml();
@@ -638,7 +644,7 @@ class TextBlockLink extends Component {
 
     if (sideColor) {
       return (
-        <a href={fullRender ? url : ""} className={classes} data-ref={fullRender ? sref : ""} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
+        <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position}>
           <div className="sideColorLeft" data-ref-child={true}>
             <div className="sideColor" data-ref-child={true} style={{backgroundColor: Sefaria.palette.categoryColor(category)}} />
             <div className="sideColorInner" data-ref-child={true}>
@@ -658,7 +664,7 @@ class TextBlockLink extends Component {
         </a>
       );
     }
-    return (<a href={fullRender ? url : ""} className={classes} data-ref={fullRender ? sref : ""} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
+    return (<a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
               <span className={elang}>{title}</span>
               <span className={hlang}>{heTitle}</span>
                 {subtitle}
@@ -684,11 +690,9 @@ TextBlockLink.propTypes = {
   sheetTitle:      PropTypes.string,
   sheetOwner:      PropTypes.string,
   timeStamp:       PropTypes.number,
-  csrRequired:     PropTypes.bool,
 };
 TextBlockLink.defaultProps = {
   currVersions: {en:null, he:null},
-  csrRequired: false,
 };
 
 
@@ -1467,7 +1471,7 @@ function NewsletterSignUpForm(props) {
         </div>
       : null}
       { subscribeMessage ?
-      <div className="subscribeMessage">{subscribeMessage}</div>
+      <div className="subscribeMessage">{Sefaria._(subscribeMessage)}</div>
       : null }
     </div>);
 }
@@ -2025,7 +2029,7 @@ ReaderMessage.propTypes = {
 class CookiesNotification extends Component {
   constructor(props) {
     super(props);
-    const showNotification = !Sefaria._debug && Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
+    const showNotification = /*!Sefaria._debug && */Sefaria._inBrowser && !document.cookie.includes("cookiesNotificationAccepted");
 
     this.state = {showNotification: showNotification};
   }
@@ -2043,8 +2047,10 @@ class CookiesNotification extends Component {
             <span className='int-en button small white' onClick={this.setCookie}>OK</span>
           </span>
           <span className="int-he">
-            <span>אנחנו משתמשים בעוגיות כדי לתת למשתמשים את חווית השימוש הטובה ביותר. <a href="/privacy-policy">קרא עוד בנושא</a>.</span>
-            <span className='int-he button small white' onClick={this.setCookie}>אישור</span>
+            <span>אנחנו משתמשים ב"עוגיות" כדי לתת למשתמשים את חוויית השימוש הטובה ביותר.
+              <a href="/privacy-policy">קראו עוד בנושא</a>
+            </span>
+            <span className='int-he button small white' onClick={this.setCookie}>לחצו כאן לאישור</span>
           </span>
 
        </div>

@@ -95,7 +95,8 @@ class TextRange extends Component {
     var settings = {
       context: this.props.withContext ? 1 : 0,
       enVersion: this.props.currVersions.en || null,
-      heVersion: this.props.currVersions.he || null
+      heVersion: this.props.currVersions.he || null,
+      wrapNamedEntities: !!this.props.onNamedEntityClick ? 1 : 0,  // dont wrap named entities if no callback 
     };
     var data = Sefaria.getTextFromCache(this.props.sref, settings);
 
@@ -327,6 +328,7 @@ class TextRange extends Component {
             onSegmentClick={this.props.onSegmentClick}
             onCitationClick={this.props.onCitationClick}
             onFootnoteClick={this.onFootnoteClick}
+            onNamedEntityClick={this.props.onNamedEntityClick}
             unsetTextHighlight={this.props.unsetTextHighlight}
           />
         </span>
@@ -440,6 +442,7 @@ TextRange.propTypes = {
   onNavigationClick:      PropTypes.func,
   onCompareClick:         PropTypes.func,
   onOpenConnectionsClick: PropTypes.func,
+  onNamedEntityClick:     PropTypes.func,
   showBaseText:           PropTypes.func,
   unsetTextHighlight:     PropTypes.func,
   panelsOpen:             PropTypes.number, // used?
@@ -480,6 +483,14 @@ class TextSegment extends Component {
       this.props.onCitationClick(ref, this.props.sref);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Citation Link Click", ref);
+    } else if ($(event.target).hasClass("namedEntityLink")) {
+      //Click of named entity
+      event.preventDefault();
+      let topicSlug = $(event.target).attr("data-slug");
+      Sefaria.util.selectElementContents(event.target);
+      this.props.onNamedEntityClick(topicSlug, this.props.sref, event.target.innerText);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Named Entity Link Click", topicSlug);
     } else if ($(event.target).is("sup") || $(event.target).parents("sup").size()) {
       this.props.onFootnoteClick(event);
       event.stopPropagation();
@@ -586,6 +597,7 @@ TextSegment.propTypes = {
   onCitationClick: PropTypes.func,
   onSegmentClick:  PropTypes.func,
   onFootnoteClick: PropTypes.func,
+  onNamedEntityClick: PropTypes.func,
   unsetTextHighlight: PropTypes.func,
 };
 

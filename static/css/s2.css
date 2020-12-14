@@ -885,6 +885,9 @@ input.noselect {
   height: 18px;
   width: 18px;
 }
+.ui-autocomplete .ui-menu-item img.ac-img-User {
+  opacity: 1;
+}
 .ui-autocomplete .ui-menu-item a {
   display: inline-block;
   line-height: 21px;
@@ -3776,6 +3779,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0;
   padding: .3333em 0;
 }
+.readerPanel.english.continuous .segment {
+  padding: .15em 0;  /* underline of named entities is cut off if padding is higher */
+}
 .continuous .clearFix {
   display: none;
 }
@@ -4095,6 +4101,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .refLink:hover {
   text-decoration: underline;
+}
+.segment .namedEntityLink {
+  color: inherit;
+}
+.segment .namedEntityLink:hover {
+  text-decoration: none;
+  border-bottom: 2px dotted #666;
+}
+.stacked.bilingual .segment .en .namedEntityLink:hover {
+  border-bottom-color: #666;
 }
 .textRange .actionLinks {
   text-align: right;
@@ -5064,13 +5080,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 30px;
   margin-left: 0;
 }
-.topicButton .three-dots-button.tooltip-toggle::before {
+.topicButton .three-dots-button.tooltip-toggle::before,
+.named-entity-title-bar .three-dots-button.tooltip-toggle::before {
   transform: none;
   left: unset;
   right: 30px;
   width: 180px;
 }
-.topicsHe .topicButton .three-dots-button.tooltip-toggle::before {
+.readerPanel.hebrew .topicButton .three-dots-button.tooltip-toggle::before,
+.readerPanel.hebrew .named-entity-title-bar .three-dots-button.tooltip-toggle::before {
   right: unset;
   left: 30px;
   text-align: right;
@@ -5865,6 +5883,41 @@ a .button:hover {
 .lexicon-results {
   padding-top: 20px;
 }
+.named-entity-attribution {
+  margin-top: 13px;
+}
+.named-entity-ambiguous {
+  margin-bottom: 24px;
+}
+.named-entity-ambiguous .systemText .int-en,
+.named-entity-ambiguous .systemText .int-he {
+  color: #999;
+}
+.named-entity-title-bar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.named-entity-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+.named-entity-wrapper + .named-entity-wrapper {
+  margin-top: 26px;
+}
+.readerPanel.english .named-entity-wrapper {
+  direction: ltr;
+}
+.readerPanel.hebrew .named-entity-wrapper {
+  direction: rtl;
+}
+.lexicon-results .named-entity-description {
+  margin-top: 13px;
+}
+.lexicon-results .named-entity-description .en,
+.lexicon-results .named-entity-description .he {
+  color: #666;
+}
 .lexicon-results .entry > div {
   padding: 1% 0 1% 0;
   margin: auto;
@@ -5921,7 +5974,8 @@ a .button:hover {
 
 }
 
-.lexicon-results .attribution div {
+.lexicon-results .attribution div,
+.named-entity-wrapper .attribution div {
   display: block;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #aaa;
@@ -7315,7 +7369,8 @@ span.purim-emoji img{
 .sourceContentText.centeredSheetContent {
   text-align: center;
 }
-.sheetContent .sheetItem.segment .sourceContentText p {
+.sheetContent .sheetItem.segment .sourceContentText p:last-child,
+.sheetContent .editorContent .sheetItem.segment .sourceContentText p {
   margin-bottom: 0;
 }
 .sheetContent .sheetItem.segment .addedBy {
@@ -7379,9 +7434,11 @@ span.purim-emoji img{
   line-height: 18px;
   font-size: 18px;
 }
-
+.sheetContent .spacer:only-of-type.empty {
+  line-height: inherit;
+}
 .sheetItem:only-of-type.empty .SheetOutsideText:after,
-.spacer:only-of-type.empty:after {
+.sheetContent .spacer:only-of-type.empty:after {
   color: #999;
   position: relative;
   pointer-events: none;
@@ -7441,6 +7498,7 @@ span.purim-emoji img{
 .cookiesNotification a {
   text-decoration: underline;
   color: inherit;
+  margin-inline-start: 5px;
 }
 .readerMessageBox {
   z-index: 9999;
@@ -8683,6 +8741,9 @@ body .homeFeedWrapper.userStats {
 .userStats .chartLabel {
   text-align: center;
   padding-top: 8px;
+}
+a.topicLexiconTitle.contentText {
+  color: black;
 }
 .editorToolbar {
   position:fixed;

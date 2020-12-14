@@ -13,6 +13,7 @@ import {
   ContestLandingPage,
   RemoteLearningPage,
   SheetsLandingPage,
+  PBSC2020LandingPage,
 } from './StaticPages';
 import {
   SignUpModal,
@@ -488,8 +489,10 @@ class ReaderApp extends Component {
     // When the header has a panel open, only look at its content for history
     var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
     var states = headerPanel ? [this.state.header] : this.state.panels;
-    const moreSidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open", "About", "WebPages", "extended notes", "Topics"]);
     var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
+
+    // List of modes that the ConnectionsPanel may have which can be represented in a URL. 
+    const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open", "About", "WebPages", "extended notes", "Topics", "Torah Readings"]);
 
     for (var i = 0; i < states.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
@@ -661,7 +664,7 @@ class ReaderApp extends Component {
       } else if (state.mode === "Connections") {
         var ref       = Sefaria.normRefList(state.refs);
         var filter    = state.filter.length ? state.filter :
-                          (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
+                          (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
@@ -674,7 +677,7 @@ class ReaderApp extends Component {
       } else if (state.mode === "TextAndConnections") {
         var ref       = Sefaria.normRefList(state.highlightedRefs);
         var filter    = state.filter.length ? state.filter :
-                          (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
+                          (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
@@ -700,14 +703,14 @@ class ReaderApp extends Component {
         hist.title = state.sheet.title.stripHtml();
         var sheetURLSlug = state.highlightedNodes ? state.sheet.id + "." + state.highlightedNodes : state.sheet.id;
         var filter    = state.filter.length ? state.filter :
-                          (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
+                          (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         hist.url = i == 0 ? "sheets/"+ sheetURLSlug : "sheet&s="+ sheetURLSlug;
         hist.mode     = "Sheet"
 
       } else if (state.mode === "SheetAndConnections") {
         var filter    = state.filter.length ? state.filter :
-                          (moreSidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
+                          (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
@@ -901,6 +904,8 @@ class ReaderApp extends Component {
       mySheetSort:             state.mySheetSort             || "date",
       initialAnalyticsTracked: state.initialAnalyticsTracked || false,
       selectedWords:           state.selectedWords           || "",
+      selectedNamedEntity:     state.selectedNamedEntity     || null,
+      selectedNamedEntityText: state.selectedNamedEntityText || null,
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
     };
@@ -1022,6 +1027,16 @@ class ReaderApp extends Component {
     }
     this.setTextListHighlight(n, [textRef]);
     this.openPanelAt(n, citationRef);
+  }
+  openNamedEntityInNewPanel(n, textRef, namedEntityState) {
+    //this.setTextListHighlight(n, [textRef]);
+    this.openTextListAt(n+1, [textRef], null, namedEntityState);
+  }
+  clearSelectedWords(n) {
+    this.setPanelState(n, {selectedWords: ""});
+  }
+  clearNamedEntity(n) {
+    this.setPanelState(n, {selectedNamedEntity: null, selectedNamedEntityText: null});
   }
   handleCompareSearchClick(n, ref, currVersions, options) {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
@@ -1441,10 +1456,11 @@ class ReaderApp extends Component {
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
-  openTextListAt(n, refs, sheetNodes) {
+  openTextListAt(n, refs, sheetNodes, textListState) {
     // Open a connections panel at position `n` for `refs`
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
     // `refs` is an array of ref strings
+    // `textListState` is an object of initial state to pass to the new panel. if `undefined`, no-op
     var newPanels = this.state.panels.slice();
     var panel = newPanels[n] || {};
     var parentPanel = (n >= 1 && newPanels[n-1].mode == 'Text' || n >= 1 && newPanels[n-1].mode == 'Sheet') ? newPanels[n-1] : null;
@@ -1471,6 +1487,9 @@ class ReaderApp extends Component {
       panel.recentFilters = parentPanel.recentFilters;
       panel.recentVersionFilters = parentPanel.recentVersionFilters;
       panel.currVersions = parentPanel.currVersions;
+    }
+    if (textListState) {
+      panel = {...panel, ...textListState};
     }
     newPanels[n] = this.makePanelState(panel);
     this.setState({panels: newPanels});
@@ -1808,6 +1827,7 @@ class ReaderApp extends Component {
       var style                          = (this.state.layoutOrientation=="ltr")?{width: width + unit, left: offset + unit}:{width: width + unit, right: offset + unit};
       var onSegmentClick                 = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick                = this.handleCitationClick.bind(null, i);
+      var openNamedEntityInNewPanel      = this.openNamedEntityInNewPanel.bind(null, i);
       var onCloseConnectionClick         = this.closeConnectionPanel.bind(null,i);
       var onSearchResultClick            = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
@@ -1821,6 +1841,8 @@ class ReaderApp extends Component {
       var onOpenConnectionsClick         = this.openTextListAt.bind(null, i+1);
       var setTextListHighlight           = this.setTextListHighlight.bind(null, i);
       var setSelectedWords               = this.setSelectedWords.bind(null, i);
+      var clearSelectedWords             = this.clearSelectedWords.bind(null, i);
+      var clearNamedEntity               = this.clearNamedEntity.bind(null, i);
       var openComparePanel               = this.openComparePanel.bind(null, i);
       var closePanel                     = panel.menuOpen == "compare" ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
       var setPanelState                  = this.setPanelState.bind(null, i);
@@ -1846,6 +1868,7 @@ class ReaderApp extends Component {
                       multiPanel={this.props.multiPanel}
                       onSegmentClick={onSegmentClick}
                       onCitationClick={onCitationClick}
+                      openNamedEntityInNewPanel={openNamedEntityInNewPanel}
                       closeConnectionPanel={onCloseConnectionClick}
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}
@@ -1882,6 +1905,8 @@ class ReaderApp extends Component {
                       checkIntentTimer={this.checkIntentTimer}
                       toggleSignUpModal={this.toggleSignUpModal}
                       getHistoryObject={this.getHistoryObject}
+                      clearSelectedWords={clearSelectedWords}
+                      clearNamedEntity={clearNamedEntity}
                     />
                   </div>);
     }
@@ -1922,7 +1947,6 @@ class ReaderApp extends Component {
 ReaderApp.propTypes = {
   multiPanel:                  PropTypes.bool,
   headerMode:                  PropTypes.bool,  // is the App serving only as a header on top of another page?
-  loggedIn:                    PropTypes.bool,
   interfaceLang:               PropTypes.string,
   initialRefs:                 PropTypes.array,
   initialFilter:               PropTypes.array,
@@ -1965,14 +1989,15 @@ ReaderApp.defaultProps = {
 };
 
 const sefariaSetup = Sefaria.setup;
-const { unpackDataFromProps } = Sefaria;
+const { unpackDataFromProps, loadServerData } = Sefaria;
 export {
   ReaderApp,
   Footer,
   sefariaSetup,
   unpackDataFromProps,
+  loadServerData,
   EditGroupPage,
-  ContestLandingPage,
   RemoteLearningPage,
   SheetsLandingPage,
+  PBSC2020LandingPage,
 };

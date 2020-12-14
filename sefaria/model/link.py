@@ -5,7 +5,7 @@ Writes to MongoDB Collection: links
 
 import regex as re
 from bson.objectid import ObjectId
-
+from sefaria.model.text import AbstractTextRecord
 from sefaria.system.exceptions import DuplicateRecordError, InputError, BookNameError
 from sefaria.system.database import db
 from . import abstract as abst
@@ -100,6 +100,16 @@ class Link(abst.AbstractMongoRecord):
 
         if not getattr(self, "_skip_expanded_refs_set", False):
             self._set_expanded_refs()
+
+    def _sanitize(self):
+        """
+        bleach all input to protect against security risks
+        """
+        all_attrs = self.required_attrs + self.optional_attrs
+        for attr in all_attrs:
+            val = getattr(self, attr, None)
+            if isinstance(val, str):
+                setattr(self, attr, AbstractTextRecord.remove_html(val))
 
     def _set_available_langs(self):
         LANGS_CHECKED = ["he", "en"]

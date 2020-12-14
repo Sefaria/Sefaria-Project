@@ -107,6 +107,8 @@ class ReaderPanel extends Component {
         appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
       }),
       selectedWords:        "",
+      selectedNamedEntity:  null,
+      selectedNamedEntityText: null,
       displaySettingsOpen:  false,
       tagSort: "count",
       mySheetSort: "date",
@@ -293,10 +295,23 @@ class ReaderPanel extends Component {
   handleTextListClick(ref, replaceHistory, currVersions) {
     this.showBaseText(ref, replaceHistory, currVersions);
   }
-  openConnectionsInPanel(ref) {
+  openConnectionsInPanel(ref, additionalState) {
     var refs = typeof ref == "string" ? [ref] : ref;
     this.replaceHistory = this.state.mode === "TextAndConnections"; // Don't push history for change in Connections focus
-    this.conditionalSetState({highlightedRefs: refs, mode: "TextAndConnections" }, this.replaceHistory);
+    let newState = {highlightedRefs: refs, mode: "TextAndConnections" };
+    if (additionalState) {
+      newState = {...newState, ...additionalState};
+    }
+    this.conditionalSetState(newState, this.replaceHistory);
+  }
+  onNamedEntityClick(slug, textRef, namedEntityText) {
+    // decide whether to open side panel in current panel or in new panel based on whether app is multipanel
+    const namedEntityState = { connectionsMode: "Lexicon", selectedNamedEntity: slug, selectedNamedEntityText: namedEntityText };
+    if (this.props.multiPanel) {
+      this.props.openNamedEntityInNewPanel(textRef, namedEntityState);
+    } else {
+      this.openConnectionsInPanel([textRef], namedEntityState);
+    }
   }
   closeConnectionsInPanel() {
     // Return to the original text in the ReaderPanel contents
@@ -398,6 +413,14 @@ class ReaderPanel extends Component {
       this.props.setSelectedWords(words);
     } else {
       this.conditionalSetState({'selectedWords':  words});
+    }
+  }
+  clearSelectedWords() {
+    this.replaceHistory = false;
+    if (this.props.multiPanel) {
+      this.props.clearSelectedWords();
+    } else {
+      this.conditionalSetState({'selectedWords':  ''});
     }
   }
   closeMenus() {
@@ -732,6 +755,7 @@ class ReaderPanel extends Component {
           updateTextColumn={this.updateTextColumn}
           onSegmentClick={this.handleBaseSegmentClick}
           onCitationClick={this.handleCitationClick}
+          onNamedEntityClick={this.onNamedEntityClick}
           setTextListHighlight={this.setTextListHighlight}
           setCurrentlyVisibleRef={this.setCurrentlyVisibleRef}
           setSelectedWords={this.setSelectedWords}
@@ -793,6 +817,10 @@ class ReaderPanel extends Component {
           openComparePanel={this.props.openComparePanel}
           closePanel={this.props.closePanel}
           selectedWords={this.state.selectedWords}
+          selectedNamedEntity={this.state.selectedNamedEntity}
+          selectedNamedEntityText={this.state.selectedNamedEntityText}
+          clearSelectedWords={this.clearSelectedWords}
+          clearNamedEntity={this.props.clearNamedEntity}
           getLicenseMap={this.props.getLicenseMap}
           masterPanelLanguage={this.props.masterPanelLanguage}
           translateISOLanguageCode={this.props.translateISOLanguageCode}
@@ -1186,6 +1214,7 @@ ReaderPanel.propTypes = {
   setCentralState:             PropTypes.func,
   onSegmentClick:              PropTypes.func,
   onCitationClick:             PropTypes.func,
+  openNamedEntityInNewPanel:   PropTypes.func,
   onNavTextClick:              PropTypes.func,
   onSearchResultClick:         PropTypes.func,
   onUpdate:                    PropTypes.func,
