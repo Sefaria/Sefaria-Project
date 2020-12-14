@@ -618,8 +618,8 @@ class UserProfile(object):
         return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
                                             last_place=last_place, serialized=serialized, limit=limit)
 
-    def delete_user_history(self):
-        UserHistory.delete_user_history(uid=self.id)
+    def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
+        UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)
 
     def to_mongo_dict(self):
         """
