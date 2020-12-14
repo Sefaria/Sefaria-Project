@@ -4499,7 +4499,7 @@ class Library(object):
         # TOC is handled separately since it can be edited in place
 
     def rebuild(self, include_toc = False, include_auto_complete=False):
-        self.build_term_mappings()
+        self.get_simple_term_mapping_json(rebuild=True)
         self._build_index_maps()
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
