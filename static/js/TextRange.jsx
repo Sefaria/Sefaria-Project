@@ -485,6 +485,8 @@ class TextSegment extends Component {
     } else if ($(event.target).hasClass("namedEntityLink")) {
       //Click of named entity
       event.preventDefault();
+      if (!this.props.onNamedEntityClick) { return; }
+      
       let topicSlug = $(event.target).attr("data-slug");
       Sefaria.util.selectElementContents(event.target);
       this.props.onNamedEntityClick(topicSlug, this.props.sref, event.target.innerText);
