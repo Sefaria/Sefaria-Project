@@ -116,6 +116,10 @@ class WebPage(abst.AbstractMongoRecord):
             r"ots\.org\.il\/tag\/.+",
             r"toravoda\.org\.il\/%D7%90%D7%99%D7%A8%D7%95%D7%A2%D7%99%D7%9D-%D7%97%D7%9C%D7%95%D7%A4%D7%99\/",  # Neemanei Torah Vavoda list of past events
             r"929.org.il\/(lang\/en\/)?author/\d+$",  # Author index pages
+            r"rabbijohnnysolomon.com$",
+            r"rabbijohnnysolomon.com/shiurim/$",
+            r"rabbijohnnysolomon.com/shiurim/parasha/$",
+            r"rabbijohnnysolomon.com/shiurim/halacha/$",
             r"webcache\.googleusercontent\.com",
             r"translate\.googleusercontent\.com",
             r"dailympails\.gq\/",
@@ -694,6 +698,18 @@ sites_data = [
     #    "domains": ["ou.org"],
     #    "title_branding": ["OU Torah", "OU Life"]
     #},
+    {
+        "name": "Jewish Action",
+        "domains": ["jewishaction.com"],
+    },
+    {
+        "name": "Rabbi Johnny Solomon",
+        "domains": ["rabbijohnnysolomon.com"],
+    },
+    {
+        "name": "Moment Magazine",
+        "domains": ["momentmag.com"],
+    },
     {
         "name": "Jewish Action",
         "domains": ["jewishaction.com"],
