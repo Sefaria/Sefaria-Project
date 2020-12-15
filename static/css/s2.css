@@ -7231,18 +7231,18 @@ span.purim-emoji img{
 }
 .readerPanel .sheetItem.indented-1,
 .readerPanel .sheetItem.indented-1 {
-  padding-left:  30px;
-  padding-right: 30px;
+  margin-left:  30px;
+  margin-right: 30px;
 }
 .readerPanel .sheetItem.indented-2,
 .readerPanel .sheetItem.indented-2 {
-  padding-left:  60px;
-  padding-right: 60px;
+  margin-left:  60px;
+  margin-right: 60px;
 }
 .readerPanel .sheetItem.indented-3,
 .readerPanel .sheetItem.indented-3 {
-  padding-left:  90px;
-  padding-right: 90px;
+  margin-left:  90px;
+  margin-right: 90px;
 }
 .sheetContent .customSourceTitle {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -7520,14 +7520,70 @@ section.SheetSource {
   margin-bottom: 30px;
 }
 
-.interface-english section.SheetSource .sheetItem .he,
-.interface-english section.SheetSource .sheetItem .en {
+.interface-english section.SheetSource .sheetItem > .he,
+.interface-english section.SheetSource .sheetItem > .en {
   padding: 15px 20px 15px 16px;
 }
-.interface-hebrew section.SheetSource .sheetItem .he,
-.interface-hebrew section.SheetSource .sheetItem .en {
+.interface-hebrew section.SheetSource .sheetItem > .he,
+.interface-hebrew section.SheetSource .sheetItem > .en {
   padding: 15px 16px 15px 20px;
 }
+
+
+.interface-english section.SheetSource .sheetItem.indented-1 > .he,
+.interface-english section.SheetSource .sheetItem.indented-1 > .en {
+  padding: 15px 50px 15px 46px;
+  margin-left:  -30px;
+  margin-right: -30px;
+}
+.interface-hebrew section.SheetSource .sheetItem.indented-1 > .he,
+.interface-hebrew section.SheetSource .sheetItem.indented-1 > .en {
+  padding: 15px 46px 15px 50px;
+  margin-left:  -30px;
+  margin-right: -30px;
+}
+
+.interface-english section.SheetSource .sheetItem.indented-2 > .he,
+.interface-english section.SheetSource .sheetItem.indented-2 > .en {
+  padding: 15px 80px 15px 76px;
+  margin-left:  -60px;
+  margin-right: -60px;
+}
+.interface-hebrew section.SheetSource .sheetItem.indented-2 > .he,
+.interface-hebrew section.SheetSource .sheetItem.indented-2 > .en {
+  padding: 15px 76px 15px 80px;
+  margin-left:  -60px;
+  margin-right: -60px;
+}
+
+.interface-english section.SheetSource .sheetItem.indented-3 > .he,
+.interface-english section.SheetSource .sheetItem.indented-3 > .en {
+  padding: 15px 110px 15px 106px;
+  margin-left:  -90px;
+  margin-right: -90px;
+}
+.interface-hebrew section.SheetSource .sheetItem.indented-3 > .he,
+.interface-hebrew section.SheetSource .sheetItem.indented-3 > .en {
+  padding: 15px 106px 15px 110px;
+  margin-left:  -90px;
+  margin-right: -90px;
+}
+
+.readerPanel.hebrew section.SheetSource .segment.sheetItem.indented-1 .linkCount,
+.readerPanel.bilingual section.SheetSource .segment.sheetItem.indented-1 .linkCount {
+  left: -108px;
+}
+
+.readerPanel.hebrew section.SheetSource .segment.sheetItem.indented-2 .linkCount,
+.readerPanel.bilingual section.SheetSource .segment.sheetItem.indented-2 .linkCount {
+  left: -138px;
+}
+
+.readerPanel.hebrew section.SheetSource .segment.sheetItem.indented-3 .linkCount,
+.readerPanel.bilingual section.SheetSource .segment.sheetItem.indented-3 .linkCount {
+  left: -168px;
+}
+
 
 .readerPanel.bilingual.stacked .sheetContent section.SheetSource .segment.highlight .he {
   padding-bottom: 15px;
