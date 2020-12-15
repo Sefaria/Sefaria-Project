@@ -497,7 +497,6 @@ Sefaria = extend(Sefaria, {
       if (settings.enVersion) { key += "&ven=" + settings.enVersion; }
       if (settings.heVersion) { key += "&vhe=" + settings.heVersion; }
       key = settings.context ? key + "|CONTEXT" : key;
-      key = settings.wrapNamedEntities ? key + "|WRAP_NAMED_ENTITIES" : key;
     }
     return key;
   },
