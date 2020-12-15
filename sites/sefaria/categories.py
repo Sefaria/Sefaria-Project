@@ -25,6 +25,9 @@ CATEGORY_ORDER = [
             'Targum Jonathan on Deuteronomy',
         "Rishonim on Tanakh",
             'Rashi',
+            'Ibn Ezra',
+            'Ramban',
+
         "Acharonim on Tanakh",
         "Modern Commentary on Tanakh",
     "Mishnah",

@@ -141,7 +141,12 @@ class ReaderNavigationCategoryMenuContents extends Component {
       item.enOrder = indx;
       return item;
     });
-    //console.log(heCats.slice())
+
+    // If all of the cats have a base_text_order, don't resort.
+    if (heCats.every(c => !!c.base_text_order))   {
+        //heCats.sort((a,b) => a.base_text_order > b.base_text_order ? 1 : -1);
+        return heCats;
+    }
     heCats.sort(function(a, b) {
       if ("order" in a || "order" in b) {
         const aOrder = "order" in a ? a.order : 9999;

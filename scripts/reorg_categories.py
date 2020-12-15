@@ -877,6 +877,7 @@ for p in [
     ["Responsa", "Commentary", "Footnotes"],
     ["Midrash", "Commentary", "Footnotes", "Halachic Midrash"],
     ["Tanakh", "Commentary", "JPS"],
+    ["Tanakh", "Commentary", "Bartenura"],
     ["Midrash", "Commentary", "Buber footnotes"],
     ["Midrash", "Commentary", "Gra"],  # empty
     ["Midrash", "Commentary", "Meir Ayin"],  # empty

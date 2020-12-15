@@ -245,7 +245,10 @@ class TocTree(object):
                 return (isinstance(res, str), res)
 
         for cat in self.all_category_nodes():  # iterate all categories
-            cat.children.sort(key=_explicit_order_and_title)
+            if all([hasattr(ca, "base_text_order") for ca in cat.children]):
+                cat.children.sort(key=lambda c: c.base_text_order)
+            else:
+                cat.children.sort(key=_explicit_order_and_title)
             cat.children.sort(key=lambda node: 'zzz' + node.primary_title("en") if isinstance(node, TocCategory) and node.primary_title("en") in REVERSE_ORDER else 'a')
 
     def _make_index_node(self, index, old_title=None):
@@ -257,14 +260,6 @@ class TocTree(object):
         d["firstSection"] = vs.get("first_section_ref", None)
         d["heComplete"]   = vs.get("heComplete", False)
         d["enComplete"]   = vs.get("enComplete", False)
-
-        """
-        Now part of TocNode instanciation
-        if title in CATEGORY_ORDER:
-            # If this text is listed in ORDER, consider its position in ORDER as its order field.
-            d["order"] = CATEGORY_ORDER.index(title)
-        """
-
 
         if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
             d["refs_to_base_texts"] = {btitle:
@@ -457,6 +452,7 @@ class TocTextIndex(TocNode):
         "commentator",
         "heCommentator",
         "refs_to_base_texts",
+        "base_text_order",
         "hidden"
     ]
     title_attrs = {

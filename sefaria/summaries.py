@@ -150,8 +150,11 @@ def sort_toc_node(node, recur=False):
 
     If 'recur', call sort_toc_node on each category in 'node' as well.
     """
-    node = sorted(node, key=node_sort_key)
-    node = sorted(node, key=lambda a: 'zzz' + a["category"] if "category" in a and a["category"] in REVERSE_ORDER else 'a')
+    if all([ca.get("base_text_order") for ca in node]):
+        node = sorted(node, key=lambda c: c["base_text_order"])
+    else:
+        node = sorted(node, key=node_sort_key)
+        node = sorted(node, key=lambda a: 'zzz' + a["category"] if "category" in a and a["category"] in REVERSE_ORDER else 'a')
 
     if recur:
         for cat in node:

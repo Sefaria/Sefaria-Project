@@ -707,11 +707,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         order = getattr(self, 'order', None)
         if order:
             return order[0]
-        elif getattr(self, 'base_text_titles', None):
-            orders = [a for a in filter(None, [library.get_index(x).get_toc_index_order() for x in self.base_text_titles])]
-            if len(orders) > 0:
-                return min(orders)
         return None
+
+    def get_base_text_order(self):
+        if getattr(self, 'base_text_titles', None):
+            base_orders = [a for a in filter(None, [library.get_index(x).get_toc_index_order() for x in self.base_text_titles])]
+            if len(base_orders) > 0:
+                return min(base_orders) or 10000
+        return 10000
 
     def slim_toc_contents(self):
         toc_contents_dict = {
@@ -721,6 +724,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         order = self.get_toc_index_order()
         if order:
             toc_contents_dict["order"] = order
+
+        base_text_order = self.get_base_text_order()
+        if base_text_order:
+            toc_contents_dict["base_text_order"] = base_text_order
 
         return toc_contents_dict
 
@@ -743,9 +750,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["enComplete"] = bool(vstate.get_flag("enComplete"))
             toc_contents_dict["heComplete"] = bool(vstate.get_flag("heComplete"))
 
-        ord = self.get_toc_index_order()
-        if ord:
-            toc_contents_dict["order"] = ord
+        order = self.get_toc_index_order()
+        if order:
+            toc_contents_dict["order"] = order
+
 
         if hasattr(self, "collective_title"):
             toc_contents_dict["commentator"] = self.collective_title # todo: deprecate Only used in s1 js code
@@ -755,6 +763,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         if hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
+            toc_contents_dict["base_text_order"] = self.get_base_text_order()
             if include_first_section:
                 toc_contents_dict["refs_to_base_texts"] = self.get_base_texts_and_first_refs()
             if "collectiveTitle" not in toc_contents_dict:
