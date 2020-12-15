@@ -95,8 +95,7 @@ class TextRange extends Component {
     var settings = {
       context: this.props.withContext ? 1 : 0,
       enVersion: this.props.currVersions.en || null,
-      heVersion: this.props.currVersions.he || null,
-      wrapNamedEntities: !!this.props.onNamedEntityClick ? 1 : 0,  // dont wrap named entities if no callback 
+      heVersion: this.props.currVersions.he || null
     };
     var data = Sefaria.getTextFromCache(this.props.sref, settings);
 
