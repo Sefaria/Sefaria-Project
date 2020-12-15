@@ -209,7 +209,7 @@ msgstr "הנכם צריכים להיות מחוברים כדי לערוך את �
 
 #: reader/views.py:3342
 msgid "Email fields did not match"
-msgstr "כתובות הדוא&quot;ל אינן תואמות"
+msgstr "כתובות הדוא״ל אינן תואמות"
 
 #: reader/views.py:3344
 msgid "Incorrect account password for this account"
