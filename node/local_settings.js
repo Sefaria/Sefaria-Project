@@ -1,20 +1,5 @@
 
 const local_settings = {
-  DJANGO_HOST: function(){
-    if ('DJANGO_HOST' in process.env) {
-      return process.env.DJANGO_HOST;
-    } else {
-      throw new Error('The environment variable "DJANGO_HOST" must be defined.');
-    }
-  }(),
-
-  DJANGO_PORT: function(){
-    if ('DJANGO_PORT' in process.env) {
-      return process.env.DJANGO_PORT;
-    } else {
-      return 80; // default
-    }
-  }(),
 
   NODEJS_PORT: function(){
     if ('NODEJS_PORT' in process.env) {
