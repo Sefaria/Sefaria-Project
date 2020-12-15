@@ -565,10 +565,13 @@ class TextSegment extends Component {
     he = this.addHighlights(he);
     en = this.addHighlights(en);
 
-    var classes=classNames({ segment: 1,
-                     highlight: this.props.highlight,
-                     heOnly: !this.props.en,
-                     enOnly: !this.props.he });
+    var classes=classNames({
+      segment: 1,
+      highlight: this.props.highlight,
+      heOnly: !this.props.en,
+      enOnly: !this.props.he,
+      showNamedEntityLinks: !!this.props.onNamedEntityClick,
+    });
     if(!this.props.en && !this.props.he){
         return false;
     }

@@ -4106,7 +4106,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: inherit;
 }
 .segment .namedEntityLink:hover {
+  cursor: text;
   text-decoration: none;
+}
+.segment.showNamedEntityLinks .namedEntityLink:hover {
+  /* only show named entity underline when class showNamedEntityLinks exists */
+  cursor: pointer;
   border-bottom: 2px dotted #666;
 }
 .stacked.bilingual .segment .en .namedEntityLink:hover {
