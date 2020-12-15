@@ -18,6 +18,8 @@ def delete_user_account(uid, confirm=True):
             print("Canceled.")
             return
 
+    # Delete user's reading history
+    user.delete_user_history(exclude_saved=False, exclude_last_place=False)
     # Delete Sheets
     db.sheets.delete_many({"owner": uid})
     # Delete Notes
@@ -56,6 +58,9 @@ def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_
     if input("Type 'MERGE' to confirm: ") != "MERGE":
         print("Canceled.")
         return
+
+    # Move user reading history
+    db.user_history.update_many({"uid": from_uid}, {"$set": {"uid": into_uid}})
     # Move group admins
     db.groups.update({"admins": from_uid}, {"$set": {"admins.$": into_uid}})
     # Move group members

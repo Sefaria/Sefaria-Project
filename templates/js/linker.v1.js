@@ -17,6 +17,9 @@
 	var hasOwn = {}.hasOwnProperty; // Used with findAndReplaceDOMText
     /* Adapted from: https://plainjs.com/javascript/manipulation/unwrap-a-dom-element-35/ */
     function unwrap(el) { var parent = el.parentNode; while (el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el);}
+    /* filter array to distinct values */
+    function distinct(value, index, self) {return self.indexOf(value) === index;}
+
 
     var base_url = '{% if DEBUG %}http://localhost:8000/{% else %}https://www.sefaria.org/{% endif %}';
     var bookTitles = {{ book_titles }};
@@ -212,6 +215,10 @@
 
         setupPopup(popupStyles, mode);
 
+        ns.matches = [];
+        ns.trackedMatches = [];
+        ns.excludeFromTracking = options.excludeFromTracking;
+        ns.excludeFromLinking = options.excludeFromLinking;
         var elems = document.querySelectorAll(selector);
 
         // Find text titles in the document
@@ -248,6 +255,28 @@
                                 var matched_ref = match[0]
                                     .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                                     .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
+
+                            // Walk up node tree to see if this context should be excluded from linking or tracking
+                            let p = portion.node;
+                            let excludeFromLinking = false;
+                            let excludeFromTracking = false;
+                            while (p) {
+                                if (p.nodeName === 'A' || (ns.excludeFromLinking && p.matches && p.matches(ns.excludeFromLinking))) {
+                                    excludeFromLinking = true;
+                                }
+                                if (ns.excludeFromTracking && p.matches && p.matches(ns.excludeFromTracking)) {
+                                    excludeFromTracking = true;
+                                }
+                                if (excludeFromTracking && excludeFromLinking) {
+                                    return portion.text;
+                                }
+                                p = p.parentNode;
+                            }
+
+                            if (!excludeFromTracking) { ns.trackedMatches.push(matched_ref); }
+
+                            if (excludeFromLinking) { return portion.text; }
+
                                 ns.matches.push(matched_ref);
 
                                 var node = document.createElement("a");
@@ -259,18 +288,14 @@
                                 node.textContent = portion.text;
 
                                 return node;
-                            },
-                            filterElements: function(el) {
-                                return !(
-                                    hasOwn.call(findAndReplaceDOMText.NON_PROSE_ELEMENTS, el.nodeName.toLowerCase())
-                                    || (el.tagName == "A")
-                                    // The below test is subsumed in the more simple test above
-                                    //|| (el.className && el.className.split(' ').indexOf("sefaria-ref")>=0)
-                                );
                             }
                         });
                     }
                 }
+                ns.matches = ns.matches.filter(distinct);
+                ns.trackedMatches = ns.trackedMatches.filter(distinct);
+                ns._trackPage();
+
                 if (ns.matches.length == 0) {
                     // console.log("No references found to link to Sefaria.");
                     return;
@@ -305,13 +330,13 @@
                         });
                     })
                     .error(function (data, xhr) { });  // api/bulktext
-
-                ns._trackPage();
             })
             .error(function (data, xhr) { });  // api/regexs
     };
 
     ns._trackPage = function() {
+        if (ns.trackedMatches.length == 0) { return; }
+
         var robots = document.head.querySelector("meta[name~=robots]");
         if (robots && robots.content.includes("noindex")) { return; }
 
@@ -328,7 +353,7 @@
             "url": url,
             "title": document.title,
             "description": description,
-            "refs": ns.matches,
+            "refs": ns.trackedMatches,
         };
         // console.log("TRACK");
         // console.log(data);

@@ -270,7 +270,7 @@ function renderSheetItem(source) {
 }
 
 function parseSheetItemHTML(rawhtml) {
-    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r)/gm, "").replace(/(<p><br><\/p>|<p> <\/p>)/gm, "<div>⠀</div>") // this is an ugly hack that adds the blank braile unicode character to ths string for a moment to ensure that the empty paragraph string gets rendered, this character will be removed later.
+    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r)/gm, "").replace(/(<p><br><\/p>|<p> <\/p>|<div><\/div>|<p><\/p>)/gm, "<div>⠀</div>") // this is an ugly hack that adds the blank braile unicode character to ths string for a moment to ensure that the empty paragraph string gets rendered, this character will be removed later.
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
@@ -901,6 +901,8 @@ const withSefariaSheet = editor => {
           Transforms.move(editor)
         }
         // end hacky spacer delete function
+
+        checkAndDeleteVoidAtPath(editor.selection.focus.path)
       }
       deleteBackward(...args)
     }
@@ -927,9 +929,28 @@ const withSefariaSheet = editor => {
           return
         }
         // end hacky spacer delete function
+
+        checkAndDeleteVoidAtPath(editor.selection.focus.path)
+
       }
       deleteForward(...args)
     }
+
+    const checkAndDeleteVoidAtPath = (path) => {
+      console.log(path)
+      var voidMatch = Editor.void(editor, {
+        at: path
+      });
+
+      if (voidMatch) {
+        event.preventDefault()
+        Transforms.delete(editor, {
+          at: voidMatch[1]
+        });
+      }
+    }
+
+
 
 
     editor.insertBreak = () => {
@@ -938,6 +959,16 @@ const withSefariaSheet = editor => {
         //     editor.insertText("\n");
         //     return
         // }
+
+
+        // Prevent line breaks in sheetTitle
+        const [match] = Editor.nodes(editor, {
+          match: n => n.type === 'SheetTitle',
+        })
+        if (match) {
+          return
+        } //
+
 
         getRefInText(editor).then(query =>{
 
@@ -1048,6 +1079,12 @@ const withSefariaSheet = editor => {
 
       }
 
+      if (node.type == "Sheet") {
+        if (node.children.length < 2) {
+          console.log('bad state -- sheet lost children')
+        }
+      }
+
       if (node.type == "SheetMetaDataBox") {
         // If SheetMetaDataBox is missing a title or authorStatement or groupStatement, reset it
           if (node.children.length < 3) {
@@ -1126,12 +1163,8 @@ const withSefariaSheet = editor => {
         if (Node.string(node) !== "") {
 
           const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, Node.string(node))
-          try {
-            const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,1]))
-          }
-          catch {
-            const atEndOfDoc = null
-          }
+          const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,1]))
+
           Transforms.move(editor);
           Transforms.delete(editor, {at: path});
           Transforms.insertNodes(editor, fragment, { at: path });
@@ -1318,22 +1351,17 @@ const addItemToSheet = (editor, fragment, position) => {
 
 const checkAndFixDuplicateSheetNodeNumbers = (editor) => {
   let existingSheetNodes = []
-  try {
-    for (const [child, childPath] of Node.children(editor, [0,1])) {
-      const sheetNode = child.children[0];
-      if (existingSheetNodes.includes(sheetNode.node)) {
-        const newNodeEditPath = childPath.concat([0]);
-        Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: newNodeEditPath});
-        existingSheetNodes.push(editor.children[0].nextNode);
-        incrementNextSheetNode(editor)
-      }
-      else {
-        existingSheetNodes.push(sheetNode.node)
-      }
+  for (const [child, childPath] of Node.children(editor, [0,1])) {
+    const sheetNode = child.children[0];
+    if (existingSheetNodes.includes(sheetNode.node)) {
+      const newNodeEditPath = childPath.concat([0]);
+      Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: newNodeEditPath});
+      existingSheetNodes.push(editor.children[0].nextNode);
+      incrementNextSheetNode(editor)
     }
-  }
-  catch {
-    return
+    else {
+      existingSheetNodes.push(sheetNode.node)
+    }
   }
 }
 
@@ -1379,7 +1407,7 @@ const insertSource = (editor, ref, path=null) => {
         };
         Transforms.setNodes(editor, { loading: false }, { at: currentNode[1] });
         addItemToSheet(editor, fragment, path ? path : "bottom");
-        checkAndFixDuplicateSheetNodeNumbers()
+        checkAndFixDuplicateSheetNodeNumbers(editor)
         Transforms.move(editor, { unit: 'block', distance: 9 })
     });
 };
@@ -1488,6 +1516,11 @@ const HoverMenu = () => {
         const el = ref.current;
         const {selection} = editor;
 
+        const [match] = Editor.nodes(editor, {
+          match: n => n.type === 'SheetTitle',
+        })
+
+
         if (!el) {
             return
         }
@@ -1496,7 +1529,8 @@ const HoverMenu = () => {
             !selection ||
             !ReactEditor.isFocused(editor) ||
             Range.isCollapsed(selection) ||
-            Editor.string(editor, selection) === ''
+            Editor.string(editor, selection) === '' ||
+            match
         ) {
             el.removeAttribute('style');
             return
@@ -1720,20 +1754,6 @@ const SefariaEditor = (props) => {
             event.preventDefault()
             const format = HOTKEYS[hotkey]
             toggleFormat(editor, format)
-          }
-        }
-
-        if ((event.key == "Backspace" || event.key == "Delete")) {
-          var path = editor.selection.focus.path
-          var voidMatch = Editor.void(editor, {
-            at: path
-          });
-
-          if (voidMatch) {
-            event.preventDefault()
-            Transforms.delete(editor, {
-              at: voidMatch[1]
-            });
           }
         }
 

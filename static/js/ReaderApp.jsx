@@ -1028,9 +1028,9 @@ class ReaderApp extends Component {
     this.setTextListHighlight(n, [textRef]);
     this.openPanelAt(n, citationRef);
   }
-  handleNamedEntityClick(n, slug, textRef, namedEntityText) {
+  openNamedEntityInNewPanel(n, textRef, namedEntityState) {
     //this.setTextListHighlight(n, [textRef]);
-    this.openTextListAt(n+1, [textRef], null, { connectionsMode: "Lexicon", selectedNamedEntity: slug, selectedNamedEntityText: namedEntityText });
+    this.openTextListAt(n+1, [textRef], null, namedEntityState);
   }
   clearSelectedWords(n) {
     this.setPanelState(n, {selectedWords: ""});
@@ -1827,7 +1827,7 @@ class ReaderApp extends Component {
       var style                          = (this.state.layoutOrientation=="ltr")?{width: width + unit, left: offset + unit}:{width: width + unit, right: offset + unit};
       var onSegmentClick                 = this.props.multiPanel ? this.handleSegmentClick.bind(null, i) : null;
       var onCitationClick                = this.handleCitationClick.bind(null, i);
-      var onNamedEntityClick             = this.handleNamedEntityClick.bind(null, i);
+      var openNamedEntityInNewPanel      = this.openNamedEntityInNewPanel.bind(null, i);
       var onCloseConnectionClick         = this.closeConnectionPanel.bind(null,i);
       var onSearchResultClick            = this.props.multiPanel ? this.handleCompareSearchClick.bind(null, i) : this.handleNavigationClick;
       var unsetTextHighlight             = this.unsetTextHighlight.bind(null, i);
@@ -1868,7 +1868,7 @@ class ReaderApp extends Component {
                       multiPanel={this.props.multiPanel}
                       onSegmentClick={onSegmentClick}
                       onCitationClick={onCitationClick}
-                      onNamedEntityClick={onNamedEntityClick}
+                      openNamedEntityInNewPanel={openNamedEntityInNewPanel}
                       closeConnectionPanel={onCloseConnectionClick}
                       onSearchResultClick={onSearchResultClick}
                       onNavigationClick={this.handleNavigationClick}

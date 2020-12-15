@@ -367,6 +367,7 @@ def base_props(request):
         "_uid": request.user.id,
         "is_moderator": request.user.is_staff,
         "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
+        "is_history_enabled": profile.settings["reading_history"] if profile else True,
         "notificationCount": profile.unread_notification_count() if profile else 0,
         "full_name": profile.full_name if profile else "",
         "profile_pic_url": profile.profile_pic_url if profile else "",
@@ -904,12 +905,17 @@ def saved(request):
 def user_history(request):
     props = base_props(request)
     if request.user.is_authenticated:
-        uhistory = UserProfile(user_obj=request.user).get_user_history(secondary=False, serialized=True)
+        profile = UserProfile(user_obj=request.user)
+        uhistory = {
+            "userHistory": profile.get_user_history(secondary=False, serialized=True) if profile.settings["reading_history"] else [],
+            "reading_history": profile.settings["reading_history"]
+        }
     else:
-        uhistory = _get_anonymous_user_history(request)
-    props.update({
-        "userHistory": uhistory
-    })
+        uhistory = {
+            "userHistory": _get_anonymous_user_history(request),
+            "reading_history": True
+        }
+    props.update(uhistory)
     title = _("My User History")
     desc = _("See your user history on Sefaria")
     return menu_page(request, props, "history", title, desc)
@@ -3489,7 +3495,7 @@ def profile_upload_photo(request):
 def profile_sync_api(request):
     """
     API for syncing history and settings with your profile
-    Required POST fields: settings, last_synce
+    Required POST fields: settings, last_sync
     POST payload should look like
     {
         settings: {..., time_stamp},
@@ -3536,8 +3542,13 @@ def profile_sync_api(request):
                     if 'ref' not in hist:
                         logger.warning(f'Ref not in hist. Post data: {post[field]}. User ID: {request.user.id}')
                         continue
-                    uh = UserHistory.save_history_item(request.user.id, hist, now)
-                    ret["created"] += [uh.contents(for_api=True)]
+                    try:
+                        uh = profile.process_history_item(hist, now)
+                        if uh:
+                            ret["created"] += [uh.contents(for_api=True)]
+                    except InputError:
+                        # validation failed
+                        continue
 
         if not no_return:
             # determine return value after new history saved to include new saved and deleted saves
@@ -3553,6 +3564,7 @@ def profile_sync_api(request):
             ret["settings"] = profile.settings
             ret["settings"]["time_stamp"] = profile.attr_time_stamps["settings"]
             if post.get("client", "") == "web":
+                # TODO: This future proofing might not work, because even if we did want to keep local history for browsers, they'd need to store last sync time locally anyway.
                 # request was made from web. update last_sync on profile
                 profile.update({"last_sync_web": now})
                 profile_updated = True
@@ -3610,6 +3622,8 @@ def profile_get_user_history(request):
         else:
             saved, secondary, last_place, oref = get_url_params_user_history(request)
             user = UserProfile(id=request.user.id)
+            if not user.settings["reading_history"] and not saved:
+                return jsonResponse([])
             return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place))
     return jsonResponse({"error": "Unsupported HTTP method."})
 

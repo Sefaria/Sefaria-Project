@@ -86,7 +86,7 @@ class UserHistory(abst.AbstractMongoRecord):
             if v is None:
                 del attrs["versions"][k]
         if load_existing:
-            temp = UserHistory().load({"uid": attrs["uid"], "ref": attrs["ref"], "versions": attrs["versions"]})
+            temp = UserHistory().load({"uid": attrs["uid"], "ref": attrs["ref"], "versions": attrs["versions"], "secondary": attrs['secondary']})
             if temp is not None:
                 attrs = temp._saveable_attrs()
             # in the race-condition case where you're creating the saved item before the history item, do the update outside the previous if
@@ -100,6 +100,10 @@ class UserHistory(abst.AbstractMongoRecord):
             attrs["last_place"] = True
 
         super(UserHistory, self).__init__(attrs=attrs)
+
+    def _validate(self):
+        if self.secondary and self.saved:
+            raise InputError("UserHistory item cannot currently have both saved and secondary flags set at the same time")
 
     def _normalize(self):
         # Derived values - used to make downstream queries quicker
@@ -153,8 +157,8 @@ class UserHistory(abst.AbstractMongoRecord):
         # UserHistory API is only open to post for your uid
         pass
 
-    @classmethod
-    def save_history_item(cls, uid, hist, time_stamp=None):
+    @staticmethod
+    def save_history_item(uid, hist, action=None, time_stamp=None):
         if time_stamp is None:
             time_stamp = epoch_time()
         hist["uid"] = uid
@@ -164,7 +168,6 @@ class UserHistory(abst.AbstractMongoRecord):
             hist["book"] = oref.index.title
         hist["server_time_stamp"] = time_stamp if "server_time_stamp" not in hist else hist["server_time_stamp"]  # DEBUG: helpful to include this field for debugging
 
-        action = hist.pop("action", None)
         saved = True if action == "add_saved" else (False if action == "delete_saved" else hist.get("saved", False))
         uh = UserHistory(hist, load_existing=(action is not None), update_last_place=(action is None), field_updates={
             "saved": saved,
@@ -175,23 +178,10 @@ class UserHistory(abst.AbstractMongoRecord):
         return uh
 
     @staticmethod
-    def timeclause(start=None, end=None):
-        """
-        Returns a time range clause, fit for use in a pymongo query
-        :param start: datetime
-        :param end: datetime
-        :return:
-        """
-        if start is None and end is None:
-            return {}
-
-        timerange = {}
-        if start:
-            timerange["$gte"] = start
-        if end:
-            timerange["$lte"] = end
-        return {"datetime": timerange}
-
+    def remove_history_item(uid, hist):
+        hist["uid"] = uid
+        uh = UserHistory(hist, load_existing=True)
+        uh.delete()
 
     @staticmethod
     def get_user_history(uid=None, oref=None, saved=None, secondary=None, last_place=None, sheets=None, serialized=False, limit=0):
@@ -213,6 +203,35 @@ class UserHistory(abst.AbstractMongoRecord):
         if serialized:
             return [uh.contents(for_api=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit)]
         return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit)
+
+    @staticmethod
+    def delete_user_history(uid, exclude_saved=True, exclude_last_place=False):
+        if not uid:
+            raise InputError("Cannot delete user history without an id")
+        query = {"uid": uid}
+        if exclude_saved:
+            query["saved"] = False
+        if exclude_last_place:
+            query["last_place"] = False
+        UserHistorySet(query).delete(bulk_delete=True)
+
+    @staticmethod
+    def timeclause(start=None, end=None):
+        """
+        Returns a time range clause, fit for use in a pymongo query
+        :param start: datetime
+        :param end: datetime
+        :return:
+        """
+        if start is None and end is None:
+            return {}
+
+        timerange = {}
+        if start:
+            timerange["$gte"] = start
+        if end:
+            timerange["$lte"] = end
+        return {"datetime": timerange}
 
 
 class UserHistorySet(abst.AbstractMongoSet):
@@ -328,14 +347,17 @@ class UserProfile(object):
         self.settings     =  {
             "email_notifications": "daily",
             "interface_language": "english",
-            "textual_custom" : "sephardi"
+            "textual_custom" : "sephardi",
+            "reading_history" : True
         }
         # dict that stores the last time an attr has been modified
         self.attr_time_stamps = {
             "settings": 0
         }
 
+        # flags that indicate a change needing a cascade after save
         self._name_updated      = False
+        self._process_remove_history = False
 
         # Followers
         self.followers = FollowersSet(self.id)
@@ -345,7 +367,7 @@ class UserProfile(object):
         profile = db.profiles.find_one({"id": id})
         profile = self.migrateFromOldRecents(profile)
         if profile:
-            self.update(profile)
+            self.update(profile, ignore_flags_on_init=True)
         elif self.exists():
             # If we encounter a user that has a Django user record but not a profile document
             # create a profile for them. This allows two enviornments to share a user database,
@@ -372,6 +394,10 @@ class UserProfile(object):
         if "first_name" in obj or "last_name" in obj:
             if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
                 self._name_updated = True
+
+        if self.settings["reading_history"]:
+            if "settings" in obj and "reading_history" in obj["settings"] and obj["settings"]["reading_history"] == False:
+                self._process_remove_history = True
 
     @staticmethod
     def transformOldRecents(uid, recents):
@@ -423,11 +449,12 @@ class UserProfile(object):
             self.save()
         return profile
 
-    def update(self, obj):
+    def update(self, obj, ignore_flags_on_init=False):
         """
         Update this object with the fields in dictionry 'obj'
         """
-        self._set_flags_on_update(obj)
+        if not ignore_flags_on_init:
+            self._set_flags_on_update(obj)
         self.__dict__.update(obj)
 
         return self
@@ -458,6 +485,10 @@ class UserProfile(object):
             user.last_name  = self.last_name
             user.save()
             self._name_updated = False
+
+        if self._process_remove_history:
+            self.delete_user_history()
+            self._process_remove_history = False
 
         return self
 
@@ -559,6 +590,17 @@ class UserProfile(object):
             self.interrupting_messages.remove(message)
             self.save()
 
+    def process_history_item(self, hist, time_stamp):
+        action = hist.pop("action", None)
+        if self.settings["reading_history"] or action == "add_saved":  # regular case where history enabled, save/unsave saved item etc. or save history in either case
+            return UserHistory.save_history_item(self.id, hist, action, time_stamp)
+        elif action == "delete_saved":  # user has disabled history and is "unsaving", therefore deleting this item.
+            UserHistory.remove_history_item(self.id, hist)
+            return None
+        else:  # history disabled do nothing.
+            return None
+
+
     def get_user_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, limit=0):
         """
         personal user history
@@ -571,9 +613,14 @@ class UserProfile(object):
         :param limit: Passed on to Mongo to limit # of results
         :return:
         """
-
+        if not self.settings['reading_history'] and not saved:
+            return [] if serialized else None
         return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
                                             last_place=last_place, serialized=serialized, limit=limit)
+
+    def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
+        UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)
+
     def to_mongo_dict(self):
         """
         Return a json serializable dictionary which includes all data to be saved in mongo (as opposed to postgres)
