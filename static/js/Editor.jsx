@@ -901,6 +901,8 @@ const withSefariaSheet = editor => {
           Transforms.move(editor)
         }
         // end hacky spacer delete function
+
+        checkAndDeleteVoidAtPath(editor.selection.focus.path)
       }
       deleteBackward(...args)
     }
@@ -927,9 +929,28 @@ const withSefariaSheet = editor => {
           return
         }
         // end hacky spacer delete function
+
+        checkAndDeleteVoidAtPath(editor.selection.focus.path)
+
       }
       deleteForward(...args)
     }
+
+    const checkAndDeleteVoidAtPath = (path) => {
+      console.log(path)
+      var voidMatch = Editor.void(editor, {
+        at: path
+      });
+
+      if (voidMatch) {
+        event.preventDefault()
+        Transforms.delete(editor, {
+          at: voidMatch[1]
+        });
+      }
+    }
+
+
 
 
     editor.insertBreak = () => {
@@ -1733,20 +1754,6 @@ const SefariaEditor = (props) => {
             event.preventDefault()
             const format = HOTKEYS[hotkey]
             toggleFormat(editor, format)
-          }
-        }
-
-        if ((event.key == "Backspace" || event.key == "Delete")) {
-          var path = editor.selection.focus.path
-          var voidMatch = Editor.void(editor, {
-            at: path
-          });
-
-          if (voidMatch) {
-            event.preventDefault()
-            Transforms.delete(editor, {
-              at: voidMatch[1]
-            });
           }
         }
 
