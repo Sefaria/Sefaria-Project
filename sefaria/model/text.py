@@ -4504,7 +4504,7 @@ class Library(object):
         # TOC is handled separately since it can be edited in place
 
     def rebuild(self, include_toc = False, include_auto_complete=False):
-        self.build_term_mappings()
+        self.get_simple_term_mapping_json(rebuild=True)
         self._build_index_maps()
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
@@ -5463,7 +5463,11 @@ class Library(object):
         for link in links:
             start = link.charLevelData['startChar']
             end = link.charLevelData['endChar']
-            start_char_to_slug[start] = (s[start:end], link.toTopic, getattr(link, 'unambiguousToTopic', None))
+            mention = s[start:end]
+            if mention != link.charLevelData['text']:
+                # dont link if current text at startChar:endChar doesn't match text on link
+                continue
+            start_char_to_slug[start] = (mention, link.toTopic, getattr(link, 'unambiguousToTopic', None))
             char_list[start:end] = list(dummy_char*(end-start))
         dummy_text = "".join(char_list)
 

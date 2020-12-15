@@ -385,8 +385,9 @@
         options = options || {};
         var defaultOptions = {
             mode: "popup-click",
-            selector: "body",
-            exclude: null,
+            selector: "body",           // CSS Selector
+            excludeFromLinking: null,   // CSS Selector
+            excludeFromTracking: null,  // CSS Selector
             popupStyles: {},
             interfaceLang: "english",
             contentLang: "bilingual",
@@ -395,18 +396,18 @@
             dynamic: false,
             hidePopupsOnMobile: true
         };
-        Object.assign(options, defaultOptions);
-        Object.assign(ns, options);
+        Object.assign(defaultOptions, options);
+        Object.assign(ns, defaultOptions);
 
-        if (window.innerWidth < 700 && options.hidePopupsOnMobile) { 
+        if (window.innerWidth < 700 && ns.hidePopupsOnMobile) { 
             // If the screen is small, defautlt to link mode, unless override set
-            options.mode = "link";
+            ns.mode = "link";
         }  
-        setupPopup(options, options.mode);
+        setupPopup(ns, ns.mode);
 
         ns.matches = [];   // Matches that will be linked
-        ns.allMatches =[]; // All matches, even if in excluded selectors
-        ns.elems = document.querySelectorAll(options.selector);
+        ns.trackedMatches =[]; // Matches that will be tracked
+        ns.elems = document.querySelectorAll(ns.selector);
         // Find text titles in the document
         // todo: hold locations of title matches?
         const full_text = [].reduce.call(ns.elems, (prev, current) => prev + current.textContent, "");
@@ -417,7 +418,7 @@
             return;
         }
 
-        ns._getRegexesThenTexts(options.mode);
+        ns._getRegexesThenTexts(ns.mode);
     };
 
 
@@ -477,16 +478,26 @@
                            return portion.text;
                         }
                         else {
-                            // Track this match regardless of context
-                            ns.allMatches.push(matched_ref);
-                            // Walk up node tree to see if this context should be excluded
+                            // Walk up node tree to see if this context should be excluded from linking or tracking
                             let p = portion.node;
+                            let excludeFromLinking = false;
+                            let excludeFromTracking = false;
                             while (p) {
-                              if (p.nodeName === 'A' || (ns.exclude && p.matches && p.matches(ns.exclude))) {
-                                return portion.text;
-                              }
-                              p = p.parentNode;
+                                if (p.nodeName === 'A' || (ns.excludeFromLinking && p.matches && p.matches(ns.excludeFromLinking))) {
+                                    excludeFromLinking = true;
+                                }
+                                if (ns.excludeFromTracking && p.matches && p.matches(ns.excludeFromTracking)) {
+                                    excludeFromTracking = true;
+                                }
+                                if (excludeFromTracking && excludeFromLinking) {
+                                    return portion.text;
+                                }
+                                p = p.parentNode;
                             }
+
+                            if (!excludeFromTracking) { ns.trackedMatches.push(matched_ref); }
+
+                            if (excludeFromLinking) { return portion.text; }
 
                             ns.matches.push(matched_ref);
                             const atag = document.createElement("a");
@@ -514,7 +525,7 @@
             }
         }
         ns.matches = ns.matches.filter(distinct);
-        ns.allMatches = ns.allMatches.filter(distinct);
+        ns.trackedMatches = ns.trackedMatches.filter(distinct);
     };
 
     ns._getTexts = function(mode) {
@@ -588,7 +599,7 @@
     };
 
     ns._trackPage = function() {
-        if (ns.allMatches.length == 0) { return; }
+        if (ns.trackedMatches.length == 0) { return; }
 
         var robots = document.head.querySelector("meta[name~=robots]");
         if (robots && robots.content.includes("noindex")) { return; }
@@ -606,7 +617,7 @@
             "url": url,
             "title": document.title,
             "description": description,
-            "refs": ns.allMatches,
+            "refs": ns.trackedMatches,
         };
         if (ns.dynamic) {
             // don't send description because we can't be sure if the description is still correct after navigating on the dynamic site

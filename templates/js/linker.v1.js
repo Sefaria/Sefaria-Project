@@ -216,7 +216,9 @@
         setupPopup(popupStyles, mode);
 
         ns.matches = [];
-        ns.allMatches = [];
+        ns.trackedMatches = [];
+        ns.excludeFromTracking = options.excludeFromTracking;
+        ns.excludeFromLinking = options.excludeFromLinking;
         var elems = document.querySelectorAll(selector);
 
         // Find text titles in the document
@@ -254,16 +256,26 @@
                                     .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                                     .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
 
-                                // Track this match regardless of context
-                                ns.allMatches.push(matched_ref);
-                                // Walk up node tree to see if this context should be excluded
-                                let p = portion.node;
-                                while (p) {
-                                  if (p.nodeName === 'A') {
-                                    return portion.text;
-                                  }
-                                  p = p.parentNode;
+                            // Walk up node tree to see if this context should be excluded from linking or tracking
+                            let p = portion.node;
+                            let excludeFromLinking = false;
+                            let excludeFromTracking = false;
+                            while (p) {
+                                if (p.nodeName === 'A' || (ns.excludeFromLinking && p.matches && p.matches(ns.excludeFromLinking))) {
+                                    excludeFromLinking = true;
                                 }
+                                if (ns.excludeFromTracking && p.matches && p.matches(ns.excludeFromTracking)) {
+                                    excludeFromTracking = true;
+                                }
+                                if (excludeFromTracking && excludeFromLinking) {
+                                    return portion.text;
+                                }
+                                p = p.parentNode;
+                            }
+
+                            if (!excludeFromTracking) { ns.trackedMatches.push(matched_ref); }
+
+                            if (excludeFromLinking) { return portion.text; }
 
                                 ns.matches.push(matched_ref);
 
@@ -281,7 +293,7 @@
                     }
                 }
                 ns.matches = ns.matches.filter(distinct);
-                ns.allMatches = ns.allMatches.filter(distinct);
+                ns.trackedMatches = ns.trackedMatches.filter(distinct);
                 ns._trackPage();
 
                 if (ns.matches.length == 0) {
@@ -323,7 +335,7 @@
     };
 
     ns._trackPage = function() {
-        if (ns.allMatches.length == 0) { return; }
+        if (ns.trackedMatches.length == 0) { return; }
 
         var robots = document.head.querySelector("meta[name~=robots]");
         if (robots && robots.content.includes("noindex")) { return; }
@@ -341,7 +353,7 @@
             "url": url,
             "title": document.title,
             "description": description,
-            "refs": ns.allMatches,
+            "refs": ns.trackedMatches,
         };
         // console.log("TRACK");
         // console.log(data);

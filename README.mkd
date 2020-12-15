@@ -236,8 +236,6 @@ The following environment variables, defined in `./node/local_settings.js`, can 
 
 | Env Var | Default | Description |
 |---------|---------|-------------|
-| `DJANGO_HOST` | No default | The hostname of the Django service |
-| `DJANGO_PORT` | `80` | The port used by the Django service | 
 | `NODEJS_PORT` | `3000` | The port to be used by the NodeJs service |
 | `DEBUG` | `false` | Determines whether the NodeJs service should run in debug mode | 
 | `REDIS_HOST` | `"1270.0.1"` | The Redis instance to point Node to when running |
