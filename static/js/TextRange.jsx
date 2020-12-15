@@ -486,7 +486,7 @@ class TextSegment extends Component {
       //Click of named entity
       event.preventDefault();
       if (!this.props.onNamedEntityClick) { return; }
-      
+
       let topicSlug = $(event.target).attr("data-slug");
       Sefaria.util.selectElementContents(event.target);
       this.props.onNamedEntityClick(topicSlug, this.props.sref, event.target.innerText);
@@ -528,12 +528,15 @@ class TextSegment extends Component {
     });
     return $newElement.html();
   }
+  wrapWordsInGenericHTMLRegex(text) {
+    const arbitraryHTMLTagsRegex = '(?:<\/?[^>]+>){0,}';
+    return text.replace(/(\S+)/g, `${arbitraryHTMLTagsRegex}$1${arbitraryHTMLTagsRegex}`);
+  }
   addHighlights(text) {
     // for adding in highlights to query results in Reader
     if (!!this.props.textHighlights) {
-      const highList = this.props.textHighlights.map(h => Sefaria.hebrew.isHebrew(h) ? Sefaria.hebrew.getNikkudRegex(h) : h);
+      const highList = this.props.textHighlights.map(h => this.wrapWordsInGenericHTMLRegex(h));
       const reg = new RegExp(`(${highList.join("|")})`, 'g');
-      
       return text.replace(reg, '<span class="queryTextHighlight">$1</span>');
     }
     return text;
