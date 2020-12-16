@@ -464,7 +464,9 @@ books_other_a = ['Maaseh Rav',
                  'Mateh Efrayim',
                  'Nehar Misrayim',
                  "Shev Shmat'ta",
-                 'Shulchan Aruch HaRav']
+                 'Shulchan Aruch HaRav',
+                 "Ahavat Chesed"
+                 ]
 
 for cat, books in [
     (cat_mono, books_mono),
@@ -723,7 +725,7 @@ for t in [
 
 library.rebuild(include_toc=True)
 
-# Arrange Commentary
+# Arrange Commentary on Tanakh
 ri = ["Ralbag",
       "Ralbag Beur HaMilot",
       "Joseph ibn Yahya",
@@ -810,19 +812,19 @@ chida = [
     'Penei David'
 ]
 
-t_ri_cat = create_category(["Tanakh", "Rishonim on Tanakh"], "Rishonim on Tanakh", "ראשונים על תנ״ך")
-t_ah_cat = create_category(["Tanakh", "Acharonim on Tanakh"], "Acharonim on Tanakh", "אחרונים על תנ״ך")
-t_mo_cat = create_category(["Tanakh", "Modern Commentary on Tanakh"], "Modern Commentary on Tanakh",
+ri_cat = create_category(["Tanakh", "Rishonim on Tanakh"], "Rishonim on Tanakh", "ראשונים על תנ״ך")
+ah_cat = create_category(["Tanakh", "Acharonim on Tanakh"], "Acharonim on Tanakh", "אחרונים על תנ״ך")
+mo_cat = create_category(["Tanakh", "Modern Commentary on Tanakh"], "Modern Commentary on Tanakh",
                            "פירושים מודרניים על תנ״ך")
-t_chida_cat = create_category(["Tanakh", "Acharonim on Tanakh", "Chida on Tanakh"], "Chida on Tanakh", 'החיד״א על תנ״ך')
+chida_cat = create_category(["Tanakh", "Acharonim on Tanakh", "Chida on Tanakh"], "Chida on Tanakh", 'החיד״א על תנ״ך')
 
 # Currently Tanakh, Commentary, <Index>
 # or        Tanakh, Commentary, <subcat>, <Index>
 groups = [
-    (ri, t_ri_cat),
-    (ah, t_ah_cat),
-    (co, t_mo_cat),
-    (chida, t_chida_cat)
+    (ri, ri_cat),
+    (ah, ah_cat),
+    (co, mo_cat),
+    (chida, chida_cat)
 ]
 
 for works, cat in groups:
@@ -842,9 +844,74 @@ g.toc["categories"] = ["Tanakh", "Modern Commentary on Tanakh"]
 g.save()
 
 ###
+### Mishnah Commentary
+
+ri = [
+    "Rashi",
+    "Magen Avot",
+    "Rambam",
+    "Bartenura",
+    "R' Shemaiah on Mishnah Middot",
+    "Raavad on Mishnah Eduyot",
+    "Rabbeinu Yonah",
+    "Rash MiShantz",
+]
+
+ah = [
+    "Yachin",
+    "Boaz",
+    "Derech Chaim",
+    "Gra",
+    "Hon Ashir",
+    "Midrash Shmuel on Avot",
+    "Motar Kinnim",
+    "Nachalat Avot on Avot",
+    "Yein Levanon on Avot",
+    "Zeroa Yamin"
+    "Ikar Tosafot Yom Tov",
+    "Tosafot Yom Tov",
+    "Tosafot Rabbi Akiva Eiger",
+    "Melechet Shlomo",
+    "Lechem Shamayim",
+    "Marit HaAyin",
+    "Petach Einayim",
+    "Rashash",
+    "Yesh Seder LaMishnah",
+]
+
+co = [
+    "English Explanation of Mishnah",
+    "A New Israeli Commentary on Pirkei Avot",
+    "Footnotes and Annotations on Derech Chaim",
+]
+
+ri_cat = create_category(["Mishnah", "Rishonim on Mishnah"], "Rishonim on Mishnah", "ראשונים על משנה")
+ah_cat = create_category(["Mishnah", "Acharonim on Mishnah"], "Acharonim on Mishnah", "אחרונים על משנה")
+mo_cat = create_category(["Mishnah", "Modern Commentary on Mishnah"], "Modern Commentary on Mishnah",
+                           "פירושים מודרניים על משנה")
+
+groups = [
+    (ri, ri_cat),
+    (ah, ah_cat),
+    (co, mo_cat),
+]
+
+for works, cat in groups:
+    for n in works:
+        cs = CategorySet({"path": ["￿￿Mishnah", "Commentary", n]})
+        if cs.count():
+            for c in cs:
+                moveCategoryInto(c, cat)
+        else:
+            try:
+                moveIndexInto(n, cat)
+            except Exception:
+                print("Can not figure out Mishnah Commnentary: {}".format(n))
 
 
 # remove empty categories
+library.rebuild(include_toc=True)
+
 for p in [
     ["Other", "Grammar"],
     ["Other", "Dictionary"],
@@ -859,6 +926,9 @@ for p in [
     ["Tanakh", "Commentary", "Palgei Mayim"],
     ["Tanakh", "Commentary", "Megillat Setarim"],
     ["Tanakh", "Commentary", "Ta'alumot Chokhmah"],
+    ["Mishnah", "Commentary", "R' Shemaiah"],
+    ["Mishnah", "Commentary", "Raavad"],
+    ["Mishnah", "Commentary", "Motar Kinnim", "Seder Kodashim"],
 ]:
     c = Category().load({"path": p})
     if c:
@@ -882,7 +952,9 @@ for p in [
     ["Midrash", "Commentary", "Gra"],  # empty
     ["Midrash", "Commentary", "Meir Ayin"],  # empty
     ["Midrash", "Commentary", "Yaakov Emden"],  # empty
-    ["Tanakh", "Commentary", "Riva"]
+    ["Tanakh", "Commentary", "Riva"],
+    ["Chasidut", "Commentary"],
+    ["Mishnah", "Commentary", "Motar Kinnim"]
 ]:
     c = Category().load({"path": p})
     if c:
