@@ -6113,12 +6113,24 @@ h2.splitHeader .he {
 .tocTop .groupListingImageBox {
   background-color: transparent;
 }
-.sheetMetaDataBox .title.empty:not(.focused):before {
+
+.sheetMetaDataBox .title {
+  display: block;
+}
+
+.sheetMetaDataBox .title:empty:before {
   content: "Untitled";
   color: #999;
   position: relative;
   pointer-events: none;
 }
+
+.sheetMetaDataBox .title:focus:before {
+  content: "";
+}
+
+
+
 .groupListingImage {
   height: 100%;
   width: 100%;
