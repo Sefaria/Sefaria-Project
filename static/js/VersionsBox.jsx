@@ -168,15 +168,7 @@ class VersionsTextList extends Component {
       let enVersion = null, heVersion = null;
       if (language === "en") { enVersion = filter[0]; }
       else                   { heVersion = filter[0]; }
-      const settings = {
-        enVersion,
-        heVersion,
-        wrapNamedEntities: !!this.props.onNamedEntityClick ? 1 : 0,  // dont wrap named entities if no callback 
-      }
-      Sefaria.getText(sectionRef, settings)
-      .then(() => {
-        this.setState({loaded: true});
-      });
+      Sefaria.getText(sectionRef, {enVersion, heVersion}).then(() => {this.setState({loaded: true})});
     }
   }
   getSectionRef() {

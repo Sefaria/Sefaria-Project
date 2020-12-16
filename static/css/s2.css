@@ -1140,6 +1140,7 @@ input.noselect {
 .readerNavMenu .content .contentInner {
   max-width: 660px;
   margin: 0 auto;
+  min-height: 520px;
 }
 .homeFeedWrapper .content .contentInner {
   max-width: none;
@@ -4106,7 +4107,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: inherit;
 }
 .segment .namedEntityLink:hover {
+  cursor: text;
   text-decoration: none;
+}
+.segment.showNamedEntityLinks .namedEntityLink:hover {
+  /* only show named entity underline when class showNamedEntityLinks exists */
+  cursor: pointer;
   border-bottom: 2px dotted #666;
 }
 .stacked.bilingual .segment .en .namedEntityLink:hover {
@@ -6107,12 +6113,24 @@ h2.splitHeader .he {
 .tocTop .groupListingImageBox {
   background-color: transparent;
 }
-.sheetMetaDataBox .title.empty:not(.focused):before {
+
+.sheetMetaDataBox .title {
+  display: block;
+}
+
+.sheetMetaDataBox .title:empty:before {
   content: "Untitled";
   color: #999;
   position: relative;
   pointer-events: none;
 }
+
+.sheetMetaDataBox .title:focus:before {
+  content: "";
+}
+
+
+
 .groupListingImage {
   height: 100%;
   width: 100%;
@@ -8811,6 +8829,9 @@ a.topicLexiconTitle.contentText {
   .headerWithButtons .end {
     text-align: center;
   }
+}
+#history-disabled-msg{
+  text-align: center;
 }
 /* start css code for loading bezel */
 .sourceLoader {
