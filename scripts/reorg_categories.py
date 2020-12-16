@@ -904,7 +904,7 @@ groups = [
 
 for works, cat in groups:
     for n in works:
-        cs = CategorySet({"path": ["￿￿Mishnah", "Commentary", n]})
+        cs = CategorySet({"path": ["Mishnah", "Commentary", n]})
         if cs.count():
             for c in cs:
                 moveCategoryInto(c, cat)
@@ -1058,7 +1058,8 @@ for p in [
     ["Halakhah", "Commentary", "Kessef Mishneh"],
     ["Responsa", "Commentary"],
     ["Tanakh", "Commentary"],
-    ["Talmud", "Bavli", "Commentary"]
+    ["Talmud", "Bavli", "Commentary"],
+    ["Mishnah", "Commentary"]
 ]:
     c = Category().load({"path": p})
     if c:
