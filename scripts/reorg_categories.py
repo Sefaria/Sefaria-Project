@@ -155,23 +155,30 @@ c = Category().load({'path': ["Tanaitic", "Minor Tractates"]})
 p = Category().load({"path": ["Talmud", "Bavli"]})
 moveCategoryInto(c, p)
 
-### Commentary on minor tractates -> Talmud/Bavli
-#        "Tanaitic",         "Commentary",         "Nahalat Yaakov",         "Minor Tractates"
-#   =>   "Talmud",      "Bavli",    "Commentary",     "Nahalat Yaakov",  "Minor Tractates",
-p = Category().load({"path": ["Talmud", "Bavli", "Commentary"]})
-for kid in Category().load({'path': ["Tanaitic", "Commentary"]}).get_toc_object().children:
-    c = kid.get_category_object()
-    moveCategoryInto(c, p)
-"""
-todo: ^ -> v 
-#        "Tanaitic",         "Commentary",         "Nahalat Yaakov",         "Minor Tractates"
-#   =>   "Talmud",      "Bavli",    "Commentary",   "Minor Tractates"
-p = create_category(["Talmud", "Bavli", "Commentary", "Minor Tractates"])
-for kid in Category().load({'path': ["Tanaitic", "Commentary"]}).get_toc_object().children:
-        c = kid.get_category_object()
-        moveCategoryInto(c, p)
 
-"""
+#        "Tanaitic",         "Commentary",         "Nahalat Yaakov",         "Minor Tractates"
+#   =>   "Talmud",      "Bavli",    "Commentary on Minor Tractates",  "Nahalat Yaakov"
+c = create_category(["Talmud", "Bavli", "Commentary on Minor Tractates"], "Commentary on Minor Tractates", "מפרשים על מסכתות קטנות")
+
+library.rebuild(include_toc=True)
+tc = Category().load({'path': ["Tanaitic", "Commentary"]}).get_toc_object()
+for kid in tc.children:
+    c = create_category(["Talmud", "Bavli", "Commentary on Minor Tractates", kid.get_primary_title()])
+    for i in [n.get_index_object() for n in kid.get_leaf_nodes()]:
+        moveIndexInto(i,c)
+
+library.rebuild(include_toc=True)
+
+cs = CategorySet({"$and": [{"path.0": "Tanaitic"}, {"path.1": "Commentary"}]})
+for c in cs:
+    if len(c.path) >= 4:
+        c.delete()
+
+library.rebuild(include_toc=True)
+
+for c in cs:
+    if len(c.path) == 3:
+        c.delete()
 
 moveIndexInto("Megillat Taanit", ["Midrash"])
 
@@ -753,7 +760,7 @@ ri = ["Ralbag",
       "Riva on Torah",
       "Toledot Yitzchak on Torah",
       "Minchat Shai",
-      'Bartenura',
+      "Bartenura on Torah",
       'Sforno',
       'Tzror HaMor on Torah',
       "Mashmia Yeshuah",
@@ -761,7 +768,6 @@ ri = ["Ralbag",
 
 ah = ["Avi Ezer",
       "Ba'alei Brit Avram",
-      "Bartenura on Torah",
       "Beit HaLevi on Torah",
       "Chanukat HaTorah",
       "Chatam Sofer on Torah",
@@ -908,6 +914,87 @@ for works, cat in groups:
             except Exception:
                 print("Can not figure out Mishnah Commnentary: {}".format(n))
 
+####
+#### Talmud Commentary
+
+
+ri = ['Rashi',
+      'Tosafot',
+      'Rif',
+      'Rashba',
+      "Chidushei HaRa'ah on Berakhot",
+      'Tosafot Chad Mikamei on Yevamot',
+      'Yad Ramah on Bava Batra',
+      'Chidushei HaMeiri on Eruvin',
+      'Commentary of the Rosh',
+      'Ktav Yad Rashi',
+      'Mefaresh',
+      'Mordechai on Bava Batra',
+      'Rabbeinu Chananel',
+      'Rabbeinu Gershom',
+      'Ramban',
+      'Ran',
+      'Rashbam',
+      'Rav Nissim Gaon',
+      'Ritva',
+      'Rosh',
+      'Tosafot HaRosh',
+      'Tosafot Ri HaZaken',
+      'Tosafot Rid',
+      'Tosafot Shantz',
+      'Tosafot Yeshanim',
+      'Yad Ramah']
+
+ah = ['Haflaah on Ketubot',
+      'Ben Yehoyada',
+      'Benayahu',
+      'Chiddushei Rabbi Akiva Eiger',
+      'Chidushei Agadot',
+      'Chidushei Chatam Sofer',
+      'Chidushei Halachot',
+      'Chokhmat Shlomo',
+      'Divrey Chamudot',
+      'Ein Ayah',
+      'Korban Netanel',
+      'Maadaney Yom Tov',
+      'Maharam',
+      'Maharam Shif',
+      'Marit HaAyin',
+      'Penei Yehoshua',
+      'Petach Einayim',
+      'Pilpula Charifta',
+      'Shita Mekubetzet',
+      'Tiferet Shmuel']
+
+co = ['Beur Reuven on Bava Kamma',
+      'Reshimot Shiurim',
+      'Steinsaltz',
+      'Daf Shevui']
+
+
+ri_cat = create_category(["Talmud", "Bavli", "Rishonim on Talmud"], "Rishonim on Talmud", "ראשונים על תלמוד")
+ah_cat = create_category(["Talmud", "Bavli", "Acharonim on Talmud"], "Acharonim on Talmud", "אחרונים על תלמוד")
+mo_cat = create_category(["Talmud", "Bavli", "Modern Commentary on Talmud"], "Modern Commentary on Talmud",
+                           "פירושים מודרניים על תלמוד")
+
+groups = [
+    (ri, ri_cat),
+    (ah, ah_cat),
+    (co, mo_cat),
+]
+
+for works, cat in groups:
+    for n in works:
+        cs = CategorySet({"path": ["Talmud", "Bavli", "Commentary", n]})
+        if cs.count():
+            for c in cs:
+                moveCategoryInto(c, cat)
+        else:
+            try:
+                moveIndexInto(n, cat)
+            except Exception:
+                print("Can not figure out ￿Talmud Commnentary: {}".format(n))
+
 
 # remove empty categories
 library.rebuild(include_toc=True)
@@ -929,6 +1016,7 @@ for p in [
     ["Mishnah", "Commentary", "R' Shemaiah"],
     ["Mishnah", "Commentary", "Raavad"],
     ["Mishnah", "Commentary", "Motar Kinnim", "Seder Kodashim"],
+    ["Talmud", "Bavli", "Commentary", "Ri HaZaken", "Seder Nashim"]
 ]:
     c = Category().load({"path": p})
     if c:
@@ -954,7 +1042,8 @@ for p in [
     ["Midrash", "Commentary", "Yaakov Emden"],  # empty
     ["Tanakh", "Commentary", "Riva"],
     ["Chasidut", "Commentary"],
-    ["Mishnah", "Commentary", "Motar Kinnim"]
+    ["Mishnah", "Commentary", "Motar Kinnim"],
+    ["Talmud", "Bavli", "Commentary", "Ri HaZaken"]
 ]:
     c = Category().load({"path": p})
     if c:
@@ -967,7 +1056,8 @@ for p in [
     ["Midrash", "Commentary", "Footnotes"],
     ["Halakhah", "Commentary", "Kessef Mishneh"],
     ["Responsa", "Commentary"],
-    ["Tanakh", "Commentary"]
+    ["Tanakh", "Commentary"],
+    ["Talmud", "Bavli", "Commentary"]
 ]:
     c = Category().load({"path": p})
     if c:
@@ -976,7 +1066,6 @@ for p in [
         print("Failed to load category for {}".format(p))
 
 
-# Talmud Commentary
 #	Alphabetical  (? really?  not crono?)
 # Click Talmud -> Commentary of Chida (crash)
 
