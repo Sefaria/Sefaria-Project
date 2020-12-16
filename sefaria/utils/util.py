@@ -161,14 +161,6 @@ def strip_tags(html):
     return s.get_data().strip()
 
 
-named_entity_translation_table = str.maketrans({ "ḥ": "h", "Ḥ": "H", "ă": "a", "ǎ": "a", "ḫ": "h", "ḳ": "k", "Ḳ": "K", "ŏ": "o", "ṭ": "t", "ż": "z", "Ż": "Z" , "’": "'", '\u05f3': "'", "\u05f4": '"', "”": '"', "“": '"' })
-def normalization_for_named_entities(st):
-    """
-    performs simple character swaps so that st matches same normalization done to named entities when they were linked
-    """
-    return st.translate(named_entity_translation_table)
-
-
 def text_preview(en, he):
     """
     Returns a jagged array terminating in dicts like {'he': '', 'en': ''} which offers preview

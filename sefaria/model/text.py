@@ -5446,7 +5446,6 @@ class Library(object):
         Parallel to library.get_wrapped_refs_string
         Returns `s` with every link in `links` wrapped in an a-tag
         """
-        from sefaria.utils.util import normalization_for_named_entities
         if len(links) == 0:
             return s
         links.sort(key=lambda x: x.charLevelData['startChar'])
@@ -5460,7 +5459,7 @@ class Library(object):
             start = link.charLevelData['startChar']
             end = link.charLevelData['endChar']
             mention = s[start:end]
-            if normalization_for_named_entities(mention) != link.charLevelData['text']:
+            if mention != link.charLevelData['text']:
                 # dont link if current text at startChar:endChar doesn't match text on link
                 continue
             start_char_to_slug[start] = (mention, link.toTopic, getattr(link, 'unambiguousToTopic', None))
