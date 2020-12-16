@@ -561,6 +561,7 @@ for cat, books in [
 
 # Chassidut
 moveIndexInto("Pri Tzadik", ["Chasidut", "R' Tzadok HaKohen"])
+moveIndexInto("Mekor Mayim Chayim on Baal Shem Tov", ["Chasidut"])
 
 c = create_category(["Chasidut", "Izhbitz"], "Izhbitz", "איזביצה")
 for t in [
@@ -701,7 +702,6 @@ tohide = [
     "Ali Be'er on Revealment and Concealment in Language",
     "Bein HaShitin on Halacha and Aggadah",
     "Commentaries on Revealment and Concealment in Language",
-    "Mekor Mayim Chayim on Baal Shem Tov",
     "Publisher's Haggahot on Sefer HaParnas",
     "JPS 1985 Footnotes",
     "Notes and Corrections on Midrash Aggadah",
@@ -925,11 +925,11 @@ ri = ['Rashi',
       "Chidushei HaRa'ah on Berakhot",
       'Tosafot Chad Mikamei on Yevamot',
       'Yad Ramah on Bava Batra',
-      'Chidushei HaMeiri on Eruvin',
+      'Chidushei HaMeiri',
       'Commentary of the Rosh',
       'Ktav Yad Rashi',
       'Mefaresh',
-      'Mordechai on Bava Batra',
+      'Mordechai',
       'Rabbeinu Chananel',
       'Rabbeinu Gershom',
       'Ramban',
@@ -969,7 +969,8 @@ ah = ['Haflaah on Ketubot',
 co = ['Beur Reuven on Bava Kamma',
       'Reshimot Shiurim',
       'Steinsaltz',
-      'Daf Shevui']
+      'Daf Shevui',
+      "Abraham Cohen Footnotes to the English Translation of Masechet Berakhot"]
 
 
 ri_cat = create_category(["Talmud", "Bavli", "Rishonim on Talmud"], "Rishonim on Talmud", "ראשונים על תלמוד")
