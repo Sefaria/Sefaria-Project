@@ -353,24 +353,46 @@ def base_props(request):
     """
     from sefaria.model.user_profile import UserProfile, UserWrapper
     from sefaria.site.site_settings import SITE_SETTINGS
-    from sefaria.settings import DEBUG
-    profile = UserProfile(user_obj=request.user) if request.user.is_authenticated else None
+    from sefaria.settings import DEBUG, GLOBAL_INTERRUPTING_MESSAGE
 
     if hasattr(request, "init_shared_cache"):
         logger.warning("Shared cache disappeared while application was running")
         library.init_shared_cache(rebuild=True)
 
-    return {
+    if request.user.is_authenticated:
+        profile = UserProfile(user_obj=request.user)
+        interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
+        user_data = {
+            "_uid": request.user.id,
+            "_email": request.user.email,
+            "slug": profile.slug if profile else "",
+            "is_moderator": request.user.is_staff,
+            "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
+            "notificationCount": profile.unread_notification_count(),
+            "full_name": profile.full_name,
+            "profile_pic_url": profile.profile_pic_url,
+            "is_history_enabled": profile.settings["reading_history"],
+            "interruptingMessage": InterruptingMessage(attrs=interrupting_message_dict, request=request).json()
+        }
+    else:
+        interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE
+        user_data = {
+            "_uid": None,
+            "_email": "",
+            "slug": "",
+            "is_moderator": False,
+            "is_editor": False,
+            "notificationCount": 0,
+            "full_name": "",
+            "profile_pic_url": "",
+            "is_history_enabled": True,
+            "interruptingMessage": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json()
+        }
+
+    baseprops = user_data.update({
         "last_cached": library.get_last_cached_time(),
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
-        "_uid": request.user.id,
-        "is_moderator": request.user.is_staff,
-        "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
-        "is_history_enabled": profile.settings["reading_history"] if profile else True,
-        "notificationCount": profile.unread_notification_count() if profile else 0,
-        "full_name": profile.full_name if profile else "",
-        "profile_pic_url": profile.profile_pic_url if profile else "",
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
             "language":      request.contentLang,
@@ -385,7 +407,8 @@ def base_props(request):
         },
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
-    }
+    })
+    return baseprops
 
 
 @sanitize_get_params
