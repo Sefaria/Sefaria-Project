@@ -497,7 +497,6 @@ Sefaria = extend(Sefaria, {
       if (settings.enVersion) { key += "&ven=" + settings.enVersion; }
       if (settings.heVersion) { key += "&vhe=" + settings.heVersion; }
       key = settings.context ? key + "|CONTEXT" : key;
-      key = settings.wrapNamedEntities ? key + "|WRAP_NAMED_ENTITIES" : key;
     }
     return key;
   },
@@ -1717,6 +1716,9 @@ _media: {},
   saveUserHistory: function(history_item) {
     // history_item contains:
     // - ref, book, versions. optionally: secondary, he_ref, language
+    if(!Sefaria.is_history_enabled){
+        return;
+    }
     const history_item_array = Array.isArray(history_item) ? history_item : [history_item];
     for (let h of history_item_array) {
       h.time_stamp = Sefaria.util.epoch_time();
@@ -2368,7 +2370,7 @@ _media: {},
       "Vowels": "ניקוד",
       "Show only vowel points": "הצג טקסט עם ניקוד",
       "Show only consonantal text": "הצג טקסט עיצורי בלבד",
-      "Email Address" : "כתובת אימייל",
+      "Email Address" : 'כתובת דוא"ל',
       "Describe the issue..." : "טקסט המשוב",
       "Report an issue with the text" : "דיווח על בעיה בטקסט",
       "Request translation" : "בקשה לתרגום",
@@ -2394,7 +2396,8 @@ _media: {},
       "Sign\u00A0in": "התחברו",
       "Save": "שמירה",
       "Remove": "הסרה",
-      "Email was successfully changed!": "כתובת האימייל שונתה בהצלחה!",
+      "Email was successfully changed!": 'כתובת הדוא"ל שונתה בהצלחה!',
+      "Turning this feature off will permanently delete your reading history." : "כיבוי אפשרות זו תמחק לצמיתות את היסטורית הקריאה שלך.",
       "Filter": "סינון",
       "Relevance": 'רלוונטיות',
       "Chronological": 'כרונולוגי',
@@ -2422,7 +2425,7 @@ _media: {},
       "Start Call": "התחלת שיחה",
 
       //subscribe & register
-      "Please enter a valid email address.": "כתובת האימייל שהוזנה אינה תקינה.",
+      "Please enter a valid email address.": 'כתובת הדוא"ל שהוזנה אינה תקינה.',
       "Subscribed! Welcome to our list.": "הרשמה בוצעה בהצלחה!",
       "Sorry, there was an error.": "סליחה, ארעה שגיאה",
   },
@@ -2629,6 +2632,7 @@ Sefaria.unpackDataFromProps = function(props) {
       "full_name",
       "profile_pic_url",
       "following",
+      "is_history_enabled",
       "_siteSettings",
       "_debug",
   ];

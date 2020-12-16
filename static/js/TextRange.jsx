@@ -95,8 +95,7 @@ class TextRange extends Component {
     var settings = {
       context: this.props.withContext ? 1 : 0,
       enVersion: this.props.currVersions.en || null,
-      heVersion: this.props.currVersions.he || null,
-      wrapNamedEntities: !!this.props.onNamedEntityClick ? 1 : 0,  // dont wrap named entities if no callback 
+      heVersion: this.props.currVersions.he || null
     };
     var data = Sefaria.getTextFromCache(this.props.sref, settings);
 
@@ -486,6 +485,8 @@ class TextSegment extends Component {
     } else if ($(event.target).hasClass("namedEntityLink")) {
       //Click of named entity
       event.preventDefault();
+      if (!this.props.onNamedEntityClick) { return; }
+
       let topicSlug = $(event.target).attr("data-slug");
       Sefaria.util.selectElementContents(event.target);
       this.props.onNamedEntityClick(topicSlug, this.props.sref, event.target.innerText);
@@ -527,12 +528,15 @@ class TextSegment extends Component {
     });
     return $newElement.html();
   }
+  wrapWordsInGenericHTMLRegex(text) {
+    const arbitraryHTMLTagsRegex = '(?:<\/?[^>]+>){0,}';
+    return text.replace(/(\S+)/g, `${arbitraryHTMLTagsRegex}$1${arbitraryHTMLTagsRegex}`);
+  }
   addHighlights(text) {
     // for adding in highlights to query results in Reader
     if (!!this.props.textHighlights) {
-      const highList = this.props.textHighlights.map(h => Sefaria.hebrew.isHebrew(h) ? Sefaria.hebrew.getNikkudRegex(h) : h);
+      const highList = this.props.textHighlights.map(h => this.wrapWordsInGenericHTMLRegex(h));
       const reg = new RegExp(`(${highList.join("|")})`, 'g');
-      
       return text.replace(reg, '<span class="queryTextHighlight">$1</span>');
     }
     return text;
@@ -566,10 +570,13 @@ class TextSegment extends Component {
     he = this.addHighlights(he);
     en = this.addHighlights(en);
 
-    var classes=classNames({ segment: 1,
-                     highlight: this.props.highlight,
-                     heOnly: !this.props.en,
-                     enOnly: !this.props.he });
+    var classes=classNames({
+      segment: 1,
+      highlight: this.props.highlight,
+      heOnly: !this.props.en,
+      enOnly: !this.props.he,
+      showNamedEntityLinks: !!this.props.onNamedEntityClick,
+    });
     if(!this.props.en && !this.props.he){
         return false;
     }
