@@ -375,7 +375,6 @@ def base_props(request):
             "interruptingMessage": InterruptingMessage(attrs=interrupting_message_dict, request=request).json()
         }
     else:
-        interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE
         user_data = {
             "_uid": None,
             "_email": "",
@@ -388,8 +387,7 @@ def base_props(request):
             "is_history_enabled": True,
             "interruptingMessage": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json()
         }
-
-    baseprops = user_data.update({
+    user_data.update({
         "last_cached": library.get_last_cached_time(),
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
@@ -408,7 +406,7 @@ def base_props(request):
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
     })
-    return baseprops
+    return user_data
 
 
 @sanitize_get_params
