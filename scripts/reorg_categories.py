@@ -543,7 +543,9 @@ a_books = [
     'Messilat Yesharim',
     'Ohr Yisrael',
     'Pele Yoetz',
-    'Shemirat HaLashon']
+    'Shemirat HaLashon',
+    "Yesod V'Shoresh HaAvodah"]
+
 m_books = [
     "Tzipita L'Yeshuah",
     'Sichot Avodat Levi',
