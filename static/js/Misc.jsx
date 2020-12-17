@@ -36,8 +36,8 @@ class ProfilePic extends Component {
     };
     this.imgFile = React.createRef();
   }
-  setShowDefault() { console.log("load"); this.setState({showDefault: true});  }
-  setShowImage() {console.log("error"); this.setState({showDefault: false});  }
+  setShowDefault() { console.log("error"); this.setState({showDefault: true});  }
+  setShowImage() {console.log("load"); this.setState({showDefault: false});  }
   componentDidMount() {
     if (this.didImageLoad()) {
       this.setShowImage();
@@ -47,7 +47,7 @@ class ProfilePic extends Component {
   }
   didImageLoad(){
     // When using React Hydrate, the onLoad event of the profile image will return before
-    // react code runs, so we check after mount as well to look replace bad images, or to 
+    // react code runs, so we check after mount as well to look replace bad images, or to
     // swap in a gravatar image that we now know is valid.
     const img = this.imgFile.current;
     return (img && img.complete && img.naturalWidth !== 0);
@@ -2059,9 +2059,16 @@ class CookiesNotification extends Component {
 }
 
 const SheetTitle = (props) => (
-        <div className={`title ${props.empty ? 'empty': ''} ${props.focused ? 'focused': ''}`} role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
-            {props.children? props.children : props.title.stripHtmlKeepLineBreaks()}
-        </div>
+        <span className="title"
+             role="heading"
+             aria-level="1"
+             contentEditable={props.editable}
+             suppressContentEditableWarning={true}
+             onBlur={props.editable ? props.blurCallback : null}
+             style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}
+        >
+            {props.title ? props.title.stripHtml() : ""}
+        </span>
     )
 SheetTitle.propTypes = {
     title:          PropTypes.string,

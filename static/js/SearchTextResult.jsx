@@ -19,21 +19,27 @@ class SearchTextResult extends Component {
         });
     }
     getHighlights() {
-      const highlights = [];
-      const highlightReg = /<b>([^<]+)<\/b>/g;
-      if (this.props.data.highlight) {
+        // Gets list of highlights (text in <b> tags) in the current match
+        // Returns list of strings
+        let highlights = [];
+        let longestLength = 0;
+        const highlightReg = /((?:[\s,.?!:;]){0,}<b>[^<]+<\/b>[\s,.?!:;]{0,})+/g;  // capture consecutive <b> tags in one match
+        if (!this.props.data.highlight) { return []; }
         const vals = Object.values(this.props.data.highlight);
-        if (vals.length > 0) {
-          // vals should have only one entry. either 'naive_lemmatizer' or 'exact'
-          for (let h of vals[0]) {
+        if (vals.length === 0) { return []; }
+        // vals should have only one entry. either 'naive_lemmatizer' or 'exact'
+        for (let h of vals[0]) {
             let matches = null;
             while ((matches = highlightReg.exec(h)) !== null) {
-                highlights.push(matches[1]);
+                const matchText = matches[0].replace(/<\/?b>/g, '');
+                if (matchText.length > longestLength) { longestLength = matchText.length; }
+                highlights.push(matchText);
             }
-          }
         }
-      }
-      return highlights;
+        // in order to decrease spurious highlights (e.g. for a lone "The") we only take the longest match
+        // commenting out for now. Not sure we want this.
+        // highlights = highlights.filter(h => h.length === longestLength);
+        return highlights;
     }
     handleResultClick(event) {
         if(this.props.onResultClick) {

@@ -22,6 +22,7 @@ var DJANGO_DATA_VARS = {
   profile_pic_url:      "{{ profile_pic_url|default:'' }}",
   is_moderator:         {{ is_moderator|yesno:'true, false' }},
   is_editor:            {{ is_editor|yesno:'true, false' }},
+  is_history_enabled:   {% if request.user.is_authenticated %}{{reading_history|yesno:'true,false'}}{% else %}true{% endif %},
   interfaceLang:        "{{ request.interfaceLang }}",
   interruptingMessage:  {{ interrupting_message_json|default:'null' }},
   _siteSettings:        {{ SITE_SETTINGS|jsonify }},

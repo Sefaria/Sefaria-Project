@@ -266,7 +266,7 @@ const SheetsLandingPage = () => (
             enImg="/static/img/sheets-landing-page/organizesources.jpg"
             enImgAlt="Organize Sources"
             heTitle="סדרו את המקורות"
-            heText="דפי מקורות מאפשרים לכם לבחור ולצרף שלל מקורות מהספרייה שלנו. הקלידו את שם המקור ומספר הפרק כדי להוסיף אותו לדף המקורות שלכם. בשלב הבא תוכלו לערוך ולקצר את המקור, לבחור בתרגום אחר ולארגן את המקורות בסדר הרצוי לכם."
+            heText="תוכלו לבחור טקסטים מתוך שלל המקורות בספרייה שלנו ולצרף אותם לדף מקורות. הקלידו את שם המקור ואת מספר הפרק כדי להוסיף אותו לדף המקורות שלכם. בשלב הבא תוכלו לערוך ולקצר את המקור, לבחור בתרגום אחר ולארגן את המקורות בסדר הרצוי לכם."
             heImg="/static/img/sheets-landing-page/organizesources_HEB.jpg"
             heImgAlt="סדרו את המקורות"
             borderColor="#004E5F"
@@ -277,7 +277,7 @@ const SheetsLandingPage = () => (
             enImg="/static/img/sheets-landing-page/commentary_sheet.jpg"
             enImgAlt="Add Your Commentary"
             heTitle="הוסיפו הערות משלכם"
-            heText="היצירה שלכם יכולה להיות יותר מרשימת מקורות בלבד. תוכלו בקלות להוסיף הערות, פרשנות והסברים משלכם וכן טקסטים אחרים כדי ליצור משהו חדש. לחוויית לימוד משמעותית יותר תוכלו אפילו להוסיף תמונות וסרטונים."
+            heText="התוצר שלכם יכול להיות יותר מרשימת מקורות בלבד. תוכלו בקלות להוסיף הערות, פרשנות והסברים משלכם וכן טקסטים אחרים כדי ליצור משהו חדש. לחוויית לימוד משמעותית יותר תוכלו אפילו להוסיף תמונות וסרטונים."
             heImg="/static/img/sheets-landing-page/addcommentary_HEB.jpg"
             heImgAlt="הוסיפו הערות משלכם"
             borderColor="#CCB479"
@@ -288,7 +288,7 @@ const SheetsLandingPage = () => (
             enImg="/static/img/sheets-landing-page/shareyoursheets.jpg"
             enImgAlt="Share Your Work"
             heTitle="שתפו"
-            heText="תוכלו לשתף את דף המקורות באופן פרטי בעזרת לינק, להדפיס אותו עבור הכיתה שלכם או להעלות אותו באתר שלנו לתועלת ציבור הגולשים. אתם מוזמנים להוסיף את דף המקורות לספרייה שלנו – תוכלו למצוא בה למעלה מ-200 אלף דפי מקורות שנוצרו על ידי גולשי האתר."
+            heText="תוכלו לשתף את דף המקורות באופן פרטי בעזרת לינק, להדפיס אותו עבור הכיתה שלכם או להעלות אותו לאתר שלנו לתועלת ציבור הגולשים. אתם מוזמנים להוסיף את דף המקורות לספרייה שלנו – תוכלו למצוא בה למעלה מ־200,000 דפי מקורות שנוצרו על ידי גולשי האתר."
             heImg="/static/img/sheets-landing-page/shareyoursheets_HEB.jpg"
             heImgAlt="שתפו"
             borderColor="#802F3E"
@@ -347,7 +347,7 @@ const SheetsLandingPage = () => (
                 <Sheet
                     title="כיצד למד הבעל שם טוב את התורה?"
                     link="/sheets/112651?lang=he&utm_source=Sefaria&utm_medium=LandingPage&utm_campaign=Sheets_HEB"
-                    author="יכין אפשטיין (זושא מגלים את הסיפור החסידי)"
+                    author="יכין אפשטיין (זושא: מגלים את הסיפור החסידי)"
                     image="/static/img/sheets-landing-page/yachin.png"
                 />
                 <Sheet
