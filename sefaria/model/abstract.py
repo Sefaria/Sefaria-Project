@@ -358,9 +358,12 @@ class AbstractMongoSet(collections.abc.Iterable):
         for rec in self:
             rec.load_from_dict(attrs).save()
 
-    def delete(self, force=False):
-        for rec in self:
-            rec.delete(force=force)
+    def delete(self, force=False, bulk_delete=False):
+        if bulk_delete: # Bulk deletion is more performant but will not trigger dependencies.
+            getattr(db, self.recordClass.collection).delete_many(self.query)
+        else:
+            for rec in self:
+                rec.delete(force=force)
 
     def save(self):
         for rec in self:
