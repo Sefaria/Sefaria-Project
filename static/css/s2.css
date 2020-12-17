@@ -3869,7 +3869,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .basetext .segment:active,
 .basetext .segment:focus {
-  background-color: #f4f4f4;
+  background-color: #f5faff;
 }
 .sheetContent .segment:active .segmentNumber,
 .sheetContent .segment:focus .segmentNumber,
@@ -3890,7 +3890,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sheetContent .segment.highlight .he,
 .readerPanel.bilingual.heLeft .sheetContent .segment.highlight,
 .readerPanel.bilingual.heRight .sheetContent .segment.highlight {
-  background-color: #E9E9E7;
+  background-color: #F0F7FF;
 }
 .sheetContent .segment.highlight .linkCount .en,
 .sheetContent .segment.highlight .linkCount .he,

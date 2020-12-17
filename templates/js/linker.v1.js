@@ -19,6 +19,8 @@
     function unwrap(el) { var parent = el.parentNode; while (el.firstChild) parent.insertBefore(el.firstChild, el); parent.removeChild(el);}
     /* filter array to distinct values */
     function distinct(value, index, self) {return self.indexOf(value) === index;}
+    /* see https://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript/3561711#3561711 */
+    function escapeRegex(string) {return string.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');}
 
 
     var base_url = '{% if DEBUG %}http://localhost:8000/{% else %}https://www.sefaria.org/{% endif %}';
@@ -240,11 +242,14 @@
                     console.log(data["error"]);
                     delete data.error;
                 }
+                ns.regexes = data;
                 var books = Object.getOwnPropertyNames(data).sort(function(a, b) {
                   return b.length - a.length; // ASC -> a - b; DESC -> b - a
                 });
                 for (var k = 0; k < books.length; k++) {
                     var book = books[k];
+                    const portionHasMatched = {};
+
                     // Run each regex over the document, and wrap results
                     var r = XRegExp(data[book],"xgm");
                     for (var i = 0; i < elems.length; i++) {
@@ -252,41 +257,57 @@
                             preset: 'prose',
                             find: r,
                             replace: function(portion, match) {
-                                var matched_ref = match[0]
+                                // each match for a given book is uniquely identified by start and end index
+                                // this this id to see if this is the first portion to match the `match`
+                                const matchKey = match.startIndex + "|" + match.endIndex;
+                                let isFirstPortionInMatch = !portionHasMatched[matchKey];
+                                portionHasMatched[matchKey] = true;
+                                
+                                var matched_ref = match[1]
                                     .replace(/[\r\n\t ]+/g, " ") // Filter out multiple spaces
                                     .replace(/[(){}[\]]+/g, ""); // Filter out internal parenthesis todo: Don't break on parens in books names
-
-                            // Walk up node tree to see if this context should be excluded from linking or tracking
-                            let p = portion.node;
-                            let excludeFromLinking = false;
-                            let excludeFromTracking = false;
-                            while (p) {
-                                if (p.nodeName === 'A' || (ns.excludeFromLinking && p.matches && p.matches(ns.excludeFromLinking))) {
-                                    excludeFromLinking = true;
+                                
+                                // Walk up node tree to see if this context should be excluded from linking or tracking
+                                let p = portion.node;
+                                let excludeFromLinking = false;
+                                let excludeFromTracking = false;
+                                while (p) {
+                                    if (p.nodeName === 'A' || (ns.excludeFromLinking && p.matches && p.matches(ns.excludeFromLinking))) {
+                                        excludeFromLinking = true;
+                                    }
+                                    if (ns.excludeFromTracking && p.matches && p.matches(ns.excludeFromTracking)) {
+                                        excludeFromTracking = true;
+                                    }
+                                    if (excludeFromTracking && excludeFromLinking) {
+                                        return portion.text;
+                                    }
+                                    p = p.parentNode;
                                 }
-                                if (ns.excludeFromTracking && p.matches && p.matches(ns.excludeFromTracking)) {
-                                    excludeFromTracking = true;
-                                }
-                                if (excludeFromTracking && excludeFromLinking) {
-                                    return portion.text;
-                                }
-                                p = p.parentNode;
-                            }
 
-                            if (!excludeFromTracking) { ns.trackedMatches.push(matched_ref); }
+                                if (!excludeFromTracking) { ns.trackedMatches.push(matched_ref); }
 
-                            if (excludeFromLinking) { return portion.text; }
+                                if (excludeFromLinking) { return portion.text; }
 
                                 ns.matches.push(matched_ref);
 
-                                var node = document.createElement("a");
-                                node.target = "_blank";
-                                node.className = "sefaria-ref";
-                                node.href = base_url + matched_ref;
-                                node.setAttribute('data-ref', matched_ref);
-                                node.setAttribute('aria-controls', 'sefaria-popup');
-                                node.textContent = portion.text;
+                                const atag = document.createElement("a");
+                                atag.target = "_blank";
+                                atag.className = "sefaria-ref";
+                                atag.href = base_url + matched_ref;
+                                atag.setAttribute('data-ref', matched_ref);
+                                atag.setAttribute('aria-controls', 'sefaria-popup');
+                                atag.textContent = portion.text;
+                                const preText = match[0].substr(0, match[0].indexOf(match[1]));
+                                if (!isFirstPortionInMatch || preText.length === 0) { return atag; }
 
+                                // remove prefix from portionText
+                                atag.textContent = portion.text.replace(new RegExp("^" + escapeRegex(preText)), '');
+
+                                // due to the fact that safari doesn't support lookbehinds, we need to include prefix group in match
+                                // however, we don't want the prefix group to end up in the final a-tag
+                                const node = document.createElement("span");
+                                node.textContent = preText;
+                                node.appendChild(atag);``
                                 return node;
                             }
                         });
