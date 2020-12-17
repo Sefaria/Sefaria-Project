@@ -368,11 +368,17 @@ def base_props(request):
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
-            "notificationCount": profile.unread_notification_count(),
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings["reading_history"],
-            "interruptingMessage": InterruptingMessage(attrs=interrupting_message_dict, request=request).json()
+            "following": profile.followees.uids,
+
+            "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
+            "notificationCount": profile.unread_notification_count(),
+            "notificationsHtml": profile.recent_notifications().to_HTML(),
+            "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
+            "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True),
+            "interruptingMessage": InterruptingMessage(attrs=interrupting_message_dict, request=request).json(),
         }
     else:
         user_data = {
@@ -381,11 +387,17 @@ def base_props(request):
             "slug": "",
             "is_moderator": False,
             "is_editor": False,
-            "notificationCount": 0,
             "full_name": "",
             "profile_pic_url": "",
             "is_history_enabled": True,
-            "interruptingMessage": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json()
+            "following": [],
+
+            "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
+            "notificationCount": 0,
+            "notificationsHtml": "",
+            "saved": [],
+            "last_place": [],
+            "interruptingMessage": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json(),
         }
     user_data.update({
         "last_cached": library.get_last_cached_time(),
@@ -903,9 +915,9 @@ def _get_user_calendar_params(request):
 
 def texts_list(request):
     props = base_props(request)
-    props.update({
+    """props.update({
         "calendars": get_todays_calendar_items(**_get_user_calendar_params(request))
-    })
+    })"""
     title = _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
     desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
     return menu_page(request, props, "navigation", title, desc)
