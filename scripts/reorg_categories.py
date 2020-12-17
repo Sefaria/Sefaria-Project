@@ -100,7 +100,8 @@ def change_term_hebrew(en_primary, new_he):
 for k, he in [
     ("Aggadic Midrash", 'מדרשי אגדה'),
     ("Halachic Midrash", 'מדרשי הלכה'),
-    ("Reference", "מילונים וספרי יעץ")
+    ("Reference", "מילונים וספרי יעץ"),
+    ("Dictionary", "מילונים")
 ]:
     change_term_hebrew(k, he)
 
@@ -158,7 +159,7 @@ moveCategoryInto(c, p)
 
 #        "Tanaitic",         "Commentary",         "Nahalat Yaakov",         "Minor Tractates"
 #   =>   "Talmud",      "Bavli",    "Commentary on Minor Tractates",  "Nahalat Yaakov"
-c = create_category(["Talmud", "Bavli", "Commentary on Minor Tractates"], "Commentary on Minor Tractates", "מפרשים על מסכתות קטנות")
+c = create_category(["Talmud", "Bavli", "Commentary on Minor Tractates"], "Commentary on Minor Tractates", "מפרשים על המסכתות הקטנות")
 
 library.rebuild(include_toc=True)
 tc = Category().load({'path': ["Tanaitic", "Commentary"]}).get_toc_object()
@@ -367,7 +368,7 @@ books_kook = ["Orot",
               "Shmonah Kvatzim",
               "Midbar Shur"]
 
-cat_modern = create_category(["Jewish Thought", "Modern"], "Modern", "ספרות מודרני")
+cat_modern = create_category(["Jewish Thought", "Modern"], "Modern", "ספרות מודרנית")
 books_modern = ["Nineteen Letters",
                 "Sefer Yesodei HaTorah",
                 "Gan Naul",
@@ -820,11 +821,11 @@ chida = [
     'Penei David'
 ]
 
-ri_cat = create_category(["Tanakh", "Rishonim on Tanakh"], "Rishonim on Tanakh", "ראשונים על תנ״ך")
-ah_cat = create_category(["Tanakh", "Acharonim on Tanakh"], "Acharonim on Tanakh", "אחרונים על תנ״ך")
+ri_cat = create_category(["Tanakh", "Rishonim on Tanakh"], "Rishonim on Tanakh", "ראשונים על התנ״ך")
+ah_cat = create_category(["Tanakh", "Acharonim on Tanakh"], "Acharonim on Tanakh", "אחרונים על התנ״ך")
 mo_cat = create_category(["Tanakh", "Modern Commentary on Tanakh"], "Modern Commentary on Tanakh",
-                           "פירושים מודרניים על תנ״ך")
-chida_cat = create_category(["Tanakh", "Acharonim on Tanakh", "Chida on Tanakh"], "Chida on Tanakh", 'החיד״א על תנ״ך')
+                           "פירושים מודרניים על התנ״ך")
+chida_cat = create_category(["Tanakh", "Acharonim on Tanakh", "Chida on Tanakh"], "Chida on Tanakh", 'החיד״א על התנ״ך')
 
 # Currently Tanakh, Commentary, <Index>
 # or        Tanakh, Commentary, <subcat>, <Index>
@@ -893,10 +894,10 @@ co = [
     "Footnotes and Annotations on Derech Chaim",
 ]
 
-ri_cat = create_category(["Mishnah", "Rishonim on Mishnah"], "Rishonim on Mishnah", "ראשונים על משנה")
-ah_cat = create_category(["Mishnah", "Acharonim on Mishnah"], "Acharonim on Mishnah", "אחרונים על משנה")
+ri_cat = create_category(["Mishnah", "Rishonim on Mishnah"], "Rishonim on Mishnah", "ראשונים על המשנה")
+ah_cat = create_category(["Mishnah", "Acharonim on Mishnah"], "Acharonim on Mishnah", "אחרונים על המשנה")
 mo_cat = create_category(["Mishnah", "Modern Commentary on Mishnah"], "Modern Commentary on Mishnah",
-                           "פירושים מודרניים על משנה")
+                           "פירושים מודרניים על המשנה")
 
 groups = [
     (ri, ri_cat),
@@ -975,10 +976,10 @@ co = ['Beur Reuven on Bava Kamma',
       "Abraham Cohen Footnotes to the English Translation of Masechet Berakhot"]
 
 
-ri_cat = create_category(["Talmud", "Bavli", "Rishonim on Talmud"], "Rishonim on Talmud", "ראשונים על תלמוד")
-ah_cat = create_category(["Talmud", "Bavli", "Acharonim on Talmud"], "Acharonim on Talmud", "אחרונים על תלמוד")
+ri_cat = create_category(["Talmud", "Bavli", "Rishonim on Talmud"], "Rishonim on Talmud", "ראשונים על התלמוד")
+ah_cat = create_category(["Talmud", "Bavli", "Acharonim on Talmud"], "Acharonim on Talmud", "אחרונים על התלמוד")
 mo_cat = create_category(["Talmud", "Bavli", "Modern Commentary on Talmud"], "Modern Commentary on Talmud",
-                           "פירושים מודרניים על תלמוד")
+                           "פירושים מודרניים על התלמוד")
 
 groups = [
     (ri, ri_cat),
