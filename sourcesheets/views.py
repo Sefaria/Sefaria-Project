@@ -404,7 +404,7 @@ def groups_api(request, group=None):
         if not request.user.is_authenticated and request.method == "POST":
             key = request.POST.get("apikey")
             if not key:
-                return jsonResponse({"error": "You must be logged in or use an API key to add a new group."})
+                return jsonResponse({"error": _("You must be logged in to create a new collection.")})
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
@@ -437,7 +437,7 @@ def groups_get_api(request, group=None):
         return jsonResponse(GroupSet.get_group_listing(request.user.id))
     group_obj = Group().load({"name": group})
     if not group_obj:
-        return jsonResponse({"error": "No group named '%s'" % group})
+        return jsonResponse({"error": "No collection named '%s'" % group})
     is_member = request.user.is_authenticated and group_obj.is_member(request.user.id)
     group_content = group_obj.contents(with_content=True, authenticated=is_member)
     del group_content["lastModified"]
@@ -456,10 +456,10 @@ def groups_post_api(request, user_id, group_name=None):
         if existing:
             # Don't overwrite existing group when posting to create a new group
             if "new" in group:
-                return jsonResponse({"error": "A group with this name already exists."})
+                return jsonResponse({"error": "A collection with this name already exists."})
             # check poster is a group admin
             if user_id not in existing.admins:
-                return jsonResponse({"error": "You do not have permission to edit this group."})
+                return jsonResponse({"error": "You do not have permission to edit this collection."})
 
             existing.load_from_dict(group)
             existing.save()
@@ -472,16 +472,16 @@ def groups_post_api(request, user_id, group_name=None):
 
     elif request.method == "DELETE":
         if not group_name:
-            return jsonResponse({"error": "Please specify a group name in the URL."})
+            return jsonResponse({"error": "Please specify a collection in the URL."})
         existing = Group().load({"name": group_name})
         if existing:
             if user_id not in existing.admins:
-                return jsonResponse({"error": "You do not have permission to delete this group."})
+                return jsonResponse({"error": "You do not have permission to delete this collection."})
             else:
                 GroupSet({"name": group_name}).delete()
                 return jsonResponse({"status": "ok"})
         else:
-            return jsonResponse({"error": "Group named %s does not exist" % group_name})
+            return jsonResponse({"error": "Collection named %s does not exist" % group_name})
 
     else:
         return jsonResponse({"error": "Unsupported HTTP method."})
@@ -546,18 +546,18 @@ def groups_role_api(request, group_name, uid, role):
         return jsonResponse({"error": "Unsupported HTTP method."})
     group = Group().load({"name": group_name})
     if not group:
-        return jsonResponse({"error": "No group named %s." % group_name})
+        return jsonResponse({"error": "No collection named %s." % group_name})
     uid = int(uid)
     if request.user.id not in group.admins:
         if not (uid == request.user.id and role == "remove"): # non admins can remove themselves
-            return jsonResponse({"error": "You must be a group admin to change member roles."})
+            return jsonResponse({"error": "You must be a collection owner to change contributor roles."})
     user = UserProfile(id=uid)
     if not user.exists():
         return jsonResponse({"error": "No user with the specified ID exists."})
     if role not in ("member", "publisher", "admin", "remove"):
-        return jsonResponse({"error": "Unknown group member role."})
+        return jsonResponse({"error": "Unknown collection contributor role."})
     if uid == request.user.id and group.admins == [request.user.id] and role != "admin":
-        return jsonResponse({"error": "This action would leave the group without any admins. Please appoint another admin first."})
+        return jsonResponse({"error": _("Leaving this collection would leave it without any owners. Please appoint another owner before leaving, or delete the collection.")})
     if role == "remove":
         group.remove_member(uid)
     else:
@@ -576,9 +576,9 @@ def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
         return jsonResponse({"error": "Unsupported HTTP method."})
     group = Group().load({"name": group_name})
     if not group:
-        return jsonResponse({"error": "No group named %s." % group_name})
+        return jsonResponse({"error": "No collection named %s." % group_name})
     if request.user.id not in group.admins:
-        return jsonResponse({"error": "You must be a group admin to invite new members."})
+        return jsonResponse({"error": "You must be a collection owner to invite new members."})
 
     user = UserProfile(email=uid_or_email)
     if not user.exists():
@@ -612,9 +612,9 @@ def groups_pin_sheet_api(request, group_name, sheet_id):
         return jsonResponse({"error": "Unsupported HTTP method."})
     group = Group().load({"name": group_name})
     if not group:
-        return jsonResponse({"error": "No group named %s." % group_name})
+        return jsonResponse({"error": "No collection named %s." % group_name})
     if request.user.id not in group.admins:
-        return jsonResponse({"error": "You must be a group admin to invite new members."})
+        return jsonResponse({"error": "You must be a collection owner to invite new members."})
 
     sheet_id = int(sheet_id)
     group.pin_sheet(sheet_id)

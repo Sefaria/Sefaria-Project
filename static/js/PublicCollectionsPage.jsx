@@ -116,8 +116,8 @@ function GroupListing({data, showMembership, small}) {
 
                   {data.memberCount > 1 ?
                   <span className="groupListingDetail groupListingMemberCount">
-                    <span className="int-en">{data.memberCount} Members</span>
-                    <span className="int-he">{data.memberCount} חברים</span>
+                    <span className="int-en">{data.memberCount} Contributors</span>
+                    <span className="int-he">{data.memberCount} TODO Hebrew</span>
                   </span> :null }
                 </div>
               </div>

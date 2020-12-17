@@ -2349,7 +2349,7 @@ _media: {},
 
       // collections
       "Create a New Collection": "TODO Hebrew",
-      "You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.": "TODO Hebrew",
+      "You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.": "TODO Hebrew",
       "You can add sheets to this collection on your profile.": "TODO Hebrew",
       "Open Profile": "TODO Hebrew",
       "There are no sheets in this collection yet.": "TODO Hebrew",

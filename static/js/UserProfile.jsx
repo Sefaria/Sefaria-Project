@@ -95,7 +95,7 @@ class UserProfile extends Component {
         </div>
         { Sefaria._uid === this.props.profile.id ?
           <div className="emptyListText">
-            <IntText>You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.</IntText>
+            <IntText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</IntText>
             <a href="/collections/new" className="resourcesLink">
               <img src="/static/img/collection.svg" alt="Collection icon" />
               <IntText>Create a New Collection</IntText>

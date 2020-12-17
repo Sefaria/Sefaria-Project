@@ -429,8 +429,9 @@ class GroupInvitationBox extends Component {
     }.bind(this), 3000);
   }
   inviteByEmail(email) {
+    // TODO Hebrew all below
     if (!this.validateEmail(email)) {
-      this.flashMessage("That isn't a valid email address.")
+      this.flashMessage(Sefaria._("Please enter a valid email address."));
       return;
     }
     this.setState({inviting: true, message: "Inviting..."})
@@ -456,7 +457,7 @@ class GroupInvitationBox extends Component {
   }
   render() {
     return (<div className="groupInvitationBox">
-                <input id="groupInvitationInput" placeholder="Email Address" />
+                <input id="groupInvitationInput" placeholder={Sefaria._("Email Address")} />
                 <div className="button" onClick={this.onInviteClick}>
                   <span className="int-en">Invite</span>
                   <span className="int-he">הזמן</span>
@@ -627,13 +628,13 @@ class GroupMemberListingActions extends Component {
               : null }
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "member")}>
-                <span className={classNames({role: 1, current: this.props.member.role == "Member"})}>Member</span>
+                <span className={classNames({role: 1, current: this.props.member.role == "Member"})}>Contributor</span>
                 - can add & remove sheets
               </div>
               : null}
             {this.props.isAdmin || this.props.isSelf ?
               <div className="action" onClick={this.removeMember}>
-                <span className="role">{this.props.isSelf ? "Leave Group" : "Remove"}</span>
+                <span className="role">{this.props.isSelf ? "Leave Collection" : "Remove"}</span>
               </div>
             : null }
             {this.props.isInvitation  && !this.state.invitationResent ?

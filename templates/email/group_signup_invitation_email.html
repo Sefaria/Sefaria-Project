@@ -1,18 +1,29 @@
 {% load sefaria_tags %}
+{% load i18n %}
 
 <table cellpadding="0px" cellspacing="0" border="0" align="center" style="width:100%;font-size:16px">
 	<tr>
 	{% autoescape off %}
-		{{ inviter }} invited you to join the group {{ groupName }} on Sefaria.<br><br>
+		{% blocktrans %}
+		{{ inviter }} invited you to contribute to the collection "{{ groupName }}" on Sefaria.
+		{% endblocktrans %}
 
-		To accept this invitation, <a href="{{ registerUrl|absolute_url }}">create a free Sefaria account</a>.<br><br>
+		<br><br>
+
+		{% blocktrans %}
+		To accept this invitation, <a href="{{ registerUrl|absolute_url }}">create a free Sefaria account</a>.
+		{% endblocktrans %}
+		
+		<br><br>
 
 	{% endautoescape %}
 	</tr>
 	<tr style="font-size:13px">
 		<div style="padding:20px 0;border-top:1px solid #bbb">
-		Sefaria is a free living library of Jewish texts. Groups on Sefaria let you easily share and collaborate on source sheets you create on Sefaria.<br>.
+		{% blocktrans %}
+		Sefaria is a free living library of Jewish texts. Collections on Sefaria help you easily build and share collections of source sheets you create or find on Sefaria.<br>.
 		Feel free to send any questions over <a href="mailto:hello@sefaria.org">email</a>.
+		{% endblocktrans %}
 		</div>
 	<tr>
 </table> 

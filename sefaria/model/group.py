@@ -78,13 +78,13 @@ class Group(abst.AbstractMongoRecord):
         assert super(Group, self)._validate()
 
         if len(self.name) == 0:
-            raise InputError(_("Please set a name for your group."))
+            raise InputError(_("Please set a name for your collection."))
 
         if getattr(self, "listed", False):
             if not getattr(self, "imageUrl", False):
-                raise InputError(_("Public Groups are required to include a group image (a square image will work best)."))
+                raise InputError(_("Public Collections are required to include a collection image (a square image will work best)."))
             if self.public_sheet_count() < 3:
-                raise InputError(_("Public Groups are required to have at least 3 public sheets."))
+                raise InputError(_("Public Collections are required to have at least 3 public sheets."))
 
         return True
 
@@ -213,7 +213,7 @@ class Group(abst.AbstractMongoRecord):
                                             "groupName": self.name,
                                             "registerUrl": "/register?next=%s" % self.url
                                         })
-        subject       = "%s invited you to join a group on Sefaria" % (inviter.full_name)
+        subject       = _("%(name)s invited you to a collection on Sefaria") % {'name': inviter.full_name}
         from_email    = "Sefaria <hello@sefaria.org>"
         to            = email
 
