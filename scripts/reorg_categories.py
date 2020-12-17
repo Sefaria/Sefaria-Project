@@ -875,7 +875,7 @@ ah = [
     "Motar Kinnim",
     "Nachalat Avot on Avot",
     "Yein Levanon on Avot",
-    "Zeroa Yamin"
+    "Zeroa Yamin",
     "Ikar Tosafot Yom Tov",
     "Tosafot Yom Tov",
     "Tosafot Rabbi Akiva Eiger",
@@ -1046,6 +1046,7 @@ for p in [
     ["Tanakh", "Commentary", "Riva"],
     ["Chasidut", "Commentary"],
     ["Mishnah", "Commentary", "Motar Kinnim"],
+    ["Mishnah", "Commentary", "Seder Nezikin"],
     ["Talmud", "Bavli", "Commentary", "Ri HaZaken"]
 ]:
     c = Category().load({"path": p})
