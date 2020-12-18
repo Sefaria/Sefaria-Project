@@ -2355,6 +2355,24 @@ _media: {},
       "There are no sheets in this collection yet.": "TODO Hebrew",
       "Are you sure you want to delete this collection? This cannot be undone.": "TODO Hebrew",
       "hasn't shared any collections yet.": "TODO Hebrew",
+      "You have unsaved changes to your collection.": "TODO Hebrew",
+      "Images must be smaller than ": "TODO Hebrew",
+      "Unfortunately an error occurred uploading your file.": "TODO Hebrew",
+      "Unfortunately an error occurred saving your collection.": "TODO Hebrew",
+      "Unfortunately an error occurred deleting your collection.": "TODO Hebrew",
+      "Are you sure you want to change your collection role? You won't be able to undo this action unless another owner restores your permissions.": "TODO Hebrew",
+      "Are you sure you want to leave this collection?": "TODO Hebrew",
+      "Are you sure you want to remove this person from this collection?": "TODO Hebrew",
+      "Are you sure you want to remove this invitation?": "TODO Hebrew",
+      "Inviting...": "TODO Hebrew",
+      "Invited.": "TODO Hebrew",
+      "There was an error pinning your sheet.": "TODO Hebrew",
+      "There was an error sending your invitation.": "TODO Hebrew",
+      "Owner": "TODO Hebrew",
+      "Contributor": "TODO Hebrew",
+      "can invite & edit settings": "TODO Hebrew",
+      "can add & remove sheets": "TODO Hebrew",
+      "Leave Collection": "TODO Hebrew",
 
       //languages
       "English": "אנגלית",
@@ -2622,7 +2640,7 @@ Sefaria.unpackDataFromProps = function(props) {
     Sefaria.sheets._topSheets = props.topSheets;
   }
   if (props.groupData) {
-    Sefaria._groups[props.initialGroup] = props.groupData;
+    Sefaria._groups[props.initialCollectionSlug] = props.groupData;
   }
   if (props.topicData) {
     Sefaria._topics[props.initialTopic] = Sefaria.processTopicsData(props.topicData);

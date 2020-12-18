@@ -53,6 +53,7 @@ def ensure_indices(active_db=None):
         ('following', ["followee"],{}),
         ('groups', ["name"], {}),
         ('groups', ["sheets"], {}),
+        ('groups', ["slugs"], {}),
         ('groups', ["members"], {}),
         ('groups', ["admins"], {}),
         ('history', ["revision"],{}),

@@ -31,8 +31,8 @@ urlpatterns = [
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
     url(r'^collections/?$', reader_views.public_groups),
     url(r'^collections/new$', reader_views.edit_group_page),
-    url(r'^collections/(?P<group>[^.]+)/settings$', reader_views.edit_group_page),
-    url(r'^collections/(?P<group>[^.]+)$', reader_views.group_page),
+    url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_group_page),
+    url(r'^collections/(?P<slug>[^.]+)$', reader_views.group_page),
     url(r'^notifications/?$', reader_views.notifications),
     url(r'^my/notes/?$', reader_views.my_notes),
     url(r'^updates/?$', reader_views.updates),
@@ -208,12 +208,12 @@ urlpatterns += [
 urlpatterns += [
     url(r'^api/groups/user-groups/(?P<user_id>\d+)$', sheets_views.user_groups_api),
     url(r'^api/collections/for-sheet/(?P<sheet_id>\d+)$', sheets_views.collections_for_sheet_api),
-    url(r'^api/groups(/(?P<group>[^/]+))?$', sheets_views.groups_api),
-    url(r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', sheets_views.groups_role_api),
-    url(r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', sheets_views.groups_invite_api),
-    url(r'^api/collections/(?P<collection_name>[^/]+)/(?P<action>(add|remove))/(?P<sheet_id>\d+)', sheets_views.collections_inclusion_api),
-    url(r'^api/collections/(?P<collection_name>[^/]+)/(?P<action>(add|remove))/(?P<sheet_id>\d+)', sheets_views.collections_inclusion_api),
-    url(r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', sheets_views.groups_pin_sheet_api),
+    url(r'^api/groups(/(?P<slug>[^/]+))?$', sheets_views.groups_api),
+    url(r'^api/groups/(?P<slug>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', sheets_views.groups_role_api),
+    url(r'^api/groups/(?P<slug>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', sheets_views.groups_invite_api),
+    url(r'^api/collections/(?P<slug>[^/]+)/(?P<action>(add|remove))/(?P<sheet_id>\d+)', sheets_views.collections_inclusion_api),
+    url(r'^api/collections/(?P<slug>[^/]+)/(?P<action>(add|remove))/(?P<sheet_id>\d+)', sheets_views.collections_inclusion_api),
+    url(r'^api/groups/(?P<slug>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', sheets_views.groups_pin_sheet_api),
 ]
 
 # Search API

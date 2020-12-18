@@ -89,8 +89,9 @@ class ReaderApp extends Component {
           navigationTopicTitle: props.initialNavigationTopicTitle,
           topicTitle: props.initialTopicTitle,
           profile: props.initialProfile,
-          navigationSheetTag: props.initialSheetsTag,
-          sheetsGroup: props.initialGroup,
+          collectionName: props.initialCollectionName,
+          collectionSlug: props.initialCollectionSlug,
+          collectionTag: props.initialCollectionTag,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
@@ -134,9 +135,9 @@ class ReaderApp extends Component {
           navigationTopicTitle: props.initialNavigationTopicTitle,
           topicTitle: props.initialTopicTitle,
           profile: props.initialProfile,
-          navigationSheetTag: props.initialSheetsTag,
-          sheetsGroup: props.initialGroup,
-          navigationGroupTag: props.initialGroupTag,
+          collectionName: props.initialCollectionName,
+          collectionSlug: props.initialCollectionSlug,
+          collectionTag: props.initialCollectionTag,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
@@ -174,9 +175,9 @@ class ReaderApp extends Component {
         navigationTopicTitle: props.initialNavigationTopicTitle,
         topicTitle: props.initialTopicTitle,
         profile: props.initialProfile,
-        navigationSheetTag: props.initialSheetsTag,
-        sheetsGroup: props.initialGroup,
-        navigationGroupTag: props.initialGroupTag,
+        collectionName: props.initialCollectionName,
+        collectionSlug: props.initialCollectionSlug,
+        collectionTag: props.initialCollectionTag,
         settings: Sefaria.util.clone(defaultPanelSettings)
       };
       header = this.makePanelState(headerState);
@@ -434,13 +435,12 @@ class ReaderApp extends Component {
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.currentlyVisibleRef === prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMode) ||
-          (prev.navigationSheetTag !== next.navigationSheetTag) ||
-          (prev.navigationGroupTag !== next.navigationGroupTag) ||
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
           (prev.topicsTab != next.topicsTab) ||
+          (prev.collectionTag !== next.collectionTag) ||
           (prev.showMoreTexts !== next.showMoreTexts) ||
           (prev.showMoreTopics !== next.showMoreTopics) ||
           (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
@@ -550,20 +550,6 @@ class ReaderApp extends Component {
               state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode  = "search";
             break;
-          case "sheets":
-            if (states[i].sheetsGroup) {
-                hist.url   = "collections/" + state.sheetsGroup.replace(/\s/g,"-");
-                if (states[i].navigationGroupTag) {
-                  hist.url  += "?tag=" + state.navigationGroupTag.replace("#","%23");
-                }
-                hist.title = state.sheetsGroup + " | " + Sefaria._(siteName + " Collections");
-                hist.mode  = "sheets tag";
-            } else {
-              hist.url   = "sheets";
-              hist.title = Sefaria._(siteName + " Source Sheets");
-              hist.mode  = "sheets";
-            }
-            break;
           case "topics":
             if (states[i].navigationTopic) {
               const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
@@ -591,6 +577,14 @@ class ReaderApp extends Component {
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
+          case "collection":
+            hist.url   = "collections/" + state.collectionSlug;
+            if (states[i].collectionTag) {
+              hist.url  += "?tag=" + state.collectionTag.replace("#","%23");
+            }
+            hist.title = state.collectionName + " | " + Sefaria._(siteName + " Collections");
+            hist.mode  = "collection";
+            break;          
           case "publicGroups":
             hist.title = Sefaria._(siteName + " Collections");
             hist.url = "collections";
@@ -877,15 +871,15 @@ class ReaderApp extends Component {
       navigationTopicCategory: state.navigationTopicCategory || "",
       showMoreTexts:           state.showMoreTexts           || Sefaria.toc.length < 9,
       showMoreTopics:          state.showMoreTopics          || false,
-      navigationSheetTag:      state.navigationSheetTag      || null,
-      navigationGroupTag:      state.navigationGroupTag      || null,
       sheet:                   state.sheet                   || null,
       sheetNodes:              state.sheetNodes              || null,
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
       navigationTopicTitle:    state.navigationTopicTitle    || null,
       topicTitle:              state.topicTitle              || null,
-      sheetsGroup:             state.sheetsGroup             || null,
+      collectionName:          state.collectionName          || null,
+      collectionSlug:          state.collectionSlug          || null,
+      collectionTag:           state.collectionTag           || null,
       searchQuery:             state.searchQuery             || null,
       searchTab:               state.searchTab               || 'text',
       topicsTab:               state.topicsTab               || 'sources',
@@ -1108,7 +1102,7 @@ class ReaderApp extends Component {
       this.openProfile(path.slice(9));
 
     } else if (path.match(/\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
-      this.openGroup(path.slice(13).replace(/-/g, " "));
+      this.openCollection(path.slice(13));
 
     } else if (Sefaria.isRef(path.slice(1))) {
       this.openPanel(Sefaria.humanRef(path.slice(1)));
@@ -1694,8 +1688,9 @@ class ReaderApp extends Component {
       this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile });
     });
   }
-  openGroup(group) {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "sheets", navigationSheetTag: "sefaria-groups", sheetsGroup: group});
+  openCollection(slug) {
+    console.log("Opening ", slug)
+    this.setStateInHeaderOrSinglePanel({menuOpen: "collection",  collectionSlug: slug});
   }
   getHistoryObject(panel, hasSidebar) {
     // get rave to send to /api/profile/user_history
@@ -1948,7 +1943,6 @@ ReaderApp.propTypes = {
   initialSheetSearchFilters:   PropTypes.array,
   initialSheetSearchField:     PropTypes.string,
   initialSheetSearchSortType:  PropTypes.string,
-  initialSheetsTag:            PropTypes.string,
   initialTopic:                PropTypes.string,
   initialProfile:              PropTypes.object,
   initialNavigationCategories: PropTypes.array,
@@ -1967,7 +1961,6 @@ ReaderApp.defaultProps = {
   initialMenu:                 null,
   initialGroup:                null,
   initialQuery:                null,
-  initialSheetsTag:            null,
   initialTopic:                null,
   initialProfile:              null,
   initialNavigationCategories: [],

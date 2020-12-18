@@ -19,6 +19,7 @@ import SheetMetadata  from './SheetMetadata';
 import TopicPageAll  from './TopicPageAll';
 import {TopicPage}  from './TopicPage';
 import AccountPanel  from './AccountPanel';
+import GroupPage from "./GroupPage"
 import NotificationsPanel  from './NotificationsPanel';
 import MyNotesPanel  from './MyNotesPanel';
 import UserHistoryPanel  from './UserHistoryPanel';
@@ -46,74 +47,10 @@ import Component from 'react-class';
 class ReaderPanel extends Component {
   constructor(props) {
     super(props);
-    // When this component is managed by a parent, all it takes is initialState
-    if (props.initialState) {
-      var state = this.clonePanel(props.initialState);
-      state["initialAnalyticsTracked"] = false;
-      this.state = state;
-      return;
-    }
-
-    // When this component is independent and manages itself, it takes individual initial state props, with defaults listed here.
-    this.state = {
-      refs: props.initialRefs || [], // array of ref strings
-      bookRef: null,
-      mode: props.initialMode, // "Text", "TextAndConnections", "Connections", "Sheet", "SheetAndConnections"
-      connectionsMode: props.initialConnectionsMode,
-      filter: props.initialFilter || [],
-      versionFilter: props.initialVersionFilter || [],
-      currVersions: props.initialCurrVersions || {en:null, he: null},
-      highlightedRefs: props.initialHighlightedRefs || [],
-      highlightedNodes: props.highlightedNodes || [],
-      recentFilters: [],
-      recentVersionFilters: [],
-      settings: props.initialState.settings || {
-        language:      Sefaria._siteSettings.TORAH_SPECIFIC ? "binlinual" : "english",
-        layoutDefault: "segmented",
-        layoutTalmud:  "continuous",
-        layoutTanakh:  "segmented",
-        aliyotTorah:   "aliyotOff",
-        vowels:        "all",
-        biLayout:      "stacked",
-        color:         "light",
-        fontSize:      62.5
-      },
-      menuOpen:             props.initialMenu || null, // "navigation", "book toc", "text toc", "display", "search", "sheets", "home", "compare", "homefeed"
-      navigationCategories: props.initialNavigationCategories || [],
-      navigationTopicCategory:     props.initialNavigationTopicCategory || "",
-      navigationSheetTag:   props.initialSheetsTag || null,
-      navigationTopic:      props.initialTopic || null,
-      navigationTopicTitle: props.initialNavigationTopicTitle || null,
-      topicTitle:           props.initialTopicTitle || null,
-      sheetsGroup:          props.initialGroup || null,
-      sheet:                props.sheet || null,
-      sheetID:              null,
-      editSheet:            false,
-      searchQuery:          props.initialQuery || null,
-      searchTab:            props.initialSearchTab || "text",
-      topicsTab:            props.initialTopicsTab || "sources",
-      textSearchState: new SearchState({
-        type:               'text',
-        field:              props.initialTextSearchField,
-        sortType:           props.initialTextSearchSortType,
-        appliedFilters:     props.initialTextAppliedSearchFilters,
-        appliedFilterAggTypes: props.initialTextSearchFilterAggTypes,
-      }),
-      sheetSearchState: new SearchState({
-        type:               'sheet',
-        sortType:           props.initialSheetSearchSortType,
-        appliedFilters:     props.initialSheetAppliedSearchFilters,
-        appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
-      }),
-      selectedWords:        "",
-      selectedNamedEntity:  null,
-      selectedNamedEntityText: null,
-      displaySettingsOpen:  false,
-      tagSort: "count",
-      mySheetSort: "date",
-      profile: props.initialProfile || null,
-      initialAnalyticsTracked: false
-    }
+    var state = this.clonePanel(props.initialState);
+    state["initialAnalyticsTracked"] = false;
+    this.state = state;
+    return;
   }
   componentDidMount() {
     window.addEventListener("resize", this.setWidth);
@@ -1049,6 +986,20 @@ class ReaderPanel extends Component {
                     navHome={this.openMenu.bind(null, "navigation")}
                     openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage} />);
+
+    } else if (this.state.menuOpen === "collection") {
+      menu = (<GroupPage
+                name={this.state.collectionName}
+                slug={this.state.collectionSlug}
+                tag={this.state.collectionTag}
+                setGroupTag={this.setGroupTag}
+                width={this.state.width}
+                searchInGroup={this.props.searchInGroup}
+                toggleLanguage={this.props.toggleLanguage}
+                toggleSignUpModal={this.props.toggleSignUpModal}
+                hideNavHeader={this.props.hideNavHeader}
+                multiPanel={this.props.multiPanel}
+                interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.state.menuOpen === "publicGroups") {
       menu = (<PublicGroupsPage

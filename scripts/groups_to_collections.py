@@ -25,7 +25,13 @@ for group in groups:
 
 
 db.groups.create_index("sheets")
+db.groups.create_index("slug")
+
+
+# Change displayed group in sheets to slug
 
 # Turn "publishers" into "members"
 
+
+### Phase 2
 # Update sheet "group" field to "highlightedCollection"

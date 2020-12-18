@@ -82,7 +82,7 @@ PublicGroupsPage.propTypes = {};
 function GroupListing({data, showMembership, small}) {
   const imageUrl = data.imageUrl && !small ? data.imageUrl : "/static/img/collection.svg";
   const imageClass = classNames({groupListingImage: 1, default: !data.imageUrl});
-  const groupUrl = "/collections/" + data.name.replace(/\s/g, "-");
+  const groupUrl = "/collections/" + data.slug;
   return (<div className="groupListing">
             <div className="left-content">
               {!small ?

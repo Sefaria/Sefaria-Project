@@ -72,6 +72,8 @@ logger.warn("Initializing library objects.")
 logger.warn("Initializing TOC Tree")
 library.get_toc_tree()
 
+
+""" DON'T Check in 
 logger.warn("Initializing Full Auto Completer")
 library.build_full_auto_completer()
 
@@ -86,7 +88,7 @@ library.build_cross_lexicon_auto_completer()
 
 logger.warn("Initializing Shared Cache")
 library.init_shared_cache()
-
+"""
 
 if server_coordinator:
     server_coordinator.connect()
@@ -749,33 +751,6 @@ def sheets(request):
         "html":           html,
     })
 
-
-@sanitize_get_params
-def get_group_page(request, group, authenticated):
-    props = base_props(request)
-    props.update({
-        "initialMenu":     "sheets",
-        "initialSheetsTag": "sefaria-groups",
-        "initialGroup":     group,
-        "initialGroupTag":  request.GET.get("tag", None)
-    })
-    group = GroupSet({"name": group})
-    if not len(group):
-        raise Http404
-    props["groupData"] = group[0].contents(with_content=True, authenticated=authenticated)
-    del props["groupData"]["lastModified"]
-
-    propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request, 'base.html', {
-        "propsJSON": propsJSON,
-        "html": html,
-        "title": group[0].name + " | " + _("Sefaria Collections"),
-        "desc": props["groupData"].get("description", ""),
-        "noindex": not getattr(group[0], "listed", False)
-    })
-
-
 def public_groups(request):
     props = base_props(request)
     props.update({
@@ -816,25 +791,43 @@ def topics_redirect(request):
     """
     return redirect("/topics", permanent=True)
 
-def group_page(request, group):
+
+@sanitize_get_params
+def group_page(request, slug):
     """
-    Main page for group `group`
+    Main page for collection named by `slug`
     """
-    group = group.replace("-", " ").replace("_", " ")
-    group = Group().load({"name": group})
+    group = Group().load({"slug": slug})
     if not group:
         raise Http404
-    if request.user.is_authenticated and group.is_member(request.user.id):
-        return get_group_page(request, group.name, True)
-    else:
-        return get_group_page(request, group.name, False)
+    authenticated = request.user.is_authenticated and group.is_member(request.user.id)
+
+    props = base_props(request)
+    props.update({
+        "initialMenu":     "collection",
+        "initialCollectionName": group.name,
+        "initialCollectionSlug": group.slug,
+        "initialCollectionTag":  request.GET.get("tag", None)
+    })
+
+    props["groupData"] = group.contents(with_content=True, authenticated=authenticated)
+    del props["groupData"]["lastModified"]
+
+    propsJSON = json.dumps(props)
+    html = render_react_component("ReaderApp", propsJSON)
+    return render(request, 'base.html', {
+        "propsJSON": propsJSON,
+        "html": html,
+        "title": group.name + " | " + _("Sefaria Collections"),
+        "desc": props["groupData"].get("description", ""),
+        "noindex": not getattr(group, "listed", False)
+    })
 
 
 @login_required
-def edit_group_page(request, group=None):
-    if group:
-        group = group.replace("-", " ").replace("_", " ")
-        group = Group().load({"name": group})
+def edit_group_page(request, slug=None):
+    if slug:
+        group = Group().load({"slug": slug})
         if not group:
             raise Http404
         groupData = group.contents()
@@ -858,7 +851,12 @@ def groups_redirect(request, group):
     """
     Redirect legacy groups URLs to collections.
     """
-    return redirect("/collections{}".format(group or ""))
+    if not group:
+        return redirect("/collections")
+    collection = Group().load({"name": group.sub("-", " ")})
+    if not collection:
+        return Http404
+    return redirect("/collections{}".format(collection.slug))
 
 
 @sanitize_get_params

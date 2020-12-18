@@ -1,4 +1,5 @@
 import {
+  CategoryColorLine,
   InterfaceTextWithFallback,
   LanguageToggleButton,
   LoadingMessage,
@@ -20,13 +21,13 @@ class GroupPage extends Component {
   constructor(props) {
     super(props);
 
-    const groupData = Sefaria.getGroupFromCache(this.props.group);
+    const groupData = Sefaria.getGroupFromCache(props.slug);
     const sheetSort = "date";
     if (groupData) { this.sortSheetData(groupData, sheetSort); }
 
     this.state = {
-      showTopics: groupData && !!groupData.showTagsByDefault && !this.props.tag,
-      sheetFilterTopic: this.props.tag,
+      showTopics: groupData && !!groupData.showTagsByDefault && !props.tag,
+      sheetFilterTopic: props.tag,
       sheetSort: sheetSort,
       tab: "sheets",
       groupData: groupData,
@@ -36,7 +37,7 @@ class GroupPage extends Component {
     this.loadData();
   }
   componentDidUpdate(prevProps, prevState) {
-    if (this.props.group !== prevProps.group) {
+    if (this.props.slug !== prevProps.slug) {
       this.setState({groupData: null});
       this.loadData();
     }
@@ -57,7 +58,7 @@ class GroupPage extends Component {
     }
   }
   loadData() {
-    Sefaria.getGroup(this.props.group)
+    Sefaria.getGroup(this.props.slug)
       .then(groupData => {
         this.sortSheetData(groupData, this.state.sheetSort);
         this.setState({
@@ -67,7 +68,7 @@ class GroupPage extends Component {
       });
   }
   onDataChange() {
-    this.setState({groupData: Sefaria._groups[this.props.group]});
+    this.setState({groupData: Sefaria._groups[this.props.slug]});
   }
   sortSheetData(group, sheetSort) {
     // Warning: This sorts the sheets within the cached group item in sefaria.js
@@ -86,7 +87,7 @@ class GroupPage extends Component {
     };
     group.sheets.sort(sorters[sheetSort]);
 
-    if (this.props.group == "גיליונות נחמה"){
+    if (this.props.name == "גיליונות נחמה"){
       let parshaOrder = ["Bereshit", "Noach", "Lech Lecha", "Vayera", "Chayei Sara", "Toldot", "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi", "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah", "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei", "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot", "Kedoshim", "Emor", "Behar", "Bechukotai", "Bamidbar", "Nasso", "Beha'alotcha", "Sh'lach", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masei", "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei", "Ki Tavo", "Nitzavim", "Vayeilech", "Ha'Azinu", "V'Zot HaBerachah"]
       if (this.props.interfaceLang == "english") {
         parshaOrder = ["English"].concat(parshaOrder);
@@ -102,6 +103,7 @@ class GroupPage extends Component {
     }
   }
   pinSheetsToSheetList(group){
+    // Applies any pinned sheets to the sorting of sheets list
     var sortPinned = function(a, b) {
       var ai = group.pinnedSheets.indexOf(a.id);
       var bi = group.pinnedSheets.indexOf(b.id);
@@ -152,7 +154,7 @@ class GroupPage extends Component {
     this.setState({groupData, sheetSort: event.target.value});
   }
   searchGroup(query) {
-    this.props.searchInGroup(query, this.props.group);
+    this.props.searchInGroup(query, this.state.groupData.name);
   }
   handleSearchKeyUp(event) {
     if (event.keyCode === 13) {
@@ -179,188 +181,204 @@ class GroupPage extends Component {
   }
   pinSheet(sheetId) {
     if (this.pinning) { return; }
-    $.post("/api/groups/" + this.props.group + "/pin-sheet/" + sheetId, function(data) {
+    $.post("/api/groups/" + this.props.slug + "/pin-sheet/" + sheetId, function(data) {
       if ("error" in data) {
         alert(data.error);
       } else {
-        Sefaria._groups[this.props.group] = data.group;
+        Sefaria._groups[this.props.slug] = data.group;
         this.sortSheetData(data.group);
         this.setState({groupData: data.group});
       }
       this.pinning = false;
     }.bind(this)).fail(function() {
-        alert("There was an error pinning your sheet.");
+        alert(Sefaria._("There was an error pinning your sheet."));
         this.pinning = false;
     }.bind(this));
     this.pinning = true;
   }
   render() {
-    var group        = this.state.groupData;
-    
-    if (!group) { return <div className="content groupPage sheetList hasFooter">
-                    <LoadingMessage />
-                  </div>; }
+    const group = this.state.groupData;
+    let content;
 
-    var sheets       = group ? group.sheets : null;
-    var groupTopicList = group ? group.topics : null;
-    var members      = this.memberList();
-    var isMember     = members && members.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
-    var isAdmin      = group && group.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
+    if (!group) {
+      content = <LoadingMessage />
+    } else {
+      var sheets         = group.sheets;
+      var groupTopicList = group.topics;
+      var members        = this.memberList();
+      var isMember       = members && members.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
+      var isAdmin        = group.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
 
-    groupTopicList = groupTopicList ? groupTopicList.map(topic => {
-        const filterThisTag = this.handleTagButtonClick.bind(this, topic.slug);
-        const classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTopic == topic.slug});
-        return (<div className={classes} onClick={filterThisTag} key={topic.slug}>
-          <InterfaceTextWithFallback en={topic.en} he={topic.he} endContent={<span className="enInHe">{` (${topic.count})`}</span>} />
-        </div>);
-      }) : null;
+      groupTopicList = groupTopicList ? groupTopicList.map(topic => {
+          const filterThisTag = this.handleTagButtonClick.bind(this, topic.slug);
+          const classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTopic == topic.slug});
+          return (<div className={classes} onClick={filterThisTag} key={topic.slug}>
+            <InterfaceTextWithFallback en={topic.en} he={topic.he} endContent={<span className="enInHe">{` (${topic.count})`}</span>} />
+          </div>);
+        }) : null;
 
-    sheets = sheets && this.state.sheetFilterTopic ? sheets.filter(sheet => sheet.topics && sheet.topics.reduce((accum, curr) => accum || this.state.sheetFilterTopic === curr.slug, false)) : sheets;
-    sheets = sheets ? sheets.map(function(sheet) {
-      return (<SheetListing
-                sheet={sheet}
-                hideAuthor={true}
-                infoUnderneath={true}
-                showAuthorUnderneath={true}
-                hideCollection={true}
-                pinned={group.pinnedSheets.indexOf(sheet.id) != -1}
-                pinnable={isAdmin}
-                editable={sheet.author == Sefaria._uid}
-                saveable={sheet.author !== Sefaria._uid}
-                collectable={true}
-                pinSheet={this.pinSheet.bind(null, sheet.id)}
-                toggleSignUpModal={this.props.toggleSignUpModal}
-                key={sheet.id} />);
-    }.bind(this)) : <LoadingMessage />;
+      sheets = sheets && this.state.sheetFilterTopic ? sheets.filter(sheet => sheet.topics && sheet.topics.reduce((accum, curr) => accum || this.state.sheetFilterTopic === curr.slug, false)) : sheets;
+      sheets = sheets ? sheets.map(function(sheet) {
+        return (<SheetListing
+                  sheet={sheet}
+                  hideAuthor={true}
+                  infoUnderneath={true}
+                  showAuthorUnderneath={true}
+                  hideCollection={true}
+                  pinned={group.pinnedSheets.indexOf(sheet.id) != -1}
+                  pinnable={isAdmin}
+                  editable={sheet.author == Sefaria._uid}
+                  saveable={sheet.author !== Sefaria._uid}
+                  collectable={true}
+                  pinSheet={this.pinSheet.bind(null, sheet.id)}
+                  toggleSignUpModal={this.props.toggleSignUpModal}
+                  key={sheet.id} />);
+      }.bind(this)) : <LoadingMessage />;      
 
-    return <div className="content groupPage sheetList hasFooter">
-              <div className="contentInner">
+      content = <div className="contentInner">
+        {group.imageUrl ?
+          <img className="groupImage" src={group.imageUrl} alt={this.props.name}/>
+          : null }
 
-                {group.imageUrl ?
-                  <img className="groupImage" src={group.imageUrl} alt={this.props.group}/>
-                  : null }
+        <div className="groupInfo">
+          <h1>
+            {group.toc ?
+            <span>
+              { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+              <span className="en">{group.toc.title}</span>
+              <span className="he">{group.toc.heTitle}</span>
+            </span>
+            : group.name }
+          </h1>
 
-                <div className="groupInfo">
-                  <h1>
-                    {group.toc ?
-                    <span>
-                      { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
-                      <span className="en">{group.toc.title}</span>
-                      <span className="he">{group.toc.heTitle}</span>
-                    </span>
-                    : group.name }
-                  </h1>
+          {group.websiteUrl ?
+            <a className="groupWebsite" target="_blank" href={group.websiteUrl}>{group.websiteUrl}</a>
+            : null }
 
-                  {group.websiteUrl ?
-                    <a className="groupWebsite" target="_blank" href={group.websiteUrl}>{group.websiteUrl}</a>
-                    : null }
+          {group.toc ?
+            <div className="groupDescription">
+              <span>
+                <span className="en" dangerouslySetInnerHTML={ {__html: group.toc.description} }></span>
+                <span className="he"dangerouslySetInnerHTML={ {__html: group.toc.heDescription} }></span>
+              </span>
+            </div>
+          : group.description ?
+            <div className="groupDescription"  dangerouslySetInnerHTML={ {__html: group.description} }></div>
+          : null }
+        </div>
 
-                  {group.toc ?
-                    <div className="groupDescription">
-                      <span>
-                        <span className="en" dangerouslySetInnerHTML={ {__html: group.toc.description} }></span>
-                        <span className="he"dangerouslySetInnerHTML={ {__html: group.toc.heDescription} }></span>
-                      </span>
-                    </div>
-                  : group.description ?
-                    <div className="groupDescription"  dangerouslySetInnerHTML={ {__html: group.description} }></div>
-                  : null }
-                </div>
+        <div className="tabs">
+          <a className={classNames({bubbleTab: 1, active: this.state.tab == "sheets"})} onClick={this.setTab.bind(null, "sheets")}>
+            <span className="int-en">Sheets</span>
+            <span className="int-he">דפי מקורות</span>
+          </a>
+          <a className={classNames({bubbleTab: 1, active: this.state.tab == "members"})} onClick={this.setTab.bind(null, "members")}>
+            <IntText>Contributors</IntText>
+          </a>
+          { isAdmin ?
+            <a className="bubbleTab" href={"/collections/" + group.slug + "/settings"}>
+              <span className="int-en">Settings</span>
+              <span className="int-he">הגדרות</span>
+            </a>
+            : null }
+        </div>
 
-                <div className="tabs">
-                  <a className={classNames({bubbleTab: 1, active: this.state.tab == "sheets"})} onClick={this.setTab.bind(null, "sheets")}>
-                    <span className="int-en">Sheets</span>
-                    <span className="int-he">דפי מקורות</span>
-                  </a>
-                  <a className={classNames({bubbleTab: 1, active: this.state.tab == "members"})} onClick={this.setTab.bind(null, "members")}>
-                    <span className="int-en">Members</span>
-                    <span className="int-he">חברים</span>
-                  </a>
-                  { isAdmin ?
-                    <a className="bubbleTab" href={"/collections/" + this.props.group.replace(/\s/g, "-") + "/settings"}>
-                      <span className="int-en">Settings</span>
-                      <span className="int-he">הגדרות</span>
+        { this.state.tab == "sheets" ?
+          <div>
+            {sheets.length ?
+            <div className="splitHeader">
+              { groupTopicList && groupTopicList.length ?
+              <span className="filterByTag" onClick={this.toggleSheetTags}>
+                <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
+                <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
+               </span>
+               : <div /> }
+
+                  <span className="int-en actionText">Sort By:
+                    <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
+                     <option value="date">Recent</option>
+                     <option value="alphabetical">Alphabetical</option>
+                     <option value="views">Most Viewed</option>
+                   </select>
+                  </span>
+                  <span className="int-he actionText">סנן לפי:
+                    <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
+                     <option value="date">הכי חדש</option>
+                     <option value="alphabetical">אלפביתי</option>
+                     <option value="views">הכי נצפה</option>
+                   </select>
+                  </span>
+            </div>
+            : null }
+
+          {group.listed ?
+            <div className="groupSearchBox">
+              <img className="groupSearchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" onClick={this.handleSearchButtonClick} />
+              <input
+                className="groupSearchInput"
+                placeholder={Sefaria.interfaceLang == "hebrew" ? "חפש" : "Search"}
+                onKeyUp={this.handleSearchKeyUp} />
+          </div> : null}
+
+          {this.state.showTopics ? <div className="tagsList"><TwoOrThreeBox content={groupTopicList} width={this.props.width} /></div> : null}
+
+          {sheets.length && !this.state.showTopics ? sheets : null}
+
+          {!sheets.length ? (isMember ?
+                  <div className="emptyMessage">
+                    <IntText>You can add sheets to this collection on your profile.</IntText>
+                    <br />
+                    <a className="button" href="/my/profile">
+                      <IntText>Open Profile</IntText>
                     </a>
-                    : null }
-                </div>
-
-                { this.state.tab == "sheets" ?
-                  <div>
-                    {sheets.length ?
-                    <div className="splitHeader">
-                      { groupTopicList && groupTopicList.length ?
-                      <span className="filterByTag" onClick={this.toggleSheetTags}>
-                        <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
-                        <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
-                       </span>
-                       : <div /> }
-
-                          <span className="int-en actionText">Sort By:
-                            <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
-                             <option value="date">Recent</option>
-                             <option value="alphabetical">Alphabetical</option>
-                             <option value="views">Most Viewed</option>
-                           </select>
-                          </span>
-                          <span className="int-he actionText">סנן לפי:
-                            <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
-                             <option value="date">הכי חדש</option>
-                             <option value="alphabetical">אלפביתי</option>
-                             <option value="views">הכי נצפה</option>
-                           </select>
-                          </span>
-                    </div>
-                    : null }
-
-                  {group.listed ?
-                    <div className="groupSearchBox">
-                      <img className="groupSearchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" onClick={this.handleSearchButtonClick} />
-                      <input
-                        className="groupSearchInput"
-                        placeholder={Sefaria.interfaceLang == "hebrew" ? "חפש" : "Search"}
-                        onKeyUp={this.handleSearchKeyUp} />
-                  </div> : null}
-
-                  {this.state.showTopics ? <div className="tagsList"><TwoOrThreeBox content={groupTopicList} width={this.props.width} /></div> : null}
-
-                  {sheets.length && !this.state.showTopics ? sheets : null}
-
-                  {!sheets.length ? (isMember ?
-                          <div className="emptyMessage">
-                            <IntText>You can add sheets to this collection on your profile.</IntText>
-                            <br />
-                            <a className="button" href="/my/profile">
-                              <IntText>Open Profile</IntText>
-                            </a>
-                          </div>
-                        : <div className="emptyMessage">
-                            <IntText>There are no sheets in this collection yet.</IntText>
-                          </div>) : null}
                   </div>
-                  : null }
+                : <div className="emptyMessage">
+                    <IntText>There are no sheets in this collection yet.</IntText>
+                  </div>) : null}
+          </div>
+          : null }
 
-                  {this.state.tab == "members" ?
-                    <div>
-                     {isAdmin ? <GroupInvitationBox groupName={this.props.group} onDataChange={this.onDataChange}/> : null }
-                     { members.map(function (member, i) {
-                        return <GroupMemberListing
-                                member={member}
-                                isAdmin={isAdmin}
-                                isSelf={member.uid == Sefaria._uid}
-                                groupName={this.props.group}
-                                onDataChange={this.onDataChange}
-                                key={i} />
-                        }.bind(this) )
-                      }
-                    </div>
-                  : null }
-              </div>
+          {this.state.tab == "members" ?
+            <div>
+             {isAdmin ? <GroupInvitationBox slug={this.props.slug} onDataChange={this.onDataChange}/> : null }
+             { members.map(function (member, i) {
+                return <GroupMemberListing
+                        member={member}
+                        isAdmin={isAdmin}
+                        isSelf={member.uid == Sefaria._uid}
+                        slug={this.props.slug}
+                        onDataChange={this.onDataChange}
+                        key={i} />
+                }.bind(this) )
+              }
+            </div>
+          : null }
+      </div>
+    }
+
+    var classes = classNames({readerNavMenu: 1, readerSheetsNav: 1, noHeader: this.props.hideNavHeader});
+    return <div className={classes}>
+            <CategoryColorLine category="Sheets" />
+            {this.props.hideNavHeader ? null :
+            <div className="readerNavTop searchOnly" key="navTop">
+              <CategoryColorLine category="Sheets" />
+              <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
+              <h2>
+                <IntText>Collections</IntText>
+              </h2>
+              <div className="readerOptions"></div>
+            </div>}
+
+            <div className="content groupPage sheetList hasFooter">
+              {content}
               <Footer />
             </div>;
+          </div>
   }
 }
 GroupPage.propTypes = {
-  group:          PropTypes.string.isRequired,
+  name:           PropTypes.string,
+  slug:           PropTypes.string,
   width:          PropTypes.number,
   multiPanel:     PropTypes.bool,
   tag:            PropTypes.string,
@@ -434,20 +452,20 @@ class GroupInvitationBox extends Component {
       this.flashMessage(Sefaria._("Please enter a valid email address."));
       return;
     }
-    this.setState({inviting: true, message: "Inviting..."})
-    $.post("/api/groups/" + this.props.groupName + "/invite/" + email, function(data) {
+    this.setState({inviting: true, message: Sefaria._("Inviting...")})
+    $.post("/api/groups/" + this.props.slug + "/invite/" + email, function(data) {
       if ("error" in data) {
         alert(data.error);
         this.setState({message: null, inviting: false});
       } else {
-        Sefaria._groups[this.props.groupName] = data.group;
+        Sefaria._groups[this.props.slug] = data.group;
         $("#groupInvitationInput").val("");
         this.flashMessage(data.message);
         this.setState({inviting: false})
         this.props.onDataChange();
       }
     }.bind(this)).fail(function() {
-        alert("There was an error sending your invitation.");
+        alert(Sefaria._("There was an error sending your invitation."));
         this.setState({message: null, inviting: false});
     }.bind(this));
   }
@@ -469,7 +487,7 @@ class GroupInvitationBox extends Component {
   }
 }
 GroupInvitationBox.propTypes = {
-  groupName: PropTypes.string.isRequired,
+  slug: PropTypes.string.isRequired,
   onDataChange: PropTypes.func.isRequired,
 };
 
@@ -480,7 +498,7 @@ class GroupMemberListing extends Component {
       return this.props.isAdmin ?
         <GroupInvitationListing
           member={this.props.member}
-          groupName={this.props.groupName}
+          slug={this.props.slug}
           onDataChange={this.props.onDataChange} />
         : null;
     }
@@ -506,7 +524,7 @@ class GroupMemberListing extends Component {
           {this.props.isAdmin || this.props.isSelf ?
             <GroupMemberListingActions
               member={this.props.member}
-              groupName={this.props.groupName}
+              slug={this.props.slug}
               isAdmin={this.props.isAdmin}
               isSelf={this.props.isSelf}
               onDataChange={this.props.onDataChange} />
@@ -520,7 +538,7 @@ GroupMemberListing.propTypes ={
   member:       PropTypes.object.isRequired,
   isAdmin:      PropTypes.bool,
   isSelf:       PropTypes.bool,
-  groupName:    PropTypes.string,
+  slug:         PropTypes.string,
   onDataChange: PropTypes.func.isRequired,
 };
 
@@ -534,10 +552,10 @@ class GroupInvitationListing extends Component {
         </span>
 
         <div className="groupMemberListingRoleBox">
-          <span className="groupMemberListingRole">Invited</span>
+          <span className="groupMemberListingRole"><IntText>Invited</IntText></span>
           <GroupMemberListingActions
             member={this.props.member}
-            groupName={this.props.groupName}
+            slug={this.props.slug}
             isInvitation={true}
             onDataChange={this.props.onDataChange} />
         </div>
@@ -547,7 +565,7 @@ class GroupInvitationListing extends Component {
 }
 GroupInvitationListing.propTypes = {
   member:       PropTypes.object.isRequired,
-  groupName:    PropTypes.string,
+  slug:         PropTypes.string,
   onDataChange: PropTypes.func,
 };
 
@@ -566,47 +584,47 @@ class GroupMemberListingActions extends Component {
   }
   setRole(role) {
     if (this.props.isSelf && this.props.isAdmin && role !== "admin") {
-      if (!confirm("Are you want to change your group role? You won't be able to undo this action unless another admin restores your permissions.")) {
+      if (!confirm(Sefaria._("Are you sure you want to change your collection role? You won't be able to undo this action unless another owner restores your permissions."))) {
         return;
       }
     }
 
-    $.post("/api/groups/" + this.props.groupName + "/set-role/" + this.props.member.uid + "/" + role, function(data) {
+    $.post("/api/groups/" + this.props.slug + "/set-role/" + this.props.member.uid + "/" + role, function(data) {
       if ("error" in data) {
         alert(data.error)
       } else {
-        Sefaria._groups[data.name] = data;
+        Sefaria._groups[data.slug] = data;
         this.props.onDataChange();
       }
     }.bind(this));
   }
   removeMember() {
     var message = this.props.isSelf ?
-      "Are you sure you want to leave this group?" :
-      "Are you sure you want to remove " + this.props.member.name + " from this group?";
+      Sefaria._("Are you sure you want to leave this collection?") :
+      Sefaria._("Are you sure you want to remove this person from this collection?");
 
     if (confirm(message)) {
       this.setRole("remove");
     }
   }
   resendInvitation() {
-    $.post("/api/groups/" + this.props.groupName + "/invite/" + this.props.member.email, function(data) {
+    $.post("/api/groups/" + this.props.slug + "/invite/" + this.props.member.email, function(data) {
       if ("error" in data) {
         alert(data.error)
       } else {
-        Sefaria._groups[this.props.groupName] = data.group;
+        Sefaria._groups[this.props.slug] = data.group;
         this.props.onDataChange();
         this.setState({"invitationResent": true});
       }
     }.bind(this));
   }
   removeInvitation() {
-    if (confirm("Are you sure you want to remove this invitation?")) {
-      $.post("/api/groups/" + this.props.groupName + "/invite/" + this.props.member.email + "/uninvite", function(data) {
+    if (confirm(Sefaria._("Are you sure you want to remove this invitation?"))) {
+      $.post("/api/groups/" + this.props.slug + "/invite/" + this.props.member.email + "/uninvite", function(data) {
         if ("error" in data) {
           alert(data.error)
         } else {
-          Sefaria._groups[this.props.groupName] = data.group;
+          Sefaria._groups[this.props.slug] = data.group;
           this.props.onDataChange();
         }
       }.bind(this));
@@ -622,34 +640,34 @@ class GroupMemberListingActions extends Component {
           <div className="groupMemberListingActionsMenu">
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "admin")}>
-                <span className={classNames({role: 1, current: this.props.member.role == "Owner"})}>Owner</span>
-                - can invite & edit settings
+                <span className={classNames({role: 1, current: this.props.member.role == "Owner"})}><IntText>Owner</IntText></span>
+                - <IntText>can invite & edit settings</IntText>
               </div>
               : null }
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "member")}>
-                <span className={classNames({role: 1, current: this.props.member.role == "Member"})}>Contributor</span>
-                - can add & remove sheets
+                <span className={classNames({role: 1, current: this.props.member.role == "Member"})}><IntText>Contributor</IntText></span>
+                - <IntText>can add & remove sheets</IntText>
               </div>
               : null}
             {this.props.isAdmin || this.props.isSelf ?
               <div className="action" onClick={this.removeMember}>
-                <span className="role">{this.props.isSelf ? "Leave Collection" : "Remove"}</span>
+                <span className="role"><IntText>{this.props.isSelf ? "Leave Collection" : "Remove"}</IntText></span>
               </div>
             : null }
             {this.props.isInvitation  && !this.state.invitationResent ?
               <div className="action" onClick={this.resendInvitation}>
-                <span className="role">Resend Invitation</span>
+                <span className="role"><IntText>Resend Invitation</IntText></span>
               </div>
               : null}
             {this.props.isInvitation  && this.state.invitationResent ?
               <div className="action">
-                <span className="role">Invitation Resent</span>
+                <span className="role"><IntText>Invitation Resent</IntText></span>
               </div>
               : null}
             {this.props.isInvitation ?
               <div className="action" onClick={this.removeInvitation}>
-                <span className="role">Remove</span>
+                <span className="role"><IntText>Remove</IntText></span>
 
               </div>
               : null}
@@ -660,7 +678,7 @@ class GroupMemberListingActions extends Component {
 }
 GroupMemberListingActions.propTypes = {
   member:       PropTypes.object.isRequired,
-  groupName:    PropTypes.string.isRequired,
+  slug:         PropTypes.string.isRequired,
   isAdmin:      PropTypes.bool,
   isSelf:       PropTypes.bool,
   isInvitation: PropTypes.bool,

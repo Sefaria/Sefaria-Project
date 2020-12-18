@@ -21,7 +21,7 @@ class EditGroupPage extends Component {
   componentDidMount() {
     $(window).on("beforeunload", function() {
       if (this.changed) {
-        return "You have unsaved changes to your group.";
+        return Sefaria._("You have unsaved changes to your collection.");
       }
     }.bind(this));
   }
@@ -35,7 +35,7 @@ class EditGroupPage extends Component {
     var field = idToField[e.target.id];
     var file = e.currentTarget.files[0];
     if (file.size > MAX_IMAGE_SIZE) {
-      alert("Images must be smaller than " + MAX_IMAGE_MB + "MB.");
+      alert(Sefaria._("Images must be smaller than ") + MAX_IMAGE_MB + "MB.");
       return;
     }
     var formData = new FormData();
@@ -58,7 +58,7 @@ class EditGroupPage extends Component {
           }
         }.bind(this),
         fail: function() {
-          alert("Unfortunately an error occurred uploading your file.")
+          alert(Sefaria._("Unfortunately an error occurred uploading your file."))
           this.clearUploading(field);
         }
     });
@@ -102,19 +102,14 @@ class EditGroupPage extends Component {
           }
         },
         fail: function() {
-          alert("Sorry, an error occurred.");
+          alert(Sefaria._("Unfortunately an error occurred deleting your collection."));
         }
       });
     }
   }
   save() {
     var groupData = Sefaria.util.clone(this.state);
-    if (!this.props.initialData) {
-      groupData["new"] = true;
-    }
-    if (this.props.initialData && this.props.initialData.name !== groupData.name) {
-      groupData["previousName"] = this.props.initialData.name;
-    }
+
     if (groupData["headerUrl"] == "/static/img/loading.gif") { groupData["headerUrl"] = null; }
     if (groupData["imageUrl"] == "/static/img/loading.gif") { groupData["imageUrl"] = null; }
 
@@ -126,7 +121,7 @@ class EditGroupPage extends Component {
           window.location = "/collections/" + this.state.name.replace(/ /g, "-");
         }
     }.bind(this)).fail(function() {
-        alert("Sorry, an error occurred.");
+        alert(Sefaria._("Unfortunately an error occurred saving your collection."));
     });
   }
   render() {

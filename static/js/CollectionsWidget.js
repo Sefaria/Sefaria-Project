@@ -35,15 +35,16 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
     }
   }, []);
 
-  const onCheckChange = (collection, checked) => {
+  const onCheckChange = (i, checked) => {
     // When a checkmark changes, add or remove this sheet from that collection
+    const slug = collections[i].slug;
     let url, newCollectionsSelected;
     if (checked) {
-      newCollectionsSelected = [...collectionsSelected, collection];
-      url = `/api/collections/${collection}/add/${sheetID}`;
+      newCollectionsSelected = [...collectionsSelected, collections[i]];
+      url = `/api/collections/${slug}/add/${sheetID}`;
     } else {
-      newCollectionsSelected = collectionsSelected.filter(x => x !== collection);
-      url = `/api/collections/${collection}/remove/${sheetID}`;
+      newCollectionsSelected = collectionsSelected.filter(x => x.slug !== slug);
+      url = `/api/collections/${slug}/remove/${sheetID}`;
     }
 
     $.post(url, data => handleCollectionInclusionChange(data.collection));
@@ -53,7 +54,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
 
   const handleCollectionInclusionChange = (collection) => {
     // When a sheet has been added or removed, update collections date in cache
-    let newCollections = Sefaria.getUserGroupsFromCache(Sefaria._uid).filter(c => c.name != collection.name);
+    let newCollections = Sefaria.getUserGroupsFromCache(Sefaria._uid).filter(c => c.slug != collection.slug);
     // Put the new collection first since it's just been modified
     newCollections = [collection, ...newCollections];
     // Update in cache, but not in Component cache -- prevents the list from jumping around
@@ -65,7 +66,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
   const onNameChange = event => setNewName(event.target.value);
 
   const onCreateClick = () => {
-    const collection = {name: newName, "new": true};
+    const collection = {name: newName};
     $.post("/api/groups", {json: JSON.stringify(collection)}, (data) => {
       if ("error" in data) {
         alert(data.error);
@@ -91,9 +92,8 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
         return <label className="checkmarkLabel" key={i+collection.name}>
           <input 
             type="checkbox"
-            label={collection.name}
-            onChange={event => onCheckChange(event.target.getAttribute("label"), event.target.checked)}
-            checked={collectionsSelected.includes(collection.name) ? "checked" : ""} />
+            onChange={event => onCheckChange(i, event.target.checked)}
+            checked={collectionsSelected.filter(x => x.slug === collection.slug).length ? "checked" : ""} />
           <span className="checkmark"></span>
           {collection.name}
         </label>

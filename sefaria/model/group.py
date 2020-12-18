@@ -3,6 +3,8 @@ group.py
 Writes to MongoDB Collection: groups
 """
 import bleach
+import re
+import secrets
 from datetime import datetime
 
 from django.utils.translation import ugettext as _
@@ -20,7 +22,7 @@ class Group(abst.AbstractMongoRecord):
     history_noun = 'group'
 
     track_pkeys = True
-    pkeys = ["name", "headerUrl", "imageUrl", "coverUrl"]
+    pkeys = ["name", "listed", "headerUrl", "imageUrl", "coverUrl"]
 
     required_attrs = [
         "name",          # string name of group
@@ -30,6 +32,7 @@ class Group(abst.AbstractMongoRecord):
     optional_attrs = [
         "sheets",           # list of sheet ids included in this collection
         "lastModified",     # Datetime of the last time this collection changed
+        "slug",             # string slug for url
         "publishers",       # list of uids TODO deprecate post collections launch
         "invitations",      # list of dictionaries representing outstanding invitations
         "description",      # string text of short description
@@ -91,11 +94,43 @@ class Group(abst.AbstractMongoRecord):
     def _pre_save(self):
         self.lastModified = datetime.now()
 
+        old_status, new_status = self.pkeys_orig_values.get("listed", None), getattr(self, "listed", None)
+        if (old_status != new_status or not getattr(self, "slug", None)):
+            # Assign a slug to new collection, or change the slug type when collection
+            # changes listing status
+            self.assign_slug(public=new_status)
+
         image_fields = ("imageUrl", "headerUrl", "coverUrl")
         for field in image_fields:
             old, new = self.pkeys_orig_values.get(field, None), getattr(self, field, None)
             if old != new:
                 self._handle_image_change(old, new)
+
+    def assign_slug(self, public=False):
+        """
+        Assign a slug for the collection. For public collections based on the collection 
+        name, for private collections a random string.
+        """
+        if public:
+            slug = self.name
+            slug = slug.lower()
+            slug = slug.strip()
+            slug = slug.replace(" ", "-")
+            slug = re.sub(r"[^a-z\u05D0-\u05ea0-9\-]", "", slug)
+            self.slug = slug
+            dupe_count = 0
+            while self.slug_taken(slug):
+                dupe_count += 1
+                self.slug = "%s%d" % (slug, dupe_count)
+        else:
+            while True:
+                self.slug = secrets.token_urlsafe(6)
+                if not self.slug_taken(self.slug):
+                    break
+
+    def slug_taken(self, slug):
+        existing = Group().load({"slug": slug})
+        return bool(existing)
 
     def all_names(self, lang):
         primary_name = self.primary_name(lang)
@@ -126,6 +161,7 @@ class Group(abst.AbstractMongoRecord):
     def listing_contents(self, uid=None):
         contents = {
             "name": self.name,
+            "slug": self.slug,
             "imageUrl": getattr(self, "imageUrl", None),
             "headerUrl": getattr(self, "headerUrl", None),
             "memberCount": self.member_count(),

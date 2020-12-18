@@ -397,9 +397,9 @@ def delete_sheet_api(request, sheet_id):
 
 
 @csrf_exempt
-def groups_api(request, group=None):
+def groups_api(request, slug=None):
     if request.method == "GET":
-        return groups_get_api(request, group)
+        return groups_get_api(request, slug)
     else:
         if not request.user.is_authenticated and request.method == "POST":
             key = request.POST.get("apikey")
@@ -410,10 +410,69 @@ def groups_api(request, group=None):
                 return jsonResponse({"error": "Unrecognized API key."})
             else:
                 user_id = apikey["uid"]
-            return groups_post_api(request, user_id, group_name=group)
+            return groups_post_api(request, user_id, slug=slug)
         else:
             user_id = request.user.id
-            return protected_groups_post_api(request, user_id, group_name=group)
+            return protected_groups_post_api(request, user_id, slug=slug)
+
+@csrf_protect
+@login_required
+def protected_groups_post_api(request, user_id, slug=None):
+    return groups_post_api(request, user_id, slug)
+
+
+@csrf_protect
+def groups_get_api(request, slug=None):
+    if not slug:
+        return jsonResponse(GroupSet.get_group_listing(request.user.id))
+    group_obj = Group().load({"slug": slug})
+    if not group_obj:
+        return jsonResponse({"error": "No collection with slug '{}'".format(slug)})
+    is_member = request.user.is_authenticated and group_obj.is_member(request.user.id)
+    group_content = group_obj.contents(with_content=True, authenticated=is_member)
+    del group_content["lastModified"]
+    return jsonResponse(group_content)
+
+
+@csrf_exempt
+@catch_error_as_json
+def groups_post_api(request, user_id, slug=None):
+    if request.method == "POST":
+        j = request.POST.get("json")
+        if not j:
+            return jsonResponse({"error": "No JSON given in post data."})
+        group = json.loads(j)
+        if "slug" in group:
+            existing = Group().load({"slug": group["slug"]})
+            if not existing:
+                return jsonResponse({"error": "Collection with slug `{}` not found.".format(group["slug"])})
+            # check poster is a group admin
+            if user_id not in existing.admins:
+                return jsonResponse({"error": "You do not have permission to edit this collection."})
+
+            existing.load_from_dict(group)
+            existing.save()
+        else:
+            group["admins"] = [user_id]
+            collection = Group(group)
+            collection.save()
+        return jsonResponse({"status": "ok", "collection": collection.listing_contents(request.user.id)})
+
+    elif request.method == "DELETE":
+        if not slug:
+            return jsonResponse({"error": "Please specify a collection in the URL."})
+        existing = Group().load({"slug": slug})
+        if existing:
+            if user_id not in existing.admins:
+                return jsonResponse({"error": "You do not have permission to delete this collection."})
+            else:
+                GroupSet({"slug": slug}).delete()
+                return jsonResponse({"status": "ok"})
+        else:
+            return jsonResponse({"error": "Collection with the slug `{}` does not exist".format(slug)})
+
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."})
 
 
 @csrf_exempt
@@ -425,78 +484,16 @@ def user_groups_api(request, user_id):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-@csrf_protect
 @login_required
-def protected_groups_post_api(request, user_id, group_name=None):
-    return groups_post_api(request, user_id, group_name)
-
-
-@csrf_protect
-def groups_get_api(request, group=None):
-    if not group:
-        return jsonResponse(GroupSet.get_group_listing(request.user.id))
-    group_obj = Group().load({"name": group})
-    if not group_obj:
-        return jsonResponse({"error": "No collection named '%s'" % group})
-    is_member = request.user.is_authenticated and group_obj.is_member(request.user.id)
-    group_content = group_obj.contents(with_content=True, authenticated=is_member)
-    del group_content["lastModified"]
-    return jsonResponse(group_content)
-
-
-@csrf_exempt
-@catch_error_as_json
-def groups_post_api(request, user_id, group_name=None):
-    if request.method == "POST":
-        j = request.POST.get("json")
-        if not j:
-            return jsonResponse({"error": "No JSON given in post data."})
-        group = json.loads(j)
-        existing = Group().load({"name": group.get("previousName", group["name"])})
-        if existing:
-            # Don't overwrite existing group when posting to create a new group
-            if "new" in group:
-                return jsonResponse({"error": "A collection with this name already exists."})
-            # check poster is a group admin
-            if user_id not in existing.admins:
-                return jsonResponse({"error": "You do not have permission to edit this collection."})
-
-            existing.load_from_dict(group)
-            existing.save()
-        else:
-            del group["new"]
-            group["admins"] = [user_id]
-            collection = Group(group)
-            collection.save()
-        return jsonResponse({"status": "ok", "collection": collection.listing_contents(request.user.id)})
-
-    elif request.method == "DELETE":
-        if not group_name:
-            return jsonResponse({"error": "Please specify a collection in the URL."})
-        existing = Group().load({"name": group_name})
-        if existing:
-            if user_id not in existing.admins:
-                return jsonResponse({"error": "You do not have permission to delete this collection."})
-            else:
-                GroupSet({"name": group_name}).delete()
-                return jsonResponse({"status": "ok"})
-        else:
-            return jsonResponse({"error": "Collection named %s does not exist" % group_name})
-
-    else:
-        return jsonResponse({"error": "Unsupported HTTP method."})
-
-
-@login_required
-def collections_inclusion_api(request, collection_name, action, sheet_id):
+def collections_inclusion_api(request, slug, action, sheet_id):
     """
     API for adding or removing a sheet from a collection
     """
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
-    collection = Group().load({"name": collection_name})    
+    collection = Group().load({"slug": slug})    
     if not collection:
-        return jsonResponse({"error": "No collection named {}.".format(collection_name)})
+        return jsonResponse({"error": "No collection with slug `{}`.".format(slug)})
     if not collection.is_member(request.user.id):
         return jsonResponse({"error": "Only members of this collection my change its contents."})
     sheet_id = int(sheet_id)
@@ -507,7 +504,7 @@ def collections_inclusion_api(request, collection_name, action, sheet_id):
     if action == "remove":
         if sheet_id in collection.sheets:
             collection.sheets.remove(sheet_id)
-            if request.user.id == sheet.owner and sheet.group == collection_name:
+            if request.user.id == sheet.owner and sheet.group == collection.name:
                 sheet.group = None
                 sheet.save()
         else:
@@ -518,7 +515,7 @@ def collections_inclusion_api(request, collection_name, action, sheet_id):
             # If a sheet's owner adds it to a collection, and the sheet is not highlighted
             # in another collection, set it to highlight this collection.
             if request.user.id == sheet.owner and not bool(sheet.group):
-                sheet.group = collection_name
+                sheet.group = collection.name
                 sheet.save()
 
     collection.save()
@@ -534,19 +531,19 @@ def collections_for_sheet_api(request, sheet_id):
     uid = request.user.id
     collections = get_user_collections_for_sheet(uid, sheet_id)
 
-    return jsonResponse([collection["name"] for collection in collections])
+    return jsonResponse(collections)
 
 
 @login_required
-def groups_role_api(request, group_name, uid, role):
+def groups_role_api(request, slug, uid, role):
     """
     API for setting a group members role, or removing them from a group.
     """
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
-    group = Group().load({"name": group_name})
+    group = Group().load({"slug": slug})
     if not group:
-        return jsonResponse({"error": "No collection named %s." % group_name})
+        return jsonResponse({"error": "No collection with slug `{}`.".format(slug)})
     uid = int(uid)
     if request.user.id not in group.admins:
         if not (uid == request.user.id and role == "remove"): # non admins can remove themselves
@@ -568,15 +565,15 @@ def groups_role_api(request, group_name, uid, role):
 
 
 @login_required
-def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
+def groups_invite_api(request, slug, uid_or_email, uninvite=False):
     """
     API for adding or removing group members, or group invitations
     """
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
-    group = Group().load({"name": group_name})
+    group = Group().load({"slug": slug})
     if not group:
-        return jsonResponse({"error": "No collection named %s." % group_name})
+        return jsonResponse({"error": "No collection with slug {}.".format(slug)})
     if request.user.id not in group.admins:
         return jsonResponse({"error": "You must be a collection owner to invite new members."})
 
@@ -595,7 +592,7 @@ def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
             group.add_member(user.id)
             from sefaria.model.notification import Notification
             notification = Notification({"uid": user.id})
-            notification.make_group_add(adder_id=request.user.id, group_name=group_name)
+            notification.make_group_add(adder_id=request.user.id, group_name=group.name)
             notification.save()
             message = "Group member added."
         else:
@@ -607,12 +604,12 @@ def groups_invite_api(request, group_name, uid_or_email, uninvite=False):
 
 
 @login_required
-def groups_pin_sheet_api(request, group_name, sheet_id):
+def groups_pin_sheet_api(request, slug, sheet_id):
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
-    group = Group().load({"name": group_name})
+    group = Group().load({"slug": slug})
     if not group:
-        return jsonResponse({"error": "No collection named %s." % group_name})
+        return jsonResponse({"error": "No collection with slug `{}`.".format(slug)})
     if request.user.id not in group.admins:
         return jsonResponse({"error": "You must be a collection owner to invite new members."})
 
