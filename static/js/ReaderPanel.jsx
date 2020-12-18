@@ -13,7 +13,6 @@ import {
 } from './ConnectionsPanel';
 import ReaderTextTableOfContents  from './ReaderTextTableOfContents';
 import SearchPage  from './SearchPage';
-import SheetsNav  from './SheetsNav';
 import Sheet  from './Sheet';
 import SheetMetadata  from './SheetMetadata';
 import TopicPageAll  from './TopicPageAll';
@@ -899,28 +898,6 @@ class ReaderPanel extends Component {
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
                     registerAvailableFilters={this.props.registerAvailableFilters}
-                  />);
-
-    } else if (this.state.menuOpen === "sheets") {
-      menu = (<SheetsNav
-                    interfaceLang={this.props.interfaceLang}
-                    openNav={this.openMenu.bind(null, "navigation")}
-                    close={this.closeMenus}
-                    multiPanel={this.props.multiPanel}
-                    hideNavHeader={this.props.hideNavHeader}
-                    toggleLanguage={this.toggleLanguage}
-                    tag={this.state.navigationSheetTag}
-                    tagSort={this.state.tagSort}
-                    group={this.state.sheetsGroup}
-                    groupTag={this.state.navigationGroupTag}
-                    mySheetSort={this.state.mySheetSort}
-                    setMySheetSort={this.setMySheetSort}
-                    setSheetTagSort={this.setSheetTagSort}
-                    setSheetTag={this.setSheetTag}
-                    setGroupTag={this.setGroupTag}
-                    searchInGroup={this.props.searchInGroup}
-                    toggleSignUpModal={this.props.toggleSignUpModal}
-                    key={"SheetsNav"}
                   />);
 
     } else if (this.state.menuOpen === "topics") {

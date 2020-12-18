@@ -1876,9 +1876,6 @@ a.readerNavCategory {
     font-size: 18px;
   }
 }
-.readerSheetsNav .navButton:hover {
-  text-decoration: none;
-}
 .readerNavMenu .readerNavCategoryMenu .blockLink,
 .gridBox .navButton {
   width: 100%;
@@ -2725,8 +2722,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 13px;
   height: 10px;
 }
-.searchFilterBoxes .type-button,
-.readerSheetsNav .type-button {
+.searchFilterBoxes .type-button {
   padding: 6px 14px;
   margin: 5px;
   border-radius: 12px;
@@ -2738,18 +2734,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   cursor: pointer;
 }
-.searchFilterBoxes .type-button .he,
-.readerSheetsNav .type-button .he {
+.searchFilterBoxes .type-button .he {
   font-family: "Heebo", sans-serif;
 }
-.searchFilterBoxes .type-button.active,
-.readerSheetsNav .type-button.active {
+.searchFilterBoxes .type-button.active {
   color: #000;
   background-color: white;
 }
 .searchContent .type-button-title,
-.searchContent .type-button-total,
-.readerSheetsNav .type-button-title{
+.searchContent .type-button-total {
   display: inline-block;
   padding: 2px;
 }
@@ -3233,33 +3226,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerNavMenu .sheet:hover .sheetViews{
   display: inline-block ;
   text-decoration: none;
-}
-.readerSheetsNav h2 .en {
-  display: inline;
-}
-.readerSheetsNav .tagsHeader {
-  margin: 50px 0 40px;
-  height: auto
-}
-.readerSheetsNav .tagsHeader .actionText {
-  display: block;
-  margin-top: 20px;
-  text-transform: none;
-}
-.readerSheetsNav .loadingMessage {
-  text-align: center;
-}
-.hebrew .readerSheetsNav {
-  direction: ltr;
-}
-.readerSheetsNav .filterLabel {
-  cursor: pointer;
-}
-.readerSheetsNav .tagsList .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-.readerSheetsNav .tagsList .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .interface-english .readerPanel .readerNavMenu .tagsList .gridBox {
   direction: ltr;
@@ -5174,13 +5140,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration-line: none;
   color: #666666;
 }
-
 .confirmAddToSheet.addToSourceSheetBox .message span a{
   text-decoration: underline;
   color: #666666;
 }
-
-
 .confirmAddToSheet .button {
   width: 100%;
 }
@@ -5293,7 +5256,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 20px;
   margin: 0 8px;
 }
-
 .connectionsPanel .chavruta #chavrutaURL {
   background: #FBFBFA;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
@@ -5308,23 +5270,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 16px;
   line-height: 19px;
 }
-
 .connectionsPanel .chavruta .buttonContainer {
-width: 100%;
-margin-top: 15px;
-text-align: center;
+  width: 100%;
+  margin-top: 15px;
+  text-align: center;
 }
-
-
 .connectionsPanel .chavruta .startChavrutaButton {
-color: #fff;
+  color: #fff;
 }
-
 .connectionsPanel .chavruta .startChavrutaButton img {
   filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(181deg) brightness(118%) contrast(111%);
   margin-inline-end: 10px;
 }
-
 .connectionsPanel .chavruta .headerText {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: normal;
@@ -5332,24 +5289,19 @@ color: #fff;
   font-size: 22px;
   line-height: 26px;
   padding-bottom: 13px;
-
-  /* Dark Grey */
   color: #666666;
   border-bottom: 1px solid #CCCCCC;
 }
-
 .connectionsPanel .chavruta p {
-font-size: 16px;
-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-line-height: 19px;
-color: #666666;
+  font-size: 16px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  line-height: 19px;
+  color: #666666;
 }
-
 .connectionsPanel .chavruta .fakeBrowser {
   width: 100%;
   margin: 30px auto 30px;
 }
-
 .fakeBrowser .fakeBrowserHeader {
   background: #C4C4C4;
   width: 100%;
@@ -5357,11 +5309,9 @@ color: #666666;
   display: inline-flex;
   border-radius: 3px 3px 0 0;
 }
-
 .fakeBrowser .fakeBrowserButtons {
   padding: 7px;
 }
-
 .fakeBrowser .fakeBrowserButton {
   width: 8px;
   height: 8px;
@@ -5369,7 +5319,6 @@ color: #666666;
   display: inline-block;
   margin: 0px 1px;
 }
-
 .fakeBrowserButton.red {
   background: #E96E4C;
 }
@@ -5390,14 +5339,12 @@ color: #666666;
   border-radius: 4px;
   color: #9B9B9B;
 }
-
 .fakeBrowser .fakeBrowserMain {
   width: 100%;
   height: 190px;
   background-color: #fff;
   border-radius: 0 0 3px 0;
 }
-
 .fakeBrowser .fakeBrowserMain .fakeBrowserLeft {
   padding: 10px;
   background-color: #EDEDEC;
@@ -5405,38 +5352,30 @@ color: #666666;
   display: inline-block;
   border-radius: 0 0 0 3px;
 }
-
-
 .fakeBrowser .fakeBrowserMain .fakeBrowserRight {
   padding: 0 10px;
   background-color: #fff;
   width: calc(100% - 127px);
   display: inline-block;
 }
-
 .fakeBrowser .fakeBrowserMain .fakeBrowserRight hr {
   border: none;
   margin-top: 8px;
   border-top: 3px solid #ccc;
 }
-
 .fakeBrowser .fakeBrowserMain .fakeBrowserRight hr:nth-child(4n+0) {
   margin-bottom: 16px;
   width: 80%;
   margin-inline-start: 0;
 }
-
-
 .fakeBrowser .fakeBrowserButtonAvatar {
   margin: 10px auto 5px;
   width: 80%;
   text-align: center;
 }
-
 .fakeBrowser .fakeBrowserButtonAvatar img {
   width: 100%;
 }
-
 .fakeBrowser .fakeBrowserButtonAvatar .default-profile-img {
   line-height: 68px;
   background: #212E50;

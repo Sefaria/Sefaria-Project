@@ -356,7 +356,7 @@ class GroupPage extends Component {
       </div>
     }
 
-    var classes = classNames({readerNavMenu: 1, readerSheetsNav: 1, noHeader: this.props.hideNavHeader});
+    var classes = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
     return <div className={classes}>
             <CategoryColorLine category="Sheets" />
             {this.props.hideNavHeader ? null :
