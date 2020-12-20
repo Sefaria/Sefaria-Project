@@ -4011,7 +4011,12 @@ def serve_static(request, page):
     """
     Serve a static page whose template matches the URL
     """
-    return render(request,'static/%s.html' % page, {})
+    props = base_props(request)
+    propsJSON = json.dumps(props)
+
+    return render(request,'static/%s.html' % page, {
+        "propsJSON": propsJSON
+    })
 
 
 @ensure_csrf_cookie

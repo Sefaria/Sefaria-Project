@@ -15,29 +15,17 @@ $(function() {
   if (loadingPlaceholder){
     renderFunc = ReactDOM.render;
   }
+  Sefaria.unpackDataFromProps(DJANGO_VARS.props);
   if (DJANGO_VARS.inReaderApp) {
     // Rendering a full ReaderApp experience
-    Sefaria.unpackDataFromProps(DJANGO_VARS.props);
     component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.props);
     renderFunc(component, container);
 
   } else {
     // Rendering the Header & Footer only on top of a static page
-    var settings = {
-      language: DJANGO_VARS.contentLang,
-      layoutDefault: $.cookie("layoutDefault") || "segmented",
-      layoutTalmud:  $.cookie("layoutTalmud")  || "continuous",
-      layoutTanakh:  $.cookie("layoutTanakh")  || "segmented",
-      color:         $.cookie("color")         || "light",
-      biLayout:      $.cookie("biLayout")      || "stacked",
-      fontSize:      $.cookie("fontSize")      || 62.5,
-      aliyotTorah:   $.cookie("aliyotTorah")   || "aliyotOff",
-      vowels:        $.cookie("vowels")        || "all"
-    };
-    var multiPanel = $(window).width() > 600;
-    component = React.createElement(SefariaReact.ReaderApp, {
+    let staticProps = {
+      multiPanel: $(window).width() > 600,
       headerMode: true,
-      multiPanel: multiPanel,
       initialRefs: [],
       initialFilter: [],
       initialMenu: null,
@@ -45,10 +33,10 @@ $(function() {
       initialSheetsTag: null,
       initialNavigationCategories: [],
       initialNavigationTopicCategory: "",
-      initialSettings: settings,
       initialPanels: [],
-      interfaceLang: DJANGO_VARS.interfaceLang
-    });
+    };
+    let mergedStaticProps = { ...DJANGO_VARS.props, ...staticProps };
+    component = React.createElement(SefariaReact.ReaderApp, mergedStaticProps);
     renderFunc(component, container);
     if (footerContainer){
       renderFunc(React.createElement(SefariaReact.Footer), footerContainer);
