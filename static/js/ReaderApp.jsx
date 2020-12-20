@@ -492,7 +492,8 @@ class ReaderApp extends Component {
     var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL. 
-    const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open", "About", "WebPages", "extended notes", "Topics", "Torah Readings"]);
+    const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open",
+      "About", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts"]);
 
     for (var i = 0; i < states.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
