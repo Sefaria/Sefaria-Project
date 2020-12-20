@@ -1,8 +1,9 @@
 {
-	"title": "This Chanukah,",
-	"text": ["we're offering a half off discount to Sponsor a Day of Learning. Give the gift of Torah to all."],
-	"buttonLink": "https://sefaria.nationbuilder.com/chanukahsponsor",
-	"buttonText": "Dedicate Today",
-	"name": "end-of-year-2020-4-2",
+	"title": "",
+	"text": ["Did you know that you are one of 3M+ people who have visited the library this year?",
+    "We depend on donations from users like you to keep the library free and growing."],
+	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
+	"buttonText": "Give Now",
+	"name": "end-of-year-2020-5-1",
 	"schemaVersion": 1
 }
