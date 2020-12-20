@@ -4906,12 +4906,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: underline;
 }
 .manuscriptImage {
-  width: 256px;
+  width: auto;
+  max-height: 180px;
+  border-radius: 3px;
 }
 .manuscriptCaption {
   font-family: "Adobe Garamond Pro", "sans-serif";
   font-size: 18px;
   line-height: 22px;
+  margin-top: 13px;
 }
 .manuscriptCaptionHe {
   font-family: "Heebo", "sans-serif";

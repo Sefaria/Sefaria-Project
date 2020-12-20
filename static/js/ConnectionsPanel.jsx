@@ -573,7 +573,7 @@ class ConnectionsPanel extends Component {
       />);
     }
 
-    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics"].indexOf(this.props.mode) != -1;
+    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) != -1;
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
@@ -657,7 +657,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               {
                 this.props.manuscriptsCount ?
-                  <ToolsButton en={"Manuscripts"} he={"כתבי יד"} image={"images.png"} count={this.props.manuscriptsCount} onClick={() => this.props.setConnectionsMode("manuscripts")}/>
+                  <ToolsButton en={"Manuscripts"} he={"כתבי יד"} image={"manuscript-icon.png"} count={this.props.manuscriptsCount} onClick={() => this.props.setConnectionsMode("manuscripts")}/>
                   : null
               }
               {this.props.audioCount && this.props.audioCount > 0 ? <ToolsButton en="Torah Readings" he="קריאה בתורה" image="audio.svg" onClick={() => this.props.setConnectionsMode("Torah Readings")} /> : null }
@@ -1400,15 +1400,14 @@ function ManuscriptImageList(props) {
 function ManuscriptImage(props) {
   let manuscript = props.manuscript;
   return <div className={"manuscript"} >
-    <img className={"manuscriptImage"} src={manuscript["thumbnail_url"]} alt={"Ancient Manuscript"}/>
+    <a href={manuscript['image_url']} target="_blank">
+      <img className={"manuscriptImage"} src={manuscript["thumbnail_url"]} alt={"Ancient Manuscript"}/>
+    </a>
     {
       (props.interfaceLang === 'hebrew')
         ? <p className={"hebrew manuscriptCaptionHe"}>{`${manuscript.manuscript.he_title} ${manuscript['page_id']}`}</p>
         : <p className={"english manuscriptCaption"}>{`${manuscript.manuscript.title} ${manuscript.page_id}`}</p>
     }
-    <a className="fullSizeImageLink" href={manuscript['image_url']} target="_blank">{
-      (props.interfaceLang === 'hebrew') ? 'לצפייה בגודל מלא' : 'Open Full Size Image'
-    }</a>
 
   </div>
 }
