@@ -516,7 +516,7 @@ for c in cs:
 # Musar
 r_cat = create_category(["Musar", "Rishonim"], "Rishonim", "ראשונים")
 a_cat = create_category(["Musar", "Acharonim"], "Acharonim", "אחרונים")
-m_cat = create_category(["Musar", "Modern"], "Modern", "ספרות מודרני")
+m_cat = create_category(["Musar", "Modern"], "Modern", "ספרות מודרנית")
 
 r_books = [
     'Mivchar HaPeninim',
@@ -685,9 +685,6 @@ i = library.get_index("Footnotes on Teshuvot haRashba Meyuchas LehaRamban"),
 ],
 """
 
-# The Jewish Spiritual Heroes
-# -> Reference
-
 # Hide
 tohide = [
     "Abraham Cohen Footnotes to the English Translation of Masechet Berakhot",
@@ -708,7 +705,14 @@ tohide = [
     "Publisher's Haggahot on Sefer HaParnas",
     "JPS 1985 Footnotes",
     "Notes and Corrections on Midrash Aggadah",
-    "Buber footnotes on Midrash Mishlei"
+    "Buber footnotes on Midrash Mishlei",
+    "Footnotes and Annotations on Derech Chaim",
+    "Footnotes and Annotations on Be'er HaGolah",
+    "Footnotes and Annotations on Ohr Chadash",
+    "Footnotes and Annotations on Ner Mitzvah",
+    "Footnotes and Annotations on Gevurot Hashem",
+    "Footnotes and Annotations on Netivot Olam",
+
 ]
 for t in tohide:
     i = library.get_index(t)
@@ -721,6 +725,12 @@ moveIndexInto("JPS 1985 Footnotes", ["Tanakh", "Commentary"])
 moveIndexInto("Footnotes on Orot", ["Jewish Thought"])
 moveIndexInto("Footnotes on Mekhilta DeRabbi Shimon Bar Yochai", ["Midrash", "Halachic Midrash"])
 moveIndexInto("Buber footnotes on Midrash Mishlei", ["Midrash", "Aggadic Midrash"])
+for t in ["Footnotes and Annotations on Be'er HaGolah",
+    "Footnotes and Annotations on Ohr Chadash",
+    "Footnotes and Annotations on Ner Mitzvah",
+    "Footnotes and Annotations on Gevurot Hashem",
+    "Footnotes and Annotations on Netivot Olam",]:
+    moveIndexInto(t, ["Jewish Thought", "Maharal"])
 
 ##
 c = Category().load({"path": ["Tanakh", "Commentary", "Imrei Yosher"]})
@@ -1020,7 +1030,11 @@ for p in [
     ["Mishnah", "Commentary", "R' Shemaiah"],
     ["Mishnah", "Commentary", "Raavad"],
     ["Mishnah", "Commentary", "Motar Kinnim", "Seder Kodashim"],
-    ["Talmud", "Bavli", "Commentary", "Ri HaZaken", "Seder Nashim"]
+    ["Talmud", "Bavli", "Commentary", "Ri HaZaken", "Seder Nashim"],
+    ["Jewish Thought", "Maharal", "Commentary"],
+    ["Halakhah", "Commentary", "Shulchan Arukh"],
+    ["Halakhah", "Commentary", "Summary of Taz"],
+    ["Halakhah", "Commentary", "Summary of Shakh"],
 ]:
     c = Category().load({"path": p})
     if c:
@@ -1071,6 +1085,23 @@ for p in [
     else:
         print("Failed to load category for {}".format(p))
 
+
+library.rebuild(include_toc=True)
+
+#Check if any categories are using titles when they could use terms
+cs = CategorySet({"sharedTitle": None})
+for c in cs:
+    t = Term().load({"name": c.get_primary_title()})
+    if t:
+        c.add_shared_term(c.get_primary_title())
+        # del c.titles
+        c.save(override_dependencies=True)
+    else:
+        print("Category without term: {}".format(c.get_primary_title()))
+
+# Category without term: Duties of the Heart
+# Category without term: Motar Kinnim
+# Category without term: Eliezer Berkovits
 
 #	Alphabetical  (? really?  not crono?)
 # Click Talmud -> Commentary of Chida (crash)
