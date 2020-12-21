@@ -113,7 +113,7 @@ for k, he in [
 
 i = library.get_index("Zohar")
 i.nodes.add_title("ספר הזהר", "he", True, True)
-i.save()
+i.save(override_dependencies=True)
 
 moveIndexInto("Seder Olam Zutta", ["Midrash", "Aggadic Midrash"])
 
@@ -300,6 +300,9 @@ for t in ['The Antiquities of the Jews',
 moveIndexInto("Megillat Taanit", ["Second Temple"])
 
 
+library.rebuild(include_toc=True)
+
+
 # Rename Philosophy -> Jewish Thought
 ph = Term().load({"name": "Philosophy"})
 ph.remove_title("מחשבת ישראל", "he")
@@ -314,7 +317,7 @@ jt.save()
 # Change the philo cat itself
 phc = Category().load({"path": ["Philosophy"]})
 phc.change_key_name("Jewish Thought")
-phc.save()
+phc.save(override_dependencies=True)
 
 # move all matching categories
 for cat in CategorySet({"path.0": "Philosophy"}):
@@ -339,7 +342,7 @@ library.rebuild(include_toc=True)
 
 c = Category().load({"path": ["Jewish Thought", "Works of Eliezer Berkovits"]})
 c.change_key_name("Eliezer Berkovits")
-c.save()
+c.save(override_dependencies=True)
 
 # move all matching Indexes
 for ind in IndexSet({"categories.1": "Works of Eliezer Berkovits"}):
@@ -516,7 +519,7 @@ for cat, books in [
 # Change 'Tur and Commentaries' -> 'Tur'
 c = Category().load({"path": ["Halakhah", "Tur and Commentaries"]})
 c.change_key_name("Tur")
-c.save()
+c.save(override_dependencies=True)
 
 for ind in IndexSet({"categories": ["Halakhah", "Tur and Commentaries"]}):
     assert isinstance(ind, Index)
@@ -606,7 +609,7 @@ for t in [
 i = library.get_index("Be'er Mayim Chaim")
 del i.dependence
 del i.base_text_titles
-i.save()
+i.save(override_dependencies=True)
 
 # Kabbalah
 c = create_category(["Kabbalah", "Zohar"], None, None)
@@ -713,7 +716,7 @@ for cat, books in [
 
 g = Group().load({"name": "Lindenbaum Center at YCT Rabbinical School"})
 g.toc["categories"] = ["Responsa", "Other Modern"]
-g.save()
+g.save(override_dependencies=True)
 
 """
 Now an empty cat, because single text is hidden
@@ -902,7 +905,7 @@ for works, cat in groups:
 
 g = Group().load({"name": "גיליונות נחמה"})
 g.toc["categories"] = ["Tanakh", "Modern Commentary on Tanakh"]
-g.save()
+g.save(override_dependencies=True)
 
 ###
 ### Mishnah Commentary
@@ -925,7 +928,6 @@ ah = [
     "Gra",
     "Hon Ashir",
     "Midrash Shmuel on Avot",
-    "Motar Kinnim",
     "Nachalat Avot on Avot",
     "Yein Levanon on Avot",
     "Zeroa Yamin",
@@ -968,6 +970,8 @@ for works, cat in groups:
                 moveIndexInto(n, cat)
             except Exception:
                 print("Can not figure out Mishnah Commnentary: {}".format(n))
+
+moveIndexInto("Motar Kinnim", ah_cat) # Don't want to move the category -  deleted below.
 
 ####
 #### Talmud Commentary
@@ -1027,7 +1031,7 @@ rc = [
     'Korban Netanel',
     'Maadaney Yom Tov',
     'Pilpula Charifta',
-    'Tiferet Shmuel'
+    'Tiferet Shmuel',
     'Divrey Chamudot',
 ]
 
@@ -1082,13 +1086,13 @@ for p in [
     ["Talmud", "Bavli", "Commentary", "Ri HaZaken", "Seder Nashim"],
     ["Jewish Thought", "Maharal", "Commentary"],
     ["Halakhah", "Commentary", "Shulchan Arukh"],
-    ["Halakhah", "Commentary", "Summary of Taz"],
-    ["Halakhah", "Commentary", "Summary of Shakh"],
+    ["Halakhah", "Commentary", "Summary of Taz", "Shulchan Arukh"],
+    ["Halakhah", "Commentary", "Summary of Shakh", "Shulchan Arukh"],
     ["Kabbalah", "Commentary", "Gra"],
     ["Kabbalah", "Commentary", "Pri Yitzhak"],
     ["Kabbalah", "Commentary", "Ramban"],
     ["Kabbalah", "Commentary", "Raavad"],
-    ["Kabbalah", "Commentary", "Rasag"],
+    ["Kabbalah", "Commentary", "Saadia Gaon"],
 
 ]:
     c = Category().load({"path": p})
@@ -1100,8 +1104,6 @@ for p in [
 library.rebuild(include_toc=True)
 for p in [
     ["Halakhah", "Commentary", "Kessef Mishneh", "Mishneh Torah"],
-    ["Halakhah", "Commentary", "Summary of Taz", "Shulchan Arukh"],
-    ["Halakhah", "Commentary", "Summary of Shakh", "Shulchan Arukh"],
     ["Other"],
     ["Modern Works"],
     ["Tanaitic"],
@@ -1118,6 +1120,8 @@ for p in [
     ["Mishnah", "Commentary", "Motar Kinnim"],
     ["Mishnah", "Commentary", "Seder Nezikin"],
     ["Talmud", "Bavli", "Commentary", "Ri HaZaken"],
+    ["Halakhah", "Commentary", "Summary of Taz"],
+    ["Halakhah", "Commentary", "Summary of Shakh"],
     ["Kabbalah", "Commentary"]
 ]:
     c = Category().load({"path": p})
