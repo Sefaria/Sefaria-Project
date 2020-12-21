@@ -432,7 +432,6 @@ cat_mitzvot = create_category(["Halakhah", "Sifrei Mitzvot"], "Sifrei Mitzvot", 
 books_mitzvot = ['Sefer Hamitzvot of Rasag',
                  'Sefer Mitzvot Gadol',
                  'Sefer Mitzvot Katan',
-                 'Sefer HaMitzvot',
                  'Sefer HaMitzvot HaKatzar',
                  'Sefer HaChinukh',
                  'Minchat Chinukh',
@@ -476,12 +475,25 @@ books_other_a = ['Maaseh Rav',
                  "Ahavat Chesed"
                  ]
 
+cat_shm = create_category(["Halakhah", "Sifrei Mitzvot", 'Sefer HaMitzvot'],'Sefer HaMitzvot','ספר המצוות')
+moveIndexInto('Sefer HaMitzvot', cat_shm)
+
+cat_shm_com = create_category(["Halakhah", "Sifrei Mitzvot", 'Sefer HaMitzvot', 'Commentary'])
+on_sefer_hamitzvot = [
+    "Hasagot HaRamban on Sefer HaMitzvot",
+    "Kinaat Sofrim on Sefer HaMitzvot",
+    "Lev Sameach",
+    "Marganita Tava on Sefer HaMitzvot",
+    "Megilat Esther on Sefer HaMitzvot",
+]
+
 for cat, books in [
     (cat_mono, books_mono),
     (cat_mitzvot, books_mitzvot),
     (cat_ivh, books_ivh),
     (cat_other_r, books_other_r),
     (cat_other_a, books_other_a),
+    (cat_shm_com, on_sefer_hamitzvot)
 ]:
     for book in books:
         moveIndexInto(book, cat)
@@ -585,6 +597,21 @@ i.save()
 c = create_category(["Kabbalah", "Zohar"], None, None)
 for t in ["Zohar", "Tikkunei Zohar", "Zohar Chadash", "Baal HaSulam's Introduction to Zohar"]:
     moveIndexInto(t, c)
+
+sy = create_category(["Kabbalah", "Sefer Yetzirah"], "Sefer Yetzirah", "ספר יצירה")
+for t in ["Sefer Yetzirah", "Sefer Yetzirah Gra Version"]:
+    moveIndexInto(t, c)
+
+syc = create_category(["Kabbalah", "Sefer Yetzirah", "Commentary"])
+for t in ["HaGra on Sefer Yetzirah Gra Version",
+          "Pri Yitzhak on Sefer Yetzirah Gra Version",
+          "Ramban on Sefer Yetzirah",
+          "Raavad on Sefer Yetzirah",
+          "Rasag on Sefer Yetzirah"
+          ]:
+    moveIndexInto(t, c)
+
+moveIndexInto("Maaseh Rokeach on Mishnah", ["Kabbalah"])
 
 # Responsa
 rashba = {
@@ -966,18 +993,14 @@ ah = ['Haflaah on Ketubot',
       'Chidushei Chatam Sofer',
       'Chidushei Halachot',
       'Chokhmat Shlomo',
-      'Divrey Chamudot',
       'Ein Ayah',
-      'Korban Netanel',
-      'Maadaney Yom Tov',
       'Maharam',
       'Maharam Shif',
       'Marit HaAyin',
       'Penei Yehoshua',
       'Petach Einayim',
-      'Pilpula Charifta',
       'Shita Mekubetzet',
-      'Tiferet Shmuel']
+]
 
 co = ['Beur Reuven on Bava Kamma',
       'Reshimot Shiurim',
@@ -985,16 +1008,26 @@ co = ['Beur Reuven on Bava Kamma',
       'Daf Shevui',
       "Abraham Cohen Footnotes to the English Translation of Masechet Berakhot"]
 
+rc = [
+    'Korban Netanel',
+    'Maadaney Yom Tov',
+    'Pilpula Charifta',
+    'Tiferet Shmuel'
+    'Divrey Chamudot',
+]
+
 
 ri_cat = create_category(["Talmud", "Bavli", "Rishonim on Talmud"], "Rishonim on Talmud", "ראשונים על התלמוד")
 ah_cat = create_category(["Talmud", "Bavli", "Acharonim on Talmud"], "Acharonim on Talmud", "אחרונים על התלמוד")
 mo_cat = create_category(["Talmud", "Bavli", "Modern Commentary on Talmud"], "Modern Commentary on Talmud",
                            "פירושים מודרניים על התלמוד")
+rc_cat = create_category(["Talmud", "Bavli", "Rishonim on Talmud", "Rosh", "Commentary"])
 
 groups = [
     (ri, ri_cat),
     (ah, ah_cat),
     (co, mo_cat),
+    (rc, rc_cat)
 ]
 
 for works, cat in groups:
@@ -1009,9 +1042,10 @@ for works, cat in groups:
             except Exception:
                 print("Can not figure out ￿Talmud Commnentary: {}".format(n))
 
-
-# remove empty categories
 library.rebuild(include_toc=True)
+
+###
+
 
 for p in [
     ["Other", "Grammar"],
@@ -1035,6 +1069,12 @@ for p in [
     ["Halakhah", "Commentary", "Shulchan Arukh"],
     ["Halakhah", "Commentary", "Summary of Taz"],
     ["Halakhah", "Commentary", "Summary of Shakh"],
+    ["Kabbalah","Commentary","Gra"],
+    ["Kabbalah", "Commentary", "Pri Yitzhak"],
+    ["Kabbalah", "Commentary", "Ramban"],
+    ["Kabbalah", "Commentary", "Raavad"],
+    ["Kabbalah", "Commentary", "Rasag"],
+
 ]:
     c = Category().load({"path": p})
     if c:
@@ -1063,6 +1103,7 @@ for p in [
     ["Mishnah", "Commentary", "Motar Kinnim"],
     ["Mishnah", "Commentary", "Seder Nezikin"],
     ["Talmud", "Bavli", "Commentary", "Ri HaZaken"]
+    ["Kabbalah", "Commentary"]
 ]:
     c = Category().load({"path": p})
     if c:
