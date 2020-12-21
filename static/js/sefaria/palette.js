@@ -28,7 +28,8 @@ palette.categoryColors = {
   "Talmud":             palette.colors.yellow,
   "Halakhah":           palette.colors.red,
   "Kabbalah":           palette.colors.purple,
-  "Philosophy":         palette.colors.lavender,
+  "Philosophy":         palette.colors.lavender,  // to delete
+  "Jewish Thought":     palette.colors.lavender,
   "Liturgy":            palette.colors.darkpink,
   "Tanaitic":           palette.colors.teal,    // to delete
   "Tosefta":            palette.colors.teal,
@@ -36,7 +37,8 @@ palette.categoryColors = {
   "Chasidut":           palette.colors.lightgreen,
   "Musar":              palette.colors.raspberry,
   "Responsa":           palette.colors.orange,
-  "Apocrypha":          palette.colors.lightpink,
+  "Apocrypha":          palette.colors.lightpink,   // to delete
+  "Second Temple":      palette.colors.lightpink,   // to delete
   "Other":              palette.colors.darkblue,    // to delete
   "Quoting Commentary": palette.colors.orange,
   "Sheets":             palette.colors.darkblue,

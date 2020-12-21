@@ -30,8 +30,14 @@ def moveCategoryInto(cat, parent):
     :param parent:
     :return:
     """
+    if not isinstance(cat, Category):
+        cat = Category().load({"path": cat})
     assert isinstance(cat, Category)
+
+    if not isinstance(parent, Category) and parent is not None:
+        parent = Category().load({"path": parent})
     assert isinstance(parent, Category) or parent is None
+
 
     old_category_path = cat.path[:]
     old_parent_path = cat.path[:-1]
@@ -109,30 +115,29 @@ i = library.get_index("Zohar")
 i.nodes.add_title("ספר הזהר", "he", True, True)
 i.save()
 
-### Avot D'Rabbi Natan, "Seder Olam Zutta"  -> Midrash Aggadic Midrash
-p = Category().load({"path": ["Midrash", "Aggadic Midrash"]})
-for n in ["Seder Olam Zutta", "Avot D'Rabbi Natan"]:
-    moveIndexInto(n, p)
+moveIndexInto("Seder Olam Zutta", ["Midrash", "Aggadic Midrash"])
 
-adrn_com = create_category(["Midrash", "Commentary", "Avot D'Rabbi Natan"], "Avot D'Rabbi Natan", "אבות דרבי נתן")
-adrn_comms = ["Binyan Yehoshua on Avot D'Rabbi Natan",
+adrn = create_category(["Midrash", "Aggadic Midrash", "Avot D'Rabbi Natan"], "Avot D'Rabbi Natan", "אבות דרבי נתן")
+moveIndexInto("Avot D'Rabbi Natan", adrn)
+
+adrn_com = create_category(["Midrash", "Aggadic Midrash", "Avot D'Rabbi Natan", "Commentary"])
+for comm in ["Binyan Yehoshua on Avot D'Rabbi Natan",
               "Gra's Nuschah on Avot D'Rabbi Natan",
               "Haggahot R' Yeshaya Berlin on Avot D'Rabbi Natan",
               "Haggahot Ya'avetz on Avot D'Rabbi Natan",
               "Kisse Rahamim on Avot D'Rabbi Natan",
               "Mitzpeh Etan on Avot D'Rabbi Natan",
               "Rishon Letzion on Avot D'Rabbi Natan",
-              "Tumat Yesharim on Avot D'Rabbi Natan"]
-
-for comm in adrn_comms:
+              "Tumat Yesharim on Avot D'Rabbi Natan"]:
     moveIndexInto(comm, adrn_com)
 
-sor_com = create_category(["Midrash", "Commentary", "Seder Olam Rabbah"], "Seder Olam Rabbah", "סדר עולם רבה")
-sor_comms = ["Vilna_Gaon_on_Seder_Olam_Rabbah",
-             "Meir Ayin on Seder Olam Rabbah",
-             "Yaakov Emden on Seder Olam Rabbah"]
+sor = create_category(["Midrash", "Aggadic Midrash", "Seder Olam Rabbah"], "Seder Olam Rabbah", "סדר עולם רבה")
+moveIndexInto("Seder Olam Rabbah", sor)
 
-for comm in sor_comms:
+sor_com = create_category(["Midrash", "Aggadic Midrash", "Seder Olam Rabbah", "Commentary"])
+for comm in ["Vilna_Gaon_on_Seder_Olam_Rabbah",
+             "Meir Ayin on Seder Olam Rabbah",
+             "Yaakov Emden on Seder Olam Rabbah"]:
     moveIndexInto(comm, sor_com)
 
 library.rebuild(include_toc=True)
@@ -181,7 +186,6 @@ for c in cs:
     if len(c.path) == 3:
         c.delete()
 
-moveIndexInto("Megillat Taanit", ["Midrash"])
 
 ### Tosefta -> New top level category
 c = Category().load({"path": ["Tanaitic", "Tosefta"]})
@@ -277,6 +281,25 @@ ts = ["The Jewish Spiritual Heroes", "Ein Zocher", "Devash Lefi", "Midbar Kedemo
 for t in ts:
     moveIndexInto(t, c)
 
+#  Second Temple
+stw = create_category(["Second Temple"], "Second Temple", "ספרות בית שני")
+
+moveCategoryInto(["Apocrypha"], stw)
+
+cat_ph = create_category(["Second Temple", "Philo"], "Philo", "פילון האלכסנדרוני")
+for t in ['The Midrash of Philo',
+                 'Against Apion']:
+    moveIndexInto(t, cat_ph)
+
+cat_jo = create_category(["Second Temple", "Josephus"], "Josephus", "יוסף בן מתתיהו")
+for t in ['The Antiquities of the Jews',
+                 'The War of the Jews',
+                 'On the Life of Moses']:
+    moveIndexInto(t, cat_jo)
+
+moveIndexInto("Megillat Taanit", ["Second Temple"])
+
+
 # Rename Philosophy -> Jewish Thought
 ph = Term().load({"name": "Philosophy"})
 ph.remove_title("מחשבת ישראל", "he")
@@ -324,13 +347,6 @@ for ind in IndexSet({"categories.1": "Works of Eliezer Berkovits"}):
     ind.categories = ["Jewish Thought", "Eliezer Berkovits"]
     print("Moving - " + ind.get_title() + " to " + str(ind.categories))
     ind.save(override_dependencies=True)
-
-cat_ancient = create_category(["Jewish Thought", "Ancient"], "Ancient", "ספרות קדומה")
-books_ancient = ['The Midrash of Philo',
-                 'Against Apion',
-                 'The Antiquities of the Jews',
-                 'The War of the Jews',
-                 'On the Life of Moses']
 
 cat_rishonim = create_category(["Jewish Thought", "Rishonim"], "Rishonim", "ראשונים")
 books_rishonim = ["HaEmunot veHaDeot", "Eight Chapters",
@@ -380,7 +396,6 @@ books_modern = ["Nineteen Letters",
                 "Halacha and Aggadah"]
 
 for cat, books in [
-    (cat_ancient, books_ancient),
     (cat_kook, books_kook),
     (cat_rishonim, books_rishonim),
     (cat_acharonim, books_acharonim),
@@ -1069,7 +1084,7 @@ for p in [
     ["Halakhah", "Commentary", "Shulchan Arukh"],
     ["Halakhah", "Commentary", "Summary of Taz"],
     ["Halakhah", "Commentary", "Summary of Shakh"],
-    ["Kabbalah","Commentary","Gra"],
+    ["Kabbalah", "Commentary", "Gra"],
     ["Kabbalah", "Commentary", "Pri Yitzhak"],
     ["Kabbalah", "Commentary", "Ramban"],
     ["Kabbalah", "Commentary", "Raavad"],
@@ -1102,7 +1117,7 @@ for p in [
     ["Chasidut", "Commentary"],
     ["Mishnah", "Commentary", "Motar Kinnim"],
     ["Mishnah", "Commentary", "Seder Nezikin"],
-    ["Talmud", "Bavli", "Commentary", "Ri HaZaken"]
+    ["Talmud", "Bavli", "Commentary", "Ri HaZaken"],
     ["Kabbalah", "Commentary"]
 ]:
     c = Category().load({"path": p})

@@ -125,7 +125,6 @@ CATEGORY_ORDER = [
         'High Holidays',
         'Piyutim',
     "Jewish Thought",
-        "Ancient",
         "Rishonim",
         "Maharal",
         "Acharonim",
@@ -149,7 +148,10 @@ CATEGORY_ORDER = [
         "R' Tzadok HaKohen",
     'Musar',
     'Responsa',  # See list under Halacha
-    'Apocrypha',
+    'Second Temple',
+        'Apocrypha',
+        'Philo',
+        'Josephus',
     'Modern Works',
     "Reference",
         "Dictionary",
@@ -174,7 +176,7 @@ TOP_CATEGORIES = [
     "Chasidut",
     "Musar",
     "Responsa",
-    "Apocrypha",
+    "Second Temple",
     "Reference",
 ]
 
