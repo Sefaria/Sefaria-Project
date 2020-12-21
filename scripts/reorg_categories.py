@@ -149,12 +149,12 @@ paths = [
 ]
 for p in paths:
     c = Category().load({"path": p})
-    c.delete()
+    c.delete(override_dependencies=True)
 
 library.rebuild(include_toc=True)
 for p in paths:
     c = Category().load({"path": p[:-1]})
-    c.delete()
+    c.delete(override_dependencies=True)
 
 ### The rest of the minor tractates -> Talmud/Bavli
 c = Category().load({'path': ["Tanaitic", "Minor Tractates"]})
@@ -178,13 +178,13 @@ library.rebuild(include_toc=True)
 cs = CategorySet({"$and": [{"path.0": "Tanaitic"}, {"path.1": "Commentary"}]})
 for c in cs:
     if len(c.path) >= 4:
-        c.delete()
+        c.delete(override_dependencies=True)
 
 library.rebuild(include_toc=True)
 
 for c in cs:
     if len(c.path) == 3:
-        c.delete()
+        c.delete(override_dependencies=True)
 
 
 ### Tosefta -> New top level category
@@ -618,7 +618,7 @@ for t in ["Zohar", "Tikkunei Zohar", "Zohar Chadash", "Baal HaSulam's Introducti
 
 sy = create_category(["Kabbalah", "Sefer Yetzirah"], "Sefer Yetzirah", "ספר יצירה")
 for t in ["Sefer Yetzirah", "Sefer Yetzirah Gra Version"]:
-    moveIndexInto(t, c)
+    moveIndexInto(t, sy)
 
 syc = create_category(["Kabbalah", "Sefer Yetzirah", "Commentary"])
 for t in ["HaGra on Sefer Yetzirah Gra Version",
@@ -627,7 +627,7 @@ for t in ["HaGra on Sefer Yetzirah Gra Version",
           "Raavad on Sefer Yetzirah",
           "Rasag on Sefer Yetzirah"
           ]:
-    moveIndexInto(t, c)
+    moveIndexInto(t, syc)
 
 moveIndexInto("Maaseh Rokeach on Mishnah", ["Kabbalah"])
 
@@ -1097,7 +1097,7 @@ for p in [
 ]:
     c = Category().load({"path": p})
     if c:
-        c.delete()
+        c.delete(override_dependencies=True)
     else:
         print("Failed to load category for {}".format(p))
 
@@ -1126,7 +1126,7 @@ for p in [
 ]:
     c = Category().load({"path": p})
     if c:
-        c.delete()
+        c.delete(override_dependencies=True)
     else:
         print("Failed to load category for {}".format(p))
 
@@ -1141,7 +1141,7 @@ for p in [
 ]:
     c = Category().load({"path": p})
     if c:
-        c.delete()
+        c.delete(override_dependencies=True)
     else:
         print("Failed to load category for {}".format(p))
 
