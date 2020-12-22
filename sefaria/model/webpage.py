@@ -58,7 +58,7 @@ class WebPage(abst.AbstractMongoRecord):
         rewrite_rules = {
             "use https": lambda url: re.sub(r"^http://", "https://", url),
             "remove hash": lambda url: re.sub(r"#.+", "", url),
-            "remove url params": lambda url: re.sub(r"\?.+"),
+            "remove url params": lambda url: re.sub(r"\?.+", "", url),
             "remove utm params": lambda url: re.sub(r"\?utm_.+", "", url),
             "remove fbclid param": lambda url: re.sub(r"\?fbclid=.+", "", url),
             "add www": lambda url: re.sub(r"^(https?://)(?!www\.)", r"\1www.", url),
