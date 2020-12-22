@@ -1,9 +1,10 @@
 {
-	"title": "בחג החנוכה הזה אנחנו מציעים הנחה שווה במיוחד",
-	"text": ["להקדיש יום לימוד עבור מישהו בחצי מהמחיר הרגיל. זוהי הזדמנות להעניק לכולם את מתנת התורה."],
-	"buttonLink": "https://sefaria.nationbuilder.com/chanukahsponsor",
-	"buttonText": "להקדשת יום לימוד",
-	"name": "end-of-year-2020-4-1",
+	"title": "",
+	"text": ["הידעת שאתה אחד מיותר משלושה מיליון איש שביקרו ספריא השנה?",
+"רק באמצעות תרומות של משתמשים כמוך אנחנו מצליחים להמשיך לפתח את הספרייה שלנו ולהשאיר אותה חופשית לשימוש."
+],
+	"buttonLink": "https://sefaria.nationbuilder.com/il_mobile_ahb",
+	"buttonText": "תרמו עכשיו",
+	"name": "end-of-year-2020-5-1",
 	"schemaVersion": 1
 }
-

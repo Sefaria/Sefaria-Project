@@ -290,65 +290,6 @@ const defaultSheetTitle = (title) => {
     }
 };
 
-const defaultSheetAuthorStatement = (ownerProfileUrl, ownerName, ownerImageUrl) => {
-    return {
-        type: 'SheetAuthorStatement',
-        authorUrl: ownerProfileUrl,
-        authorStatement: ownerName,
-        children: [
-        {
-            type: 'ProfilePic',
-            authorImage: ownerImageUrl,
-            authorStatement: ownerName,
-            children: [
-                {
-                    text: '',
-                },
-            ]
-        },
-        {
-            type: "byline",
-            owner: ownerName,
-            children: [
-                {
-                    text: "by "
-                },
-                {
-                    type: "link",
-                    url: ownerProfileUrl,
-                    children: [
-                        {text: ownerName}
-                    ]
-                },
-            ]
-        },
-    ]
-}
-};
-
-const defaultSheetGroupStatement = (group, groupLogo) => {
-    return {
-        type: 'GroupStatement',
-        group: group || "",
-        groupLogo: groupLogo || "",
-        children: [
-            {
-                text: group || "",
-            }
-
-        ]
-
-    };
-}
-
-
-const defaultsheetMetaDataBox = (sheetTitle, authorStatement, groupStatement) => {
-    return {
-        type: 'SheetMetaDataBox',
-        children: [sheetTitle, authorStatement, groupStatement]
-    }
-}
-
 const defaultEmptyOutsideText = (sheetNodeNumber, textFragment) => {
   return {
         type: "SheetItem",
@@ -422,70 +363,11 @@ function transformSheetJsonToDraft(sheet) {
             authorUrl: sheet.ownerProfileUrl,
             authorStatement: sheet.ownerName,
             authorImage: sheet.ownerImageUrl,
-            title: sheetTitle,
+            title: sheet.title,
             groupLogo: sheet.groupLogo || "",
             likes: sheet.likes || [],
 
             children: [
-                {
-                    type: 'SheetMetaDataBox',
-                    children: [
-                        {
-                            type: 'SheetTitle',
-                            title: sheetTitle,
-                            children: [
-                                {
-                                    text: sheetTitle,
-                                }
-
-                            ]
-                        },
-                        {
-                            type: 'SheetAuthorStatement',
-                            authorUrl: sheet.ownerProfileUrl,
-                            authorStatement: sheet.ownerName,
-                            children: [
-                                {
-                                    type: 'ProfilePic',
-                                    authorImage: sheet.ownerImageUrl,
-                                    authorStatement: sheet.ownerName,
-                                    children: [
-                                        {
-                                            text: '',
-                                        },
-                                    ]
-                                },
-                              {type: "byline",
-                                  owner: sheet.ownerName,
-                                  children: [
-                                      {
-                                          text: "by "
-                                      },
-                                      {
-                                          type: "link",
-                                          url: sheet.ownerProfileUrl,
-                                          children: [
-                                              {text: sheet.ownerName}
-                                          ]
-                                      },
-                                  ]
-                              },
-                            ]
-                        },
-                        {
-                            type: 'GroupStatement',
-                            group: sheet.group || "",
-                            groupLogo: sheet.groupLogo || "",
-                            children: [
-                                {
-                                    text: sheet.group || "",
-                                }
-
-                            ]
-                        },
-                    ]
-
-                },
                 {
                     type: 'SheetContent',
                     children: sourceNodes
@@ -656,11 +538,6 @@ const Element = props => {
               return <div className="SheetMedia media fullWidth">{children}</div>
             }
 
-            return (
-                <div className="SheetMetaDataBox segment" {...attributes}>
-                    {children}
-                </div>
-            );
         case 'he':
             const heSelected = useSelected();
             const heEditable = useSlate().children[0]["edittingSource"];
@@ -685,38 +562,6 @@ const Element = props => {
                     {children}
                 </div>
             );
-        case 'SheetMetaDataBox':
-            return (
-                <SheetMetaDataBox>{children}</SheetMetaDataBox>
-            );
-        case 'SheetAuthorStatement':
-            return (
-                <SheetAuthorStatement
-                    authorUrl={element.authorUrl}
-                    authorStatement={element.authorStatement}
-                >{children}</SheetAuthorStatement>
-            );
-        case 'ProfilePic':
-            return (
-                <ProfilePic
-                    url={element.authorImage}
-                    len={30}
-                    name={element.authorStatement}
-                    outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
-                >{children}</ProfilePic>
-            );
-
-        case 'GroupStatement':
-            return (
-                <GroupStatement
-                    group={element.group}
-                    groupLogo={element.groupLogo}
-                >{children}</GroupStatement>
-            );
-        case 'SheetTitle':
-            return (
-                <SheetTitle focused={useSelected()} empty={Node.string(element) ? false:true} title={element.title}>{children}</SheetTitle>
-            );
         case 'TextRef':
             return (
               <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{children}</div>
@@ -729,11 +574,6 @@ const Element = props => {
             return (
                 <div>{children}</div>
             );
-        case 'byline':
-            return (
-                <span>{children}</span>
-            );
-
         case 'bulleted-list':
             return (
                 <ul>{children}</ul>
@@ -961,15 +801,6 @@ const withSefariaSheet = editor => {
         // }
 
 
-        // Prevent line breaks in sheetTitle
-        const [match] = Editor.nodes(editor, {
-          match: n => n.type === 'SheetTitle',
-        })
-        if (match) {
-          return
-        } //
-
-
         getRefInText(editor).then(query =>{
 
             if(query["is_segment"] || query["is_section"]) {
@@ -1080,40 +911,9 @@ const withSefariaSheet = editor => {
       }
 
       if (node.type == "Sheet") {
-        if (node.children.length < 2) {
-          console.log('bad state -- sheet lost children')
-        }
-      }
-
-      if (node.type == "SheetMetaDataBox") {
-        // If SheetMetaDataBox is missing a title or authorStatement or groupStatement, reset it
-          if (node.children.length < 3) {
-              const editorSheetMeta = editor.children[0];
-              const newMetaBox = defaultsheetMetaDataBox(
-                  defaultSheetTitle(node.children[0].type == "SheetTitle" ? Node.string(node.children[0]) : ""),
-                  defaultSheetAuthorStatement(editorSheetMeta['authorUrl'], editorSheetMeta['authorStatement'], editorSheetMeta['authorImage']),
-                  defaultSheetGroupStatement(editorSheetMeta['group'], editorSheetMeta['groupLogo'])
-              );
-              Transforms.delete(editor, {at: path});
-              Transforms.insertNodes(editor, newMetaBox, { at: path });
-          }
-
-          //Only allow SheetTitle, SheetAuthorStatement & GroupStatement in SheetMeta
-          for (const [child, childPath] of Node.children(editor, path)) {
-            if (!["SheetTitle", "SheetAuthorStatement", "GroupStatement"].includes(child.type)) {
-              Transforms.removeNodes(editor, { at: childPath })
-              return
-            }
-          }
-      }
-
-      // If SheetAuthorStatement is missing content reset it
-      if (node.type == "SheetAuthorStatement") {
-          if (node.children.length < 2) {
-              const editorSheetMeta = editor.children[0];
-              Transforms.delete(editor, {at: path});
-              Transforms.insertNodes(editor, defaultSheetAuthorStatement(editorSheetMeta['authorUrl'], editorSheetMeta['authorStatement'], editorSheetMeta['authorImage']), { at: path });
-          }
+        // if (node.children.length < 2) {
+        //   console.log('bad state -- sheet lost children')
+        // }
       }
 
       if (node.type == "SheetContent") {
@@ -1163,7 +963,7 @@ const withSefariaSheet = editor => {
         if (Node.string(node) !== "") {
 
           const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, Node.string(node))
-          const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,1]))
+          const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,0]))
 
           Transforms.move(editor);
           Transforms.delete(editor, {at: path});
@@ -1351,7 +1151,7 @@ const addItemToSheet = (editor, fragment, position) => {
 
 const checkAndFixDuplicateSheetNodeNumbers = (editor) => {
   let existingSheetNodes = []
-  for (const [child, childPath] of Node.children(editor, [0,1])) {
+  for (const [child, childPath] of Node.children(editor, [0,0])) {
     const sheetNode = child.children[0];
     if (existingSheetNodes.includes(sheetNode.node)) {
       const newNodeEditPath = childPath.concat([0]);
@@ -1516,11 +1316,6 @@ const HoverMenu = () => {
         const el = ref.current;
         const {selection} = editor;
 
-        const [match] = Editor.nodes(editor, {
-          match: n => n.type === 'SheetTitle',
-        })
-
-
         if (!el) {
             return
         }
@@ -1529,8 +1324,7 @@ const HoverMenu = () => {
             !selection ||
             !ReactEditor.isFocused(editor) ||
             Range.isCollapsed(selection) ||
-            Editor.string(editor, selection) === '' ||
-            match
+            Editor.string(editor, selection) === ''
         ) {
             el.removeAttribute('style');
             return
@@ -1583,11 +1377,7 @@ const FormatButton = ({format}) => {
 };
 
 function saveSheetContent(doc, lastModified) {
-    const sheetMetaData = doc.children.find(el => el.type == "SheetMetaDataBox");
-
-    const sheetTitle = sheetMetaData.children.find(el => el.type == "SheetTitle").children.reduce((htmlString, fragment) => {
-        return htmlString + serialize(fragment)
-    }, "");
+    const sheetTitle = document.querySelector(".sheetContent .sheetMetaDataBox .title").textContent;
 
     const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
 
@@ -1668,6 +1458,7 @@ function saveSheetContent(doc, lastModified) {
         sources: sources.filter(x => !!x),
         nextNode: doc.nextNode,
     };
+    // title: sheetTitle == "" ? "Untitled" : sheetTitle,
 
     return JSON.stringify(sheet);
 
@@ -1771,16 +1562,38 @@ const SefariaEditor = (props) => {
 
     return (
         // Add the editable component inside the context.
-        <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
-            <HoverMenu/>
-            <Editable
-                renderLeaf={props => <Leaf {...props} />}
-                renderElement={renderElement}
-                spellCheck
-                onKeyDown={onKeyDown}
-                onDOMBeforeInput={beforeInput}
+        <div>
+        <SheetMetaDataBox>
+            <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
+            <SheetAuthorStatement
+                authorUrl={sheet.ownerProfileUrl}
+                authorStatement={sheet.ownerName}
+            >
+              <ProfilePic
+                url={sheet.ownerImageUrl}
+                len={30}
+                name={sheet.ownerName}
+                outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
+              />
+              <span>by <a href={sheet.ownerProfileUrl}>{sheet.ownerName}</a></span>
+            </SheetAuthorStatement>
+            <GroupStatement
+                group={sheet.group}
+                groupLogo={sheet.groupLogo}
             />
-        </Slate>
+        </SheetMetaDataBox>
+
+          <Slate editor={editor} value={value} onChange={(value) => onChange(value)}>
+              <HoverMenu/>
+              <Editable
+                  renderLeaf={props => <Leaf {...props} />}
+                  renderElement={renderElement}
+                  spellCheck
+                  onKeyDown={onKeyDown}
+                  onDOMBeforeInput={beforeInput}
+              />
+          </Slate>
+        </div>
     )
 };
 
