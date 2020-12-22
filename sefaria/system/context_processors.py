@@ -65,7 +65,6 @@ def global_settings(request):
         }
 
 
-@data_only
 def cache_timestamp(request):
     return {"last_cached": library.get_last_cached_time()}
 
@@ -86,11 +85,13 @@ def large_data(request):
 
 @data_only
 def calendar_links(request):
+    # TODO: deprecate?
     return {"calendars": json.dumps(calendars.get_todays_calendar_items(**_get_user_calendar_params(request)))}
 
 
 @data_only
 def user_and_notifications(request):
+    # TODO: deprecate?
     """
     Load data that comes from a user profile.
     Most of this data is currently only needed view /data.js
