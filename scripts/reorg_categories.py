@@ -366,7 +366,7 @@ books_rishonim = ["HaEmunot veHaDeot", "Eight Chapters",
                   "The Wars of the Lord",
                   "Minhat Kenaot",
                   "Yesod Mora",
-                  "Minhat Yehuda Sone haNashim"]
+                  ]
 
 cat_acharonim = create_category(["Jewish Thought", "Acharonim"], "Acharonim", "אחרונים")
 books_acharonim = ["Derech Hashem",

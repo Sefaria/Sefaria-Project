@@ -13,25 +13,22 @@ import MobileHeader from './MobileHeader';
 import Component from 'react-class';
 
 
-class ReaderNavigationCategoryMenu extends Component {
-  // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
-  render() {
+const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
+            toggleLanguage, openDisplaySettings, navHome, width, compare, hideNavHeader,
+            contentLang, interfaceLang}) => {
+
+      // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 
     // Show Talmud with Toggles
-
-    const categories  = this.props.categories[0] === "Talmud" && this.props.categories.length === 1 ?
-                        ["Talmud", "Bavli"] : this.props.categories;
+    const cats  = categories[0] === "Talmud" && categories.length === 1 ?
+                        ["Talmud", "Bavli"] : categories;
     let catTitle = '', heCatTitle = '', toggle = '';
 
-    if (categories[0] === "Talmud" && categories.length <= 2) {
-      const setBavli = () => {
-        this.props.setCategories(["Talmud", "Bavli"]);
-      };
-      const setYerushalmi = ()=> {
-        this.props.setCategories(["Talmud", "Yerushalmi"]);
-      };
-      const bClasses = classNames({navToggle:1, active: categories[1] === "Bavli"});
-      const yClasses = classNames({navToggle:1, active: categories[1] === "Yerushalmi", second: 1});
+    if (cats[0] === "Talmud" && cats.length <= 2) {
+      const setBavli = () => { setCategories(["Talmud", "Bavli"]); };
+      const setYerushalmi = ()=> { setCategories(["Talmud", "Yerushalmi"]); };
+      const bClasses = classNames({navToggle:1, active: cats[1] === "Bavli"});
+      const yClasses = classNames({navToggle:1, active: cats[1] === "Yerushalmi", second: 1});
 
       toggle =(<div className="navToggles">
                             <span className={bClasses} onClick={setBavli}>
@@ -44,58 +41,58 @@ class ReaderNavigationCategoryMenu extends Component {
                               <span className="he">ירושלמי</span>
                             </span>
                          </div>);
-      catTitle   = (categories.length > 1) ? categories[0] +  " " + categories[1] : categories[0];
-      heCatTitle = (categories.length > 1) ? Sefaria.hebrewTerm(categories[0]) + " " + Sefaria.hebrewTerm(categories[1]): Sefaria.hebrewTerm(categories[0]);
+      catTitle   = (cats.length > 1) ? cats[0] +  " " + cats[1] : cats[0];
+      heCatTitle = (cats.length > 1) ? Sefaria.hebrewTerm(cats[0]) + " " + Sefaria.hebrewTerm(cats[1]): Sefaria.hebrewTerm(cats[0]);
     } else {
       toggle = null;
-      if (this.props.category === "Commentary") {
-        catTitle   = this.props.categories[0] + " Commentary";
-        heCatTitle = Sefaria.hebrewTerm(this.props.categories[0]) + " " + Sefaria.hebrewTerm("Commentary"); // HEBREW NEEDED
+      if (category === "Commentary") {
+        const onCat = cats.slice(-2)[0];
+        catTitle   = onCat + " Commentary";
+        heCatTitle = Sefaria.hebrewTerm(onCat) + " " + Sefaria.hebrewTerm("Commentary");  // HEBREW NEEDED
       } else {
-        catTitle   = this.props.category;
-        heCatTitle = Sefaria.hebrewTerm(this.props.category);
+        catTitle   = category;
+        heCatTitle = Sefaria.hebrewTerm(category);
       }
 
     }
-    const catContents    = Sefaria.tocItemsByCategories(categories);
-    const nestLevel      = this.props.category == "Commentary" ? 1 : 0;
-    const footer         = this.props.compare ? null : <Footer />;
-    const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, noLangToggleInHebrew: 1});
+    const catContents    = Sefaria.tocItemsByCategories(cats);
+    const nestLevel      = category === "Commentary" ? 1 : 0;
+    const footer         = compare ? null : <Footer />;
+    const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: hideNavHeader, noLangToggleInHebrew: 1});
     const contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (<div className={navMenuClasses}>
               <MobileHeader
                 mode={'innerTOC'}
-                hideNavHeader={this.props.hideNavHeader}
-                interfaceLang={this.props.interfaceLang}
-                category={categories[0]}
-                openDisplaySettings={this.props.openDisplaySettings}
-                navHome={this.props.navHome}
-                compare={this.props.compare}
+                hideNavHeader={hideNavHeader}
+                interfaceLang={interfaceLang}
+                category={cats[0]}
+                openDisplaySettings={openDisplaySettings}
+                navHome={navHome}
+                compare={compare}
                 catTitle={catTitle}
                 heCatTitle={heCatTitle}
               />
               <div className={contentClasses}>
                 <div className="contentInner">
-                  {this.props.hideNavHeader ? (<h1>
-                      {this.props.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
+                  {hideNavHeader ? (<h1>
+                      {interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
                       <span className="en">{catTitle}</span>
                       <span className="he">{heCatTitle}</span>
                     </h1>) : null}
                   {toggle}
-                  <CategoryAttribution categories={categories} />
+                  <CategoryAttribution categories={cats} />
                   <ReaderNavigationCategoryMenuContents
                     contents={catContents}
-                    categories={categories}
-                    width={this.props.width}
-                    category={this.props.category}
-                    contentLang={this.props.contentLang}
+                    categories={cats}
+                    width={width}
+                    category={category}
+                    contentLang={contentLang}
                     nestLevel={nestLevel} />
                 </div>
                 {footer}
               </div>
             </div>);
-  }
-}
+};
 ReaderNavigationCategoryMenu.propTypes = {
   category:            PropTypes.string.isRequired,
   categories:          PropTypes.array.isRequired,
@@ -204,7 +201,8 @@ class ReaderNavigationCategoryMenuContents extends Component {
               const url = "/texts/" + newCats.join("/");
               const incomplete = this.props.contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew" ? !item.heComplete : !item.enComplete;
               const classes = classNames({catLink: 1, blockLink: 1, incomplete: incomplete});
-              content.push((<a href={url} className={classes} data-cats={newCats.join("|")} key={"cat." + this.props.nestLevel + "." + i}>
+              const catsString = newCats.join("|");
+              content.push((<a href={url} className={classes} data-cats={catsString} key={"cat." + this.props.nestLevel + "." + catsString}>
                               <span className='en'>{item.category}</span>
                               <span className='he'>{item.heCategory}</span>
                             </a>
@@ -234,7 +232,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
             content.push((<a href={url}
                             className={classes}
                             data-group={item.name}
-                            key={"group." + this.props.nestLevel + "." + i}>
+                            key={"group." + this.props.nestLevel + "." + item.name}>
                             <span className='en'>{item.title}</span>
                             <span className='he'>{item.heTitle}</span>
                           </a>
@@ -252,7 +250,7 @@ class ReaderNavigationCategoryMenuContents extends Component {
             content.push((<a href={url}
                             className={classes}
                             data-ref={ref}
-                            key={"text." + this.props.nestLevel + "." + i}>
+                            key={"text." + this.props.nestLevel + "." + title}>
                             <span className='en'>{title}</span>
                             <span className='he'>{heTitle}</span>
                           </a>

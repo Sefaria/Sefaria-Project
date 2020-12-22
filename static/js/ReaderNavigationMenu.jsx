@@ -1,33 +1,25 @@
 import {
-  CategoryColorLine,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuCloseButton,
-  ReaderNavigationMenuSearchButton,
-  ReaderNavigationMenuDisplaySettingsButton,
   ReaderNavigationMenuSection,
   TextBlockLink,
   TwoOrThreeBox,
   TwoBox,
   LanguageToggleButton,
 } from './Misc';
-//const React                        = require('react');
 import React, { useState, useEffect, useRef } from 'react';
-import ReactDOM  from 'react-dom';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import ReaderNavigationCategoryMenu  from './ReaderNavigationCategoryMenu';
 import Footer  from './Footer';
-import Component from 'react-class';
 import MobileHeader from './MobileHeader';
 import {TopicCategory} from './TopicPage';
 
 // The Navigation menu for browsing and searching texts, plus some site links.
 const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCategories, setNavTopic, 
-        setTopic, setOption, onClose, openNav, openSearch, showMoreTexts, setMoreTexts, 
+        setTopic, onClose, openNav, openSearch, showMoreTexts, setMoreTexts,
         showMoreTopics, setMoreTopics, toggleLanguage, openMenu, 
-        handleClick, openDisplaySettings, toggleSignUpModal,
+        handleClick, openDisplaySettings,
         hideHeader, hideNavHeader, multiPanel, home, compare, interfaceLang}) => {
 
   const [width, setWidth] = useState(1000);
@@ -281,13 +273,11 @@ ReaderNavigationMenu.propTypes = {
   settings:            PropTypes.object.isRequired,
   setCategories:       PropTypes.func.isRequired,
   setNavTopic:         PropTypes.func.isRequired,
-  setOption:           PropTypes.func.isRequired,
   onClose:             PropTypes.func.isRequired,
   openNav:             PropTypes.func.isRequired,
   openSearch:          PropTypes.func.isRequired,
   openMenu:            PropTypes.func.isRequired,
   handleClick:         PropTypes.func.isRequired,
-  toggleSignUpModal:   PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func,
   toggleLanguage:      PropTypes.func,
   hideNavHeader:       PropTypes.bool,
