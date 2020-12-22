@@ -321,7 +321,7 @@ urlpatterns += [
 
 # Sefaria.js -- Packaged JavaScript
 urlpatterns += [
-    url(r'^data\.((\d+)\.)?js$', sefaria_views.data_js), # Allow for regular data.js and also data.<timestamp>.js for caching
+    url(r'^data\.(?:(?:\d+)\.)?js$', sefaria_views.data_js), # Allow for regular data.js and also data.<timestamp>.js for caching
     url(r'^sefaria\.js$', sefaria_views.sefaria_js),
 ]
 
