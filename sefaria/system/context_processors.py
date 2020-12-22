@@ -66,7 +66,10 @@ def global_settings(request):
 
 
 def cache_timestamp(request):
-    return {"last_cached": library.get_last_cached_time()}
+    return {
+        "last_cached": library.get_last_cached_time(),
+        "last_cached_short": round(library.get_last_cached_time())
+    }
 
 
 @data_only
