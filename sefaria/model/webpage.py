@@ -727,7 +727,7 @@ sites_data = [
         "domains": ["jewfaq.org"],
         "title_branding": ["Judaism 101:"],
         "initial_title_branding": True,
-        "normalization_rules": ["remove url params"],
+        "normalization_rules": ["remove url params", "remove www"],
     },
     {
         "name": "Jewish Women's Archive",
