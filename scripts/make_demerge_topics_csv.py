@@ -48,6 +48,26 @@ def get_args(argv):
             out_file = arg
     return slug_to_demerge, out_file
 
+def do_demerge(fnames, cols, slug_dict_list):
+    import csv
+    from bson.objectid import ObjectId
+    # cols = ['Moon or Month?', 'Prophet or Amora?']
+    # slugs = [{'moon': 'the-moon-(לבנה)', 'month': 'months'}, {'amora': 'shmuel-(amora)', 'prophet': 'shmuel-(prophet)'}]
+    for slug_dict, col, fname in zip(slug_dict_list, cols, fnames):
+        for k, v in slug_dict.items():
+            assert Topic.init(v) is not None
+        with open(fname, 'r') as fin:
+            c= csv.DictReader(fin)
+            for row in c:
+                if len(row[col]) == 0:
+                    continue
+                link = RefTopicLink().load({"_id": ObjectId(row['Id'])})
+                if link is None:
+                    print(row['id'])
+                    continue
+                link.toTopic = slug_dict[row[col]]
+                print(link.toTopic)
+                link.save()
 
 if __name__ == "__main__":
     slug_to_demerge, out_file = get_args(sys.argv)
