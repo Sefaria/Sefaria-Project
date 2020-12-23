@@ -2615,18 +2615,23 @@ Sefaria.unpackDataFromProps = function(props) {
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
   const dataPassedAsProps = [
       "_uid",
-      "interfaceLang",
-      "calendars",
+      "email",
+      "slug",
       "is_moderator",
       "is_editor",
+      "full_name",
+      "profile_pic_url",
+      "is_history_enabled",
+      "following",
+
+      "calendars",
       "notificationCount",
       "notificationsHtml",
       "saved",
       "last_place",
-      "full_name",
-      "profile_pic_url",
-      "following",
-      "is_history_enabled",
+      "interruptingMessage",
+      "interfaceLang",
+
       "_siteSettings",
       "_debug",
   ];
