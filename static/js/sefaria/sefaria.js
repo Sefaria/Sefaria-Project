@@ -2630,6 +2630,7 @@ Sefaria.unpackDataFromProps = function(props) {
       "saved",
       "last_place",
       "interfaceLang",
+      "interruptingMessage",
 
       "_siteSettings",
       "_debug",

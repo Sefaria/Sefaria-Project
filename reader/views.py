@@ -378,7 +378,7 @@ def base_props(request):
             "notificationsHtml": profile.recent_notifications().to_HTML(),
             "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
             "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True),
-            "interruptingMessage": InterruptingMessage(attrs=interrupting_message_dict, request=request).json(),
+            "interruptingMessage": InterruptingMessage(attrs=interrupting_message_dict, request=request).contents(),
         }
     else:
         user_data = {
@@ -397,7 +397,7 @@ def base_props(request):
             "notificationsHtml": "",
             "saved": [],
             "last_place": [],
-            "interruptingMessage": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json(),
+            "interruptingMessage": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).contents(),
         }
     user_data.update({
         "last_cached": library.get_last_cached_time(),
