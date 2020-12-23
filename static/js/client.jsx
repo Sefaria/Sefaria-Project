@@ -6,10 +6,10 @@ const SefariaReact = require('./ReaderApp');
 
 
 $(function() {
-  var container = document.getElementById('s2');
-  var loadingPlaceholder = document.getElementById('appLoading');
-  var footerContainer = document.getElementById('footerContainer');
-  var component;
+  const container = document.getElementById('s2');
+  const loadingPlaceholder = document.getElementById('appLoading');
+  const footerContainer = document.getElementById('footerContainer');
+  let component = null;
   DjangoCSRF.init();
   var renderFunc = ReactDOM.hydrate;
   if (loadingPlaceholder){
