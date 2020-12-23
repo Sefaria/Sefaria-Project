@@ -2038,6 +2038,10 @@ def related_api(request, tref):
             "manuscripts": ManuscriptPageSet.load_set_for_client(tref),
             "media": get_media_for_ref(tref),
         }
+        for value in response.values():
+            for item in value:
+                if 'expandedRefs' in item:
+                    del item['expandedRefs']
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 

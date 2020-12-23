@@ -1057,8 +1057,9 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
       `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
-  function onClick() {
+  function onClick(event) {
     if (isPosting) { return; }
+    event.preventDefault();
     setPosting(true);
     Sefaria.track.event("Saved", "saving", historyObject.ref);
     Sefaria.toggleSavedItem(historyObject)
