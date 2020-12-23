@@ -204,11 +204,11 @@ ReaderNavigationCategoryMenuContents.defaultProps = {
   contents: []
 };
 
-const MenuItem = ({url, dref, nestLevel, title, heTitle, group, cats, incomplete}) => {
+const MenuItem = ({href, dref, nestLevel, title, heTitle, group, cats, incomplete}) => {
     const keytype  = !!group ? "group" : !!cats ? "cat" : "text";
     const classes = classNames({ blockLink: 1, refLink: !!dref, groupLink: !!group, catLink: !!cats, incomplete: incomplete});
     return (
-        <a href={url}
+        <a href={href}
             className   = {classes}
             data-ref    = {dref ? dref : null}
             data-group  = {group ? group : null}
