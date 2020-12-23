@@ -2629,7 +2629,6 @@ Sefaria.unpackDataFromProps = function(props) {
       "notificationsHtml",
       "saved",
       "last_place",
-      "interruptingMessage",
       "interfaceLang",
 
       "_siteSettings",
