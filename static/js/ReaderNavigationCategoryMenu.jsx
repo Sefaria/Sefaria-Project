@@ -93,60 +93,6 @@ ReaderNavigationCategoryMenu.propTypes = {
 
 const ReaderNavigationCategoryMenuContents = ({category, contents, categories, contentLang, width, nestLevel}) =>  {
   // Inner content of Category menu (just category title and boxes of texts/subcategories)
-  const getRenderedTextTitleString = (title, heTitle) => {
-    const whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
-    const displayCategory = category;
-    const displayHeCategory = Sefaria.hebrewTerm(category);
-    if (whiteList.indexOf(title) === -1) {
-      const replaceTitles = {
-        "en": ['Jerusalem Talmud', displayCategory],
-        "he": ['תלמוד ירושלמי', displayHeCategory]
-      };
-      const replaceOther = {
-        "en" : [", ", "; ", " on ", " to ", " of "],
-        "he" : [", ", " על "]
-      };
-      //this will replace a category name at the beginning of the title string and any connector strings (0 or 1) that follow.
-      const titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
-      const heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
-      title   = title === displayCategory ? title : title.replace(titleRe, "");
-      heTitle = heTitle === displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
-    }
-    return [title, heTitle];
-  };
-  const hebrewContentSort = (enCats) => {
-    // Sorts contents of this category by Hebrew Alphabetical
-    //console.log(cats);
-    const heCats = enCats.slice().map(function(item, indx) {
-      item.enOrder = indx;
-      return item;
-    });
-
-    // If all of the cats have a base_text_order, don't re-sort.
-    if (heCats.every(c => !!c.base_text_order))   {
-        return heCats;
-    }
-    heCats.sort(function(a, b) {
-      if ("order" in a || "order" in b) {
-        const aOrder = "order" in a ? a.order : 9999;
-        const bOrder = "order" in b ? b.order : 9999;
-        return aOrder > bOrder ? 1 : -1;
-
-      } else if (("category" in a) !== ("category" in b)) {
-        return a.enOrder > b.enOrder ? 1 : -1;
-
-      } else if (a.heComplete !== b.heComplete) {
-        return a.heComplete ? -1 : 1;
-
-      } else if (a.heTitle && b.heTitle) {
-        return a.heTitle > b.heTitle ? 1 : -1;
-
-      }
-      return a.enOrder > b.enOrder ? 1 : -1;
-    });
-    //console.log(heCats)
-    return heCats;
-  };
 
   const content = [];
   const cats = categories || [];
@@ -164,25 +110,14 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
 
         // There's just one text in this category, render the text.
         if(item.contents && item.contents.length === 1 && !("category" in item.contents[0])) {
-
             const chItem = item.contents[0];
             if (chItem.hidden) { continue; }
-            const [title, heTitle] = getRenderedTextTitleString(chItem.title, chItem.heTitle);
-            const lastPlace = Sefaria.lastPlaceForText(chItem.title);
-            const ref =  lastPlace ? lastPlace.ref : chItem.firstSection;
             content.push((
-                <MenuItem
-                    href        = {"/" + Sefaria.normRef(ref)}
-                    incomplete  = {showInHebrew ? !chItem.heComplete : !chItem.enComplete}
-                    dref         = {ref}
-                    nestLevel   = {nestLevel}
-                    title       = {title}
-                    heTitle     = {heTitle}
-                />
+                <TextMenuItem item={chItem} category={category} showInHebrew={showInHebrew} nestLevel={nestLevel}/>
             ));
 
+        // Create a link to a subcategory
         } else {
-          // Create a link to a subcategory
           content.push((
               <MenuItem
                 href        = {"/texts/" + newCats.join("/")}
@@ -193,8 +128,9 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
               />
           ));
         }
+
+      // Add a nested subcategory
       } else {
-        // Add a Category
         content.push((<div className='category' key={"cat." + nestLevel + "." + item.category}>
                         <h3>
                           <span className='en'>{item.category}</span>
@@ -209,8 +145,9 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
                           contentLang   = {contentLang} />
                       </div>));
       }
+
+    // Add a Group
     } else if (item.isGroup) {
-        // Add a Group
         content.push((
             <MenuItem
                 href        = {"/groups/" + item.name.replace(/\s/g, "-")}
@@ -220,24 +157,16 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
                 heTitle     = {item.heTitle}
             />
         ));
+
+    // Skip hidden texts
     } else if (item.hidden) {
         continue;
-    } else {
-        // Add a Text
-        const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle);
-        const lastPlace = Sefaria.lastPlaceForText(item.title);
-        const ref =  lastPlace ? lastPlace.ref : item.firstSection;
-        content.push((
-            <MenuItem
-                href        = {"/" + Sefaria.normRef(ref)}
-                incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
-                dref        = {ref}
-                nestLevel   = {nestLevel}
-                title       = {title}
-                heTitle     = {heTitle}
-            />
-        ));
 
+    // Add a Text
+    } else {
+        content.push((
+            <TextMenuItem item={item} category={category} showInHebrew={showInHebrew} nestLevel={nestLevel}/>
+        ));
     }
   }
 
@@ -292,6 +221,23 @@ const MenuItem = ({url, dref, nestLevel, title, heTitle, group, cats, incomplete
     );
 };
 
+const TextMenuItem = ({item, category, showInHebrew, nestLevel}) => {
+        const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, category);
+        const lastPlace = Sefaria.lastPlaceForText(item.title);
+        const ref =  lastPlace ? lastPlace.ref : item.firstSection;
+        return (
+            <MenuItem
+                href        = {"/" + Sefaria.normRef(ref)}
+                incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
+                dref        = {ref}
+                nestLevel   = {nestLevel}
+                title       = {title}
+                heTitle     = {heTitle}
+            />
+        );
+
+};
+
 const TalmudToggle = ({categories, setCategories}) => {
     if ( categories.length !== 2 || categories[0] !== "Talmud") {
         return null;
@@ -314,5 +260,60 @@ const TalmudToggle = ({categories, setCategories}) => {
                 </span>
     </div>);
 };
+
+const getRenderedTextTitleString = (title, heTitle, category) => {
+    const whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
+    const displayCategory = category;
+    const displayHeCategory = Sefaria.hebrewTerm(category);
+    if (whiteList.indexOf(title) === -1) {
+      const replaceTitles = {
+        "en": ['Jerusalem Talmud', displayCategory],
+        "he": ['תלמוד ירושלמי', displayHeCategory]
+      };
+      const replaceOther = {
+        "en" : [", ", "; ", " on ", " to ", " of "],
+        "he" : [", ", " על "]
+      };
+      //this will replace a category name at the beginning of the title string and any connector strings (0 or 1) that follow.
+      const titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
+      const heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
+      title   = title === displayCategory ? title : title.replace(titleRe, "");
+      heTitle = heTitle === displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
+    }
+    return [title, heTitle];
+};
+const hebrewContentSort = (enCats) => {
+    // Sorts contents of this category by Hebrew Alphabetical
+    //console.log(cats);
+    const heCats = enCats.slice().map(function(item, indx) {
+      item.enOrder = indx;
+      return item;
+    });
+
+    // If all of the cats have a base_text_order, don't re-sort.
+    if (heCats.every(c => !!c.base_text_order))   {
+        return heCats;
+    }
+    heCats.sort(function(a, b) {
+      if ("order" in a || "order" in b) {
+        const aOrder = "order" in a ? a.order : 9999;
+        const bOrder = "order" in b ? b.order : 9999;
+        return aOrder > bOrder ? 1 : -1;
+
+      } else if (("category" in a) !== ("category" in b)) {
+        return a.enOrder > b.enOrder ? 1 : -1;
+
+      } else if (a.heComplete !== b.heComplete) {
+        return a.heComplete ? -1 : 1;
+
+      } else if (a.heTitle && b.heTitle) {
+        return a.heTitle > b.heTitle ? 1 : -1;
+
+      }
+      return a.enOrder > b.enOrder ? 1 : -1;
+    });
+    //console.log(heCats)
+    return heCats;
+  };
 
 export default ReaderNavigationCategoryMenu;
