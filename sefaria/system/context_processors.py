@@ -85,47 +85,6 @@ def large_data(request):
     }
 
 
-@data_only
-def calendar_links(request):
-    # TODO: deprecate?
-    return {"calendars": json.dumps(calendars.get_todays_calendar_items(**_get_user_calendar_params(request)))}
-
-
-@data_only
-def user_and_notifications(request):
-    # TODO: deprecate?
-    """
-    Load data that comes from a user profile.
-    Most of this data is currently only needed view /data.js
-    (currently Node does not get access to logged in version of /data.js)
-    """
-    if not request.user.is_authenticated:
-        return {
-            "interrupting_message_json": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json()
-        }
-
-    profile = UserProfile(user_obj=request.user)
-    notifications = profile.recent_notifications()
-    interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
-    interrupting_message      = InterruptingMessage(attrs=interrupting_message_dict, request=request)
-    interrupting_message_json = interrupting_message.json()
-    return {
-        "notifications_json": notifications.to_JSON(),
-        "notifications_html": notifications.to_HTML(),
-        "notifications_count": profile.unread_notification_count(),
-        "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
-        "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True),
-        "interrupting_message_json": interrupting_message_json,
-        "slug": profile.slug,
-        "full_name": profile.full_name,
-        "profile_pic_url": profile.profile_pic_url,
-        "following": profile.followees.uids,
-        "is_moderator": request.user.is_staff,
-        "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
-        "is_history_enabled": profile.settings["reading_history"]
-    }
-
-
 HEADER = {
     'logged_in': {'english': None, 'hebrew': None},
     'logged_out': {'english': None, 'hebrew': None}
