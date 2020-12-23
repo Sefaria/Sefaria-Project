@@ -2672,19 +2672,6 @@ Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(re
 
 
 Sefaria.setup = function(data) {
-    // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
-    // data should but defined server-side and undefined client-side
-
-    /*if (typeof data === "undefined") {
-        data = typeof DJANGO_DATA_VARS === "undefined" ? undefined : DJANGO_DATA_VARS;
-    }
-    if (typeof data !== 'undefined') {
-        for (var prop in data) {
-            if (data.hasOwnProperty(prop)) {
-                Sefaria[prop] = data[prop];
-            }
-        }
-    }*/
     Sefaria.loadServerData(data);
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupMisc();
