@@ -807,9 +807,10 @@ class AbstractTest(object):
         :param cats:
         :return:
         """
-        # The logic that we're following here is implemented on ReaderNavigationCategoryMenuContents
+        # The logic that we're following here was implemented on ReaderNavigationCategoryMenuContents
+        # It is no replaced with `isPrimary` flag on Category objects.
         # Cats which normally would nest, but are special cased to be subcats.
-        special_subcats = ["Mishneh Torah", "Shulchan Arukh", "Tur"]
+        special_subcats = ["Mishneh Torah", "Shulchan Arukh", "Tur", "Sefer Yetzirah"]
 
         click_cats = []
         for i, cat in enumerate(cats):

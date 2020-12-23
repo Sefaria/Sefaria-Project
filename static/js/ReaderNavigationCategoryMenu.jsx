@@ -152,15 +152,15 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
   const cats = categories || [];
   const showInHebrew = contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew";
   const sortedContents = showInHebrew ? hebrewContentSort(contents) : contents;
-  const subcats = ["Mishneh Torah", "Shulchan Arukh", "Tur"];
 
   for (const item of sortedContents) {
+
     if (item.category) {
       // Category
       const newCats = cats.concat(item.category);
 
       // Special Case categories which should nest but normally wouldn't given their depth   ["Mishneh Torah", "Shulchan Arukh", "Tur"]
-      if (Sefaria.util.inArray(item.category, subcats) > -1 || nestLevel > 0) {
+      if (item.isPrimary || nestLevel > 0) {
 
         // There's just one text in this category, render the text.
         if(item.contents && item.contents.length === 1 && !("category" in item.contents[0])) {
@@ -231,7 +231,7 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
             <MenuItem
                 href        = {"/" + Sefaria.normRef(ref)}
                 incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
-                dref         = {ref}
+                dref        = {ref}
                 nestLevel   = {nestLevel}
                 title       = {title}
                 heTitle     = {heTitle}

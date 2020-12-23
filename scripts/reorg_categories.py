@@ -1061,6 +1061,16 @@ for works, cat in groups:
             except Exception:
                 print("Can not figure out ￿Talmud Commnentary: {}".format(n))
 
+for p in [
+    ["Halakhah", "Mishneh Torah"],
+    ["Halakhah", "Shulchan Arukh"],
+    ["Halakhah", "Tur"],
+    ["Kabbalah", "Sefer Yetzirah"]
+]:
+    c = Category().load({"path": p})
+    c.isPrimary = True
+    c.save(override_dependencies=True)
+
 library.rebuild(include_toc=True)
 
 ###

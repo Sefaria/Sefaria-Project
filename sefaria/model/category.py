@@ -20,7 +20,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
     track_pkeys = True
     pkeys = ["lastPath"]  # Needed for dependency tracking
     required_attrs = ["lastPath", "path", "depth"]
-    optional_attrs = ["enDesc", "heDesc", "titles", "sharedTitle"]
+    optional_attrs = ["enDesc", "heDesc", "titles", "sharedTitle", "isPrimary"]
 
     def __str__(self):
         return "Category: {}".format(", ".join(self.path))
@@ -396,6 +396,8 @@ class TocCategory(TocNode):
         super(TocCategory, self).__init__(serial, **kwargs)
         if self._category_object:
             self.add_primary_titles(self._category_object.get_primary_title("en"), self._category_object.get_primary_title("he"))
+            if getattr(self._category_object, "isPrimary", False):
+                self.isPrimary = True
         if self.primary_title() in CATEGORY_ORDER:
             # If this text is listed in ORDER, consider its position in ORDER as its order field.
             self.order = CATEGORY_ORDER.index(self.primary_title())
@@ -404,6 +406,7 @@ class TocCategory(TocNode):
         "order",
         "enComplete",
         "heComplete",
+        "isPrimary"
     ]
 
     title_attrs = {
