@@ -631,6 +631,27 @@ for t in ["HaGra on Sefer Yetzirah Gra Version",
 
 moveIndexInto("Maaseh Rokeach on Mishnah", ["Kabbalah"])
 
+c = create_category(["Kabbalah", "Ramchal"])
+for t in ["Assarah Perakim L'Ramchal",
+          "Da'at Tevunoth",
+          "Kalach Pitchei Chokhmah",
+          "Derech Etz Chayim (Ramchal)"]:
+    moveIndexInto(t, c)
+
+c = create_category(["Kabbalah", "Ramak"], "Ramak", 'רמ"ק')
+for t in ["Or Neerav",
+        "Pardes Rimonim"]:
+    moveIndexInto(t, c)
+
+c = create_category(["Kabbalah", "Arizal / Chaim Vital"], "Arizal / Chaim Vital", 'אריז"ל - חיים ויטל')
+for t in ["Pri Etz Chaim",
+    "Sefer Etz Chaim",
+    "Sha'ar HaGilgulim",
+    "Shaarei Kedusha"]:
+    moveIndexInto(t, c)
+
+
+
 # Responsa
 rashba = {
     'Teshuvot haRashba part I': 1,
