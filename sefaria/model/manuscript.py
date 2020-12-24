@@ -207,6 +207,7 @@ class ManuscriptPageSet(AbstractMongoSet):
                     manuscripts[manuscript.slug] = manuscript
                 man_contents = manuscript.contents()
                 contents['manuscript'] = man_contents
+                contents['manuscriptSource'] = 'Some Library Somewhere'
 
                 results.append(contents)
         return results

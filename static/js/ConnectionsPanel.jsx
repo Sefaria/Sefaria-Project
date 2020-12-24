@@ -1405,9 +1405,16 @@ function ManuscriptImage(props) {
     </a>
     {
       (props.interfaceLang === 'hebrew')
-        ? <p className={"hebrew manuscriptCaptionHe"}>{`${manuscript.manuscript.he_title} ${manuscript['page_id']}`}</p>
-        : <p className={"english manuscriptCaption"}>{`${manuscript.manuscript.title} ${manuscript.page_id}`}</p>
+        ? <p className={"hebrew manuscriptCaptionHe"}>{manuscript.manuscript.he_title}</p>
+        : <p className={"english manuscriptCaption"}>{manuscript.manuscript.title}</p>
     }
+      <div className="meta">
+        <span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br/>
+        <span className={'int-he'}>{`מקור: `}</span>
+        <span className={'int-en'}>{`Source: `}</span>
+        <a href={manuscript.manuscript['source']} target="_blank">{manuscript.manuscript['source'].replace("https://", "")}</a>
+      </div>
+
 
   </div>
 }

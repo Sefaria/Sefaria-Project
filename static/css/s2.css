@@ -4884,7 +4884,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #999;
 }
 .webpageList .webpage .stats,
-.mediaList .media .meta {
+.mediaList .media .meta,
+.manuscript .meta {
   font-size: 13px;
   color: #999;
   margin-top: 5px;
@@ -4915,11 +4916,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 18px;
   line-height: 22px;
   margin-top: 13px;
+  text-align: left;
 }
 .manuscriptCaptionHe {
   font-family: "Heebo", "sans-serif";
   font-size: 18px;
   line-height: 22px;
+  text-align: right;
 }
 .fullSizeImageLink {
   width: 292px;
@@ -4937,7 +4940,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .manuscript {
   border-bottom: 1px solid #DDDDDD;
   margin: 2rem;
-  padding-bottom: 1rem;
+  padding-bottom: 2rem;
+}
+
+.manuscript a {
+  color: inherit;
 }
 /*.manuscriptBorder {*/
 /*  border: 1px solid #dddddd;*/
