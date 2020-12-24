@@ -653,6 +653,7 @@ sites_data = [
     {
         "name": "Rav Kook Torah",
         "domains": ["ravkooktorah.org"],
+        "normalization_rules": ["remove www"]
     },
     {
         "name": "YUTorah Online",
