@@ -540,7 +540,7 @@ class UserProfile(object):
         slug = "%s-%s" % (self.first_name, self.last_name)
         slug = slug.lower()
         slug = slug.replace(" ", "-")
-        slug = re.sub(r"[^a-z\u05D0-\u05ea0-9\-]", "", slug)
+        slug = re.sub(r"[^a-z0-9\-]", "", slug)
         self.slug = slug
         dupe_count = 0
         while self.errors():

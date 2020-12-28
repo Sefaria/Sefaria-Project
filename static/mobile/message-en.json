@@ -1,9 +1,8 @@
 {
 	"title": "",
-	"text": ["Did you know that you are one of 3M+ people who have visited Sefaria this year?",
-    "We depend on donations from users like you to keep the library free and growing."],
+	"text": ["Sefaria is a non-profit organization that relies on donations from users like you to keep our library free and growing. Commit to Jewish learning by making a gift today!"],
 	"buttonLink": "https://sefaria.nationbuilder.com/supportsefaria_aeb",
-	"buttonText": "Give Now",
-	"name": "end-of-year-2020-5-2",
+	"buttonText": "DONATE",
+	"name": "end-of-year-2020-6-1",
 	"schemaVersion": 1
 }
