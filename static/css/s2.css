@@ -7522,104 +7522,137 @@ span.purim-emoji img{
 .sheetItem.ref-display-none .ref {
   display: none;
 }
-section.SheetSource .en {
+section.SheetSource .en,
+section.SheetOutsideBiText .en {
   background-color: #FBFBFA;
 }
 
-section.SheetSource {
+section.SheetSource,
+section.SheetOutsideBiText {
   border-inline-start: 4px solid;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
   margin-bottom: 30px;
 }
 
 .readerPanel.hebrew section.SheetSource .sheetItem > .he,
-.readerPanel.english section.SheetSource .sheetItem > .en {
+.readerPanel.english section.SheetSource .sheetItem > .en,
+.readerPanel.hebrew section.SheetOutsideBiText .sheetItem > .he,
+.readerPanel.english section.SheetOutsideBiText .sheetItem > .en {
   display: block;
 }
 .readerPanel.hebrew section.SheetSource .sheetItem > .en,
-.readerPanel.english section.SheetSource .sheetItem > .he {
+.readerPanel.english section.SheetSource .sheetItem > .he,
+.readerPanel.hebrew section.SheetOutsideBiText .sheetItem > .en,
+.readerPanel.english section.SheetOutsideBiText .sheetItem > .he  {
   display: none;
 }
 
 .interface-english section.SheetSource .sheetItem > .he,
-.interface-english section.SheetSource .sheetItem > .en {
+.interface-english section.SheetSource .sheetItem > .en,
+.interface-english section.SheetOutsideBiText .sheetItem > .he,
+.interface-english section.SheetOutsideBiText .sheetItem > .en {
   padding: 15px 20px 15px 16px;
 }
 .interface-hebrew section.SheetSource .sheetItem > .he,
-.interface-hebrew section.SheetSource .sheetItem > .en {
+.interface-hebrew section.SheetSource .sheetItem > .en,
+.interface-hebrew section.SheetOutsideBiText .sheetItem > .he,
+.interface-hebrew section.SheetOutsideBiText .sheetItem > .en {
   padding: 15px 16px 15px 20px;
 }
 
 .interface-english section.SheetSource .sheetItem.indented-1 > .he,
-.interface-english section.SheetSource .sheetItem.indented-1 > .en {
+.interface-english section.SheetSource .sheetItem.indented-1 > .en,
+.interface-english section.SheetOutsideBiText .sheetItem.indented-1 > .he,
+.interface-english section.SheetOutsideBiText .sheetItem.indented-1 > .en {
   padding: 15px 50px 15px 46px;
   margin-left:  -30px;
   margin-right: -30px;
 }
 .interface-hebrew section.SheetSource .sheetItem.indented-1 > .he,
-.interface-hebrew section.SheetSource .sheetItem.indented-1 > .en {
+.interface-hebrew section.SheetSource .sheetItem.indented-1 > .en,
+.interface-hebrew section.SheetOutsideBiText .sheetItem.indented-1 > .he,
+.interface-hebrew section.SheetOutsideBiText .sheetItem.indented-1 > .en {
   padding: 15px 46px 15px 50px;
   margin-left:  -30px;
   margin-right: -30px;
 }
 
 .interface-english section.SheetSource .sheetItem.indented-2 > .he,
-.interface-english section.SheetSource .sheetItem.indented-2 > .en {
+.interface-english section.SheetSource .sheetItem.indented-2 > .en,
+.interface-english section.SheetOutsideBiText .sheetItem.indented-2 > .he,
+.interface-english section.SheetOutsideBiText .sheetItem.indented-2 > .en {
   padding: 15px 80px 15px 76px;
   margin-left:  -60px;
   margin-right: -60px;
 }
 .interface-hebrew section.SheetSource .sheetItem.indented-2 > .he,
-.interface-hebrew section.SheetSource .sheetItem.indented-2 > .en {
+.interface-hebrew section.SheetSource .sheetItem.indented-2 > .en,
+.interface-hebrew section.SheetOutsideBiText .sheetItem.indented-2 > .he,
+.interface-hebrew section.SheetOutsideBiText .sheetItem.indented-2 > .en {
   padding: 15px 76px 15px 80px;
   margin-left:  -60px;
   margin-right: -60px;
 }
 
 .interface-english section.SheetSource .sheetItem.indented-3 > .he,
-.interface-english section.SheetSource .sheetItem.indented-3 > .en {
+.interface-english section.SheetSource .sheetItem.indented-3 > .en,
+.interface-english section.SheetOutsideBiText .sheetItem.indented-3 > .he,
+.interface-english section.SheetOutsideBiText .sheetItem.indented-3 > .en {
   padding: 15px 110px 15px 106px;
   margin-left:  -90px;
   margin-right: -90px;
 }
 .interface-hebrew section.SheetSource .sheetItem.indented-3 > .he,
-.interface-hebrew section.SheetSource .sheetItem.indented-3 > .en {
+.interface-hebrew section.SheetSource .sheetItem.indented-3 > .en,
+.interface-hebrew section.SheetOutsideBiText .sheetItem.indented-3 > .he,
+.interface-hebrew section.SheetOutsideBiText .sheetItem.indented-3 > .en {
   padding: 15px 106px 15px 110px;
   margin-left:  -90px;
   margin-right: -90px;
 }
 
 .readerPanel.hebrew section.SheetSource .segment.sheetItem.indented-1 .linkCount,
-.readerPanel.bilingual section.SheetSource .segment.sheetItem.indented-1 .linkCount {
+.readerPanel.bilingual section.SheetSource .segment.sheetItem.indented-1 .linkCount,
+.readerPanel.hebrew section.SheetOutsideBiText .segment.sheetItem.indented-1 .linkCount,
+.readerPanel.bilingual section.SheetOutsideBiText .segment.sheetItem.indented-1 .linkCount {
   left: -108px;
 }
 
 .readerPanel.hebrew section.SheetSource .segment.sheetItem.indented-2 .linkCount,
-.readerPanel.bilingual section.SheetSource .segment.sheetItem.indented-2 .linkCount {
+.readerPanel.bilingual section.SheetSource .segment.sheetItem.indented-2 .linkCount,
+.readerPanel.hebrew section.SheetOutsideBiText .segment.sheetItem.indented-2 .linkCount,
+.readerPanel.bilingual section.SheetOutsideBiText .segment.sheetItem.indented-2 .linkCount {
   left: -138px;
 }
 
 .readerPanel.hebrew section.SheetSource .segment.sheetItem.indented-3 .linkCount,
-.readerPanel.bilingual section.SheetSource .segment.sheetItem.indented-3 .linkCount {
+.readerPanel.bilingual section.SheetSource .segment.sheetItem.indented-3 .linkCount,
+.readerPanel.hebrew section.SheetOutsideBiText .segment.sheetItem.indented-3 .linkCount,
+.readerPanel.bilingual section.SheetOutsideBiText .segment.sheetItem.indented-3 .linkCount {
   left: -168px;
 }
 
 
-.readerPanel.bilingual.stacked .sheetContent section.SheetSource .segment.highlight .he {
+.readerPanel.bilingual.stacked .sheetContent section.SheetSource .segment.highlight .he,
+.readerPanel.bilingual.stacked .sheetContent section.SheetOutsideBiText .segment.highlight .he {
   padding-bottom: 15px;
 }
 
 
-section.SheetSource.highlight {
+section.SheetSource.highlight,
+section.SheetOutsideBiText.highlight {
   background-color: #E9E9E7;
 }
 
-section.SheetSource .segmentNumber {
+section.SheetSource .segmentNumber,
+section.SheetSource .SheetOutsideBiText {
   display: none;
 }
 
 .sheetContent section.SheetSource.highlight .sheetItem.segment.highlight .sourceContentText,
-.sheetContent section.SheetSource .sheetItem.segment .sourceContentText {
+.sheetContent section.SheetSource .sheetItem.segment .sourceContentText,
+.sheetContent section.SheetOutsideBiText.highlight .sheetItem.segment.highlight .sourceContentText,
+.sheetContent section.SheetOutsideBiText .sheetItem.segment .sourceContentText {
   margin: 0;
 }
 
