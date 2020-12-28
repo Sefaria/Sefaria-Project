@@ -7532,6 +7532,15 @@ section.SheetSource {
   margin-bottom: 30px;
 }
 
+.readerPanel.hebrew section.SheetSource .sheetItem > .he,
+.readerPanel.english section.SheetSource .sheetItem > .en {
+  display: block;
+}
+.readerPanel.hebrew section.SheetSource .sheetItem > .en,
+.readerPanel.english section.SheetSource .sheetItem > .he {
+  display: none;
+}
+
 .interface-english section.SheetSource .sheetItem > .he,
 .interface-english section.SheetSource .sheetItem > .en {
   padding: 15px 20px 15px 16px;
@@ -7540,7 +7549,6 @@ section.SheetSource {
 .interface-hebrew section.SheetSource .sheetItem > .en {
   padding: 15px 16px 15px 20px;
 }
-
 
 .interface-english section.SheetSource .sheetItem.indented-1 > .he,
 .interface-english section.SheetSource .sheetItem.indented-1 > .en {
