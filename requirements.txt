@@ -21,6 +21,7 @@ django-webpack-loader==0.7.0
 django==1.11.*
 djangorestframework @ https://github.com/encode/django-rest-framework/archive/3.11.1.tar.gz
 djangorestframework_simplejwt==3.3.0
+PyJWT==1.7.1 # pinned b/c current version 2.0.0 breaks simplejwt. waiting for 2.0.1
 elasticsearch==7.9.1
 elasticsearch_dsl==7.3.0
 geojson==2.5.0
