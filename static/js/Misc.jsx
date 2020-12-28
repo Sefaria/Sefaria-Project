@@ -47,7 +47,7 @@ class ProfilePic extends Component {
   }
   didImageLoad(){
     // When using React Hydrate, the onLoad event of the profile image will return before
-    // react code runs, so we check after mount as well to look replace bad images, or to 
+    // react code runs, so we check after mount as well to look replace bad images, or to
     // swap in a gravatar image that we now know is valid.
     const img = this.imgFile.current;
     return (img && img.complete && img.naturalWidth !== 0);
@@ -1057,8 +1057,9 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
       `${Sefaria._(selected ? "Remove" : "Save")} "${historyObject.sheet_title ?
           historyObject.sheet_title.stripHtml() : Sefaria._r(historyObject.ref)}"`;
 
-  function onClick() {
+  function onClick(event) {
     if (isPosting) { return; }
+    event.preventDefault();
     setPosting(true);
     Sefaria.track.event("Saved", "saving", historyObject.ref);
     Sefaria.toggleSavedItem(historyObject)
@@ -2059,9 +2060,16 @@ class CookiesNotification extends Component {
 }
 
 const SheetTitle = (props) => (
-        <div className={`title ${props.empty ? 'empty': ''} ${props.focused ? 'focused': ''}`} role="heading" aria-level="1" style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}>
-            {props.children? props.children : props.title.stripHtmlKeepLineBreaks()}
-        </div>
+        <span className="title"
+             role="heading"
+             aria-level="1"
+             contentEditable={props.editable}
+             suppressContentEditableWarning={true}
+             onBlur={props.editable ? props.blurCallback : null}
+             style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}
+        >
+            {props.title ? props.title.stripHtml() : ""}
+        </span>
     )
 SheetTitle.propTypes = {
     title:          PropTypes.string,
