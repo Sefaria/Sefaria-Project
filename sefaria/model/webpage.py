@@ -58,6 +58,7 @@ class WebPage(abst.AbstractMongoRecord):
         rewrite_rules = {
             "use https": lambda url: re.sub(r"^http://", "https://", url),
             "remove hash": lambda url: re.sub(r"#.+", "", url),
+            "remove url params": lambda url: re.sub(r"\?.+", "", url),
             "remove utm params": lambda url: re.sub(r"\?utm_.+", "", url),
             "remove fbclid param": lambda url: re.sub(r"\?fbclid=.+", "", url),
             "add www": lambda url: re.sub(r"^(https?://)(?!www\.)", r"\1www.", url),
@@ -124,6 +125,7 @@ class WebPage(abst.AbstractMongoRecord):
             r"translate\.googleusercontent\.com",
             r"dailympails\.gq\/",
             r"http:\/\/:localhost(:\d+)?",
+            r"jewfaq\.org\/search\.shtml" # Judaism 101, Search the Glossary and Index
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -651,6 +653,7 @@ sites_data = [
     {
         "name": "Rav Kook Torah",
         "domains": ["ravkooktorah.org"],
+        "normalization_rules": ["remove www"]
     },
     {
         "name": "YUTorah Online",
@@ -713,5 +716,22 @@ sites_data = [
     {
         "name": "Jewish Action",
         "domains": ["jewishaction.com"],
+    },
+
+    {
+        "name": "Orthodox Union (OU Torah)",
+        "domains": ["ou.org"],
+        "title_branding": ["Jewish Holidays", "OU Holidays", "OU", "OU Torah", "OU Life"],
+    },
+    {
+        "name": "Judaism 101 (JewFAQ)",
+        "domains": ["jewfaq.org"],
+        "title_branding": ["Judaism 101:"],
+        "initial_title_branding": True,
+        "normalization_rules": ["remove url params", "remove www"],
+    },
+    {
+        "name": "Jewish Women's Archive",
+        "domains": ["jwa.org"],
     },
 ]

@@ -2044,7 +2044,11 @@ def related_api(request, tref):
             "webpages": get_webpages_for_ref(tref),
             "topics": get_topics_for_ref(tref, annotate=True),
             "media": get_media_for_ref(tref),
-        } 
+        }
+        for value in response.values():
+            for item in value:
+                if 'expandedRefs' in item:
+                    del item['expandedRefs']
     return jsonResponse(response, callback=request.GET.get("callback", None))
 
 
