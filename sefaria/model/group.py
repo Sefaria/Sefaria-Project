@@ -130,7 +130,7 @@ class Group(abst.AbstractMongoRecord):
 
     def slug_taken(self, slug):
         existing = Group().load({"slug": slug})
-        return bool(existing)
+        return bool(existing and existing._id != getattr(self, "_id", None))
 
     def all_names(self, lang):
         primary_name = self.primary_name(lang)
@@ -275,18 +275,17 @@ class Group(abst.AbstractMongoRecord):
 
     def sheet_count(self):
         """Returns the number of sheets in this group"""
-        from sefaria.sheets import SheetSet
-        return SheetSet({"group": self.name}).count()
+        return len(self.sheets)
 
     def public_sheet_count(self):
         """Returns the number of public sheets in this group"""
         from sefaria.sheets import SheetSet
-        return SheetSet({"group": self.name, "status": "public"}).count()      
+        return SheetSet({"id": {"$in": self.sheets}, "status": "public"}).count()      
 
     @property
     def url(self):
         """Returns the URL path for this group"""
-        return "/collections/%s" % self.name.replace(" ", "-")
+        return "/collections/{}".format(self.slug)
 
     def pin_sheet(self, sheet_id):
         """

@@ -599,9 +599,9 @@
 
 	<div id="bsdHeader">בס"ד</div>
 	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
-		{% if sheet_group and sheet_group.headerUrl %}
-		<a href="/collections/{{ sheet_group.name|url_safe }}">
-			<img id="groupLogo" src="{{ sheet_group.headerUrl }}" alt="Logo for {{ sheet_group.name }}" />
+		{% if displayed_collection and displayed_collection.headerUrl %}
+		<a href="/collections/{{ displayed_collection.slug }}">
+			<img id="groupLogo" src="{{ displayed_collection.headerUrl }}" alt="Logo for {{ displayed_collection.name }}" />
 		</a>
 		{% else %}
             <a href="#"><img id="groupLogo"/></a>
@@ -1044,14 +1044,14 @@
 
         <div>
             <select id="sourceSheetGroupSelect">
-                <option value="None">
+                <option value="">
                     {% trans 'None' %}
                 </option>
 
         		{% for collection in sheet_collections %}
                     <option
-                        value="{{ collection.name }}"
-                        data-group="{{ collection.name }}"
+                        value="{{ collection.slug }}"
+                        data-name="{{ collection.name }}"
                         data-image="{{ collection.headerUrl|default:'' }}">
                         {{ collection.name }}
                     </option>

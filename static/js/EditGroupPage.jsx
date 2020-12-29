@@ -92,7 +92,7 @@ class EditGroupPage extends Component {
   delete() {
     if (confirm(Sefaria._("Are you sure you want to delete this collection? This cannot be undone."))) {
      $.ajax({
-        url: "/api/groups/" + this.props.initialData.name,
+        url: "/api/groups/" + this.props.initialData.slug,
         type: "DELETE",
         success: function(data) {
           if ("error" in data) {
@@ -118,7 +118,7 @@ class EditGroupPage extends Component {
           alert(data.error);
         } else {
           this.changed = false;
-          window.location = "/collections/" + this.state.name.replace(/ /g, "-");
+          window.location = "/collections/" + this.state.slug;
         }
     }.bind(this)).fail(function() {
         alert(Sefaria._("Unfortunately an error occurred saving your collection."));
@@ -136,7 +136,7 @@ class EditGroupPage extends Component {
             <span className="int-he">{heTitle}</span>
           </h1>
           <div className="end">
-              <a className="button transparent control-elem" href={this.props.initialData ? "/collections/" + this.state.name.replace(/ /g, "-") : "/my/profile"}>
+              <a className="button transparent control-elem" href={this.props.initialData ? "/collections/" + this.state.slug : "/my/profile"}>
                   <span className="int-en">Cancel</span>
                   <span className="int-he">בטל</span>
               </a>

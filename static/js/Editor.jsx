@@ -11,7 +11,7 @@ import {
     SheetMetaDataBox,
     SheetAuthorStatement,
     SheetTitle,
-    GroupStatement,
+    CollectionStatement,
     ProfilePic,
 } from './Misc';
 
@@ -1577,9 +1577,10 @@ const SefariaEditor = (props) => {
               />
               <span>by <a href={sheet.ownerProfileUrl}>{sheet.ownerName}</a></span>
             </SheetAuthorStatement>
-            <GroupStatement
-                group={sheet.group}
-                groupLogo={sheet.groupLogo}
+            <CollectionStatement
+                name={sheet.group}
+                slug={sheet.collectionSlug}
+                image={sheet.collectionImage}
             />
         </SheetMetaDataBox>
 

@@ -219,11 +219,11 @@ def view_sheet(request, sheet_id, editorMode = False):
     except User.DoesNotExist:
         author = "Someone Mysterious"
 
-    sheet_class      = make_sheet_class_string(sheet)
-    sheet_group      = Group().load({"name": sheet["group"]}) if "group" in sheet and sheet["group"] != "None" else None
-    embed_flag       = "embed" in request.GET
-    likes            = sheet.get("likes", [])
-    like_count       = len(likes)
+    sheet_class          = make_sheet_class_string(sheet)
+    displayed_collection = Group().load({"slug": sheet["displayedCollection"]}) if sheet.get("displayedCollection", None) else None
+    embed_flag           = "embed" in request.GET
+    likes                = sheet.get("likes", [])
+    like_count           = len(likes)
     if request.user.is_authenticated:
         can_edit_flag    = can_edit(request.user, sheet)
         can_add_flag     = can_add(request.user, sheet)
@@ -247,7 +247,7 @@ def view_sheet(request, sheet_id, editorMode = False):
                                                 "is_owner": request.user.id == sheet["owner"],
                                                 "is_public": sheet["status"] == "public",
                                                 "sheet_collections": sheet_collections,
-                                                "sheet_group":  sheet_group,
+                                                "displayed_collection":  displayed_collection,
                                                 "like_count": like_count,
                                                 "viewer_is_liker": viewer_is_liker,
                                                 "current_url": request.get_full_path,
@@ -443,15 +443,15 @@ def groups_post_api(request, user_id, slug=None):
             return jsonResponse({"error": "No JSON given in post data."})
         group = json.loads(j)
         if "slug" in group:
-            existing = Group().load({"slug": group["slug"]})
-            if not existing:
+            collection = Group().load({"slug": group["slug"]})
+            if not collection:
                 return jsonResponse({"error": "Collection with slug `{}` not found.".format(group["slug"])})
             # check poster is a group admin
-            if user_id not in existing.admins:
+            if user_id not in collection.admins:
                 return jsonResponse({"error": "You do not have permission to edit this collection."})
 
-            existing.load_from_dict(group)
-            existing.save()
+            collection.load_from_dict(group)
+            collection.save()
         else:
             group["admins"] = [user_id]
             collection = Group(group)

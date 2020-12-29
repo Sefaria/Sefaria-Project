@@ -1663,13 +1663,13 @@ $(function() {
 	}).find("#sheetSummaryInput").change();
 
 	$("#sourceSheetGroupSelect").change(function() {
-		if ($(this).val()!="None") {
+		if (!!$(this).val()) {
 			var $el = $("#sourceSheetGroupSelect option:selected");
-			var groupUrl = $(this).val().replace(/ /g, "-");
-			var groupLogo = $el.attr("data-image");
-			$("#groupLogo").attr("src", groupLogo)
-				.closest("a").attr("href", "/collections/" + groupUrl);
-			if (groupLogo) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
+			var collectionSlug = $el.attr("data-slug");
+			var collectionHeader = $el.attr("data-image");
+			$("#groupLogo").attr("src", collectionHeader)
+				.closest("a").attr("href", "/collections/" + collectionSlug);
+			if (collectionHeader) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 		}
 		else {
 			$("#sheetHeader").hide();
@@ -1683,8 +1683,6 @@ $(function() {
 		curHighlighter.find(".en").html("<div class='highlighterSegment'>"+curText.find(".en").html().stripHtml()+"</div>");
 		curHighlighter.find(".he").html("<div class='highlighterSegment'>"+curText.find(".he").html().stripHtml()+"</div>");
 		autoSave();
-
-
 	});
 
 	$("#highlightMenu .optionsMenu").on('click', '.segmentedContinuousToggle', function() {
@@ -2460,10 +2458,10 @@ function readSheet() {
 				sheet.options.collaboration = "none";
 				break;
 			case 'add':
-				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "" && !sjs.is_owner) ? "group-can-add" : "anyone-can-add";
+				sheet.options.collaboration = "anyone-can-add";
 				break;
 			case 'edit':
-				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "" && !sjs.is_owner) ? "group-can-edit" : "anyone-can-edit";
+				sheet.options.collaboration = "anyone-can-edit";
 				break;
 		}
 
@@ -2485,19 +2483,17 @@ function readSheet() {
 		sheet["status"] = sjs.current.status;
 	}
 
-	var group = $("#sourceSheetGroupSelect").val();
+	var displayedCollection = $("#sourceSheetGroupSelect").val();
 
-	if (group === undefined && sjs.current && sjs.current.group !== "None") {
-		// When working on someone else's group sheet
-		group = sjs.current.group;
+	if (!sjs.is_owner && sjs.current.displayedCollection) {
+		// Only allow owner to change displayedCollection
+		sheet["displayedCollection"] = sjs.current.displayedCollection;
 	}
-
-	if (group && group !== "None") {
-		// Group Sheet
-		sheet["group"] = group;
-	} else {
-		// Individual Sheet
-		sheet["group"] = "";
+    else if (displayedCollection) {
+		sheet["displayedCollection"] = displayedCollection;
+	}
+	else {
+		sheet["displayedCollection"] = null;
 	}
 
 	return sheet;
@@ -2827,12 +2823,12 @@ function buildSheet(data){
 	else { $('#sheetPublicToggle').attr('checked', false); }
 
 	// Set Sheet Group
-	if (data.group) {
-		$("#sourceSheetGroupSelect").val(data.group);
+	if (data.displayedCollection) {
+		$("#sourceSheetGroupSelect").val(data.displayedCollection);
 		var $el = $("#sourceSheetGroupSelect option:selected");
-		var groupImage = $el.attr("data-image");
-		$("#groupLogo").attr("src", groupImage);
-		if (groupImage) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
+		var collectionImage = $el.attr("data-image");
+		$("#groupLogo").attr("src", collectionImage);
+		if (collectionImage) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 	}
 
 	if (sjs.is_owner) {

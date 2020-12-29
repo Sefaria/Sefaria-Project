@@ -15,9 +15,12 @@ groups = GroupSet({})
 for group in groups:
 	print(group.name)
 	group.sheets = []
+	group.assign_slug(public=getattr(group, "listed", False))
 	sheets = db.sheets.find({"group": group.name})
 	for sheet in sheets:
 		group.sheets.append(sheet["id"])
+		sheet["displayedCollection"] = group.slug
+		db.sheets.save(sheet)
 	
 	if group.public_sheet_count() < 3:
 		group.listed = False
@@ -26,6 +29,7 @@ for group in groups:
 
 db.groups.create_index("sheets")
 db.groups.create_index("slug")
+db.sheets.create_index("displayedCollection")
 
 
 # Change displayed group in sheets to slug
@@ -34,4 +38,5 @@ db.groups.create_index("slug")
 
 
 ### Phase 2
-# Update sheet "group" field to "highlightedCollection"
+# Remove `group` field
+# change options.collaboration `group-can-edit`, `group-can-add`.

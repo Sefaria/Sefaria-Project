@@ -1989,17 +1989,14 @@ a.readerNavCategory {
 .sheetContent .sheetMetaDataBox .authorStatement a {
   color: #999;
 }
-
 .readerTextTableOfContents .currentSection .he,
 .readerTextTableOfContents .authorStatement .he,
 .readerTextTableOfContents .sheetMeta .he {
   font-family: "Heebo", sans-serif;
 }
-
 .readerTextTableOfContents .authorStatement a {
  color: #333;
 }
-
 .authorStatement .imageBox,
 .groupStatement .imageBox {
     width: 30px;
@@ -2017,7 +2014,6 @@ a.readerNavCategory {
  {
   display: inline-block;
 }
-
 .readerTextTableOfContents .sheetMeta {
   font-size: 14px;
   color: #999;

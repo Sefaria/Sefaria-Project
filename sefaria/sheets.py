@@ -72,9 +72,6 @@ def get_sheet_metadata_bulk(id_list, public=True):
 
 
 def get_sheet_node(sheet_id=None, node_id=None):
-	"""
-	Returns the source sheet with id.
-	"""
 	if sheet_id is None:
 		return {"error": "No sheet id given."}
 	if node_id is None:
@@ -109,12 +106,13 @@ def get_sheet_for_panel(id=None):
 	sheet["naturalDateCreated"] = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 	sheet["topics"] = add_langs_to_topics(sheet.get("topics", []))
-	if "group" in sheet:
-		group = Group().load({"name": sheet["group"]})
-		try:
-			sheet["groupLogo"] = group.imageUrl
-		except:
-			sheet["groupLogo"] = None
+	if "displayedCollection" in sheet:
+		collection = Group().load({"slug": sheet["displayedCollection"]})
+		if collection:
+			sheet["collectionImage"] = getattr(collection, "imageUrl", None)
+			sheet["collectionSlug"] = collection.slug
+		else:
+			del sheet["displayedCollection"]
 	return sheet
 
 

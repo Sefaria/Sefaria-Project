@@ -1365,7 +1365,7 @@ const SheetListing = ({
       </div>
       <div className="sheetRight">
         {
-          editable && !document.cookie.includes("new_editor") ?
+          editable && !$.cookie.("new_editor") ?
             <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg" title={Sefaria._("Edit")}/></a>
             : null
         }
@@ -2128,26 +2128,21 @@ SheetAuthorStatement.propTypes = {
 };
 
 
-const GroupStatement = (props) => (
-    props.group && props.group != "" ?
-        <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none' }}>
-          <div className="groupListingImageBox imageBox">
-            <a href={"/collections/" + props.group.replace(/-/g, "-")}>
-              <img className="groupListingImage img-circle" src={props.groupLogo} alt="Collection Logo"/>
-            </a>
-          </div>
-          <a href={"/collections/" + props.group.replace(/ /g, "-")}>{props.children ? props.children : props.group}</a>
-        </div>
-        :
-        <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
-          {props.children}
-        </div>
-
-)
-GroupStatement.propTypes = {
-    group:      PropTypes.string,
-    groupLogo:  PropTypes.string,
-};
+const CollectionStatement = ({name, slug, image, children}) => (
+  slug ?
+    <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none' }}>
+      <div className="groupListingImageBox imageBox">
+        <a href={"/collections/" + slug}>
+          <img className={classNames({groupListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/img/collection.svg"} alt="Collection Logo"/>
+        </a>
+      </div>
+      <a href={"/collections/" + slug}>{children ? children : name}</a>
+    </div>
+    :
+    <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
+      {children}
+    </div>
+);
 
 
 const SheetMetaDataBox = (props) => (
@@ -2174,6 +2169,7 @@ export {
   BlockLink,
   CategoryColorLine,
   CategoryAttribution,
+  CollectionStatement,
   CookiesNotification,
   Dropdown,
   DropdownButton,
@@ -2218,6 +2214,5 @@ export {
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
-  GroupStatement,
   InterfaceLanguageMenu,
 };
