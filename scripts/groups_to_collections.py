@@ -31,8 +31,8 @@ db.groups.create_index("sheets")
 db.groups.create_index("slug", unique=True)
 db.sheets.create_index("displayedCollection")
 
-db.sheets.update_many({"options.collaboration": "group-can-add"}, {"$set": {"options.collaboration": "anyone-can-add"}})
-db.sheets.update_many({"options.collaboration": "group-can-edit"}, {"$set": {"options.collaboration": "anyone-can-edit"}})
+db.sheets.update_many({"options.collaboration": "group-can-add"}, {"$set": {"options.collaboration": "none"}})
+db.sheets.update_many({"options.collaboration": "group-can-edit"}, {"$set": {"options.collaboration": "none"}})
 
 
 # Turn "publishers" into "members"

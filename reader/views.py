@@ -73,7 +73,7 @@ logger.warn("Initializing TOC Tree")
 library.get_toc_tree()
 
 
-""" DON'T Check in """
+""" DON'T Check in 
 logger.warn("Initializing Full Auto Completer")
 library.build_full_auto_completer()
 
@@ -88,7 +88,7 @@ library.build_cross_lexicon_auto_completer()
 
 logger.warn("Initializing Shared Cache")
 library.init_shared_cache()
-""" """
+""" 
 
 if server_coordinator:
     server_coordinator.connect()

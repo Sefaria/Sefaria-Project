@@ -203,11 +203,11 @@ def view_sheet(request, sheet_id, editorMode = False):
     try:
         owner = User.objects.get(id=sheet["owner"])
         author = owner.first_name + " " + owner.last_name
-        sheet_collections = get_user_collections_for_sheet(request.user.id, sheet_id) if sheet["owner"] == request.user.id else None
     except User.DoesNotExist:
         author = "Someone Mysterious"
 
     sheet_class          = make_sheet_class_string(sheet)
+    sheet_collections    = get_user_collections_for_sheet(request.user.id, sheet_id) if sheet["owner"] == request.user.id else None
     displayed_collection = Group().load({"slug": sheet["displayedCollection"]}) if sheet.get("displayedCollection", None) else None
     embed_flag           = "embed" in request.GET
     likes                = sheet.get("likes", [])
@@ -222,8 +222,6 @@ def view_sheet(request, sheet_id, editorMode = False):
         viewer_is_liker  = False
 
     canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
-
-    print(sheet_collections)
 
     return render(request,'sheets.html', {"sheetJSON": json.dumps(sheet),
                                                 "sheet": sheet,
@@ -598,8 +596,8 @@ def groups_pin_sheet_api(request, slug, sheet_id):
     group = Group().load({"slug": slug})
     if not group:
         return jsonResponse({"error": "No collection with slug `{}`.".format(slug)})
-    if request.user.id not in group.admins:
-        return jsonResponse({"error": "You must be a collection owner to invite new members."})
+    if not group.is_member(request.user.id):
+        return jsonResponse({"error": "You must be a collection editor to pin sheets."})
 
     sheet_id = int(sheet_id)
     group.pin_sheet(sheet_id)

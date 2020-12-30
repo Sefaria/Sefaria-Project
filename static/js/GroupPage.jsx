@@ -227,7 +227,7 @@ class GroupPage extends Component {
                   showAuthorUnderneath={true}
                   hideCollection={true}
                   pinned={group.pinnedSheets.indexOf(sheet.id) != -1}
-                  pinnable={isAdmin}
+                  pinnable={isMember}
                   editable={sheet.author == Sefaria._uid}
                   saveable={sheet.author !== Sefaria._uid}
                   collectable={true}
