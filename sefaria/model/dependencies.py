@@ -109,7 +109,7 @@ subscribe(cascade_delete(notification.NotificationSet, "global_id", "_id"),  not
 subscribe(cascade_delete(story.UserStorySet, "shared_story_id", "_id"), story.SharedStory, "delete")
 
 # Groups
-subscribe(group.process_group_name_change_in_sheets,                         group.Group, "attributeChange", "name")
+subscribe(group.process_group_slug_change_in_sheets,                         group.Group, "attributeChange", "slug")
 subscribe(group.process_group_delete_in_sheets,                              group.Group, "delete")
 
 # Categories

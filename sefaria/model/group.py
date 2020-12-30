@@ -22,7 +22,7 @@ class Group(abst.AbstractMongoRecord):
     history_noun = 'group'
 
     track_pkeys = True
-    pkeys = ["name", "listed", "headerUrl", "imageUrl", "coverUrl"]
+    pkeys = ["name", "slug", "listed", "headerUrl", "imageUrl", "coverUrl"]
 
     required_attrs = [
         "name",          # string name of group
@@ -338,13 +338,13 @@ class GroupSet(abst.AbstractMongoSet):
         }
 
 
-def process_group_name_change_in_sheets(group, **kwargs):
+def process_group_slug_change_in_sheets(group, **kwargs):
     """
-    When a group's name changes, update all the sheets in this group to follow
+    When a collections's slug changes, update all the sheets that have this collection as `displayedCollection`
     """
     from sefaria.system.database import db
 
-    db.sheets.update_many({"group": kwargs["old"]}, {"$set": {"group": kwargs["new"]}})
+    db.sheets.update_many({"displayedCollection": kwargs["old"]}, {"$set": {"displayedCollection": kwargs["new"]}})
 
 
 def process_group_delete_in_sheets(group, **kwargs):

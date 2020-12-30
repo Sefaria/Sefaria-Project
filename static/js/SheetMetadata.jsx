@@ -204,7 +204,6 @@ class SheetMetadata extends Component {
     }
 
 
-
     // Text Details
     var details = this.props.sheet.summary;
 
@@ -251,14 +250,14 @@ class SheetMetadata extends Component {
                         <span dangerouslySetInnerHTML={ {__html: authorStatement} }></span>
                     </div>
 
-                    {this.props.sheet.group && this.props.sheet.group != "" ?
+                    {this.props.sheet.displayedCollection ?
                     <div className="tocDetail authorStatement">
                         <div className="groupListingImageBox imageBox">
                             <a href={"/collections/" + this.props.sheet.collectionSlug}>
                               <img className={classNames({groupListingImage:1, "img-circle": 1, default: !this.props.sheet.collectionImage})} src={this.props.sheet.collectionImage || "/static/img/collection.svg"} alt="Collection Logo"/>
                             </a>
                         </div>
-                        <a href={"/collections/" + this.props.sheet.collectionSlug}>{this.props.sheet.group}</a>
+                        <a href={"/collections/" + this.props.sheet.collectionSlug}>{this.props.sheet.displayedCollection}</a>
                     </div> : null }
                     <div className="sheetMeta">
                       <div className="int-en">
