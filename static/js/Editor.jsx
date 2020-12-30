@@ -960,31 +960,39 @@ const withSefariaSheet = editor => {
 
 
       if (node.type == "spacer") {
+
+        //Convert a spacer to an outside text if there's text inside it.
         if (Node.string(node) !== "") {
 
           const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, Node.string(node))
           const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,0]))
 
+          //This dance is required b/c it can't be changed in place
+          // it exits the spacer, deletes it, then places the new outside text in its place
           Transforms.move(editor);
           Transforms.delete(editor, {at: path});
           Transforms.insertNodes(editor, fragment, { at: path });
           incrementNextSheetNode(editor);
-          if (atEndOfDoc) {
-            // Transforms.move(editor, {to: Editor.end(editor, path)} )
-            Transforms.move(editor)
-            Transforms.move(editor, {unit: 'line', distance: 1})
 
+          if (atEndOfDoc) {
+            // sometimes the delete action above loses the cursor
+            //  at the end of the doc, this drops you back in place
+            ReactEditor.focus(editor)
+            Transforms.select(editor, Editor.end(editor, []));
           }
           else {
+            // gain back the cursor position that we exited above
             Transforms.move(editor, { reverse: true })
           }
           return
         }
-        if (Node.parent(editor, path).type != "SheetContent") {
-          Transforms.liftNodes(editor, { at: path })
-            return
-        }
+
+      //If a spacer gets stuck inside some other element, lift it up to top level
+      if (Node.parent(editor, path).type != "SheetContent") {
+        Transforms.liftNodes(editor, { at: path })
+          return
       }
+    }
 
       if (node.type == "SheetItem") {
         // All SheetItems should be children of Sheetcontent
