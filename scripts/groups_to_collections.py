@@ -28,7 +28,7 @@ for group in groups:
 
 
 db.groups.create_index("sheets")
-db.groups.create_index("slug")
+db.groups.create_index("slug", unique=True)
 db.sheets.create_index("displayedCollection")
 
 
