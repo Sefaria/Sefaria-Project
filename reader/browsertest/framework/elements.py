@@ -100,6 +100,21 @@ class AbstractTest(object):
         except NoSuchElementException:
             pass
 
+    def is_js_error(self):
+
+        error_strings = [ # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors
+            "RangeError",
+            "ReferenceError",
+            "SyntaxError",
+            "TypeError"
+        ]
+
+        js_console = self.driver.get_log("browser")
+
+        for msg in js_console:
+            if any(error in msg["message"] for error in error_strings):
+                raise Exception(f'JavaScript Error: {msg["message"]}')
+
     def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
         user = os.environ["SEFARIA_TEST_USER"]
@@ -1144,7 +1159,7 @@ class AbstractTest(object):
         return self
 
     def nav_to_end_of_editor(self):
-        elem = self.driver.find_element_by_css_selector(".sheetContent")
+        elem = self.driver.find_element_by_css_selector(".editorContent")
         elem.click()
         self.driver.switch_to.active_element.send_keys(Keys.CONTROL, Keys.END)
         return self
