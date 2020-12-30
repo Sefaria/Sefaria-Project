@@ -2583,6 +2583,35 @@ class Ref(object, metaclass=RefCacheType):
 
         self.toSections = self.sections[:]
 
+        if self.index_node.addressTypes[0] == "Talmud" and len(self.sections) == 1:
+            # check for Talmud ref without amud, such as Berakhot 2, we don't want "Berakhot 2a" but "Berakhot 2a-2b"
+            # so change toSections if ref_lacks_amud
+            ref_lacks_amud = False
+            base_without_title = base.replace(title+" ", "")
+            if self._lang == "he":
+                ends_with_bet = base_without_title[-1] == ":" or (
+                        base_without_title[-1] == "\u05d1"  # bet
+                        and
+                        ((len(base_without_title) > 2 and base_without_title[-2] in ", ")  # simple bet
+                         or (len(base_without_title) > 4 and base_without_title[-3] == '\u05e2')  # ayin"bet
+                         or (len(base_without_title) > 5 and base_without_title[-4] == "\u05e2")  # ayin''bet
+                         )
+                )
+                ends_with_aleph = base_without_title[-1] == "." or (
+                        base_without_title[-1] == "\u05d0"  # aleph
+                        and
+                        ((len(base_without_title) > 2 and base_without_title[-2] in ", ")  # simple aleph
+                         or (len(base_without_title) > 4 and base_without_title[-3] == '\u05e2')  # ayin"aleph
+                         or (len(base_without_title) > 5 and base_without_title[-4] == "\u05e2")  # ayin''aleph
+                         )
+                )
+                ref_lacks_amud = not ends_with_aleph and not ends_with_bet
+            elif self._lang == "en":
+                ref_lacks_amud = base_without_title[-1] not in ["a", "b", 'ᵃ', 'ᵇ']
+            if ref_lacks_amud:
+                self.toSections[0] += 1
+
+
         # Parse range end portion, if it exists
         if len(parts) == 2:
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
