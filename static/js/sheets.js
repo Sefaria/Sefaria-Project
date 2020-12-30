@@ -2813,9 +2813,9 @@ function buildSheet(data){
 
 	if (!("collaboration" in data.options)) { data.options.collaboration = "none"}
 
-	if (data.options.collaboration == "none")  $("#sourceSheetShareSelect").val('view');
-	else if (data.options.collaboration == "anyone-can-add" || data.options.collaboration == "group-can-add") $("#sourceSheetShareSelect").val('add');
-	else if (data.options.collaboration == "anyone-can-edit" || data.options.collaboration == "group-can-edit") $("#sourceSheetShareSelect").val('edit');
+	if (data.options.collaboration == "none")                 $("#sourceSheetShareSelect").val('view');
+	else if (data.options.collaboration == "anyone-can-add")  $("#sourceSheetShareSelect").val('add');
+	else if (data.options.collaboration == "anyone-can-edit") $("#sourceSheetShareSelect").val('edit');
 
 	if (data.status == "public") { $('#sheetPublicToggle').attr('checked', true); }
 	else { $('#sheetPublicToggle').attr('checked', false); }

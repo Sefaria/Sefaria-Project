@@ -31,12 +31,12 @@ db.groups.create_index("sheets")
 db.groups.create_index("slug", unique=True)
 db.sheets.create_index("displayedCollection")
 
+db.sheets.update_many({"options.collaboration": "group-can-add"}, {"$set": {"options.collaboration": "anyone-can-add"}})
+db.sheets.update_many({"options.collaboration": "group-can-edit"}, {"$set": {"options.collaboration": "anyone-can-edit"}})
 
-# Change displayed group in sheets to slug
 
 # Turn "publishers" into "members"
 
 
 ### Phase 2
 # Remove `group` field
-# change options.collaboration `group-can-edit`, `group-can-add`.

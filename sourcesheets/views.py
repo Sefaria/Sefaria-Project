@@ -116,12 +116,6 @@ def can_edit(user, sheet):
         return False
     if sheet["options"]["collaboration"] == "anyone-can-edit":
         return True
-    if sheet["options"]["collaboration"] == "group-can-edit":
-        if "group" in sheet:
-            try:
-                return Group().load({"name": sheet["group"]}).is_member(user.id)
-            except:
-                return False
 
     return False
 
@@ -142,12 +136,6 @@ def can_add(user, sheet):
         return False
     if sheet["options"]["collaboration"] == "anyone-can-add":
         return True
-    if sheet["options"]["collaboration"] == "group-can-add":
-        if "group" in sheet:
-            try:
-                return Group().load({"name": sheet["group"]}).is_member(user.id)
-            except:
-                return False
 
     return False
 
