@@ -67,7 +67,6 @@ class Group(abst.AbstractMongoRecord):
                 # Only allow HTTPS. If you site doens't support it, deal with it!
                 self.websiteUrl = website.replace("http://", "https://")
             else:
-                # Allows include protocol
                 self.websiteUrl = "https://" + website
 
         toc = getattr(self, "toc", None)
@@ -100,6 +99,10 @@ class Group(abst.AbstractMongoRecord):
             # changes listing status
             self.assign_slug(public=new_status)
 
+        if self.listed and self.name_taken():
+            # Require public collections to have a unique name
+            raise InputError(_("A public collection with this name already exists. Please choose a different name before publishing."))
+
         image_fields = ("imageUrl", "headerUrl", "coverUrl")
         for field in image_fields:
             old, new = self.pkeys_orig_values.get(field, None), getattr(self, field, None)
@@ -119,18 +122,22 @@ class Group(abst.AbstractMongoRecord):
             slug = re.sub(r"[^a-z\u05D0-\u05ea0-9\-]", "", slug)
             self.slug = slug
             dupe_count = 0
-            while self.slug_taken(slug):
+            while self.slug_taken():
                 dupe_count += 1
                 self.slug = "%s%d" % (slug, dupe_count)
         else:
             while True:
                 self.slug = secrets.token_urlsafe(6)
-                if not self.slug_taken(self.slug):
+                if not self.slug_taken():
                     break
 
-    def slug_taken(self, slug):
-        existing = Group().load({"slug": slug})
-        return bool(existing and existing._id != getattr(self, "_id", None))
+    def slug_taken(self):
+        existing = Group().load({"slug": self.slug})
+        return bool(existing) and existing._id != getattr(self, "_id", None)
+
+    def name_taken(self):
+        existing = Group().load({"name": self.name, "listed": True})
+        return bool(existing) and existing._id != getattr(self, "_id", None)
 
     def all_names(self, lang):
         primary_name = self.primary_name(lang)

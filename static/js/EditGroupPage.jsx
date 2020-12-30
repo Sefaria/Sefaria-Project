@@ -118,7 +118,7 @@ class EditGroupPage extends Component {
           alert(data.error);
         } else {
           this.changed = false;
-          window.location = "/collections/" + this.state.slug;
+          window.location = "/collections/" + data.collection.slug;
         }
     }.bind(this)).fail(function() {
         alert(Sefaria._("Unfortunately an error occurred saving your collection."));
