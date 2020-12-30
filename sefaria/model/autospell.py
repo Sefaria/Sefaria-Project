@@ -154,7 +154,7 @@ class AutoCompleter(object):
             gs = GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}})
             gnames = [name for g in gs for name in g.all_names(lang)]
             normal_group_names = [self.normalizer(n) for n in gnames]
-            self.title_trie.add_titles_from_set(gs, "all_names", "primary_name", "name", 6 * PAD)
+            self.title_trie.add_titles_from_set(gs, "all_names", "primary_name", "slug", 6 * PAD)
             self.spell_checker.train_phrases(gnames)
             self.ngram_matcher.train_phrases(gnames, normal_group_names)
         if include_lexicons:
