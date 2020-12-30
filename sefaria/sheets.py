@@ -672,7 +672,6 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 
 		if "group" in sheet:
 			group = Group().load({"name": sheet["group"]})
-			sheet["groupLogo"]       = getattr(group, "imageUrl", None)
 			sheet["groupTOC"]        = getattr(group, "toc", None)
 		natural_date_created = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
 		topics = add_langs_to_topics(sheet.get("topics", []))
@@ -688,8 +687,6 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"anchorRefExpanded": [r.normal() for r in anchor_ref_expanded],
 				"options": 		   sheet["options"],
 				"naturalDateCreated": natural_date_created,
-				"group":           sheet.get("group", None),
-				"groupLogo" : 	   sheet.get("groupLogo", None),
 				"groupTOC":        sheet.get("groupTOC", None),
 				"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
 				"via":			   sheet.get("via", None),

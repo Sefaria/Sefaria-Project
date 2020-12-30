@@ -2483,18 +2483,16 @@ function readSheet() {
 		sheet["status"] = sjs.current.status;
 	}
 
-	var displayedCollection = $("#sourceSheetGroupSelect").val();
 
-	if (!sjs.is_owner && sjs.current.displayedCollection) {
+	if (!sjs.is_owner) {
 		// Only allow owner to change displayedCollection
 		sheet["displayedCollection"] = sjs.current.displayedCollection;
 	}
-    else if (displayedCollection) {
+    else {
+		var displayedCollection = $("#sourceSheetGroupSelect").val() || null;
 		sheet["displayedCollection"] = displayedCollection;
 	}
-	else {
-		sheet["displayedCollection"] = null;
-	}
+
 
 	return sheet;
 } // end readSheet

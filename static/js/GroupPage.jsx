@@ -65,6 +65,7 @@ class GroupPage extends Component {
           groupData,
           showTopics: !!groupData.showTagsByDefault && !this.props.tag
         });
+        this.props.updateCollectionName(groupData.name);
       });
   }
   onDataChange() {

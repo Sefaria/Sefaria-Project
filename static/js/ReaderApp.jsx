@@ -57,7 +57,6 @@ class ReaderApp extends Component {
         panels[0] = {
           highlightedNodes: initialPanel.highlightedNodes,
           naturalDateCreated: initialPanel.sheet && initialPanel.sheet.naturalDateCreated,
-          groupLogo: initialPanel.sheet && initialPanel.sheet.groupLogo,
           sheetID: initialPanel.sheetID,
           sheet: initialPanel.sheet,
           refs: props.initialRefs,
@@ -440,6 +439,7 @@ class ReaderApp extends Component {
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
           (prev.topicsTab != next.topicsTab) ||
+          (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
           (prev.showMoreTexts !== next.showMoreTexts) ||
           (prev.showMoreTopics !== next.showMoreTopics) ||
@@ -582,7 +582,7 @@ class ReaderApp extends Component {
             if (states[i].collectionTag) {
               hist.url  += "?tag=" + state.collectionTag.replace("#","%23");
             }
-            hist.title = state.collectionName + " | " + Sefaria._(siteName + " Collections");
+            hist.title = (state.collectionName ? state.collectionName + " | " : "") + Sefaria._(siteName + " Collections");
             hist.mode  = "collection";
             break;          
           case "publicGroups":
@@ -789,6 +789,34 @@ class ReaderApp extends Component {
 
     return hist;
   }
+  updateHistoryState(replace) {
+    if (!this.shouldHistoryUpdate()) {
+      return;
+    }
+    let currentUrl = (window.location.pathname + window.location.search);
+    let hist       = this.makeHistoryState();
+    if(window.location.hash.length){
+      currentUrl += window.location.hash;
+      hist.url += window.location.hash;
+    }
+    
+    if (replace) {
+      history.replaceState(hist.state, hist.title, hist.url);
+      //console.log("Replace History - " + hist.url);
+      if (currentUrl != hist.url) { this.checkScrollIntentAndTrack(); }
+      //console.log(hist);
+    } else {
+      if (currentUrl == hist.url) { return; } // Never push history with the same URL
+      history.pushState(hist.state, hist.title, hist.url);
+      //console.log("Push History - " + hist.url);
+      this.trackPageview();
+    }
+
+    $("title").html(hist.title);
+    this.replaceHistory = false;
+
+    this.setPaddingForScrollbar() // Called here to save duplicate calls to shouldHistoryUpdate
+  }
   _refState() {
     // Return a single flat list of all the refs across all panels
     var panels = (this.props.multiPanel)? this.state.panels : [this.state.header];
@@ -823,34 +851,6 @@ class ReaderApp extends Component {
     intentDelay = intentDelay || 3000;  // Number of milliseconds to demonstrate intent
     if (timer) { clearTimeout(timer); }
     return window.setTimeout(cb, intentDelay);
-  }
-  updateHistoryState(replace) {
-    if (!this.shouldHistoryUpdate()) {
-      return;
-    }
-    let currentUrl = (window.location.pathname + window.location.search);
-    let hist       = this.makeHistoryState();
-    if(window.location.hash.length){
-      currentUrl += window.location.hash;
-      hist.url += window.location.hash;
-    }
-    
-    if (replace) {
-      history.replaceState(hist.state, hist.title, hist.url);
-      //console.log("Replace History - " + hist.url);
-      if (currentUrl != hist.url) { this.checkScrollIntentAndTrack(); }
-      //console.log(hist);
-    } else {
-      if (currentUrl == hist.url) { return; } // Never push history with the same URL
-      history.pushState(hist.state, hist.title, hist.url);
-      //console.log("Push History - " + hist.url);
-      this.trackPageview();
-    }
-
-    $("title").html(hist.title);
-    this.replaceHistory = false;
-
-    this.setPaddingForScrollbar() // Called here to save duplicate calls to shouldHistoryUpdate
   }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`

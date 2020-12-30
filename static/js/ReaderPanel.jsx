@@ -340,6 +340,12 @@ class ReaderPanel extends Component {
       this.props.setTextListHighlight(refs);
     }
   }
+  updateCollectionName(name) {
+    // Replace history with collection name, which may be loaded from API with slug
+    // after the CollectionPage has initiall rendered.
+    this.replaceHistory = true;
+    this.conditionalSetState({ collectionName: name });    
+  }
   setSelectedWords(words){
     words = (typeof words !== "undefined" && words.length) ?  words : "";
     words = words.trim();
@@ -974,6 +980,7 @@ class ReaderPanel extends Component {
                 searchInGroup={this.props.searchInGroup}
                 toggleLanguage={this.props.toggleLanguage}
                 toggleSignUpModal={this.props.toggleSignUpModal}
+                updateCollectionName={this.updateCollectionName}
                 hideNavHeader={this.props.hideNavHeader}
                 multiPanel={this.props.multiPanel}
                 interfaceLang={this.props.interfaceLang} />);
