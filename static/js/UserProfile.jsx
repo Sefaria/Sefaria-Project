@@ -70,16 +70,9 @@ class UserProfile extends Component {
       case "Name":
         return groupB.name > groupA.name ? -1 : 1;
         break;
-      case "Members":
-        return groupB.memberCount - groupA.memberCount;
-        break;
       case "Sheets":
         return groupB.sheetCount - groupA.sheetCount;
         break;
-    }
-
-    if (currSortOption)
-    if (currSortOption == "Members") {
     }
   }
   handleCollectionsChange() {
@@ -391,7 +384,7 @@ class UserProfile extends Component {
                     renderItem={this.renderGroup}
                     renderEmptyList={this.renderEmptyGroupList}
                     renderHeader={this.renderGroupHeader}
-                    sortOptions={["Recent", "Name", "Members", "Sheets"]}
+                    sortOptions={["Recent", "Name", "Sheets"]}
                     getData={this.getGroups}
                     data={this.getGroupsFromCache()}
                     refreshData={this.state.refreshCollectionsData}

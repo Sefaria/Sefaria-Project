@@ -274,7 +274,7 @@ class GroupPage extends Component {
             <span className="int-he">דפי מקורות</span>
           </a>
           <a className={classNames({bubbleTab: 1, active: this.state.tab == "members"})} onClick={this.setTab.bind(null, "members")}>
-            <IntText>Contributors</IntText>
+            <IntText>Editors</IntText>
           </a>
           { isAdmin ?
             <a className="bubbleTab" href={"/collections/" + group.slug + "/settings"}>
@@ -647,7 +647,7 @@ class GroupMemberListingActions extends Component {
               : null }
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "member")}>
-                <span className={classNames({role: 1, current: this.props.member.role == "Member"})}><IntText>Contributor</IntText></span>
+                <span className={classNames({role: 1, current: this.props.member.role == "Member"})}><IntText>Editor</IntText></span>
                 - <IntText>can add & remove sheets</IntText>
               </div>
               : null}

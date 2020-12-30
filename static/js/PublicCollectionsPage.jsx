@@ -48,14 +48,12 @@ function PublicGroupsPage({multiPanel, navHome}) {
         <div className="contentInner">
           {multiPanel ?
           <h1>
-            <span className="int-en">Public Collections</span>
-            <span className="int-he">TODO Hebrew</span>
+            <IntText>Collections</IntText>
           </h1> : null}
           {multiPanel ?
           <center>
             <a className="button white" href="/collections/new">
-              <span className="int-en">Create a Collection</span>
-              <span className="int-he">צור TODO HEBREW</span>
+              <IntText>Create a Collection</IntText>
             </a>
           </center> : null}
 
@@ -116,7 +114,7 @@ function GroupListing({data, showMembership, small}) {
 
                   {data.memberCount > 1 ?
                   <span className="groupListingDetail groupListingMemberCount">
-                    <span className="int-en">{data.memberCount} Contributors</span>
+                    <span className="int-en">{data.memberCount} Editors</span>
                     <span className="int-he">{data.memberCount} TODO Hebrew</span>
                   </span> :null }
                 </div>

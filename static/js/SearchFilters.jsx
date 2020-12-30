@@ -13,8 +13,8 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 
-const noGroupEn = '(No Group)';
-const noGroupHe = '(ללא קבוצה)';
+const noGroupEn = '(No Collection)';
+const noGroupHe = '(ללא אסופה)';
 const noTagsEn = '(No Tag)';
 const noTagsHe = '(ללא תוית)';
 
@@ -230,9 +230,8 @@ class SheetSearchFilterPanel extends Component {
     }
   }
   render() {
-    const groupFilters = this.props.availableFilters.filter(filter => filter.aggType === 'group');
+    const groupFilters = this.props.availableFilters.filter(filter => filter.aggType === 'group' && filter.title);
     const tagFilters = this.props.availableFilters.filter(filter => filter.aggType.match(/^topics/));
-
 
     return (
       <DropdownModal positionUnset={true} close={this.props.closeBox} isOpen={this.props.displayFilters}>
@@ -245,11 +244,11 @@ class SheetSearchFilterPanel extends Component {
         {this.props.displayFilters ? 
         <div key={this.state.activeTab} className="searchFilterBoxes" role="dialog">
           <SearchFilterTabRow
-            tabs={[ {en: 'Topics', he: 'נושאים'}, {en: 'Groups', he: 'קבוצות'}]}
+            tabs={[ {en: 'Topics', he: 'נושאים'}, {en: 'Collections', he: 'אסופות'}]}
             activeTab={this.state.activeTab}
             changeTab={this.changeTab}
           />
-          { this.state.activeTab === 'Groups' ?
+          { this.state.activeTab === 'Collections' ?
             <div className="searchFilterCategoryBox searchFilterSheetBox">
             {groupFilters.map(filter => (
                   <SearchFilter
@@ -571,10 +570,8 @@ class SearchFilter extends Component {
   render() {
     const { filter, isInFocus } = this.props;
     let enTitle = filter.title || filter.heTitle;
-    enTitle = enTitle || noGroupEn;
     const enTitleIsHe = !filter.title && !!filter.heTitle;
     let heTitle = filter.heTitle || filter.title;
-    heTitle = heTitle || noGroupHe;
     const heTitleIsEn = !filter.heTitle && !!filter.title;
     return(
       <li className={classNames({active: isInFocus})} onClick={this.handleFocusCategory}>
