@@ -297,7 +297,7 @@ CACHES = {
 }
 
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "endOfYear-2020-banner-7",
+    "name":       "endOfYear-2020-banner-8",
     "style":      "banner", # "modal" or "banner"
     "repetition": 1,
     "condition":  {
