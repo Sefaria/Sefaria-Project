@@ -99,6 +99,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"judaism\.codidact\.com\/.+\/history",
             r"judaism\.codidact\.com\/.+\/suggested-edit\/",
             r"judaism\.codidact\.com\/.+\/posts\/new\/",
+            r"judaism\.codidact\.com\/questions\/d+",  # these pages redirect to /posts
+            r"judaism\.codidact\.com\/users\/",
             r"jewishexponent\.com\/page\/\d",
             r"hebrewcollege\.edu\/blog\/(author\|category\|tag)\/",  # these function like indices of articles
             r"roshyeshivamaharat.org\/(author\|category\|tag)\/",
@@ -129,6 +131,13 @@ class WebPage(abst.AbstractMongoRecord):
             r"jewfaq\.org\/search\.shtml", # Judaism 101, Search the Glossary and Index
             r"avodah\.net\/(blog|category|tag)/",
             r"hebrewcollege\.edu\/blog\/(author|tag)\/",
+            r"jewishideas\.org\/search\/",
+            r"jewishideas\.org\/articles\/",  # it seems you can write anything after articles/ and it leads to the same page?
+            r"jwa\.org\/encyclopedia\/author\/",  # tends to have articles by author that have snippets from article
+            r"jwa\.org\/encyclopedia\/content\/",
+            r"library\.yctorah\.org\/series\/",
+            r"reconstructingjudaism\.org\/taxonomy\/",
+            r"reconstructingjudaism\.org\/search\/",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -509,6 +518,7 @@ sites_data = [
         "domains":                ["parshanut.com"],
         "title_branding":         ["PARSHANUT"],
         "initial_title_branding": True,
+        "normalization_rules":    ["use https"],
     },
     {
         "name":            "Real Clear Daf",
@@ -576,7 +586,8 @@ sites_data = [
     },
     {
         "name": "Ritualwell",
-        "domains": ["ritualwell.org"]
+        "domains": ["ritualwell.org"],
+        "normalization_rules": ["remove www"],
     },
     {
         "name": "Jewish Exponent",
