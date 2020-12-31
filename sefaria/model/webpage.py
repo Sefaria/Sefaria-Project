@@ -128,6 +128,7 @@ class WebPage(abst.AbstractMongoRecord):
             r"http:\/\/:localhost(:\d+)?",
             r"jewfaq\.org\/search\.shtml", # Judaism 101, Search the Glossary and Index
             r"avodah\.net\/(blog|category|tag)/",
+            r"hebrewcollege\.edu\/blog\/(author|tag)\/",
         ]
         return "({})".format("|".join(bad_urls))
 
