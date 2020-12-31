@@ -125,7 +125,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"translate\.googleusercontent\.com",
             r"dailympails\.gq\/",
             r"http:\/\/:localhost(:\d+)?",
-            r"jewfaq\.org\/search\.shtml" # Judaism 101, Search the Glossary and Index
+            r"jewfaq\.org\/search\.shtml", # Judaism 101, Search the Glossary and Index
+            r"avodah\.net\/(blog|category|tag)/",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -696,11 +697,6 @@ sites_data = [
         "domains": ["ots.org.il"],
         "title_branding": ["אור תורה סטון"]
     },
-    #{
-    #    "name": "Orthodox Union",
-    #    "domains": ["ou.org"],
-    #    "title_branding": ["OU Torah", "OU Life"]
-    #},
     {
         "name": "Jewish Action",
         "domains": ["jewishaction.com"],
@@ -717,7 +713,6 @@ sites_data = [
         "name": "Jewish Action",
         "domains": ["jewishaction.com"],
     },
-
     {
         "name": "Orthodox Union (OU Torah)",
         "domains": ["ou.org"],
@@ -733,5 +728,17 @@ sites_data = [
     {
         "name": "Jewish Women's Archive",
         "domains": ["jwa.org"],
+    },
+    {
+        "name": "The Wexner Foundation",
+        "domains": ["wexnerfoundation.org"],
+    },
+    {
+        "name": "Jewish Drinking",
+        "domains": ["jewishdrinking.com"],
+    },
+    {
+        "name": "Avodah",
+        "domains": ["avodah.net"],
     },
 ]
