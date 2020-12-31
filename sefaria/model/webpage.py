@@ -113,8 +113,9 @@ class WebPage(abst.AbstractMongoRecord):
             r"clevelandjewishnews\.com$",
             r"clevelandjewishnews\.cpm\/news\/",
             r"ots\.org\.il\/news\/",
-            r"ots\.org\.il\/parsha\/page\/\d+\/",
+            r"ots\.org\.il\/.+\/page\/\d+\/",
             r"ots\.org\.il\/tag\/.+",
+            r"traditiononline\.org\/page\/\d+\/",
             r"toravoda\.org\.il\/%D7%90%D7%99%D7%A8%D7%95%D7%A2%D7%99%D7%9D-%D7%97%D7%9C%D7%95%D7%A4%D7%99\/",  # Neemanei Torah Vavoda list of past events
             r"929.org.il\/(lang\/en\/)?author/\d+$",  # Author index pages
             r"rabbijohnnysolomon.com$",
@@ -569,7 +570,8 @@ sites_data = [
     },
     {
         "name": "The Jewish Theological Seminary",
-        "domains": ["jtsa.edu"]
+        "domains": ["jtsa.edu"],
+        "normalization_rules": ["remove url params"],
     },
     {
         "name": "Ritualwell",
@@ -628,7 +630,7 @@ sites_data = [
     {
         "name": "The Jewish Virtual Library",
         "domains": ["jewishvirtuallibrary.org"],
-        "normalization_rules": ["use https"],
+        "normalization_rules": ["use https", "remove url params"],
     },
     {
         "name": "Lilith Magazine",
