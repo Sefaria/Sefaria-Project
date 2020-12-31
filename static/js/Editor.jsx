@@ -908,6 +908,28 @@ const withSefariaSheet = editor => {
           const lang = Sefaria.hebrew.isHebrew(content) ? 'he' : 'en';
           Transforms.setNodes(editor, { lang: lang }, {at: path});
 
+
+          //solve issue of children content
+          for (const [child, childPath] of Node.children(editor, path)) {
+
+            // if sheetitem gets stuck inside, bring it to top level
+            if (child.type == "SheetItem") {
+              Transforms.removeNodes(editor, {at: childPath})
+              Transforms.insertNodes(editor, child, {at: [0,0, path[2]+1]})
+              return;
+            }
+
+            //if there's raw text, wrap it in a pagraph
+            if (child.text) {
+            Transforms.wrapNodes(editor,
+              {
+                  type: "paragraph",
+                  children: [child],
+                  }
+                            ,{ at: childPath })
+              return
+            }
+          }
       }
 
       if (node.type == "Sheet") {
@@ -998,7 +1020,7 @@ const withSefariaSheet = editor => {
         // All SheetItems should be children of Sheetcontent
         if (Node.parent(editor, path).type != "SheetContent") {
           Transforms.liftNodes(editor, { at: path })
-            return
+          return
         }
 
         for (const [child, childPath] of Node.children(editor, path)) {
@@ -1066,8 +1088,8 @@ const withSefariaSheet = editor => {
         }
       }
 
-      //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
       if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
+        //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
         for (const [child, childPath] of Node.children(editor, path)) {
           if (sheetElementTypes.includes(child.type) || child.type == "SheetItem") {
             Transforms.unwrapNodes(editor, { at: childPath })
@@ -1075,6 +1097,15 @@ const withSefariaSheet = editor => {
           }
         }
 
+        // if source is the first thing added on a page add a spacer above to
+        // allow for editting and prevent JS Slate error around addinbg a void
+        // as first element in doc.
+
+        if (getNodeAbove(Path.parent(path)).path == null) {
+          const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, "")
+          incrementNextSheetNode(editor);
+          Transforms.insertNodes(editor, fragment, { at: [0,0,0] });
+        }
       }
 
       if (node.type == "he" || node.type == "en") {
@@ -1104,13 +1135,14 @@ const withSefariaSheet = editor => {
       //if a sheetitem is stuck somewhere it shouldnt be raise it up to proper doc level
       if (node.type == "SheetItem" && (Node.parent(editor, path)).type != "SheetContent") {
           Transforms.liftNodes(editor, { at: path })
+          return
       }
 
       //if a sheetSource is stuck somewhere it shouldnt be raise it up to proper doc level
       if (node.type == "SheetSource" && (Node.parent(editor, path)).type != "SheetItem") {
-          Transforms.liftNodes(editor, { at: path })
+        Transforms.liftNodes(editor,{ at: path })
+        return
       }
-
 
       // Fall back to the original `normalizeNode` to enforce other constraints.
       normalizeNode(entry)
@@ -1569,8 +1601,15 @@ const SefariaEditor = (props) => {
     );
 
     return (
-        // Add the editable component inside the context.
         <div>
+        {
+          /*
+          <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: 1000, backgroundColor: '#ddd', fontSize: 12, zIndex: 9999}}>
+          {JSON.stringify(editor.children[0,0])}
+          </div>
+          */
+        }
+
         <SheetMetaDataBox>
             <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
             <SheetAuthorStatement
