@@ -99,6 +99,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"judaism\.codidact\.com\/.+\/history",
             r"judaism\.codidact\.com\/.+\/suggested-edit\/",
             r"judaism\.codidact\.com\/.+\/posts\/new\/",
+            r"judaism\.codidact\.com\/questions\/d+",  # these pages redirect to /posts
+            r"judaism\.codidact\.com\/users\/",
             r"jewishexponent\.com\/page\/\d",
             r"hebrewcollege\.edu\/blog\/(author\|category\|tag)\/",  # these function like indices of articles
             r"roshyeshivamaharat.org\/(author\|category\|tag)\/",
@@ -113,8 +115,9 @@ class WebPage(abst.AbstractMongoRecord):
             r"clevelandjewishnews\.com$",
             r"clevelandjewishnews\.cpm\/news\/",
             r"ots\.org\.il\/news\/",
-            r"ots\.org\.il\/parsha\/page\/\d+\/",
+            r"ots\.org\.il\/.+\/page\/\d+\/",
             r"ots\.org\.il\/tag\/.+",
+            r"traditiononline\.org\/page\/\d+\/",
             r"toravoda\.org\.il\/%D7%90%D7%99%D7%A8%D7%95%D7%A2%D7%99%D7%9D-%D7%97%D7%9C%D7%95%D7%A4%D7%99\/",  # Neemanei Torah Vavoda list of past events
             r"929.org.il\/(lang\/en\/)?author/\d+$",  # Author index pages
             r"rabbijohnnysolomon.com$",
@@ -127,6 +130,14 @@ class WebPage(abst.AbstractMongoRecord):
             r"http:\/\/:localhost(:\d+)?",
             r"jewfaq\.org\/search\.shtml", # Judaism 101, Search the Glossary and Index
             r"avodah\.net\/(blog|category|tag)/",
+            r"hebrewcollege\.edu\/blog\/(author|tag)\/",
+            r"jewishideas\.org\/search\/",
+            r"jewishideas\.org\/articles\/",  # it seems you can write anything after articles/ and it leads to the same page?
+            r"jwa\.org\/encyclopedia\/author\/",  # tends to have articles by author that have snippets from article
+            r"jwa\.org\/encyclopedia\/content\/",
+            r"library\.yctorah\.org\/series\/",
+            r"reconstructingjudaism\.org\/taxonomy\/",
+            r"reconstructingjudaism\.org\/search\/",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -507,6 +518,7 @@ sites_data = [
         "domains":                ["parshanut.com"],
         "title_branding":         ["PARSHANUT"],
         "initial_title_branding": True,
+        "normalization_rules":    ["use https"],
     },
     {
         "name":            "Real Clear Daf",
@@ -569,11 +581,13 @@ sites_data = [
     },
     {
         "name": "The Jewish Theological Seminary",
-        "domains": ["jtsa.edu"]
+        "domains": ["jtsa.edu"],
+        "normalization_rules": ["remove url params"],
     },
     {
         "name": "Ritualwell",
-        "domains": ["ritualwell.org"]
+        "domains": ["ritualwell.org"],
+        "normalization_rules": ["remove www"],
     },
     {
         "name": "Jewish Exponent",
@@ -628,7 +642,7 @@ sites_data = [
     {
         "name": "The Jewish Virtual Library",
         "domains": ["jewishvirtuallibrary.org"],
-        "normalization_rules": ["use https"],
+        "normalization_rules": ["use https", "remove url params"],
     },
     {
         "name": "Lilith Magazine",
