@@ -1,0 +1,48 @@
+---
+name: Selenium Tests
+on:
+  - push
+
+jobs:
+  sandbox-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Setup Python 3.7
+        uses: actions/setup-python@v1
+        with: 
+          python-version: '3.7'
+
+      - name: Authenticate GHA Runner to GCP
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+          project_id: ${{ secrets.DEV_PROJECT }}
+
+      - name: Submit Build Job to Cloud Build
+        # This should use the 'arbitrary commit' build script
+        # should these sandboxes be available to the public? probably not -- don't give them public IP addresses
+        run: ./build/ci/create-ci-sandbox.bash
+        env:
+          GIT_COMMIT: "$GITHUB_SHA"
+          GKE_CLUSTER: "${{secrets.DEV_GKE_CLUSTER}}"
+          GKE_NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
+          GKE_REGION: "${{secrets.DEV_GKE_REGION}}"
+          MONGO_HOST: "${{secrets.DEV_MONGO_HOST}}"
+          POSTGRES_HOST: "${{secrets.DEV_POSTGRES_HOST}}"
+          SANDBOX_NAME: "${GITHUB_SHA}"
+          SANDBOX_SUBDOMAIN: "${{secrets.DEV_SANDBOX_SUBDOMAIN}}"
+          GCP_PROJECT: "${{secrets.DEV_GCP_PROJECT}}"
+
+  sandbox-ready:
+    runs-on: ubuntu-latest
+    steps: []
+
+  selenium-tests:
+    runs-on: ubuntu-latest
+    steps: []
+
+...
