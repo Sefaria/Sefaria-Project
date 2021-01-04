@@ -2615,7 +2615,7 @@ Sefaria.unpackDataFromProps = function(props) {
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
   const dataPassedAsProps = [
       "_uid",
-      "email",
+      "_email",
       "slug",
       "is_moderator",
       "is_editor",
