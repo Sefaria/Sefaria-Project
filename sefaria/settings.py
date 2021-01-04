@@ -313,8 +313,11 @@ GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab environment specific settings from a file which
 # is left out of the repo.
-try:
-    from sefaria.local_settings import *
+try: 
+    if os.getenv("CI_RUN"):
+        from sefaria.local_settings_ci import *
+    else:
+        from sefaria.local_settings import *
 except ImportError:
     from sefaria.local_settings_example import *
 
