@@ -40,8 +40,6 @@ jobs:
       - name: Authenticate GHA Runner To Target Cluster
         run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
 
-      - run: kubectl get pods
-
       - name: Establish MongoDB Connection
         run: kubectl port-forward svc/mongo 27017:27017 &
 
@@ -49,6 +47,14 @@ jobs:
         # The following command returns a success code if mongo is available,
         # and a failure code if it is not
         run: curl localhost:27017
+
+      - name: Establish PostgreSQL Connection
+        run: kubectl port-forward svc/postgres 5432:5432 &
+
+      - name: Confirm PostgreSQL Connection
+        # if the PostgreSQL server is available, curl will fail with a '52' exit code
+        # if it is NOT available, it will fail with a '7' exit code
+        run: curl localhost:5432; if [ $? -eq "52" ]; then exit 0; else exit 1; fi
 
       - name: Install Python Packages
         run: |
