@@ -41,7 +41,10 @@ jobs:
         run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
 
       - name: Establish MongoDB Connection
-        run: kubectl port-forward svc/mongo 27017:27017 && sleep 40 &
+        run: kubectl port-forward svc/mongo 27017:27017 &
+      
+      - name: Await MongoDB Connection
+        run: sleep 40
 
       - name: Confirm MongoDB Connection
         # The following command returns a success code if mongo is available,
@@ -49,7 +52,10 @@ jobs:
         run: curl localhost:27017
 
       - name: Establish PostgreSQL Connection
-        run: kubectl port-forward svc/postgres 5432:5432 && sleep 40 &
+        run: kubectl port-forward svc/postgres 5432:5432 &
+
+      - name: Await MongoDB Connection
+        run: sleep 40
 
       - name: Confirm PostgreSQL Connection
         # if the PostgreSQL server is available, curl will fail with a '52' exit code
