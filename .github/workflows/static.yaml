@@ -41,7 +41,7 @@ jobs:
         run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
 
       - name: Establish MongoDB Connection
-        run: 'kubectl port-forward svc/mongo 27017:27017 && sleep 20 &'
+        run: 'kubectl port-forward svc/mongo 27017:27017 &'
 
       - name: Confirm MongoDB Connection
         # The following command returns a success code if mongo is available,
