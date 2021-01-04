@@ -63,12 +63,15 @@ jobs:
         # run: curl localhost:5432; if [ $? -eq "52" ]; then exit 0; else exit 1; fi
         run: exitCode=$(curl localhost:5432; echo $?); if [ $exitCode -eq 52 ]; then exit 0; else exit 1; fi
 
+      # - name: Install re2 # Find a way to avoid rebuilding constantly w/o using self-hosted runners
+
       - name: Install Python Packages
         run: |
           pip3 install django==1.11.* structlog
           pip3 install -r ./requirements.txt
       - name: Run Static Python Tests
         run: py.test -v -m 'not deep and not failing'
+        timeout-minutes: 45
         env:
           DJANGO_SETTINGS_MODULE: "sefaria.settings"
 ...
