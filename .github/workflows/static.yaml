@@ -74,4 +74,5 @@ jobs:
         timeout-minutes: 45
         env:
           DJANGO_SETTINGS_MODULE: "sefaria.settings"
+          CI_RUN: "true"
 ...
