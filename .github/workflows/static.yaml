@@ -42,7 +42,11 @@ jobs:
 
       - name: Establish MongoDB Connection
         run: 'kubectl port-forward svc/mongo 27017:27017 && sleep 20 &'
-      #- name: Copy In local_settings.py
+
+      - name: Confirm MongoDB Connection
+        # The following command returns a success code if mongo is available,
+        # and a failure code if it is not
+        run: curl localhost:27017
 
       - name: Install Python Packages
         run: |
