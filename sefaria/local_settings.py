@@ -124,9 +124,10 @@ MONGO_HOST = "localhost"
 MONGO_PORT = 27017
 # Name of the MongoDB database to use.
 if 'GITHUB_SHA' in os.environ:
-    SEFARIA_DB = "sefaria-{}".format(os.environ['GITHUB_SHA'][:6])
+    #SEFARIA_DB = "sefaria-{}".format(os.environ['GITHUB_SHA'][:6])
+    SEFARIA_DB = "sefaria-vecino"
 else:
-    SEFARIA_DB = "sefaria"
+    SEFARIA_DB = "sefaria-vecino"
 
 # Leave user and password blank if not using Mongo Auth
 SEFARIA_DB_USER = ''

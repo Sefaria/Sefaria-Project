@@ -46,8 +46,8 @@ jobs:
 
       - name: Install Python Packages
         run: |
-          pip3 install django==1.11.* structlog --use-feature=2020-resolver
-          pip3 install -r ./requirements.txt --use-feature=2020-resolver
+          pip3 install django==1.11.* structlog
+          pip3 install -r ./requirements.txt
       - name: Run Static Python Tests
         run: py.test -v -m 'not deep and not failing'
         env:
