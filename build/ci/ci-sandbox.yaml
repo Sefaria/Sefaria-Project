@@ -147,7 +147,8 @@ steps:
       - 'IS_SANDBOX=${_IS_SANDBOX}'
       - 'MONGO_HOST=${_MONGO_HOST}' # Should this be parmeterized here or read in the repo
       - 'POSTGRES_HOST=${_POSTGRES_HOST}' # Should this be parmeterized here or read in the repo
-      - 'MONGO_DATABASE=${_MONGO_DATABASE}'
+      - 'SEFARIA_DB=${_MONGO_DATABASE}'
+      - 
     wait_for: [ "-" ]
   
   # Copy localsettings into file
@@ -238,11 +239,4 @@ steps:
     wait_for:
       - generate_ingress_values_file
       - deploy_sandbox
-
-  # Commit change to v2/sandboxes/ingresses/sandboxes.txt if one occurred
-
-images:
-  - "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:gha-${_ENV_NAME}"
-  - "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:gha-${_ENV_NAME}"
-  - "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:gha-${_ENV_NAME}"
 ...

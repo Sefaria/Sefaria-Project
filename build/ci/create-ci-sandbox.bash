@@ -138,9 +138,10 @@ echo "Substitution String:"
 echo $substStr
 
 # Invoke `gcloud builds submit` to kick off the build
-pwd
-ls 
-ls -l
+#pwd
+#ls 
+#ls -l
+
 gcloud builds submit --no-source --config ./build/ci/ci-sandbox.yaml \
   --substitutions $substStr \
   --project $gcpProject \
