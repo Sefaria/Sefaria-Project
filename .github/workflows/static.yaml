@@ -44,7 +44,7 @@ jobs:
         run: kubectl port-forward svc/mongo 27017:27017 &
       
       - name: Await MongoDB Connection
-        run: sleep 40
+        run: sleep 20
 
       - name: Confirm MongoDB Connection
         # The following command returns a success code if mongo is available,
@@ -55,7 +55,7 @@ jobs:
         run: kubectl port-forward svc/postgres 5432:5432 &
 
       - name: Await MongoDB Connection
-        run: sleep 40
+        run: sleep 20
 
       - name: Confirm PostgreSQL Connection
         # if the PostgreSQL server is available, curl will fail with a '52' exit code
