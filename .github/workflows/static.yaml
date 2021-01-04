@@ -43,9 +43,13 @@ jobs:
       - name: Establish MongoDB Connection
         run: 'kubectl port-forward svc/mongo 27017:27017 && sleep 20 &'
       #- name: Copy In local_settings.py
-      - name: Run Static Python Tests
+
+      - name: Install Python Packages
         run: |
           pip3 install django==1.11.* structlog --use-feature=2020-resolver
           pip3 install -r ./requirements.txt --use-feature=2020-resolver
-          py.test -v -m 'not deep and not failing'
+      - name: Run Static Python Tests
+        run: py.test -v -m 'not deep and not failing'
+        env:
+          DJANGO_SETTINGS_MODULE: "sefaria.settings"
 ...
