@@ -60,7 +60,8 @@ jobs:
       - name: Confirm PostgreSQL Connection
         # if the PostgreSQL server is available, curl will fail with a '52' exit code
         # if it is NOT available, it will fail with a '7' exit code
-        run: curl localhost:5432; if [ $? -eq "52" ]; then exit 0; else exit 1; fi
+        # run: curl localhost:5432; if [ $? -eq "52" ]; then exit 0; else exit 1; fi
+        run: exitCode=$(curl localhost:5432; echo $?); if [ $exitCode -eq 52 ]; then exit 0; else exit 1; fi
 
       - name: Install Python Packages
         run: |
