@@ -14,9 +14,9 @@ substitutions:
   _GKE_REGION: us-east1-b
   _IS_SANDBOX: "false" # must be a quoted string
   _MONGO_HOST: mongo
-  _MONGO_LOAD: "true" # must be a quoted string
+  # _MONGO_LOAD: "true" # must be a quoted string
   _MONGO_DATABASE: "sefaria-vecino"
-  _MONGO_SNAPSHOT_LOCATION: "latest"
+  # _MONGO_SNAPSHOT_LOCATION: "latest"
   _RESOURCE_ALLOCATION: small
   _POSTGRES_HOST: postgres
   _SANDBOX_SUBDOMAIN: cauldron
