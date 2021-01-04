@@ -1,0 +1,23 @@
+# 1. Python tests
+  # - this requires a running instance, so just running it in 
+# 2. Jest tests
+# 3. Selenium
+# 
+---
+name: ci-tests
+on:
+  - push
+  - pull_request
+jobs:
+  jest-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install dependencies
+        run: |
+          npm install
+          npm run build-prod
+      - name: Run Jest Tests
+        run: npm run jest-travis
+...
