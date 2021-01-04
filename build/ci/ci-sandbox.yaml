@@ -58,33 +58,50 @@ steps:
     id: print_python_requirements
     wait_for: [ "sefaria_repo_clone" ]
 
-  #
+
   # Build artifacts
-  #
-  # TODO: Use the Kaniko builder to take advantage of shared build caches across builds
-  # TODO: Use SHORT_SHA for image tags after a trigger for sandboxes is created (That variable is only available for triggered builds)
-  # TODO: consider renaming image container
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:gha-${_ENV_NAME}","-f", "build/web/Dockerfile", "."] 
+  - name: gcr.io/kaniko-project/executor:latest
+    args:
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:gha-${_ENV_NAME}
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:latest
+      - --cache=true
+      - --dockerfile=build/web/Dockerfile
+      - --context=dir://.
     dir: Sefaria-Project
     id: web_container
     wait_for:
       - sefaria_repo_clone
-  
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:gha-${_ENV_NAME}", "-f", "build/node/Dockerfile", "."]
+
+  - name: gcr.io/kaniko-project/executor:latest
+    args:
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:gha-${_ENV_NAME}
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:latest
+      - --cache=true
+      - --dockerfile=build/node/Dockerfile
+      - --context=dir://.
     dir: Sefaria-Project
     id: nodejs_container
     wait_for:
       - sefaria_repo_clone
-
-  - name: "gcr.io/cloud-builders/docker"
-    args: ["build", "-t", "gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:gha-${_ENV_NAME}", "-f", "build/nginx/Dockerfile", "--build-arg", "SRC_IMG=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:gha-${_ENV_NAME}", "."]
+  
+  - name: gcr.io/kaniko-project/executor:latest
+    args:
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:gha-${_ENV_NAME}
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:latest
+      - --cache=false
+      - --dockerfile=build/nginx/Dockerfile
+      - --build-arg=SRC_IMG=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA
+      - --context=dir://.
     dir: Sefaria-Project
     id: nginx_container
     wait_for:
       - web_container
       - sefaria_repo_clone
+
+
 
   # # Todo: delete previously existing job OR timestamp the K8s job name
   # # This build step is defined at `v2/containers/mongo-restore
