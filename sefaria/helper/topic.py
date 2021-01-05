@@ -765,7 +765,7 @@ def get_top_topic(sheet):
 
 
 def add_num_sources_to_topics():
-    updates = [{"numSources": RefTopicLinkSet({"toTopic": t.slug}).count(), "_id": t._id} for t in TopicSet()]
+    updates = [{"numSources": RefTopicLinkSet({"toTopic": t.slug, "linkType": {"$ne": "mention"}}).count(), "_id": t._id} for t in TopicSet()]
     db.topics.bulk_write([
         UpdateOne({"_id": t['_id']}, {"$set": {"numSources": t['numSources']}}) for t in updates
     ])
