@@ -202,7 +202,7 @@ class GroupPage extends Component {
     let content;
 
     if (!group) {
-      content = <LoadingMessage />
+      content = <div className="contentInner"><LoadingMessage /></div>;
     } else {
       var sheets         = group.sheets;
       var groupTopicList = group.topics;
@@ -218,8 +218,8 @@ class GroupPage extends Component {
           </div>);
         }) : null;
 
-      sheets = sheets && this.state.sheetFilterTopic ? sheets.filter(sheet => sheet.topics && sheet.topics.reduce((accum, curr) => accum || this.state.sheetFilterTopic === curr.slug, false)) : sheets;
-      sheets = sheets ? sheets.map(function(sheet) {
+      sheets = this.state.sheetFilterTopic ? sheets.filter(sheet => sheet.topics && sheet.topics.reduce((accum, curr) => accum || this.state.sheetFilterTopic === curr.slug, false)) : sheets;
+      sheets = sheets.map(function(sheet) {
         return (<SheetListing
                   sheet={sheet}
                   hideAuthor={true}
@@ -229,13 +229,13 @@ class GroupPage extends Component {
                   pinned={group.pinnedSheets.indexOf(sheet.id) != -1}
                   pinnable={isMember}
                   editable={sheet.author == Sefaria._uid}
-                  saveable={sheet.author !== Sefaria._uid}
+                  saveable={sheet.author !== Sefaria._uid && !isMember}
                   collectable={true}
                   pinSheet={this.pinSheet.bind(null, sheet.id)}
                   handleCollectionsChange={this.onDataChange}
                   toggleSignUpModal={this.props.toggleSignUpModal}
                   key={sheet.id} />);
-      }.bind(this)) : <LoadingMessage />;      
+      }.bind(this));     
 
       content = <div className="contentInner">
         {group.imageUrl ?

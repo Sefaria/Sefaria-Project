@@ -99,7 +99,10 @@ function GroupListing({data, showMembership, small}) {
                
                 <div className="groupListingDetails">
                   {data.listed ? null :
-                    (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span><IntText>Unlisted</IntText></span></span>) }
+                    (<span className="unlisted">
+                      <img src="/static/img/eye-slash.svg"/>
+                      <IntText>Unlisted</IntText>
+                    </span>) }
 
                   {data.listed ? null :
                   <span className="groupListingDetailSeparator">•</span> }
@@ -109,10 +112,10 @@ function GroupListing({data, showMembership, small}) {
                     <span className="int-he">{data.sheetCount} דפים</span>
                   </span>
 
-                  {data.memberCount > 1 ? 
+                  {data.memberCount > 1 && small ? 
                   <span className="groupListingDetailSeparator">•</span> : null }
 
-                  {data.memberCount > 1 ?
+                  {data.memberCount > 1 && small ?
                   <span className="groupListingDetail groupListingMemberCount">
                     <span className="int-en">{data.memberCount} Editors</span>
                     <span className="int-he">{data.memberCount} TODO Hebrew</span>

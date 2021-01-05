@@ -80,23 +80,25 @@ class UserProfile extends Component {
     this.setState({ refreshCollectionsData: Math.random() });
   }
   renderEmptyGroupList() {
+    if (Sefaria._uid !== this.props.profile.id) {
+     return (
+        <div className="emptyList">
+          <div className="emptyListText">
+            <IntText>{this.props.profile.full_name} </IntText>
+            <IntText>hasn't shared any collections yet.</IntText>
+          </div>
+        </div>);
+    }
     return (
       <div className="emptyList">
         <div className="emptyListText">
-          <IntText>{this.props.profile.full_name} </IntText>
-          <IntText>hasn't shared any collections yet.</IntText>
+          <IntText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</IntText>
         </div>
-        { Sefaria._uid === this.props.profile.id ?
-          <div className="emptyListText">
-            <IntText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</IntText>
-            <a href="/collections/new" className="resourcesLink">
-              <img src="/static/img/collection.svg" alt="Collection icon" />
-              <IntText>Create a New Collection</IntText>
-            </a>
-          </div> : null
-         }
-      </div>
-    );
+        <a href="/collections/new" className="resourcesLink">
+          <img src="/static/img/collection.svg" alt="Collection icon" />
+            <IntText>Create a New Collection</IntText>
+        </a>
+      </div>);
   }
   renderGroup(group) {
     return (

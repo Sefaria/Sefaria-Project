@@ -83,12 +83,6 @@ class Group(abst.AbstractMongoRecord):
         if len(self.name) == 0:
             raise InputError(_("Please set a name for your collection."))
 
-        if getattr(self, "listed", False):
-            if not getattr(self, "imageUrl", False):
-                raise InputError(_("Public Collections are required to include a collection image (a square image will work best)."))
-            if self.public_sheet_count() < 3:
-                raise InputError(_("Public Collections are required to have at least 3 public sheets."))
-
         return True
 
     def _pre_save(self):
@@ -100,9 +94,18 @@ class Group(abst.AbstractMongoRecord):
             # changes listing status
             self.assign_slug(public=new_status)
 
-        if self.listed and self.name_taken():
-            # Require public collections to have a unique name
-            raise InputError(_("A public collection with this name already exists. Please choose a different name before publishing."))
+        if new_status and not old_status:
+            # At moment of publishing, make checks for special requirements on public collections
+            # Don't make these checks on every save so a collection can't get stuck in a state where 
+            # it can't be change even to add a new public sheet. 
+            if self.name_taken():
+                # Require public collections to have a unique name
+                raise InputError(_("A public collection with this name already exists. Please choose a different name before publishing."))
+            if not getattr(self, "imageUrl", False):
+                raise InputError(_("Public Collections are required to include a collection image (a square image will work best)."))
+            if self.public_sheet_count() < 3:
+                raise InputError(_("Public Collections are required to have at least 3 public sheets."))
+
 
         image_fields = ("imageUrl", "headerUrl", "coverUrl")
         for field in image_fields:
@@ -175,7 +178,8 @@ class Group(abst.AbstractMongoRecord):
             "headerUrl": getattr(self, "headerUrl", None),
             "memberCount": self.member_count(),
             "sheetCount": self.sheet_count(),
-            "lastModified": str(self.lastModified)
+            "lastModified": str(self.lastModified),
+            "listed": getattr(self, "listed", False),
         }
         if uid is not None:
             contents["membership"] = self.membership_role(uid)
