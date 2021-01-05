@@ -895,6 +895,14 @@ class WebPagesList extends Component {
   setFilter(filter) {
     this.props.setWebPagesFilter(filter);
   }
+  webSitesSort(a, b) {
+    // First sort by site language / interface language
+    let aHe, bHe;
+    [aHe, bHe] = [a.name, b.name].map(Sefaria.hebrew.isHebrew);
+    if (aHe !== bHe) { return (bHe ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
+    // Then by number of pages
+    return b.count - a.count;
+  }
   render() {
     let webpages = Sefaria.webPagesByRef(this.props.srefs)
     let content = [];
@@ -908,7 +916,7 @@ class WebPagesList extends Component {
           sites[page.siteName] = {name: page.siteName, faviconUrl: page.faviconUrl, count: 1};
         }
       });
-      sites = Object.values(sites).sort((a, b) => b.count - a.count);
+      sites = Object.values(sites).sort(this.webSitesSort);
       content = sites.map(site => {
         return (<div className="website toolsButton" onClick={()=>this.setFilter(site.name)} key={site.name}>
           <img className="icon" src={site.faviconUrl} />

@@ -163,7 +163,7 @@
 					if ("error" in data) {
 						alert(data.error);
 					} else {
-						alert("Settings Saved.");
+						alert(Sefaria._("Settings Saved"));
 						Sefaria.track.event("Settings", "Settings Save", $("#emailNotifications input:checked").val());
 						const $newLang = $("#siteLanguage .toggleOption.active").attr("data-value");
 						if($newLang != $curLang){

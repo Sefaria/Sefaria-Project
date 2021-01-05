@@ -10,7 +10,8 @@ from pymongo.errors import OperationFailure
 if hasattr(sys, '_doc_build'):
     db = ""
 else:
-    TEST_DB = SEFARIA_DB + "_test"
+    # TEST_DB = SEFARIA_DB + "_test"
+    TEST_DB = SEFARIA_DB 
     client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
 
     if not hasattr(sys, '_called_from_test'):
@@ -18,12 +19,7 @@ else:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
             db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
     else:
-        # copydb deprecated in 4.2.  https://docs.mongodb.com/v4.0/release-notes/4.0-compatibility/#deprecate-copydb-clone-cmds
-        if TEST_DB not in client.list_database_names():
-            client.admin.command('copydb',
-                                 fromdb=SEFARIA_DB,
-                                 todb=TEST_DB)
-        db = client[TEST_DB]
+        db = client[TEST_DB] 
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
             db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
@@ -37,13 +33,14 @@ def drop_test():
     client.drop_database(TEST_DB)
 
 
-def refresh_test():
-    global client
-    drop_test()
-    # copydb deprecated in 4.2.  https://docs.mongodb.com/v4.0/release-notes/4.0-compatibility/#deprecate-copydb-clone-cmds
-    client.admin.command('copydb',
-                         fromdb=SEFARIA_DB,
-                         todb=TEST_DB)
+# Not used
+# def refresh_test():
+#     global client
+#     drop_test()
+#     # copydb deprecated in 4.2.  https://docs.mongodb.com/v4.0/release-notes/4.0-compatibility/#deprecate-copydb-clone-cmds
+#     client.admin.command('copydb',
+#                          fromdb=SEFARIA_DB,
+#                          todb=TEST_DB)
 
 
 def ensure_indices(active_db=None):
