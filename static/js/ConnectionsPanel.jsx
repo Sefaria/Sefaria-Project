@@ -1407,7 +1407,6 @@ function ManuscriptImageList(props) {
 
 function ManuscriptImage(props) {
   let manuscript = props.manuscript;
-  console.log(manuscript);
   return <div className={"manuscript"} >
     <a href={manuscript['image_url']} target="_blank">
       <img className={"manuscriptImage"} src={manuscript["thumbnail_url"]} alt={"Ancient Manuscript"}/>
