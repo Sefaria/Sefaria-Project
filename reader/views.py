@@ -154,7 +154,7 @@ def render_react_component(component, props):
 
     from sefaria.settings import NODE_TIMEOUT
 
-    propsJSON = json.dumps(props) if isinstance(props, dict) else props
+    propsJSON = json.dumps(props, ensure_ascii=False) if isinstance(props, dict) else props
     cache_key = "todo" # zlib.compress(propsJSON)
     url = NODE_HOST + "/" + component + "/" + cache_key
 
@@ -575,7 +575,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         desc = sheet.get("summary", _("A source sheet created with Sefaria's Source Sheet Builder"))
         noindex = sheet["status"] != "public"
 
-    propsJSON = json.dumps(props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
     if len(panels) > 0 and panels[0].get("refs") == [] and panels[0].get("mode") == "Text":
         logger.debug("Mangled panel state: {}".format(panels), stack_info=True)
     html = render_react_component("ReaderApp", propsJSON)
@@ -634,7 +634,7 @@ def texts_category_list(request, cats):
         "initialMenu": "navigation",
         "initialNavigationCategories": cats,
     })
-    propsJSON = json.dumps(props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON":        propsJSON,
@@ -661,7 +661,7 @@ def topics_toc_page(request, topicCategory):
             "he": topic_obj.get_primary_title('he')
         }
     })
-    propsJSON = json.dumps(props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON":        propsJSON,
@@ -722,7 +722,7 @@ def search(request):
         "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
         "initialSheetSearchSortType": search_params["sheetSort"]
     })
-    propsJSON = json.dumps(props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request,'base.html', {
         "propsJSON": propsJSON,
@@ -762,7 +762,7 @@ def sheets(request):
 
     title = _("Sefaria Source Sheets")
     desc  = _("Explore thousands of public Source Sheets and use our Source Sheet Builder to create your own online.")
-    propsJSON = json.dumps(props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON":      propsJSON,
@@ -786,7 +786,7 @@ def get_group_page(request, group, authenticated):
         raise Http404
     props["groupData"] = group[0].contents(with_content=True, authenticated=authenticated)
 
-    propsJSON = json.dumps(props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON": propsJSON,
@@ -890,7 +890,7 @@ def menu_page(request, props, page, title="", desc=""):
     props.update({
         "initialMenu": page,
     })
-    propsJSON = json.dumps(props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON":      propsJSON,
@@ -3079,7 +3079,7 @@ def topics_page(request):
         # "trendingTags": trending_tags(ntags=12),
     })
 
-    propsJSON = json.dumps(props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON":      propsJSON,
@@ -3120,7 +3120,7 @@ def topic_page(request, topic):
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
         desc += " " + topic_desc
-    propsJSON = json.dumps(props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request,'base.html', {
         "propsJSON":      propsJSON,
@@ -3401,7 +3401,7 @@ def user_profile(request, username):
     title = "%(full_name)s on Sefaria" % {"full_name": requested_profile.full_name}
     desc = '%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": requested_profile.full_name}
 
-    propsJSON = json.dumps(props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request,'base.html', {
         "propsJSON":      propsJSON,
@@ -4016,7 +4016,7 @@ def serve_static(request, page):
     Serve a static page whose template matches the URL
     """
     props = base_props(request)
-    propsJSON = json.dumps(props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
 
     return render(request,'static/%s.html' % page, {
         "propsJSON": propsJSON
