@@ -355,8 +355,6 @@ cat_rishonim = create_category(["Jewish Thought", "Rishonim"], "Rishonim", "רא
 books_rishonim = ["HaEmunot veHaDeot", "Eight Chapters",
                   "Guide for the Perplexed",
                   "Treatise on Logic",
-                  "Duties of the Heart",
-                  "Duties of the Heart (abridged)",
                   "Darashos HaRan",
                   "Ma'amar al Yishmael",
                   "Akeidat Yitzchak",
@@ -367,6 +365,10 @@ books_rishonim = ["HaEmunot veHaDeot", "Eight Chapters",
                   "Minhat Kenaot",
                   "Yesod Mora",
                   ]
+
+cat_duties = create_category(["Jewish Thought", "Rishonim", "Duties of the Heart"], "Duties of the Heart", "חובות הלבבות")
+books_duties = ["Duties of the Heart",
+                "Duties of the Heart (abridged)"]
 
 cat_acharonim = create_category(["Jewish Thought", "Acharonim"], "Acharonim", "אחרונים")
 books_acharonim = ["Derech Hashem",
@@ -401,6 +403,7 @@ books_modern = ["Nineteen Letters",
 for cat, books in [
     (cat_kook, books_kook),
     (cat_rishonim, books_rishonim),
+    (cat_duties, books_duties),
     (cat_acharonim, books_acharonim),
     (cat_modern, books_modern)
 ]:
@@ -411,12 +414,21 @@ for cat, books in [
             continue
         moveIndexInto(i, cat)
 
-p = Category().load({"path": ["Jewish Thought", "Commentary"]})
-ts = ["Ali Be'er on Revealment and Concealment in Language",
+p = Category().load({"path": ["Jewish Thought"]})
+for t in ["Ali Be'er on Revealment and Concealment in Language",
       'Bein HaShitin on Halacha and Aggadah',
-      'Commentaries on Revealment and Concealment in Language']
-for t in ts:
+      'Commentaries on Revealment and Concealment in Language']:
     moveIndexInto(t, p)
+
+p = create_category(["Jewish Thought", "Rishonim", "Duties of the Heart", "Commentary"])
+for t in [
+    "Tov haLevanon",
+    "Pat Lechem",
+    "Marpeh la'Nefesh"
+]:
+    moveIndexInto(t, p)
+
+
 
 moveIndexInto("Flames of Faith", ["Chasidut"])
 moveIndexInto("Ein Ayah", ["Talmud", "Bavli", "Commentary"])
@@ -1086,7 +1098,8 @@ for p in [
     ["Halakhah", "Mishneh Torah"],
     ["Halakhah", "Shulchan Arukh"],
     ["Halakhah", "Tur"],
-    ["Kabbalah", "Sefer Yetzirah"]
+    ["Kabbalah", "Sefer Yetzirah"],
+    ["Jewish Thought", "Rishonim", "Duties of the Heart"]
 ]:
     c = Category().load({"path": p})
     c.isPrimary = True
@@ -1124,7 +1137,9 @@ for p in [
     ["Kabbalah", "Commentary", "Ramban"],
     ["Kabbalah", "Commentary", "Raavad"],
     ["Kabbalah", "Commentary", "Saadia Gaon"],
-
+    ["Jewish Thought", "Commentary", "Marpeh la'Nefesh", "Duties of the Heart"],
+    ["Jewish Thought", "Commentary", "Pat Lechem", "Duties of the Heart"],
+    ["Jewish Thought", "Commentary", "Tov haLevanon", "Duties of the Heart"],
 ]:
     c = Category().load({"path": p})
     if c:
@@ -1190,7 +1205,6 @@ for c in cs:
     else:
         print("Category without term: {}".format(c.get_primary_title()))
 
-# Category without term: Duties of the Heart
 # Category without term: Motar Kinnim
 # Category without term: Eliezer Berkovits
 
