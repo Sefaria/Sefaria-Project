@@ -4581,7 +4581,7 @@ class Library(object):
             if not rebuild:
                 self._toc_json = scache.get_shared_cache_elem('toc_json')
             if rebuild or not self._toc_json:
-                self._toc_json = json.dumps(self.get_toc(), ensure_ascii=False)
+                self._toc_json = json.dumps(self.get_toc())
                 scache.set_shared_cache_elem('toc_json', self._toc_json)
                 self.set_last_cached_time()
         return self._toc_json
@@ -4698,7 +4698,7 @@ class Library(object):
             if not rebuild:
                 self._search_filter_toc_json = scache.get_shared_cache_elem('search_filter_toc_json')
             if rebuild or not self._search_filter_toc_json:
-                self._search_filter_toc_json = json.dumps(self.get_search_filter_toc(), ensure_ascii=False)
+                self._search_filter_toc_json = json.dumps(self.get_search_filter_toc())
                 scache.set_shared_cache_elem('search_filter_toc_json', self._search_filter_toc_json)
                 self.set_last_cached_time()
         return self._search_filter_toc_json
@@ -5033,7 +5033,7 @@ class Library(object):
             if not rebuild:
                 self._simple_term_mapping_json = scache.get_shared_cache_elem('term_mapping_json')
             if rebuild or not self._simple_term_mapping_json:
-                self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping(), ensure_ascii=False)
+                self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping())
                 scache.set_shared_cache_elem('term_mapping_json', self._simple_term_mapping_json)
                 self.set_last_cached_time()
         return self._simple_term_mapping_json
@@ -5127,7 +5127,7 @@ class Library(object):
                 self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_'+lang+'_json')
             if rebuild or not self._full_title_list_jsons.get(lang):
                 title_list = self.build_text_titles_json(lang=lang)
-                title_list_json = json.dumps(title_list, ensure_ascii=False)
+                title_list_json = json.dumps(title_list)
                 self._full_title_list_jsons[lang] = title_list_json
                 scache.set_shared_cache_elem('books_' + lang, title_list)
                 scache.set_shared_cache_elem('books_'+lang+'_json', title_list_json)
