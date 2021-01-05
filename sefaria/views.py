@@ -196,7 +196,8 @@ def data_js(request):
     """
     response = render(request, "js/data.js", content_type="text/javascript")
     patch_cache_control(response, max_age=31536000, immutable=True)
-    response['Content-Type'] = 'application/json; charset=utf-8'
+    response['Content-Type'] = 'application/json'
+    response.charset = "utf-8"
     # equivalent to: response['Cache-Control'] = 'max-age=31536000, immutable'
     # cache for a year (cant cache indefinitely) and mark immutable so browser cache never revalidates.
     # This saves any roundtrip to the server untill the data.js url is changed upon update.
