@@ -99,8 +99,8 @@ class Sheet extends Component {
             authorStatement={sheet.ownerName}
             authorUrl={sheet.ownerProfileUrl}
             authorImage={sheet.ownerImageUrl}
-            collectionName={sheet.group}
-            collectionSlug={sheet.collectionSlug}
+            collectionName={sheet.collectionName}
+            collectionSlug={sheet.displayedCollection}
             collectionImage={sheet.collectionImage}
             editable={Sefaria._uid == sheet.owner}
             hasSidebar={this.props.hasSidebar}

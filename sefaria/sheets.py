@@ -110,7 +110,7 @@ def get_sheet_for_panel(id=None):
 		collection = Group().load({"slug": sheet["displayedCollection"]})
 		if collection:
 			sheet["collectionImage"] = getattr(collection, "imageUrl", None)
-			sheet["collectionSlug"] = collection.slug
+			sheet["collectionName"] = collection.name
 		else:
 			del sheet["displayedCollection"]
 	return sheet

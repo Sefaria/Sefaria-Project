@@ -813,7 +813,7 @@ class ReaderPanel extends Component {
                     toggleSignUpModal={this.props.toggleSignUpModal}
                     interfaceLang={this.props.interfaceLang}
                     close={this.closeSheetMetaData}
-                    sheet={this.state.sheet}
+                    id={this.state.sheet.id}
                     versionLanguage={this.state.versionLanguage}
                     settingsLanguage={this.state.settings.language == "hebrew"?"he":"en"}
                     narrowPanel={!this.props.multiPanel}

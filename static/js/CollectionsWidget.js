@@ -62,7 +62,8 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
     Sefaria._userGroups[Sefaria._uid] = newCollections;
     // Update cache for this collection's full listing, which has now changed
     Sefaria._groups[data.collection.slug] = data.collection;
-
+    // This sheet's `displayedCollection` field may have changed
+    delete Sefaria.sheets._loadSheetByID[sheetID];
     handleCollectionsChange && handleCollectionsChange();
 
   };
