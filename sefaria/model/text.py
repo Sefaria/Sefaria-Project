@@ -4614,7 +4614,7 @@ class Library(object):
             if not rebuild:
                 self._topic_toc_json = scache.get_shared_cache_elem('topic_toc_json')
             if rebuild or not self._topic_toc_json:
-                self._topic_toc_json = json.dumps(self.get_topic_toc())
+                self._topic_toc_json = json.dumps(self.get_topic_toc(), ensure_ascii=False)
                 scache.set_shared_cache_elem('topic_toc_json', self._topic_toc_json)
                 self.set_last_cached_time()
         return self._topic_toc_json
