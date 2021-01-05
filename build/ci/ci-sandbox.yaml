@@ -148,7 +148,6 @@ steps:
       - 'MONGO_HOST=${_MONGO_HOST}' # Should this be parmeterized here or read in the repo
       - 'POSTGRES_HOST=${_POSTGRES_HOST}' # Should this be parmeterized here or read in the repo
       - 'SEFARIA_DB=${_MONGO_DATABASE}'
-      - 
     wait_for: [ "-" ]
   
   # Copy localsettings into file
