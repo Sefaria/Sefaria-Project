@@ -100,6 +100,23 @@ class AbstractTest(object):
         except NoSuchElementException:
             pass
 
+    def is_js_error(self):
+
+        error_strings = [
+            "RangeError",
+            "ReferenceError",
+            "SyntaxError",
+            "TypeError",
+            "Uncaught Error",
+            "Uncaught (in promise) Error",
+        ]
+
+        js_console = self.driver.get_log("browser")
+
+        for msg in js_console:
+            if any(error in msg["message"] for error in error_strings):
+                raise Exception(f'JavaScript Error: {msg["message"]}')
+
     def login_user(self):
         password = os.environ["SEFARIA_TEST_PASS"]
         user = os.environ["SEFARIA_TEST_USER"]
@@ -1136,19 +1153,28 @@ class AbstractTest(object):
 
     def new_sheet_in_editor(self):
         self.driver.get(self.base_url + "/sheets/new")
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheetContent")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".editorContent")))
         return self
 
     def load_existing_sheet(self, sheetID):
         self.driver.get(self.base_url + "/sheets/"+sheetID)
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheetContent")))
+        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".editorContent")))
         return self
 
     def nav_to_end_of_editor(self):
-        elem = self.driver.find_element_by_css_selector(".sheetContent")
+        elem = self.driver.find_element_by_css_selector(".editorContent")
         elem.click()
         self.driver.switch_to.active_element.send_keys(Keys.CONTROL, Keys.END)
         return self
+
+    def delete_sheet_content(self, direction):
+        elem = self.driver.switch_to.active_element
+        if direction == "back":
+            elem.send_keys(Keys.BACKSPACE)
+        else:
+            elem.send_keys(Keys.DELETE)
+
+
 
     def generate_text(self, language):
         paragraph = {
@@ -1162,9 +1188,9 @@ class AbstractTest(object):
         time.sleep(1) #sheet won't save until there's a brief pause
         return self
 
-    def add_source(self):
+    def add_source(self, ref):
         elem = self.driver.switch_to.active_element
-        elem.send_keys("Genesis 1:1")
+        elem.send_keys(ref)
         elem.send_keys(Keys.RETURN)
         time.sleep(1) #sheet won't save until there's a brief pause
         return self
@@ -1176,7 +1202,7 @@ class AbstractTest(object):
         return self
 
     def get_sheet_html(self):
-        sheet_selector = '.sheetContent'
+        sheet_selector = '.editorContent'
         sheet = self.driver.find_element_by_css_selector(sheet_selector)
         sheet_html = sheet.get_attribute('innerHTML')
         return sheet_html

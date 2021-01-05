@@ -29,6 +29,7 @@ class Group(abst.AbstractMongoRecord):
     ]
     optional_attrs = [
         "sheets",           # list of sheet ids included in this collection
+        "slug",             # string of url slug
         "lastModified",     # Datetime of the last time this collection changed
         "invitations",      # list of dictionaries representing outstanding invitations
         "description",      # string text of short description
