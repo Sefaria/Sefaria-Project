@@ -47,20 +47,24 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       url = `/api/collections/${slug}/remove/${sheetID}`;
     }
 
-    $.post(url, data => handleCollectionInclusionChange(data.collection));
+    $.post(url, data => handleCollectionInclusionChange(data));
     Sefaria._userCollectionsForSheet[sheetID] = newCollectionsSelected;
     setCollectionsSelected(newCollectionsSelected);
   };
 
-  const handleCollectionInclusionChange = (collection) => {
-    // When a sheet has been added or removed, update collections date in cache
-    let newCollections = Sefaria.getUserGroupsFromCache(Sefaria._uid).filter(c => c.slug != collection.slug);
+  const handleCollectionInclusionChange = (data) => {
+    // When a sheet has been added or removed, update collections list data in cache
+    let newCollections = Sefaria.getUserGroupsFromCache(Sefaria._uid).filter(c => c.slug != data.collection.slug);
     // Put the new collection first since it's just been modified
-    newCollections = [collection, ...newCollections];
+    newCollections = [data.collectionListing, ...newCollections];
     // Update in cache, but not in Component cache -- prevents the list from jumping around
     // while you're looking at it, but show this collection first next time you see the list.
     Sefaria._userGroups[Sefaria._uid] = newCollections;
+    // Update cache for this collection's full listing, which has now changed
+    Sefaria._groups[data.collection.slug] = data.collection;
+
     handleCollectionsChange && handleCollectionsChange();
+
   };
 
   const onNameChange = event => setNewName(event.target.value);

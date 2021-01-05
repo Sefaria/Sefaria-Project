@@ -416,7 +416,6 @@ def groups_get_api(request, slug=None):
         return jsonResponse({"error": "No collection with slug '{}'".format(slug)})
     is_member = request.user.is_authenticated and group_obj.is_member(request.user.id)
     group_content = group_obj.contents(with_content=True, authenticated=is_member)
-    del group_content["lastModified"]
     return jsonResponse(group_content)
 
 
@@ -505,7 +504,13 @@ def collections_inclusion_api(request, slug, action, sheet_id):
                 sheet.save()
 
     collection.save()
-    return jsonResponse({"status": "ok", "collection": collection.listing_contents(request.user.id)})
+    is_member = request.user.is_authenticated and collection.is_member(request.user.id)
+    return jsonResponse({
+        "status": "ok",
+        "action": action,
+        "collectionListing": collection.listing_contents(request.user.id),
+        "collection": collection.contents(with_content=True, authenticated=is_member)
+    })
 
 
 @login_required

@@ -1049,6 +1049,7 @@ class Sheet(abstract.AbstractMongoRecord):
 		"assigner_id",
 		"likes",
 		"group",
+		"displayedCollection",
 		"generatedBy",
 		"highlighterTags",
 		"summary",

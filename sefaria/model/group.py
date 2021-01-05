@@ -161,6 +161,7 @@ class Group(abst.AbstractMongoRecord):
             contents["topics"]       = sheet_topics_counts({"group": self.name})
             contents["admins"]       = [public_user_data(uid) for uid in contents["admins"]]
             contents["members"]      = [public_user_data(uid) for uid in contents["members"]]
+            contents["lastModified"] = str(self.lastModified)
             contents["invitations"]  = getattr(self, "invitations", []) if authenticated else []
             contents["pinnedSheets"] = getattr(self, "pinned_sheets", [])
             contents["pinnedTags"]   = getattr(self, "pinnedTags", [])

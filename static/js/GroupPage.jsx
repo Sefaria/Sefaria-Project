@@ -232,6 +232,7 @@ class GroupPage extends Component {
                   saveable={sheet.author !== Sefaria._uid}
                   collectable={true}
                   pinSheet={this.pinSheet.bind(null, sheet.id)}
+                  handleCollectionsChange={this.onDataChange}
                   toggleSignUpModal={this.props.toggleSignUpModal}
                   key={sheet.id} />);
       }.bind(this)) : <LoadingMessage />;      
