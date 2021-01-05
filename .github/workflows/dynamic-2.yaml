@@ -56,4 +56,26 @@ jobs:
   #   runs-on: ubuntu-latest
   #   steps: []
 
+
+  sandbox-cleanup:
+    needs: 
+      - sandbox-ready
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+        with:
+          service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
+          project_id: ${{ secrets.DEV_PROJECT }}
+
+      - name: Delete sandbox after tests are finished
+        run: ./build/ci/destroy-ci-sandbox.bash
+        env:
+          GKE_CLUSTER: "${{secrets.DEV_GKE_CLUSTER}}"
+          SANDBOX_NAME: $GITHUB_SHA"
+          GCP_PROJECT: "${{secrets.DEV_GCP_PROJECT}}"
+          GKE_REGION: "${{secrets.DEV_GKE_REGION}}"
+          SANDBOX_SUBDOMAIN: "${{secrets.DEV_SANDBOX_SUBDOMAIN}}"
+          GKE_NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
 ...
