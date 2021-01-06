@@ -160,8 +160,6 @@ class UserProfile extends Component {
   getSheets() {
     return new Promise((resolve, reject) => {
       Sefaria.sheets.userSheets(this.props.profile.id, sheets => {
-        // What was the below for?
-        // s.options.language = "en";
         resolve(sheets);
       }, undefined, 0, 0);
     });
@@ -172,7 +170,11 @@ class UserProfile extends Component {
   filterSheet(currFilter, sheet) {
     const n = text => text.toLowerCase();
     currFilter = n(currFilter);
-    const filterText = sheet.title.stripHtml() + " " + sheet.topics.map(topic => topic.asTyped).join(" ")
+    const filterText = [sheet.title.stripHtml(),
+                        sheet.topics.map(topic => topic.asTyped).join(" "),
+                        sheet.collections.map(collection => collection.name).join(" "),
+                        "displayedCollectionName" in sheet ? sheet.displayedCollectionName : "",
+                        ].join(" ");
     return n(filterText).indexOf(currFilter) > -1;
   }
   sortSheet(currSortOption, sheetA, sheetB) {

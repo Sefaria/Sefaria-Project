@@ -23,7 +23,7 @@ from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
-from sefaria.model.group import Group
+from sefaria.model.group import Group, GroupSet
 from sefaria.model.story import UserStory, UserStorySet
 from sefaria.model.topic import TopicSet, Topic, RefTopicLink, RefTopicLinkSet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
@@ -124,9 +124,18 @@ def user_sheets(user_id, sort_by="date", limit=0, skip=0, private=True):
 		sort = [["dateModified", -1]]
 	elif sort_by == "views":
 		sort = [["views", -1]]
+	else:
+		sort = None
+
+	sheets = sheet_list(query=query, sort=sort, limit=limit, skip=skip)
+
+	if private:
+		sheets = annotate_user_collections(sheets, user_id)
+	else:
+		sheets = annotate_displayed_collections(sheets)
 
 	response = {
-		"sheets": sheet_list(query=query, sort=sort, limit=limit, skip=skip)
+		"sheets": sheets
 	}
 	return response
 
@@ -152,7 +161,7 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 		"dateModified": 1,
 		"dateCreated": 1,
 		"topics": 1,
-		"group": 1,
+		"displayedCollection": 1,
 	}
 	if not query:
 		return []
@@ -162,15 +171,6 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 		sheets = sheets.limit(limit)
 
 	return [sheet_to_dict(s) for s in sheets]
-
-def annotate_user_links(sources):
-	"""
-	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.
-	"""
-	for source in sources:
-		if "addedBy" in source:
-			source["userLink"] = user_link(source["addedBy"])
-	return sources
 
 
 def sheet_to_dict(sheet):
@@ -186,9 +186,10 @@ def sheet_to_dict(sheet):
 		"author": sheet["owner"],
 		"ownerName": profile["name"],
 		"ownerImageUrl": profile["imageUrl"],
+		"ownerProfileUrl": profile["profileUrl"],
 		"sheetUrl": "/sheets/" + str(sheet["id"]),
 		"views": sheet["views"],
-		"group": sheet.get("group", None),
+		"displayedCollection": sheet.get("displayedCollection", None),
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
 		"created": sheet.get("dateCreated", None),
 		"topics": add_langs_to_topics(sheet.get("topics", [])),
@@ -196,6 +197,50 @@ def sheet_to_dict(sheet):
 		"options": sheet["options"] if "options" in sheet else [],
 	}
 	return sheet_dict
+
+
+def annotate_user_collections(sheets, user_id):
+	"""
+	Adds a `collections` field to each sheet in `sheets` which includes the collections
+	that `user_id` has put that sheet in.
+	"""
+	sheet_ids = [sheet["id"] for sheet in sheets]
+	user_collections = GroupSet({"sheets": {"$in": sheet_ids}})
+	for sheet in sheets:
+		sheet["collections"] = []
+		for collection in user_collections:
+			if sheet["id"] in collection.sheets:
+				sheet["collections"].append({"name": collection.name, "slug": collection.slug})
+
+	return sheets
+
+
+def annotate_displayed_collections(sheets):
+	"""
+	Adds `displayedCollectionName` field to each sheet in `sheets` that has `displayedCollection`.
+	"""
+	slugs = list(set([sheet["displayedCollection"] for sheet in sheets if sheet.get("displayedCollection", None)]))
+	if len(slugs) == 0:
+		return sheets
+	displayed_collections = GroupSet({"slug": {"$in": slugs}})
+	for sheet in sheets:
+		if not sheet.get("displayedCollection", None):
+			continue
+		for collection in displayed_collections:
+			if sheet["displayedCollection"] == collection.slug:
+				sheet["displayedCollectionName"] = collection.name
+
+	return sheets
+
+
+def annotate_user_links(sources):
+	"""
+	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.
+	"""
+	for source in sources:
+		if "addedBy" in source:
+			source["userLink"] = user_link(source["addedBy"])
+	return sources
 
 
 def user_tags(uid):

@@ -691,20 +691,11 @@ def bulksheet_api(request, sheet_id_list):
 
 
 @api_view(["GET"])
-def user_sheet_list_api(request, user_id):
-    """
-    API for listing the sheets that belong to user_id.
-    """
-    # only return private sheets if you are logged in as user_id
-    private = int(user_id) == request.user.id
-    return jsonResponse(user_sheets(user_id, private=private), callback=request.GET.get("callback", None))
-
-
-@api_view(["GET"])
-def user_sheet_list_api_with_sort(request, user_id, sort_by="date", limiter=0, offset=0):
-    limiter  = int(limiter)
-    offset   = int(offset)
-    private = int(user_id) == request.user.id
+def user_sheet_list_api(request, user_id, sort_by="date", limiter=0, offset=0):
+    sort_by  = sort_by if sort_by else "date"
+    limiter  = int(limiter) if limiter else 0
+    offset   = int(offset) if offset else 0
+    private  = int(user_id) == request.user.id
     return jsonResponse(user_sheets(user_id, sort_by, private=private, limit=limiter, skip=offset), callback=request.GET.get("callback", None))
 
 

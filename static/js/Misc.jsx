@@ -1313,6 +1313,24 @@ const SheetListing = ({
         {viewsIcon}
       </div>
 
+  const collectionsList = "collections" in sheet ? sheet.collections.slice() : [];
+  if (sheet.displayedCollectionName) {
+    collectionsList.unshift({name: sheet.displayedCollectionName, slug: sheet.displayedCollection});
+  }
+  const collections = collectionsList.map((collection, i) => {
+    const separator = i == collectionsList.length -1 ? null : <span className="separator">,</span>;
+    return (
+      <a href={`/collections/${collection.slug}`}
+        target={openInNewTab ? "_blank" : "_self"}
+        className="sheetTag"
+        key={i}
+      >
+        {collection.name}
+        {separator}
+      </a>
+    );
+  });
+
   const topics = sheet.topics.map((topic, i) => {
     const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
     return (
@@ -1333,6 +1351,7 @@ const SheetListing = ({
       showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       `${sheet.views} ${Sefaria._('Views')}`,
       created,
+      collections.length ? collections : undefined,
       sheet.topics.length ? topics : undefined,
       !!sheet.group && !hideCollection ? (<a href={`/collections/${sheet.group}`} target={openInNewTab ? "_blank" : "_self"}>{sheet.group}</a>) : undefined,
     ].filter(x => x !== undefined) : [topics];
