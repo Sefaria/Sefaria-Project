@@ -659,12 +659,12 @@ def get_top_sheets(limit=3):
 	return sheet_list(query=query, limit=limit)
 
 
-def get_sheets_for_ref(tref, uid=None, in_group=None):
+def get_sheets_for_ref(tref, uid=None, in_collection=None):
 	"""
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
 	If `uid` is present return user sheets, otherwise return public sheets.
-	If `in_group` (list) is present, only return sheets in one of the listed groups.
+	If `in_collection` (list of slugs) is present, only return sheets in one of the listed collections.
 	"""
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref
@@ -674,8 +674,12 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 		query["owner"] = uid
 	else:
 		query["status"] = "public"
-	if in_group:
-		query["group"] = {"$in": in_group}
+	if in_collection:
+		collections = GroupSet({"slug": {"$in": in_collection}})
+		sheets_list = [collection.sheets for collection in collections]
+		sheets_ids = [sheet for sublist in sheets_list for sheet in sublist]
+		query["id"] = {"$in": sheets_ids}
+	
 	sheetsObj = db.sheets.find(query,
 		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "group":1, "options":1}).sort([["views", -1]])
 	sheetsObj.hint("expandedRefs_1")

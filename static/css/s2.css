@@ -4594,7 +4594,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: left;
   color: #000;
 }
-.textList .sheetList .sheet .sheetLeft .sheetTitle img.sheetIcon {
+.textList .sheet .sheetLeft .sheetTitle img.sheetIcon {
   width: 14px;
   height: 14px;
   margin: 3px 0 0 0;
@@ -7670,7 +7670,8 @@ span.purim-emoji img{
   margin-bottom: 10px;
   font-size: 18px;
 }
-.sheetList .sheet .sheetLeft .sheetTitle img {
+.sheetList .sheet .sheetLeft .sheetTitle img,
+.textList .sheet .sheetLeft .sheetTitle img {
   width: 18px;
   height: 18px;
   opacity: 0.4;

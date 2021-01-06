@@ -216,9 +216,9 @@ class ReaderNavigationCategoryMenuContents extends Component {
                           </div>));
           }
         } else {
-          if (item.isGroup) {
-            // Add a Group
-            let url = "/collections/" + item.name.replace(/\s/g, "-");
+          if (item.isCollection) {
+            // Add a Collection
+            let url = "/collections/" + item.slug;
             let classes = classNames({groupLink: 1, blockLink: 1});
             content.push((<a href={url}
                             className={classes}

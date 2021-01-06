@@ -309,9 +309,9 @@ def get_links(tref, with_text=True, with_sheet_links=False):
             base_links = [x for x in base_links if ((x['sourceRef'], x['anchorRef']) not in orig_links_refs) and (x["sourceRef"] != x["anchorRef"])]
             links += base_links
 
-    groups = library.get_groups_in_library()
-    if with_sheet_links and len(groups):
-        sheet_links = get_sheets_for_ref(tref, in_group=groups)
+    collections = library.get_collections_in_library()
+    if with_sheet_links and len(collections):
+        sheet_links = get_sheets_for_ref(tref, in_collection=collections)
         formatted_sheet_links = [format_sheet_as_link(sheet) for sheet in sheet_links]
         links += formatted_sheet_links
 

@@ -432,7 +432,7 @@ class TextIndexer(object):
             elif "contents" in mini_toc:
                 for t in mini_toc["contents"]:
                     traverse(t)
-            elif "title" in mini_toc and not mini_toc.get("isGroup", False):
+            elif "title" in mini_toc and not mini_toc.get("isCollection", False):
                 title = mini_toc["title"]
                 try:
                     r = Ref(title)

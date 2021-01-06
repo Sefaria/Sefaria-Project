@@ -4672,8 +4672,8 @@ class Library(object):
             }
         return self._topic_data_sources.get(data_source, None)
 
-    def get_groups_in_library(self):
-        return self._toc_tree.get_groups_in_library()
+    def get_collections_in_library(self):
+        return self._toc_tree.get_collections_in_library()
 
     def get_search_filter_toc(self, rebuild=False):
         """
