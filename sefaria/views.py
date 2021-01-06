@@ -194,10 +194,8 @@ def data_js(request):
     """
     Javascript populating dynamic data like book lists, toc.
     """
-    response = render(request, "js/data.js", content_type="text/javascript")
+    response = render(request, "js/data.js", content_type="text/javascript; charset=utf-8")
     patch_cache_control(response, max_age=31536000, immutable=True)
-    response['Content-Type'] = 'application/javascript'
-    response.charset = "utf-8"
     # equivalent to: response['Cache-Control'] = 'max-age=31536000, immutable'
     # cache for a year (cant cache indefinitely) and mark immutable so browser cache never revalidates.
     # This saves any roundtrip to the server untill the data.js url is changed upon update.
