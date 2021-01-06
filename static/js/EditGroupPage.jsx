@@ -177,7 +177,7 @@ class EditGroupPage extends Component {
             <span className="int-he">תמונה ל TODO HEBREW</span>
           </label>
           {this.state.imageUrl
-            ? <img className="groupImage" src={this.state.imageUrl} alt="Group Image" />
+            ? <img className="groupImage" src={this.state.imageUrl} alt="Collection Image" />
             : <div className="groupImage placeholder"></div>}
           <FileInput
              name="groupImage"
@@ -191,6 +191,8 @@ class EditGroupPage extends Component {
           </div>
         </div>
 
+        {/* Header images are only supported for legacy collections which already had them */}
+        {this.state.headerUrl ? 
         <div className="field">
           <label>
             <span className="int-en">Default Sheet Header</span>
@@ -198,7 +200,7 @@ class EditGroupPage extends Component {
           </label>
           {this.state.headerUrl
             ? <div className="groupHeaderBox">
-                <img className="groupHeader" src={this.state.headerUrl} alt="Group Header Image" />
+                <img className="groupHeader" src={this.state.headerUrl} alt="Collection Header Image" />
                 <div className="clearFix"></div>
               </div>
             : <div className="groupHeader placeholder"></div>}
@@ -213,6 +215,7 @@ class EditGroupPage extends Component {
             <span className="int-he">גודל מומלץ: 1000 פיקסל כדי למלא את חלל הדף. גודל קטן יותר יתיישר לימין</span>
           </div>
         </div>
+        : null }
 
         <div className="field">
           <label>
