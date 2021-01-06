@@ -8,7 +8,7 @@ gcpProject=${GCP_PROJECT:?Set GCP_PROJECT and re-run.}
 gkeCluster=${GKE_CLUSTER:?Set GKE_CLUSTER and re-run.}
 gkeRegion=${GKE_REGION:?Set GKE_REGION and re-run.}
 sandboxSubdomain=${SANDBOX_SUBDOMAIN:?Set SANDBOX_SUBDOMAIN and re-run.}
-sandboxName=${GITHUB_SHA:?Set GITHUB_SHA and re-run.} # GITHUB_SHA is automatically added to the env by GHA
+gitCommit=${GITHUB_SHA:?Set GITHUB_SHA and re-run.} # GITHUB_SHA is automatically added to the env by GHA
 gkeNamespace=${GKE_NAMESPACE:?Set GKE_NAMESPACE and re-run.}
 
 #--------
@@ -17,7 +17,7 @@ substVars=()
 substVars+=("_GKE_CLUSTER=$gkeCluster")
 substVars+=("_GKE_NAMESPACE=$gkeNamespace")
 substVars+=("_GKE_REGION=$gkeRegion")
-substVars+=("_SANDBOX_NAME=$sandboxName")
+substVars+=("_SANDBOX_NAME=${gitCommit:0:6}")
 substVars+=("_SANDBOX_SUBDOMAIN=$sandboxSubdomain")
 #substVars+=("")
 #...
