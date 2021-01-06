@@ -290,7 +290,7 @@ body.hasBannerMessage #s2.headerOnly {
             user-select: none; /* Non-prefixed version, Chrome */
 }
 input.noselect {
-    -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
+  -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
 }
 .interface-hebrew .int-en,
 .interface-english .int-he {
@@ -5714,6 +5714,17 @@ a .button:hover {
   padding: 6px 12px;
   margin: 6px 12px;
 }
+.button.extraSmall {
+  border-radius: 6px;
+  box-shadow: none;
+  color: #666;
+  border: 1px solid #CCC;
+  margin: 0;
+  padding: 5px 8px;
+  height: 30px;
+  line-height: 20px;
+  letter-spacing: normal;
+}
 .button img.buttonIcon {
     width: 16px;
     height: 16px;
@@ -6570,7 +6581,12 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border: none;
   box-sizing: border-box;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #333;
+}
+.interface-hebrew #editGroupPage input,
+.interface-hebrew #editGroupPage textarea {
+  font-family: "Heebo", sans-serif;
 }
 #editGroupPage .hiddenFileInput {
   width: 0.1px;
@@ -8537,9 +8553,10 @@ body .homeFeedWrapper.userStats {
 }
 .collectionsWidgetTitle {
   flex-grow: 1;
-  font-size: 18px;
+  font-size: 22px;
   vertical-align: middle;
   display: block;
+  color: #666;
 }
 .collectionsWidgetClose {
   font-size: 40px;
@@ -8548,16 +8565,16 @@ body .homeFeedWrapper.userStats {
   cursor: pointer;
 }
 .collectionsWidgetList {
-  height: 200px;
-  padding: 5px 20px;
+  height: 180px;
+  padding: 0px 20px;
   overflow-y: scroll;
-  border-bottom: 1px solid #DDD;
+  border-bottom: 1px solid #EDEDEC;
 }
 .collectionsWidgetList .checkmarkLabel {
   display: block;
   letter-spacing: 1.1px;
   font-size: 18px;
-  margin: 22px 0;
+  margin: 20px 0;
   text-align:  start;
 }
 .collectionsWidgetList .emptyMessage {
@@ -8567,24 +8584,37 @@ body .homeFeedWrapper.userStats {
   line-height: 1.5;
   text-align: start;
 }
-.collectionsWidgetCreate {
+.collectionsWidgetCreate,
+.collectionsWidgetDone {
   display: flex;
-  padding: 15px 20px;
+  padding: 0px 20px;
+}
+.collectionsWidgetCreate {
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+}
+.collectionsWidgetPlus {
+  color: #666;
+  font-size: 25px;
+  margin-inline-end: 13px;
+  margin-top: -5px;
 }
 .collectionsWidget .collectionsWidgetCreateInputBox {
   flex: 1;
   margin-inline-end: 10px;
 }
-
 .collectionsWidget input.collectionsWidgetCreateInput {
-  border-radius: 7px;
+  height: 50px;
   border: none;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   font-size: 18px;
-  color: #666;
-  padding: 15px 26px;
+  color: black;
   width: 100%;
   box-sizing: border-box;
+}
+.collectionsWidget input.collectionsWidgetCreateInput::placeholder {
+  font-style: normal;
+  color: #666;
 }
 .userStats h1 {
   text-align: center;
@@ -8771,11 +8801,11 @@ a.topicLexiconTitle.contentText {
   color: #000;
 }
 .editorHoverBox {
-    position: fixed;
-    top: 120px;
-    background-color: #ccc;
-    padding: 3px;
-    font-size: 12px;
+  position: fixed;
+  top: 120px;
+  background-color: #ccc;
+  padding: 3px;
+  font-size: 12px;
 }
 .inlineTextRef {
     color: #4B71B7
@@ -8817,7 +8847,7 @@ a.topicLexiconTitle.contentText {
 .checkmarkLabel {
   display: block;
   position: relative;
-  padding-inline-start: 35px;
+  padding-inline-start: 28px;
   cursor: pointer;
   -webkit-user-select: none;
   -moz-user-select: none;
@@ -8835,13 +8865,13 @@ a.topicLexiconTitle.contentText {
 /* Create a custom checkbox */
 .checkmark {
   position: absolute;
-  top: 0;
+  top: 3px;
   left: 0;
-  height: 20px;
-  width: 20px;
+  height: 13px;
+  width: 13px;
   background-color: white;
   border: 1px solid #CCC;
-  border-radius: 6px;
+  border-radius: 3px;
 }
 /* On mouse-over, add a grey background color */
 .checkmarkLabel:hover input ~ .checkmark {
@@ -8859,12 +8889,12 @@ a.topicLexiconTitle.contentText {
 }
 /* Style the checkmark/indicator */
 .checkmarkLabel .checkmark:after {
-  left: 6px;
-  top: 2px;
-  width: 5px;
-  height: 10px;
+  left: 4px;
+  top: 1px;
+  width: 3px;
+  height: 6px;
   border: solid #666;
-  border-width: 0 3px 3px 0;
+  border-width: 0 2px 2px 0;
   -webkit-transform: rotate(45deg);
   -ms-transform: rotate(45deg);
   transform: rotate(45deg);

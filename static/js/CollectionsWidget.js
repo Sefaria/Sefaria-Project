@@ -35,16 +35,16 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
     }
   }, []);
 
-  const onCheckChange = (i, checked) => {
+  const onCheckChange = (collection, checked) => {
     // When a checkmark changes, add or remove this sheet from that collection
-    const slug = collections[i].slug;
+    console.log("On chech change", collection.name, checked)
     let url, newCollectionsSelected;
     if (checked) {
-      newCollectionsSelected = [...collectionsSelected, collections[i]];
-      url = `/api/collections/${slug}/add/${sheetID}`;
+      newCollectionsSelected = [...collectionsSelected, collection];
+      url = `/api/collections/${collection.slug}/add/${sheetID}`;
     } else {
-      newCollectionsSelected = collectionsSelected.filter(x => x.slug !== slug);
-      url = `/api/collections/${slug}/remove/${sheetID}`;
+      newCollectionsSelected = collectionsSelected.filter(x => x.slug !== collection.slug);
+      url = `/api/collections/${collection.slug}/remove/${sheetID}`;
     }
 
     $.post(url, data => handleCollectionInclusionChange(data));
@@ -81,7 +81,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       const newCollections = [data.collection, ...collections];
       Sefaria._userGroups[Sefaria._uid] = newCollections;
       setCollections(newCollections);
-      onCheckChange(data.collection.name, true);
+      onCheckChange(data.collection, true);
       handleCollectionsChange && handleCollectionsChange();
     });
   };
@@ -97,7 +97,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
         return <label className="checkmarkLabel" key={i+collection.name}>
           <input 
             type="checkbox"
-            onChange={event => onCheckChange(i, event.target.checked)}
+            onChange={event => onCheckChange(collection, event.target.checked)}
             checked={collectionsSelected.filter(x => x.slug === collection.slug).length ? "checked" : ""} />
           <span className="checkmark"></span>
           {collection.name}
@@ -107,12 +107,20 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
         <IntText className="emptyMessage">You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.</IntText> : null }
     </div>
     <div className="collectionsWidgetCreate">
+      <span className="collectionsWidgetPlus">+</span>
       <div className="collectionsWidgetCreateInputBox">
-        <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("Name")} value={newName} onChange={onNameChange} />
+        <input className="collectionsWidgetCreateInput" placeholder={Sefaria._("Create new collection")} value={newName} onChange={onNameChange} />
       </div>
-      <div className="button large collectionsWidgetCreateButton" onClick={onCreateClick}>
+      {newName.length ?
+      <div className="button extraSmall white collectionsWidgetCreateButton" onClick={onCreateClick}>
         <IntText>Create</IntText>
       </div>
+      : null}
+    </div>
+    <div className="collectionsWidgetDone">
+       <div className="button large fillWidth" onClick={close}>
+        <IntText>Done</IntText>
+      </div>     
     </div>
   </div>
 };
