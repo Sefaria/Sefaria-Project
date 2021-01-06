@@ -67,7 +67,6 @@ jobs:
         run: ./build/ci/destroy-ci-sandbox.bash
         env:
           GKE_CLUSTER: "${{secrets.DEV_GKE_CLUSTER}}"
-          SANDBOX_NAME: "$GITHUB_SHA"
           GCP_PROJECT: "${{secrets.DEV_GCP_PROJECT}}"
           GKE_REGION: "${{secrets.DEV_GKE_REGION}}"
           SANDBOX_SUBDOMAIN: "${{secrets.DEV_SANDBOX_SUBDOMAIN}}"
