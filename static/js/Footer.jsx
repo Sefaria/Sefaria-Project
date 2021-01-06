@@ -78,7 +78,7 @@ class Footer extends Component {
             </Section>
 
             <Section en="Tools" he="כלים">
-                <Link href="/educators" en="Teach with Sefaria" he="למד באמצעות ספריא" />
+                <Link href="/educators" en="Teach with Sefaria" he="לַמדו עם ספריא" />
                 <Link href="/sheets" en="Source Sheets" he="דפי מקורות" />
                 <Link href="/visualizations" en="Visualizations" he="תרשימים גרפיים" />
                 <Link href="/mobile" en="Mobile Apps" he="ספריא בנייד" />
@@ -91,7 +91,7 @@ class Footer extends Component {
             </Section>
 
             <Section en="Developers" he="מפתחים">
-                <Link href="/developers" en="Get Involved" he="הצטרף אלינו" blank={true} />
+                <Link href="/developers" en="Get Involved" he="הצטרפו אלינו" blank={true} />
                 <Link href="/developers#api" en="API Docs" he="מסמכי API" blank={true} />
                 <Link href="https://github.com/Sefaria/Sefaria-Project" en="Fork us on GitHub" he="Github" blank={true} />
                 <Link href="https://github.com/Sefaria/Sefaria-Export" en="Download our Data" he="הורדת בסיס הנתונים שלנו" blank={true} />
@@ -107,7 +107,7 @@ class Footer extends Component {
           <div className="section last connect">
               <div className="header connect">
                   <span className="int-en">Connect</span>
-                  <span className="int-he">התחברות</span>
+                  <span className="int-he">צרו קשר</span>
               </div>
               <NewsletterSignUpForm contextName="Footer" />
               <LikeFollowButtons />
