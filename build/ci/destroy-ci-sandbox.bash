@@ -4,12 +4,11 @@
 
 # run destroy sandbox script
 
-sandboxName=${SANDBOX_NAME:?Set SANDBOX_NAME and re-run.}
 gcpProject=${GCP_PROJECT:?Set GCP_PROJECT and re-run.}
 gkeCluster=${GKE_CLUSTER:?Set GKE_CLUSTER and re-run.}
 gkeRegion=${GKE_REGION:?Set GKE_REGION and re-run.}
 sandboxSubdomain=${SANDBOX_SUBDOMAIN:?Set SANDBOX_SUBDOMAIN and re-run.}
-sanboxName=${GITHUB_SHA:?Set SANDBOX_NAME and re-run.} # GITHUB_SHA is automatically added to the env by GHA
+sandboxName=${GITHUB_SHA:?Set GITHUB_SHA and re-run.} # GITHUB_SHA is automatically added to the env by GHA
 gkeNamespace=${GKE_NAMESPACE:?Set GKE_NAMESPACE and re-run.}
 
 #--------
