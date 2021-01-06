@@ -15,9 +15,9 @@ $(function() {
   if (loadingPlaceholder){
     renderFunc = ReactDOM.render;
   }
-  Sefaria.unpackDataFromProps(DJANGO_VARS.props);
   if (DJANGO_VARS.inReaderApp) {
     // Rendering a full ReaderApp experience
+    Sefaria.unpackDataFromProps(DJANGO_VARS.props);
     component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.props);
     renderFunc(component, container);
 
@@ -36,6 +36,7 @@ $(function() {
       initialPanels: [],
     };
     let mergedStaticProps = { ...DJANGO_VARS.props, ...staticProps };
+    Sefaria.unpackDataFromProps(mergedStaticProps);
     component = React.createElement(SefariaReact.ReaderApp, mergedStaticProps);
     renderFunc(component, container);
     if (footerContainer){
