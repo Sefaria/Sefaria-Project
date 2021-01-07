@@ -115,6 +115,9 @@ jobs:
 
       # END SETUP
 
+      - name: Install Python Packages
+        run: pip3 install -r ./requirements.txt
+
       - name: Run PageLoad Suite
         run: python3 ./reader/browsertest/run_local_sel.py --parallel --tests PageLoadSuite
         env:
