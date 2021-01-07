@@ -874,7 +874,6 @@ ah = ["Avi Ezer",
       "Sepher Torat Elohim",
       "Shadal",
       "Tevat Gome",
-      "Malbim Beur Hamilot",
       "Metzudat David",
       "Metzudat Zion",
       "Torah Temimah",
@@ -888,14 +887,14 @@ ah = ["Avi Ezer",
       'Mechir Yayin on Esther',
       'Yesha Elohim on Esther',
       'Ohr Chadash',
+      'Aderet Eliyahu (Rabbi Yosef Chaim)',
+      "Tzafnat Pa'neach on Torah",
       ]
 
 co = [
     'Birkat Asher on Torah',
     'Footnotes to Kohelet by Bruce Heitler',
     'Chibbah Yeteirah on Torah',
-    'Aderet Eliyahu (Rabbi Yosef Chaim)',
-    "Tzafnat Pa'neach on Torah",
     "JPS 1985 Footnotes"
 ]
 
@@ -906,14 +905,14 @@ chida = [
     'Tzaverei Shalal',
     'Rosh David',
     'Nachal Sorek',
-    'Penei David'
 ]
+moveCategoryInto(["Tanakh", "Commentary", "Malbim Beur Hamilot"], ["Tanakh", "Commentary", "Malbim"])
 
 ri_cat = create_category(["Tanakh", "Rishonim on Tanakh"], "Rishonim on Tanakh", "ראשונים על התנ״ך")
 ah_cat = create_category(["Tanakh", "Acharonim on Tanakh"], "Acharonim on Tanakh", "אחרונים על התנ״ך")
 mo_cat = create_category(["Tanakh", "Modern Commentary on Tanakh"], "Modern Commentary on Tanakh",
                            "פירושים מודרניים על התנ״ך")
-chida_cat = create_category(["Tanakh", "Acharonim on Tanakh", "Chida on Tanakh"], "Chida on Tanakh", 'החיד״א על התנ״ך')
+chida_cat = create_category(["Tanakh", "Acharonim on Tanakh", "Chida"], "Chida", 'חיד״א')
 
 # Currently Tanakh, Commentary, <Index>
 # or        Tanakh, Commentary, <subcat>, <Index>
@@ -935,6 +934,8 @@ for works, cat in groups:
                 moveIndexInto(n, cat)
             except Exception:
                 print("Can not figure out Tanakh Commnentary: {}".format(n))
+
+moveIndexInto('Penei David', chida_cat)  # So that it doesn't move the category over.
 
 g = Group().load({"name": "גיליונות נחמה"})
 g.toc["categories"] = ["Tanakh", "Modern Commentary on Tanakh"]
@@ -1140,6 +1141,7 @@ for p in [
     ["Jewish Thought", "Commentary", "Marpeh la'Nefesh", "Duties of the Heart"],
     ["Jewish Thought", "Commentary", "Pat Lechem", "Duties of the Heart"],
     ["Jewish Thought", "Commentary", "Tov haLevanon", "Duties of the Heart"],
+    ["Tanakh", "Commentary", "Penei David"]
 ]:
     c = Category().load({"path": p})
     if c:
