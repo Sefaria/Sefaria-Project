@@ -117,6 +117,7 @@ i.save(override_dependencies=True)
 
 moveIndexInto("Seder Olam Zutta", ["Midrash", "Aggadic Midrash"])
 
+'''
 adrn = create_category(["Midrash", "Aggadic Midrash", "Avot D'Rabbi Natan"], "Avot D'Rabbi Natan", "אבות דרבי נתן")
 moveIndexInto("Avot D'Rabbi Natan", adrn)
 
@@ -130,6 +131,7 @@ for comm in ["Binyan Yehoshua on Avot D'Rabbi Natan",
               "Rishon Letzion on Avot D'Rabbi Natan",
               "Tumat Yesharim on Avot D'Rabbi Natan"]:
     moveIndexInto(comm, adrn_com)
+'''
 
 sor = create_category(["Midrash", "Aggadic Midrash", "Seder Olam Rabbah"], "Seder Olam Rabbah", "סדר עולם רבה")
 moveIndexInto("Seder Olam Rabbah", sor)
@@ -140,6 +142,7 @@ for comm in ["Vilna_Gaon_on_Seder_Olam_Rabbah",
              "Yaakov Emden on Seder Olam Rabbah"]:
     moveIndexInto(comm, sor_com)
 
+'''
 library.rebuild(include_toc=True)
 # remove empty categories that had been just ADRN
 paths = [
@@ -155,6 +158,7 @@ library.rebuild(include_toc=True)
 for p in paths:
     c = Category().load({"path": p[:-1]})
     c.delete(override_dependencies=True)
+'''
 
 ### The rest of the minor tractates -> Talmud/Bavli
 c = Category().load({'path': ["Tanaitic", "Minor Tractates"]})
@@ -587,7 +591,8 @@ a_books = [
     'Ohr Yisrael',
     'Pele Yoetz',
     'Shemirat HaLashon',
-    "Yesod V'Shoresh HaAvodah"]
+    "Yesod V'Shoresh HaAvodah",
+    "Maamar Torat HaBayit"]
 
 m_books = [
     "Tzipita L'Yeshuah",
@@ -642,6 +647,7 @@ for t in ["HaGra on Sefer Yetzirah Gra Version",
     moveIndexInto(t, syc)
 
 moveIndexInto("Maaseh Rokeach on Mishnah", ["Kabbalah"])
+moveIndexInto("Keter Shem Tov", ["Chasidut", "Early Works"])
 
 c = create_category(["Kabbalah", "Ramchal"])
 for t in ["Assarah Perakim L'Ramchal",
@@ -655,7 +661,7 @@ for t in ["Or Neerav",
         "Pardes Rimonim"]:
     moveIndexInto(t, c)
 
-c = create_category(["Kabbalah", "Arizal / Chaim Vital"], "Arizal / Chaim Vital", 'אריז"ל - חיים ויטל')
+c = create_category(["Kabbalah", "Arizal / Chaim Vital"], "Arizal / Chaim Vital", 'כתבי האר"י - חיים ויטאל')
 for t in ["Pri Etz Chaim",
     "Sefer Etz Chaim",
     "Sha'ar HaGilgulim",
@@ -728,7 +734,10 @@ books_other_a = [
     'HaElef Lekha Shlomo',
     'Responsa Rav Pealim',
     'Mateh Levi',
+    "Melamed Leho'il Part I",
     "Melamed Leho'il Part II",
+    "Melamed Leho'il Part III",
+
 ]
 
 cat_other_m = create_category(["Responsa", "Other Modern"], "Other Modern", "שו”תים מודרניים נוספים")
@@ -1107,6 +1116,8 @@ for p in [
     c.save(override_dependencies=True)
 
 library.rebuild(include_toc=True)
+
+moveIndexInto('Yad Ramah on Bava Batra', ["Talmud", "Bavli", "Rishonim on Talmud", "Yad Ramah"])
 
 ###
 
