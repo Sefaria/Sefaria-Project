@@ -239,7 +239,7 @@ class SheetMetadata extends Component {
                     {sheet.displayedCollection ?
                     <div className="tocDetail authorStatement">
                         <div className="groupListingImageBox imageBox">
-                            <a href={"/collections/" + sheet.collectionSlug}>
+                            <a href={"/collections/" + sheet.displayedCollection}>
                               <img className={classNames({groupListingImage:1, "img-circle": 1, default: !sheet.collectionImage})} src={sheet.collectionImage || "/static/img/collection.svg"} alt="Collection Logo"/>
                             </a>
                         </div>

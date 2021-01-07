@@ -172,7 +172,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
             img="/static/img/new-sheet.svg"  alt="new source sheet icon" />,
       <TocLink en="Authors" he="רשימת מחברים" href="/people" resourcesLink={true}
             img="/static/img/authors-icon.png" alt="author icon"/>,
-      <TocLink en="Collections" he="TODO Hebrew" href="/collections" resourcesLink={true}
+      <TocLink en="Collections" he="אסופות" href="/collections" resourcesLink={true}
             img="/static/img/collection.svg" alt="Collections icon"/>,
       <TocLink en="Visualizations" he="תרשימים גרפיים" href="/visualizations" resourcesLink={true}
             img="/static/img/visualizations-icon.png" alt="visualization icon" />,

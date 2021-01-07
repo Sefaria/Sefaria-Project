@@ -449,7 +449,6 @@ class GroupInvitationBox extends Component {
     }.bind(this), 3000);
   }
   inviteByEmail(email) {
-    // TODO Hebrew all below
     if (!this.validateEmail(email)) {
       this.flashMessage(Sefaria._("Please enter a valid email address."));
       return;
@@ -479,8 +478,7 @@ class GroupInvitationBox extends Component {
     return (<div className="groupInvitationBox">
                 <input id="groupInvitationInput" placeholder={Sefaria._("Email Address")} />
                 <div className="button" onClick={this.onInviteClick}>
-                  <span className="int-en">Invite</span>
-                  <span className="int-he">הזמן</span>
+                  <IntText>Invite</IntText>
                 </div>
                 {this.state.message ?
                   <div className="groupInvitationBoxMessage">{this.state.message}</div>
@@ -638,7 +636,7 @@ class GroupMemberListingActions extends Component {
         <div className="groupMemberListingActionsButton">
           <i className="fa fa-gear"></i>
         </div>
-        {this.state.menuOpen ? // TODO Hebrew for all below
+        {this.state.menuOpen ?
           <div className="groupMemberListingActionsMenu">
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "admin")}>

@@ -1,8 +1,9 @@
 import React  from 'react';
 import PropTypes  from 'prop-types';
+import Component from 'react-class';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
-import Component from 'react-class';
+import { IntText } from './Misc';
 
 
 class EditGroupPage extends Component {
@@ -125,56 +126,48 @@ class EditGroupPage extends Component {
     });
   }
   render() {
-    const enTitle = this.props.initialData ? "Edit Collection" : "Create a Collection";
-    const heTitle = this.props.initialData ? "עריכת TODO HEBREW" : "יצירת TODO HEBREW";
+    const title = this.props.initialData ? "Edit Collection" : "Create a Collection";
     return (
       <div id="editGroupPage">
         <div className="headerWithButtons">
           <div className="start"></div>
           <h1>
-            <span className="int-en">{enTitle}</span>
-            <span className="int-he">{heTitle}</span>
+            <IntText>{title}</IntText>
           </h1>
           <div className="end">
               <a className="button transparent control-elem" href={this.props.initialData ? "/collections/" + this.state.slug : "/my/profile"}>
-                  <span className="int-en">Cancel</span>
-                  <span className="int-he">בטל</span>
+                  <IntText>Cancel</IntText>
               </a>
               <div id="saveGroup" className="button blue control-elem" onClick={this.save}>
-                  <span className="int-en">Save</span>
-                  <span className="int-he">שמור</span>
+                  <IntText>Save</IntText>
               </div>
           </div>
         </div>
 
         <div className="field halfWidth">
           <label>
-            <span className="int-en">Collection Name</span>
-            <span className="int-he">שם ה TODO HEBREW</span>
+            <IntText>Collection Name</IntText>
           </label>
           <input id="groupName" value={this.state.name||""} onChange={this.handleInputChange}/>
         </div>
 
         <div className="field halfWidth">
           <label>
-            <span className="int-en">Website</span>
-            <span className="int-he">כתובת אתר</span>
+            <IntText>Website</IntText>
           </label>
           <input id="groupWebsite" value={this.state.websiteUrl||""} onChange={this.handleInputChange}/>
         </div>
 
         <div className="field">
           <label>
-            <span className="int-en">Description</span>
-            <span className="int-he">תיאור</span>
+            <IntText>Description</IntText>
           </label>
           <textarea id="groupDescription" onChange={this.handleInputChange} value={this.state.description||""}></textarea>
         </div>
 
         <div className="field">
           <label>
-            <span className="int-en">Collection Image</span>
-            <span className="int-he">תמונה ל TODO HEBREW</span>
+            <IntText>Collection Image</IntText>
           </label>
           {this.state.imageUrl
             ? <img className="groupImage" src={this.state.imageUrl} alt="Collection Image" />
@@ -182,12 +175,11 @@ class EditGroupPage extends Component {
           <FileInput
              name="groupImage"
              accept="image/*"
-             text="Upload Image"
+             text={Sefaria._("Upload Image")}
              className="button white"
              onChange={this.handleImageChange} />
           <div className="helperText">
-            <span className="int-en">Recommended size: 350px x 350px or larger</span>
-            <span className="int-he">גודל מומלץ: לפחות 350 פיקסל ע"ג 350 פיקסל</span>
+            <IntText>Recommended size: 350px x 350px or larger</IntText>
           </div>
         </div>
 
@@ -195,8 +187,7 @@ class EditGroupPage extends Component {
         {this.state.headerUrl ? 
         <div className="field">
           <label>
-            <span className="int-en">Default Sheet Header</span>
-            <span className="int-he">כותרת עמוד ראשונית</span>
+            <IntText>Default Sheet Header</IntText>
           </label>
           {this.state.headerUrl
             ? <div className="groupHeaderBox">
@@ -211,16 +202,14 @@ class EditGroupPage extends Component {
              className="button white"
              onChange={this.handleImageChange} />
           <div className="helperText">
-            <span className="int-en">Recommended size: 1000px width to fill sheet, smaller images align right</span>
-            <span className="int-he">גודל מומלץ: 1000 פיקסל כדי למלא את חלל הדף. גודל קטן יותר יתיישר לימין</span>
+            <IntText>Recommended size: 1000px width to fill sheet, smaller images align right</IntText>
           </div>
         </div>
         : null }
 
         <div className="field">
           <label>
-              <span className="int-en">List on Sefaria</span>
-              <span className="int-he">הצג לכלל משתמשי ספריא</span>
+              <IntText>List on Sefaria</IntText>
           </label>
           {this.state.moderationStatus !== "nolist" ?
           <div className="onoffswitch">
@@ -235,20 +224,18 @@ class EditGroupPage extends Component {
                 <span className="onoffswitch-switch"></span>
             </label>
             <div className="helperText">
-              <span className="int-en">Your collection will appear on the public collections page where others can find it.</span>
-              <span className="int-he">ה TODO HEBREW תופיע ברשימת הקבוצות הפתוחות, ומשתמשים אחרים יוכלו לראות אותה</span>
+              <IntText>Your collection will appear on the public collections page where others can find it.</IntText>
             </div>
           </div>
           : <div>
               <span className="int-en">Your collection was previously made public, but our moderators determined it was not generally useful for all Sefaria users. Please contact <a href="mailto:hello@sefari.org">hello@sefaria.org</a> with any questions.</span>
-              <span className="int-he">ה TODO HEBREW הוגדרה בעבר כפתוחה, אך המנהלים שלנו הסיקו שהיא אינה שימושית לקהל המשתמשים הרחב. אנא צרו קשר עם <a href="mailto:hello@sefari.org">hello@sefaria.org</a> לשאלות נוספות. </span>
+              <span className="int-he">האסופה שלך הוגדרה כציבורית, אך המנהלים שלנו הגיעו למסקנה שהיא אינה רלוונטית לכלל משתמשי ספריא. לשאלות יש ליצור עימנו קשר בכתובת <a href="mailto:hello@sefari.org">hello@sefaria.org</a>.</span>
           </div> }
         </div>
 
         {this.props.initialData ?
           <div className="deleteGroup" onClick={this.delete}>
-            <span className="int-en">Delete Collection</span>
-            <span className="int-he">מחק TODO HEBREW</span>
+            <IntText>Delete Collection</IntText>
           </div>
           : null}
 

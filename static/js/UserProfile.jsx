@@ -102,7 +102,7 @@ class UserProfile extends Component {
   }
   renderGroup(group) {
     return (
-      <GroupListing key={group.name} data={group} showMembership={true} small={true} />
+      <GroupListing key={group.slug} data={group} showMembership={true} small={true} />
     );
   }
   renderGroupHeader() {
@@ -459,7 +459,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
   if (p.location) { infoList.push(p.location); }
   infoList = infoList.concat(p.jewish_education);
   if (p.website) {
-    infoList.push(<span><a href={p.website} target="_blank">{"website"}</a></span>);
+    infoList.push(<span><a href={p.website} target="_blank">{Sefaria._("Website")}</a></span>);
   }
   const socialList = social.filter(s => !!p[s]);
   if (socialList.length) {

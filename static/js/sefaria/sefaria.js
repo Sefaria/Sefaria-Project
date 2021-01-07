@@ -2205,18 +2205,14 @@ _media: {},
     //this is here for now, we might want to move it somewhere else.
   _i18nInterfaceStrings: {
       "Sefaria": "ספריא",
-      "Sefaria Group" : "קבוצות בספריא",
-      "Sefaria Groups" : "קבוצות בספריא",
-      "Sefaria Source Sheets":"דפי מקורות בספריא",
       "Topics":"נושאים",
       "Sefaria Notifcations": "הודעות בספריא",
-      //title meta tag
       "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספרייה חיה של טקסטים יהודיים",
       "Recently Viewed" : "נצפו לאחרונה",
       "The Sefaria Library": "תוכן העניינים של ספריא",
       "Sefaria Search": "חיפוש בספריא",
       "Sefaria Account": "חשבון בספריא",
-      "New Additions to the Sefaria Library":"חידושים בארון הספרים של ספריא",
+      "New Additions to the Sefaria Library": "חידושים בארון הספרים של ספריא",
       "My Notes on Sefaria": "ההערות שלי בספריא",
       "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.": "טקסטים ודפי מקורות מן התורה, התלמוד וספריית המקורות של ספריא.",
       "Moderator Tools": "כלי מנהלים",
@@ -2225,17 +2221,8 @@ _media: {},
       " & ": " | ",
       "My Source Sheets" : "דפי המקורות שלי",
       "Public Source Sheets":"דפי מקורות פומביים",
-      "History": "היסטוריה",
-      "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
-      "Public Domain": "בנחלת הכלל",
-      "CC-BY": "CC-BY",
-      "CC-BY-NC": "CC-BY-NC",
-      "CC-BY-SA": "CC-BY-SA",
-      "CC-BY-NC-SA": "CC-BY-NC-SA",
-      "CC0": "CC0",
-      "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
-      //sheets
+      // Sheets
       "Source Sheets": "דפי מקורות",
       "Start a New Source Sheet": "התחלת דף מקורות חדש",
       "Untitled Source Sheet" : "דף מקורות ללא שם",
@@ -2261,13 +2248,8 @@ _media: {},
       "Please select a source sheet.": "אנא בחרו דף מקורות.",
       "New Source Sheet Name:" : "כותרת דף מקורות חדש:",
       "Source Sheet by" : "דף מקורות מאת",
-      "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
-      "Pinned Sheet" : "דף מקורות נעוץ",
-      "Pin Sheet" : "נעיצת דף מקורות",
       "Created with": 'נוצר עבורך ע"י',
-      "hasn't shared any sheets yet.": "TODO Hebrew",
-
-      //stuff moved from sheets.js
+      " hasn't shared any sheets yet.": "TODO Hebrew",
       "Loading..." : "טוען...",
       "Saving..." : "שומר...",
       "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
@@ -2280,7 +2262,6 @@ _media: {},
       "לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
       "Are you sure you want to remove this?": "בטוח שברצונך למחוק?",
       "Would you like to save this sheet? You only need to save once, after that changes are saved automatically.": "רוצה לשמור את הדף הזה? כל שעליך לעשות הוא לשמור פעם אחת – לאחר מכן השינויים יישמרו באופן אוטומטי.",
-      //"Untitled Source Sheet": "דף מקורות ללא שם",
       "Like": "אהבתי",
       "Unlike": "ביטול סימון אהבתי",
       "No one has liked this sheet yet. Will you be the first?":
@@ -2310,9 +2291,9 @@ _media: {},
       "Remove": "הסרת מקור",
       "Create New" : "יצירת חדש",
       "Close" : "סגירה",
-      "by": "", // by line on sheets in reader, left blank
+      "by": "", // by line on sheets in reader, intentionally left blank
 
-      //reader panel
+      // Reader Panel
       "Search" : "חיפוש",
       "Search Dictionary": "חפש במילון",
       "Search for": "חיפוש",
@@ -2339,43 +2320,75 @@ _media: {},
       "Send": "שלח",
       "Cancel": "בטל",
       "Send a message to ": "שלח הודעה ל-",
-      "Groups": "קבוצות",
       "Following": "נעקבים",
       "Followers": "עוקבים",
       "following": "נעקבים",
       "followers": "עוקבים",
       "Recent": "תאריך",
       "Unlisted": "חסוי",
+      "History": "היסטוריה",
+      "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
+      "Public Domain": "בנחלת הכלל",
+      "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
-      // collections
-      "Collections": "TODO Hebrew",
-      "Create a Collection": "TODO Hebrew",
-      "Create a New Collection": "TODO Hebrew",
-      "You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.": "TODO Hebrew",
-      "You can add sheets to this collection on your profile.": "TODO Hebrew",
-      "Open Profile": "TODO Hebrew",
-      "There are no sheets in this collection yet.": "TODO Hebrew",
-      "Are you sure you want to delete this collection? This cannot be undone.": "TODO Hebrew",
-      "hasn't shared any collections yet.": "TODO Hebrew",
-      "You have unsaved changes to your collection.": "TODO Hebrew",
-      "Images must be smaller than ": "TODO Hebrew",
-      "Unfortunately an error occurred uploading your file.": "TODO Hebrew",
-      "Unfortunately an error occurred saving your collection.": "TODO Hebrew",
-      "Unfortunately an error occurred deleting your collection.": "TODO Hebrew",
+      // Collections
+      // Edit collection page
+      "Collections": "אסופות",
+      "Sefaria Collections": "האסופות של ספריא",
+      "Edit Collection": "עריכת אסופה",
+      "Create a Collection": "יצירת אסופה",
+      "Create a New Collection": "יצירת אסופה חדשה",
+      "Collection Name": "שם האסופה",
+      "Website": "כתובת אתר",
+      "Description": "תיאור",
+      "Collection Image": "תמונת האסופה",
+      "Upload Image": "TODO Hebrew",
+      "Recommended size: 350px x 350px or larger": 'גודל מומלץ: לפחות 350 פיקסל ע"ג 350 פיקסל',
+      "Default Sheet Header": "כותרת עמוד ראשונית",
+      "Recommended size: 1000px width to fill sheet, smaller images align right": "גודל מומלץ: 1000 פיקסל כדי למלא את חלל הדף. גודל קטן יותר יתיישר לימין",
+      "List on Sefaria": "הצג לכלל משתמשי ספריא",
+      "Your collection will appear on the public collections page where others can find it.": "האסופה שלך תופיע בדף האסופות הציבוריות ותהיה זמינה לעיון של משתמשות ומשתמשים אחרים.",
+      "Delete Collection": "מחיקת אסופה",
+      "Are you sure you want to delete this collection? This cannot be undone.": "האם ברצונך למחוק את האסופה הזו? אין אפשרות לבטל את הפעולה אחר כך.",
+      "You have unsaved changes to your collection.": "האסופה שלך כוללת שינויים שלא נשמרו.",
+      "Images must be smaller than ": "תמונות חייבות להיות קטנות מ",
+      "Unfortunately an error occurred uploading your file.": "אירעה שגיאה בהעלאת הקובץ שלך.",
+      "Unfortunately an error occurred saving your collection.": "אירעה שגיאה בשמירת האסופה שלך.",
+      "Unfortunately an error occurred deleting your collection.": "אירעה שגיאה במחיקת האסופה שלך.",
+      // Collection Page
+      "Owner": "האסופה",
+      "Editor": "עורך", // TODO Hebrew
+      "Editors": "עורכים", // TODO Hebrew
+      "There are no sheets in this collection yet.": "לאסופה זו טרם נוספו דפי מקורות.",
+      "You can add sheets to this collection on your profile.": "באפשרותך להוסיף דפי מקורות לאסופה הזאת דרך הפרופיל האישי שלך.",
+      "Open Profile": "כניסה לפרופיל האישי",
+      "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
+      "Pinned Sheet" : "דף מקורות נעוץ",
+      "Pin Sheet" : "נעיצת דף מקורות",
+      "can invite & edit settings": "יכול/ה לשלוח הזמנות ולערוך את ההגדרות",
+      "can add & remove sheets": "יכולים להוסיף ולערוך דפים",
+      "Leave Collection": "עזיבת האסופה",
+      "Invite": "שליחת הזמנה",
+      "Inviting...": "TODO Hebrew",
+      "Invited.": "TODO Hebrew",
+      "Resend Invitation": "שליחת הזמנה חוזרת",
+      "Invitation Resent": "ההזמנה החוזרת נשלחה",
+      "There was an error sending your invitation.": "אירעה שגיאה בשליחת ההזמנה שלך.",
       "Are you sure you want to change your collection role? You won't be able to undo this action unless another owner restores your permissions.": "TODO Hebrew",
+      "Remove": "הסרת משתמש",
       "Are you sure you want to leave this collection?": "TODO Hebrew",
       "Are you sure you want to remove this person from this collection?": "TODO Hebrew",
       "Are you sure you want to remove this invitation?": "TODO Hebrew",
-      "Inviting...": "TODO Hebrew",
-      "Invited.": "TODO Hebrew",
       "There was an error pinning your sheet.": "TODO Hebrew",
-      "There was an error sending your invitation.": "TODO Hebrew",
-      "Owner": "TODO Hebrew",
-      "Editor": "TODO Hebrew",
-      "Editors": "TODO Hebrew",
-      "can invite & edit settings": "TODO Hebrew",
-      "can add & remove sheets": "TODO Hebrew",
-      "Leave Collection": "TODO Hebrew",
+      // Public Collections Page
+      "There are no public collections yet.": "טרם נוצרו אסופות ציבוריות",
+      // Collects in Profile
+      "You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.": "באפשרותך ליצור אסופות כדי לארגן את דפי המקורות שלך או דפי מקורות פתוחים לשימוש שאהבת. את האסופות אפשר לשתף באופן פרטי או לפרסם באופן ציבורי באתר ספריא.",
+      "hasn't shared any collections yet.": "טרם שותפו אסופות בידי.",
+      "Create new collection": "יצירת אסופה חדשה",
+      "Create": "יצירת", // TODO Hebrew
+      "Add to Collection": "TODO Hebrew",
+
 
       //languages
       "English": "אנגלית",
@@ -2392,6 +2405,7 @@ _media: {},
       "Russian": "רוסית",
       "Esparanto": "אספרנטו",
       "Persian": "פרסי",
+
       "On": "הצג",
       "Off": "הסתר",
       "Show Parasha Aliyot": "עליות לתורה מוצגות",
@@ -2458,15 +2472,20 @@ _media: {},
       "Average Sefaria User" : "משתמש ממוצע בספריא",
       "Etc": "שאר",
 
-      //chavruta
+      // Chavruta
       "Learn with a Chavruta": "ללמוד עם חברותא",
       "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הזה:",
       "Start Call": "התחלת שיחה",
 
-      //subscribe & register
+      // Subscribe & Register
       "Please enter a valid email address.": 'כתובת הדוא"ל שהוזנה אינה תקינה.',
       "Subscribed! Welcome to our list.": "הרשמה בוצעה בהצלחה!",
       "Sorry, there was an error.": "סליחה, ארעה שגיאה",
+
+      // Footer
+      "Connect": "צרו קשר",
+      "Site Language": "שפת האתר",
+
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
@@ -2488,6 +2507,7 @@ _media: {},
 	}
   },
   _: function(inputStr){
+    if (!inputStr.toLowerCase) debugger;
     if(Sefaria.interfaceLang != "english"){
         var hterm;
         if(inputStr in Sefaria._i18nInterfaceStrings) {

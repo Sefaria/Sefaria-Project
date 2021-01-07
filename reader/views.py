@@ -726,31 +726,6 @@ def disable_new_editor(request):
     return resp
 
 
-
-@sanitize_get_params
-def sheets(request):
-    """
-    Source Sheets Home Page.
-    """
-    props = base_props(request)
-    props.update({
-        "initialMenu": "sheets",
-        "topSheets": get_top_sheets(),
-        "tagList": public_tag_list(sort_by="count"),
-        "trendingTags": trending_topics(ntags=18)
-    })
-
-    title = _("Sefaria Source Sheets")
-    desc  = _("Explore thousands of public Source Sheets and use our Source Sheet Builder to create your own online.")
-    propsJSON = json.dumps(props)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request, 'base.html', {
-        "propsJSON":      propsJSON,
-        "title":          title,
-        "desc":           desc,
-        "html":           html,
-    })
-
 def public_groups(request):
     props = base_props(request)
     props.update({
@@ -836,15 +811,6 @@ def edit_group_page(request, slug=None):
         groupData = None
 
     return render(request, 'edit_group.html', {"groupData": groupData})
-
-
-@staff_member_required
-def groups_admin_page(request):
-    """
-    Page listing all groups for admins
-    """
-    groups = GroupSet(sort=[["name", 1]])
-    return render(request, "groups.html", {"groups": groups})
 
 
 def groups_redirect(request, group):

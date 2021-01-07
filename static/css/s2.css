@@ -5908,7 +5908,7 @@ a .button:hover {
   font-size: 14px;
 }
 .splitHeader select {
-  margin-left: 6px;
+  margin-inline-start: 6px;
 }
 .sheetsNewButton {
   text-align:center;
@@ -8616,6 +8616,9 @@ body .homeFeedWrapper.userStats {
   font-style: normal;
   color: #666;
 }
+.interface-hebrew .collectionsWidget input.collectionsWidgetCreateInput::placeholder {
+  font-family: "Heebo", sans-serif;
+}
 .userStats h1 {
   text-align: center;
   font-weight: normal;
@@ -8872,6 +8875,10 @@ a.topicLexiconTitle.contentText {
   background-color: white;
   border: 1px solid #CCC;
   border-radius: 3px;
+}
+.interface-hebrew .checkmark {
+  left: auto;
+  right: 0;
 }
 /* On mouse-over, add a grey background color */
 .checkmarkLabel:hover input ~ .checkmark {

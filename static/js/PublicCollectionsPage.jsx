@@ -63,7 +63,7 @@ function PublicGroupsPage({multiPanel, navHome}) {
                   groupsList.public.map(function(item) {
                     return <GroupListing data={item} key={item.name} />
                   })
-                  : <LoadingMessage message="There are no public collections yet." heMessage="TODO Hebrew" />)
+                  : <IntText>There are no public collections yet.</IntText>)
                 : <LoadingMessage />
             }
           </div>
@@ -108,8 +108,8 @@ function GroupListing({data, showMembership, small}) {
                   <span className="groupListingDetailSeparator">•</span> }
                   
                   <span className="groupListingDetail groupListingSheetCount">
-                    <span className="int-en">{data.sheetCount} Sheets</span>
-                    <span className="int-he">{data.sheetCount} דפים</span>
+                    <IntText>{`${data.sheetCount} `}</IntText>
+                    <IntText>Sheets</IntText>
                   </span>
 
                   {data.memberCount > 1 && small ? 
@@ -117,9 +117,9 @@ function GroupListing({data, showMembership, small}) {
 
                   {data.memberCount > 1 && small ?
                   <span className="groupListingDetail groupListingMemberCount">
-                    <span className="int-en">{data.memberCount} Editors</span>
-                    <span className="int-he">{data.memberCount} TODO Hebrew</span>
-                  </span> :null }
+                    <IntText>{`${data.memberCount} `}</IntText>
+                    <IntText>Editors</IntText>
+                  </span> : null }
                 </div>
               </div>
             </div>

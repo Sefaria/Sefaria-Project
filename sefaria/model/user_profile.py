@@ -711,7 +711,6 @@ def email_unread_notifications(timeframe):
             translation.activate(profile.settings["interface_language"][0:2])
 
         message_html  = render_to_string("email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name})
-        #message_text = util.strip_tags(message_html)
         actors_string = notifications.actors_string()
         # TODO Hebrew subjects
         if actors_string:
@@ -724,8 +723,7 @@ def email_unread_notifications(timeframe):
         to            = user.email
 
         msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
-        msg.content_subtype = "html"  # Main content is now text/html
-        #msg.attach_alternative(message_text, "text/plain")
+        msg.content_subtype = "html"
         try:
             msg.send()
             notifications.mark_read(via="email")
