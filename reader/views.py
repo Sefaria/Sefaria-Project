@@ -4253,12 +4253,9 @@ def visual_garden_page(request, g):
 @csrf_exempt
 def manuscripts_for_source(request, tref):
     if request.method == "GET":
-        try:
-            oref = Ref(tref)
-        except InputError:
+        if not Ref.is_ref(tref):
             return jsonResponse({"error": "Unrecognized Reference"})
-        return jsonResponse(ManuscriptPageSet.load_set_for_client(oref))
-
+        return jsonResponse(ManuscriptPageSet.load_set_for_client(tref))
     else:
         return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
