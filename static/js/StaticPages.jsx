@@ -917,7 +917,7 @@ const PBSC2020LandingPage = () => (
                 ["Torah for the Blind", "", "https://torahfortheblind.com/"],
                 ["Tweet Yomi", "", "https://tweetyomi.org/"],
                 ["Visualizations of Sefaria", "", "https://guedalia.github.io/testab/test"],
-                ["Visualizing Talmud Topics", "", "https://notebooks.azure.com/HagaiG/projects/Visualizing-Talmud-Topics"],
+                ["Visualizing Talmud Topics", "", "https://share.streamlit.io/guedalia/streamlit/main/first_app.py"],
                 ["Visualizing Works Influence", "", "https://adinabechhofer.github.io/"],
                 ["Yamim Noraim Machzor", "", "https://play.google.com/store/apps/details?id=com.machzoryamimnoraim"],
                 ["Yomyomishna", "", "https://yomyomishna.web.app/"]

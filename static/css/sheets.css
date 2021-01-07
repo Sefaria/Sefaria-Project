@@ -895,6 +895,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	background-color: white;
 }
 
+#sheet.boxed .outside.he,
+#sheet.boxed .outside.en {
+	display: block;
+}
+
 #sheet.boxed #sources {
 	list-style-position: outside;
 }
@@ -1660,7 +1665,7 @@ line-height: normal;
 
 body.hasBannerMessage .sheetsEditNavTop {
   transition: top .3s;
-  top: 180px;	
+  top: 180px;
 }
 
 .sheetsMenuBar, .sheetsEditorControls{
@@ -2250,7 +2255,7 @@ label[for="sourceSheetShareSelect"] {
 #sheetsContent #tags input {
 	width: 0px; /* hack tagit to be readonly but allow removings tags */
 }
-	
+
 #suggestedTags {
 	margin-bottom: 9px;
 }
