@@ -13,6 +13,8 @@ from selenium.common.exceptions import WebDriverException
 
 import time  # import stand library below name collision in sefaria.model
 
+import urllib.parse
+
 TEMPER = 10
 
 
@@ -139,15 +141,28 @@ class PagesLoad(AtomicTest):
         self.load_toc()
         self.click_toc_category("Midrash").click_toc_text("Ein Yaakov")
         self.load_ref("Psalms.104")
+        print("Done loading Psalms 104")
         self.load_topics()
+        print("Done loading topics")
         self.load_gardens()
+        print("Done loading gardens")
         self.load_home()
+        print("Done loading home")
         self.load_people()
+        print("Done loading people ")
         #logged in stuff
         self.login_user()
+        
         self.load_my_profile()
         # self.load_notifications()
-
+        print("Done loading user")
+        # self.load_notifications()
+        self.nav_to_account() # load_account might be superceded by load_my_profile or nav_to_account
+        print("Done loading account")
+        self.load_private_sheets()
+        print("Done loading private sheets")
+        self.load_private_groups()
+        print("Done loading private groups")
 
 class SectionContentAsExpectedMasechtotAndChapters(AtomicTest):
     suite_class = PageloadSuite
@@ -619,11 +634,12 @@ class CheckGraphs(AtomicTest):
 
     # Make sure all Tanach books and Mashechtot are displayed, and sample some entries to check that torah>nevi'im>ketuvim and the Sedarim are in the correct order
     def body(self):
-        self.driver.get(self.base_url + "/explore")
+        self.driver.get(urllib.parse.urljoin(self.base_url,"/explore"))
         #todo ^ add a wait there that is connected to content
 
         if 'safari' in self.driver.name or "Safari" in self.driver.name:
             time.sleep(1)  # Might fail on Safari without this sleep
+
         assert self.get_object_by_id('Genesis').is_displayed()
         assert self.get_object_by_id('Exodus').is_displayed()
         assert self.get_object_by_id('Leviticus').is_displayed()

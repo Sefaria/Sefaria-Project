@@ -11,12 +11,8 @@ import sys
 
 build = sys.argv[1]
 
-# Travis requires the following builld variables
-# SAUCE_USERNAME
-# SAUCE_ACCESS_KEY 
-# Why doesn't the sauce platform require this?
 
-t = Trial(platform="travis", build=build)
+t = Trial(platform="githubnew", build=build, parallel=True)
 t.run()
 results = t.results()
 
@@ -26,3 +22,6 @@ if fails > 0:
     sys.stderr.write(str(results))
     sys.stderr.flush()
 sys.exit(fails)
+
+
+# Updates required to adapt run_tests_on_travis into run_tests_on_github
