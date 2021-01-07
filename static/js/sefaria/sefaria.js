@@ -1600,11 +1600,11 @@ _media: {},
   },
   tocItemsByCategories: function(cats) {
     // Returns the TOC items that correspond to the list of categories 'cats'
-    var list = Sefaria.util.clone(Sefaria.toc);
-    for (var i = 0; i < cats.length; i++) {
-      var found = false;
-      for (var k = 0; k < list.length; k++) {
-        if (list[k].category == cats[i]) {
+    let list = Sefaria.util.clone(Sefaria.toc);
+    for (let i = 0; i < cats.length; i++) {
+      let found = false;
+      for (let k = 0; k < list.length; k++) {
+        if (list[k].category === cats[i]) {
           list = Sefaria.util.clone(list[k].contents);
           found = true;
           break;

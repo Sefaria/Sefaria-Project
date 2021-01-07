@@ -1,5 +1,4 @@
 import {
-  CategoryColorLine,
   CategoryAttribution,
   TwoOrThreeBox,
   LanguageToggleButton,
@@ -10,20 +9,18 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import Footer  from './Footer';
 import MobileHeader from './MobileHeader';
-import Component from 'react-class';
 
 
-
+// Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
             toggleLanguage, openDisplaySettings, navHome, width, compare, hideNavHeader,
             contentLang, interfaceLang}) => {
 
-      // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 
     // Show Talmud with Toggles
     const cats  = categories[0] === "Talmud" && categories.length === 1 ?
                         ["Talmud", "Bavli"] : categories;
-    let catTitle = '', heCatTitle = '', toggle = '';
+    let catTitle = '', heCatTitle = '';
 
     if (cats[0] === "Talmud" && cats.length === 2) {
       catTitle   = (cats.length > 1) ? cats[0] +  " " + cats[1] : cats[0];
@@ -91,8 +88,8 @@ ReaderNavigationCategoryMenu.propTypes = {
   interfaceLang:       PropTypes.string,
 };
 
+// Inner content of Category menu (just category title and boxes of texts/subcategories)
 const ReaderNavigationCategoryMenuContents = ({category, contents, categories, contentLang, width, nestLevel}) =>  {
-  // Inner content of Category menu (just category title and boxes of texts/subcategories)
 
   const content = [];
   const cats = categories || [];
@@ -141,7 +138,7 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
                           categories    = {newCats}
                           width         = {width}
                           nestLevel     = {nestLevel + 1}
-                          category      = {category}
+                          category      = {item.category}
                           contentLang   = {contentLang} />
                       </div>));
       }
@@ -262,24 +259,30 @@ const TalmudToggle = ({categories, setCategories}) => {
 };
 
 const getRenderedTextTitleString = (title, heTitle, category) => {
-    const whiteList = ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma'];
+
+
+    const whiteList = ['Imrei Yosher on Ruth'];  // ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma', 'Midrash Aggadah'];
+    if (whiteList.indexOf(title) > -1) {
+        return [title, heTitle];
+    }
+
     const displayCategory = category;
     const displayHeCategory = Sefaria.hebrewTerm(category);
-    if (whiteList.indexOf(title) === -1) {
-      const replaceTitles = {
+    const replaceTitles = {
         "en": ['Jerusalem Talmud', displayCategory],
         "he": ['תלמוד ירושלמי', displayHeCategory]
-      };
-      const replaceOther = {
+    };
+    const replaceOther = {
         "en" : [", ", "; ", " on ", " to ", " of "],
         "he" : [", ", " על "]
-      };
-      //this will replace a category name at the beginning of the title string and any connector strings (0 or 1) that follow.
-      const titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
-      const heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
-      title   = title === displayCategory ? title : title.replace(titleRe, "");
-      heTitle = heTitle === displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
-    }
+    };
+
+    //this will replace a category name at the beginning of the title string and any connector strings (0 or 1) that follow.
+    const titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
+    const heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
+    title   = title === displayCategory ? title : title.replace(titleRe, "");
+    heTitle = heTitle === displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
+
     return [title, heTitle];
 };
 const hebrewContentSort = (enCats) => {
@@ -303,8 +306,8 @@ const hebrewContentSort = (enCats) => {
       } else if (("category" in a) !== ("category" in b)) {
         return a.enOrder > b.enOrder ? 1 : -1;
 
-      } else if (a.heComplete !== b.heComplete) {
-        return a.heComplete ? -1 : 1;
+      //} else if (a.heComplete !== b.heComplete) {
+      //  return a.heComplete ? -1 : 1;
 
       } else if (a.heTitle && b.heTitle) {
         return a.heTitle > b.heTitle ? 1 : -1;

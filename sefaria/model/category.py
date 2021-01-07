@@ -225,23 +225,21 @@ class TocTree(object):
             :return:
             """
             title = node.primary_title("en")
-            complete = getattr(node, "enComplete", False)
-            complete_or_title_key = "1z" + title if complete else "2z" + title
 
+            # First sort by global order list below
             try:
-                # First sort by global order list below
                 return (False, CATEGORY_ORDER.index(title))
 
+            # Sort top level Commentary categories just below their base category
             except ValueError:
-                # Sort top level Commentary categories just below their base category
                 if isinstance(node, TocCategory):
                     temp_cat_name = title.replace(" Commentaries", "")
                     if temp_cat_name in TOP_CATEGORIES:
                         return (False, CATEGORY_ORDER.index(temp_cat_name) + 0.5)
 
                 # Sort by an explicit `order` field if present
-                # otherwise into two alphabetical list for complete and incomplete.
-                res = getattr(node, "order", complete_or_title_key)
+                # otherwise into an alphabetical list
+                res = getattr(node, "order", title)
                 return (isinstance(res, str), res)
 
         for cat in self.all_category_nodes():  # iterate all categories
