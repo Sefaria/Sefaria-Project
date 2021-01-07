@@ -198,7 +198,7 @@ class TocTree(object):
             self._path_hash[tuple(i.categories + [i.title])] = node
 
         # Include Collections in TOC that has a `toc` field set
-        collections = collection.GroupSet({"toc": {"$exists": True}, "listed": True})
+        collections = collection.GroupSet({"toc": {"$exists": True}, "listed": True, "slug": {"$exists": True}})
         for c in collections:
             self._collections_in_library.append(c.slug)
             node = TocCollectionNode(collection_object=c)

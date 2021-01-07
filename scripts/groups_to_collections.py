@@ -6,10 +6,6 @@ from sefaria.model import Group, GroupSet
 from sefaria.system.database import db
 
 
-# Phase 1
-# - "sheets" field allowed on Group
-
-
 # Add Sheet IDs to Collections
 groups = GroupSet({})
 for group in groups:
