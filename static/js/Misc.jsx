@@ -1385,7 +1385,7 @@ const SheetListing = ({
       <div className="sheetRight">
         {
           editable && !$.cookie("new_editor") ?
-            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg" title={Sefaria._("Edit")}/></a>
+            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
             : null
         }
         {

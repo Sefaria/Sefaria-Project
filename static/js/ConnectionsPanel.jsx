@@ -645,7 +645,7 @@ class ResourcesList extends Component {
               <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
               {this.props.webpagesCount && this.props.webpagesCount > 0 ? <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} /> : null }
               {this.props.topicsCount && this.props.topicsCount > 0 ? <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={this.props.topicsCount} onClick={() => this.props.setConnectionsMode("Topics")} /> : null }
-              <ToolsButton en="Translations" he="תרגומים" image="layers.png" onClick={() => this.props.setConnectionsMode("Translations")} />
+              <ToolsButton en="Translations" he="תרגומים" image="translation.svg" onClick={() => this.props.setConnectionsMode("Translations")} />
               <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               {this.props.audioCount && this.props.audioCount > 0 ? <ToolsButton en="Torah Readings" he="קריאה בתורה" image="audio.svg" onClick={() => this.props.setConnectionsMode("Torah Readings")} /> : null }
