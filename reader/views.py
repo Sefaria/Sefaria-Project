@@ -659,7 +659,7 @@ def get_search_params(get_dict, i=None):
     def get_filters(prefix, filter_type):
         return [urllib.parse.unquote(f) for f in get_dict.get(get_param(prefix+filter_type+"Filters", i)).split("|")] if get_dict.get(get_param(prefix+filter_type+"Filters", i), "") else []
 
-    sheet_filters_types = ("group", "topics_en", "topics_he")
+    sheet_filters_types = ("collections", "topics_en", "topics_he")
     sheet_filters = []
     sheet_agg_types = []
     for filter_type in sheet_filters_types:

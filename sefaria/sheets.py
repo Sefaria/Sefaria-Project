@@ -1104,6 +1104,7 @@ class Sheet(abstract.AbstractMongoRecord):
 		"summary",
         "reviewed",
         "ownerImageUrl",   # TODO this shouldn't be stored on sheets, but it is for many
+        "ownerProfileUrl", # TODO this shouldn't be stored on sheets, but it is for many
 	]
 
 	def is_hebrew(self):

@@ -1646,7 +1646,7 @@ class ReaderApp extends Component {
   searchInGroup(searchQuery, group) {
     let panel;
     const textSearchState =  new SearchState({ type: 'text' });
-    const sheetSearchState = new SearchState({ type: 'sheet',  appliedFilters: [group], appliedFilterAggTypes: ['group']});
+    const sheetSearchState = new SearchState({ type: 'sheet',  appliedFilters: [group], appliedFilterAggTypes: ['collection']});
 
     if (this.props.multiPanel) {
       panel = this.makePanelState({mode: "Header", menuOpen: "search", "searchTab": "sheet", searchQuery, textSearchState, sheetSearchState });
