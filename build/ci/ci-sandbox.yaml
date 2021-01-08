@@ -49,16 +49,6 @@ steps:
     id: sefaria_repo_git_hash
     wait_for: [ "sefaria_repo_clone" ]
 
-
-  # print requirements.txt
-  - name: gcr.io/production-deployment/cloudbuild-helm:v3.1.2
-    entrypoint: cat
-    args: [ "./requirements.txt" ]
-    dir: Sefaria-Project
-    id: print_python_requirements
-    wait_for: [ "sefaria_repo_clone" ]
-
-
   # Build artifacts
   - name: gcr.io/kaniko-project/executor:latest
     args:

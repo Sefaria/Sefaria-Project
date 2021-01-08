@@ -185,6 +185,8 @@ jobs:
       - name: Run PageLoad Suite
         run: python3 ./reader/browsertest/run_tests_on_github.py --tests PageloadSuite
         env:
+          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
           CI_RUN: "true"
           CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
           SEFARIA_TEST_PASS: ${{ secrets.SEFARIA_APP_PASS }}
