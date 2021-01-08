@@ -178,6 +178,7 @@ jobs:
       - name: Define GITHUB_SHA_SHORT
         run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
 
+
       # END SETUP
       - name: Install Python Packages
         run: pip3 install -r ./requirements.txt
