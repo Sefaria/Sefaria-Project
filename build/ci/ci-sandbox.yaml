@@ -87,28 +87,6 @@ steps:
       - web_container
       - sefaria_repo_clone
 
-
-
-  # # Todo: delete previously existing job OR timestamp the K8s job name
-  # # This build step is defined at `v2/containers/mongo-restore
-  # - name: gcr.io/${PROJECT_ID}/mongo-restore:latest
-  #   id: mongo_restore
-  #   entrypoint: "/restoreMongo.bash" # figure out why the container's entrypoint isn't being respected
-  #   env: 
-  #     # Restore Script Variables
-  #     - 'MONGO_HOST=${_MONGO_HOST}'
-  #     - 'SANDBOX_NAME=${_ENV_NAME}'
-  #     - 'MONGO_LOAD=${_MONGO_LOAD}' # If false, the job is a no-op
-  #     - 'MONGO_SNAPSHOT_LOCATION=${_MONGO_SNAPSHOT_LOCATION}'
-  #     - 'CLUSTER_NAMESPACE=${_GKE_NAMESPACE}'
-  #     - 'ENVIRONMENT=sandbox'
-  #     # kubectl Variables
-  #     - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
-  #     - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-  #     - 'KUBECTL_VERSION=1.14'
-  #     - 'KUBECONFIG=/root/.kube/config'
-  #   wait_for: [ "-" ]
-
   # Outputs a file to /k8s-admin/v2/app_settings/helm/_sandboxValues.yaml
   - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
     dir: k8s-admin/v2/app_settings/helm
