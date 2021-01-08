@@ -1,6 +1,4 @@
-# TODO: Fail the build if the target mongo host is not reachable
 # TODO: Remove references to sandboxes
-
 ---
 substitutions:
   _ENV_NAME: ASDF
