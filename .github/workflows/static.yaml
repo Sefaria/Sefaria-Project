@@ -3,7 +3,7 @@
 
 # Remove "continue-on-error" once we work out all the kinks
 ---
-name: static-tests
+name: Static Tests
 on:
   - push
 jobs:
@@ -75,7 +75,7 @@ jobs:
       - name: Run Static Python Tests
         run: py.test -v -m 'not deep and not failing'
         continue-on-error: true
-        timeout-minutes: 15
+        timeout-minutes: 45
         env:
           PYTHONPATH: "."
           DJANGO_SETTINGS_MODULE: "sefaria.settings"
