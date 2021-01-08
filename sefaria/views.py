@@ -807,7 +807,7 @@ def core_link_stats(request):
 def run_tests(request):
     # This was never fully developed, methinks
     from subprocess import call
-    from .local_settings import DEBUG
+    from .settings import DEBUG
     if not DEBUG:
         return
     call(["/var/bin/run_tests.sh"])

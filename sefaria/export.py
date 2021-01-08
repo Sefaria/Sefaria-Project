@@ -23,7 +23,7 @@ from sefaria.model.text import AbstractIndex
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
 from .summaries import CATEGORY_ORDER
-from .local_settings import SEFARIA_EXPORT_PATH
+from .settings import SEFARIA_EXPORT_PATH
 from sefaria.system.database import db
 
 
