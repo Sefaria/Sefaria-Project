@@ -127,14 +127,10 @@ jobs:
 
   selenium-pageloadsuite-sauce:
     # Start off with local firefox
-    name: "Selenium Tests: PageLoad Suite on Local Linux Firefox"
+    name: "Selenium Tests: PageLoad Suite on Sauce Labs Firefox"
     needs: sandbox-ready
     runs-on: ubuntu-latest
-    services: 
-      selenium:
-        image: selenium/standalone-firefox:3.141.59
-        ports: [ "4444:4444" ]
-        volumes: ["/dev/shm:/dev/shm"]
+
     steps:
 
       # BEGIN SETUP
@@ -187,7 +183,7 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_local_sel.py --parallel --tests PageloadSuite
+        run: python3 ./reader/browsertest/run_tests_on_github.py --tests PageloadSuite
         env:
           CI_RUN: "true"
           CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
