@@ -1,7 +1,7 @@
 
 # -*- coding: utf-8 -*-
 
-from .config import TEMPER, SAUCE_CAPS, SAUCE_CORE_CAPS, SAUCE_MAX_THREADS, BS_CAPS, BS_MAX_THREADS, BS_KEY, BS_USER, LOCAL_URL, REMOTE_URL, LOCAL_SELENIUM_CAPS
+from .config import TEMPER, SAUCE_CAPS, SAUCE_CORE_CAPS, SAUCE_MAX_THREADS, LOCAL_URL, REMOTE_URL, LOCAL_SELENIUM_CAPS
 from sefaria.model import *
 from pathos.multiprocessing import ProcessingPool as Pool
 import random
