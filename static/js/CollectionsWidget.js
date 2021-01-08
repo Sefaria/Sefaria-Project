@@ -6,8 +6,12 @@ import Sefaria  from './sefaria/sefaria';
 
 
 const CollectionsModal = (props) => {
+  const onClose = () => {
+    props.handleCollectionsChange && props.handleCollectionsChange();
+    close();
+  };
   return <div className="collectionsModalBox">
-    <div className="whiteOverlay" onClick={props.close}></div>
+    <div className="whiteOverlay" onClick={onClose}></div>
     <CollectionsWidget {...props} />
   </div>
 };
@@ -18,6 +22,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
   const [collectionsSelected, setCollectionsSelected] = useState(Sefaria.getUserCollectionsForSheetFromCache(sheetID));
   const [dataLoaded, setDataLoaded] = useState(!!collections && !!collectionsSelected);
   const [newName, setNewName] = useState("");
+  const [changed, setChanged] = useState(false);
 
   // Make sure we have loaded the user's list of collections, 
   // and which collections this sheet belongs to for this user
@@ -64,8 +69,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
     Sefaria._groups[data.collection.slug] = data.collection;
     // This sheet's `displayedCollection` field may have changed
     delete Sefaria.sheets._loadSheetByID[sheetID];
-    handleCollectionsChange && handleCollectionsChange();
-
+    setChanged(true);
   };
 
   const onNameChange = event => setNewName(event.target.value);
@@ -86,10 +90,17 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
     });
   };
 
+  const onClose = () => {
+    if (changed && handleCollectionsChange) {
+      handleCollectionsChange();
+    }
+    close();
+  };
+
   return <div className="collectionsWidget">
     <div className="collectionsWidgetTop">
       <IntText className={"collectionsWidgetTitle"}>Collections</IntText>
-      <div className="collectionsWidgetClose" onClick={close}>×</div>
+      <div className="collectionsWidgetClose" onClick={onClose}>×</div>
     </div>
     <div className="collectionsWidgetList">
       {!dataLoaded ? null :
@@ -118,7 +129,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       : null}
     </div>
     <div className="collectionsWidgetDone">
-       <div className="button large fillWidth" onClick={close}>
+       <div className="button large fillWidth" onClick={onClose}>
         <IntText>Done</IntText>
       </div>     
     </div>
