@@ -53,7 +53,6 @@ steps:
       - --cache-repo=gcr.io/${PROJECT_ID}/sefaria-web/cache
       - --dockerfile=build/web/Dockerfile
       - --context=dir://.
-      - --verbosity=debug
     dir: Sefaria-Project
     id: web_container
     wait_for:
@@ -68,7 +67,6 @@ steps:
       - --cache-repo=gcr.io/${PROJECT_ID}/sefaria-node/cache
       - --dockerfile=build/node/Dockerfile
       - --context=dir://.
-      - --verbosity=debug
     dir: Sefaria-Project
     id: nodejs_container
     wait_for:
