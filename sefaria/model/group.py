@@ -92,7 +92,7 @@ class Group(abst.AbstractMongoRecord):
         if (old_status != new_status or not getattr(self, "slug", None)):
             # Assign a slug to new collection, or change the slug type when collection
             # changes listing status
-            self.assign_slug(public=new_status)
+            self.assign_slug()
 
         if new_status and not old_status:
             # At moment of publishing, make checks for special requirements on public collections
@@ -113,12 +113,12 @@ class Group(abst.AbstractMongoRecord):
             if old != new:
                 self._handle_image_change(old, new)
 
-    def assign_slug(self, public=False):
+    def assign_slug(self):
         """
         Assign a slug for the collection. For public collections based on the collection 
         name, for private collections a random string.
         """
-        if public:
+        if getattr(self, "listed", False):
             slug = self.name
             slug = slug.lower()
             slug = slug.strip()
