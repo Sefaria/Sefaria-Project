@@ -28,9 +28,6 @@ from selenium.common.exceptions import NoSuchElementException, NoAlertPresentExc
 # http://selenium-python.readthedocs.io/waits.html
 # http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.support.expected_conditions
 
-from . import seleniumManager as sm
-
-
 import time # import stand library below name collision in sefaria.model
 
 
