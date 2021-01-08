@@ -482,7 +482,9 @@ class TitleTrie(datrie.Trie):
         """
         done = set()
         for obj in recordset:
-            key = getattr(obj, keyattr)
+            key = getattr(obj, keyattr, None)
+            if not key:
+                continue
 
             title = getattr(obj, primary_name_method)(self.lang)
             if title:

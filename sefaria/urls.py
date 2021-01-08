@@ -389,7 +389,6 @@ urlpatterns += [
     url(r'^admin/spam', sefaria_views.spam_dashboard),
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
-
     url(r'^admin/?', include(admin.site.urls)),
 ]
 
