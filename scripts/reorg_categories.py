@@ -434,7 +434,6 @@ for t in [
 
 
 
-moveIndexInto("Flames of Faith", ["Chasidut"])
 moveIndexInto("Ein Ayah", ["Talmud", "Bavli", "Commentary"])
 
 # Tanakh > Parshanut
@@ -487,7 +486,11 @@ books_mono = ['Chofetz Chaim',
               "Sha'ar HaMayim HaAroch",
               "Sha'ar HaMayim HaKatzar",
               'Shulchan Shel Arba',
-              'Care of the Critically Ill', 'Simla Chadasha']
+              'Care of the Critically Ill',
+              "Ahavat Chesed",
+              "Shev Shmat'ta",
+              'Mateh Efrayim',
+              'Simla Chadasha']
 
 cat_other_r = create_category(["Halakhah", "Other Rishonim"], "Other Rishonim", "ראשונים נוספים")
 books_other_r = ['Ohr Zarua',
@@ -502,11 +505,8 @@ books_other_r = ['Ohr Zarua',
 
 cat_other_a = create_category(["Halakhah", "Other Acharonim"], "Other Acharonim", "אחרונים נוספים")
 books_other_a = ['Maaseh Rav',
-                 'Mateh Efrayim',
                  'Nehar Misrayim',
-                 "Shev Shmat'ta",
                  'Shulchan Aruch HaRav',
-                 "Ahavat Chesed"
                  ]
 
 cat_shm = create_category(["Halakhah", "Sifrei Mitzvot", 'Sefer HaMitzvot'],'Sefer HaMitzvot','ספר המצוות')
@@ -619,6 +619,7 @@ for cat, books in [
 # Chassidut
 moveIndexInto("Pri Tzadik", ["Chasidut", "R' Tzadok HaKohen"])
 moveIndexInto("Mekor Mayim Chayim on Baal Shem Tov", ["Chasidut"])
+moveIndexInto("Keter Shem Tov", ["Chasidut", "Early Works"])
 
 c = create_category(["Chasidut", "Izhbitz"], "Izhbitz", "איזביצה")
 for t in [
@@ -629,6 +630,37 @@ for t in [
     "Shaar HaEmunah Ve'Yesod HaChassidut"
 ]:
     moveIndexInto(t, c)
+
+c = create_category(["Chasidut", "Other Chasidut Works"], "Other Chasidut Works", "ספרי חסידות נוספים")
+for t in [
+    "Flames of Faith",
+    "Agra DeKala",
+    "Arvei Nachal",
+    "Avodat Yisrael",
+    "Baal Shem Tov",
+    "Be'er Mayim Chaim",
+    "Beit Aharon",
+    "Bnei Yissaschar",
+    "Chiddushei HaRim on Torah",
+    "Chovat HaTalmidim",
+    "Darkhei Yesharim",
+    "Degel Machaneh Ephraim",
+    "Derekh Mitsvotekha",
+    "Divrei Emet",
+    "Keter Shem Tov",
+    "Maor VaShemesh",
+    "Me'or Einayim",
+    "Mekor Mayim Chayim on Baal Shem Tov",
+    "Ohev Yisrael",
+    "Sefat Emet",
+    "Shem MiShmuel",
+    "Shivchei HaBesht",
+    "Tiferet Shlomo",
+    "Yakar MiPaz",
+    "Yismach Moshe",
+]:
+    moveIndexInto(t, c)
+
 
 i = library.get_index("Be'er Mayim Chaim")
 del i.dependence
@@ -654,7 +686,6 @@ for t in ["HaGra on Sefer Yetzirah Gra Version",
     moveIndexInto(t, syc)
 
 moveIndexInto("Maaseh Rokeach on Mishnah", ["Kabbalah"])
-moveIndexInto("Keter Shem Tov", ["Chasidut", "Early Works"])
 
 c = create_category(["Kabbalah", "Ramchal"])
 for t in ["Assarah Perakim L'Ramchal",
