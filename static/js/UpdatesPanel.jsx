@@ -92,7 +92,7 @@ class UpdatesPanel extends Component {
       <div className={classStr}>
         {this.props.multiPanel ? null :
           <SinglePanelNavHeader
-            enTitle="Updates"
+            title="Updates"
             heTitle="טקסטים חדשים"
             navHome={this.props.navHome}
             showDisplaySettings={false} />

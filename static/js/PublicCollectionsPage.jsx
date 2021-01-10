@@ -39,8 +39,7 @@ function PublicCollectionsPage({multiPanel, navHome}) {
     <div className={classStr}>
       {multiPanel ? null :
         <SinglePanelNavHeader
-          enTitle="Collections"
-          heTitle={Sefaria._("Collections")}
+          title="Collections"
           navHome={navHome}
           showDisplaySettings={false}/>
       }

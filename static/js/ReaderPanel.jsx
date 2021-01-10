@@ -977,6 +977,7 @@ class ReaderPanel extends Component {
                 toggleSignUpModal={this.props.toggleSignUpModal}
                 updateCollectionName={this.updateCollectionName}
                 hideNavHeader={this.props.hideNavHeader}
+                navHome={this.openMenu.bind(null, "navigation")}
                 multiPanel={this.props.multiPanel}
                 interfaceLang={this.props.interfaceLang} />);
 

@@ -1178,8 +1178,7 @@ const SinglePanelNavHeader = (props) =>
           <CategoryColorLine category={props.colorLineCategory || "Other"} />
           <ReaderNavigationMenuMenuButton onClick={props.navHome} />
           <h2>
-            <span className="int-en">{props.enTitle}</span>
-            <span className="int-he">{props.heTitle || Sefaria.hebrewTerm(props.enTitle)}</span>
+            <IntText>{props.title}</IntText>
           </h2>
           {props.showDisplaySettings ?
             <ReaderNavigationMenuDisplaySettingsButton onClick={props.openDisplaySettings} />
@@ -1187,8 +1186,7 @@ const SinglePanelNavHeader = (props) =>
       </div>;
 SinglePanelNavHeader.propTypes = {
   navHome:             PropTypes.func.isRequired,
-  enTitle:             PropTypes.string,
-  heTitle:             PropTypes.string,
+  title:               PropTypes.string,
   showDisplaySettings: PropTypes.bool,
   openDisplaySettings: PropTypes.func,
   colorLineCategory:   PropTypes.string,

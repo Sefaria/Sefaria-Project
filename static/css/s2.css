@@ -3161,9 +3161,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result + .loadingMessage {
   margin-top: 30px;
 }
-.readerNavMenu .content.sheetList {
-  padding: 80px 15px 15px;
-}
 .readerNavMenu .yourSheetsLink.navButton {
   width: 98%;
   margin-bottom: 20px;

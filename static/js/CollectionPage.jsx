@@ -5,6 +5,7 @@ import {
   LoadingMessage,
   TwoOrThreeBox,
   SheetListing,
+  SinglePanelNavHeader,
   ProfilePic,
   IntText,
 } from './Misc';
@@ -286,7 +287,7 @@ class CollectionPage extends Component {
         </div>
 
         { this.state.tab == "sheets" ?
-          <div>
+          <div className="sheetList">
             {sheets.length ?
             <div className="splitHeader">
               { topicList && topicList.length ?
@@ -362,16 +363,12 @@ class CollectionPage extends Component {
     return <div className={classes}>
             <CategoryColorLine category="Sheets" />
             {this.props.hideNavHeader ? null :
-            <div className="readerNavTop searchOnly" key="navTop">
-              <CategoryColorLine category="Sheets" />
-              <ReaderNavigationMenuMenuButton onClick={this.props.openNav} />
-              <h2>
-                <IntText>Collections</IntText>
-              </h2>
-              <div className="readerOptions"></div>
-            </div>}
+            <SinglePanelNavHeader
+              title="Collection"
+              navHome={this.props.navHome}
+              showDisplaySettings={false}/>}
 
-            <div className="content collectionPage sheetList hasFooter">
+            <div className="content collectionPage hasFooter">
               {content}
               <Footer />
             </div>;

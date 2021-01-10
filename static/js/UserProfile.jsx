@@ -344,8 +344,7 @@ class UserProfile extends Component {
       <div key={this.props.profile.id} className="profile-page readerNavMenu noHeader">
         {this.props.multiPanel ? null :
           <SinglePanelNavHeader
-            enTitle="Profile"
-            heTitle={Sefaria._("Profile")}
+            title="Profile"
             navHome={this.props.navHome}
             showDisplaySettings={false}/>
         }
