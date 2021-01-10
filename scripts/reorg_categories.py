@@ -559,6 +559,13 @@ for c in cs:
         continue
     moveCategoryInto(c, new_parent)
 
+
+# Rosh: Fix leading space and missing "
+for i in IndexSet({"schema.titles.text": {"$regex": "^ פסקי הראש"}}):
+    new_title = i.get_title("he").replace(" פסקי הראש", 'פסקי הרא"ש')
+    i.set_title(new_title, "he")
+    i.save(override_dependencies=True)
+
 # Musar
 r_cat = create_category(["Musar", "Rishonim"], "Rishonim", "ראשונים")
 a_cat = create_category(["Musar", "Acharonim"], "Acharonim", "אחרונים")
@@ -1030,7 +1037,7 @@ ri = ['Rashi',
       'Chidushei HaMeiri',
       'Commentary of the Rosh',
       'Ktav Yad Rashi',
-      'Mefaresh',
+      'Mefaresh on Tamid',
       'Mordechai',
       'Rabbeinu Chananel',
       'Rabbeinu Gershom',
@@ -1152,7 +1159,8 @@ for p in [
     ["Jewish Thought", "Commentary", "Marpeh la'Nefesh", "Duties of the Heart"],
     ["Jewish Thought", "Commentary", "Pat Lechem", "Duties of the Heart"],
     ["Jewish Thought", "Commentary", "Tov haLevanon", "Duties of the Heart"],
-    ["Tanakh", "Commentary", "Penei David"]
+    ["Tanakh", "Commentary", "Penei David"],
+    ["Talmud", "Bavli", "Commentary", "Mefaresh", "Seder Kodashim"],
 ]:
     c = Category().load({"path": p})
     if c:
@@ -1179,6 +1187,7 @@ for p in [
     ["Mishnah", "Commentary", "Motar Kinnim"],
     ["Mishnah", "Commentary", "Seder Nezikin"],
     ["Talmud", "Bavli", "Commentary", "Ri HaZaken"],
+    ["Talmud", "Bavli", "Commentary", "Mefaresh"],
     ["Halakhah", "Commentary", "Summary of Taz"],
     ["Halakhah", "Commentary", "Summary of Shakh"],
     ["Kabbalah", "Commentary"]
