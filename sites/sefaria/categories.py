@@ -155,6 +155,7 @@ CATEGORY_ORDER = [
     'Musar',
     'Responsa',  # See list under Halacha
     'Second Temple',
+        'Megillat Taanit'
         'Apocrypha',
         'Philo',
         'Josephus',

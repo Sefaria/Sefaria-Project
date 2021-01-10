@@ -281,7 +281,7 @@ for t in ts:
 
 # Into reference
 c = Category().load({"path": "Reference"})
-ts = ["The Jewish Spiritual Heroes", "Ein Zocher", "Devash Lefi", "Midbar Kedemot"]
+ts = ["The Jewish Spiritual Heroes", "Ein Zocher", "Devash Lefi", "Midbar Kedemot", "Imrei Binah"]
 for t in ts:
     moveIndexInto(t, c)
 
@@ -292,13 +292,14 @@ moveCategoryInto(["Apocrypha"], stw)
 
 cat_ph = create_category(["Second Temple", "Philo"], "Philo", "פילון האלכסנדרוני")
 for t in ['The Midrash of Philo',
-                 'Against Apion']:
+                 'On the Life of Moses',
+                 ]:
     moveIndexInto(t, cat_ph)
 
 cat_jo = create_category(["Second Temple", "Josephus"], "Josephus", "יוסף בן מתתיהו")
 for t in ['The Antiquities of the Jews',
                  'The War of the Jews',
-                 'On the Life of Moses']:
+          'Against Apion']:
     moveIndexInto(t, cat_jo)
 
 moveIndexInto("Megillat Taanit", ["Second Temple"])
@@ -398,7 +399,6 @@ books_modern = ["Nineteen Letters",
                 "Sefer Yesodei HaTorah",
                 "Gan Naul",
                 "Words of Peace and Truth",
-                "Imrei Binah",
                 "Kol Dodi Dofek",
                 "Hegyonei Uziel",
                 "Revealment and Concealment in Language",
@@ -433,23 +433,7 @@ for t in [
     moveIndexInto(t, p)
 
 
-
 moveIndexInto("Ein Ayah", ["Talmud", "Bavli", "Commentary"])
-
-# Tanakh > Parshanut
-p = create_category(["Tanakh", "Parshanut"], "Parshanut", "פרשנות")
-ts = ['Depths of Yonah',
-      'From David to Destruction']
-for t in ts:
-    moveIndexInto(t, p)
-
-p = create_category(["Tanakh", "Parshanut", "Redeeming Relevance"], "Redeeming Relevance", "פדיון הרלוונטיות")
-ts = ['Redeeming Relevance; Deuteronomy',
-      'Redeeming Relevance; Exodus',
-      'Redeeming Relevance; Genesis',
-      'Redeeming Relevance; Numbers']
-for t in ts:
-    moveIndexInto(t, p)
 
 moveIndexInto('Abraham Cohen Footnotes to the English Translation of Masechet Berakhot',
               ["Talmud", "Bavli", "Commentary"])
@@ -685,8 +669,6 @@ for t in ["HaGra on Sefer Yetzirah Gra Version",
           ]:
     moveIndexInto(t, syc)
 
-moveIndexInto("Maaseh Rokeach on Mishnah", ["Kabbalah"])
-
 c = create_category(["Kabbalah", "Ramchal"])
 for t in ["Assarah Perakim L'Ramchal",
           "Da'at Tevunoth",
@@ -706,6 +688,25 @@ for t in ["Pri Etz Chaim",
     "Shaarei Kedusha"]:
     moveIndexInto(t, c)
 
+c = create_category(["Kabbalah", "Other Kabbalah Works"], "Other Kabbalah Works", "ספרי קבלה נוספים")
+for t in [
+    "Pri Etz Hadar",
+    "The Beginning of Wisdom",
+    "Avodat HaKodesh (Gabbai)",
+    "Be'ur Eser S'firot",
+    "Chesed LeAvraham",
+    "Ma'arekhet HaElokut",
+    "Maaseh Rokeach on Mishnah",
+    "Maggid Meisharim",
+    "Megaleh Amukot",
+    "Mitpachat Sefarim",
+    "Recanati on the Torah",
+    "Sefer HaKana",
+    "Shaarei Orah",
+    "Shaarei Tzedek",
+    "The Wars of God"
+]:
+    moveIndexInto(t, c)
 
 
 # Responsa
@@ -942,6 +943,8 @@ co = [
     'Birkat Asher on Torah',
     'Footnotes to Kohelet by Bruce Heitler',
     'Chibbah Yeteirah on Torah',
+    'Depths of Yonah',
+    'From David to Destruction',
     "JPS 1985 Footnotes"
 ]
 
@@ -953,6 +956,14 @@ chida = [
     'Rosh David',
     'Nachal Sorek',
 ]
+
+rr_books = ['Redeeming Relevance; Deuteronomy',
+      'Redeeming Relevance; Exodus',
+      'Redeeming Relevance; Genesis',
+      'Redeeming Relevance; Numbers'
+]
+
+
 moveCategoryInto(["Tanakh", "Commentary", "Malbim Beur Hamilot"], ["Tanakh", "Commentary", "Malbim"])
 
 ri_cat = create_category(["Tanakh", "Rishonim on Tanakh"], "Rishonim on Tanakh", "ראשונים על התנ״ך")
@@ -960,6 +971,7 @@ ah_cat = create_category(["Tanakh", "Acharonim on Tanakh"], "Acharonim on Tanakh
 mo_cat = create_category(["Tanakh", "Modern Commentary on Tanakh"], "Modern Commentary on Tanakh",
                            "פירושים מודרניים על התנ״ך")
 chida_cat = create_category(["Tanakh", "Acharonim on Tanakh", "Chida"], "Chida", 'חיד״א')
+rr_cat = create_category(["Tanakh", "Modern Commentary on Tanakh", "Redeeming Relevance"], "Redeeming Relevance", "פדיון הרלוונטיות")
 
 # Currently Tanakh, Commentary, <Index>
 # or        Tanakh, Commentary, <subcat>, <Index>
@@ -967,7 +979,8 @@ groups = [
     (ri, ri_cat),
     (ah, ah_cat),
     (co, mo_cat),
-    (chida, chida_cat)
+    (chida, chida_cat),
+    (rr_books, rr_cat)
 ]
 
 for works, cat in groups:
