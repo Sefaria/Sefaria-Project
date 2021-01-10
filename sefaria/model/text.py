@@ -30,7 +30,6 @@ from sefaria.system.database import db
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
     NoVersionFoundError, DictionaryEntryNotFoundError
-from sefaria.utils.talmud import daf_to_section
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
@@ -2583,58 +2582,19 @@ class Ref(object, metaclass=RefCacheType):
 
         self.toSections = self.sections[:]
 
-        if self.index_node.addressTypes[0] == "Talmud" and len(self.sections) == 1:
-            # check for Talmud ref without amud, such as Berakhot 2, we don't want "Berakhot 2a" but "Berakhot 2a-2b"
-            # so change toSections if ref_lacks_amud
-            ref_lacks_amud = False
-            base_without_title = base.replace(title+" ", "")
-            if self._lang == "he":
-                ends_with_bet = base_without_title[-1] == ":" or (
-                        base_without_title[-1] == "\u05d1"  # bet
-                        and
-                        ((len(base_without_title) > 2 and base_without_title[-2] in ", ")  # simple bet
-                         or (len(base_without_title) > 4 and base_without_title[-3] == '\u05e2')  # ayin"bet
-                         or (len(base_without_title) > 5 and base_without_title[-4] == "\u05e2")  # ayin''bet
-                         )
-                )
-                ends_with_aleph = base_without_title[-1] == "." or (
-                        base_without_title[-1] == "\u05d0"  # aleph
-                        and
-                        ((len(base_without_title) > 2 and base_without_title[-2] in ", ")  # simple aleph
-                         or (len(base_without_title) > 4 and base_without_title[-3] == '\u05e2')  # ayin"aleph
-                         or (len(base_without_title) > 5 and base_without_title[-4] == "\u05e2")  # ayin''aleph
-                         )
-                )
-                ref_lacks_amud = not ends_with_aleph and not ends_with_bet
-            elif self._lang == "en":
-                ref_lacks_amud = base_without_title[-1] not in ["a", "b", 'ᵃ', 'ᵇ']
-            if ref_lacks_amud:
-                self.toSections[0] += 1
-
-
-        # Parse range end portion, if it exists
-        if len(parts) == 2:
+        if self.index_node.addressTypes[0] == "Talmud":
+            base_wout_title = base.replace(title+" ", "")
+            AddressTalmud.parse_range_end(self, parts, base_wout_title)
+        elif len(parts) == 2: # Parse range end portion, if it exists
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
-            if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[1:]]):     # in process. developing logic that should work for all languages / texts
-                # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
-                range_parts = re.split("[., :]+", parts[1])
-                delta = len(self.sections) - len(range_parts)
-                for i in range(delta, len(self.sections)):
-                    try:
-                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang, range_parts[i - delta])
-                    except (ValueError, IndexError):
-                        raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
-            elif self._lang == "en":
-                if self.index_node.addressTypes[0] == "Talmud":
-                    self.__parse_talmud_range(parts[1])
-                else:
-                    range_parts = re.split("[.:, ]+", parts[1])
-                    delta = len(self.sections) - len(range_parts)
-                    for i in range(delta, len(self.sections)):
-                        try:
-                            self.toSections[i] = int(range_parts[i - delta])
-                        except (ValueError, IndexError):
-                            raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
+            # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
+            range_parts = re.split("[., :]+", parts[1])
+            delta = len(self.sections) - len(range_parts)
+            for i in range(delta, len(self.sections)):
+                try:
+                    self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang, range_parts[i - delta])
+                except (ValueError, IndexError):
+                    raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
@@ -2650,25 +2610,6 @@ class Ref(object, metaclass=RefCacheType):
                 sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)))
         return sections
 
-    def __parse_talmud_range(self, range_part):
-        #todo: make sure to-daf isn't out of range
-        self.toSections = range_part.split(".")  # this was converting space to '.', for some reason.
-
-        # 'Shabbat 23a-b'
-        if self.toSections[0] == 'b' or self.toSections[0] == 'ᵇ':
-            self.toSections[0] = self.sections[0] + 1
-
-        # 'Shabbat 24b-25a'
-        elif regex.match(r"\d+[abᵃᵇ]", self.toSections[0]):
-            self.toSections[0] = daf_to_section(self.toSections[0])
-
-        # 'Shabbat 24b.12-24'
-        else:
-            delta = len(self.sections) - len(self.toSections)
-            for i in range(delta - 1, -1, -1):
-                self.toSections.insert(0, self.sections[i])
-
-        self.toSections = [int(x) for x in self.toSections]
 
     def __eq__(self, other):
         return isinstance(other, Ref) and self.uid() == other.uid()

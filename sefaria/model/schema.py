@@ -18,6 +18,7 @@ from sefaria.system.database import db
 from sefaria.model.lexicon import LexiconEntrySet
 from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
+from sefaria.utils.talmud import daf_to_section
 
 """
                 -----------------------------------------
@@ -1986,6 +1987,38 @@ class AddressTalmud(AddressType):
         "he": r"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
     }
 
+
+    @classmethod
+    def parse_range_end(cls, ref, parts, base):
+        if len(parts) == 1:
+            # check for Talmud ref without amud, such as Berakhot 2, we don't want "Berakhot 2a" but "Berakhot 2a-2b"
+            # so change toSections if ref_lacks_amud
+            #base_without_title = base.replace(title + " ", "")
+            #reg_ex = cls._core_regex(cls, ref._lang)
+            ends_with_aleph = AddressTalmud.refHasAmud(base, "a", lang=ref._lang)
+            ends_with_bet = AddressTalmud.refHasAmud(base, "b", lang=ref._lang)
+            ref_lacks_amud = not ends_with_aleph and not ends_with_bet
+            if ref_lacks_amud:
+                ref.toSections[0] += 1
+        elif len(parts) == 2:
+            ref.toSections = parts[1].split(".")  # this was converting space to '.', for some reason.
+
+            # 'Shabbat 23a-b'
+            if ref.toSections[0] in ['b', 'B', 'ᵇ']:
+                ref.toSections[0] = ref.sections[0] + 1
+
+            # 'Shabbat 24b-25a'
+            elif regex.match(r"\d+[ABabᵃᵇ]", ref.toSections[0]):
+                ref.toSections[0] = daf_to_section(ref.toSections[0])
+
+            # 'Shabbat 24b.12-24'
+            else:
+                delta = len(ref.sections) - len(ref.toSections)
+                for i in range(delta - 1, -1, -1):
+                    ref.toSections.insert(0, ref.sections[i])
+
+            ref.toSections = [int(x) for x in ref.toSections]
+
     def _core_regex(self, lang, group_id=None):
         if group_id:
             reg = r"(?P<" + group_id + r">"
@@ -1993,7 +2026,7 @@ class AddressTalmud(AddressType):
             reg = r"("
 
         if lang == "en":
-            reg += r"\d+[abᵃᵇ]?)"
+            reg += r"\d+[ABabᵃᵇ]?)"
         elif lang == "he":
             reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
 
@@ -2007,7 +2040,7 @@ class AddressTalmud(AddressType):
     def toNumber(self, lang, s):
         if lang == "en":
             try:
-                if s[-1] in ["a", "b", 'ᵃ', 'ᵇ']:
+                if AddressTalmud.refHasAmud(s, 'a', 'en') or AddressTalmud.refHasAmud(s, 'b', 'en'):
                     amud = s[-1]
                     daf = int(s[:-1])
                 else:
@@ -2027,18 +2060,41 @@ class AddressTalmud(AddressType):
         elif lang == "he":
             num = re.split("[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
-            if s[-1] == ":" or (
-                    s[-1] == "\u05d1"    #bet
-                        and
-                    ((len(s) > 2 and s[-2] in ", ")  # simple bet
-                     or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"bet
-                     or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''bet
-                    )
-            ):
+            if AddressTalmud.refHasAmud(s, "b", lang="he"):
                 return daf  # amud B
             return daf - 1
 
             #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
+
+
+    @staticmethod
+    def refHasAmud(s, amud="a", lang="en"):
+        if amud == "b":
+            if lang == "he":
+                return s[-1] == ":" or (
+                    s[-1] == "\u05d1"  # bet
+                    and
+                    ((len(s) > 2 and s[-2] in ", ")  # simple bet
+                     or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"bet
+                     or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''bet
+                    )
+                    )
+            elif lang == "en":
+                return s[-1] in ['ᵇ', 'b', 'B']
+        elif amud == "a":
+            if lang == "he":
+                return s[-1] == "." or (
+                        s[-1] == "\u05d0"  # aleph
+                        and
+                        ((len(s) > 2 and s[-2] in ", ")  # simple aleph
+                         or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"aleph
+                         or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''aleph
+                         )
+                )
+            elif lang == "en":
+                return s[-1] in ["A", "a", 'ᵃ']
+
+
 
     @classmethod
     def toStr(cls, lang, i, **kwargs):
