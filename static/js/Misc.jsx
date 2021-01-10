@@ -46,8 +46,8 @@ class ProfilePic extends Component {
     };
     this.imgFile = React.createRef();
   }
-  setShowDefault() { console.log("error"); this.setState({showDefault: true});  }
-  setShowImage() {console.log("load"); this.setState({showDefault: false});  }
+  setShowDefault() { /* console.log("error"); */ this.setState({showDefault: true});  }
+  setShowImage() { /* console.log("load"); */ this.setState({showDefault: false});  }
   componentDidMount() {
     if (this.didImageLoad()) {
       this.setShowImage();
@@ -738,6 +738,7 @@ DangerousInterfaceBlock.propTypes = {
     classes: PropTypes.string
 };
 
+
 const SimpleInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
             <span className="int-en">{en}</span>
@@ -749,6 +750,7 @@ SimpleInterfaceBlock.propTypes = {
     he: PropTypes.string,
     classes: PropTypes.string
 };
+
 
 const SimpleContentBlock = ({en, he, classes}) => (
         <div className={classes}>
@@ -779,9 +781,6 @@ SimpleLinkedBlock.propTypes = {
     classes: PropTypes.string,
     aclasses: PropTypes.string
 };
-
-
-
 
 
 class BlockLink extends Component {
@@ -1256,7 +1255,7 @@ const SheetListing = ({
   
   const handleSheetClickLocal = (e) => {
     //console.log("Sheet Click Handled");
-    // TODO: There more contexts to distinguish / track. Profile, groups, search
+    // TODO: There more contexts to distinguish / track. Profile, collections, search
     if (Sefaria._uid == sheet.owner) {
       Sefaria.track.event("Tools", "My Sheet Click", sheet.sheetUrl);
     } else {
@@ -1353,7 +1352,6 @@ const SheetListing = ({
       created,
       collections.length ? collections : undefined,
       sheet.topics.length ? topics : undefined,
-      !!sheet.group && !hideCollection ? (<a href={`/collections/${sheet.group}`} target={openInNewTab ? "_blank" : "_self"}>{sheet.group}</a>) : undefined,
     ].filter(x => x !== undefined) : [topics];
 
 
@@ -1937,7 +1935,6 @@ SheetTopicLink.propTypes = {
 class SheetAccessIcon extends Component {
   render() {
     var sheet = this.props.sheet;
-    var msg = "group" in sheet ? "Listed for Group members only" : "Private";
     return (sheet.status == "unlisted") ?
       (<i className="fa fa-lock" title={msg}></i>)
       : null;
@@ -2149,16 +2146,16 @@ SheetAuthorStatement.propTypes = {
 
 const CollectionStatement = ({name, slug, image, children}) => (
   slug ?
-    <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none' }}>
-      <div className="groupListingImageBox imageBox">
+    <div className="collectionStatement" contentEditable={false} style={{ userSelect: 'none' }}>
+      <div className="collectionListingImageBox imageBox">
         <a href={"/collections/" + slug}>
-          <img className={classNames({groupListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/img/collection.svg"} alt="Collection Logo"/>
+          <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/img/collection.svg"} alt="Collection Logo"/>
         </a>
       </div>
       <a href={"/collections/" + slug}>{children ? children : name}</a>
     </div>
     :
-    <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
+    <div className="collectionStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
       {children}
     </div>
 );
@@ -2169,15 +2166,6 @@ const SheetMetaDataBox = (props) => (
       {props.children}
     </div>
 );
-SheetMetaDataBox.propTypes = {
-    title:          PropTypes.string,
-    authorUrl:      PropTypes.string,
-    authorImage:    PropTypes.string,
-    authorStatement:PropTypes.string,
-    group:          PropTypes.string,
-    groupLogo:      PropTypes.string,
-};
-
 
 
 export {

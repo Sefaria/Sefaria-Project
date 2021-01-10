@@ -146,8 +146,8 @@ def format_note_object_for_client(note):
 
 
 def format_sheet_as_link(sheet):
-    sheet["category"]        = "Commentary" if "Commentary" in sheet["groupTOC"]["categories"] else sheet["groupTOC"]["categories"][0]
-    sheet["collectiveTitle"] = sheet["groupTOC"]["collectiveTitle"] if "collectiveTitle" in sheet["groupTOC"] else {"en": sheet["groupTOC"]["title"], "he": sheet["groupTOC"]["heTitle"]}
+    sheet["category"]        = "Commentary" if "Commentary" in sheet["collectionTOC"]["categories"] else sheet["collectionTOC"]["categories"][0]
+    sheet["collectiveTitle"] = sheet["collectionTOC"]["collectiveTitle"] if "collectiveTitle" in sheet["collectionTOC"] else {"en": sheet["collectionTOC"]["title"], "he": sheet["collectionTOC"]["heTitle"]}
     sheet["index_title"]     = sheet["collectiveTitle"]["en"]
     sheet["sourceRef"]       = sheet["title"]
     sheet["sourceHeRef"]     = sheet["title"]
@@ -171,7 +171,7 @@ def get_links(tref, with_text=True, with_sheet_links=False):
     """
     Return a list of links tied to 'ref' in client format.
     If `with_text`, retrieve texts for each link.
-    If `with_sheet_links` include sheet results for sheets in groups which are listed in the TOC.
+    If `with_sheet_links` include sheet results for sheets in collections which are listed in the TOC.
     """
     links = []
     oref = Ref(tref)

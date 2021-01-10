@@ -230,7 +230,7 @@ class SheetSearchFilterPanel extends Component {
     }
   }
   render() {
-    const groupFilters = this.props.availableFilters.filter(filter => filter.aggType === 'collection' && filter.title);
+    const collectionFilters = this.props.availableFilters.filter(filter => filter.aggType === 'collection' && filter.title);
     const tagFilters = this.props.availableFilters.filter(filter => filter.aggType.match(/^topics/));
 
     return (
@@ -250,7 +250,7 @@ class SheetSearchFilterPanel extends Component {
           />
           { this.state.activeTab === 'Collections' ?
             <div className="searchFilterCategoryBox searchFilterSheetBox">
-            {groupFilters.map(filter => (
+            {collectionFilters.map(filter => (
                   <SearchFilter
                     filter={filter}
                     isInFocus={false}

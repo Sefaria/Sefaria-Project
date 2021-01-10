@@ -6,7 +6,7 @@ import Sefaria from './sefaria/sefaria';
 import Header from './Header';
 import ReaderPanel from './ReaderPanel';
 import $ from './sefaria/sefariaJquery';
-import EditGroupPage from './EditGroupPage';
+import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
 import {
@@ -585,10 +585,10 @@ class ReaderApp extends Component {
             hist.title = (state.collectionName ? state.collectionName + " | " : "") + Sefaria._(siteName + " Collections");
             hist.mode  = "collection";
             break;          
-          case "publicGroups":
+          case "collectionsPublic":
             hist.title = Sefaria._(siteName + " Collections");
             hist.url = "collections";
-            hist.mode = "publicGroups";
+            hist.mode = "collcetionsPublic";
             break;
           case "myNotes":
             hist.title = Sefaria._("My Notes on " + siteName);
@@ -1078,7 +1078,7 @@ class ReaderApp extends Component {
       this.showLibrary(path.slice(7).split("/"));
 
     } else if (path == "/collections") {
-      this.showGroups();
+      this.showCollections();
 
     } else if (path == "/my/profile") {
       this.openProfile(Sefaria.slug);
@@ -1643,10 +1643,10 @@ class ReaderApp extends Component {
       this.setState({panels: [panel]});
     }
   }
-  searchInGroup(searchQuery, group) {
+  searchInCollection(searchQuery, collection) {
     let panel;
     const textSearchState =  new SearchState({ type: 'text' });
-    const sheetSearchState = new SearchState({ type: 'sheet',  appliedFilters: [group], appliedFilterAggTypes: ['collection']});
+    const sheetSearchState = new SearchState({ type: 'sheet',  appliedFilters: [collection], appliedFilterAggTypes: ['collection']});
 
     if (this.props.multiPanel) {
       panel = this.makePanelState({mode: "Header", menuOpen: "search", "searchTab": "sheet", searchQuery, textSearchState, sheetSearchState });
@@ -1662,8 +1662,8 @@ class ReaderApp extends Component {
   showUserStats() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "user_stats"});
   }
-  showGroups() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "publicGroups"});
+  showCollections() {
+    this.setStateInHeaderOrSinglePanel({menuOpen: "collectionsPublic"});
   }
   showMyNotes() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "myNotes"});
@@ -1783,7 +1783,7 @@ class ReaderApp extends Component {
                     setDefaultOption={this.setDefaultOption}
                     showLibrary={this.showLibrary}
                     showSearch={this.showSearch}
-                    searchInGroup={this.searchInGroup}
+                    searchInCollection={this.searchInCollection}
                     openURL={this.openURL}
                     onQueryChange={this.updateQueryInHeader}
                     updateSearchTab={this.updateSearchTabInHeader}
@@ -1874,7 +1874,7 @@ class ReaderApp extends Component {
                       updateSearchOptionField={updateSearchOptionField}
                       updateSearchOptionSort={updateSearchOptionSort}
                       registerAvailableFilters={updateAvailableFilters}
-                      searchInGroup={this.searchInGroup}
+                      searchInCollection={this.searchInCollection}
                       setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}
@@ -1935,7 +1935,7 @@ ReaderApp.propTypes = {
   initialRefs:                 PropTypes.array,
   initialFilter:               PropTypes.array,
   initialMenu:                 PropTypes.string,
-  initialGroup:                PropTypes.string,
+  initialCollection:           PropTypes.string,
   initialQuery:                PropTypes.string,
   initialTextSearchFilters:    PropTypes.array,
   initialTextSearchField:      PropTypes.string,
@@ -1959,7 +1959,7 @@ ReaderApp.defaultProps = {
   initialRefs:                 [],
   initialFilter:               null,
   initialMenu:                 null,
-  initialGroup:                null,
+  initialCollection:           null,
   initialQuery:                null,
   initialTopic:                null,
   initialProfile:              null,
@@ -1978,7 +1978,7 @@ export {
   sefariaSetup,
   unpackDataFromProps,
   loadServerData,
-  EditGroupPage,
+  EditCollectionPage,
   RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,

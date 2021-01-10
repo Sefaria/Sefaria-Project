@@ -17,20 +17,20 @@ import Footer  from './Footer';
 import Component from 'react-class';
 
 
-class GroupPage extends Component {
+class CollectionPage extends Component {
   constructor(props) {
     super(props);
 
-    const groupData = Sefaria.getGroupFromCache(props.slug);
+    const collectionData = Sefaria.getCollectionFromCache(props.slug);
     const sheetSort = "date";
-    if (groupData) { this.sortSheetData(groupData, sheetSort); }
+    if (collectionData) { this.sortSheetData(collectionData, sheetSort); }
 
     this.state = {
-      showTopics: groupData && !!groupData.showTagsByDefault && !props.tag,
+      showTopics: collectionData && !!collectionData.showTagsByDefault && !props.tag,
       sheetFilterTopic: props.tag,
       sheetSort: sheetSort,
       tab: "sheets",
-      groupData: groupData,
+      collectionData: collectionData,
     };
   }
   componentDidMount() {
@@ -38,7 +38,7 @@ class GroupPage extends Component {
   }
   componentDidUpdate(prevProps, prevState) {
     if (this.props.slug !== prevProps.slug) {
-      this.setState({groupData: null});
+      this.setState({collectionData: null});
       this.loadData();
     }
 
@@ -58,22 +58,22 @@ class GroupPage extends Component {
     }
   }
   loadData() {
-    Sefaria.getGroup(this.props.slug)
-      .then(groupData => {
-        this.sortSheetData(groupData, this.state.sheetSort);
+    Sefaria.getCollection(this.props.slug)
+      .then(collectionData => {
+        this.sortSheetData(collectionData, this.state.sheetSort);
         this.setState({
-          groupData,
-          showTopics: !!groupData.showTagsByDefault && !this.props.tag
+          collectionData,
+          showTopics: !!collectionData.showTagsByDefault && !this.props.tag
         });
-        this.props.updateCollectionName(groupData.name);
+        this.props.updateCollectionName(collectionData.name);
       });
   }
   onDataChange() {
-    this.setState({groupData: Sefaria._groups[this.props.slug]});
+    this.setState({collectionData: Sefaria._collections[this.props.slug]});
   }
-  sortSheetData(group, sheetSort) {
-    // Warning: This sorts the sheets within the cached group item in sefaria.js
-    if (!group.sheets) { return; }
+  sortSheetData(collection, sheetSort) {
+    // Warning: This sorts the sheets within the cached collection item in sefaria.js
+    if (!collection.sheets) { return; }
 
     const sorters = {
       date: function(a, b) {
@@ -86,45 +86,45 @@ class GroupPage extends Component {
         return b.views - a.views;
       }
     };
-    group.sheets.sort(sorters[sheetSort]);
+    collection.sheets.sort(sorters[sheetSort]);
 
     if (this.props.name == "גיליונות נחמה"){
       let parshaOrder = ["Bereshit", "Noach", "Lech Lecha", "Vayera", "Chayei Sara", "Toldot", "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi", "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah", "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei", "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot", "Kedoshim", "Emor", "Behar", "Bechukotai", "Bamidbar", "Nasso", "Beha'alotcha", "Sh'lach", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masei", "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei", "Ki Tavo", "Nitzavim", "Vayeilech", "Ha'Azinu", "V'Zot HaBerachah"]
       if (this.props.interfaceLang == "english") {
         parshaOrder = ["English"].concat(parshaOrder);
       }
-      group.pinnedTags = parshaOrder;
+      collection.pinnedTags = parshaOrder;
     }
 
-    if (group.pinnedSheets && group.pinnedSheets.length > 0) {
-      this.pinSheetsToSheetList(group);
+    if (collection.pinnedSheets && collection.pinnedSheets.length > 0) {
+      this.pinSheetsToSheetList(collection);
     }
-    if (group.pinnedTags && group.pinnedTags.length > 0) {
-      this.sortTags(group);
+    if (collection.pinnedTags && collection.pinnedTags.length > 0) {
+      this.sortTags(collection);
     }
   }
-  pinSheetsToSheetList(group){
+  pinSheetsToSheetList(collection){
     // Applies any pinned sheets to the sorting of sheets list
     var sortPinned = function(a, b) {
-      var ai = group.pinnedSheets.indexOf(a.id);
-      var bi = group.pinnedSheets.indexOf(b.id);
+      var ai = collection.pinnedSheets.indexOf(a.id);
+      var bi = collection.pinnedSheets.indexOf(b.id);
       if (ai == -1 && bi == -1) { return 0; }
       if (ai == -1) { return 1; }
       if (bi == -1) { return -1; }
       return  ai < bi ? -1 : 1;
     };
-    group.sheets.sort(sortPinned);
+    collection.sheets.sort(sortPinned);
   }
-  sortTags(group) {
+  sortTags(collection) {
      var sortTags = function(a, b) {
-      var ai = group.pinnedTags.indexOf(a.asTyped);
-      var bi = group.pinnedTags.indexOf(b.asTyped);
+      var ai = collection.pinnedTags.indexOf(a.asTyped);
+      var bi = collection.pinnedTags.indexOf(b.asTyped);
       if (ai == -1 && bi == -1) { return 0; }
       if (ai == -1) { return 1; }
       if (bi == -1) { return -1; }
       return  ai < bi ? -1 : 1;
     };
-    group.topics.sort(sortTags);
+    collection.topics.sort(sortTags);
   }
   setTab(tab) {
     this.setState({tab: tab});
@@ -134,61 +134,61 @@ class GroupPage extends Component {
       this.setState({showTopics: false});
     } else {
       this.setState({showTopics: true, sheetFilterTopic: null});
-      this.props.setGroupTag(null);
+      this.props.setCollectionTag(null);
     }
   }
   setSheetTag(topic) {
     this.setState({sheetFilterTopic: topic, showTopics: false});
-    this.props.setGroupTag(topic);
+    this.props.setCollectionTag(topic);
   }
   handleTagButtonClick (topic) {
     if (topic == this.state.sheetFilterTopic) {
       this.setState({sheetFilterTopic: null, showTopics: false});
-      this.props.setGroupTag(null);
+      this.props.setCollectionTag(null);
     } else {
       this.setSheetTag(topic);
     }
   }
   changeSheetSort(event) {
-    let groupData = this.state.groupData;
-    this.sortSheetData(groupData, event.target.value);
-    this.setState({groupData, sheetSort: event.target.value});
+    let collectionData = this.state.collectionData;
+    this.sortSheetData(collectionData, event.target.value);
+    this.setState({collectionData, sheetSort: event.target.value});
   }
-  searchGroup(query) {
-    this.props.searchInGroup(query, this.state.groupData.name);
+  searchCollection(query) {
+    this.props.searchInCollection(query, this.state.collectionData.name);
   }
   handleSearchKeyUp(event) {
     if (event.keyCode === 13) {
       var query = $(event.target).val();
       if (query) {
-        this.searchGroup(query);
+        this.searchCollection(query);
       }
     }
   }
   handleSearchButtonClick(event) {
-    var query = $(ReactDOM.findDOMNode(this)).find(".groupSearchInput").val();
+    var query = $(ReactDOM.findDOMNode(this)).find(".collectionSearchInput").val();
     if (query) {
-      this.searchGroup(query);
+      this.searchCollection(query);
     }
   }
   memberList() {
-    var group = this.state.groupData;
-    if (!group) { return null; }
-    var admins = group.admins.map(function(member) {member.role = "Owner"; return member; });
-    var members = group.members.map(function(member) {member.role = "Member"; return member; });
-    var invitations = group.invitations.map(function(member) {member.role = "Invitation"; return member; });
+    var collection = this.state.collectionData;
+    if (!collection) { return null; }
+    var admins = collection.admins.map(function(member) {member.role = "Owner"; return member; });
+    var members = collection.members.map(function(member) {member.role = "Editor"; return member; });
+    var invitations = collection.invitations.map(function(member) {member.role = "Invitation"; return member; });
 
     return admins.concat(members, invitations);
   }
   pinSheet(sheetId) {
     if (this.pinning) { return; }
-    $.post("/api/groups/" + this.props.slug + "/pin-sheet/" + sheetId, function(data) {
+    $.post("/api/collections/" + this.props.slug + "/pin-sheet/" + sheetId, function(data) {
       if ("error" in data) {
         alert(data.error);
       } else {
-        Sefaria._groups[this.props.slug] = data.group;
-        this.sortSheetData(data.group);
-        this.setState({groupData: data.group});
+        Sefaria._collections[this.props.slug] = data.collection;
+        this.sortSheetData(data.collection);
+        this.setState({collectionData: data.collection});
       }
       this.pinning = false;
     }.bind(this)).fail(function() {
@@ -198,19 +198,19 @@ class GroupPage extends Component {
     this.pinning = true;
   }
   render() {
-    const group = this.state.groupData;
+    const collection = this.state.collectionData;
     let content;
 
-    if (!group) {
+    if (!collection) {
       content = <div className="contentInner"><LoadingMessage /></div>;
     } else {
-      var sheets         = group.sheets;
-      var groupTopicList = group.topics;
+      var sheets         = collection.sheets;
+      var topicList      = collection.topics;
       var members        = this.memberList();
       var isMember       = members && members.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
-      var isAdmin        = group.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
+      var isAdmin        = collection.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
 
-      groupTopicList = groupTopicList ? groupTopicList.map(topic => {
+      topicList = topicList ? topicList.map(topic => {
           const filterThisTag = this.handleTagButtonClick.bind(this, topic.slug);
           const classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTopic == topic.slug});
           return (<div className={classes} onClick={filterThisTag} key={topic.slug}>
@@ -226,7 +226,7 @@ class GroupPage extends Component {
                   infoUnderneath={true}
                   showAuthorUnderneath={true}
                   hideCollection={true}
-                  pinned={group.pinnedSheets.indexOf(sheet.id) != -1}
+                  pinned={collection.pinnedSheets.indexOf(sheet.id) != -1}
                   pinnable={isMember}
                   editable={sheet.author == Sefaria._uid}
                   saveable={sheet.author !== Sefaria._uid && !isMember}
@@ -238,34 +238,34 @@ class GroupPage extends Component {
       }.bind(this));     
 
       content = <div className="contentInner">
-        {group.imageUrl ?
-          <img className="groupImage" src={group.imageUrl} alt={this.props.name}/>
+        {collection.imageUrl ?
+          <img className="collectionImage" src={collection.imageUrl} alt={this.props.name}/>
           : null }
 
-        <div className="groupInfo">
+        <div className="collectionInfo">
           <h1>
-            {group.toc ?
+            {collection.toc ?
             <span>
               { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
-              <span className="en">{group.toc.title}</span>
-              <span className="he">{group.toc.heTitle}</span>
+              <span className="en">{collection.toc.title}</span>
+              <span className="he">{collection.toc.heTitle}</span>
             </span>
-            : group.name }
+            : collection.name }
           </h1>
 
-          {group.websiteUrl ?
-            <a className="groupWebsite" target="_blank" href={group.websiteUrl}>{group.websiteUrl}</a>
+          {collection.websiteUrl ?
+            <a className="collectionWebsite" target="_blank" href={collection.websiteUrl}>{collection.websiteUrl}</a>
             : null }
 
-          {group.toc ?
-            <div className="groupDescription">
+          {collection.toc ?
+            <div className="collectionDescription">
               <span>
-                <span className="en" dangerouslySetInnerHTML={ {__html: group.toc.description} }></span>
-                <span className="he"dangerouslySetInnerHTML={ {__html: group.toc.heDescription} }></span>
+                <span className="en" dangerouslySetInnerHTML={ {__html: collection.toc.description} }></span>
+                <span className="he"dangerouslySetInnerHTML={ {__html: collection.toc.heDescription} }></span>
               </span>
             </div>
-          : group.description ?
-            <div className="groupDescription"  dangerouslySetInnerHTML={ {__html: group.description} }></div>
+          : collection.description ?
+            <div className="collectionDescription"  dangerouslySetInnerHTML={ {__html: collection.description} }></div>
           : null }
         </div>
 
@@ -278,7 +278,7 @@ class GroupPage extends Component {
             <IntText>Editors</IntText>
           </a>
           { isAdmin ?
-            <a className="bubbleTab" href={"/collections/" + group.slug + "/settings"}>
+            <a className="bubbleTab" href={"/collections/" + collection.slug + "/settings"}>
               <span className="int-en">Settings</span>
               <span className="int-he">הגדרות</span>
             </a>
@@ -289,10 +289,10 @@ class GroupPage extends Component {
           <div>
             {sheets.length ?
             <div className="splitHeader">
-              { groupTopicList && groupTopicList.length ?
+              { topicList && topicList.length ?
               <span className="filterByTag" onClick={this.toggleSheetTags}>
                 <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
-                <span className="int-he">סנן לפי תווית<i className="fa fa-angle-down"></i></span>
+                <span className="int-he">סנן לפי תווית <i className="fa fa-angle-down"></i></span>
                </span>
                : <div /> }
 
@@ -313,16 +313,16 @@ class GroupPage extends Component {
             </div>
             : null }
 
-          {group.listed ?
-            <div className="groupSearchBox">
-              <img className="groupSearchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" onClick={this.handleSearchButtonClick} />
+          {collection.listed ?
+            <div className="collectionSearchBox">
+              <img className="collectionSearchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" onClick={this.handleSearchButtonClick} />
               <input
-                className="groupSearchInput"
+                className="collectionSearchInput"
                 placeholder={Sefaria.interfaceLang == "hebrew" ? "חפש" : "Search"}
                 onKeyUp={this.handleSearchKeyUp} />
           </div> : null}
 
-          {this.state.showTopics ? <div className="tagsList"><TwoOrThreeBox content={groupTopicList} width={this.props.width} /></div> : null}
+          {this.state.showTopics ? <div className="tagsList"><TwoOrThreeBox content={topicList} width={this.props.width} /></div> : null}
 
           {sheets.length && !this.state.showTopics ? sheets : null}
 
@@ -342,9 +342,9 @@ class GroupPage extends Component {
 
           {this.state.tab == "members" ?
             <div>
-             {isAdmin ? <GroupInvitationBox slug={this.props.slug} onDataChange={this.onDataChange}/> : null }
+             {isAdmin ? <CollectionInvitationBox slug={this.props.slug} onDataChange={this.onDataChange}/> : null }
              { members.map(function (member, i) {
-                return <GroupMemberListing
+                return <CollectionMemberListing
                         member={member}
                         isAdmin={isAdmin}
                         isSelf={member.uid == Sefaria._uid}
@@ -371,64 +371,25 @@ class GroupPage extends Component {
               <div className="readerOptions"></div>
             </div>}
 
-            <div className="content groupPage sheetList hasFooter">
+            <div className="content collectionPage sheetList hasFooter">
               {content}
               <Footer />
             </div>;
           </div>
   }
 }
-GroupPage.propTypes = {
-  name:           PropTypes.string,
-  slug:           PropTypes.string,
-  width:          PropTypes.number,
-  multiPanel:     PropTypes.bool,
-  tag:            PropTypes.string,
-  interfaceLang:  PropTypes.string,
-  searchInGroup:  PropTypes.func,
+CollectionPage.propTypes = {
+  name:               PropTypes.string,
+  slug:               PropTypes.string,
+  width:              PropTypes.number,
+  multiPanel:         PropTypes.bool,
+  tag:                PropTypes.string,
+  interfaceLang:      PropTypes.string,
+  searchInCollection: PropTypes.func,
 };
 
 
-class GroupSheetListing extends Component {
-  render() {
-    var sheet = this.props.sheet;
-    var title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
-    var url = "/sheets/" + sheet.id;
-
-    if (sheet.topics === undefined) { sheet.topics = []; }
-    const topicStr = sheet.topics.map((topic, i) => (<SheetTopicLink setSheetTag={this.props.setSheetTag} topic={topic} key={`${topic.slug}-${i}`}/>));
-
-
-    var pinButtonClasses = classNames({groupSheetListingPinButton: 1, pinned: this.props.pinned, active: this.props.isAdmin});
-    var pinMessage = this.props.pinned && this.props.isAdmin ? Sefaria._("Pinned Sheet - click to unpin") :
-                      this.props.pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
-    var pinButton = <div className={pinButtonClasses} onClick={this.props.isAdmin ? this.props.pinSheet : null}>
-                      <img src="/static/img/pin.svg" title={pinMessage} />
-                    </div>
-
-
-    return (<div className="sheet userSheet">
-                <div className="groupSheetInner">
-                  <div className="groupSheetInnerContent">
-                    <span><a className="sheetTitle" href={url}>{title}</a> <SheetAccessIcon sheet={sheet} /></span>
-                    <div>{sheet.ownerName} · {sheet.views} {Sefaria._('Views')} · {sheet.modified} · <span className="tagString">{topicStr}</span></div>
-                  </div>
-                  {pinButton}
-                </div>
-              </div>);
-
-  }
-}
-GroupSheetListing.propTypes = {
-  sheet:       PropTypes.object.isRequired,
-  setSheetTag: PropTypes.func.isRequired,
-  pinSheet:    PropTypes.func,
-  pinned:      PropTypes.bool,
-  isAdmin:     PropTypes.bool
-};
-
-
-class GroupInvitationBox extends Component {
+class CollectionInvitationBox extends Component {
   constructor(props) {
     super(props);
 
@@ -439,7 +400,7 @@ class GroupInvitationBox extends Component {
   }
   onInviteClick() {
     if (!this.state.inviting) {
-      this.inviteByEmail($("#groupInvitationInput").val());
+      this.inviteByEmail($("#collectionInvitationInput").val());
     }
   }
   flashMessage(message) {
@@ -454,13 +415,13 @@ class GroupInvitationBox extends Component {
       return;
     }
     this.setState({inviting: true, message: Sefaria._("Inviting...")})
-    $.post("/api/groups/" + this.props.slug + "/invite/" + email, function(data) {
+    $.post("/api/collections/" + this.props.slug + "/invite/" + email, function(data) {
       if ("error" in data) {
         alert(data.error);
         this.setState({message: null, inviting: false});
       } else {
-        Sefaria._groups[this.props.slug] = data.group;
-        $("#groupInvitationInput").val("");
+        Sefaria._collections[this.props.slug] = data.collection;
+        $("#collectionInvitationInput").val("");
         this.flashMessage(data.message);
         this.setState({inviting: false})
         this.props.onDataChange();
@@ -475,28 +436,28 @@ class GroupInvitationBox extends Component {
     return re.test(email);
   }
   render() {
-    return (<div className="groupInvitationBox">
-                <input id="groupInvitationInput" placeholder={Sefaria._("Email Address")} />
+    return (<div className="collectionInvitationBox">
+                <input id="collectionInvitationInput" placeholder={Sefaria._("Email Address")} />
                 <div className="button" onClick={this.onInviteClick}>
                   <IntText>Invite</IntText>
                 </div>
                 {this.state.message ?
-                  <div className="groupInvitationBoxMessage">{this.state.message}</div>
+                  <div className="collectionInvitationBoxMessage">{this.state.message}</div>
                   : null}
               </div>);
   }
 }
-GroupInvitationBox.propTypes = {
+CollectionInvitationBox.propTypes = {
   slug: PropTypes.string.isRequired,
   onDataChange: PropTypes.func.isRequired,
 };
 
 
-class GroupMemberListing extends Component {
+class CollectionMemberListing extends Component {
   render() {
     if (this.props.member.role == "Invitation") {
       return this.props.isAdmin ?
-        <GroupInvitationListing
+        <CollectionInvitationListing
           member={this.props.member}
           slug={this.props.slug}
           onDataChange={this.props.onDataChange} />
@@ -504,8 +465,8 @@ class GroupMemberListing extends Component {
     }
 
     return (
-      <div className="groupMemberListing">
-        <div className="groupLeft">
+      <div className="collectionMemberListing">
+        <div className="collectionLeft">
           <a href={this.props.member.profileUrl}>
             <ProfilePic
               url={this.props.member.imageUrl}
@@ -514,15 +475,15 @@ class GroupMemberListing extends Component {
             />
           </a>
 
-          <a href={this.props.member.profileUrl} className="groupMemberListingName">
+          <a href={this.props.member.profileUrl} className="collectionMemberListingName">
             {this.props.member.name}
           </a>
         </div>
 
-        <div className="groupMemberListingRoleBox">
-          <span className="groupMemberListingRole">{this.props.member.role}</span>
+        <div className="collectionMemberListingRoleBox">
+          <span className="collectionMemberListingRole">{this.props.member.role}</span>
           {this.props.isAdmin || this.props.isSelf ?
-            <GroupMemberListingActions
+            <CollectionMemberListingActions
               member={this.props.member}
               slug={this.props.slug}
               isAdmin={this.props.isAdmin}
@@ -534,7 +495,7 @@ class GroupMemberListing extends Component {
       </div>);
   }
 }
-GroupMemberListing.propTypes ={
+CollectionMemberListing.propTypes ={
   member:       PropTypes.object.isRequired,
   isAdmin:      PropTypes.bool,
   isSelf:       PropTypes.bool,
@@ -543,17 +504,17 @@ GroupMemberListing.propTypes ={
 };
 
 
-class GroupInvitationListing extends Component {
+class CollectionInvitationListing extends Component {
   render() {
     return (
-      <div className="groupMemberListing">
-        <span className="groupInvitationListing">
+      <div className="collectionMemberListing">
+        <span className="collectionInvitationListing">
           {this.props.member.email}
         </span>
 
-        <div className="groupMemberListingRoleBox">
-          <span className="groupMemberListingRole"><IntText>Invited</IntText></span>
-          <GroupMemberListingActions
+        <div className="collectionMemberListingRoleBox">
+          <span className="collectionMemberListingRole"><IntText>Invited</IntText></span>
+          <CollectionMemberListingActions
             member={this.props.member}
             slug={this.props.slug}
             isInvitation={true}
@@ -563,14 +524,14 @@ class GroupInvitationListing extends Component {
       </div>);
   }
 }
-GroupInvitationListing.propTypes = {
+CollectionInvitationListing.propTypes = {
   member:       PropTypes.object.isRequired,
   slug:         PropTypes.string,
   onDataChange: PropTypes.func,
 };
 
 
-class GroupMemberListingActions extends Component {
+class CollectionMemberListingActions extends Component {
   constructor(props) {
     super(props);
 
@@ -589,11 +550,11 @@ class GroupMemberListingActions extends Component {
       }
     }
 
-    $.post("/api/groups/" + this.props.slug + "/set-role/" + this.props.member.uid + "/" + role, function(data) {
+    $.post("/api/collections/" + this.props.slug + "/set-role/" + this.props.member.uid + "/" + role, function(data) {
       if ("error" in data) {
         alert(data.error)
       } else {
-        Sefaria._groups[data.slug] = data;
+        Sefaria._collections[data.slug] = data;
         this.props.onDataChange();
       }
     }.bind(this));
@@ -608,11 +569,11 @@ class GroupMemberListingActions extends Component {
     }
   }
   resendInvitation() {
-    $.post("/api/groups/" + this.props.slug + "/invite/" + this.props.member.email, function(data) {
+    $.post("/api/collections/" + this.props.slug + "/invite/" + this.props.member.email, function(data) {
       if ("error" in data) {
         alert(data.error)
       } else {
-        Sefaria._groups[this.props.slug] = data.group;
+        Sefaria._collections[this.props.slug] = data.collection;
         this.props.onDataChange();
         this.setState({"invitationResent": true});
       }
@@ -620,11 +581,11 @@ class GroupMemberListingActions extends Component {
   }
   removeInvitation() {
     if (confirm(Sefaria._("Are you sure you want to remove this invitation?"))) {
-      $.post("/api/groups/" + this.props.slug + "/invite/" + this.props.member.email + "/uninvite", function(data) {
+      $.post("/api/collections/" + this.props.slug + "/invite/" + this.props.member.email + "/uninvite", function(data) {
         if ("error" in data) {
           alert(data.error)
         } else {
-          Sefaria._groups[this.props.slug] = data.group;
+          Sefaria._collections[this.props.slug] = data.collection;
           this.props.onDataChange();
         }
       }.bind(this));
@@ -632,12 +593,12 @@ class GroupMemberListingActions extends Component {
   }
   render() {
     return (
-      <div className="groupMemberListingActions" onClick={this.toggleMenu}>
-        <div className="groupMemberListingActionsButton">
+      <div className="collectionMemberListingActions" onClick={this.toggleMenu}>
+        <div className="collectionMemberListingActionsButton">
           <i className="fa fa-gear"></i>
         </div>
         {this.state.menuOpen ?
-          <div className="groupMemberListingActionsMenu">
+          <div className="collectionMemberListingActionsMenu">
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "admin")}>
                 <span className={classNames({role: 1, current: this.props.member.role == "Owner"})}><IntText>Owner</IntText></span>
@@ -646,7 +607,7 @@ class GroupMemberListingActions extends Component {
               : null }
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "member")}>
-                <span className={classNames({role: 1, current: this.props.member.role == "Member"})}><IntText>Editor</IntText></span>
+                <span className={classNames({role: 1, current: this.props.member.role == "Editor"})}><IntText>Editor</IntText></span>
                 - <IntText>can add & remove sheets</IntText>
               </div>
               : null}
@@ -676,7 +637,7 @@ class GroupMemberListingActions extends Component {
       </div>);
   }
 }
-GroupMemberListingActions.propTypes = {
+CollectionMemberListingActions.propTypes = {
   member:       PropTypes.object.isRequired,
   slug:         PropTypes.string.isRequired,
   isAdmin:      PropTypes.bool,
@@ -686,4 +647,4 @@ GroupMemberListingActions.propTypes = {
 };
 
 
-export default GroupPage;
+export default CollectionPage;

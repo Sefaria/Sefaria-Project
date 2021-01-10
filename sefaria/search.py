@@ -29,7 +29,7 @@ from elasticsearch.exceptions import NotFoundError
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex
 from sefaria.model.user_profile import user_link, public_user_data
-from sefaria.model.group import GroupSet
+from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
@@ -132,7 +132,7 @@ def index_sheet(index_name, id):
         if not topic_obj:
             continue
         topics += [topic_obj]
-    colletions = GroupSet({"sheets": id, "listed": True})
+    colletions = CollectionSet({"sheets": id, "listed": True})
     collection_names = [c.name for c in collections]
     try:
         doc = {
@@ -375,7 +375,7 @@ def put_sheet_mapping(index_name):
             'sheetId': {
                 'type': 'integer'
             },
-            'group': {
+            'collection': {
                 'type': 'keyword'
             },
             'title': {

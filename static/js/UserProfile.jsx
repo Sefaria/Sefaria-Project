@@ -12,7 +12,7 @@ import {
 import React  from 'react';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
-import { GroupListing } from './PublicCollectionsPage';
+import { CollectionListing } from './PublicCollectionsPage';
 import NoteListing  from './NoteListing';
 import Component from 'react-class';
 import Footer  from './Footer';
@@ -51,27 +51,27 @@ class UserProfile extends Component {
   }
   _getMessageModalRef(ref) { this._messageModalRef = ref; }
   _getTabViewRef(ref) { this._tabViewRef = ref; }
-  getGroups() {
-    return Sefaria.getUserGroups(this.props.profile.id);
+  getCollections() {
+    return Sefaria.getUserCollections(this.props.profile.id);
   }
-  getGroupsFromCache() {
-    return Sefaria.getUserGroupsFromCache(this.props.profile.id);
+  getCollectionsFromCache() {
+    return Sefaria.getUserCollectionsFromCache(this.props.profile.id);
   }
-  filterGroup(currFilter, group) {
+  filterCollection(currFilter, collection) {
     const n = text => text.toLowerCase();
     currFilter = n(currFilter);
-    return n(group.name).indexOf(currFilter) > -1;
+    return n(collection.name).indexOf(currFilter) > -1;
   }
-  sortGroup(currSortOption, groupA, groupB) {
+  sortCollection(currSortOption, collectionA, collectionB) {
     switch(currSortOption) {
       case "Recent":
-        return groupB.lastModified > groupA.lastModified ? 1 : -1;
+        return collectionB.lastModified > collectionA.lastModified ? 1 : -1;
         break;
       case "Name":
-        return groupB.name > groupA.name ? -1 : 1;
+        return collectionB.name > collectionA.name ? -1 : 1;
         break;
       case "Sheets":
-        return groupB.sheetCount - groupA.sheetCount;
+        return collectionB.sheetCount - collectionA.sheetCount;
         break;
     }
   }
@@ -79,7 +79,7 @@ class UserProfile extends Component {
     // Rerender Collections tab when data changes in cache.
     this.setState({ refreshCollectionsData: Math.random() });
   }
-  renderEmptyGroupList() {
+  renderEmptyCollectionList() {
     if (Sefaria._uid !== this.props.profile.id) {
      return (
         <div className="emptyList">
@@ -100,12 +100,12 @@ class UserProfile extends Component {
         </a>
       </div>);
   }
-  renderGroup(group) {
+  renderCollection(collection) {
     return (
-      <GroupListing key={group.slug} data={group} showMembership={true} small={true} />
+      <CollectionListing key={collection.slug} data={collection} showMembership={true} small={true} />
     );
   }
-  renderGroupHeader() {
+  renderCollectionHeader() {
     if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
       <div className="sheet-header">
@@ -381,16 +381,16 @@ class UserProfile extends Component {
                     refreshData={this.state.refreshSheetData}
                   />
                   <FilterableList
-                    key="group"
+                    key="collection"
                     pageSize={1e6}
-                    filterFunc={this.filterGroup}
-                    sortFunc={this.sortGroup}
-                    renderItem={this.renderGroup}
-                    renderEmptyList={this.renderEmptyGroupList}
-                    renderHeader={this.renderGroupHeader}
+                    filterFunc={this.filterCollection}
+                    sortFunc={this.sortCollection}
+                    renderItem={this.renderCollection}
+                    renderEmptyList={this.renderEmptyCollectionList}
+                    renderHeader={this.renderCollectionHeader}
                     sortOptions={["Recent", "Name", "Sheets"]}
-                    getData={this.getGroups}
-                    data={this.getGroupsFromCache()}
+                    getData={this.getCollections}
+                    data={this.getCollectionsFromCache()}
                     refreshData={this.state.refreshCollectionsData}
                   />
                   {

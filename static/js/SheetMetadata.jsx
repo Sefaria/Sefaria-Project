@@ -94,15 +94,16 @@ class SheetMetadata extends Component {
         newSheet.viaOwner = sheet.owner;
         newSheet.owner = Sefaria._uid
     }
-    delete newSheet.group;
     delete newSheet.id;
     delete newSheet.ownerName;
     delete newSheet.views;
     delete newSheet.dateCreated;
     delete newSheet.dateModified;
+    delete newSheet.displayedCollection;
+    delete newSheet.collectionName;
+    delete newSheet.collectionImage;
     delete newSheet.likes;
     delete newSheet.naturalDateCreated;
-    delete newSheet.groupLogo;
     delete newSheet.promptedToPublish;
     delete newSheet._id;
 
@@ -228,9 +229,9 @@ class SheetMetadata extends Component {
                     </div>
 
                     <div className="tocDetail authorStatement">
-                        <div className="groupListingImageBox imageBox">
+                        <div className="collectionListingImageBox imageBox">
                             <a href={sheet.ownerProfileUrl}>
-                                <img className="groupListingImage img-circle" src={sheet.ownerImageUrl} alt="Author Avatar" />
+                                <img className="collectionListingImage img-circle" src={sheet.ownerImageUrl} alt="Author Avatar" />
                             </a>
                         </div>
                         <span dangerouslySetInnerHTML={ {__html: authorStatement} }></span>
@@ -238,9 +239,9 @@ class SheetMetadata extends Component {
 
                     {sheet.displayedCollection ?
                     <div className="tocDetail authorStatement">
-                        <div className="groupListingImageBox imageBox">
+                        <div className="collectionListingImageBox imageBox">
                             <a href={"/collections/" + sheet.displayedCollection}>
-                              <img className={classNames({groupListingImage:1, "img-circle": 1, default: !sheet.collectionImage})} src={sheet.collectionImage || "/static/img/collection.svg"} alt="Collection Logo"/>
+                              <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !sheet.collectionImage})} src={sheet.collectionImage || "/static/img/collection.svg"} alt="Collection Logo"/>
                             </a>
                         </div>
                         <a href={"/collections/" + sheet.displayedCollection}>{sheet.collectionName}</a>

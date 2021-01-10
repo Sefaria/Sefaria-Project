@@ -2131,36 +2131,36 @@ _media: {},
         return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1])
     }
   },
-  _groups: {},
-  getGroup: function(key) {
-      const url = Sefaria.apiHost + "/api/groups/" + encodeURIComponent(key);
-      const store = this._groups;
+  _collections: {},
+  getCollection: function(key) {
+      const url = Sefaria.apiHost + "/api/collections/" + encodeURIComponent(key);
+      const store = this._collections;
       return this._cachedApiPromise({url, key, store});
   },
-  getGroupFromCache: function(key) {
-    return Sefaria._groups[key];
+  getCollectionFromCache: function(key) {
+    return Sefaria._collections[key];
   },
-  _groupsList: {},
-  getGroupsList: function() {
+  _collectionsList: {},
+  getCollectionsList: function() {
       return this._cachedApiPromise({
-        url: Sefaria.apiHost + "/api/groups",
+        url: Sefaria.apiHost + "/api/collections",
         key: "list",
-        store: Sefaria._groupsList
+        store: Sefaria._collectionsList
       });
   },
-  getGroupsListFromCache() {
-    return Sefaria._groupsList.list;
+  getCollectionsListFromCache() {
+    return Sefaria._collectionsList.list;
   },
-  _userGroups: {},
-  getUserGroups: function(uid) {
+  _userCollections: {},
+  getUserCollections: function(uid) {
     return this._cachedApiPromise({
-      url: `${Sefaria.apiHost}/api/groups/user-groups/${uid}`,
+      url: `${Sefaria.apiHost}/api/collections/user-collections/${uid}`,
       key: uid,
-      store: Sefaria._userGroups
+      store: Sefaria._userCollections
     });
   },
-  getUserGroupsFromCache(uid) {
-    return Sefaria._userGroups[uid];
+  getUserCollectionsFromCache(uid) {
+    return Sefaria._userCollections[uid];
   },
   _userCollectionsForSheet: {},
   getUserCollectionsForSheet: function(sheetID) {
@@ -2663,8 +2663,8 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.topSheets) {
     Sefaria.sheets._topSheets = props.topSheets;
   }
-  if (props.groupData) {
-    Sefaria._groups[props.initialCollectionSlug] = props.groupData;
+  if (props.collectionData) {
+    Sefaria._collections[props.initialCollectionSlug] = props.collectionData;
   }
   if (props.topicData) {
     Sefaria._topics[props.initialTopic] = Sefaria.processTopicsData(props.topicData);
@@ -2675,8 +2675,8 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.userHistory) {
       Sefaria._userHistory.history = props.userHistory;
   }
-  if (props.groupListing) {
-      Sefaria._groupsList.list = props.groupListing;
+  if (props.collectionListing) {
+      Sefaria._collectionsList.list = props.collectionListing;
   }
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
   const dataPassedAsProps = [

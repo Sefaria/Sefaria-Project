@@ -25,13 +25,15 @@ from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt, csrf_p
 from django.contrib.auth.models import User
 from django import http
 from django.utils import timezone
+from django.utils.html import strip_tags
+from bson.objectid import ObjectId
 
 from sefaria.model import *
 from sefaria.workflows import *
 from sefaria.reviews import *
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data
-from sefaria.model.group import GroupSet
+from sefaria.model.collection import CollectionSet
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.media import get_media_for_ref
 from sefaria.model.schema import SheetLibraryNode
@@ -55,9 +57,6 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref
-from django.utils.html import strip_tags
-from bson.objectid import ObjectId
-
 
 
 if USE_VARNISH:
@@ -109,8 +108,6 @@ def user_credentials(request):
             return {"user_type": "API", "user_id": None, "error": "Unrecognized API key."}
         #user = User.objects.get(id=apikey["uid"])
         return {"user_type": "API", "user_id": apikey["uid"]}
-
-
 
 
 @ensure_csrf_cookie
@@ -726,13 +723,13 @@ def disable_new_editor(request):
     return resp
 
 
-def public_groups(request):
+def public_collections(request):
     props = base_props(request)
     props.update({
-        "groupListing": GroupSet.get_group_listing(request.user.id)
+        "collectionListing": CollectionSet.get_collection_listing(request.user.id)
     })
     title = _("Sefaria Collections")
-    return menu_page(request, props, "publicGroups")
+    return menu_page(request, props, "collectionsPublic")
 
 
 @login_required
@@ -768,49 +765,49 @@ def topics_redirect(request):
 
 
 @sanitize_get_params
-def group_page(request, slug):
+def collection_page(request, slug):
     """
     Main page for collection named by `slug`
     """
-    group = Group().load({"slug": slug})
-    if not group:
+    collection = Collection().load({"slug": slug})
+    if not collection:
         raise Http404
-    authenticated = request.user.is_authenticated and group.is_member(request.user.id)
+    authenticated = request.user.is_authenticated and collection.is_member(request.user.id)
 
     props = base_props(request)
     props.update({
         "initialMenu":     "collection",
-        "initialCollectionName": group.name,
-        "initialCollectionSlug": group.slug,
+        "initialCollectionName": collection.name,
+        "initialCollectionSlug": collection.slug,
         "initialCollectionTag":  request.GET.get("tag", None)
     })
 
-    props["groupData"] = group.contents(with_content=True, authenticated=authenticated)
-    del props["groupData"]["lastModified"]
+    props["collectionData"] = collection.contents(with_content=True, authenticated=authenticated)
+    del props["collectionData"]["lastModified"]
 
     propsJSON = json.dumps(props)
     html = render_react_component("ReaderApp", propsJSON)
     return render(request, 'base.html', {
         "propsJSON": propsJSON,
         "html": html,
-        "title": group.name + " | " + _("Sefaria Collections"),
-        "desc": props["groupData"].get("description", ""),
-        "noindex": not getattr(group, "listed", False)
+        "title": collection.name + " | " + _("Sefaria Collections"),
+        "desc": props["collectionData"].get("description", ""),
+        "noindex": not getattr(collection, "listed", False)
     })
 
 
 @login_required
-def edit_group_page(request, slug=None):
+def edit_collection_page(request, slug=None):
     if slug:
-        group = Group().load({"slug": slug})
-        if not group:
+        collection = Collection().load({"slug": slug})
+        if not collection:
             raise Http404
-        groupData = group.contents()
-        del groupData["lastModified"]
+        collectionData = collection.contents()
+        del collectionData["lastModified"]
     else:
-        groupData = None
+        collectionData = None
 
-    return render(request, 'edit_group.html', {"groupData": groupData})
+    return render(request, 'edit_collection.html', {"collectionData": collectionData})
 
 
 def groups_redirect(request, group):
@@ -819,7 +816,7 @@ def groups_redirect(request, group):
     """
     if not group:
         return redirect("/collections")
-    collection = Group().load({"name": group.sub("-", " ")})
+    collection = Collection().load({"name": group.sub("-", " ")})
     if not collection:
         return Http404
     return redirect("/collections{}".format(collection.slug))

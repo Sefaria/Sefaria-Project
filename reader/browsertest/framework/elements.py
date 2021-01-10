@@ -525,16 +525,23 @@ class AbstractTest(object):
             # if logged out, first click to open dropdown
             self.driver.find_element_by_css_selector('.header a.interfaceLinks-button')
             self.click_object_by_css_selector('.header a.interfaceLinks-button')
+            self.click_object_by_link_text('עברית')
         except NoSuchElementException:
             # must be logged in
-            pass
-        self.click_object_by_link_text('עברית')
+            self.click_object_by_css_selector('#siteLanguageHebrew')
 
     def click_hebrew_link(self):
         self.click_ivrit_link()
 
     def click_english_link(self):
-        self.click_object_by_link_text('English')
+        try:
+            # if logged out, first click to open dropdown
+            self.driver.find_element_by_css_selector('.header a.interfaceLinks-button')
+            self.click_object_by_css_selector('.header a.interfaceLinks-button')
+            self.click_object_by_link_text('English')
+        except NoSuchElementException:
+            # must be logged in
+            self.click_object_by_css_selector('#siteLanguageEnglish')
 
     def toggle_on_text_settings(self):
         self.click_object_by_css_selector('#panel-0 .readerControls .readerOptions')
@@ -1173,8 +1180,6 @@ class AbstractTest(object):
         else:
             elem.send_keys(Keys.DELETE)
 
-
-
     def generate_text(self, language):
         paragraph = {
             "en": "Proin elit arcu, rutrum commodo, vehicula tempus, commodo a, risus. Curabitur nec arcu. Donec sollicitudin mi sit amet mauris. Nam elementum quam ullamcorper ante. Etiam aliquet massa et lorem. Mauris dapibus lacus auctor risus. Aenean tempor ullamcorper leo. Vivamus sed magna quis ligula eleifend adipiscing. Duis orci. Aliquam sodales tortor vitae ipsum. Aliquam nulla. Duis aliquam molestie erat. Ut et mauris vel pede varius sollicitudin. Sed ut dolor nec orci tincidunt interdum. Phasellus ipsum. Nunc tristique tempus lectus.",
@@ -1205,12 +1210,6 @@ class AbstractTest(object):
         sheet = self.driver.find_element_by_css_selector(sheet_selector)
         sheet_html = sheet.get_attribute('innerHTML')
         return sheet_html
-
-
-
-
-
-
 
 
 class TestSuite(AbstractTest):

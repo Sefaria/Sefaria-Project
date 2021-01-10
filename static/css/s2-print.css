@@ -13,7 +13,7 @@ body {
 .sheetReaderControls,
 .connectionsPanel,
 .connectionsHeader,
-.groupListingImageBox,
+.collectionListingImageBox,
 .bookMetaDataBox,
 .cookieNotification,
 #bannerMessage,
@@ -83,7 +83,7 @@ details {
   margin: 0;
 }
 .sheetsInPanel .sheetMetaDataBox .authorStatement,
-.sheetsInPanel .sheetMetaDataBox .groupStatement {
+.sheetsInPanel .sheetMetaDataBox .collectionStatement {
   margin-top: 4px;
 }
 .basetext .segment {

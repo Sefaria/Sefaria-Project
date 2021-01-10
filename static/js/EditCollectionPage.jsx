@@ -6,7 +6,7 @@ import Sefaria  from './sefaria/sefaria';
 import { IntText } from './Misc';
 
 
-class EditGroupPage extends Component {
+class EditCollectionPage extends Component {
   constructor(props) {
     super(props);
 
@@ -30,8 +30,8 @@ class EditGroupPage extends Component {
     var MAX_IMAGE_MB = 2;
     var MAX_IMAGE_SIZE = MAX_IMAGE_MB * 1024 * 1024;
     var idToField = {
-      groupHeader: "headerUrl",
-      groupImage: "imageUrl",
+      collectionHeader: "headerUrl",
+      collectionImage: "imageUrl",
     };
     var field = idToField[e.target.id];
     var file = e.currentTarget.files[0];
@@ -77,9 +77,9 @@ class EditGroupPage extends Component {
   }
   handleInputChange(e) {
     var idToField = {
-      groupName: "name",
-      groupWebsite: "websiteUrl",
-      groupDescription: "description"
+      collectionName: "name",
+      collectionWebsite: "websiteUrl",
+      collectionDescription: "description"
     }
     var field = idToField[e.target.id];
     var state = {};
@@ -93,7 +93,7 @@ class EditGroupPage extends Component {
   delete() {
     if (confirm(Sefaria._("Are you sure you want to delete this collection? This cannot be undone."))) {
      $.ajax({
-        url: "/api/groups/" + this.props.initialData.slug,
+        url: "/api/collections/" + this.props.initialData.slug,
         type: "DELETE",
         success: function(data) {
           if ("error" in data) {
@@ -109,12 +109,12 @@ class EditGroupPage extends Component {
     }
   }
   save() {
-    var groupData = Sefaria.util.clone(this.state);
+    var collectionData = Sefaria.util.clone(this.state);
 
-    if (groupData["headerUrl"] == "/static/img/loading.gif") { groupData["headerUrl"] = null; }
-    if (groupData["imageUrl"] == "/static/img/loading.gif") { groupData["imageUrl"] = null; }
+    if (collectionData["headerUrl"] == "/static/img/loading.gif") { collectionData["headerUrl"] = null; }
+    if (collectionData["imageUrl"] == "/static/img/loading.gif") { collectionData["imageUrl"] = null; }
 
-    $.post("/api/groups", {json: JSON.stringify(groupData)}, function(data) {
+    $.post("/api/collections", {json: JSON.stringify(collectionData)}, function(data) {
         if ("error" in data) {
           alert(data.error);
         } else {
@@ -128,7 +128,7 @@ class EditGroupPage extends Component {
   render() {
     const title = this.props.initialData ? "Edit Collection" : "Create a Collection";
     return (
-      <div id="editGroupPage">
+      <div id="editCollectionPage">
         <div className="headerWithButtons">
           <div className="start"></div>
           <h1>
@@ -138,7 +138,7 @@ class EditGroupPage extends Component {
               <a className="button transparent control-elem" href={this.props.initialData ? "/collections/" + this.state.slug : "/my/profile"}>
                   <IntText>Cancel</IntText>
               </a>
-              <div id="saveGroup" className="button blue control-elem" onClick={this.save}>
+              <div id="saveCollection" className="button blue control-elem" onClick={this.save}>
                   <IntText>Save</IntText>
               </div>
           </div>
@@ -148,21 +148,21 @@ class EditGroupPage extends Component {
           <label>
             <IntText>Collection Name</IntText>
           </label>
-          <input id="groupName" value={this.state.name||""} onChange={this.handleInputChange}/>
+          <input id="collcetionName" value={this.state.name||""} onChange={this.handleInputChange}/>
         </div>
 
         <div className="field halfWidth">
           <label>
             <IntText>Website</IntText>
           </label>
-          <input id="groupWebsite" value={this.state.websiteUrl||""} onChange={this.handleInputChange}/>
+          <input id="collectionWebsite" value={this.state.websiteUrl||""} onChange={this.handleInputChange}/>
         </div>
 
         <div className="field">
           <label>
             <IntText>Description</IntText>
           </label>
-          <textarea id="groupDescription" onChange={this.handleInputChange} value={this.state.description||""}></textarea>
+          <textarea id="collectionDescription" onChange={this.handleInputChange} value={this.state.description||""}></textarea>
         </div>
 
         <div className="field">
@@ -170,10 +170,10 @@ class EditGroupPage extends Component {
             <IntText>Collection Image</IntText>
           </label>
           {this.state.imageUrl
-            ? <img className="groupImage" src={this.state.imageUrl} alt="Collection Image" />
-            : <div className="groupImage placeholder"></div>}
+            ? <img className="collectionImage" src={this.state.imageUrl} alt="Collection Image" />
+            : <div className="collectionImage placeholder"></div>}
           <FileInput
-             name="groupImage"
+             name="collectionImage"
              accept="image/*"
              text={Sefaria._("Upload Image")}
              className="button white"
@@ -190,13 +190,13 @@ class EditGroupPage extends Component {
             <IntText>Default Sheet Header</IntText>
           </label>
           {this.state.headerUrl
-            ? <div className="groupHeaderBox">
-                <img className="groupHeader" src={this.state.headerUrl} alt="Collection Header Image" />
+            ? <div className="collectionHeaderBox">
+                <img className="collectionHeader" src={this.state.headerUrl} alt="Collection Header Image" />
                 <div className="clearFix"></div>
               </div>
-            : <div className="groupHeader placeholder"></div>}
+            : <div className="collectionHeader placeholder"></div>}
           <FileInput
-             name="groupHeader"
+             name="collectionHeader"
              accept="image/*"
              text="Upload Image"
              className="button white"
@@ -216,10 +216,10 @@ class EditGroupPage extends Component {
             <input type="checkbox"
               name="onoffswitch"
               className="onoffswitch-checkbox"
-              id="groupPublicToggle"
+              id="collectionPublicToggle"
               checked={!!this.state.listed}
               onChange={this.handleListingChange} />
-            <label className="onoffswitch-label" htmlFor="groupPublicToggle">
+            <label className="onoffswitch-label" htmlFor="collectionPublicToggle">
                 <span className="onoffswitch-inner"></span>
                 <span className="onoffswitch-switch"></span>
             </label>
@@ -234,7 +234,7 @@ class EditGroupPage extends Component {
         </div>
 
         {this.props.initialData ?
-          <div className="deleteGroup" onClick={this.delete}>
+          <div className="deleteCollection" onClick={this.delete}>
             <IntText>Delete Collection</IntText>
           </div>
           : null}
@@ -242,8 +242,8 @@ class EditGroupPage extends Component {
       </div>);
   }
 }
-EditGroupPage.propTypes = {
-  initialData:  PropTypes.object // If present this view is for editing a group, otherwise for creating a new group
+EditCollectionPage.propTypes = {
+  initialData:  PropTypes.object // If present this view is for editing a collection, otherwise for creating a new collection
 };
 
 
@@ -266,4 +266,4 @@ class FileInput extends Component {
 }
 
 
-export default EditGroupPage;
+export default EditCollectionPage;

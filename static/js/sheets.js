@@ -1667,7 +1667,7 @@ $(function() {
 			var $el = $("#sourceSheetGroupSelect option:selected");
 			var collectionSlug = $el.attr("data-slug");
 			var collectionHeader = $el.attr("data-image");
-			$("#groupLogo").attr("src", collectionHeader)
+			$("#collectionHeader").attr("src", collectionHeader)
 				.closest("a").attr("href", "/collections/" + collectionSlug);
 			if (collectionHeader) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 		}
@@ -2825,7 +2825,7 @@ function buildSheet(data){
 		$("#sourceSheetGroupSelect").val(data.displayedCollection);
 		var $el = $("#sourceSheetGroupSelect option:selected");
 		var collectionImage = $el.attr("data-image");
-		$("#groupLogo").attr("src", collectionImage);
+		$("#collectionHeader").attr("src", collectionImage);
 		if (collectionImage) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 	}
 
@@ -3271,7 +3271,6 @@ function startPollingIfNeeded() {
 		if (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-add") {
 			needed = true;
 		}
-		// Poll if sheet is in a group
 		else if  (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-edit") {
 			needed = true;
 		}

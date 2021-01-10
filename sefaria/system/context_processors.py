@@ -127,16 +127,12 @@ HEADER = {
     'logged_in': {'english': None, 'hebrew': None},
     'logged_out': {'english': None, 'hebrew': None}
 }
-
-
 @user_only
 def header_html(request):
     """
     Uses React to prerender a logged in and and logged out header for use in pages that extend `base.html`.
     Cached in memory -- restarting Django is necessary for catch any HTML changes to header.
     """
-    if request.path == "/data.js":
-        return {}
     global HEADER
     if USE_NODE:
         lang = request.interfaceLang
@@ -164,9 +160,6 @@ def header_html(request):
 FOOTER = {'english': None, 'hebrew': None}
 @user_only
 def footer_html(request):
-    from sefaria.site.site_settings import SITE_SETTINGS
-    if request.path == "/data.js":
-        return {}
     global FOOTER
     lang = request.interfaceLang
     if USE_NODE:

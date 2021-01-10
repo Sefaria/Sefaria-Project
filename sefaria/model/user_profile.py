@@ -549,15 +549,15 @@ class UserProfile(object):
 
         return self
 
-    def join_invited_groups(self):
+    def join_invited_collections(self):
         """
-        Add this user as a member of any group for which there is an outstanding invitation.
+        Add this user as a editor of any collections for which there is an outstanding invitation.
         """
-        from sefaria.model import GroupSet
-        groups = GroupSet({"invitations.email": self.email})
-        for group in groups:
-            group.add_member(self.id)
-            group.remove_invitation(self.email)
+        from sefaria.model import CollectionSet
+        collections = CollectionSet({"invitations.email": self.email})
+        for collection in collections:
+            collection.add_member(self.id)
+            collection.remove_invitation(self.email)
 
     def follows(self, uid):
         """Returns true if this user follows uid"""

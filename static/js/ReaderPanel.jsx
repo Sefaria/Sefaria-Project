@@ -17,8 +17,7 @@ import Sheet  from './Sheet';
 import SheetMetadata  from './SheetMetadata';
 import TopicPageAll  from './TopicPageAll';
 import {TopicPage}  from './TopicPage';
-import AccountPanel  from './AccountPanel';
-import GroupPage from "./GroupPage"
+import CollectionPage from "./CollectionPage"
 import NotificationsPanel  from './NotificationsPanel';
 import MyNotesPanel  from './MyNotesPanel';
 import UserHistoryPanel  from './UserHistoryPanel';
@@ -29,7 +28,7 @@ import StoryEditor  from './StoryEditor';
 import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
 import {
-  PublicGroupsPage
+  PublicCollectionsPage
 } from './PublicCollectionsPage';
 import {
   ReaderNavigationMenuCloseButton,
@@ -952,10 +951,6 @@ class ReaderPanel extends Component {
                 />);
       }
 
-    } else if (this.state.menuOpen === "account") {
-      menu = (<AccountPanel
-                    interfaceLang={this.props.interfaceLang} />);
-
     } else if (this.state.menuOpen === "notifications") {
       menu = (<NotificationsPanel
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
@@ -971,22 +966,22 @@ class ReaderPanel extends Component {
                     toggleLanguage={this.toggleLanguage} />);
 
     } else if (this.state.menuOpen === "collection") {
-      menu = (<GroupPage
+      menu = (<CollectionPage
                 name={this.state.collectionName}
                 slug={this.state.collectionSlug}
                 tag={this.state.collectionTag}
                 setGroupTag={this.setGroupTag}
                 width={this.state.width}
                 searchInGroup={this.props.searchInGroup}
-                toggleLanguage={this.props.toggleLanguage}
+                toggleLanguage={this.toggleLanguage}
                 toggleSignUpModal={this.props.toggleSignUpModal}
                 updateCollectionName={this.updateCollectionName}
                 hideNavHeader={this.props.hideNavHeader}
                 multiPanel={this.props.multiPanel}
                 interfaceLang={this.props.interfaceLang} />);
 
-    } else if (this.state.menuOpen === "publicGroups") {
-      menu = (<PublicGroupsPage
+    } else if (this.state.menuOpen === "collectionsPublic") {
+      menu = (<PublicCollectionsPage
                     multiPanel={this.props.multiPanel}
                     navHome={this.openMenu.bind(null, "navigation")}/>);
 
@@ -1454,7 +1449,7 @@ class ReaderDisplayOptionsMenu extends Component {
     ];
     var sizeToggle = (
         <ToggleSet
-          role="group"
+          role="radiogroup"
           ariaLabel="Increase/Decrease Font Size Buttons"
           label={Sefaria._("Font Size")}
           name="fontSize"

@@ -10,7 +10,7 @@ from . import abstract as abstract
 from . import schema as schema
 from . import text as text
 from . import link as link
-from . import group as collection
+from . import collection as collection
 
 
 class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject):
@@ -198,7 +198,7 @@ class TocTree(object):
             self._path_hash[tuple(i.categories + [i.title])] = node
 
         # Include Collections in TOC that has a `toc` field set
-        collections = collection.GroupSet({"toc": {"$exists": True}, "listed": True, "slug": {"$exists": True}})
+        collections = collection.CollectionSet({"toc": {"$exists": True}, "listed": True, "slug": {"$exists": True}})
         for c in collections:
             self._collections_in_library.append(c.slug)
             node = TocCollectionNode(collection_object=c)
@@ -456,26 +456,26 @@ class TocCollectionNode(TocNode):
     categories: Array(2)
     name: "Some Collection"
     slug: "collection-slug"
-    isGroup: true
+    isCollection: true
     enComplete: true
     heComplete: true
     """
     def __init__(self, serial=None, collection_object=None, **kwargs):
         if collection_object:
             self._collection_object = collection_object
-            collection = collection_object.contents()
+            c_contents = collection_object.contents()
             serial = {
-                "categories": collection["toc"]["categories"],
-                "name": collection["name"],
-                "slug": collection["slug"],
-                "title": collection["toc"]["collectiveTitle"]["en"] if "collectiveTitle" in collection["toc"] else collection["toc"]["title"],
-                "heTitle": collection["toc"]["collectiveTitle"]["he"] if "collectiveTitle" in collection["toc"] else collection["toc"]["heTitle"], 
+                "categories": c_contents["toc"]["categories"],
+                "name": c_contents["name"],
+                "slug": c_contents["slug"],
+                "title": c_contents["toc"]["collectiveTitle"]["en"] if "collectiveTitle" in c_contents["toc"] else c_contents["toc"]["title"],
+                "heTitle": c_contents["toc"]["collectiveTitle"]["he"] if "collectiveTitle" in c_contents["toc"] else c_contents["toc"]["heTitle"], 
                 "isCollection": True,
                 "enComplete": True,
                 "heComplete": True,
             }
         elif serial:
-            self._collection_object = collection.Group().load({"slug": serial["slug"]})
+            self._collection_object = collection.Collection().load({"slug": serial["slug"]})
 
         super(TocCollectionNode, self).__init__(serial)
 

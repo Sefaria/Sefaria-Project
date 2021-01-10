@@ -598,13 +598,13 @@
     {% endif %}
 
 	<div id="bsdHeader">בס"ד</div>
-	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
+	<div id="sheetHeader" {% if not displayed_collection %}style="display:none"{% endif %}>
 		{% if displayed_collection and displayed_collection.headerUrl %}
 		<a href="/collections/{{ displayed_collection.slug }}">
-			<img id="groupLogo" src="{{ displayed_collection.headerUrl }}" alt="Logo for {{ displayed_collection.name }}" />
+			<img id="collectionHeader" src="{{ displayed_collection.headerUrl }}" alt="Logo for {{ displayed_collection.name }}" />
 		</a>
 		{% else %}
-            <a href="#"><img id="groupLogo"/></a>
+            <a href="#"><img id="collectionHeader"/></a>
 		{% endif %}
 	</div>
 	<div id="title" role="heading" aria-level="1">

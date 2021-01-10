@@ -107,12 +107,10 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 
 .sheetsMenuBarItem #lastSaved {
-		position: relative;
+	position: relative;
 	top:0;
 	right:0;
 	background-color: transparent;
-
-
 }
 
 #sheet {
@@ -125,10 +123,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	font-family: "Times New Roman", "Georgia", serif;
 	width:850px;
 	padding:60px 0px;
-
-}
-
-#sheet.s2Sheet {
 }
 
 #sheet.paperless {
@@ -146,7 +140,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-left: -40px;
 }
 
-#sheetHeader #groupLogo {
+#sheetHeader #collectionHeader {
 	max-width: 90%;
 }
 

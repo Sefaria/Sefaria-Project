@@ -79,8 +79,8 @@ def get_query_obj(
     :param start :int: pagination start
     :param size :int: page size
     :param filters :list(str): list of filters you've applied
-    :param filter_fields :list(str): list of fields each filter is filtering on. must be same size as `filters` usually "path", "group" or "tags"
-    :param aggs :list(str): list of fields to aggregate on. usually "path", "group" or "tags"
+    :param filter_fields :list(str): list of fields each filter is filtering on. must be same size as `filters` usually "path", "collections" or "tags"
+    :param aggs :list(str): list of fields to aggregate on. usually "path", "collections" or "tags"
     :param sort_method :str: how to sort. either "sort" or "score"
     :param sort_fields :list(str): which fields to sort on. sorts are applied in order stably
     :param sort_reverse :bool: should the sorting be reversed?

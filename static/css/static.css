@@ -1566,53 +1566,6 @@ p.registration-links a:hover{
   font-size: 20px;
   display: none;
 }
-
-#groupsPage {
-    margin: 70px auto;
-    text-align: center;
-}
-#groupsPage #groups {
-    margin-top: 40px;
-}
-#groupsPage .group {
-    margin: 10px;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    display: block;
-    text-align: left;
-    overflow: hidden;
-}
-#groupsPage .group:hover {
-    border: 1px solid #08c;
-}
-#groupsPage .groupName {
-    font-size: 18px;
-    line-height: 22px;
-    color: #555;
-    display: block;
-}
-#groupsPage .groupSettings {
-    display: none;
-    cursor: pointer;
-    position: absolute;
-    right: 8px;
-    top: 8px;
-    height: 20px;
-    line-height: 20px;
-    font-size: 18px;
-    color: black;
-}
-#groupsPage .group img.groupCover {
-}
-#groupsPage .group img.groupHeader {
-    display: none;
-}
-#groupsPage .group img {
-    width: 48px;
-    height: 48px;
-    float: left;
-}
-
 #visualGardenPage .control-results-containe{
   display: flex;
   display: -webkit-flex;

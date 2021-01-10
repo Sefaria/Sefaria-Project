@@ -11,10 +11,10 @@ import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
 
 
-function PublicGroupsPage({multiPanel, navHome}) {
-  const [groupsList, setGroupsList] = useState(Sefaria.getGroupsListFromCache());
+function PublicCollectionsPage({multiPanel, navHome}) {
+  const [collectionsList, setCollectionsList] = useState(Sefaria.getCollectionsListFromCache());
   
-  const sortGroupList = d => {
+  const sortCollectionList = d => {
     if (Sefaria.interfaceLang == "hebrew") {
       d.public.sort((a, b) => {
         const [aHe, bHe] = [a.name, b.name].map(Sefaria.hebrew.isHebrew);
@@ -24,14 +24,14 @@ function PublicGroupsPage({multiPanel, navHome}) {
     return d;
   };
 
-  if (groupsList) {
-    sortGroupList(groupsList);
+  if (collectionsList) {
+    sortCollectionList(collectionsList);
   }
 
   useEffect(() => {
-    Sefaria.getGroupsList()
-        .then(d => sortGroupList(d))
-        .then(d => setGroupsList(d));
+    Sefaria.getCollectionsList()
+        .then(d => sortCollectionList(d))
+        .then(d => setCollectionsList(d));
   });
 
   const classStr = classNames( {systemPanel: 1, readerNavMenu: 1, noHeader: 1 });
@@ -57,11 +57,11 @@ function PublicGroupsPage({multiPanel, navHome}) {
             </a>
           </center> : null}
 
-          <div className="groupsList">
-            { !!groupsList ?
-                (groupsList.public.length ?
-                  groupsList.public.map(function(item) {
-                    return <GroupListing data={item} key={item.name} />
+          <div className="collectionsList">
+            { !!collectionsList ?
+                (collectionsList.public.length ?
+                  collectionsList.public.map(function(item) {
+                    return <CollectionListing data={item} key={item.name} />
                   })
                   : <IntText>There are no public collections yet.</IntText>)
                 : <LoadingMessage />
@@ -74,30 +74,30 @@ function PublicGroupsPage({multiPanel, navHome}) {
     </div>);
 
 }
-PublicGroupsPage.propTypes = {};
+PublicCollectionsPage.propTypes = {};
 
 
-function GroupListing({data, showMembership, small}) {
+function CollectionListing({data, showMembership, small}) {
   const imageUrl = data.imageUrl && !small ? data.imageUrl : "/static/img/collection.svg";
-  const imageClass = classNames({groupListingImage: 1, default: !data.imageUrl});
-  const groupUrl = "/collections/" + data.slug;
-  return (<div className="groupListing">
+  const imageClass = classNames({collectionListingImage: 1, default: !data.imageUrl});
+  const collectionUrl = "/collections/" + data.slug;
+  return (<div className="collectionListing">
             <div className="left-content">
               {!small ?
-              <a href={groupUrl}>
-                <div className="groupListingImageBox">
+              <a href={collectionUrl}>
+                <div className="collectionListingImageBox">
                   <img className={imageClass} src={imageUrl} alt="Collection Logo"/>
                 </div>
               </a>
               : null }
-              <div className="groupListingText">
+              <div className="collectionListingText">
                 
-                <a href={groupUrl} className="groupListingName">
+                <a href={collectionUrl} className="collectionListingName">
                   {small ? <img className={imageClass} src={imageUrl} alt="Collection Icon"/> : null}
                   {data.name}
                 </a>
                
-                <div className="groupListingDetails">
+                <div className="collectionListingDetails">
                   {data.listed ? null :
                     (<span className="unlisted">
                       <img src="/static/img/eye-slash.svg"/>
@@ -105,18 +105,18 @@ function GroupListing({data, showMembership, small}) {
                     </span>) }
 
                   {data.listed ? null :
-                  <span className="groupListingDetailSeparator">•</span> }
+                  <span className="collectionListingDetailSeparator">•</span> }
                   
-                  <span className="groupListingDetail groupListingSheetCount">
+                  <span className="collectionListingDetail collectionListingSheetCount">
                     <IntText>{`${data.sheetCount} `}</IntText>
                     <IntText>Sheets</IntText>
                   </span>
 
                   {data.memberCount > 1 && small ? 
-                  <span className="groupListingDetailSeparator">•</span> : null }
+                  <span className="collectionListingDetailSeparator">•</span> : null }
 
                   {data.memberCount > 1 && small ?
-                  <span className="groupListingDetail groupListingMemberCount">
+                  <span className="collectionListingDetail collectionListingMemberCount">
                     <IntText>{`${data.memberCount} `}</IntText>
                     <IntText>Editors</IntText>
                   </span> : null }
@@ -125,13 +125,13 @@ function GroupListing({data, showMembership, small}) {
             </div>
           </div>);
 }
-GroupListing.propTypes = {
+CollectionListing.propTypes = {
   data: PropTypes.object.isRequired,
   showMembership: PropTypes.bool,
 };
 
 
 export {
-  GroupListing,
-  PublicGroupsPage,
+  CollectionListing,
+  PublicCollectionsPage,
 };

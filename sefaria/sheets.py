@@ -23,7 +23,7 @@ from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
-from sefaria.model.group import Group, GroupSet
+from sefaria.model.collection import Collection, CollectionSet
 from sefaria.model.story import UserStory, UserStorySet
 from sefaria.model.topic import TopicSet, Topic, RefTopicLink, RefTopicLinkSet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
@@ -107,7 +107,7 @@ def get_sheet_for_panel(id=None):
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 	sheet["topics"] = add_langs_to_topics(sheet.get("topics", []))
 	if "displayedCollection" in sheet:
-		collection = Group().load({"slug": sheet["displayedCollection"]})
+		collection = Collection().load({"slug": sheet["displayedCollection"]})
 		if collection:
 			sheet["collectionImage"] = getattr(collection, "imageUrl", None)
 			sheet["collectionName"] = collection.name
@@ -205,7 +205,7 @@ def annotate_user_collections(sheets, user_id):
 	that `user_id` has put that sheet in.
 	"""
 	sheet_ids = [sheet["id"] for sheet in sheets]
-	user_collections = GroupSet({"sheets": {"$in": sheet_ids}})
+	user_collections = CollectionSet({"sheets": {"$in": sheet_ids}})
 	for sheet in sheets:
 		sheet["collections"] = []
 		for collection in user_collections:
@@ -222,7 +222,7 @@ def annotate_displayed_collections(sheets):
 	slugs = list(set([sheet["displayedCollection"] for sheet in sheets if sheet.get("displayedCollection", None)]))
 	if len(slugs) == 0:
 		return sheets
-	displayed_collections = GroupSet({"slug": {"$in": slugs}})
+	displayed_collections = CollectionSet({"slug": {"$in": slugs}})
 	for sheet in sheets:
 		if not sheet.get("displayedCollection", None):
 			continue
@@ -675,13 +675,13 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 	else:
 		query["status"] = "public"
 	if in_collection:
-		collections = GroupSet({"slug": {"$in": in_collection}})
+		collections = CollectionSet({"slug": {"$in": in_collection}})
 		sheets_list = [collection.sheets for collection in collections]
 		sheets_ids = [sheet for sublist in sheets_list for sheet in sublist]
 		query["id"] = {"$in": sheets_ids}
 	
 	sheetsObj = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "group":1, "options":1}).sort([["views", -1]])
+		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "displayedCollection":1, "options":1}).sort([["views", -1]])
 	sheetsObj.hint("expandedRefs_1")
 	sheets = [s for s in sheetsObj]
 	user_ids = list({s["owner"] for s in sheets})
@@ -719,9 +719,9 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 			sheet["viaOwnerName"] = viaOwnerData["name"]
 			sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
 
-		if "group" in sheet:
-			group = Group().load({"name": sheet["group"]})
-			sheet["groupTOC"]        = getattr(group, "toc", None)
+		if "displayedCollection" in sheet:
+			collection = Collection().load({"slug": sheet["displayedCollection"]})
+			sheet["collectionTOC"] = getattr(collection, "toc", None)
 		natural_date_created = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
 		topics = add_langs_to_topics(sheet.get("topics", []))
 		for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
@@ -736,7 +736,7 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 				"anchorRefExpanded": [r.normal() for r in anchor_ref_expanded],
 				"options": 		   sheet["options"],
 				"naturalDateCreated": natural_date_created,
-				"groupTOC":        sheet.get("groupTOC", None),
+				"collectionTOC":   sheet.get("collectionTOC", None),
 				"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
 				"via":			   sheet.get("via", None),
 				"viaOwnerName":	   sheet.get("viaOwnerName", None),
@@ -960,7 +960,7 @@ def public_tag_list(sort_by="alpha"):
 	return results
 
 
-def get_sheets_by_topic(topic, public=True, uid=None, group=None, proj=None, limit=0, page=0):
+def get_sheets_by_topic(topic, public=True, proj=None, limit=0, page=0):
 	"""
 	Returns all sheets tagged with 'topic'
 	"""
@@ -969,11 +969,7 @@ def get_sheets_by_topic(topic, public=True, uid=None, group=None, proj=None, lim
 	topic = AbstractMongoRecord.normalize_slug(topic)
 	query = {"topics.slug": topic} if topic else {"topics": {"$exists": 0}}
 
-	if uid:
-		query["owner"] = uid
-	elif group:
-		query["group"] = group
-	elif public:
+	if public:
 		query["status"] = "public"
 
 	sheets = db.sheets.find(query, proj).sort([["views", -1]]).limit(limit).skip(page * limit)
@@ -1100,6 +1096,8 @@ class Sheet(abstract.AbstractMongoRecord):
 		"group",
 		"displayedCollection",
 		"generatedBy",
+		"zoom",
+		"visualNodes",
 		"highlighterTags",
 		"summary",
         "reviewed",

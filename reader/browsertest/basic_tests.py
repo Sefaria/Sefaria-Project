@@ -13,7 +13,7 @@ from selenium.common.exceptions import WebDriverException
 
 import time  # import stand library below name collision in sefaria.model
 
-TEMPER = 10
+TEMPER = 20
 
 
 class ReaderSuite(TestSuite):
@@ -31,6 +31,9 @@ class ReaderSuite(TestSuite):
         #self.driver.delete_all_cookies()
         self.click_accept_cookies()
         #self.set_cookies_cookie()
+        
+    def teardown(self):
+        self.driver.close()
 
 
 class PageloadSuite(TestSuite):
@@ -48,23 +51,20 @@ class PageloadSuite(TestSuite):
         #self.driver.delete_all_cookies()
         self.click_accept_cookies()
         #self.set_cookies_cookie()
+        
+    def teardown(self):
+        self.driver.close()
 
 
 class DeepReaderSuite(TestSuite):
     #TODO: When do we run this?
     every_build = False
 
-'''
-class SheetSuite(TestSuite):
-    def setup(self):
-        pass
-'''
 
 class EditorSuite(TestSuite):
     """
     Tests that do editor things
     """
-
     every_build = False
     temp_sheet_id = None
 
@@ -82,7 +82,6 @@ class EditorSuite(TestSuite):
         self.driver.get(f'{self.base_url}/api/sheets/{self.temp_sheet_id}/delete')
         self.disable_new_editor()
         self.driver.close()
-
 
 
 class DeleteContentInEditor(AtomicTest):
@@ -366,7 +365,6 @@ class TextSettings(AtomicTest):
     every_build = True
 
     def body(self):
-
         larger = 21.6
         smaller = 18.7826
         just_text = 'בראשית ברא אלהים את השמים ואת הארץ'
@@ -574,50 +572,31 @@ class SideBarEntries(AtomicTest):
         assert self.is_sidebar_browse_title_displayed()
         assert self.is_sidebar_calendar_title_displayed()
 
-# Switch between Hebrew and English and sample a few of the objects to make sure the language has actually changed.
+
 class ChangeSiteLanguage(AtomicTest):
+    # Switch between Hebrew and English and sample a few of the objects to make sure 
+    # the language has actually changed.
     suite_class = ReaderSuite
     every_build = False
 
     def body(self):
         self.nav_to_toc()
         self.click_ivrit_link()
-        ivrit_title = self.get_sefaria_lib_title()
         if 'safari' in self.driver.name or "Safari" in self.driver.name:
             time.sleep(1)
-            assert self.driver.find_element_by_class_name('interface-hebrew') != None
-        else:
-            assert ivrit_title == 'האוסף של ספריא'
-            # assume you're not logged in
-            # assert self.get_login_link_text() == u'התחבר'
-            # assert self.get_signup_link_text() == u'הרשם'
-            assert self.get_what_is_sefaria_link_text() == 'מהי ספריא'
-            assert self.get_teach_with_sefaria_link_text() == 'למד באמצעות ספריא'
-            assert self.get_get_involved_link_text() == 'הצטרף אלינו'
-            assert self.get_donate_link_text() == 'תרומות'
-            assert self.get_facebook_link_text() == 'פייסבוק'
+        assert self.driver.find_element_by_class_name('interface-hebrew') != None
+        
         self.click_english_link()
-        english_title = self.get_sefaria_lib_title()
         if 'safari' in self.driver.name or "Safari" in self.driver.name:
             time.sleep(1)
-            assert self.driver.find_element_by_class_name('interface-english') != None
-        else:
-            assert english_title == 'The Sefaria Library'
-            # assume you're not logged in
-            # assert self.get_login_link_text() == u'Log in'
-            # assert self.get_signup_link_text() == u'Sign up'
-            assert self.get_what_is_sefaria_link_text() == 'What is Sefaria?'
-            assert self.get_teach_with_sefaria_link_text() == 'Teach with Sefaria'
-            assert self.get_get_involved_link_text() == 'Get Involved'
-            assert self.get_donate_link_text() == 'Donate'
-            assert self.get_facebook_link_text() == 'Facebook'
+        assert self.driver.find_element_by_class_name('interface-english') != None
 
 
-class CheckGraphs(AtomicTest):
+class LinkExplorer(AtomicTest):
+    # Make sure all Tanach books and Mashechtot are displayed, and sample some entries to check 
+    # that torah>nevi'im>ketuvim and the Sedarim are in the correct order
     suite_class = PageloadSuite
     every_build = False
-
-    # Make sure all Tanach books and Mashechtot are displayed, and sample some entries to check that torah>nevi'im>ketuvim and the Sedarim are in the correct order
     def body(self):
         self.driver.get(self.base_url + "/explore")
         #todo ^ add a wait there that is connected to content

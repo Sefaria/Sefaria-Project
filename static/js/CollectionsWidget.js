@@ -18,7 +18,7 @@ const CollectionsModal = (props) => {
 
 
 const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
-  const [collections, setCollections] = useState(Sefaria.getUserGroupsFromCache(Sefaria._uid));
+  const [collections, setCollections] = useState(Sefaria.getUserCollectionsFromCache(Sefaria._uid));
   const [collectionsSelected, setCollectionsSelected] = useState(Sefaria.getUserCollectionsForSheetFromCache(sheetID));
   const [dataLoaded, setDataLoaded] = useState(!!collections && !!collectionsSelected);
   const [newName, setNewName] = useState("");
@@ -29,11 +29,11 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
   useEffect(() => {
     if (!dataLoaded) {
       Promise.all([
-         Sefaria.getUserGroups(Sefaria._uid),
+         Sefaria.getUserCollections(Sefaria._uid),
          Sefaria.getUserCollectionsForSheet(sheetID)
       ])
      .then(() => {
-        setCollections(Sefaria.getUserGroupsFromCache(Sefaria._uid));
+        setCollections(Sefaria.getUserCollectionsFromCache(Sefaria._uid));
         setCollectionsSelected(Sefaria.getUserCollectionsForSheetFromCache(sheetID));
         setDataLoaded(true);
       });
@@ -59,14 +59,14 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
 
   const handleCollectionInclusionChange = (data) => {
     // When a sheet has been added or removed, update collections list data in cache
-    let newCollections = Sefaria.getUserGroupsFromCache(Sefaria._uid).filter(c => c.slug != data.collection.slug);
+    let newCollections = Sefaria.getUserCollectionsFromCache(Sefaria._uid).filter(c => c.slug != data.collection.slug);
     // Put the new collection first since it's just been modified
     newCollections = [data.collectionListing, ...newCollections];
     // Update in cache, but not in Component cache -- prevents the list from jumping around
     // while you're looking at it, but show this collection first next time you see the list.
-    Sefaria._userGroups[Sefaria._uid] = newCollections;
+    Sefaria._userCollections[Sefaria._uid] = newCollections;
     // Update cache for this collection's full listing, which has now changed
-    Sefaria._groups[data.collection.slug] = data.collection;
+    Sefaria._collections[data.collection.slug] = data.collection;
     // This sheet's `displayedCollection` field may have changed
     delete Sefaria.sheets._loadSheetByID[sheetID];
     setChanged(true);
@@ -76,14 +76,14 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
 
   const onCreateClick = () => {
     const collection = {name: newName};
-    $.post("/api/groups", {json: JSON.stringify(collection)}, (data) => {
+    $.post("/api/collections", {json: JSON.stringify(collection)}, (data) => {
       if ("error" in data) {
         alert(data.error);
         return;
       }
       setNewName("");
       const newCollections = [data.collection, ...collections];
-      Sefaria._userGroups[Sefaria._uid] = newCollections;
+      Sefaria._userCollections[Sefaria._uid] = newCollections;
       setCollections(newCollections);
       onCheckChange(data.collection, true);
       handleCollectionsChange && handleCollectionsChange();
