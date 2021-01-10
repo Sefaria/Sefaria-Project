@@ -2045,7 +2045,7 @@ class AddressTalmud(AddressType):
     def toNumber(self, lang, s):
         if lang == "en":
             try:
-                if s[-1] in ['ᵇ', 'b', 'B', "A", "a", 'ᵃ']:
+                if re.search(self.amud_patterns["en"]+"{1}$", s):
                     amud = s[-1]
                     daf = int(s[:-1])
                 else:
@@ -2059,7 +2059,7 @@ class AddressTalmud(AddressType):
                 raise InputError("{} exceeds max of {} dafs.".format(daf, self.length))
 
             indx = daf * 2
-            if amud == "a" or amud == "ᵃ":
+            if amud in ["A", "a", "ᵃ"]:
                 indx -= 1
             return indx
         elif lang == "he":
