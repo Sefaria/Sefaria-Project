@@ -1986,18 +1986,22 @@ class AddressTalmud(AddressType):
         "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
     }
-
+    amud_patterns = {
+        "en": "[ABabᵃᵇ]",
+        "he": '''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])'''
+    }
 
     @classmethod
     def parse_range_end(cls, ref, parts, base):
-        if len(parts) == 1:
+        if len(parts) == 1 and len(ref.sections) == 1:
             # check for Talmud ref without amud, such as Berakhot 2, we don't want "Berakhot 2a" but "Berakhot 2a-2b"
             # so change toSections if ref_lacks_amud
             #base_without_title = base.replace(title + " ", "")
             #reg_ex = cls._core_regex(cls, ref._lang)
-            ends_with_aleph = AddressTalmud.refHasAmud(base, "a", lang=ref._lang)
-            ends_with_bet = AddressTalmud.refHasAmud(base, "b", lang=ref._lang)
-            ref_lacks_amud = not ends_with_aleph and not ends_with_bet
+            if ref._lang == "he":
+                ref_lacks_amud = re.search(cls.amud_patterns["he"], base) is None
+            else:
+                ref_lacks_amud = re.search(cls.amud_patterns["en"]+"{1}$", base) is None
             if ref_lacks_amud:
                 ref.toSections[0] += 1
         elif len(parts) == 2:
@@ -2008,7 +2012,7 @@ class AddressTalmud(AddressType):
                 ref.toSections[0] = ref.sections[0] + 1
 
             # 'Shabbat 24b-25a'
-            elif regex.match(r"\d+[ABabᵃᵇ]", ref.toSections[0]):
+            elif regex.match(r"\d+{}".format(cls.amud_patterns["en"]), ref.toSections[0]):
                 ref.toSections[0] = daf_to_section(ref.toSections[0])
 
             # 'Shabbat 24b.12-24'
@@ -2026,9 +2030,10 @@ class AddressTalmud(AddressType):
             reg = r"("
 
         if lang == "en":
-            reg += r"\d+[ABabᵃᵇ]?)"
+            reg += r"\d+{}?)".format(self.amud_patterns["en"])
         elif lang == "he":
-            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
+            reg += self.hebrew_number_regex() + r'''{}?)'''.format(self.amud_patterns["he"])
+
 
         return reg
 
@@ -2040,7 +2045,7 @@ class AddressTalmud(AddressType):
     def toNumber(self, lang, s):
         if lang == "en":
             try:
-                if AddressTalmud.refHasAmud(s, 'a', 'en') or AddressTalmud.refHasAmud(s, 'b', 'en'):
+                if s[-1] in ['ᵇ', 'b', 'B', "A", "a", 'ᵃ']:
                     amud = s[-1]
                     daf = int(s[:-1])
                 else:
@@ -2060,40 +2065,18 @@ class AddressTalmud(AddressType):
         elif lang == "he":
             num = re.split("[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
-            if AddressTalmud.refHasAmud(s, "b", lang="he"):
-                return daf  # amud B
-            return daf - 1
-
-            #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
-
-
-    @staticmethod
-    def refHasAmud(s, amud="a", lang="en"):
-        if amud == "b":
-            if lang == "he":
-                return s[-1] == ":" or (
+            if s[-1] == ":" or (
                     s[-1] == "\u05d1"  # bet
                     and
                     ((len(s) > 2 and s[-2] in ", ")  # simple bet
                      or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"bet
                      or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''bet
                     )
-                    )
-            elif lang == "en":
-                return s[-1] in ['ᵇ', 'b', 'B']
-        elif amud == "a":
-            if lang == "he":
-                return s[-1] == "." or (
-                        s[-1] == "\u05d0"  # aleph
-                        and
-                        ((len(s) > 2 and s[-2] in ", ")  # simple aleph
-                         or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"aleph
-                         or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''aleph
-                         )
-                )
-            elif lang == "en":
-                return s[-1] in ["A", "a", 'ᵃ']
+                    ):
+                return daf  # amud B
+            return daf - 1
 
+            #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
 
 
     @classmethod
