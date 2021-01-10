@@ -1689,7 +1689,6 @@ class ReaderApp extends Component {
     });
   }
   openCollection(slug) {
-    console.log("Opening ", slug)
     this.setStateInHeaderOrSinglePanel({menuOpen: "collection",  collectionSlug: slug});
   }
   getHistoryObject(panel, hasSidebar) {

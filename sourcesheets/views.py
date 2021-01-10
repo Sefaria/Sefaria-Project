@@ -574,7 +574,7 @@ def collections_invite_api(request, slug, uid_or_email, uninvite=False):
             collection.add_member(user.id)
             from sefaria.model.notification import Notification
             notification = Notification({"uid": user.id})
-            notification.make_collection_add(adder_id=request.user.id, group_name=collection.name)
+            notification.make_collection_add(adder_id=request.user.id, collection_slug=collection.slug)
             notification.save()
             message = "Collection editor added."
         else:

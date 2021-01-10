@@ -722,6 +722,9 @@ input.noselect {
   font-size: 16px;
   line-height: 1.5;
 }
+.interface-hebrew .sefariaModalContent {
+  direction: rtl;
+}
 .sefariaModalContent a {
   color: white;
 }

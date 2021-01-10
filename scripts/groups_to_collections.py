@@ -9,7 +9,7 @@ from sefaria.system.database import db
 db.sheets.create_index("displayedCollection")
 
 # Add Sheet IDs to Collections
-groups = CollectionSet({})
+collections = CollectionSet({})
 for collection in collections:
 	print(collection.name)
 	collection.sheets = []
@@ -30,6 +30,7 @@ db.groups.create_index("slug", unique=True)
 
 db.sheets.update_many({"options.collaboration": "group-can-add"}, {"$set": {"options.collaboration": "none"}})
 db.sheets.update_many({"options.collaboration": "group-can-edit"}, {"$set": {"options.collaboration": "none"}})
+
 
 
 # Turn "publishers" into "members"

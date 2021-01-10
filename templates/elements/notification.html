@@ -65,9 +65,16 @@
         </div>
 
     {% elif notification.type == "group add" %}
+        <!-- for legacy data -->
         <div>
-            <span class="int-en">{{ notification.content.adder|user_link }} added you to the group {{ notification.content.group_name|group_link }}.</span>
-            <span class="int-he">{{ notification.content.adder|user_link }} הוסיף אותך לקבוצה {{ notification.content.group_name|group_link }}.</span>
+            <span class="int-en">{{ notification.content.adder|user_link }} added you to the collection {{ notification.content.group_name|group_link }}.</span>
+            <span class="int-he">{{ notification.content.adder|user_link }} הוסיף אותך לאסופה {{ notification.content.group_name|group_link }}.</span>
+        </div>
+
+    {% elif notification.type == "collection add" %}
+        <div>
+            <span class="int-en">{{ notification.content.adder|user_link }} added you to the collection {{ notification.content.collection_slug|collection_link }}.</span>
+            <span class="int-he">{{ notification.content.adder|user_link }} הוסיף אותך לאסופה {{ notification.content.collection_slug|collection_link }}.</span>
         </div>
 
 	{% elif notification.type == "discuss" %}

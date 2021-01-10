@@ -2464,7 +2464,6 @@ _media: {},
       "My Notes": "הרשומות שלי",
       "Updates": "טקסטים חדשים",
 
-
       //user stats
       "Torah Tracker" : "לימוד במספרים",
       "Year to Date": "בשנה הנוכחית",
@@ -2488,7 +2487,6 @@ _media: {},
       // Footer
       "Connect": "צרו קשר",
       "Site Language": "שפת האתר",
-
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
@@ -2512,24 +2510,27 @@ _media: {},
   _: function(inputStr){
     if (!inputStr.toLowerCase) debugger;
     if(Sefaria.interfaceLang != "english"){
-        var hterm;
-        if(inputStr in Sefaria._i18nInterfaceStrings) {
-            return Sefaria._i18nInterfaceStrings[inputStr];
-        }else if(inputStr.toLowerCase() in Sefaria._i18nInterfaceStrings){
-            return Sefaria._i18nInterfaceStrings[inputStr.toLowerCase()];
-        }else if((hterm = Sefaria.hebrewTerm(inputStr)) != inputStr){
-            return hterm;
-        }else{
-            if(inputStr.indexOf(" | ") !== -1) {
-                 var inputStrs = inputStr.split(" | ");
-                 return Sefaria._(inputStrs[0])+ " | " + Sefaria._(inputStrs[1]);
-            }else{
-                return inputStr;
-            }
+      var hterm;
+      if(inputStr in Sefaria._i18nInterfaceStrings) {
+        return Sefaria._i18nInterfaceStrings[inputStr];
+      
+      } else if (inputStr.toLowerCase() in Sefaria._i18nInterfaceStrings){
+        return Sefaria._i18nInterfaceStrings[inputStr.toLowerCase()];
+      
+      } else if ((hterm = Sefaria.hebrewTerm(inputStr)) != inputStr){
+        return hterm;
+      
+      } else {
+        if (inputStr.indexOf(" | ") !== -1) {
+          var inputStrs = inputStr.split(" | ");
+          return Sefaria._(inputStrs[0])+ " | " + Sefaria._(inputStrs[1]);
+        } else {
+          console.warn("Missing Hebrew translation for: " + inputStr);
+          return inputStr;
         }
-    }else{
-        //console.warn("Missing Hebrew translation for: " + inputStr);
-        return inputStr;
+      }
+    } else {
+      return inputStr;
 	  }
   },
   _cacheSiteInterfaceStrings: function() {
