@@ -6171,6 +6171,16 @@ a .button:hover {
   border-bottom: 1px solid #CCC;
   padding-bottom: 20px;
 }
+.collectionInvitationBoxInner {
+  display: flex;  
+}
+.interface-hebrew .collectionInvitationBox input::placeholder {
+  font-family: "Heebo", sans-serif;
+}
+.collectionInvitationBox .button {
+  width: 200px;
+  margin: 0;
+}
 .collectionSheetInner {
   display: flex;
 }
@@ -6196,15 +6206,18 @@ a .button:hover {
   outline: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   border: none;
-  margin-right: 10px;
+  margin-inline-end: 10px;
   font-size: 18px;
   position: relative;
-  top: 3px;
 }
 .collectionInvitationBoxMessage {
   font-size: 18px;
   padding: 12px 0 0;
   text-align: center;
+}
+.flexLineBreak {
+  width: 100%;
+  height: 0;
 }
 .collectionPage .collectionMemberListing {
   padding: 24px 0;

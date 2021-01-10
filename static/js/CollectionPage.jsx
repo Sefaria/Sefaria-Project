@@ -319,7 +319,7 @@ class CollectionPage extends Component {
               <img className="collectionSearchIcon" src="/static/icons/iconmonstr-magnifier-2.svg" onClick={this.handleSearchButtonClick} />
               <input
                 className="collectionSearchInput"
-                placeholder={Sefaria.interfaceLang == "hebrew" ? "חפש" : "Search"}
+                placeholder={Sefaria._("Search")}
                 onKeyUp={this.handleSearchKeyUp} />
           </div> : null}
 
@@ -404,7 +404,7 @@ class CollectionInvitationBox extends Component {
     this.setState({message: message});
     setTimeout(function() {
       this.setState({message: null});
-    }.bind(this), 3000);
+    }.bind(this), 5000);
   }
   inviteByEmail(email) {
     if (!this.validateEmail(email)) {
@@ -434,14 +434,16 @@ class CollectionInvitationBox extends Component {
   }
   render() {
     return (<div className="collectionInvitationBox">
+              <div className="collectionInvitationBoxInner">
                 <input id="collectionInvitationInput" placeholder={Sefaria._("Email Address")} />
                 <div className="button" onClick={this.onInviteClick}>
                   <IntText>Invite</IntText>
                 </div>
-                {this.state.message ?
-                  <div className="collectionInvitationBoxMessage">{this.state.message}</div>
-                  : null}
-              </div>);
+              </div>
+              {this.state.message ?
+                <div className="collectionInvitationBoxMessage"><IntText>{this.state.message}</IntText></div>
+                : null}
+            </div>);
   }
 }
 CollectionInvitationBox.propTypes = {
@@ -478,7 +480,7 @@ class CollectionMemberListing extends Component {
         </div>
 
         <div className="collectionMemberListingRoleBox">
-          <span className="collectionMemberListingRole">{this.props.member.role}</span>
+          <span className="collectionMemberListingRole"><IntText>{this.props.member.role}</IntText></span>
           {this.props.isAdmin || this.props.isSelf ?
             <CollectionMemberListingActions
               member={this.props.member}

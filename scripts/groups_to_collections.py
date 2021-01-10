@@ -22,6 +22,10 @@ for collection in collections:
 	
 	if collection.public_sheet_count() < 3:
 		collection.listed = False
+	
+	collection.members = collection.members + collection.publishers
+	collection.publishers = []
+
 	collection.save()
 
 
@@ -30,10 +34,6 @@ db.groups.create_index("slug", unique=True)
 
 db.sheets.update_many({"options.collaboration": "group-can-add"}, {"$set": {"options.collaboration": "none"}})
 db.sheets.update_many({"options.collaboration": "group-can-edit"}, {"$set": {"options.collaboration": "none"}})
-
-
-
-# Turn "publishers" into "members"
 
 
 ### Phase 2

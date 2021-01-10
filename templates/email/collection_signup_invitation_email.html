@@ -4,18 +4,19 @@
 <table cellpadding="0px" cellspacing="0" border="0" align="center" style="width:100%;font-size:16px">
 	<tr>
 	{% autoescape off %}
+		{% with register=registerUrl|absolute_url collection=collection_slug|collection_link|absolute_link %}
 		{% blocktrans %}
-		{{ inviter }} invited you to contribute to the collection "{{ groupName }}" on Sefaria.
+		{{ inviter }} invited you to contribute to the collection {{ collection }} on Sefaria.
 		{% endblocktrans %}
 
 		<br><br>
 
 		{% blocktrans %}
-		To accept this invitation, <a href="{{ registerUrl|absolute_url }}">create a free Sefaria account</a>.
+		To accept this invitation, <a href="{{ register }}">create a free Sefaria account</a>.
 		{% endblocktrans %}
 		
 		<br><br>
-
+		{% endwith %}
 	{% endautoescape %}
 	</tr>
 	<tr style="font-size:13px">

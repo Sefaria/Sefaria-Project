@@ -7,6 +7,7 @@ import re
 import secrets
 from datetime import datetime
 
+from django.utils import translation
 from django.utils.translation import ugettext as _
 
 from . import abstract as abst
@@ -34,7 +35,7 @@ class Collection(abst.AbstractMongoRecord):
         "slug",             # string of url slug
         "lastModified",     # Datetime of the last time this collection changed
         "slug",             # string slug for url
-        "publishers",       # list of uids TODO deprecate post collections launch
+        "publishers",       # list of uids TODO remove post collections launch
         "invitations",      # list of dictionaries representing outstanding invitations
         "description",      # string text of short description
         "websiteUrl",       # url of a website displayed on this collection
@@ -256,12 +257,17 @@ class Collection(abst.AbstractMongoRecord):
         from sefaria.model import UserProfile
 
         inviter       = UserProfile(id=inviter_id)
-        message_html  = render_to_string("email/collection_signup_invitation_email.html",
-                                        {
-                                            "inviter": inviter.full_name,
-                                            "collectionName": self.name,
-                                            "registerUrl": "/register?next=%s" % self.url
-                                        })
+        curr_lang     = translation.get_language()
+        try:
+            translation.activate(inviter.settings["interface_language"][0:2])
+            message_html  = render_to_string("email/collection_signup_invitation_email.html",
+                                            {
+                                                "inviter": inviter.full_name,
+                                                "collection_slug": self.slug,
+                                                "registerUrl": "/register?next=%s" % self.url
+                                            })
+        finally:
+            translation.activate(curr_lang)
         subject       = _("%(name)s invited you to a collection on Sefaria") % {'name': inviter.full_name}
         from_email    = "Sefaria <hello@sefaria.org>"
         to            = email
