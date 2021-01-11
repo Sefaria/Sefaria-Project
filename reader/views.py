@@ -3740,6 +3740,8 @@ def home(request):
     if (recent or last_place or request.user.is_authenticated) and "home" not in request.GET:
         return redirect("/texts")
 
+    props = base_props(request)
+    propsJSON = json.dumps(props, ensure_ascii=False)
     calendar_items = get_keyed_calendar_items(request.diaspora)
     daf_today = calendar_items["Daf Yomi"]
     parasha   = calendar_items["Parashat Hashavua"]
@@ -3747,6 +3749,7 @@ def home(request):
 
     return render(request,'static/home.html',
                              {
+                              "propsJSON": propsJSON,
                               "metrics": metrics,
                               "daf_today": daf_today,
                               "parasha": parasha,
