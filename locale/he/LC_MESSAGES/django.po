@@ -267,6 +267,7 @@ msgid ""
 "A public collection with this name already exists. Please choose a different "
 "name before publishing."
 msgstr ""
+"כבר קיימת אסופה ציבורית בשם זה. יש לבחור שם אחר לאסופה כדי לפרסמה."
 
 #: sefaria/model/collection.py:106
 msgid ""
