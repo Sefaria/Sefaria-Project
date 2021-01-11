@@ -2030,7 +2030,8 @@ class AddressTalmud(AddressType):
             reg = r"("
 
         if lang == "en":
-            reg += r"\d+{}?)".format(self.amud_patterns["en"])
+            reg += r"\d*" if group_id == "ar0" else r"\d+"
+            reg += r"{}?)".format(self.amud_patterns["en"])
         elif lang == "he":
             reg += self.hebrew_number_regex() + r'''{}?)'''.format(self.amud_patterns["he"])
 
@@ -2042,12 +2043,12 @@ class AddressTalmud(AddressType):
             return True
         return False
 
-    def toNumber(self, lang, s):
+    def toNumber(self, lang, s, **kwargs):
         if lang == "en":
             try:
                 if re.search(self.amud_patterns["en"]+"{1}$", s):
                     amud = s[-1]
-                    daf = int(s[:-1])
+                    daf = kwargs['sections'] if s == 'b' else int(s[:-1])
                 else:
                     amud = "a"
                     daf = int(s)
@@ -2147,7 +2148,7 @@ class AddressFolio(AddressType):
             return True
         return False
 
-    def toNumber(self, lang, s):
+    def toNumber(self, lang, s, **kwargs):
         if lang == "en":
             try:
                 if s[-1] in ["a", "b", "c", "d", 'ᵃ', 'ᵇ', 'ᶜ', 'ᵈ']:
@@ -2251,7 +2252,7 @@ class AddressInteger(AddressType):
 
         return reg
 
-    def toNumber(self, lang, s):
+    def toNumber(self, lang, s, **kwargs):
         if lang == "en":
             return int(s)
         elif lang == "he":
