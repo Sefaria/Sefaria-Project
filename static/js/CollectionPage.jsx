@@ -1,5 +1,8 @@
 import {
   CategoryColorLine,
+  DropdownModal,
+  DropdownButton,
+  DropdownOptionList,
   InterfaceTextWithFallback,
   LanguageToggleButton,
   LoadingMessage,
@@ -30,6 +33,7 @@ class CollectionPage extends Component {
       showTopics: collectionData && !!collectionData.showTagsByDefault && !props.tag,
       sheetFilterTopic: props.tag,
       sheetSort: sheetSort,
+      displaySort: false,
       tab: "sheets",
       collectionData: collectionData,
     };
@@ -150,10 +154,10 @@ class CollectionPage extends Component {
       this.setSheetTag(topic);
     }
   }
-  changeSheetSort(event) {
+  changeSheetSort(value) {
     let collectionData = this.state.collectionData;
-    this.sortSheetData(collectionData, event.target.value);
-    this.setState({collectionData, sheetSort: event.target.value});
+    this.sortSheetData(collectionData, value);
+    this.setState({collectionData, sheetSort: value, displaySort: false});
   }
   searchCollection(query) {
     this.props.searchInCollection(query, this.state.collectionData.name);
@@ -297,20 +301,20 @@ class CollectionPage extends Component {
                </span>
                : <div /> }
 
-                  <span className="int-en actionText">Sort By:
-                    <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
-                     <option value="date">Recent</option>
-                     <option value="alphabetical">Alphabetical</option>
-                     <option value="views">Most Viewed</option>
-                   </select>
-                  </span>
-                  <span className="int-he actionText">סנן לפי:
-                    <select value={this.state.sheetSort} onChange={this.changeSheetSort}>
-                     <option value="date">הכי חדש</option>
-                     <option value="alphabetical">אלפביתי</option>
-                     <option value="views">הכי נצפה</option>
-                   </select>
-                  </span>
+              <DropdownModal close={()=>this.setState({displaySort: false})} isOpen={this.state.displaySort}>
+                <DropdownButton
+                  isOpen={this.state.displaySort}
+                  toggle={()=>this.setState({displaySort: !this.state.displaySort})}
+                  enText={"Sort"}
+                  heText={"מיון"}
+                />
+                <DropdownOptionList
+                  isOpen={this.state.displaySort}
+                  options={[{type: "date", name: "Recent", heName: "הכי חדש"}, {type: "alphabetical", name:"Alphabetical", heName: "אלפביתי"}, {type: "views", name:"Most Viewed", heName: "הכי נצפה"}]}
+                  currOptionSelected={this.state.sheetSort}
+                  handleClick={this.changeSheetSort}
+                />
+              </DropdownModal>
             </div>
             : null }
 
@@ -538,6 +542,18 @@ class CollectionMemberListingActions extends Component {
       menuOpen: false,
       invitationResent: false
     };
+  }
+  componentDidMount() {
+    document.addEventListener('mousedown', this.handleClickOutside, false);
+  }
+  componentWillUnmount() {
+    document.removeEventListener('mousedown', this.handleClickOutside, false);
+  }
+  handleClickOutside(event) {
+    const domNode = ReactDOM.findDOMNode(this);
+    if (((!domNode || !domNode.contains(event.target))) && this.state.menuOpen) {
+      this.setState({menuOpen: false});
+    }
   }
   toggleMenu() {
     this.setState({menuOpen: !this.state.menuOpen});

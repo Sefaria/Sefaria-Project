@@ -1,4 +1,4 @@
-body {
+dr {
   padding: 0;
   margin: 0;
   -webkit-text-size-adjust: 100%;
@@ -2971,6 +2971,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     border-radius: 7px;
     border: 1px solid #ccc;
 }
+.dropdown-option-list-label span {
+  white-space: nowrap;
+}
 .interface-english .dropdown-option-list {
   right: 0;
 }
@@ -4629,7 +4632,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sheet .sheetRight img {
   display: none;
   opacity: 0.4;
-  padding: 0 4px;
+  padding: 0 5px;
   width: 22px;
   height: 22px;
   margin: 0;
@@ -5710,8 +5713,7 @@ a .button:hover {
   text-decoration: none;
 }
 .button.small {
-  padding: 6px 12px;
-  margin: 6px 12px;
+  padding: 10px 14px;
 }
 .button.extraSmall {
   border-radius: 6px;
@@ -5952,7 +5954,8 @@ a .button:hover {
 }
 .filterByTag {
   cursor: pointer;
-  text-transform: none
+  text-transform: none;
+  font-size: 18px;
 }
 .sheet.userSheet .sheetEditButtons {
   font-size: 24px;

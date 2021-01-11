@@ -485,7 +485,7 @@ class DropdownOptionList extends Component {
                     <td>
                       <img className="dropdown-option-check" src="/static/img/check-mark.svg" alt={`${option.name} sort selected`}/>
                     </td>
-                    <td>
+                    <td className="dropdown-option-list-label">
                       <span className="int-en">{option.name}</span>
                       <span className="int-he" dir="rtl">{option.heName}</span>
                     </td>
@@ -529,6 +529,7 @@ DropdownButton.propTypes = {
   heText: PropTypes.string.isRequired,
 }
 
+
 class DropdownModal extends Component {
   componentDidMount() {
     document.addEventListener('mousedown', this.handleClickOutside, false);
@@ -555,6 +556,7 @@ DropdownModal.propTypes = {
   isOpen:  PropTypes.bool.isRequired,
   positionUnset: PropTypes.bool,  // for search filters
 };
+
 
 class Link extends Component {
   handleClick(e) {

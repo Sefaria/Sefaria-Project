@@ -135,10 +135,10 @@ class EditCollectionPage extends Component {
             <IntText>{title}</IntText>
           </h1>
           <div className="end">
-              <a className="button transparent control-elem" href={this.props.initialData ? "/collections/" + this.state.slug : "/my/profile"}>
+              <a className="button small transparent control-elem" href={this.props.initialData ? "/collections/" + this.state.slug : "/my/profile"}>
                   <IntText>Cancel</IntText>
               </a>
-              <div id="saveCollection" className="button blue control-elem" onClick={this.save}>
+              <div id="saveCollection" className="button small blue control-elem" onClick={this.save}>
                   <IntText>Save</IntText>
               </div>
           </div>
