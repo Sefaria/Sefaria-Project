@@ -166,6 +166,7 @@ $(function() {
             $("#inlineTextPreview").hide();
             $("#inlineAddDialogTitle").text("Select a text");
             $("#inlineAddSourceOK").addClass("disabled");
+            $(".ui-autocomplete").hide();
             $("#sheet").click();
         });
 		Sefaria.track.sheets("Add Source", ref);
