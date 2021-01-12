@@ -2335,7 +2335,7 @@ _media: {},
       // Collections
       // Edit collection page
       "Collections": "אסופות",
-      "Sefaria Collections": "האסופות של ספריא",
+      "Sefaria Collections": "אסופות של ספריא",
       "Edit Collection": "עריכת אסופה",
       "Create a Collection": "יצירת אסופה",
       "Create a New Collection": "יצירת אסופה חדשה",
@@ -2371,8 +2371,8 @@ _media: {},
       "Leave Collection": "עזיבת האסופה",
       "Invite": "שליחת הזמנה",
       "Inviting...": "שולח...",
-      "Invitation Sent": "ההזמנות נשלחו",
-      "Invited": "Invited", // TODO Hebrew
+      "Invitation Sent": "נשלח",
+      "Invited": "הוזמן",
       "Resend Invitation": "שליחת הזמנה חוזרת",
       "Invitation Resent": "ההזמנה החוזרת נשלחה",
       "There was an error sending your invitation.": "אירעה שגיאה בשליחת ההזמנה שלך.",
@@ -2381,7 +2381,7 @@ _media: {},
       "Are you sure you want to leave this collection?": "האם ברצונך לעזוב את האסופה?",
       "Are you sure you want to remove this person from this collection?": "האם ברצונך להסיר משתמש זה מן האסופה?",
       "Are you sure you want to remove this invitation?": "האם ברצונך למחוק הזמנה זו?",
-      "There was an error pinning your sheet.": "TODO Hebrew",
+      "There was an error pinning your sheet.": "אירעה שגיאה בצירוף דף המקורות.",
       // Public Collections Page
       "There are no public collections yet.": "טרם נוצרו אסופות ציבוריות",
       // Collects in Profile
@@ -2390,8 +2390,7 @@ _media: {},
       "Create new collection": "יצירת אסופה חדשה",
       "Create": "יצירת",
       "Done": "בוצע",
-      "Add to Collection": "Add to Collection", // TODO Hebrew
-
+      "Add to Collection": "צירוף לאסופה",
 
       //languages
       "English": "אנגלית",
