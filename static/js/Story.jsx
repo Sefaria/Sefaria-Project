@@ -2,7 +2,7 @@ import React  from 'react';
 import Sefaria  from './sefaria/sefaria';
 import PropTypes  from 'prop-types';
 import {
-    TwoBox,
+    NBox,
     BlockLink,
     SaveButton,
     SimpleInterfaceBlock,
@@ -397,7 +397,7 @@ const TopicListStory = (props) => (
         <StoryTypeBlock en={props.data.lead.en} he={props.data.lead.he}/>
         <SeeAllLink url="/topics"/>
         <StoryTitleBlock en={props.data.title.en} he={props.data.title.he}/>
-        <TwoBox content={props.data.topics.map(topic =>
+        <NBox n={2} content={props.data.topics.map(topic =>
             <BlockLink title={topic.en} heTitle={topic.he} target={"/topics/" + (topic.slug || topic.en)} interfaceLink={true}/>
         )}/>
     </StoryFrame>

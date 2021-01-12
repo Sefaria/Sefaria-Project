@@ -1633,8 +1633,6 @@ input.resourcesLink {
 .readerNavCategories {
   width: 100%;
 }
-.readerNavCategories .threeBox td {
-}
 .readerNavCategories a {
   color: #000;
 }
@@ -1650,7 +1648,6 @@ input.resourcesLink {
   border-top: 4px solid transparent;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   letter-spacing: 1px;
-  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;;
@@ -1730,29 +1727,23 @@ a.readerNavCategory {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.gridBox {
-  table-layout: fixed;
-}
-.gridBox td {
-  border: 3px solid transparent;
-}
-.english .gridBox td:first-child {
+.english .gridBox .gridBoxItem:first-child {
   border-left: 0;
 }
-.english .gridBox td:last-child {
+.english .gridBox .gridBoxItem:last-child {
   border-right: 0;
 }
-.hebrew .gridBox td:first-child {
+.hebrew .gridBox .gridBoxItem:first-child {
   border-right: 0;
 }
-.hebrew .gridBox td:last-child {
+.hebrew .gridBox .gridBoxItem:last-child {
   border-left: 0;
 }
-.hebrew .readerTocResources .gridBox td:first-child {
+.hebrew .readerTocResources .gridBox .gridBoxItem:first-child {
   border-left: 0;
   border-right: 3px solid rgba(0,0,0,0);
 }
-.hebrew .readerTocResources .gridBox td:last-child {
+.hebrew .readerTocResources .gridBox .gridBoxItem:last-child {
   border-left: 3px solid rgba(0,0,0,0);
   border-right: 0;
 }
@@ -1906,11 +1897,11 @@ a.readerNavCategory {
 .interface-hebrew .readerPanel.english .readerNavMenu.noLangToggleInHebrew .gridBox {
   direction: rtl;
 }
-.interface-hebrew .english .noLangToggleInHebrew .gridBox td:first-child {
+.interface-hebrew .english .noLangToggleInHebrew .gridBox .gridBoxItem:first-child {
   border-right: 0;
   border-left: 3px solid transparent;
 }
-.interface-hebrew .english .noLangToggleInHebrew .gridBox td:last-child {
+.interface-hebrew .english .noLangToggleInHebrew .gridBox .gridBoxItem:last-child {
   border-left: 0;
   border-right: 3px solid transparent;
 }
@@ -4305,32 +4296,34 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .gridBox {
   width: 100%;
-  border-spacing: 0;
   background-color: transparent;
 }
-.gridBox table {
-  width: 100%;
-  border-style: hidden;
-  border-collapse: collapse;
+.gridBox .gridBoxRow {
+  display: flex;
+  justify-content: space-between;
 }
-.gridBox tr {
-  height: 1px; /* hack to get td contents to 100% height */
-}
-.gridBox td {
-  height: inherit;
+.gridBox .gridBoxItem {
   padding: 0;
+  flex: 1;
+  border: 3px solid transparent;
+  overflow: hidden;
+  padding: 5px; /* HACK: overflow hidden will hide any box shadow beneath (b/c overflow cuts off at padding-box) can get around this by increasing padding-box and decreasing margin-box. see here https://stackoverflow.com/questions/33949013/css-overflow-hidden-cuts-shadow*/
+  margin: -5px;
+}
+.gridBox .gridBoxItem.placeholder {
+  visibility: hidden;
+}
+.gridBox .gridBoxItem:first-child {
+  border-left: 0;
+}
+.gridBox .gridBoxItem:last-child {
+  border-right: 0;
 }
 @media (max-width: 450px) {
-  .gridBox td {
+  .gridBox .gridBoxItem {
     border: solid transparent;
     border-width: 2px 4px;
   }
-}
-.twoBox td {
-  width: 50%;
-}
-.threeBox td {
-  width: 33.333333%;
 }
 .dark .filterSet td {
   border-color: #555;

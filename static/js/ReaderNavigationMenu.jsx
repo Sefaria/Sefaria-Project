@@ -7,7 +7,7 @@ import {
   ReaderNavigationMenuSection,
   TextBlockLink,
   TwoOrThreeBox,
-  TwoBox,
+  NBox,
   LanguageToggleButton,
 } from './Misc';
 //const React                        = require('react');
@@ -182,7 +182,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
     resources = resources.filter(r => torahSpecificResources.indexOf(r.props.href) == -1);
   }
-  resources = (<div className="readerTocResources"><TwoBox content={resources} width={width} /></div>);
+  resources = (<div className="readerTocResources"><NBox n={2} content={resources} width={width} /></div>);
 
 
   const topContent = hideNavHeader ? null : (
@@ -201,14 +201,14 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
       <TocLink en="Saved" he="שמורים" href="/texts/saved" resourcesLink={true} img="/static/img/star.png" alt="saved text icon"/>,
       <TocLink en="History" he="היסטוריה" href="/texts/history" resourcesLink={true} img="/static/img/clock.png" alt="history icon"/>
   ];
-  topUserData = (<div className="readerTocResources userDataButtons"><TwoBox content={topUserData} width={width} /></div>);
+  topUserData = (<div className="readerTocResources userDataButtons"><NBox n={2} content={topUserData} width={width} /></div>);
 
   let donation  = [
       <TocLink en="Make a Donation" he="תרומות" resourcesLink={true} classes="donationLink" img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/supportsefaria"/>,
       <TocLink en="Sponsor a day" he="תנו חסות ליום לימוד" resourcesLink={true} classes="donationLink" img="/static/img/calendar.svg" alt="donation icon" href="https://sefaria.nationbuilder.com/sponsor"/>,
   ];
 
-  donation = (<div className="readerTocResources"><TwoBox content={donation} width={width} /></div>);
+  donation = (<div className="readerTocResources"><NBox n={2} content={donation} width={width} /></div>);
 
 
   let topicBlocks = Sefaria.topicTocPage().map((t,i) => {
