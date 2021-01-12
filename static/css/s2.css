@@ -1579,6 +1579,7 @@ input.resourcesLink {
   justify-content: space-between;
   padding: 0;
   border: 0;
+  flex-direction: row;
 }
 .readerPanel .recentPanel .sideColorLeft {
   max-width: 85%;
@@ -1836,6 +1837,11 @@ a.readerNavCategory {
   cursor: pointer;
   text-align: center;
   unicode-bidi: plaintext;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: inherit;
+  flex-direction: column;
 }
 .readerNavCategoryMenu .blockLink,
 .gridBox .navButton {
