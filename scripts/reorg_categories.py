@@ -3,13 +3,17 @@ import django
 
 django.setup()
 from sefaria.model import *
-
+from sefaria.system.exceptions import BookNameError
 
 # root = library.get_toc_tree().get_root()
 
 def moveIndexInto(index, cat):
     if not isinstance(index, Index):
-        index = library.get_index(index)
+        try:
+            index = library.get_index(index)
+        except BookNameError:
+            print("Can not find: {}".format(index))
+            return
     if not isinstance(cat, Category):
         cat = Category().load({"path": cat})
 
@@ -642,6 +646,7 @@ for t in [
     "Tiferet Shlomo",
     "Yakar MiPaz",
     "Yismach Moshe",
+    "Mareh Yechezkel on Torah"
 ]:
     moveIndexInto(t, c)
 
@@ -851,6 +856,7 @@ moveIndexInto("JPS 1985 Footnotes", ["Tanakh", "Commentary"])
 moveIndexInto("Footnotes on Orot", ["Jewish Thought"])
 moveIndexInto("Footnotes on Mekhilta DeRabbi Shimon Bar Yochai", ["Midrash", "Halachic Midrash"])
 moveIndexInto("Buber footnotes on Midrash Mishlei", ["Midrash", "Aggadic Midrash"])
+moveIndexInto("Notes and Corrections on Midrash Aggadah", ["Midrash", "Aggadic Midrash"])
 for t in ["Footnotes and Annotations on Be'er HaGolah",
     "Footnotes and Annotations on Ohr Chadash",
     "Footnotes and Annotations on Ner Mitzvah",
@@ -1113,6 +1119,7 @@ ah = ['Haflaah on Ketubot',
       'Penei Yehoshua',
       'Petach Einayim',
       'Shita Mekubetzet',
+      'Rashash'
 ]
 
 co = ['Beur Reuven on Bava Kamma',
@@ -1180,6 +1187,7 @@ for p in [
     ["Tanaitic", "Commentary"],
     ["Responsa", "Commentary", "Footnotes", "Rashba"],
     ["Jewish Thought", "Commentary", "Footnotes"],
+    ["Midrash", "Commentary", "Footnotes", "Halachic Midrash"],
     ["Midrash", "Commentary", "Buber footnotes", "Aggadic Midrash"],  # Merely hidden
     ["Midrash", "Commentary", "Gra", "Aggadic Midrash"],  # empty
     ["Midrash", "Commentary", "Meir Ayin", "Aggadic Midrash"],  # empty
@@ -1219,13 +1227,14 @@ for p in [
     ["Modern Works"],
     ["Tanaitic"],
     ["Responsa", "Commentary", "Footnotes"],
-    ["Midrash", "Commentary", "Footnotes", "Halachic Midrash"],
+    ["Midrash", "Commentary", "Footnotes"],
     ["Tanakh", "Commentary", "JPS"],
     ["Tanakh", "Commentary", "Bartenura"],
     ["Midrash", "Commentary", "Buber footnotes"],
-    ["Midrash", "Commentary", "Gra"],  # empty
-    ["Midrash", "Commentary", "Meir Ayin"],  # empty
-    ["Midrash", "Commentary", "Yaakov Emden"],  # empty
+    ["Midrash", "Commentary", "Gra"],
+    ["Midrash", "Commentary", "Meir Ayin"],
+    ["Midrash", "Commentary", "Yaakov Emden"],
+    ["Midrash", "Commentary", "Notes and Corrections on Midrash Aggadah"],
     ["Tanakh", "Commentary", "Riva"],
     ["Chasidut", "Commentary"],
     ["Mishnah", "Commentary", "Motar Kinnim"],
@@ -1244,12 +1253,13 @@ for p in [
 
 library.rebuild(include_toc=True)
 for p in [
-    ["Midrash", "Commentary", "Footnotes"],
     ["Halakhah", "Commentary", "Kessef Mishneh"],
     ["Responsa", "Commentary"],
     ["Tanakh", "Commentary"],
     ["Talmud", "Bavli", "Commentary"],
-    ["Mishnah", "Commentary"]
+    ["Mishnah", "Commentary"],
+    ["Midrash", "Commentary"],
+
 ]:
     c = Category().load({"path": p})
     if c:
