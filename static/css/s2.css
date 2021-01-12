@@ -1652,6 +1652,7 @@ input.resourcesLink {
   align-items: center;
   justify-content: center;;
   line-height: 1.3;
+  flex: 1;
 }
 a.readerNavCategory {
   color: #000;
@@ -4309,15 +4310,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   overflow: hidden;
   padding: 5px; /* HACK: overflow hidden will hide any box shadow beneath (b/c overflow cuts off at padding-box) can get around this by increasing padding-box and decreasing margin-box. see here https://stackoverflow.com/questions/33949013/css-overflow-hidden-cuts-shadow*/
   margin: -5px;
+  display: flex;
 }
 .gridBox .gridBoxItem.placeholder {
   visibility: hidden;
-}
-.gridBox .gridBoxItem:first-child {
-  border-left: 0;
-}
-.gridBox .gridBoxItem:last-child {
-  border-right: 0;
 }
 @media (max-width: 450px) {
   .gridBox .gridBoxItem {
