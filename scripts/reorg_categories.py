@@ -120,23 +120,6 @@ i.nodes.add_title("ספר הזהר", "he", True, True)
 i.save(override_dependencies=True)
 
 moveIndexInto("Seder Olam Zutta", ["Midrash", "Aggadic Midrash"])
-
-'''
-adrn = create_category(["Midrash", "Aggadic Midrash", "Avot D'Rabbi Natan"], "Avot D'Rabbi Natan", "אבות דרבי נתן")
-moveIndexInto("Avot D'Rabbi Natan", adrn)
-
-adrn_com = create_category(["Midrash", "Aggadic Midrash", "Avot D'Rabbi Natan", "Commentary"])
-for comm in ["Binyan Yehoshua on Avot D'Rabbi Natan",
-              "Gra's Nuschah on Avot D'Rabbi Natan",
-              "Haggahot R' Yeshaya Berlin on Avot D'Rabbi Natan",
-              "Haggahot Ya'avetz on Avot D'Rabbi Natan",
-              "Kisse Rahamim on Avot D'Rabbi Natan",
-              "Mitzpeh Etan on Avot D'Rabbi Natan",
-              "Rishon Letzion on Avot D'Rabbi Natan",
-              "Tumat Yesharim on Avot D'Rabbi Natan"]:
-    moveIndexInto(comm, adrn_com)
-'''
-
 sor = create_category(["Midrash", "Aggadic Midrash", "Seder Olam Rabbah"], "Seder Olam Rabbah", "סדר עולם רבה")
 moveIndexInto("Seder Olam Rabbah", sor)
 
@@ -146,23 +129,11 @@ for comm in ["Vilna_Gaon_on_Seder_Olam_Rabbah",
              "Yaakov Emden on Seder Olam Rabbah"]:
     moveIndexInto(comm, sor_com)
 
-'''
-library.rebuild(include_toc=True)
-# remove empty categories that had been just ADRN
-paths = [
-    ["Tanaitic", "Commentary", "Binyan Yehoshua", "Minor Tractates"],
-    ["Tanaitic", "Commentary", "Mitzpeh Etan", "Minor Tractates"],
-    ["Tanaitic", "Commentary", "Tumat Yesharim", "Minor Tractates"],
-]
-for p in paths:
-    c = Category().load({"path": p})
-    c.delete(override_dependencies=True)
+for n, o in [("Esther Rabbah", 10), ("Eichah Rabbah", 8)]:
+    i = library.get_index(n)
+    i.order = [o]
+    i.save(override_dependencies=True)
 
-library.rebuild(include_toc=True)
-for p in paths:
-    c = Category().load({"path": p[:-1]})
-    c.delete(override_dependencies=True)
-'''
 
 ### The rest of the minor tractates -> Talmud/Bavli
 c = Category().load({'path': ["Tanaitic", "Minor Tractates"]})
