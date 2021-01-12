@@ -4311,6 +4311,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 5px; /* HACK: overflow hidden will hide any box shadow beneath (b/c overflow cuts off at padding-box) can get around this by increasing padding-box and decreasing margin-box. see here https://stackoverflow.com/questions/33949013/css-overflow-hidden-cuts-shadow*/
   margin: -5px;
   display: flex;
+  flex-direction: column;
 }
 .gridBox .gridBoxItem.placeholder {
   visibility: hidden;
