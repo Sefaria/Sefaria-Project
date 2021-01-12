@@ -8,7 +8,7 @@ import {
     SimpleLinkedBlock,
     SimpleInterfaceBlock,
     TextBlockLink,
-    ThreeBox,
+    NBox,
     LoadingRing
 } from './Misc';
 
@@ -188,7 +188,7 @@ const YourFavoriteTextsBlock = ({user_data}) => (
                 <span className="int-en">Your Favorite Texts</span>
                 <span className="int-he">טקסטים מועדפים</span>
             </h2>
-            <ThreeBox content={user_data.mostViewedRefs.map((r,i) =>
+            <NBox n={3} content={user_data.mostViewedRefs.map((r,i) =>
                 <TextBlockLink key={i} sref={r.en} title={r.en} heTitle={r.he} book={r.book} intlang={true}/>)}/>
         </div>
     : null

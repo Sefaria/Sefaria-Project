@@ -5,7 +5,6 @@ import {
   CategoryAttribution,
   CategoryColorLine,
   LoadingMessage,
-  TwoBox,
   LoginPrompt,
 } from './Misc';
 import React  from 'react';
