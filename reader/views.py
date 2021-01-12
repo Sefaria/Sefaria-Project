@@ -3325,6 +3325,7 @@ def user_profile(request, username):
     if not requested_profile.user.is_active:
         raise Http404('Profile is inactive.')
     props = base_props(request)
+    tab = request.GET.get("tab", "sheets")
     if request.user.is_authenticated:
         props.update({
             "following": UserProfile(user_obj=request.user).followees.uids,
@@ -3336,6 +3337,7 @@ def user_profile(request, username):
     profileJSON = requested_profile.to_api_dict()
     props.update({
         "initialMenu":  "profile",
+        "initialProfileTab": tab,
         "initialProfile": profileJSON,
     })
     title = "%(full_name)s on Sefaria" % {"full_name": requested_profile.full_name}

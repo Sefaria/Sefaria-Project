@@ -88,6 +88,7 @@ class ReaderApp extends Component {
           navigationTopicTitle: props.initialNavigationTopicTitle,
           topicTitle: props.initialTopicTitle,
           profile: props.initialProfile,
+          profileTab: props.initialProfileTab,
           collectionName: props.initialCollectionName,
           collectionSlug: props.initialCollectionSlug,
           collectionTag: props.initialCollectionTag,
@@ -134,6 +135,7 @@ class ReaderApp extends Component {
           navigationTopicTitle: props.initialNavigationTopicTitle,
           topicTitle: props.initialTopicTitle,
           profile: props.initialProfile,
+          profileTab: props.initialProfileTab,
           collectionName: props.initialCollectionName,
           collectionSlug: props.initialCollectionSlug,
           collectionTag: props.initialCollectionTag,
@@ -173,7 +175,8 @@ class ReaderApp extends Component {
         navigationTopic: props.initialTopic,
         navigationTopicTitle: props.initialNavigationTopicTitle,
         topicTitle: props.initialTopicTitle,
-        profile: props.initialProfile,
+        profile: props.initialProfile || "sheets",
+        profileTab: props.initialProfileTab,
         collectionName: props.initialCollectionName,
         collectionSlug: props.initialCollectionSlug,
         collectionTag: props.initialCollectionTag,
@@ -439,6 +442,7 @@ class ReaderApp extends Component {
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
           (prev.topicsTab != next.topicsTab) ||
+          (prev.profileTab !== next.profileTab) ||
           (prev.collectionName !== next.collectionName) ||
           (prev.collectionTag !== next.collectionTag) ||
           (prev.showMoreTexts !== next.showMoreTexts) ||
@@ -569,7 +573,7 @@ class ReaderApp extends Component {
             break;
           case "profile":
             hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
-            hist.url   = `profile/${state.profile.slug}`;
+            hist.url   = `profile/${state.profile.slug}?tab=${state.profileTab}`;
             hist.mode = "profile";
             break;
           case "notifications":
@@ -897,6 +901,8 @@ class ReaderApp extends Component {
       selectedNamedEntityText: state.selectedNamedEntityText || null,
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
+      profileTab:              state.profileTab              || "sheets",
+
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -1685,7 +1691,7 @@ class ReaderApp extends Component {
   }
   openProfile(slug) {
     Sefaria.profileAPI(slug).then(profile => {
-      this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile });
+      this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile, profileTab: "sheets" });
     });
   }
   openCollection(slug) {

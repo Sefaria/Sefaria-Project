@@ -23,7 +23,8 @@ class UserProfile extends Component {
     this.state = this.getPrivateTabState(props);
   }
   componentDidUpdate(prevProps) {
-    if (!!this.props.profile && (!prevProps || prevProps.profile.id !== this.props.profile.id)) {
+    if (!!this.props.profile && (!prevProps || prevProps.profile.id !== this.props.profile.id) 
+        || this.props.tab !== prevProps.tab) {
       this.setState(this.getPrivateTabState(this.props));
     }
   }
@@ -31,22 +32,25 @@ class UserProfile extends Component {
     const showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
     const showBio = !!props.profile.bio;
     const tabs = [
-      { text: Sefaria._("Sheets"), icon: "/static/img/sheet.svg" },
-      { text: Sefaria._("Collections"), icon: "/static/img/collection.svg" },
-      { text: Sefaria._("Followers"), invisible: true },
-      { text: Sefaria._("Following"), invisible: true },
-      { text: Sefaria._("Torah Tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
+      { name: "sheets", text: Sefaria._("Sheets"), icon: "/static/img/sheet.svg" },
+      { name: "collections", text: Sefaria._("Collections"), icon: "/static/img/collection.svg" },
+      { name: "followers", text: Sefaria._("Followers"), invisible: true },
+      { name: "following", text: Sefaria._("Following"), invisible: true },
+      { name: "torah-tracker", text: Sefaria._("Torah Tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
-      tabs.splice(2, 0, { text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
+      tabs.splice(2, 0, { name: "notes", text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
     }
     if (showBio) {
-      tabs.push({ text: Sefaria._("About"), icon: "/static/img/info.svg" });
+      tabs.push({ name: "about", text: Sefaria._("About"), icon: "/static/img/info.svg" });
     }
+    let tabIndex = tabs.findIndex(t => t.name == props.tab);
+    tabIndex = tabIndex == -1 ? 0 : tabIndex;
     return {
       showNotes,
       showBio,
       tabs,
+      tabIndex,
     };
   }
   _getMessageModalRef(ref) { this._messageModalRef = ref; }
@@ -84,8 +88,8 @@ class UserProfile extends Component {
      return (
         <div className="emptyList">
           <div className="emptyListText">
-            <IntText>{this.props.profile.full_name} </IntText>
-            <IntText>hasn't shared any collections yet.</IntText>
+            <IntText>{this.props.profile.full_name}</IntText>
+            <IntText> hasn't shared any collections yet.</IntText>
           </div>
         </div>);
     }
@@ -188,8 +192,8 @@ class UserProfile extends Component {
       return (
         <div className="emptyList">
           <div className="emptyListText">
-            <IntText>{this.props.profile.full_name} </IntText>
-            <IntText>hasn't shared any sheets yet.</IntText>
+            <IntText>{this.props.profile.full_name}</IntText>
+            <IntText> hasn't shared any sheets yet.</IntText>
           </div>
         </div>
       );
@@ -323,6 +327,10 @@ class UserProfile extends Component {
       </div>
     );
   }
+  onTabChange(tabIndex) {
+    const tab = this.state.tabs[tabIndex];
+    this.props.setProfileTab(tab.name);
+  }
   message(e) {
     e.preventDefault();
     if (!Sefaria._uid) { this.props.toggleSignUpModal(); return; }
@@ -333,11 +341,11 @@ class UserProfile extends Component {
   }
   openFollowers(e) {
     e.preventDefault();
-    this._tabViewRef.openTab(this.state.tabs.findIndex(t => t.text === Sefaria._('Followers')));
+    this.props.setProfileTab("followers");
   }
   openFollowing(e) {
     e.preventDefault();
-    this._tabViewRef.openTab(this.state.tabs.findIndex(t => t.text === Sefaria._('Following')));
+    this.props.setProfileTab("following");
   }
   render() {
     return (
@@ -364,6 +372,8 @@ class UserProfile extends Component {
                   ref={this._getTabViewRef}
                   tabs={this.state.tabs}
                   renderTab={this.renderTab}
+                  currTabIndex={this.state.tabIndex}
+                  setTab={this.onTabChange}
                 >
                   <FilterableList
                     key="sheet"

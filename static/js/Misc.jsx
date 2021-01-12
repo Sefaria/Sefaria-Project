@@ -466,8 +466,9 @@ class TabView extends Component {
 TabView.propTypes = {
   tabs: PropTypes.array.isRequired,
   renderTab: PropTypes.func.isRequired,
-  currTabIndex: PropTypes.number,  // not required. If passed, TabView will be controlled from outside
-  setTab: PropTypes.func,          // not required. If passed, TabView will be controlled from outside
+  currTabIndex: PropTypes.number,  // optional. If passed, TabView will be controlled from outside
+  setTab: PropTypes.func,          // optional. If passed, TabView will be controlled from outside
+  onClickArray: PropTypes.func,    // optional. If passed, TabView will be controlled from outside
 };
 
 
