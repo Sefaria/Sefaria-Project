@@ -6,7 +6,6 @@ import {
   CategoryColorLine,
   IntText,
   LoadingMessage,
-  TwoBox,
   LoginPrompt,
 } from './Misc';
 import { CollectionsModal } from './CollectionsWidget'

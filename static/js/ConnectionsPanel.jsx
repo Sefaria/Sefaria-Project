@@ -804,6 +804,13 @@ class PublicSheetsList extends Component {
     var content = sheets.length ? sheets.filter(sheet => {
       // My sheets are shown already in MySheetList
       return sheet.owner !== Sefaria._uid && sheet.id !== this.props.connectedSheet;
+    }).sort((a,b ) => {
+      // First sort by language / interface language
+      let aHe, bHe;
+      [aHe, bHe] = [a.title, b.title].map(Sefaria.hebrew.isHebrew);
+      if (aHe !== bHe) { return (bHe ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
+      // Then by number of views
+      return b.views - a.views;
     }).map(sheet => {
       return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
     }, this) : null;
@@ -814,6 +821,7 @@ PublicSheetsList.propTypes = {
   srefs: PropTypes.array.isRequired,
   connectedSheet: PropTypes.string,
 };
+
 
 const TopicList = ({ srefs, interfaceLang, contentLang }) => {
   // segment ref topicList can be undefined even if loaded

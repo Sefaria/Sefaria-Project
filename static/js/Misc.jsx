@@ -1711,84 +1711,42 @@ InterruptingMessage.propTypes = {
 };
 
 
-class ThreeBox extends Component {
-  // Wrap a list of elements into a three column table
-  render() {
-      var content = this.props.content;
-      var length = content.length;
-      if (length % 3) {
-          length += (3-length%3);
-      }
-      content.pad(length, "");
-      var threes = [];
-      for (var i=0; i<length; i+=3) {
-        threes.push([content[i], content[i+1], content[i+2]]);
-      }
-      return (
-        <table className="gridBox threeBox">
-          <tbody>
-          {
-            threes.map(function(row, i) {
-              return (
-                <tr key={i}>
-                  {row[0] ? (<td>{row[0]}</td>) : null}
-                  {row[1] ? (<td>{row[1]}</td>) : null}
-                  {row[2] ? (<td>{row[2]}</td>) : null}
-                </tr>
-              );
-            })
-          }
-          </tbody>
-        </table>
-      );
+const NBox = ({ content, n }) => {
+  // Wrap a list of elements into an n-column flexbox
+  let length = content.length;
+  if (length % n) {
+      length += (n-length%n);
   }
-}
-
-
-class TwoBox extends Component {
-  // Wrap a list of elements into a two column table
-  render() {
-      var content = this.props.content;
-      var length = content.length;
-      if (length % 2) {
-          length += (2-length%2);
-      }
-      content.pad(length, "");
-      var twos = [];
-      for (var i=0; i<length; i+=2) {
-        twos.push([content[i], content[i+1]]);
-      }
-      return (
-        <table className="gridBox twoBox">
-          <tbody>
-          {
-            twos.map(function(row, i) {
-              return (
-                <tr key={i}>
-                  {row[0] ? (<td>{row[0]}</td>) : <td className="empty"></td>}
-                  {row[1] ? (<td>{row[1]}</td>) : <td className="empty"></td>}
-                </tr>
-              );
-            })
-          }
-          </tbody>
-        </table>
-      );
+  content.pad(length, "");
+  let rows = [];
+  for (let i=0; i<length; i+=n) {
+    rows.push(content.slice(i, i+n));
   }
+  return (
+    <div className="gridBox">
+    {
+      rows.map((row, i) => (
+        <div className="gridBoxRow" key={i}>
+          {
+            row.pad(n, "").map((item, j) => (
+              <div className={classNames({gridBoxItem: 1, placeholder: !item})} key={`gridItem|${j}`}>{item}</div>
+            ))
+          }
+        </div>
+      ))
+    }
+    </div>
+  );
 }
-TwoBox.propTypes = {
-  content: PropTypes.array.isRequired
-};
-
 
 class TwoOrThreeBox extends Component {
   // Wrap a list of elements into a two or three column table, depending on window width
   render() {
       var threshhold = this.props.threshhold;
       if (this.props.width > threshhold) {
-        return (<ThreeBox content={this.props.content} />);
+        return (<NBox content={this.props.content} n={3}/>);
       } else {
-        return (<TwoBox content={this.props.content} />);
+        return (<NBox content={this.props.content} n={2}/>);
       }
   }
 }
@@ -2194,6 +2152,7 @@ export {
   LoadingMessage,
   LoadingRing,
   LoginPrompt,
+  NBox,
   NewsletterSignUpForm,
   Note,
   ProfileListing,
@@ -2214,10 +2173,8 @@ export {
   TabView,
   TextBlockLink,
   TestMessage,
-  ThreeBox,
   ToggleSet,
   ToolTipped,
-  TwoBox,
   TwoOrThreeBox,
   SheetMetaDataBox,
   SheetAuthorStatement,
