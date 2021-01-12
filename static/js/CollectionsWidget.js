@@ -68,7 +68,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
     // Update cache for this collection's full listing, which has now changed
     Sefaria._collections[data.collection.slug] = data.collection;
     // This sheet's `displayedCollection` field may have changed
-    delete Sefaria.sheets._loadSheetByID[sheetID];
+    Sefaria.sheets._loadSheetByID[sheetID] = data.sheet;
     setChanged(true);
   };
 

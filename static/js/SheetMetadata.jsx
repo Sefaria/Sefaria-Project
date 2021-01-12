@@ -64,10 +64,6 @@ class SheetMetadata extends Component {
   onDataLoad(data) {
     this.forceUpdate();
   }
-  handleCollectionsChange(data) {
-    delete Sefaria.sheets._loadSheetByID[this.props.id];
-    this.getSheetFromAPI();
-  }
   copySheet() {
     if (!Sefaria._uid) {
         this.props.toggleSignUpModal();
@@ -166,7 +162,6 @@ class SheetMetadata extends Component {
         {this.state.showCollectionsModal ? 
         <CollectionsModal 
           sheetID={sheet.id}
-          handleCollectionsChange={this.handleCollectionsChange} 
           close={this.toggleCollectionsModal} /> : null }
 
       </div>

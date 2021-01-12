@@ -500,7 +500,8 @@ def collections_inclusion_api(request, slug, action, sheet_id):
         "status": "ok",
         "action": action,
         "collectionListing": collection.listing_contents(request.user.id),
-        "collection": collection.contents(with_content=True, authenticated=is_member)
+        "collection": collection.contents(with_content=True, authenticated=is_member),
+        "sheet": get_sheet_for_panel(int(sheet_id)),
     })
 
 
