@@ -1,4 +1,4 @@
-dr {
+body {
   padding: 0;
   margin: 0;
   -webkit-text-size-adjust: 100%;
@@ -1751,11 +1751,11 @@ a.readerNavCategory {
 .hebrew .gridBox td:last-child {
   border-left: 0;
 }
-.hebrew .readerTocResources .gridBox td:first-child {
+.hebrew .readerTocResources .gridBox td:last-child {
   border-left: 0;
   border-right: 3px solid rgba(0,0,0,0);
 }
-.hebrew .readerTocResources .gridBox td:last-child {
+.hebrew .readerTocResources .gridBox td:first-child {
   border-left: 3px solid rgba(0,0,0,0);
   border-right: 0;
 }
@@ -7369,19 +7369,15 @@ span.purim-emoji img{
 .sheetContent .sheetItem .SheetOutsideText.segment p {
   margin: 0
 }
-
 .sheetContent .sheetItem .SheetOutsideText.segment {
   margin: 0
 }
-
 .sheetContent .sheetItem .SheetSource.segment {
   margin-top: 14px
 }
-
 .sheetContent .text.loading {
   cursor: wait;
 }
-
 .oldSheetNotice,
 .oldSheetNotice a,
 .editSheetNotice,
@@ -7408,6 +7404,9 @@ span.purim-emoji img{
   text-decoration: underline;
   color: inherit;
   margin-inline-start: 5px;
+}
+.cookiesNotification .button {
+  margin-inline-start: 12px;
 }
 .readerMessageBox {
   z-index: 9999;

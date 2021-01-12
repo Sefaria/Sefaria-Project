@@ -468,7 +468,7 @@ TabView.propTypes = {
   renderTab: PropTypes.func.isRequired,
   currTabIndex: PropTypes.number,  // optional. If passed, TabView will be controlled from outside
   setTab: PropTypes.func,          // optional. If passed, TabView will be controlled from outside
-  onClickArray: PropTypes.func,    // optional. If passed, TabView will be controlled from outside
+  onClickArray: PropTypes.object,    // optional. If passed, TabView will be controlled from outside
 };
 
 

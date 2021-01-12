@@ -356,6 +356,8 @@ def process_collection_slug_change_in_sheets(collection, **kwargs):
     """
     from sefaria.system.database import db
 
+    if not kwargs["old"]:
+        return
     db.sheets.update_many({"displayedCollection": kwargs["old"]}, {"$set": {"displayedCollection": kwargs["new"]}})
 
 
