@@ -74,10 +74,6 @@ class Group(abst.AbstractMongoRecord):
     def _validate(self):
         assert super(Group, self)._validate()
 
-        reserved_chars = ['-', '_', '|']
-        if any([c in self.name for c in reserved_chars]):
-            raise InputError(_('Group names may not contain the following characters:') + ' {}'.format(', '.join(reservedChars)))
-
         if len(self.name) == 0:
             raise InputError(_("Please set a name for your group."))
 
