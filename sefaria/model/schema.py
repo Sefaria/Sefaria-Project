@@ -1955,6 +1955,19 @@ class AddressType(object):
             raise IndexSchemaError("No matching class for addressType {}".format(atype))
         return klass(0).toStr(lang, i)
 
+    @staticmethod
+    def toClassByAddressType(atype):
+        """
+        Return class that corresponds to 'atype'
+        :param atype:
+        :return:
+        """
+        try:
+            klass = globals()["Address" + atype]
+        except KeyError:
+            raise IndexSchemaError("No matching class for addressType {}".format(atype))
+        return klass(0)
+
     # Is this used?
     def storage_offset(self):
         return 0
