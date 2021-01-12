@@ -2582,9 +2582,11 @@ class Ref(object, metaclass=RefCacheType):
 
         self.toSections = self.sections[:]
 
-        if self.index_node.addressTypes[0] == "Talmud":
+        addressClass = AddressType.toClassByAddressType(self.index_node.addressTypes[0])
+
+        if hasattr(addressClass, "parse_range_end"):
             base_wout_title = base.replace(title+" ", "")
-            AddressTalmud.parse_range_end(self, parts, base_wout_title)
+            addressClass.parse_range_end(self, parts, base_wout_title)
         elif len(parts) == 2: # Parse range end portion, if it exists
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
             # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
