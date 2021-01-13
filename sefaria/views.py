@@ -55,7 +55,7 @@ from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_t
 from sefaria.model import *
 from sefaria.system.multiserver.coordinator import server_coordinator
 
-from reader.views import render_sefaria_template
+from reader.views import render_template
 
 
 
@@ -126,16 +126,16 @@ def register(request):
         else:
             form = SefariaNewUserForm()
 
-    return render_sefaria_template(request, "registration/register.html", None, {'form': form, 'next': next})
+    return render_template(request, "registration/register.html", None, {'form': form, 'next': next})
 
 
 def maintenance_message(request):
-    resp = render_sefaria_template(request,"static/maintenance.html", None, {"message": MAINTENANCE_MESSAGE}, status=503)
+    resp = render_template(request,"static/maintenance.html", None, {"message": MAINTENANCE_MESSAGE}, status=503)
     return resp
 
 
 def accounts(request):
-    return render_sefaria_template(request,"registration/accounts.html", None, {
+    return render_template(request,"registration/accounts.html", None, {
         "createForm": UserCreationForm(),
         "loginForm": AuthenticationForm()
     })
@@ -746,7 +746,7 @@ def spam_dashboard(request):
 
         db.sheets.delete_many({"id": {"$in": spam_sheet_ids}})
 
-        return render_sefaria_template(request, 'spam_dashboard.html', None, {
+        return render_template(request, 'spam_dashboard.html', None, {
             "deleted_sheets": len(spam_sheet_ids),
             "sheet_ids": spam_sheet_ids,
             "reviewed_sheets": len(reviewed_sheet_ids),
@@ -772,7 +772,7 @@ def spam_dashboard(request):
         for sheet in sheets:
             sheets_list.append({"id": sheet["id"], "title": strip_tags(sheet["title"]), "owner": user_link(sheet["owner"])})
 
-        return render_sefaria_template(request, 'spam_dashboard.html', None, {
+        return render_template(request, 'spam_dashboard.html', None, {
             "title": "Potential Spam Sheets since %s" % date.strftime("%Y-%m-%d"),
             "sheets": sheets_list,
         })
@@ -980,7 +980,7 @@ def compare(request, secRef=None, lang=None, v1=None, v2=None):
     if v2:
         v2 = v2.replace("_", " ")
 
-    return render_sefaria_template(request,'compare.html', None, {
+    return render_template(request,'compare.html', None, {
         "JSON_PROPS": json.dumps({
             'secRef': secRef,
             'v1': v1, 'v2': v2,

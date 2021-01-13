@@ -82,7 +82,21 @@ if server_coordinator:
 #    #    #
 
 
-def render_sefaria_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
+def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
+    """
+    This is a general purpose custom function that serves to render all the templates in the project and provide a central point for all similar processing.
+    It can take props that area meant for the Node render of ReaderApp (and will properly combine them with base_props() and serialize
+    It also takes care of adding these props to the template context
+    If needed (i.e. currently, if props are passed in) it will also attempt to call render_react_component so it doesnt have to be called by the view itself.
+    :param request: the request object
+    :param template_name: the template name to pass to render (defaults to base.html)
+    :param app_props: props to pass to ReaderApp, either via node or the template for client side
+    :param template_context: regular template context for the django template
+    :param content_type: param from Django's render, if needed
+    :param status: param from Django's render, if needed
+    :param using: param from Django's render, if needed
+    :return:
+    """
     app_props = app_props if app_props else {}
     props = base_props(request)
     props.update(app_props)
@@ -585,7 +599,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     if len(panels) > 0 and panels[0].get("refs") == [] and panels[0].get("mode") == "Text":
         logger.debug("Mangled panel state: {}".format(panels), stack_info=True)
-    return render_sefaria_template(request, 'base.html', props, {
+    return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
         "canonical_url":  canonical_url(request),
@@ -633,7 +647,7 @@ def texts_category_list(request, cats):
         "initialMenu": "navigation",
         "initialNavigationCategories": cats,
     }
-    return render_sefaria_template(request, 'base.html', props, {
+    return render_template(request, 'base.html', props, {
         "title":            title,
         "desc":             desc,
         "canonical_url":    canonical_url(request),
@@ -655,7 +669,7 @@ def topics_toc_page(request, topicCategory):
             "he": topic_obj.get_primary_title('he')
         }
     }
-    return render_sefaria_template(request, 'base.html', props, {
+    return render_template(request, 'base.html', props, {
         "title":            "",
         "desc":             "",
     })
@@ -710,7 +724,7 @@ def search(request):
         "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
         "initialSheetSearchSortType": search_params["sheetSort"]
     }
-    return render_sefaria_template(request,'base.html', props, {
+    return render_template(request,'base.html', props, {
         "title":     (search_params["query"] + " | " if search_params["query"] else "") + _("Sefaria Search"),
         "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation.")
     })
@@ -745,7 +759,7 @@ def sheets(request):
 
     title = _("Sefaria Source Sheets")
     desc  = _("Explore thousands of public Source Sheets and use our Source Sheet Builder to create your own online.")
-    return render_sefaria_template(request, 'base.html', props, {
+    return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
     })
@@ -763,7 +777,7 @@ def get_group_page(request, group, authenticated):
     if not len(group):
         raise Http404
     props["groupData"] = group[0].contents(with_content=True, authenticated=authenticated)
-    return render_sefaria_template(request, 'base.html', props, {
+    return render_template(request, 'base.html', props, {
         "title": group[0].name + " | " + _("Sefaria Groups"),
         "desc": props["groupData"].get("description", ""),
         "noindex": not getattr(group[0], "listed", False)
@@ -840,7 +854,7 @@ def edit_group_page(request, group=None):
     else:
         groupData = None
 
-    return render_sefaria_template(request, 'edit_group.html', None, {"groupData": groupData})
+    return render_template(request, 'edit_group.html', None, {"groupData": groupData})
 
 
 @staff_member_required
@@ -849,7 +863,7 @@ def groups_admin_page(request):
     Page listing all groups for admins
     """
     groups = GroupSet(sort=[["name", 1]])
-    return render_sefaria_template(request, "groups.html", None, {"groups": groups})
+    return render_template(request, "groups.html", None, {"groups": groups})
 
 
 @sanitize_get_params
@@ -862,7 +876,7 @@ def menu_page(request, props=None, page="", title="", desc=""):
     props.update({
         "initialMenu": page,
     })
-    return render_sefaria_template(request, 'base.html', props, {
+    return render_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
         "canonical_url":  canonical_url(request),
@@ -1098,7 +1112,7 @@ def edit_text(request, ref=None, lang=None, version=None):
     titles = json.dumps(model.library.full_title_list())
     page_title = "%s %s" % (mode, ref) if ref else "Add a New Text"
 
-    return render_sefaria_template(request,'edit_text.html', None, {
+    return render_template(request,'edit_text.html', None, {
         'titles': titles,
         'initJSON': initJSON,
         'page_title': page_title,
@@ -1115,7 +1129,7 @@ def edit_text_info(request, title=None, new_title=None):
         title = title.replace("_", " ")
         i = library.get_index(title)
         if not (request.user.is_staff or user_started_text(request.user.id, title)):
-            return render_sefaria_template(request,'static/generic.html', None, {
+            return render_template(request,'static/generic.html', None, {
                 "title": "Permission Denied",
                 "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title
             })
@@ -1135,7 +1149,7 @@ def edit_text_info(request, title=None, new_title=None):
         text_exists = False
         new = True
 
-    return render_sefaria_template(request,'edit_text_info.html', None, {
+    return render_template(request,'edit_text_info.html', None, {
         'title': title,
          'indexJSON': indexJSON,
          'text_exists': text_exists,
@@ -1153,13 +1167,13 @@ def terms_editor(request, term=None):
         existing_term = Term().load_by_title(term)
         data = existing_term.contents() if existing_term else {"name": term, "titles": []}
     else:
-        return render_sefaria_template(request,'static/generic.html', None, {
+        return render_template(request,'static/generic.html', None, {
             "title": "Terms Editor",
             "content": "Please include the primary Term name in the URL to uses the Terms Editor."
         })
 
     dataJSON = json.dumps(data)
-    return render_sefaria_template(request,'edit_term.html', None, {
+    return render_template(request,'edit_term.html', None, {
         'term': term,
         'dataJSON': dataJSON,
         'is_update': "true" if existing_term else "false"
@@ -2033,33 +2047,33 @@ def visualize_library(request, lang=None, cats=None):
     template_vars = {"lang": lang or "",
                      "cats": json.dumps(cats.replace("_", " ").split("/") if cats else [])}
 
-    return render_sefaria_template(request,'visual_library.html', None, template_vars)
+    return render_template(request,'visual_library.html', None, template_vars)
 
 
 def visualize_toc(request):
-    return render_sefaria_template(request,'visual_toc.html', None, {})
+    return render_template(request,'visual_toc.html', None, {})
 
 
 def visualize_parasha_colors(request):
-    return render_sefaria_template(request,'visual_parasha_colors.html', None, {})
+    return render_template(request,'visual_parasha_colors.html', None, {})
 
 
 def visualize_links_through_rashi(request):
     level = request.GET.get("level", 1)
     json_file = "../static/files/torah_rashi_torah.json" if level == 1 else "../static/files/tanach_rashi_tanach.json"
-    return render_sefaria_template(request,'visualize_links_through_rashi.html', None, {"json_file": json_file})
+    return render_template(request,'visualize_links_through_rashi.html', None, {"json_file": json_file})
 
 def talmudic_relationships(request):
     json_file = "../static/files/talmudic_relationships_data.json"
-    return render_sefaria_template(request,'talmudic_relationships.html', None, {"json_file": json_file})
+    return render_template(request,'talmudic_relationships.html', None, {"json_file": json_file})
 
 def sefer_hachinukh_mitzvot(request):
     csv_file = "../static/files/mitzvot.csv"
-    return render_sefaria_template(request,'sefer_hachinukh_mitzvot.html', None, {"csv": csv_file})
+    return render_template(request,'sefer_hachinukh_mitzvot.html', None, {"csv": csv_file})
 
 def unique_words_viz(request):
     csv_file = "../static/files/commentators_torah_unique_words.csv"
-    return render_sefaria_template(request,'unique_words_viz.html', None, {"csv": csv_file})
+    return render_template(request,'unique_words_viz.html', None, {"csv": csv_file})
 
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):
@@ -2992,7 +3006,7 @@ def topics_page(request):
         "initialTopic": None,
         # "trendingTags": trending_tags(ntags=12),
     }
-    return render_sefaria_template(request, 'base.html', props, {
+    return render_template(request, 'base.html', props, {
         "title":          _("Topics") + " | " + _("Sefaria"),
         "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
     })
@@ -3028,7 +3042,7 @@ def topic_page(request, topic):
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
         desc += " " + topic_desc
-    return render_sefaria_template(request,'base.html', props, {
+    return render_template(request,'base.html', props, {
         "title":          title,
         "desc":           desc,
     })
@@ -3142,7 +3156,7 @@ def global_activity(request, page=1):
     page_size = 100
 
     if page > 40:
-        return render_sefaria_template(request,'static/generic.html', None, {
+        return render_template(request,'static/generic.html', None, {
             "title": "Activity Unavailable",
             "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>."
         })
@@ -3160,7 +3174,7 @@ def global_activity(request, page=1):
     next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
     email = request.user.email if request.user.is_authenticated else False
-    return render_sefaria_template(request,'activity.html', None, {
+    return render_template(request,'activity.html', None, {
         'activity': activity,
         'filter_type': filter_type,
         'email': email,
@@ -3185,7 +3199,7 @@ def user_activity(request, slug, page=1):
 
 
     if page > 40:
-        return render_sefaria_template(request,'static/generic.html', None, {
+        return render_template(request,'static/generic.html', None, {
             "title": "Activity Unavailable",
             "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>."
         })
@@ -3199,7 +3213,7 @@ def user_activity(request, slug, page=1):
     next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
     email = request.user.email if request.user.is_authenticated else False
-    return render_sefaria_template(request,'activity.html', None, {
+    return render_template(request,'activity.html', None, {
         'activity': activity,
         'filter_type': filter_type,
         'profile': profile,
@@ -3236,7 +3250,7 @@ def segment_history(request, tref, lang, version, page=1):
     next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
     email = request.user.email if request.user.is_authenticated else False
-    return render_sefaria_template(request,'activity.html', None, {
+    return render_template(request,'activity.html', None, {
         'activity': history,
         "single": True,
         "ref": nref,
@@ -3273,7 +3287,7 @@ def revert_api(request, tref, lang, version, revision):
 
 
 def leaderboard(request):
-    return render_sefaria_template(request,'leaderboard.html', None, {
+    return render_template(request,'leaderboard.html', None, {
         'leaders': top_contributors(),
         'leaders30': top_contributors(30),
         'leaders7': top_contributors(7),
@@ -3298,7 +3312,7 @@ def user_profile(request, username):
     }
     title = "%(full_name)s on Sefaria" % {"full_name": requested_profile.full_name}
     desc = '%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": requested_profile.full_name}
-    return render_sefaria_template(request,'base.html', props, {
+    return render_template(request,'base.html', props, {
         "title":          title,
         "desc":           desc,
     })
@@ -3589,7 +3603,7 @@ def edit_profile(request):
     """
     profile = UserProfile(id=request.user.id)
     sheets  = db.sheets.find({"owner": profile.id, "status": "public"}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
-    return render_sefaria_template(request,'edit_profile.html', None, {
+    return render_template(request,'edit_profile.html', None, {
       'user': request.user,
       'profile': profile,
       'sheets': sheets,
@@ -3603,7 +3617,7 @@ def account_settings(request):
     Page for managing a user's account settings.
     """
     profile = UserProfile(id=request.user.id)
-    return render_sefaria_template(request,'account_settings.html', None, {
+    return render_template(request,'account_settings.html', None, {
         'user': request.user,
         'profile': profile,
     })
@@ -3635,7 +3649,7 @@ def home(request):
     parasha   = calendar_items["Parashat Hashavua"]
     metrics   = db.metrics.find().sort("timestamp", -1).limit(1)[0]
 
-    return render_sefaria_template(request,'static/home.html', None, {
+    return render_template(request,'static/home.html', None, {
         "metrics": metrics,
         "daf_today": daf_today,
         "parasha": parasha,
@@ -3649,7 +3663,7 @@ def discussions(request):
     Discussions page.
     """
     discussions = LayerSet({"owner": request.user.id})
-    return render_sefaria_template(request,'discussions.html', None, {
+    return render_template(request,'discussions.html', None, {
        "discussions": discussions,
     })
 
@@ -3702,7 +3716,7 @@ def dashboard(request):
 
     states = sorted(states, key=toc_sort)
 
-    return render_sefaria_template(request,'dashboard.html', None, {
+    return render_template(request,'dashboard.html', None, {
         "states": states,
     })
 
@@ -3714,7 +3728,7 @@ def metrics(request):
     """
     metrics = db.metrics.find().sort("timestamp", 1)
     metrics_json = dumps(metrics)
-    return render_sefaria_template(request,'metrics.html', None,{
+    return render_template(request,'metrics.html', None,{
         "metrics_json": metrics_json,
     })
 
@@ -3725,7 +3739,7 @@ def digitized_by_sefaria(request):
     Metrics page. Shows graphs of core metrics.
     """
     texts = VersionSet({"digitizedBySefaria": True}, sort=[["title", 1]])
-    return render_sefaria_template(request,'static/digitized-by-sefaria.html', None, {
+    return render_template(request,'static/digitized-by-sefaria.html', None, {
         "texts": texts,
     })
 
@@ -3782,7 +3796,7 @@ def random_text_page(request):
     """
     Page for generating random texts.
     """
-    return render_sefaria_template(request,'random.html', None, {})
+    return render_template(request,'random.html', None, {})
 
 
 def random_text_api(request):
@@ -3900,7 +3914,7 @@ def serve_static(request, page):
     """
     Serve a static page whose template matches the URL
     """
-    return render_sefaria_template(request,'static/%s.html' % page, None, {})
+    return render_template(request,'static/%s.html' % page, None, {})
 
 
 @ensure_csrf_cookie
@@ -4002,11 +4016,11 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
     if lang == "he": # Override language settings if 'he' is in URL
         request.contentLang = "hebrew"
 
-    return render_sefaria_template(request,'explore.html', None, template_vars)
+    return render_template(request,'explore.html', None, template_vars)
 
 @staff_member_required
 def visualize_timeline(request):
-    return render_sefaria_template(request, 'timeline.html', None, {})
+    return render_template(request, 'timeline.html', None, {})
 
 
 def person_page(request, name):
@@ -4050,7 +4064,7 @@ def person_page(request, name):
     template_vars["post_talmudic"] = person.is_post_talmudic()
     template_vars["places"] = person.get_places()
 
-    return render_sefaria_template(request,'person.html', None, template_vars)
+    return render_template(request,'person.html', None, template_vars)
 
 
 def person_index(request):
@@ -4071,7 +4085,7 @@ def person_index(request):
             }
         )
 
-    return render_sefaria_template(request,'people.html', None, template_vars)
+    return render_template(request,'people.html', None, template_vars)
 
 
 def talmud_person_index(request):
@@ -4088,7 +4102,7 @@ def talmud_person_index(request):
             "years_he": gen.period_string("he"),
             "people": [p for p in people]
         })
-    return render_sefaria_template(request,'talmud_people.html', None, template_vars)
+    return render_template(request,'talmud_people.html', None, template_vars)
 
 
 def _get_sheet_tag_garden(tag):
@@ -4145,7 +4159,7 @@ def garden_page(request, g):
         'stopsByTag': g.stopsByTag()
     }
 
-    return render_sefaria_template(request,'garden.html', None, template_vars)
+    return render_template(request,'garden.html', None, template_vars)
 
 
 def visual_garden_page(request, g):
@@ -4161,7 +4175,7 @@ def visual_garden_page(request, g):
         'config': json.dumps(getattr(g, "config", {}))
     }
 
-    return render_sefaria_template(request,'visual_garden.html', None, template_vars)
+    return render_template(request,'visual_garden.html', None, template_vars)
 
 
 
@@ -4206,7 +4220,7 @@ def application_health_api_nonlibrary(request):
 
 @login_required
 def daf_roulette_redirect(request):
-    return render_sefaria_template(request,'static/chavruta.html', None, {
+    return render_template(request,'static/chavruta.html', None, {
         "rtc_server": RTC_SERVER,
         "room_id": "",
         "starting_ref": "todays-daf-yomi",
@@ -4222,7 +4236,7 @@ def chevruta_redirect(request):
     if room_id is None:
         raise Http404('Missing room ID.')
 
-    return render_sefaria_template(request,'static/chavruta.html', {
+    return render_template(request,'static/chavruta.html', {
         "rtc_server": RTC_SERVER,
         "room_id": room_id,
         "starting_ref": starting_ref,

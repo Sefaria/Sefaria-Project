@@ -32,7 +32,7 @@ from sefaria.model.group import Group, GroupSet
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
 
-from reader.views import render_sefaria_template, catchall
+from reader.views import render_template, catchall
 from sefaria.sheets import clean_source, bleach_text
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
@@ -99,7 +99,7 @@ def new_sheet(request):
 	query         = {"owner": request.user.id or -1 }
 	hide_video    = db.sheets.count_documents(query) > 2
 
-	return render_sefaria_template(request,'sheets.html', None, {
+	return render_template(request,'sheets.html', None, {
         "can_edit": True,
         "new_sheet": True,
         "is_owner": True,
@@ -245,7 +245,7 @@ def view_sheet(request, sheet_id, editorMode = False):
 
     canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
 
-    return render_sefaria_template(request,'sheets.html', None, {
+    return render_template(request,'sheets.html', None, {
         "sheetJSON": json.dumps(sheet),
         "sheet": sheet,
         "sheet_class": sheet_class,
@@ -304,7 +304,7 @@ def view_visual_sheet(request, sheet_id):
     viewer_is_liker = request.user.id in likes
 
 
-    return render_sefaria_template(request,'sheets_visual.html', None, {
+    return render_template(request,'sheets_visual.html', None, {
         "sheetJSON": json.dumps(sheet),
         "sheet": sheet,
         "sheet_class": sheet_class,
@@ -351,7 +351,7 @@ def assigned_sheet(request, assignment_id):
     like_count      = len(likes)
     viewer_is_liker = request.user.id in likes
 
-    return render_sefaria_template(request,'sheets.html', None, {
+    return render_template(request,'sheets.html', None, {
         "sheetJSON": json.dumps(sheet),
         "sheet": sheet,
         "assignment_id": assignment_id,
