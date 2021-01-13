@@ -55,6 +55,9 @@ from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_t
 from sefaria.model import *
 from sefaria.system.multiserver.coordinator import server_coordinator
 
+from reader.views import render_sefaria_template
+
+
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
@@ -123,20 +126,19 @@ def register(request):
         else:
             form = SefariaNewUserForm()
 
-    return render(request, "registration/register.html", {'form': form, 'next': next})
+    return render_sefaria_template(request, "registration/register.html", None, {'form': form, 'next': next})
 
 
 def maintenance_message(request):
-    resp = render(request,"static/maintenance.html",
-                                {"message": MAINTENANCE_MESSAGE})
-    resp.status_code = 503
+    resp = render_sefaria_template(request,"static/maintenance.html", None, {"message": MAINTENANCE_MESSAGE}, status=503)
     return resp
 
 
 def accounts(request):
-    return render(request,"registration/accounts.html",
-                                {"createForm": UserCreationForm(),
-                                "loginForm": AuthenticationForm()})
+    return render_sefaria_template(request,"registration/accounts.html", None, {
+        "createForm": UserCreationForm(),
+        "loginForm": AuthenticationForm()
+    })
 
 
 def subscribe(request, email):
@@ -744,12 +746,12 @@ def spam_dashboard(request):
 
         db.sheets.delete_many({"id": {"$in": spam_sheet_ids}})
 
-        return render(request, 'spam_dashboard.html',
-                      {"deleted_sheets": len(spam_sheet_ids),
-                       "sheet_ids": spam_sheet_ids,
-                       "reviewed_sheets": len(reviewed_sheet_ids),
-                       "spammers_deactivated": len(spammers)
-                       })
+        return render_sefaria_template(request, 'spam_dashboard.html', None, {
+            "deleted_sheets": len(spam_sheet_ids),
+            "sheet_ids": spam_sheet_ids,
+            "reviewed_sheets": len(reviewed_sheet_ids),
+            "spammers_deactivated": len(spammers)
+        })
 
     else:
         date = request.GET.get("date", None)
@@ -770,10 +772,10 @@ def spam_dashboard(request):
         for sheet in sheets:
             sheets_list.append({"id": sheet["id"], "title": strip_tags(sheet["title"]), "owner": user_link(sheet["owner"])})
 
-        return render(request, 'spam_dashboard.html',
-                      {"title": "Potential Spam Sheets since %s" % date.strftime("%Y-%m-%d"),
-                       "sheets": sheets_list,
-                       })
+        return render_sefaria_template(request, 'spam_dashboard.html', None, {
+            "title": "Potential Spam Sheets since %s" % date.strftime("%Y-%m-%d"),
+            "sheets": sheets_list,
+        })
 
 @staff_member_required
 def versions_csv(request):
@@ -978,7 +980,10 @@ def compare(request, secRef=None, lang=None, v1=None, v2=None):
     if v2:
         v2 = v2.replace("_", " ")
 
-    return render(request,'compare.html', {"JSON_PROPS": json.dumps({
-        'secRef': secRef,
-        'v1': v1, 'v2': v2,
-        'lang': lang,})})
+    return render_sefaria_template(request,'compare.html', None, {
+        "JSON_PROPS": json.dumps({
+            'secRef': secRef,
+            'v1': v1, 'v2': v2,
+            'lang': lang,
+        })
+    })
