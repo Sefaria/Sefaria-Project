@@ -118,7 +118,7 @@ def render_react_component(component, props):
         html = response.read().decode("utf-8")
         return html
     except Exception as e:
-        # Catch timeouts, however they may come.  Write to file NODE_TIMEOUT_MONITOR, which forever monitors to restart process
+        # Catch timeouts, however they may come.
         if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
             props = json.loads(props) if isinstance(props, str) else props
             logger.exception("Node timeout: {} / {} / {} / {}\n".format(
