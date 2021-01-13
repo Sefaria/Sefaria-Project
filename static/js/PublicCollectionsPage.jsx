@@ -77,7 +77,7 @@ PublicCollectionsPage.propTypes = {};
 
 
 function CollectionListing({data, showMembership, small}) {
-  const imageUrl = data.imageUrl && !small ? data.imageUrl : "/static/img/collection.svg";
+  const imageUrl = data.imageUrl && !small ? data.imageUrl : "/static/icons/collection.svg";
   const imageClass = classNames({collectionListingImage: 1, default: !data.imageUrl});
   const collectionUrl = "/collections/" + data.slug;
   return (<div className="collectionListing">

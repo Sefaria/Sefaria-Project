@@ -1389,7 +1389,7 @@ const SheetListing = ({
         }
         {
           collectable ?
-            <img src="/static/img/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
+            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
             : null
         }
         {
@@ -2108,7 +2108,7 @@ const CollectionStatement = ({name, slug, image, children}) => (
     <div className="collectionStatement" contentEditable={false} style={{ userSelect: 'none' }}>
       <div className="collectionListingImageBox imageBox">
         <a href={"/collections/" + slug}>
-          <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/img/collection.svg"} alt="Collection Logo"/>
+          <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
         </a>
       </div>
       <a href={"/collections/" + slug}>{children ? children : name}</a>

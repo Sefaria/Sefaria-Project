@@ -33,7 +33,7 @@ class UserProfile extends Component {
     const showBio = !!props.profile.bio;
     const tabs = [
       { name: "sheets", text: Sefaria._("Sheets"), icon: "/static/img/sheet.svg" },
-      { name: "collections", text: Sefaria._("Collections"), icon: "/static/img/collection.svg" },
+      { name: "collections", text: Sefaria._("Collections"), icon: "/static/icons/collection.svg" },
       { name: "followers", text: Sefaria._("Followers"), invisible: true },
       { name: "following", text: Sefaria._("Following"), invisible: true },
       { name: "torah-tracker", text: Sefaria._("Torah Tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
@@ -99,7 +99,7 @@ class UserProfile extends Component {
           <IntText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</IntText>
         </div>
         <a href="/collections/new" className="resourcesLink">
-          <img src="/static/img/collection.svg" alt="Collection icon" />
+          <img src="/static/icons/collection.svg" alt="Collection icon" />
             <IntText>Create a New Collection</IntText>
         </a>
       </div>);
@@ -114,7 +114,7 @@ class UserProfile extends Component {
     return (
       <div className="sheet-header">
         <a href="/collections/new" className="resourcesLink">
-          <img src="/static/img/collection.svg" alt="Collection icon" />
+          <img src="/static/icons/collection.svg" alt="Collection icon" />
             <IntText>Create a New Collection</IntText>
         </a>
       </div>

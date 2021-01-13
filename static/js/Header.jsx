@@ -183,7 +183,7 @@ class Header extends Component {
   getURLForObject(type, key) {
     if (type === "Person") {
       return `/person/${key}`;
-    } else if (type === "Group") {
+    } else if (type === "Collection") {
       return `/collections/${key}`;
     } else if (type === "TocCategory") {
       return `/texts/${key.join('/')}`;
