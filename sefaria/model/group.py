@@ -3,6 +3,8 @@ group.py
 Writes to MongoDB Collection: groups
 """
 import bleach
+import secrets
+import re
 
 from django.utils.translation import ugettext as _
 
@@ -72,19 +74,12 @@ class Group(abst.AbstractMongoRecord):
     def _validate(self):
         assert super(Group, self)._validate()
 
-        reserved_chars = ['-', '_', '|']
-        if any([c in self.name for c in reserved_chars]):
-            raise InputError(_('Group names may not contain the following characters:') + ' {}'.format(', '.join(reservedChars)))
-
         if len(self.name) == 0:
             raise InputError(_("Please set a name for your group."))
 
         if getattr(self, "listed", False):
             if not getattr(self, "imageUrl", False):
                 raise InputError(_("Public Groups are required to include a group image (a square image will work best)."))
-            contents = self.contents(with_content=True)
-            if len(contents["sheets"]) < 3:
-                raise InputError(_("Public Groups are required to have at least 3 public sheets."))
 
         return True
 
@@ -94,6 +89,32 @@ class Group(abst.AbstractMongoRecord):
             old, new = self.pkeys_orig_values.get(field, None), getattr(self, field, None)
             if old != new:
                 self._handle_image_change(old, new)
+
+    def assign_slug(self):
+        """
+        Assign a slug for the collection. For public collections based on the collection 
+        name, for private collections a random string.
+        """
+        if getattr(self, "listed", False):
+            slug = self.name
+            slug = slug.lower()
+            slug = slug.strip()
+            slug = slug.replace(" ", "-")
+            slug = re.sub(r"[^a-z\u05D0-\u05ea0-9\-]", "", slug)
+            self.slug = slug
+            dupe_count = 0
+            while self.slug_taken():
+                dupe_count += 1
+                self.slug = "%s%d" % (slug, dupe_count)
+        else:
+            while True:
+                self.slug = secrets.token_urlsafe(6)
+                if not self.slug_taken():
+                    break
+
+    def slug_taken(self):
+        existing = Group().load({"slug": self.slug})
+        return bool(existing) and existing._id != getattr(self, "_id", None)
 
     def all_names(self, lang):
         primary_name = self.primary_name(lang)

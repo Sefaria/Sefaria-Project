@@ -4,7 +4,7 @@ import {
   CategoryAttribution,
   CategoryColorLine,
   LoadingMessage,
-  TwoBox,
+  NBox,
 } from './Misc';
 import React  from 'react';
 import ReactDOM  from 'react-dom';
@@ -980,7 +980,7 @@ class CommentatorList extends Component {
             </a>);
     }.bind(this));
 
-    return (<TwoBox content={content} />);
+    return (<NBox n={2} content={content} />);
   }
 }
 CommentatorList.propTypes = {

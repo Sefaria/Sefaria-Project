@@ -35,7 +35,11 @@ class In(object):
         match = self._do_search()
         if not match:
             return False
-        return m.Ref(match.group(1)).normal() == result
+        if m.Ref(match.group(1)).normal() == result:
+            return True
+        else:
+            print("Mismatched.  Found: {}, which normalizes to: {}, not {}".format(match.group(1), m.Ref(match.group(1)).normal(), result))
+            return False
 
     def finds_nothing(self):
         return not self._do_search()

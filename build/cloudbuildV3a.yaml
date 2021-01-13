@@ -89,6 +89,7 @@ steps:
       - 'IS_SANDBOX=${_IS_SANDBOX}'
       - 'MONGO_HOST=${_MONGO_HOST}' # Should this be parmeterized here or read in the repo
       - 'POSTGRES_HOST=${_POSTGRES_HOST}' # Should this be parmeterized here or read in the repo
+      - 'SEFARIA_DB=sefaria-${_ENV_NAME}'
     wait_for: [ "k8s-admin_clone" ]
   
   # Copy localsettings into file
