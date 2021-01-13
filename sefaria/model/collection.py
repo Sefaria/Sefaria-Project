@@ -265,8 +265,7 @@ class Collection(abst.AbstractMongoRecord):
                                                 "inviter": inviter.full_name,
                                                 "collection_slug": self.slug,
                                                 "registerUrl": "/register?next=%s" % self.url
-                    Invalid filter: 'collection_link'
-                  })
+                                            })
         finally:
             translation.activate(curr_lang)
         subject       = _("%(name)s invited you to a collection on Sefaria") % {'name': inviter.full_name}
