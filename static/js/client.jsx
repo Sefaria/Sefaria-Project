@@ -6,7 +6,7 @@ const SefariaReact = require('./ReaderApp');
 
 
 $(function() {
-  const container = document.getElementById('s2');
+  let container = document.getElementById('s2');
   const loadingPlaceholder = document.getElementById('appLoading');
   const footerContainer = document.getElementById('footerContainer');
   let component = null;
