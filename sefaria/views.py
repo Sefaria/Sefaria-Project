@@ -218,7 +218,7 @@ def sefaria_js(request):
         "sefaria_js": sefaria_js,
     }
 
-    return render(request, "js/sefaria.js", attrs, content_type= "text/javascript")
+    return render(request, "js/sefaria.js", attrs, content_type= "text/javascript; charset=utf-8")
 
 def chavruta_js(request):
     """
@@ -235,7 +235,7 @@ def chavruta_js(request):
     }
 
 
-    return render(request, "js/chavruta.js", attrs, content_type="text/javascript")
+    return render(request, "js/chavruta.js", attrs, content_type="text/javascript; charset=utf-8")
 
 
 
@@ -252,7 +252,7 @@ def linker_js(request, linker_version=None):
                       + model.library.citing_title_list("he"))
     }
 
-    return render(request, linker_link, attrs, content_type = "text/javascript")
+    return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
 
 
 def title_regex_api(request, titles):
