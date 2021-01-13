@@ -1045,7 +1045,7 @@ class AbstractTextRecord(object):
         return False
 
     @staticmethod
-    def _strip_itags(s):
+    def _strip_itags(s, sections=None):
         soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
         itag_list = soup.find_all(AbstractTextRecord._find_itags)
         for itag in itag_list:
@@ -1068,7 +1068,7 @@ class AbstractTextRecord(object):
             for func in text_modification_funcs:
                 string = func(string, sections)
             return string
-        start_sections = [s-1 for s in start_sections]  # zero-indexed for ja
+        start_sections = None if start_sections is None else [s-1 for s in start_sections]  # zero-indexed for ja
         return self.ja().modify_by_function(modifier, start_sections)
 
     # Currently assumes that text is JA
