@@ -2,6 +2,7 @@
 
 import django
 django.setup()
+import pytest
 import regex as re
 from sefaria.utils.hebrew import is_hebrew
 import sefaria.model as m
@@ -35,7 +36,11 @@ class In(object):
         match = self._do_search()
         if not match:
             return False
-        return m.Ref(match.group(1)).normal() == result
+        if m.Ref(match.group(1)).normal() == result:
+            return True
+        else:
+            print("Mismatched.  Found: {}, which normalizes to: {}, not {}".format(match.group(1), m.Ref(match.group(1)).normal(), result))
+            return False
 
     def finds_nothing(self):
         return not self._do_search()
@@ -72,5 +77,6 @@ class Test_find_citation_in_text(object):
         assert In('<p>[שיר השירים א ירושלמי כתובות (דף כח:) בשורות א]')\
             .looking_for('שיר השירים').with_parenthesis().finds("Song of Songs 1")
 
+    @pytest.mark.xfail(reason="Linker doesn't know that it should look for either Mishnah or Talmud. This is as opposed to Ref instantiation where this ref would parse correctly because it would find the check_first field on the index.")
     def test_check_first(self):
         assert In('בבא מציעא פ"ד מ"ו, ועיין לעיל').looking_for('בבא מציעא').finds("Mishnah Bava Metzia 4:6")

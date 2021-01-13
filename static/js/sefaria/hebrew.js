@@ -10,8 +10,8 @@ class Hebrew {
     }
 
     var n = 0;
-    for (let c in h) {
-      n += values[h[c]];
+    for (let i = 0; i < h.length; i++) {
+      n += values[h.charAt(i)];
     }
 
     return n;
