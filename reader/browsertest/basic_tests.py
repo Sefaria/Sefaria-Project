@@ -13,7 +13,7 @@ from selenium.common.exceptions import WebDriverException
 
 import time  # import stand library below name collision in sefaria.model
 
-TEMPER = 10
+TEMPER = 30
 
 
 class ReaderSuite(TestSuite):
@@ -31,6 +31,9 @@ class ReaderSuite(TestSuite):
         #self.driver.delete_all_cookies()
         self.click_accept_cookies()
         #self.set_cookies_cookie()
+        
+    def teardown(self):
+        self.driver.close()
 
 
 class PageloadSuite(TestSuite):
@@ -48,23 +51,20 @@ class PageloadSuite(TestSuite):
         #self.driver.delete_all_cookies()
         self.click_accept_cookies()
         #self.set_cookies_cookie()
+        
+    def teardown(self):
+        self.driver.close()
 
 
 class DeepReaderSuite(TestSuite):
     #TODO: When do we run this?
     every_build = False
 
-'''
-class SheetSuite(TestSuite):
-    def setup(self):
-        pass
-'''
 
 class EditorSuite(TestSuite):
     """
     Tests that do editor things
     """
-
     every_build = False
     temp_sheet_id = None
 
@@ -82,7 +82,6 @@ class EditorSuite(TestSuite):
         self.driver.get(f'{self.base_url}/api/sheets/{self.temp_sheet_id}/delete')
         self.disable_new_editor()
         self.driver.close()
-
 
 
 class DeleteContentInEditor(AtomicTest):
@@ -146,10 +145,10 @@ class PagesLoad(AtomicTest):
         #logged in stuff
         self.login_user()
         self.load_my_profile()
-        # self.load_notifications()
+        self.load_notifications()
 
 
-class SectionContentAsExpectedMasechtotAndChapters(AtomicTest):
+class InTextSectionHeaders(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
 
@@ -162,12 +161,6 @@ class SectionContentAsExpectedMasechtotAndChapters(AtomicTest):
         section = self.get_section_txt('1')
         assert 'רבי זירא הוה משתמיט' in strip_nikkud(section)
 
-
-class SectionContentAsExpectedChapter(AtomicTest):
-    suite_class = PageloadSuite
-    every_build = False
-
-    def body(self):
         self.load_toc()
         self.click_toc_category("Midrash").click_toc_text("Seder Olam Rabbah")
         self.click_source_title()
@@ -175,151 +168,8 @@ class SectionContentAsExpectedChapter(AtomicTest):
         section = self.get_section_txt('1')
         assert 'פרק ד ' == section
 
-'''
-That'd be the old home
-class GoThroughHomeLinksAndButtons(AtomicTest):
-    #Makes sure links are there and not broken. Will fall on a line of a broken or unexisting link/button.
-    #When openning new tabs, checks URLs
-    suite_class = PageloadSuite
-    every_build = True
 
-    def body(self):
-        self.load_home()
-        self.login_user()
-        self.click_get_started()
-        self.click_sefaria()
-        self.click_explore_lib()
-        self.click_sefaria()
-        self.click_parasha()
-        self.click_sefaria()
-        self.click_daf_yomi()
-        self.click_sefaria()
-        self.click_haggadah()
-        self.click_sefaria()
-        self.click_pirkei_avot()
-        self.click_sefaria()
-        self.click_midrash_rabbah()
-        self.click_sefaria()
-        self.click_shulchan_arukh()
-        self.click_sefaria()
-        self.click_ios_app()
-        tab_url = self.get_newly_opened_tab_url()
-        assert 'itunes.apple.com/us/app/sefaria' in tab_url, 'Actual URL: ' + tab_url
-        self.close_tab_and_return_to_prev_tab()
-        self.click_android_app()
-        tab_url = self.get_newly_opened_tab_url()
-        assert 'play.google.com/store/apps' in tab_url, 'Actual URL: ' + tab_url
-        assert 'org.sefaria.sefaria' in tab_url
-        self.close_tab_and_return_to_prev_tab()
-        self.click_start_a_sheet()
-        self.click_sefaria()
-        self.close_popup_with_accept()
-        self.click_explore_sheets()
-        self.click_sefaria()
-        self.click_source_sheet_img()
-        self.click_sefaria()
-        self.click_link_explorer_img()
-        self.click_sefaria()
-        self.click_explore_connections()
-        self.click_sefaria()
-        self.click_learn_more_for_educators()
-        self.click_sefaria()
-        self.click_educators_img()
-        self.click_sefaria()
-        self.click_more_metrics()
-        self.click_sefaria()
-        self.click_subscribe()
-        str = self.get_subscribe_msg()
-        assert str == u'Please enter a valid email address.'
-        self.type_in_mailing_list_email('moses.ben.maimon@gmail.com')
-        self.click_subscribe()
-        str = self.get_subscribe_msg()
-        # Requires NationBuilder to be set up
-        # assert str == 'Subscribed! Welcome to our list.'
-'''
-
-'''
-todo: Test the results of these clicks.
-As it stands, it's not terribly useful.  It's only testing the existence of the links.
-
-class GoThroughFooterObjects(AtomicTest):
-    suite_class = PageloadSuite
-    every_build = False
-
-    def body(self):
-        self.load_toc()
-        time.sleep(1)
-        self.click_what_in_sefaria_link()
-        self.click_sefaria()
-        self.click_help_link()
-        self.click_sefaria()
-        time.sleep(3)
-        self.click_FAQ_link()
-        self.close_tab_and_return_to_prev_tab()
-        self.click_sefaria()
-        self.click_Team_link()
-        self.click_sefaria()
-        self.click_terms_of_use_link()
-        self.click_sefaria()
-        self.click_privacy_policy_link()
-
-        self.click_sefaria()
-        self.click_teach_with_sefaria_link()
-        self.click_sefaria()
-        self.click_source_sheets_link()
-        self.click_sefaria()
-        self.click_visualizations_link()
-        self.click_sefaria()
-        self.click_authors_link()
-        self.click_sefaria()
-        self.click_new_additions_link()
-
-        self.click_sefaria()
-        self.click_get_involved_link()
-        self.close_tab_and_return_to_prev_tab()
-        self.click_sefaria()
-        self.click_API_docs_link()
-        self.close_tab_and_return_to_prev_tab()
-        self.click_sefaria()
-        self.click_fork_us_on_GitHub_link()
-        self.close_tab_and_return_to_prev_tab()
-        self.click_sefaria()
-        self.click_download_our_data_link()
-        self.close_tab_and_return_to_prev_tab()
-
-        # self.click_donate_link()
-        self.click_sefaria()
-        self.click_supporters_link()
-        self.click_sefaria()
-        self.click_contribute_link()
-        self.close_tab_and_return_to_prev_tab()
-        self.click_sefaria()
-        self.click_jobs_link()
-
-        self.click_sefaria()
-        self.click_facebook_link()
-        self.close_tab_and_return_to_prev_tab()
-        self.click_sefaria()
-        self.click_twitter_link()
-        self.close_tab_and_return_to_prev_tab()
-        self.click_sefaria()
-        self.click_youtube_link()
-        self.close_tab_and_return_to_prev_tab()
-        self.click_sefaria()
-        self.click_blog_link()
-        self.close_tab_and_return_to_prev_tab()
-        self.click_sefaria()
-        self.click_instagram_link()
-        self.close_tab_and_return_to_prev_tab()
-        self.click_sefaria()
-        # self.click_email_link()//needs to be able to get rid of the specifically configured email client
-        # self.click_sefaria()
-
-        self.click_ivrit_link()
-        self.click_english_link()
-'''
-
-class ChangeLanguage(AtomicTest):
+class ChangeTextLanguage(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
 
@@ -366,7 +216,6 @@ class TextSettings(AtomicTest):
     every_build = True
 
     def body(self):
-
         larger = 21.6
         smaller = 18.7826
         just_text = 'בראשית ברא אלהים את השמים ואת הארץ'
@@ -467,23 +316,28 @@ class TanakhCantillationAndVowels(AtomicTest):
         # assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
 '''
 
-class TalmudHasNoCantillation(AtomicTest):
+class AliyotAndCantillationToggles(AtomicTest):
     suite_class = ReaderSuite
     every_build = False
 
     def body(self):
-        # changed to a book that should NEVER get cantillation
-        self.browse_to_ref("Introductions to the Babylonian Talmud, Berakhot, Introduction to Berakhot")
+        self.browse_to_ref("Darashos HaRan 1")        
         assert not has_cantillation(self.get_nth_section_hebrew(1).text)
         assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
         self.toggle_on_text_settings()
         assert not self.is_aliyot_toggleSet_displayed()
         assert not self.is_vocalization_toggleSet_displayed()
-        self.toggle_language_bilingual()
+
+        self.browse_to_ref("Berakhot 2b")
+        self.toggle_on_text_settings()
+        assert not self.is_aliyot_toggleSet_displayed()
+        assert self.is_vocalization_toggleSet_displayed()
+        
         self.browse_to_ref("Joshua 2")
         self.toggle_on_text_settings()
         assert not self.is_aliyot_toggleSet_displayed()
         assert self.is_vocalization_toggleSet_displayed()
+        
         self.browse_to_ref("Genesis 1")
         self.toggle_on_text_settings()
         assert self.is_aliyot_toggleSet_displayed()
@@ -494,7 +348,6 @@ class SideBarEntries(AtomicTest):
     suite_class = ReaderSuite
     every_build = True
     single_panel = False
-
     # todo: make this work on mobile.
     # "sidebar" elements will need to be scrolled into view before clicking
 
@@ -574,50 +427,31 @@ class SideBarEntries(AtomicTest):
         assert self.is_sidebar_browse_title_displayed()
         assert self.is_sidebar_calendar_title_displayed()
 
-# Switch between Hebrew and English and sample a few of the objects to make sure the language has actually changed.
+
 class ChangeSiteLanguage(AtomicTest):
+    # Switch between Hebrew and English and sample a few of the objects to make sure 
+    # the language has actually changed.
     suite_class = ReaderSuite
     every_build = False
 
     def body(self):
         self.nav_to_toc()
         self.click_ivrit_link()
-        ivrit_title = self.get_sefaria_lib_title()
         if 'safari' in self.driver.name or "Safari" in self.driver.name:
             time.sleep(1)
-            assert self.driver.find_element_by_class_name('interface-hebrew') != None
-        else:
-            assert ivrit_title == 'האוסף של ספריא'
-            # assume you're not logged in
-            # assert self.get_login_link_text() == u'התחבר'
-            # assert self.get_signup_link_text() == u'הרשם'
-            assert self.get_what_is_sefaria_link_text() == 'מהי ספריא'
-            assert self.get_teach_with_sefaria_link_text() == 'למד באמצעות ספריא'
-            assert self.get_get_involved_link_text() == 'הצטרף אלינו'
-            assert self.get_donate_link_text() == 'תרומות'
-            assert self.get_facebook_link_text() == 'פייסבוק'
+        assert self.driver.find_element_by_class_name('interface-hebrew') != None
+        
         self.click_english_link()
-        english_title = self.get_sefaria_lib_title()
         if 'safari' in self.driver.name or "Safari" in self.driver.name:
             time.sleep(1)
-            assert self.driver.find_element_by_class_name('interface-english') != None
-        else:
-            assert english_title == 'The Sefaria Library'
-            # assume you're not logged in
-            # assert self.get_login_link_text() == u'Log in'
-            # assert self.get_signup_link_text() == u'Sign up'
-            assert self.get_what_is_sefaria_link_text() == 'What is Sefaria?'
-            assert self.get_teach_with_sefaria_link_text() == 'Teach with Sefaria'
-            assert self.get_get_involved_link_text() == 'Get Involved'
-            assert self.get_donate_link_text() == 'Donate'
-            assert self.get_facebook_link_text() == 'Facebook'
+        assert self.driver.find_element_by_class_name('interface-english') != None
 
 
-class CheckGraphs(AtomicTest):
+class LinkExplorer(AtomicTest):
+    # Make sure all Tanach books and Mashechtot are displayed, and sample some entries to check 
+    # that torah>nevi'im>ketuvim and the Sedarim are in the correct order
     suite_class = PageloadSuite
     every_build = False
-
-    # Make sure all Tanach books and Mashechtot are displayed, and sample some entries to check that torah>nevi'im>ketuvim and the Sedarim are in the correct order
     def body(self):
         self.driver.get(self.base_url + "/explore")
         #todo ^ add a wait there that is connected to content
@@ -709,28 +543,22 @@ class CheckGraphs(AtomicTest):
         assert self.get_object_by_id('Niddah').is_displayed()
 
 
-class RecentInToc(AtomicTest):
-    suite_class = ReaderSuite
+class ReadingHistory(AtomicTest):
+    suite_class = PagesLoad
     single_panel = False
     every_build = True
 
     def body(self):
         # Using a short chapter can cause the text to fail if the following section is
         # counted as a view and saved in recent in place of the named chapter.
+        self.load_toc()
         self.search_ref("Joshua 1")
         self.nav_to_history().click_toc_recent("Joshua 1")
         self.browse_to_ref("Berakhot 23b")
         time.sleep(3)
         self.nav_to_history().click_toc_recent("Berakhot 23b")
 
-
-class RecentInTocOnReload(AtomicTest):
-    suite_class = PageloadSuite
-    single_panel = False
-    every_build = True
-
-    def body(self):
-        self.load_ref("Joshua 1")
+        # Ensure History sticks on reload
         self.load_toc().nav_to_history().click_toc_recent("Joshua 1")
 
 
@@ -817,8 +645,6 @@ class LoadAndVerifyIndepenedentTOC(AtomicTest):
         for title in titles:
             self.load_text_toc(title)
 
-       # self.load_text_toc("Numbers").click_text_toc_section("Numbers 12").back().click_text_toc_section("Numbers 3").back()
-
 
 class LoadSpanningRefAndOpenConnections(AtomicTest):
     suite_class = PageloadSuite
@@ -899,9 +725,9 @@ class NavToTocAndCheckPresenceOfDownloadButton(AtomicTest):
 class LoadTocAndCheckPresenceOfDownloadButton(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
-    exclude = ['And/5.1']           # Android driver doesn't support "Select" class. Haven't found workaround.
-                                    # iPhone 5 used to have an unrelated bug where a screen size refresh mid-test causes this to fail.
-                                    # Is this bug still on iPhone 6?
+    exclude = ['And/5.1']  # Android driver doesn't support "Select" class. Haven't found workaround.
+                           # iPhone 5 used to have an unrelated bug where a screen size refresh mid-test causes this to fail.
+                           # Is this bug still on iPhone 6?
 
     def body(self):
         # Load Shabbat TOC and scroll to bottom
