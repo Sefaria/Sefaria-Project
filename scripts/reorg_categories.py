@@ -496,9 +496,11 @@ c = Category().load({"path": ["Halakhah", "Tur and Commentaries"]})
 c.change_key_name("Tur")
 c.save(override_dependencies=True)
 
+tur_commentary = create_category(["Halakhah", "Tur", "Commentary"])
+
 for ind in IndexSet({"categories": ["Halakhah", "Tur and Commentaries"]}):
     assert isinstance(ind, Index)
-    ind.categories = ["Halakhah", "Tur"]
+    ind.categories = ["Halakhah", "Tur"] if ind.get_title("en") == "Tur" else ["Halakhah", "Tur", "Commentary"]
     print("Moving - " + ind.get_title() + " to " + str(ind.categories))
     ind.save(override_dependencies=True)
 
