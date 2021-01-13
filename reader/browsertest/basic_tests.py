@@ -91,7 +91,43 @@ class DeleteContentInEditor(AtomicTest):
     def body(self):
         self.delete_sheet_content("back")
         self.delete_sheet_content("forward")
-        self.is_js_error()
+        self.catch_js_error()
+
+
+class AddSourceToEditor(AtomicTest):
+    suite_class = EditorSuite
+    every_build = False
+    single_panel = False  # No source sheets on mobile
+
+
+    def body(self):
+        self.add_source("Psalms 43:4")
+        sheet_items = self.driver.find_elements_by_css_selector(".sheetItem")
+        # sheet_items_and_spacers = self.driver.find_elements_by_css_selector(".editorContent div")
+        sheet_items_and_spacers = self.driver.find_elements_by_css_selector(".editorContent>div")
+
+
+        print(len(sheet_items))
+
+        last_sheet_item = sheet_items[-1]
+        added_source = last_sheet_item.find_element_by_css_selector(".SheetSource") # will throw error if doesn't exist
+
+        print(last_sheet_item == sheet_items_and_spacers[-2])
+
+        # print(last_sheet_item.get_attribute('innerHTML'))
+
+        spacer_after_source = last_sheet_item.find_elements_by_css_selector(".sheetItem")
+
+        print(len(spacer_after_source))
+
+
+
+
+
+        # assert len(sheet_items) == 1
+
+
+
 
 
 class AddSheetContent(AtomicTest):
@@ -101,10 +137,9 @@ class AddSheetContent(AtomicTest):
 
 
     def body(self):
-        self.add_source("Psalms 43:4")
-        self.generate_text("he")
-        self.generate_text("en")
-        self.is_js_error()
+        self.type_lorem_ipsum_text("he")
+        self.type_lorem_ipsum_text("en")
+        self.catch_js_error()
         assert 1 == 1
         # edited_sheet = self.get_sheet_html()
         # sheetURL = self.get_current_url()
