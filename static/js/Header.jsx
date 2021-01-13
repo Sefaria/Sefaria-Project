@@ -23,7 +23,7 @@ class Header extends Component {
     this._searchOverridePre = Sefaria._('Search for') +': "';
     this._searchOverridePost = '"';
     this._type_icon_map = {
-      "Group": "collection.svg",
+      "Collection": "collection.svg",
       "Person": "iconmonstr-pen-17.svg",
       "TocCategory": "iconmonstr-view-6.svg",
       "Topic": "iconmonstr-hashtag-1.svg",
