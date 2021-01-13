@@ -1213,10 +1213,10 @@ class AbstractTest(object):
 
 
 class TestSuite(AbstractTest):
-    def __init__(self, driver, url, cap, seed=None, mode=None, root_test=True, **kwargs):
+    def __init__(self, driver, url, cap, mode=None, root_test=True, **kwargs):
         super(TestSuite, self).__init__(driver, url, cap, root_test=root_test, **kwargs)
         self.mode = mode
-        self.tests = [t(self.driver, self.base_url, self.cap) for t in get_ordered_atomic_tests(seed) if t.suite_class == self.__class__ and t._should_run(self.mode, self.cap)]
+        self.tests = [t(self.driver, self.base_url, self.cap) for t in get_atomic_tests() if t.suite_class == self.__class__ and t._should_run(self.mode, self.cap)]
         self.result_set = TestResultSet()
 
     def __str__(self):
@@ -1604,7 +1604,6 @@ class Trial(object):
         self.platform = platform
         self.build = build
         self.tests = get_every_build_tests(get_suites()) if tests is None else tests
-        self.seed = random.random()
         self._results = TestResultSet()
         self.parallel = parallel if parallel is not None else False if self.is_local else True
         if self.parallel:
@@ -1664,7 +1663,7 @@ class Trial(object):
 
         try:
             driver = self._get_driver(cap)
-            test_instance = test_class(driver, self.BASE_URL, cap, root_test=True, mode=mode, seed=self.seed, verbose=self.isVerbose)
+            test_instance = test_class(driver, self.BASE_URL, cap, root_test=True, mode=mode, verbose=self.isVerbose)
 
             if not test_instance.should_run(mode):
                 return None
@@ -1809,12 +1808,6 @@ def get_subclasses(c):
 
 def get_atomic_tests():
     return get_subclasses(AtomicTest)
-
-
-def get_ordered_atomic_tests(seed):
-    test_classes = get_atomic_tests()
-    random.shuffle(test_classes, lambda: seed)
-    return test_classes
 
 
 def get_suites():
