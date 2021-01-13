@@ -80,9 +80,6 @@ class Group(abst.AbstractMongoRecord):
         if getattr(self, "listed", False):
             if not getattr(self, "imageUrl", False):
                 raise InputError(_("Public Groups are required to include a group image (a square image will work best)."))
-            contents = self.contents(with_content=True)
-            if len(contents["sheets"]) < 3:
-                raise InputError(_("Public Groups are required to have at least 3 public sheets."))
 
         return True
 
