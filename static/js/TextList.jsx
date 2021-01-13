@@ -295,7 +295,8 @@ const ConnectionButtons = ({connection, onTextClick, onConnectionDelete, setConn
       });
     }
   }
-  const openLinkInTab = () => {
+  const openLinkInTab = (event) => {
+    event.preventDefault();
     if (onTextClick) {
       //Click on the body of the TextRange itself from TextList
       onTextClick(connection.sourceRef);
