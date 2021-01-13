@@ -23,6 +23,19 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def builtin_only(view):
+    """
+    Marks processors only needed when setting the data JS.
+    Passed in Source Sheets which rely on S1 JS.
+    """
+    @wraps(view)
+    def wrapper(request):
+        if request.path == "/login" or request.path.startswith("/passowrd/"):
+            return view(request)
+        else:
+            return {}
+    return wrapper
+
 def data_only(view):
     """
     Marks processors only needed when setting the data JS.
@@ -63,6 +76,10 @@ def global_settings(request):
         "SITE_SETTINGS":          SITE_SETTINGS,
         }
 
+
+def base_props(request):
+    from reader.views import base_props
+    return {"propsJSON": json.dumps(base_props(request), ensure_ascii=False)}
 
 def cache_timestamp(request):
     return {
