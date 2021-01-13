@@ -82,6 +82,132 @@ if server_coordinator:
 #    #    #
 
 
+def render_sefaria_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
+    app_props = app_props if app_props else {}
+    props = base_props(request)
+    props.update(app_props)
+    propsJSON = json.dumps(props, ensure_ascii=False)
+    template_context["propsJSON"] = propsJSON
+    if app_props: # We are rendering the ReaderApp in Node, otherwise its jsut a Django template view with ReaderApp set to headerMode
+        html = render_react_component("ReaderApp", propsJSON)
+        template_context["html"] = html
+    return render(request, template_name=template_name, context=template_context, content_type=content_type, status=status, using=using)
+
+
+def render_react_component(component, props):
+    """
+    Asks the Node Server to render `component` with `props`.
+    `props` may either be JSON (to save reencoding) or a dictionary.
+    Returns HTML.
+    """
+    if not USE_NODE:
+        return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
+
+    from sefaria.settings import NODE_TIMEOUT
+
+    propsJSON = json.dumps(props, ensure_ascii=False) if isinstance(props, dict) else props
+    cache_key = "todo" # zlib.compress(propsJSON)
+    url = NODE_HOST + "/" + component + "/" + cache_key
+
+    encoded_args = urllib.parse.urlencode({
+        "propsJSON": propsJSON,
+    }).encode("utf-8")
+    try:
+        req = urllib.request.Request(url)
+        response = urllib.request.urlopen(req, encoded_args, NODE_TIMEOUT)
+        html = response.read().decode("utf-8")
+        return html
+    except Exception as e:
+        # Catch timeouts, however they may come.  Write to file NODE_TIMEOUT_MONITOR, which forever monitors to restart process
+        if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
+            props = json.loads(props) if isinstance(props, str) else props
+            logger.exception("Node timeout: {} / {} / {} / {}\n".format(
+                    props.get("initialPath"),
+                    "MultiPanel" if props.get("multiPanel", True) else "Mobile",
+                    "Logged In" if props.get("loggedIn", False) else "Logged Out",
+                    props.get("interfaceLang")
+            ))
+            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
+        else:
+            # If anything else goes wrong with Node, just fall back to client-side rendering
+            logger.exception("Node error: Fell back to client-side rendering.")
+            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
+
+
+def base_props(request):
+    """
+    Returns a dictionary of props that all App pages get based on the request AND are able to be sent over the wire to the Node SSR server.
+    """
+    from sefaria.model.user_profile import UserProfile, UserWrapper
+    from sefaria.site.site_settings import SITE_SETTINGS
+    from sefaria.settings import DEBUG, GLOBAL_INTERRUPTING_MESSAGE
+
+    if hasattr(request, "init_shared_cache"):
+        logger.warning("Shared cache disappeared while application was running")
+        library.init_shared_cache(rebuild=True)
+
+    if request.user.is_authenticated:
+        profile = UserProfile(user_obj=request.user)
+        interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
+        user_data = {
+            "_uid": request.user.id,
+            "_email": request.user.email,
+            "slug": profile.slug if profile else "",
+            "is_moderator": request.user.is_staff,
+            "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
+            "full_name": profile.full_name,
+            "profile_pic_url": profile.profile_pic_url,
+            "is_history_enabled": profile.settings["reading_history"],
+            "following": profile.followees.uids,
+
+            "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
+            "notificationCount": profile.unread_notification_count(),
+            "notificationsHtml": profile.recent_notifications().to_HTML(),
+            "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
+            "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True),
+            "interruptingMessage": InterruptingMessage(attrs=interrupting_message_dict, request=request).contents(),
+        }
+    else:
+        user_data = {
+            "_uid": None,
+            "_email": "",
+            "slug": "",
+            "is_moderator": False,
+            "is_editor": False,
+            "full_name": "",
+            "profile_pic_url": "",
+            "is_history_enabled": True,
+            "following": [],
+
+            "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
+            "notificationCount": 0,
+            "notificationsHtml": "",
+            "saved": [],
+            "last_place": [],
+            "interruptingMessage": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).contents(),
+        }
+    user_data.update({
+        "last_cached": library.get_last_cached_time(),
+        "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
+        "initialPath": request.get_full_path(),
+        "interfaceLang": request.interfaceLang,
+        "initialSettings": {
+            "language":      request.contentLang,
+            "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
+            "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
+            "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
+            "aliyotTorah":   request.COOKIES.get("aliyotTorah", "aliyotOff"),
+            "vowels":        request.COOKIES.get("vowels", "all"),
+            "biLayout":      request.COOKIES.get("biLayout", "stacked"),
+            "color":         request.COOKIES.get("color", "light"),
+            "fontSize":      request.COOKIES.get("fontSize", 62.5),
+        },
+        "_siteSettings": SITE_SETTINGS,
+        "_debug": DEBUG,
+    })
+    return user_data
+
+
 def user_credentials(request):
     if request.user.is_authenticated:
         return {"user_type": "session", "user_id": request.user.id}
@@ -96,8 +222,6 @@ def user_credentials(request):
             return {"user_type": "API", "user_id": None, "error": "Unrecognized API key."}
         #user = User.objects.get(id=apikey["uid"])
         return {"user_type": "API", "user_id": apikey["uid"]}
-
-
 
 
 @ensure_csrf_cookie
@@ -141,46 +265,6 @@ def old_versions_redirect(request, tref, lang, version):
     params = request.GET.urlencode()
     response['Location'] += "&{}".format(params) if params else ""
     return response
-
-
-def render_react_component(component, props):
-    """
-    Asks the Node Server to render `component` with `props`.
-    `props` may either be JSON (to save reencoding) or a dictionary.
-    Returns HTML.
-    """
-    if not USE_NODE:
-        return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
-
-    from sefaria.settings import NODE_TIMEOUT
-
-    propsJSON = json.dumps(props, ensure_ascii=False) if isinstance(props, dict) else props
-    cache_key = "todo" # zlib.compress(propsJSON)
-    url = NODE_HOST + "/" + component + "/" + cache_key
-
-    encoded_args = urllib.parse.urlencode({
-        "propsJSON": propsJSON,
-    }).encode("utf-8")
-    try:
-        req = urllib.request.Request(url)
-        response = urllib.request.urlopen(req, encoded_args, NODE_TIMEOUT)
-        html = response.read().decode("utf-8")
-        return html
-    except Exception as e:
-        # Catch timeouts, however they may come.  Write to file NODE_TIMEOUT_MONITOR, which forever monitors to restart process
-        if isinstance(e, socket.timeout) or (hasattr(e, "reason") and isinstance(e.reason, socket.timeout)):
-            props = json.loads(props) if isinstance(props, str) else props
-            logger.exception("Node timeout: {} / {} / {} / {}\n".format(
-                    props.get("initialPath"),
-                    "MultiPanel" if props.get("multiPanel", True) else "Mobile",
-                    "Logged In" if props.get("loggedIn", False) else "Logged Out",
-                    props.get("interfaceLang")
-            ))
-            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
-        else:
-            # If anything else goes wrong with Node, just fall back to client-side rendering
-            logger.exception("Node error: Fell back to client-side rendering.")
-            return render_to_string("elements/loading.html", context={"SITE_SETTINGS": SITE_SETTINGS})
 
 
 def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **kwargs):
@@ -347,80 +431,6 @@ def make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_pa
     return panels
 
 
-def base_props(request):
-    """
-    Returns a dictionary of props that all App pages get based on the request AND are able to be sent over the wire to the Node SSR server.
-    """
-    from sefaria.model.user_profile import UserProfile, UserWrapper
-    from sefaria.site.site_settings import SITE_SETTINGS
-    from sefaria.settings import DEBUG, GLOBAL_INTERRUPTING_MESSAGE
-
-    if hasattr(request, "init_shared_cache"):
-        logger.warning("Shared cache disappeared while application was running")
-        library.init_shared_cache(rebuild=True)
-
-    if request.user.is_authenticated:
-        profile = UserProfile(user_obj=request.user)
-        interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
-        user_data = {
-            "_uid": request.user.id,
-            "_email": request.user.email,
-            "slug": profile.slug if profile else "",
-            "is_moderator": request.user.is_staff,
-            "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
-            "full_name": profile.full_name,
-            "profile_pic_url": profile.profile_pic_url,
-            "is_history_enabled": profile.settings["reading_history"],
-            "following": profile.followees.uids,
-
-            "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
-            "notificationCount": profile.unread_notification_count(),
-            "notificationsHtml": profile.recent_notifications().to_HTML(),
-            "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
-            "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True),
-            "interruptingMessage": InterruptingMessage(attrs=interrupting_message_dict, request=request).contents(),
-        }
-    else:
-        user_data = {
-            "_uid": None,
-            "_email": "",
-            "slug": "",
-            "is_moderator": False,
-            "is_editor": False,
-            "full_name": "",
-            "profile_pic_url": "",
-            "is_history_enabled": True,
-            "following": [],
-
-            "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
-            "notificationCount": 0,
-            "notificationsHtml": "",
-            "saved": [],
-            "last_place": [],
-            "interruptingMessage": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).contents(),
-        }
-    user_data.update({
-        "last_cached": library.get_last_cached_time(),
-        "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
-        "initialPath": request.get_full_path(),
-        "interfaceLang": request.interfaceLang,
-        "initialSettings": {
-            "language":      request.contentLang,
-            "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
-            "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
-            "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
-            "aliyotTorah":   request.COOKIES.get("aliyotTorah", "aliyotOff"),
-            "vowels":        request.COOKIES.get("vowels", "all"),
-            "biLayout":      request.COOKIES.get("biLayout", "stacked"),
-            "color":         request.COOKIES.get("color", "light"),
-            "fontSize":      request.COOKIES.get("fontSize", 62.5),
-        },
-        "_siteSettings": SITE_SETTINGS,
-        "_debug": DEBUG,
-    })
-    return user_data
-
-
 @sanitize_get_params
 def text_panels(request, ref, version=None, lang=None, sheet=None):
     """
@@ -435,10 +445,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         except InputError:
             raise Http404
 
-    props = base_props(request)
-
     panels = []
-    multi_panel = props["multiPanel"]
+    multi_panel = not request.user_agent.is_mobile and not "mobile" in request.GET
     # Handle first panel which has a different signature in params
     versionEn = request.GET.get("ven", None)
     if versionEn:
@@ -460,7 +468,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         if versionHe and not Version().load({"versionTitle": versionHe, "language": "he"}):
             raise Http404
         kwargs = {
-            "panelDisplayLanguage": request.GET.get("lang", props["initialSettings"]["language"]),
+            "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
             'extended notes': int(request.GET.get("notes", 0)),
         }
         if request.GET.get("aliyot", None):
@@ -478,7 +486,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         if not ref:
             break
         if ref == "search":
-            panelDisplayLanguage = request.GET.get("lang{}".format(i), props["initialSettings"]["language"])
+            panelDisplayLanguage = request.GET.get("lang{}".format(i), request.contentLang)
             panels += [make_search_panel_dict(request.GET, i, **{"panelDisplayLanguage": panelDisplayLanguage})]
 
         elif ref == "sheet":
@@ -508,7 +516,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             filter   = [] if filter == ["all"] else filter
             versionFilter = [request.GET.get("vside").replace("_", " ")] if request.GET.get("vside") else []
             kwargs = {
-                "panelDisplayLanguage": request.GET.get("lang{}".format(i), props["initialSettings"]["language"]),
+                "panelDisplayLanguage": request.GET.get("lang{}".format(i), request.contentLang),
                 'extended notes': int(request.GET.get("notes{}".format(i), 0)),
             }
             if request.GET.get("aliyot{}".format(i), None):
@@ -523,7 +531,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
         i += 1
 
-    props.update({
+    props = {
         "headerMode":                  False,
         "initialRefs":                 panels[0].get("refs", []),
         "initialFilter":               panels[0].get("filter", None), # used only for mobile, TextAndConnections case.
@@ -535,7 +543,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialNavigationCategories": None,
         "initialNavigationTopicCategory":     None,
         "initialNavigationTopicTitle": None,
-    })
+    }
     if sheet == None:
         title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
         breadcrumb = ld_cat_crumbs(request, oref=primary_ref)
@@ -553,8 +561,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         else:
             segmentIndex = primary_ref.sections[-1] - 1 if primary_ref.is_segment_level() else 0
             try:
-                enText = _reduce_ranged_ref_text_to_first_section(props["initialPanels"][0]["text"].get("text", []))
-                heText = _reduce_ranged_ref_text_to_first_section(props["initialPanels"][0]["text"].get("he", []))
+                enText = _reduce_ranged_ref_text_to_first_section(panels[0]["text"].get("text", []))
+                heText = _reduce_ranged_ref_text_to_first_section(panels[0]["text"].get("he", []))
                 enDesc = enText[segmentIndex] if segmentIndex < len(enText) else "" # get english text for section if it exists
                 heDesc = heText[segmentIndex] if segmentIndex < len(heText) else "" # get hebrew text for section if it exists
                 if request.interfaceLang == "hebrew":
@@ -575,13 +583,9 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         desc = sheet.get("summary", _("A source sheet created with Sefaria's Source Sheet Builder"))
         noindex = sheet["status"] != "public"
 
-    propsJSON = json.dumps(props, ensure_ascii=False)
     if len(panels) > 0 and panels[0].get("refs") == [] and panels[0].get("mode") == "Text":
         logger.debug("Mangled panel state: {}".format(panels), stack_info=True)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request, 'base.html', {
-        "propsJSON":      propsJSON,
-        "html":           html,
+    return render_sefaria_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
         "canonical_url":  canonical_url(request),
@@ -611,11 +615,6 @@ def texts_category_list(request, cats):
         cats = cats.replace("Tanach", "Tanakh")
         return redirect("/texts/%s" % cats)
 
-    props = base_props(request)
-    if request.user.is_authenticated:
-        props.update({
-            "last_place": UserProfile(user_obj=request.user).get_user_history(last_place=True, secondary=False, serialized=True),
-        })
     cats  = cats.split("/")
     if cats != ["recent"]:
         toc        = library.get_toc()
@@ -630,15 +629,11 @@ def texts_category_list(request, cats):
         title = _("Recently Viewed")
         desc  = _("Texts that you've recently viewed on Sefaria.")
 
-    props.update({
+    props = {
         "initialMenu": "navigation",
         "initialNavigationCategories": cats,
-    })
-    propsJSON = json.dumps(props, ensure_ascii=False)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request, 'base.html', {
-        "propsJSON":        propsJSON,
-        "html":             html,
+    }
+    return render_sefaria_template(request, 'base.html', props, {
         "title":            title,
         "desc":             desc,
         "canonical_url":    canonical_url(request),
@@ -651,24 +646,18 @@ def topics_toc_page(request, topicCategory):
     """
     List of topics in a category.
     """
-    props = base_props(request)
     topic_obj = Topic.init(topicCategory)
-    props.update({
+    props={
         "initialMenu": "navigation",
         "initialNavigationTopicCategory": topicCategory,
         "initialNavigationTopicTitle": {
             "en": topic_obj.get_primary_title('en'),
             "he": topic_obj.get_primary_title('he')
         }
-    })
-    propsJSON = json.dumps(props, ensure_ascii=False)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request, 'base.html', {
-        "propsJSON":        propsJSON,
-        "html":             html,
+    }
+    return render_sefaria_template(request, 'base.html', props, {
         "title":            "",
         "desc":             "",
-        #"ldBreadcrumbs":    ld_cat_crumbs(request, cats)
     })
 
 
@@ -709,8 +698,7 @@ def search(request):
     """
     search_params = get_search_params(request.GET)
 
-    props = base_props(request)
-    props.update({
+    props={
         "initialMenu": "search",
         "initialQuery": search_params["query"],
         "initialSearchTab": search_params["tab"],
@@ -721,12 +709,8 @@ def search(request):
         "initialSheetSearchFilters": search_params["sheetFilters"],
         "initialSheetSearchFilterAggTypes": search_params["sheetFilterAggTypes"],
         "initialSheetSearchSortType": search_params["sheetSort"]
-    })
-    propsJSON = json.dumps(props, ensure_ascii=False)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request,'base.html', {
-        "propsJSON": propsJSON,
-        "html":      html,
+    }
+    return render_sefaria_template(request,'base.html', props, {
         "title":     (search_params["query"] + " | " if search_params["query"] else "") + _("Sefaria Search"),
         "desc":      _("Search 3,000 years of Jewish texts in Hebrew and English translation.")
     })
@@ -752,45 +736,34 @@ def sheets(request):
     """
     Source Sheets Home Page.
     """
-    props = base_props(request)
-    props.update({
+    props = {
         "initialMenu": "sheets",
         "topSheets": get_top_sheets(),
         "tagList": public_tag_list(sort_by="count"),
         "trendingTags": trending_topics(ntags=18)
-    })
+    }
 
     title = _("Sefaria Source Sheets")
     desc  = _("Explore thousands of public Source Sheets and use our Source Sheet Builder to create your own online.")
-    propsJSON = json.dumps(props, ensure_ascii=False)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request, 'base.html', {
-        "propsJSON":      propsJSON,
+    return render_sefaria_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
-        "html":           html,
     })
 
 
 @sanitize_get_params
 def get_group_page(request, group, authenticated):
-    props = base_props(request)
-    props.update({
+    props = {
         "initialMenu":     "sheets",
         "initialSheetsTag": "sefaria-groups",
         "initialGroup":     group,
         "initialGroupTag":  request.GET.get("tag", None)
-    })
+    }
     group = GroupSet({"name": group})
     if not len(group):
         raise Http404
     props["groupData"] = group[0].contents(with_content=True, authenticated=authenticated)
-
-    propsJSON = json.dumps(props, ensure_ascii=False)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request, 'base.html', {
-        "propsJSON": propsJSON,
-        "html": html,
+    return render_sefaria_template(request, 'base.html', props, {
         "title": group[0].name + " | " + _("Sefaria Groups"),
         "desc": props["groupData"].get("description", ""),
         "noindex": not getattr(group[0], "listed", False)
@@ -798,26 +771,23 @@ def get_group_page(request, group, authenticated):
 
 
 def public_groups(request):
-    props = base_props(request)
-    props.update({
+    props = {
         "groupListing": GroupSet.get_group_listing(request.user.id)
-    })
+    }
     title = _("Sefaria Groups")
-    return menu_page(request, props, "publicGroups")
+    return menu_page(request, props, page="publicGroups", title=title)
 
 
 @login_required
 def my_groups(request):
-    props = base_props(request)
     title = _("Sefaria Groups")
-    return menu_page(request, props, "myGroups")
+    return menu_page(request, page="myGroups", title=title)
 
 
 @login_required
 def my_notes(request):
     title = _("My Notes on Sefaria")
-    props = base_props(request)
-    return menu_page(request, props, "myNotes", title)
+    return menu_page(request, page="myNotes", title=title)
 
 
 def topic_page_redirect(request, tag):
@@ -870,7 +840,7 @@ def edit_group_page(request, group=None):
     else:
         groupData = None
 
-    return render(request, 'edit_group.html', {"groupData": groupData})
+    return render_sefaria_template(request, 'edit_group.html', None, {"groupData": groupData})
 
 
 @staff_member_required
@@ -879,31 +849,28 @@ def groups_admin_page(request):
     Page listing all groups for admins
     """
     groups = GroupSet(sort=[["name", 1]])
-    return render(request, "groups.html", {"groups": groups})
+    return render_sefaria_template(request, "groups.html", None, {"groups": groups})
 
 
 @sanitize_get_params
-def menu_page(request, props, page, title="", desc=""):
+def menu_page(request, props=None, page="", title="", desc=""):
     """
     View for any App page that can described with the `menuOpen` param in React
     """
+    # Here we call props.update() and not a new dict because props are passed in from higher functions
+    props = props if props else {}
     props.update({
         "initialMenu": page,
     })
-    propsJSON = json.dumps(props, ensure_ascii=False)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request, 'base.html', {
-        "propsJSON":      propsJSON,
+    return render_sefaria_template(request, 'base.html', props, {
         "title":          title,
         "desc":           desc,
-        "html":           html,
         "canonical_url":  canonical_url(request),
     })
 
 
 def mobile_home(request):
-    props = base_props(request)
-    return menu_page(request, props, "home")
+    return menu_page(request, page="home")
 
 def _get_user_calendar_params(request):
     if request.user.is_authenticated:
@@ -914,130 +881,75 @@ def _get_user_calendar_params(request):
     return {"diaspora": request.diaspora, "custom": custom}
 
 def texts_list(request):
-    props = base_props(request)
-    """props.update({
-        "calendars": get_todays_calendar_items(**_get_user_calendar_params(request))
-    })"""
     title = _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
     desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
-    return menu_page(request, props, "navigation", title, desc)
+    return menu_page(request, page="navigation", title=title, desc=desc)
 
 
 @login_required
 def saved(request):
-    props = base_props(request)
-    if request.user.is_authenticated:
-        props.update({
-            "saved": UserProfile(user_obj=request.user).get_user_history(saved=True, secondary=False, serialized=True)
-        })
     title = _("My Saved Content")
     desc = _("See your saved content on Sefaria")
-    return menu_page(request, props, "saved", title, desc)
+    return menu_page(request, page="saved", title=title, desc=desc)
 
 
 def user_history(request):
-    props = base_props(request)
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
-        uhistory = {
-            "userHistory": profile.get_user_history(secondary=False, serialized=True) if profile.settings["reading_history"] else [],
-            "reading_history": profile.settings["reading_history"]
-        }
+        uhistory =  profile.get_user_history(secondary=False, serialized=True) if profile.settings["reading_history"] else []
     else:
-        uhistory = {
-            "userHistory": _get_anonymous_user_history(request),
-            "reading_history": True
-        }
-    props.update(uhistory)
+        uhistory = _get_anonymous_user_history(request)
+    props = {"userHistory": uhistory}
     title = _("My User History")
     desc = _("See your user history on Sefaria")
-    return menu_page(request, props, "history", title, desc)
+    return menu_page(request, props, page="history", title=title, desc=desc)
 
 
 def updates(request):
-    props = base_props(request)
     title = _("New Additions to the Sefaria Library")
     desc  = _("See texts, translations and connections that have been recently added to Sefaria.")
-    return menu_page(request, props, "updates", title, desc)
+    return menu_page(request, page="updates", title=title, desc=desc)
 
 
 def new_home(request):
-    props = base_props(request)
-    props.update({
-        "calendars": get_todays_calendar_items(**_get_user_calendar_params(request))
-    })
     title = _("Sefaria: a Living Library of Jewish Texts Online")
     desc  = _( "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
-    return menu_page(request, props, "homefeed", title, desc)
+    return menu_page(request, page="homefeed", title=title, desc=desc)
 
 
 @staff_member_required
 def story_editor(request):
-    props = base_props(request)
     title = _("Story Editor")
-    return menu_page(request, props, "story_editor", title)
+    return menu_page(request, page="story_editor", title=title)
 
 
 @login_required
 def user_stats(request):
-    props = base_props(request)
     title = _("User Stats")
-    return menu_page(request, props, "user_stats", title)
+    return menu_page(request, page="user_stats", title=title)
 
 @login_required
 def account(request):
     title = _("Sefaria Account")
-    props = base_props(request)
-    return menu_page(request, props, "account", title)
+    return menu_page(request, page="account", title=title)
 
 
 @login_required
 def notifications(request):
     # Notifications content is not rendered server side
     title = _("Sefaria Notifications")
-    props = base_props(request)
     notifications = UserProfile(user_obj=request.user).recent_notifications()
-    props.update({
+    props = {
         "notificationsHtml": notifications.to_HTML(),
-    })
-    return menu_page(request, props, "notifications", title)
+    }
+    return menu_page(request, props, page="notifications", title=title)
 
 
 @staff_member_required
 def modtools(request):
     title = _("Moderator Tools")
-    props = base_props(request)
-    return menu_page(request, props, "modtools", title)
+    return menu_page(request, page="modtools", title=title)
 
-
-""" Is this used?
-
-def s2_extended_notes(request, tref, lang, version_title):
-    if not Ref.is_ref(tref):
-        raise Http404
-
-    version_title = version_title.replace("_", " ")
-    version = Version().load({'title': tref, 'language': lang, 'versionTitle': version_title})
-    if version is None:
-        return reader(request, tref)
-
-    if not hasattr(version, 'extendedNotes') and not hasattr(version, 'extendedNotesHebrew'):
-        return reader(request, tref, lang, version_title)
-
-    title = _("Extended Notes")
-    props = s2_props(request)
-    panel = {
-        "mode": "extended notes",
-        "ref": tref,
-        "refs": [tref],
-        "version": version_title,
-        "versionLanguage": lang,
-        "extendedNotes": getattr(version, "extendedNotes", ""),
-        "extendedNotesHebrew": getattr(version, "extendedNotesHebrew", "")
-    }
-    props['panels'] = [panel]
-    return s2_page(request, props, "extended notes", title)
-"""
 
 def canonical_url(request):
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
@@ -1186,11 +1098,11 @@ def edit_text(request, ref=None, lang=None, version=None):
     titles = json.dumps(model.library.full_title_list())
     page_title = "%s %s" % (mode, ref) if ref else "Add a New Text"
 
-    return render(request,'edit_text.html',
-                             {'titles': titles,
-                              'initJSON': initJSON,
-                              'page_title': page_title,
-                             })
+    return render_sefaria_template(request,'edit_text.html', None, {
+        'titles': titles,
+        'initJSON': initJSON,
+        'page_title': page_title,
+    })
 
 @ensure_csrf_cookie
 @sanitize_get_params
@@ -1203,7 +1115,10 @@ def edit_text_info(request, title=None, new_title=None):
         title = title.replace("_", " ")
         i = library.get_index(title)
         if not (request.user.is_staff or user_started_text(request.user.id, title)):
-            return render(request,'static/generic.html', {"title": "Permission Denied", "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title})
+            return render_sefaria_template(request,'static/generic.html', None, {
+                "title": "Permission Denied",
+                "content": "The Text Info for %s is locked.<br><br>Please email hello@sefaria.org if you believe edits are needed." % title
+            })
         indexJSON = json.dumps(i.contents(v2=True) if "toc" in request.GET else i.contents(force_complex=True))
         versions = VersionSet({"title": title})
         text_exists = versions.count() > 0
@@ -1220,13 +1135,13 @@ def edit_text_info(request, title=None, new_title=None):
         text_exists = False
         new = True
 
-    return render(request,'edit_text_info.html',
-                             {'title': title,
-                             'indexJSON': indexJSON,
-                             'text_exists': text_exists,
-                             'new': new,
-                             'toc': library.get_toc()
-                             })
+    return render_sefaria_template(request,'edit_text_info.html', None, {
+        'title': title,
+         'indexJSON': indexJSON,
+         'text_exists': text_exists,
+         'new': new,
+         'toc': library.get_toc()
+     })
 
 @ensure_csrf_cookie
 @staff_member_required
@@ -1238,17 +1153,17 @@ def terms_editor(request, term=None):
         existing_term = Term().load_by_title(term)
         data = existing_term.contents() if existing_term else {"name": term, "titles": []}
     else:
-        generic_response = { "title": "Terms Editor", "content": "Please include the primary Term name in the URL to uses the Terms Editor." }
-        return render(request,'static/generic.html', generic_response)
+        return render_sefaria_template(request,'static/generic.html', None, {
+            "title": "Terms Editor",
+            "content": "Please include the primary Term name in the URL to uses the Terms Editor."
+        })
 
     dataJSON = json.dumps(data)
-
-    return render(request,'edit_term.html',
-                             {
-                              'term': term,
-                              'dataJSON': dataJSON,
-                              'is_update': "true" if existing_term else "false"
-                             })
+    return render_sefaria_template(request,'edit_term.html', None, {
+        'term': term,
+        'dataJSON': dataJSON,
+        'is_update': "true" if existing_term else "false"
+    })
 
 
 def interface_language_redirect(request, language):
@@ -2118,33 +2033,33 @@ def visualize_library(request, lang=None, cats=None):
     template_vars = {"lang": lang or "",
                      "cats": json.dumps(cats.replace("_", " ").split("/") if cats else [])}
 
-    return render(request,'visual_library.html', template_vars)
+    return render_sefaria_template(request,'visual_library.html', None, template_vars)
 
 
 def visualize_toc(request):
-    return render(request,'visual_toc.html', {})
+    return render_sefaria_template(request,'visual_toc.html', None, {})
 
 
 def visualize_parasha_colors(request):
-    return render(request,'visual_parasha_colors.html', {})
+    return render_sefaria_template(request,'visual_parasha_colors.html', None, {})
 
 
 def visualize_links_through_rashi(request):
     level = request.GET.get("level", 1)
     json_file = "../static/files/torah_rashi_torah.json" if level == 1 else "../static/files/tanach_rashi_tanach.json"
-    return render(request,'visualize_links_through_rashi.html', {"json_file": json_file})
+    return render_sefaria_template(request,'visualize_links_through_rashi.html', None, {"json_file": json_file})
 
 def talmudic_relationships(request):
     json_file = "../static/files/talmudic_relationships_data.json"
-    return render(request,'talmudic_relationships.html', {"json_file": json_file})
+    return render_sefaria_template(request,'talmudic_relationships.html', None, {"json_file": json_file})
 
 def sefer_hachinukh_mitzvot(request):
     csv_file = "../static/files/mitzvot.csv"
-    return render(request,'sefer_hachinukh_mitzvot.html', {"csv": csv_file})
+    return render_sefaria_template(request,'sefer_hachinukh_mitzvot.html', None, {"csv": csv_file})
 
 def unique_words_viz(request):
     csv_file = "../static/files/commentators_torah_unique_words.csv"
-    return render(request,'unique_words_viz.html', {"csv": csv_file})
+    return render_sefaria_template(request,'unique_words_viz.html', None, {"csv": csv_file})
 
 @catch_error_as_json
 def set_lock_api(request, tref, lang, version):
@@ -3072,20 +2987,14 @@ def topics_page(request):
     """
     Page of all Topics
     """
-    props = base_props(request)
-    props.update({
+    props = {
         "initialMenu":  "topics",
         "initialTopic": None,
         # "trendingTags": trending_tags(ntags=12),
-    })
-
-    propsJSON = json.dumps(props, ensure_ascii=False)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request, 'base.html', {
-        "propsJSON":      propsJSON,
+    }
+    return render_sefaria_template(request, 'base.html', props, {
         "title":          _("Topics") + " | " + _("Sefaria"),
         "desc":           _("Explore Jewish Texts by Topic on Sefaria"),
-        "html":           html,
     })
 
 
@@ -3102,8 +3011,7 @@ def topic_page(request, topic):
         if topic_obj is None:
             raise Http404
         topic = topic_obj.slug
-    props = base_props(request)
-    props.update({
+    props = {
         "initialMenu": "topics",
         "initialTopic": topic,
         "initialTopicsTab": urllib.parse.unquote(request.GET.get('tab', 'sources')),
@@ -3112,7 +3020,7 @@ def topic_page(request, topic):
             "he": topic_obj.get_primary_title('he')
         },
         "topicData": _topic_data(topic),
-    })
+    }
 
     short_lang = 'en' if request.interfaceLang == 'english' else 'he'
     title = topic_obj.get_primary_title(short_lang) + " | " + _("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")
@@ -3120,13 +3028,9 @@ def topic_page(request, topic):
     topic_desc = getattr(topic_obj, 'description', {}).get(short_lang, '')
     if topic_desc is not None:
         desc += " " + topic_desc
-    propsJSON = json.dumps(props, ensure_ascii=False)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request,'base.html', {
-        "propsJSON":      propsJSON,
+    return render_sefaria_template(request,'base.html', props, {
         "title":          title,
         "desc":           desc,
-        "html":           html,
     })
 
 @catch_error_as_json
@@ -3238,8 +3142,10 @@ def global_activity(request, page=1):
     page_size = 100
 
     if page > 40:
-        generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
-        return render(request,'static/generic.html', generic_response)
+        return render_sefaria_template(request,'static/generic.html', None, {
+            "title": "Activity Unavailable",
+            "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>."
+        })
 
     if "api" in request.GET:
         q = {}
@@ -3254,13 +3160,13 @@ def global_activity(request, page=1):
     next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
     email = request.user.email if request.user.is_authenticated else False
-    return render(request,'activity.html',
-                             {'activity': activity,
-                                'filter_type': filter_type,
-                                'email': email,
-                                'next_page': next_page,
-                                'he': request.interfaceLang == "hebrew", # to make templates less verbose
-                                })
+    return render_sefaria_template(request,'activity.html', None, {
+        'activity': activity,
+        'filter_type': filter_type,
+        'email': email,
+        'next_page': next_page,
+        'he': request.interfaceLang == "hebrew", # to make templates less verbose
+    })
 
 
 @ensure_csrf_cookie
@@ -3279,8 +3185,10 @@ def user_activity(request, slug, page=1):
 
 
     if page > 40:
-        generic_response = { "title": "Activity Unavailable", "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>." }
-        return render(request,'static/generic.html', generic_response)
+        return render_sefaria_template(request,'static/generic.html', None, {
+            "title": "Activity Unavailable",
+            "content": "You have requested a page deep in Sefaria's history.<br><br>For performance reasons, this page is unavailable. If you need access to this information, please <a href='mailto:dev@sefaria.org'>email us</a>."
+        })
 
     q              = {"user": profile.id}
     filter_type    = request.GET.get("type", None)
@@ -3291,15 +3199,15 @@ def user_activity(request, slug, page=1):
     next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
     email = request.user.email if request.user.is_authenticated else False
-    return render(request,'activity.html',
-                             {'activity': activity,
-                                'filter_type': filter_type,
-                                'profile': profile,
-                                'for_user': True,
-                                'email': email,
-                                'next_page': next_page,
-                                'he': request.interfaceLang == "hebrew", # to make templates less verbose
-                                })
+    return render_sefaria_template(request,'activity.html', None, {
+        'activity': activity,
+        'filter_type': filter_type,
+        'profile': profile,
+        'for_user': True,
+        'email': email,
+        'next_page': next_page,
+        'he': request.interfaceLang == "hebrew", # to make templates less verbose
+    })
 
 
 @ensure_csrf_cookie
@@ -3328,18 +3236,18 @@ def segment_history(request, tref, lang, version, page=1):
     next_page = "%s?type=%s" % (next_page, filter_type) if next_page and filter_type else next_page
 
     email = request.user.email if request.user.is_authenticated else False
-    return render(request,'activity.html',
-                             {'activity': history,
-                               "single": True,
-                               "ref": nref,
-                               "lang": lang,
-                               "version": version,
-                               "versionTitleInHebrew": getattr(version_record, "versionTitleInHebrew", version_record.versionTitle),
-                               'email': email,
-                               'filter_type': filter_type,
-                               'next_page': next_page,
-                               'he': request.interfaceLang == "hebrew", # to make templates less verbose
-                             })
+    return render_sefaria_template(request,'activity.html', None, {
+        'activity': history,
+        "single": True,
+        "ref": nref,
+        "lang": lang,
+        "version": version,
+        "versionTitleInHebrew": getattr(version_record, "versionTitleInHebrew", version_record.versionTitle),
+        'email': email,
+        'filter_type': filter_type,
+        'next_page': next_page,
+        'he': request.interfaceLang == "hebrew", # to make templates less verbose
+     })
 
 
 @catch_error_as_json
@@ -3365,12 +3273,12 @@ def revert_api(request, tref, lang, version, revision):
 
 
 def leaderboard(request):
-    return render(request,'leaderboard.html',
-                             {'leaders': top_contributors(),
-                                'leaders30': top_contributors(30),
-                                'leaders7': top_contributors(7),
-                                'leaders1': top_contributors(1),
-                                })
+    return render_sefaria_template(request,'leaderboard.html', None, {
+        'leaders': top_contributors(),
+        'leaders30': top_contributors(30),
+        'leaders7': top_contributors(7),
+        'leaders1': top_contributors(1),
+    })
 
 
 @ensure_csrf_cookie
@@ -3384,30 +3292,15 @@ def user_profile(request, username):
         raise Http404
     if not requested_profile.user.is_active:
         raise Http404('Profile is inactive.')
-    props = base_props(request)
-    if request.user.is_authenticated:
-        props.update({
-            "following": UserProfile(user_obj=request.user).followees.uids,
-        })
-    else:
-        props.update({
-            "following": [],
-        })
-    profileJSON = requested_profile.to_api_dict()
-    props.update({
+    props = {
         "initialMenu":  "profile",
-        "initialProfile": profileJSON,
-    })
+        "initialProfile": requested_profile.to_api_dict(),
+    }
     title = "%(full_name)s on Sefaria" % {"full_name": requested_profile.full_name}
     desc = '%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": requested_profile.full_name}
-
-    propsJSON = json.dumps(props, ensure_ascii=False)
-    html = render_react_component("ReaderApp", propsJSON)
-    return render(request,'base.html', {
-        "propsJSON":      propsJSON,
+    return render_sefaria_template(request,'base.html', props, {
         "title":          title,
         "desc":           desc,
-        "html":           html,
     })
 
 
@@ -3696,13 +3589,11 @@ def edit_profile(request):
     """
     profile = UserProfile(id=request.user.id)
     sheets  = db.sheets.find({"owner": profile.id, "status": "public"}, {"id": 1, "datePublished": 1}).sort([["datePublished", -1]])
-
-    return render(request,'edit_profile.html',
-                              {
-                              'user': request.user,
-                              'profile': profile,
-                              'sheets': sheets,
-                              })
+    return render_sefaria_template(request,'edit_profile.html', None, {
+      'user': request.user,
+      'profile': profile,
+      'sheets': sheets,
+    })
 
 
 @login_required
@@ -3712,11 +3603,10 @@ def account_settings(request):
     Page for managing a user's account settings.
     """
     profile = UserProfile(id=request.user.id)
-    return render(request,'account_settings.html',
-                             {
-                                'user': request.user,
-                                'profile': profile,
-                              })
+    return render_sefaria_template(request,'account_settings.html', None, {
+        'user': request.user,
+        'profile': profile,
+    })
 
 
 @ensure_csrf_cookie
@@ -3740,21 +3630,17 @@ def home(request):
     if (recent or last_place or request.user.is_authenticated) and "home" not in request.GET:
         return redirect("/texts")
 
-    props = base_props(request)
-    propsJSON = json.dumps(props, ensure_ascii=False)
     calendar_items = get_keyed_calendar_items(request.diaspora)
     daf_today = calendar_items["Daf Yomi"]
     parasha   = calendar_items["Parashat Hashavua"]
     metrics   = db.metrics.find().sort("timestamp", -1).limit(1)[0]
 
-    return render(request,'static/home.html',
-                             {
-                              "propsJSON": propsJSON,
-                              "metrics": metrics,
-                              "daf_today": daf_today,
-                              "parasha": parasha,
-                              "canonical_url": canonical_url(request)
-                              })
+    return render_sefaria_template(request,'static/home.html', None, {
+        "metrics": metrics,
+        "daf_today": daf_today,
+        "parasha": parasha,
+        "canonical_url": canonical_url(request)
+    })
 
 
 @ensure_csrf_cookie
@@ -3763,10 +3649,9 @@ def discussions(request):
     Discussions page.
     """
     discussions = LayerSet({"owner": request.user.id})
-    return render(request,'discussions.html',
-                                {
-                                   "discussions": discussions,
-                                })
+    return render_sefaria_template(request,'discussions.html', None, {
+       "discussions": discussions,
+    })
 
 
 @catch_error_as_json
@@ -3817,10 +3702,9 @@ def dashboard(request):
 
     states = sorted(states, key=toc_sort)
 
-    return render(request,'dashboard.html',
-                                {
-                                    "states": states,
-                                })
+    return render_sefaria_template(request,'dashboard.html', None, {
+        "states": states,
+    })
 
 
 @ensure_csrf_cookie
@@ -3830,10 +3714,9 @@ def metrics(request):
     """
     metrics = db.metrics.find().sort("timestamp", 1)
     metrics_json = dumps(metrics)
-    return render(request,'metrics.html',
-                                {
-                                    "metrics_json": metrics_json,
-                                })
+    return render_sefaria_template(request,'metrics.html', None,{
+        "metrics_json": metrics_json,
+    })
 
 
 @ensure_csrf_cookie
@@ -3842,10 +3725,9 @@ def digitized_by_sefaria(request):
     Metrics page. Shows graphs of core metrics.
     """
     texts = VersionSet({"digitizedBySefaria": True}, sort=[["title", 1]])
-    return render(request,'static/digitized-by-sefaria.html',
-                                {
-                                    "texts": texts,
-                                })
+    return render_sefaria_template(request,'static/digitized-by-sefaria.html', None, {
+        "texts": texts,
+    })
 
 
 def parashat_hashavua_redirect(request):
@@ -3900,7 +3782,7 @@ def random_text_page(request):
     """
     Page for generating random texts.
     """
-    return render(request,'random.html', {})
+    return render_sefaria_template(request,'random.html', None, {})
 
 
 def random_text_api(request):
@@ -4018,12 +3900,7 @@ def serve_static(request, page):
     """
     Serve a static page whose template matches the URL
     """
-    props = base_props(request)
-    propsJSON = json.dumps(props, ensure_ascii=False)
-
-    return render(request,'static/%s.html' % page, {
-        "propsJSON": propsJSON
-    })
+    return render_sefaria_template(request,'static/%s.html' % page, None, {})
 
 
 @ensure_csrf_cookie
@@ -4125,11 +4002,11 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
     if lang == "he": # Override language settings if 'he' is in URL
         request.contentLang = "hebrew"
 
-    return render(request,'explore.html', template_vars)
+    return render_sefaria_template(request,'explore.html', None, template_vars)
 
 @staff_member_required
 def visualize_timeline(request):
-    return render(request, 'timeline.html', {})
+    return render_sefaria_template(request, 'timeline.html', None, {})
 
 
 def person_page(request, name):
@@ -4173,7 +4050,7 @@ def person_page(request, name):
     template_vars["post_talmudic"] = person.is_post_talmudic()
     template_vars["places"] = person.get_places()
 
-    return render(request,'person.html', template_vars)
+    return render_sefaria_template(request,'person.html', None, template_vars)
 
 
 def person_index(request):
@@ -4194,7 +4071,7 @@ def person_index(request):
             }
         )
 
-    return render(request,'people.html', template_vars)
+    return render_sefaria_template(request,'people.html', None, template_vars)
 
 
 def talmud_person_index(request):
@@ -4211,7 +4088,7 @@ def talmud_person_index(request):
             "years_he": gen.period_string("he"),
             "people": [p for p in people]
         })
-    return render(request,'talmud_people.html', template_vars)
+    return render_sefaria_template(request,'talmud_people.html', None, template_vars)
 
 
 def _get_sheet_tag_garden(tag):
@@ -4268,7 +4145,7 @@ def garden_page(request, g):
         'stopsByTag': g.stopsByTag()
     }
 
-    return render(request,'garden.html', template_vars)
+    return render_sefaria_template(request,'garden.html', None, template_vars)
 
 
 def visual_garden_page(request, g):
@@ -4284,7 +4161,7 @@ def visual_garden_page(request, g):
         'config': json.dumps(getattr(g, "config", {}))
     }
 
-    return render(request,'visual_garden.html', template_vars)
+    return render_sefaria_template(request,'visual_garden.html', None, template_vars)
 
 
 
@@ -4329,13 +4206,12 @@ def application_health_api_nonlibrary(request):
 
 @login_required
 def daf_roulette_redirect(request):
-    return render(request,'static/chavruta.html',
-                             {
-                              "rtc_server": RTC_SERVER,
-                              "room_id": "",
-                              "starting_ref": "todays-daf-yomi",
-                              "roulette": "1",
-                              })
+    return render_sefaria_template(request,'static/chavruta.html', None, {
+        "rtc_server": RTC_SERVER,
+        "room_id": "",
+        "starting_ref": "todays-daf-yomi",
+        "roulette": "1",
+    })
 
 @login_required
 def chevruta_redirect(request):
@@ -4346,10 +4222,9 @@ def chevruta_redirect(request):
     if room_id is None:
         raise Http404('Missing room ID.')
 
-    return render(request,'static/chavruta.html',
-                             {
-                              "rtc_server": RTC_SERVER,
-                              "room_id": room_id,
-                              "starting_ref": starting_ref,
-                              "roulette": roulette
-                              })
+    return render_sefaria_template(request,'static/chavruta.html', {
+        "rtc_server": RTC_SERVER,
+        "room_id": room_id,
+        "starting_ref": starting_ref,
+        "roulette": roulette
+    })
