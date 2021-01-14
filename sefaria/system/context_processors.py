@@ -30,7 +30,7 @@ def builtin_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        if request.path == "/login" or request.path.startswith("/passowrd/"):
+        if request.path == "/login" or request.path.startswith("/password"):
             return view(request)
         else:
             return {}
@@ -77,6 +77,7 @@ def global_settings(request):
         }
 
 
+@builtin_only
 def base_props(request):
     from reader.views import base_props
     return {"propsJSON": json.dumps(base_props(request), ensure_ascii=False)}
