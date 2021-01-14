@@ -12,9 +12,8 @@
 {% block js %}
 <script>
     {% autoescape off %}
-    DJANGO_VARS.containerId = 'remoteLearningPageInner';
-    DJANGO_VARS.reactComponentName = 'RemoteLearningPage';
-    DJANGO_VARS.static_url = {{ STATIC_PREFIX }};
+    DJANGO_VARS["containerId"] = 'remoteLearningPageInner';
+    DJANGO_VARS["reactComponentName"] = 'RemoteLearningPage';
     {% endautoescape %}
 </script>
 {% endblock %}

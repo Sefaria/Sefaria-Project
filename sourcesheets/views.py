@@ -32,7 +32,7 @@ from sefaria.model.collection import Collection, CollectionSet
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
 
-from reader.views import catchall
+from reader.views import render_template, catchall
 from sefaria.sheets import clean_source, bleach_text
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
@@ -98,12 +98,13 @@ def new_sheet(request):
 	query         = {"owner": request.user.id or -1 }
 	hide_video    = db.sheets.count_documents(query) > 2
 
-	return render(request,'sheets.html', {"can_edit": True,
-												"new_sheet": True,
-												"is_owner": True,
-												"hide_video": hide_video,
-												"current_url": request.get_full_path,
-												})
+	return render_template(request,'sheets.html', None, {
+        "can_edit": True,
+        "new_sheet": True,
+        "is_owner": True,
+        "hide_video": hide_video,
+        "current_url": request.get_full_path,
+    })
 
 
 def can_edit(user, sheet):
@@ -223,23 +224,25 @@ def view_sheet(request, sheet_id, editorMode = False):
 
     canonical_url = request.get_full_path().replace("?embed=1", "").replace("&embed=1", "")
 
-    return render(request,'sheets.html', {"sheetJSON": json.dumps(sheet),
-                                                "sheet": sheet,
-                                                "sheet_class": sheet_class,
-                                                "can_edit": can_edit_flag,
-                                                "can_add": can_add_flag,
-                                                "title": sheet["title"],
-                                                "author": author,
-                                                "is_owner": request.user.id == sheet["owner"],
-                                                "is_public": sheet["status"] == "public",
-                                                "sheet_collections": sheet_collections,
-                                                "displayed_collection":  displayed_collection,
-                                                "like_count": like_count,
-                                                "viewer_is_liker": viewer_is_liker,
-                                                "current_url": request.get_full_path,
-                                                "canonical_url": canonical_url,
-                                                "assignments_from_sheet":assignments_from_sheet(sheet_id),
-                                            })
+    return render_template(request,'sheets.html', None, {
+        "sheetJSON": json.dumps(sheet),
+        "sheet": sheet,
+        "sheet_class": sheet_class,
+        "can_edit": can_edit_flag,
+        "can_add": can_add_flag,
+        "title": sheet["title"],
+        "author": author,
+        "is_owner": request.user.id == sheet["owner"],
+        "is_public": sheet["status"] == "public",
+        "sheet_collections": sheet_collections,
+        "displayed_collection":  displayed_collection,
+        "like_count": like_count,
+        "viewer_is_liker": viewer_is_liker,
+        "current_url": request.get_full_path,
+        "canonical_url": canonical_url,
+        "assignments_from_sheet":assignments_from_sheet(sheet_id),
+    })
+
 
 def assignments_from_sheet(sheet_id):
     try:
@@ -272,17 +275,18 @@ def view_visual_sheet(request, sheet_id):
     can_edit_flag   = can_edit(request.user, sheet)
     can_add_flag    = can_add(request.user, sheet)
 
-    return render(request,'sheets_visual.html',{"sheetJSON": json.dumps(sheet),
-                                                    "sheet": sheet,
-                                                    "sheet_class": sheet_class,
-                                                    "can_edit": can_edit_flag,
-                                                    "can_add": can_add_flag,
-                                                    "title": sheet["title"],
-                                                    "author": author,
-                                                    "is_owner": request.user.id == sheet["owner"],
-                                                    "is_public": sheet["status"] == "public",
-                                                    "current_url": request.get_full_path,
-                                            })
+    return render_template(request,'sheets_visual.html', None, {
+        "sheetJSON": json.dumps(sheet),
+        "sheet": sheet,
+        "sheet_class": sheet_class,
+        "can_edit": can_edit_flag,
+        "can_add": can_add_flag,
+        "title": sheet["title"],
+        "author": author,
+        "is_owner": request.user.id == sheet["owner"],
+        "is_public": sheet["status"] == "public",
+        "current_url": request.get_full_path,
+    })
 
 
 @ensure_csrf_cookie
@@ -313,23 +317,26 @@ def assigned_sheet(request, assignment_id):
     like_count           = len(likes)
     viewer_is_liker      = request.user.id in likes
 
-    return render(request,'sheets.html', {"sheetJSON": json.dumps(sheet),
-                                                "sheet": sheet,
-                                                "assignment_id": assignment_id,
-                                                "assigner_id": assigner_id,
-                                                "new_sheet": True,
-                                                "sheet_class": sheet_class,
-                                                "can_edit": can_edit_flag,
-                                                "can_add": can_add_flag,
-                                                "title": sheet["title"],
-                                                "is_owner": True,
-                                                "is_public": sheet["status"] == "public",
-                                                "sheet_collections": sheet_collections,
-                                                "displayed_collection":  displayed_collection,
-                                                "like_count": like_count,
-                                                "viewer_is_liker": viewer_is_liker,
-                                                "current_url": request.get_full_path,
-                                            })
+    return render_template(request,'sheets.html', None, {
+        "sheetJSON": json.dumps(sheet),
+        "sheet": sheet,
+        "assignment_id": assignment_id,
+        "assigner_id": assigner_id,
+        "new_sheet": True,
+        "sheet_class": sheet_class,
+        "can_edit": can_edit_flag,
+        "can_add": can_add_flag,
+        "title": sheet["title"],
+        "is_owner": True,
+        "is_public": sheet["status"] == "public",
+        "sheet_collections": sheet_collections,
+        "displayed_collection":  displayed_collection,
+        "like_count": like_count,
+        "viewer_is_liker": viewer_is_liker,
+        "current_url": request.get_full_path,
+    })
+
+
 @csrf_exempt
 def delete_sheet_api(request, sheet_id):
     """

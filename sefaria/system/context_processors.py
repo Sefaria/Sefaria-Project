@@ -23,6 +23,19 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def builtin_only(view):
+    """
+    Marks processors only needed when setting the data JS.
+    Passed in Source Sheets which rely on S1 JS.
+    """
+    @wraps(view)
+    def wrapper(request):
+        if request.path == "/login" or request.path.startswith("/passowrd/"):
+            return view(request)
+        else:
+            return {}
+    return wrapper
+
 def data_only(view):
     """
     Marks processors only needed when setting the data JS.
@@ -30,8 +43,7 @@ def data_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        if (request.path in ("/data.js", "/sefaria.js") or
-              request.path.startswith("/sheets/")):
+        if request.path == "/sefaria.js" or request.path.startswith("/data.") or request.path.startswith("/sheets/"):
             return view(request)
         else:
             return {}
@@ -65,9 +77,15 @@ def global_settings(request):
         }
 
 
-@data_only
+def base_props(request):
+    from reader.views import base_props
+    return {"propsJSON": json.dumps(base_props(request), ensure_ascii=False)}
+
 def cache_timestamp(request):
-    return {"last_cached": library.get_last_cached_time()}
+    return {
+        "last_cached": library.get_last_cached_time(),
+        "last_cached_short": round(library.get_last_cached_time())
+    }
 
 
 @data_only
@@ -81,45 +99,6 @@ def large_data(request):
         "topic_toc_json": library.get_topic_toc_json(),
         "titles_json": library.get_text_titles_json(),
         "terms_json": library.get_simple_term_mapping_json()
-    }
-
-
-@data_only
-def calendar_links(request):
-    return {"calendars": json.dumps(calendars.get_todays_calendar_items(**_get_user_calendar_params(request)))}
-
-
-@data_only
-def user_and_notifications(request):
-    """
-    Load data that comes from a user profile.
-    Most of this data is currently only needed view /data.js
-    (currently Node does not get access to logged in version of /data.js)
-    """
-    if not request.user.is_authenticated:
-        return {
-            "interrupting_message_json": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json()
-        }
-
-    profile = UserProfile(user_obj=request.user)
-    notifications = profile.recent_notifications()
-    interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
-    interrupting_message      = InterruptingMessage(attrs=interrupting_message_dict, request=request)
-    interrupting_message_json = interrupting_message.json()
-    return {
-        "notifications_json": notifications.to_JSON(),
-        "notifications_html": notifications.to_HTML(),
-        "notifications_count": profile.unread_notification_count(),
-        "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
-        "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True),
-        "interrupting_message_json": interrupting_message_json,
-        "slug": profile.slug,
-        "full_name": profile.full_name,
-        "profile_pic_url": profile.profile_pic_url,
-        "following": profile.followees.uids,
-        "is_moderator": request.user.is_staff,
-        "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
-        "is_history_enabled": profile.settings["reading_history"]
     }
 
 

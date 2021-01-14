@@ -83,7 +83,8 @@ CACHES = {
         "LOCATION": "redis://127.0.0.1:6379/1", #The URI used to look like this "127.0.0.1:6379:0"
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            "SERIALIZER": "django_redis.serializers.json.JSONSerializer",
+            #"SERIALIZER": "django_redis.serializers.json.JSONSerializer", #this is the default, we override it to ensure_ascii=False
+            "SERIALIZER": "sefaria.system.serializers.JSONSerializer",
         },
         "TIMEOUT": None,
     },
@@ -166,7 +167,6 @@ SEARCH_INDEX_NAME_MERGED = 'merged'
 USE_NODE = False
 NODE_HOST = "http://localhost:4040"
 NODE_TIMEOUT = 10
-# NODE_TIMEOUT_MONITOR = relative_to_abs_path("../log/forever/timeouts")
 
 SEFARIA_DATA_PATH = '/path/to/your/Sefaria-Data' # used for Data
 SEFARIA_EXPORT_PATH = '/path/to/your/Sefaria-Data/export' # used for exporting texts

@@ -30,13 +30,13 @@ def jsonResponse(data, callback=None, status=200):
             if isinstance(data[key], datetime):
                 data[key] = data[key].isoformat()
 
-    return HttpResponse(json.dumps(data), content_type="application/json", status=status)
+    return HttpResponse(json.dumps(data, ensure_ascii=False), content_type="application/json; charset=utf-8", charset="utf-8", status=status)
 
 
 def jsonpResponse(data, callback, status=200):
     if "_id" in data:
         data["_id"] = str(data["_id"])
-    return HttpResponse("%s(%s)" % (callback, json.dumps(data)), content_type="application/javascript", status=status)
+    return HttpResponse("%s(%s)" % (callback, json.dumps(data, ensure_ascii=False)), content_type="application/javascript; charset=utf-8", charset="utf-8", status=status)
 
 
 def subscribe_to_list(lists, email, first_name=None, last_name=None, direct_sign_up=False, bypass_nationbuilder=False):
