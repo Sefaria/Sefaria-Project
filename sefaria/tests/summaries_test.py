@@ -2,9 +2,6 @@
 
 import json
 import pytest
-import sefaria.summaries as s
-import sefaria.model as model
-import sefaria.system.cache as scache
 from sefaria.system.exceptions import BookNameError
 from sefaria.utils.testing_utils import *
 
@@ -20,8 +17,6 @@ text_titles = model.IndexSet({}).distinct('title')
 model.library.rebuild_toc()
 
 
-""" THE TESTS """
-
 class Test_Toc(object):
 
     @classmethod
@@ -35,6 +30,7 @@ class Test_Toc(object):
             model.IndexSet({"title": title}).delete()
             model.VersionSet({"title": title}).delete()
 
+    @pytest.mark.continuous
     def test_toc_integrity(self):
         self.recur_toc_integrity(model.library.get_toc())
         self.recur_toc_integrity(model.library.get_search_filter_toc())
@@ -89,7 +85,7 @@ class Test_Toc(object):
             "heTitle": "פםעעפם",
             "titleVariants": [],
             "sectionNames": ["Chapter", "Paragraph"],
-            "categories": ["Philosophy"]
+            "categories": ["Tanakh"]
         })
         verify_existence_across_tocs(new_index.title, None)
         new_index.save()
@@ -106,6 +102,7 @@ class Test_Toc(object):
         verify_existence_across_tocs(old_title, None)
 
 
+    @pytest.mark.continuous
     def test_index_add_delete(self):
         #test that the index
         new_index = model.Index({
@@ -113,7 +110,7 @@ class Test_Toc(object):
             "heTitle": "פםפם",
             "titleVariants": [],
             "sectionNames": ["Chapter", "Paragraph"],
-            "categories": ["Philosophy"]
+            "categories": ["Tanakh"]
         })
         verify_existence_across_tocs(new_index.title, None)
         new_index.save()
@@ -128,7 +125,7 @@ class Test_Toc(object):
             "heTitle": u"פםפם",
             "titleVariants": [],
             "sectionNames": ["Chapter", "Paragraph"],
-            "categories": ["Law"]
+            "categories": ["Halakhah"]
         })
         verify_existence_across_tocs(new_other_index.title, None)
         new_other_index.save()
@@ -153,6 +150,7 @@ class Test_Toc(object):
         new_commentary_index.delete()
         verify_existence_across_tocs(new_commentary_index.title, None)
 
+    @pytest.mark.continuous
     def test_index_attr_change(self):
         indx = model.Index().load({"title": "Or HaChaim on Genesis"})
         verify_title_existence_in_toc(indx.title, expected_toc_location=['Tanakh', 'Commentary', 'Or HaChaim', 'Torah'], toc=model.library.get_toc())
@@ -169,10 +167,9 @@ class Test_Toc(object):
         indx2.save()
         verify_existence_across_tocs(indx2.title, expected_toc_location=indx2.categories)
 
-    #todo: undo these changes
-
+    @pytest.mark.xfail
     def test_text_change(self):
-        pass
+        assert False
 
     @pytest.mark.deep
     def test_index_title_change(self):

@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-
+import pytest
 from sefaria.model import *
 
 
+@pytest.mark.continuous
 class Test_VState(object):
 
     def test_integrity(self):
@@ -14,6 +15,7 @@ class Test_VState(object):
             assert getattr(vs, "content")
 
 
+@pytest.mark.continuous
 class Test_VSNode(object):
     def test_section_counts(self):
         sn = StateNode("Exodus")

@@ -3,6 +3,8 @@ import pytest
 from sefaria.model import *
 from sefaria.system.exceptions import DuplicateRecordError
 
+
+@pytest.mark.continuous
 class Test_Link_Save(object):
 
     @classmethod

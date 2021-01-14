@@ -3,6 +3,7 @@ import pytest
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
+@pytest.mark.continuous
 class Test_Ref(object):
 
     def test_short_names(self):
@@ -36,13 +37,6 @@ class Test_Ref(object):
     def test_short_talmud_refs(self):  # this behavior is changed from earlier
         assert Ref("Sanhedrin 2a") != Ref("Sanhedrin")
         assert Ref("Sanhedrin 2a") == Ref("Sanhedrin 2")
-
-    # This test runs for 90% of this suite's time, and passes.  Seems pretty trivial.  Can we trim it?
-    @pytest.mark.deep
-    def test_each_title(object):
-        for lang in ["en", "he"]:
-            for t in library.full_title_list(lang, False):
-                assert library.all_titles_regex(lang).match(t), "'{}' doesn't resolve".format(t)
 
     def test_comma(self):
         assert Ref("Me'or Einayim, Chayei Sara 24") == Ref("Me'or Einayim, Chayei Sara, 24")
@@ -140,8 +134,7 @@ class Test_Ref(object):
         # Don't choke on Virtual nodes
         assert Ref("Jastrow, ג").all_context_refs() == [Ref("Jastrow, ג")]
 
-    # These won't work unless the sheet is present in the db
-    @pytest.mark.deep
+    @pytest.mark.xfail(reason="won't work unless the sheet is present in the db")
     def test_sheet_refs(self):
         assert Ref("Sheet 4:3").all_context_refs() == [Ref('Sheet 4:3'), Ref('Sheet 4')]
 
@@ -514,6 +507,7 @@ class Test_Ref(object):
     def test_word_to(self):
         assert Ref("Kohelet Rabbah to 6:9") is Ref("Kohelet Rabbah 6.9")
 
+@pytest.mark.continuous
 class Test_Cache(object):
     def test_index_flush_from_cache(self):
         r1 = Ref("Genesis 1")
@@ -562,6 +556,7 @@ class Test_Cache(object):
         assert r.tref == "Shabbat 31a"
     '''
 
+@pytest.mark.continuous
 class Test_normal_forms(object):
     def test_normal(self):
         assert Ref("Genesis 2:5").normal() == "Genesis 2:5"
@@ -574,6 +569,7 @@ class Test_normal_forms(object):
         assert Ref("Rashi on Shabbat 12a.10").url() == "Rashi_on_Shabbat.12a.10"
 
 
+@pytest.mark.continuous
 class Test_term_refs(object):
     def test_ref_resolution(self):
         assert Ref("bo") ==  Ref('Exodus 10:1-13:16')
@@ -589,6 +585,7 @@ class Test_term_refs(object):
             assert not Ref("משפטים ועוד")
 
 
+@pytest.mark.continuous
 class Test_Ambiguous_Forms(object):
     def test_mishnah_check_first(self):
         assert Ref("Shabbat 8:7") == Ref('Mishnah Shabbat 8:7')
@@ -597,6 +594,7 @@ class Test_Ambiguous_Forms(object):
         assert Ref("Shabbat 7a:1") != Ref("Shabbat 7:1")
 
 
+@pytest.mark.continuous
 class Test_comparisons(object):
     def test_overlaps(self):
         assert Ref("Genesis 5:10-20").overlaps(Ref("Genesis 5:18-25"))
@@ -769,6 +767,7 @@ class Test_comparisons(object):
         assert Ref("Shabbat 5b:23-29").follows(Ref("Shabbat 5b:10-20"))
         assert not Ref("Shabbat 5b:15-29").follows(Ref("Shabbat 5b:10-20"))
 
+@pytest.mark.continuous
 class Test_Talmud_at_Second_Place(object):
     def test_simple_ref(self):
         assert Ref("Zohar 1.15b.3").sections[1] == 30
@@ -823,6 +822,7 @@ class Test_Talmud_at_Second_Place(object):
         assert Ref("Zohar 2.15a - b").sections[1] == 29
         assert Ref("Zohar 2.15a - b").toSections[1] == 30
 
+@pytest.mark.continuous
 class Test_condition_and_projection(object):
     def test_condition(self):
         #many variations
@@ -889,14 +889,18 @@ class Test_condition_and_projection(object):
         assert p['chapter.Torah Shebikhtav.Bereshit.Torah Ohr'] == {"$slice": [49, 3]}
 
 
+@pytest.mark.continuous
 class Test_set_construction_from_ref(object):
+    @pytest.mark.xfail
     def test_ref_noteset(self):
-        pass
+        assert False
 
+    @pytest.mark.xfail
     def test_ref_linkset(self):
-        pass
+        assert False
 
 
+@pytest.mark.continuous
 class Test_Order_Id(object):
     def test_order_id_processes(self):
         assert Ref("Klein Dictionary, א").order_id()
@@ -922,6 +926,17 @@ class Test_Order_Id(object):
 
         assert first.ref().order_id() < second.ref().order_id()
         assert second.ref().order_id() < third.ref().order_id()
+
+
+@pytest.mark.deep
+@pytest.mark.content
+class Test_Titles(object):
+    # This test runs for 90% of this suite's time, and passes.  Seems pretty trivial.  Can we trim it?
+    def test_each_title(object):
+        for lang in ["en", "he"]:
+            for t in library.full_title_list(lang, False):
+                assert library.all_titles_regex(lang).match(t), "'{}' doesn't resolve".format(t)
+
 
 '''
 class Test_ref_manipulations():

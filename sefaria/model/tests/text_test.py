@@ -21,6 +21,7 @@ def teardown_module(module):
         model.VersionSet({"title": title}).delete()
 
 
+@pytest.mark.continuous
 def test_dup_index_save():
     title = 'Test Commentator Name'
     model.IndexSet({"title": title}).delete()
@@ -72,6 +73,7 @@ def test_dup_index_save():
     assert model.IndexSet({"title": title}).count() == 1
 
 
+@pytest.mark.continuous
 def test_invalid_index_save_no_existing_base_text():
     title = 'Bartenura (The Next Generation)'
     model.IndexSet({"title": title}).delete()
@@ -117,6 +119,7 @@ def test_invalid_index_save_no_existing_base_text():
     assert model.IndexSet({"title": title}).count() == 0
 
 
+@pytest.mark.continuous
 def test_invalid_index_save_no_category():
     title = 'Bartenura (The Next Generation)'
     model.IndexSet({"title": title}).delete()
@@ -161,6 +164,7 @@ def test_invalid_index_save_no_category():
     assert model.IndexSet({"title": title}).count() == 0
 
 
+@pytest.mark.continuous
 def test_invalid_index_save_no_hebrew_collective_title():
     title = 'Bartenura (The Next Generation)'
     model.IndexSet({"title": title}).delete()
@@ -219,6 +223,7 @@ def test_invalid_index_save_no_hebrew_collective_title():
     assert getattr(commentator_idx, "nodes", None) is not None"""
 
 
+@pytest.mark.continuous
 def test_index_title_setter():
     title = 'Test Index Name'
     he_title = "דוגמא"
@@ -293,6 +298,7 @@ def test_index_title_setter():
         assert t[1] not in model.library._index_title_maps[t[0]]
 
 
+@pytest.mark.continuous
 def test_get_index():
     r = model.library.get_index("Rashi on Exodus")
     assert isinstance(r, model.Index)
@@ -303,6 +309,7 @@ def test_get_index():
     assert r.title == 'Exodus'
 
 
+@pytest.mark.continuous
 def test_merge():
     assert model.merge_texts([["a", ""], ["", "b", "c"]], ["first", "second"]) == [["a", "b", "c"], ["first","second","second"]]
     # This fails because the source field isn't nested on return
@@ -315,6 +322,7 @@ def test_merge():
     assert model.merge_texts([[["a", ""],["p","",""]], [["", "b", ""],["p","d",""]], [["","","c"],["","","q"]]], ["first", "second", "third"])[0] == [["a", "b", "c"],["p","d","q"]]
 
 
+@pytest.mark.continuous
 def test_text_helpers():
     res = model.library.get_dependant_indices()
     assert 'Rashbam on Genesis' in res
@@ -376,6 +384,7 @@ def test_text_helpers():
     assert 'Commentary' in cats
 
 
+@pytest.mark.continuous
 def test_index_update():
     '''
     :return: Test:
@@ -412,6 +421,7 @@ def test_index_update():
     model.IndexSet({"title": ti}).delete()
 
 
+@pytest.mark.continuous
 def test_index_delete():
     #Simple Text
     ti = "Test Del"
@@ -514,6 +524,7 @@ def dep_counts(name, indx):
     return ret
 
 
+@pytest.mark.continuous
 def test_version_word_count():
     #simple
     assert model.Version().load({"title": "Genesis", "language": "he", "versionTitle": "Tanach with Ta'amei Hamikra"}).word_count() == 20813
@@ -527,6 +538,7 @@ def test_version_word_count():
     assert model.VersionSet({"title": {"$regex": "Haggadah"}}).word_count() > 200000
 
 
+@pytest.mark.continuous
 def test_version_walk_thru_contents():
     def action(segment_str, tref, heTref, version):
         r = model.Ref(tref)

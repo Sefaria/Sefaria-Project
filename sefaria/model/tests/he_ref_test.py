@@ -29,7 +29,7 @@ def setup_module(module):
     texts['2with_lead'] = '(ראה דברים ד,ז; דברים ד,ח)'
     texts['ignored_middle'] = '(תהלים לז, א) אל תתחר במרעים ולא עוד אלא שדרכיו מצליחין שנא תהלים י, ה יחילו דרכיו בכל עת ולא עוד אלא שזוכה בדין שנאמר מרום משפטיך מנגדו ולא עוד אלא שרואה בשונאיו שנאמר כל צורריו יפיח בהם איני והאמר ר יוחנן משום רש בן יוחי מותר להתגרות ברשעים בעולם הזה שנא (משלי כח, ד)'
 
-
+@pytest.mark.continuous
 class Test_parse_he_ref(object):
     def test_simple_bible(self):
         r = m.Ref("שמות כא, ד")
@@ -242,6 +242,7 @@ class Test_parse_he_ref(object):
         repr(m.Ref('טהרות פרק ג משנה ב'))
 
 
+@pytest.mark.continuous
 class Test_Hebrew_Quoting_Styles(object):
     def test_leading_geresh(self):
         assert m.Ref("שמות י׳ י״ב") == m.Ref('Exodus 10:12')
@@ -267,11 +268,13 @@ class Test_Hebrew_Quoting_Styles(object):
 
 
 #todo: surprised this works. Had been marked as failing.  What's the coverage of these kinds of refs?
+@pytest.mark.continuous
 class Test_parse_he_commentary(object):
     def test_hebrew_commentary(self):
         assert m.Ref('רש"י על ויקרא ט״ו:ג׳') == m.Ref("Rashi on Leviticus 15:3")
 
 
+@pytest.mark.continuous
 class Test_parse_he_ref_range(object):
     # Most hebrew ranges are not yet supported
     def test_hebrew_range_simple(self):
@@ -297,6 +300,7 @@ class Test_parse_he_ref_range(object):
         assert m.Ref('') == m.Ref("Rashi on Shabbat 15a:15-15b:13")
 
 
+@pytest.mark.continuous
 class Test_Hebrew_Normal(object):
 
     def test_simple(self):
@@ -325,10 +329,12 @@ class Test_Hebrew_Normal(object):
         pass
 
 
+@pytest.mark.continuous
+@pytest.mark.xfail
 class Test_parse_he_Data_Types(object):
 
     def test_perek_pasuk(self):
-        pass
+        assert False
         # assert m.Ref(u'בראשית פרק א פסוק ג') == m.Ref('Genesis 1:3')
         # assert m.Ref(u'שמות ד פסוקים ג-ו') == m.Ref('Exodus 4:3-6')
 
@@ -344,6 +350,7 @@ class Test_parse_he_Data_Types(object):
 
 
 #todo: convert to all_titles_regex
+@pytest.mark.continuous
 class Test_get_titles_in_string(object):
     def test_bible_ref(self):
         res = m.library.get_titles_in_string(texts['bible_ref'], "he")

@@ -11,7 +11,7 @@ def setup_module(module):
     library.build_lexicon_auto_completers()
     library.build_cross_lexicon_auto_completer()
 
-
+@pytest.mark.continuous
 class Test_Complete_Method(object):
     # Does limit return exactly the right number of results?
     @pytest.mark.parametrize("ac,search", [

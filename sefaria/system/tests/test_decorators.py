@@ -22,7 +22,8 @@ def call_exception():
 def raise_exception():
     raise Exception("System Error!")
 
-@pytest.mark.xfail(reason="unknown")
+@pytest.mark.xfail(reason="Error catching wrapper assumes the presence of a Request")
+@pytest.mark.continuous
 def test_catch_error():
     httpr = call_user_error()
     assert getattr(httpr, "content")
@@ -31,6 +32,7 @@ def test_catch_error():
     assert r["error"] == "You really shouldn't do that"
 
 
+@pytest.mark.continuous
 def test_pass_exception():
     with pytest.raises(Exception):
         r = call_exception()

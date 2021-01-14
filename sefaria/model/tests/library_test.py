@@ -34,6 +34,7 @@ def setup_module(module):
     texts['weird_ref_he'] = "המקור (ספר שושנה א ב) אמור לעבוד רק בחיפוש המלא, אבל המקור (ויקרא יב ד) צריך לעבוד בשניהם"
 
 
+@pytest.mark.continuous
 class Test_get_refs_in_text(object):
 
     @pytest.mark.parametrize(('citing_only'), (True, False))
@@ -137,6 +138,8 @@ class Test_get_refs_in_text(object):
         wrapped = library.get_wrapped_refs_string(st, lang="en", citing_only=citing_only)
         assert wrapped == res
 
+
+@pytest.mark.continuous
 class Test_he_get_refs_in_text(object):
     @pytest.mark.parametrize(('citing_only'), (True, False))
     def test_positions(self, citing_only):
@@ -298,6 +301,7 @@ class Test_he_get_refs_in_text(object):
         assert wrapped == res
 
 
+@pytest.mark.continuous
 class Test_get_titles_in_text(object):
 
     @pytest.mark.parametrize(('citing_only'), (True, False))
@@ -356,6 +360,7 @@ class Test_get_titles_in_text(object):
             assert set(titles) == {'ויקרא', 'ספר שושנה'}
 
 
+@pytest.mark.continuous
 class Test_Library(object):
     def test_schema_validity(self):
         for i in library.all_index_records():
@@ -440,11 +445,12 @@ class Test_Term_Map(object):
         CategorySet({'path': ["Tanakh", "Torah", "New Category"]}).delete()
         TermSet({"name": 'New Term'}).delete()
 
-
+    @pytest.mark.continuous
     def test_terms_in_map(self):
         assert "Siman" in library.get_simple_term_mapping()
         assert "Chapter" in library.get_simple_term_mapping()
 
+    @pytest.mark.continuous
     def test_cats_in_map(self):
         assert "Tanakh" in library.get_simple_term_mapping()
         assert "Commentary" in library.get_simple_term_mapping()
@@ -484,7 +490,8 @@ class Test_Term_Map(object):
         assert old != library.get_simple_term_mapping()
 
 
-class TestNamedEntityWrapping:
+@pytest.mark.continuous
+class TestNamedEntityWrapping(object):
     @staticmethod
     def make_ne_link(slug, ref, start, end, vtitle, lang, text):
         link = RefTopicLink({
@@ -523,7 +530,7 @@ class TestNamedEntityWrapping:
         wrapped_comp = """A blah. <a href="/topics/bbb" class="namedEntityLink" data-slug="bbb">BBB</a> yoyo and <a href="/topics/c" class="namedEntityLink" data-slug="c">C</a>"""
         assert wrapped == wrapped_comp
 
-
+@pytest.mark.continuous
 def test_get_en_text_titles():
     txts = ['Avot', 'Avoth', 'Daniel', 'Dan', 'Dan.'] # u"Me'or Einayim, Vayera"
     ctxts = ['Rashi on Exodus', 'Ramban on Genesis', 'Tosafot on Shabbat', 'Rashi on Gen.', 'Nachmanides on Exodus', 'Nachmanides on Ex.']
@@ -534,7 +541,7 @@ def test_get_en_text_titles():
         assert txt in titles
 
 
-
+@pytest.mark.continuous
 def test_get_he_text_titles():
     txts = ['\u05d1\u05e8\u05d0\u05e9\u05d9\u05ea', '\u05e9\u05de\u05d5\u05ea', '\u05d5\u05d9\u05e7\u05e8\u05d0', 'רש"י על בראשית']
     titles = library.full_title_list(lang="he")

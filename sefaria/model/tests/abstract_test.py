@@ -23,17 +23,20 @@ def setup_module(module):
 
 class Test_Mongo_Record_Models(object):
 
+    @pytest.mark.continuous
     def test_class_attribute_collection(self):
         for sub in record_classes:
             assert sub.collection
             assert isinstance(sub.collection, str)
 
+    @pytest.mark.continuous
     def test_class_attribute_required_attrs(self):
         for sub in record_classes:
             assert isinstance(sub.required_attrs, (list, tuple))
             assert len(sub.required_attrs)
             assert "_id" not in sub.required_attrs
 
+    @pytest.mark.continuous
     @pytest.mark.parametrize("sub", abstract.get_record_classes())
     def test_instanciation_load_and_validity(self, sub):
         m = sub()
@@ -45,6 +48,7 @@ class Test_Mongo_Record_Models(object):
         assert m._id
         m._validate()
 
+    @pytest.mark.continuous
     def test_normalize_slug(self):
         a = abstract.AbstractMongoRecord
 
@@ -59,6 +63,7 @@ class Test_Mongo_Record_Models(object):
         test_slug('blah/blah', 'blah-blah')
         test_slug('blah == בלה', 'blah-בלה')
 
+    @pytest.mark.continuous
     @pytest.mark.parametrize("sub", filter(lambda x: x.slug_fields is not None, abstract.get_record_classes()))
     def test_normalize_slug_field(self, sub):
         """
@@ -122,7 +127,7 @@ class Test_Mongo_Record_Models(object):
             assert record_keys <= class_keys, "{} - unhandled keys {}".format(record_class, record_keys - class_keys)
             assert req_class_keys <= record_keys, "{} - required keys missing: {}".format(record_class, req_class_keys - record_keys)
 
-
+@pytest.mark.continuous
 class Test_Mongo_Set_Models(object):
 
     def test_record_class(self):
@@ -130,7 +135,7 @@ class Test_Mongo_Set_Models(object):
             assert sub.recordClass != abstract.AbstractMongoRecord
             assert issubclass(sub.recordClass, abstract.AbstractMongoRecord)
 
-
+@pytest.mark.continuous
 class Test_Mongo_Record_Methods(object):
     """ Tests of the methods on the abstract models.
     They often need instanciation, but are not designed to test the subclasses specifically.

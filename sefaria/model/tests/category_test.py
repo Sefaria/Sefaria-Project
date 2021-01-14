@@ -10,6 +10,7 @@ import sefaria.summaries as s
 
 
 class Test_Categories(object):
+    @pytest.mark.continuous
     def test_index_save_with_bad_categories(self):
         title = 'Test Bad Cat'
         d = {
@@ -88,7 +89,7 @@ class Test_Categories(object):
         # that the round-trip didn't change anything by reference that would poison the deep test
         assert len(base_json) == len(new_json)
 
-
+@pytest.mark.continuous
 class Test_OO_Toc(object):
     def test_round_trip(self):
         base_toc = library.get_toc()

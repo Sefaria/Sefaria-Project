@@ -38,7 +38,7 @@ def setup_module(module):
 	}
 
 
-
+@pytest.mark.continuous
 class Test_collapse_activity():
 
 	def test_catch_collapse(self):

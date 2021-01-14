@@ -28,6 +28,7 @@ def uh_secondary_item():
     yield uh
     uh.delete()
 
+@pytest.mark.continuous
 def test_saved_with_secondary_item(uh_secondary_item):
     """
     Ephraim found bug where saved flag can get attached to secondary item that was created immediately before saving
@@ -50,6 +51,7 @@ def test_saved_with_secondary_item(uh_secondary_item):
     assert not uh.secondary
     uh.delete()
 
+@pytest.mark.continuous
 def test_validation_for_saved_and_secondary():
     with pytest.raises(InputError):
         make_uh(saved=True, secondary=True)

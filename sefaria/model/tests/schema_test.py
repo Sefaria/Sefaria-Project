@@ -147,7 +147,7 @@ def setup_module(module):
 
     root.validate()
 
-
+@pytest.mark.continuous
 def test_relationships():
     assert root.first_child().first_child() is root.first_leaf()
     assert root.last_child().last_child() is root.last_leaf()
@@ -164,7 +164,7 @@ def test_relationships():
 def test_ancestors():
     assert root.last_leaf().ancestors() == [root, root.last_child()]
 
-
+@pytest.mark.continuous
 def test_text_index_map():
     def tokenizer(s):
         s = re.sub(r'<.+?>','',s).strip()
@@ -200,7 +200,7 @@ def test_text_index_map():
     for ri in rand_inds:
         assert ' '.join(tokenizer(ref_list[ri].text(lang="he",vtitle="Tanach with Text Only").text)) == ' '.join(mes_str_array[index_list[ri]:index_list[ri+1]])
 
-
+@pytest.mark.continuous
 def test_ja_node_with_hyphens():
     node = JaggedArrayNode()
     node.add_primary_titles('Title with-this', 'משהו')
@@ -208,6 +208,8 @@ def test_ja_node_with_hyphens():
     with pytest.raises(InputError):
         node.validate()
 
+
+@pytest.mark.continuous
 def test_ja_node_without_primary():
     node = JaggedArrayNode()
     node.add_title('Title with this', 'en')
@@ -216,6 +218,7 @@ def test_ja_node_without_primary():
     with pytest.raises(InputError):
         node.validate()
 
+@pytest.mark.continuous
 def test_non_ascii():
     node = JaggedArrayNode()
     node.add_primary_titles('Title with this\u2019', 'משהו')
@@ -258,7 +261,7 @@ def test_nodes_missing_content():
     root_node.validate()
     test_index = Index({
         'title': 'test text',
-        'categories': ['Other'],
+        'categories': ['Talmud'],
         'schema': root_node.serialize()
     })
     test_index.save()
@@ -274,6 +277,7 @@ def test_nodes_missing_content():
     test_index.delete()
 
 # Todo parametrize for all address types
+@pytest.mark.continuous
 def test_folio_type():
     folio = schema.AddressFolio(1)
     for i in [1,2,3,4,5,6,7,15,23,64,128]:

@@ -1,9 +1,11 @@
 from sefaria.local_settings import USE_VARNISH
+import pytest
 
 if USE_VARNISH:
     import sefaria.system.varnish.wrapper as v
     from sefaria.model import Ref
 
+    @pytest.mark.continuous
     class Test_Varnish(object):
 
         def test_url_regex(self):

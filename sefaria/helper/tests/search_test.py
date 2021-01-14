@@ -1,8 +1,9 @@
 # encoding=utf-8
 import json
+import pytest
 from sefaria.helper.search import *
 
-
+@pytest.mark.continuous
 def test_query_obj():
     # stam query
     s = get_query_obj("moshe", "text", "exact", False, 0, 0, 10, [], [], [], "sort", ['comp_date', 'order'])

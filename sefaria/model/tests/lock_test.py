@@ -1,8 +1,9 @@
 import datetime
-
+import pytest
 import sefaria.model as model
 
 
+@pytest.mark.continuous
 def test_locks():
     ref = "Mishnah Oktzin 1:3"
     lang = "en"

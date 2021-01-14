@@ -6,6 +6,7 @@ from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
 
+@pytest.mark.continuous
 class Test_Schema(object):
     # This needs a bunch of hebrew titles to validate
     @pytest.mark.xfail(reason="unknown")
@@ -934,6 +935,7 @@ class Test_Schema(object):
 
         assert quick_way.serialize() == old_style.serialize()
 
+@pytest.mark.continuous
 class Test_Default_Nodes(object):
     @classmethod
     def setup_class(cls):

@@ -54,6 +54,7 @@ class In(object):
         return match
 
 
+@pytest.mark.continuous
 class Test_find_citation_in_text(object):
 
     def test_regex_string_en_js(self):

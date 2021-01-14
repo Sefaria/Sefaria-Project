@@ -6,10 +6,11 @@ Handling virtual schema nodes
 Refs pointing to virtual schemas, etc
 
 """
-
+import pytest
 from sefaria.model import *
 
 
+@pytest.mark.continuous
 class Test_VirtualRefs(object):
 
     def test_identity(self):

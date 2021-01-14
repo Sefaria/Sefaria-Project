@@ -8,6 +8,7 @@ from sefaria.model.schema import JaggedArrayNode, SchemaNode
 from sefaria.system.exceptions import IndexSchemaError
 
 
+@pytest.mark.continuous
 class Test_Validate(object):
     def test_jaggedarray_fields(self):
 
@@ -59,6 +60,7 @@ class Test_Validate(object):
             s.validate()
 
 
+@pytest.mark.continuous
 class Test_Titles(object):
 
     def test_add(self):

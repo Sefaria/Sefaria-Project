@@ -3,6 +3,7 @@ import pytest
 from sefaria.model import *
 
 
+@pytest.mark.continuous
 class Test_Lexicon_Lookup(object):
 
     def test_bible_lookup(self):
@@ -42,6 +43,7 @@ class Test_Lexicon_Lookup(object):
         assert results.count() == 1
 
 
+@pytest.mark.continuous
 class Test_Lexicon_Save(object):
 
     def test_sanitize(self):

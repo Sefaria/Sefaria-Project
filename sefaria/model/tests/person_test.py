@@ -7,6 +7,7 @@ from sefaria.model import *
 # cascade functions are tested in person_test.py
 
 
+@pytest.mark.continuous
 class Test_Person_Model_Cascade(object):
     def setup_method(self, method):
         """ setup any state tied to the execution of the given method in a

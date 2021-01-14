@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+import pytest
 from sefaria.utils import hebrew as h
 
 
@@ -10,6 +10,7 @@ def setup_module(module):
     d = h.decode_hebrew_numeral
 
 
+@pytest.mark.continuous
 class TestSanityCheck():
 
     def test_can_encode_without_errors(self):
@@ -25,6 +26,7 @@ class TestSanityCheck():
                 assert x == h.decode_hebrew_numeral(h.encode_hebrew_numeral(x))
 
 
+@pytest.mark.continuous
 class TestSpecificInOutTests():
 
     def test_some_basic_encoding_tests(self):
@@ -59,22 +61,26 @@ class TestSpecificInOutTests():
         assert 'טז׳' == e(16000)
 
 
+@pytest.mark.continuous
 class TestFunctionTests(object):
 
     def test_break_int_magnitudes(self):
         assert h.break_int_magnitudes(15000) == [10000, 5000, 0, 0, 0]
 
 
+@pytest.mark.continuous
 class TestNikkudUtils():
 
     def test_strip_nikkud(self):
         assert h.strip_nikkud('הַדְּבָרִים אֲשֶׁר') == 'הדברים אשר'
         assert h.strip_nikkud("הַמּוֹצִיא בְמִסְפָּר צְבָאָם לְכֻלָּם בְּשֵׁם יִקְרָא") == "המוציא במספר צבאם לכלם בשם יקרא"
 
+@pytest.mark.continuous
 class TestIsHebrew():
     def test_is_hebrew(self):
         assert h.is_hebrew("ג")
 
+@pytest.mark.continuous
 class TestGematria():
     def test_simple_gematria(self):
         assert h.gematria("צדיק") == 204

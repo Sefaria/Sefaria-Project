@@ -10,6 +10,9 @@ from sefaria.system.exceptions import BookNameError
 import pytest
 
 
+pytestmark = pytest.mark.deep
+
+
 """
 Here is the text structure for the simple text MigrateBook
 [

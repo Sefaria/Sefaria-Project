@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
+import pytest
 from sefaria.model import *
-from sefaria.helper.link import rebuild_links_for_title, AutoLinkerFactory
 import sefaria.tracker as tracker
-from sefaria.helper.schema import convert_simple_index_to_complex, insert_first_child
 
 
+@pytest.mark.continuous
 class Test_AutoLinker(object):
     link_set_lambda = lambda x: LinkSet({"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"})
     rashi_on_genesis_links = link_set_lambda("Rashi on Genesis")

@@ -7,6 +7,7 @@ import re
 from sefaria.utils.util import list_depth
 
 
+@pytest.mark.continuous
 def test_text_index_map():
     r = Ref("Shabbat 8b")
     tc = TextChunk(r,"he")
@@ -50,6 +51,8 @@ def test_text_index_map():
     #test depth 2 with empty segments
     #r = Ref("Targum Jerusalem, Genesis")
 
+
+@pytest.mark.continuous
 def test_verse_chunk():
     chunks = [
         TextChunk(Ref("Daniel 2:3"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
@@ -62,6 +65,7 @@ def test_verse_chunk():
         assert len(c.text)
 
 
+@pytest.mark.continuous
 def test_chapter_chunk():
     chunks = [
         TextChunk(Ref("Daniel 2"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
@@ -74,6 +78,7 @@ def test_chapter_chunk():
         assert len(c.text)
 
 
+@pytest.mark.continuous
 def test_depth_1_chunk():
     c = TextChunk(Ref("Hadran"), "he")
     assert isinstance(c.text, list)
@@ -81,6 +86,7 @@ def test_depth_1_chunk():
     assert isinstance(c.text, str)
 
 
+@pytest.mark.continuous
 def test_out_of_range_chunks():
     # test out of range where text has length
     with pytest.raises(InputError):
@@ -97,6 +103,7 @@ def test_out_of_range_chunks():
     assert t.text == ""
 
 
+@pytest.mark.continuous
 def test_range_chunk():
     chunks = [
         TextChunk(Ref("Daniel 2:3-5"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
@@ -110,6 +117,7 @@ def test_range_chunk():
         assert len(c.text) == 3
 
 
+@pytest.mark.continuous
 def test_spanning_chunk():
     chunks = [
         TextChunk(Ref("Daniel 2:3-4:5"), "en", "The Holy Scriptures: A New Translation (JPS 1917)"),
@@ -125,6 +133,7 @@ def test_spanning_chunk():
         assert len(c.text[2]) == 5
 
 
+@pytest.mark.continuous
 def test_commentary_chunks():
     verse = TextChunk(Ref("Rashi on Exodus 3:1"), lang="he")
     rang = TextChunk(Ref("Rashi on Exodus 3:1-10"), lang="he")
@@ -138,6 +147,7 @@ def test_commentary_chunks():
     assert span.text[-1][-1] == verse.text
 
 
+@pytest.mark.continuous
 def test_default_in_family():
     r = Ref('Shulchan Arukh, Even HaEzer')
     f = TextFamily(r)
@@ -147,6 +157,7 @@ def test_default_in_family():
     assert len(f.he) > 0
 
 
+@pytest.mark.continuous
 def test_spanning_family():
     f = TextFamily(Ref("Daniel 2:3-4:5"), context=0)
 
@@ -168,6 +179,7 @@ def test_spanning_family():
     assert isinstance(f.commentary[0], list)
 
 
+@pytest.mark.continuous
 def test_family_chapter_result_no_merge():
     families = [
         TextFamily(Ref("Onkelos Exodus 12")),  # this is supposed to get a version with exactly 1 en and 1 he.  The data may change.
@@ -186,6 +198,7 @@ def test_family_chapter_result_no_merge():
 
 # Yoma.1 is no longer merged.
 # todo: find a merged text to test with
+@pytest.mark.continuous
 @pytest.mark.xfail(reason="unknown")
 def test_chapter_result_merge():
     v = TextFamily(Ref("Mishnah_Yoma.1"))
@@ -197,12 +210,14 @@ def test_chapter_result_merge():
         assert key in c
 
 
+@pytest.mark.continuous
 def test_text_family_alts():
     tf = TextFamily(Ref("Exodus 6"), commentary=False, alts=True)
     c = tf.contents()
     assert c.get("alts")
 
-
+@pytest.mark.continuous
+@pytest.mark.content
 def test_validate():
     passing_refs = [
         Ref("Exodus"),
@@ -235,7 +250,7 @@ def test_validate():
     for ref in passing_refs:
         TextChunk(ref, lang="he")._validate()
 
-
+@pytest.mark.continuous
 def test_save():
     # Delete any old ghost
     vs = ["Hadran Test", "Pirkei Avot Test", "Rashi on Exodus Test"]
@@ -430,7 +445,7 @@ def test_save():
 
     # write
 
-
+@pytest.mark.continuous
 def test_complex_with_depth_1():
     # There was a bug that chunks of complex texts always returned the first element of the array, even for deeper chunks
     r = Ref('Pesach Haggadah, Kadesh 1')
@@ -455,11 +470,12 @@ def test_complex_with_depth_1():
     assert "Kiddush" in c.text[0]
     assert "seventh day" in c.text[2]
 
-
+@pytest.mark.xfail
 def test_complex_with_depth_2():
-    pass
+    assert False
 
 
+@pytest.mark.continuous
 def test_strip_itags():
     vs = ["Hadran Test"]
     for vt in vs:

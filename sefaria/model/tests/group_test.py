@@ -4,6 +4,7 @@ import sefaria.model as m
 from sefaria.system.exceptions import InputError
 
 
+@pytest.mark.continuous
 class Test_Group(object):
 
     def test_save(self):

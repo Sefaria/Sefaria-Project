@@ -103,6 +103,7 @@ def topic_graph_to_merge():
     db.sheets.delete_one({"id": 1234567890})
 
 
+@pytest.mark.continuous
 class TestTopics(object):
 
     def test_graph_funcs(self, topic_graph):
@@ -154,6 +155,7 @@ class TestTopics(object):
         ]
 
 
+@pytest.mark.continuous
 class TestTopicLinkHelper(object):
 
     def test_init_by_class(self, topic_graph):
@@ -174,6 +176,7 @@ class TestTopicLinkHelper(object):
         assert obj.topic == '2'
 
 
+@pytest.mark.continuous
 class TestIntraTopicLink(object):
 
     def test_validate(self, topic_graph):
@@ -261,6 +264,7 @@ class TestIntraTopicLink(object):
         l1.delete()
 
 
+@pytest.mark.continuous
 class TestRefTopicLink(object):
 
     def test_add_expanded_refs(self, topic_graph):
