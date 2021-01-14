@@ -278,7 +278,7 @@ const FilterableList = ({
   // If `getData` function is passed, load data through this effect
   useEffect(() => {
     let isMounted = true;
-    if (!rawData) { // Don't try calling getData when `data` as intially passed
+    if (!rawData) { // Don't try calling getData when `data` is intially passed
       setLoading(true);
       getData().then(data => {
         if (isMounted) {
@@ -294,18 +294,12 @@ const FilterableList = ({
   }, [getData, rawData]);
 
   // Alternatively, if there is no `getData` function passed, we expect data
-  // to be fed in directly through the `data` prop
+  // to be fed in directly through the `data` prop. Check `data` again whenever
+  // refreshData signal changes. 
   useEffect(() => {
     setRawData(data);
     setDisplayData(processData(data));
-  }, [data]);
-
-  // After initial load, when refreshData changes, trigger a new call for data.
-  const mounted = useRef(false);
-  useEffect(() => {
-    if (mounted.current) { setRawData(null); }
-    else { mounted.current = true; }
-  }, [refreshData]);
+  }, [data, refreshData]);
 
   // Updates to filter or sort
   useEffect(() => {

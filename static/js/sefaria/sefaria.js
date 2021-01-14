@@ -1977,35 +1977,41 @@ _media: {},
         });
     },
     _userSheets: {},
-    userSheets: function(uid, callback, sortBy = "date", offset = 0, numberToRetrieve = 0) {
+    userSheets: function(uid, callback, sortBy="date", offset=0, numberToRetrieve=0) {
       // Returns a list of source sheets belonging to `uid`
       // Only a user logged in as `uid` will get private data from this API.
       // Otherwise, only public data will be returned
-      const sheets = this._userSheets[uid+sortBy+offset+numberToRetrieve];
+      const key = uid+"|"+sortBy+offset+numberToRetrieve;
+      const sheets = this._userSheets[key];
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
         const url = Sefaria.apiHost + "/api/sheets/user/" + uid + "/" + sortBy + "/" + numberToRetrieve + "/" + offset;
         Sefaria._ApiPromise(url).then(data => {
-          this._userSheets[uid+sortBy+offset+numberToRetrieve] = data.sheets;
+          this._userSheets[key] = data.sheets;
           if (callback) { callback(data.sheets); }
         });
       }
       return sheets;
     },
-    updateUserSheets: function(sheet, uid, update = true){
-        for (const property in this._userSheets) {
-          if(property.startsWith(uid.toString())){
-              if(property.includes("date")){ //add to front because we sorted by date
-                  if(update) {
-                      this._userSheets[property].splice(this._userSheets[property].findIndex(item => item.id === sheet.id), 1);
-                  }
-                  this._userSheets[property].unshift(sheet);
-              }else if(!update){
-                  this._userSheets[property].push(sheet);
-              }
+    updateUserSheets: function(sheet, uid, update=true, updateInPlace=false){
+      for (const key in this._userSheets) {
+        if (key.startsWith(uid.toString()+"|")){
+          if (update) {
+            const sheetIndex = this._userSheets[key].findIndex(item => item.id === sheet.id);
+            if (key.includes("date") && !updateInPlace) { //add to front because we sorted by date
+              this._userSheets[key].splice(sheetIndex, 1);
+              this._userSheets[key].unshift(sheet);
+            } else if (updateInPlace) {
+              this._userSheets[key][sheetIndex] = sheet;
+            } else {  
+              this._userSheets[key].unshift(sheet);
+            }
+          } else {
+            this._userSheets[key].push(sheet);
           }
         }
+      }
     },
     clearUserSheets: function(uid) {
       this._userSheets  = Object.keys(this._userSheets)

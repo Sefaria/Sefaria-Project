@@ -81,7 +81,7 @@ class UserProfile extends Component {
   }
   handleCollectionsChange() {
     // Rerender Collections tab when data changes in cache.
-    this.setState({ refreshCollectionsData: Math.random() });
+    this.setState({ refreshCollectionsData: Math.random(), refreshSheetData: Math.random() });
   }
   renderEmptyCollectionList() {
     if (Sefaria._uid !== this.props.profile.id) {
