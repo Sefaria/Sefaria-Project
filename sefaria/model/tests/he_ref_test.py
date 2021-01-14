@@ -233,7 +233,7 @@ class Test_parse_he_ref(object):
         assert m.Ref('טהרות פרק ג משנה ב') == m.Ref("Mishnah Tahorot 3:2")
         assert m.Ref("שופטים כ י''א") == m.Ref("Judges 20:11")
         assert m.Ref("פסחים ד' נח:") == m.Ref("Pesachim 58b")
-        assert m.Ref('יבמות ס"ה') == m.Ref("Yevamot 65a")
+        assert m.Ref('יבמות ס"ה') == m.Ref("Yevamot 65a-65b")
         assert m.Ref('תהילים קי"ט') == m.Ref("Psalms 119")
         assert m.Ref("שמות כא, ד") == m.Ref("Exodus 21:4")
         assert m.Ref("שבת ד' כב.") == m.Ref("Shabbat 22a")
