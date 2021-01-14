@@ -3447,7 +3447,6 @@ def profile_sync_api(request):
         last_sync: ...
     }
     """
-    error = erorr
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to update your profile.")})
     # fields in the POST req which can be synced
