@@ -438,8 +438,8 @@ class ReaderPanel extends Component {
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
   }
-  setGroupTag (tag) {
-    this.conditionalSetState({navigationGroupTag: tag});
+  setCollectionTag (tag) {
+    this.conditionalSetState({collectionTag: tag});
   }
   setFilter(filter, updateRecent) {
     // Sets the current filter for Connected Texts (TextList)
@@ -974,9 +974,9 @@ class ReaderPanel extends Component {
                 name={this.state.collectionName}
                 slug={this.state.collectionSlug}
                 tag={this.state.collectionTag}
-                setGroupTag={this.setGroupTag}
+                setCollectionTag={this.setCollectionTag}
                 width={this.state.width}
-                searchInGroup={this.props.searchInGroup}
+                searchInCollection={this.props.searchInCollection}
                 toggleLanguage={this.toggleLanguage}
                 toggleSignUpModal={this.props.toggleSignUpModal}
                 updateCollectionName={this.updateCollectionName}
@@ -1166,7 +1166,7 @@ ReaderPanel.propTypes = {
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
   registerAvailableFilters:    PropTypes.func,
-  searchInGroup:               PropTypes.func,
+  searchInCollection:          PropTypes.func,
   openComparePanel:            PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
   highlightedRefs:             PropTypes.array,

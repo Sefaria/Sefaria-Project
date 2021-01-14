@@ -6071,6 +6071,9 @@ a .button:hover {
 .collectionListingDetailSeparator {
   margin: 8px;
 }
+.collectionPage .loadingMessage {
+  text-align: center;
+}
 .collectionPage .collectionImage {
   max-height: 200px;
   max-width: 100%;

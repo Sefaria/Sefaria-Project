@@ -280,7 +280,7 @@ class Header extends Component {
                           updateSearchOptionField={this.props.updateSearchOptionField}
                           updateSearchOptionSort={this.props.updateSearchOptionSort}
                           registerAvailableFilters={this.props.registerAvailableFilters}
-                          searchInGroup={this.props.searchInGroup}
+                          searchInCollection={this.props.searchInCollection}
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                           hideNavHeader={true}
                           analyticsInitialized={this.props.analyticsInitialized}
@@ -351,7 +351,7 @@ Header.propTypes = {
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
   registerAvailableFilters:    PropTypes.func,
-  searchInGroup:               PropTypes.func,
+  searchInCollection:          PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
   headerMesssage:              PropTypes.string,
   panelsOpen:                  PropTypes.number,

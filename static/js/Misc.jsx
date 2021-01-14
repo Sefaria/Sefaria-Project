@@ -1046,8 +1046,7 @@ InterfaceLanguageMenu.propTypes = {
   currentLang: PropTypes.string
 }
 
-// const [mounted, setMounted] = React.useState(true);
-// useEffect(() => {return () => {setMounted(false)}}, []);
+
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   const isSelected = () => !!Sefaria.getSavedItem(historyObject);
   const [selected, setSelected] = useState(placeholder || isSelected());
