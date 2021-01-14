@@ -164,9 +164,7 @@ function usePaginatedLoad(fetchDataByPage, setter, identityElement, numPages, re
   // Put value returned and originating identity element into value queue
   useEffect(() => {
       fetchPage()
-      .then((val, err) => setValueQueue([identityElement, val])).catch(error => {
-        if (error.error !== 'input not array') { throw error; }
-      });
+        .then((val, err) => setValueQueue([identityElement, val]));
   }, [fetchPage]);
 }
 
