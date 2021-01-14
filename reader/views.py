@@ -4186,8 +4186,9 @@ def custom_server_error(request, template_name='500.html'):
 
     Templates: `500.html`
     """
-    t = get_template(template_name) # You need to create a 500.html template.
-    return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
+    return render_template(request, template_name=template_name, app_props=None, template_context={}, status=500)
+    #t = get_template(template_name) # You need to create a 500.html template.
+    #return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
 
 def apple_app_site_association(request):
     teamID = "2626EW4BML"
