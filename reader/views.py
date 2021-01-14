@@ -204,9 +204,9 @@ def base_props(request):
         "last_cached": library.get_last_cached_time(),
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
-        "interfaceLang": request.interfaceLang,
+        "interfaceLang": getattr(request, "interfaceLang", "english"),
         "initialSettings": {
-            "language":      request.contentLang,
+            "language":      getattr(request, "contentLang", "english"),
             "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
             "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
             "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
