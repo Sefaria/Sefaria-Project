@@ -188,7 +188,7 @@ class Collection(abst.AbstractMongoRecord):
 
     def sheet_contents(self, authenticated=False):
         from sefaria.sheets import sheet_list
-        if authenticated == False and self.listed:
+        if authenticated == False and getattr(self, "listed", False):
             query = {"status": "public", "id": {"$in": self.sheets}}
         else:
             query = {"status": {"$in": ["unlisted", "public"]}, "id": {"$in": self.sheets}}
@@ -367,3 +367,15 @@ def process_collection_delete_in_sheets(collection, **kwargs):
     """
     from sefaria.system.database import db
     db.sheets.update_many({"displayedCollection": collection.slug}, {"$set": {"displayedCollection": ""}})
+
+
+def process_sheet_deletion_in_collections(sheet_id):
+    """
+    When a sheet is delete remove it from any collections.
+    Note: this function is not tied through dependencies.py (since Sheet mongo model isn't generlly used),
+    but is called directly from sheet deletion view in sourcesheets/views.py. 
+    """
+    cs = CollectionSet({"sheets": sheet_id})
+    for c in cs:
+        c.sheets = [s for s in c.sheets if s != sheet_id]
+        c.save()
