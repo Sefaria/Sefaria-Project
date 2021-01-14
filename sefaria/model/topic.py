@@ -21,6 +21,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'alt_ids',
         'properties',
         'description',
+        'categoryDescription',
         'isTopLevelDisplay',
         'displayOrder',
         'numSources',
