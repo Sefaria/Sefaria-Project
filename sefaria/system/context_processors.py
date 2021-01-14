@@ -25,8 +25,7 @@ logger = logging.getLogger(__name__)
 
 def builtin_only(view):
     """
-    Marks processors only needed when setting the data JS.
-    Passed in Source Sheets which rely on S1 JS.
+    Marks processors only needed when using on Django builtin auth views.
     """
     @wraps(view)
     def wrapper(request):
@@ -56,8 +55,8 @@ def user_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        exclude = ('/data.js', '/linker.js')
-        if request.path in exclude or request.path.startswith("/api/"):
+        exclude = ('/linker.js')
+        if request.path in exclude or request.path.startswith("/api/") or request.path.startswith("/data."):
             return {}
         else:
             return view(request)
@@ -82,6 +81,8 @@ def base_props(request):
     from reader.views import base_props
     return {"propsJSON": json.dumps(base_props(request), ensure_ascii=False)}
 
+
+@user_only
 def cache_timestamp(request):
     return {
         "last_cached": library.get_last_cached_time(),
