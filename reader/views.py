@@ -171,7 +171,7 @@ def base_props(request):
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
-            "is_history_enabled": profile.settings["reading_history"],
+            "is_history_enabled": getattr(profile.settings,"reading_history", True),
             "following": profile.followees.uids,
 
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
