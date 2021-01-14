@@ -4236,7 +4236,7 @@ def chevruta_redirect(request):
     if room_id is None:
         raise Http404('Missing room ID.')
 
-    return render_template(request,'static/chavruta.html', {
+    return render_template(request,'static/chavruta.html', None, {
         "rtc_server": RTC_SERVER,
         "room_id": room_id,
         "starting_ref": starting_ref,
