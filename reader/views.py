@@ -2827,7 +2827,7 @@ def notifications_read_api(request):
 
         return jsonResponse({
                                 "status": "ok",
-                                "unreadCount": UserProfile(user_obj=request.user).unread_notifications_count()
+                                "unreadCount": UserProfile(user_obj=request.user).unread_notification_count()
                             })
 
     else:
