@@ -956,3 +956,12 @@ def toc_plaintext():
     text = "".join([text_node(node, 0) for node in toc])
 
     print(text)
+
+
+def change_term_hebrew(en_primary, new_he):
+    t = Term().load({"name": en_primary})
+    assert t
+    old_primary = t.get_primary_title("he")
+    t.add_title(new_he, "he", True, True)
+    t.remove_title(old_primary, "he")
+    t.save()
