@@ -417,20 +417,20 @@ def collections_post_api(request, user_id, slug=None):
         j = request.POST.get("json")
         if not j:
             return jsonResponse({"error": "No JSON given in post data."})
-        collection = json.loads(j)
-        if "slug" in collection:
-            collection = Collection().load({"slug": collection["slug"]})
+        collection_data = json.loads(j)
+        if "slug" in collection_data:
+            collection = Collection().load({"slug": collection_data["slug"]})
             if not collection:
                 return jsonResponse({"error": "Collection with slug `{}` not found.".format(collection["slug"])})
             # check poster is a collection admin
             if user_id not in collection.admins:
                 return jsonResponse({"error": "You do not have permission to edit this collection."})
 
-            collection.load_from_dict(collection)
+            collection.load_from_dict(collection_data)
             collection.save()
         else:
-            collection["admins"] = [user_id]
-            collection = Collection(collection)
+            collection_data["admins"] = [user_id]
+            collection = Collection(collection_data)
             collection.save()
         return jsonResponse({"status": "ok", "collection": collection.listing_contents(request.user.id)})
 

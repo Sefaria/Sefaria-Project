@@ -6,9 +6,10 @@ import Sefaria  from './sefaria/sefaria';
 
 
 const CollectionsModal = (props) => {
+  // A CollectionsWidget as a modal
   const onClose = () => {
     props.handleCollectionsChange && props.handleCollectionsChange();
-    close();
+    props.close();
   };
   return <div className="collectionsModalBox">
     <div className="whiteOverlay" onClick={onClose}></div>
@@ -18,8 +19,22 @@ const CollectionsModal = (props) => {
 
 
 const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
-  const [collections, setCollections] = useState(Sefaria.getUserCollectionsFromCache(Sefaria._uid));
+  // A box that lets you control which of your collections `sheetID` belongs to
+  
+  const initialCollectionsSort = (cs, csSelected) => {
+    // When first opened, sort checked collections to top, but don't reshuffle when user clicks check of open modal
+    if (!cs || !csSelected) { return null; }
+    return cs.sort((a, b) => {
+      let aSel, bSel;
+      [aSel, bSel] = [a, b].map(x => !!csSelected.filter(y => y.slug === x.slug).length)
+      if (aSel == bSel) { return a.lastModified > b.lastModified ? -1 : 1; }
+      else { return aSel ? -1 : 1; }
+    });
+  };
   const [collectionsSelected, setCollectionsSelected] = useState(Sefaria.getUserCollectionsForSheetFromCache(sheetID));
+  let initialCollections = Sefaria.getUserCollectionsFromCache(Sefaria._uid);
+  initialCollections = initialCollections ? initialCollectionsSort(initialCollections.slice(), collectionsSelected) : null;
+  const [collections, setCollections] = useState(initialCollections);
   const [dataLoaded, setDataLoaded] = useState(!!collections && !!collectionsSelected);
   const [newName, setNewName] = useState("");
   const [changed, setChanged] = useState(false);
@@ -33,8 +48,10 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
          Sefaria.getUserCollectionsForSheet(sheetID)
       ])
      .then(() => {
-        setCollections(Sefaria.getUserCollectionsFromCache(Sefaria._uid));
-        setCollectionsSelected(Sefaria.getUserCollectionsForSheetFromCache(sheetID));
+        const initialCollectionsSelected = Sefaria.getUserCollectionsForSheetFromCache(sheetID);
+        const initialSortedCollections = initialCollectionsSort(Sefaria.getUserCollectionsFromCache(Sefaria._uid), initialCollectionsSelected);
+        setCollections(initialSortedCollections);
+        setCollectionsSelected(initialCollectionsSelected);
         setDataLoaded(true);
       });
     }
@@ -42,7 +59,6 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
 
   const onCheckChange = (collection, checked) => {
     // When a checkmark changes, add or remove this sheet from that collection
-    console.log("On chech change", collection.name, checked)
     let url, newCollectionsSelected;
     if (checked) {
       newCollectionsSelected = [...collectionsSelected, collection];
@@ -62,7 +78,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
     let newCollections = Sefaria.getUserCollectionsFromCache(Sefaria._uid).filter(c => c.slug != data.collection.slug);
     // Put the new collection first since it's just been modified
     newCollections = [data.collectionListing, ...newCollections];
-    // Update in cache, but not in Component cache -- prevents the list from jumping around
+    // Update in cache, but not in Component state -- prevents the list from jumping around
     // while you're looking at it, but show this collection first next time you see the list.
     Sefaria._userCollections[Sefaria._uid] = newCollections;
     // Update cache for this collection's full listing, which has now changed

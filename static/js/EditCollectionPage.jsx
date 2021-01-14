@@ -148,7 +148,7 @@ class EditCollectionPage extends Component {
           <label>
             <IntText>Collection Name</IntText>
           </label>
-          <input id="collcetionName" value={this.state.name||""} onChange={this.handleInputChange}/>
+          <input id="collectionName" value={this.state.name||""} onChange={this.handleInputChange}/>
         </div>
 
         <div className="field halfWidth">
