@@ -204,7 +204,7 @@ def base_props(request):
         "last_cached": library.get_last_cached_time(),
         "multiPanel":  not request.user_agent.is_mobile and not "mobile" in request.GET,
         "initialPath": request.get_full_path(),
-        "interfaceLang": getattr(request, "interfaceLang", "english"),
+        "interfaceLang": request.interfaceLang,
         "initialSettings": {
             "language":      getattr(request, "contentLang", "english"),
             "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
@@ -3447,6 +3447,7 @@ def profile_sync_api(request):
         last_sync: ...
     }
     """
+    error = erorr
     if not request.user.is_authenticated:
         return jsonResponse({"error": _("You must be logged in to update your profile.")})
     # fields in the POST req which can be synced
