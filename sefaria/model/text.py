@@ -1232,8 +1232,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         elif type(item) is list:
             for ii, i in enumerate(item):
                 try:
-                    temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.toStrByAddressType(addressTypes[0], "en", ii+1))
-                    temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.toStrByAddressType(addressTypes[0], "he", ii+1))
+                    temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "en", ii+1))
+                    temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "he", ii+1))
                     self.walk_thru_contents(action, i, temp_tref, temp_heTref, schema="", addressTypes=addressTypes[1:])
                 except IndexError as e:
                     print(str(e))
@@ -2582,17 +2582,15 @@ class Ref(object, metaclass=RefCacheType):
 
         self.toSections = self.sections[:]
 
-        addressClass = AddressType.toClassByAddressType(self.index_node.addressTypes[0])
+        address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[0])
 
-        if hasattr(addressClass, "parse_range_end"):
+        if hasattr(address_class, "parse_range_end"):
             base_wout_title = base.replace(title + " ", "")
-            addressClass.parse_range_end(self, parts, base_wout_title)
+            address_class.parse_range_end(self, parts, base_wout_title)
         elif len(parts) == 2: # Parse range end portion, if it exists
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
-            # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
             if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[
                                                                   1:]]):  # in process. developing logic that should work for all languages / texts
-                # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
                 range_parts = re.split("[., :]+", parts[1])
                 delta = len(self.sections) - len(range_parts)
                 for i in range(delta, len(self.sections)):

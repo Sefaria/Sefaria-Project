@@ -960,7 +960,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
                 else:
                     reg = rf"{parens_lookbehind}{prefix_group})"
             else:
-                word_break_group = r'(?:^|\s|\(|\[)'
+                word_break_group = r'(?:^|\s|\(|\[)'#r'(?:^|\s|\(|\[|-|/)'
                 if kwargs.get("for_js"):
                     reg = rf"{word_break_group}{prefix_group}"  # safari still does not support lookbehinds (although this issue shows they're working on it https://bugs.webkit.org/show_bug.cgi?id=174931)
                 else:
@@ -1943,7 +1943,7 @@ class AddressType(object):
             return sanitize(encode_small_hebrew_numeral(i), punctuation) if i < 1200 else encode_hebrew_numeral(i, punctuation=punctuation)
 
     @staticmethod
-    def toStrByAddressType(atype, lang, i):
+    def to_str_by_address_type(atype, lang, i):
         """
         Return string verion of `i` given `atype`
         :param str atype: name of address type
@@ -1956,7 +1956,7 @@ class AddressType(object):
         return klass(0).toStr(lang, i)
 
     @staticmethod
-    def toClassByAddressType(atype):
+    def to_class_by_address_type(atype):
         """
         Return class that corresponds to 'atype'
         :param atype:
