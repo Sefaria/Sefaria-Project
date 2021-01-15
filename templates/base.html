@@ -160,13 +160,16 @@
           console.log('loading react locally');
           document.write('<script src="/static/js/lib/react.development.js"><\/script><script src="/static/js/lib/react-dom.development.js"><\/script>');
       }
+
       var DJANGO_VARS = {
-        props: {{ propsJSON|default:"null" }},
-        contentLang: "{{ request.contentLang }}",
+        props:         {{ propsJSON|default:"null" }},
+        contentLang:   "{{ request.contentLang }}",
         interfaceLang: "{{ request.interfaceLang }}",
-        inReaderApp: {% if html %}true{% else %}false{% endif %},
-        static_url: {{ STATIC_PREFIX }}
+        inReaderApp:   {% if html %}true{% else %}false{% endif %},
+        static_url:    {{ STATIC_PREFIX }},
       };
+
+      // Custom processing of Copy/Paste
       document.addEventListener('copy', function(e) {
           const selection = document.getSelection()
           const text_only = selection.toString();

@@ -98,7 +98,8 @@ def large_data(request):
         "topic_toc": library.get_topic_toc(),
         "topic_toc_json": library.get_topic_toc_json(),
         "titles_json": library.get_text_titles_json(),
-        "terms_json": library.get_simple_term_mapping_json()
+        "terms_json": library.get_simple_term_mapping_json(),
+        "site_settings_json": json.dumps(SITE_SETTINGS, ensure_ascii=False)
     }
 
 

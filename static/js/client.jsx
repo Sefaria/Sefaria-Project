@@ -26,6 +26,7 @@ $(function() {
     let staticProps = {
       multiPanel: $(window).width() > 600,
       headerMode: true,
+      interfaceLang: DJANGO_VARS.interfaceLang,
       initialRefs: [],
       initialFilter: [],
       initialMenu: null,
