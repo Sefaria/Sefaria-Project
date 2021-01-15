@@ -592,7 +592,7 @@ class UserProfile(object):
 
     def process_history_item(self, hist, time_stamp):
         action = hist.pop("action", None)
-        if self.settings["reading_history"] or action == "add_saved":  # regular case where history enabled, save/unsave saved item etc. or save history in either case
+        if self.settings.get("reading_history", True) or action == "add_saved":  # regular case where history enabled, save/unsave saved item etc. or save history in either case
             return UserHistory.save_history_item(self.id, hist, action, time_stamp)
         elif action == "delete_saved":  # user has disabled history and is "unsaving", therefore deleting this item.
             UserHistory.remove_history_item(self.id, hist)
@@ -613,7 +613,7 @@ class UserProfile(object):
         :param limit: Passed on to Mongo to limit # of results
         :return:
         """
-        if not self.settings['reading_history'] and not saved:
+        if not self.settings.get('reading_history', True) and not saved:
             return [] if serialized else None
         return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
                                             last_place=last_place, serialized=serialized, limit=limit)
