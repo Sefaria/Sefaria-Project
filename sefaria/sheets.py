@@ -1061,9 +1061,14 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 	return save_sheet(sheet, uid)
 
 
-# This is here as an alternative interface - it's not yet used, generally.
 
 class Sheet(abstract.AbstractMongoRecord):
+	# This is here as an alternative interface - it's not yet used, generally.
+	
+	# Warning: this class doesn't implement all of the saving logic in save_sheet()
+	# In current form should only be used for reading or for changes that are known to be
+	# safe and without need of side effects.
+
 	collection = 'sheets'
 
 	required_attrs = [
@@ -1104,6 +1109,9 @@ class Sheet(abstract.AbstractMongoRecord):
         "ownerImageUrl",   # TODO this shouldn't be stored on sheets, but it is for many
         "ownerProfileUrl", # TODO this shouldn't be stored on sheets, but it is for many
 	]
+
+	def _sanitize(self):
+		pass
 
 	def is_hebrew(self):
 		"""Returns True if this sheet appears to be in Hebrew according to its title"""
