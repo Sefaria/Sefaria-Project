@@ -222,7 +222,7 @@ class UserProfile extends Component {
     this.getSheets().then(() => this.setState({ refreshSheetData: Math.random() }));
     Sefaria._collections = {};
     delete Sefaria._userCollections[Sefaria._uid];
-    this.getCollections.then(() => this.setState({refreshCollectionsData: Math.random() }));
+    this.getCollections().then(() => this.setState({refreshCollectionsData: Math.random() }));
   }
   renderSheet(sheet) {
     return (

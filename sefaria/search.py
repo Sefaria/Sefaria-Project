@@ -132,7 +132,7 @@ def index_sheet(index_name, id):
         if not topic_obj:
             continue
         topics += [topic_obj]
-    colletions = CollectionSet({"sheets": id, "listed": True})
+    collections = CollectionSet({"sheets": id, "listed": True})
     collection_names = [c.name for c in collections]
     try:
         doc = {
