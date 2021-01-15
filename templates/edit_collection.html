@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% load i18n static %}
+{% load sefaria_tags %}
 {% get_static_prefix as STATIC_PREFIX %}
 
 {% load sefaria_tags %}
@@ -25,9 +26,7 @@ body {
 
 <script>
     {% autoescape off %}
-      DJANGO_VARS.props = {
-        initialData: {{ collectionData|jsonify }}
-      };
+      DJANGO_VARS.props.initialData = {{ initialData|jsonify }};
       DJANGO_VARS.containerId = 'editCollectionPageContainerInner',
       DJANGO_VARS.reactComponentName = 'EditCollectionPage',
       DJANGO_VARS.static_url = {{ STATIC_PREFIX }};

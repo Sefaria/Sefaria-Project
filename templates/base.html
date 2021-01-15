@@ -1,5 +1,6 @@
 {% load render_bundle from webpack_loader %}
 {% load static %}
+{% load sefaria_tags %}
 {% get_static_prefix as STATIC_PREFIX %}
 
 <!DOCTYPE html>
@@ -164,7 +165,6 @@
       var DJANGO_VARS = {
         props:         {{ propsJSON|default:"null" }},
         contentLang:   "{{ request.contentLang }}",
-        interfaceLang: "{{ request.interfaceLang }}",
         inReaderApp:   {% if html %}true{% else %}false{% endif %},
         static_url:    {{ STATIC_PREFIX }},
       };

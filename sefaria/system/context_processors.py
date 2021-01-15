@@ -35,6 +35,7 @@ def builtin_only(view):
             return {}
     return wrapper
 
+
 def data_only(view):
     """
     Marks processors only needed when setting the data JS.
@@ -101,7 +102,6 @@ def large_data(request):
         "topic_toc_json": library.get_topic_toc_json(),
         "titles_json": library.get_text_titles_json(),
         "terms_json": library.get_simple_term_mapping_json(),
-        "site_settings_json": json.dumps(SITE_SETTINGS, ensure_ascii=False)
     }
 
 
@@ -152,6 +152,7 @@ def footer_html(request):
     return {
         "footer": FOOTER[lang]
     }
+
 
 @user_only
 def body_flags(request):

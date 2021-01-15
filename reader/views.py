@@ -94,7 +94,7 @@ if server_coordinator:
 #    #    #
 
 
-def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
+def render_template(request, template_name='base.html', app_props=None, template_context={}, content_type=None, status=None, using=None):
     """
     This is a general purpose custom function that serves to render all the templates in the project and provide a central point for all similar processing.
     It can take props that area meant for the Node render of ReaderApp (and will properly combine them with base_props() and serialize
@@ -162,7 +162,8 @@ def render_react_component(component, props):
 
 def base_props(request):
     """
-    Returns a dictionary of props that all App pages get based on the request AND are able to be sent over the wire to the Node SSR server.
+    Returns a dictionary of props that all App pages get based on the request 
+    AND are able to be sent over the wire to the Node SSR server.
     """
     from sefaria.model.user_profile import UserProfile, UserWrapper
     from sefaria.site.site_settings import SITE_SETTINGS
@@ -839,7 +840,7 @@ def edit_collection_page(request, slug=None):
     else:
         collectionData = None
 
-    return render_template(request, 'edit_collection.html', None, {"collectionData": collectionData})
+    return render_template(request, 'edit_collection.html', None, {"initialData": collectionData})
 
 
 def groups_redirect(request, group):

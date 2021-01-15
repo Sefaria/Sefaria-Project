@@ -4,7 +4,6 @@
 
 var DJANGO_DATA_VARS = {
   _dataLoaded:          true,
-  _siteSettings:        {{ site_settings_json }},
   toc:                  {{ toc_json }},
   search_toc:           {{ search_toc_json }},
   topic_toc:            {{ topic_toc_json }},

@@ -26,7 +26,6 @@ $(function() {
     let staticProps = {
       multiPanel: $(window).width() > 600,
       headerMode: true,
-      interfaceLang: DJANGO_VARS.interfaceLang,
       initialRefs: [],
       initialFilter: [],
       initialMenu: null,
@@ -36,6 +35,7 @@ $(function() {
       initialNavigationTopicCategory: "",
       initialPanels: [],
     };
+
     let mergedStaticProps = { ...DJANGO_VARS.props, ...staticProps };
     Sefaria.unpackDataFromProps(mergedStaticProps);
     component = React.createElement(SefariaReact.ReaderApp, mergedStaticProps);
