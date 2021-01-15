@@ -1121,6 +1121,14 @@ class AbstractTest(object):
             element_to_be_clickable((By.CSS_SELECTOR, ".notificationsList > .notification")))
         return self
 
+    def load_url(self, url, test_selector):
+        """
+        Load any URL and wait until `test_selector` is present
+        """
+        self.driver.get(self.base_url + url)
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, test_selector)))
+        self.catch_js_error()
+        return self
 
     # Editing
     def load_translate(self, ref):

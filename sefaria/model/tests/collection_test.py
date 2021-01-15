@@ -16,7 +16,25 @@ class Test_Collection(object):
             "admins": [ 1 ],
             "members": []
         })
+        
+        # Slug is assigned
+        g.save()
+        assert hasattr(g, "slug")
+
+        # Clean Description HTML
         g.description = 'Seemingly ok description... <a href="javascript:alert(8007)">Click me</a>'
         g.save()
         assert g.description == 'Seemingly ok description... <a>Click me</a>'
+
+        # Can't save with empty title
+        g.name = ""
+        with pytest.raises(InputError):
+            g.save()
+        g.name = "Text Collection"
+
+        # Can't be public without image, public sheets
+        g.listed = True
+        with pytest.raises(InputError):
+            g.save()
+
         g.delete()

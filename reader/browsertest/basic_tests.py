@@ -580,7 +580,7 @@ class LinkExplorer(AtomicTest):
 
 
 class ReadingHistory(AtomicTest):
-    suite_class = PagesLoad
+    suite_class = PageloadSuite
     single_panel = False
     every_build = True
 
@@ -810,6 +810,17 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
         versionedResult.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
+
+
+class CollectionsPagesLoad(AtomicTest):
+    suite_class = PageloadSuite
+    every_build = True
+
+    def body(self):
+        self.load_url("/collections", ".collectionListing")
+        self.login_user()
+        self.load_url("/collections/new", "#editCollectionPage .field")
+        self.load_url("/collections/bimbam", ".collectionPage .sheet")
 
 
 class BrowserBackAndForward(AtomicTest):
