@@ -852,7 +852,10 @@ def groups_redirect(request, group):
     collection = Collection().load({"name": group.replace("-", " ")})
     if not collection:
         raise Http404
-    return redirect("/collections/{}".format(collection.slug))
+    
+    param = "?tag={}".format(request.GET["tag"]) if "tag" in request.GET else ""
+    url = "/collections/{}{}".format(collection.slug, param)
+    return redirect(url)
 
 
 @sanitize_get_params
