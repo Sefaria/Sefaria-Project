@@ -375,7 +375,7 @@ def put_sheet_mapping(index_name):
             'sheetId': {
                 'type': 'integer'
             },
-            'collection': {
+            'collections': {
                 'type': 'keyword'
             },
             'title': {
