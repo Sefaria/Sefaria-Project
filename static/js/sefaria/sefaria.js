@@ -1261,15 +1261,11 @@ _media: {},
 
 
   _webpages: {},
+  _processedWebpages: {},
   webPagesByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
     var ref = Sefaria.normRefList(refs);
-    refs.map(r => {
-      // Also include webpages linked at section level. Deduped below.
-      if (r.indexOf(":") !== -1) {
-        refs.push(r.slice(0, r.lastIndexOf(":")));
-      }
-    }, this);
+    if (ref in this._processedWebpages) { return this._processedWebpages[ref]; }
 
     var webpages = [];
     refs.map(r => {
@@ -1278,10 +1274,7 @@ _media: {},
 
     webpages.map(page => page.isHebrew = Sefaria.hebrew.isHebrew(page.title));
 
-    return webpages.filter((obj, pos, arr) => {
-      // Remove duplicates by url field
-      return arr.map(mapObj => mapObj["url"]).indexOf(obj["url"]) === pos;
-    }).sort((a, b) => {
+    webpages = webpages.sort((a, b) => {
       // Sort first by page language matching interface language
       if (a.isHebrew !== b.isHebrew) { return (b.isHebrew ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
 
@@ -1292,6 +1285,8 @@ _media: {},
 
       return (a.linkerHits > b.linkerHits) ? -1 : 1
     });
+    this._processedWebpages[ref] = webpages;
+    return webpages;
   },
   _refTopicLinks: {},
   _saveTopicByRef: function(ref, data) {
