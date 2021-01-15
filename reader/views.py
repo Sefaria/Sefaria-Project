@@ -183,7 +183,7 @@ def base_props(request):
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
-            "is_history_enabled": profile.settings["reading_history"],
+            "is_history_enabled": getattr(profile.settings,"reading_history", True),
             "following": profile.followees.uids,
 
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
@@ -218,7 +218,7 @@ def base_props(request):
         "initialPath": request.get_full_path(),
         "interfaceLang": request.interfaceLang,
         "initialSettings": {
-            "language":      request.contentLang,
+            "language":      getattr(request, "contentLang", "english"),
             "layoutDefault": request.COOKIES.get("layoutDefault", "segmented"),
             "layoutTalmud":  request.COOKIES.get("layoutTalmud", "continuous"),
             "layoutTanakh":  request.COOKIES.get("layoutTanakh", "segmented"),
@@ -2815,7 +2815,7 @@ def notifications_read_api(request):
 
         return jsonResponse({
                                 "status": "ok",
-                                "unreadCount": UserProfile(user_obj=request.user).unread_notifications_count()
+                                "unreadCount": UserProfile(user_obj=request.user).unread_notification_count()
                             })
 
     else:
@@ -4177,8 +4177,9 @@ def custom_server_error(request, template_name='500.html'):
 
     Templates: `500.html`
     """
-    t = get_template(template_name) # You need to create a 500.html template.
-    return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
+    return render_template(request, template_name=template_name, app_props=None, template_context={}, status=500)
+    #t = get_template(template_name) # You need to create a 500.html template.
+    #return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
 
 def apple_app_site_association(request):
     teamID = "2626EW4BML"
@@ -4227,7 +4228,7 @@ def chevruta_redirect(request):
     if room_id is None:
         raise Http404('Missing room ID.')
 
-    return render_template(request,'static/chavruta.html', {
+    return render_template(request,'static/chavruta.html', None, {
         "rtc_server": RTC_SERVER,
         "room_id": room_id,
         "starting_ref": starting_ref,

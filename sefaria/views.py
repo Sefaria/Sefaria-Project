@@ -249,7 +249,7 @@ def linker_js(request, linker_version=None):
 
     attrs = {
         "book_titles": json.dumps(model.library.citing_title_list("en")
-                      + model.library.citing_title_list("he"))
+                      + model.library.citing_title_list("he"), ensure_ascii=False)
     }
 
     return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
