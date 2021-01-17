@@ -2490,6 +2490,9 @@ _media: {},
       // Footer
       "Connect": "צרו קשר",
       "Site Language": "שפת האתר",
+
+      //Profile
+      " at ": " ב-",
   },
   _i18nInterfaceStringsWithContext: {
       "AddConnectionBox": {
