@@ -45,9 +45,9 @@ class Test_Toc(object):
                 #verify proper category node (including that it doesnt have a title attr)
                 self.verify_category_node_integrity(toc_elem)
                 self.recur_toc_integrity(toc_elem['contents'], depth+1)
-            elif toc_elem.get('isGroup', False):
-                #verify group leaf integrity
-                self.verify_group_node_integrity(toc_elem)
+            elif toc_elem.get('isCollection', False):
+                #verify collection leaf integrity
+                self.verify_collection_node_integrity(toc_elem)
             elif 'title' in toc_elem:
                 #verify text leaf integrity
                 self.verify_text_node_integrity(toc_elem)
@@ -77,8 +77,8 @@ class Test_Toc(object):
         assert 'category' not in node
         #do we need to assert that the title is not equal to any category name?
 
-    def verify_group_node_integrity(self, node):
-        expected_keys = set(('name', 'title', 'heTitle'))
+    def verify_collection_node_integrity(self, node):
+        expected_keys = set(('name', 'slug', 'title', 'heTitle'))
         assert set(node.keys()) >= expected_keys
         assert 'category' not in node  
 

@@ -4,7 +4,7 @@ sjs.flags = {
 		ckfocus: false,
 	 };
 
-sjs.can_save = (sjs.can_edit || sjs.can_add || sjs.can_publish);
+sjs.can_save = (sjs.can_edit || sjs.can_add);
 
 sjs.current = sjs.current || {
 	options: {
@@ -1664,22 +1664,16 @@ $(function() {
 	}).find("#sheetSummaryInput").change();
 
 	$("#sourceSheetGroupSelect").change(function() {
-		if ($(this).val()!="None") {
+		if (!!$(this).val()) {
 			var $el = $("#sourceSheetGroupSelect option:selected");
-			var groupUrl = $(this).val().replace(/ /g, "-");
-			var groupLogo = $el.attr("data-image");
-			$("#groupLogo").attr("src", groupLogo)
-				.closest("a").attr("href", "/groups/" + groupUrl);
-			if (groupLogo) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
-			if (parseInt($el.attr("data-can-publish"))) {
-				$("#sourceSheetsAccessOptions").show();
-			} else {
-				$("#sourceSheetsAccessOptions").hide();
-			}
+			var collectionSlug = $el.attr("data-slug");
+			var collectionHeader = $el.attr("data-image");
+			$("#collectionHeader").attr("src", collectionHeader)
+				.closest("a").attr("href", "/collections/" + collectionSlug);
+			if (collectionHeader) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 		}
 		else {
 			$("#sheetHeader").hide();
-			$("#sourceSheetsAccessOptions").show();
 		}
 	});
 
@@ -1690,8 +1684,6 @@ $(function() {
 		curHighlighter.find(".en").html("<div class='highlighterSegment'>"+curText.find(".en").html().stripHtml()+"</div>");
 		curHighlighter.find(".he").html("<div class='highlighterSegment'>"+curText.find(".he").html().stripHtml()+"</div>");
 		autoSave();
-
-
 	});
 
 	$("#highlightMenu .optionsMenu").on('click', '.segmentedContinuousToggle', function() {
@@ -2454,7 +2446,7 @@ function readSheet() {
 		sheet.options.highlightMode = $("#sheet").hasClass("highlightMode") ? 1 : 0;
 	}
 
-	if (sjs.is_owner || sjs.can_publish) {
+	if (sjs.is_owner) {
 
 		sheet["status"] = $("#sheetPublicToggle").is(':checked') ? "public" : "unlisted";
 
@@ -2467,10 +2459,10 @@ function readSheet() {
 				sheet.options.collaboration = "none";
 				break;
 			case 'add':
-				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "" && !sjs.is_owner) ? "group-can-add" : "anyone-can-add";
+				sheet.options.collaboration = "anyone-can-add";
 				break;
 			case 'edit':
-				sheet.options.collaboration = ($("#sourceSheetGroupSelect").val() && $("#sourceSheetGroupSelect").val() !== "None") || (sjs.current.group && sjs.current.group !== "" && !sjs.is_owner) ? "group-can-edit" : "anyone-can-edit";
+				sheet.options.collaboration = "anyone-can-edit";
 				break;
 		}
 
@@ -2492,20 +2484,16 @@ function readSheet() {
 		sheet["status"] = sjs.current.status;
 	}
 
-	var group = $("#sourceSheetGroupSelect").val();
 
-	if (group === undefined && sjs.current && sjs.current.group !== "None") {
-		// When working on someone else's group sheet
-		group = sjs.current.group;
+	if (!sjs.is_owner) {
+		// Only allow owner to change displayedCollection
+		sheet["displayedCollection"] = sjs.current.displayedCollection;
+	}
+    else {
+		var displayedCollection = $("#sourceSheetGroupSelect").val() || null;
+		sheet["displayedCollection"] = displayedCollection;
 	}
 
-	if (group && group !== "None") {
-		// Group Sheet
-		sheet["group"] = group;
-	} else {
-		// Individual Sheet
-		sheet["group"] = "";
-	}
 
 	return sheet;
 } // end readSheet
@@ -2826,27 +2814,20 @@ function buildSheet(data){
 
 	if (!("collaboration" in data.options)) { data.options.collaboration = "none"}
 
-	if (data.options.collaboration == "none")  $("#sourceSheetShareSelect").val('view');
-	else if (data.options.collaboration == "anyone-can-add" || data.options.collaboration == "group-can-add") $("#sourceSheetShareSelect").val('add');
-	else if (data.options.collaboration == "anyone-can-edit" || data.options.collaboration == "group-can-edit") $("#sourceSheetShareSelect").val('edit');
+	if (data.options.collaboration == "none")                 $("#sourceSheetShareSelect").val('view');
+	else if (data.options.collaboration == "anyone-can-add")  $("#sourceSheetShareSelect").val('add');
+	else if (data.options.collaboration == "anyone-can-edit") $("#sourceSheetShareSelect").val('edit');
 
 	if (data.status == "public") { $('#sheetPublicToggle').attr('checked', true); }
 	else { $('#sheetPublicToggle').attr('checked', false); }
 
 	// Set Sheet Group
-	if (data.group) {
-		$("#sourceSheetGroupSelect").val(data.group);
+	if (data.displayedCollection) {
+		$("#sourceSheetGroupSelect").val(data.displayedCollection);
 		var $el = $("#sourceSheetGroupSelect option:selected");
-		var groupImage = $el.attr("data-image");
-		$("#groupLogo").attr("src", groupImage);
-		if (groupImage) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
-		if (parseInt($el.attr("data-can-publish")) || sjs.can_publish) {
-			$("#sourceSheetsAccessOptions").show();
-		} else {
-			$("#sourceSheetsAccessOptions").hide();
-		}
-	} else {
-		$("#sourceSheetsAccessOptions").show();
+		var collectionImage = $el.attr("data-image");
+		$("#collectionHeader").attr("src", collectionImage);
+		if (collectionImage) {$("#sheetHeader").show();} else { $("#sheetHeader").hide();}
 	}
 
 	if (sjs.is_owner) {
@@ -3291,7 +3272,6 @@ function startPollingIfNeeded() {
 		if (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-add") {
 			needed = true;
 		}
-		// Poll if sheet is in a group
 		else if  (sjs.current.options.collaboration && sjs.current.options.collaboration === "anyone-can-edit") {
 			needed = true;
 		}

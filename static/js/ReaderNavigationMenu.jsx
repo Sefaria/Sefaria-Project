@@ -164,8 +164,8 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
             img="/static/img/new-sheet.svg"  alt="new source sheet icon" />,
       <TocLink en="Authors" he="רשימת מחברים" href="/people" resourcesLink={true}
             img="/static/img/authors-icon.png" alt="author icon"/>,
-      <TocLink en="Groups" he="קבוצות" href="/groups" resourcesLink={true}
-            img="/static/img/group.svg" alt="Groups icon"/>,
+      <TocLink en="Collections" he="אסופות" href="/collections" resourcesLink={true}
+            img="/static/icons/collection.svg" alt="Collections icon"/>,
       <TocLink en="Visualizations" he="תרשימים גרפיים" href="/visualizations" resourcesLink={true}
             img="/static/img/visualizations-icon.png" alt="visualization icon" />,
   ];

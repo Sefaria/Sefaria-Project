@@ -620,7 +620,7 @@ class Search {
       const availableFilters = aggregation_buckets.map( b => {
         const isHeb = Sefaria.hebrew.isHebrew(b.key);
         const enTitle = isHeb ? '' : b.key;
-        const heTitle = isHeb ? b.key : (aggType === 'group' || !Sefaria.terms[b.key] ? '' : Sefaria.terms[b.key].he);
+        const heTitle = isHeb ? b.key : (aggType === 'collections' || !Sefaria.terms[b.key] ? '' : Sefaria.terms[b.key].he);
         const aggKey = enTitle || heTitle;
         const filterInd = appliedFilters.indexOf(aggKey);
         const isSelected = filterInd !== -1 && appliedFilterAggTypes[filterInd] === aggType;

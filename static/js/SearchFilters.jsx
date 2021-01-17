@@ -13,10 +13,6 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component      from 'react-class';
 
-const noGroupEn = '(No Group)';
-const noGroupHe = '(ללא קבוצה)';
-const noTagsEn = '(No Tag)';
-const noTagsHe = '(ללא תוית)';
 
 class SearchFilters extends Component {
   constructor(props) {
@@ -230,9 +226,8 @@ class SheetSearchFilterPanel extends Component {
     }
   }
   render() {
-    const groupFilters = this.props.availableFilters.filter(filter => filter.aggType === 'group');
+    const collectionFilters = this.props.availableFilters.filter(filter => filter.aggType === 'collections' && filter.title);
     const tagFilters = this.props.availableFilters.filter(filter => filter.aggType.match(/^topics/));
-
 
     return (
       <DropdownModal positionUnset={true} close={this.props.closeBox} isOpen={this.props.displayFilters}>
@@ -245,13 +240,13 @@ class SheetSearchFilterPanel extends Component {
         {this.props.displayFilters ? 
         <div key={this.state.activeTab} className="searchFilterBoxes" role="dialog">
           <SearchFilterTabRow
-            tabs={[ {en: 'Topics', he: 'נושאים'}, {en: 'Groups', he: 'קבוצות'}]}
+            tabs={[ {en: 'Topics', he: 'נושאים'}, {en: 'Collections', he: 'אסופות'}]}
             activeTab={this.state.activeTab}
             changeTab={this.changeTab}
           />
-          { this.state.activeTab === 'Groups' ?
+          { this.state.activeTab === 'Collections' ?
             <div className="searchFilterCategoryBox searchFilterSheetBox">
-            {groupFilters.map(filter => (
+            {collectionFilters.map(filter => (
                   <SearchFilter
                     filter={filter}
                     isInFocus={false}
@@ -467,11 +462,10 @@ class SearchTagFilter extends Component {
   }
   render() {
     const { filter } = this.props;
-    let enTitle = filter.title || filter.heTitle;
-    enTitle = enTitle || noTagsEn;
+    const enTitle = filter.title || filter.heTitle;
+    const heTitle = filter.heTitle || filter.title;
+    if (!enTitle) { return null; } // Don't show option to filter by no topic or no collection
     const enTitleIsHe = !filter.title && !!filter.heTitle;
-    let heTitle = filter.heTitle || filter.title;
-    heTitle = heTitle || noTagsHe;
     const heTitleIsEn = !filter.heTitle && !!filter.title;
 
     const classes = classNames({"type-button": 1, "tag-filter": 1, active: this.state.selected === 1})
@@ -571,10 +565,8 @@ class SearchFilter extends Component {
   render() {
     const { filter, isInFocus } = this.props;
     let enTitle = filter.title || filter.heTitle;
-    enTitle = enTitle || noGroupEn;
     const enTitleIsHe = !filter.title && !!filter.heTitle;
     let heTitle = filter.heTitle || filter.title;
-    heTitle = heTitle || noGroupHe;
     const heTitleIsEn = !filter.heTitle && !!filter.title;
     return(
       <li className={classNames({active: isInFocus})} onClick={this.handleFocusCategory}>

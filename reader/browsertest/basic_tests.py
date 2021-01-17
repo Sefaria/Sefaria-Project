@@ -13,6 +13,7 @@ from selenium.common.exceptions import WebDriverException
 
 import time  # import stand library below name collision in sefaria.model
 
+
 TEMPER = 30
 
 
@@ -172,7 +173,7 @@ class PagesLoad(AtomicTest):
     def body(self):
         self.load_toc()
         self.click_toc_category("Midrash").click_toc_text("Ein Yaakov")
-        self.load_ref("Psalms.104")
+        self.load_ref("Job.3")
         self.load_topics()
         self.load_gardens()
         self.load_home()
@@ -579,7 +580,7 @@ class LinkExplorer(AtomicTest):
 
 
 class ReadingHistory(AtomicTest):
-    suite_class = PagesLoad
+    suite_class = PageloadSuite
     single_panel = False
     every_build = True
 
@@ -602,8 +603,8 @@ class NavToRefAndClickSegment(AtomicTest):
     every_build = True
 
     def body(self):
-        self.browse_to_ref("Psalms 65:4").click_segment("Psalms 65:4")
-        assert "Psalms.65.4" in self.driver.current_url, self.driver.current_url
+        self.browse_to_ref("Job 3:4").click_segment("Job 3:4")
+        assert "Job.3.4" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
 
         # If we're one level deep in a menu, go back.
@@ -614,10 +615,10 @@ class NavToRefAndClickSegment(AtomicTest):
         self.click_category_filter("Commentary")
         self.click_text_filter("Ibn Ezra")
 
-        assert "Psalms.65.4" in self.driver.current_url, self.driver.current_url
+        assert "Job.3.4" in self.driver.current_url, self.driver.current_url
         assert "with=Ibn%20Ezra" in self.driver.current_url or "with=Ibn Ezra" in self.driver.current_url, self.driver.current_url
 
-        self.click_segment_to_close_commentary("Psalms 65:4")  #  This is needed on mobile, to close the commentary window
+        self.click_segment_to_close_commentary("Job 3:4")  #  This is needed on mobile, to close the commentary window
 
 
 class LoadRefAndClickSegment(AtomicTest):
@@ -625,14 +626,14 @@ class LoadRefAndClickSegment(AtomicTest):
     every_build = True
 
     def body(self):
-        self.load_ref("Psalms 65:4").click_segment("Psalms 65:4")
-        assert "Psalms.65.4" in self.driver.current_url, self.driver.current_url
+        self.load_ref("Job 3:4").click_segment("Job 3:4")
+        assert "Job.3.4" in self.driver.current_url, self.driver.current_url
         assert "with=all" in self.driver.current_url, self.driver.current_url
 
         self.click_category_filter("Commentary")
         self.click_text_filter("Ibn Ezra")
 
-        assert "Psalms.65.4" in self.driver.current_url, self.driver.current_url
+        assert "Job.3.4" in self.driver.current_url, self.driver.current_url
         assert "with=Ibn%20Ezra" in self.driver.current_url or "with=Ibn Ezra" in self.driver.current_url, self.driver.current_url
 
 
@@ -641,8 +642,8 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
     every_build = True
 
     def body(self):
-        self.load_ref("Psalms 45:5", filter="all").click_category_filter("Commentary").click_text_filter("Rashi")
-        assert "Psalms.45.5" in self.driver.current_url, self.driver.current_url
+        self.load_ref("Job 3:4", filter="all").click_category_filter("Commentary").click_text_filter("Rashi")
+        assert "Job.3.4" in self.driver.current_url, self.driver.current_url
         assert "with=Rashi" in self.driver.current_url, self.driver.current_url
 
 
@@ -809,6 +810,17 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
         versionedResult.click()
         WebDriverWait(self.driver, TEMPER).until(staleness_of(versionedResult))
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
+
+
+class CollectionsPagesLoad(AtomicTest):
+    suite_class = PageloadSuite
+    every_build = True
+
+    def body(self):
+        self.load_url("/collections", ".collectionListing")
+        self.login_user()
+        self.load_url("/collections/new", "#editCollectionPage .field")
+        self.load_url("/collections/bimbam", ".collectionPage .sheet")
 
 
 class BrowserBackAndForward(AtomicTest):

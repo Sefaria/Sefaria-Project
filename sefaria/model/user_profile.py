@@ -549,15 +549,15 @@ class UserProfile(object):
 
         return self
 
-    def join_invited_groups(self):
+    def join_invited_collections(self):
         """
-        Add this user as a member of any group for which there is an outstanding invitation.
+        Add this user as a editor of any collections for which there is an outstanding invitation.
         """
-        from sefaria.model import GroupSet
-        groups = GroupSet({"invitations.email": self.email})
-        for group in groups:
-            group.add_member(self.id)
-            group.remove_invitation(self.email)
+        from sefaria.model import CollectionSet
+        collections = CollectionSet({"invitations.email": self.email})
+        for collection in collections:
+            collection.add_member(self.id)
+            collection.remove_invitation(self.email)
 
     def follows(self, uid):
         """Returns true if this user follows uid"""
@@ -592,7 +592,7 @@ class UserProfile(object):
 
     def process_history_item(self, hist, time_stamp):
         action = hist.pop("action", None)
-        if self.settings["reading_history"] or action == "add_saved":  # regular case where history enabled, save/unsave saved item etc. or save history in either case
+        if self.settings.get("reading_history", True) or action == "add_saved":  # regular case where history enabled, save/unsave saved item etc. or save history in either case
             return UserHistory.save_history_item(self.id, hist, action, time_stamp)
         elif action == "delete_saved":  # user has disabled history and is "unsaving", therefore deleting this item.
             UserHistory.remove_history_item(self.id, hist)
@@ -613,7 +613,7 @@ class UserProfile(object):
         :param limit: Passed on to Mongo to limit # of results
         :return:
         """
-        if not self.settings['reading_history'] and not saved:
+        if not self.settings.get('reading_history', True) and not saved:
             return [] if serialized else None
         return UserHistory.get_user_history(uid=self.id, oref=oref, saved=saved, secondary=secondary, sheets=sheets,
                                             last_place=last_place, serialized=serialized, limit=limit)
@@ -711,7 +711,6 @@ def email_unread_notifications(timeframe):
             translation.activate(profile.settings["interface_language"][0:2])
 
         message_html  = render_to_string("email/notifications_email.html", {"notifications": notifications, "recipient": user.first_name})
-        #message_text = util.strip_tags(message_html)
         actors_string = notifications.actors_string()
         # TODO Hebrew subjects
         if actors_string:
@@ -724,8 +723,7 @@ def email_unread_notifications(timeframe):
         to            = user.email
 
         msg = EmailMultiAlternatives(subject, message_html, from_email, [to])
-        msg.content_subtype = "html"  # Main content is now text/html
-        #msg.attach_alternative(message_text, "text/plain")
+        msg.content_subtype = "html"
         try:
             msg.send()
             notifications.mark_read(via="email")

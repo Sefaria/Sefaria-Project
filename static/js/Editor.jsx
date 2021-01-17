@@ -11,7 +11,7 @@ import {
     SheetMetaDataBox,
     SheetAuthorStatement,
     SheetTitle,
-    GroupStatement,
+    CollectionStatement,
     ProfilePic,
 } from './Misc';
 
@@ -346,7 +346,6 @@ function transformSheetJsonToDraft(sheet) {
         {
             type: 'Sheet',
             status: sheet.status,
-            group: sheet.group || "",
             views: sheet.views,
             tags: sheet.tags || [],
             includedRefs: sheet.includedRefs,
@@ -364,9 +363,10 @@ function transformSheetJsonToDraft(sheet) {
             authorStatement: sheet.ownerName,
             authorImage: sheet.ownerImageUrl,
             title: sheet.title,
-            groupLogo: sheet.groupLogo || "",
+            displayedCollection: sheet.displayedCollection || "",
+            collectionName: sheet.collectionName || "",
+            collectionImage: sheet.collectionImage || "",
             likes: sheet.likes || [],
-
             children: [
                 {
                     type: 'SheetContent',
@@ -1487,13 +1487,13 @@ function saveSheetContent(doc, lastModified) {
     });
     let sheet = {
         status: doc.status,
-        group: doc.group,
         id: doc.id,
         promptedToPublish: doc.promptedToPublish,
         lastModified: lastModified,
         summary: doc.summary,
         options: doc.options,
         tags: doc.tags,
+        displayedCollection: doc.displayedCollection,
         title: sheetTitle == "" ? "Untitled" : sheetTitle,
         sources: sources.filter(x => !!x),
         nextNode: doc.nextNode,
@@ -1624,9 +1624,10 @@ const SefariaEditor = (props) => {
               />
               <span>by <a href={sheet.ownerProfileUrl}>{sheet.ownerName}</a></span>
             </SheetAuthorStatement>
-            <GroupStatement
-                group={sheet.group}
-                groupLogo={sheet.groupLogo}
+            <CollectionStatement
+                name={sheet.collectionName}
+                slug={sheet.displayedCollection}
+                image={sheet.collectionImage}
             />
         </SheetMetaDataBox>
 

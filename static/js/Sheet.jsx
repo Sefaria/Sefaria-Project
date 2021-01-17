@@ -13,7 +13,7 @@ import {
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
-  GroupStatement,
+  CollectionStatement,
   ProfilePic,
 } from './Misc';
 
@@ -95,16 +95,17 @@ class Sheet extends Component {
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
             highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-            scrollDir = {this.state.scrollDir}
-            authorStatement = {sheet.ownerName}
-            authorUrl = {sheet.ownerProfileUrl}
-            authorImage = {sheet.ownerImageUrl}
-            group = {sheet.group}
-            groupLogo = {sheet.groupLogo}
-            editable = {Sefaria._uid == sheet.owner}
-            hasSidebar = {this.props.hasSidebar}
-            sheetNumbered = {sheet.options.numbered}
-            sheetID = {sheet.id}
+            scrollDir={this.state.scrollDir}
+            authorStatement={sheet.ownerName}
+            authorUrl={sheet.ownerProfileUrl}
+            authorImage={sheet.ownerImageUrl}
+            collectionName={sheet.collectionName}
+            collectionSlug={sheet.displayedCollection}
+            collectionImage={sheet.collectionImage}
+            editable={Sefaria._uid == sheet.owner}
+            hasSidebar={this.props.hasSidebar}
+            sheetNumbered={sheet.options.numbered}
+            sheetID={sheet.id}
           />
       )
     }
@@ -142,7 +143,6 @@ class SheetContent extends Component {
     }
     this.debouncedAdjustHighlightedAndVisible();
   }
-
   getHighlightThreshhold() {
     // Returns the distance from the top of screen that we want highlighted segments to appear below.
     return this.props.multiPanel ? 200 : 70;
@@ -182,7 +182,6 @@ class SheetContent extends Component {
       }
     }
   }
-
   scrollToHighlighted() {
     if (!this._isMounted) { return; }
     //console.log("scroll to highlighted - animation frame");
@@ -325,9 +324,10 @@ class SheetContent extends Component {
               />
               <span>by <a href={this.props.authorUrl}>{this.props.authorStatement}</a></span>
             </SheetAuthorStatement>
-            <GroupStatement
-                group={this.props.group}
-                groupLogo={this.props.groupLogo}
+            <CollectionStatement
+                name={this.props.collectionName}
+                slug={this.props.collectionSlug}
+                image={this.props.collectionImage}
             />
         </SheetMetaDataBox>
 

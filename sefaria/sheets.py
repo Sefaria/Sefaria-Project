@@ -23,7 +23,7 @@ from sefaria.system.database import db
 from sefaria.model.notification import Notification, NotificationSet
 from sefaria.model.following import FollowersSet
 from sefaria.model.user_profile import UserProfile, annotate_user_list, public_user_data, user_link
-from sefaria.model.group import Group
+from sefaria.model.collection import Collection, CollectionSet
 from sefaria.model.story import UserStory, UserStorySet
 from sefaria.model.topic import TopicSet, Topic, RefTopicLink, RefTopicLinkSet
 from sefaria.utils.util import strip_tags, string_overlap, titlecase
@@ -72,9 +72,6 @@ def get_sheet_metadata_bulk(id_list, public=True):
 
 
 def get_sheet_node(sheet_id=None, node_id=None):
-	"""
-	Returns the source sheet with id.
-	"""
 	if sheet_id is None:
 		return {"error": "No sheet id given."}
 	if node_id is None:
@@ -109,12 +106,13 @@ def get_sheet_for_panel(id=None):
 	sheet["naturalDateCreated"] = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 	sheet["topics"] = add_langs_to_topics(sheet.get("topics", []))
-	if "group" in sheet:
-		group = Group().load({"name": sheet["group"]})
-		try:
-			sheet["groupLogo"] = group.imageUrl
-		except:
-			sheet["groupLogo"] = None
+	if "displayedCollection" in sheet:
+		collection = Collection().load({"slug": sheet["displayedCollection"]})
+		if collection:
+			sheet["collectionImage"] = getattr(collection, "imageUrl", None)
+			sheet["collectionName"] = collection.name
+		else:
+			del sheet["displayedCollection"]
 	return sheet
 
 
@@ -126,9 +124,18 @@ def user_sheets(user_id, sort_by="date", limit=0, skip=0, private=True):
 		sort = [["dateModified", -1]]
 	elif sort_by == "views":
 		sort = [["views", -1]]
+	else:
+		sort = None
+
+	sheets = sheet_list(query=query, sort=sort, limit=limit, skip=skip)
+
+	if private:
+		sheets = annotate_user_collections(sheets, user_id)
+	else:
+		sheets = annotate_displayed_collections(sheets)
 
 	response = {
-		"sheets": sheet_list(query=query, sort=sort, limit=limit, skip=skip)
+		"sheets": sheets
 	}
 	return response
 
@@ -137,19 +144,6 @@ def public_sheets(sort=[["dateModified", -1]], limit=50, skip=0):
 	query = {"status": "public"}
 	response = {
 		"sheets": sheet_list(query=query, sort=sort, limit=limit, skip=skip)
-	}
-	return response
-
-
-def group_sheets(group, authenticated):
-	islisted = getattr(group, "listed", False)
-	if authenticated == False and islisted:
-		query = {"status": "public", "group": group.name}
-	else:
-		query = {"status": {"$in": ["unlisted", "public"]}, "group": group.name}
-
-	response = {
-		"sheets": sheet_list(query=query),
 	}
 	return response
 
@@ -167,7 +161,7 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 		"dateModified": 1,
 		"dateCreated": 1,
 		"topics": 1,
-		"group": 1,
+		"displayedCollection": 1,
 	}
 	if not query:
 		return []
@@ -177,15 +171,6 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 		sheets = sheets.limit(limit)
 
 	return [sheet_to_dict(s) for s in sheets]
-
-def annotate_user_links(sources):
-	"""
-	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.
-	"""
-	for source in sources:
-		if "addedBy" in source:
-			source["userLink"] = user_link(source["addedBy"])
-	return sources
 
 
 def sheet_to_dict(sheet):
@@ -201,9 +186,10 @@ def sheet_to_dict(sheet):
 		"author": sheet["owner"],
 		"ownerName": profile["name"],
 		"ownerImageUrl": profile["imageUrl"],
+		"ownerProfileUrl": profile["profileUrl"],
 		"sheetUrl": "/sheets/" + str(sheet["id"]),
 		"views": sheet["views"],
-		"group": sheet.get("group", None),
+		"displayedCollection": sheet.get("displayedCollection", None),
 		"modified": dateutil.parser.parse(sheet["dateModified"]).strftime("%m/%d/%Y"),
 		"created": sheet.get("dateCreated", None),
 		"topics": add_langs_to_topics(sheet.get("topics", [])),
@@ -211,6 +197,50 @@ def sheet_to_dict(sheet):
 		"options": sheet["options"] if "options" in sheet else [],
 	}
 	return sheet_dict
+
+
+def annotate_user_collections(sheets, user_id):
+	"""
+	Adds a `collections` field to each sheet in `sheets` which includes the collections
+	that `user_id` has put that sheet in.
+	"""
+	sheet_ids = [sheet["id"] for sheet in sheets]
+	user_collections = CollectionSet({"sheets": {"$in": sheet_ids}})
+	for sheet in sheets:
+		sheet["collections"] = []
+		for collection in user_collections:
+			if sheet["id"] in collection.sheets:
+				sheet["collections"].append({"name": collection.name, "slug": collection.slug})
+
+	return sheets
+
+
+def annotate_displayed_collections(sheets):
+	"""
+	Adds `displayedCollectionName` field to each sheet in `sheets` that has `displayedCollection`.
+	"""
+	slugs = list(set([sheet["displayedCollection"] for sheet in sheets if sheet.get("displayedCollection", None)]))
+	if len(slugs) == 0:
+		return sheets
+	displayed_collections = CollectionSet({"slug": {"$in": slugs}})
+	for sheet in sheets:
+		if not sheet.get("displayedCollection", None):
+			continue
+		for collection in displayed_collections:
+			if sheet["displayedCollection"] == collection.slug:
+				sheet["displayedCollectionName"] = collection.name
+
+	return sheets
+
+
+def annotate_user_links(sources):
+	"""
+	Search a sheet for any addedBy fields (containg a UID) and add corresponding user links.
+	"""
+	for source in sources:
+		if "addedBy" in source:
+			source["userLink"] = user_link(source["addedBy"])
+	return sources
 
 
 def user_tags(uid):
@@ -629,12 +659,12 @@ def get_top_sheets(limit=3):
 	return sheet_list(query=query, limit=limit)
 
 
-def get_sheets_for_ref(tref, uid=None, in_group=None):
+def get_sheets_for_ref(tref, uid=None, in_collection=None):
 	"""
 	Returns a list of sheets that include ref,
 	formating as need for the Client Sidebar.
 	If `uid` is present return user sheets, otherwise return public sheets.
-	If `in_group` (list) is present, only return sheets in one of the listed groups.
+	If `in_collection` (list of slugs) is present, only return sheets in one of the listed collections.
 	"""
 	oref = model.Ref(tref)
 	# perform initial search with context to catch ranges that include a segment ref
@@ -644,10 +674,14 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 		query["owner"] = uid
 	else:
 		query["status"] = "public"
-	if in_group:
-		query["group"] = {"$in": in_group}
+	if in_collection:
+		collections = CollectionSet({"slug": {"$in": in_collection}})
+		sheets_list = [collection.sheets for collection in collections]
+		sheets_ids = [sheet for sublist in sheets_list for sheet in sublist]
+		query["id"] = {"$in": sheets_ids}
+	
 	sheetsObj = db.sheets.find(query,
-		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "group":1, "options":1}).sort([["views", -1]])
+		{"id": 1, "title": 1, "owner": 1, "viaOwner":1, "via":1, "dateCreated": 1, "includedRefs": 1, "expandedRefs": 1, "views": 1, "topics": 1, "status": 1, "summary":1, "attribution":1, "assigner_id":1, "likes":1, "displayedCollection":1, "options":1}).sort([["views", -1]])
 	sheetsObj.hint("expandedRefs_1")
 	sheets = [s for s in sheetsObj]
 	user_ids = list({s["owner"] for s in sheets})
@@ -685,10 +719,9 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 			sheet["viaOwnerName"] = viaOwnerData["name"]
 			sheet["viaOwnerProfileUrl"] = viaOwnerData["profileUrl"]
 
-		if "group" in sheet:
-			group = Group().load({"name": sheet["group"]})
-			sheet["groupLogo"]       = getattr(group, "imageUrl", None)
-			sheet["groupTOC"]        = getattr(group, "toc", None)
+		if "displayedCollection" in sheet:
+			collection = Collection().load({"slug": sheet["displayedCollection"]})
+			sheet["collectionTOC"] = getattr(collection, "toc", None)
 		natural_date_created = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
 		topics = add_langs_to_topics(sheet.get("topics", []))
 		for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
@@ -703,9 +736,7 @@ def get_sheets_for_ref(tref, uid=None, in_group=None):
 				"anchorRefExpanded": [r.normal() for r in anchor_ref_expanded],
 				"options": 		   sheet["options"],
 				"naturalDateCreated": natural_date_created,
-				"group":           sheet.get("group", None),
-				"groupLogo" : 	   sheet.get("groupLogo", None),
-				"groupTOC":        sheet.get("groupTOC", None),
+				"collectionTOC":   sheet.get("collectionTOC", None),
 				"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
 				"via":			   sheet.get("via", None),
 				"viaOwnerName":	   sheet.get("viaOwnerName", None),
@@ -929,7 +960,7 @@ def public_tag_list(sort_by="alpha"):
 	return results
 
 
-def get_sheets_by_topic(topic, public=True, uid=None, group=None, proj=None, limit=0, page=0):
+def get_sheets_by_topic(topic, public=True, proj=None, limit=0, page=0):
 	"""
 	Returns all sheets tagged with 'topic'
 	"""
@@ -938,11 +969,7 @@ def get_sheets_by_topic(topic, public=True, uid=None, group=None, proj=None, lim
 	topic = AbstractMongoRecord.normalize_slug(topic)
 	query = {"topics.slug": topic} if topic else {"topics": {"$exists": 0}}
 
-	if uid:
-		query["owner"] = uid
-	elif group:
-		query["group"] = group
-	elif public:
+	if public:
 		query["status"] = "public"
 
 	sheets = db.sheets.find(query, proj).sort([["views", -1]]).limit(limit).skip(page * limit)
@@ -1034,9 +1061,14 @@ def make_sheet_from_text(text, sources=None, uid=1, generatedBy=None, title=None
 	return save_sheet(sheet, uid)
 
 
-# This is here as an alternative interface - it's not yet used, generally.
 
 class Sheet(abstract.AbstractMongoRecord):
+	# This is here as an alternative interface - it's not yet used, generally.
+	
+	# Warning: this class doesn't implement all of the saving logic in save_sheet()
+	# In current form should only be used for reading or for changes that are known to be
+	# safe and without need of side effects.
+
 	collection = 'sheets'
 
 	required_attrs = [
@@ -1067,11 +1099,19 @@ class Sheet(abstract.AbstractMongoRecord):
 		"assigner_id",
 		"likes",
 		"group",
+		"displayedCollection",
 		"generatedBy",
+		"zoom",
+		"visualNodes",
 		"highlighterTags",
 		"summary",
         "reviewed",
+        "ownerImageUrl",   # TODO this shouldn't be stored on sheets, but it is for many
+        "ownerProfileUrl", # TODO this shouldn't be stored on sheets, but it is for many
 	]
+
+	def _sanitize(self):
+		pass
 
 	def is_hebrew(self):
 		"""Returns True if this sheet appears to be in Hebrew according to its title"""

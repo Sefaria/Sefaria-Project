@@ -545,7 +545,7 @@
                         <span class="int-he">שמירה מתבצעת...</span>
                     </span>
                 </a>
-                {% elif is_owner or can_publish %}
+                {% elif is_owner %}
                 <a id="share" class="button" role="button" tabIndex="0">
                     <img src="{% static 'img/share.png' %}" alt="Share Icon">
                     <span class="int-en">Share</span>
@@ -598,13 +598,13 @@
     {% endif %}
 
 	<div id="bsdHeader">בס"ד</div>
-	<div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
-		{% if sheet_group and sheet_group.headerUrl %}
-		<a href="/groups/{{ sheet_group.name|url_safe }}">
-			<img id="groupLogo" src="{{ sheet_group.headerUrl }}" alt="Logo for {{ sheet_group.name }}" />
+	<div id="sheetHeader" {% if not displayed_collection %}style="display:none"{% endif %}>
+		{% if displayed_collection and displayed_collection.headerUrl %}
+		<a href="/collections/{{ displayed_collection.slug }}">
+			<img id="collectionHeader" src="{{ displayed_collection.headerUrl }}" alt="Logo for {{ displayed_collection.name }}" />
 		</a>
 		{% else %}
-            <a href="#"><img id="groupLogo"/></a>
+            <a href="#"><img id="collectionHeader"/></a>
 		{% endif %}
 	</div>
 	<div id="title" role="heading" aria-level="1">
@@ -1019,49 +1019,61 @@
     <div class="line"></div>
 
 
-    <div class="content">
-        <span class="labelforOnOffSwitch"><span class="int-en">List on Sefaria</span><span class="int-he">הצג לכלל משתמשי ספריא</span></span>
-        <div class="onoffswitch">
-            <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="sheetPublicToggle">
-            <label class="onoffswitch-label" for="sheetPublicToggle">
-                <span class="onoffswitch-inner"></span>
-                <span class="onoffswitch-switch"></span>
-            </label>
+    <div class="content sideLabeled">
+        <label class="labelforOnOffSwitch">
+            <span class="int-en">List on Sefaria</span>
+            <span class="int-he">הצג לכלל משתמשי ספריא</span>
+        </label>
+        <div>
+            <div class="onoffswitch">
+                <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="sheetPublicToggle">
+                <label class="onoffswitch-label" for="sheetPublicToggle">
+                    <span class="onoffswitch-inner"></span>
+                    <span class="onoffswitch-switch"></span>
+                </label>
+            </div>
         </div>
     </div>
 
-   {% if owner_groups %}
-    <div class="content" id="sourceSheetGroupOptions">
+   {% if sheet_collections %}
+    <div class="content sideLabeled" id="sourceSheetGroupOptions">
         <label for="sourceSheetGroupSelect">
-            <span class="int-en">List in Group</span>
-            <span class="int-he">שיוך קבוצה</span>
+            <span class="int-en">Display Collection</span>
+            <span class="int-he">הצגת האסופה</span>
         </label>
 
-        <select id="sourceSheetGroupSelect">
-            <option value="None">
-                {% trans 'None' %}
-            </option>
-
-    		{% for group in owner_groups %}
-                <option
-                    value="{{ group.name }}"
-                    data-group="{{ group.name }}"
-                    data-image="{{ group.headerUrl|default:'' }}"
-                    data-can-publish="{% if group.canPublish %}1{% else %}0{% endif %}">
-                    {{ group.name }}
+        <div>
+            <select id="sourceSheetGroupSelect">
+                <option value="">
+                    {% trans 'None' %}
                 </option>
-			{% endfor %}
-        </select>
+
+        		{% for collection in sheet_collections %}
+                    <option
+                        value="{{ collection.slug }}"
+                        data-name="{{ collection.name }}"
+                        data-image="{{ collection.headerUrl|default:'' }}">
+                        {{ collection.name }}
+                    </option>
+    			{% endfor %}
+            </select>
+            <div id="collectionsMessage">
+                <span class="int-en">To manage the collections this sheet appears in, visit your profile.</span>
+                <span class="int-he">כדי לנהל את האסופות שדף מקורות זה מופיע בהן, יש להיכנס לפרופיל האישי.</span>
+            </div>
+        </div>
     </div>
 	{% endif %}
 
 
-    <div class="content">
+    <div class="content sideLabeled">
         <label for="shareURL">
             <span class="int-en">Share a link</span>
             <span class="int-he">קישור לשיתוף</span>
         </label>
-        <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
+        <div>
+            <input id="shareURL" value="{{ request.META.HTTP_HOST }}/sheets/{{sheet.id}}" readonly="readonly"/>
+        </div>
     </div>
 
     <div class="line"></div>
@@ -1463,7 +1475,6 @@
 		assigner_id: {{ assigner_id|default:"null" }},
 		can_edit: {% if can_edit %}true{% else %}false{% endif %},
         can_add: {% if can_add %}true{% else %}false{% endif %},
-        can_publish: {% if can_publish %}true{% else %}false{% endif %}, // group dependent, only set for non owners
 		is_owner: {% if is_owner %}true{% else %}false{% endif %},
 		editing: {},
 		ref: {},

@@ -1,6 +1,3 @@
-//  library.js should be loaded before this file.
-//  Intention is for this file to be retired, and for library to be the center of back end search logic
-
 Sefaria = Sefaria || {};
 
 Sefaria.pageSize = 100;

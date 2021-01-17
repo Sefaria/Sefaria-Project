@@ -1,5 +1,6 @@
 {% load render_bundle from webpack_loader %}
 {% load static %}
+{% load sefaria_tags %}
 {% get_static_prefix as STATIC_PREFIX %}
 
 <!DOCTYPE html>
@@ -148,7 +149,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.js"></script>
 
     <script src="{% static 'js/lib/keyboard.js' %}"></script>
-    <script src="/data.js"></script>
+    <script src="/data.{{ last_cached_short }}.js"></script>
 
     <script>
       {% autoescape off %}
@@ -160,13 +161,15 @@
           console.log('loading react locally');
           document.write('<script src="/static/js/lib/react.development.js"><\/script><script src="/static/js/lib/react-dom.development.js"><\/script>');
       }
+
       var DJANGO_VARS = {
-        props: {{ propsJSON|default:"null" }},
-        contentLang: "{{ request.contentLang }}",
-        interfaceLang: "{{ request.interfaceLang }}",
-        inReaderApp: {% if html %}true{% else %}false{% endif %},
-        static_url: {{ STATIC_PREFIX }}
+        props:         {{ propsJSON|default:"null" }},
+        contentLang:   "{{ request.contentLang }}",
+        inReaderApp:   {% if html %}true{% else %}false{% endif %},
+        static_url:    {{ STATIC_PREFIX }},
       };
+
+      // Custom processing of Copy/Paste
       document.addEventListener('copy', function(e) {
           const selection = document.getSelection()
           const text_only = selection.toString();

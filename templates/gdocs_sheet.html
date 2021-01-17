@@ -2080,16 +2080,6 @@ a {
 		<div id="bsdHeader">בס"ד</div>
 		{% endif %}
 
-		<!-- <div id="sheetHeader" {% if sheet_group == None %}style="display:none"{% endif %}>
-			{% if sheet_group %}
-			<a href="/groups/{{ sheet_group.name|url_safe }}">
-				<img id="groupLogo" src="{{ sheet_group.headerUrl }}" />
-			</a>
-			{% else %}
-				<img id="groupLogo" style="display:none;" />
-			{% endif %}
-		</div> -->
-
 		{% autoescape off %}
 		<h1 id="title" style="text-align:center">{{ title|striptags|strip_html_entities }}</h1>
 		{% endautoescape %}

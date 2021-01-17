@@ -290,7 +290,7 @@ body.hasBannerMessage #s2.headerOnly {
             user-select: none; /* Non-prefixed version, Chrome */
 }
 input.noselect {
-    -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
+  -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
 }
 .interface-hebrew .int-en,
 .interface-english .int-he {
@@ -679,7 +679,7 @@ input.noselect {
 #interruptingMessageBox.hidden {
   opacity: 0;
 }
-#interruptingMessageOverlay {
+#interruptingMessageOverlay, .whiteOverlay {
   width: 100%;
   height: 100%;
   background-color: white;
@@ -721,6 +721,9 @@ input.noselect {
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   font-size: 16px;
   line-height: 1.5;
+}
+.interface-hebrew .sefariaModalContent {
+  direction: rtl;
 }
 .sefariaModalContent a {
   color: white;
@@ -1741,11 +1744,11 @@ a.readerNavCategory {
 .hebrew .gridBox .gridBoxItem:last-child {
   border-left: 0;
 }
-.hebrew .readerTocResources .gridBox .gridBoxItem:first-child {
+.hebrew .readerTocResources .gridBox td:last-child {
   border-left: 0;
   border-right: 3px solid rgba(0,0,0,0);
 }
-.hebrew .readerTocResources .gridBox .gridBoxItem:last-child {
+.hebrew .readerTocResources .gridBox td:first-child {
   border-left: 3px solid rgba(0,0,0,0);
   border-right: 0;
 }
@@ -1874,9 +1877,6 @@ a.readerNavCategory {
     font-size: 18px;
   }
 }
-.readerSheetsNav .navButton:hover {
-  text-decoration: none;
-}
 .readerNavMenu .readerNavCategoryMenu .blockLink,
 .gridBox .navButton {
   width: 100%;
@@ -1974,7 +1974,7 @@ a.readerNavCategory {
 .readerTextTableOfContents .currentSection,
 .readerTextTableOfContents .authorStatement,
 .sheetContent .sheetMetaDataBox .authorStatement,
-.sheetContent .sheetMetaDataBox .groupStatement {
+.sheetContent .sheetMetaDataBox .collectionStatement {
   font-size: 17px;
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -1982,33 +1982,29 @@ a.readerNavCategory {
   letter-spacing: 1px;
 }
 .sheetContent .sheetMetaDataBox .authorStatement,
-.sheetContent .sheetMetaDataBox .groupStatement {
+.sheetContent .sheetMetaDataBox .collectionStatement {
   margin-top: 16px;
 }
-
-.sheetContent .sheetMetaDataBox .groupStatement a,
+.sheetContent .sheetMetaDataBox .collectionStatement a,
 .sheetContent .sheetMetaDataBox .authorStatement a {
   color: #999;
 }
-
 .readerTextTableOfContents .currentSection .he,
 .readerTextTableOfContents .authorStatement .he,
 .readerTextTableOfContents .sheetMeta .he {
   font-family: "Heebo", sans-serif;
 }
-
 .readerTextTableOfContents .authorStatement a {
  color: #333;
 }
-
 .authorStatement .imageBox,
-.groupStatement .imageBox {
-    width: 30px;
-    height: 30px;
-    display: inline-block;
-    vertical-align: middle;
-    margin-right: 10px;
-    float:none;
+.collectionStatement .imageBox {
+  width: 30px;
+  height: 30px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 10px;
+  float:none;
 }
 .interface-hebrew .imageBox {
   margin-right: 0;
@@ -2018,7 +2014,6 @@ a.readerNavCategory {
  {
   display: inline-block;
 }
-
 .readerTextTableOfContents .sheetMeta {
   font-size: 14px;
   color: #999;
@@ -2723,8 +2718,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 13px;
   height: 10px;
 }
-.searchFilterBoxes .type-button,
-.readerSheetsNav .type-button {
+.searchFilterBoxes .type-button {
   padding: 6px 14px;
   margin: 5px;
   border-radius: 12px;
@@ -2736,18 +2730,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   cursor: pointer;
 }
-.searchFilterBoxes .type-button .he,
-.readerSheetsNav .type-button .he {
+.searchFilterBoxes .type-button .he {
   font-family: "Heebo", sans-serif;
 }
-.searchFilterBoxes .type-button.active,
-.readerSheetsNav .type-button.active {
+.searchFilterBoxes .type-button.active {
   color: #000;
   background-color: white;
 }
 .searchContent .type-button-title,
-.searchContent .type-button-total,
-.readerSheetsNav .type-button-title{
+.searchContent .type-button-total {
   display: inline-block;
   padding: 2px;
 }
@@ -2978,6 +2969,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
     border-radius: 7px;
     border: 1px solid #ccc;
 }
+.dropdown-option-list-label span {
+  white-space: nowrap;
+}
 .interface-english .dropdown-option-list {
   right: 0;
 }
@@ -3171,9 +3165,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result + .loadingMessage {
   margin-top: 30px;
 }
-.readerNavMenu .content.sheetList {
-  padding: 80px 15px 15px;
-}
 .readerNavMenu .yourSheetsLink.navButton {
   width: 98%;
   margin-bottom: 20px;
@@ -3231,33 +3222,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerNavMenu .sheet:hover .sheetViews{
   display: inline-block ;
   text-decoration: none;
-}
-.readerSheetsNav h2 .en {
-  display: inline;
-}
-.readerSheetsNav .tagsHeader {
-  margin: 50px 0 40px;
-  height: auto
-}
-.readerSheetsNav .tagsHeader .actionText {
-  display: block;
-  margin-top: 20px;
-  text-transform: none;
-}
-.readerSheetsNav .loadingMessage {
-  text-align: center;
-}
-.hebrew .readerSheetsNav {
-  direction: ltr;
-}
-.readerSheetsNav .filterLabel {
-  cursor: pointer;
-}
-.readerSheetsNav .tagsList .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-.readerSheetsNav .tagsList .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .interface-english .readerPanel .readerNavMenu .tagsList .gridBox {
   direction: ltr;
@@ -4581,7 +4545,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .bilingual .textList .title .he {
   display: none;
 }
-.textList .sheet,
+.textList .sheetList .sheet,
 .textList .note {
   padding: 0 0 24px 0;
   display: flex;
@@ -4591,7 +4555,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 24px 0;
   border-top: 1px solid #E6E5E6;
 }
-.textList .sheet .sheetInfo{
+.textList .sheetList .sheet a.sheetTitle {
+  margin-bottom: 0;
+  align-items: flex-start;
+}
+.textList .sheet .sheetInfo {
   display: flex;
   justify-content: space-between;
 }
@@ -4624,11 +4592,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: left;
   color: #000;
 }
-.textList .sheet .sheetTitle .sheetIcon {
+.textList .sheet .sheetLeft .sheetTitle img.sheetIcon {
   width: 14px;
   height: 14px;
-  opacity: 0.4;
-  margin-top: 3px;
+  margin: 3px 0 0 0;
 }
 .textList .sheet .sheetTitle .sheetTitleText{
   margin: auto 6px;
@@ -4654,16 +4621,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   flex-direction: row;
   align-items: flex-start;
+  justify-content: space-between;
   padding-top: 5px;
+  margin: 0 -4px;
 }
 .sheet .sheetRight img {
   display: none;
-}
-.sheet:hover .sheetRight img {
   opacity: 0.4;
-  width: 17px;
-  height: 17px;
-  display: inline-block;
+  padding: 0 5px;
+  width: 22px;
+  height: 22px;
+  margin: 0;
+}
+.sheet .sheetRight img.pinned,
+.sheet:hover .sheetRight img {
+  display: block;
 }
 .sheet:hover .sheetRight img:hover {
   opacity: 0.6;
@@ -4673,15 +4645,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
   margin-right: 8px;
 }
-.sheet .sheetTags .unlisted img {
+.sheet .sheetTags .unlisted img,
+.collectionListing .collectionListingDetails .unlisted img {
   width: 13px;
   height: 13px;
-  vertical-align: middle;
   opacity: 0.4;
-  margin: 0 3px 0 0;
-}
-.interface-hebrew .sheet .sheetTags .unlisted img {
-  margin: 0 0 0 3px;
+  margin-inline-end: 3px;
+  position: relative;
+  top: 2px;
 }
 .sheetTag.button,
 .sheetTag.button:hover,
@@ -4714,12 +4685,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .textListTextRangeBox + .sheet {
   margin-top: 24px;
 }
-
 .mediaList .media {
   border-top: solid 1px #CCC;
   padding: 20px 0;
 }
-
 .mediaList .mediaTitle {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: normal;
@@ -4729,23 +4698,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #666;
 	padding-bottom: 15px;
 }
-
 .mediaList .mediaTitle .he {
   font-size: 16px;
 }
-
-
-
 .mediaList .media .title {
 	font-size: 22px;
   color: #000;
 }
-
-
 .mediaList .media a {
 	color: #999;
 }
-
 .mediaList .media .description {
 	margin: 10px 0;
   font-size: 13px;
@@ -4754,7 +4716,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   justify-content: space-between;
   color: #666;
 }
-
 .mediaList .media .panel{
 	background: #e6e6e6;
 	border-radius: 50px;
@@ -4770,31 +4731,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: left;
   direction: ltr;
 }
-
 .mediaList .media .panel .playTimeContainer {
   display: inline-flex;
   align-self: center;
   font-size: 13px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-
 .mediaList .media .panel .playTimeContainer span {
   margin: 0 15px;
 }
-
 .mediaList .media .panel .sliderContainer {
   display: inline-flex;
   flex: 2;
   align-self: center;
 }
-
-
 .mediaList .media .panel input[type='image'] {
 	  width: 10px;
     height: 10px;
     padding: 2.5px;
 }
-
 .slider {
   -webkit-appearance: none;
   height: 2px;
@@ -4803,12 +4758,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   opacity: 0.7;
   width: 100%;
 }
-
 .slider:hover {
   opacity: 5;
 }
-
-
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
@@ -4818,7 +4770,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background: #4871bf;
   cursor: pointer;
 }
-
 .slider::-moz-range-thumb {
   width: 10px;
   height: 10px;
@@ -4826,7 +4777,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background: #4871bf;
   cursor: pointer;
 }
-
 /* All the same stuff for IE */
 .slider::-ms-thumb {
   width: 10px;
@@ -4835,11 +4785,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background: #4871bf;
   cursor: pointer;
 }
-
 .webpageList .website {
   text-align: start;
 }
-
 .webpageList .website .icon {
   height: 16px;
   width: 16px;
@@ -5186,13 +5134,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration-line: none;
   color: #666666;
 }
-
 .confirmAddToSheet.addToSourceSheetBox .message span a{
   text-decoration: underline;
   color: #666666;
 }
-
-
 .confirmAddToSheet .button {
   width: 100%;
 }
@@ -5305,7 +5250,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 20px;
   margin: 0 8px;
 }
-
 .connectionsPanel .chavruta #chavrutaURL {
   background: #FBFBFA;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
@@ -5320,23 +5264,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 16px;
   line-height: 19px;
 }
-
 .connectionsPanel .chavruta .buttonContainer {
-width: 100%;
-margin-top: 15px;
-text-align: center;
+  width: 100%;
+  margin-top: 15px;
+  text-align: center;
 }
-
-
 .connectionsPanel .chavruta .startChavrutaButton {
-color: #fff;
+  color: #fff;
 }
-
 .connectionsPanel .chavruta .startChavrutaButton img {
   filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(181deg) brightness(118%) contrast(111%);
   margin-inline-end: 10px;
 }
-
 .connectionsPanel .chavruta .headerText {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: normal;
@@ -5344,24 +5283,19 @@ color: #fff;
   font-size: 22px;
   line-height: 26px;
   padding-bottom: 13px;
-
-  /* Dark Grey */
   color: #666666;
   border-bottom: 1px solid #CCCCCC;
 }
-
 .connectionsPanel .chavruta p {
-font-size: 16px;
-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-line-height: 19px;
-color: #666666;
+  font-size: 16px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  line-height: 19px;
+  color: #666666;
 }
-
 .connectionsPanel .chavruta .fakeBrowser {
   width: 100%;
   margin: 30px auto 30px;
 }
-
 .fakeBrowser .fakeBrowserHeader {
   background: #C4C4C4;
   width: 100%;
@@ -5369,11 +5303,9 @@ color: #666666;
   display: inline-flex;
   border-radius: 3px 3px 0 0;
 }
-
 .fakeBrowser .fakeBrowserButtons {
   padding: 7px;
 }
-
 .fakeBrowser .fakeBrowserButton {
   width: 8px;
   height: 8px;
@@ -5381,7 +5313,6 @@ color: #666666;
   display: inline-block;
   margin: 0px 1px;
 }
-
 .fakeBrowserButton.red {
   background: #E96E4C;
 }
@@ -5402,14 +5333,12 @@ color: #666666;
   border-radius: 4px;
   color: #9B9B9B;
 }
-
 .fakeBrowser .fakeBrowserMain {
   width: 100%;
   height: 190px;
   background-color: #fff;
   border-radius: 0 0 3px 0;
 }
-
 .fakeBrowser .fakeBrowserMain .fakeBrowserLeft {
   padding: 10px;
   background-color: #EDEDEC;
@@ -5417,38 +5346,30 @@ color: #666666;
   display: inline-block;
   border-radius: 0 0 0 3px;
 }
-
-
 .fakeBrowser .fakeBrowserMain .fakeBrowserRight {
   padding: 0 10px;
   background-color: #fff;
   width: calc(100% - 127px);
   display: inline-block;
 }
-
 .fakeBrowser .fakeBrowserMain .fakeBrowserRight hr {
   border: none;
   margin-top: 8px;
   border-top: 3px solid #ccc;
 }
-
 .fakeBrowser .fakeBrowserMain .fakeBrowserRight hr:nth-child(4n+0) {
   margin-bottom: 16px;
   width: 80%;
   margin-inline-start: 0;
 }
-
-
 .fakeBrowser .fakeBrowserButtonAvatar {
   margin: 10px auto 5px;
   width: 80%;
   text-align: center;
 }
-
 .fakeBrowser .fakeBrowserButtonAvatar img {
   width: 100%;
 }
-
 .fakeBrowser .fakeBrowserButtonAvatar .default-profile-img {
   line-height: 68px;
   background: #212E50;
@@ -5742,7 +5663,8 @@ color: #666666;
 a.button {
   color: white;
 }
-.button:hover {
+.button:hover,
+a.button:hover {
   color: white;
   text-decoration: none;
 }
@@ -5787,8 +5709,18 @@ a .button:hover {
   text-decoration: none;
 }
 .button.small {
-  padding: 6px 12px;
-  margin: 6px 12px;
+  padding: 10px 14px;
+}
+.button.extraSmall {
+  border-radius: 6px;
+  box-shadow: none;
+  color: #666;
+  border: 1px solid #CCC;
+  margin: 0;
+  padding: 5px 8px;
+  height: 30px;
+  line-height: 20px;
+  letter-spacing: normal;
 }
 .button img.buttonIcon {
     width: 16px;
@@ -5957,25 +5889,23 @@ a .button:hover {
   font-size: 15px;
   font-style: italic;
 }
-h2.splitHeader {
+.splitHeader {
   margin-bottom: 10px;
   text-align: left;
-  padding-bottom: 40px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  color: #666;
+  font-weight: 300;
 }
-h2.splitHeader .en {
+.splitHeader .en {
   font-size: 14px;
 }
-h2.splitHeader .he {
+.splitHeader .he {
   font-size: 14px;
 }
-.splitHeader .actionText {
-  float:right;
-  text-transform: none;
-  cursor: pointer;
-  color: inherit;
-}
-.splitHeader .actionText select {
-  margin-left: 6px;
+.splitHeader select {
+  margin-inline-start: 6px;
 }
 .sheetsNewButton {
   text-align:center;
@@ -6020,7 +5950,8 @@ h2.splitHeader .he {
 }
 .filterByTag {
   cursor: pointer;
-  text-transform: none
+  text-transform: none;
+  font-size: 18px;
 }
 .sheet.userSheet .sheetEditButtons {
   font-size: 24px;
@@ -6058,131 +5989,114 @@ h2.splitHeader .he {
 .tagString a:last-child:after {
   content: "";
 }
-.groupsList {
+.collectionsList {
   margin-top: 30px;
 }
-.singlePanel .groupsList {
+.singlePanel .collectionsList {
   margin-top: 0;
 }
-.groupsList .loadingMessage {
+.collectionsList .loadingMessage {
   text-align: center;
 }
-.groupListing {
+.collectionListing {
   padding: 30px 0;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
-.profile-page .groupListing {
-  padding: 15px 0;
+.profile-page .collectionListing {
+  padding: 20px 0;
 }
-.profile-page .groupListingImageBox {
-  display: flex;
-  align-items: center;
-}
-.groupListing .left-content {
+.collectionListing .left-content {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
-.groupListing .right-content {
-  align-self: flex-start;
-  padding: 10px 10px 0 10px;
-  font-size: 16px;
-  color: #666;
-  text-transform: capitalize;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.groupListing + .groupListing {
+.collectionListing + .collectionListing {
   border-top: 1px solid #ccc;
 }
-.groupListingImageBox {
+.collectionListingImageBox {
   width: 60px;
   height: 60px;
   float: left;
   margin-right: 20px;
 }
-.interface-hebrew .groupsList .groupListingImageBox {
+.interface-hebrew .collectionsList .collectionListingImageBox {
   margin: 0 0 0 20px;
 }
-.sheetMetaDataBox .groupListingImageBox,
-.tocTop .groupListingImageBox {
+.sheetMetaDataBox .collectionListingImageBox,
+.tocTop .collectionListingImageBox {
   background-color: transparent;
 }
-
 .sheetMetaDataBox .title {
   display: block;
 }
-
 .sheetMetaDataBox .title:empty:before {
   content: "Untitled";
   color: #999;
   position: relative;
   pointer-events: none;
 }
-
 .sheetMetaDataBox .title:focus:before {
   content: "";
 }
-
-
-
-.groupListingImage {
+.collectionListingImage {
   height: 100%;
   width: 100%;
   object-fit: cover;
   background-color: white;
 }
-.groupListingImage.default {
+.collectionListingImage.default {
   width: 80%;
   height: 80%;
   margin: 10%;
   opacity: 0.4;
 }
-.profile-page .groupListingImage.default {
-  background-color: #D2DCFF;
-  object-fit: scale-down;
-  margin: 0;
-}
-.groupListingName {
+.collectionListingName {
   display: block;
   font-size: 30px;
   color: #000;
   margin-bottom: 5px;
 }
-.groupListingName:hover {
+.collectionListingName:hover {
   color: #333;
 }
-.groupListingDetails {
+.collectionListingDetails {
   color: #999;
-  font-size: 13px;
+  font-size: 14px;
 }
-.groupListingDetailSeparator {
+.collectionListingMembership {
+  text-transform: capitalize;
+}
+.collectionListingDetailSeparator {
   margin: 8px;
 }
-.groupPage .groupImage {
+.collectionPage .loadingMessage {
+  text-align: center;
+}
+.collectionPage .collectionImage {
   max-height: 200px;
   max-width: 100%;
   display: block;
   margin: 0 auto 50px;
 }
-.groupInfo {
+.collectionInfo {
   margin-bottom: 50px;
 }
-.interface-hebrew .groupInfo .he {
+.interface-hebrew .collectionInfo .he {
   display: inline;
 }
-.interface-hebrew .groupInfo .en {
+.interface-hebrew .collectionInfo .en {
   display: none;
 }
-.groupPage h1 {
+.collectionPage h1 {
   margin-top: 20px;
   height: auto;
 }
-.groupPage a:hover {
+.collectionPage a:hover {
   color: inherit;
 }
-.groupPage .groupWebsite {
+.collectionPage .collectionWebsite {
   display: block;
   text-align: center;
   font-size: 16px;
@@ -6190,99 +6104,124 @@ h2.splitHeader .he {
   margin-bottom: 20px;
   color: #666;
 }
-.groupPage .groupDescription {
+.collectionPage .collectionDescription {
   font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  color: #000;
+  color: #333;
   text-align: center;
+  line-height: 1.3;
 }
-.groupPage .groupDescription .he {
+.collectionPage .collectionDescription .he {
   font-family: "Heebo", sans-serif;
   font-size: 16px;
 }
-.groupPage .groupDescription .en .dedication {
+.collectionPage .collectionDescription .en .dedication {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: italic;
   font-size: 18px;
 }
-.groupPage .groupDescription .he .dedication {
+.collectionPage .collectionDescription .he .dedication {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 20px;
 }
-.groupPage .tabs {
+.collectionPage .tabs {
   text-align: center;
   margin-bottom: 60px;
 }
-.groupPage .bubbleTab {
+.collectionPage .bubbleTab {
   font-size: 16px;
 }
-.groupPage .emptyMessage {
+.collectionPage .tagsList .int-en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.collectionPage .tagsList .int-he {
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+}
+.collectionPage .emptyMessage {
   text-align: center;
 }
-.groupPage .emptyMessage a {
-  text-decoration: underline;
+.collectionPage .emptyMessage .button {
+  margin-top: 22px;
 }
-.groupPage .groupSearchBox {
+.collectionPage .emptyMessage .button:hover {
+  color: white;
+}
+.collectionPage .collectionSearchBox {
   display: flex;
   align-items: center;
   border-bottom: 1px solid #ccc;
-  margin-top: 20px;
+  margin-top: 14px;
+  margin-bottom: 20px;
 }
-.groupPage .groupSearchIcon {
-  font-size: 22px;
+.collectionPage .collectionSearchIcon {
+  height: 18px;
   opacity: 0.4;
+  width: 18px;
 }
-.groupPage .groupSearchInput {
+.collectionPage .collectionSearchInput {
   padding: 12px 10px;
   flex: 1;
   box-sizing: border-box;
   border: none;
   background: transparent;
-  font-size: 24px;
+  font-size: 18px;
 }
-.groupPage .tagsList {
+.collectionPage .tagsList {
   margin-top: 30px;
 }
-.groupInvitationBox {
+.collectionInvitationBox {
   border-bottom: 1px solid #CCC;
   padding-bottom: 20px;
 }
-.groupSheetInner {
+.collectionInvitationBoxInner {
+  display: flex;  
+}
+.interface-hebrew .collectionInvitationBox input::placeholder {
+  font-family: "Heebo", sans-serif;
+}
+.collectionInvitationBox .button {
+  width: 200px;
+  margin: 0;
+}
+.collectionSheetInner {
   display: flex;
 }
-.groupSheetInnerContent {
+.collectionSheetInnerContent {
   flex: 1;
 }
-.groupSheetListingPinButton {
+.sheetListingPinButton {
   display: none;
   opacity: 0.3;
   cursor: pointer;
 }
-.sheet:hover .groupSheetListingPinButton.active {
+.sheet:hover .sheetListingPinButton.active {
   display: block;
 }
-.groupSheetListingPinButton.pinned {
+.sheetListingPinButton.pinned {
   display: block;
   opacity: 0.6;
 }
-#groupInvitationInput {
+#collectionInvitationInput {
   padding: 14px 30px;
   width: 472px;
   border-radius: 7px;
   outline: 0;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   border: none;
-  margin-right: 10px;
+  margin-inline-end: 10px;
   font-size: 18px;
   position: relative;
-  top: 3px;
 }
-.groupInvitationBoxMessage {
+.collectionInvitationBoxMessage {
   font-size: 18px;
   padding: 12px 0 0;
   text-align: center;
 }
-.groupPage .groupMemberListing {
+.flexLineBreak {
+  width: 100%;
+  height: 0;
+}
+.collectionPage .collectionMemberListing {
   padding: 24px 0;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
@@ -6291,37 +6230,37 @@ h2.splitHeader .he {
   flex-direction: row;
   justify-content: space-between;
 }
-.groupPage .groupMemberListing .groupLeft,
-.groupPage .groupMemberListing .groupMemberListingRoleBox {
+.collectionPage .collectionMemberListing .collectionLeft,
+.collectionPage .collectionMemberListing .collectionMemberListingRoleBox {
   display: flex;
   flex-direction: row;
   align-items: center;
 }
-.groupMemberListing + .groupMemberListing {
+.collectionMemberListing + .collectionMemberListing {
   border-top: 1px solid #CCC;
 }
-.groupMemberListingProfileImage {
+.collectionMemberListingProfileImage {
   height: 50px;
   width: 50px;
   vertical-align: middle;
 }
-.groupMemberListingName {
+.collectionMemberListingName {
   color: #666;
   margin: 0 20px;
 }
-.groupInvitationListing {
+.collectionInvitationListing {
   display: inline-block;
   min-height: 50px;
   line-height: 50px;
 }
-.groupMemberListingRoleBox {
+.collectionMemberListingRoleBox {
   float: right;
   line-height: 50px;
 }
-.groupMemberListingRole {
+.collectionMemberListingRole {
   color: #666;
 }
-.groupMemberListingActions {
+.collectionMemberListingActions {
   position: relative;
   background-color: white;
   border: 1px solid #ccc;
@@ -6329,17 +6268,17 @@ h2.splitHeader .he {
   margin-left: 12px;
   line-height: 36px
 }
-.interface-hebrew .groupMemberListingActions {
+.interface-hebrew .collectionMemberListingActions {
   margin-left: 0;
   margin-right: 12px;
 }
-.groupMemberListingActionsButton {
+.collectionMemberListingActionsButton {
   cursor: pointer;
   padding: 0 12px;
   font-size: 18px;
   color: #CCC;
 }
-.groupMemberListingActionsMenu {
+.collectionMemberListingActionsMenu {
   position: absolute;
   right: 0;
   top: 46px;
@@ -6350,26 +6289,26 @@ h2.splitHeader .he {
   font-size: 15px;
   z-index: 1;
 }
-.interface-hebrew .groupMemberListingActionsMenu {
+.interface-hebrew .collectionMemberListingActionsMenu {
   left: 0;
   right: unset;
 }
-.groupMemberListingActionsMenu .action {
+.collectionMemberListingActionsMenu .action {
   padding: 4px 10px;
   cursor: pointer;
   white-space: nowrap;
 }
-.groupMemberListingActionsMenu .action:hover {
+.collectionMemberListingActionsMenu .action:hover {
   background-color: #eee;
 }
-.groupMemberListingActionsMenu .action + .action {
+.collectionMemberListingActionsMenu .action + .action {
   border-top: 1px solid #ccc;
 }
-.groupMemberListingActionsMenu .role {
+.collectionMemberListingActionsMenu .role {
   font-size: 17px;
   margin-right: 4px;
 }
-.groupMemberListingActionsMenu .role.current {
+.collectionMemberListingActionsMenu .role.current {
   color: #666;
 }
 .topicPanel .smallText .separator {
@@ -6538,12 +6477,10 @@ h2.splitHeader .he {
   height: 16px;
   opacity: 0.4;
 }
-.noteListing .actionButtons img + img,
-.sheet .sheetRight a + img {
+.noteListing .actionButtons img + img {
   margin: 0 0 0 10px;
 }
-.interface-hebrew .noteListing .actionButtons img + img,
-.interface-hebrew .sheet .sheetRight a + img {
+.interface-hebrew .noteListing .actionButtons img + img {
   margin: 0 10px 0 0;
 }
 .noteListing:hover .actionButtons img:hover {
@@ -6616,41 +6553,41 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
     border: 1px solid #eee;
     background: #eee;
 }
-#editGroupPageContainerInner {
+#editCollectionPageContainerInner {
   position: relative;
 }
-#editGroupPage :not(h1) .int-en {
+#editCollectionPage :not(h1) .int-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-#editGroupPage :not(h1) .int-he {
+#editCollectionPage :not(h1) .int-he {
   font-family: "Heebo", sans-serif;
 }
-#editGroupPage .field {
+#editCollectionPage .field {
   box-sizing: border-box;
   width: 100%;
   display: inline-block;
   vertical-align: top;
   padding: 12px;
 }
-#editGroupPage .field.halfWidth {
+#editCollectionPage .field.halfWidth {
   width: 50%;
   display: inline-block;
 }
-#editGroupPage .field.quarterWidth {
+#editCollectionPage .field.quarterWidth {
   width: 25%;
   display: inline-block;
 }
-#editGroupPage .field.threeQuarterWidth {
+#editCollectionPage .field.threeQuarterWidth {
   width: 75%;
   display: inline-block;
 }
-#editGroupPage .field > label {
+#editCollectionPage .field > label {
   display: block;
   margin-bottom: 15px;
   color: #666;
 }
-#editGroupPage input,
-#editGroupPage textarea {
+#editCollectionPage input,
+#editCollectionPage textarea {
   display: block;
   width: 100%;
   padding: 15px 12px;
@@ -6658,9 +6595,15 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border: none;
   box-sizing: border-box;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #333;
+  font-size: 14px;
 }
-#editGroupPage .hiddenFileInput {
+.interface-hebrew #editCollectionPage input,
+.interface-hebrew #editCollectionPage textarea {
+  font-family: "Heebo", sans-serif;
+}
+#editCollectionPage .hiddenFileInput {
   width: 0.1px;
   height: 0.1px;
   opacity: 0;
@@ -6668,38 +6611,32 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   position: absolute;
   z-index: -1;
 }
-#groupDescription:focus {
-}
-#editGroupPage .groupImage {
+#editCollectionPage .collectionImage {
   max-width: 200px;
   margin-bottom: 5px;
   display: block;
 }
-#editGroupPage .groupCover {
-  width: 100%;
-  margin-bottom: 5px;
-}
-#editGroupPage .helperText {
+#editCollectionPage .helperText {
   color: #999;
   font-size: 13px;
   width: 500px;
 }
-#editGroupPage .groupHeaderBox {
+#editCollectionPage .collectionHeaderBox {
   width: 100%;
   background-color: white;
   margin-bottom: 5px;
 }
-#editGroupPage .groupHeader {
+#editCollectionPage .collectionHeader {
   float: right;
   max-width: 100%;
 }
-#editGroupPage .deleteGroup {
+#editCollectionPage .deleteCollection {
   cursor: pointer;
   margin: 30px 10px;
   color: #999;
   text-align: right;
 }
-#editGroupPage .deleteGroup:hover {
+#editCollectionPage .deleteCollection:hover {
   text-decoration: underline;
 }
 .dropdown {
@@ -6835,7 +6772,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   background-color: white;
   border-top: 1px solid #F4F4F4;
   overflow: hidden;
-  padding: 18px 40px;
+  padding: 18px 40px 70px 40px;
   text-align: left;
   color: #999;
 }
@@ -6950,13 +6887,12 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 #footer #facebookButton {
   display: inline-block;
-  vertical-align: middle;
+  vertical-align: top;
 }
 #footer #twitterButton {
   display: inline-block;
-  vertical-align: middle;
+  vertical-align: top;
   margin-left: 4px;
-  margin-top: 4px;
 }
 .interface-hebrew #footer #twitterButton {
   margin-left: 0;
@@ -7432,19 +7368,15 @@ span.purim-emoji img{
 .sheetContent .sheetItem .SheetOutsideText.segment p {
   margin: 0
 }
-
 .sheetContent .sheetItem .SheetOutsideText.segment {
   margin: 0
 }
-
 .sheetContent .sheetItem .SheetSource.segment {
   margin-top: 14px
 }
-
 .sheetContent .text.loading {
   cursor: wait;
 }
-
 .oldSheetNotice,
 .oldSheetNotice a,
 .editSheetNotice,
@@ -7472,6 +7404,9 @@ span.purim-emoji img{
   color: inherit;
   margin-inline-start: 5px;
 }
+.cookiesNotification .button {
+  margin-inline-start: 12px;
+}
 .readerMessageBox {
   z-index: 9999;
   color: #000;
@@ -7490,22 +7425,19 @@ span.purim-emoji img{
   text-decoration: underline;
   color: inherit;
 }
-.groupImageContainer img {
-  max-width: 100%;
-}
 .he sup.sourcePrefix {
-    margin-right: -35px;
-    position: absolute;
-    text-decoration: none;
-    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-    color: #000;
+  margin-right: -35px;
+  position: absolute;
+  text-decoration: none;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #000;
 }
 .en sup.sourcePrefix {
-    margin-left: -35px;
-    position: absolute;
-    text-decoration: none;
-    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-    color: #000;
+  margin-left: -35px;
+  position: absolute;
+  text-decoration: none;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: #000;
 }
 .heLeft.bilingual .sheetContent .text sup.sourcePrefix,
 .heRight.bilingual .sheetContent .text sup.sourcePrefix {
@@ -7524,12 +7456,10 @@ span.purim-emoji img{
   padding-inline-end: 15px;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
 }
-
 .sheetItem .SheetSource.selected,
 .sheetItem .SheetSource.selected .en {
   background-color: #F0F8FF;
 }
-
 .sheetItem .SheetSource .he,
 .sheetItem .SheetSource .en {
   padding-inline-start: 11px;
@@ -7537,27 +7467,22 @@ span.purim-emoji img{
   margin-inline-start: -11px;
   margin-inline-end: -15px;
 }
-
 .sheetItem .SheetSource .he.editable.selected .sourceContentText,
 .sheetItem .SheetSource .en.editable.selected .sourceContentText {
   background-color: #FFFFFF;
   box-shadow: inset 0px 0px 3px rgba(0, 0, 0, 0.3);
   border-radius: 6px;
 }
-
 .sheetItem .SheetSource ::selection {
   background-color: rgba(0,0,0,0);
 }
-
 .sheetItem .SheetSource .he.editable.selected ::selection,
 .sheetItem .SheetSource .en.editable.selected ::selection {
   background-color: #D2DCFF;
 }
-
 .sheetItem .SheetSource .en {
   background-color: #FBFBFA;
 }
-
 .sheetItem .SheetSource .ref {
   pointer-events: none;
   user-select: none;
@@ -7567,18 +7492,15 @@ span.purim-emoji img{
     display: block;
     clear: both;
 }
-
 .sheetItem .SheetOutsideBiText {
   border-left: 4px solid;
   margin-left: -34px;
   padding-left: 34px;
   border-color: #073570;
 }
-
 .sheetItem .SheetMedia {
     margin-bottom: 14px;
 }
-
 .feedbackBox p {
   font-size: 16px;
   letter-spacing: 1px;
@@ -7729,40 +7651,41 @@ span.purim-emoji img{
 .profile-page .social-icon:hover img {
   opacity: 0.6;
 }
-.readerNavMenu.profile-page .sheet {
+.sheetList .sheet {
   border-bottom: none;
 }
-.profile-page .sheet {
+.sheetList .sheet {
   display: flex;
   flex-direction: row;
 }
-.profile-page .sheet .sheetLeft {
+.sheetList .sheet .sheetLeft {
   display: flex;
   flex-direction: column;
 }
-.profile-page .sheet .sheetTags {
+.sheetList .sheet .sheetTags {
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.profile-page .sheet .sheetTags .bullet {
+.sheetList .sheet .sheetTags .bullet {
   margin: 0 5px;
 }
-.profile-page .sheet a {
+.sheetList .sheet a {
   color: inherit;
   cursor: pointer;
 }
-.profile-page .sheet a.sheetTitle {
+.sheetList .sheet a.sheetTitle {
   display: flex;
   flex-direction: row;
   align-items: center;
   margin-bottom: 10px;
   font-size: 18px;
 }
-.profile-page .sheet .sheetLeft a img {
+.sheetList .sheet .sheetLeft .sheetTitle img,
+.textList .sheet .sheetLeft .sheetTitle img {
   width: 18px;
   height: 18px;
   opacity: 0.4;
-  margin: 0 10px 0 0;
+  margin-inline-end: 10px;
 }
 .default-profile-img {
   width: 175px;
@@ -7779,12 +7702,8 @@ span.purim-emoji img{
 .default-profile-img.invisible {
   visibility: hidden;
 }
-.interface-hebrew .profile-page .sheet a img {
-  margin: 0 0 0 10px;
-}
-
 .profile-page .filterable-list {
-  /* to distinguish top half of probile from bottom half*/
+  /* to distinguish top half of profile from bottom half */
     background-color: white;
     border: 1000px solid white;
     border-top: 4px solid white;
@@ -7870,16 +7789,22 @@ span.purim-emoji img{
   align-items: flex-start;
   margin-bottom: 10px;
 }
-.profile-page .groupListingImage {
-  width: 75%;
-  height: 75%;
+.profile-page .collectionListingImage {
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
+  vertical-align: middle;
+  margin: 0;
+  margin-inline-end: 10px;
+  opacity: 0.4;
+  position: relative;
+  top: -2px;
 }
-.profile-page .groupListingName {
-  font-size: 16px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+.profile-page .collectionListingName {
+  font-size: 18px;
+  margin-bottom: 10px;
 }
-.profile-page .groupListing + .groupListing {
+.profile-page .collectionListing + .collectionListing {
   border-top: 0;
 }
 .profile-page .profile-summary-content a {
@@ -8017,6 +7942,7 @@ span.purim-emoji img{
   margin: 30px 0;
   color: #999;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  line-height: 1.5;
 }
 .profile-page .profile-summary .resourcesLink + .resourcesLink,
 .profile-page .profile-summary .largeFollowButton + .resourcesLink {
@@ -8594,6 +8520,100 @@ body .homeFeedWrapper.userStats {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   background-color: #faf9f9;
 }
+.collectionsModalBox {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index: 1002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.collectionsModalBox .collectionsWidget {
+  width: 340px;
+  box-shadow: 0 1px 8px rgba(0,0,0,.2);
+}
+.collectionsWidget {
+  background-color: white;
+  border-radius: 8px;
+  z-index: 1;
+}
+.collectionsWidgetTop {
+  display: flex;
+  padding: 15px 20px;
+  border-bottom: 1px solid #DDD;
+  text-align: start;
+}
+.collectionsWidgetTitle {
+  flex-grow: 1;
+  font-size: 22px;
+  vertical-align: middle;
+  display: block;
+  color: #666;
+}
+.collectionsWidgetClose {
+  font-size: 40px;
+  color: #CCC;
+  line-height: 14px;
+  cursor: pointer;
+}
+.collectionsWidgetList {
+  height: 180px;
+  padding: 0px 20px;
+  overflow-y: scroll;
+  border-bottom: 1px solid #EDEDEC;
+}
+.collectionsWidgetList .checkmarkLabel {
+  display: block;
+  letter-spacing: 1.1px;
+  font-size: 18px;
+  margin: 20px 0;
+  text-align:  start;
+}
+.collectionsWidgetList .emptyMessage {
+  display: block;
+  color: #666;
+  padding: 20px 0px;
+  line-height: 1.5;
+  text-align: start;
+}
+.collectionsWidgetCreate,
+.collectionsWidgetDone {
+  display: flex;
+  padding: 0px 20px;
+}
+.collectionsWidgetCreate {
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+}
+.collectionsWidgetPlus {
+  color: #666;
+  font-size: 25px;
+  margin-inline-end: 13px;
+  margin-top: -5px;
+}
+.collectionsWidget .collectionsWidgetCreateInputBox {
+  flex: 1;
+  margin-inline-end: 10px;
+}
+.collectionsWidget input.collectionsWidgetCreateInput {
+  height: 50px;
+  border: none;
+  font-size: 18px;
+  color: black;
+  width: 100%;
+  box-sizing: border-box;
+}
+.collectionsWidget input.collectionsWidgetCreateInput::placeholder {
+  font-style: normal;
+  color: #666;
+}
+.interface-hebrew .collectionsWidget input.collectionsWidgetCreateInput::placeholder {
+  font-family: "Heebo", sans-serif;
+}
 .userStats h1 {
   text-align: center;
   font-weight: normal;
@@ -8741,12 +8761,8 @@ a.topicLexiconTitle.contentText {
   font-size: 13px;
   box-sizing: border-box;
   border-radius: 6px;
-
   visibility: hidden;
 }
-
-
-
 #sheetEditToggle img {
   height: 13px;
   margin-top: 0;
@@ -8772,7 +8788,6 @@ a.topicLexiconTitle.contentText {
   border-radius: 4px;
   transition: opacity 0.75s;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-
 }
 .markButton {
   padding: 10px;
@@ -8784,11 +8799,11 @@ a.topicLexiconTitle.contentText {
   color: #000;
 }
 .editorHoverBox {
-    position: fixed;
-    top: 120px;
-    background-color: #ccc;
-    padding: 3px;
-    font-size: 12px;
+  position: fixed;
+  top: 120px;
+  background-color: #ccc;
+  padding: 3px;
+  font-size: 12px;
 }
 .inlineTextRef {
     color: #4B71B7
@@ -8826,7 +8841,67 @@ a.topicLexiconTitle.contentText {
     text-align: center;
   }
 }
-#history-disabled-msg{
+/* Customize checkmark inputs */
+.checkmarkLabel {
+  display: block;
+  position: relative;
+  padding-inline-start: 28px;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+/* Hide the browser's default checkbox */
+.checkmarkLabel input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+/* Create a custom checkbox */
+.checkmark {
+  position: absolute;
+  top: 3px;
+  left: 0;
+  height: 13px;
+  width: 13px;
+  background-color: white;
+  border: 1px solid #CCC;
+  border-radius: 3px;
+}
+.interface-hebrew .checkmark {
+  left: auto;
+  right: 0;
+}
+/* On mouse-over, add a grey background color */
+.checkmarkLabel:hover input ~ .checkmark {
+  background-color: #EEE;
+}
+/* Create the checkmark/indicator (hidden when not checked) */
+.checkmark:after {
+  content: "";
+  position: absolute;
+  display: none;
+}
+/* Show the checkmark when checked */
+.checkmarkLabel input:checked ~ .checkmark:after {
+  display: block;
+}
+/* Style the checkmark/indicator */
+.checkmarkLabel .checkmark:after {
+  left: 4px;
+  top: 1px;
+  width: 3px;
+  height: 6px;
+  border: solid #666;
+  border-width: 0 2px 2px 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
+}
+#history-disabled-msg {
   text-align: center;
 }
 /* start css code for loading bezel */

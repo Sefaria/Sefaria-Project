@@ -165,35 +165,8 @@
 .static label.button {
   height: auto;
 }
-.static .row{
-
-}
 .static .error {
   color: red;
-}
-.static .inner div.single-button a.button{
-  margin: auto;
-}
-.static .inner .button {
-  border-radius: 7px;
-  padding: 16px 24px;
-  cursor: pointer;
-  font-size: 15px;
-  letter-spacing: 1px;
-  box-sizing: border-box;
-  text-align: center;
-}
-.static .inner .button.big {
-  width: 250px;
-}
-.static .inner .button.blue {
-  background-color: #212E50;
-  border: 1px solid #212E50;
-  color: white;
-}
-.static .inner .button.full{
-  width:100%;
-  margin: 10px 0;
 }
 .static img.fullWidth {
   width: 100%;
@@ -218,11 +191,9 @@
   font-weight: bold;
   color: #666;
 }
-
 .static .quotation a {
   color: #666;
 }
-
 .static .quotation he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
@@ -1566,53 +1537,6 @@ p.registration-links a:hover{
   font-size: 20px;
   display: none;
 }
-
-#groupsPage {
-    margin: 70px auto;
-    text-align: center;
-}
-#groupsPage #groups {
-    margin-top: 40px;
-}
-#groupsPage .group {
-    margin: 10px;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    display: block;
-    text-align: left;
-    overflow: hidden;
-}
-#groupsPage .group:hover {
-    border: 1px solid #08c;
-}
-#groupsPage .groupName {
-    font-size: 18px;
-    line-height: 22px;
-    color: #555;
-    display: block;
-}
-#groupsPage .groupSettings {
-    display: none;
-    cursor: pointer;
-    position: absolute;
-    right: 8px;
-    top: 8px;
-    height: 20px;
-    line-height: 20px;
-    font-size: 18px;
-    color: black;
-}
-#groupsPage .group img.groupCover {
-}
-#groupsPage .group img.groupHeader {
-    display: none;
-}
-#groupsPage .group img {
-    width: 48px;
-    height: 48px;
-    float: left;
-}
-
 #visualGardenPage .control-results-containe{
   display: flex;
   display: -webkit-flex;

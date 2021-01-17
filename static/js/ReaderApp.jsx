@@ -6,7 +6,7 @@ import Sefaria from './sefaria/sefaria';
 import Header from './Header';
 import ReaderPanel from './ReaderPanel';
 import $ from './sefaria/sefariaJquery';
-import EditGroupPage from './EditGroupPage';
+import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
 import {
@@ -57,7 +57,6 @@ class ReaderApp extends Component {
         panels[0] = {
           highlightedNodes: initialPanel.highlightedNodes,
           naturalDateCreated: initialPanel.sheet && initialPanel.sheet.naturalDateCreated,
-          groupLogo: initialPanel.sheet && initialPanel.sheet.groupLogo,
           sheetID: initialPanel.sheetID,
           sheet: initialPanel.sheet,
           refs: props.initialRefs,
@@ -89,8 +88,10 @@ class ReaderApp extends Component {
           navigationTopicTitle: props.initialNavigationTopicTitle,
           topicTitle: props.initialTopicTitle,
           profile: props.initialProfile,
-          navigationSheetTag: props.initialSheetsTag,
-          sheetsGroup: props.initialGroup,
+          profileTab: props.initialProfileTab,
+          collectionName: props.initialCollectionName,
+          collectionSlug: props.initialCollectionSlug,
+          collectionTag: props.initialCollectionTag,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
@@ -134,9 +135,10 @@ class ReaderApp extends Component {
           navigationTopicTitle: props.initialNavigationTopicTitle,
           topicTitle: props.initialTopicTitle,
           profile: props.initialProfile,
-          navigationSheetTag: props.initialSheetsTag,
-          sheetsGroup: props.initialGroup,
-          navigationGroupTag: props.initialGroupTag,
+          profileTab: props.initialProfileTab,
+          collectionName: props.initialCollectionName,
+          collectionSlug: props.initialCollectionSlug,
+          collectionTag: props.initialCollectionTag,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
         if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
@@ -173,10 +175,11 @@ class ReaderApp extends Component {
         navigationTopic: props.initialTopic,
         navigationTopicTitle: props.initialNavigationTopicTitle,
         topicTitle: props.initialTopicTitle,
-        profile: props.initialProfile,
-        navigationSheetTag: props.initialSheetsTag,
-        sheetsGroup: props.initialGroup,
-        navigationGroupTag: props.initialGroupTag,
+        profile: props.initialProfile || "sheets",
+        profileTab: props.initialProfileTab,
+        collectionName: props.initialCollectionName,
+        collectionSlug: props.initialCollectionSlug,
+        collectionTag: props.initialCollectionTag,
         settings: Sefaria.util.clone(defaultPanelSettings)
       };
       header = this.makePanelState(headerState);
@@ -434,13 +437,14 @@ class ReaderApp extends Component {
           (next.mode === "Connections" && !prev.refs.compare(next.refs)) ||
           (next.currentlyVisibleRef === prev.currentlyVisibleRef) ||
           (next.connectionsMode !== prev.connectionsMode) ||
-          (prev.navigationSheetTag !== next.navigationSheetTag) ||
-          (prev.navigationGroupTag !== next.navigationGroupTag) ||
           (prev.currVersions.en !== next.currVersions.en) ||
           (prev.currVersions.he !== next.currVersions.he) ||
           (prev.searchQuery != next.searchQuery) ||
           (prev.searchTab != next.searchTab) ||
           (prev.topicsTab != next.topicsTab) ||
+          (prev.profileTab !== next.profileTab) ||
+          (prev.collectionName !== next.collectionName) ||
+          (prev.collectionTag !== next.collectionTag) ||
           (prev.showMoreTexts !== next.showMoreTexts) ||
           (prev.showMoreTopics !== next.showMoreTopics) ||
           (!prevTextSearchState.isEqual({ other: nextTextSearchState, fields: ["appliedFilters", "field", "sortType"]})) ||
@@ -550,20 +554,6 @@ class ReaderApp extends Component {
               state.sheetSearchState.makeURL({ prefix: 's', isStart: false })) : "");
             hist.mode  = "search";
             break;
-          case "sheets":
-            if (states[i].sheetsGroup) {
-                hist.url   = "groups/" + state.sheetsGroup.replace(/\s/g,"-");
-                if (states[i].navigationGroupTag) {
-                  hist.url  += "?tag=" + state.navigationGroupTag.replace("#","%23");
-                }
-                hist.title = state.sheetsGroup + " | " + Sefaria._(siteName + " Group");
-                hist.mode  = "sheets tag";
-            } else {
-              hist.url   = "sheets";
-              hist.title = Sefaria._(siteName + " Source Sheets");
-              hist.mode  = "sheets";
-            }
-            break;
           case "topics":
             if (states[i].navigationTopic) {
               const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
@@ -583,7 +573,7 @@ class ReaderApp extends Component {
             break;
           case "profile":
             hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
-            hist.url   = `profile/${state.profile.slug}`;
+            hist.url   = `profile/${state.profile.slug}?tab=${state.profileTab}`;
             hist.mode = "profile";
             break;
           case "notifications":
@@ -591,15 +581,18 @@ class ReaderApp extends Component {
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
-          case "publicGroups":
-            hist.title = Sefaria._(siteName + " Groups");
-            hist.url = "groups";
-            hist.mode = "publicGroups";
-            break;
-          case "myGroups":
-            hist.title = Sefaria._(siteName + " Groups");
-            hist.url = "my/groups";
-            hist.mode = "myGroups";
+          case "collection":
+            hist.url   = "collections/" + state.collectionSlug;
+            if (states[i].collectionTag) {
+              hist.url  += "?tag=" + state.collectionTag.replace("#","%23");
+            }
+            hist.title = (state.collectionName ? state.collectionName + " | " : "") + Sefaria._(siteName + " Collections");
+            hist.mode  = "collection";
+            break;          
+          case "collectionsPublic":
+            hist.title = Sefaria._(siteName + " Collections");
+            hist.url = "collections";
+            hist.mode = "collcetionsPublic";
             break;
           case "myNotes":
             hist.title = Sefaria._("My Notes on " + siteName);
@@ -800,6 +793,34 @@ class ReaderApp extends Component {
 
     return hist;
   }
+  updateHistoryState(replace) {
+    if (!this.shouldHistoryUpdate()) {
+      return;
+    }
+    let currentUrl = (window.location.pathname + window.location.search);
+    let hist       = this.makeHistoryState();
+    if(window.location.hash.length){
+      currentUrl += window.location.hash;
+      hist.url += window.location.hash;
+    }
+    
+    if (replace) {
+      history.replaceState(hist.state, hist.title, hist.url);
+      //console.log("Replace History - " + hist.url);
+      if (currentUrl != hist.url) { this.checkScrollIntentAndTrack(); }
+      //console.log(hist);
+    } else {
+      if (currentUrl == hist.url) { return; } // Never push history with the same URL
+      history.pushState(hist.state, hist.title, hist.url);
+      //console.log("Push History - " + hist.url);
+      this.trackPageview();
+    }
+
+    $("title").html(hist.title);
+    this.replaceHistory = false;
+
+    this.setPaddingForScrollbar() // Called here to save duplicate calls to shouldHistoryUpdate
+  }
   _refState() {
     // Return a single flat list of all the refs across all panels
     var panels = (this.props.multiPanel)? this.state.panels : [this.state.header];
@@ -835,34 +856,6 @@ class ReaderApp extends Component {
     if (timer) { clearTimeout(timer); }
     return window.setTimeout(cb, intentDelay);
   }
-  updateHistoryState(replace) {
-    if (!this.shouldHistoryUpdate()) {
-      return;
-    }
-    let currentUrl = (window.location.pathname + window.location.search);
-    let hist       = this.makeHistoryState();
-    if(window.location.hash.length){
-      currentUrl += window.location.hash;
-      hist.url += window.location.hash;
-    }
-    
-    if (replace) {
-      history.replaceState(hist.state, hist.title, hist.url);
-      //console.log("Replace History - " + hist.url);
-      if (currentUrl != hist.url) { this.checkScrollIntentAndTrack(); }
-      //console.log(hist);
-    } else {
-      if (currentUrl == hist.url) { return; } // Never push history with the same URL
-      history.pushState(hist.state, hist.title, hist.url);
-      //console.log("Push History - " + hist.url);
-      this.trackPageview();
-    }
-
-    $("title").html(hist.title);
-    this.replaceHistory = false;
-
-    this.setPaddingForScrollbar() // Called here to save duplicate calls to shouldHistoryUpdate
-  }
   makePanelState(state) {
     // Return a full representation of a single panel's state, given a partial representation in `state`
     var panel = {
@@ -882,15 +875,15 @@ class ReaderApp extends Component {
       navigationTopicCategory: state.navigationTopicCategory || "",
       showMoreTexts:           state.showMoreTexts           || Sefaria.toc.length < 9,
       showMoreTopics:          state.showMoreTopics          || false,
-      navigationSheetTag:      state.navigationSheetTag      || null,
-      navigationGroupTag:      state.navigationGroupTag      || null,
       sheet:                   state.sheet                   || null,
       sheetNodes:              state.sheetNodes              || null,
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
       navigationTopicTitle:    state.navigationTopicTitle    || null,
       topicTitle:              state.topicTitle              || null,
-      sheetsGroup:             state.sheetsGroup             || null,
+      collectionName:          state.collectionName          || null,
+      collectionSlug:          state.collectionSlug          || null,
+      collectionTag:           state.collectionTag           || null,
       searchQuery:             state.searchQuery             || null,
       searchTab:               state.searchTab               || 'text',
       topicsTab:               state.topicsTab               || 'sources',
@@ -908,6 +901,8 @@ class ReaderApp extends Component {
       selectedNamedEntityText: state.selectedNamedEntityText || null,
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
+      profileTab:              state.profileTab              || "sheets",
+
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -1088,14 +1083,11 @@ class ReaderApp extends Component {
     } else if (path.match(/\/texts\/.+/)) {
       this.showLibrary(path.slice(7).split("/"));
 
-    } else if (path == "/groups") {
-      this.showGroups();
+    } else if (path == "/collections") {
+      this.showCollections();
 
     } else if (path == "/my/profile") {
       this.openProfile(Sefaria.slug);
-
-    } else if (path == "/my/groups") {
-      this.showMyGroups();
 
     } else if (path == "/my/notes") {
       this.showMyNotes();
@@ -1115,8 +1107,8 @@ class ReaderApp extends Component {
     } else if (path.match(/\/profile\/.+/)) {
       this.openProfile(path.slice(9));
 
-    } else if (path.match(/\/groups\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
-      this.openGroup(path.slice(8).replace(/-/g, " "));
+    } else if (path.match(/\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
+      this.openCollection(path.slice(13));
 
     } else if (Sefaria.isRef(path.slice(1))) {
       this.openPanel(Sefaria.humanRef(path.slice(1)));
@@ -1657,10 +1649,10 @@ class ReaderApp extends Component {
       this.setState({panels: [panel]});
     }
   }
-  searchInGroup(searchQuery, group) {
+  searchInCollection(searchQuery, collection) {
     let panel;
     const textSearchState =  new SearchState({ type: 'text' });
-    const sheetSearchState = new SearchState({ type: 'sheet',  appliedFilters: [group], appliedFilterAggTypes: ['group']});
+    const sheetSearchState = new SearchState({ type: 'sheet',  appliedFilters: [collection], appliedFilterAggTypes: ['collections']});
 
     if (this.props.multiPanel) {
       panel = this.makePanelState({mode: "Header", menuOpen: "search", "searchTab": "sheet", searchQuery, textSearchState, sheetSearchState });
@@ -1676,11 +1668,8 @@ class ReaderApp extends Component {
   showUserStats() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "user_stats"});
   }
-  showGroups() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "publicGroups"});
-  }
-  showMyGroups() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "myGroups"});
+  showCollections() {
+    this.setStateInHeaderOrSinglePanel({menuOpen: "collectionsPublic"});
   }
   showMyNotes() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "myNotes"});
@@ -1702,11 +1691,11 @@ class ReaderApp extends Component {
   }
   openProfile(slug) {
     Sefaria.profileAPI(slug).then(profile => {
-      this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile });
+      this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile, profileTab: "sheets" });
     });
   }
-  openGroup(group) {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "sheets", navigationSheetTag: "sefaria-groups", sheetsGroup: group});
+  openCollection(slug) {
+    this.setStateInHeaderOrSinglePanel({menuOpen: "collection",  collectionSlug: slug});
   }
   getHistoryObject(panel, hasSidebar) {
     // get rave to send to /api/profile/user_history
@@ -1799,7 +1788,7 @@ class ReaderApp extends Component {
                     setDefaultOption={this.setDefaultOption}
                     showLibrary={this.showLibrary}
                     showSearch={this.showSearch}
-                    searchInGroup={this.searchInGroup}
+                    searchInCollection={this.searchInCollection}
                     openURL={this.openURL}
                     onQueryChange={this.updateQueryInHeader}
                     updateSearchTab={this.updateSearchTabInHeader}
@@ -1890,7 +1879,7 @@ class ReaderApp extends Component {
                       updateSearchOptionField={updateSearchOptionField}
                       updateSearchOptionSort={updateSearchOptionSort}
                       registerAvailableFilters={updateAvailableFilters}
-                      searchInGroup={this.searchInGroup}
+                      searchInCollection={this.searchInCollection}
                       setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}
@@ -1951,7 +1940,7 @@ ReaderApp.propTypes = {
   initialRefs:                 PropTypes.array,
   initialFilter:               PropTypes.array,
   initialMenu:                 PropTypes.string,
-  initialGroup:                PropTypes.string,
+  initialCollection:           PropTypes.string,
   initialQuery:                PropTypes.string,
   initialTextSearchFilters:    PropTypes.array,
   initialTextSearchField:      PropTypes.string,
@@ -1959,7 +1948,6 @@ ReaderApp.propTypes = {
   initialSheetSearchFilters:   PropTypes.array,
   initialSheetSearchField:     PropTypes.string,
   initialSheetSearchSortType:  PropTypes.string,
-  initialSheetsTag:            PropTypes.string,
   initialTopic:                PropTypes.string,
   initialProfile:              PropTypes.object,
   initialNavigationCategories: PropTypes.array,
@@ -1976,9 +1964,8 @@ ReaderApp.defaultProps = {
   initialRefs:                 [],
   initialFilter:               null,
   initialMenu:                 null,
-  initialGroup:                null,
+  initialCollection:           null,
   initialQuery:                null,
-  initialSheetsTag:            null,
   initialTopic:                null,
   initialProfile:              null,
   initialNavigationCategories: [],
@@ -1996,7 +1983,7 @@ export {
   sefariaSetup,
   unpackDataFromProps,
   loadServerData,
-  EditGroupPage,
+  EditCollectionPage,
   RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,

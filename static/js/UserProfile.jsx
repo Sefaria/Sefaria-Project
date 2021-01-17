@@ -7,11 +7,12 @@ import {
   ProfileListing,
   ProfilePic,
   FollowButton,
+  IntText,
 } from './Misc';
 import React  from 'react';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
-import { GroupListing } from './MyGroupsPanel';
+import { CollectionListing } from './PublicCollectionsPage';
 import NoteListing  from './NoteListing';
 import Component from 'react-class';
 import Footer  from './Footer';
@@ -22,7 +23,8 @@ class UserProfile extends Component {
     this.state = this.getPrivateTabState(props);
   }
   componentDidUpdate(prevProps) {
-    if (!!this.props.profile && (!prevProps || prevProps.profile.id !== this.props.profile.id)) {
+    if (!!this.props.profile && (!prevProps || prevProps.profile.id !== this.props.profile.id) 
+        || this.props.tab !== prevProps.tab) {
       this.setState(this.getPrivateTabState(this.props));
     }
   }
@@ -30,73 +32,90 @@ class UserProfile extends Component {
     const showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
     const showBio = !!props.profile.bio;
     const tabs = [
-      { text: Sefaria._("Sheets"), icon: "/static/img/sheet.svg" },
-      { text: Sefaria._("Groups"), icon: "/static/img/group.svg" },
-      { text: Sefaria._("Followers"), invisible: true },
-      { text: Sefaria._("Following"), invisible: true },
-      { text: Sefaria._("Torah Tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
+      { name: "sheets", text: Sefaria._("Sheets"), icon: "/static/img/sheet.svg" },
+      { name: "collections", text: Sefaria._("Collections"), icon: "/static/icons/collection.svg" },
+      { name: "followers", text: Sefaria._("Followers"), invisible: true },
+      { name: "following", text: Sefaria._("Following"), invisible: true },
+      { name: "torah-tracker", text: Sefaria._("Torah Tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
-      tabs.splice(1, 0, { text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
+      tabs.splice(2, 0, { name: "notes", text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
     }
     if (showBio) {
-      tabs.push({ text: Sefaria._("About"), icon: "/static/img/info.svg" });
+      tabs.push({ name: "about", text: Sefaria._("About"), icon: "/static/img/info.svg" });
     }
+    let tabIndex = tabs.findIndex(t => t.name == props.tab);
+    tabIndex = tabIndex == -1 ? 0 : tabIndex;
     return {
       showNotes,
       showBio,
       tabs,
+      tabIndex,
     };
   }
   _getMessageModalRef(ref) { this._messageModalRef = ref; }
   _getTabViewRef(ref) { this._tabViewRef = ref; }
-  getGroups() {
-    return Sefaria.getUserGroups(this.props.profile.id);
+  getCollections() {
+    return Sefaria.getUserCollections(this.props.profile.id);
   }
-  getGroupsFromCache() {
-    return Sefaria.getUserGroupsFromCache(this.props.profile.id);
+  getCollectionsFromCache() {
+    return Sefaria.getUserCollectionsFromCache(this.props.profile.id);
   }
-  filterGroup(currFilter, group) {
+  filterCollection(currFilter, collection) {
     const n = text => text.toLowerCase();
     currFilter = n(currFilter);
-    return n(group.name).indexOf(currFilter) > -1;
+    return n(collection.name).indexOf(currFilter) > -1;
   }
-  sortGroup(currSortOption, groupA, groupB) {
-    if (currSortOption == "Members") {
-      return groupB.memberCount - groupA.memberCount;
+  sortCollection(currSortOption, collectionA, collectionB) {
+    switch(currSortOption) {
+      case "Recent":
+        return collectionB.lastModified > collectionA.lastModified ? 1 : -1;
+        break;
+      case "Name":
+        return collectionB.name > collectionA.name ? -1 : 1;
+        break;
+      case "Sheets":
+        return collectionB.sheetCount - collectionA.sheetCount;
+        break;
     }
-    return groupB.sheetCount - groupA.sheetCount;
   }
-  renderEmptyGroupList() {
+  handleCollectionsChange() {
+    // Rerender Collections tab when data changes in cache.
+    this.setState({ refreshCollectionsData: Math.random(), refreshSheetData: Math.random() });
+  }
+  renderEmptyCollectionList() {
+    if (Sefaria._uid !== this.props.profile.id) {
+     return (
+        <div className="emptyList">
+          <div className="emptyListText">
+            <IntText>{this.props.profile.full_name}</IntText>
+            <IntText> hasn't shared any collections yet.</IntText>
+          </div>
+        </div>);
+    }
     return (
       <div className="emptyList">
         <div className="emptyListText">
-          <span className="int-en">0 Groups</span>
-          <span className="int-he">0 קבוצות</span>
+          <IntText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</IntText>
         </div>
-        { Sefaria._uid === this.props.profile.id ?
-          <a href="/groups/new" className="resourcesLink">
-            <img src="/static/img/group.svg" alt="Group icon" />
-            <span className="int-en">Create a New Group</span>
-            <span className="int-he">צור קבוצה חדשה</span>
-          </a> : null
-         }
-      </div>
-    );
+        <a href="/collections/new" className="resourcesLink">
+          <img src="/static/icons/collection.svg" alt="Collection icon" />
+            <IntText>Create a New Collection</IntText>
+        </a>
+      </div>);
   }
-  renderGroup(group) {
+  renderCollection(collection) {
     return (
-      <GroupListing key={group.name} data={group} showMembership={true} />
+      <CollectionListing key={collection.slug} data={collection} showMembership={true} small={true} />
     );
   }
-  renderGroupHeader() {
+  renderCollectionHeader() {
     if (Sefaria._uid !== this.props.profile.id) { return null; }
     return (
       <div className="sheet-header">
-        <a href="/groups/new" className="resourcesLink">
-          <img src="/static/img/group.svg" alt="Group icon" />
-          <span className="int-en">Create a New Group</span>
-          <span className="int-he">יצירת קבוצה</span>
+        <a href="/collections/new" className="resourcesLink">
+          <img src="/static/icons/collection.svg" alt="Collection icon" />
+            <IntText>Create a New Collection</IntText>
         </a>
       </div>
     );
@@ -145,8 +164,6 @@ class UserProfile extends Component {
   getSheets() {
     return new Promise((resolve, reject) => {
       Sefaria.sheets.userSheets(this.props.profile.id, sheets => {
-        // What was the below for?
-        // s.options.language = "en";
         resolve(sheets);
       }, undefined, 0, 0);
     });
@@ -157,7 +174,11 @@ class UserProfile extends Component {
   filterSheet(currFilter, sheet) {
     const n = text => text.toLowerCase();
     currFilter = n(currFilter);
-    const filterText = sheet.title.stripHtml() + " " + sheet.topics.map(topic => topic.asTyped).join(" ")
+    const filterText = [sheet.title.stripHtml(),
+                        sheet.topics.map(topic => topic.asTyped).join(" "),
+                        sheet.collections.map(collection => collection.name).join(" "),
+                        "displayedCollectionName" in sheet ? sheet.displayedCollectionName : "",
+                        ].join(" ");
     return n(filterText).indexOf(currFilter) > -1;
   }
   sortSheet(currSortOption, sheetA, sheetB) {
@@ -171,8 +192,8 @@ class UserProfile extends Component {
       return (
         <div className="emptyList">
           <div className="emptyListText">
-            <span className="int-en">0 Sheets</span>
-            <span className="int-he">0 דפי מקורות</span>
+            <IntText>{this.props.profile.full_name}</IntText>
+            <IntText> hasn't shared any sheets yet.</IntText>
           </div>
         </div>
       );
@@ -199,6 +220,9 @@ class UserProfile extends Component {
   handleSheetDelete() {
     Sefaria.sheets.clearUserSheets(Sefaria._uid);
     this.getSheets().then(() => this.setState({ refreshSheetData: Math.random() }));
+    Sefaria._collections = {};
+    delete Sefaria._userCollections[Sefaria._uid];
+    this.getCollections().then(() => this.setState({refreshCollectionsData: Math.random() }));
   }
   renderSheet(sheet) {
     return (
@@ -207,11 +231,14 @@ class UserProfile extends Component {
         sheet={sheet}
         hideAuthor={true}
         handleSheetDelete={this.handleSheetDelete}
+        handleCollectionsChange={this.handleCollectionsChange}
         editable={Sefaria._uid === this.props.profile.id}
         deletable={Sefaria._uid === this.props.profile.id}
         saveable={Sefaria._uid !== this.props.profile.id}
+        collectable={true}
         connectedRefs={[]}
         infoUnderneath={true}
+        toggleSignUpModal={this.props.toggleSignUpModal}
       />
     );
   }
@@ -303,6 +330,10 @@ class UserProfile extends Component {
       </div>
     );
   }
+  onTabChange(tabIndex) {
+    const tab = this.state.tabs[tabIndex];
+    this.props.setProfileTab(tab.name);
+  }
   message(e) {
     e.preventDefault();
     if (!Sefaria._uid) { this.props.toggleSignUpModal(); return; }
@@ -313,19 +344,18 @@ class UserProfile extends Component {
   }
   openFollowers(e) {
     e.preventDefault();
-    this._tabViewRef.openTab(this.state.tabs.findIndex(t => t.text === Sefaria._('Followers')));
+    this.props.setProfileTab("followers");
   }
   openFollowing(e) {
     e.preventDefault();
-    this._tabViewRef.openTab(this.state.tabs.findIndex(t => t.text === Sefaria._('Following')));
+    this.props.setProfileTab("following");
   }
   render() {
     return (
       <div key={this.props.profile.id} className="profile-page readerNavMenu noHeader">
         {this.props.multiPanel ? null :
           <SinglePanelNavHeader
-            enTitle="Profile"
-            heTitle={Sefaria._("Profile")}
+            title="Profile"
             navHome={this.props.navHome}
             showDisplaySettings={false}/>
         }
@@ -345,6 +375,8 @@ class UserProfile extends Component {
                   ref={this._getTabViewRef}
                   tabs={this.state.tabs}
                   renderTab={this.renderTab}
+                  currTabIndex={this.state.tabIndex}
+                  setTab={this.onTabChange}
                 >
                   <FilterableList
                     key="sheet"
@@ -355,9 +387,23 @@ class UserProfile extends Component {
                     renderEmptyList={this.renderEmptySheetList}
                     renderHeader={this.renderSheetHeader}
                     sortOptions={["Recent", "Views"]}
+                    containerClass={"sheetList"}
                     getData={this.getSheets}
                     data={this.getSheetsFromCache()}
                     refreshData={this.state.refreshSheetData}
+                  />
+                  <FilterableList
+                    key="collection"
+                    pageSize={1e6}
+                    filterFunc={this.filterCollection}
+                    sortFunc={this.sortCollection}
+                    renderItem={this.renderCollection}
+                    renderEmptyList={this.renderEmptyCollectionList}
+                    renderHeader={this.renderCollectionHeader}
+                    sortOptions={["Recent", "Name", "Sheets"]}
+                    getData={this.getCollections}
+                    data={this.getCollectionsFromCache()}
+                    refreshData={this.state.refreshCollectionsData}
                   />
                   {
                     this.state.showNotes ? (
@@ -375,18 +421,6 @@ class UserProfile extends Component {
                       />
                     ) : null
                   }
-                  <FilterableList
-                    key="group"
-                    pageSize={1e6}
-                    filterFunc={this.filterGroup}
-                    sortFunc={this.sortGroup}
-                    renderItem={this.renderGroup}
-                    renderEmptyList={this.renderEmptyGroupList}
-                    renderHeader={this.renderGroupHeader}
-                    sortOptions={["Members", "Sheets"]}
-                    getData={this.getGroups}
-                    data={this.getGroupsFromCache()}
-                  />
                   <FilterableList
                     key="follower"
                     pageSize={1e6}
@@ -437,7 +471,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
   if (p.location) { infoList.push(p.location); }
   infoList = infoList.concat(p.jewish_education);
   if (p.website) {
-    infoList.push(<span><a href={p.website} target="_blank">{"website"}</a></span>);
+    infoList.push(<span><a href={p.website} target="_blank">{Sefaria._("Website")}</a></span>);
   }
   const socialList = social.filter(s => !!p[s]);
   if (socialList.length) {

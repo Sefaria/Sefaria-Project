@@ -23,6 +23,19 @@ import logging
 logger = logging.getLogger(__name__)
 
 
+def builtin_only(view):
+    """
+    Marks processors only needed when using on Django builtin auth views.
+    """
+    @wraps(view)
+    def wrapper(request):
+        if request.path == "/login" or request.path.startswith("/password"):
+            return view(request)
+        else:
+            return {}
+    return wrapper
+
+
 def data_only(view):
     """
     Marks processors only needed when setting the data JS.
@@ -30,8 +43,7 @@ def data_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        if (request.path in ("/data.js", "/sefaria.js") or
-              request.path.startswith("/sheets/")):
+        if request.path == "/sefaria.js" or request.path.startswith("/data.") or request.path.startswith("/sheets/"):
             return view(request)
         else:
             return {}
@@ -44,8 +56,8 @@ def user_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        exclude = ('/data.js', '/linker.js')
-        if request.path in exclude or request.path.startswith("/api/"):
+        exclude = ('/linker.js')
+        if request.path in exclude or request.path.startswith("/api/") or request.path.startswith("/data."):
             return {}
         else:
             return view(request)
@@ -65,9 +77,18 @@ def global_settings(request):
         }
 
 
-@data_only
+@builtin_only
+def base_props(request):
+    from reader.views import base_props
+    return {"propsJSON": json.dumps(base_props(request), ensure_ascii=False)}
+
+
+@user_only
 def cache_timestamp(request):
-    return {"last_cached": library.get_last_cached_time()}
+    return {
+        "last_cached": library.get_last_cached_time(),
+        "last_cached_short": round(library.get_last_cached_time())
+    }
 
 
 @data_only
@@ -80,46 +101,7 @@ def large_data(request):
         "topic_toc": library.get_topic_toc(),
         "topic_toc_json": library.get_topic_toc_json(),
         "titles_json": library.get_text_titles_json(),
-        "terms_json": library.get_simple_term_mapping_json()
-    }
-
-
-@data_only
-def calendar_links(request):
-    return {"calendars": json.dumps(calendars.get_todays_calendar_items(**_get_user_calendar_params(request)))}
-
-
-@data_only
-def user_and_notifications(request):
-    """
-    Load data that comes from a user profile.
-    Most of this data is currently only needed view /data.js
-    (currently Node does not get access to logged in version of /data.js)
-    """
-    if not request.user.is_authenticated:
-        return {
-            "interrupting_message_json": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).json()
-        }
-
-    profile = UserProfile(user_obj=request.user)
-    notifications = profile.recent_notifications()
-    interrupting_message_dict = GLOBAL_INTERRUPTING_MESSAGE or {"name": profile.interrupting_message()}
-    interrupting_message      = InterruptingMessage(attrs=interrupting_message_dict, request=request)
-    interrupting_message_json = interrupting_message.json()
-    return {
-        "notifications_json": notifications.to_JSON(),
-        "notifications_html": notifications.to_HTML(),
-        "notifications_count": profile.unread_notification_count(),
-        "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
-        "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True),
-        "interrupting_message_json": interrupting_message_json,
-        "slug": profile.slug,
-        "full_name": profile.full_name,
-        "profile_pic_url": profile.profile_pic_url,
-        "following": profile.followees.uids,
-        "is_moderator": request.user.is_staff,
-        "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
-        "is_history_enabled": profile.settings["reading_history"]
+        "terms_json": library.get_simple_term_mapping_json(),
     }
 
 
@@ -127,16 +109,12 @@ HEADER = {
     'logged_in': {'english': None, 'hebrew': None},
     'logged_out': {'english': None, 'hebrew': None}
 }
-
-
 @user_only
 def header_html(request):
     """
     Uses React to prerender a logged in and and logged out header for use in pages that extend `base.html`.
     Cached in memory -- restarting Django is necessary for catch any HTML changes to header.
     """
-    if request.path == "/data.js":
-        return {}
     global HEADER
     if USE_NODE:
         lang = request.interfaceLang
@@ -164,9 +142,6 @@ def header_html(request):
 FOOTER = {'english': None, 'hebrew': None}
 @user_only
 def footer_html(request):
-    from sefaria.site.site_settings import SITE_SETTINGS
-    if request.path == "/data.js":
-        return {}
     global FOOTER
     lang = request.interfaceLang
     if USE_NODE:
@@ -177,6 +152,7 @@ def footer_html(request):
     return {
         "footer": FOOTER[lang]
     }
+
 
 @user_only
 def body_flags(request):

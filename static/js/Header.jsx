@@ -23,7 +23,7 @@ class Header extends Component {
     this._searchOverridePre = Sefaria._('Search for') +': "';
     this._searchOverridePost = '"';
     this._type_icon_map = {
-      "Group": "iconmonstr-share-6.svg",
+      "Collection": "collection.svg",
       "Person": "iconmonstr-pen-17.svg",
       "TocCategory": "iconmonstr-view-6.svg",
       "Topic": "iconmonstr-hashtag-1.svg",
@@ -183,8 +183,8 @@ class Header extends Component {
   getURLForObject(type, key) {
     if (type === "Person") {
       return `/person/${key}`;
-    } else if (type === "Group") {
-      return `/groups/${key.replace(/ /g,"-")}`;
+    } else if (type === "Collection") {
+      return `/collections/${key}`;
     } else if (type === "TocCategory") {
       return `/texts/${key.join('/')}`;
     } else if (type === "Topic") {
@@ -280,7 +280,7 @@ class Header extends Component {
                           updateSearchOptionField={this.props.updateSearchOptionField}
                           updateSearchOptionSort={this.props.updateSearchOptionSort}
                           registerAvailableFilters={this.props.registerAvailableFilters}
-                          searchInGroup={this.props.searchInGroup}
+                          searchInCollection={this.props.searchInCollection}
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                           hideNavHeader={true}
                           analyticsInitialized={this.props.analyticsInitialized}
@@ -351,7 +351,7 @@ Header.propTypes = {
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
   registerAvailableFilters:    PropTypes.func,
-  searchInGroup:               PropTypes.func,
+  searchInCollection:          PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
   headerMesssage:              PropTypes.string,
   panelsOpen:                  PropTypes.number,

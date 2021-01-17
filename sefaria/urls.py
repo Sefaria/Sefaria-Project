@@ -29,12 +29,10 @@ urlpatterns = [
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
-    url(r'^groups/?$', reader_views.public_groups),
-    url(r'^groups/all$', reader_views.groups_admin_page),
-    url(r'^groups/new$', reader_views.edit_group_page),
-    url(r'^groups/(?P<group>[^.]+)/settings$', reader_views.edit_group_page),
-    url(r'^groups/(?P<group>[^.]+)$', reader_views.group_page),
-    url(r'^my/groups$', reader_views.my_groups),
+    url(r'^collections/?$', reader_views.public_collections),
+    url(r'^collections/new$', reader_views.edit_collection_page),
+    url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
+    url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
     url(r'^notifications/?$', reader_views.notifications),
     url(r'^my/notes/?$', reader_views.my_notes),
     url(r'^updates/?$', reader_views.updates),
@@ -50,16 +48,6 @@ urlpatterns += [
     url(r'^person/(?P<name>.+)$', reader_views.person_page),
     url(r'^people/Talmud/?$', reader_views.talmud_person_index),
     url(r'^people/?$', reader_views.person_index),
-]
-
-# Redirects for legacy URLs
-urlpatterns += [
-    url(r'^account/?$', reader_views.my_profile),
-    url(r'^sheets/tags/?$', reader_views.topics_redirect),
-    url(r'^sheets/tags/(?P<tag>.+)$', reader_views.topic_page_redirect),
-    url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_pages_redirect),
-    url(r'^partners/(?P<group>[^/]+)$', reader_views.group_page),
-    url(r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
 ]
 
 # Visualizations / Link Explorer
@@ -127,6 +115,16 @@ urlpatterns += [
     url(r'^edit/(?P<ref>.+)$', reader_views.edit_text),
 ]
 
+# Redirects for legacy URLs
+urlpatterns += [
+    url(r'^account/?$', reader_views.my_profile),
+    url(r'^sheets/tags/?$', reader_views.topics_redirect),
+    url(r'^sheets/tags/(?P<tag>.+)$', reader_views.topic_page_redirect),
+    url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_pages_redirect),
+    url(r'^groups/?(?P<group>[^/]+)?$', reader_views.groups_redirect),
+    url(r'^contributors/(?P<username>[^/]+)(/(?P<page>\d+))?$', reader_views.profile_redirect),
+]
+
 # Texts / Index / Links etc API
 urlpatterns += [
     url(r'^api/texts/versions/(?P<tref>.+)$', reader_views.versions_api),
@@ -189,8 +187,7 @@ urlpatterns += [
     url(r'^api/sheets/(?P<sheet_id>\d+)/visualize$',                  sheets_views.visual_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/unlike$',                     sheets_views.unlike_sheet_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/likers$',                     sheets_views.sheet_likers_api),
-    url(r'^api/sheets/user/(?P<user_id>\d+)$',                        sheets_views.user_sheet_list_api),
-    url(r'^api/sheets/user/(?P<user_id>\d+)/(?P<sort_by>\w+)/(?P<limiter>\d+)/(?P<offset>\d+)$',       sheets_views.user_sheet_list_api_with_sort),
+    url(r'^api/sheets/user/(?P<user_id>\d+)/((?P<sort_by>\w+)/(?P<limiter>\d+)/(?P<offset>\d+))?$',       sheets_views.user_sheet_list_api),
     url(r'^api/sheets/modified/(?P<sheet_id>\d+)/(?P<timestamp>.+)$', sheets_views.check_sheet_modified_api),
     url(r'^api/sheets/create/(?P<ref>[^/]+)(/(?P<sources>.+))?$',     sheets_views.make_sheet_from_text_api),
     url(r'^api/sheets/tag/(?P<tag>[^/]+)?$',                          sheets_views.sheets_by_tag_api),
@@ -205,13 +202,16 @@ urlpatterns += [
     url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
 ]
 
-# Groups API
+# Collections API
 urlpatterns += [
-    url(r'^api/groups(/(?P<group>[^/]+))?$', sheets_views.groups_api),
-    url(r'^api/groups/(?P<group_name>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', sheets_views.groups_role_api),
-    url(r'^api/groups/(?P<group_name>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', sheets_views.groups_invite_api),
-    url(r'^api/groups/(?P<group_name>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', sheets_views.groups_pin_sheet_api),
-    url(r'^api/groups/user-groups/(?P<user_id>\d+)$', sheets_views.user_groups_api),
+    url(r'^api/collections/user-collections/(?P<user_id>\d+)$', sheets_views.user_collections_api),
+    url(r'^api/collections/for-sheet/(?P<sheet_id>\d+)$', sheets_views.collections_for_sheet_api),
+    url(r'^api/collections(/(?P<slug>[^/]+))?$', sheets_views.collections_api),
+    url(r'^api/collections/(?P<slug>[^/]+)/set-role/(?P<uid>\d+)/(?P<role>[^/]+)$', sheets_views.collections_role_api),
+    url(r'^api/collections/(?P<slug>[^/]+)/invite/(?P<uid_or_email>[^/]+)(?P<uninvite>\/uninvite)?$', sheets_views.collections_invite_api),
+    url(r'^api/collections/(?P<slug>[^/]+)/(?P<action>(add|remove))/(?P<sheet_id>\d+)', sheets_views.collections_inclusion_api),
+    url(r'^api/collections/(?P<slug>[^/]+)/(?P<action>(add|remove))/(?P<sheet_id>\d+)', sheets_views.collections_inclusion_api),
+    url(r'^api/collections/(?P<slug>[^/]+)/pin-sheet/(?P<sheet_id>\d+)', sheets_views.collections_pin_sheet_api),
 ]
 
 # Search API
@@ -321,7 +321,7 @@ urlpatterns += [
 
 # Sefaria.js -- Packaged JavaScript
 urlpatterns += [
-    url(r'^data\.js$', sefaria_views.data_js),
+    url(r'^data\.(?:(?:\d+)\.)?js$', sefaria_views.data_js), # Allow for regular data.js and also data.<timestamp>.js for caching
     url(r'^sefaria\.js$', sefaria_views.sefaria_js),
 ]
 
@@ -388,7 +388,6 @@ urlpatterns += [
     url(r'^admin/spam', sefaria_views.spam_dashboard),
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
-
     url(r'^admin/?', include(admin.site.urls)),
 ]
 

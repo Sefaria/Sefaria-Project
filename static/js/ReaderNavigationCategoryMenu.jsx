@@ -143,11 +143,11 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
                       </div>));
       }
 
-    // Add a Group
-    } else if (item.isGroup) {
+    // Add a Collection
+    } else if (item.isCollection) {
         content.push((
             <MenuItem
-                href        = {"/groups/" + item.name.replace(/\s/g, "-")}
+                href        = {"/collections/" + item.slug}
                 group       = {item.name}
                 nestLevel   = {nestLevel}
                 title       = {item.title}
@@ -318,5 +318,6 @@ const hebrewContentSort = (enCats) => {
     //console.log(heCats)
     return heCats;
   };
+
 
 export default ReaderNavigationCategoryMenu;

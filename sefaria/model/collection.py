@@ -1,11 +1,13 @@
 """
-group.py
+collections.py
 Writes to MongoDB Collection: groups
 """
 import bleach
-import secrets
 import re
+import secrets
+from datetime import datetime
 
+from django.utils import translation
 from django.utils.translation import ugettext as _
 
 from . import abstract as abst
@@ -13,34 +15,35 @@ from sefaria.model.user_profile import public_user_data
 from sefaria.system.exceptions import InputError
 from sefaria.utils import hebrew
 
-class Group(abst.AbstractMongoRecord):
+class Collection(abst.AbstractMongoRecord):
     """
-    A group of users
+    A collection of source sheets
     """
     collection = 'groups'
     history_noun = 'group'
 
     track_pkeys = True
-    pkeys = ["name", "headerUrl", "imageUrl", "coverUrl"]
+    pkeys = ["name", "slug", "listed", "headerUrl", "imageUrl", "coverUrl"]
 
     required_attrs = [
-        "name",          # string name of group
+        "name",          # string name of collection
         "admins",        # list or uids
-        "publishers",    # list of uids
         "members",       # list of uids
     ]
     optional_attrs = [
         "sheets",           # list of sheet ids included in this collection
         "slug",             # string of url slug
         "lastModified",     # Datetime of the last time this collection changed
+        "slug",             # string slug for url
+        "publishers",       # list of uids TODO remove post collections launch
         "invitations",      # list of dictionaries representing outstanding invitations
         "description",      # string text of short description
-        "websiteUrl",       # url for group website
+        "websiteUrl",       # url of a website displayed on this collection
         "headerUrl",        # url of an image to use in header
         "imageUrl",         # url of an image to use as icon
         "coverUrl",         # url of an image to use as cover
         "pinned_sheets",    # list of sheet ids, pinned to top
-        "listed",           # Bool, whether to list group publicly
+        "listed",           # Bool, whether to list collection publicly
         "moderationStatus", # string status code for moderator-set statuses
         "pinnedTags",       # list of strings, display order for sheet tags
         "showTagsByDefault",# Bool, whether to default to opening tags list
@@ -55,13 +58,17 @@ class Group(abst.AbstractMongoRecord):
     ]
 
     def _normalize(self):
+        defaults = (("members", []), ("sheets", []))
+        for default in defaults:
+            if not hasattr(self, default[0]):
+                setattr(self, default[0], default[1])
+
         website = getattr(self, "websiteUrl", False)
         if website and not website.startswith("https://"):
             if website.startswith("http://"):
                 # Only allow HTTPS. If you site doesn't support it, deal with it!
                 self.websiteUrl = website.replace("http://", "https://")
             else:
-                # Allows include protocol
                 self.websiteUrl = "https://" + website
 
         toc = getattr(self, "toc", None)
@@ -72,18 +79,35 @@ class Group(abst.AbstractMongoRecord):
             toc["heDescription"] = bleach.clean(toc["heDescription"], tags=tags, attributes=attrs)
 
     def _validate(self):
-        assert super(Group, self)._validate()
+        assert super(Collection, self)._validate()
 
         if len(self.name) == 0:
-            raise InputError(_("Please set a name for your group."))
-
-        if getattr(self, "listed", False):
-            if not getattr(self, "imageUrl", False):
-                raise InputError(_("Public Groups are required to include a group image (a square image will work best)."))
+            raise InputError(_("Please set a name for your collection."))
 
         return True
 
     def _pre_save(self):
+        self.lastModified = datetime.now()
+
+        old_status, new_status = self.pkeys_orig_values.get("listed", None), getattr(self, "listed", None)
+        if (old_status != new_status or not getattr(self, "slug", None)):
+            # Assign a slug to new collection, or change the slug type when collection
+            # changes listing status
+            self.assign_slug()
+
+        if new_status and not old_status:
+            # At moment of publishing, make checks for special requirements on public collections
+            # Don't make these checks on every save so a collection can't get stuck in a state where 
+            # it can't be change even to add a new public sheet. 
+            if self.name_taken():
+                # Require public collections to have a unique name
+                raise InputError(_("A public collection with this name already exists. Please choose a different name before publishing."))
+            if not getattr(self, "imageUrl", False):
+                raise InputError(_("Public Collections are required to include a collection image (a square image will work best)."))
+            if self.public_sheet_count() < 3:
+                raise InputError(_("Public Collections are required to have at least 3 public sheets."))
+
+
         image_fields = ("imageUrl", "headerUrl", "coverUrl")
         for field in image_fields:
             old, new = self.pkeys_orig_values.get(field, None), getattr(self, field, None)
@@ -113,7 +137,11 @@ class Group(abst.AbstractMongoRecord):
                     break
 
     def slug_taken(self):
-        existing = Group().load({"slug": self.slug})
+        existing = Collection().load({"slug": self.slug})
+        return bool(existing) and existing._id != getattr(self, "_id", None)
+
+    def name_taken(self):
+        existing = Collection().load({"name": self.name, "listed": True})
         return bool(existing) and existing._id != getattr(self, "_id", None)
 
     def all_names(self, lang):
@@ -130,14 +158,14 @@ class Group(abst.AbstractMongoRecord):
         return self.name if (hebrew.is_hebrew(self.name) == (lang == "he")) else None
 
     def contents(self, with_content=False, authenticated=False):
-        from sefaria.sheets import group_sheets, sheet_topics_counts
-        contents = super(Group, self).contents()
+        from sefaria.sheets import sheet_topics_counts
+        contents = super(Collection, self).contents()
         if with_content:
-            contents["sheets"]       = group_sheets(self, authenticated)["sheets"]
-            contents["topics"]       = sheet_topics_counts({"group": self.name})
+            contents["sheets"]       = self.sheet_contents(authenticated=authenticated)
+            contents["topics"]       = sheet_topics_counts({"id": {"$in": self.sheets}})
             contents["admins"]       = [public_user_data(uid) for uid in contents["admins"]]
-            contents["publishers"]   = [public_user_data(uid) for uid in contents["publishers"]]
             contents["members"]      = [public_user_data(uid) for uid in contents["members"]]
+            contents["lastModified"] = str(self.lastModified)
             contents["invitations"]  = getattr(self, "invitations", []) if authenticated else []
             contents["pinnedSheets"] = getattr(self, "pinned_sheets", [])
             contents["pinnedTags"]   = getattr(self, "pinnedTags", [])
@@ -146,56 +174,62 @@ class Group(abst.AbstractMongoRecord):
     def listing_contents(self, uid=None):
         contents = {
             "name": self.name,
+            "slug": self.slug,
             "imageUrl": getattr(self, "imageUrl", None),
             "headerUrl": getattr(self, "headerUrl", None),
             "memberCount": self.member_count(),
             "sheetCount": self.sheet_count(),
+            "lastModified": str(self.lastModified),
+            "listed": getattr(self, "listed", False),
         }
         if uid is not None:
-            contents["canPublish"] = self.can_publish(uid)
             contents["membership"] = self.membership_role(uid)
         return contents
 
+    def sheet_contents(self, authenticated=False):
+        from sefaria.sheets import sheet_list
+        if authenticated == False and getattr(self, "listed", False):
+            query = {"status": "public", "id": {"$in": self.sheets}}
+        else:
+            query = {"status": {"$in": ["unlisted", "public"]}, "id": {"$in": self.sheets}}
+
+        return sheet_list(query=query)
+
     def membership_role(self, uid):
         """
-        Get membership level in group
+        Get membership level in collection
         :param uid:
-        :return: either "member", "admin" or "publisher"
+        :return: either "member", "admin"
         """
         if uid in self.members:
             return "member"
-        if uid in self.publishers:
-            return "publisher"
         if uid in self.admins:
             return "admin"
         return None
 
     def add_member(self, uid, role="member"):
         """
-        Adds `uid` as member of the group in `role`.
+        Adds `uid` as member of the collection in `role`.
         If `uid` is already a member, changes their role to `role`.
         """
         self.remove_member(uid)
         if role == "admin":
             self.admins.append(uid)
-        elif role == "publisher":
-            self.publishers.append(uid)
         else:
             self.members.append(uid)
         self.save()
 
     def remove_member(self, uid):
         """
-        Remove `uid` from this group.
+        Remove `uid` from this collection.
         """
-        self.admins     = [user_id for user_id in self.admins if user_id != uid]
-        self.publishers = [user_id for user_id in self.publishers if user_id != uid]
-        self.members    = [user_id for user_id in self.members if user_id != uid]
+        self.admins  = [user_id for user_id in self.admins if user_id != uid]
+        self.members = [user_id for user_id in self.members if user_id != uid]
         self.save()
 
     def invite_member(self, email, inviter, role="member"):
         """
-        Invites a person by email to sign up for a Sefaria and join a group.
+        Invites a person by email to sign up for a Sefaria and join a collection.
         Creates on outstanding inviations record for `email` / `role`
         and sends an invitation to `email`.
         """
@@ -223,13 +257,18 @@ class Group(abst.AbstractMongoRecord):
         from sefaria.model import UserProfile
 
         inviter       = UserProfile(id=inviter_id)
-        message_html  = render_to_string("email/group_signup_invitation_email.html",
-                                        {
-                                            "inviter": inviter.full_name,
-                                            "groupName": self.name,
-                                            "registerUrl": "/register?next=%s" % self.url
-                                        })
-        subject       = "%s invited you to join a group on Sefaria" % (inviter.full_name)
+        curr_lang     = translation.get_language()
+        try:
+            translation.activate(inviter.settings["interface_language"][0:2])
+            message_html  = render_to_string("email/collection_signup_invitation_email.html",
+                                            {
+                                                "inviter": inviter.full_name,
+                                                "collection_slug": self.slug,
+                                                "registerUrl": "/register?next=%s" % self.url
+                                            })
+        finally:
+            translation.activate(curr_lang)
+        subject       = _("%(name)s invited you to a collection on Sefaria") % {'name': inviter.full_name}
         from_email    = "Sefaria <hello@sefaria.org>"
         to            = email
 
@@ -239,33 +278,33 @@ class Group(abst.AbstractMongoRecord):
 
     def all_members(self):
         """
-        Returns a list of all group members, regardless of sole
+        Returns a list of all collection members, regardless of sole
         """
-        return (self.admins + self.publishers + self.members)
+        return (self.admins + self.members)
 
     def is_member(self, uid):
         """
-        Returns True if `uid` is a member of this group, in any role
+        Returns True if `uid` is a member of this collection, in any role
         """
         return uid in self.all_members()
 
-    def can_publish(self, uid):
-        """ Returns True if `uid` has permission to publish sheets in this group"""
-        return uid in (self.admins + self.publishers)
-
     def member_count(self):
-        """Returns the number of members in this group"""
+        """Returns the number of members in this collection"""
         return len(self.all_members())
 
     def sheet_count(self):
-        """Returns the number of sheets in this group"""
+        """Returns the number of sheets in this collection"""
+        return len(self.sheets)
+
+    def public_sheet_count(self):
+        """Returns the number of public sheets in this collection"""
         from sefaria.sheets import SheetSet
-        return SheetSet({"group": self.name}).count()
+        return SheetSet({"id": {"$in": self.sheets}, "status": "public"}).count()      
 
     @property
     def url(self):
-        """Returns the URL path for this group"""
-        return "/groups/%s" % self.name.replace(" ", "-")
+        """Returns the URL path for this collection"""
+        return "/collections/{}".format(self.slug)
 
     def pin_sheet(self, sheet_id):
         """
@@ -292,37 +331,51 @@ class Group(abst.AbstractMongoRecord):
             HostedFile(url=new).remove_from_orphaned_list()
 
 
-class GroupSet(abst.AbstractMongoSet):
-    recordClass = Group
+class CollectionSet(abst.AbstractMongoSet):
+    recordClass = Collection
 
     def for_user(self, uid, private=True):
-        query = {"$or": [{"admins": uid}, {"publishers": uid}, {"members": uid}]}
+        query = {"$or": [{"admins": uid}, {"members": uid}]}
         if not private:
             query["listed"] = True
-        self.__init__(query, sort=[("name", 1)])
+        self.__init__(query, sort=[("lastModified", -1)])
         return self
 
     @classmethod
-    def get_group_listing(cls, userid):
+    def get_collection_listing(cls, userid):
         return {
             "private": [g.listing_contents() for g in cls().for_user(userid)],
             "public": [g.listing_contents() for g in
-                       GroupSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])]
+                       CollectionSet({"listed": True, "moderationStatus": {"$ne": "nolist"}}, sort=[("name", 1)])]
         }
 
 
-def process_group_name_change_in_sheets(group, **kwargs):
+def process_collection_slug_change_in_sheets(collection, **kwargs):
     """
-    When a group's name changes, update all the sheets in this group to follow
-    """
-    from sefaria.system.database import db
-
-    db.sheets.update_many({"group": kwargs["old"]}, {"$set": {"group": kwargs["new"]}})
-
-
-def process_group_delete_in_sheets(group, **kwargs):
-    """
-    When a group deleted, move any sheets out of the group.
+    When a collections's slug changes, update all the sheets that have this collection as `displayedCollection`
     """
     from sefaria.system.database import db
-    db.sheets.update_many({"group": group.name}, {"$set": {"group": ""}})
+
+    if not kwargs["old"]:
+        return
+    db.sheets.update_many({"displayedCollection": kwargs["old"]}, {"$set": {"displayedCollection": kwargs["new"]}})
+
+
+def process_collection_delete_in_sheets(collection, **kwargs):
+    """
+    When a collection deleted, move any sheets out of the collection.
+    """
+    from sefaria.system.database import db
+    db.sheets.update_many({"displayedCollection": collection.slug}, {"$set": {"displayedCollection": ""}})
+
+
+def process_sheet_deletion_in_collections(sheet_id):
+    """
+    When a sheet is delete remove it from any collections.
+    Note: this function is not tied through dependencies.py (since Sheet mongo model isn't generlly used),
+    but is called directly from sheet deletion view in sourcesheets/views.py. 
+    """
+    cs = CollectionSet({"sheets": sheet_id})
+    for c in cs:
+        c.sheets = [s for s in c.sheets if s != sheet_id]
+        c.save()

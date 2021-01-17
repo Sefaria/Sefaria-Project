@@ -1267,15 +1267,11 @@ _media: {},
 
 
   _webpages: {},
+  _processedWebpages: {},
   webPagesByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
     var ref = Sefaria.normRefList(refs);
-    refs.map(r => {
-      // Also include webpages linked at section level. Deduped below.
-      if (r.indexOf(":") !== -1) {
-        refs.push(r.slice(0, r.lastIndexOf(":")));
-      }
-    }, this);
+    if (ref in this._processedWebpages) { return this._processedWebpages[ref]; }
 
     var webpages = [];
     refs.map(r => {
@@ -1284,10 +1280,7 @@ _media: {},
 
     webpages.map(page => page.isHebrew = Sefaria.hebrew.isHebrew(page.title));
 
-    return webpages.filter((obj, pos, arr) => {
-      // Remove duplicates by url field
-      return arr.map(mapObj => mapObj["url"]).indexOf(obj["url"]) === pos;
-    }).sort((a, b) => {
+    webpages = webpages.sort((a, b) => {
       // Sort first by page language matching interface language
       if (a.isHebrew !== b.isHebrew) { return (b.isHebrew ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
 
@@ -1298,6 +1291,8 @@ _media: {},
 
       return (a.linkerHits > b.linkerHits) ? -1 : 1
     });
+    this._processedWebpages[ref] = webpages;
+    return webpages;
   },
   _refTopicLinks: {},
   _saveTopicByRef: function(ref, data) {
@@ -1983,35 +1978,41 @@ _media: {},
         });
     },
     _userSheets: {},
-    userSheets: function(uid, callback, sortBy = "date", offset = 0, numberToRetrieve = 0) {
+    userSheets: function(uid, callback, sortBy="date", offset=0, numberToRetrieve=0) {
       // Returns a list of source sheets belonging to `uid`
       // Only a user logged in as `uid` will get private data from this API.
       // Otherwise, only public data will be returned
-      const sheets = this._userSheets[uid+sortBy+offset+numberToRetrieve];
+      const key = uid+"|"+sortBy+offset+numberToRetrieve;
+      const sheets = this._userSheets[key];
       if (sheets) {
         if (callback) { callback(sheets); }
       } else {
         const url = Sefaria.apiHost + "/api/sheets/user/" + uid + "/" + sortBy + "/" + numberToRetrieve + "/" + offset;
         Sefaria._ApiPromise(url).then(data => {
-          this._userSheets[uid+sortBy+offset+numberToRetrieve] = data.sheets;
+          this._userSheets[key] = data.sheets;
           if (callback) { callback(data.sheets); }
         });
       }
       return sheets;
     },
-    updateUserSheets: function(sheet, uid, update = true){
-        for (const property in this._userSheets) {
-          if(property.startsWith(uid.toString())){
-              if(property.includes("date")){ //add to front because we sorted by date
-                  if(update) {
-                      this._userSheets[property].splice(this._userSheets[property].findIndex(item => item.id === sheet.id), 1);
-                  }
-                  this._userSheets[property].unshift(sheet);
-              }else if(!update){
-                  this._userSheets[property].push(sheet);
-              }
+    updateUserSheets: function(sheet, uid, update=true, updateInPlace=false){
+      for (const key in this._userSheets) {
+        if (key.startsWith(uid.toString()+"|")){
+          if (update) {
+            const sheetIndex = this._userSheets[key].findIndex(item => item.id === sheet.id);
+            if (key.includes("date") && !updateInPlace) { //add to front because we sorted by date
+              this._userSheets[key].splice(sheetIndex, 1);
+              this._userSheets[key].unshift(sheet);
+            } else if (updateInPlace) {
+              this._userSheets[key][sheetIndex] = sheet;
+            } else {  
+              this._userSheets[key].unshift(sheet);
+            }
+          } else {
+            this._userSheets[key].push(sheet);
           }
         }
+      }
     },
     clearUserSheets: function(uid) {
       this._userSheets  = Object.keys(this._userSheets)
@@ -2137,36 +2138,47 @@ _media: {},
         return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1])
     }
   },
-  _groups: {},
-  getGroup: function(key) {
-      const url = Sefaria.apiHost + "/api/groups/" + encodeURIComponent(key);
-      const store = this._groups;
+  _collections: {},
+  getCollection: function(key) {
+      const url = Sefaria.apiHost + "/api/collections/" + encodeURIComponent(key);
+      const store = this._collections;
       return this._cachedApiPromise({url, key, store});
   },
-  getGroupFromCache: function(key) {
-    return Sefaria._groups[key];
+  getCollectionFromCache: function(key) {
+    return Sefaria._collections[key];
   },
-  _groupsList: {},
-  getGroupsList: function() {
+  _collectionsList: {},
+  getCollectionsList: function() {
       return this._cachedApiPromise({
-        url: Sefaria.apiHost + "/api/groups",
+        url: Sefaria.apiHost + "/api/collections",
         key: "list",
-        store: Sefaria._groupsList
+        store: Sefaria._collectionsList
       });
   },
-  getGroupsListFromCache() {
-    return Sefaria._groupsList.list;
+  getCollectionsListFromCache() {
+    return Sefaria._collectionsList.list;
   },
-  _userGroups: {},
-  getUserGroups: function(uid) {
+  _userCollections: {},
+  getUserCollections: function(uid) {
     return this._cachedApiPromise({
-      url: `${Sefaria.apiHost}/api/groups/user-groups/${uid}`,
+      url: `${Sefaria.apiHost}/api/collections/user-collections/${uid}`,
       key: uid,
-      store: Sefaria._userGroups
+      store: Sefaria._userCollections
     });
   },
-  getUserGroupsFromCache(uid) {
-    return Sefaria._userGroups[uid];
+  getUserCollectionsFromCache(uid) {
+    return Sefaria._userCollections[uid];
+  },
+  _userCollectionsForSheet: {},
+  getUserCollectionsForSheet: function(sheetID) {
+    return this._cachedApiPromise({
+      url: `${Sefaria.apiHost}/api/collections/for-sheet/${sheetID}`,
+      key: sheetID,
+      store: Sefaria._userCollectionsForSheet
+    });
+  },
+  getUserCollectionsForSheetFromCache(sheetID) {
+    return Sefaria._userCollectionsForSheet[sheetID];
   },
   calendarRef: function(calendarTitle) {
     const cal = Sefaria.calendars.filter(cal => cal.title.en === calendarTitle);
@@ -2200,18 +2212,14 @@ _media: {},
     //this is here for now, we might want to move it somewhere else.
   _i18nInterfaceStrings: {
       "Sefaria": "ספריא",
-      "Sefaria Group" : "קבוצות בספריא",
-      "Sefaria Groups" : "קבוצות בספריא",
-      "Sefaria Source Sheets":"דפי מקורות בספריא",
       "Topics":"נושאים",
       "Sefaria Notifcations": "הודעות בספריא",
-      //title meta tag
       "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספרייה חיה של טקסטים יהודיים",
       "Recently Viewed" : "נצפו לאחרונה",
       "The Sefaria Library": "תוכן העניינים של ספריא",
       "Sefaria Search": "חיפוש בספריא",
       "Sefaria Account": "חשבון בספריא",
-      "New Additions to the Sefaria Library":"חידושים בארון הספרים של ספריא",
+      "New Additions to the Sefaria Library": "חידושים בארון הספרים של ספריא",
       "My Notes on Sefaria": "ההערות שלי בספריא",
       "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.": "טקסטים ודפי מקורות מן התורה, התלמוד וספריית המקורות של ספריא.",
       "Moderator Tools": "כלי מנהלים",
@@ -2220,25 +2228,19 @@ _media: {},
       " & ": " | ",
       "My Source Sheets" : "דפי המקורות שלי",
       "Public Source Sheets":"דפי מקורות פומביים",
-      "History": "היסטוריה",
-      "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
-      "Public Domain": "בנחלת הכלל",
-      "CC-BY": "CC-BY",
-      "CC-BY-NC": "CC-BY-NC",
-      "CC-BY-SA": "CC-BY-SA",
-      "CC-BY-NC-SA": "CC-BY-NC-SA",
-      "CC0": "CC0",
-      "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
 
-      //sheets
+      // Sheets
       "Source Sheets": "דפי מקורות",
       "Start a New Source Sheet": "התחלת דף מקורות חדש",
       "Untitled Source Sheet" : "דף מקורות ללא שם",
       "New Source Sheet" : "דף מקורות חדש",
       "Name New Sheet" : "כותרת לדף המקורות",
       "Copy" : "העתקה",
+      "Edit": "עריכה",
+      "View in Editor": "לתצוגת עריכה",
       "Copied" : "הועתק",
       "Copying..." : "מעתיק...",
+      "Delete": "מחיקה",
       "Sorry, there was a problem saving your note.": "סליחה, ארעה שגיאה בזמן השמירה",
       "Unfortunately, there was an error saving this note. Please try again or try reloading this page.": "ארעה שגיאה בזמן השמירה. אנא נסו שוב או טענו את הדף מחדש",
       "Are you sure you want to delete this note?": "האם אתם בטוחים שברצונכם למחוק?",
@@ -2254,12 +2256,8 @@ _media: {},
       "Please select a source sheet.": "אנא בחרו דף מקורות.",
       "New Source Sheet Name:" : "כותרת דף מקורות חדש:",
       "Source Sheet by" : "דף מקורות מאת",
-      "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
-      "Pinned Sheet" : "דף מקורות נעוץ",
-      "Pin Sheet" : "נעיצת דף מקורות",
       "Created with": 'נוצר עבורך ע"י',
-
-      //stuff moved from sheets.js
+      " hasn't shared any sheets yet.": " טרם שיתפ/ה דפי מקורות כלשהם",
       "Loading..." : "טוען...",
       "Saving..." : "שומר...",
       "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
@@ -2272,7 +2270,6 @@ _media: {},
       "לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
       "Are you sure you want to remove this?": "בטוח שברצונך למחוק?",
       "Would you like to save this sheet? You only need to save once, after that changes are saved automatically.": "רוצה לשמור את הדף הזה? כל שעליך לעשות הוא לשמור פעם אחת – לאחר מכן השינויים יישמרו באופן אוטומטי.",
-      //"Untitled Source Sheet": "דף מקורות ללא שם",
       "Like": "אהבתי",
       "Unlike": "ביטול סימון אהבתי",
       "No one has liked this sheet yet. Will you be the first?":
@@ -2302,9 +2299,9 @@ _media: {},
       "Remove": "הסרת מקור",
       "Create New" : "יצירת חדש",
       "Close" : "סגירה",
-      "by": "", // by line on sheets in reader, left blank
+      "by": "", // by line on sheets in reader, intentionally left blank
 
-      //reader panel
+      // Reader Panel
       "Search" : "חיפוש",
       "Search Dictionary": "חפש במילון",
       "Search for": "חיפוש",
@@ -2331,13 +2328,76 @@ _media: {},
       "Send": "שלח",
       "Cancel": "בטל",
       "Send a message to ": "שלח הודעה ל-",
-      "Groups": "קבוצות",
       "Following": "נעקבים",
       "Followers": "עוקבים",
       "following": "נעקבים",
       "followers": "עוקבים",
       "Recent": "תאריך",
       "Unlisted": "חסוי",
+      "History": "היסטוריה",
+      "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
+      "Public Domain": "בנחלת הכלל",
+      "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
+
+      // Collections
+      // Edit collection page
+      "Collections": "אסופות",
+      "Sefaria Collections": "אסופות של ספריא",
+      "Edit Collection": "עריכת אסופה",
+      "Create a Collection": "יצירת אסופה",
+      "Create a New Collection": "יצירת אסופה חדשה",
+      "Collection Name": "שם האסופה",
+      "Website": "כתובת אתר",
+      "Description": "תיאור",
+      "Collection Image": "תמונת האסופה",
+      "Upload Image": "העלאת תמונה",
+      "Recommended size: 350px x 350px or larger": 'גודל מומלץ: לפחות 350 פיקסל ע"ג 350 פיקסל',
+      "Default Sheet Header": "כותרת עמוד ראשונית",
+      "Recommended size: 1000px width to fill sheet, smaller images align right": "גודל מומלץ: 1000 פיקסל כדי למלא את חלל הדף. גודל קטן יותר יתיישר לימין",
+      "List on Sefaria": "הצג לכלל משתמשי ספריא",
+      "Your collection will appear on the public collections page where others can find it.": "האסופה שלך תופיע בדף האסופות הציבוריות ותהיה זמינה לעיון של משתמשות ומשתמשים אחרים.",
+      "Delete Collection": "מחיקת אסופה",
+      "Are you sure you want to delete this collection? This cannot be undone.": "האם ברצונך למחוק את האסופה הזו? אין אפשרות לבטל את הפעולה אחר כך.",
+      "You have unsaved changes to your collection.": "האסופה שלך כוללת שינויים שלא נשמרו.",
+      "Images must be smaller than ": "תמונות חייבות להיות קטנות מ",
+      "Unfortunately an error occurred uploading your file.": "אירעה שגיאה בהעלאת הקובץ שלך.",
+      "Unfortunately an error occurred saving your collection.": "אירעה שגיאה בשמירת האסופה שלך.",
+      "Unfortunately an error occurred deleting your collection.": "אירעה שגיאה במחיקת האסופה שלך.",
+      // Collection Page
+      "Owner": "מנהל/ת",
+      "Editor": "עורך/ה",
+      "Editors": "עורכים",
+      "There are no sheets in this collection yet.": "לאסופה זו טרם נוספו דפי מקורות.",
+      "You can add sheets to this collection on your profile.": "באפשרותך להוסיף דפי מקורות לאסופה הזאת דרך הפרופיל האישי שלך.",
+      "Open Profile": "לפרופיל האישי",
+      "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
+      "Pinned Sheet" : "דף מקורות נעוץ",
+      "Pin Sheet" : "נעיצת דף מקורות",
+      "can invite & edit settings": "יכולים לשלוח הזמנות ולערוך את ההגדרות",
+      "can add & remove sheets": "יכולים להוסיף ולערוך דפים",
+      "Leave Collection": "עזיבת האסופה",
+      "Invite": "שליחת הזמנה",
+      "Inviting...": "שולח...",
+      "Invitation Sent": "נשלח",
+      "Invited": "הוזמן",
+      "Resend Invitation": "שליחת הזמנה חוזרת",
+      "Invitation Resent": "ההזמנה החוזרת נשלחה",
+      "There was an error sending your invitation.": "אירעה שגיאה בשליחת ההזמנה שלך.",
+      "Remove": "הסרה",
+      "Are you sure you want to change your collection role? You won't be able to undo this action unless another owner restores your permissions.": "האם ברצונך לשנות את ההרשאה שלך באסופה? פעולה זו היא בלתי הפיכה, ולאחריה רק מנהלים אחרים של האסופה יוכל לשחזר את ההרשאות שלך.",
+      "Are you sure you want to leave this collection?": "האם ברצונך לעזוב את האסופה?",
+      "Are you sure you want to remove this person from this collection?": "האם ברצונך להסיר משתמש זה מן האסופה?",
+      "Are you sure you want to remove this invitation?": "האם ברצונך למחוק הזמנה זו?",
+      "There was an error pinning your sheet.": "אירעה שגיאה בצירוף דף המקורות.",
+      // Public Collections Page
+      "There are no public collections yet.": "טרם נוצרו אסופות ציבוריות",
+      // Collects in Profile
+      "You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.": "באפשרותך ליצור אסופות כדי לארגן את דפי המקורות שלך או דפי מקורות פתוחים לשימוש שאהבת. את האסופות אפשר לשתף באופן פרטי או לפרסם באופן ציבורי באתר ספריא.",
+      " hasn't shared any collections yet.": " טרם שיתפ/ה אסופות כלשהם",
+      "Create new collection": "יצירת אסופה חדשה",
+      "Create": "יצירת",
+      "Done": "בוצע",
+      "Add to Collection": "צירוף לאסופה",
 
       //languages
       "English": "אנגלית",
@@ -2354,6 +2414,7 @@ _media: {},
       "Russian": "רוסית",
       "Esparanto": "אספרנטו",
       "Persian": "פרסי",
+
       "On": "הצג",
       "Off": "הסתר",
       "Show Parasha Aliyot": "עליות לתורה מוצגות",
@@ -2409,6 +2470,8 @@ _media: {},
       "based on": "ע“פ",
       "research of Dr. Michael Sperling": "המחקר של ד\"ר מיכאל ספרלינג",
       "Read the Portion": "קראו את הפרשה",
+      "My Notes": "הרשומות שלי",
+      "Updates": "טקסטים חדשים",
 
       //user stats
       "Torah Tracker" : "לימוד במספרים",
@@ -2420,15 +2483,19 @@ _media: {},
       "Average Sefaria User" : "משתמש ממוצע בספריא",
       "Etc": "שאר",
 
-      //chavruta
+      // Chavruta
       "Learn with a Chavruta": "ללמוד עם חברותא",
       "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הזה:",
       "Start Call": "התחלת שיחה",
 
-      //subscribe & register
+      // Subscribe & Register
       "Please enter a valid email address.": 'כתובת הדוא"ל שהוזנה אינה תקינה.',
       "Subscribed! Welcome to our list.": "הרשמה בוצעה בהצלחה!",
       "Sorry, there was an error.": "סליחה, ארעה שגיאה",
+
+      // Footer
+      "Connect": "צרו קשר",
+      "Site Language": "שפת האתר",
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
@@ -2450,24 +2517,29 @@ _media: {},
 	}
   },
   _: function(inputStr){
+    if (!inputStr.toLowerCase) debugger;
     if(Sefaria.interfaceLang != "english"){
-        var hterm;
-        if(inputStr in Sefaria._i18nInterfaceStrings) {
-            return Sefaria._i18nInterfaceStrings[inputStr];
-        }else if(inputStr.toLowerCase() in Sefaria._i18nInterfaceStrings){
-            return Sefaria._i18nInterfaceStrings[inputStr.toLowerCase()];
-        }else if((hterm = Sefaria.hebrewTerm(inputStr)) != inputStr){
-            return hterm;
-        }else{
-            if(inputStr.indexOf(" | ") !== -1) {
-                 var inputStrs = inputStr.split(" | ");
-                 return Sefaria._(inputStrs[0])+ " | " + Sefaria._(inputStrs[1]);
-            }else{
-                return inputStr;
-            }
+      var hterm;
+      if(inputStr in Sefaria._i18nInterfaceStrings) {
+        return Sefaria._i18nInterfaceStrings[inputStr];
+      
+      } else if (inputStr.toLowerCase() in Sefaria._i18nInterfaceStrings){
+        return Sefaria._i18nInterfaceStrings[inputStr.toLowerCase()];
+      
+      } else if ((hterm = Sefaria.hebrewTerm(inputStr)) != inputStr){
+        return hterm;
+      
+      } else {
+        if (inputStr.indexOf(" | ") !== -1) {
+          var inputStrs = inputStr.split(" | ");
+          return Sefaria._(inputStrs[0])+ " | " + Sefaria._(inputStrs[1]);
+        } else {
+          console.warn("Missing Hebrew translation for: " + inputStr);
+          return inputStr;
         }
-    }else{
-        return inputStr;
+      }
+    } else {
+      return inputStr;
 	  }
   },
   _cacheSiteInterfaceStrings: function() {
@@ -2604,8 +2676,8 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.topSheets) {
     Sefaria.sheets._topSheets = props.topSheets;
   }
-  if (props.groupData) {
-    Sefaria._groups[props.initialGroup] = props.groupData;
+  if (props.collectionData) {
+    Sefaria._collections[props.initialCollectionSlug] = props.collectionData;
   }
   if (props.topicData) {
     Sefaria._topics[props.initialTopic] = Sefaria.processTopicsData(props.topicData);
@@ -2616,24 +2688,29 @@ Sefaria.unpackDataFromProps = function(props) {
   if (props.userHistory) {
       Sefaria._userHistory.history = props.userHistory;
   }
-  if (props.groupListing) {
-      Sefaria._groupsList.list = props.groupListing;
+  if (props.collectionListing) {
+      Sefaria._collectionsList.list = props.collectionListing;
   }
   Sefaria.util._initialPath = props.initialPath ? props.initialPath : "/";
   const dataPassedAsProps = [
       "_uid",
-      "interfaceLang",
-      "calendars",
+      "_email",
+      "slug",
       "is_moderator",
       "is_editor",
+      "full_name",
+      "profile_pic_url",
+      "is_history_enabled",
+      "following",
+
+      "calendars",
       "notificationCount",
       "notificationsHtml",
       "saved",
       "last_place",
-      "full_name",
-      "profile_pic_url",
-      "following",
-      "is_history_enabled",
+      "interfaceLang",
+      "interruptingMessage",
+
       "_siteSettings",
       "_debug",
   ];
@@ -2674,19 +2751,6 @@ Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(re
 
 
 Sefaria.setup = function(data) {
-    // data parameter is optional. in the event it isn't passed, we assume that DJANGO_DATA_VARS exists as a global var
-    // data should but defined server-side and undefined client-side
-
-    /*if (typeof data === "undefined") {
-        data = typeof DJANGO_DATA_VARS === "undefined" ? undefined : DJANGO_DATA_VARS;
-    }
-    if (typeof data !== 'undefined') {
-        for (var prop in data) {
-            if (data.hasOwnProperty(prop)) {
-                Sefaria[prop] = data[prop];
-            }
-        }
-    }*/
     Sefaria.loadServerData(data);
     Sefaria.util.setupPrototypes();
     Sefaria.util.setupMisc();

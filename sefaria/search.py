@@ -29,6 +29,7 @@ from elasticsearch.exceptions import NotFoundError
 from sefaria.model import *
 from sefaria.model.text import AbstractIndex
 from sefaria.model.user_profile import user_link, public_user_data
+from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
@@ -131,6 +132,8 @@ def index_sheet(index_name, id):
         if not topic_obj:
             continue
         topics += [topic_obj]
+    collections = CollectionSet({"sheets": id, "listed": True})
+    collection_names = [c.name for c in collections]
     try:
         doc = {
             "title": strip_tags(sheet["title"]),
@@ -146,7 +149,7 @@ def index_sheet(index_name, id):
             "topics_he": [topic_obj.get_primary_title('he') for topic_obj in topics],
             "sheetId": id,
             "summary": sheet.get("summary", None),
-            "group": sheet.get("group", ''),
+            "collections": collection_names,
             "datePublished": sheet.get("datePublished", None),
             "dateCreated": sheet.get("dateCreated", None),
             "dateModified": sheet.get("dateModified", None),
@@ -372,7 +375,7 @@ def put_sheet_mapping(index_name):
             'sheetId': {
                 'type': 'integer'
             },
-            'group': {
+            'collections': {
                 'type': 'keyword'
             },
             'title': {
@@ -432,7 +435,7 @@ class TextIndexer(object):
             elif "contents" in mini_toc:
                 for t in mini_toc["contents"]:
                     traverse(t)
-            elif "title" in mini_toc and not mini_toc.get("isGroup", False):
+            elif "title" in mini_toc and not mini_toc.get("isCollection", False):
                 title = mini_toc["title"]
                 try:
                     r = Ref(title)

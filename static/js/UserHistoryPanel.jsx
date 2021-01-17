@@ -76,7 +76,7 @@ class UserHistoryPanel extends Component {
     ) : (<LoadingMessage />);
 
 
-    const title = this.props.menuOpen === "saved" ? Sefaria._("Saved") : Sefaria._("History");
+    const title = this.props.menuOpen === "saved" ? "Saved" : "History";
     const footer = this.props.compare ? null : <Footer />;
     const navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, compare:this.props.compare, noLangToggleInHebrew: 1});
     const navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
@@ -85,8 +85,7 @@ class UserHistoryPanel extends Component {
       <div onClick={this.props.handleClick} className={navMenuClasses}>
         {this.props.hideNavHeader ? null :
           <SinglePanelNavHeader
-            enTitle={title}
-            heTitle={title}
+            title={title}
             navHome={this.navHome}
             showDisplaySettings={this.props.interfaceLang !== "hebrew"}
             openDisplaySettings={this.props.openDisplaySettings}/>}
