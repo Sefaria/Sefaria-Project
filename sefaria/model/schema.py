@@ -959,7 +959,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
                 else:
                     reg = rf"{parens_lookbehind}{prefix_group})"
             else:
-                word_break_group = r'(?:^|\s|\(|\[)'
+                word_break_group = r'(?:^|\s|\(|\[|-|/)' #r'(?:^|\s|\(|\[)'
                 if kwargs.get("for_js"):
                     reg = rf"{word_break_group}{prefix_group}"  # safari still does not support lookbehinds (although this issue shows they're working on it https://bugs.webkit.org/show_bug.cgi?id=174931)
                 else:
@@ -2206,7 +2206,7 @@ class AddressInteger(AddressType):
             reg = r"("
 
         if lang == "en":
-            reg += r"\d+)"
+            reg += r"\d+)"# r"\d+)"
         elif lang == "he":
             reg += self.hebrew_number_regex() + r")"
 
