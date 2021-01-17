@@ -2389,8 +2389,8 @@ _media: {},
       "You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.": "באפשרותך ליצור אסופות כדי לארגן את דפי המקורות שלך או דפי מקורות פתוחים לשימוש שאהבת. את האסופות אפשר לשתף באופן פרטי או לפרסם באופן ציבורי באתר ספריא.",
       " hasn't shared any collections yet.": " טרם שיתפ/ה אסופות כלשהם",
       "Create new collection": "יצירת אסופה חדשה",
-      "Create": "יצירת",
-      "Done": "בוצע",
+      "Create": "שמירה",
+      "Done": "סיום",
       "Add to Collection": "צירוף לאסופה",
 
       //languages
