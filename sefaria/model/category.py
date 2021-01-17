@@ -373,7 +373,7 @@ class TocNode(schema.TitledTreeNode):
             d["contents"] = [n.serialize(**kwargs) for n in self.children]
 
         params = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if
-                  getattr(self, k, "BLANKVALUE") is not "BLANKVALUE"}
+                  getattr(self, k, "BLANKVALUE") != "BLANKVALUE"}
         if any(params):
             d.update(params)
 

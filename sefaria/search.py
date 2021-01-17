@@ -261,7 +261,7 @@ def create_index(index_name, type):
             }
         }
     }
-    print('CReating index {}'.format(index_name))
+    print('Creating index {}'.format(index_name))
     index_client.create(index=index_name, body=settings)
 
     if type == 'text' or type == 'merged':

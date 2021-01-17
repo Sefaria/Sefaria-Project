@@ -90,29 +90,6 @@ ts = ["Shoel uMeshiv Mahadura I",
 for t in ts:
     moveIndexInto(t, c)
 
-# Contemporary .. into Halacha
-c = create_category(["Halakhah", "Contemporary Halakhic Problems"], en="Contemporary Halakhic Problems",
-                    he='בעיות הלכתיות עכשוויות')
-ts = [
-    'Contemporary Halakhic Problems, Vol I',
-    'Contemporary Halakhic Problems, Vol II',
-    'Contemporary Halakhic Problems, Vol III',
-    'Contemporary Halakhic Problems, Vol IV',
-    'Contemporary Halakhic Problems, Vol V',
-    'Contemporary Halakhic Problems, Vol VI']
-for t in ts:
-    moveIndexInto(t, c)
-
-# Gray Matter into Halacha
-c = create_category(["Halakhah", "Gray Matter"], en="Gray Matter", he='גריי מאטר')
-ts = [
-    'Gray Matter I',
-    'Gray Matter II',
-    'Gray Matter III',
-    'Gray Matter IV',
-]
-for t in ts:
-    moveIndexInto(t, c)
 
 # Marei HaBazak to subcat
 c = create_category(["Responsa", "B'Mareh HaBazak"], en="B'Mareh HaBazak", he='שו"ת במראה הבזק')
@@ -314,11 +291,6 @@ moveIndexInto('Abraham Cohen Footnotes to the English Translation of Masechet Be
               ["Talmud", "Bavli", "Commentary"])
 
 # Reorg Halacha
-cat_ivh = create_category(["Halakhah", "Issur v'Heter"], "Issur v'Heter", "איסור והיתר")
-books_ivh = ["Issur V'Heter L'Rabbeinu Yerucham",
-             'Issur veHeter leRashi',
-             'Torat HaBayit HaAroch',
-             'Torat HaBayit HaKatzar']
 
 cat_mitzvot = create_category(["Halakhah", "Sifrei Mitzvot"], "Sifrei Mitzvot", "ספרי מצוות")
 books_mitzvot = ['Sefer Hamitzvot of Rasag',
@@ -330,28 +302,8 @@ books_mitzvot = ['Sefer Hamitzvot of Rasag',
                  'Sefer Yereim',
                  'Kitzur Sefer Haredim of Rabbi Elazar Azcari']
 
-cat_mono = create_category(["Halakhah", "Monographs"], "Monographs", "ספרי מונוגרפיה")
-books_mono = ['Chofetz Chaim',
-              'The Sabbath Epistle',
-              'Treasures Hidden in the Sand',
-              'Bedikat HaSakin',
-              "Dina d'Garmei",
-              'Ein HaTekhelet',
-              'Gevurat Anashim',
-              'Hilchos Talmud Torah',
-              'Keset HaSofer',
-              'Piskei Challah',
-              'Ptil Tekhelet',
-              "Sha'ar HaMayim HaAroch",
-              "Sha'ar HaMayim HaKatzar",
-              'Shulchan Shel Arba',
-              'Care of the Critically Ill',
-              "Ahavat Chesed",
-              "Shev Shmat'ta",
-              'Mateh Efrayim',
-              'Simla Chadasha']
 
-cat_other_r = create_category(["Halakhah", "Other Rishonim"], "Other Rishonim", "ראשונים נוספים")
+cat_other_r = create_category(["Halakhah", "Rishonim"], "Rishonim", "ראשונים")
 books_other_r = ['Ohr Zarua',
                  'Kol Bo',
                  'Abudarham',
@@ -360,13 +312,36 @@ books_other_r = ['Ohr Zarua',
                  'Sefer Chasidim',
                  'Sefer HaParnas',
                  "Sheiltot d'Rav Achai Gaon",
+                 'The Sabbath Epistle',
+                 'Bedikat HaSakin',
+                 "Dina d'Garmei",
+                 'Piskei Challah',
+                 "Sha'ar HaMayim HaAroch",
+                 "Sha'ar HaMayim HaKatzar",
+                 'Shulchan Shel Arba',
+                "Issur V'Heter L'Rabbeinu Yerucham",
+                'Issur veHeter leRashi',
+                'Torat HaBayit HaAroch',
+                'Torat HaBayit HaKatzar'
                  ]
 
-cat_other_a = create_category(["Halakhah", "Other Acharonim"], "Other Acharonim", "אחרונים נוספים")
+cat_other_a = create_category(["Halakhah", "Acharonim"], "Acharonim", "אחרונים")
 books_other_a = ['Maaseh Rav',
                  'Nehar Misrayim',
                  'Shulchan Aruch HaRav',
+                 'Chofetz Chaim',
+                 "Ahavat Chesed",
+                 "Shev Shmat'ta",
+                 'Ptil Tekhelet',
+                 'Ein HaTekhelet',
+                 'Treasures Hidden in the Sand',
+                 'Gevurat Anashim',
+                 'Hilchos Talmud Torah',
+                 'Keset HaSofer',
+                 'Mateh Efrayim',
+                 'Simla Chadasha',
                  ]
+moveCategoryInto(["Halakhah", "Avodat HaKodesh (Chida)"], cat_other_a)
 
 cat_shm = create_category(["Halakhah", "Sifrei Mitzvot", 'Sefer HaMitzvot'],'Sefer HaMitzvot','ספר המצוות')
 moveIndexInto('Sefer HaMitzvot', cat_shm)
@@ -380,13 +355,38 @@ on_sefer_hamitzvot = [
     "Megilat Esther on Sefer HaMitzvot",
 ]
 
+cat_modern_halakhah = create_category(["Halakhah", "Modern"], "Modern", "ספרות מודרנית")
+books_modern_halakhah = ['Care of the Critically Ill']
+moveCategoryInto(["Halakhah", "Peninei Halakhah"], cat_modern_halakhah)
+
+# Contemporary .. into Halacha
+cat_chp = create_category(["Halakhah", "Modern", "Contemporary Halakhic Problems"], en="Contemporary Halakhic Problems",
+                    he='בעיות הלכתיות עכשוויות')
+books_chp = [
+    'Contemporary Halakhic Problems, Vol I',
+    'Contemporary Halakhic Problems, Vol II',
+    'Contemporary Halakhic Problems, Vol III',
+    'Contemporary Halakhic Problems, Vol IV',
+    'Contemporary Halakhic Problems, Vol V',
+    'Contemporary Halakhic Problems, Vol VI']
+
+# Gray Matter into Halacha
+cat_gm = create_category(["Halakhah", "Modern", "Gray Matter"], en="Gray Matter", he='גריי מאטר')
+books_gm = [
+    'Gray Matter I',
+    'Gray Matter II',
+    'Gray Matter III',
+    'Gray Matter IV',
+]
+
 for cat, books in [
-    (cat_mono, books_mono),
     (cat_mitzvot, books_mitzvot),
-    (cat_ivh, books_ivh),
     (cat_other_r, books_other_r),
     (cat_other_a, books_other_a),
-    (cat_shm_com, on_sefer_hamitzvot)
+    (cat_shm_com, on_sefer_hamitzvot),
+    (cat_modern_halakhah, books_modern_halakhah),
+    (cat_gm, books_gm),
+    (cat_chp, books_chp),
 ]:
     for book in books:
         moveIndexInto(book, cat)
@@ -1040,7 +1040,7 @@ for p in [
     ["Halakhah", "Shulchan Arukh"],
     ["Halakhah", "Tur"],
     ["Kabbalah", "Sefer Yetzirah"],
-    ["Jewish Thought", "Rishonim", "Duties of the Heart"]
+    # ["Jewish Thought", "Rishonim", "Duties of the Heart"]
 ]:
     c = Category().load({"path": p})
     c.isPrimary = True
@@ -1154,9 +1154,6 @@ for c in cs:
     else:
         print("Category without term: {}".format(c.get_primary_title()))
 
-# Category without term: Motar Kinnim
 # Category without term: Eliezer Berkovits
-
-#	Alphabetical  (? really?  not crono?)
 # Click Talmud -> Commentary of Chida (crash)
 
