@@ -73,7 +73,7 @@ def moveCategoryInto(cat, parent):
     """
 
 
-def create_category(path, en=None, he=None):
+def create_category(path, en=None, he=None, searchRoot=None):
     c = Category()
     if not Term().load({"name": path[-1]}):
         if en is None or he is None:
@@ -87,6 +87,8 @@ def create_category(path, en=None, he=None):
     c.add_shared_term(path[-1])
     c.path = path
     c.lastPath = path[-1]
+    if searchRoot is not None:
+        c.searchRoot = searchRoot
     print("Creating - {}".format(" / ".join(c.path)))
     c.save(override_dependencies=True)
     return c

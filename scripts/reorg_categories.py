@@ -845,10 +845,10 @@ rr_books = ['Redeeming Relevance; Deuteronomy',
 
 moveCategoryInto(["Tanakh", "Commentary", "Malbim Beur Hamilot"], ["Tanakh", "Commentary", "Malbim"])
 
-ri_cat = create_category(["Tanakh", "Rishonim on Tanakh"], "Rishonim on Tanakh", "ראשונים על התנ״ך")
-ah_cat = create_category(["Tanakh", "Acharonim on Tanakh"], "Acharonim on Tanakh", "אחרונים על התנ״ך")
+ri_cat = create_category(["Tanakh", "Rishonim on Tanakh"], "Rishonim on Tanakh", "ראשונים על התנ״ך", searchRoot="Tanakh Commentary")
+ah_cat = create_category(["Tanakh", "Acharonim on Tanakh"], "Acharonim on Tanakh", "אחרונים על התנ״ך", searchRoot="Tanakh Commentary")
 mo_cat = create_category(["Tanakh", "Modern Commentary on Tanakh"], "Modern Commentary on Tanakh",
-                           "פירושים מודרניים על התנ״ך")
+                           "פירושים מודרניים על התנ״ך", searchRoot="Tanakh Commentary")
 chida_cat = create_category(["Tanakh", "Acharonim on Tanakh", "Chida"], "Chida", 'חיד״א')
 rr_cat = create_category(["Tanakh", "Modern Commentary on Tanakh", "Redeeming Relevance"], "Redeeming Relevance", "פדיון הרלוונטיות")
 
@@ -921,10 +921,10 @@ co = [
     "Footnotes and Annotations on Derech Chaim",
 ]
 
-ri_cat = create_category(["Mishnah", "Rishonim on Mishnah"], "Rishonim on Mishnah", "ראשונים על המשנה")
-ah_cat = create_category(["Mishnah", "Acharonim on Mishnah"], "Acharonim on Mishnah", "אחרונים על המשנה")
+ri_cat = create_category(["Mishnah", "Rishonim on Mishnah"], "Rishonim on Mishnah", "ראשונים על המשנה", searchRoot="Mishnah Commentary")
+ah_cat = create_category(["Mishnah", "Acharonim on Mishnah"], "Acharonim on Mishnah", "אחרונים על המשנה", searchRoot="Mishnah Commentary")
 mo_cat = create_category(["Mishnah", "Modern Commentary on Mishnah"], "Modern Commentary on Mishnah",
-                           "פירושים מודרניים על המשנה")
+                           "פירושים מודרניים על המשנה", searchRoot="Mishnah Commentary")
 
 groups = [
     (ri, ri_cat),
@@ -1010,10 +1010,10 @@ rc = [
 ]
 
 
-ri_cat = create_category(["Talmud", "Bavli", "Rishonim on Talmud"], "Rishonim on Talmud", "ראשונים על התלמוד")
-ah_cat = create_category(["Talmud", "Bavli", "Acharonim on Talmud"], "Acharonim on Talmud", "אחרונים על התלמוד")
+ri_cat = create_category(["Talmud", "Bavli", "Rishonim on Talmud"], "Rishonim on Talmud", "ראשונים על התלמוד", searchRoot="Talmud Commentary")
+ah_cat = create_category(["Talmud", "Bavli", "Acharonim on Talmud"], "Acharonim on Talmud", "אחרונים על התלמוד", searchRoot="Talmud Commentary")
 mo_cat = create_category(["Talmud", "Bavli", "Modern Commentary on Talmud"], "Modern Commentary on Talmud",
-                           "פירושים מודרניים על התלמוד")
+                           "פירושים מודרניים על התלמוד", searchRoot="Talmud Commentary")
 rc_cat = create_category(["Talmud", "Bavli", "Rishonim on Talmud", "Rosh", "Commentary"])
 
 groups = [
