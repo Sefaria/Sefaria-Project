@@ -11,7 +11,7 @@ from .model.category import CATEGORY_ORDER, TOP_CATEGORIES, REVERSE_ORDER
 import logging
 logger = logging.getLogger(__name__)
 
-
+# Called from Library.get_search_filter_toc
 def update_search_filter_table_of_contents():
     search_toc = []
     # Add an entry for every text we know about
@@ -26,7 +26,9 @@ def update_search_filter_table_of_contents():
     # Recursively sort categories and texts
     return sort_toc_node(search_toc, recur=True)
 
-
+# Called internally from
+# update_search_filter_table_of_contents
+# update_title_in_toc
 def get_toc_categories(index_obj, for_search=False):
     cats = index_obj.categories[:]
     if cats[0] not in TOP_CATEGORIES:
@@ -40,7 +42,7 @@ def get_toc_categories(index_obj, for_search=False):
 
     return cats
 
-
+# Called from Library.delete_index_from_toc
 def recur_delete_element_from_toc(bookname, toc):
     for toc_elem in toc:
         #base element, a text- check if title matches.
@@ -57,7 +59,7 @@ def recur_delete_element_from_toc(bookname, toc):
                 toc_elem['to_delete'] = True
     return toc
 
-
+# Called from Library.update_index_in_toc and Library.recount_index_in_toc
 def update_title_in_toc(toc, index, old_ref=None, recount=True, for_search=False):
     """
     Update text summary docs to account for change or insertion of 'text'
@@ -85,6 +87,9 @@ def update_title_in_toc(toc, index, old_ref=None, recount=True, for_search=False
     return toc
 
 
+# used locally in:
+# update_title_in_toc
+# update_search_filter_table_of_contents
 def get_or_make_summary_node(summary, nodes, contents_only=True, make_if_not_found=True):
     """
     Returns the node in 'summary' that is named by the list of categories in 'nodes',
@@ -114,7 +119,7 @@ def get_or_make_summary_node(summary, nodes, contents_only=True, make_if_not_fou
     else:
         return None
 
-
+# used locally in sort_toc_node
 def node_sort_key(a):
     """
     Sort function for texts/categories per below.
@@ -141,6 +146,9 @@ def node_sort_key(a):
     return False, 9999
 
 
+# used locally in
+# update_title_in_toc
+# update_search_filter_table_of_contents
 def sort_toc_node(node, recur=False):
     """
     Sort the texts and categories in node according to:
@@ -165,6 +173,7 @@ def sort_toc_node(node, recur=False):
 
 
 # next three are to deprecate.  Used only in workflows.py
+# used in workflows.py - next_untranslated_text_in_category
 def get_texts_summaries_for_category(category):
     """
     Returns the list of texts records in the table of contents corresponding to "category".
@@ -174,7 +183,7 @@ def get_texts_summaries_for_category(category):
     if matched_category:
         return extract_text_records_from_toc(matched_category["contents"])
 
-
+# used locally in get_texts_summaries_for_category
 def find_category_node(category, toc):
     matched_category_elem = None
     for elem in toc:
@@ -188,7 +197,7 @@ def find_category_node(category, toc):
                     break
     return matched_category_elem
 
-
+# used locally in get_texts_summaries_for_category
 def extract_text_records_from_toc(toc):
     summary = []
     for elem in toc:
@@ -197,37 +206,3 @@ def extract_text_records_from_toc(toc):
         else:
             summary += [elem]
     return summary
-
-'''
-def flatten_toc(toc, include_categories=False, categories_in_titles=False, version_granularity=False):
-    # Being deprecated.  Moving to TocTree.flatten()
-    """
-    Returns an array of strings which corresponds to each category and text in the
-    Table of Contents in order.
-
-    - categories_in_titles: whether to include each category preceding a text title,
-        e.g., "Tanach > Torah > Genesis".
-    - version_granularity: whether to include a separate entry for every text version.
-    """
-    results = []
-    for x in toc:
-        name = x.get("category", None) or x.get("title", None)
-        if "category" in x:
-            if include_categories:
-                results += [name]
-            subcats = flatten_toc(x["contents"], categories_in_titles=categories_in_titles) if "contents" in x else []
-            if categories_in_titles:
-                subcats = ["%s > %s" %(name, y) for y in subcats]
-            results += subcats
-
-        elif "title" in x:
-            if not version_granularity:
-                results += [name]
-            else:
-                versions = Ref(name).version_list()
-                for v in versions:
-                    lang = {"he": "Hebrew", "en": "English"}[v["language"]]
-                    results += ["%s > %s > %s.json" % (name, lang, v["versionTitle"])]
-
-    return results
-'''

@@ -606,12 +606,11 @@ class TextIndexer(object):
         """
         Create a document for indexing from the text specified by ref/version/lang
         """
-        oref = Ref(tref)
-        text = TextFamily(oref, context=0, commentary=False, version=version, lang=lang).contents()
-
         if not content:
             # Don't bother indexing if there's no content
             return False
+
+        oref = Ref(tref)
 
         content_wo_cant = strip_cantillation(content, strip_vowels=False).strip()
         content_wo_cant = re.sub(r'<[^>]+>', '', content_wo_cant)
@@ -619,15 +618,15 @@ class TextIndexer(object):
         if len(content_wo_cant) == 0:
             return False
 
-        if getattr(cls.curr_index, "dependence", None) == 'Commentary' and "Commentary" in text["categories"]:  # uch, special casing
-            temp_categories = text["categories"][:]
+        if getattr(cls.curr_index, "dependence", None) == 'Commentary' and "Commentary" in oref.index.categories:  # uch, special casing
+            temp_categories = oref.index.categories[:]
             temp_categories.remove('Commentary')
             temp_categories[0] += " Commentaries"  # this will create an additional bucket for each top level category's commentary
         else:
             temp_categories = categories
 
         tp = cls.best_time_period
-        if not tp is None:
+        if tp is not None:
             comp_start_date = int(tp.start)
         else:
             comp_start_date = 3000  # far in the future
@@ -643,7 +642,7 @@ class TextIndexer(object):
             "version": version,
             "lang": lang,
             "version_priority": version_priority if version_priority is not None else 1000,
-            "titleVariants": text["titleVariants"],
+            "titleVariants": oref.index_node.all_tree_titles("en"),
             "categories": temp_categories,
             "order": oref.order_id(),
             "path": "/".join(temp_categories + [cls.curr_index.title]),
@@ -830,12 +829,12 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
     #index_client.put_settings(index=index_names_dict['new'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
     index_client.put_alias(index=index_names_dict['new'], name=index_names_dict['alias'])
     if merged:
-        # backwards compart for android
+        # backwards compat for android
         index_client.put_alias(index=index_names_dict['new'], name="merged-c")
     if index_names_dict['new'] != index_names_dict['current']:
         clear_index(index_names_dict['current'])
 
-
+'''
 def index_all_commentary_refactor(skip=0, merged=False, debug=False):
     start = datetime.now()
 
@@ -847,3 +846,4 @@ def index_all_commentary_refactor(skip=0, merged=False, debug=False):
 
     end = datetime.now()
     print("Elapsed time: %s" % str(end-start))
+'''

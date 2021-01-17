@@ -9,7 +9,6 @@ from sefaria.site.categories import REVERSE_ORDER, CATEGORY_ORDER, TOP_CATEGORIE
 from . import abstract as abstract
 from . import schema as schema
 from . import text as text
-from . import link as link
 from . import collection as collection
 
 
@@ -302,6 +301,7 @@ class TocTree(object):
         try:
             return self._path_hash[path]
         except KeyError:
+            # todo: remove this try, after getting rid of the "Other" cat.
             try:
                 return self._path_hash[tuple(["Other"]) + path]
             except KeyError:

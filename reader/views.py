@@ -642,19 +642,16 @@ def texts_category_list(request, cats):
         cats = cats.replace("Tanach", "Tanakh")
         return redirect("/texts/%s" % cats)
 
-    cats  = cats.split("/")
-    if cats != ["recent"]:
-        toc        = library.get_toc()
-        cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
-        if cat_toc is None or len(cats) == 0:
+    if cats == "recent":
+        title = _("Recently Viewed")
+        desc  = _("Texts that you've recently viewed on Sefaria.")
+    else:
+        cats = cats.split("/")
+        if len(cats) == 0 or library.get_toc_tree().lookup(cats) is None:
             return texts_list(request)
         cat_string = ", ".join(cats) if request.interfaceLang == "english" else ", ".join([hebrew_term(cat) for cat in cats])
         title = cat_string + _(" | Sefaria")
         desc  = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
-
-    else:
-        title = _("Recently Viewed")
-        desc  = _("Texts that you've recently viewed on Sefaria.")
 
     props = {
         "initialMenu": "navigation",
