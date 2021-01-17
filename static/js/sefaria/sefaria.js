@@ -2491,6 +2491,22 @@ _media: {},
       "Connect": "צרו קשר",
       "Site Language": "שפת האתר",
   },
+  _i18nInterfaceStringsWithContext: {
+      "AddConnectionBox": {
+        "Select Type": "בחר סוג קישור",
+        "None": "ללא",
+        "Commentary": "פירוש",
+        "Quotation": "ציטוט",
+        "Midrash": "מדרש",
+        "Ein Mishpat / Ner Mitsvah": "עין משפט / נר מצווה",
+        'Mesorat HaShas': 'מסורת הש"ס',
+        "Reference": "עיון",
+        "Related Passage": "קשר אחר",
+      },
+  },
+  _getStringCaseInsensitive: function (store, inputStr){
+     return inputStr in store ? store[inputStr] : inputStr.toLowerCase() in store ? store[inputStr.toLowerCase()] : null;
+  },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
         return Sefaria.hebrewTerm(inputVar);
@@ -2510,20 +2526,20 @@ _media: {},
         return inputVarArr;
 	}
   },
-  _: function(inputStr){
+  _: function(inputStr, context=null){
     if (!inputStr.toLowerCase) debugger;
     if(Sefaria.interfaceLang != "english"){
-      var hterm;
-      if(inputStr in Sefaria._i18nInterfaceStrings) {
-        return Sefaria._i18nInterfaceStrings[inputStr];
-      
-      } else if (inputStr.toLowerCase() in Sefaria._i18nInterfaceStrings){
-        return Sefaria._i18nInterfaceStrings[inputStr.toLowerCase()];
-      
-      } else if ((hterm = Sefaria.hebrewTerm(inputStr)) != inputStr){
-        return hterm;
-      
-      } else {
+        let translatedString = null;
+        if (context && context in Sefaria._i18nInterfaceStringsWithContext){
+            let translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
+            if (translatedString) return translatedString;
+        }
+        if(translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)){
+            return translatedString;
+        }
+        if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
+          return translatedString;
+        }
         if (inputStr.indexOf(" | ") !== -1) {
           var inputStrs = inputStr.split(" | ");
           return Sefaria._(inputStrs[0])+ " | " + Sefaria._(inputStrs[1]);
@@ -2531,10 +2547,9 @@ _media: {},
           console.warn("Missing Hebrew translation for: " + inputStr);
           return inputStr;
         }
-      }
     } else {
       return inputStr;
-	  }
+    }
   },
   _cacheSiteInterfaceStrings: function() {
     // Ensure that names set in Site Settings are available for translation in JS.
