@@ -4173,6 +4173,10 @@ def visual_garden_page(request, g):
     return render_template(request,'visual_garden.html', None, template_vars)
 
 
+@requires_csrf_token
+def custom_page_not_found(request, exception, template_name='404.html'):
+    return render_template(request, template_name=template_name, app_props=None, template_context={}, status=404)
+
 
 @requires_csrf_token
 def custom_server_error(request, template_name='500.html'):
