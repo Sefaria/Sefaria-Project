@@ -332,7 +332,13 @@ def put_text_mapping(index_name):
             "naive_lemmatizer": {
                 'type': 'text',
                 'analyzer': 'sefaria-naive-lemmatizer',
-                'search_analyzer': 'sefaria-naive-lemmatizer-less-prefixes'
+                'search_analyzer': 'sefaria-naive-lemmatizer-less-prefixes',
+                'fields': {
+                    'exact': {
+                        'type': 'text',
+                        'analyzer': 'my_standard'                        
+                    }
+                }
             }
         }
     }
