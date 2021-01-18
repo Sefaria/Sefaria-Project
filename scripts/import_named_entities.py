@@ -204,11 +204,10 @@ def add_ambiguous_topics():
 
     TopicSet({"isAmbiguous": True}).delete()
     IntraTopicLinkSet({"generatedBy": "add_ambiguous_topics"}).delete()
-    with open(f"{DATASETS_NAMED_ENTITY_LOC}/ner_output_talmud.json", "r") as fin:
-        j = json.load(fin)
+    all_mentions = get_raw_mentions()
     unique_ambiguities = defaultdict(set)
-    for m in j:
-        m["id_matches"] = list(filter(lambda slug: slug not in bon_set, m["id_matches"]))
+    for m in all_mentions:
+        m["id_matches"] = list(filter(lambda slug: (slug not in bon_set) and (not slug.startswith("BONAYICH:")), m["id_matches"]))
         if len(m['id_matches']) < 2:
             continue
         unique_ambiguities[tuple(m['id_matches'])].add(m['mention'])
@@ -252,15 +251,7 @@ def add_mentions():
     bon_rabbis = TopicSet({"alt_ids.bonayich": {"$exists": True}})
     bon_set = {t.slug for t in bon_rabbis}
     all_slug_set = {t.slug for t in TopicSet()}
-    all_mentions = []
-    with open(f"{DATASETS_NAMED_ENTITY_LOC}/ner_output_talmud.json", "r") as fin:
-        all_mentions += json.load(fin)
-    # with open("/home/nss/sefaria/datasets/ner/sefaria/ner_output_tanakh.json", "r") as fin:
-    #     all_mentions += json.load(fin)
-    # with open("data/ner_output_talmud.json", "r") as fin:
-    #     all_mentions += json.load(fin)
-    # with open("data/ner_output_tanakh.json", "r") as fin:
-    #     all_mentions += json.load(fin)
+    all_mentions = get_raw_mentions()
 
     itls = IntraTopicLinkSet({"linkType": "possibility-for"})
     possibility_map = defaultdict(set)
@@ -273,7 +264,7 @@ def add_mentions():
     out = {}
     for ne in tqdm(all_mentions):
         # remove bonayich mentions
-        ne["id_matches"] = list(filter(lambda slug: (slug not in bon_set) and (slug in all_slug_set), ne["id_matches"]))
+        ne["id_matches"] = list(filter(lambda slug: (slug not in bon_set) and (not slug.startswith("BONAYICH:")) and (slug in all_slug_set), ne["id_matches"]))
 
         if len(ne["id_matches"]) == 0:
             continue
@@ -339,10 +330,23 @@ def delete_bonayich_rabbis_from_topics():
     for t in TopicSet({'isAmbiguous': True}):
         if t.link_set(_class='intraTopic', query_kwargs={'linkType': "possibility-for"}).count() == 0:
             t.delete()
+
+def get_raw_mentions():
+    all_mentions = []
+    with open(f"{DATASETS_NAMED_ENTITY_LOC}/ner_output_talmud.json", "r") as fin:
+        all_mentions += json.load(fin)
+    with open(f"{DATASETS_NAMED_ENTITY_LOC}/ner_output_mishnah.json", "r") as fin:
+        all_mentions += json.load(fin)
+    # with open("data/ner_output_talmud.json", "r") as fin:
+    #     all_mentions += json.load(fin)
+    # with open("data/ner_output_tanakh.json", "r") as fin:
+    #     all_mentions += json.load(fin)
+    return all_mentions
+
 if __name__ == "__main__":
     # import_bonayich_into_topics()
     # import_rabi_rav_rabbis_into_topics()
-    # add_ambiguous_topics()
+    add_ambiguous_topics()
     add_mentions()  # this should be the only relevant command to run going forward
     # add_new_alt_titles()
     # merge_duplicate_rabbis()
@@ -351,6 +355,7 @@ if __name__ == "__main__":
 kubectl cp commands
 POD=devpod-noah-846cdffc8b-8l5wl
 kubectl cp /home/nss/sefaria/datasets/ner/sefaria/ner_output_talmud.json $POD:/app/data
+kubectl cp /home/nss/sefaria/datasets/ner/sefaria/ner_output_mishnah.json $POD:/app/data
 kubectl cp /home/nss/sefaria/project/scripts/import_named_entities.py $POD:/app/scripts
 
 # not relevant anymore

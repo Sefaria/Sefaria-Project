@@ -8327,11 +8327,8 @@ body .homeFeedWrapper .content {
 .mainColumn .story .storyTitleBlock {
   clear: both;
 }
-.interface-english .mainColumn .story .storyTitleBlock {
-  float: left;
-}
-.interface-hebrew .mainColumn .story .storyTitleBlock {
-  float: right;
+.mainColumn .story .storyTitleBlock {
+  text-align: start;
 }
 .colorBarBox {
   clear: both;
