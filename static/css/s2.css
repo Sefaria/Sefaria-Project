@@ -3976,7 +3976,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .segment .segmentNumber,
 .textRagnge .numberLabel {
-  color: #999;
+  color: #666;
   top: 0;
 }
 .dark .segment .segmentNumber,
