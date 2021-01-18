@@ -2493,6 +2493,7 @@ _media: {},
 
       //Profile
       " at ": " ב-",
+      "on Sefaria": " בספריא",
   },
   _i18nInterfaceStringsWithContext: {
       "AddConnectionBox": {
