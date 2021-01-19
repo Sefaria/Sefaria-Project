@@ -35,9 +35,20 @@ class Test_Ref(object):
 
     def test_short_talmud_refs(self):  # this behavior is changed from earlier
         assert Ref("Sanhedrin 2a") != Ref("Sanhedrin")
-        assert Ref("Sanhedrin 2a") == Ref("Sanhedrin 2")
 
-    # This test runs for 90% of this suite's time, and passes.  Seems pretty trivial.  Can we trim it?
+    def test_talmud_refs_with_amud(self):
+        assert Ref("ברכות ח.") == Ref("Berakhot 8a")
+        assert Ref("ברכות ח:") == Ref("Berakhot 8b")
+        assert Ref("ברכות ח, א") == Ref("Berakhot 8a")
+        assert Ref("""ברכות ח ע"ב""") == Ref("Berakhot 8b")
+
+    def test_talmud_refs_without_amud(self):
+        assert Ref("ברכות ח") == Ref("Berakhot 8a-8b")
+        assert Ref("ברכות ב") == Ref("Berakhot 2a-2b")
+        assert Ref("Sanhedrin 2") == Ref("Sanhedrin 2a-2b")
+        assert Ref("Shabbat 7") == Ref("Shabbat 7a-7b")
+
+        # This test runs for 90% of this suite's time, and passes.  Seems pretty trivial.  Can we trim it?
     @pytest.mark.deep
     def test_each_title(object):
         for lang in ["en", "he"]:
@@ -593,7 +604,6 @@ class Test_Ambiguous_Forms(object):
     def test_mishnah_check_first(self):
         assert Ref("Shabbat 8:7") == Ref('Mishnah Shabbat 8:7')
         assert Ref("Shabbat 28:7").normal() == 'Shabbat 28a:7'
-        assert Ref("Shabbat 7") == Ref("Shabbat 7a")
         assert Ref("Shabbat 7a:1") != Ref("Shabbat 7:1")
 
 

@@ -18,6 +18,7 @@ from sefaria.system.database import db
 from sefaria.model.lexicon import LexiconEntrySet
 from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
+from sefaria.utils.talmud import daf_to_section
 
 """
                 -----------------------------------------
@@ -1942,7 +1943,7 @@ class AddressType(object):
             return sanitize(encode_small_hebrew_numeral(i), punctuation) if i < 1200 else encode_hebrew_numeral(i, punctuation=punctuation)
 
     @staticmethod
-    def toStrByAddressType(atype, lang, i):
+    def to_str_by_address_type(atype, lang, i):
         """
         Return string verion of `i` given `atype`
         :param str atype: name of address type
@@ -1953,6 +1954,19 @@ class AddressType(object):
         except KeyError:
             raise IndexSchemaError("No matching class for addressType {}".format(atype))
         return klass(0).toStr(lang, i)
+
+    @staticmethod
+    def to_class_by_address_type(atype):
+        """
+        Return class that corresponds to 'atype'
+        :param atype:
+        :return:
+        """
+        try:
+            klass = globals()["Address" + atype]
+        except KeyError:
+            raise IndexSchemaError("No matching class for addressType {}".format(atype))
+        return klass(0)
 
     # Is this used?
     def storage_offset(self):
@@ -1985,6 +1999,42 @@ class AddressTalmud(AddressType):
         "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
     }
+    amud_patterns = {
+        "en": "[ABabᵃᵇ]",
+        "he": '''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])'''
+    }
+
+    @classmethod
+    def parse_range_end(cls, ref, parts, base):
+        if len(parts) == 1 and len(ref.sections) == 1:
+            # check for Talmud ref without amud, such as Berakhot 2, we don't want "Berakhot 2a" but "Berakhot 2a-2b"
+            # so change toSections if ref_lacks_amud
+            #base_without_title = base.replace(title + " ", "")
+            #reg_ex = cls._core_regex(cls, ref._lang)
+            if ref._lang == "he":
+                ref_lacks_amud = re.search(cls.amud_patterns["he"], base) is None
+            else:
+                ref_lacks_amud = re.search(cls.amud_patterns["en"]+"{1}$", base) is None
+            if ref_lacks_amud:
+                ref.toSections[0] += 1
+        elif len(parts) == 2:
+            ref.toSections = parts[1].split(".")  # this was converting space to '.', for some reason.
+
+            # 'Shabbat 23a-b'
+            if ref.toSections[0] in ['b', 'B', 'ᵇ']:
+                ref.toSections[0] = ref.sections[0] + 1
+
+            # 'Shabbat 24b-25a'
+            elif regex.match(r"\d+{}".format(cls.amud_patterns["en"]), ref.toSections[0]):
+                ref.toSections[0] = daf_to_section(ref.toSections[0])
+
+            # 'Shabbat 24b.12-24'
+            else:
+                delta = len(ref.sections) - len(ref.toSections)
+                for i in range(delta - 1, -1, -1):
+                    ref.toSections.insert(0, ref.sections[i])
+
+            ref.toSections = [int(x) for x in ref.toSections]
 
     def _core_regex(self, lang, group_id=None):
         if group_id:
@@ -1993,9 +2043,11 @@ class AddressTalmud(AddressType):
             reg = r"("
 
         if lang == "en":
-            reg += r"\d+[abᵃᵇ]?)"
+            reg += r"\d*" if group_id == "ar0" else r"\d+"
+            reg += r"{}?)".format(self.amud_patterns["en"])
         elif lang == "he":
-            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
+            reg += self.hebrew_number_regex() + r'''{}?)'''.format(self.amud_patterns["he"])
+
 
         return reg
 
@@ -2004,12 +2056,12 @@ class AddressTalmud(AddressType):
             return True
         return False
 
-    def toNumber(self, lang, s):
+    def toNumber(self, lang, s, **kwargs):
         if lang == "en":
             try:
-                if s[-1] in ["a", "b", 'ᵃ', 'ᵇ']:
+                if re.search(self.amud_patterns["en"]+"{1}$", s):
                     amud = s[-1]
-                    daf = int(s[:-1])
+                    daf = kwargs['sections'] if s == 'b' else int(s[:-1])
                 else:
                     amud = "a"
                     daf = int(s)
@@ -2021,24 +2073,25 @@ class AddressTalmud(AddressType):
                 raise InputError("{} exceeds max of {} dafs.".format(daf, self.length))
 
             indx = daf * 2
-            if amud == "a" or amud == "ᵃ":
+            if amud in ["A", "a", "ᵃ"]:
                 indx -= 1
             return indx
         elif lang == "he":
             num = re.split("[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
             if s[-1] == ":" or (
-                    s[-1] == "\u05d1"    #bet
-                        and
+                    s[-1] == "\u05d1"  # bet
+                    and
                     ((len(s) > 2 and s[-2] in ", ")  # simple bet
                      or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"bet
                      or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''bet
                     )
-            ):
+                    ):
                 return daf  # amud B
             return daf - 1
 
             #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
+
 
     @classmethod
     def toStr(cls, lang, i, **kwargs):
@@ -2108,7 +2161,7 @@ class AddressFolio(AddressType):
             return True
         return False
 
-    def toNumber(self, lang, s):
+    def toNumber(self, lang, s, **kwargs):
         if lang == "en":
             try:
                 if s[-1] in ["a", "b", "c", "d", 'ᵃ', 'ᵇ', 'ᶜ', 'ᵈ']:
@@ -2212,7 +2265,7 @@ class AddressInteger(AddressType):
 
         return reg
 
-    def toNumber(self, lang, s):
+    def toNumber(self, lang, s, **kwargs):
         if lang == "en":
             return int(s)
         elif lang == "he":
