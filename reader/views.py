@@ -110,6 +110,7 @@ def render_template(request, template_name='base.html', app_props=None, template
     :return:
     """
     app_props = app_props if app_props else {}
+    template_context = template_context if template_context else {}
     props = base_props(request)
     props.update(app_props)
     propsJSON = json.dumps(props, ensure_ascii=False)
