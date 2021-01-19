@@ -605,7 +605,8 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     else:
         sheet = panels[0].get("sheet",{})
-        title = unescape(strip_tags(sheet["title"])) + " | " + _("Sefaria")
+        sheet["title"] = unescape(sheet["title"])
+        title = strip_tags(sheet["title"]) + " | " + _("Sefaria")
         breadcrumb = sheet_crumbs(request, sheet)
         desc = unescape(sheet.get("summary", _("A source sheet created with Sefaria's Source Sheet Builder")))
         noindex = sheet["status"] != "public"
