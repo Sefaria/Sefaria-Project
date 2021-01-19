@@ -2259,7 +2259,7 @@ class AddressInteger(AddressType):
             reg = r"("
 
         if lang == "en":
-            reg += r"(?:(?:no. )|(?:sec. ))?\d+)"
+            reg += r"\d+)"
         elif lang == "he":
             reg += self.hebrew_number_regex() + r")"
 
