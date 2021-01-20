@@ -98,7 +98,6 @@ class SheetMetadata extends Component {
     delete newSheet.collectionName;
     delete newSheet.collectionImage;
     delete newSheet.likes;
-    delete newSheet.naturalDateCreated;
     delete newSheet.promptedToPublish;
     delete newSheet._id;
 
@@ -168,6 +167,7 @@ class SheetMetadata extends Component {
   }
   render() {
     const sheet = this.getSheetFromCache();
+    const timestampCreated = Date.parse(sheet.dateCreated)/1000;
     var title = sheet.title;
     var authorStatement;
 
@@ -242,12 +242,12 @@ class SheetMetadata extends Component {
                     </div> : null }
                     <div className="sheetMeta">
                       <div className="int-en">
-                          Created {sheet.naturalDateCreated} · {sheet.views} Views · { !!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--'} Saves
+                          Created {Sefaria.util.naturalTime(timestampCreated, "en")} ago · {sheet.views} Views · { !!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--'} Saves
                       </div>
                       <div className="int-he">
-                          <span>נוצר {sheet.naturalDateCreated} · </span>
+                          <span>נוצר לפני  {Sefaria.util.naturalTime(timestampCreated, "he")} · </span>
                           <span>{sheet.views} צפיות · </span>
-                          <span>קיבלת {!!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--' } לייקים </span>
+                          <span> {!!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--' } שמירות </span>
                       </div>
                     </div>
 
