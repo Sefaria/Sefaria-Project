@@ -852,6 +852,11 @@ mo_cat = create_category(["Tanakh", "Modern Commentary on Tanakh"], "Modern Comm
 chida_cat = create_category(["Tanakh", "Acharonim on Tanakh", "Chida"], "Chida", 'חיד״א')
 rr_cat = create_category(["Tanakh", "Modern Commentary on Tanakh", "Redeeming Relevance"], "Redeeming Relevance", "פדיון הרלוונטיות")
 
+c = Category().load({"path": ["Tanakh", "Targum"]})
+c.searchRoot = "Targum"
+c.save()
+
+
 # Currently Tanakh, Commentary, <Index>
 # or        Tanakh, Commentary, <subcat>, <Index>
 groups = [

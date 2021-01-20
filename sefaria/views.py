@@ -551,15 +551,6 @@ def rebuild_auto_completer(request):
     return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 
 
-'''
-# No usages found
-@staff_member_required
-def rebuild_counts_and_toc(request):
-    model.refresh_all_states()
-    return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
-'''
-
-
 @staff_member_required
 def reset_varnish(request, tref):
     if USE_VARNISH:

@@ -446,7 +446,7 @@ class Search {
     buildFilterTree(aggregation_buckets, appliedFilters) {
       //returns object w/ keys 'availableFilters', 'registry'
       //Add already applied filters w/ empty doc count?
-      var rawTree = {};
+      const rawTree = {};
 
       appliedFilters.forEach(
           fkey => this._addAvailableFilter(rawTree, fkey, {"docCount":0})
@@ -461,26 +461,22 @@ class Search {
     _addAvailableFilter(rawTree, key, data) {
       //key is a '/' separated key list, data is an arbitrary object
       //Based on http://stackoverflow.com/a/11433067/213042
-      var keys = key.split("/");
-      var base = rawTree;
+      const keys = key.split("/");
+      let base = rawTree;
 
       // If a value is given, remove the last name and keep it for later:
-      var lastName = arguments.length === 3 ? keys.pop() : false;
+      const lastName = arguments.length === 3 ? keys.pop() : false;
 
       // Walk the hierarchy, creating new objects where needed.
       // If the lastName was removed, then the last object is not set yet:
-      var i;
-      for(i = 0; i < keys.length; i++ ) {
+      for(let i = 0; i < keys.length; i++ ) {
           base = base[ keys[i] ] = base[ keys[i] ] || {};
       }
 
       // If a value was given, set it to the last name:
       if( lastName ) {
-          base = base[ lastName ] = data;
+          base[ lastName ] = data;
       }
-
-      // Could return the last object in the hierarchy.
-      // return base;
     }
     _aggregate(rawTree) {
       //Iterates the raw tree to aggregate doc_counts from the bottom up
@@ -504,21 +500,22 @@ class Search {
     }
     _build(rawTree) {
       //returns dict w/ keys 'availableFilters', 'registry'
-      //Aggregate counts, then sort rawTree into filter objects and add Hebrew using Sefaria.toc as reference
+      //Sort rawTree into filter objects and add Hebrew using Sefaria.toc as reference
       //Nod to http://stackoverflow.com/a/17546800/213042
-      var path = [];
-      var filters = [];
-      var registry = {};
 
-      var commentaryNode = new FilterNode();
+      const path = [];        // The current category path, as we build up the tree.  Continually modified
+      const filters = [];     // List of root level FilterNode objects.
+      const pseudoRoots = []; // List of root level FilterNodes that are moved up from deeper in the tree
+      const registry = {};    // Mappings of "/" separated category path strings to FilterNode objects
 
+      const roots = Sefaria.toc.map(b => b.category);
 
-      for(var j = 0; j < Sefaria.search_toc.length; j++) {
-          var b = walk.call(this, Sefaria.search_toc[j]);
+      Sefaria.toc.forEach(branch => {
+          const b = walk(branch);
           if (b) filters.push(b);
+      });
 
-          // Remove after commentary refactor ?
-          // If there is commentary on this node, add it as a sibling
+      /*
           if (commentaryNode.hasChildren()) {
             var toc_branch = Sefaria.toc[j];
             var cat = toc_branch["category"];
@@ -536,12 +533,11 @@ class Search {
             filters.push(commentaryNode);
             commentaryNode = new FilterNode();
           }
-      }
+          */
+      return { availableFilters: [...filters, ...pseudoRoots], registry };
 
-      return { availableFilters: filters, registry };
-
-      function walk(branch, parentNode) {
-          var node = new FilterNode();
+      function walk(branch) {
+          const node = new FilterNode();
 
           node["docCount"] = 0;
 
@@ -588,9 +584,9 @@ class Search {
       }
     }
     applyFilters(registry, appliedFilters) {
-      var orphans = [];  // todo: confirm behavior
+      const orphans = [];
       appliedFilters.forEach(aggKey => {
-        var node = registry[aggKey];
+        const node = registry[aggKey];
         if (node) { node.setSelected(true); }
         else { orphans.push(aggKey); }
       });

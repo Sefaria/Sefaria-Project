@@ -612,11 +612,9 @@ class TextIndexer(object):
         """
         Create a document for indexing from the text specified by ref/version/lang
         """
+        # Don't bother indexing if there's no content
         if not content:
-            # Don't bother indexing if there's no content
             return False
-
-        oref = Ref(tref)
 
         content_wo_cant = strip_cantillation(content, strip_vowels=False).strip()
         content_wo_cant = re.sub(r'<[^>]+>', '', content_wo_cant)
@@ -624,20 +622,28 @@ class TextIndexer(object):
         if len(content_wo_cant) == 0:
             return False
 
-        if getattr(cls.curr_index, "dependence", None) == 'Commentary' and "Commentary" in oref.index.categories:  # uch, special casing
-            temp_categories = oref.index.categories[:]
-            temp_categories.remove('Commentary')
-            temp_categories[0] += " Commentaries"  # this will create an additional bucket for each top level category's commentary
-        else:
-            temp_categories = categories
+        oref = Ref(tref)
+        toc_tree = library.get_toc_tree()
+        cats = oref.index.categories
+
+        indexed_categories = categories  # the default
+
+        # get the full path of every cat along the way.
+        # starting w/ the longest,
+        # check if they're root swapped.
+        paths = [cats[:i] for i in range(len(cats), 0, -1)]
+        for path in paths:
+            cnode = toc_tree.lookup(path)
+            if getattr(cnode, "searchRoot", None) is not None:
+                # Use the specified searchRoot, with the rest of the category path appended.
+                indexed_categories = [cnode.searchRoot] + cats[len(path) - 1:]
+                break
 
         tp = cls.best_time_period
         if tp is not None:
             comp_start_date = int(tp.start)
         else:
             comp_start_date = 3000  # far in the future
-
-        # section_ref = tref[:tref.rfind(u":")] if u":" in tref else (tref[:re.search(ur" \d+$", tref).start()] if re.search(ur" \d+$", tref) is not None else tref)
 
         ref_data = RefData().load({"ref": tref})
         pagesheetrank = ref_data.pagesheetrank if ref_data is not None else RefData.DEFAULT_PAGERANK * RefData.DEFAULT_SHEETRANK
@@ -649,9 +655,9 @@ class TextIndexer(object):
             "lang": lang,
             "version_priority": version_priority if version_priority is not None else 1000,
             "titleVariants": oref.index_node.all_tree_titles("en"),
-            "categories": temp_categories,
+            "categories": indexed_categories,
             "order": oref.order_id(),
-            "path": "/".join(temp_categories + [cls.curr_index.title]),
+            "path": "/".join(indexed_categories + [cls.curr_index.title]),
             "pagesheetrank": pagesheetrank,
             "comp_date": comp_start_date,
             #"hebmorph_semi_exact": content_wo_cant,

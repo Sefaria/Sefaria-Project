@@ -491,14 +491,7 @@ class TocCollectionNode(TocNode):
         elif serial:
             self._collection_object = collection.Collection().load({"slug": serial["slug"]})
 
-<<<<<<< HEAD
-        super(TocGroupNode, self).__init__(serial)
-        if self.primary_title() in CATEGORY_ORDER:
-            # If this text is listed in ORDER, consider its position in ORDER as its order field.
-            self.order = CATEGORY_ORDER.index(self.primary_title())
-=======
         super(TocCollectionNode, self).__init__(serial)
->>>>>>> origin/master
 
     def get_collection_object(self):
         return self._collection_object

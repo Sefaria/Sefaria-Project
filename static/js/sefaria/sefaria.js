@@ -2190,7 +2190,7 @@ _media: {},
   },
   hebrewTerm: function(name) {
     // Returns a string translating `name` into Hebrew.
-    var categories = {
+    const categories = {
       "Quoting Commentary":   "פרשנות מצטטת",
       "Modern Commentary":    "פרשנות מודרנית",
       "Sheets":               "דפי מקורות",
