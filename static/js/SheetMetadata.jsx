@@ -80,13 +80,13 @@ class SheetMetadata extends Component {
     }
   }
   filterAndSaveCopiedSheetData(data) {
-    var newSheet = data;
+    var newSheet = Sefaria.util.clone(data);
     newSheet.status = "unlisted";
     newSheet.title = newSheet.title + " (Copy)";
 
-    if (Sefaria._uid != sheet.owner) {
+    if (Sefaria._uid != newSheet.owner) {
         newSheet.via = this.props.id;
-        newSheet.viaOwner = sheet.owner;
+        newSheet.viaOwner = newSheet.owner;
         newSheet.owner = Sefaria._uid
     }
     delete newSheet.id;

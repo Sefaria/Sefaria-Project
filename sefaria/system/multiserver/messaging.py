@@ -16,6 +16,7 @@ class MessagingNode(object):
             self.pubsub = self.redis_client.pubsub()
         except Exception:
             logger.error("Failed to establish connection to Redis")
+            return
         if len(self.subscription_channels):
             self.pubsub.subscribe(*self.subscription_channels)
             time.sleep(0.2)
