@@ -80,7 +80,7 @@ class UserHistory(abst.AbstractMongoRecord):
         if "last_place" not in attrs:
             attrs["last_place"] = False
         # remove empty versions
-        if not hasattr(attrs.get("versions", {}), "items"):
+        if not hasattr(attrs.get("versions", None), "items"):
             attrs["versions"] = {}  # if versions doesn't have 'items', make it an empty dict
         for k, v in list(attrs.get("versions", {}).items()):
             if v is None:

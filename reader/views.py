@@ -12,6 +12,7 @@ import socket
 import bleach
 from collections import OrderedDict
 import pytz
+from html import unescape
 
 from rest_framework.decorators import api_view
 from django.template.loader import render_to_string, get_template
@@ -57,7 +58,6 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref
-
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -163,7 +163,7 @@ def render_react_component(component, props):
 
 def base_props(request):
     """
-    Returns a dictionary of props that all App pages get based on the request 
+    Returns a dictionary of props that all App pages get based on the request
     AND are able to be sent over the wire to the Node SSR server.
     """
     from sefaria.model.user_profile import UserProfile, UserWrapper
@@ -606,9 +606,10 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
 
     else:
         sheet = panels[0].get("sheet",{})
+        sheet["title"] = unescape(sheet["title"])
         title = strip_tags(sheet["title"]) + " | " + _("Sefaria")
         breadcrumb = sheet_crumbs(request, sheet)
-        desc = sheet.get("summary", _("A source sheet created with Sefaria's Source Sheet Builder"))
+        desc = unescape(sheet.get("summary", _("A source sheet created with Sefaria's Source Sheet Builder")))
         noindex = sheet["status"] != "public"
 
     if len(panels) > 0 and panels[0].get("refs") == [] and panels[0].get("mode") == "Text":
@@ -692,7 +693,7 @@ def topics_toc_page(request, topicCategory):
 def get_search_params(get_dict, i=None):
     def get_param(param, i=None):
         return "{}{}".format(param, "" if i is None else i)
-    
+
     def get_filters(prefix, filter_type):
         return [urllib.parse.unquote(f) for f in get_dict.get(get_param(prefix+filter_type+"Filters", i)).split("|")] if get_dict.get(get_param(prefix+filter_type+"Filters", i), "") else []
 
@@ -704,7 +705,7 @@ def get_search_params(get_dict, i=None):
         sheet_filters += filters
         sheet_agg_types += [filter_type] * len(filters)
     text_filters = get_filters("t", "path")
-    
+
     return {
         "query": urllib.parse.unquote(get_dict.get(get_param("q", i), "")),
         "tab": urllib.parse.unquote(get_dict.get(get_param("tab", i), "text")),
@@ -853,7 +854,7 @@ def groups_redirect(request, group):
     collection = Collection().load({"name": group.replace("-", " ")})
     if not collection:
         raise Http404
-    
+
     param = "?tag={}".format(request.GET["tag"]) if "tag" in request.GET else ""
     url = "/collections/{}{}".format(collection.slug, param)
     return redirect(url)
@@ -1822,10 +1823,10 @@ def links_api(request, link_id_or_ref=None):
     if request.method == "DELETE":
         if not link_id_or_ref:
             return jsonResponse({"error": "No link id given for deletion."})
-        
+
         if not user.is_staff:
             return jsonResponse({"error": "Only Sefaria Moderators can delete links."})
-        
+
         try:
             ref = Ref(link_id_or_ref)
         except InputError as e:
@@ -3497,7 +3498,7 @@ def profile_sync_api(request):
                 last_sync = 0
             else:
                 last_sync = json.loads(post.get("last_sync", str(profile.last_sync_web)))
-                
+
             uhs = UserHistorySet({"uid": request.user.id, "server_time_stamp": {"$gt": last_sync}}, hint="uid_1_server_time_stamp_1")
             ret["last_sync"] = now
             ret["user_history"] = [uh.contents(for_api=True) for uh in uhs.array()]
