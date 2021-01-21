@@ -1278,6 +1278,9 @@ input.noselect {
 .readerNavMenu.topicPanel {
   background-color: white;
 }
+.singlePanel .readerNavCategoryMenu .readerTocTopics.content {
+  padding-top: 30px;
+}
 .topicPanel .readings {
   margin-bottom: 40px;
 }
@@ -1308,10 +1311,6 @@ input.noselect {
   }
   .topicPanel .filterable-list .filter-sort-wrapper {
     margin-top: 20px;
-  }
-  .topicPanel .readerNavTop {
-    margin: -25px 0 30px -25px;
-    width: 115%;
   }
 }
 .interface-hebrew .topicPanel .mainColumn {
