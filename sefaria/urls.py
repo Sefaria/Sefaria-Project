@@ -205,7 +205,7 @@ urlpatterns += [
 
 # Unlink Google Account Subscribe
 urlpatterns += [
-    url(r'^/unlink-gauth$', sefaria_views.unlink_gauth),
+    url(r'^unlink-gauth$', sefaria_views.unlink_gauth),
 ]
 
 # Collections API
