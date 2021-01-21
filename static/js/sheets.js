@@ -3495,7 +3495,7 @@ function exportToDrive() {
 		},
 		statusCode: {
 			401: function() {
-				window.location.href = "/gauth?next=" + encodeURIComponent(window.location.href + "#onload=exportToDrive");
+				window.location.href = "/gauth?next=" + encodeURIComponent(/window.location.pathname + "?editor=1#onload=exportToDrive");
 			}
 		}
 	});
