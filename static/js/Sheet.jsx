@@ -104,6 +104,7 @@ class Sheet extends Component {
             collectionImage={sheet.collectionImage}
             editable={Sefaria._uid == sheet.owner}
             hasSidebar={this.props.hasSidebar}
+            setSelectedWords={this.props.setSelectedWords}
             sheetNumbered={sheet.options.numbered}
             sheetID={sheet.id}
           />
@@ -143,6 +144,17 @@ class SheetContent extends Component {
     }
     this.debouncedAdjustHighlightedAndVisible();
   }
+
+  handleTextSelection() {
+    console.log('here!')
+    const selectedWords = Sefaria.util.getNormalizedSelectionString(); //this gets around the above issue
+    if (selectedWords !== this.props.selectedWords) {
+      //console.log("setting selecting words")
+      this.props.setSelectedWords(selectedWords);
+    }
+  }
+
+
   getHighlightThreshhold() {
     // Returns the distance from the top of screen that we want highlighted segments to appear below.
     return this.props.multiPanel ? 200 : 70;
@@ -334,7 +346,7 @@ class SheetContent extends Component {
         </SheetMetaDataBox>
 
         <div className="text">
-            <div className="textInner">{sources}</div>
+            <div className="textInner" onMouseUp={this.handleTextSelection}>{sources}</div>
         </div>
         <div id="printFooter" style={{display:"none"}}>
           <span className="int-en">Created with <img src="/static/img/logo.svg" /></span>
