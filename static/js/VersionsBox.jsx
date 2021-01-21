@@ -47,7 +47,6 @@ class VersionsBox extends Component {
   };
   openVersionInSidebar(versionTitle, versionLanguage) {
     this.props.setConnectionsMode("Translation Open");
-    console.log("OPEN VERSION", Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
     this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
   };
   sortVersionsByActiveLang(prioritize=null){
