@@ -94,7 +94,7 @@ if server_coordinator:
 #    #    #
 
 
-def render_template(request, template_name='base.html', app_props=None, template_context={}, content_type=None, status=None, using=None):
+def render_template(request, template_name='base.html', app_props=None, template_context=None, content_type=None, status=None, using=None):
     """
     This is a general purpose custom function that serves to render all the templates in the project and provide a central point for all similar processing.
     It can take props that area meant for the Node render of ReaderApp (and will properly combine them with base_props() and serialize
@@ -110,6 +110,7 @@ def render_template(request, template_name='base.html', app_props=None, template
     :return:
     """
     app_props = app_props if app_props else {}
+    template_context = template_context if template_context else {}
     props = base_props(request)
     props.update(app_props)
     propsJSON = json.dumps(props, ensure_ascii=False)
@@ -3306,8 +3307,8 @@ def user_profile(request, username):
         "initialProfile": requested_profile.to_api_dict(),
         "initialProfileTab": tab,
     }
-    title = "%(full_name)s on Sefaria" % {"full_name": requested_profile.full_name}
-    desc = '%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.' % {"full_name": requested_profile.full_name}
+    title = _("%(full_name)s on Sefaria") % {"full_name": requested_profile.full_name}
+    desc = _('%(full_name)s is on Sefaria. Follow to view their public source sheets, notes and translations.') % {"full_name": requested_profile.full_name}
     return render_template(request,'base.html', props, {
         "title":          title,
         "desc":           desc,
@@ -4173,6 +4174,10 @@ def visual_garden_page(request, g):
 
     return render_template(request,'visual_garden.html', None, template_vars)
 
+
+@requires_csrf_token
+def custom_page_not_found(request, exception, template_name='404.html'):
+    return render_template(request, template_name=template_name, app_props=None, template_context={}, status=404)
 
 
 @requires_csrf_token
