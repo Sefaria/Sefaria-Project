@@ -47,7 +47,8 @@ class VersionsBox extends Component {
   };
   openVersionInSidebar(versionTitle, versionLanguage) {
     this.props.setConnectionsMode("Translation Open");
-    this.props.setFilter(versionTitle);
+    console.log("OPEN VERSION", Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
+    this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
   };
   sortVersionsByActiveLang(prioritize=null){
     const standard_langs = ["en", "he"];
@@ -112,7 +113,7 @@ class VersionsBox extends Component {
   }
   renderModeSelected() {
     // open text in versionslist with current version selected
-    const currSelectedVersions = this.props.vFilter.length ? {[Sefaria.versionLanguage(this.props.vFilter[0])]: this.props.vFilter[0]} : {en: null, he: null};
+    const currSelectedVersions = this.props.vFilter.length ? Sefaria.versionLanguage(this.props.vFilter[0]) : {en: null, he: null};
     const onRangeClick = (sref)=>{this.props.onRangeClick(sref, false, currSelectedVersions)};
     return (
       <VersionsTextList
@@ -164,10 +165,10 @@ class VersionsTextList extends Component {
     if (filter.length) {
       this.setState({loaded: false});
       const sectionRef = this.getSectionRef();
-      const language = Sefaria.versionLanguage(filter[0]);
+      const [vTitle, language] = Sefaria.deconstructVersionsKey(filter[0]);
       let enVersion = null, heVersion = null;
-      if (language === "en") { enVersion = filter[0]; }
-      else                   { heVersion = filter[0]; }
+      if (language === "en") { enVersion = vTitle; }
+      else                   { heVersion = vTitle; }
       Sefaria.getText(sectionRef, {enVersion, heVersion}).then(() => {this.setState({loaded: true})});
     }
   }
@@ -177,8 +178,7 @@ class VersionsTextList extends Component {
     return sectionRef;
   }
   render() {
-    const vlang = Sefaria.versionLanguage(this.props.vFilter[0]);
-
+    const [vTitle, language] = Sefaria.deconstructVersionsKey(this.props.vFilter[0]);
     return !this.state.loaded || !this.props.vFilter.length ?
       (<LoadingMessage />) :
       (<div className="versionsTextList">
@@ -191,7 +191,7 @@ class VersionsTextList extends Component {
         <TextRange
           panelPosition ={this.props.panelPosition}
           sref={Sefaria.humanRef(this.props.srefs)}
-          currVersions={{[vlang]: this.props.vFilter[0]}}
+          currVersions={{[language]: vTitle}}
           useVersionLanguage={true}
           hideTitle={true}
           numberLabel={0}
