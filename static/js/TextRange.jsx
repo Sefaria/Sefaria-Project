@@ -132,7 +132,7 @@ class TextRange extends Component {
     if (this._isMounted) {
       this.forceUpdate(function() {
         this.placeSegmentNumbers();
-        this.props.onTextLoad && this.props.onTextLoad(); // Don't call until the text is actually rendered
+        this.props.onTextLoad && this.props.onTextLoad(data.ref); // Don't call until the text is actually rendered
       }.bind(this));
     }
   }

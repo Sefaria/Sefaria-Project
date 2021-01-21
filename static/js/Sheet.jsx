@@ -192,7 +192,9 @@ class SheetContent extends Component {
       this.scrolledToHighlight = true;
       this.justScrolled = true;
       var offset = this.getHighlightThreshhold();
-      $container.scrollTo($highlighted, 0, {offset: -offset});
+      var top = $highlighted.position().top - offset;
+
+      $container[0].scrollTop = top;
       if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id")) {
         $highlighted.focus();
       }

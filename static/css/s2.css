@@ -986,10 +986,10 @@ input.noselect {
   text-transform: uppercase;
   letter-spacing: 1px;
   /*border-bottom: 4px solid #E6E5E6;*/
-  padding: 0 6px 3px;
+  padding: 0 6px 4px;
 }
 .textColumn .loadingMessage.base.prev {
-  margin: 70px 0 30px;
+  margin: 70px 0 0 0;
 }
 .textColumn .loadingMessage.base.next {
   margin: 30px 0 70px;
@@ -3668,7 +3668,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textRange.basetext .title, .sheetContent .customSourceTitle{
   padding: 0 28px;
-  margin: 24px 0;
+  margin: 30px 0 24px 0;
   color: #000;
   text-align: center;
   justify-content: center;
