@@ -1,6 +1,3 @@
-# TODO: Fail the build if the target mongo host is not reachable
-# TODO: Consider "one mongo instance per sandbox" architecture
-# TODO: Idempotently update ingress definition
 # TODO: Notifications
 
 ---
@@ -14,20 +11,17 @@ substitutions:
   _GKE_REGION: us-east1-b
   _IS_SANDBOX: "false" # must be a quoted string
   _MONGO_HOST: mongo
-  # _MONGO_LOAD: "true" # must be a quoted string
   _MONGO_DATABASE: "sefaria-vecino"
-  # _MONGO_SNAPSHOT_LOCATION: "latest"
   _RESOURCE_ALLOCATION: small
   _POSTGRES_HOST: postgres
   _SANDBOX_SUBDOMAIN: cauldron
 
 options:
   machineType: N1_HIGHCPU_8
-  # substitution_option: 'ALLOW_LOOSE'
 
 steps:
   - name: "gcr.io/cloud-builders/git"
-    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin']
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', "--depth", "1"]
     id: k8s-admin_clone
     wait_for: [ "-" ]
 
@@ -49,23 +43,15 @@ steps:
     id: sefaria_repo_git_hash
     wait_for: [ "sefaria_repo_clone" ]
 
-
-  # print requirements.txt
-  - name: gcr.io/production-deployment/cloudbuild-helm:v3.1.2
-    entrypoint: cat
-    args: [ "./requirements.txt" ]
-    dir: Sefaria-Project
-    id: print_python_requirements
-    wait_for: [ "sefaria_repo_clone" ]
-
-
   # Build artifacts
   - name: gcr.io/kaniko-project/executor:latest
     args:
       - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA
       - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:gha-${_ENV_NAME}
       - --destination=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:latest
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-web-dev:${_ENV_NAME}
       - --cache=true
+      - --cache-repo=gcr.io/${PROJECT_ID}/sefaria-web/cache
       - --dockerfile=build/web/Dockerfile
       - --context=dir://.
     dir: Sefaria-Project
@@ -78,7 +64,9 @@ steps:
       - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:$SHORT_SHA
       - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:gha-${_ENV_NAME}
       - --destination=gcr.io/${PROJECT_ID}/sefaria-node-${_ENV_NAME}:latest
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-node-dev:${_ENV_NAME}
       - --cache=true
+      - --cache-repo=gcr.io/${PROJECT_ID}/sefaria-node/cache
       - --dockerfile=build/node/Dockerfile
       - --context=dir://.
     dir: Sefaria-Project
@@ -91,6 +79,7 @@ steps:
       - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:$SHORT_SHA
       - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:gha-${_ENV_NAME}
       - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-${_ENV_NAME}:latest
+      - --destination=gcr.io/${PROJECT_ID}/sefaria-asset-dev:${_ENV_NAME}
       - --cache=false
       - --dockerfile=build/nginx/Dockerfile
       - --build-arg=SRC_IMG=gcr.io/${PROJECT_ID}/sefaria-web-${_ENV_NAME}:$SHORT_SHA
@@ -100,28 +89,6 @@ steps:
     wait_for:
       - web_container
       - sefaria_repo_clone
-
-
-
-  # # Todo: delete previously existing job OR timestamp the K8s job name
-  # # This build step is defined at `v2/containers/mongo-restore
-  # - name: gcr.io/${PROJECT_ID}/mongo-restore:latest
-  #   id: mongo_restore
-  #   entrypoint: "/restoreMongo.bash" # figure out why the container's entrypoint isn't being respected
-  #   env: 
-  #     # Restore Script Variables
-  #     - 'MONGO_HOST=${_MONGO_HOST}'
-  #     - 'SANDBOX_NAME=${_ENV_NAME}'
-  #     - 'MONGO_LOAD=${_MONGO_LOAD}' # If false, the job is a no-op
-  #     - 'MONGO_SNAPSHOT_LOCATION=${_MONGO_SNAPSHOT_LOCATION}'
-  #     - 'CLUSTER_NAMESPACE=${_GKE_NAMESPACE}'
-  #     - 'ENVIRONMENT=sandbox'
-  #     # kubectl Variables
-  #     - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
-  #     - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-  #     - 'KUBECTL_VERSION=1.14'
-  #     - 'KUBECONFIG=/root/.kube/config'
-  #   wait_for: [ "-" ]
 
   # Outputs a file to /k8s-admin/v2/app_settings/helm/_sandboxValues.yaml
   - name: gcr.io/${PROJECT_ID}/mongo-restore # used for gettext access
