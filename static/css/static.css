@@ -227,8 +227,7 @@
 }
 #homePage #homeCover h1.featureTitle {
   color: white;
-  height: 70px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 #homePage #homeCover h1.featureTitle .int-en,
 #homePage #homeCover h1.featureTitle .int-he {
@@ -2106,11 +2105,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
   align-items: center;
+  justify-content: space-evenly;
 }
 #mobilePage #mobileDownloadLinks .mobileDownloadButtons .button img{
   height: 40px;
 }
-
 #mobilePage #mobileDownloadLinks .mobileDownloadButtons .button span{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: normal;
@@ -2121,7 +2120,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   color: #FFFFFF;
   letter-spacing: 0px;
 }
-
 #mobilePage #mobileNewsletterSocial{
   padding-bottom: 3%;
   padding-top: 3%;
@@ -2139,9 +2137,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   line-height: 36px;
   color: #000000;
   text-transform: initial;
-
 }
-
 #mobilePage #mobileNewsletterSocial .newsletterSignUpBox input.newsletterInput{
   width: 289px;
   height: 46px;
@@ -2175,14 +2171,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   right: 26px;
   left: auto;
 }
-
 .interface-hebrew #mobilePage #mobileNewsletterSocial input[type=image] {
   transform: scale(-1, 1);
   left: 26px;
   right: auto;
 }
-
-
 .interface-hebrew #mobilePage #mobileNewsletterSocial .newsletterSignUpBox img{
     position: relative;
     top: 4px;

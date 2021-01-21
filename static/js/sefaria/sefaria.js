@@ -458,10 +458,9 @@ Sefaria = extend(Sefaria, {
     var url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
     this._api(url, function(data) {
       for (let v of data) {
-        Sefaria._translateVersions[v.versionTitle] = {
+        Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(v.versionTitle, v.language)] = {
           en: v.versionTitle,
           he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
-          lang: v.language,
         };
       }
       if (cb) { cb(data); }
@@ -469,10 +468,12 @@ Sefaria = extend(Sefaria, {
     });
     return versions;
   },
-  versionLanguage: function(versionTitle) {
+  versionLanguage: function(translateVersionKey) {
     // given a versionTitle, return the language of the version
-    return Sefaria._translateVersions[versionTitle]["lang"]
+    return Sefaria._translateVersions[translateVersionKey]
   },
+  getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
+  deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
     const params = param({
@@ -2193,8 +2194,10 @@ _media: {},
     };
     if (name in Sefaria._translateTerms) {
         return Sefaria._translateTerms[name]["he"];
-    } else if (name in Sefaria._translateVersions) {
-        return Sefaria._translateVersions[name]["he"];
+    } else if (Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'en')]) {
+        return Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'en')]["he"];
+    } else if (Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'he')]) {
+        return Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'he')]["he"];
     } else if (name in categories) {
         return  categories[name];
     } else if (Sefaria.index(name)) {
@@ -2660,10 +2663,9 @@ Sefaria.unpackDataFromProps = function(props) {
         Sefaria._versions[panelBook] = panelVersions;
         for (let i = 0; i < panelVersions.length; i++) {
           const v = panelVersions[i];
-          Sefaria._translateVersions[v.versionTitle] = {
+          Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(v.versionTitle, v.language)] = {
             en: v.versionTitle,
             he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
-            lang: v.language,
           };
         }
       }

@@ -29,7 +29,6 @@ class ReaderApp extends Component {
     // TODO clean up generation of initial panels objects.
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH = 360.0;
-
     var panels               = [];
     var header               = {};
     var defaultVersions      = Sefaria.util.clone(props.initialDefaultVersions) || {};
@@ -103,7 +102,6 @@ class ReaderApp extends Component {
       else {
         var mode = props.initialFilter ? "TextAndConnections" : "Text";
         var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
-
         panels[0] = {
           refs: props.initialRefs,
           mode: mode,
