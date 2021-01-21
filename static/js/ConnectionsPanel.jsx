@@ -1362,16 +1362,16 @@ class AddConnectionBox extends Component {
 
                 <Dropdown
                   options={[
-                            {value: "",               label: "None"},
-                            {value: "commentary",     label: "Commentary"},
-                            {value: "quotation",      label: "Quotation"},
-                            {value: "midrash",        label: "Midrash"},
-                            {value: "ein mishpat",    label: "Ein Mishpat / Ner Mitsvah"},
-                            {value: "mesorat hashas", label: "Mesorat HaShas"},
-                            {value: "reference",      label: "Reference"},
-                            {value: "related",        label: "Related Passage"}
+                            {value: "",               label: Sefaria._("None", "AddConnectionBox")},
+                            {value: "commentary",     label: Sefaria._("Commentary", "AddConnectionBox")},
+                            {value: "quotation",      label: Sefaria._("Quotation", "AddConnectionBox")},
+                            {value: "midrash",        label: Sefaria._("Midrash", "AddConnectionBox")},
+                            {value: "ein mishpat",    label: Sefaria._("Ein Mishpat / Ner Mitsvah", "AddConnectionBox")},
+                            {value: "mesorat hashas", label: Sefaria._("Mesorat HaShas", "AddConnectionBox")},
+                            {value: "reference",      label: Sefaria._("Reference", "AddConnectionBox")},
+                            {value: "related",        label: Sefaria._("Related Passage", "AddConnectionBox")}
                           ]}
-                  placeholder={"Select Type"}
+                  placeholder={Sefaria._("Select Type", "AddConnectionBox")}
                   onSelect={this.setType} />
 
                 <div className="button fillWidth" onClick={this.addConnection}>

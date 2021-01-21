@@ -18,6 +18,7 @@ from sefaria.site.urls import site_urlpatterns
 
 admin.autodiscover()
 handler500 = 'reader.views.custom_server_error'
+handler404 = 'reader.views.custom_page_not_found'
 
 
 # App Pages
@@ -200,6 +201,11 @@ urlpatterns += [
     url(r'^api/sheets/ref/(?P<ref>[^/]+)$',                           sheets_views.sheets_by_ref_api),
     url(r'^api/sheets/all-sheets/(?P<limiter>\d+)/(?P<offset>\d+)$',  sheets_views.all_sheets_api),
     url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
+]
+
+# Unlink Google Account Subscribe
+urlpatterns += [
+    url(r'^unlink-gauth$', sefaria_views.unlink_gauth),
 ]
 
 # Collections API

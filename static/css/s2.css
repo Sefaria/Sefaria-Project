@@ -986,10 +986,10 @@ input.noselect {
   text-transform: uppercase;
   letter-spacing: 1px;
   /*border-bottom: 4px solid #E6E5E6;*/
-  padding: 0 6px 3px;
+  padding: 0 6px 4px;
 }
 .textColumn .loadingMessage.base.prev {
-  margin: 70px 0 30px;
+  margin: 70px 0 0 0;
 }
 .textColumn .loadingMessage.base.next {
   margin: 30px 0 70px;
@@ -1054,6 +1054,9 @@ input.noselect {
 }
 .enInHe{
   unicode-bidi: isolate;
+}
+.readerPanel .recentPanel .sheetLink.recentItem .he{
+  font-family: "adobe-garamond-pro", "Taamey Frank", "Crimson Text", Georgia, serif;
 }
 .readerPanel.hebrew .en {
   display: none;
@@ -3668,7 +3671,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textRange.basetext .title, .sheetContent .customSourceTitle{
   padding: 0 28px;
-  margin: 24px 0;
+  margin: 30px 0 24px 0;
   color: #000;
   text-align: center;
   justify-content: center;
@@ -3976,7 +3979,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .segment .segmentNumber,
 .textRagnge .numberLabel {
-  color: #999;
+  color: #666;
   top: 0;
 }
 .dark .segment .segmentNumber,
@@ -4238,6 +4241,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList.fullPanel .texts {
   padding: 40px 40px 80px 40px;
 }
+.textList .segment.heOnly,
+.textList .segment.enOnly {
+  text-align: justify;
+}
 .textListTop {
   position: absolute;
   top: 0;
@@ -4330,7 +4337,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList.fullPanel .recentFilterSet {
   margin: 0 0 12px 0;
 }
-.textList.fullPanel .recentFilterSet .textFilter, .connectionsPanelHeader .recentFilterSet.topFilters .textFilter{
+.textList.fullPanel .recentFilterSet .textFilter, 
+.connectionsPanelHeader .recentFilterSet.topFilters .textFilter {
   display: inline-block;
   padding: 0;
   margin: 6px 14px;
@@ -4339,7 +4347,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-bottom: 4px solid #cccccc;
   margin-inline-start: 0;
 }
-.connectionsPanelHeader .recentFilterSet.topFilters .textFilter{
+.connectionsPanelHeader .recentFilterSet.topFilters .textFilter {
   margin: 18px;
   margin-inline-end: 14px;
   margin-inline-start: 0;
@@ -4350,6 +4358,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .recentFilterSet.filterSet .textFilter, .recentFilterSet.filterSet .textFilter span{
   font-family: "HebrewInEnglish Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.hebrew .textList .recentFilterSet.filterSet {
+  direction: rtl;
 }
 .topFiltersInner {
   display: inline-block;
@@ -8327,11 +8338,8 @@ body .homeFeedWrapper .content {
 .mainColumn .story .storyTitleBlock {
   clear: both;
 }
-.interface-english .mainColumn .story .storyTitleBlock {
-  float: left;
-}
-.interface-hebrew .mainColumn .story .storyTitleBlock {
-  float: right;
+.mainColumn .story .storyTitleBlock {
+  text-align: start;
 }
 .colorBarBox {
   clear: both;

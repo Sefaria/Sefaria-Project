@@ -493,7 +493,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
         { p.position || p.organization ?
           <div className="title sub-title">
             <span>{p.position}</span>
-            { p.position && p.organization ? <span>{ " at " }</span> : null }
+            { p.position && p.organization ? <span>{ Sefaria._(" at ") }</span> : null }
             <span>{p.organization}</span>
           </div> : null
         }

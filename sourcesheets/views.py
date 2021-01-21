@@ -301,17 +301,15 @@ def assigned_sheet(request, assignment_id):
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Remove keys from we don't want transferred
-    for key in ("id", "like", "views"):
+    for key in ("id", "like", "views", "displayedCollection"):
         if key in sheet:
             del sheet[key]
 
     assigner             = UserProfile(id=sheet["owner"])
     assigner_id	         = assigner.id
-    sheet_collections    = get_user_collections_for_sheet(request.user.id, sheet["id"])
     sheet_class          = make_sheet_class_string(sheet)
     can_edit_flag        = True
     can_add_flag         = can_add(request.user, sheet)
-    displayed_collection = Collection().load({"slug": sheet["displayedCollection"]}) if sheet.get("displayedCollection", None) else None
     embed_flag           = "embed" in request.GET
     likes                = sheet.get("likes", [])
     like_count           = len(likes)
@@ -329,8 +327,8 @@ def assigned_sheet(request, assignment_id):
         "title": sheet["title"],
         "is_owner": True,
         "is_public": sheet["status"] == "public",
-        "sheet_collections": sheet_collections,
-        "displayed_collection":  displayed_collection,
+        "sheet_collections": [],
+        "displayed_collection":  None,
         "like_count": like_count,
         "viewer_is_liker": viewer_is_liker,
         "current_url": request.get_full_path,
@@ -475,7 +473,7 @@ def collections_inclusion_api(request, slug, action, sheet_id):
     """
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
-    collection = Collection().load({"slug": slug})    
+    collection = Collection().load({"slug": slug})
     if not collection:
         return jsonResponse({"error": "No collection with slug `{}`.".format(slug)})
     if not collection.is_member(request.user.id):
@@ -484,7 +482,7 @@ def collections_inclusion_api(request, slug, action, sheet_id):
     sheet = Sheet().load({"id": sheet_id})
     if not sheet:
         return jsonResponse({"error": "No sheet with id {}.".format(sheet_id)})
-    
+
     if action == "remove":
         if sheet_id in collection.sheets:
             collection.sheets.remove(sheet_id)
@@ -1071,9 +1069,8 @@ def export_to_drive(request, credential, sheet_id):
     """
     Export a sheet to Google Drive.
     """
-
-    http = credential.authorize(httplib2.Http())
-    service = build('drive', 'v3', http=http, cache_discovery=False)
+    # Using credentials in google-api-python-client.
+    service = build('drive', 'v3', credentials=credential)
 
     sheet = get_sheet(sheet_id)
     if 'error' in sheet:
