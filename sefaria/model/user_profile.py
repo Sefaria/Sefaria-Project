@@ -363,6 +363,9 @@ class UserProfile(object):
         self.followers = FollowersSet(self.id)
         self.followees = FolloweesSet(self.id)
 
+        # Google API token
+        self.gauth_token = None
+
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
         profile = self.migrateFromOldRecents(profile)
@@ -646,7 +649,9 @@ class UserProfile(object):
             "tag_order":             getattr(self, "tag_order", None),
             "last_sync_web":         self.last_sync_web,
             "profile_pic_url":       self.profile_pic_url,
-            "profile_pic_url_small": self.profile_pic_url_small
+            "profile_pic_url_small": self.profile_pic_url_small,
+            "gauth_token":           self.gauth_token,
+
         }
 
     def to_api_dict(self, basic=False):

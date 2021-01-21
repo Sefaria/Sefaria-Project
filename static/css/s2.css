@@ -1055,6 +1055,9 @@ input.noselect {
 .enInHe{
   unicode-bidi: isolate;
 }
+.readerPanel .recentPanel .sheetLink.recentItem .he{
+  font-family: "adobe-garamond-pro", "Taamey Frank", "Crimson Text", Georgia, serif;
+}
 .readerPanel.hebrew .en {
   display: none;
 }
