@@ -548,7 +548,7 @@ $(function() {
 		var $target = $(".activeSource").find(".text").find(".he");
 		$target.html(stripNikkud($target.html()));
 		Sefaria.track.sheets("Remove Nikkudot");
-		autoSave();
+		// autoSave();
 	});
 
 	$("#splitSourceToSegment").click(function() {
@@ -3495,7 +3495,7 @@ function exportToDrive() {
 		},
 		statusCode: {
 			401: function() {
-				window.location.href = "/gauth?next=" + encodeURIComponent(/window.location.pathname + "?editor=1#onload=exportToDrive");
+				window.location.href = "/gauth?next=" + encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + "?editor=1#onload=exportToDrive");
 			}
 		}
 	});
