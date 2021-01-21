@@ -4241,6 +4241,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList.fullPanel .texts {
   padding: 40px 40px 80px 40px;
 }
+.textList .segment.heOnly,
+.textList .segment.enOnly {
+  text-align: justify;
+}
 .textListTop {
   position: absolute;
   top: 0;
@@ -4333,7 +4337,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList.fullPanel .recentFilterSet {
   margin: 0 0 12px 0;
 }
-.textList.fullPanel .recentFilterSet .textFilter, .connectionsPanelHeader .recentFilterSet.topFilters .textFilter{
+.textList.fullPanel .recentFilterSet .textFilter, 
+.connectionsPanelHeader .recentFilterSet.topFilters .textFilter {
   display: inline-block;
   padding: 0;
   margin: 6px 14px;
@@ -4342,7 +4347,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-bottom: 4px solid #cccccc;
   margin-inline-start: 0;
 }
-.connectionsPanelHeader .recentFilterSet.topFilters .textFilter{
+.connectionsPanelHeader .recentFilterSet.topFilters .textFilter {
   margin: 18px;
   margin-inline-end: 14px;
   margin-inline-start: 0;
@@ -4353,6 +4358,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .recentFilterSet.filterSet .textFilter, .recentFilterSet.filterSet .textFilter span{
   font-family: "HebrewInEnglish Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.hebrew .textList .recentFilterSet.filterSet {
+  direction: rtl;
 }
 .topFiltersInner {
   display: inline-block;
