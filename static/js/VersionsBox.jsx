@@ -99,8 +99,8 @@ class VersionsBox extends Component {
                     openVersionInReader={this.props.selectVersion}
                     openVersionInSidebar={this.openVersionInSidebar}
                     viewExtendedNotes={this.props.viewExtendedNotes}
-                    isCurrent={(this.props.currObjectVersions.en && this.props.currObjectVersions.en.versionTitle === v.versionTitle) ||
-                              (this.props.currObjectVersions.he && this.props.currObjectVersions.he.versionTitle === v.versionTitle)}
+                    isCurrent={(this.props.currObjectVersions.en && this.props.currObjectVersions.en.versionTitle === v.versionTitle && lang == 'en') ||
+                              (this.props.currObjectVersions.he && this.props.currObjectVersions.he.versionTitle === v.versionTitle && lang == 'he')}
                   />
                 ))
               }
