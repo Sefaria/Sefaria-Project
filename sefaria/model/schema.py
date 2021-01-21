@@ -2345,17 +2345,7 @@ class AddressVolume(AddressInteger):
         )
         """
     }
-#(?:(?:([Ss]ections?|§)?\s*))
-class AddressTeshuva(AddressInteger):
-    section_patterns = {
-        "en": r"(?:(?:[Vv]ol.|[Vv]olumes?|[Nn]o.)?\s*)",
-        "he": r"""(?:\u05d1?
-        (?:\u05db\u05dc\u05dc)
-        |(?:\u05e1\u05b4?\u05d9\u05de\u05b8?\u05df\s+)			# Siman spelled out with optional nikud, with a space after
-            |(?:\u05e1\u05d9(?:["\u05f4'\u05f3\u2018\u2019](?:['\u05f3\u2018\u2019]|\s+)))		# or Samech, Yued (for 'Siman') maybe followed by a quote of some sort
-        )"""
-    }
-
+    
 class AddressSiman(AddressInteger):
     section_patterns = {
         "en": r"""(?:(?:[Ss]iman)?\s*)""",
