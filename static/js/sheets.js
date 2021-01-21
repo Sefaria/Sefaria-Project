@@ -2141,6 +2141,7 @@ sjs.sheetTagger = {
 			position: {my: dropdownAnchorSide + " top", at: dropdownAnchorSide + " bottom"},
 			select: function(event, ui) {
 				sjs.sheetTagger.addTagFromInput(ui.item.value);
+				return false;
 			},
 			focus: ( event, ui ) => {
                 $(".ui-menu-item.ui-state-focus").removeClass("ui-state-focus");
