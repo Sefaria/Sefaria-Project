@@ -475,7 +475,7 @@ def collections_inclusion_api(request, slug, action, sheet_id):
     """
     if request.method != "POST":
         return jsonResponse({"error": "Unsupported HTTP method."})
-    collection = Collection().load({"slug": slug})    
+    collection = Collection().load({"slug": slug})
     if not collection:
         return jsonResponse({"error": "No collection with slug `{}`.".format(slug)})
     if not collection.is_member(request.user.id):
@@ -484,7 +484,7 @@ def collections_inclusion_api(request, slug, action, sheet_id):
     sheet = Sheet().load({"id": sheet_id})
     if not sheet:
         return jsonResponse({"error": "No sheet with id {}.".format(sheet_id)})
-    
+
     if action == "remove":
         if sheet_id in collection.sheets:
             collection.sheets.remove(sheet_id)
@@ -1071,9 +1071,8 @@ def export_to_drive(request, credential, sheet_id):
     """
     Export a sheet to Google Drive.
     """
-
-    http = credential.authorize(httplib2.Http())
-    service = build('drive', 'v3', http=http, cache_discovery=False)
+    # Using credentials in google-api-python-client.
+    service = build('drive', 'v3', credentials=credential)
 
     sheet = get_sheet(sheet_id)
     if 'error' in sheet:
