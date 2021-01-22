@@ -13,7 +13,7 @@ steps:
   #  Clone k8s-admin
   ##################
   - name: "gcr.io/cloud-builders/git"
-    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin']
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', "--depth", "1"]
     id: k8s-admin_clone
     wait_for: [ "-" ]
 

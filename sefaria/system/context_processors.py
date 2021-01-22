@@ -56,8 +56,8 @@ def user_only(view):
     """
     @wraps(view)
     def wrapper(request):
-        exclude = ('/linker.js')
-        if request.path in exclude or request.path.startswith("/api/") or request.path.startswith("/data."):
+        #exclude = ('/linker.js')
+        if request.path == '/linker.js' or request.path.startswith("/api/") or request.path.startswith("/data."):
             return {}
         else:
             return view(request)

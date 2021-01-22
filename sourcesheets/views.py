@@ -301,17 +301,15 @@ def assigned_sheet(request, assignment_id):
     sheet["sources"] = annotate_user_links(sheet["sources"])
 
     # Remove keys from we don't want transferred
-    for key in ("id", "like", "views"):
+    for key in ("id", "like", "views", "displayedCollection"):
         if key in sheet:
             del sheet[key]
 
     assigner             = UserProfile(id=sheet["owner"])
     assigner_id	         = assigner.id
-    sheet_collections    = get_user_collections_for_sheet(request.user.id, sheet["id"])
     sheet_class          = make_sheet_class_string(sheet)
     can_edit_flag        = True
     can_add_flag         = can_add(request.user, sheet)
-    displayed_collection = Collection().load({"slug": sheet["displayedCollection"]}) if sheet.get("displayedCollection", None) else None
     embed_flag           = "embed" in request.GET
     likes                = sheet.get("likes", [])
     like_count           = len(likes)
@@ -329,8 +327,8 @@ def assigned_sheet(request, assignment_id):
         "title": sheet["title"],
         "is_owner": True,
         "is_public": sheet["status"] == "public",
-        "sheet_collections": sheet_collections,
-        "displayed_collection":  displayed_collection,
+        "sheet_collections": [],
+        "displayed_collection":  None,
         "like_count": like_count,
         "viewer_is_liker": viewer_is_liker,
         "current_url": request.get_full_path,
