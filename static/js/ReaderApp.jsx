@@ -889,6 +889,7 @@ class ReaderApp extends Component {
       topicsTab:               state.topicsTab               || 'sources',
       textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
       sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
+      compare:                 state.compare                 || false,
       openSidebarAsConnect:    state.openSidebarAsConnect    || false,
       bookRef:                 state.bookRef                 || null,
       settings:                state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
@@ -902,7 +903,6 @@ class ReaderApp extends Component {
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
       profileTab:              state.profileTab              || "sheets",
-
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -1565,7 +1565,8 @@ class ReaderApp extends Component {
   }
   openComparePanel(n, connectAfter) {
     var comparePanel = this.makePanelState({
-      menuOpen: "compare",
+      menuOpen: "navigation",
+      compare: true,
       openSidebarAsConnect: typeof connectAfter !== "undefined" ? connectAfter : false,
     });
     Sefaria.track.event("Reader", "Other Text Click");
@@ -1761,7 +1762,7 @@ class ReaderApp extends Component {
 
     if (panelStates.length == 2 &&
         (panelStates[0].mode == "Text" || panelStates[0].mode == "Sheet") &&
-        (panelStates[1].mode == "Connections" || panelStates[1].menuOpen === "compare" || panelStates[1].menuOpen === "search" )) {
+        (panelStates[1].mode == "Connections" || panelStates[1].menuOpen === "search" || panelStates[1].compare)) {
       widths = [68.0, 32.0];
       unit = "%";
     } else if (panelStates.length == 3 &&
@@ -1833,7 +1834,7 @@ class ReaderApp extends Component {
       var clearSelectedWords             = this.clearSelectedWords.bind(null, i);
       var clearNamedEntity               = this.clearNamedEntity.bind(null, i);
       var openComparePanel               = this.openComparePanel.bind(null, i);
-      var closePanel                     = panel.menuOpen == "compare" ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
+      var closePanel                     = panel.compare ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
       var setPanelState                  = this.setPanelState.bind(null, i);
       var setConnectionsFilter           = this.setConnectionsFilter.bind(this, i);
       var setVersionFilter               = this.setVersionFilter.bind(this, i);

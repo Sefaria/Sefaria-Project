@@ -157,7 +157,7 @@ class ReaderPanel extends Component {
       const pos       = target.attr("data-position");
       const enVersion = target.attr("data-ven");
       const heVersion = target.attr("data-vhe");
-      if (this.props.onNavTextClick && this.state.menuOpen !== "compare") {
+      if (this.props.onNavTextClick && !this.state.compare) {
         this.props.onNavTextClick(ref, {en: enVersion, he: heVersion});
       } else {
         this.showBaseText(ref, false, {en: enVersion, he: heVersion});
@@ -302,6 +302,7 @@ class ReaderPanel extends Component {
       highlightedRefs,
       recentFilters: [],
       menuOpen: null,
+      compare: false,
       connectionsMode: "Resources",
       settings: this.state.settings
     });
@@ -376,7 +377,7 @@ class ReaderPanel extends Component {
     this.conditionalSetState(state);
   }
   onClose() {
-    if (this.state.menuOpen === "compare") {
+    if (this.state.compare) {
       this.props.closePanel();
     } else {
       this.setNavigationCategories([]);
@@ -395,12 +396,8 @@ class ReaderPanel extends Component {
 
   }
   closePanelSearch() {
-    // Assumption: Search in a panel in multiPanel is always within a "compare" panel
     var state = {
-      // If there's no content to show, return to home
-      menuOpen: this.state.refs.slice(-1)[0] ? null : (this.props.multiPanel ? "compare" : "navigation"),
-      // searchQuery: null,
-      // appliedSearchFilters: [],
+      menuOpen: "navigation",
       navigationCategories: null,
       navigationTopicCategory: null,
       navigationSheetTag: null
@@ -412,8 +409,6 @@ class ReaderPanel extends Component {
       menuOpen: menu,
       mode: "Text",
       initialAnalyticsTracked: false,
-      // searchQuery: null,
-      // appliedSearchFilters: [],
       navigationSheetTag: null,
       navigationTopic: null,
       navigationTopicTitle: null,
@@ -776,14 +771,14 @@ class ReaderPanel extends Component {
           key="connections" />
       );
     }
-    if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation" || this.state.menuOpen == "compare") {
+    if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation") {
       var openInPanel   = function(pos, ref) { this.showBaseText(ref) }.bind(this);
-      var openNav       = this.state.menuOpen === "compare" ? this.openMenu.bind(null, "compare") : this.openMenu.bind(null, "navigation");
+      var openNav       = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
 
       menu = (<ReaderNavigationMenu
                     key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory: "navHome"}
                     home={this.state.menuOpen === "home"}
-                    compare={this.state.menuOpen === "compare"}
+                    compare={this.state.compare}
                     interfaceLang={this.props.interfaceLang}
                     multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
@@ -899,7 +894,7 @@ class ReaderPanel extends Component {
                     onResultClick={this.props.onSearchResultClick}
                     openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage}
-                    close={this.closePanelSearch}
+                    close={this.state.compare ? this.props.closePanel : this.closePanelSearch}
                     hideNavHeader={this.props.hideNavHeader}
                     onQueryChange={this.props.onQueryChange}
                     updateTab={this.props.updateSearchTab}
@@ -907,6 +902,7 @@ class ReaderPanel extends Component {
                     updateAppliedOptionField={this.props.updateSearchOptionField}
                     updateAppliedOptionSort={this.props.updateSearchOptionSort}
                     registerAvailableFilters={this.props.registerAvailableFilters}
+                    compare={this.state.compare}
                   />);
 
     } else if (this.state.menuOpen === "topics") {
@@ -1035,7 +1031,7 @@ class ReaderPanel extends Component {
           openDisplaySettings={this.openDisplaySettings}
           toggleLanguage={this.toggleLanguage}
           handleClick={this.handleNavigationClick}
-          compare={this.state.menuOpen === "compare"}
+          compare={this.state.compare}
           hideNavHeader={this.props.hideNavHeader}
           interfaceLang={this.props.interfaceLang}
         />

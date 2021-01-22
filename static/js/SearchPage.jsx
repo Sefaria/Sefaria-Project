@@ -12,6 +12,7 @@ import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Footer  from './Footer';
+import MobileHeader from './MobileHeader';
 import SearchResultList  from './SearchResultList';
 import Component from 'react-class';
 
@@ -29,15 +30,14 @@ class SearchPage extends Component {
         var isQueryHebrew  = Sefaria.hebrew.isHebrew(this.props.query);
         return (<div className={classes} key={this.props.query}>
                   {this.props.hideNavHeader ? null :
-                    (<div className="readerNavTop search">
-                      <CategoryColorLine category="Other" />
-                      <div className="readerNavTopStart">
-                        <ReaderNavigationMenuCloseButton onClick={this.props.close}/>
-                        <SearchBar
-                          initialQuery = { this.props.query }
-                          updateQuery = { this.props.onQueryChange } />
-                      </div>
-                    </div>)}
+                  <MobileHeader
+                    mode={'mainTOC'}
+                    interfaceLang={this.props.interfaceLang}
+                    showDisplaySettings={false}
+                    onClose={this.props.close}
+                    compare={this.props.compare}
+                    openSearch={this.props.onQueryChange}
+                  />}
                   <div className={contentClasses}>
                     <div className="contentInner">
                       <div className="searchContentFrame">
