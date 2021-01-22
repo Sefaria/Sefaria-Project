@@ -4120,6 +4120,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment sup {
   margin-left: .2em;
   margin-right: .2em;
+  font-size: 12px;
+}
+.segment sup:hover {
   text-decoration: underline;
 }
 .segment sup.itag {
