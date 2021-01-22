@@ -6671,6 +6671,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   justify-content: space-between;
   align-items: center;
   align-content: flex-start;
+  text-align: start;
 }
 .addToSourceSheetBox .dropdownMain.noselect::before{
   content: url("/static/img/sheet.svg");
@@ -6684,7 +6685,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .addToSourceSheetBox .dropdownMain.noselect::after{
   content: url("/static/icons/chevron.svg");
   margin-inline-start: auto;
-  align-self: end;
   opacity: 0.4;
   height: 24px;
   transform: scale(0.6) rotate(90deg);
