@@ -1754,13 +1754,13 @@ a.readerNavCategory {
 .hebrew .gridBox .gridBoxItem:last-child {
   border-left: 0;
 }
-.hebrew .readerTocResources .gridBox td:last-child {
-  border-left: 0;
-  border-right: 3px solid rgba(0,0,0,0);
-}
-.hebrew .readerTocResources .gridBox td:first-child {
-  border-left: 3px solid rgba(0,0,0,0);
+.hebrew .readerTocResources .gridBoxItem:last-child {
   border-right: 0;
+  border-left: 3px solid transparent;
+}
+.hebrew .readerTocResources .gridBoxItem:first-child {
+  border-right: 3px solid transparent;
+  border-left: 0;
 }
 .readerNavMenu .resourcesLink .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
