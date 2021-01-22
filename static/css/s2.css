@@ -1673,14 +1673,17 @@ a.readerNavCategory {
     font-size: 16px;
   }
 }
-.readerNavMenu .readerNavMore span {
+.gridBox .readerNavMore span {
   color: #666;
   text-transform: none;
 }
-.readerNavMenu .readerNavMore img {
+.gridBox .readerNavMore img {
   height: 10px;
   width: 10px;
   opacity: 0.6;
+}
+.gridBox .readerNavMore .int-en {
+  direction: ltr;
 }
 .bilingual .readerNavCategory .he {
   display: none;
