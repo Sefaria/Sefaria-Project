@@ -31,7 +31,7 @@ class NotificationsPanel extends Component {
   handleScroll() {
     if (this.state.loadedToEnd || this.state.loading) { return; }
     var $scrollable = $(ReactDOM.findDOMNode(this)).find(".content");
-    var margin = 100;
+    var margin = 600;
     if($scrollable.scrollTop() + $scrollable.innerHeight() + margin >= $scrollable[0].scrollHeight) {
       this.getMoreNotifications();
     }
