@@ -25,7 +25,7 @@ class SearchPage extends Component {
     render () {
         var fontSize       = 62.5; // this.props.settings.fontSize, to make this respond to user setting. disabled for now.
         var style          = {"fontSize": fontSize + "%"};
-        var classes        = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+        var classes        = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader, compare: this.props.compare});
         var contentClasses = classNames({content: 1, hasFooter: this.props.panelsOpen === 1});
         var isQueryHebrew  = Sefaria.hebrew.isHebrew(this.props.query);
         return (<div className={classes} key={this.props.query}>

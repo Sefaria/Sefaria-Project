@@ -1035,7 +1035,7 @@ class ReaderApp extends Component {
   handleCompareSearchClick(n, ref, currVersions, options) {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
     // todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
-    this.replacePanel(n, ref, currVersions);
+    this.replacePanel(n, ref, currVersions, options);
   }
   handleInAppLinkClick(e) {
     // If a default has been prevented, assume a custom handler is already in place
@@ -1447,6 +1447,26 @@ class ReaderApp extends Component {
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
+  async replacePanel(n, ref, currVersions, options) {
+    
+    // Opens a text in in place of the panel currently open at `n`.
+
+    // This ugly little dance is courtesy of `sheet` data needing to be in state before we can
+    // render the panel, because getHistoryItem() needs it, hence needing the API call to return first
+    await this.openPanelAt(n, ref, currVersions, options);
+    this.replaceHistory = true;
+    this.closePanel(n);
+  }
+  openComparePanel(n, connectAfter) {
+    var comparePanel = this.makePanelState({
+      menuOpen: "navigation",
+      compare: true,
+      openSidebarAsConnect: typeof connectAfter !== "undefined" ? connectAfter : false,
+    });
+    Sefaria.track.event("Reader", "Other Text Click");
+    this.state.panels[n] = comparePanel;
+    this.setState({panels: this.state.panels});
+  }
   openTextListAt(n, refs, sheetNodes, textListState) {
     // Open a connections panel at position `n` for `refs`
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
@@ -1556,22 +1576,6 @@ class ReaderApp extends Component {
     Sefaria.notificationCount = n;
     this.forceUpdate();
   }
-  replacePanel(n, ref, currVersions) {
-    // Opens a text in in place of the panel currently open at `n`.
-    this.state.panels[n] = this.makePanelState({refs: [ref], currVersions, mode: "Text"});
-    this.setState({panels: this.state.panels});
-    this.saveLastPlace(this.state.panels[n], n);
-  }
-  openComparePanel(n, connectAfter) {
-    var comparePanel = this.makePanelState({
-      menuOpen: "navigation",
-      compare: true,
-      openSidebarAsConnect: typeof connectAfter !== "undefined" ? connectAfter : false,
-    });
-    Sefaria.track.event("Reader", "Other Text Click");
-    this.state.panels[n] = comparePanel;
-    this.setState({panels: this.state.panels});
-  }
   closePanel(n) {
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
     if (this.state.panels.length == 1 && n == 0) {
@@ -1586,7 +1590,7 @@ class ReaderApp extends Component {
         parent.currentlyVisibleRef = parent.currentlyVisibleRef ? Sefaria.ref(parent.currentlyVisibleRef).sectionRef : null;
       }
       this.state.panels.splice(n, 1);
-      if (this.state.panels[n] && this.state.panels[n].mode === "Connections" || this.state.panels[n].compare) {
+      if (this.state.panels[n] && (this.state.panels[n].mode === "Connections" || this.state.panels[n].compare)) {
         // Close connections panel or compare panel when text panel is closed
         if (this.state.panels.length == 1) {
           this.state.panels = [];
