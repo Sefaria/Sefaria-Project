@@ -240,6 +240,7 @@ class ReaderApp extends Component {
     this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("resize", this.setPanelCap);
+    document.addEventListener('copy', this.handleCopyEvent);
     this.setPanelCap();
     if (this.props.headerMode) {
       // Handle in app links on static pages outside of react container
@@ -1736,6 +1737,66 @@ class ReaderApp extends Component {
       }
     }
     return false;
+  }
+  handleCopyEvent(e) {
+    // Custom processing of Copy/Paste
+    // - Ensure we don't copy hidden English or Hebrew text
+    // - Remove elements like link dots
+    // - Strip links inline in the text
+    const selection = document.getSelection()
+    const textOnly = selection.toString();
+    let html = textOnly;
+
+    if (selection.rangeCount) {
+      const container = document.createElement("div");
+      for (let i = 0, len = selection.rangeCount; i < len; ++i) {
+        container.appendChild(selection.getRangeAt(i).cloneContents());
+      }
+
+      // Elements to Remove
+      const classesToRemove = ["segmentNumber", "linkCount", "clearFix"];
+      classesToRemove.map(cls => {
+        let elsToRemove = container.getElementsByClassName(cls);
+        while(elsToRemove.length > 0){
+          elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+        }
+      });
+
+      // Links to Strip
+      const linksToStrip = ".segment a.namedEntityLink, .segment a.refLink";
+      let elsToStrip = container.querySelectorAll(linksToStrip);
+      elsToStrip.forEach(el => el.outerHTML = el.innerText);
+
+
+      // Remove invisible languages based on the class of the readerPanel you're
+      // copying from. 
+      const selectionAncestor = selection.getRangeAt(0).commonAncestorContainer;
+      if (selectionAncestor.nodeType == 1) {
+
+        const curReaderPanel = selectionAncestor.closest('.readerPanel');
+
+        if (curReaderPanel && curReaderPanel.classList.contains('hebrew')) {
+          let elsToRemove = container.getElementsByClassName('en')
+          while(elsToRemove.length > 0){
+            elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+          }
+        }
+
+        else if (curReaderPanel && curReaderPanel.classList.contains('english')) {
+          let elsToRemove = container.getElementsByClassName('he')
+          while(elsToRemove.length > 0){
+            elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+          }
+        }
+      }
+
+      html = container.innerHTML;
+    }
+
+    const clipdata = e.clipboardData || window.clipboardData;
+    clipdata.setData('text/plain', textOnly);
+    clipdata.setData('text/html', html);
+    e.preventDefault();
   }
   rerender() {
     this.forceUpdate();
