@@ -3334,6 +3334,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 15px;
   color: #999;
   margin: 0 2px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding: 0 2px;
 }
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
@@ -3362,7 +3366,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  width: 40px;
+  width: 30px;
   height: 56px;
   cursor: pointer;
 }
