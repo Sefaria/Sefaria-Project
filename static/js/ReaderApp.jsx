@@ -1585,8 +1585,8 @@ class ReaderApp extends Component {
         parent.currentlyVisibleRef = parent.currentlyVisibleRef ? Sefaria.ref(parent.currentlyVisibleRef).sectionRef : null;
       }
       this.state.panels.splice(n, 1);
-      if (this.state.panels[n] && this.state.panels[n].mode === "Connections") {
-        // Close connections panel when text panel is closed
+      if (this.state.panels[n] && this.state.panels[n].mode === "Connections" || this.state.panels[n].compare) {
+        // Close connections panel or compare panel when text panel is closed
         if (this.state.panels.length == 1) {
           this.state.panels = [];
         } else {
