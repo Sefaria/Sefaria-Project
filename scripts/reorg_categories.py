@@ -15,6 +15,16 @@ for k, he in [
 ]:
     change_term_hebrew(k, he)
 
+for en, he in [
+    ("Tanakh Commentary", "מפרשי תנ״ך"),
+    ("Mishnah Commentary", "מפרשי תלמוד"),
+    ("Talmud Commentary", "מפרשי משנה")
+]:
+    new_term = Term()
+    new_term.name = en
+    new_term.add_primary_titles(en, he)
+    new_term.save(override_dependencies=True)
+
 i = library.get_index("Zohar")
 i.nodes.add_title("ספר הזהר", "he", True, True)
 i.save(override_dependencies=True)
@@ -673,7 +683,7 @@ for cat, books in [
     for book in books:
         moveIndexInto(book, cat)
 
-g = Group().load({"name": "Lindenbaum Center at YCT Rabbinical School"})
+g = Collection().load({"name": "Lindenbaum Center at YCT Rabbinical School"})
 g.toc["categories"] = ["Responsa", "Other Modern"]
 g.save(override_dependencies=True)
 
@@ -881,7 +891,7 @@ for works, cat in groups:
 
 moveIndexInto('Penei David', chida_cat)  # So that it doesn't move the category over.
 
-g = Group().load({"name": "גיליונות נחמה"})
+g = Collection().load({"name": "גיליונות נחמה"})
 g.toc["categories"] = ["Tanakh", "Modern Commentary on Tanakh"]
 g.save(override_dependencies=True)
 
