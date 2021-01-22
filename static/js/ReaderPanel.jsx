@@ -344,7 +344,7 @@ class ReaderPanel extends Component {
     // Replace history with collection name, which may be loaded from API with slug
     // after the CollectionPage has initiall rendered.
     this.replaceHistory = true;
-    this.conditionalSetState({ collectionName: name });    
+    this.conditionalSetState({ collectionName: name });
   }
   setSelectedWords(words){
     words = (typeof words !== "undefined" && words.length) ?  words : "";
@@ -663,6 +663,7 @@ class ReaderPanel extends Component {
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
           onRefClick={this.handleSheetCitationClick}
           hasSidebar={this.props.hasSidebar}
+          setSelectedWords={this.setSelectedWords}
           contentLang={this.state.settings.language}
           interfaceLang={this.props.interfaceLang}
           onSegmentClick={this.handleSheetSegmentClick}
