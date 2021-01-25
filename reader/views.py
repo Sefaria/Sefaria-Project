@@ -2278,7 +2278,7 @@ def calendars_api(request):
         try:
             zone = pytz.timezone(zone_name)
         except pytz.exceptions.UnknownTimeZoneError as e:
-            return jsonResponse({"error": "Unknown 'timezone' value: '%s'." % zone_name})\
+            return jsonResponse({"error": "Unknown 'timezone' value: '%s'." % zone_name})
 
         try:
             year = int(request.GET.get("year", None))
