@@ -695,7 +695,6 @@ Sefaria = extend(Sefaria, {
         store: this._shape
     });
   },
-  //_searchCategoryRewrites: {},  // Do we even need this?
   _tocOrderLookup: {},
   _cacheSearchTocFromToc: function(tocBranch, parentsPath = "", parentsOrders = [], rewrittenFrom = "", rewrittenTo = "") {
     // We duplicate work with this method and _cacheIndexFromToc, but it's split out for clarity.
@@ -706,12 +705,10 @@ Sefaria = extend(Sefaria, {
       if (tocBranch[i].searchRoot) {
           rewrittenFrom = thisPath;
           rewrittenTo = tocBranch[i].searchRoot + "/" + tocBranch[i].category;
-          thisOrder = [thisOrder[0] + 100];
-          //Sefaria._searchCategoryRewrites[rewrittenFrom] = rewrittenTo;
+          thisOrder = [100].concat(thisOrder);
           Sefaria._tocOrderLookup[rewrittenTo] = thisOrder;
       } else if (rewrittenFrom) {
           const new_path = thisPath.replace(RegExp("^" + rewrittenFrom), rewrittenTo);
-          //Sefaria._searchCategoryRewrites[thisPath] = new_path;
           Sefaria._tocOrderLookup[new_path] = thisOrder;
       } else {
           Sefaria._tocOrderLookup[thisPath] = thisOrder;
@@ -734,8 +731,8 @@ Sefaria = extend(Sefaria, {
 
       // Favor the earliest lesser number
       for (let i = 0; i < Math.min(aPath.length, bPath.length); i++) {
-          if (aPath === bPath) { continue; }
-          return aPath < bPath ? -1 : 1;
+          if (aPath[i] === bPath[i]) { continue; }
+          return aPath[i] < bPath[i] ? -1 : 1;
       }
 
       // Otherwise, favor the one higher in the toc
