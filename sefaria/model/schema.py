@@ -977,17 +977,17 @@ class NumberedTitledTreeNode(TitledTreeNode):
             if parentheses:
                 reg += r"(?=(?:[)\]])|(?:[.,:;?!\s<][^\])]*?[)\]]))"
             else:
-                reg += r"(?=[.,:;?!\s})\]<]|$)" if kwargs.get("for_js") else r"(?=\W|$)" if not kwargs.get(
+                reg += r"(?=[-/.,:;?!\s})\]<]|$)" if kwargs.get("for_js") else r"(?=\W|$)" if not kwargs.get(
                     "terminated") else r"$"
             self._regexes[key] = regex.compile(reg, regex.VERBOSE) if compiled else reg
         return self._regexes[key]
 
     def address_regex(self, lang, **kwargs):
-        group = "a0" if not kwargs.get("for_js") else None
+        group = "a0"
         reg = self._addressTypes[0].regex(lang, group, **kwargs)
         if not self._addressTypes[0].stop_parsing(lang):
             for i in range(1, self.depth):
-                group = "a{}".format(i) if not kwargs.get("for_js") else None
+                group = "a{}".format(i)
                 reg += "(" + self.after_address_delimiter_ref + self._addressTypes[i].regex(lang, group, **kwargs) + ")"
                 if not kwargs.get("strict", False):
                     reg += "?"
@@ -999,13 +999,13 @@ class NumberedTitledTreeNode(TitledTreeNode):
 
             reg += r"(?:\s*([-\u2010-\u2015\u05be]|to)\s*"  # maybe there's a dash (either n or m dash) and a range
             reg += r"(?=\S)"  # must be followed by something (Lookahead)
-            group = "ar0" if not kwargs.get("for_js") else None
+            group = "ar0"
             reg += self._addressTypes[0].regex(lang, group, **kwargs)
             if not self._addressTypes[0].stop_parsing(lang):
                 reg += "?"
                 for i in range(1, self.depth):
                     reg += r"(?:(?:" + self.after_address_delimiter_ref + r")?"
-                    group = "ar{}".format(i) if not kwargs.get("for_js") else None
+                    group = "ar{}".format(i)
                     reg += "(" + self._addressTypes[i].regex(lang, group, **kwargs) + ")"
                     # assuming strict isn't relevant on ranges  # if not kwargs.get("strict", False):
                     reg += ")?"
@@ -1879,7 +1879,7 @@ class AddressType(object):
         except KeyError:
             raise Exception("Unknown Language passed to AddressType: {}".format(lang))
 
-    def _core_regex(self, lang, group_id=None):
+    def _core_regex(self, lang, group_id=None, **kwargs):
         """
         The regular expression part that matches this address reference
         :param lang: "en" or "he"
@@ -1974,7 +1974,7 @@ class AddressType(object):
 
 class AddressDictionary(AddressType):
     # Important here is language of the dictionary, not of the text where the reference is.
-    def _core_regex(self, lang, group_id=None):
+    def _core_regex(self, lang, group_id=None, **kwargs):
         if group_id:
             reg = r"(?P<" + group_id + r">"
         else:
@@ -2035,14 +2035,14 @@ class AddressTalmud(AddressType):
 
             ref.toSections = [int(x) for x in ref.toSections]
 
-    def _core_regex(self, lang, group_id=None):
-        if group_id:
+    def _core_regex(self, lang, group_id=None, **kwargs):
+        if group_id and kwargs.get("for_js", False) == False:
             reg = r"(?P<" + group_id + r">"
         else:
             reg = r"("
 
         if lang == "en":
-            reg += r"\d*" if group_id == "ar0" else r"\d+"
+            reg += r"\d*" if group_id == "ar0" else r"\d+" #if ref is Berakhot 2a:1-3a:4, "ar0" is 3a when group_id == "ar0", we don't want to require digit, as ref could be Berakhot 2a-b
             reg += r"{}?)".format(self.amud_patterns["en"])
         elif lang == "he":
             reg += self.hebrew_number_regex() + r'''{}?)'''.format(self.amud_patterns["he"])
@@ -2141,7 +2141,7 @@ class AddressFolio(AddressType):
         "he": r"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
     }
 
-    def _core_regex(self, lang, group_id=None):
+    def _core_regex(self, lang, group_id=None, **kwargs):
         if group_id:
             reg = r"(?P<" + group_id + r">"
         else:
@@ -2251,7 +2251,7 @@ class AddressInteger(AddressType):
     """
     :class:`AddressType` for Integer addresses
     """
-    def _core_regex(self, lang, group_id=None):
+    def _core_regex(self, lang, group_id=None, **kwargs):
         if group_id:
             reg = r"(?P<" + group_id + r">"
         else:
