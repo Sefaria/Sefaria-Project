@@ -176,7 +176,7 @@ class UserProfile extends Component {
     currFilter = n(currFilter);
     const filterText = [sheet.title.stripHtml(),
                         sheet.topics.map(topic => topic.asTyped).join(" "),
-                        sheet.collections.map(collection => collection.name).join(" "),
+                        sheet.collections ? sheet.collections.map(collection => collection.name).join(" ") : "",
                         "displayedCollectionName" in sheet ? sheet.displayedCollectionName : "",
                         ].join(" ");
     return n(filterText).indexOf(currFilter) > -1;
