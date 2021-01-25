@@ -696,8 +696,10 @@ Sefaria = extend(Sefaria, {
     });
   },
   _tocOrderLookup: {},
-  _cacheSearchTocFromToc: function(tocBranch, parentsPath = "", parentsOrders = [], rewrittenFrom = "", rewrittenTo = "") {
-    // We duplicate work with this method and _cacheIndexFromToc, but it's split out for clarity.
+  _cacheFromToc: function(tocBranch, parentsPath = "", parentsOrders = [], rewrittenFrom = "", rewrittenTo = "") {
+    // Cache:
+    // - Index Data
+    // - Search TOC order
     for (let i = 0; i < tocBranch.length; i++) {
       let thisOrder = parentsOrders.concat([i]) ;
       let thisPath =  (parentsPath ? parentsPath + "/" : "") + ("category" in tocBranch[i] ? tocBranch[i].category : tocBranch[i].title);
@@ -714,8 +716,13 @@ Sefaria = extend(Sefaria, {
           Sefaria._tocOrderLookup[thisPath] = thisOrder;
       }
 
-      if ("category" in tocBranch[i] && tocBranch[i].contents) {
-          Sefaria._cacheSearchTocFromToc(tocBranch[i].contents, thisPath, thisOrder, rewrittenFrom,  rewrittenTo)
+      if ("category" in tocBranch[i]) {
+          Sefaria._translateTerms[toc[i].category] = {"en": toc[i].category, "he": toc[i].heCategory};
+          if (tocBranch[i].contents) {
+              Sefaria._cacheFromToc(tocBranch[i].contents, thisPath, thisOrder, rewrittenFrom,  rewrittenTo)
+          }
+      } else {
+          Sefaria.index(toc[i].title, toc[i]);
       }
     }
   },
@@ -739,19 +746,6 @@ Sefaria = extend(Sefaria, {
       return aPath.length < bPath.length ? -1 : 1;
   },
 
-  _cacheIndexFromToc: function(toc) {
-    // Unpacks contents of Sefaria.toc into index cache.
-    for (let i = 0; i < toc.length; i++) {
-      if ("category" in toc[i]) {
-        Sefaria._translateTerms[toc[i].category] = {"en": toc[i].category, "he": toc[i].heCategory};
-        if (toc[i].contents) {
-            Sefaria._cacheIndexFromToc(toc[i].contents)
-        }
-      } else {
-        Sefaria.index(toc[i].title, toc[i]);
-      }
-    }
-  },
   _indexDetails: {},
   getIndexDetails: function(title) {
     return this._cachedApiPromise({
@@ -2803,8 +2797,7 @@ Sefaria.setup = function(data) {
     Sefaria._analytics_uid = Sefaria._uid;
     Sefaria._makeBooksDict();
     Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1};  //Todo: Wire this up to the server
-    Sefaria._cacheIndexFromToc(Sefaria.toc);
-    Sefaria._cacheSearchTocFromToc(Sefaria.toc);
+    Sefaria._cacheFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
     Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._analytics_uid);
