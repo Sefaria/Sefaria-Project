@@ -342,6 +342,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             sidebarModes = ("Sheets", "Notes", "About", "Translations", "Translation Open", "WebPages", "extended notes", "Topics", "Torah Readings")
             if filter[0] in sidebarModes:
                 panel["connectionsMode"] = filter[0]
+                del panel['filter']
             else:
                 panel["connectionsMode"] = "TextList"
 

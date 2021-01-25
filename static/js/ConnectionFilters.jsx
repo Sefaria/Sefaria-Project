@@ -19,7 +19,7 @@ class CategoryFilter extends Component {
     }
   }
   render() {
-    var filterSuffix = this.props.category  == "Quoting Commentary" ? "|Quoting" : null;
+    var filterSuffix = this.props.category  == "Quoting Commentary" ? "Quoting" : null;
     var textFilters = this.props.showBooks ? this.props.books.map(function(book, i) {
      return (<TextFilter
                 srefs={this.props.srefs}
@@ -82,7 +82,7 @@ class TextFilter extends Component {
   // A clickable representation of connections by Text or Commentator
   handleClick(e) {
     e.preventDefault();
-    var filter = this.props.filterSuffix ? this.props.book + this.props.filterSuffix : this.props.book;
+    var filter = this.props.filterSuffix ? this.props.book + "|" + this.props.filterSuffix : this.props.book;
     this.props.setFilter(filter, this.props.updateRecent);
     if (Sefaria.site) {
       if (this.props.inRecentFilters) { Sefaria.track.event("Reader", "Text Filter in Recent Click", filter); }
@@ -144,11 +144,13 @@ class RecentFilterSet extends Component {
       filter              = filterAndSuffix[0];
       var filterSuffix    = filterAndSuffix.length == 2 ? filterAndSuffix[1] : null;
       var index           = Sefaria.index(filter);
+      const filterKey       = filter + (filterSuffix ? `|${filterSuffix}` : '');
       return {
         book: filter,
-        filterSuffix: filterSuffix,
+        filterSuffix,
         heBook: index ? index.heTitle : Sefaria.hebrewTerm(filter),
-        category: index ? (index.primary_category ? index.primary_category : index.categories[0]) : filter
+        category: index ? (index.primary_category ? index.primary_category : index.categories[0]) : filter,
+        filterKey,
       };
     });
     var topLinks = [];
@@ -175,7 +177,7 @@ class RecentFilterSet extends Component {
     var recentFilters = recentFilters.map(function(book) {
      return (<TextFilter
                 srefs={this.props.srefs}
-                key={book.book}
+                key={book.filterKey}
                 book={book.book}
                 heBook={book.heBook}
                 category={book.category}
@@ -186,7 +188,7 @@ class RecentFilterSet extends Component {
                 updateRecent={false}
                 inRecentFilters={true}
                 setFilter={this.props.setFilter}
-                on={Sefaria.util.inArray(book.book, this.props.filter) !== -1} />);
+                on={Sefaria.util.inArray(book.filterKey, this.props.filter) !== -1} />);
     }.bind(this));
 
     var classes = classNames({recentFilterSet: 1, topFilters: this.props.asHeader, filterSet: 1});

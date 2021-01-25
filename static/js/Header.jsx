@@ -283,6 +283,7 @@ class Header extends Component {
                           searchInCollection={this.props.searchInCollection}
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                           hideNavHeader={true}
+                          layoutWidth={100}
                           analyticsInitialized={this.props.analyticsInitialized}
                           getLicenseMap={this.props.getLicenseMap}
                           translateISOLanguageCode={this.props.translateISOLanguageCode}
