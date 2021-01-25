@@ -162,9 +162,13 @@ class ReaderTextTableOfContents extends Component {
     var index     = Sefaria.index(title);
     var heTitle   = index ? index.heTitle : title;
     var category  = this.props.category;
-    var catUrl    = "/texts/" + (category == "Commentary" ?
-                                  index.categories.slice(0, index.categories.indexOf("Commentary") + 1).join("/")
-                                  : category);
+    if (category == "Commentary") {
+      var catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Commentary") + 1).join("/");
+    } else if (category == "Targum") {
+      var catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Targum") + 1).join("/");
+    } else {
+      var catUrl  = "/texts/" + category;
+    }
 
     var currentVersionElement = null;
     var defaultVersionString = "Default Version"; // TODO. this var is currently unused. consider removing

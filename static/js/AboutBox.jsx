@@ -60,10 +60,10 @@ class AboutBox extends Component {
                       {d.title.stripHtml()}
                   </div>
                   <div className="aboutSubtitle">
-                      By: {d.ownerName}
+                      By: <a href={d.ownerProfileUrl}>{d.ownerName}</a>
                   </div>
                   <div className="aboutDesc">
-                      {d.summary}
+                      <span dangerouslySetInnerHTML={ {__html: d.summary} } />
                   </div>
               </div>
           )

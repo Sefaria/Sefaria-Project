@@ -6,11 +6,13 @@ import {
   TextBlockLink,
   LanguageToggleButton,
   LoadingMessage,
+  IntText,
 } from './Misc';
 import React  from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
+import MobileHeader from './MobileHeader';
 import Footer  from './Footer';
 import Component from 'react-class';
 
@@ -44,9 +46,6 @@ class UserHistoryPanel extends Component {
         }
       });
     }
-  }
-  navHome() {
-    this.props.openNav();
   }
   render() {
     const content = (this.props.menuOpen === 'history' && !Sefaria.is_history_enabled) ? (
@@ -84,19 +83,23 @@ class UserHistoryPanel extends Component {
     return (
       <div onClick={this.props.handleClick} className={navMenuClasses}>
         {this.props.hideNavHeader ? null :
-          <SinglePanelNavHeader
-            title={title}
-            navHome={this.navHome}
-            showDisplaySettings={this.props.interfaceLang !== "hebrew"}
-            openDisplaySettings={this.props.openDisplaySettings}/>}
+        <MobileHeader
+          mode={"innerTOC"}
+          navHome={this.props.openNav}
+          catTitle={title}
+          heCatTitle={Sefaria._(title)}
+          interfaceLang={Sefaria.interfaceLang}
+          openDisplaySettings={this.props.openDisplaySettings}
+          showDisplaySettings={this.props.interfaceLang !== "hebrew"}
+          compare={this.props.compare}
+        />}
         <div className={contentClasses}>
           <div className="contentInner">
             {this.props.hideNavHeader ?
               <h1>
               {this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
-                <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null}
-              <span className="int-en">{ title }</span>
-              <span className="int-he">{ title }</span>
+              <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null}
+              <IntText>{ title }</IntText>
             </h1>
             : null }
             { content }
