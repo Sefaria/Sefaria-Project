@@ -805,9 +805,13 @@ def collection_page(request, slug):
     """
     Main page for collection named by `slug`
     """
-    collection = Collection().load({"slug": slug})
+    collection = Collection().load({"$or": [{"slug": slug}, {"privateSlug": slug}]})
     if not collection:
         raise Http404
+    if slug != collection.slug:
+        # Support URLs using previous set private slug
+        return redirect("/collections/{}".format(collection.slug))
+
     authenticated = request.user.is_authenticated and collection.is_member(request.user.id)
 
     props = base_props(request)
