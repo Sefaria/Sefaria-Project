@@ -1,6 +1,4 @@
-# TODO: Fail the build if the target mongo host is not reachable
 # TODO: Remove references to sandboxes
-
 ---
 substitutions:
   _ENV_NAME: ASDF
@@ -18,7 +16,7 @@ options:
 
 steps:
   - name: "gcr.io/cloud-builders/git"
-    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', '${_K8S_ADMIN_BRANCH}', '--single-branch']
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', '${_K8S_ADMIN_BRANCH}', "--depth", "1"]
     id: k8s-admin_clone
     wait_for: [ "-" ]
 
