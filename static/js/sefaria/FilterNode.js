@@ -38,13 +38,13 @@ class FilterNode {
       return this.aggKey.replace(new RegExp("[/',()]", 'g'),"-").replace(new RegExp(" ", 'g'),"_");
   }
   isSelected() {
-      return (this.selected == 1);
+      return (this.selected === 1);
   }
   isPartial() {
-      return (this.selected == 2);
+      return (this.selected === 2);
   }
   isUnselected() {
-      return (this.selected == 0);
+      return (this.selected === 0);
   }
   setSelected(propogateParent, noPropogateChild) {
       //default is to propogate children and not parents.
@@ -81,18 +81,18 @@ class FilterNode {
   _deriveState() {
       //Always called from children, so we can assume at least one
       var potentialState = this.children[0].selected;
-      if (potentialState == 2) {
+      if (potentialState === 2) {
           this.setPartial();
           return
       }
       for (var i = 1; i < this.children.length; i++) {
-          if (this.children[i].selected != potentialState) {
+          if (this.children[i].selected !== potentialState) {
               this.setPartial();
               return
           }
       }
       //Don't use setters, so as to avoid looping back through children.
-      if(potentialState == 1) {
+      if(potentialState === 1) {
           this.setSelected(true, true);
       } else {
           this.setUnselected(true, true);
@@ -129,10 +129,10 @@ class FilterNode {
             if (this.aggType === 'collections') { heTitle = '(ללא אסופה)'; }
             if (this.aggType === 'tags') { heTitle = '(ללא תוית)'; }
           }
-          return[(lang == "en")?enTitle:heTitle];
+          return[(lang === "en")?enTitle:heTitle];
       }
-      var results = [];
-      for (var i = 0; i < this.children.length; i++) {
+      let results = [];
+      for (let i = 0; i < this.children.length; i++) {
           results = results.concat(this.children[i].getSelectedTitles(lang));
       }
       return results;

@@ -3980,7 +3980,6 @@ class Ref(object, metaclass=RefCacheType):
 
         :return string:
         """
-        #Todo: handle complex texts.  Right now, all complex results are grouped under the root of the text
 
         cats = self.index.categories[:]
 
@@ -5484,7 +5483,6 @@ class Library(object):
             return f"""<a href="/topics/{link_slug}" class="namedEntityLink" data-slug="{slug}">{mention}</a>"""
         return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
-
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
         if toc is None:
             if not self._category_id_dict:
@@ -5497,10 +5495,10 @@ class Library(object):
             name = c["category"] if "category" in c else c["title"]
             if cat_head:
                 key = "/".join([cat_head, name])
-                val = code_head + format(i, '02')
+                val = code_head + format(i, '03')
             else:
                 key = name
-                val = "A" + format(i, '02')
+                val = "A" + format(i, '03')
 
             d[key] = val
             if "contents" in c:

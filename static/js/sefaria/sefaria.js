@@ -695,9 +695,56 @@ Sefaria = extend(Sefaria, {
         store: this._shape
     });
   },
+  //_searchCategoryRewrites: {},  // Do we even need this?
+  _tocOrderLookup: {},
+  _cacheSearchTocFromToc: function(tocBranch, parentsPath = "", parentsOrders = [], rewrittenFrom = "", rewrittenTo = "") {
+    // We duplicate work with this method and _cacheIndexFromToc, but it's split out for clarity.
+    for (let i = 0; i < tocBranch.length; i++) {
+      let thisOrder = parentsOrders.concat([i]) ;
+      let thisPath =  (parentsPath ? parentsPath + "/" : "") + ("category" in tocBranch[i] ? tocBranch[i].category : tocBranch[i].title);
+
+      if (tocBranch[i].searchRoot) {
+          rewrittenFrom = thisPath;
+          rewrittenTo = tocBranch[i].searchRoot + "/" + tocBranch[i].category;
+          thisOrder = [thisOrder[0] + 100];
+          //Sefaria._searchCategoryRewrites[rewrittenFrom] = rewrittenTo;
+          Sefaria._tocOrderLookup[rewrittenTo] = thisOrder;
+      } else if (rewrittenFrom) {
+          const new_path = thisPath.replace(RegExp("^" + rewrittenFrom), rewrittenTo);
+          //Sefaria._searchCategoryRewrites[thisPath] = new_path;
+          Sefaria._tocOrderLookup[new_path] = thisOrder;
+      } else {
+          Sefaria._tocOrderLookup[thisPath] = thisOrder;
+      }
+
+      if ("category" in tocBranch[i] && tocBranch[i].contents) {
+          Sefaria._cacheSearchTocFromToc(tocBranch[i].contents, thisPath, thisOrder, rewrittenFrom,  rewrittenTo)
+      }
+    }
+  },
+  compareSearchCatPaths: function(a,b) {
+      // Given two paths, sort according to the cached numeric arrays of their locations in the toc
+      const aPath = Sefaria._tocOrderLookup[a];
+      const bPath = Sefaria._tocOrderLookup[b];
+
+      if (!(Array.isArray(aPath) && Array.isArray(bPath))) {
+          console.log(`Failed to compare paths: ${a} and ${b}`);
+          return 0;
+      }
+
+      // Favor the earliest lesser number
+      for (let i = 0; i < Math.min(aPath.length, bPath.length); i++) {
+          if (aPath === bPath) { continue; }
+          return aPath < bPath ? -1 : 1;
+      }
+
+      // Otherwise, favor the one higher in the toc
+      return aPath.length < bPath.length ? -1 : 1;
+  },
+
   _cacheIndexFromToc: function(toc) {
     // Unpacks contents of Sefaria.toc into index cache.
-    for (var i = 0; i < toc.length; i++) {
+    for (let i = 0; i < toc.length; i++) {
       if ("category" in toc[i]) {
         Sefaria._translateTerms[toc[i].category] = {"en": toc[i].category, "he": toc[i].heCategory};
         if (toc[i].contents) {
@@ -2760,6 +2807,7 @@ Sefaria.setup = function(data) {
     Sefaria._makeBooksDict();
     Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1};  //Todo: Wire this up to the server
     Sefaria._cacheIndexFromToc(Sefaria.toc);
+    Sefaria._cacheSearchTocFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
     Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._analytics_uid);

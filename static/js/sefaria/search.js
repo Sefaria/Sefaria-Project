@@ -444,145 +444,63 @@ class Search {
         return "query|" + this.sortedJSON(args);
     }
     buildFilterTree(aggregation_buckets, appliedFilters) {
-      //returns object w/ keys 'availableFilters', 'registry'
-      //Add already applied filters w/ empty doc count?
-      const rawTree = {};
+        const availableFilters = [];     // List of root level FilterNode objects.
+        const registry = {};        // Mappings of "/" separated category path strings to FilterNode objects
 
-      appliedFilters.forEach(
-          fkey => this._addAvailableFilter(rawTree, fkey, {"docCount":0})
-      );
+        // build up an ordered list of documents with {aggKey, docCount, path}
+        const filters = [
+            ...appliedFilters.map(fkey => ({
+                aggKey: fkey,
+                docCount: 0,
+                path: fkey.split("/")
+            })),
+            ...aggregation_buckets.map(f => ({
+                aggKey: f["key"],
+                docCount: f["doc_count"],
+                path: f["key"].split("/")
+            }))
+        ];
 
-      aggregation_buckets.forEach(
-          f => this._addAvailableFilter(rawTree, f["key"], {"docCount":f["doc_count"]})
-      );
-      this._aggregate(rawTree);
-      return this._build(rawTree);
-    }
-    _addAvailableFilter(rawTree, key, data) {
-      //key is a '/' separated key list, data is an arbitrary object
-      //Based on http://stackoverflow.com/a/11433067/213042
-      const keys = key.split("/");
-      let base = rawTree;
+        // sort into search toc tree order
+        filters.sort((a,b) => Sefaria.compareSearchCatPaths(a.aggKey, b.aggKey));
 
-      // If a value is given, remove the last name and keep it for later:
-      const lastName = arguments.length === 3 ? keys.pop() : false;
+        let currentRootKey = "";
+        let currentRootNode;
+        for (let i = 0; i < filters.length; i ++) {
+            const f = filters[i];
+            const thisRootKey = f.path[0];
+            if (thisRootKey !== currentRootKey) {
+                currentRootNode = new FilterNode({
+                      "title": f.path[0],
+                      "aggKey": f.aggKey,
+                      "heTitle": Sefaria.hebrewTerm(f.path[0]),
+                      "docCount": 0
+                    }
+                );
+                currentRootKey = thisRootKey;
+                availableFilters.push(currentRootNode);
 
-      // Walk the hierarchy, creating new objects where needed.
-      // If the lastName was removed, then the last object is not set yet:
-      for(let i = 0; i < keys.length; i++ ) {
-          base = base[ keys[i] ] = base[ keys[i] ] || {};
-      }
-
-      // If a value was given, set it to the last name:
-      if( lastName ) {
-          base[ lastName ] = data;
-      }
-    }
-    _aggregate(rawTree) {
-      //Iterates the raw tree to aggregate doc_counts from the bottom up
-      //Nod to http://stackoverflow.com/a/17546800/213042
-      walker("", rawTree);
-      function walker(key, branch) {
-          if (branch !== null && typeof branch === "object") {
-              // Recurse into children
-              $.each(branch, walker);
-              // Do the summation with a hacked object 'reduce'
-              if ((!("docCount" in branch)) || (branch["docCount"] === 0)) {
-                  branch["docCount"] = Object.keys(branch).reduce(function (previous, key) {
-                      if (typeof branch[key] === "object" && "docCount" in branch[key]) {
-                          previous += branch[key].docCount;
-                      }
-                      return previous;
-                  }, 0);
-              }
-          }
-      }
-    }
-    _build(rawTree) {
-      //returns dict w/ keys 'availableFilters', 'registry'
-      //Sort rawTree into filter objects and add Hebrew using Sefaria.toc as reference
-      //Nod to http://stackoverflow.com/a/17546800/213042
-
-      const path = [];        // The current category path, as we build up the tree.  Continually modified
-      const filters = [];     // List of root level FilterNode objects.
-      const pseudoRoots = []; // List of root level FilterNodes that are moved up from deeper in the tree
-      const registry = {};    // Mappings of "/" separated category path strings to FilterNode objects
-
-      const roots = Sefaria.toc.map(b => b.category);
-
-      Sefaria.toc.forEach(branch => {
-          const b = walk(branch);
-          if (b) filters.push(b);
-      });
-
-      /*
-          if (commentaryNode.hasChildren()) {
-            var toc_branch = Sefaria.toc[j];
-            var cat = toc_branch["category"];
-            // Append commentary node to result filters, add a fresh one for the next round
-            var docCount = 0;
-            if (rawTree.Commentary && rawTree.Commentary[cat]) { docCount += rawTree.Commentary[cat].docCount; }
-            if (rawTree.Commentary2 && rawTree.Commentary2[cat]) { docCount += rawTree.Commentary2[cat].docCount; }
-            extend(commentaryNode, {
-                "title": cat + " Commentary",
-                "aggKey": "Commentary/" + cat,
-                "heTitle": "מפרשי" + " " + toc_branch["heCategory"],
-                "docCount": docCount
-            });
-            registry[commentaryNode.aggKey] = commentaryNode;
-            filters.push(commentaryNode);
-            commentaryNode = new FilterNode();
-          }
-          */
-      return { availableFilters: [...filters, ...pseudoRoots], registry };
-
-      function walk(branch) {
-          const node = new FilterNode();
-
-          node["docCount"] = 0;
-
-          if("category" in branch) { // Category node
-
-            path.push(branch["category"]);  // Place this category at the *end* of the path
-            extend(node, {
-              "title": path.slice(-1)[0],
-              "aggKey": path.join("/"),
-              "heTitle": branch["heCategory"]
-            });
-
-            for(var j = 0; j < branch["contents"].length; j++) {
-                var b = walk.call(this, branch["contents"][j], node);
-                if (b) node.append(b);
+                if (f.path.length === 1) { registry[f.aggKey] = node; }  // Shouldn't happen, but ... I'm not totally sure of that.
             }
-          }
-          else if ("title" in branch) { // Text Node
-              path.push(branch["title"]);
-              extend(node, {
-                 "title": path.slice(-1)[0],
-                 "aggKey": path.join("/"),
-                 "heTitle": branch["heTitle"]
-              });
-          }
 
-          try {
-              var rawNode = rawTree;
-              var i;
-
-              for (i = 0; i < path.length; i++) {
-                //For TOC nodes that we don't have results for, we catch the exception below.
-                rawNode = rawNode[path[i]];
-              }
-              node["docCount"] += rawNode.docCount;
-              registry[node.aggKey] = node;
-              path.pop();
-              return node;
-          }
-          catch (e) {
-            path.pop();
-            return false;
-          }
-      }
+            if (f.path.length > 1) {
+                const title = f.path.slice(-1)[0];
+                const node = new FilterNode({
+                      "title": title,
+                      "aggKey": f.aggKey,
+                      "heTitle": Sefaria.hebrewTerm(title),
+                      "docCount": f.docCount
+                    }
+                );
+                registry[f.aggKey] = node;
+                currentRootNode.append(node);
+                currentRootNode.docCount += node.docCount;
+            }
+        }
+        
+        return { availableFilters, registry };
     }
+
     applyFilters(registry, appliedFilters) {
       const orphans = [];
       appliedFilters.forEach(aggKey => {
