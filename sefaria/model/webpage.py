@@ -138,6 +138,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"library\.yctorah\.org\/series\/",
             r"reconstructingjudaism\.org\/taxonomy\/",
             r"reconstructingjudaism\.org\/search\/",
+            r"askhalacha\.com\/?$",
+            r"askhalacha\.com\/qas\/?$",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -754,5 +756,13 @@ sites_data = [
     {
         "name": "Avodah",
         "domains": ["avodah.net"],
+    },
+    {
+        "name": "TorahWeb.org",
+        "domains": ["torahweb.org"],
+    },
+    {
+        "name": "AskHalacha",
+        "domains": ["askhalacha.com"],
     },
 ]
