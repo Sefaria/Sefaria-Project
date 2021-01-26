@@ -481,7 +481,7 @@ class Search {
             for (let k = j; k < f.path.length; k++) {
                 const node = new FilterNode({
                         "title": f.path[k],
-                        "aggKey": f.aggKey,
+                        "aggKey": f.path.slice(0,k+1).join("/"),
                         "heTitle": Sefaria.hebrewTerm(f.path[k]),
                         "docCount": f.docCount ? f.docCount : 0
                     }
