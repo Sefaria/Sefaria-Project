@@ -73,6 +73,7 @@ class ServerCoordinator(MessagingNode):
             msg = self.pubsub.get_message()
         except Exception:
             logger.error("Failed to connect to Redis instance while doing multiserver sync.")
+            return
         if not msg or msg["type"] == "subscribe":
             return
 

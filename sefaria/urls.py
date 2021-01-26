@@ -18,6 +18,7 @@ from sefaria.site.urls import site_urlpatterns
 
 admin.autodiscover()
 handler500 = 'reader.views.custom_server_error'
+handler404 = 'reader.views.custom_page_not_found'
 
 
 # App Pages
