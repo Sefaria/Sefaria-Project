@@ -408,9 +408,12 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 		old_topics = existing.get("topics", [])
 		topics_diff = topic_list_diff(old_topics, sheet.get("topics", []))
 
-		sheet["views"] = existing["views"] 										# prevent updating views
-		sheet["owner"] = existing["owner"] 										# prevent updating owner
-		sheet["likes"] = existing["likes"] if "likes" in existing else [] 		# prevent updating likes
+		# Protected fields -- can't be set from outside
+		sheet["views"] = existing["views"]
+		sheet["owner"] = existing["owner"]
+		sheet["likes"] = existing["likes"] if "likes" in existing else []
+		if "noindex" in existing:
+			sheet["noindex"] = existing["noindex"]
 
 		existing.update(sheet)
 		sheet = existing

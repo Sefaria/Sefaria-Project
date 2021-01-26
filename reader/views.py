@@ -611,7 +611,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         title = strip_tags(sheet["title"]) + " | " + _("Sefaria")
         breadcrumb = sheet_crumbs(request, sheet)
         desc = unescape(sheet.get("summary", _("A source sheet created with Sefaria's Source Sheet Builder")))
-        noindex = sheet["status"] != "public"
+        noindex = sheet.get("noindex", False) or sheet["status"] != "public"
 
     if len(panels) > 0 and panels[0].get("refs") == [] and panels[0].get("mode") == "Text":
         logger.debug("Mangled panel state: {}".format(panels), stack_info=True)
