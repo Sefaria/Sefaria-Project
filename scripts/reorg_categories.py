@@ -137,7 +137,7 @@ for t in ts:
 
 # Jastrow, Klein Dictionary, Otzar Laazei Rashi  => Reference, Dictionary
 c = create_category(["Reference", "Dictionary"])
-ts = ['Jastrow', 'Klein Dictionary', 'Otzar Laazei Rashi']
+ts = ['Jastrow', 'Klein Dictionary', 'Otzar Laazei Rashi', 'Sefer HeArukh', "Hafla'ah ShebaArakhin on Sefer HeArukh"]
 for t in ts:
     moveIndexInto(t, c)
 
@@ -254,7 +254,8 @@ books_kook = ["Orot",
               "For the Perplexed of the Generation",
               "Maamar Hador",
               "Shmonah Kvatzim",
-              "Midbar Shur"]
+              "Midbar Shur",
+              "Olat Reiyah"]
 
 cat_modern = create_category(["Jewish Thought", "Modern"], "Modern", "ספרות מודרנית")
 books_modern = ["Nineteen Letters",
@@ -1131,7 +1132,10 @@ for p in [
     ["Talmud", "Bavli", "Commentary", "Mefaresh"],
     ["Halakhah", "Commentary", "Summary of Taz"],
     ["Halakhah", "Commentary", "Summary of Shakh"],
-    ["Kabbalah", "Commentary"]
+    ["Kabbalah", "Commentary"],
+    ["Jewish Thought", "Commentary", "Marpeh la'Nefesh"],
+    ["Jewish Thought", "Commentary", "Pat Lechem"],
+    ["Jewish Thought", "Commentary", "Tov haLevanon"],
 ]:
     c = Category().load({"path": p})
     if c:
@@ -1147,7 +1151,9 @@ for p in [
     ["Talmud", "Bavli", "Commentary"],
     ["Mishnah", "Commentary"],
     ["Midrash", "Commentary"],
-
+    ["Jewish Thought", "Commentary"],
+    ["Liturgy", "Commentary"],
+    ["Reference", "Commentary"]
 ]:
     c = Category().load({"path": p})
     if c:
