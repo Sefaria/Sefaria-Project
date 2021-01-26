@@ -167,7 +167,7 @@ def test_invalid_index_save_no_hebrew_collective_title():
     d = {
          "categories" : [
             "Mishnah",
-            "Commentary",
+            "Rishonim on Mishnah",
             "Bartenura"
         ],
         "collective_title": 'Gargamel',
@@ -402,11 +402,11 @@ def test_index_update():
         "heTitle": "כבכב",
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
-        "categories": ["Philosophy"]
+        "categories": ["Jewish Thought"]
     })
     i = model.Index().load({"title": ti})
     assert "Musar" not in i.categories
-    assert "Philosophy" in i.categories
+    assert "Jewish Thought" in i.categories
     assert i.nodes.lengths == [50, 501]
 
     model.IndexSet({"title": ti}).delete()
