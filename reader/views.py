@@ -13,6 +13,7 @@ import bleach
 from collections import OrderedDict
 import pytz
 from html import unescape
+import re
 
 from rest_framework.decorators import api_view
 from django.template.loader import render_to_string, get_template
@@ -55,6 +56,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref
+from sefaria.system.database import db
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -64,25 +66,25 @@ logger = logging.getLogger(__name__)
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
-logger.warn("Initializing library objects.")
-logger.warn("Initializing TOC Tree")
+logger.warning("Initializing library objects.")
+logger.warning("Initializing TOC Tree")
 library.get_toc_tree()
 
 
 """ """
-logger.warn("Initializing Full Auto Completer")
+logger.warning("Initializing Full Auto Completer")
 library.build_full_auto_completer()
 
-logger.warn("Initializing Ref Auto Completer")
+logger.warning("Initializing Ref Auto Completer")
 library.build_ref_auto_completer()
 
-logger.warn("Initializing Lexicon Auto Completers")
+logger.warning("Initializing Lexicon Auto Completers")
 library.build_lexicon_auto_completers()
 
-logger.warn("Initializing Cross Lexicon Auto Completer")
+logger.warning("Initializing Cross Lexicon Auto Completer")
 library.build_cross_lexicon_auto_completer()
 
-logger.warn("Initializing Shared Cache")
+logger.warning("Initializing Shared Cache")
 library.init_shared_cache()
 """ """
 
@@ -266,7 +268,7 @@ def catchall(request, tref, sheet=None):
 
     if sheet is None:
         try:
-            oref = model.Ref(tref)
+            oref = Ref(tref)
         except PartialRefInputError as e:
             logger.warning('{}'.format(e))
             matched_ref = Ref(e.matched_part)
@@ -1102,7 +1104,7 @@ def edit_text(request, ref=None, lang=None, version=None):
     else:
         initJSON = json.dumps({"mode": "add new"})
 
-    titles = json.dumps(model.library.full_title_list())
+    titles = json.dumps(library.full_title_list())
     page_title = "%s %s" % (mode, ref) if ref else "Add a New Text"
 
     return render_template(request,'edit_text.html', None, {
@@ -1207,7 +1209,7 @@ def count_and_index(c_oref, c_lang, vtitle, to_count=1):
 
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
-        model.IndexQueue({
+        IndexQueue({
             "ref": c_oref.normal(),
             "lang": c_lang,
             "version": vtitle,
@@ -1440,7 +1442,7 @@ def opensearch_suggestions_api(request):
 
 @catch_error_as_json
 def text_titles_api(request):
-    return jsonResponse({"books": model.library.full_title_list()}, callback=request.GET.get("callback", None))
+    return jsonResponse({"books": library.full_title_list()}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1489,7 +1491,7 @@ def index_api(request, title, v2=False, raw=False):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(apikey["uid"], model.Index, j, method="API", v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True))
+            return jsonResponse(func(apikey["uid"], Index, j, method="API", v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True))
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
@@ -1502,7 +1504,7 @@ def index_api(request, title, v2=False, raw=False):
         @csrf_protect
         def protected_index_post(request):
             return jsonResponse(
-                func(request.user.id, model.Index, j, v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True)
+                func(request.user.id, Index, j, v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True)
             )
         return protected_index_post(request)
 
@@ -1744,7 +1746,7 @@ def links_api(request, link_id_or_ref=None):
         # use the correct function if params indicate this is a note save
         # func = save_note if "type" in j and j["type"] == "note" else save_link
         #obj = func(apikey["uid"], model.Link, link, **kwargs)
-        obj = func(uid, model.Link, link, **kwargs)
+        obj = func(uid, Link, link, **kwargs)
         try:
             if USE_VARNISH:
                 revarnish_link(obj)
@@ -1753,7 +1755,7 @@ def links_api(request, link_id_or_ref=None):
         return format_object_for_client(obj)
 
     def _internal_do_delete(request, link_id_or_ref, uid):
-        obj = tracker.delete(uid, model.Link, link_id_or_ref, callback=revarnish_link)
+        obj = tracker.delete(uid, Link, link_id_or_ref, callback=revarnish_link)
         return obj
 
     if request.method == "GET":
@@ -1762,7 +1764,7 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": "Missing text identifier"}, callback)
         #The Ref instanciation is just to validate the Ref and let an error bubble up.
         #TODO is there are better way to validate the ref from GET params?
-        model.Ref(link_id_or_ref)
+        Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
         with_sheet_links = int(request.GET.get("with_sheet_links", 0))
         return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
@@ -1908,14 +1910,14 @@ def notes_api(request, note_id_or_ref):
                 return jsonResponse({"error": "Unrecognized API key."})
             note["owner"] = apikey["uid"]
             response = format_object_for_client(
-                func(apikey["uid"], model.Note, note, method="API")
+                func(apikey["uid"], Note, note, method="API")
             )
         else:
             note["owner"] = request.user.id
             @csrf_protect
             def protected_note_post(req):
                 resp = format_object_for_client(
-                    func(req.user.id, model.Note, note)
+                    func(req.user.id, Note, note)
                 )
                 return resp
             response = protected_note_post(request)
@@ -1943,7 +1945,7 @@ def notes_api(request, note_id_or_ref):
         if not request.user.is_authenticated:
             return jsonResponse({"error": "You must be logged in to delete notes."})
         return jsonResponse(
-            tracker.delete(request.user.id, model.Note, note_id_or_ref)
+            tracker.delete(request.user.id, Note, note_id_or_ref)
         )
 
     return jsonResponse({"error": "Unsupported HTTP method."})
@@ -1970,7 +1972,7 @@ def related_api(request, tref):
     Single API to bundle available content related to `tref`.
     """
     if request.GET.get("private", False) and request.user.is_authenticated:
-        oref = model.Ref(tref)
+        oref = Ref(tref)
         response = {
             "sheets": get_sheets_for_ref(tref, uid=request.user.id),
             "notes": get_notes(oref, uid=request.user.id, public=False)
@@ -1998,7 +2000,7 @@ def versions_api(request, tref):
     """
     API for retrieving available text versions list of a ref.
     """
-    oref = model.Ref(tref)
+    oref = Ref(tref)
     versions = oref.version_list()
 
     return jsonResponse(versions, callback=request.GET.get("callback", None))
@@ -2070,7 +2072,7 @@ def set_lock_api(request, tref, lang, version):
     API to set an edit lock on a text segment.
     """
     user = request.user.id if request.user.is_authenticated else 0
-    model.set_lock(model.Ref(tref).normal(), lang, version.replace("_", " "), user)
+    set_lock(Ref(tref).normal(), lang, version.replace("_", " "), user)
     return jsonResponse({"status": "ok"})
 
 
@@ -2079,7 +2081,7 @@ def release_lock_api(request, tref, lang, version):
     """
     API to release the edit lock on a text segment.
     """
-    model.release_lock(model.Ref(tref).normal(), lang, version.replace("_", " "))
+    release_lock(Ref(tref).normal(), lang, version.replace("_", " "))
     return jsonResponse({"status": "ok"})
 
 
@@ -2088,7 +2090,7 @@ def check_lock_api(request, tref, lang, version):
     """
     API to check whether a text segment currently has an edit lock.
     """
-    locked = model.check_lock(model.Ref(tref).normal(), lang, version.replace("_", " "))
+    locked = check_lock(Ref(tref).normal(), lang, version.replace("_", " "))
     return jsonResponse({"locked": locked})
 
 
@@ -2221,7 +2223,7 @@ def category_api(request, path=None):
 
     if request.method == "POST":
         def _internal_do_post(request, cat, uid, **kwargs):
-            return tracker.add(uid, model.Category, cat, **kwargs).contents()
+            return tracker.add(uid, Category, cat, **kwargs).contents()
 
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
@@ -2338,12 +2340,12 @@ def terms_api(request, name):
                     term["_id"] = t._id
 
                 func = tracker.update if request.GET.get("update", False) else tracker.add
-                return func(uid, model.Term, term, **kwargs).contents()
+                return func(uid, Term, term, **kwargs).contents()
 
             elif request.method == "DELETE":
                 if not t:
                     return {"error": 'Term "%s" does not exist.' % name}
-                return tracker.delete(uid, model.Term, t._id)
+                return tracker.delete(uid, Term, t._id)
 
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
@@ -2885,7 +2887,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
 
-    tref = model.Ref(tref).normal()
+    tref = Ref(tref).normal()
     refRe = '^%s$|^%s:' % (tref, tref)
     if lang and version:
         query = {"ref": {"$regex": refRe }, "language": lang, "version": version.replace("_", " ")}
@@ -3168,7 +3170,7 @@ def segment_history(request, tref, lang, version, page=1):
     View revision history for the text segment named by ref / lang / version.
     """
     try:
-        oref = model.Ref(tref)
+        oref = Ref(tref)
     except InputError:
         raise Http404
 
@@ -3214,7 +3216,7 @@ def revert_api(request, tref, lang, version, revision):
 
     revision = int(revision)
     version = version.replace("_", " ")
-    oref = model.Ref(tref)
+    oref = Ref(tref)
 
     new_text = text_at_revision(oref.normal(), version, lang, revision)
 
