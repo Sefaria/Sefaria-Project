@@ -44,7 +44,7 @@ subscribe(ref_data.process_index_delete_in_ref_data,                    text.Ind
 # Process in ES
 # todo: handle index name change in ES
 def process_version_title_change_in_search(ver, **kwargs):
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
+    from sefaria.local_settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
         from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
         search_index_name = get_new_and_current_index_names("text")['current']
