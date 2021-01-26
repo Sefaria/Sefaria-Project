@@ -717,12 +717,12 @@ Sefaria = extend(Sefaria, {
       }
 
       if ("category" in tocBranch[i]) {
-          Sefaria._translateTerms[toc[i].category] = {"en": toc[i].category, "he": toc[i].heCategory};
+          Sefaria._translateTerms[tocBranch[i].category] = {"en": tocBranch[i].category, "he": tocBranch[i].heCategory};
           if (tocBranch[i].contents) {
               Sefaria._cacheFromToc(tocBranch[i].contents, thisPath, thisOrder, rewrittenFrom,  rewrittenTo)
           }
       } else {
-          Sefaria.index(toc[i].title, toc[i]);
+          Sefaria.index(tocBranch[i].title, tocBranch[i]);
       }
     }
   },

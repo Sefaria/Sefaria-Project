@@ -16,6 +16,13 @@ class FilterNode {
       this.parent = typeof parent === 'undefined' ? null : parent;
       this.selected = (typeof selected === 'undefined') ? 0 : selected; //0 - not selected, 1 - selected, 2 - partially selected
   }
+  sumDocs() {
+      if (!this.hasChildren()) {
+          return this.docCount;
+      }
+      this.docCount = this.children.reduce((sum, child) => sum + child.sumDocs(), 0);
+      return this.docCount;
+  }
   append(child) {
       this.children.push(child);
       child.parent = this;

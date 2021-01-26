@@ -447,7 +447,7 @@ class Search {
         const availableFilters = [];     // List of root level FilterNode objects.
         const registry = {};        // Mappings of "/" separated category path strings to FilterNode objects
 
-        // build up an ordered list of documents with {aggKey, docCount, path}
+        // create combined list of filters with {aggKey, docCount, path}
         const filters = [
             ...appliedFilters.map(fkey => ({
                 aggKey: fkey,
@@ -464,40 +464,42 @@ class Search {
         // sort into search toc tree order
         filters.sort((a,b) => Sefaria.compareSearchCatPaths(a.aggKey, b.aggKey));
 
-        let currentRootKey = "";
-        let currentRootNode;
-        for (let i = 0; i < filters.length; i ++) {
+        // Build trees of filters
+        // Keep array of previous entry nodes
+        let previousNodes = [];
+
+        for (let i = 0; i < filters.length; i++) {
             const f = filters[i];
-            const thisRootKey = f.path[0];
-            if (thisRootKey !== currentRootKey) {
-                currentRootNode = new FilterNode({
-                      "title": f.path[0],
-                      "aggKey": f.aggKey,
-                      "heTitle": Sefaria.hebrewTerm(f.path[0]),
-                      "docCount": 0
-                    }
-                );
-                currentRootKey = thisRootKey;
-                availableFilters.push(currentRootNode);
 
-                if (f.path.length === 1) { registry[f.aggKey] = node; }  // Shouldn't happen, but ... I'm not totally sure of that.
+            let j;  // index of first place where this filter differs from the previous
+            for (j = 0; j < Math.min(previousNodes.length, f.path.length); j++) {
+                if (previousNodes[j].title !== f.path[j]) {
+                    break;
+                }
             }
 
-            if (f.path.length > 1) {
-                const title = f.path.slice(-1)[0];
+            for (let k = j; k < f.path.length; k++) {
                 const node = new FilterNode({
-                      "title": title,
-                      "aggKey": f.aggKey,
-                      "heTitle": Sefaria.hebrewTerm(title),
-                      "docCount": f.docCount
+                        "title": f.path[k],
+                        "aggKey": f.aggKey,
+                        "heTitle": Sefaria.hebrewTerm(f.path[k]),
+                        "docCount": f.docCount ? f.docCount : 0
                     }
                 );
-                registry[f.aggKey] = node;
-                currentRootNode.append(node);
-                currentRootNode.docCount += node.docCount;
+                previousNodes[k] = node;
+                if (k === 0) {
+                    availableFilters.push(node);
+                } else {
+                    previousNodes[k - 1].append(node);
+                }
+                registry[node.aggKey] = node;
             }
+            previousNodes = previousNodes.slice(0,f.path.length);
         }
-        
+
+        //sum doc counts
+        availableFilters.forEach(n => n.sumDocs());
+
         return { availableFilters, registry };
     }
 
