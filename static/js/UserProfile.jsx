@@ -176,7 +176,7 @@ class UserProfile extends Component {
     currFilter = n(currFilter);
     const filterText = [sheet.title.stripHtml(),
                         sheet.topics.map(topic => topic.asTyped).join(" "),
-                        sheet.collections.map(collection => collection.name).join(" "),
+                        sheet.collections ? sheet.collections.map(collection => collection.name).join(" ") : "",
                         "displayedCollectionName" in sheet ? sheet.displayedCollectionName : "",
                         ].join(" ");
     return n(filterText).indexOf(currFilter) > -1;
@@ -493,7 +493,7 @@ const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowi
         { p.position || p.organization ?
           <div className="title sub-title">
             <span>{p.position}</span>
-            { p.position && p.organization ? <span>{ " at " }</span> : null }
+            { p.position && p.organization ? <span>{ Sefaria._(" at ") }</span> : null }
             <span>{p.organization}</span>
           </div> : null
         }

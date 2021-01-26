@@ -157,6 +157,13 @@ def subscribe(request, email):
         return jsonResponse({"error": _("Sorry, there was an error.")})
 
 
+def unlink_gauth(request):
+    profile = UserProfile(id=request.user.id)
+    profile.update({"gauth_token": None})
+    profile.save()
+    return redirect(f"/profile/{profile.slug}")
+
+
 def generate_feedback(request):
 
     data = json.loads(request.POST.get('json', {}))

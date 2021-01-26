@@ -169,57 +169,6 @@
         static_url:    {{ STATIC_PREFIX }},
       };
 
-      // Custom processing of Copy/Paste
-      document.addEventListener('copy', function(e) {
-          const selection = document.getSelection()
-          const text_only = selection.toString();
-
-          if (selection.rangeCount) {
-              var container = document.createElement("div");
-              for (var i = 0, len = selection.rangeCount; i < len; ++i) {
-                  container.appendChild(selection.getRangeAt(i).cloneContents());
-              }
-
-              var classesToRemove = ["segmentNumber", "linkCount", "clearFix"];
-              classesToRemove.map(function(cls) {
-                var elsToRemove = container.getElementsByClassName(cls);
-                while(elsToRemove.length > 0){
-                    elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
-                }
-              });
-
-              var selectionAncestor = selection.getRangeAt(0).commonAncestorContainer;
-
-              if (selectionAncestor.nodeType == 1) {
-
-                var curReaderPanel = selectionAncestor.closest('.readerPanel');
-
-                if (curReaderPanel && curReaderPanel.classList.contains('hebrew')) {
-                    var elsToRemove = container.getElementsByClassName('en')
-                    while(elsToRemove.length > 0){
-                        elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
-                    }
-                }
-
-                else if (curReaderPanel && curReaderPanel.classList.contains('english')) {
-                    var elsToRemove = container.getElementsByClassName('he')
-                    while(elsToRemove.length > 0){
-                        elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
-                    }
-                }
-              }
-
-              html = container.innerHTML;
-          }
-          else {
-              html = text_only;
-          }
-
-          const clipdata = e.clipboardData || window.clipboardData;
-          clipdata.setData('text/plain', text_only);
-          clipdata.setData('text/html', html);
-          e.preventDefault();
-      });
       {% endautoescape %}
     </script>
 
