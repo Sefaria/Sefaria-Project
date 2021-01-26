@@ -100,7 +100,6 @@ class AddSourceToEditor(AtomicTest):
     every_build = False
     single_panel = False  # No source sheets on mobile
 
-
     def body(self):
         self.add_source("Psalms 43:4")
         sheet_items = self.driver.find_elements_by_css_selector(".sheetItem")
@@ -121,21 +120,13 @@ class AddSourceToEditor(AtomicTest):
 
         print(len(spacer_after_source))
 
-
-
-
-
         # assert len(sheet_items) == 1
-
-
-
 
 
 class AddSheetContent(AtomicTest):
     suite_class = EditorSuite
     every_build = False
     single_panel = False  # No source sheets on mobile
-
 
     def body(self):
         self.type_lorem_ipsum_text("he")
@@ -977,6 +968,31 @@ class EditorPagesLoad(AtomicTest):
         self.load_add("Mishnah Peah 4")
 
 
+class ScrollToHighlight(AtomicTest):
+    suite_class = PageloadSuite
+    every_build = True    
+
+    def test_by_load(self, ref):
+        self.load_ref(ref)
+        el = self.driver.find_element_by_css_selector('[data-ref="{}"]'.format(ref))
+        assert self.is_element_visible_in_viewport(el)
+
+    def test_in_app(self, ref):
+        self.search_ref(ref)
+        el = self.driver.find_element_by_css_selector('[data-ref="{}"]'.format(ref))
+        assert self.is_element_visible_in_viewport(el)
+
+    def body(self):
+        # Test from fresh load, target originally above fold
+        self.test_by_load("Kol Bo 130:2")
+        # Fresh load, target originally below fold
+        self.test_by_load("Kol Bo 3:14")
+        # In app, target not in cache
+        self.test_in_app("Mishnah Peah 3:3")
+        # In app, target in cache
+        self.test_in_app("Kol Bo 3:14")
+
+
 class InfiniteScrollUp(AtomicTest):
     suite_class = ReaderSuite
     every_build = True
@@ -984,7 +1000,9 @@ class InfiniteScrollUp(AtomicTest):
     def test_up(self, start_ref, prev_segment_ref):
         from urllib.parse import quote_plus
         self.browse_to_ref(start_ref)
-        self.scroll_reader_panel_up(1000)
+        time.sleep(.5)
+        self.scroll_reader_panel_down(100) # This jiggle feels like cheating, but I am finding that a single scroll doesn't trigger the "scroll" event, causing the next scroll to be ignore (with this.justScrolled flag)
+        self.scroll_reader_panel_up(200)
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-ref="%s"]' % prev_segment_ref)))
         time.sleep(.5)
         # Wait then check that URL has not changed as a proxy for checking that visible scroll position has not changed
@@ -992,7 +1010,7 @@ class InfiniteScrollUp(AtomicTest):
 
     def body(self):
         # Simple Text
-        self.test_up("Job 32", "Job 31:40")
+        self.test_up("Joshua 22", "Joshua 21:45")
         # Complex Text
         self.test_up("Pesach Haggadah, Magid, The Four Sons", "Pesach Haggadah, Magid, Story of the Five Rabbis 2")
 
@@ -1007,7 +1025,7 @@ class InfiniteScrollDown(AtomicTest):
 
     def body(self):
         # Simple Text
-        self.test_down("Job 32", "Job 33:1")
+        self.test_down("Joshua 22", "Joshua 23:1")
         # Complex Text
         self.test_down("Pesach Haggadah, Magid, The Four Sons", "Pesach Haggadah, Magid, Yechol Me'rosh Chodesh 1")
 

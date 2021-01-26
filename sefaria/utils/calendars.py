@@ -244,6 +244,7 @@ def get_parasha(datetime_obj, diaspora=True, parasha=None):
     """
     Returns the upcoming Parasha for datetime.
     """
+    datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
     query = {"date": {"$gte": datetime_obj}, "diaspora": {'$in': [diaspora, None]}}
     if parasha is not None:
         # regex search for potential double parasha. there can be dash before or after name

@@ -19,7 +19,16 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
     track_pkeys = True
     pkeys = ["lastPath"]  # Needed for dependency tracking
     required_attrs = ["lastPath", "path", "depth"]
-    optional_attrs = ["enDesc", "heDesc", "titles", "sharedTitle", "isPrimary", "searchRoot"]
+    optional_attrs = [
+        "enDesc",
+        "heDesc",
+        "enShortDesc",
+        "heShortDesc",
+        "titles",
+        "sharedTitle",
+        "isPrimary",
+        "searchRoot",
+    ]
 
     def __str__(self):
         return "Category: {}".format(", ".join(self.path))

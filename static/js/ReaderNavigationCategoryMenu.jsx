@@ -36,10 +36,11 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
       }
 
     }
+
     const catContents    = Sefaria.tocItemsByCategories(cats);
     const nestLevel      = category === "Commentary" ? 1 : 0;
     const footer         = compare ? null : <Footer />;
-    const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: hideNavHeader, noLangToggleInHebrew: 1});
+    const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: hideNavHeader, noLangToggleInHebrew: 1, compare: compare});
     const contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (<div className={navMenuClasses}>
               <MobileHeader
