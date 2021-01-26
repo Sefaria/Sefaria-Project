@@ -233,7 +233,6 @@ def view_sheet(request, sheet_id, editorMode = False):
         "title": sheet["title"],
         "author": author,
         "is_owner": request.user.id == sheet["owner"],
-        "is_public": sheet["status"] == "public",
         "sheet_collections": sheet_collections,
         "displayed_collection":  displayed_collection,
         "like_count": like_count,
