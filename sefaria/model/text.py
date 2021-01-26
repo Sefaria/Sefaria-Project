@@ -4454,8 +4454,6 @@ class Library(object):
         self._topic_toc_json = None
         self._topic_link_types = None
         self._topic_data_sources = None
-        self._search_filter_toc = None
-        self._search_filter_toc_json = None
         self._category_id_dict = None
         self._toc_size = 16
 
@@ -4520,16 +4518,11 @@ class Library(object):
         if include_toc:
             self.rebuild_toc()
 
-    def rebuild_toc(self, skip_toc_tree=False, skip_filter_toc=False):
+    def rebuild_toc(self, skip_toc_tree=False):
         if not skip_toc_tree:
             self._toc_tree = self.get_toc_tree(rebuild=True)
         self._toc = self.get_toc(rebuild=True)
         self._toc_json = self.get_toc_json(rebuild=True)
-        if not skip_filter_toc:
-            self._search_filter_toc = self.get_search_filter_toc(rebuild=True)
-        else: # TODO: Dont love this, it breaks the pattern of where we do cache invalidation toward redis,  but the way these objects are created currently makes it diffucult to make sure the cache is updated anywhere else. In any dependecy trigger, the search toc is updated in the library, and that becomes more recent than whats in cache, when usually the reverse is true. if we can clean up all the methods relating to the large library objects and standardize, that'd be good
-            scache.set_shared_cache_elem('search_filter_toc', self._search_filter_toc)
-        self._search_filter_toc_json = self.get_search_filter_toc_json(rebuild=True)
         self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
         self._category_id_dict = None
         scache.delete_template_cache("texts_list")
@@ -4546,8 +4539,6 @@ class Library(object):
     def init_shared_cache(self, rebuild=False):
         self.get_toc(rebuild=rebuild)
         self.get_toc_json(rebuild=rebuild)
-        self.get_search_filter_toc(rebuild=rebuild)
-        self.get_search_filter_toc_json(rebuild=rebuild)
         self.get_topic_toc(rebuild=rebuild)
         self.get_topic_toc_json(rebuild=rebuild)
         self.get_text_titles_json(rebuild=rebuild)
@@ -4685,33 +4676,6 @@ class Library(object):
     def get_collections_in_library(self):
         return self._toc_tree.get_collections_in_library()
 
-    def get_search_filter_toc(self, rebuild=False):
-        """
-        Returns table of contents object from cache,
-        DB or by generating it, as needed.
-        """
-        if rebuild or not self._search_filter_toc:
-            if not rebuild:
-                self._search_filter_toc = scache.get_shared_cache_elem('search_filter_toc')
-            if rebuild or not self._search_filter_toc:
-                from sefaria.summaries import update_search_filter_table_of_contents
-                self._search_filter_toc = update_search_filter_table_of_contents()
-                scache.set_shared_cache_elem('search_filter_toc', self._search_filter_toc)
-                self.set_last_cached_time()
-        return self._search_filter_toc
-
-    def get_search_filter_toc_json(self, rebuild=False):
-        """
-        Returns JSON representation of TOC.
-        """
-        if rebuild or not self._search_filter_toc_json:
-            if not rebuild:
-                self._search_filter_toc_json = scache.get_shared_cache_elem('search_filter_toc_json')
-            if rebuild or not self._search_filter_toc_json:
-                self._search_filter_toc_json = json.dumps(self.get_search_filter_toc(), ensure_ascii=False)
-                scache.set_shared_cache_elem('search_filter_toc_json', self._search_filter_toc_json)
-                self.set_last_cached_time()
-        return self._search_filter_toc_json
 
     def build_full_auto_completer(self):
         from .autospell import AutoCompleter
@@ -4786,10 +4750,7 @@ class Library(object):
 
         self.get_toc_tree().update_title(indx, recount=True)
 
-        from sefaria.summaries import update_title_in_toc
-        self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, recount=False, for_search=True)
-
-        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
+        self.rebuild_toc(skip_toc_tree=True)
 
     def delete_index_from_toc(self, indx, categories = None):
         """
@@ -4804,10 +4765,7 @@ class Library(object):
         if toc_node:
             self.get_toc_tree().remove_index(toc_node)
 
-        from sefaria.summaries import recur_delete_element_from_toc
-        self._search_filter_toc = recur_delete_element_from_toc(indx.title, self.get_search_filter_toc())
-
-        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
+        self.rebuild_toc(skip_toc_tree=True)
 
     def update_index_in_toc(self, indx, old_ref=None):
         """
@@ -4822,10 +4780,7 @@ class Library(object):
 
         self.get_toc_tree().update_title(indx, old_ref=old_ref, recount=False)
 
-        from sefaria.summaries import update_title_in_toc
-        self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, old_ref=old_ref, recount=False, for_search=True)
-
-        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
+        self.rebuild_toc(skip_toc_tree=True)
 
     def get_index(self, bookname):
         """

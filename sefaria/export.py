@@ -22,7 +22,7 @@ from sefaria.model.text import AbstractIndex
 
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
-from .summaries import CATEGORY_ORDER
+from .model.category import CATEGORY_ORDER
 from .settings import SEFARIA_EXPORT_PATH
 from sefaria.system.database import db
 
@@ -73,7 +73,7 @@ def make_json(doc):
     Returns JSON of 'doc' with export settings.
     """
     if "original_text" in doc:
-        doc = {k: v for k, v in doc.items() if k is not "original_text"}
+        doc = {k: v for k, v in doc.items() if k != "original_text"}
     return json.dumps(doc, indent=4, ensure_ascii=False)
 
 

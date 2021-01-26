@@ -30,8 +30,6 @@ from django.utils.html import strip_tags
 from bson.objectid import ObjectId
 
 from sefaria.model import *
-from sefaria.workflows import *
-from sefaria.reviews import *
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data
 from sefaria.model.collection import CollectionSet
@@ -44,7 +42,6 @@ from sefaria.system.exceptions import InputError, PartialRefInputError, BookName
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
-from sefaria.summaries import get_or_make_summary_node
 from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_topic, user_sheets, user_tags, trending_topics, sheet_to_dict, get_top_sheets, public_tag_list, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
@@ -1411,10 +1408,6 @@ def parashat_hashavua_api(request):
 def table_of_contents_api(request):
     return jsonResponse(library.get_toc(), callback=request.GET.get("callback", None))
 
-
-@catch_error_as_json
-def search_filter_table_of_contents_api(request):
-    return jsonResponse(library.get_search_filter_toc(), callback=request.GET.get("callback", None))
 
 @catch_error_as_json
 def search_autocomplete_redirecter(request):
@@ -2938,58 +2931,6 @@ def texts_history_api(request, tref, lang=None, version=None):
     summary["lastUpdated"] = updated
 
     return jsonResponse(summary, callback=request.GET.get("callback", None))
-
-
-@catch_error_as_json
-def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
-    if request.method == "GET":
-        callback=request.GET.get("callback", None)
-        if tref and lang and version:
-            nref = model.Ref(tref).normal()
-            version = version.replace("_", " ")
-
-            reviews = get_reviews(nref, lang, version)
-            last_edit = get_last_edit_date(nref, lang, version)
-            score_since_last_edit = get_review_score_since_last_edit(nref, lang, version, reviews=reviews, last_edit=last_edit)
-
-            for r in reviews:
-                r["date"] = r["date"].isoformat()
-
-            response = {
-                "ref":                nref,
-                "lang":               lang,
-                "version":            version,
-                "reviews":            reviews,
-                "reviewCount":        len(reviews),
-                "scoreSinceLastEdit": score_since_last_edit,
-                "lastEdit":           last_edit.isoformat() if last_edit else None,
-            }
-        elif review_id:
-            response = {}
-
-        return jsonResponse(response, callback)
-
-    elif request.method == "POST":
-        if not request.user.is_authenticated:
-            return jsonResponse({"error": "You must be logged in to write reviews."})
-        j = request.POST.get("json")
-        if not j:
-            return jsonResponse({"error": "No post JSON."})
-        j = json.loads(j)
-
-        response = save_review(j, request.user.id)
-        return jsonResponse(response)
-
-    elif request.method == "DELETE":
-        if not review_id:
-            return jsonResponse({"error": "No review ID given for deletion."})
-
-        return jsonResponse(delete_review(review_id, request.user.id))
-
-    else:
-        return jsonResponse({"error": "Unsupported HTTP method."})
-
-
 
 
 @sanitize_get_params
