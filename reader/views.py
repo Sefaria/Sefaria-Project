@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
 from random import choice
 import json
 import urllib.request, urllib.parse, urllib.error
-import dateutil.parser
 from bson.json_util import dumps
 import socket
 import bleach
@@ -16,8 +15,8 @@ from html import unescape
 import re
 
 from rest_framework.decorators import api_view
-from django.template.loader import render_to_string, get_template
-from django.shortcuts import render, get_object_or_404, redirect
+from django.template.loader import render_to_string
+from django.shortcuts import render, redirect
 from django.http import Http404, QueryDict
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -41,14 +40,13 @@ from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.client.util import jsonResponse
-from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
+from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_topic, user_sheets, user_tags, trending_topics, sheet_to_dict, get_top_sheets, public_tag_list, get_sheet_for_panel, annotate_user_links
+from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
-from sefaria.utils.talmud import daf_to_section
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
-from sefaria.utils.util import short_to_long_lang_code, titlecase
+from sefaria.utils.util import short_to_long_lang_code
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER
