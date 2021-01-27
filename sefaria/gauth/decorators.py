@@ -37,7 +37,6 @@ def gauth_required(scope, ajax=False):
                 return (HttpResponse('Unauthorized', status=401)
                         if ajax else redirect('gauth_index'))
 
-            logger.warning(credentials_dict)
 
             credentials = google.oauth2.credentials.Credentials(
                 credentials_dict['token'],
@@ -54,7 +53,13 @@ def gauth_required(scope, ajax=False):
 
             auth_request = google.auth.transport.requests.Request()
             if credentials.expired:
-                credentials.refresh(auth_request)
+                try:
+                    credentials.refresh(auth_request)
+                except:
+                    request.session['next_view'] = request.path
+                    request.session['gauth_scope'] = scope
+                    return (HttpResponse('Unauthorized', status=401)
+                            if ajax else redirect('gauth_index'))
 
             # Everything went well, call wrapped view and give credential to it
             kwargs['credential'] = credentials
