@@ -72,6 +72,8 @@ class Test_find_citation_in_text(object):
 
     def test_regex_string_en_js(self):
         assert In('Ruth 1 1').looking_for('Ruth').finds("Ruth 1:1")
+        assert In("Genesis 1:2-3").looking_for("Genesis").finds("Genesis 1:2-3")
+        assert In("Genesis 1-3").looking_for("Genesis").finds("Genesis 1-3")
 
     def test_regex_string_en_array(self):
         assert In("Genesis 2:1-Genesis 2:3").looking_for("Genesis").finds_multiple(["Genesis 2:1", "Genesis 2:3"])
