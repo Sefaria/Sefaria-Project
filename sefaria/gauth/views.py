@@ -70,7 +70,7 @@ def auth_return(request):
 
     # flow.redirect_uri = request.session.get('next_view', '/')
 
-    authorization_response = request.build_absolute_uri()
+    authorization_response = request.build_absolute_uri().replace("http:", "https:")
     flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
 
