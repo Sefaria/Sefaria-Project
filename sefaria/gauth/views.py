@@ -32,7 +32,9 @@ def index(request):
         settings.GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH,
         scopes=request.session.get('gauth_scope', '')
     )
-    flow.redirect_uri = request.build_absolute_uri(reverse('gauth_callback'))
+
+    redirect_url = request.build_absolute_uri(reverse('gauth_callback')).replace("http:", "https:")
+    flow.redirect_uri = redirect_url
 
     authorization_url, _ = flow.authorization_url(
         access_type='offline',
