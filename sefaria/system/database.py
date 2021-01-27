@@ -51,6 +51,7 @@ def ensure_indices(active_db=None):
         ('groups', ["name"], {}),
         ('groups', ["sheets"], {}),
         ('groups', ["slug"], {'unique': True}),
+        ('groups', ["privateSlug"], {'unique': True}),
         ('groups', ["members"], {}),
         ('groups', ["admins"], {}),
         ('history', ["revision"],{}),

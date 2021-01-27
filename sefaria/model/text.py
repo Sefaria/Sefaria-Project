@@ -197,6 +197,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "authors",
         "enDesc",
         "heDesc",
+        "enShortDesc",
+        "heShortDesc",
         "pubDate",
         "compDate",
         "compPlace",

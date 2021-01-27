@@ -1170,6 +1170,9 @@ input.noselect {
   justify-content: space-between;
   align-items: center;
 }
+.interface-hebrew .readerNavTop{
+  direction: rtl;
+}
 .readerNavTop .readerNavTopStart {
   display: flex;
   align-items: center;

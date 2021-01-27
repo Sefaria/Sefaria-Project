@@ -55,7 +55,6 @@ class ReaderApp extends Component {
 
         panels[0] = {
           highlightedNodes: initialPanel.highlightedNodes,
-          naturalDateCreated: initialPanel.sheet && initialPanel.sheet.naturalDateCreated,
           sheetID: initialPanel.sheetID,
           sheet: initialPanel.sheet,
           refs: props.initialRefs,
