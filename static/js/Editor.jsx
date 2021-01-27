@@ -439,6 +439,8 @@ const SheetSourceElement = ({ attributes, children, element }) => {
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
 
   return (
+    <div className={"sheetItem"}>
+    {children}
     <div {...attributes} contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
         <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div>
@@ -465,13 +467,15 @@ const SheetSourceElement = ({ attributes, children, element }) => {
           </Slate>
         </div>
       </div>
-    </div>
+      </div>
+      <div className="clearFix"></div>
+      </div>
   );
 }
 
 const Element = props => {
     const { attributes, children, element } = props
-    const sheetItemClasses = `sheetItem ${Node.string(element) ? '':'empty'}`;
+    const sheetItemClasses = `sheetItem ${Node.string(element) ? '':'empty'} ${element.type != ("SheetSource" || "SheetOutsideBiText") ? 'noPointer': ''}`;
     switch (element.type) {
         case 'spacer':
           return (
@@ -481,10 +485,7 @@ const Element = props => {
           )
         case 'SheetSource':
             return (
-              <div className={sheetItemClasses} {...attributes}>
               <SheetSourceElement {...props} />
-              <div className="clearFix"></div>
-              </div>
             )
 
         case 'SheetComment':
@@ -493,6 +494,7 @@ const Element = props => {
                 <div className="SheetComment segment" {...attributes}>
                     {children}
                 </div>
+                <div className="clearFix"></div>
               </div>
             )
         case 'SheetOutsideText':
@@ -503,6 +505,7 @@ const Element = props => {
                         {element.loading ? <div className="sourceLoader"></div> : null}
                         {children}
                     </div>
+                    <div className="clearFix"></div>
                   </div>
             );
 
@@ -512,6 +515,7 @@ const Element = props => {
                 <div className="SheetOutsideBiText segment" {...attributes}>
                     {children}
                 </div>
+                <div className="clearFix"></div>
               </div>
             );
 
@@ -539,6 +543,7 @@ const Element = props => {
             return (
               <div className={sheetItemClasses} {...attributes}>
                 {mediaComponent}
+                <div className="clearFix"></div>
               </div>
             );
 
@@ -909,6 +914,7 @@ const withSefariaSheet = editor => {
         //Any nested sheet element should be lifted
         if (Node.parent(editor, path).type !== "SheetContent") {
           Transforms.liftNodes(editor, { at: path })
+          return
         }
       }
 
@@ -929,6 +935,7 @@ const withSefariaSheet = editor => {
           const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, "")
           incrementNextSheetNode(editor);
           Transforms.insertNodes(editor, fragment, { at: [0,0,0] });
+          return
         }
       }
 
@@ -999,10 +1006,10 @@ const incrementNextSheetNode = (editor) => {
 }
 
 const addItemToSheet = (editor, fragment, position) => {
-    const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")[1];
-    const nextSheetItemPath = Path.isPath(position) ? position : position == "top" ? closestSheetItem : getNextSheetItemPath(closestSheetItem);
+    // const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")[1];
+    // const nextSheetItemPath = Path.isPath(position) ? position : position == "top" ? closestSheetItem : getNextSheetItemPath(closestSheetItem);
     incrementNextSheetNode(editor);
-    Transforms.insertNodes(editor, fragment, {at: nextSheetItemPath});
+    Transforms.insertNodes(editor, fragment);
 };
 
 
@@ -1415,10 +1422,11 @@ const SefariaEditor = (props) => {
     return (
         <div>
         {
+          /* debugger */
 
-          <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: 1000, backgroundColor: '#ddd', fontSize: 12, zIndex: 9999}}>
-          {JSON.stringify(editor.children[0,0])}
-          </div>
+          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: 1000, backgroundColor: '#ddd', fontSize: 12, zIndex: 9999}}>
+          // {JSON.stringify(editor.children[0,0])}
+          // </div>
 
         }
 
