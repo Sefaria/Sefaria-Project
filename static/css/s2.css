@@ -1118,7 +1118,6 @@ input.noselect {
   height: 100%;
   box-sizing: border-box;
   z-index: 101;
-  background-color: #FBFBFA;
 }
 .readerNavMenu .content,
 .homeFeedWrapper .content {
@@ -1270,14 +1269,14 @@ input.noselect {
   flex: 1;
 }
 .readerNavMenu h1 {
-  text-align: center;
-  color: #000;
-  height: 70px;
+  text-align: start;
+  color: #666;
+  height: 48px;
   position: relative;
-  font-size: 30px;
-  font-weight: lighter;
+  font-size: 22px;
+  font-weight: 500;
   letter-spacing: 1px;
-  margin: 0 0 10px 0;
+  margin: 0;
 }
 .readerNavMenu.topicPanel {
   background-color: white;
@@ -1498,7 +1497,7 @@ h1 .languageToggle .he {
   font-size: 22px;
 }
 .readerNavMenu h1 .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Taamey Frank";  /* fallback on Hebrew if Hebrew in text */
+    /* fallback on Hebrew if Hebrew in text */
 }
 @media (max-width: 450px) {
   .readerNavMenu.home .tagline {
@@ -1650,23 +1649,24 @@ input.resourcesLink {
 .readerNavCategories a {
   color: #000;
 }
+.textCategory {
+  padding-bottom: 25px;
+}
 .readerNavCategory {
   background-color: white;
-  text-transform: uppercase;
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-  text-align: center;
-  font-size: 18px;
-  padding: 16px 10px 17px;
+  text-align: start;
+  font-size: 24px;
+  padding: 17px 0 10px;
   margin: 0;
   cursor: pointer;
   border-top: 4px solid transparent;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
   letter-spacing: 1px;
   display: flex;
   align-items: center;
-  justify-content: center;;
   line-height: 1.3;
   flex: 1;
+  font-weight: 400;
 }
 a.readerNavCategory {
   color: #000;
@@ -1940,15 +1940,18 @@ a.readerNavCategory {
   font-family: "Heebo", sans-serif;
 }
 .readerNavMenu .dedication {
-  margin: -10px 0 58px 0;
+  text-align: start;
+  color: #666;
+  background-color: #FBFBFA;
+  padding: 26px 19px;
+  font-size: 18px;
+  margin-bottom: 27px;
 }
 .readerTextTableOfContents .categoryAttribution,
 .readerTextTableOfContents .dedication {
   margin: 28px 0;
 }
-.readerTextTableOfContents .categoryAttribution,
-.readerTextTableOfContents .dedication,
-.readerNavMenu .dedication {
+.readerTextTableOfContents .categoryAttribution, .readerTextTableOfContents .dedication {
   text-align: center;
   font-size: 18px;
   font-style: italic;
@@ -1964,7 +1967,7 @@ a.readerNavCategory {
 }
 .readerNavMenu .dedication .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-  font-size: 18px;
+  font-style: italic;
 }
 .readerTextTableOfContents .tocTop {
   padding-bottom: 15px;

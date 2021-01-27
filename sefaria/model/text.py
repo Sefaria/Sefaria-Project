@@ -743,6 +743,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             "title": self.get_title(),
             "heTitle": self.get_title("he"),
             "categories": self.categories[:],
+            "enShortDesc": getattr(self, "enShortDesc", ""),
+            "heShortDesc": getattr(self, "heShortDesc", ""),
             "primary_category" : self.get_primary_category(),
             "dependence" : getattr(self, "dependence", False),
         }
