@@ -52,10 +52,6 @@ def gauth_required(scope, ajax=False):
             expiry = datetime.datetime.strptime(credentials_dict['expiry'], '%Y-%m-%d %H:%M:%S')
             credentials.expiry = expiry
 
-
-            logger.warning(credentials)
-            logger.warning(credentials.scopes)
-
             auth_request = google.auth.transport.requests.Request()
             if credentials.expired:
                 credentials.refresh(auth_request)
