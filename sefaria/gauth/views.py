@@ -15,8 +15,6 @@ import google_auth_oauthlib.flow
 
 from sefaria import settings
 
-
-
 # CLIENT_SECRETS, name of a file containing the OAuth 2.0 information for this
 # application, including client_id and client_secret, which are found
 # on the API Access tab on the Google APIs
@@ -64,7 +62,9 @@ def auth_return(request):
         scopes=request.session.get('gauth_scope', ''),
         state=state
     )
-    flow.redirect_uri = request.build_absolute_uri(reverse('gauth_callback'))
+
+    redirect_url = request.build_absolute_uri(reverse('gauth_callback')).replace("http:", "https:")
+    flow.redirect_uri = redirect_url
 
     # flow.redirect_uri = request.session.get('next_view', '/')
 
