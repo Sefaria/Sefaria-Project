@@ -123,7 +123,7 @@ class SefariaSiteMapGenerator(object):
         """
         Creates a sitemap for each public source sheet.
         """
-        query = {"status": "public"}
+        query = {"status": "public", "noindex": {"$ne": True}}
         public = db.sheets.find(query).distinct("id")
         urls = [self._hostname + "/sheets/" + str(id) for id in public]
         self.write_urls(urls, "sheets-sitemap.xml")

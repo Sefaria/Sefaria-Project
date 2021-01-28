@@ -63,8 +63,8 @@ class Link(abst.AbstractMongoRecord):
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
             # Don't bother saving a connection that already exists, or that has a more precise link already
-            # will also find the same link with the two refs reversed
-            samelink = Link().load({"$or": [{"refs": self.refs}, {"refs": [self.refs[1], self.refs[0]]}]})
+            self.refs = sorted(self.refs) #make sure ref order is deterministic
+            samelink = Link().load({"refs": self.refs})
 
             if samelink:
                 if not self.auto and self.type and not samelink.type:
@@ -94,6 +94,7 @@ class Link(abst.AbstractMongoRecord):
                     # logger.debug("save_link: More specific link exists: " + link["refs"][1] + " and " + preciselink["refs"][1])
                     raise DuplicateRecordError("A more precise link already exists: {} - {}".format(preciselink.refs[0], preciselink.refs[1]))
                 # else: # this is a good new link
+
 
         if not getattr(self, "_skip_lang_check", False):
             self._set_available_langs()
