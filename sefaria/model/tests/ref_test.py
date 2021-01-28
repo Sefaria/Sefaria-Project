@@ -29,13 +29,19 @@ class Test_Ref(object):
         ref = Ref("Jeremiah 7:17\u201118")  # test with unicode dash
         assert ref.toSections == [7, 18]
 
-    def test_short_bible_refs(self):  # this behavior is changed from earlier
+    def test_short_bible_refs(self):
         assert Ref("Exodus") != Ref("Exodus 1")
         assert Ref("Exodus").padded_ref() == Ref("Exodus 1")
 
-    def test_short_talmud_refs(self):  # this behavior is changed from earlier
+    def test_short_talmud_refs(self):
         assert Ref("Sanhedrin 2a") != Ref("Sanhedrin")
-        assert Ref("Sanhedrin 2a") == Ref("Sanhedrin 2")
+
+    def test_talmud_refs_without_amud(self):
+        assert Ref("Sanhedrin 2") == Ref("Sanhedrin 2a-2b")
+        assert Ref("Shabbat 7") == Ref("Shabbat 7a-7b")
+
+    def test_talmud_refs_short_range(self):
+        assert Ref("Shabbat 7a-b") == Ref("Shabbat 7a-7b")
 
     # This test runs for 90% of this suite's time, and passes.  Seems pretty trivial.  Can we trim it?
     @pytest.mark.deep
@@ -179,7 +185,6 @@ class Test_Ref(object):
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 2").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, We Were Slaves in Egypt 2"
         assert Ref("Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4").next_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Barech, Pour Out Thy Wrath 2"
         assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Second Cup of Wine 2").next_section_ref() is Ref('Kos Eliyahu on Pesach Haggadah, Barech, Pour Out Thy Wrath 2')
-
 
     def test_prev_ref(self):
         assert Ref("Job 4:5").prev_section_ref().normal() == "Job 3"
@@ -593,7 +598,7 @@ class Test_Ambiguous_Forms(object):
     def test_mishnah_check_first(self):
         assert Ref("Shabbat 8:7") == Ref('Mishnah Shabbat 8:7')
         assert Ref("Shabbat 28:7").normal() == 'Shabbat 28a:7'
-        assert Ref("Shabbat 7") == Ref("Shabbat 7a")
+        assert Ref("Shabbat 7") == Ref("Shabbat 7a-7b")
         assert Ref("Shabbat 7a:1") != Ref("Shabbat 7:1")
 
 

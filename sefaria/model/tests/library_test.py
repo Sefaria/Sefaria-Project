@@ -96,7 +96,7 @@ class Test_get_refs_in_text(object):
     def test_ranged_ref(self, citing_only):
         trefs = ["Deuteronomy 23:8-9", "Job.2:3-3:1", "Leviticus 15:3 - 17:12", "Shabbat 15a-16b",
                  "Shabbat 15a:15-15b:13", "Shabbat 15a:10-13", "Rashi on Exodus 3:1-3:10", "Rashi on Exodus 3:1:1-3:1:3",
-                 "Rashi on Exodus 3:1:1-1:3", "Rashi on Exodus 3:1:1-3"]
+                 "Rashi on Exodus 3:1:1-1:3", "Rashi on Exodus 3:1:1-3", "Berakhot 3a-b"]
         test_strings = [
             "I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
             temp_tref in trefs
@@ -106,7 +106,7 @@ class Test_get_refs_in_text(object):
             assert matched_refs == [Ref(trefs[i])]
 
     def test_ranged_ref_not_cited(self):
-        trefs = ["Rashi on Shabbat 15a:10-13", "Shulchan Arukh, Orach Chayim 444:4–6"] # NOTE the m-dash in the Shulchan Arukh ref
+        trefs = ["Berakhot 2a-b", "Rashi on Shabbat 15a:10-13", "Shulchan Arukh, Orach Chayim 444:4–6"] # NOTE the m-dash in the Shulchan Arukh ref
         test_strings = [
             "I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
             temp_tref in trefs
