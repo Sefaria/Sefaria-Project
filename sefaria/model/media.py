@@ -33,21 +33,6 @@ class Media(abst.AbstractMongoRecord):
     def _normalize(self): # what does this do?
         self.ref = Ref(self.ref).normal()
 
-    def client_contents(self, ref):
-        d = self.contents()
-        t = {}
-        t["media_url"]     = ref["media_url"]
-        t["source"]   = d["source"]
-        t["source_he"]   = d["source_he"]
-        t['start_time'] = ref['start_time']
-        t['end_time'] = ref['end_time']
-        t['anchorRef'] = ref['sefaria_ref']
-        t['license'] = d['license']
-        t['source_site'] = d['source_site']
-        t['description'] = d['description']
-        t['description_he'] = d['description_he']
-        return t
-
 class MediaSet(abst.AbstractMongoSet):
     recordClass = Media
 
@@ -56,6 +41,7 @@ def get_media_for_ref(tref):
     regex_list = oref.regex(as_list=True)
     ref_clauses = [{"ref.sefaria_ref": {"$regex": r}} for r in regex_list]
     query = {"$or": ref_clauses }
+
     results = MediaSet(query=query)
     client_results = []
     ref_re = "("+'|'.join(regex_list)+")"
@@ -64,9 +50,14 @@ def get_media_for_ref(tref):
         for r in media.ref:
             if re.match(ref_re, r['sefaria_ref']):
                 r['media_url'] = media.media_url
-                matched_ref.append(r)
-    for ref in matched_ref:
-        media_contents = media.client_contents(ref)
-        client_results.append(media_contents)
+                r["source"]   = media.source
+                r["source_he"]   = media.source_he
+                r['anchorRef'] = r['sefaria_ref']
+                r['license'] = media.license
+                r['source_site'] = media.source_site
+                r['description'] = media.description
+                r['description_he'] = media.description_he
+                del r['sefaria_ref']
+                client_results.append(r)
 
     return client_results

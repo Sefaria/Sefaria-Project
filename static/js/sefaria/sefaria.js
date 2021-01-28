@@ -360,7 +360,7 @@ Sefaria = extend(Sefaria, {
       heVersion:  settings.heVersion  || null,
       multiple:   settings.multiple   || 0,
       wrapLinks:  ("wrapLinks" in settings) ? settings.wrapLinks : 1,
-      wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1, 
+      wrapNamedEntities: ("wrapNamedEntities" in settings) ? settings.wrapNamedEntities : 1,
     };
 
     return settings;
@@ -869,6 +869,7 @@ Sefaria = extend(Sefaria, {
     return this._saveItemsByRef(data, this._links);
   },
   _saveItemsByRef: function(data, store) {
+    console.log(data)
     // For a set of items from the API, save each set split by the specific ref the items points to.
     // E.g, API is called on "Genesis 1", this function also stores the data in buckets like "Genesis 1:1", "Genesis 1:2" etc.
     var splitItems = {}; // Aggregate links by anchorRef
@@ -1253,6 +1254,9 @@ _media: {},
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
     var ref = Sefaria.normRefList(refs);
 
+    console.log(ref)
+    console.log(refs)
+
     var media = [];
     refs.map(r => {
       if (this._media[r]) { media = media.concat(this._media[r]); }
@@ -1350,7 +1354,7 @@ _media: {},
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
           topics: this._saveTopicByRef(ref, data.topics || []),
-		  media: this._saveItemsByRef(data.media, this._media),
+		      media: this._saveItemsByRef(data.media, this._media),
       };
 
        // Build split related data from individual split data arrays
@@ -2000,7 +2004,7 @@ _media: {},
               this._userSheets[key].unshift(sheet);
             } else if (updateInPlace) {
               this._userSheets[key][sheetIndex] = sheet;
-            } else {  
+            } else {
               this._userSheets[key].unshift(sheet);
             }
           } else {

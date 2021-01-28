@@ -26,7 +26,7 @@ class MediaList extends Component {
 				description = {audio.description}
 				description_he = {audio.description_he}
 				anchor = {audio.anchorRef}
-				key = {audio.anchorRef}
+				key = {`${audio.anchorRef}_${audio.source}`}
 				/>
 		  });
 		 if (!content.length) {
@@ -119,7 +119,7 @@ const Audio = ({audioUrl, startTime, endTime, source, source_he, license, source
 
 
       return (
-		<div className="media"  key={anchor+"_"+"audio"}>
+		<div className="media"  key={`${anchor}_${source}_audio`}>
 			  <div className="title en">{source}</div>
 				<div className="title he">{source_he}</div>
 			  <div className="description int-en">{description}</div>
