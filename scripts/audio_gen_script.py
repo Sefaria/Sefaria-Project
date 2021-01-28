@@ -53,7 +53,7 @@ def load_csv_and_split_by_section(filename):
 
 
 
-media = load_csv_and_split_by_section('lev-beeri.csv')
+media = load_csv_and_split_by_section('scripts/lev-beeri.csv')
 
 
 
