@@ -92,10 +92,9 @@ TEMPLATES = [
                     "sefaria.system.context_processors.cache_timestamp",
                     "sefaria.system.context_processors.large_data",
                     "sefaria.system.context_processors.body_flags",
-                    "sefaria.system.context_processors.user_and_notifications",
-                    "sefaria.system.context_processors.calendar_links",
                     "sefaria.system.context_processors.header_html",
                     "sefaria.system.context_processors.footer_html",
+                    "sefaria.system.context_processors.base_props",
             ],
             'loaders': [
                 #'django_mobile.loader.Loader',

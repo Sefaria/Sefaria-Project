@@ -295,7 +295,8 @@ const ConnectionButtons = ({connection, onTextClick, onConnectionDelete, setConn
       });
     }
   }
-  const openLinkInTab = () => {
+  const openLinkInTab = (event) => {
+    event.preventDefault();
     if (onTextClick) {
       //Click on the body of the TextRange itself from TextList
       onTextClick(connection.sourceRef);
@@ -307,7 +308,7 @@ const ConnectionButtons = ({connection, onTextClick, onConnectionDelete, setConn
   }
   return(
       <div className={`connection-buttons access-${Sefaria.is_moderator ? "moderator" : "user"}`}>
-        <a className="connection-button panel-open-link" onClick={openLinkInTab}>
+        <a href={`/${connection.sourceRef}`} className="connection-button panel-open-link" onClick={openLinkInTab}>
           <span className="int-en">Open</span>
           <span className="int-he">פתיחה</span>
         </a>

@@ -107,12 +107,10 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 }
 
 .sheetsMenuBarItem #lastSaved {
-		position: relative;
+	position: relative;
 	top:0;
 	right:0;
 	background-color: transparent;
-
-
 }
 
 #sheet {
@@ -125,10 +123,6 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	font-family: "Times New Roman", "Georgia", serif;
 	width:850px;
 	padding:60px 0px;
-
-}
-
-#sheet.s2Sheet {
 }
 
 #sheet.paperless {
@@ -146,7 +140,7 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	margin-left: -40px;
 }
 
-#sheetHeader #groupLogo {
+#sheetHeader #collectionHeader {
 	max-width: 90%;
 }
 
@@ -895,6 +889,11 @@ body:not(.user-is-tabbing) #sheet .cke_editable:focus {
 	background-color: white;
 }
 
+#sheet.boxed .outside.he,
+#sheet.boxed .outside.en {
+	display: block;
+}
+
 #sheet.boxed #sources {
 	list-style-position: outside;
 }
@@ -1423,7 +1422,7 @@ line-height: normal;
 {
   display: inline-block;
   padding: 4px;
-  margin-bottom: 9px;
+  margin-bottom: 5px;
   font-size: 13px;
   line-height: 18px;
   border: 1px solid #cccccc;
@@ -1660,7 +1659,7 @@ line-height: normal;
 
 body.hasBannerMessage .sheetsEditNavTop {
   transition: top .3s;
-  top: 180px;	
+  top: 180px;
 }
 
 .sheetsMenuBar, .sheetsEditorControls{
@@ -2057,36 +2056,33 @@ a.userLink{
 #sheetsContent #shareURL {
 	cursor: text;
 	background-color: #fff;
-    border-radius: 4px;
-    font-style: italic;
+	border-radius: 4px;
+	font-style: italic;
 	font-size: 16px;
-    width: 75%;
-    box-sizing: border-box;
-    height: 36px;
-	margin-top: 6px;
+	width: 100%;
+	box-sizing: border-box;
+	height: 40px;
 	padding-left: 35px;
 	color: #999;
 	/* url below is an inline copy of `/static/img/tools-add-connection.svg` it's required to change the color accordingly  */
-    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23999" d="M21.921 2.081c2.771 2.772 2.771 7.269 0 10.042l-3.84 3.839-2.121-2.122 3.839-3.84c1.599-1.598 1.599-4.199-.001-5.797-1.598-1.599-4.199-1.599-5.797-.001l-3.84 3.839-2.121-2.121 3.84-3.839c2.771-2.773 7.267-2.773 10.041 0zm-8.082 13.879l-3.84 3.839c-1.598 1.6-4.199 1.599-5.799 0-1.598-1.598-1.598-4.2 0-5.797l3.84-3.84-2.121-2.121-3.84 3.84c-2.771 2.772-2.772 7.268 0 10.041 2.773 2.772 7.27 2.773 10.041 0l3.84-3.84-2.121-2.122z"/></svg>') no-repeat 9px center;
+	background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="%23999" d="M21.921 2.081c2.771 2.772 2.771 7.269 0 10.042l-3.84 3.839-2.121-2.122 3.839-3.84c1.599-1.598 1.599-4.199-.001-5.797-1.598-1.599-4.199-1.599-5.797-.001l-3.84 3.839-2.121-2.121 3.84-3.839c2.771-2.773 7.267-2.773 10.041 0zm-8.082 13.879l-3.84 3.839c-1.598 1.6-4.199 1.599-5.799 0-1.598-1.598-1.598-4.2 0-5.797l3.84-3.84-2.121-2.121-3.84 3.84c-2.771 2.772-2.772 7.268 0 10.041 2.773 2.772 7.27 2.773 10.041 0l3.84-3.84-2.121-2.122z"/></svg>') no-repeat 9px center;
 	background-size: 18px 18px;
 }
-#shareWithOthers #sourceSheetGroupSelect {
-	width: 75%;
-	margin-top: 13px;
+
+#shareWithOthers .sideLabeled {
+	display: flex;
+	margin-bottom: 20px;
+	align-content: flex-start;
 }
 
-#sourceSheetGroupOptions {
-	margin-top: 8px;
-}
-
-label[for="shareURL"],label[for="sourceSheetGroupSelect"], .labelforOnOffSwitch {
-	width: 24%;
+#shareWithOthers .sideLabeled > label {
+    width: 150px;
     display: inline-block;
+    margin-top: 9px;
 }
 
-.labelforOnOffSwitch {
-	position: relative;
-	top: -5px;
+#shareWithOthers .sideLabeled > div {
+	flex: 1;
 }
 
 label[for="sourceSheetShareSelect"] {
@@ -2108,6 +2104,12 @@ label[for="sourceSheetShareSelect"] {
 	float:left;
 }
 
+#shareWithOthers .onoffswitch {
+}
+
+#shareWithOthers #collectionsMessage {
+	font-size: 12px;
+}
 
 #sheetsContent textarea#sheetSummaryInput {
 	width: 100%;
@@ -2247,7 +2249,7 @@ label[for="sourceSheetShareSelect"] {
 #sheetsContent #tags input {
 	width: 0px; /* hack tagit to be readonly but allow removings tags */
 }
-	
+
 #suggestedTags {
 	margin-bottom: 9px;
 }

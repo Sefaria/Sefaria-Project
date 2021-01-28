@@ -49,6 +49,8 @@ class LanguageSettingsMiddleware(MiddlewareMixin):
     def process_request(self, request):
         excluded = ('/linker.js', "/api/", "/interface/", "/apple-app-site-association", STATIC_URL)
         if any([request.path.startswith(start) for start in excluded]):
+            request.interfaceLang = "english"
+            request.contentLang = "bilingual"
             return # Save looking up a UserProfile, or redirecting when not needed
 
         # INTERFACE 

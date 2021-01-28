@@ -172,11 +172,18 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang,
     const contentClasses = classNames({content: 1, readerTocTopics:1, hasFooter: footer != null});
     return (
         <div className={navMenuClasses}>
+            {hideNavHeader ? null : (<MobileHeader
+              compare={compare}
+              mode="mainTOC"
+              onClose={onClose}
+              interfaceLang={interfaceLang}
+              openSearch={openSearch}
+              openDisplaySettings={openDisplaySettings}
+            />)}
             <div className={contentClasses}>
                 <div className="contentInner">
                     <TopicHeader topic={topic} topicData={topicData}
                       multiPanel={multiPanel} interfaceLang={interfaceLang} isCat
-                      hideNavHeader={hideNavHeader}
                       openDisplaySettings={openDisplaySettings}
                       openSearch={openSearch}
                       onClose={onClose} />
@@ -198,14 +205,6 @@ const TopicHeader = ({
   const category = !!topicData ? Sefaria.topicTocCategory(topicData.slug) : null;
   return (
     <div>
-        {hideNavHeader ? null : (<MobileHeader
-          compare
-          mode="mainTOC"
-          onClose={onClose}
-          interfaceLang={interfaceLang}
-          openSearch={openSearch}
-          openDisplaySettings={openDisplaySettings}
-        />)}
         <div className="topicTitle pageTitle">
           <h1>
             <InterfaceTextWithFallback en={en} he={he} isItalics={false} />
@@ -330,10 +329,19 @@ const TopicPage = ({
 
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
     return <div className={classStr}>
+        {hideNavHeader ? null : 
+        (<MobileHeader
+          compare={false}
+          mode="mainTOC"
+          onClose={onClose}
+          interfaceLang={interfaceLang}
+          openSearch={openSearch}
+          openDisplaySettings={openDisplaySettings}
+        />)}
         <div className="content hasFooter noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
-                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic} onClose={onClose} openSearch={openSearch} openDisplaySettings={openDisplaySettings} hideNavHeader={hideNavHeader}/>
+                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic} onClose={onClose} openSearch={openSearch} openDisplaySettings={openDisplaySettings} />
                     {!topicData.isLoading ?
                        <TabView
                           currTabIndex={tabIndex}

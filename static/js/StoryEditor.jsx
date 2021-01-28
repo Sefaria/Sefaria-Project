@@ -132,7 +132,7 @@ const CreateStoryForm = () => {
         "Random Featured Sheets": FeaturedSheetsStoryForm,
         /*
         topicList:      TopicListStory,
-        groupSheetList: GroupSheetListStory
+        collectionSheetList: CollectionSheetListStory
         */
     };
 

@@ -76,6 +76,21 @@ class AbstractTest(object):
         sys.stdout.write(msg if self.isVerbose or always else short_msg)
         sys.stdout.flush()
 
+
+    def is_element_visible_in_viewport(self, element) -> bool:
+        return self.driver.execute_script("var elem = arguments[0],            " 
+                                     "  box = elem.getBoundingClientRect(),    " 
+                                     "  cx = box.left + box.width / 2,         " 
+                                     "  cy = box.top + box.height / 2,         " 
+                                     "  e = document.elementFromPoint(cx, cy); " 
+                                     "  for (; e; e = e.parentElement) {       " 
+                                     "    if (e === elem)                      " 
+                                     "      return true;                       " 
+                                     "  }                                      " 
+                                     "return false;                            "
+                                     , element)
+
+
     # Component methods
     # Methods that begin with "nav_to_" assume that the site is loaded, and do not reload a page.
     # Methods that begin with "load_" start with a page load.
@@ -100,7 +115,7 @@ class AbstractTest(object):
         except NoSuchElementException:
             pass
 
-    def is_js_error(self):
+    def catch_js_error(self):
 
         error_strings = [
             "RangeError",
@@ -525,16 +540,23 @@ class AbstractTest(object):
             # if logged out, first click to open dropdown
             self.driver.find_element_by_css_selector('.header a.interfaceLinks-button')
             self.click_object_by_css_selector('.header a.interfaceLinks-button')
+            self.click_object_by_link_text('עברית')
         except NoSuchElementException:
             # must be logged in
-            pass
-        self.click_object_by_link_text('עברית')
+            self.click_object_by_css_selector('#siteLanguageHebrew')
 
     def click_hebrew_link(self):
         self.click_ivrit_link()
 
     def click_english_link(self):
-        self.click_object_by_link_text('English')
+        try:
+            # if logged out, first click to open dropdown
+            self.driver.find_element_by_css_selector('.header a.interfaceLinks-button')
+            self.click_object_by_css_selector('.header a.interfaceLinks-button')
+            self.click_object_by_link_text('English')
+        except NoSuchElementException:
+            # must be logged in
+            self.click_object_by_css_selector('#siteLanguageEnglish')
 
     def toggle_on_text_settings(self):
         self.click_object_by_css_selector('#panel-0 .readerControls .readerOptions')
@@ -1114,6 +1136,14 @@ class AbstractTest(object):
             element_to_be_clickable((By.CSS_SELECTOR, ".notificationsList > .notification")))
         return self
 
+    def load_url(self, url, test_selector):
+        """
+        Load any URL and wait until `test_selector` is present
+        """
+        self.driver.get(self.base_url + url)
+        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, test_selector)))
+        self.catch_js_error()
+        return self
 
     # Editing
     def load_translate(self, ref):
@@ -1173,9 +1203,7 @@ class AbstractTest(object):
         else:
             elem.send_keys(Keys.DELETE)
 
-
-
-    def generate_text(self, language):
+    def type_lorem_ipsum_text(self, language):
         paragraph = {
             "en": "Proin elit arcu, rutrum commodo, vehicula tempus, commodo a, risus. Curabitur nec arcu. Donec sollicitudin mi sit amet mauris. Nam elementum quam ullamcorper ante. Etiam aliquet massa et lorem. Mauris dapibus lacus auctor risus. Aenean tempor ullamcorper leo. Vivamus sed magna quis ligula eleifend adipiscing. Duis orci. Aliquam sodales tortor vitae ipsum. Aliquam nulla. Duis aliquam molestie erat. Ut et mauris vel pede varius sollicitudin. Sed ut dolor nec orci tincidunt interdum. Phasellus ipsum. Nunc tristique tempus lectus.",
             "he": " לורם איפסום דולור סיט אמט, קונסקטורר אדיפיסינג אלית קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף סחטיר בלובק. תצטנפל בלינדו למרקל אס לכימפו, דול, צוט ומעיוט - לפתיעם ברשג - ולתיעם גדדיש. קוויז דומור ליאמום בלינך רוגצה. לפמעט מוסן מנת. קולורס מונפרד אדנדום סילקוף, מרגשי ומרגשח. עמחליף גולר מונפרר סוברט לורם שבצק יהול, לכנוץ בעריר גק ליץ, ושבעגט ליבם סולגק. בראיט ולחת צורק מונחף, בגורמי מגמש. תרבנך וסתעד לכנו סתשם השמה - לתכי מורגם בורק? לתיג ישבעס."
@@ -1207,17 +1235,11 @@ class AbstractTest(object):
         return sheet_html
 
 
-
-
-
-
-
-
 class TestSuite(AbstractTest):
-    def __init__(self, driver, url, cap, seed=None, mode=None, root_test=True, **kwargs):
+    def __init__(self, driver, url, cap, mode=None, root_test=True, **kwargs):
         super(TestSuite, self).__init__(driver, url, cap, root_test=root_test, **kwargs)
         self.mode = mode
-        self.tests = [t(self.driver, self.base_url, self.cap) for t in get_ordered_atomic_tests(seed) if t.suite_class == self.__class__ and t._should_run(self.mode, self.cap)]
+        self.tests = [t(self.driver, self.base_url, self.cap) for t in get_atomic_tests() if t.suite_class == self.__class__ and t._should_run(self.mode, self.cap)]
         self.result_set = TestResultSet()
 
     def __str__(self):
@@ -1605,7 +1627,6 @@ class Trial(object):
         self.platform = platform
         self.build = build
         self.tests = get_every_build_tests(get_suites()) if tests is None else tests
-        self.seed = random.random()
         self._results = TestResultSet()
         self.parallel = parallel if parallel is not None else False if self.is_local else True
         if self.parallel:
@@ -1665,7 +1686,7 @@ class Trial(object):
 
         try:
             driver = self._get_driver(cap)
-            test_instance = test_class(driver, self.BASE_URL, cap, root_test=True, mode=mode, seed=self.seed, verbose=self.isVerbose)
+            test_instance = test_class(driver, self.BASE_URL, cap, root_test=True, mode=mode, verbose=self.isVerbose)
 
             if not test_instance.should_run(mode):
                 return None
@@ -1810,12 +1831,6 @@ def get_subclasses(c):
 
 def get_atomic_tests():
     return get_subclasses(AtomicTest)
-
-
-def get_ordered_atomic_tests(seed):
-    test_classes = get_atomic_tests()
-    random.shuffle(test_classes, lambda: seed)
-    return test_classes
 
 
 def get_suites():

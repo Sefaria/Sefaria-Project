@@ -213,7 +213,7 @@ class AddToSourceSheetBox extends Component {
               <input className="newSheetInput noselect" placeholder={Sefaria._("Name New Sheet")}/>
               <div className="button small noselect" onClick={this.createSheet} >
                 <span className="int-en">Create</span>
-                <span className="int-he">דף מקורות חדש</span>
+                <span className="int-he">יצירה</span>
               </div>
              </div>
           </div>

@@ -122,11 +122,11 @@ class FilterNode {
           let enTitle = !!this.title ? this.title : this.heTitle;
           let heTitle = !!this.heTitle ? this.heTitle : this.title;
           if (!enTitle) {
-            if (this.aggType === 'group') { enTitle = '(No Group)'; }
+            if (this.aggType === 'collections') { enTitle = '(No Collection)'; }
             if (this.aggType === 'tags') { enTitle = '(No Tag)'; }
           }
           if (!heTitle) {
-            if (this.aggType === 'group') { heTitle = '(ללא קבוצה)'; }
+            if (this.aggType === 'collections') { heTitle = '(ללא אסופה)'; }
             if (this.aggType === 'tags') { heTitle = '(ללא תוית)'; }
           }
           return[(lang == "en")?enTitle:heTitle];

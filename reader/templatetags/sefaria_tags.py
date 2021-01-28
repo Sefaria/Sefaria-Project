@@ -20,6 +20,7 @@ from django.utils.translation import ugettext as _
 from sefaria.sheets import get_sheet
 from sefaria.model.user_profile import user_link as ulink, user_name as uname, public_user_data
 from sefaria.model.text import Version
+from sefaria.model.collection import Collection
 from sefaria.utils.util import strip_tags as strip_tags_func
 from sefaria.utils.hebrew import hebrew_plural, hebrew_term, hebrew_parasha_name
 from sefaria.utils.hebrew import hebrew_term as translate_hebrew_term
@@ -155,8 +156,6 @@ def person_link(person):
 	return mark_safe(link)
 
 
-
-
 @register.filter(is_safe=True)
 def version_source_link(v):
 	"""
@@ -213,6 +212,14 @@ def user_message_path(uid):
 @register.filter(is_safe=True)
 def group_link(group_name):
 	return mark_safe("<a href='/groups/%s'>%s</a>" % (group_name.replace(" ", "-"), group_name))
+
+
+@register.filter(is_safe=True)
+def collection_link(collection_slug):
+	c = Collection().load({"slug": collection_slug})
+	if not c:
+		return mark_safe("[unknown collection: {}".format(collection_slug))
+	return mark_safe("<a href='/collections/{}'>{}</a>".format(collection_slug, c.name))
 
 
 @register.filter(is_safe=True)

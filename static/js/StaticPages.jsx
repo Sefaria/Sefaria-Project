@@ -407,7 +407,7 @@ const RemoteLearningPage = () => (
                     white={true}
                     rounded={false}
                     tall={true}
-                    href="/groups/Educator-Newsletters?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    href="/collections/Educator-Newsletters?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/219410?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="דפי מקורות אקטואליים"
                     en="Educator Newsletters"
@@ -416,7 +416,7 @@ const RemoteLearningPage = () => (
                     white={true}
                     rounded={false}
                     tall={true}
-                    href="/groups/A-Jewish-Response-to-Coronavirus?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    href="/collections/A-Jewish-Response-to-Coronavirus?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/227981.5?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="נגיף הקורונה"
                     en="A Jewish Response to COVID-19"
@@ -425,7 +425,7 @@ const RemoteLearningPage = () => (
                     white={true}
                     rounded={false}
                     tall={true}
-                    href="/groups/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                    href="/collections/Online-Learning-Resources?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he_href="/sheets/228257?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                     he="עשרת הדיברות ללמידה מרחוק"
                     en="Online Learning Resources"
@@ -457,7 +457,7 @@ const RemoteLearningPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="/groups/Webinars-for-Learners?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                href="/collections/Webinars-for-Learners?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224909?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="וובינרים"
                 en="Webinars for Learners"
@@ -466,7 +466,7 @@ const RemoteLearningPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="/groups/Tutorials-for-Learners?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                href="/collections/Tutorials-for-Learners?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224919?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="מדריך למשתמש המתחיל"
                 en="Tutorials for Learners"
@@ -475,7 +475,7 @@ const RemoteLearningPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="/groups/Sefaria-Student-Course?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                href="/collections/Sefaria-Student-Course?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/228260?lang=he&utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="הסודות של ספריא"
                 en="Student Course"
@@ -502,7 +502,7 @@ const RemoteLearningPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="/groups/Webinars-for-Educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                href="/collections/Webinars-for-Educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224909?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="וובינרים"
                 en="Webinars for Educators"
@@ -511,7 +511,7 @@ const RemoteLearningPage = () => (
                 white={true}
                 rounded={false}
                 tall={true}
-                href="/groups/Tutorials-for-Educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
+                href="/collections/Tutorials-for-Educators?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he_href="/sheets/224923?lang=he?utm_source=sefaria&utm_medium=landingpage&utm_campaign=remotelearning"
                 he="קורס למורים: 'ספריא בכיתה'"
                 en="Tutorials for Educators"
@@ -917,7 +917,7 @@ const PBSC2020LandingPage = () => (
                 ["Torah for the Blind", "", "https://torahfortheblind.com/"],
                 ["Tweet Yomi", "", "https://tweetyomi.org/"],
                 ["Visualizations of Sefaria", "", "https://guedalia.github.io/testab/test"],
-                ["Visualizing Talmud Topics", "", "https://notebooks.azure.com/HagaiG/projects/Visualizing-Talmud-Topics"],
+                ["Visualizing Talmud Topics", "", "https://share.streamlit.io/guedalia/streamlit/main/first_app.py"],
                 ["Visualizing Works Influence", "", "https://adinabechhofer.github.io/"],
                 ["Yamim Noraim Machzor", "", "https://play.google.com/store/apps/details?id=com.machzoryamimnoraim"],
                 ["Yomyomishna", "", "https://yomyomishna.web.app/"]

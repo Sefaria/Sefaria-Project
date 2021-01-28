@@ -55,17 +55,19 @@ class InterruptingMessage(object):
 
     return True
 
-  def json(self):
+  def contents(self):
     """
     Returns JSON for this interrupting message which may be just `null` if the
     message should not be shown.
     """
-    if self.should_show:
-      return json.dumps({
+
+    return {
           "name": self.name,
           "style": self.style,
           "html": render_to_string("messages/%s.html" % self.name),
           "repetition": self.repetition
-        })
-    else:
-      return "null"
+    } if self.should_show else None
+
+
+  def json(self):
+    return json.dumps(self.contents())

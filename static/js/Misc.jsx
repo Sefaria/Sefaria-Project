@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
+import { CollectionsModal } from "./CollectionsWidget";
 import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
@@ -17,6 +18,15 @@ const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
     <span className={classNames({"int-he": 1, "but-text-is-en": !he, italics: isItalics && isItalics.he })}>{he || en}{endContent}</span>
   </span>
 );
+
+const IntText = ({className, children}) => {
+  // Renders a single span for interface string with either class `int-en`` or `int-he`
+  // depending on Sefaria.interfaceLang.
+  // `children` is the English string, which will be translated with Sefaria._ if needed. 
+  const isHebrew = Sefaria.interfaceLang === "hebrew";
+  const cls = classNames({"int-en": !isHebrew, "int-he": isHebrew}) + (className ? " " + className : "");
+  return <span className={cls}>{Sefaria._(children)}</span>
+};
 
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
@@ -36,8 +46,8 @@ class ProfilePic extends Component {
     };
     this.imgFile = React.createRef();
   }
-  setShowDefault() { console.log("error"); this.setState({showDefault: true});  }
-  setShowImage() {console.log("load"); this.setState({showDefault: false});  }
+  setShowDefault() { /* console.log("error"); */ this.setState({showDefault: true});  }
+  setShowImage() { /* console.log("load"); */ this.setState({showDefault: false});  }
   componentDidMount() {
     if (this.didImageLoad()) {
       this.setShowImage();
@@ -247,7 +257,8 @@ ProfilePic.propTypes = {
 const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
   renderHeader, renderFooter, showFilterHeader, extraData, refreshData,
-  scrollableElement, pageSize, bottomMargin, onDisplayedDataChange, initialRenderSize
+  scrollableElement, pageSize, onDisplayedDataChange, initialRenderSize,
+  bottomMargin, containerClass
 }) => {
   const [filter, setFilter] = useState('');
   const [sortOption, setSortOption] = useState(sortOptions[0]);
@@ -267,7 +278,7 @@ const FilterableList = ({
   // If `getData` function is passed, load data through this effect
   useEffect(() => {
     let isMounted = true;
-    if (!rawData) { // Don't try calling getData when `data` as intially passed
+    if (!rawData) { // Don't try calling getData when `data` is intially passed
       setLoading(true);
       getData().then(data => {
         if (isMounted) {
@@ -283,18 +294,12 @@ const FilterableList = ({
   }, [getData, rawData]);
 
   // Alternatively, if there is no `getData` function passed, we expect data
-  // to be fed in directly through the `data` prop
+  // to be fed in directly through the `data` prop. Check `data` again whenever
+  // refreshData signal changes. 
   useEffect(() => {
     setRawData(data);
     setDisplayData(processData(data));
-  }, [data]);
-
-  // After initial load, when refreshData changes, trigger a new call for data.
-  const mounted = useRef(false);
-  useEffect(() => {
-    if (mounted.current) { setRawData(null); }
-    else { mounted.current = true; }
-  }, [refreshData]);
+  }, [data, refreshData]);
 
   // Updates to filter or sort
   useEffect(() => {
@@ -383,7 +388,7 @@ const FilterableList = ({
         loading ? <LoadingMessage /> :
         ( dataUpToPage.length ?
           (
-            <div className="filter-content">
+            <div className={"filter-content" + (containerClass ? " " + containerClass : "")}>
               { !!renderHeader ? renderHeader() : null }
               { dataUpToPage.map(renderItem) }
               { !!renderFooter ? renderFooter() : null }
@@ -455,8 +460,9 @@ class TabView extends Component {
 TabView.propTypes = {
   tabs: PropTypes.array.isRequired,
   renderTab: PropTypes.func.isRequired,
-  currTabIndex: PropTypes.number,  // not required. If passed, TabView will be controlled from outside
-  setTab: PropTypes.func,          // not required. If passed, TabView will be controlled from outside
+  currTabIndex: PropTypes.number,  // optional. If passed, TabView will be controlled from outside
+  setTab: PropTypes.func,          // optional. If passed, TabView will be controlled from outside
+  onClickArray: PropTypes.object,    // optional. If passed, TabView will be controlled from outside
 };
 
 
@@ -474,7 +480,7 @@ class DropdownOptionList extends Component {
                     <td>
                       <img className="dropdown-option-check" src="/static/img/check-mark.svg" alt={`${option.name} sort selected`}/>
                     </td>
-                    <td>
+                    <td className="dropdown-option-list-label">
                       <span className="int-en">{option.name}</span>
                       <span className="int-he" dir="rtl">{option.heName}</span>
                     </td>
@@ -518,6 +524,7 @@ DropdownButton.propTypes = {
   heText: PropTypes.string.isRequired,
 }
 
+
 class DropdownModal extends Component {
   componentDidMount() {
     document.addEventListener('mousedown', this.handleClickOutside, false);
@@ -544,6 +551,7 @@ DropdownModal.propTypes = {
   isOpen:  PropTypes.bool.isRequired,
   positionUnset: PropTypes.bool,  // for search filters
 };
+
 
 class Link extends Component {
   handleClick(e) {
@@ -727,6 +735,7 @@ DangerousInterfaceBlock.propTypes = {
     classes: PropTypes.string
 };
 
+
 const SimpleInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
             <span className="int-en">{en}</span>
@@ -738,6 +747,7 @@ SimpleInterfaceBlock.propTypes = {
     he: PropTypes.string,
     classes: PropTypes.string
 };
+
 
 const SimpleContentBlock = ({en, he, classes}) => (
         <div className={classes}>
@@ -768,9 +778,6 @@ SimpleLinkedBlock.propTypes = {
     classes: PropTypes.string,
     aclasses: PropTypes.string
 };
-
-
-
 
 
 class BlockLink extends Component {
@@ -1039,8 +1046,7 @@ InterfaceLanguageMenu.propTypes = {
   currentLang: PropTypes.string
 }
 
-// const [mounted, setMounted] = React.useState(true);
-// useEffect(() => {return () => {setMounted(false)}}, []);
+
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   const isSelected = () => !!Sefaria.getSavedItem(historyObject);
   const [selected, setSelected] = useState(placeholder || isSelected());
@@ -1168,8 +1174,7 @@ const SinglePanelNavHeader = (props) =>
           <CategoryColorLine category={props.colorLineCategory || "Other"} />
           <ReaderNavigationMenuMenuButton onClick={props.navHome} />
           <h2>
-            <span className="int-en">{props.enTitle}</span>
-            <span className="int-he">{props.heTitle || Sefaria.hebrewTerm(props.enTitle)}</span>
+            <IntText>{props.title}</IntText>
           </h2>
           {props.showDisplaySettings ?
             <ReaderNavigationMenuDisplaySettingsButton onClick={props.openDisplaySettings} />
@@ -1177,8 +1182,7 @@ const SinglePanelNavHeader = (props) =>
       </div>;
 SinglePanelNavHeader.propTypes = {
   navHome:             PropTypes.func.isRequired,
-  enTitle:             PropTypes.string,
-  heTitle:             PropTypes.string,
+  title:               PropTypes.string,
   showDisplaySettings: PropTypes.bool,
   openDisplaySettings: PropTypes.func,
   colorLineCategory:   PropTypes.string,
@@ -1232,132 +1236,179 @@ ProfileListing.propTypes = {
   name:        PropTypes.string.isRequired,
   is_followed: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
-
 };
 
 
-class SheetListing extends Component {
-  // A source sheet listed in the Sidebar
-  handleSheetClick(e) {
+const SheetListing = ({
+  sheet, connectedRefs, handleSheetClick, handleSheetDelete, handleCollectionsChange,
+  editable, deletable, saveable, collectable, pinnable, pinned, pinSheet,
+  hideAuthor, showAuthorUnderneath, infoUnderneath, hideCollection, openInNewTab, toggleSignUpModal 
+}) => {
+  // A source sheet presented in lists, like sidebar or profile page
+  const [showCollectionsModal, setShowCollectionsModal] = useState(false);
+  
+  const handleSheetClickLocal = (e) => {
     //console.log("Sheet Click Handled");
-    // TODO: There more contexts to distinguish / track. Profile, groups, search
-    if (Sefaria._uid == this.props.sheet.owner) {
-      Sefaria.track.event("Tools", "My Sheet Click", this.props.sheet.sheetUrl);
+    // TODO: There more contexts to distinguish / track. Profile, collections, search
+    if (Sefaria._uid == sheet.owner) {
+      Sefaria.track.event("Tools", "My Sheet Click", sheet.sheetUrl);
     } else {
-      Sefaria.track.event("Tools", "Sheet Click", this.props.sheet.sheetUrl);
+      Sefaria.track.event("Tools", "Sheet Click", sheet.sheetUrl);
     }
-    if (this.props.handleSheetClick) {
-      Sefaria.track.sheets("Opened via Connections Panel", this.props.connectedRefs.toString());
-      this.props.handleSheetClick(e, this.props.sheet, null, this.props.connectedRefs);
+    if (handleSheetClick) {
+      Sefaria.track.sheets("Opened via Connections Panel", connectedRefs.toString());
+      handleSheetClick(e, sheet, null, connectedRefs);
       e.preventDefault();
     }
-  }
-  handleSheetOwnerClick(e) {
-    Sefaria.track.event("Tools", "Sheet Owner Click", this.props.sheet.ownerProfileUrl);
-  }
-  handleTopicClick(topic) {
+  };
+
+  const handleSheetOwnerClick = (e) => {
+    Sefaria.track.event("Tools", "Sheet Owner Click", sheet.ownerProfileUrl);
+  };
+
+  const handleTopicClick = (topic) => {
     Sefaria.track.event("Tools", "Topic Click", topic);
-  }
-  handleSheetDelete() {
+  };
+
+  const handleSheetDeleteClick = () => {
     if (confirm(Sefaria._("Are you sure you want to delete this sheet? There is no way to undo this action."))) {
-      Sefaria.sheets.deleteSheetById(this.props.sheet.id).then(this.props.handleSheetDelete);
+      Sefaria.sheets.deleteSheetById(sheet.id).then(handleSheetDelete);
     }
-  }
-  render() {
-    var sheet = this.props.sheet;
-    var viewsIcon = sheet.public ?
-      <div className="sheetViews sans"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
-      : <div className="sheetViews sans"><i className="fa fa-lock" title="Private"></i></div>;
+  };
 
-    var sheetInfo = this.props.hideAuthor ? null :
-        <div className="sheetInfo">
-          <div className="sheetUser">
-            <a href={sheet.ownerProfileUrl} target={this.props.openInNewTab ? "_blank" : "_self"}>
-              <ProfilePic
-                outerStyle={{display: "inline-block"}}
-                name={sheet.ownerName}
-                url={sheet.ownerImageUrl}
-                len={26}
-              />
-            </a>
-            <a href={sheet.ownerProfileUrl} target={this.props.openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={this.handleSheetOwnerClick}>{sheet.ownerName}</a>
-          </div>
-          {viewsIcon}
-        </div>
+  const toggleCollectionsModal = () => {
+    if (Sefaria._uid) {
+      setShowCollectionsModal(!showCollectionsModal);
+    } else {
+      toggleSignUpModal();
+    }
+  };
 
-    const topics = sheet.topics.map((topic, i) => {
-      const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
-      return (
-        <a href={`/topics/${topic.slug}`}
-          target={this.props.openInNewTab ? "_blank" : "_self"}
-          className="sheetTag"
-          key={i}
-          onClick={this.handleTopicClick.bind(null, topic.slug)}
-        >
-          <InterfaceTextWithFallback {...topic} />
-          {separator}
-        </a>
-      );
-    });
-    const created = Sefaria.util.localeDate(sheet.created);
-    const underInfo = this.props.infoUnderneath ? [
-        sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
-        `${sheet.views} ${Sefaria._('Views')}`,
-        created,
-        sheet.topics.length ? topics : undefined,
-        !!sheet.group ? (<a href={`/groups/${sheet.group}`} target={this.props.openInNewTab ? "_blank" : "_self"}>{sheet.group}</a>) : undefined,
-      ].filter(x => x !== undefined) : [topics];
+  const title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
 
-    return (
-      <div className="sheet" key={sheet.sheetUrl}>
-        <div className="sheetLeft">
-          {sheetInfo}
-          <a href={sheet.sheetUrl} target={this.props.openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={this.handleSheetClick}>
-            <img src="/static/img/sheet.svg" className="sheetIcon"/>
-            <span className="sheetTitleText">{sheet.title}</span>
+  const viewsIcon = sheet.public ?
+    <div className="sheetViews sans"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
+    : <div className="sheetViews sans"><i className="fa fa-lock" title="Private"></i></div>;
+
+  const sheetInfo = hideAuthor ? null :
+      <div className="sheetInfo">
+        <div className="sheetUser">
+          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>
+            <ProfilePic
+              outerStyle={{display: "inline-block"}}
+              name={sheet.ownerName}
+              url={sheet.ownerImageUrl}
+              len={26}
+            />
           </a>
-          <div className="sheetTags">
-            {
-              underInfo.map((i, ii) => (
-                <span key={ii}>
-                  { ii !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
-                  {i}
-                </span>
-              ))
-            }
-          </div>
+          <a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetAuthor" onClick={handleSheetOwnerClick}>{sheet.ownerName}</a>
         </div>
-        <div className="sheetRight">
-          {
-            this.props.editable && !document.cookie.includes("new_editor") ?
-            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/circled-edit.svg"/></a>
-              : null
-          }
-          {
-            this.props.deletable ?
-              <img src="/static/img/circled-x.svg" onClick={this.handleSheetDelete}/>
-              : null
-          }
-          {
-            this.props.saveable ?
-              <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }} />
-              : null
-          }
-        </div>
-      </div>);
+        {viewsIcon}
+      </div>
+
+  const collectionsList = "collections" in sheet ? sheet.collections.slice() : [];
+  if (sheet.displayedCollectionName) {
+    collectionsList.unshift({name: sheet.displayedCollectionName, slug: sheet.displayedCollection});
   }
-}
-SheetListing.propTypes = {
-  sheet:            PropTypes.object.isRequired,
-  connectedRefs:    PropTypes.array.isRequired,
-  handleSheetClick: PropTypes.func,
-  handleSheetDelete:PropTypes.func,
-  handleSheetEdit:  PropTypes.func,
-  deletable:        PropTypes.bool,
-  saveable:         PropTypes.bool,
-  hideAuthor:       PropTypes.bool,
-  infoUnderneath:   PropTypes.bool,
-  openInNewTab:     PropTypes.bool,
+  const collections = collectionsList.map((collection, i) => {
+    const separator = i == collectionsList.length -1 ? null : <span className="separator">,</span>;
+    return (
+      <a href={`/collections/${collection.slug}`}
+        target={openInNewTab ? "_blank" : "_self"}
+        className="sheetTag"
+        key={i}
+      >
+        {collection.name}
+        {separator}
+      </a>
+    );
+  });
+
+  const topics = sheet.topics.map((topic, i) => {
+    const separator = i == sheet.topics.length -1 ? null : <span className="separator">,</span>;
+    return (
+      <a href={`/topics/${topic.slug}`}
+        target={openInNewTab ? "_blank" : "_self"}
+        className="sheetTag"
+        key={i}
+        onClick={handleTopicClick.bind(null, topic.slug)}
+      >
+        <InterfaceTextWithFallback {...topic} />
+        {separator}
+      </a>
+    );
+  });
+  const created = Sefaria.util.localeDate(sheet.created);
+  const underInfo = infoUnderneath ? [
+      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
+      showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
+      `${sheet.views} ${Sefaria._('Views')}`,
+      created,
+      collections.length ? collections : undefined,
+      sheet.topics.length ? topics : undefined,
+    ].filter(x => x !== undefined) : [topics];
+
+
+  const pinButtonClasses = classNames({sheetListingPinButton: 1, pinned: pinned, active: pinnable});
+  const pinMessage = pinned && pinnable ? Sefaria._("Pinned Sheet - click to unpin") :
+                    pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
+  const pinButton = <img src="/static/img/pin.svg" className={pinButtonClasses} title={pinMessage} onClick={pinnable ? pinSheet : null} />
+
+
+  return (
+    <div className="sheet" key={sheet.sheetUrl}>
+      <div className="sheetLeft">
+        {sheetInfo}
+        <a href={sheet.sheetUrl} target={openInNewTab ? "_blank" : "_self"} className="sheetTitle" onClick={handleSheetClickLocal}>
+          <img src="/static/img/sheet.svg" className="sheetIcon"/>
+          <span className="sheetTitleText">{title}</span>
+        </a>
+        <div className="sheetTags">
+          {
+            underInfo.map((item, i) => (
+              <span key={i}>
+                { i !== 0 ? <span className="bullet">{'\u2022'}</span> : null }
+                {item}
+              </span>
+            ))
+          }
+        </div>
+      </div>
+      <div className="sheetRight">
+        {
+          editable && !$.cookie("new_editor") ?
+            <a href={`/sheets/${sheet.id}?editor=1`}><img src="/static/img/tools-write-note.svg" title={Sefaria._("Edit")}/></a>
+            : null
+        }
+        {
+          collectable ?
+            <img src="/static/icons/collection.svg" onClick={toggleCollectionsModal} title={Sefaria._("Add to Collection")} />
+            : null
+        }
+        {
+          deletable ?
+            <img src="/static/img/circled-x.svg" onClick={handleSheetDeleteClick} title={Sefaria._("Delete")} />
+            : null
+        }
+        {
+          saveable ?
+            <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }} 
+              toggleSignUpModal={toggleSignUpModal} />
+            : null
+        }
+        { pinnable || pinned ? 
+            pinButton
+            : null
+        }
+      </div>
+      {showCollectionsModal ? 
+        <CollectionsModal 
+          sheetID={sheet.id}
+          close={toggleCollectionsModal}
+          handleCollectionsChange={handleCollectionsChange} />
+        : null
+      }
+    </div>);
 };
 
 
@@ -1389,7 +1440,6 @@ class Note extends Component {
               </div>);
   }
 }
-
 Note.propTypes = {
   text:            PropTypes.string.isRequired,
   ownerName:       PropTypes.string,
@@ -1654,84 +1704,42 @@ InterruptingMessage.propTypes = {
 };
 
 
-class ThreeBox extends Component {
-  // Wrap a list of elements into a three column table
-  render() {
-      var content = this.props.content;
-      var length = content.length;
-      if (length % 3) {
-          length += (3-length%3);
-      }
-      content.pad(length, "");
-      var threes = [];
-      for (var i=0; i<length; i+=3) {
-        threes.push([content[i], content[i+1], content[i+2]]);
-      }
-      return (
-        <table className="gridBox threeBox">
-          <tbody>
-          {
-            threes.map(function(row, i) {
-              return (
-                <tr key={i}>
-                  {row[0] ? (<td>{row[0]}</td>) : null}
-                  {row[1] ? (<td>{row[1]}</td>) : null}
-                  {row[2] ? (<td>{row[2]}</td>) : null}
-                </tr>
-              );
-            })
-          }
-          </tbody>
-        </table>
-      );
+const NBox = ({ content, n }) => {
+  // Wrap a list of elements into an n-column flexbox
+  let length = content.length;
+  if (length % n) {
+      length += (n-length%n);
   }
-}
-
-
-class TwoBox extends Component {
-  // Wrap a list of elements into a two column table
-  render() {
-      var content = this.props.content;
-      var length = content.length;
-      if (length % 2) {
-          length += (2-length%2);
-      }
-      content.pad(length, "");
-      var twos = [];
-      for (var i=0; i<length; i+=2) {
-        twos.push([content[i], content[i+1]]);
-      }
-      return (
-        <table className="gridBox twoBox">
-          <tbody>
-          {
-            twos.map(function(row, i) {
-              return (
-                <tr key={i}>
-                  {row[0] ? (<td>{row[0]}</td>) : <td className="empty"></td>}
-                  {row[1] ? (<td>{row[1]}</td>) : <td className="empty"></td>}
-                </tr>
-              );
-            })
-          }
-          </tbody>
-        </table>
-      );
+  content.pad(length, "");
+  let rows = [];
+  for (let i=0; i<length; i+=n) {
+    rows.push(content.slice(i, i+n));
   }
+  return (
+    <div className="gridBox">
+    {
+      rows.map((row, i) => (
+        <div className="gridBoxRow" key={i}>
+          {
+            row.pad(n, "").map((item, j) => (
+              <div className={classNames({gridBoxItem: 1, placeholder: !item})} key={`gridItem|${j}`}>{item}</div>
+            ))
+          }
+        </div>
+      ))
+    }
+    </div>
+  );
 }
-TwoBox.propTypes = {
-  content: PropTypes.array.isRequired
-};
-
 
 class TwoOrThreeBox extends Component {
   // Wrap a list of elements into a two or three column table, depending on window width
   render() {
       var threshhold = this.props.threshhold;
       if (this.props.width > threshhold) {
-        return (<ThreeBox content={this.props.content} />);
+        return (<NBox content={this.props.content} n={3}/>);
       } else {
-        return (<TwoBox content={this.props.content} />);
+        return (<NBox content={this.props.content} n={2}/>);
       }
   }
 }
@@ -1879,7 +1887,6 @@ SheetTopicLink.propTypes = {
 class SheetAccessIcon extends Component {
   render() {
     var sheet = this.props.sheet;
-    var msg = "group" in sheet ? "Listed for Group members only" : "Private";
     return (sheet.status == "unlisted") ?
       (<i className="fa fa-lock" title={msg}></i>)
       : null;
@@ -2059,6 +2066,7 @@ class CookiesNotification extends Component {
   }
 }
 
+
 const SheetTitle = (props) => (
         <span className="title"
              role="heading"
@@ -2075,39 +2083,34 @@ SheetTitle.propTypes = {
     title:          PropTypes.string,
 };
 
+
 const SheetAuthorStatement = (props) => (
     <div className="authorStatement" contentEditable={false} style={{ userSelect: 'none' }}>
           {props.children}
     </div>
 )
-
 SheetAuthorStatement.propTypes = {
     authorImage:      PropTypes.string,
     authorStatement:  PropTypes.string,
     authorUrl:        PropTypes.string,
 };
 
-const GroupStatement = (props) => (
-    props.group && props.group != "" ?
-        <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none' }}>
-          <div className="groupListingImageBox imageBox">
-            <a href={"/groups/" + props.group.replace(/-/g, "-")}>
-              <img className="groupListingImage img-circle" src={props.groupLogo} alt="Group Logo"/>
-            </a>
-          </div>
-          <a href={"/groups/" + props.group.replace(/ /g, "-")}>{props.children ? props.children : props.group}</a>
-        </div>
-        :
-        <div className="groupStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
-          {props.children}
-        </div>
 
-)
-
-GroupStatement.propTypes = {
-    group:      PropTypes.string,
-    groupLogo:  PropTypes.string,
-};
+const CollectionStatement = ({name, slug, image, children}) => (
+  slug ?
+    <div className="collectionStatement" contentEditable={false} style={{ userSelect: 'none' }}>
+      <div className="collectionListingImageBox imageBox">
+        <a href={"/collections/" + slug}>
+          <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !image})} src={image || "/static/icons/collection.svg"} alt="Collection Logo"/>
+        </a>
+      </div>
+      <a href={"/collections/" + slug}>{children ? children : name}</a>
+    </div>
+    :
+    <div className="collectionStatement" contentEditable={false} style={{ userSelect: 'none', display: 'none' }}>
+      {children}
+    </div>
+);
 
 
 const SheetMetaDataBox = (props) => (
@@ -2115,16 +2118,6 @@ const SheetMetaDataBox = (props) => (
       {props.children}
     </div>
 );
-
-SheetMetaDataBox.propTypes = {
-    title:          PropTypes.string,
-    authorUrl:      PropTypes.string,
-    authorImage:    PropTypes.string,
-    authorStatement:PropTypes.string,
-    group:          PropTypes.string,
-    groupLogo:      PropTypes.string,
-};
-
 
 
 export {
@@ -2135,6 +2128,7 @@ export {
   BlockLink,
   CategoryColorLine,
   CategoryAttribution,
+  CollectionStatement,
   CookiesNotification,
   Dropdown,
   DropdownButton,
@@ -2145,11 +2139,13 @@ export {
   GlobalWarningMessage,
   InterruptingMessage,
   InterfaceTextWithFallback,
+  IntText,
   LanguageToggleButton,
   Link,
   LoadingMessage,
   LoadingRing,
   LoginPrompt,
+  NBox,
   NewsletterSignUpForm,
   Note,
   ProfileListing,
@@ -2170,14 +2166,11 @@ export {
   TabView,
   TextBlockLink,
   TestMessage,
-  ThreeBox,
   ToggleSet,
   ToolTipped,
-  TwoBox,
   TwoOrThreeBox,
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
-  GroupStatement,
   InterfaceLanguageMenu,
 };

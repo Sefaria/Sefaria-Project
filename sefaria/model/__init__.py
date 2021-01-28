@@ -13,7 +13,7 @@ from . import abstract
 
 # not sure why we have to do this now - it wasn't previously required
 from . import history, schema, text, link, note, layer, notification, queue, lock, following, user_profile, version_state, \
-    lexicon, place, person, timeperiod, garden, group, topic
+    lexicon, place, person, timeperiod, garden, collection, topic
 
 from .history import History, HistorySet, log_add, log_delete, log_update, log_text
 from .schema import deserialize_tree, Term, TermSet, TermScheme, TermSchemeSet, TitledTreeNode, SchemaNode, \
@@ -24,7 +24,7 @@ from .note import Note, NoteSet
 from .layer import Layer, LayerSet
 from .notification import Notification, NotificationSet, GlobalNotification, GlobalNotificationSet
 from .story import SharedStory, UserStory, SharedStorySet, UserStorySet, TextPassageStoryFactory, AuthorStoryFactory, \
-    TopicTextsStoryFactory, UserSheetsFactory, SheetListFactory, GroupSheetListFactory, TopicListStoryFactory, \
+    TopicTextsStoryFactory, UserSheetsFactory, SheetListFactory, CollectionSheetListFactory, TopicListStoryFactory, \
     MultiTextStoryFactory
 from .trend import get_session_traits
 from .interrupting_message import InterruptingMessage
@@ -32,7 +32,7 @@ from .queue import IndexQueue, IndexQueueSet
 from .lock import Lock, LockSet, set_lock, release_lock, check_lock, expire_locks
 from .following import FollowRelationship, FollowersSet, FolloweesSet
 from .user_profile import UserWrapper, UserProfile, UserHistory, UserHistorySet, annotate_user_list
-from .group import Group, GroupSet
+from .collection import Collection, CollectionSet
 from .version_state import VersionState, VersionStateSet, StateNode, refresh_all_states
 from .timeperiod import TimePeriod, TimePeriodSet
 from .lexicon import Lexicon, LexiconEntry, LexiconEntrySet, Dictionary, DictionaryEntry, StrongsDictionaryEntry, RashiDictionaryEntry, JastrowDictionaryEntry, KleinDictionaryEntry, WordForm, WordFormSet, LexiconLookupAggregator
