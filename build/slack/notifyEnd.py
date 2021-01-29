@@ -14,11 +14,11 @@ resultLinks = "*Test Results*: " + baseResultUrl + "/" + "report.html"
 
 
 if "NIGHTLY" not in os.environ or os.environ["NIGHTLY"] == "false":
-    messageText="*Commit:* {}\n*User:* {}\n*Results:* {}\n*GitHub Action Link:* {}".format(os.environ['GITHUB_SHA'],os.environ['GITHUB_ACTOR'],os.environ['TEST_RESULTS_LINK'], ghaLink)
+    messageText="*Commit:* {}\n*User:* {}\n*GitHub Action Link:* {}".format(os.environ['GITHUB_SHA'],os.environ['GITHUB_ACTOR'], ghaLink)
     messageText += "\n" + resultLinks
 
 else:
-    messageText="_*NIGHTLY TEST*_\n*Commit:* {}\n*User:* {}\n*Results:* {}\n*GitHub Action Link:* {}".format(os.environ['GITHUB_SHA'],os.environ['GITHUB_ACTOR'],os.environ['TEST_RESULTS_LINK'], ghaLink)
+    messageText="_*NIGHTLY TEST*_\n*Commit:* {}\n*User:* {}\n*GitHub Action Link:* {}".format(os.environ['GITHUB_SHA'],os.environ['GITHUB_ACTOR'], ghaLink)
     messageText += "\n" + resultLinks
 
 targetChannel = os.environ['TARGET_SLACK_CHANNEL']
