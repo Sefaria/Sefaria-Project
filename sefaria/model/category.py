@@ -407,6 +407,8 @@ class TocCategory(TocNode):
                 self.isPrimary = True
             if getattr(self._category_object, "searchRoot", False):
                 self.searchRoot = self._category_object.searchRoot
+            for field in ("enDesc", "heDesc", "enShortDesc", "heShortDesc"):
+                setattr(self, field, getattr(self._category_object, field, ""))
         if self.primary_title() in CATEGORY_ORDER:
             # If this text is listed in ORDER, consider its position in ORDER as its order field.
             self.order = CATEGORY_ORDER.index(self.primary_title())
@@ -415,6 +417,10 @@ class TocCategory(TocNode):
         "order",
         "enComplete",
         "heComplete",
+        "enDesc",
+        "heDesc",
+        "enShortDesc",
+        "heShortDesc",
         "isPrimary",
         "searchRoot"
     ]
@@ -458,6 +464,8 @@ class TocTextIndex(TocNode):
         "primary_category",
         "heComplete",
         "enComplete",
+        "enShortDesc",
+        "heShortDesc",
         "collectiveTitle",
         "base_text_titles",
         "base_text_mapping",

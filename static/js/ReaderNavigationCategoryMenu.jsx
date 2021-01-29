@@ -1,12 +1,13 @@
 import {
   CategoryAttribution,
-  TwoOrThreeBox,
+  NBox,
   LanguageToggleButton,
 } from './Misc';
 import React  from 'react';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
+import NavSidebar from './NavSidebar';
 import Footer  from './Footer';
 import MobileHeader from './MobileHeader';
 
@@ -16,15 +17,16 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
             toggleLanguage, openDisplaySettings, navHome, width, compare, hideNavHeader,
             contentLang, interfaceLang}) => {
 
-
     // Show Talmud with Toggles
     const cats  = categories[0] === "Talmud" && categories.length === 1 ?
                         ["Talmud", "Bavli"] : categories;
+    const aboutCats = categories[0] === "Talmud" && categories.length === 2 ?
+                        ["Talmud"] : categories;
     let catTitle = '', heCatTitle = '';
 
     if (cats[0] === "Talmud" && cats.length === 2) {
-      catTitle   = (cats.length > 1) ? cats[0] +  " " + cats[1] : cats[0];
-      heCatTitle = (cats.length > 1) ? Sefaria.hebrewTerm(cats[0]) + " " + Sefaria.hebrewTerm(cats[1]): Sefaria.hebrewTerm(cats[0]);
+      catTitle   = cats[0];
+      heCatTitle = Sefaria.hebrewTerm(cats[0]);
     } else {
       if (category === "Commentary") {
         const onCat = cats.slice(-2)[0];
@@ -34,11 +36,14 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
         catTitle   = category;
         heCatTitle = Sefaria.hebrewTerm(category);
       }
-
     }
 
     const catContents    = Sefaria.tocItemsByCategories(cats);
     const nestLevel      = category === "Commentary" ? 1 : 0;
+    const sidebarModules = [
+      {type: "AboutTextCategory", props: {cats: aboutCats}},
+    ];
+    const talmudToggle   = <TalmudToggle categories={cats} setCategories={setCategories} />
     const footer         = compare ? null : <Footer />;
     const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: hideNavHeader, noLangToggleInHebrew: 1, compare: compare});
     const contentClasses = classNames({content: 1, hasFooter: footer != null});
@@ -55,23 +60,28 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
                 heCatTitle={heCatTitle}
               />
               <div className={contentClasses}>
-                <div className="contentInner">
-                  {hideNavHeader ? (<h1>
+                <div className="sidebarLayout">
+                  <div className="contentInner">
+                    {hideNavHeader ? 
+                    <div className="navTitle">
+                      <h1>
+                        <span className="en">{catTitle}</span>
+                        <span className="he">{heCatTitle}</span>
+                      </h1>
+                      {talmudToggle}
                       {interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
-                      <span className="en">{catTitle}</span>
-                      <span className="he">{heCatTitle}</span>
-                    </h1>) : null}
-                  <TalmudToggle categories={cats} setCategories={setCategories} />
-                  <CategoryAttribution categories={cats} />
-                  <ReaderNavigationCategoryMenuContents
-                    contents={catContents}
-                    categories={cats}
-                    width={width}
-                    category={category}
-                    contentLang={contentLang}
-                    nestLevel={nestLevel} />
+                    </div> : {talmudToggle} }
+                    <CategoryAttribution categories={cats} />
+                    <ReaderNavigationCategoryMenuContents
+                      contents={catContents}
+                      categories={cats}
+                      width={width}
+                      category={category}
+                      contentLang={contentLang}
+                      nestLevel={nestLevel} />
+                  </div>
+                  <NavSidebar modules={sidebarModules} />
                 </div>
-                {footer}
               </div>
             </div>);
 };
@@ -89,9 +99,9 @@ ReaderNavigationCategoryMenu.propTypes = {
   interfaceLang:       PropTypes.string,
 };
 
+
 // Inner content of Category menu (just category title and boxes of texts/subcategories)
 const ReaderNavigationCategoryMenuContents = ({category, contents, categories, contentLang, width, nestLevel}) =>  {
-
   const content = [];
   const cats = categories || [];
   const showInHebrew = contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew";
@@ -130,10 +140,15 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
       // Add a nested subcategory
       } else {
         content.push((<div className='category' key={"cat." + nestLevel + "." + item.category}>
-                        <h3>
+                        <h2>
                           <span className='en'>{item.category}</span>
                           <span className='he'>{item.heCategory}</span>
-                        </h3>
+                        </h2>
+                        {item.enShortDesc || item.heShortDesc ? 
+                        <div className="categoryDescription">
+                          <span className='en'>{item.enShortDesc}</span>
+                          <span className='he'>{item.heShortDesc}</span>
+                        </div> : null }
                         <ReaderNavigationCategoryMenuContents
                           contents      = {item.contents}
                           categories    = {newCats}
@@ -149,7 +164,6 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
         content.push((
             <MenuItem
                 href        = {"/collections/" + item.slug}
-                group       = {item.name}
                 nestLevel   = {nestLevel}
                 title       = {item.title}
                 heTitle     = {item.heTitle}
@@ -175,7 +189,7 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
     // Walk through content looking for runs of texts/subcats to group together into a table
     if (content[i].type === "div") { // this is a subcategory
       if (currentRun.length) {
-        boxedContent.push((<TwoOrThreeBox content={currentRun} width={width} key={i} />));
+        boxedContent.push((<NBox content={currentRun} n={2} key={i} />));
         currentRun = [];
       }
       boxedContent.push(content[i]);
@@ -184,57 +198,66 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
     }
   }
   if (currentRun.length) {
-    boxedContent.push((<TwoOrThreeBox content={currentRun} width={width} key={i} />));
+    boxedContent.push((<NBox content={currentRun} n={2} key={i} />));
   }
   return (<div>{boxedContent}</div>);
 
 };
 ReaderNavigationCategoryMenuContents.propTypes = {
-  category:   PropTypes.string.isRequired,
-  contents:   PropTypes.array.isRequired,
-  categories: PropTypes.array.isRequired,
+  category:    PropTypes.string.isRequired,
+  contents:    PropTypes.array.isRequired,
+  categories:  PropTypes.array.isRequired,
   contentLang: PropTypes.string,
-  width:      PropTypes.number,
-  nestLevel:  PropTypes.number
+  width:       PropTypes.number,
+  nestLevel:   PropTypes.number
 };
-
 ReaderNavigationCategoryMenuContents.defaultProps = {
   contents: []
 };
 
-const MenuItem = ({href, dref, nestLevel, title, heTitle, group, cats, incomplete}) => {
-    const keytype  = !!group ? "group" : !!cats ? "cat" : "text";
-    const classes = classNames({ blockLink: 1, refLink: !!dref, groupLink: !!group, catLink: !!cats, incomplete: incomplete});
-    return (
-        <a href={href}
-            className   = {classes}
-            data-ref    = {dref ? dref : null}
-            data-group  = {group ? group : null}
-            data-cats   = {cats ? cats.join("|") : null}
-            key         = {keytype + "." + nestLevel + "." + title}
-        >
-            <span className='en'>{title}</span>
-            <span className='he'>{heTitle}</span>
-        </a>
-    );
+
+const MenuItem = ({href, dref, nestLevel, title, heTitle, cats, incomplete, enDesc, heDesc}) => {
+  const keytype  = !!cats ? "cat" : "text";
+  const classes = classNames({ navBlockTitle: 1, incomplete: incomplete});
+  return (
+    <div className="navBlock">
+      <a href={href}
+        className   = {classes}
+        data-ref    = {dref ? dref : null}
+        data-cats   = {cats ? cats.join("|") : null}
+        key         = {keytype + "." + nestLevel + "." + title}
+      >
+        <span className='en'>{title}</span>
+        <span className='he'>{heTitle}</span>
+      </a>
+      {enDesc || heDesc ? 
+      <div className="navBlockDescription">
+        <span className='en'>{enDesc}</span>
+        <span className='he'>{heDesc}</span>
+      </div> : null }
+    </div>
+  );
 };
+
 
 const TextMenuItem = ({item, category, showInHebrew, nestLevel}) => {
-        const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, category);
-        const lastPlace = Sefaria.lastPlaceForText(item.title);
-        const ref =  lastPlace ? lastPlace.ref : item.firstSection;
-        return (
-            <MenuItem
-                href        = {"/" + Sefaria.normRef(ref)}
-                incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
-                dref        = {ref}
-                nestLevel   = {nestLevel}
-                title       = {title}
-                heTitle     = {heTitle}
-            />
-        );
-
+  const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, category);
+  const lastPlace = Sefaria.lastPlaceForText(item.title);
+  const ref =  lastPlace ? lastPlace.ref : item.firstSection;
+  return (
+    <MenuItem
+      href        = {"/" + Sefaria.normRef(ref)}
+      incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
+      dref        = {ref}
+      nestLevel   = {nestLevel}
+      title       = {title}
+      heTitle     = {heTitle}
+      enDesc      = {item.enShortDesc}
+      heDesc      = {item.heShortDesc}
+    />
+  );
 };
+
 
 const TalmudToggle = ({categories, setCategories}) => {
     if ( categories.length !== 2 || categories[0] !== "Talmud") {
@@ -251,7 +274,6 @@ const TalmudToggle = ({categories, setCategories}) => {
                   <span className="en">Bavli</span>
                   <span className="he">בבלי</span>
                 </span>
-                <span className="navTogglesDivider">|</span>
                 <span className={yClasses} onClick={setYerushalmi}>
                   <span className="en">Yerushalmi</span>
                   <span className="he">ירושלמי</span>
@@ -259,8 +281,8 @@ const TalmudToggle = ({categories, setCategories}) => {
     </div>);
 };
 
-const getRenderedTextTitleString = (title, heTitle, category) => {
 
+const getRenderedTextTitleString = (title, heTitle, category) => {
 
     const whiteList = ['Imrei Yosher on Ruth', 'Duties of the Heart (abridged)'];  // ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma', 'Midrash Aggadah'];
     if (whiteList.indexOf(title) > -1) {
@@ -286,6 +308,8 @@ const getRenderedTextTitleString = (title, heTitle, category) => {
 
     return [title, heTitle];
 };
+
+
 const hebrewContentSort = (enCats) => {
     // Sorts contents of this category by Hebrew Alphabetical
     //console.log(cats);

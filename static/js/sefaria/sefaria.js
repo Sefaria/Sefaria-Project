@@ -1632,21 +1632,29 @@ _media: {},
     }
     return results;
   },
-  tocItemsByCategories: function(cats) {
-    // Returns the TOC items that correspond to the list of categories 'cats'
-    let list = Sefaria.util.clone(Sefaria.toc);
+  tocObjectByCategories: function(cats) {
+    // Returns the TOC entry that corresponds to list of categories `cats`
+    let found, item;
+    let list = Sefaria.toc
     for (let i = 0; i < cats.length; i++) {
-      let found = false;
+      found = false;
+      item = null;
       for (let k = 0; k < list.length; k++) {
         if (list[k].category === cats[i]) {
-          list = Sefaria.util.clone(list[k].contents);
+          item = list[k];
+          list = item.contents;
           found = true;
           break;
         }
       }
-      if (!found) { return []; }
+      if (!found) { return null; }
     }
-    return list || [];
+    return item;
+  },
+  tocItemsByCategories: function(cats) {
+    // Returns the TOC items that correspond to the list of categories 'cats'
+    const object = Sefaria.tocObjectByCategories(cats);
+    return object ? Sefaria.util.clone(object.contents) : [];
   },
   categoryAttribution: function(categories) {
     var attributions = [

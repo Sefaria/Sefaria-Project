@@ -11,6 +11,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
+import NavSidebar from './NavSidebar';
 import ReaderNavigationCategoryMenu  from './ReaderNavigationCategoryMenu';
 import Footer  from './Footer';
 import MobileHeader from './MobileHeader';
@@ -91,12 +92,12 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   let categoryListings = Sefaria.toc.map(cat => {
     const style = {"borderColor": Sefaria.palette.categoryColor(cat.category)};
     const openCat = e => {e.preventDefault(); setCategories([cat.category])};
-    return <div className="textCategory">
-            <a href={`/texts/${cat.category}`} className="readerNavCategory" data-cat={cat.category} style={style} onClick={openCat}>
+    return <div className="textCategoryListing navBlock" style={style}>
+            <a href={`/texts/${cat.category}`} className="navBlockTitle" data-cat={cat.category} onClick={openCat}>
               <span className="en">{cat.category}</span>
               <span className="he">{cat.heCategory}</span>
             </a>
-            <div className="TextCategoryListingDescription">
+            <div className="navBlockDescription">
               <span className="en">{cat.enShortDesc}</span>
               <span className="he">{cat.heShortDesc}</span>
             </div>
@@ -129,6 +130,10 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
     <div className="libraryMessage" dangerouslySetInnerHTML={ {__html: Sefaria._siteSettings.LIBRARY_MESSAGE} }></div>
     : null;
 
+  const sidebarModules = [
+    {"type": "TheJewishLibrary"},
+  ];
+
   const footer = compare ? null : <Footer />;
   const classes = classNames({readerNavMenu:1, noHeader: !hideHeader, compare: compare, home: home, noLangToggleInHebrew: 1 });
   const contentClasses = classNames({content: 1, hasFooter: footer != null});
@@ -136,11 +141,14 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   return(<div ref={ref} className={classes} onClick={handleClick} key="0">
           {topContent}
           <div className={contentClasses}>
-            <div className="contentInner">
-              { title }
-              { dedication }
-              { libraryMessage }
-              { categoryListings }
+            <div className="sidebarLayout">
+              <div className="contentInner">
+                { title }
+                { dedication }
+                { libraryMessage }
+                { categoryListings }
+              </div>
+              <NavSidebar modules={sidebarModules} />
             </div>
             {footer}
           </div>
