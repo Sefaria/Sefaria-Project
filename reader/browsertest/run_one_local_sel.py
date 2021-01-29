@@ -15,7 +15,7 @@ test = sys.argv[1]
 klass = getattr(basic_tests, test)
 assert klass
 
-t = Trial(platform="sauce",
+t = Trial(platform="localselenium",
           tests=[klass],
           build="{} - {}".format(klass.__name__, strftime("%Y-%m-%d %H:%M:%S", gmtime())),
           verbose=True).run()
