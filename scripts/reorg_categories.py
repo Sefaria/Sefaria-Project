@@ -39,7 +39,11 @@ for comm in ["Vilna_Gaon_on_Seder_Olam_Rabbah",
              "Yaakov Emden on Seder Olam Rabbah"]:
     moveIndexInto(comm, sor_com)
 
-for n, o in [("Esther Rabbah", 10), ("Eichah Rabbah", 8)]:
+for n, o in [
+    ("Esther Rabbah", 10),
+    ("Eichah Rabbah", 8),
+    ("Teshuvot_HaGeonim", 1),
+    ("Toratan shel Rishonim", 2)]:
     i = library.get_index(n)
     i.order = [o]
     i.save(override_dependencies=True)
@@ -87,35 +91,6 @@ library.rebuild(include_toc=True)
 c = Category().load({"path": ["Modern Works", "English Explanation of Mishnah"]})
 p = Category().load({"path": ["Mishnah", "Commentary"]})
 moveCategoryInto(c, p)
-
-# Shoel uMeshiv to subcat
-c = create_category(["Responsa", "Shoel uMeshiv"], en="Shoel uMeshiv", he="שואל ומשיב")
-ts = ["Shoel uMeshiv Mahadura I",
-      "Shoel uMeshiv Mahadura II",
-      "Shoel uMeshiv Mahadura III",
-      "Shoel uMeshiv Mahadura IV",
-      "Shoel uMeshiv Mahadura V",
-      "Shoel uMeshiv Mahadura VI"]
-
-for t in ts:
-    moveIndexInto(t, c)
-
-
-# Marei HaBazak to subcat
-c = create_category(["Responsa", "B'Mareh HaBazak"], en="B'Mareh HaBazak", he='שו"ת במראה הבזק')
-mb = {"B'Mareh HaBazak Volume I": 1,
-      "B'Mareh HaBazak Volume III": 3,
-      "B'Mareh HaBazak Volume IV": 4,
-      "B'Mareh HaBazak Volume IX": 9,
-      "B'Mareh HaBazak Volume V": 5,
-      "B'Mareh HaBazak Volume VI": 6,
-      "B'Mareh HaBazak Volume VII": 7,
-      "B'Mareh HaBazak Volume VIII": 8}
-
-for t, o in mb.items():
-    i = library.get_index(t)
-    i.order = [o]
-    moveIndexInto(i, c)  # saves i
 
 # Daf Shevui -> Talmud Commentary
 c = create_category(["Talmud", "Bavli", "Commentary", "Daf Shevui"], en="Daf Shevui", he="דף שבועי")
@@ -200,23 +175,6 @@ for ind in IndexSet({"categories.0": "Philosophy"}):
     print("Moving - " + ind.get_title() + " to " + str(ind.categories))
     ind.save(override_dependencies=True)
 
-# Move Works of Eliezer Berkovits -> Jewish Thought
-c = Category().load({"path": ["Modern Works", "Works of Eliezer Berkovits"]})
-p = Category().load({"path": ["Jewish Thought"]})
-moveCategoryInto(c, p)
-
-library.rebuild(include_toc=True)
-
-c = Category().load({"path": ["Jewish Thought", "Works of Eliezer Berkovits"]})
-c.change_key_name("Eliezer Berkovits")
-c.save(override_dependencies=True)
-
-# move all matching Indexes
-for ind in IndexSet({"categories.1": "Works of Eliezer Berkovits"}):
-    assert isinstance(ind, Index)
-    ind.categories = ["Jewish Thought", "Eliezer Berkovits"]
-    print("Moving - " + ind.get_title() + " to " + str(ind.categories))
-    ind.save(override_dependencies=True)
 
 cat_rishonim = create_category(["Jewish Thought", "Rishonim"], "Rishonim", "ראשונים")
 books_rishonim = ["HaEmunot veHaDeot", "Eight Chapters",
@@ -247,16 +205,6 @@ books_acharonim = ["Derech Hashem",
                    "Derush Chidushei HaLevana",
                    "The Third Beit HaMikdash"]
 
-cat_kook = create_category(["Jewish Thought", "Rav Kook"], "Rav Kook", "כתבי הרב קוק")
-books_kook = ["Orot",
-              "Orot HaKodesh",
-              "Orot HaTorah",
-              "For the Perplexed of the Generation",
-              "Maamar Hador",
-              "Shmonah Kvatzim",
-              "Midbar Shur",
-              "Olat Reiyah"]
-
 cat_modern = create_category(["Jewish Thought", "Modern"], "Modern", "ספרות מודרנית")
 books_modern = ["Nineteen Letters",
                 "Sefer Yesodei HaTorah",
@@ -267,12 +215,24 @@ books_modern = ["Nineteen Letters",
                 "Revealment and Concealment in Language",
                 "Halacha and Aggadah"]
 
+cat_kook = create_category(["Jewish Thought", "Modern", "Rav Kook"], "Rav Kook", "כתבי הרב קוק")
+books_kook = ["Orot",
+              "Orot HaKodesh",
+              "Orot HaTorah",
+              "For the Perplexed of the Generation",
+              "Maamar Hador",
+              "Shmonah Kvatzim",
+              "Midbar Shur",
+              "Commentary on Selected Paragraphs of Arpilei Tohar",
+              "Olat Reiyah"]
+
 for cat, books in [
-    (cat_kook, books_kook),
     (cat_rishonim, books_rishonim),
     (cat_duties, books_duties),
     (cat_acharonim, books_acharonim),
-    (cat_modern, books_modern)
+    (cat_modern, books_modern),
+    (cat_kook, books_kook),
+
 ]:
     for book in books:
         i = library.get_index(book)
@@ -281,11 +241,31 @@ for cat, books in [
             continue
         moveIndexInto(i, cat)
 
-p = Category().load({"path": ["Jewish Thought"]})
+# Move Works of Eliezer Berkovits -> Jewish Thought
+c = Category().load({"path": ["Modern Works", "Works of Eliezer Berkovits"]})
+p = Category().load({"path": ["Jewish Thought", "Modern"]})
+moveCategoryInto(c, p)
+
+library.rebuild(include_toc=True)
+
+c = Category().load({"path": ["Jewish Thought", "Modern", "Works of Eliezer Berkovits"]})
+c.change_key_name("Eliezer Berkovits")
+c.save(override_dependencies=True)
+
+# move all matching Indexes
+for ind in IndexSet({"categories.2": "Works of Eliezer Berkovits"}):
+    assert isinstance(ind, Index)
+    ind.categories = ["Jewish Thought", "Modern", "Eliezer Berkovits"]
+    print("Moving - " + ind.get_title() + " to " + str(ind.categories))
+    ind.save(override_dependencies=True)
+
+p = Category().load({"path": ["Jewish Thought", "Modern"]})
 for t in ["Ali Be'er on Revealment and Concealment in Language",
       'Bein HaShitin on Halacha and Aggadah',
       'Commentaries on Revealment and Concealment in Language']:
     moveIndexInto(t, p)
+
+moveCategoryInto(["Jewish Thought", "Maharal"], ["Jewish Thought", "Acharonim"])
 
 p = create_category(["Jewish Thought", "Rishonim", "Duties of the Heart", "Commentary"])
 for t in [
@@ -616,7 +596,6 @@ for t, o in rashba.items():
     i.order = [o]
     i.save(override_dependencies=True)
 
-moveIndexInto("Pe'er HaDor Teshuvot HaRambam", ["Responsa", "Rambam"])
 
 cat_geonim = create_category(["Responsa", "Geonim"], "Geonim", "גאונים")
 books_geonim = [
@@ -625,7 +604,7 @@ books_geonim = [
     'Teshuvot HaGeonim',
     'Toratan shel Rishonim'
 ]
-cat_other_r = create_category(["Responsa", "Other Rishonim"], "Other Rishonim", "ראשונים נוספים")
+cat_other_r = create_category(["Responsa", "Rishonim"], "Rishonim", "ראשונים")
 books_other_r = [
     'Teshuvot Rashi',
     'Teshuvot HaRi Migash',
@@ -643,7 +622,7 @@ books_other_r = [
     'Mahari Bruna'
 ]
 
-cat_other_a = create_category(["Responsa", "Other Acharonim"], "Other Acharonim", "אחרונים נוספים")
+cat_other_a = create_category(["Responsa", "Acharonim"], "Acharonim", "אחרונים")
 books_other_a = [
     'Shut min haShamayim',
     'Chazeh Hatenufa',
@@ -668,7 +647,7 @@ books_other_a = [
 
 ]
 
-cat_other_m = create_category(["Responsa", "Other Modern"], "Other Modern", "שו”תים מודרניים נוספים")
+cat_other_m = create_category(["Responsa", "Modern"], "Modern", "שו”תים מודרניים")
 books_other_m = ['Responsa Benei Banim',
                  'LaKelal VeLaPerat',
                  'Mishpetei Uziel',
@@ -685,20 +664,46 @@ for cat, books in [
         moveIndexInto(book, cat)
 
 g = Collection().load({"name": "Lindenbaum Center at YCT Rabbinical School"})
-g.toc["categories"] = ["Responsa", "Other Modern"]
+g.toc["categories"] = ["Responsa", "Modern"]
 g.save(override_dependencies=True)
 
-"""
-Now an empty cat, because single text is hidden
-i = library.get_index("Footnotes on Teshuvot haRashba Meyuchas LehaRamban"),
- currently: 
-"categories": [
-"Responsa",
-"Commentary",
-"Footnotes",
-"Rashba"
-],
-"""
+moveCategoryInto(["Responsa", "Rambam"], ["Responsa", "Rishonim"])
+moveCategoryInto(["Responsa", "Rashba"], ["Responsa", "Rishonim"])
+
+moveCategoryInto(["Responsa", "Radbaz"], ["Responsa", "Acharonim"])
+
+moveIndexInto("Pe'er HaDor Teshuvot HaRambam", ["Responsa", "Rishonim", "Rambam"])
+
+# Shoel uMeshiv to subcat
+c = create_category(["Responsa", "Acharonim", "Shoel uMeshiv"], en="Shoel uMeshiv", he="שואל ומשיב")
+ts = ["Shoel uMeshiv Mahadura I",
+      "Shoel uMeshiv Mahadura II",
+      "Shoel uMeshiv Mahadura III",
+      "Shoel uMeshiv Mahadura IV",
+      "Shoel uMeshiv Mahadura V",
+      "Shoel uMeshiv Mahadura VI"]
+
+for t in ts:
+    moveIndexInto(t, c)
+
+# Marei HaBazak to subcat
+c = create_category(["Responsa", "Modern", "B'Mareh HaBazak"], en="B'Mareh HaBazak", he='שו"ת במראה הבזק')
+mb = {"B'Mareh HaBazak Volume I": 1,
+      "B'Mareh HaBazak Volume III": 3,
+      "B'Mareh HaBazak Volume IV": 4,
+      "B'Mareh HaBazak Volume IX": 9,
+      "B'Mareh HaBazak Volume V": 5,
+      "B'Mareh HaBazak Volume VI": 6,
+      "B'Mareh HaBazak Volume VII": 7,
+      "B'Mareh HaBazak Volume VIII": 8}
+
+for t, o in mb.items():
+    i = library.get_index(t)
+    i.order = [o]
+    moveIndexInto(i, c)  # saves i
+
+library.rebuild(include_toc=True)
+
 
 # Hide
 tohide = [
@@ -735,7 +740,7 @@ for t in tohide:
     i.save(override_dependencies=True)
 
 # Move Footnotes out of empty-display categories
-moveIndexInto("Footnotes on Teshuvot haRashba Meyuchas LehaRamban", ["Responsa", "Rashba"])
+moveIndexInto("Footnotes on Teshuvot haRashba Meyuchas LehaRamban", ["Responsa", "Rishonim", "Rashba"])
 moveIndexInto("JPS 1985 Footnotes", ["Tanakh", "Commentary"])
 moveIndexInto("Footnotes on Orot", ["Jewish Thought"])
 moveIndexInto("Footnotes on Mekhilta DeRabbi Shimon Bar Yochai", ["Midrash", "Halachic Midrash"])
@@ -746,7 +751,7 @@ for t in ["Footnotes and Annotations on Be'er HaGolah",
     "Footnotes and Annotations on Ner Mitzvah",
     "Footnotes and Annotations on Gevurot Hashem",
     "Footnotes and Annotations on Netivot Olam",]:
-    moveIndexInto(t, ["Jewish Thought", "Maharal"])
+    moveIndexInto(t, ["Jewish Thought", "Acharonim", "Maharal"])
 
 ##
 c = Category().load({"path": ["Tanakh", "Commentary", "Imrei Yosher"]})
@@ -1088,7 +1093,7 @@ for p in [
     ["Mishnah", "Commentary", "Raavad"],
     ["Mishnah", "Commentary", "Motar Kinnim", "Seder Kodashim"],
     ["Talmud", "Bavli", "Commentary", "Ri HaZaken", "Seder Nashim"],
-    ["Jewish Thought", "Maharal", "Commentary"],
+    ["Jewish Thought", "Acharonim", "Maharal", "Commentary"],
     ["Halakhah", "Commentary", "Shulchan Arukh"],
     ["Halakhah", "Commentary", "Summary of Taz", "Shulchan Arukh"],
     ["Halakhah", "Commentary", "Summary of Shakh", "Shulchan Arukh"],
@@ -1102,6 +1107,7 @@ for p in [
     ["Jewish Thought", "Commentary", "Tov haLevanon", "Duties of the Heart"],
     ["Tanakh", "Commentary", "Penei David"],
     ["Talmud", "Bavli", "Commentary", "Mefaresh", "Seder Kodashim"],
+    ["Liturgy", "Commentary", "Olat Reiyah"],
 ]:
     c = Category().load({"path": p})
     if c:

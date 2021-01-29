@@ -100,6 +100,7 @@ CATEGORY_ORDER = [
         'Ben Ish Hai',
         "Sifrei Mitzvot",
         "Issur v'Heter",
+        "Geonim",
         "Rishonim",
         "Monographs",
         "Acharonim",
@@ -120,12 +121,6 @@ CATEGORY_ORDER = [
         'High Holidays',
         'Piyutim',
     "Jewish Thought",
-        "Rishonim",
-        "Maharal",
-        "Acharonim",
-        "Rav Kook",
-        "Works of Eliezer Berkovits",
-        "Modern",
     'Philosophy',   # todo: delete me after reorg
     "Tanaitic",     # todo: delete me after reorg
         "Tosefta",  # todo: move me after reorg
@@ -143,25 +138,16 @@ CATEGORY_ORDER = [
         "R' Tzadok HaKohen",
     'Musar',
     'Responsa',  # See list under Halacha
-        "Geonim",
-        "Rambam",
-        "Rashba",
-        "Other Rishonim",
-        "Radbaz",
-        "Shoel uMeshiv",
-        "Other Acharonim",
-        "B'Mareh HaBazak",
-        "Other Modern",
     'Second Temple',
-        'Megillat Taanit'
+        'Megillat Taanit',
         'Apocrypha',
         'Philo',
         'Josephus',
-    'Modern Works',
+    'Modern Works',  # to nix
     "Reference",
         "Dictionary",
         "Grammar",
-    'Other',
+    'Other',    # to nix
     'Tosafot',  # Commentators
     'Bartenura',
     'Yachin',
