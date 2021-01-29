@@ -4637,6 +4637,37 @@ class Library(object):
             return topic_json['children']
         return topic_json
 
+    def get_search_filter_toc(self):
+        """
+        Returns TOC, modified  according to `Category.searchRoot` flags to correspond to the filters
+        """
+        from sefaria.model.category import TocTree, CategorySet, TocCategory
+        from sefaria.site.categories import CATEGORY_ORDER
+        toctree = TocTree(self)     # Don't use the cached one.  We're going to rejigger it.
+        root = toctree.get_root()
+
+        reroots = CategorySet({"searchRoot": {"$exists": True}})
+
+        # Get all the unique new roots, create nodes for them, and attach them to the tree
+        new_root_titles = list({c.searchRoot for c in reroots})
+        new_root_titles.sort(key=lambda t: CATEGORY_ORDER.index(t.split()[0]))
+        new_roots = {}
+        for t in new_root_titles:
+            tc = TocCategory()
+            tc.add_title(t, "en", primary=True)
+            tc.add_title(Term.normalize(t, "he"), "he", primary=True)
+            tc.append_to(root)
+            new_roots[t] = tc
+
+        # Re-parent all of the nodes with "searchRoot"
+        for cat in reroots:
+            tocnode = toctree.lookup(cat.path)
+            tocnode.detach()
+            tocnode.append_to(new_roots[cat.searchRoot])
+
+        # todo: return 'thin' param when search toc is retired.
+        return [c.serialize(thin=True) for c in root.children]
+
     def get_topic_link_type(self, link_type):
         from .topic import TopicLinkTypeSet
         if not self._topic_link_types:
