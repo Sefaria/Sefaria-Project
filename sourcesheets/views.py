@@ -1069,7 +1069,7 @@ def export_to_drive(request, credential, sheet_id):
     Export a sheet to Google Drive.
     """
     # Using credentials in google-api-python-client.
-    service = build('drive', 'v3', credentials=credential)
+    service = build('drive', 'v3', credentials=credential, cache_discovery=False)
 
     sheet = get_sheet(sheet_id)
     if 'error' in sheet:

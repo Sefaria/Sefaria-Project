@@ -361,6 +361,7 @@ class TocNode(schema.TitledTreeNode):
         "en": "",
         "he": ""
     }
+    thin_keys = []
 
     def __init__(self, serial=None, **kwargs):
         super(TocNode, self).__init__(serial, **kwargs)
@@ -381,7 +382,11 @@ class TocNode(schema.TitledTreeNode):
         if self.children:
             d["contents"] = [n.serialize(**kwargs) for n in self.children]
 
-        params = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if
+        # thin param is used for generating search toc, and can be removed when search toc is retired.
+        if kwargs.get("thin") is True:
+            params = {k: getattr(self, k) for k in self.thin_keys if getattr(self, k, "BLANKVALUE") != "BLANKVALUE"}
+        else:
+            params = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if
                   getattr(self, k, "BLANKVALUE") != "BLANKVALUE"}
         if any(params):
             d.update(params)
@@ -446,6 +451,9 @@ class TocTextIndex(TocNode):
     enComplete: true
     heComplete: true
     """
+
+    thin_keys = ["order"]
+
     def __init__(self, serial=None, **kwargs):
         self._index_object = kwargs.pop("index_object", None)
         super(TocTextIndex, self).__init__(serial, **kwargs)

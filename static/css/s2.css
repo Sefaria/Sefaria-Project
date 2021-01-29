@@ -4382,7 +4382,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList.fullPanel .recentFilterSet {
   margin: 0 0 12px 0;
 }
-.textList.fullPanel .recentFilterSet .textFilter, 
+.textList.fullPanel .recentFilterSet .textFilter,
 .connectionsPanelHeader .recentFilterSet.topFilters .textFilter {
   display: inline-block;
   padding: 0;
@@ -6229,7 +6229,7 @@ a .button:hover {
   padding-bottom: 20px;
 }
 .collectionInvitationBoxInner {
-  display: flex;  
+  display: flex;
 }
 .interface-hebrew .collectionInvitationBox input::placeholder {
   font-family: "Heebo", sans-serif;
@@ -7336,6 +7336,11 @@ span.purim-emoji img{
 .sheetContent .editorContent .sheetItem.segment .sourceContentText p {
   margin-bottom: 0;
 }
+
+.sheetContent .editorContent .sheetItem.noPointer {
+  pointer-events: none;
+}
+
 .sheetContent .sheetItem.segment .addedBy {
   margin-top: -20px;
 }

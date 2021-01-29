@@ -15,8 +15,6 @@ import google_auth_oauthlib.flow
 
 from sefaria import settings
 
-
-
 # CLIENT_SECRETS, name of a file containing the OAuth 2.0 information for this
 # application, including client_id and client_secret, which are found
 # on the API Access tab on the Google APIs
@@ -34,7 +32,9 @@ def index(request):
         settings.GOOGLE_OAUTH2_CLIENT_SECRET_FILEPATH,
         scopes=request.session.get('gauth_scope', '')
     )
-    flow.redirect_uri = request.build_absolute_uri(reverse('gauth_callback'))
+
+    redirect_url = request.build_absolute_uri(reverse('gauth_callback')).replace("http:", "https:")
+    flow.redirect_uri = redirect_url
 
     authorization_url, _ = flow.authorization_url(
         access_type='offline',
@@ -64,11 +64,13 @@ def auth_return(request):
         scopes=request.session.get('gauth_scope', ''),
         state=state
     )
-    flow.redirect_uri = request.build_absolute_uri(reverse('gauth_callback'))
+
+    redirect_url = request.build_absolute_uri(reverse('gauth_callback')).replace("http:", "https:")
+    flow.redirect_uri = redirect_url
 
     # flow.redirect_uri = request.session.get('next_view', '/')
 
-    authorization_response = request.build_absolute_uri()
+    authorization_response = request.build_absolute_uri().replace("http:", "https:")
     flow.fetch_token(authorization_response=authorization_response)
     credentials = flow.credentials
 
@@ -84,6 +86,10 @@ def auth_return(request):
     }
 
     profile = UserProfile(user_obj=request.user)
+
+    if profile.gauth_token["refresh_token"] and credentials_dict["refresh_token"] is None:
+        credentials_dict["refresh_token"] = profile.gauth_token["refresh_token"]
+
     profile.update({"gauth_token": credentials_dict})
     profile.save()
 
