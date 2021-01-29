@@ -30,7 +30,8 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
         handleClick, openDisplaySettings, toggleSignUpModal,
         hideHeader, hideNavHeader, multiPanel, home, compare, interfaceLang}) => {
 
-  const [width, setWidth] = useState(1000);
+  const initialWidth = hideNavHeader ? 1000 : 500; // Assume we're in a small panel if we're hiding the nav header
+  const [width, setWidth] = useState(initialWidth);
 
   const ref = useRef(null);
   useEffect(() => {
@@ -41,7 +42,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
     }
   }, []);
 
-  const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : 1000);
+  const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : initialWidth);
 
   const navHome = () => {
     setCategories([]);

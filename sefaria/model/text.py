@@ -30,7 +30,6 @@ from sefaria.system.database import db
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
     NoVersionFoundError, DictionaryEntryNotFoundError
-from sefaria.utils.talmud import daf_to_section
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
@@ -198,6 +197,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "authors",
         "enDesc",
         "heDesc",
+        "enShortDesc",
+        "heShortDesc",
         "pubDate",
         "compDate",
         "compPlace",
@@ -1233,8 +1234,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         elif type(item) is list:
             for ii, i in enumerate(item):
                 try:
-                    temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.toStrByAddressType(addressTypes[0], "en", ii+1))
-                    temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.toStrByAddressType(addressTypes[0], "he", ii+1))
+                    temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "en", ii+1))
+                    temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "he", ii+1))
                     self.walk_thru_contents(action, i, temp_tref, temp_heTref, schema="", addressTypes=addressTypes[1:])
                 except IndexError as e:
                     print(str(e))
@@ -2583,29 +2584,31 @@ class Ref(object, metaclass=RefCacheType):
 
         self.toSections = self.sections[:]
 
-        # Parse range end portion, if it exists
-        if len(parts) == 2:
+        address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[0])
+
+        if hasattr(address_class, "parse_range_end"):
+            base_wout_title = base.replace(title + " ", "")
+            address_class.parse_range_end(self, parts, base_wout_title)
+        elif len(parts) == 2: # Parse range end portion, if it exists
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
-            if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[1:]]):     # in process. developing logic that should work for all languages / texts
-                # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
+            if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[
+                                                                  1:]]):  # in process. developing logic that should work for all languages / texts
                 range_parts = re.split("[., :]+", parts[1])
                 delta = len(self.sections) - len(range_parts)
                 for i in range(delta, len(self.sections)):
                     try:
-                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang, range_parts[i - delta])
+                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
+                                                                                       range_parts[i - delta])
                     except (ValueError, IndexError):
                         raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
             elif self._lang == "en":
-                if self.index_node.addressTypes[0] == "Talmud":
-                    self.__parse_talmud_range(parts[1])
-                else:
-                    range_parts = re.split("[.:, ]+", parts[1])
-                    delta = len(self.sections) - len(range_parts)
-                    for i in range(delta, len(self.sections)):
-                        try:
-                            self.toSections[i] = int(range_parts[i - delta])
-                        except (ValueError, IndexError):
-                            raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
+                range_parts = re.split("[.:, ]+", parts[1])
+                delta = len(self.sections) - len(range_parts)
+                for i in range(delta, len(self.sections)):
+                    try:
+                        self.toSections[i] = int(range_parts[i - delta])
+                    except (ValueError, IndexError):
+                        raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
@@ -2621,25 +2624,6 @@ class Ref(object, metaclass=RefCacheType):
                 sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)))
         return sections
 
-    def __parse_talmud_range(self, range_part):
-        #todo: make sure to-daf isn't out of range
-        self.toSections = range_part.split(".")  # this was converting space to '.', for some reason.
-
-        # 'Shabbat 23a-b'
-        if self.toSections[0] == 'b' or self.toSections[0] == 'ᵇ':
-            self.toSections[0] = self.sections[0] + 1
-
-        # 'Shabbat 24b-25a'
-        elif regex.match(r"\d+[abᵃᵇ]", self.toSections[0]):
-            self.toSections[0] = daf_to_section(self.toSections[0])
-
-        # 'Shabbat 24b.12-24'
-        else:
-            delta = len(self.sections) - len(self.toSections)
-            for i in range(delta - 1, -1, -1):
-                self.toSections.insert(0, self.sections[i])
-
-        self.toSections = [int(x) for x in self.toSections]
 
     def __eq__(self, other):
         return isinstance(other, Ref) and self.uid() == other.uid()
@@ -5348,7 +5332,7 @@ class Library(object):
         for i in range(node.depth-1, -1, -1):
             toGname = "ar{}".format(i)
             if gs.get(toGname) is not None:
-                toSections.append(node._addressTypes[curr_address_index].toNumber(lang, gs.get(toGname)))
+                toSections.append(node._addressTypes[curr_address_index].toNumber(lang, gs.get(toGname), sections=sections[curr_address_index]))
                 curr_address_index -= 1
 
         if len(toSections) == 0:

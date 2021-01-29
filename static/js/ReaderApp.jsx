@@ -29,7 +29,6 @@ class ReaderApp extends Component {
     // TODO clean up generation of initial panels objects.
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
     this.MIN_PANEL_WIDTH = 360.0;
-
     var panels               = [];
     var header               = {};
     var defaultVersions      = Sefaria.util.clone(props.initialDefaultVersions) || {};
@@ -56,7 +55,6 @@ class ReaderApp extends Component {
 
         panels[0] = {
           highlightedNodes: initialPanel.highlightedNodes,
-          naturalDateCreated: initialPanel.sheet && initialPanel.sheet.naturalDateCreated,
           sheetID: initialPanel.sheetID,
           sheet: initialPanel.sheet,
           refs: props.initialRefs,
@@ -104,7 +102,6 @@ class ReaderApp extends Component {
       else {
         var mode = props.initialFilter ? "TextAndConnections" : "Text";
         var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
-
         panels[0] = {
           refs: props.initialRefs,
           mode: mode,
@@ -242,6 +239,7 @@ class ReaderApp extends Component {
     this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
     window.addEventListener("popstate", this.handlePopState);
     window.addEventListener("resize", this.setPanelCap);
+    document.addEventListener('copy', this.handleCopyEvent);
     this.setPanelCap();
     if (this.props.headerMode) {
       // Handle in app links on static pages outside of react container
@@ -889,6 +887,7 @@ class ReaderApp extends Component {
       topicsTab:               state.topicsTab               || 'sources',
       textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
       sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
+      compare:                 state.compare                 || false,
       openSidebarAsConnect:    state.openSidebarAsConnect    || false,
       bookRef:                 state.bookRef                 || null,
       settings:                state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
@@ -902,7 +901,6 @@ class ReaderApp extends Component {
       textHighlights:          state.textHighlights          || null,
       profile:                 state.profile                 || null,
       profileTab:              state.profileTab              || "sheets",
-
     };
     // if version is not set for the language you're in, see if you can retrieve it from cache
     if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
@@ -1036,7 +1034,7 @@ class ReaderApp extends Component {
   handleCompareSearchClick(n, ref, currVersions, options) {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
     // todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
-    this.replacePanel(n, ref, currVersions);
+    this.replacePanel(n, ref, currVersions, options);
   }
   handleInAppLinkClick(e) {
     // If a default has been prevented, assume a custom handler is already in place
@@ -1448,6 +1446,26 @@ class ReaderApp extends Component {
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
+  async replacePanel(n, ref, currVersions, options) {
+    
+    // Opens a text in in place of the panel currently open at `n`.
+
+    // This ugly little dance is courtesy of `sheet` data needing to be in state before we can
+    // render the panel, because getHistoryItem() needs it, hence needing the API call to return first
+    await this.openPanelAt(n, ref, currVersions, options);
+    this.replaceHistory = true;
+    this.closePanel(n);
+  }
+  openComparePanel(n, connectAfter) {
+    var comparePanel = this.makePanelState({
+      menuOpen: "navigation",
+      compare: true,
+      openSidebarAsConnect: typeof connectAfter !== "undefined" ? connectAfter : false,
+    });
+    Sefaria.track.event("Reader", "Other Text Click");
+    this.state.panels[n] = comparePanel;
+    this.setState({panels: this.state.panels});
+  }
   openTextListAt(n, refs, sheetNodes, textListState) {
     // Open a connections panel at position `n` for `refs`
     // Replace panel there if already a connections panel, otherwise splice new panel into position `n`
@@ -1557,21 +1575,6 @@ class ReaderApp extends Component {
     Sefaria.notificationCount = n;
     this.forceUpdate();
   }
-  replacePanel(n, ref, currVersions) {
-    // Opens a text in in place of the panel currently open at `n`.
-    this.state.panels[n] = this.makePanelState({refs: [ref], currVersions, mode: "Text"});
-    this.setState({panels: this.state.panels});
-    this.saveLastPlace(this.state.panels[n], n);
-  }
-  openComparePanel(n, connectAfter) {
-    var comparePanel = this.makePanelState({
-      menuOpen: "compare",
-      openSidebarAsConnect: typeof connectAfter !== "undefined" ? connectAfter : false,
-    });
-    Sefaria.track.event("Reader", "Other Text Click");
-    this.state.panels[n] = comparePanel;
-    this.setState({panels: this.state.panels});
-  }
   closePanel(n) {
     // Removes the panel in position `n`, as well as connections panel in position `n+1` if it exists.
     if (this.state.panels.length == 1 && n == 0) {
@@ -1586,8 +1589,8 @@ class ReaderApp extends Component {
         parent.currentlyVisibleRef = parent.currentlyVisibleRef ? Sefaria.ref(parent.currentlyVisibleRef).sectionRef : null;
       }
       this.state.panels.splice(n, 1);
-      if (this.state.panels[n] && this.state.panels[n].mode === "Connections") {
-        // Close connections panel when text panel is closed
+      if (this.state.panels[n] && (this.state.panels[n].mode === "Connections" || this.state.panels[n].compare)) {
+        // Close connections panel or compare panel when text panel is closed
         if (this.state.panels.length == 1) {
           this.state.panels = [];
         } else {
@@ -1738,6 +1741,66 @@ class ReaderApp extends Component {
     }
     return false;
   }
+  handleCopyEvent(e) {
+    // Custom processing of Copy/Paste
+    // - Ensure we don't copy hidden English or Hebrew text
+    // - Remove elements like link dots
+    // - Strip links inline in the text
+    const selection = document.getSelection()
+    const textOnly = selection.toString();
+    let html = textOnly;
+
+    if (selection.rangeCount) {
+      const container = document.createElement("div");
+      for (let i = 0, len = selection.rangeCount; i < len; ++i) {
+        container.appendChild(selection.getRangeAt(i).cloneContents());
+      }
+
+      // Elements to Remove
+      const classesToRemove = ["segmentNumber", "linkCount", "clearFix"];
+      classesToRemove.map(cls => {
+        let elsToRemove = container.getElementsByClassName(cls);
+        while(elsToRemove.length > 0){
+          elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+        }
+      });
+
+      // Links to Strip
+      const linksToStrip = ".segment a.namedEntityLink, .segment a.refLink";
+      let elsToStrip = container.querySelectorAll(linksToStrip);
+      elsToStrip.forEach(el => el.outerHTML = el.innerText);
+
+
+      // Remove invisible languages based on the class of the readerPanel you're
+      // copying from. 
+      const selectionAncestor = selection.getRangeAt(0).commonAncestorContainer;
+      if (selectionAncestor.nodeType == 1) {
+
+        const curReaderPanel = selectionAncestor.closest('.readerPanel');
+
+        if (curReaderPanel && curReaderPanel.classList.contains('hebrew')) {
+          let elsToRemove = container.getElementsByClassName('en')
+          while(elsToRemove.length > 0){
+            elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+          }
+        }
+
+        else if (curReaderPanel && curReaderPanel.classList.contains('english')) {
+          let elsToRemove = container.getElementsByClassName('he')
+          while(elsToRemove.length > 0){
+            elsToRemove[0].parentNode.removeChild(elsToRemove[0]);
+          }
+        }
+      }
+
+      html = container.innerHTML;
+    }
+
+    const clipdata = e.clipboardData || window.clipboardData;
+    clipdata.setData('text/plain', textOnly);
+    clipdata.setData('text/html', html);
+    e.preventDefault();
+  }
   rerender() {
     this.forceUpdate();
     this.setContainerMode();
@@ -1761,7 +1824,7 @@ class ReaderApp extends Component {
 
     if (panelStates.length == 2 &&
         (panelStates[0].mode == "Text" || panelStates[0].mode == "Sheet") &&
-        (panelStates[1].mode == "Connections" || panelStates[1].menuOpen === "compare" || panelStates[1].menuOpen === "search" )) {
+        (panelStates[1].mode == "Connections" || panelStates[1].menuOpen === "search" || panelStates[1].compare)) {
       widths = [68.0, 32.0];
       unit = "%";
     } else if (panelStates.length == 3 &&
@@ -1833,7 +1896,7 @@ class ReaderApp extends Component {
       var clearSelectedWords             = this.clearSelectedWords.bind(null, i);
       var clearNamedEntity               = this.clearNamedEntity.bind(null, i);
       var openComparePanel               = this.openComparePanel.bind(null, i);
-      var closePanel                     = panel.menuOpen == "compare" ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
+      var closePanel                     = panel.compare ? this.convertToTextList.bind(null, i) : this.closePanel.bind(null, i);
       var setPanelState                  = this.setPanelState.bind(null, i);
       var setConnectionsFilter           = this.setConnectionsFilter.bind(this, i);
       var setVersionFilter               = this.setVersionFilter.bind(this, i);

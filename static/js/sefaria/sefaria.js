@@ -458,10 +458,9 @@ Sefaria = extend(Sefaria, {
     var url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
     this._api(url, function(data) {
       for (let v of data) {
-        Sefaria._translateVersions[v.versionTitle] = {
+        Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(v.versionTitle, v.language)] = {
           en: v.versionTitle,
           he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
-          lang: v.language,
         };
       }
       if (cb) { cb(data); }
@@ -469,10 +468,12 @@ Sefaria = extend(Sefaria, {
     });
     return versions;
   },
-  versionLanguage: function(versionTitle) {
+  versionLanguage: function(translateVersionKey) {
     // given a versionTitle, return the language of the version
-    return Sefaria._translateVersions[versionTitle]["lang"]
+    return Sefaria._translateVersions[translateVersionKey]
   },
+  getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
+  deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
   _textUrl: function(ref, settings) {
     // copy the parts of settings that are used as parameters, but not other
     const params = param({
@@ -2193,8 +2194,10 @@ _media: {},
     };
     if (name in Sefaria._translateTerms) {
         return Sefaria._translateTerms[name]["he"];
-    } else if (name in Sefaria._translateVersions) {
-        return Sefaria._translateVersions[name]["he"];
+    } else if (Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'en')]) {
+        return Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'en')]["he"];
+    } else if (Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'he')]) {
+        return Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(name, 'he')]["he"];
     } else if (name in categories) {
         return  categories[name];
     } else if (Sefaria.index(name)) {
@@ -2228,7 +2231,7 @@ _media: {},
       "Start a New Source Sheet": "התחלת דף מקורות חדש",
       "Untitled Source Sheet" : "דף מקורות ללא שם",
       "New Source Sheet" : "דף מקורות חדש",
-      "Name New Sheet" : "כותרת לדף המקורות",
+      "Name New Sheet" : "כותרת לדף חדש",
       "Copy" : "העתקה",
       "Edit": "עריכה",
       "View in Editor": "לתצוגת עריכה",
@@ -2389,8 +2392,8 @@ _media: {},
       "You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.": "באפשרותך ליצור אסופות כדי לארגן את דפי המקורות שלך או דפי מקורות פתוחים לשימוש שאהבת. את האסופות אפשר לשתף באופן פרטי או לפרסם באופן ציבורי באתר ספריא.",
       " hasn't shared any collections yet.": " טרם שיתפ/ה אסופות כלשהם",
       "Create new collection": "יצירת אסופה חדשה",
-      "Create": "יצירת",
-      "Done": "בוצע",
+      "Create": "יצירה",
+      "Done": "סיום",
       "Add to Collection": "צירוף לאסופה",
 
       //languages
@@ -2490,6 +2493,26 @@ _media: {},
       // Footer
       "Connect": "צרו קשר",
       "Site Language": "שפת האתר",
+
+      //Profile
+      " at ": " ב-",
+      "on Sefaria": " בספריא",
+  },
+  _i18nInterfaceStringsWithContext: {
+      "AddConnectionBox": {
+        "Select Type": "בחר סוג קישור",
+        "None": "ללא",
+        "Commentary": "פירוש",
+        "Quotation": "ציטוט",
+        "Midrash": "מדרש",
+        "Ein Mishpat / Ner Mitsvah": "עין משפט / נר מצווה",
+        'Mesorat HaShas': 'מסורת הש"ס',
+        "Reference": "עיון",
+        "Related Passage": "קשר אחר",
+      },
+  },
+  _getStringCaseInsensitive: function (store, inputStr){
+     return inputStr in store ? store[inputStr] : inputStr.toLowerCase() in store ? store[inputStr.toLowerCase()] : null;
   },
   _v: function(inputVar){
     if(Sefaria.interfaceLang != "english"){
@@ -2510,20 +2533,20 @@ _media: {},
         return inputVarArr;
 	}
   },
-  _: function(inputStr){
+  _: function(inputStr, context=null){
     if (!inputStr.toLowerCase) debugger;
     if(Sefaria.interfaceLang != "english"){
-      var hterm;
-      if(inputStr in Sefaria._i18nInterfaceStrings) {
-        return Sefaria._i18nInterfaceStrings[inputStr];
-      
-      } else if (inputStr.toLowerCase() in Sefaria._i18nInterfaceStrings){
-        return Sefaria._i18nInterfaceStrings[inputStr.toLowerCase()];
-      
-      } else if ((hterm = Sefaria.hebrewTerm(inputStr)) != inputStr){
-        return hterm;
-      
-      } else {
+        let translatedString = null;
+        if (context && context in Sefaria._i18nInterfaceStringsWithContext){
+            let translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
+            if (translatedString) return translatedString;
+        }
+        if(translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)){
+            return translatedString;
+        }
+        if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
+          return translatedString;
+        }
         if (inputStr.indexOf(" | ") !== -1) {
           var inputStrs = inputStr.split(" | ");
           return Sefaria._(inputStrs[0])+ " | " + Sefaria._(inputStrs[1]);
@@ -2531,10 +2554,9 @@ _media: {},
           console.warn("Missing Hebrew translation for: " + inputStr);
           return inputStr;
         }
-      }
     } else {
       return inputStr;
-	  }
+    }
   },
   _cacheSiteInterfaceStrings: function() {
     // Ensure that names set in Site Settings are available for translation in JS.
@@ -2641,10 +2663,9 @@ Sefaria.unpackDataFromProps = function(props) {
         Sefaria._versions[panelBook] = panelVersions;
         for (let i = 0; i < panelVersions.length; i++) {
           const v = panelVersions[i];
-          Sefaria._translateVersions[v.versionTitle] = {
+          Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(v.versionTitle, v.language)] = {
             en: v.versionTitle,
             he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
-            lang: v.language,
           };
         }
       }

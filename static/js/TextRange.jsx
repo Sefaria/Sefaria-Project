@@ -132,7 +132,7 @@ class TextRange extends Component {
     if (this._isMounted) {
       this.forceUpdate(function() {
         this.placeSegmentNumbers();
-        this.props.onTextLoad && this.props.onTextLoad(); // Don't call until the text is actually rendered
+        this.props.onTextLoad && this.props.onTextLoad(data.ref); // Don't call until the text is actually rendered
       }.bind(this));
     }
   }
@@ -290,7 +290,8 @@ class TextRange extends Component {
     }
     let textSegments = segments.map((segment, i) => {
       var highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
-                            Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 : // highlight if this ref is in highlighted refs prop
+                            Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 || // highlight if this ref is in highlighted refs prop
+                            Sefaria.util.inArray(Sefaria.sectionRef(segment.ref), this.props.highlightedRefs) !== -1 : // or if the highlighted refs include a section level ref including this ref
                             this.props.basetext && segment.highlight;  // otherwise highlight if this a basetext and the ref is specific
       const textHighlights = (highlight || !this.props.basetext) && !!this.props.textHighlights ? this.props.textHighlights : null; // apply textHighlights in a base text only when the segment is hightlights
       let parashahHeader = null;

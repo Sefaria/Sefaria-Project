@@ -986,10 +986,10 @@ input.noselect {
   text-transform: uppercase;
   letter-spacing: 1px;
   /*border-bottom: 4px solid #E6E5E6;*/
-  padding: 0 6px 3px;
+  padding: 0 6px 4px;
 }
 .textColumn .loadingMessage.base.prev {
-  margin: 70px 0 30px;
+  margin: 70px 0 0 0;
 }
 .textColumn .loadingMessage.base.next {
   margin: 30px 0 70px;
@@ -1054,6 +1054,9 @@ input.noselect {
 }
 .enInHe{
   unicode-bidi: isolate;
+}
+.readerPanel .recentPanel .sheetLink.recentItem .he{
+  font-family: "adobe-garamond-pro", "Taamey Frank", "Crimson Text", Georgia, serif;
 }
 .readerPanel.hebrew .en {
   display: none;
@@ -1137,8 +1140,9 @@ input.noselect {
 .multiPanel .homeFeedWrapper.noHeader .content {
   padding-top: 80px;
 }
-.multiPanel .readerNavMenu.compare .content {
-  padding-top: 30px;
+.multiPanel .readerNavMenu.compare .content,
+.multiPanel .readerNavCategoryMenu.compare .content {
+  padding: 30px 10px;
 }
 .readerNavMenu .content .contentInner {
   max-width: 660px;
@@ -1165,6 +1169,9 @@ input.noselect {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.interface-hebrew .readerNavTop{
+  direction: rtl;
 }
 .readerNavTop .readerNavTopStart {
   display: flex;
@@ -1275,6 +1282,9 @@ input.noselect {
 .readerNavMenu.topicPanel {
   background-color: white;
 }
+.singlePanel .readerNavCategoryMenu .readerTocTopics.content {
+  padding-top: 30px;
+}
 .topicPanel .readings {
   margin-bottom: 40px;
 }
@@ -1305,10 +1315,6 @@ input.noselect {
   }
   .topicPanel .filterable-list .filter-sort-wrapper {
     margin-top: 20px;
-  }
-  .topicPanel .readerNavTop {
-    margin: -25px 0 30px -25px;
-    width: 115%;
   }
 }
 .interface-hebrew .topicPanel .mainColumn {
@@ -1585,18 +1591,21 @@ input.resourcesLink {
   flex-direction: row;
 }
 .readerPanel .recentPanel .sideColorLeft {
-  max-width: 85%;
+  flex: 1;
+  min-width: 0;
 }
 .readerPanel .recentPanel .saved .sideColorLeft {
   max-width: 90%;
 }
 .readerPanel .recentPanel a:not(.saved) .sideColorRight {
-  padding: 0 10px;
+  margin-inline-end: 10px;
   align-items: center;
+  justify-content: flex-end;
   color: #999;
   font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  direction: ltr;
+  width: 90px;
+  text-align: end;
 }
 .interface-hebrew .recentItem:hover .sideColorRight .int-he,
 .interface-english .recentItem:hover .sideColorRight .int-en {
@@ -1629,6 +1638,7 @@ input.resourcesLink {
 .readerPanel .recentPanel .sideColorInner .he {
   text-overflow: ellipsis;
   overflow: hidden;
+  white-space: nowrap;
 }
 
 .readerPanel .recentPanel .sideColorInner .byLine {
@@ -1666,14 +1676,17 @@ a.readerNavCategory {
     font-size: 16px;
   }
 }
-.readerNavMenu .readerNavMore span {
+.gridBox .readerNavMore span {
   color: #666;
   text-transform: none;
 }
-.readerNavMenu .readerNavMore img {
+.gridBox .readerNavMore img {
   height: 10px;
   width: 10px;
   opacity: 0.6;
+}
+.gridBox .readerNavMore .int-en {
+  direction: ltr;
 }
 .bilingual .readerNavCategory .he {
   display: none;
@@ -1744,13 +1757,13 @@ a.readerNavCategory {
 .hebrew .gridBox .gridBoxItem:last-child {
   border-left: 0;
 }
-.hebrew .readerTocResources .gridBox td:last-child {
-  border-left: 0;
-  border-right: 3px solid rgba(0,0,0,0);
-}
-.hebrew .readerTocResources .gridBox td:first-child {
-  border-left: 3px solid rgba(0,0,0,0);
+.hebrew .readerTocResources .gridBoxItem:last-child {
   border-right: 0;
+  border-left: 3px solid transparent;
+}
+.hebrew .readerTocResources .gridBoxItem:first-child {
+  border-right: 3px solid transparent;
+  border-left: 0;
 }
 .readerNavMenu .resourcesLink .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -3327,6 +3340,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 15px;
   color: #999;
   margin: 0 2px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  padding: 0 2px;
 }
 .readerControls .readerTextToc .categoryAttribution .he {
   font-style: normal;
@@ -3355,7 +3372,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  width: 40px;
+  width: 30px;
   height: 56px;
   cursor: pointer;
 }
@@ -3668,7 +3685,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textRange.basetext .title, .sheetContent .customSourceTitle{
   padding: 0 28px;
-  margin: 24px 0;
+  margin: 30px 0 24px 0;
   color: #000;
   text-align: center;
   justify-content: center;
@@ -3976,7 +3993,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .segment .segmentNumber,
 .textRagnge .numberLabel {
-  color: #999;
+  color: #666;
   top: 0;
 }
 .dark .segment .segmentNumber,
@@ -4113,6 +4130,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .segment sup {
   margin-left: .2em;
   margin-right: .2em;
+  font-size: 12px;
+}
+.segment sup:hover {
   text-decoration: underline;
 }
 .segment sup.itag {
@@ -4238,6 +4258,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList.fullPanel .texts {
   padding: 40px 40px 80px 40px;
 }
+.textList .segment.heOnly,
+.textList .segment.enOnly {
+  text-align: justify;
+}
 .textListTop {
   position: absolute;
   top: 0;
@@ -4330,7 +4354,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList.fullPanel .recentFilterSet {
   margin: 0 0 12px 0;
 }
-.textList.fullPanel .recentFilterSet .textFilter, .connectionsPanelHeader .recentFilterSet.topFilters .textFilter{
+.textList.fullPanel .recentFilterSet .textFilter,
+.connectionsPanelHeader .recentFilterSet.topFilters .textFilter {
   display: inline-block;
   padding: 0;
   margin: 6px 14px;
@@ -4339,7 +4364,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-bottom: 4px solid #cccccc;
   margin-inline-start: 0;
 }
-.connectionsPanelHeader .recentFilterSet.topFilters .textFilter{
+.connectionsPanelHeader .recentFilterSet.topFilters .textFilter {
   margin: 18px;
   margin-inline-end: 14px;
   margin-inline-start: 0;
@@ -4350,6 +4375,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .recentFilterSet.filterSet .textFilter, .recentFilterSet.filterSet .textFilter span{
   font-family: "HebrewInEnglish Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.hebrew .textList .recentFilterSet.filterSet {
+  direction: rtl;
 }
 .topFiltersInner {
   display: inline-block;
@@ -6174,7 +6202,7 @@ a .button:hover {
   padding-bottom: 20px;
 }
 .collectionInvitationBoxInner {
-  display: flex;  
+  display: flex;
 }
 .interface-hebrew .collectionInvitationBox input::placeholder {
   font-family: "Heebo", sans-serif;
@@ -6656,6 +6684,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   justify-content: space-between;
   align-items: center;
   align-content: flex-start;
+  text-align: start;
 }
 .addToSourceSheetBox .dropdownMain.noselect::before{
   content: url("/static/img/sheet.svg");
@@ -6669,7 +6698,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .addToSourceSheetBox .dropdownMain.noselect::after{
   content: url("/static/icons/chevron.svg");
   margin-inline-start: auto;
-  align-self: end;
   opacity: 0.4;
   height: 24px;
   transform: scale(0.6) rotate(90deg);
@@ -7281,6 +7309,11 @@ span.purim-emoji img{
 .sheetContent .editorContent .sheetItem.segment .sourceContentText p {
   margin-bottom: 0;
 }
+
+.sheetContent .editorContent .sheetItem.noPointer {
+  pointer-events: none;
+}
+
 .sheetContent .sheetItem.segment .addedBy {
   margin-top: -20px;
 }
@@ -8327,11 +8360,8 @@ body .homeFeedWrapper .content {
 .mainColumn .story .storyTitleBlock {
   clear: both;
 }
-.interface-english .mainColumn .story .storyTitleBlock {
-  float: left;
-}
-.interface-hebrew .mainColumn .story .storyTitleBlock {
-  float: right;
+.mainColumn .story .storyTitleBlock {
+  text-align: start;
 }
 .colorBarBox {
   clear: both;

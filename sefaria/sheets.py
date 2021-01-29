@@ -103,7 +103,6 @@ def get_sheet_for_panel(id=None):
 	sheet["ownerName"]  = ownerData["name"]
 	sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
 	sheet["ownerImageUrl"] = public_user_data(sheet["owner"])["imageUrl"]
-	sheet["naturalDateCreated"] = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
 	sheet["sources"] = annotate_user_links(sheet["sources"])
 	sheet["topics"] = add_langs_to_topics(sheet.get("topics", []))
 	if "displayedCollection" in sheet:
@@ -409,9 +408,12 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 		old_topics = existing.get("topics", [])
 		topics_diff = topic_list_diff(old_topics, sheet.get("topics", []))
 
-		sheet["views"] = existing["views"] 										# prevent updating views
-		sheet["owner"] = existing["owner"] 										# prevent updating owner
-		sheet["likes"] = existing["likes"] if "likes" in existing else [] 		# prevent updating likes
+		# Protected fields -- can't be set from outside
+		sheet["views"] = existing["views"]
+		sheet["owner"] = existing["owner"]
+		sheet["likes"] = existing["likes"] if "likes" in existing else []
+		if "noindex" in existing:
+			sheet["noindex"] = existing["noindex"]
 
 		existing.update(sheet)
 		sheet = existing
@@ -722,7 +724,6 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 		if "displayedCollection" in sheet:
 			collection = Collection().load({"slug": sheet["displayedCollection"]})
 			sheet["collectionTOC"] = getattr(collection, "toc", None)
-		natural_date_created = naturaltime(datetime.strptime(sheet["dateCreated"], "%Y-%m-%dT%H:%M:%S.%f"))
 		topics = add_langs_to_topics(sheet.get("topics", []))
 		for anchor_ref, anchor_ref_expanded in zip(anchor_ref_list, anchor_ref_expanded_list):
 			sheet_data = {
@@ -735,7 +736,6 @@ def get_sheets_for_ref(tref, uid=None, in_collection=None):
 				"anchorRef":       anchor_ref.normal(),
 				"anchorRefExpanded": [r.normal() for r in anchor_ref_expanded],
 				"options": 		   sheet["options"],
-				"naturalDateCreated": natural_date_created,
 				"collectionTOC":   sheet.get("collectionTOC", None),
 				"ownerName":       ownerData["first_name"]+" "+ownerData["last_name"],
 				"via":			   sheet.get("via", None),

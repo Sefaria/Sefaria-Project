@@ -1,7 +1,6 @@
-
 # -*- coding: utf-8 -*-
 
-from .config import TEMPER, SAUCE_CAPS, SAUCE_CORE_CAPS, SAUCE_MAX_THREADS, LOCAL_URL, REMOTE_URL, LOCAL_SELENIUM_CAPS
+from .config import TEMPER, SAUCE_CAPS, SAUCE_CORE_CAPS, SAUCE_MAX_THREADS, BS_CAPS, BS_MAX_THREADS, BS_KEY, BS_USER, LOCAL_URL, REMOTE_URL
 from sefaria.model import *
 from pathos.multiprocessing import ProcessingPool as Pool
 import random
@@ -12,8 +11,6 @@ import base64
 import json
 import traceback
 import sys
-
-import urllib.parse
 
 from selenium import webdriver
 from appium import webdriver as appium_webdriver
@@ -79,16 +76,31 @@ class AbstractTest(object):
         sys.stdout.write(msg if self.isVerbose or always else short_msg)
         sys.stdout.flush()
 
+
+    def is_element_visible_in_viewport(self, element) -> bool:
+        return self.driver.execute_script("var elem = arguments[0],            " 
+                                     "  box = elem.getBoundingClientRect(),    " 
+                                     "  cx = box.left + box.width / 2,         " 
+                                     "  cy = box.top + box.height / 2,         " 
+                                     "  e = document.elementFromPoint(cx, cy); " 
+                                     "  for (; e; e = e.parentElement) {       " 
+                                     "    if (e === elem)                      " 
+                                     "      return true;                       " 
+                                     "  }                                      " 
+                                     "return false;                            "
+                                     , element)
+
+
     # Component methods
     # Methods that begin with "nav_to_" assume that the site is loaded, and do not reload a page.
     # Methods that begin with "load_" start with a page load.
 
     def set_modal_cookie(self):
-        # # set cookie to avoid popup interruption
-        # # We now longer set the welcomeToS2LoggedOut message by default.
-        # # TODO is this method still needed? YES
-        # pass
-        self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
+        # set cookie to avoid popup interruption
+        # We now longer set the welcomeToS2LoggedOut message by default.
+        # TODO is this method still needed?
+        pass
+        # self.driver.add_cookie({"name": "welcomeToS2LoggedOut", "value": "true"})
 
     def set_cookies_cookie(self):
         # set cookie to avoid popup interruption
@@ -136,20 +148,14 @@ class AbstractTest(object):
         if self.is_logged_in():
             return self
         self.nav_to_login()
-        try: 
-            elem = self.driver.find_element_by_css_selector("#id_email")
-            elem.send_keys(user)
-            elem = self.driver.find_element_by_css_selector("#id_password")
-            elem.send_keys(password)
-            self.driver.find_element_by_css_selector("button").click()
-            WebDriverWait(self.driver, TEMPER).until_not(title_contains("Log in"))
-            time.sleep(3)    # Takes some time to reload, and not sure what next page is
-            return self
-        except Exception as e:
-            print(e)
-            return self
-        finally:
-            return self
+        elem = self.driver.find_element_by_css_selector("#id_email")
+        elem.send_keys(user)
+        elem = self.driver.find_element_by_css_selector("#id_password")
+        elem.send_keys(password)
+        self.driver.find_element_by_css_selector("button").click()
+        WebDriverWait(self.driver, TEMPER).until_not(title_contains("Log in"))
+        time.sleep(3)    # Takes some time to reload, and not sure what next page is
+        return self
 
     def nav_to_account(self):
         if self.is_logged_in():
@@ -190,7 +196,7 @@ class AbstractTest(object):
         It tries a few differnt things to get out of the current state, back to a dependable base toc.
         :return:
         """
-        if self.driver.current_url == urllib.parse.urljoin(self.base_url, "/texts") or self.driver.current_url.startswith(urllib.parse.urljoin(self.base_url,"/texts?")):
+        if self.driver.current_url == self.base_url + "/texts" or self.driver.current_url.startswith(self.base_url + "/texts?"):
             return self
 
         # If text options are open, close them
@@ -231,7 +237,7 @@ class AbstractTest(object):
 
     def load_toc(self, my_temper=None):
         my_temper = my_temper or TEMPER  # This is used at startup, which can be sluggish on iPhone.
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/texts"))
+        self.driver.get(self.base_url + "/texts")
         WebDriverWait(self.driver, my_temper).until(element_to_be_clickable((By.CSS_SELECTOR, ".readerNavCategory")))
         self.set_modal_cookie()
         return self
@@ -866,18 +872,12 @@ class AbstractTest(object):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        url = urllib.parse.urljoin(self.base_url, ref.url())
-        print(self.driver.current_url)
-
+        url = self.base_url + "/" + ref.url()
         if filter is not None:
             url += "&with={}".format(filter)
         if lang is not None:
             url += "&lang={}".format(lang)
-
-        print(self.driver.current_url)
-        
         self.driver.get(url.replace("&", "?", 1))
-        print(self.driver.current_url)
         if filter == "all":
             WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
         elif filter is not None:
@@ -907,7 +907,7 @@ class AbstractTest(object):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        url = urllib.parse.urljoin(self.base_url, ref.url()) # is the '/' needed
+        url = self.base_url + "/" + ref.url()
         self.driver.get(url)
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, ".tocContent > :not(.loadingMessage)")))
@@ -1011,7 +1011,7 @@ class AbstractTest(object):
 
     def scroll_reader_panel_to_top(self):
         """Scrolls the first text panel to the top"""
-        # todoff
+        # todo
         return self
 
     def scroll_content_to_position(self, pixels):
@@ -1068,7 +1068,7 @@ class AbstractTest(object):
 
     # Search
     def load_search_url(self, query=None):
-        url = urllib.parse.urljoin(self.base_url, "/search")
+        url = self.base_url + "/search"
         if query is not None:
             url += "?q={}".format(query)
         self.driver.get(url)
@@ -1094,18 +1094,18 @@ class AbstractTest(object):
         return self
 
     def load_topics(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/topics"))
+        self.driver.get(self.base_url + "/topics")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".topicList")))
         self.set_modal_cookie()
         return self
 
     def load_topic_page(self, slug):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/topics/", slug))
+        self.driver.get(self.base_url + "/topics/" + slug)
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".storyTitle")))
         return self
 
     def load_gardens(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/garden/jerusalem"))
+        self.driver.get(self.base_url + "/garden/jerusalem")
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, "#filter-1 g.row")))  # individual filter row
         WebDriverWait(self.driver, TEMPER).until(
@@ -1113,43 +1113,34 @@ class AbstractTest(object):
         return self
 
     def load_home(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/?home"))
+        self.driver.get(self.base_url + "/?home")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".header")))
         return self
 
     def load_people(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/people"))
+        self.driver.get(self.base_url + "/people")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".author")))
 
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/person/Meir%20Abulafia"))
+        self.driver.get(self.base_url + "/person/Meir%20Abulafia")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#place-map")))
         return self
 
     def load_my_profile(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/my/profile"))
+        self.driver.get(self.base_url + "/my/profile")
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".profile-page")))
         return self
 
     def load_notifications(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/notifications"))
+        self.driver.get(self.base_url + "/notifications")
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, ".notificationsList > .notification")))
         return self
-
-    def load_private_sheets(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/sheets/private"))
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheet")))
-        return self
-
-    def load_private_groups(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/my/groups"))
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".groupsList")))
 
     def load_url(self, url, test_selector):
         """
         Load any URL and wait until `test_selector` is present
         """
-        self.driver.get(urllib.parse.urljoin(self.base_url, url))
+        self.driver.get(self.base_url + url)
         WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, test_selector)))
         self.catch_js_error()
         return self
@@ -1159,25 +1150,16 @@ class AbstractTest(object):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        url = urllib.parse.urljoin(self.base_url, "/translate/")
-        url = urllib.parse.urljoin(url, ref.url())
-        print(url)
+        url = self.base_url + "/translate/" + ref.url()
         self.driver.get(url)
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
-        # WebDriverWait(driver, 15).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
         return self
 
     def load_edit(self, ref, lang, version):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        # url = urllib.parse.urljoin(self.base_url, "/edit/", ref.url(), "/", lang, "/", version.replace(" ", "_"))
-
-        url = urllib.parse.urljoin(self.base_url, "/edit/")
-        url = urllib.parse.urljoin(url, ref.url())
-        url = urllib.parse.urljoin(url, lang)
-        url = urllib.parse.urljoin(url, version.replace(" ", "_"))
-
+        url = self.base_url + "/edit/" + ref.url() + "/" + lang + "/" + version.replace(" ", "_")
         self.driver.get(url)
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
         return self
@@ -1186,8 +1168,7 @@ class AbstractTest(object):
         if isinstance(ref, str):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
-        url = urllib.parse.urljoin(self.base_url, "/add/")
-        url = urllib.parse.urljoin(url, ref.url())
+        url = self.base_url + "/add/" + ref.url()
         self.driver.get(url)
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
         return self
@@ -1608,24 +1589,20 @@ class TestResultSet(AbstractTestResult):
         return ret
 
 
-SAUCE_USERNAME = ""
-SAUCE_ACCESS_KEY = ""
-
 class Trial(object):
-    global SAUCE_USERNAME, SAUCE_ACCESS_KEY 
+
     default_local_driver = webdriver.Chrome
     # default_local_driver = webdriver.Firefox
     # default_local_driver = webdriver.Safari
-    def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None, verbose=False, seleniumServerHostname="", targetApplicationUrl=""):
+    def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None, verbose=False):
         """
         :param caps: If local: webdriver classes, if remote, dictionaries of capabilities
         :param platform: "sauce", "bstack", "local", "travis"
         :return:
-        BASE_URL refers to the target application
         """
-        global SAUCE_USERNAME, SAUCE_ACCESS_KEY
-        assert platform in ["sauce", "bstack", "local", "travis", "github", "githubnew", "localselenium"]
+        assert platform in ["sauce", "bstack", "local", "travis"]
         if platform == "travis":
+            global SAUCE_USERNAME, SAUCE_ACCESS_KEY
             SAUCE_USERNAME = os.getenv('SAUCE_USERNAME')
             SAUCE_ACCESS_KEY = os.getenv('SAUCE_ACCESS_KEY')
             self.BASE_URL = LOCAL_URL
@@ -1639,35 +1616,13 @@ class Trial(object):
             self.BASE_URL = LOCAL_URL
             self.caps = caps if caps else [self.default_local_driver]
         elif platform == "sauce":
-            SAUCE_USERNAME = os.getenv('SAUCE_USERNAME')
-            SAUCE_ACCESS_KEY = os.getenv('SAUCE_ACCESS_KEY')
             self.is_local = False
-            self.BASE_URL = os.getenv('CI_URL')
+            self.BASE_URL = LOCAL_URL
             self.caps = caps if caps else SAUCE_CORE_CAPS
-        elif platform == "github":
-            self.is_local = False
-            self.BASE_URL = targetApplicationUrl
-            self.caps = sm.SeleniumDriverManager.getCapabilities(None)
-            self.seleniumDriverManager = sm.SeleniumDriverManager(seleniumServerHostname)
-            self.parallel = False
-        elif platform == "githubnew":
-            SAUCE_USERNAME = os.getenv('SAUCE_USERNAME')
-            SAUCE_ACCESS_KEY = os.getenv('SAUCE_ACCESS_KEY')
-            self.BASE_URL = os.getenv('CI_URL')
-            self.caps = caps if caps else SAUCE_CORE_CAPS
-            self.is_local = False
-            platform = "sauce"
-        elif platform == "localselenium": # local selenium, remote application
-            self.BASE_URL = os.getenv('CI_URL')
-            self.caps = caps if caps else LOCAL_SELENIUM_CAPS
-            self.is_local = False # 'is_local' refers to the application location
-
         else:
             self.is_local = False
             self.BASE_URL = REMOTE_URL
             self.caps = caps if caps else BS_CAPS
-
-
         self.isVerbose = verbose
         self.platform = platform
         self.build = build
@@ -1704,22 +1659,6 @@ class Trial(object):
             driver = webdriver.Remote(
                 command_executor='http://{}:{}@hub.browserstack.com:80/wd/hub'.format(BS_USER, BS_KEY),
                 desired_capabilities=cap)
-        elif self.platform == "github":
-            assert cap is not None
-            driver = self.seleniumDriverManager.createDriver()
-        elif self.platform == "localselenium":
-            assert cap is not None
-
-            # LOCAL_SELENIUM_URL should be in the following format:
-            # LOCAL_SELENIUM_URL=http://localhost:4444/wd/hub
-            # LOCAL_SELENIUM_URL=http://$SELENIUM_HOST:$SELENIUM_PORT/wd/hub
-
-            # restrict capabilities to just Firefox to start
-            command_executor = os.getenv("LOCAL_SELENIUM_URL")
-            driver = webdriver.Remote(
-                command_executor=command_executor,
-                desired_capabilities=cap 
-            )
         else:
             raise Exception("Unrecognized platform: {}".format(self.platform))
 
@@ -1797,7 +1736,6 @@ class Trial(object):
             p = Pool(self.thread_count)
             l = len(caps)
             try:
-                print("[_test_on_all] current class {}".format(test_class))
                 tresults = p.map(_test_one_worker, list(zip([self] * l, [test_class] * l, caps)))
             except Exception:
                 msg = traceback.format_exc()

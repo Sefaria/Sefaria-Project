@@ -27,14 +27,14 @@ class Collection(abst.AbstractMongoRecord):
 
     required_attrs = [
         "name",          # string name of collection
-        "admins",        # list or uids
+        "sheets",        # list of sheet ids included in this collection
+        "slug",          # string of url slug
+        "lastModified",  # Datetime of the last time this collection changed
+        "admins",        # list of uids
         "members",       # list of uids
     ]
     optional_attrs = [
-        "sheets",           # list of sheet ids included in this collection
-        "slug",             # string of url slug
-        "lastModified",     # Datetime of the last time this collection changed
-        "slug",             # string slug for url
+        "privateSlug",   # string of url slug that was previously used when collection was private
         "publishers",       # list of uids TODO remove post collections launch
         "invitations",      # list of dictionaries representing outstanding invitations
         "description",      # string text of short description
@@ -58,10 +58,15 @@ class Collection(abst.AbstractMongoRecord):
     ]
 
     def _normalize(self):
+        if not getattr(self, "slug", None):
+            self.assign_slug()
+
         defaults = (("members", []), ("sheets", []))
         for default in defaults:
             if not hasattr(self, default[0]):
                 setattr(self, default[0], default[1])
+
+        self.lastModified = datetime.now()
 
         website = getattr(self, "websiteUrl", False)
         if website and not website.startswith("https://"):
@@ -87,13 +92,18 @@ class Collection(abst.AbstractMongoRecord):
         return True
 
     def _pre_save(self):
-        self.lastModified = datetime.now()
-
         old_status, new_status = self.pkeys_orig_values.get("listed", None), getattr(self, "listed", None)
-        if (old_status != new_status or not getattr(self, "slug", None)):
-            # Assign a slug to new collection, or change the slug type when collection
-            # changes listing status
+        if new_status and not old_status:
+            # Collection is being published, assign a new slug, but save the old one for link stability
+            self.privateSlug = self.slug
             self.assign_slug()
+
+        if old_status and not new_status:
+            # Public collection is going back to private, restore old slug
+            if getattr(self, "privateSlug", None):
+                self.slug = self.privateSlug
+            else:
+                self.assign_slug()
 
         if new_status and not old_status:
             # At moment of publishing, make checks for special requirements on public collections

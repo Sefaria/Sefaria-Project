@@ -1,4 +1,4 @@
-from sefaria.settings import USE_VARNISH
+from sefaria.local_settings import USE_VARNISH
 
 if USE_VARNISH:
     import sefaria.system.varnish.wrapper as v

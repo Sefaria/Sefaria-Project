@@ -12,6 +12,10 @@ import Component      from 'react-class';
 class SearchSheetResult extends Component {
     handleSheetClick(e) {
       var s = this.props.data._source;
+      if (this.props.onResultClick) {
+        e.preventDefault()
+        this.props.onResultClick("Sheet " + s.sheetId);
+      }
       Sefaria.track.event("Search", "Search Result Sheet Click", `${this.props.query} - ${s.sheetId}`);
     }
     handleProfileClick(e) {
@@ -62,6 +66,7 @@ class SearchSheetResult extends Component {
 SearchSheetResult.propTypes = {
   query: PropTypes.string,
   data: PropTypes.object,
+  onResultClick: PropTypes.func
 };
 
 
