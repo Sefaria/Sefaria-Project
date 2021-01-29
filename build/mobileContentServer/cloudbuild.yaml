@@ -1,0 +1,69 @@
+# Provision Static IP if it doesn't exist
+# Provision Persistent Disk if it doesn't exist
+# Generate Helm values
+# Deploy
+# Send message
+---
+substitutions:
+  _ENV_NAME: prod
+  _GKE_REGION: us-east1-b
+  _GKE_CLUSTER: cluster-1
+  _SUBDOMAIN: readonly-test
+  _GKE_NAMESPACE: default
+  _SHARED_TOKEN: deadbeefn
+  _K8S_ADMIN_BRANCH: master
+
+steps:
+  - name: gcr.io/kaniko-project/executor:latest
+    args: 
+      - --context=dir://.
+      - --cache=true
+      - --dockerfile=build/mobileContentServer/Dockerfile
+      - --destination=gcr.io/${PROJECT_ID}/mobile-content-${_ENV_NAME}:latest
+      - --destination=gcr.io/${PROJECT_ID}/mobile-content-${_ENV_NAME}:${BUILD_ID}
+    id: mobilecontent_container
+    wait_for: [ "-" ]
+
+  - name: "gcr.io/cloud-builders/git"
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', '${_K8S_ADMIN_BRANCH}', "--depth", "1"]
+    id: k8s-admin_clone
+    wait_for: [ "-" ]
+
+  # We can later change the local_settings file based on the environment
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+    id: copy_local_settings
+    dir: k8s-admin/v2
+    entrypoint: cp
+    args: [ "-f", "app_settings/mobile_content/local_settings.py", "charts/mobile-content/" ]
+    wait_for:
+      - k8s-admin_clone
+
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+    id: copy_sefaria_settings
+    dir: k8s-admin/v2
+    entrypoint: cp
+    args: [ "-f", "app_settings/mobile_content/sefaria_local_settings.py", "charts/mobile-content/" ]
+    wait_for:
+      - k8s-admin_clone
+
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+    id: debug_print
+    dir: k8s-admin/v2
+    entrypoint: cat
+    args: [ "./app_settings/mobile_content/values.${_ENV_NAME}.yaml" ]
+
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+    id: deploy
+    dir: k8s-admin/v2
+    args: ['upgrade', '-i', 'mobiledownloader-${_ENV_NAME}', './charts/mobile-content', '--namespace', '${_GKE_NAMESPACE}', '--set-string', 'deployEnv=${_ENV_NAME},mobileDownload.subdomain=${_SUBDOMAIN},mobileDownload.image.serverImage=gcr.io/${PROJECT_ID}/mobile-content-${_ENV_NAME},mobileDownload.image.serverReleaseTag=${BUILD_ID},mobileDownload.secrets.passwordKey=${_SHARED_TOKEN}', '-f', './app_settings/mobile_content/values.${_ENV_NAME}.yaml', '--debug' ]
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for:
+      - k8s-admin_clone
+      - copy_sefaria_settings
+      - copy_local_settings
+      - mobilecontent_container
+...

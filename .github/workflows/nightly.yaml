@@ -216,7 +216,7 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_tests_on_github.py --tests PageloadSuite | tee /home/runner/selenium-sauce-all.txt
+        run: python3 ./reader/browsertest/run_tests_on_github.py --tests PageloadSuite | tee /home/runner/selenium-sauce-all.txt ; echo $?
         env:
           SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
           SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
