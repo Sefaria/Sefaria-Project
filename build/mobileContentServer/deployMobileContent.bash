@@ -1,12 +1,5 @@
 #!/bin/bash
 
-# Expected environment variables
-# - GCP_PROJECT
-# - ENV_NAME
-# - GKE_CLUSTER
-# - SUBDOMAIN
-# - GKE_NAMESPACE
-
 # Process envvars
 envName=${ENV_NAME:?ENV_NAME must be set}
 gcpProject=${GCP_PROJECT:?GCP_PROJECT must be set}
@@ -14,7 +7,7 @@ gkeCluster=${GKE_CLUSTER:?GKE_CLUSTER must be set}
 gkeNamespace=${GKE_NAMESPACE:? GKE_NAMESPACE must be set}
 subdomain=${SUBDOMAIN:?SUBDOMAIN must be set}
 
-randStub=$(date | md5sum | head -c 6)
+randStub=$(date | md5sum | head -c 12)
 
 #----------------
 # Create Cloud Builder variables

@@ -805,8 +805,8 @@ def clean_toc_nodes(toc):
                     new_item[k] = v
             newToc += [new_item]
             newToc[-1]["contents"] = clean_toc_nodes(t["contents"])
-        elif "isGroup" in t:
-            continue # Not currently handling sheets in TOC
+        elif "isGroup" in t or t.get('isCollection', False):
+            continue  # Not currently handling sheets in TOC
         elif "title" in t:
             newToc += [{k: v for k, v in list(t.items())}]
         else:
@@ -1081,9 +1081,12 @@ if __name__ == '__main__':
         print('slack url not configured')
         sys.exit(0)
     timestamp = datetime.fromtimestamp(os.stat(f'{EXPORT_PATH}/last_updated.json').st_mtime).ctime()
-    requests.post(url, json={
-        'channel': '#engineering-mobile',
-        'text': f'Mobile export complete. Timestamp on `last_updated.json` is {timestamp}',
-        'username': 'Mobile Export',
-        'icon_emoji': ':file_folder:'
-    })
+    if DEBUG_MODE:
+        print(f'Mobile export complete. Timestamp on `last_updated.json` is {timestamp}')
+    else:
+        requests.post(url, json={
+            'channel': '#engineering-mobile',
+            'text': f'Mobile export complete. Timestamp on `last_updated.json` is {timestamp}',
+            'username': 'Mobile Export',
+            'icon_emoji': ':file_folder:'
+        })
