@@ -1872,10 +1872,10 @@ class AddressType(object):
                 reg = self.section_patterns[lang]
                 if not strict:
                     reg += "?"
-                reg += self._core_regex(lang, group_id)
+                reg += self._core_regex(lang, group_id, **kwargs)
                 return reg
             else:
-                return self._core_regex(lang, group_id)
+                return self._core_regex(lang, group_id, **kwargs)
         except KeyError:
             raise Exception("Unknown Language passed to AddressType: {}".format(lang))
 
@@ -2008,8 +2008,6 @@ class AddressTalmud(AddressType):
         if len(parts) == 1 and len(ref.sections) == 1:
             # check for Talmud ref without amud, such as Berakhot 2, we don't want "Berakhot 2a" but "Berakhot 2a-2b"
             # so change toSections if ref_lacks_amud
-            #base_without_title = base.replace(title + " ", "")
-            #reg_ex = cls._core_regex(cls, ref._lang)
             if ref._lang == "he":
                 ref_lacks_amud = re.search(cls.amud_patterns["he"], base) is None
             else:
@@ -2018,14 +2016,13 @@ class AddressTalmud(AddressType):
                 ref.toSections[0] += 1
         elif len(parts) == 2:
             ref.toSections = parts[1].split(".")  # this was converting space to '.', for some reason.
-
             # 'Shabbat 23a-b'
             if ref.toSections[0] in ['b', 'B', 'ᵇ']:
                 ref.toSections[0] = ref.sections[0] + 1
 
             # 'Shabbat 24b-25a'
-            elif regex.match(r"\d+{}".format(cls.amud_patterns["en"]), ref.toSections[0]):
-                ref.toSections[0] = daf_to_section(ref.toSections[0])
+            elif re.search(cls.amud_patterns[ref._lang], ref.toSections[0]):
+                ref.toSections[0] = AddressTalmud(0).toNumber(ref._lang, ref.toSections[0])
 
             # 'Shabbat 24b.12-24'
             else:
@@ -2060,7 +2057,8 @@ class AddressTalmud(AddressType):
             try:
                 if re.search(self.amud_patterns["en"]+"{1}$", s):
                     amud = s[-1]
-                    daf = kwargs['sections'] if s == 'b' else int(s[:-1])
+                    s = self.toStr(lang, kwargs['sections']) if s == 'b' else s
+                    daf = int(s[:-1])
                 else:
                     amud = "a"
                     daf = int(s)
