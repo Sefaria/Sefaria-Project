@@ -826,7 +826,6 @@ class Test_Talmud_at_Second_Place(object):
         assert Ref("Zohar, Lech Lecha")
         assert Ref("Zohar, Bo")
 
-    #@pytest.mark.xfail(reason="unknown")
     def test_range_short_form(self):
         assert Ref("Zohar 2.15a - 15b").sections[1] == 29
         assert Ref("Zohar 2.15a - 15b").toSections[1] == 30
