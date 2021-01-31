@@ -197,7 +197,6 @@ class VersionsTextList extends Component {
           hideTitle={true}
           numberLabel={0}
           basetext={false}
-          onRangeClick={this.props.onRangeClick}
           onCitationClick={this.props.onCitationClick} />
           <ConnectionButtons>
             <OpenConnectionTabButton srefs={this.props.srefs} openInTabCallback={this.props.onRangeClick}/>
