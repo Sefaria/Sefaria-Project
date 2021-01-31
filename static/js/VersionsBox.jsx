@@ -200,8 +200,8 @@ class VersionsTextList extends Component {
           onRangeClick={this.props.onRangeClick}
           onCitationClick={this.props.onCitationClick} />
           <ConnectionButtons>
-            <OpenConnectionTabButton sref={this.props.srefs} openInTabCallback={this.props.onRangeClick}/>
-            <AddConnectionToSheetButton sref={this.props.srefs} addToSheetCallback={this.props.setConnectionsMode}/>
+            <OpenConnectionTabButton srefs={this.props.srefs} openInTabCallback={this.props.onRangeClick}/>
+            <AddConnectionToSheetButton srefs={this.props.srefs} versions={{[language]: vTitle}} addToSheetCallback={this.props.setConnectionsMode}/>
           </ConnectionButtons>
       </div>);
   }

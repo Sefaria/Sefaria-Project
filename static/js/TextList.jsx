@@ -229,8 +229,8 @@ class TextList extends Component {
                                       onCompareClick={this.props.onCompareClick}
                                       onOpenConnectionsClick={this.props.onOpenConnectionsClick} />
                                       <ConnectionButtons>
-                                        <OpenConnectionTabButton sref={link.sourceRef} openInTabCallback={this.props.onTextClick}/>
-                                        <AddConnectionToSheetButton sref={link.sourceRef} addToSheetCallback={this.props.setConnectionsMode}/>
+                                        <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick}/>
+                                        <AddConnectionToSheetButton srefs={[link.sourceRef]} addToSheetCallback={this.props.setConnectionsMode}/>
                                         <DeleteConnectionButton delUrl={"/api/links/" + link._id} connectionDeleteCallback={this.onDataChange}/>
                                       </ConnectionButtons>
                                   </div>);
@@ -303,12 +303,13 @@ const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{
 }
 
 
-const OpenConnectionTabButton = ({sref, openInTabCallback}) =>{
+const OpenConnectionTabButton = ({srefs, openInTabCallback}) =>{
+  const sref = Array.isArray(srefs) ? Sefaria.normRefList(srefs) : srefs;
   const openLinkInTab = (event) => {
     if (openInTabCallback) {
       event.preventDefault();
       //Click on the body of the TextRange itself from TextList
-      openInTabCallback(sref);
+      openInTabCallback(srefs);
       Sefaria.track.event("Reader", "Click Text from TextList", sref);
     }
   }
@@ -321,9 +322,9 @@ const OpenConnectionTabButton = ({sref, openInTabCallback}) =>{
 }
 
 
-const AddConnectionToSheetButton = ({sref, addToSheetCallback}) =>{
+const AddConnectionToSheetButton = ({srefs, addToSheetCallback, versions= {"en":null, "he":null} }) =>{
   const addToSheet = () => {
-    addToSheetCallback("Add Connection To Sheet", {"connectionRefs" : [sref]});
+    addToSheetCallback("Add Connection To Sheet", {"connectionRefs" : srefs, "versions": versions});
   }
   return(
     <a className="connection-button add-to-sheet-link" onClick={addToSheet}>
