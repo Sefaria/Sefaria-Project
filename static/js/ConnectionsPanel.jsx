@@ -8,7 +8,7 @@ import {
   Note,
   FeedbackBox,
   ProfilePic,
-  ToolTipped,
+  ToolTipped, IntText,
 } from './Misc';
 
 import {
@@ -1410,6 +1410,8 @@ function ManuscriptImageList(props) {
 
 function ManuscriptImage(props) {
   let manuscript = props.manuscript;
+  const [cls, description] = props.interfaceLang === 'hebrew'
+    ? ['int-he', 'he_description']  : ['int-en', 'description'];
   return <div className={"manuscript"} >
     <a href={manuscript['image_url']} target="_blank">
       <img className={"manuscriptImage"} src={manuscript["thumbnail_url"]} alt={"Ancient Manuscript"}/>
@@ -1422,13 +1424,13 @@ function ManuscriptImage(props) {
       <div className="meta">
         <span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br/>
         {
-          manuscript.manuscript['description'] ? <span className={'int-en'}>{manuscript.manuscript.description}<br/></span> : ''
+          manuscript.manuscript[description] ? <span className={cls}>{manuscript.manuscript[description]}<br/></span> : ''
         }
         {
-          manuscript.manuscript['he_description'] ? <span className={'int-he'}>{manuscript.manuscript.he_description}<br/></span> : ''
+          (props.interfaceLang === 'hebrew')
+            ? <span className={'int-he'}>{`מקור: `}</span>
+            : <span className={'int-en'}>{`Source: `}</span>
         }
-        <span className={'int-he'}>{`מקור: `}</span>
-        <span className={'int-en'}>{`Source: `}</span>
         <a href={manuscript.manuscript['source']} target="_blank">{manuscript.manuscript['source'].replace("https://", "")}</a>
       </div>
 

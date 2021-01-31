@@ -4865,6 +4865,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .manuscript .meta span,
 .manuscript .meta a {
   font-family: "Roboto", "sans-serif";
+  margin-top: 2px;
 }
 .manuscript .meta .int-he {
   font-family: "Heebo", "sans-serif";
@@ -4896,12 +4897,17 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 18px;
   line-height: 22px;
   margin-top: 13px;
+  margin-bottom: 2px;
+  border-bottom: 0px;
   text-align: left;
 }
 .manuscriptCaptionHe {
-  font-family: "Heebo", "sans-serif";
-  font-size: 18px;
+  font-family: "Taamey Frank", "Heebo", "sans-serif";
+  font-size: 22px;
   line-height: 22px;
+  margin-top: 13px;
+  margin-bottom: 2px;
+  border-bottom: 0px;
   text-align: right;
 }
 .fullSizeImageLink {
