@@ -579,6 +579,59 @@ class Test_normal_forms(object):
         assert Ref("Rashi on Shabbat 12a.10").url() == "Rashi_on_Shabbat.12a.10"
 
 
+class Test_display(object):
+    def test_easy(self):
+        # English
+        assert Ref("Genesis 2:5").display('en') == Ref("Genesis 2:5").normal()
+        assert Ref("Shabbat 32b").display('en') == Ref("Shabbat 32b").normal()
+        assert Ref("Mishnah Peah 4:2-4").display('en') == Ref("Mishnah Peah 4:2-4").normal()
+
+        # Hebrew
+        assert Ref("Genesis 2:5").display('he') == Ref("Genesis 2:5").he_normal()
+        assert Ref("Shabbat 32b").display('he') == Ref("Shabbat 32b").he_normal()
+        assert Ref("Mishnah Peah 4:2-4").display('he') == Ref("Mishnah Peah 4:2-4").he_normal()
+
+    def test_talmud_range_short(self):
+        oref = Ref("Berakhot 2a-2b")
+        assert oref.display('en') == "Berakhot 2"
+        assert oref.display('he') == "ברכות ב׳"
+
+    def test_talmud_range_long(self):
+        oref = Ref("Berakhot 2a-3b")
+        assert oref.display('en') == "Berakhot 2-3"
+        assert oref.display('he') == "ברכות ב׳-ג׳"
+
+    def test_talmud_range_a_to_a(self):
+        oref = Ref("Berakhot 2a-3a")
+        assert oref.display('en') == oref.normal()
+        assert oref.display('he') == oref.he_normal()
+
+    def test_talmud_range_b_to_b(self):
+        oref = Ref("Bava Metzia 20b-21b")
+        assert oref.display('en') == oref.normal()
+        assert oref.display('he') == oref.he_normal()
+
+    def test_talmud_segment_range(self):
+        oref = Ref("Bava Metzia 20a:1-20b:1")
+        assert oref.display('en') == oref.normal()
+        assert oref.display('he') == oref.he_normal()
+
+    def test_zohar_volume_range(self):
+        oref = Ref("Zohar 1-2")
+        assert oref.display('en') == oref.normal()
+        assert oref.display('he') == oref.he_normal()
+
+    def test_zohar_daf_range(self):
+        oref = Ref("Zohar 1:25a-27b")
+        assert oref.display('en') == "Zohar 1:25-27"
+        assert oref.display('he') == "זוהר א׳:כ״ה-כ״ז"
+
+    def test_zohar_volume_daf_range(self):
+        oref = Ref("Zohar 1:25a-2:27b")
+        assert oref.display('en') == "Zohar 1:25-2:27"
+        assert oref.display('he') == "זוהר א׳:כ״ה-ב׳:כ״ז"
+
+
 class Test_term_refs(object):
     def test_ref_resolution(self):
         assert Ref("bo") ==  Ref('Exodus 10:1-13:16')
