@@ -90,7 +90,7 @@ jobs:
       - run: ls
       - run: pwd
       - name: Run Jest Tests
-        run: npm run jest-travis
+        run: npm run jest-gha
       - name: Handle Jest Test Results # later, upload
         run: cat /home/runner/jestResults.json
         if: ${{ always() }}
