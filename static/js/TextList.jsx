@@ -64,6 +64,7 @@ class TextList extends Component {
     }.bind(this));
   }
   onDataChange() {
+    Sefaria.clearLinks();
     this.setState({linksLoaded: false});
     this.loadConnections();
   }
@@ -227,12 +228,11 @@ class TextList extends Component {
                                       onNavigationClick={this.props.onNavigationClick}
                                       onCompareClick={this.props.onCompareClick}
                                       onOpenConnectionsClick={this.props.onOpenConnectionsClick} />
-                                      <ConnectionButtons
-                                        connection={link}
-                                        onTextClick={this.props.onTextClick}
-                                        onConnectionDelete={this.onDataChange}
-                                        setConnectionMode={this.props.setConnectionsMode}
-                                      />
+                                      <ConnectionButtons>
+                                        <OpenConnectionTabButton sref={link.sourceRef} openInTabCallback={this.props.onTextClick}/>
+                                        <AddConnectionToSheetButton sref={link.sourceRef} addToSheetCallback={this.props.setConnectionsMode}/>
+                                        <DeleteConnectionButton delUrl={"/api/links/" + link._id} connectionDeleteCallback={this.onDataChange}/>
+                                      </ConnectionButtons>
                                   </div>);
 
                         }
@@ -276,17 +276,16 @@ TextList.propTypes = {
   checkVisibleSegments:    PropTypes.func.isRequired,
 };
 
-const ConnectionButtons = ({connection, onTextClick, onConnectionDelete, setConnectionMode}) =>{
+const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{
   const deleteLink = () => {
     if(!Sefaria.is_moderator) return;
     if (confirm("Are you sure you want to delete this connection?")) {
-      const url = "/api/links/" + connection._id;
+      const url = delUrl;
       $.ajax({
         type: "delete",
         url: url,
         success: function() {
-          Sefaria.clearLinks();
-          onConnectionDelete();
+          connectionDeleteCallback();
           alert("Connection deleted.");
         }.bind(this),
         error: function () {
@@ -295,37 +294,52 @@ const ConnectionButtons = ({connection, onTextClick, onConnectionDelete, setConn
       });
     }
   }
+  return Sefaria.is_moderator ? (
+    <a className="connection-button delete-link" onClick={deleteLink}>
+        <span className="int-en">Remove</span>
+        <span className="int-he">מחיקת קישור</span>
+    </a>
+  ) : null;
+}
+
+
+const OpenConnectionTabButton = ({sref, openInTabCallback}) =>{
   const openLinkInTab = (event) => {
-    event.preventDefault();
-    if (onTextClick) {
+    if (openInTabCallback) {
+      event.preventDefault();
       //Click on the body of the TextRange itself from TextList
-      onTextClick(connection.sourceRef);
-      Sefaria.track.event("Reader", "Click Text from TextList", connection.sourceRef);
+      openInTabCallback(sref);
+      Sefaria.track.event("Reader", "Click Text from TextList", sref);
     }
   }
+  return(
+    <a href={`/${sref}`} className="connection-button panel-open-link" onClick={openLinkInTab}>
+        <span className="int-en">Open</span>
+        <span className="int-he">פתיחה</span>
+    </a>
+  );
+}
+
+
+const AddConnectionToSheetButton = ({sref, addToSheetCallback}) =>{
   const addToSheet = () => {
-    setConnectionMode("Add Connection To Sheet", {"connectionRefs" : [connection.sourceRef]});
+    addToSheetCallback("Add Connection To Sheet", {"connectionRefs" : [sref]});
   }
   return(
-      <div className={`connection-buttons access-${Sefaria.is_moderator ? "moderator" : "user"}`}>
-        <a href={`/${connection.sourceRef}`} className="connection-button panel-open-link" onClick={openLinkInTab}>
-          <span className="int-en">Open</span>
-          <span className="int-he">פתיחה</span>
-        </a>
-        <a className="connection-button add-to-sheet-link" onClick={addToSheet}>
-          <span className="int-en">Add to Sheet</span>
-          <span className="int-he">הוספה לדף מקורות</span>
-        </a>
-        <a className="connection-button delete-link" onClick={deleteLink}>
-          <span className="int-en">Remove</span>
-          <span className="int-he">מחיקת קישור</span>
-        </a>
+    <a className="connection-button add-to-sheet-link" onClick={addToSheet}>
+        <span className="int-en">Add to Sheet</span>
+        <span className="int-he">הוספה לדף מקורות</span>
+    </a>
+  );
+}
 
+const ConnectionButtons = ({children}) =>{
+  return(
+      <div className={`connection-buttons access-${Sefaria.is_moderator ? "moderator" : "user"}`}>
+        {children}
       </div>
   );
 }
 
 
-
-
-export default TextList;
+export {TextList as default, ConnectionButtons, AddConnectionToSheetButton, OpenConnectionTabButton, DeleteConnectionButton};
