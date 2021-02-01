@@ -192,7 +192,7 @@ class AutoCompleter(object):
     def _get_main_categories(otoc):
         cats = []
         for child in otoc.children:
-            if child.children and child.primary_title("en") != "Commentary" and child.primary_title("en") != "Other":
+            if child.children and child.primary_title("en") != "Commentary":
                 cats += [child]
             for grandchild in child.children:
                 if grandchild.children and grandchild.primary_title("en") != "Commentary":
