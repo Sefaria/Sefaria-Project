@@ -1,6 +1,7 @@
 import {
   SheetListing,
   LoadingMessage,
+  SimpleLinkedBlock,
 } from './Misc';
 import {
   RecentFilterSet,
@@ -280,6 +281,10 @@ TextList.propTypes = {
 };
 
 const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{
+  /*
+  ConnectionButton composite element. Goes inside a ConnectionButtons
+  Takes a url for a delete api (with the full URI of a specific object) and callback
+   */
   const deleteLink = () => {
     if(!Sefaria.is_moderator) return;
     if (confirm("Are you sure you want to delete this connection?")) {
@@ -298,15 +303,21 @@ const DeleteConnectionButton = ({delUrl, connectionDeleteCallback}) =>{
     }
   }
   return Sefaria.is_moderator ? (
-    <a className="connection-button delete-link" onClick={deleteLink}>
-        <span className="int-en">Remove</span>
-        <span className="int-he">מחיקת קישור</span>
-    </a>
+      <SimpleLinkedBlock
+        aclasses={"connection-button delete-link"}
+        onClick={deleteLink}
+        en={"Remove"}
+        he={"מחיקת קישור"}
+      />
   ) : null;
 }
 
 
 const OpenConnectionTabButton = ({srefs, openInTabCallback}) =>{
+  /*
+  ConnectionButton composite element. Goes inside a ConnectionButtons
+  Takes a ref(s) for opening as a link and callback for opening in-app
+   */
   const sref = Array.isArray(srefs) ? Sefaria.normRefList(srefs) : srefs;
   const openLinkInTab = (event) => {
     if (openInTabCallback) {
@@ -317,29 +328,41 @@ const OpenConnectionTabButton = ({srefs, openInTabCallback}) =>{
     }
   }
   return(
-    <a href={`/${sref}`} className="connection-button panel-open-link" onClick={openLinkInTab}>
-        <span className="int-en">Open</span>
-        <span className="int-he">פתיחה</span>
-    </a>
+      <SimpleLinkedBlock
+        aclasses={"connection-button panel-open-link"}
+        onClick={openLinkInTab}
+        en={"Open"}
+        he={"פתיחה"}
+        url={`/${sref}`}
+      />
   );
 }
 
 
 const AddConnectionToSheetButton = ({srefs, addToSheetCallback, versions= {"en":null, "he":null} }) =>{
+  /*
+  ConnectionButton composite element. Goes inside a ConnectionButtons
+  Takes a ref(s) for opening an AddToSourceSheet element and callback for passing data to said element - refs and versions object
+   */
   const addToSheet = () => {
     addToSheetCallback("Add Connection To Sheet", {"connectionRefs" : srefs, "versions": versions});
   }
   return(
-    <a className="connection-button add-to-sheet-link" onClick={addToSheet}>
-        <span className="int-en">Add to Sheet</span>
-        <span className="int-he">הוספה לדף מקורות</span>
-    </a>
+    <SimpleLinkedBlock
+      aclasses={"connection-button add-to-sheet-link"}
+      onClick={addToSheet}
+      en={"Add to Sheet"}
+      he={"הוספה לדף מקורות"}
+    />
   );
 }
 
 const ConnectionButtons = ({children}) =>{
+  /* This is basically just a composition container, and allows to apply css rules to a container for connection buttons.
+    can also be expanded to use a default set of connection buttons, if not children are present?
+   */
   return(
-      <div className={`connection-buttons access-${Sefaria.is_moderator ? "moderator" : "user"}`}>
+      <div className={`connection-buttons`}>
         {children}
       </div>
   );
