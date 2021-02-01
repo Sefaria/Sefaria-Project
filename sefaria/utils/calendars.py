@@ -55,15 +55,10 @@ def daf_yomi(datetime_obj):
     daf_yomi = []
     for d in daf_str:
         rf = model.Ref(d)
-        if rf.index.get_primary_category() == "Talmud":
-            displayVal = rf.normal()[:-1] #remove the a
-            heDisplayVal = rf.he_normal()[:-2] #remove the alef and the space before it
-        else:
-            displayVal = rf.normal()
-            heDisplayVal = rf.he_normal()
+
         daf_yomi.append({
             'title': {'en': 'Daf Yomi', 'he': 'דף יומי'},
-            'displayValue': {'en': displayVal, 'he': heDisplayVal},
+            'displayValue': {'en': rf.display('en'), 'he': rf.display('he')},
             'url': rf.url(),
             'ref': rf.normal(),
             'order': 3,
@@ -149,15 +144,9 @@ def daf_weekly(datetime_obj):
 
     for d in daf_str:
         rf = model.Ref(d)
-        display_val = rf.normal()
-        he_display_val = rf.he_normal()
-        if rf.index.get_primary_category() == "Talmud":
-            display_val = display_val[:-1]  # remove the a
-            he_display_val = he_display_val[:-2]  # remove the alef and the space before it
-
         daf_weekly_list.append({
             "title": {"en": "Daf a Week", "he": "דף השבוע"},
-            "displayValue": {"en": display_val, "he": he_display_val},
+            "displayValue": {"en": rf.display('en'), "he": rf.display('he')},
             "url": rf.url(),
             "ref": rf.normal(),
             "order": 8,

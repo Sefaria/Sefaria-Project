@@ -469,10 +469,6 @@ Sefaria = extend(Sefaria, {
     });
     return versions;
   },
-  versionLanguage: function(translateVersionKey) {
-    // given a versionTitle, return the language of the version
-    return Sefaria._translateVersions[translateVersionKey]
-  },
   getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
   deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
   _textUrl: function(ref, settings) {
