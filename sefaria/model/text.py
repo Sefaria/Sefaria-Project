@@ -655,7 +655,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
         from sefaria.model import Category
-        if not Category().load({"path": self.categories}) and not Category().load({"path": ["Other"] + self.categories}):
+        if not Category().load({"path": self.categories}):
             raise InputError("You must create category {} before adding texts to it.".format("/".join(self.categories)))
 
         '''
@@ -826,7 +826,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang, vtitle=vtitle)
 
     def get_primary_category(self):
-        if self.is_dependant_text() and self.dependence.capitalize() in self.categories:
+        if self.is_dependant_text():
             return self.dependence.capitalize()
         else:
             return self.categories[0]
