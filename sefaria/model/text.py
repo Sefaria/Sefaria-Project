@@ -4641,6 +4641,8 @@ class Library(object):
                 description = getattr(topic, "description", None)
                 if description is not None and getattr(topic, "description_published", False):
                     topic_json['description'] = description
+                if getattr(topic, "categoryDescription", False):
+                    topic_json['categoryDescription'] = topic.categoryDescription
             explored.add(topic.slug)
         if len(children) > 0 or topic is None:  # make sure root gets children no matter what
             topic_json['children'] = []
