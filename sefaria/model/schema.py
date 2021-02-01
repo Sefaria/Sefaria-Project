@@ -2004,6 +2004,15 @@ class AddressTalmud(AddressType):
     }
 
     @classmethod
+    def oref_to_amudless_tref(cls, ref, lang):
+        """
+        Remove last amud from `ref`. Assumes `ref` ends in a Talmud address.
+        This may have undesirable affect if `ref` doesn't end in a Talmud address
+        """
+        normal_form = ref.he_normal() if lang == 'he' else ref.normal()
+        return re.sub(f"{cls.amud_patterns[lang]}$", '', normal_form)
+
+    @classmethod
     def parse_range_end(cls, ref, parts, base):
         if len(parts) == 1 and len(ref.sections) == 1:
             # check for Talmud ref without amud, such as Berakhot 2, we don't want "Berakhot 2a" but "Berakhot 2a-2b"
