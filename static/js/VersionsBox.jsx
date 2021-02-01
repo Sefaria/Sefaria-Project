@@ -112,7 +112,11 @@ class VersionsBox extends Component {
   }
   renderModeSelected() {
     // open text in versionslist with current version selected
-    const currSelectedVersions = this.props.vFilter.length ? Sefaria.versionLanguage(this.props.vFilter[0]) : {en: null, he: null};
+    let currSelectedVersions = {en: null, he: null};
+    if (this.props.vFilter.length) {
+      const [vTitle, lang] = Sefaria.deconstructVersionsKey(this.props.vFilter[0]);
+      currSelectedVersions = {[lang]: vTitle};
+    }
     const onRangeClick = (sref)=>{this.props.onRangeClick(sref, false, currSelectedVersions)};
     return (
       <VersionsTextList
