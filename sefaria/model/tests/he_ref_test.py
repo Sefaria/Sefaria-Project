@@ -294,7 +294,6 @@ class Test_parse_he_ref_range(object):
         assert m.Ref('רש"י על ויקרא ט״ו:ג׳-י״ז:י״ב') == m.Ref("Rashi on Leviticus 15:3-17:12")
         assert m.Ref('רש"י על שמות ג׳:א׳:א׳-ג׳') == m.Ref("Rashi on Exodus 3:1:1-3")
 
-    @pytest.mark.xfail(reason="unknown")
     def test_hebrew_range_talmud(self):
         assert m.Ref('שבת טו. - טז:') == m.Ref("Shabbat 15a-16b")
         assert m.Ref('שבת טו א - טז ב') == m.Ref("Shabbat 15a-16b")
