@@ -131,7 +131,13 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
     : null;
 
   const sidebarModules = [
-    {"type": "TheJewishLibrary"},
+    {type: "TheJewishLibrary"},
+    {type: "PopularTexts", 
+     props: {
+        texts: ["Genesis", "Pirkei Avot", "Shabbat", "Pesach Haggadah", "Sefer HaChinukh"]
+      }
+    },
+    {type: "SponsorADay"},
   ];
 
   const footer = compare ? null : <Footer />;

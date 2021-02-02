@@ -1186,7 +1186,9 @@ input.noselect {
   margin: -80px 0 -120px 0;
 }
 .navSidebarModule {
-  font-size: 16px;color: #666;
+  font-size: 16px;
+  color: #666;
+  margin-bottom: 34px;
 }
 .readerPanel .navSidebarModule h3 {
   margin: 0 0 20px;
@@ -1195,6 +1197,57 @@ input.noselect {
   letter-spacing: 0;
   border-bottom: 1px solid #CCC;
   padding-bottom: 14px;
+  font-weight: 500;
+}
+.navSidebarIcon {
+  opacity: 0.4;
+  height: 18px;
+  width: 18px;
+  margin-inline-end: 10px;
+  vertical-align: middle;
+  margin-top: -4px;
+}
+.navSidebarLink {
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+.navSidebarLink a {
+  color: black;
+}
+.navSidebarLink.ref {
+  font-size: 18px;
+}
+.navSidebarLink.ref .int-en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.navSidebarLink.ref .int-he {
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+}
+.navSidebar button {
+  margin: 12px 0 0 0;
+  display: block;
+}
+.navSidebar button a {
+  color: inherit;
+}
+.navSidebar button img {
+  filter: invert(1);
+  height: 18px;
+  width: 18px;
+  margin-inline-end: 10px;
+  vertical-align: middle;
+  margin-top: -2px;
+}
+.navSidebar .readingsSection {
+  margin-bottom: 15px;
+}
+.navSidebar .readingsSectionTitle {
+  margin-bottom: 8px;
+  display: block;
+}
+.navSidebar a.allLink {
+  color: #999;
+  font-size: 13px;
 }
 .readerNavTop {
   width: 100%;
@@ -1698,7 +1751,7 @@ input.resourcesLink {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   text-align: start;
   font-size: 24px;
-  padding: 17px 0 10px;
+  padding: 14px 0 8px;
   margin: 0;
   cursor: pointer;
   display: flex;
@@ -1845,13 +1898,18 @@ a.navBlockTitle {
 .readerNavCategoryMenu h2 {
   font-size: 18px;
   color: #666;
-  margin: 0 0 14px;
+  margin: 0 0 10px;
 }
 .readerNavCategoryMenu h2 .en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerNavCategoryMenu h2 .he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+}
+.readerNavCategoryMenu .categoryDescription.top {
+  color: black;
+  margin-top: -26px;
+  margin-bottom: 40px;
 }
 .readerNavCategoryMenu .categoryDescription {
   margin-bottom: 16px;
@@ -5714,6 +5772,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   box-sizing: border-box;
   line-height: 19px;
   text-align: center;
+  border: none;
 }
 a.button {
   color: white;

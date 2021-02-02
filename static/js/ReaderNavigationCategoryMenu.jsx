@@ -38,11 +38,16 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
       }
     }
 
+    const tocObject = Sefaria.tocObjectByCategories(cats);
+
     const catContents    = Sefaria.tocItemsByCategories(cats);
     const nestLevel      = category === "Commentary" ? 1 : 0;
-    const sidebarModules = [
+    const aboutModule = Sefaria._showDescriptionAtTop ? [] : [
       {type: "AboutTextCategory", props: {cats: aboutCats}},
     ];
+
+    const sidebarModules = aboutModule.concat(getSidebarModules(cats));
+
     const talmudToggle   = <TalmudToggle categories={cats} setCategories={setCategories} />
     const footer         = compare ? null : <Footer />;
     const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: hideNavHeader, noLangToggleInHebrew: 1, compare: compare});
@@ -71,6 +76,11 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
                       {talmudToggle}
                       {interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
                     </div> : {talmudToggle} }
+                    {Sefaria._showDescriptionAtTop ? 
+                    <div className="categoryDescription top">
+                      <span className="en">{tocObject.enDesc}</span>
+                      <span className="he">{tocObject.heDesc}</span>
+                    </div> : null}
                     <CategoryAttribution categories={cats} />
                     <ReaderNavigationCategoryMenuContents
                       contents={catContents}
@@ -343,6 +353,31 @@ const hebrewContentSort = (enCats) => {
     //console.log(heCats)
     return heCats;
   };
+
+
+const getSidebarModules = (categories) => {
+  const path = categories.join("|");
+
+  const modules = {
+    "Tanakh": [
+      {type: "WeeklyTorahPortion"},
+      {type: "PopularTexts", props: {texts: ["Genesis", "Psalms", "Isaiah", "Job", "Proverbs"]}}
+    ],
+    "Talmud|Bavli": [
+      {type: "DafYomi"},
+      {type: "PopularTexts", props: {texts: ["Sanhedrin", "Bava Metzia", "Shabbat", "Berakhot", "Kiddushin"]}}      
+    ]
+  };
+
+  const customModules = path in modules ? modules[path] : [];
+
+  const defaultModules = [
+    {type: "SponsorADay"}
+  ]; 
+
+  return customModules.concat(defaultModules);
+
+};
 
 
 export default ReaderNavigationCategoryMenu;

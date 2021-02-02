@@ -30,8 +30,10 @@ const IntText = ({className, children, en, he}) => {
   let text;
   if (en && he) {
     text = isHebrew ? he : en;
-  } else {
+  } else if (children) {
     text = Sefaria._(children);
+  } else {
+    text = "";
   }
   return <span className={cls}>{text}</span>
 };
