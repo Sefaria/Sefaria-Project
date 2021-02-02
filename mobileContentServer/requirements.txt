@@ -1,0 +1,5 @@
+Flask>=1.1.1
+python-dateutil
+requests
+p929
+gunicorn==20.0.*

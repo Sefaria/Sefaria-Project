@@ -1,0 +1,27 @@
+# This Cloud Build instruction exists to trigger the Cloud Build at /build/mobileContentServer/cloudbuild.yaml. This wrapping is done because of a limitation in Cloud Build: we are unable to generate a shared key in one step and pass it into another -- it must be created externally. 
+
+# Example invocation:
+# gcloud builds submit --config ./trigger.yaml ../..  
+
+---
+substitutions:
+  _ENV_NAME: prod
+  _GKE_REGION: us-east1-b
+  _GKE_CLUSTER: cluster-1
+  _SUBDOMAIN: readonly
+  _GKE_NAMESPACE: default
+  _K8S_ADMIN_BRANCH: master
+
+steps:
+  - name: gcr.io/cloud-builders/gcloud
+    entrypoint: "bash"
+    args: [ "-c", "./deployMobileContent.bash" ]
+    dir: build/mobileContentServer
+    id: set_variable
+    env:
+      - 'ENV_NAME=${_ENV_NAME}'
+      - 'GKE_CLUSTER=${_GKE_CLUSTER}'
+      - 'GKE_NAMESPACE=${_GKE_NAMESPACE}'
+      - 'GCP_PROJECT=${PROJECT_ID}'
+      - 'SUBDOMAIN=${_SUBDOMAIN}'
+...

@@ -66,7 +66,7 @@ jobs:
       - run: ls
       - run: pwd
       - name: Run Jest Tests
-        run: npm run jest-travis
+        run: npm run jest-gha
       - name: Handle Jest Test Results # later, upload
         run: cat /home/runner/jestResults.json
         if: ${{ always() }}
@@ -200,7 +200,7 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_local_sel.py --parallel --tests PageloadSuite | tee /home/runner/selenium-pageloadsuite-local.txt
+        run: python3 ./reader/browsertest/run_local_sel.py --parallel --tests PageloadSuite | tee /home/runner/selenium-pageloadsuite-local.txt ; echo $?
         env:
           CI_RUN: "true"
           CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
@@ -288,7 +288,7 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_local_sel.py --parallel --tests ReaderSuite | tee /home/runner/selenium-readersuite-local.txt
+        run: python3 ./reader/browsertest/run_local_sel.py --parallel --tests ReaderSuite | tee /home/runner/selenium-readersuite-local.txt ; echo $?
         env:
           CI_RUN: "true"
           CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
@@ -376,7 +376,7 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_local_sel.py --parallel | tee /home/runner/selenium-allsuites-local.txt
+        run: python3 ./reader/browsertest/run_local_sel.py --parallel | tee /home/runner/selenium-allsuites-local.txt ; echo $?
         env:
           CI_RUN: "true"
           CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
@@ -459,7 +459,7 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_tests_on_github.py --tests PageloadSuite | tee /home/runner/selenium-pageloadsuite-sauce.txt
+        run: python3 ./reader/browsertest/run_tests_on_github.py --tests PageloadSuite | tee /home/runner/selenium-pageloadsuite-sauce.txt ; echo $?
         env:
           SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
           SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
@@ -484,58 +484,6 @@ jobs:
       - name: Upload Build Results
         run: gsutil cp /home/runner/selenium-pageloadsuite-sauce.txt gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/selenium-pageloadsuite-sauce.txt
         if: ${{ always() }}
-
-  # pytest-cluster:
-  #   name: "Run PyTests on the cluster"
-  #   needs: sandbox-ready
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     # Set Up Connection to Dev Mongo
-  #     # 1. Auth to cluster
-  #     # 2. Open encrypted connection
-  #     - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-  #       with:
-  #         service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
-  #         project_id: ${{ secrets.DEV_PROJECT }}
-
-  #     - name: Set Up Python 3
-  #       uses: actions/setup-python@v1
-  #       with: 
-  #         python-version: '3.7'  
-
-  #     - name: Install jq
-  #       run: pip3 install jq
-
-  #     - name: Define GITHUB_SHA_SHORT
-  #       run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
-
-  #     - name: Authenticate GHA Runner To Target Cluster
-  #       run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
-
-  #     - name: Get Container Name
-  #       run: echo "PYTEST_POD_NAME=$(kubectl get pods --selector=app=web-${{env.GITHUB_SHA_SHORT}} -o json | jq -r '.items[0].metadata.name')" >> $GITHUB_ENV
-      
-  #     - name: Run PyTest
-  #       run: kubectl exec ${{env.PYTEST_POD_NAME}} -- bash -c 'CI_RUN=true; pytest -v -m "not deep and not failing"' | tee /home/runner/pytestResults.txt
-
-  #     - name: Handle PyTest output
-  #       run: cat /home/runner/pytestResults.txt # later, upload
-  #       if: ${{ always() }}
-
-  #     - name: Authenticate GHA Runner to GCP
-  #       uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-  #       with:
-  #         service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
-  #         project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
-  #       if: ${{ always() }}
-
-  #     - name: Define BUILD_RESULT_SUBDIR
-  #       run: echo "BUILD_RESULT_SUBDIR=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-  #       if: ${{ always() }}
-
-  #     - name: Upload Build Results
-  #       run: gsutil cp /home/runner/pytestResults.txt gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/pytestResults.txt
-  #       if: ${{ always() }}
 
   start-test-pod:
     name: "Start Standalone Testing pod"
@@ -630,7 +578,7 @@ jobs:
           WAIT_DURATION: "900"
 
       - name: Run PyTest
-        run: kubectl exec ${{env.PYTEST_POD_NAME}} -- bash -c 'CI_RUN=true; pip3 install pytest-django; pytest -v -m "not deep and not failing"' ./sefaria | tee /home/runner/pytestResultsPod.txt
+        run: kubectl exec ${{env.PYTEST_POD_NAME}} -- bash -c 'CI_RUN=true; pip3 install pytest-django; pytest -v -m "not deep and not failing"' ./sefaria | tee /home/runner/pytestResultsPod.txt ; echo $?
 
       - name: Authenticate GHA Runner to GCP
         uses: GoogleCloudPlatform/github-actions/setup-gcloud@master

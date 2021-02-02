@@ -2598,7 +2598,7 @@ class Ref(object, metaclass=RefCacheType):
                 for i in range(delta, len(self.sections)):
                     try:
                         self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
-                                                                                       range_parts[i - delta])
+                                                                                       range_parts[i - delta], sections=self.sections[i])
                     except (ValueError, IndexError):
                         raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
             elif self._lang == "en":
@@ -4223,6 +4223,25 @@ class Ref(object, metaclass=RefCacheType):
             self._normal = self._get_normal("en")
         return self._normal
 
+    def display(self, lang) -> str:
+        """
+        :return str: Display string that is not necessarily a valid `Ref`
+        """
+        from sefaria.model.schema import AddressTalmud
+        if self.is_range() and self.index_node.addressTypes[len(self.sections)-1] == "Talmud":  # is self a range that is as deep as a Talmud addressType?
+            if self.sections[-1] % 2 == 1 and self.toSections[-1] % 2 == 0:  # starts at amud alef and ends at bet?
+                start_daf = AddressTalmud.oref_to_amudless_tref(self.starting_ref(), lang)
+                end_daf = AddressTalmud.oref_to_amudless_tref(self.ending_ref(), lang)
+                if start_daf == end_daf:
+                    return start_daf
+                else:
+                    range_wo_last_amud = AddressTalmud.oref_to_amudless_tref(self, lang)
+                    # looking for rest of ref after dash
+                    end_range = re.search(f'-(.+)$', range_wo_last_amud).group(1)
+                    return f"{start_daf}-{end_range}"
+
+        return self.he_normal() if lang == 'he' else self.normal()
+
     def text(self, lang="en", vtitle=None, exclude_copyrighted=False):
         """
         :param lang: "he" or "en"
@@ -4623,6 +4642,8 @@ class Library(object):
                 description = getattr(topic, "description", None)
                 if description is not None and getattr(topic, "description_published", False):
                     topic_json['description'] = description
+                if getattr(topic, "categoryDescription", False):
+                    topic_json['categoryDescription'] = topic.categoryDescription
             explored.add(topic.slug)
         if len(children) > 0 or topic is None:  # make sure root gets children no matter what
             topic_json['children'] = []

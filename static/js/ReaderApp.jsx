@@ -515,20 +515,20 @@ class ReaderApp extends Component {
             const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
             var topics   = state.navigationTopicCategory;
-            hist.title = cats ? state.navigationCategories.join(", ") + " | " + Sefaria._(siteName) : topics ? state.navigationTopicTitle[shortLang] + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
+            hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : topics ? state.navigationTopicTitle[shortLang] + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
             hist.url   = topics ? "topics/category/" + topics : "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
           case "text toc":
             var ref    = state.refs.slice(-1)[0];
             var bookTitle  = ref ? Sefaria.parseRef(ref).index : "404";
-            hist.title = Sefaria._v(bookTitle) + " | " + Sefaria._(siteName);
+            hist.title = Sefaria._(bookTitle) + " | " + Sefaria._(siteName);
             hist.url   = bookTitle.replace(/ /g, "_");
             hist.mode  = "text toc";
             break;
           case "book toc":
             var bookTitle = state.bookRef;
-            hist.title = Sefaria._v(bookTitle) + " | " + Sefaria._(siteName);
+            hist.title = Sefaria._(bookTitle) + " | " + Sefaria._(siteName);
             hist.url = bookTitle.replace(/ /g, "_");
             hist.mode = "book toc";
             break;

@@ -421,10 +421,11 @@ class ConnectionsPanel extends Component {
 
     } else if (this.props.mode == "Add Connection To Sheet"){
         let refForSheet = (this.props.connectionData && "connectionRefs" in this.props.connectionData) ? this.props.connectionData["connectionRefs"] : this.props.srefs;
+        let versionsForSheet = (this.props.connectionData && "versions" in this.props.connectionData) ? this.props.connectionData["versions"] : {"en":null,"he":null};
         content = (<div>
                   <AddToSourceSheetBox
                     srefs={refForSheet}
-                    currVersions={{"en":null,"he":null}} //sidebar doesn't actually do versions
+                    currVersions={versionsForSheet} //sidebar doesn't actually do versions
                     contentLanguage={this.props.masterPanelLanguage}
                     selectedWords={null}
                     nodeRef = {this.props.nodeRef}

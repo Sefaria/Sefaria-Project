@@ -3,6 +3,7 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import VersionBlock  from './VersionBlock';
 import TextRange  from './TextRange';
+import {ConnectionButtons, OpenConnectionTabButton, AddConnectionToSheetButton} from './TextList';
 import { LoadingMessage } from './Misc';
 import { RecentFilterSet } from './ConnectionFilters';
 import Component             from 'react-class';
@@ -112,7 +113,11 @@ class VersionsBox extends Component {
   }
   renderModeSelected() {
     // open text in versionslist with current version selected
-    const currSelectedVersions = this.props.vFilter.length ? Sefaria.versionLanguage(this.props.vFilter[0]) : {en: null, he: null};
+    let currSelectedVersions = {en: null, he: null};
+    if (this.props.vFilter.length) {
+      const [vTitle, lang] = Sefaria.deconstructVersionsKey(this.props.vFilter[0]);
+      currSelectedVersions = {[lang]: vTitle};
+    }
     const onRangeClick = (sref)=>{this.props.onRangeClick(sref, false, currSelectedVersions)};
     return (
       <VersionsTextList
@@ -121,6 +126,7 @@ class VersionsBox extends Component {
         recentVFilters={this.props.recentVFilters}
         setFilter={this.props.setFilter}
         onRangeClick={onRangeClick}
+        setConnectionsMode={this.props.setConnectionsMode}
         onCitationClick={this.props.onCitationClick}
       />
     );
@@ -195,8 +201,11 @@ class VersionsTextList extends Component {
           hideTitle={true}
           numberLabel={0}
           basetext={false}
-          onRangeClick={this.props.onRangeClick}
           onCitationClick={this.props.onCitationClick} />
+          <ConnectionButtons>
+            <OpenConnectionTabButton srefs={this.props.srefs} openInTabCallback={this.props.onRangeClick}/>
+            <AddConnectionToSheetButton srefs={this.props.srefs} versions={{[language]: vTitle}} addToSheetCallback={this.props.setConnectionsMode}/>
+          </ConnectionButtons>
       </div>);
   }
 }
