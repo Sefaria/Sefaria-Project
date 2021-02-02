@@ -4389,6 +4389,23 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList.fullPanel .topFiltersInner {
   white-space: normal;
 }
+.textList.singlePanel .topFiltersInner .textFilter {
+  padding: 5px;
+  margin-bottom: 5px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  color: #999;
+}
+.textList.singlePanel .topFiltersInner .textFilter:hover{
+  color: black;
+  background-color: #cccccc;
+}
+.textList.singlePanel .topFiltersInner .textFilter.on {
+  color: black;
+}
+.textList.singlePanel .topFiltersInner {
+  white-space: pre-wrap;
+}
 .showMoreFilters {
   vertical-align: middle;
   float: right;
