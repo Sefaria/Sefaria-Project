@@ -19,6 +19,7 @@ const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
   </span>
 );
 
+
 const IntText = ({className, children, en, he}) => {
   // Renders a single span for interface string with either class `int-en`` or `int-he`
   // depending on Sefaria.interfaceLang.
@@ -35,9 +36,11 @@ const IntText = ({className, children, en, he}) => {
   return <span className={cls}>{text}</span>
 };
 
+
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
 );
+
 
 /* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
 class ProfilePic extends Component {
