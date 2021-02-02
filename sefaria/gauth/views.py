@@ -87,7 +87,7 @@ def auth_return(request):
 
     profile = UserProfile(user_obj=request.user)
 
-    if profile.gauth_token["refresh_token"] and credentials_dict["refresh_token"] is None:
+    if profile.gauth_token and profile.gauth_token["refresh_token"] and credentials_dict["refresh_token"] is None:
         credentials_dict["refresh_token"] = profile.gauth_token["refresh_token"]
 
     profile.update({"gauth_token": credentials_dict})

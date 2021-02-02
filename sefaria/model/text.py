@@ -655,7 +655,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
         from sefaria.model import Category
-        if not Category().load({"path": self.categories}) and not Category().load({"path": ["Other"] + self.categories}):
+        if not Category().load({"path": self.categories}):
             raise InputError("You must create category {} before adding texts to it.".format("/".join(self.categories)))
 
         '''
@@ -828,7 +828,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang, vtitle=vtitle)
 
     def get_primary_category(self):
-        if self.is_dependant_text() and self.dependence.capitalize() in self.categories:
+        if self.is_dependant_text():
             return self.dependence.capitalize()
         else:
             return self.categories[0]
@@ -4233,6 +4233,25 @@ class Ref(object, metaclass=RefCacheType):
             self._normal = self._get_normal("en")
         return self._normal
 
+    def display(self, lang) -> str:
+        """
+        :return str: Display string that is not necessarily a valid `Ref`
+        """
+        from sefaria.model.schema import AddressTalmud
+        if self.is_range() and self.index_node.addressTypes[len(self.sections)-1] == "Talmud":  # is self a range that is as deep as a Talmud addressType?
+            if self.sections[-1] % 2 == 1 and self.toSections[-1] % 2 == 0:  # starts at amud alef and ends at bet?
+                start_daf = AddressTalmud.oref_to_amudless_tref(self.starting_ref(), lang)
+                end_daf = AddressTalmud.oref_to_amudless_tref(self.ending_ref(), lang)
+                if start_daf == end_daf:
+                    return start_daf
+                else:
+                    range_wo_last_amud = AddressTalmud.oref_to_amudless_tref(self, lang)
+                    # looking for rest of ref after dash
+                    end_range = re.search(f'-(.+)$', range_wo_last_amud).group(1)
+                    return f"{start_daf}-{end_range}"
+
+        return self.he_normal() if lang == 'he' else self.normal()
+
     def text(self, lang="en", vtitle=None, exclude_copyrighted=False):
         """
         :param lang: "he" or "en"
@@ -4624,6 +4643,8 @@ class Library(object):
                 description = getattr(topic, "description", None)
                 if description is not None and getattr(topic, "description_published", False):
                     topic_json['description'] = description
+                if getattr(topic, "categoryDescription", False):
+                    topic_json['categoryDescription'] = topic.categoryDescription
             explored.add(topic.slug)
         if len(children) > 0 or topic is None:  # make sure root gets children no matter what
             topic_json['children'] = []

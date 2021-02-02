@@ -3761,7 +3761,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .parashahHeader.aliyah span {
   text-transform: uppercase;
 }
-.bilingual .parashahHeader .en {
+.bilingual .parashahHeader .he {
   display: none;
 }
 .title + .text span:first-child .parashahHeader {
