@@ -305,7 +305,7 @@ function getInitialSheetNodes(sheet) {
   return sheet["sources"].map(source => source["node"])
 }
 
-function transformSheetJsonToDraft(sheet) {
+function transformSheetJsonToSlate(sheet) {
     const sheetTitle = sheet.title.stripHtmlKeepLineBreaks();
 
     let curNextNode = sheet.nextNode;
@@ -810,12 +810,6 @@ const withSefariaSheet = editor => {
           }
       }
 
-      if (node.type == "Sheet") {
-        // if (node.children.length < 2) {
-        //   console.log('bad state -- sheet lost children')
-        // }
-      }
-
       if (node.type == "SheetContent") {
         // If sheet elements are in sheetcontent and not wrapped in sheetItem, wrap it.
         for (const [child, childPath] of Node.children(editor, path)) {
@@ -846,6 +840,19 @@ const withSefariaSheet = editor => {
             Transforms.delete(editor, {at: childPath  });
           }
         }
+        }
+
+        //ensure there's always an editable space for a user to type at end and top of sheet
+        const lastSheetItem = node.children[node.children.length-1]
+        if (lastSheetItem.type != "spacer" && lastSheetItem.type != "SheetOutsideText") {
+            Transforms.insertNodes(editor,{type: 'spacer', children: [{text: ""}]}, {at: Editor.end(editor, [0,0])});
+            return
+        }
+
+        const firstSheetItem = node.children[0]
+        if (firstSheetItem.type != "spacer" && firstSheetItem.type != "SheetOutsideText") {
+            Transforms.insertNodes(editor,{type: 'spacer', children: [{text: ""}]}, {at: [0,0,0]});
+            return
         }
       }
 
@@ -885,31 +892,6 @@ const withSefariaSheet = editor => {
       }
     }
 
-      // if (node.type == "SheetItem") {
-      //   if (node.children[0] && node.children[0].type !== "SheetOutsideText") {
-      //     const belowNode = getNodeBelow(path)
-      //     const aboveNode = getNodeAbove(path)
-      //
-      //     if (!belowNode.node) {
-      //       Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: Editor.end(editor, path) });
-      //       return
-      //   }
-      //     else if (belowNode.node.type !== "spacer") {
-      //       Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: belowNode.path });
-      //       return
-      //     }
-      //
-      //     if (!aboveNode.node) {
-      //       Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: Editor.start(editor, path) });
-      //       return
-      //   }
-      //     else if (aboveNode.node.type !== "spacer") {
-      //       Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: aboveNode.path });
-      //       return
-      //     }
-      //   }
-      // }
-
       if (sheetElementTypes.includes(node.type)) {
         //Any nested sheet element should be lifted
         if (Node.parent(editor, path).type !== "SheetContent") {
@@ -925,17 +907,6 @@ const withSefariaSheet = editor => {
             Transforms.unwrapNodes(editor, { at: childPath })
             return
           }
-        }
-
-        // if source is the first thing added on a page add a spacer above to
-        // allow for editting and prevent JS Slate error around addinbg a void
-        // as first element in doc.
-
-        if (getNodeAbove(Path.parent(path)).path == null) {
-          const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, "")
-          incrementNextSheetNode(editor);
-          Transforms.insertNodes(editor, fragment, { at: [0,0,0] });
-          return
         }
       }
 
@@ -1327,7 +1298,7 @@ function saveSheetContent(doc, lastModified) {
 
 const SefariaEditor = (props) => {
     const sheet = props.data;
-    const initValue = transformSheetJsonToDraft(sheet);
+    const initValue = transformSheetJsonToSlate(sheet);
     const renderElement = useCallback(props => <Element {...props} />, []);
     const [value, setValue] = useState(initValue)
     const [sheetNodes, setSheetNodes] = useState(getInitialSheetNodes(sheet))

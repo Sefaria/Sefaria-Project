@@ -7371,10 +7371,6 @@ span.purim-emoji img{
 .sheetContent .media .mediaCaption.enOnly .he {
   display: none;
 }
-.sheetContent .spacer {
-  line-height: 18px;
-  font-size: 18px;
-}
 .sheetContent .spacer:only-of-type.empty {
   line-height: inherit;
 }
