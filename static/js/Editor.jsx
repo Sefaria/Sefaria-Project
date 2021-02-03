@@ -704,7 +704,7 @@ async function getRefInText(editor, additionalOffset=0) {
 
 
 const withSefariaSheet = editor => {
-    const {insertData, isVoid, normalizeNode} = editor;
+    const {insertData, insertBreak, isVoid, normalizeNode} = editor;
 
     //Hack to override this built-in which often returns null when programmatically selecting the whole SheetSource
     Transforms.deselect = () => {}
@@ -717,11 +717,12 @@ const withSefariaSheet = editor => {
 
     editor.insertBreak = () => {
 
-        // if (!Range.isCollapsed(editor.selection)) {
-        //     editor.insertText("\n");
-        //     return
-        // }
-
+        // if enter in middle of line in SheetOutsideText insert soft break
+        if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetOutsideText") &&
+            !Point.equals(editor.selection.focus, Editor.end(editor, editor.selection.focus.path))) {
+                insertBreak()
+                return
+            }
 
         getRefInText(editor).then(query =>{
 
