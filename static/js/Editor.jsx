@@ -1000,10 +1000,9 @@ const addItemToSheet = (editor, fragment, position) => {
 const checkAndFixDuplicateSheetNodeNumbers = (editor) => {
   let existingSheetNodes = []
   for (const [child, childPath] of Node.children(editor, [0,0])) {
-    const sheetNode = child.children[0];
+    const sheetNode = child;
     if (existingSheetNodes.includes(sheetNode.node)) {
-      const newNodeEditPath = childPath.concat([0]);
-      Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: newNodeEditPath});
+      Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: childPath});
       existingSheetNodes.push(editor.children[0].nextNode);
       incrementNextSheetNode(editor)
     }
