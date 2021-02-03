@@ -6,6 +6,18 @@
 
 {% block description %}{% trans "Support Sefaria by making a tax-deductible donation online or by check or wire transfer." %}{% endblock %}
 
+{% block css %}
+    address{
+        font-size: 20px;
+    }
+    ul li{
+      list-style: none;
+      font-size: 18px;
+      line-height: 27px
+      font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+    }
+{%  endblock %}
+
 {% block content %}
 
 <div id="donatePage" class="container static biReady">
@@ -52,11 +64,11 @@
                     <span class="int-en">Checks may be made payable to "Sefaria" and mailed to:</span>
                     <span class="int-he">יש למלא את הצ&#39;ק לפקודת Sefaria ולשלוח לכתובת:</span>
                 </p>
-<pre>
-Sefaria
-195 Montague St, 14th Floor, Suite 1203
-Brooklyn, New York 11201
-</pre>
+                <address>
+                    Sefaria <br/>
+                    195 Montague St, 14th Floor <br/>
+                    Brooklyn, New York 11201 <br/>
+                </address>
             </div>
 
             <div class="donateOption">
@@ -65,14 +77,17 @@ Brooklyn, New York 11201
                     <span class="int-he">תרומה מקוונת</span>
                 </h2>
                 <p>
-                    <span class="int-en">
-                        You can make a secure donation online through <a href="https://sefaria.nationbuilder.com/supportsefaria">Nationbuilder</a> using your credit card.
-                    </span>
-                    <span class="int-he">
-                        ניתן לתרום תרומה מקוונת באופן בטוח דרך <a href="https://sefaria.nationbuilder.com/supportsefaria">Nationbuilder</a> באמצעות כרטיס אשראי.
-                    </span>
+                    <span class="int-en">You can make a secure donation online through:</span>
+                    <span class="int-he">ניתן לתרום תרומה מקוונת באופן בטוח דרך</span>
+                    <ul class="int-en">
+                        <li><a href="https://sefaria.nationbuilder.com/supportsefaria">Nationbuilder</a> using your credit card.</li>
+                        <li><a href="https://sefaria.nationbuilder.com/">Paypal</a> using your credit card.</li>
+                    </ul>
+                    <ul class="int-he">
+                        <li><a href="https://sefaria.nationbuilder.com/supportsefaria">Nationbuilder</a> באמצעות כרטיס האשראי.</li>
+                        <li><a href="https://sefaria.nationbuilder.com/">פייפאל</a> באמצעות כרטיס האשראי.</li>
+                    </ul>
                 </p>
-                <br/>
                 <p>
                     <span class="int-en">
                         If you live outside the U.S., We accept donations from most countries.
@@ -81,7 +96,6 @@ Brooklyn, New York 11201
                         אם מקום מגוריכם נמצא מחוץ לתחומי ארה"ב, אנחנו מקבלת תרומות ממרבית המדינות.
                     </span>
                 </p>
-                <br/>
                 <p>
                     <span class="int-en">
                         To avoid processing fees on large donations, we kindly ask that you donate by check or wire transfer.
