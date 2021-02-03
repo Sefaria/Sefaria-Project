@@ -808,6 +808,18 @@ const withSefariaSheet = editor => {
               return
             }
           }
+
+          //merge with adjacent outside texts:
+          const nodeAbove = getNodeAbove(path)
+          const nodeBelow = getNodeBelow(path)
+
+          if (nodeAbove.node && nodeAbove.node.type == "SheetOutsideText") {
+              Transforms.mergeNodes(editor, { at: path})
+              return
+          }
+          if (nodeBelow.node && nodeBelow.node.type == "SheetOutsideText") {
+              Transforms.mergeNodes(editor, {at: nodeBelow.path})
+          }
       }
 
       if (node.type == "SheetContent") {
@@ -1389,6 +1401,7 @@ const SefariaEditor = (props) => {
         () => withSefariaSheet(withLinks(withHistory(withReact(createEditor())))),
         []
     );
+
 
     return (
         <div>
