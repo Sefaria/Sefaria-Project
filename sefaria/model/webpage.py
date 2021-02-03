@@ -85,6 +85,8 @@ class WebPage(abst.AbstractMongoRecord):
             return True
         if len(self.url.encode('utf-8')) > 1000:
             # url field is indexed. Mongo doesn't allow indexing a field over 1000 bytes
+            from sefaria.system.database import db
+            db.webpages_long_urls.insert_one(self.contents())
             return True
         url_regex = WebPage.excluded_pages_url_regex()
         title_regex = WebPage.excluded_pages_title_regex()
