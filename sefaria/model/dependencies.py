@@ -54,7 +54,6 @@ def process_version_title_change_in_search(ver, **kwargs):
         delete_version(text_index, kwargs.get("old"), ver.language)
         for ref in text_index.all_segment_refs():
             TextIndexer.index_ref(search_index_name, ref, kwargs.get("new"), ver.language, False)
-            # TextIndexer.index_ref(search_index_name_merged, ref, None, ver.language, True)
 
 
 # Version Title Change

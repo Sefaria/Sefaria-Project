@@ -52,13 +52,10 @@ doc_count = 0
 
 def delete_text(oref, version, lang):
     try:
-        not_merged_name = get_new_and_current_index_names('text')['current']
-        merged_name = get_new_and_current_index_names('merged')['current']
+        curr_index = get_new_and_current_index_names('text')['current']
 
         id = make_text_doc_id(oref.normal(), version, lang)
-        es_client.delete(index=not_merged_name, doc_type='text', id=id)
-        id = make_text_doc_id(oref.normal(), None, lang)
-        es_client.delete(index=merged_name, doc_type='text', id=id)
+        es_client.delete(index=curr_index, doc_type='text', id=id)
     except Exception as e:
         logger.error("ERROR deleting {} / {} / {} : {}".format(oref.normal(), version, lang, e))
 
@@ -95,8 +92,6 @@ def make_text_doc_id(ref, version, lang):
     into a number using unicode_number. This mapping should be unique, but actually isn't.
     (any tips welcome)
     """
-    if not version:
-        version = "merged"
     if not version.isascii():
         version = str(unicode_number(version))
 
@@ -228,12 +223,9 @@ def source_text(source):
 
 def create_index(index_name, type):
     """
-    Clears the "sefaria" and "merged" indexes and creates it fresh with the below settings.
+    Clears the indexes and creates it fresh with the below settings.
     """
-    try:
-        clear_index(index_name)
-    except ElasticHttpError:
-        logging.warning("Failed to delete non-existent index: {}".format(index_name))
+    clear_index(index_name)
 
     settings = {
         "index": {
@@ -267,7 +259,7 @@ def create_index(index_name, type):
     print('CReating index {}'.format(index_name))
     index_client.create(index=index_name, body=settings)
 
-    if type == 'text' or type == 'merged':
+    if type == 'text':
         put_text_mapping(index_name)
     elif type == 'sheet':
         put_sheet_mapping(index_name)
@@ -321,11 +313,6 @@ def put_text_mapping(index_name):
             #    'search_analyzer': 'sefaria-semi-exact'
             #},
             "exact": {
-                'type': 'text',
-                'analyzer': 'my_standard'
-            },
-            # backwards compat for android
-            "content": {
                 'type': 'text',
                 'analyzer': 'my_standard'
             },
@@ -417,7 +404,6 @@ class TextIndexer(object):
     def clear_cache(cls):
         cls.terms_dict = None
         cls.version_priority_map = None
-        cls.trefs_seen = None
         cls._bulk_actions = None
         cls.best_time_period = None
 
@@ -495,16 +481,15 @@ class TextIndexer(object):
                 raise e
 
     @classmethod
-    def index_all(cls, index_name, merged=False, debug=False, for_es=True, action=None):
+    def index_all(cls, index_name, debug=False, for_es=True, action=None):
         cls.index_name = index_name
-        cls.merged = merged
         cls.create_version_priority_map()
         cls.create_terms_dict()
         Ref.clear_cache()  # try to clear Ref cache to save RAM
 
         versions = sorted([x for x in cls.get_all_versions() if (x.title, x.versionTitle, x.language) in cls.version_priority_map], key=lambda x: cls.version_priority_map[(x.title, x.versionTitle, x.language)][0])
         versions_by_index = {}
-        # organizing by index for the merged case
+        # organizing by index for the merged case. There is no longer a merged case but keeping this logic b/c it seems fine
         for v in versions:
             key = (v.title, v.language)
             if key in versions_by_index:
@@ -516,7 +501,6 @@ class TextIndexer(object):
         total_versions = len(versions)
         versions = None  # release RAM
         for title, vlist in list(versions_by_index.items()):
-            cls.trefs_seen = set()
             cls.curr_index = vlist[0].get_index() if len(vlist) > 0 else None
             if for_es:
                 cls._bulk_actions = []
@@ -554,21 +538,18 @@ class TextIndexer(object):
             print("Could not find dictionary node in {}".format(version.title))
 
     @classmethod
-    def index_ref(cls, index_name, oref, version_title, lang, merged):
+    def index_ref(cls, index_name, oref, version_title, lang):
         # slower than `cls.index_version` but useful when you don't want the overhead of loading all versions into cache
-        cls.merged = merged
         cls.index_name = index_name
         cls.curr_index = oref.index
         try:
             cls.best_time_period = cls.curr_index.best_time_period()
         except ValueError:
             cls.best_time_period = None
-        cls.trefs_seen = set()
         version_priority = 0
-        if not merged:
-            for priority, v in enumerate(cls.get_ref_version_list(oref)):
-                if v['versionTitle'] == version_title:
-                    version_priority = priority
+        for priority, v in enumerate(cls.get_ref_version_list(oref)):
+            if v['versionTitle'] == version_title:
+                version_priority = priority
         content = TextChunk(oref, lang, vtitle=version_title).ja().flatten_to_string()
         categories = cls.curr_index.categories
         tref = oref.normal()
@@ -579,10 +560,6 @@ class TextIndexer(object):
     @classmethod
     def _cache_action(cls, segment_str, tref, heTref, version):
         # Index this document as a whole
-        # dont index the same ref more than once in the case you're merged
-        if cls.merged and tref in cls.trefs_seen:
-            return
-        cls.trefs_seen.add(tref)
         vtitle = version.versionTitle
         vlang = version.language
         try:
@@ -656,7 +633,6 @@ class TextIndexer(object):
             "pagesheetrank": pagesheetrank,
             "comp_date": comp_start_date,
             #"hebmorph_semi_exact": content_wo_cant,
-            "content": content_wo_cant if cls.merged else "",  # backwards compat for android
             "exact": content_wo_cant,
             "naive_lemmatizer": content_wo_cant,
         }
@@ -737,12 +713,10 @@ def index_from_queue():
     Delete queue records on success.
     """
     index_name = get_new_and_current_index_names('text')['current']
-    index_name_merged = get_new_and_current_index_names('merged')['current']
     queue = db.index_queue.find()
     for item in queue:
         try:
             TextIndexer.index_ref(index_name, Ref(item["ref"]), item["version"], item["lang"], False)
-            TextIndexer.index_ref(index_name_merged, Ref(item["ref"]), None, item["lang"], True)
             db.index_queue.remove(item)
         except Exception as e:
             logging.error("Error indexing from queue ({} / {} / {}) : {}".format(item["ref"], item["version"], item["lang"], e))
@@ -770,7 +744,6 @@ def get_new_and_current_index_names(type, debug=False):
     base_index_name_dict = {
         'text': SEARCH_INDEX_NAME_TEXT,
         'sheet': SEARCH_INDEX_NAME_SHEET,
-        'merged': SEARCH_INDEX_NAME_MERGED
     }
     index_name_a = "{}-a{}".format(base_index_name_dict[type], '-debug' if debug else '')
     index_name_b = "{}-b{}".format(base_index_name_dict[type], '-debug' if debug else '')
@@ -791,22 +764,19 @@ def get_new_and_current_index_names(type, debug=False):
     return {"new": new_index_name, "current": old_index_name, "alias": alias_name}
 
 
-def index_all(skip=0, merged=False, debug=False):
+def index_all(skip=0, debug=False):
     """
     Fully create the search index from scratch.
     """
     start = datetime.now()
-    if merged:
-        index_all_of_type('merged', skip=skip, merged=merged, debug=debug)
-    else:
-        index_all_of_type('text', skip=skip, merged=merged, debug=debug)
-        index_all_of_type('sheet', skip=skip, merged=merged, debug=debug)
+    index_all_of_type('text', skip=skip, debug=debug)
+    index_all_of_type('sheet', skip=skip, debug=debug)
     end = datetime.now()
     db.index_queue.delete_many({})  # index queue is now stale
     print("Elapsed time: %s" % str(end-start))
 
 
-def index_all_of_type(type, skip=0, merged=False, debug=False):
+def index_all_of_type(type, skip=0, debug=False):
     index_names_dict = get_new_and_current_index_names(type=type, debug=debug)
     print('CREATING / DELETING {}'.format(index_names_dict['new']))
     print('CURRENT {}'.format(index_names_dict['current']))
@@ -816,18 +786,15 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
 
     if skip == 0:
         create_index(index_names_dict['new'], type)
-    if type == 'text' or type == 'merged':
+    if type == 'text':
         TextIndexer.clear_cache()
-        TextIndexer.index_all(index_names_dict['new'], merged=merged, debug=debug)
+        TextIndexer.index_all(index_names_dict['new'], debug=debug)
     elif type == 'sheet':
         index_public_sheets(index_names_dict['new'])
 
     try:
         #index_client.put_settings(index=index_names_dict['current'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
         index_client.delete_alias(index=index_names_dict['current'], name=index_names_dict['alias'])
-        if merged:
-            # backwards compat for android
-            index_client.delete_alias(index=index_names_dict['current'], name="merged-c")
         print("Successfully deleted alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current']))
     except NotFoundError:
         print("Failed to delete alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current']))
@@ -835,21 +802,5 @@ def index_all_of_type(type, skip=0, merged=False, debug=False):
 
     #index_client.put_settings(index=index_names_dict['new'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
     index_client.put_alias(index=index_names_dict['new'], name=index_names_dict['alias'])
-    if merged:
-        # backwards compart for android
-        index_client.put_alias(index=index_names_dict['new'], name="merged-c")
     if index_names_dict['new'] != index_names_dict['current']:
         clear_index(index_names_dict['current'])
-
-
-def index_all_commentary_refactor(skip=0, merged=False, debug=False):
-    start = datetime.now()
-
-    new_index_name = '{}-c'.format(SEARCH_INDEX_NAME_MERGED)
-
-    if skip == 0:
-        create_index(new_index_name, 'merged')
-    TextIndexer.index_all(new_index_name, merged=merged, debug=debug)
-
-    end = datetime.now()
-    print("Elapsed time: %s" % str(end-start))
