@@ -112,7 +112,7 @@ class Sheet extends Component {
     }
     return (
         <div className={classes}>
-          {  this.props.editor == true && sheet ?
+          {  this.props.editor == true && sheet && Sefaria._uid == sheet.owner ?
             /*sheet && Sefaria._uid == sheet.owner && $.cookie("new_editor") ? */
             <div className="sheetContent"><SefariaEditor data={sheet} /></div>
             : content}
