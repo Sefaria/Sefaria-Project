@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, person, garden, notification, story, group, library, category, ref_data, user_profile
+from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, person, garden, notification, story, collection, library, category, ref_data, user_profile
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -44,7 +44,7 @@ subscribe(ref_data.process_index_delete_in_ref_data,                    text.Ind
 # Process in ES
 # todo: handle index name change in ES
 def process_version_title_change_in_search(ver, **kwargs):
-    from sefaria.local_settings import SEARCH_INDEX_ON_SAVE
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
         from sefaria.search import delete_version, TextIndexer, get_new_and_current_index_names
         search_index_name = get_new_and_current_index_names("text")['current']
@@ -108,9 +108,9 @@ subscribe(cascade_delete(garden.GardenStopRelationSet, "garden", "key"),   garde
 subscribe(cascade_delete(notification.NotificationSet, "global_id", "_id"),  notification.GlobalNotification, "delete")
 subscribe(cascade_delete(story.UserStorySet, "shared_story_id", "_id"), story.SharedStory, "delete")
 
-# Groups
-subscribe(group.process_group_name_change_in_sheets,                         group.Group, "attributeChange", "name")
-subscribe(group.process_group_delete_in_sheets,                              group.Group, "delete")
+# Collections
+subscribe(collection.process_collection_slug_change_in_sheets,                         collection.Collection, "attributeChange", "slug")
+subscribe(collection.process_collection_delete_in_sheets,                              collection.Collection, "delete")
 
 # Categories
 subscribe(category.process_category_name_change_in_categories_and_indexes,  category.Category, "attributeChange", "lastPath")

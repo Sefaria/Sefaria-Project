@@ -30,7 +30,6 @@ from sefaria.system.database import db
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
     NoVersionFoundError, DictionaryEntryNotFoundError
-from sefaria.utils.talmud import daf_to_section
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
@@ -198,6 +197,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "authors",
         "enDesc",
         "heDesc",
+        "enShortDesc",
+        "heShortDesc",
         "pubDate",
         "compDate",
         "compPlace",
@@ -1036,7 +1037,7 @@ class AbstractTextRecord(object):
         return False
 
     @staticmethod
-    def _strip_itags(s):
+    def _strip_itags(s, sections=None):
         soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
         itag_list = soup.find_all(AbstractTextRecord._find_itags)
         for itag in itag_list:
@@ -1059,7 +1060,7 @@ class AbstractTextRecord(object):
             for func in text_modification_funcs:
                 string = func(string, sections)
             return string
-        start_sections = [s-1 for s in start_sections]  # zero-indexed for ja
+        start_sections = None if start_sections is None else [s-1 for s in start_sections]  # zero-indexed for ja
         return self.ja().modify_by_function(modifier, start_sections)
 
     # Currently assumes that text is JA
@@ -1233,8 +1234,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         elif type(item) is list:
             for ii, i in enumerate(item):
                 try:
-                    temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.toStrByAddressType(addressTypes[0], "en", ii+1))
-                    temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.toStrByAddressType(addressTypes[0], "he", ii+1))
+                    temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "en", ii+1))
+                    temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "he", ii+1))
                     self.walk_thru_contents(action, i, temp_tref, temp_heTref, schema="", addressTypes=addressTypes[1:])
                 except IndexError as e:
                     print(str(e))
@@ -2583,29 +2584,31 @@ class Ref(object, metaclass=RefCacheType):
 
         self.toSections = self.sections[:]
 
-        # Parse range end portion, if it exists
-        if len(parts) == 2:
+        address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[0])
+
+        if hasattr(address_class, "parse_range_end"):
+            base_wout_title = base.replace(title + " ", "")
+            address_class.parse_range_end(self, parts, base_wout_title)
+        elif len(parts) == 2: # Parse range end portion, if it exists
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
-            if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[1:]]):     # in process. developing logic that should work for all languages / texts
-                # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
+            if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[
+                                                                  1:]]):  # in process. developing logic that should work for all languages / texts
                 range_parts = re.split("[., :]+", parts[1])
                 delta = len(self.sections) - len(range_parts)
                 for i in range(delta, len(self.sections)):
                     try:
-                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang, range_parts[i - delta])
+                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
+                                                                                       range_parts[i - delta], sections=self.sections[i])
                     except (ValueError, IndexError):
                         raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
             elif self._lang == "en":
-                if self.index_node.addressTypes[0] == "Talmud":
-                    self.__parse_talmud_range(parts[1])
-                else:
-                    range_parts = re.split("[.:, ]+", parts[1])
-                    delta = len(self.sections) - len(range_parts)
-                    for i in range(delta, len(self.sections)):
-                        try:
-                            self.toSections[i] = int(range_parts[i - delta])
-                        except (ValueError, IndexError):
-                            raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
+                range_parts = re.split("[.:, ]+", parts[1])
+                delta = len(self.sections) - len(range_parts)
+                for i in range(delta, len(self.sections)):
+                    try:
+                        self.toSections[i] = int(range_parts[i - delta])
+                    except (ValueError, IndexError):
+                        raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
@@ -2621,25 +2624,6 @@ class Ref(object, metaclass=RefCacheType):
                 sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)))
         return sections
 
-    def __parse_talmud_range(self, range_part):
-        #todo: make sure to-daf isn't out of range
-        self.toSections = range_part.split(".")  # this was converting space to '.', for some reason.
-
-        # 'Shabbat 23a-b'
-        if self.toSections[0] == 'b' or self.toSections[0] == 'ᵇ':
-            self.toSections[0] = self.sections[0] + 1
-
-        # 'Shabbat 24b-25a'
-        elif regex.match(r"\d+[abᵃᵇ]", self.toSections[0]):
-            self.toSections[0] = daf_to_section(self.toSections[0])
-
-        # 'Shabbat 24b.12-24'
-        else:
-            delta = len(self.sections) - len(self.toSections)
-            for i in range(delta - 1, -1, -1):
-                self.toSections.insert(0, self.sections[i])
-
-        self.toSections = [int(x) for x in self.toSections]
 
     def __eq__(self, other):
         return isinstance(other, Ref) and self.uid() == other.uid()
@@ -4239,6 +4223,25 @@ class Ref(object, metaclass=RefCacheType):
             self._normal = self._get_normal("en")
         return self._normal
 
+    def display(self, lang) -> str:
+        """
+        :return str: Display string that is not necessarily a valid `Ref`
+        """
+        from sefaria.model.schema import AddressTalmud
+        if self.is_range() and self.index_node.addressTypes[len(self.sections)-1] == "Talmud":  # is self a range that is as deep as a Talmud addressType?
+            if self.sections[-1] % 2 == 1 and self.toSections[-1] % 2 == 0:  # starts at amud alef and ends at bet?
+                start_daf = AddressTalmud.oref_to_amudless_tref(self.starting_ref(), lang)
+                end_daf = AddressTalmud.oref_to_amudless_tref(self.ending_ref(), lang)
+                if start_daf == end_daf:
+                    return start_daf
+                else:
+                    range_wo_last_amud = AddressTalmud.oref_to_amudless_tref(self, lang)
+                    # looking for rest of ref after dash
+                    end_range = re.search(f'-(.+)$', range_wo_last_amud).group(1)
+                    return f"{start_daf}-{end_range}"
+
+        return self.he_normal() if lang == 'he' else self.normal()
+
     def text(self, lang="en", vtitle=None, exclude_copyrighted=False):
         """
         :param lang: "he" or "en"
@@ -4581,7 +4584,7 @@ class Library(object):
             if not rebuild:
                 self._toc_json = scache.get_shared_cache_elem('toc_json')
             if rebuild or not self._toc_json:
-                self._toc_json = json.dumps(self.get_toc())
+                self._toc_json = json.dumps(self.get_toc(), ensure_ascii=False)
                 scache.set_shared_cache_elem('toc_json', self._toc_json)
                 self.set_last_cached_time()
         return self._toc_json
@@ -4614,7 +4617,7 @@ class Library(object):
             if not rebuild:
                 self._topic_toc_json = scache.get_shared_cache_elem('topic_toc_json')
             if rebuild or not self._topic_toc_json:
-                self._topic_toc_json = json.dumps(self.get_topic_toc())
+                self._topic_toc_json = json.dumps(self.get_topic_toc(), ensure_ascii=False)
                 scache.set_shared_cache_elem('topic_toc_json', self._topic_toc_json)
                 self.set_last_cached_time()
         return self._topic_toc_json
@@ -4639,6 +4642,8 @@ class Library(object):
                 description = getattr(topic, "description", None)
                 if description is not None and getattr(topic, "description_published", False):
                     topic_json['description'] = description
+                if getattr(topic, "categoryDescription", False):
+                    topic_json['categoryDescription'] = topic.categoryDescription
             explored.add(topic.slug)
         if len(children) > 0 or topic is None:  # make sure root gets children no matter what
             topic_json['children'] = []
@@ -4672,8 +4677,8 @@ class Library(object):
             }
         return self._topic_data_sources.get(data_source, None)
 
-    def get_groups_in_library(self):
-        return self._toc_tree.get_groups_in_library()
+    def get_collections_in_library(self):
+        return self._toc_tree.get_collections_in_library()
 
     def get_search_filter_toc(self, rebuild=False):
         """
@@ -4698,7 +4703,7 @@ class Library(object):
             if not rebuild:
                 self._search_filter_toc_json = scache.get_shared_cache_elem('search_filter_toc_json')
             if rebuild or not self._search_filter_toc_json:
-                self._search_filter_toc_json = json.dumps(self.get_search_filter_toc())
+                self._search_filter_toc_json = json.dumps(self.get_search_filter_toc(), ensure_ascii=False)
                 scache.set_shared_cache_elem('search_filter_toc_json', self._search_filter_toc_json)
                 self.set_last_cached_time()
         return self._search_filter_toc_json
@@ -4706,7 +4711,7 @@ class Library(object):
     def build_full_auto_completer(self):
         from .autospell import AutoCompleter
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_groups=True) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
         }
 
         for lang in self.langs:
@@ -5033,7 +5038,7 @@ class Library(object):
             if not rebuild:
                 self._simple_term_mapping_json = scache.get_shared_cache_elem('term_mapping_json')
             if rebuild or not self._simple_term_mapping_json:
-                self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping())
+                self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping(), ensure_ascii=False)
                 scache.set_shared_cache_elem('term_mapping_json', self._simple_term_mapping_json)
                 self.set_last_cached_time()
         return self._simple_term_mapping_json
@@ -5127,7 +5132,7 @@ class Library(object):
                 self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_'+lang+'_json')
             if rebuild or not self._full_title_list_jsons.get(lang):
                 title_list = self.build_text_titles_json(lang=lang)
-                title_list_json = json.dumps(title_list)
+                title_list_json = json.dumps(title_list, ensure_ascii=False)
                 self._full_title_list_jsons[lang] = title_list_json
                 scache.set_shared_cache_elem('books_' + lang, title_list)
                 scache.set_shared_cache_elem('books_'+lang+'_json', title_list_json)
@@ -5348,7 +5353,7 @@ class Library(object):
         for i in range(node.depth-1, -1, -1):
             toGname = "ar{}".format(i)
             if gs.get(toGname) is not None:
-                toSections.append(node._addressTypes[curr_address_index].toNumber(lang, gs.get(toGname)))
+                toSections.append(node._addressTypes[curr_address_index].toNumber(lang, gs.get(toGname), sections=sections[curr_address_index]))
                 curr_address_index -= 1
 
         if len(toSections) == 0:

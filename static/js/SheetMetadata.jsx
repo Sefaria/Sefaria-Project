@@ -4,10 +4,11 @@ import {
   ReaderNavigationMenuDisplaySettingsButton,
   CategoryAttribution,
   CategoryColorLine,
+  IntText,
   LoadingMessage,
-  TwoBox,
   LoginPrompt,
 } from './Misc';
+import { CollectionsModal } from './CollectionsWidget'
 import React  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
@@ -28,6 +29,7 @@ class SheetMetadata extends Component {
       copiedSheetId: null,
       sheetSaves: null,
       sheetLikeAdjustment: 0,
+      showCollectionsModal: false,
     };
   }
   componentDidMount() {
@@ -42,7 +44,7 @@ class SheetMetadata extends Component {
     }
   }
   loadSaved() {
-    Sefaria.getRefSavedHistory("Sheet " + this.props.sheet.id).then(data => {
+    Sefaria.getRefSavedHistory("Sheet " + this.props.id).then(data => {
       const sheetSaves = [];
       for (let hist of data) {
         sheetSaves.push(hist["uid"]);
@@ -52,17 +54,6 @@ class SheetMetadata extends Component {
       }
     });
   }
-  handleClick(e) {
-    var $a = $(e.target).closest("a");
-    if ($a.length && ($a.hasClass("sectionLink") || $a.hasClass("linked"))) {
-      var ref = $a.attr("data-ref");
-      ref = decodeURIComponent(ref);
-      ref = Sefaria.humanRef(ref);
-      this.props.close();
-      this.props.showBaseText(ref, false, this.props.version, this.props.versionLanguage);
-      e.preventDefault();
-    }
-  }
   getSheetFromCache() {
     return Sefaria.sheets.loadSheetByID(this.props.id);
   }
@@ -70,47 +61,43 @@ class SheetMetadata extends Component {
     Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad);
   }
   onDataLoad(data) {
-
     this.forceUpdate();
-
-    for (var i = 0; i < data.sources.length; i++) {
-      if ("ref" in data.sources[i]) {
-        Sefaria.getRef(data.sources[i].ref)
-            .then(ref => ref.sectionRef)
-            .then(ref => Sefaria.related(ref, () => this.forceUpdate));
-      }
+  }
+  copySheet() {
+    if (!Sefaria._uid) {
+        this.props.toggleSignUpModal();
+    } else if (this.state.sheetCopyStatus == "Copy") {
+        this.setState({sheetCopyStatus: "Copying..."});
+        if (Sefaria.sheets.loadSheetByID(this.props.id)) {
+            var data = Sefaria.sheets.loadSheetByID(this.props.id)
+            this.filterAndSaveCopiedSheetData(data);
+        }
+        else {
+          Sefaria.sheets.loadSheetByID(this.props.id, (data) => {
+              this.filterAndSaveCopiedSheetData(data);
+          });
+        }
     }
   }
-  ensureSheetData() {
-      if (Sefaria.sheets.loadSheetByID(this.props.sheet.id)) {
-          var data = Sefaria.sheets.loadSheetByID(this.props.sheet.id)
-          this.filterAndSaveCopiedSheetData(data)
-      }
-      else {
-        Sefaria.sheets.loadSheetByID(this.props.sheet.id, (data) => {
-            this.filterAndSaveCopiedSheetData(data)
-        });
-      }
-  }
   filterAndSaveCopiedSheetData(data) {
-    var newSheet = data;
+    var newSheet = Sefaria.util.clone(data);
     newSheet.status = "unlisted";
     newSheet.title = newSheet.title + " (Copy)";
 
-    if (Sefaria._uid != this.props.sheet.owner) {
-        newSheet.via = this.props.sheet.id;
-        newSheet.viaOwner = this.props.sheet.owner;
+    if (Sefaria._uid != newSheet.owner) {
+        newSheet.via = this.props.id;
+        newSheet.viaOwner = newSheet.owner;
         newSheet.owner = Sefaria._uid
     }
-    delete newSheet.group;
     delete newSheet.id;
     delete newSheet.ownerName;
     delete newSheet.views;
     delete newSheet.dateCreated;
     delete newSheet.dateModified;
+    delete newSheet.displayedCollection;
+    delete newSheet.collectionName;
+    delete newSheet.collectionImage;
     delete newSheet.likes;
-    delete newSheet.naturalDateCreated;
-    delete newSheet.groupLogo;
     delete newSheet.promptedToPublish;
     delete newSheet._id;
 
@@ -127,69 +114,79 @@ class SheetMetadata extends Component {
         }
     })
   }
-  copySheet() {
+  toggleCollectionsModal() {
     if (!Sefaria._uid) {
-        this.props.toggleSignUpModal();
-    } else if (this.state.sheetCopyStatus == "Copy") {
-        this.setState({sheetCopyStatus: "Copying..."});
-        this.ensureSheetData();
+      this.props.toggleSignUpModal();
+    } else {
+      this.setState({showCollectionsModal: !this.state.showCollectionsModal});      
     }
   }
   generateSheetMetaDataButtons() {
-      return (
-         <div>
-            <div>
-            {Sefaria._uid == this.props.sheet.owner && !$.cookie("new_editor") ?
-              <span>
-                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-en" role="button">Edit Sheet</a>
-                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-he" role="button">עריכה</a>
-              </span> : null }
+    const sheet = this.getSheetFromCache();
+    return (
+      <div>
+        <div>
+          {Sefaria._uid == sheet.owner && !$.cookie("new_editor") ?
+          <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
+            <IntText>Edit</IntText>
+          </a> : null }
 
-              <a href="#" className="button white int-en" onClick={this.copySheet}>{this.state.sheetCopyStatus}</a>
-              <a href="#" className="button white int-he" onClick={this.copySheet}>{Sefaria._(this.state.sheetCopyStatus)}</a>
+          <a href="#" className="button white" onClick={this.copySheet}>
+            <IntText>{this.state.sheetCopyStatus}</IntText>
+          </a>
 
-            {Sefaria._uid !== this.props.sheet.owner && !$.cookie("new_editor") ?
-              <span>
-                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-en" role="button">View in Editor</a>
-                <a href={"/sheets/"+this.props.sheet.id+"?editor=1"} className="button white int-he" role="button">לתצוגת עריכה</a>
-              </span> : null }
-            </div>
+          <a href="#" className="button white" onClick={this.toggleCollectionsModal}>
+            <IntText>Add to Collection</IntText>
+          </a>
 
-            {this.state.sheetCopyStatus == "Copied" ? 
-              <div><a href={"/sheets/"+this.state.copiedSheetId}>
-                  <span className="int-en">View copy &raquo;</span>
-                  <span className="int-he">צפייה בהעתק &raquo;</span>
-                </a></div> : null }
+          {Sefaria._uid !== sheet.owner && !$.cookie("new_editor") ?
+          <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
+            <IntText>View in Editor</IntText>
+          </a> : null }
+        </div>
 
-            {$.cookie("new_editor") ? 
-              <a className="smallText" href={"/sheets/"+this.props.sheet.id+"?editor=1"}>
-                <span className="int-en">View in the old sheets experience</span>
-                <span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span>
-              </a> : null }
-         </div>
-      )
+        {this.state.sheetCopyStatus == "Copied" ? 
+        <div><a href={"/sheets/"+this.state.copiedSheetId}>
+            <span className="int-en">View Copy &raquo;</span>
+            <span className="int-he">צפייה בהעתק &raquo;</span>
+        </a></div> : null }
+
+        {$.cookie("new_editor") ? 
+        <a className="smallText" href={"/sheets/"+sheet.id+"?editor=1"}>
+          <span className="int-en">View in the old sheets experience</span>
+          <span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span>
+        </a> : null }
+      
+        {this.state.showCollectionsModal ? 
+        <CollectionsModal 
+          sheetID={sheet.id}
+          close={this.toggleCollectionsModal} /> : null }
+
+      </div>
+    );
   }
   render() {
-    var title = this.props.sheet.title;
+    const sheet = this.getSheetFromCache();
+    const timestampCreated = Date.parse(sheet.dateCreated)/1000;
+    var title = sheet.title;
     var authorStatement;
 
-    if (this.props.sheet.attribution) {
-      authorStatement = this.props.sheet.attribution;
+    if (sheet.attribution) {
+      authorStatement = sheet.attribution;
     }
-    else if (this.props.sheet.assignerName) {
-      authorStatement = "Assigned by <a href='"+this.props.sheet.assignerOwnerProfileUrl + "'>" + this.props.sheet.assignerName +" Completed by <a href='" + this.props.sheet.ownerProfileUrl + "'>" + this.props.sheet.ownerName + "</a>";
+    else if (sheet.assignerName) {
+      authorStatement = "Assigned by <a href='"+sheet.assignerOwnerProfileUrl + "'>" + sheet.assignerName +" Completed by <a href='" + sheet.ownerProfileUrl + "'>" + sheet.ownerName + "</a>";
     }
-    else if (this.props.sheet.viaOwnerName) {
-      authorStatement = "by <a href='" + this.props.sheet.ownerProfileUrl + "'>" + this.props.sheet.ownerName + "</a> based on a <a href='/sheets/"+this.props.sheet.via+"'>sheet</a> by <a href='"+ this.props.sheet.viaOwnerProfileUrl + "'>" + this.props.sheet.viaOwnerName+"</a>";
+    else if (sheet.viaOwnerName) {
+      authorStatement = "by <a href='" + sheet.ownerProfileUrl + "'>" + sheet.ownerName + "</a> based on a <a href='/sheets/"+sheet.via+"'>sheet</a> by <a href='"+ sheet.viaOwnerProfileUrl + "'>" + sheet.viaOwnerName+"</a>";
     }
     else {
-      authorStatement = "by <a href='" + this.props.sheet.ownerProfileUrl + "'>" + this.props.sheet.ownerName + "</a>";
+      authorStatement = "by <a href='" + sheet.ownerProfileUrl + "'>" + sheet.ownerName + "</a>";
     }
-
 
 
     // Text Details
-    var details = this.props.sheet.summary;
+    var details = sheet.summary;
 
     var closeClick = this.props.close;
     var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel, noLangToggleInHebrew: this.props.interfaceLang == 'hebrew'});
@@ -226,46 +223,46 @@ class SheetMetadata extends Component {
                     </div>
 
                     <div className="tocDetail authorStatement">
-                        <div className="groupListingImageBox imageBox">
-                            <a href={this.props.sheet.ownerProfileUrl}>
-                                <img className="groupListingImage img-circle" src={this.props.sheet.ownerImageUrl} alt="Author Avatar" />
+                        <div className="collectionListingImageBox imageBox">
+                            <a href={sheet.ownerProfileUrl}>
+                                <img className="collectionListingImage img-circle" src={sheet.ownerImageUrl} alt="Author Avatar" />
                             </a>
                         </div>
                         <span dangerouslySetInnerHTML={ {__html: authorStatement} }></span>
                     </div>
 
-                    {this.props.sheet.group && this.props.sheet.group != "" ?
+                    {sheet.displayedCollection ?
                     <div className="tocDetail authorStatement">
-                        <div className="groupListingImageBox imageBox">
-                            <a href={"/groups/"+this.props.sheet.group}>
-                                <img className="groupListingImage img-circle" src={this.props.sheet.groupLogo} alt="Group Logo" />
+                        <div className="collectionListingImageBox imageBox">
+                            <a href={"/collections/" + sheet.displayedCollection}>
+                              <img className={classNames({collectionListingImage:1, "img-circle": 1, default: !sheet.collectionImage})} src={sheet.collectionImage || "/static/icons/collection.svg"} alt="Collection Logo"/>
                             </a>
                         </div>
-                        <a href={"/groups/"+this.props.sheet.group}>{this.props.sheet.group}</a>
+                        <a href={"/collections/" + sheet.displayedCollection}>{sheet.collectionName}</a>
                     </div> : null }
                     <div className="sheetMeta">
                       <div className="int-en">
-                          Created {this.props.sheet.naturalDateCreated} · {this.props.sheet.views} Views · { !!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--'} Saves
+                          Created {Sefaria.util.naturalTime(timestampCreated, "en")} ago · {sheet.views} Views · { !!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--'} Saves
                       </div>
                       <div className="int-he">
-                          <span>נוצר {this.props.sheet.naturalDateCreated} · </span>
-                          <span>{this.props.sheet.views} צפיות · </span>
-                          <span>קיבלת {!!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--' } לייקים </span>
+                          <span>נוצר לפני  {Sefaria.util.naturalTime(timestampCreated, "he")} · </span>
+                          <span>{sheet.views} צפיות · </span>
+                          <span> {!!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--' } שמירות </span>
                       </div>
                     </div>
 
-                      {this.generateSheetMetaDataButtons()}
+                    {this.generateSheetMetaDataButtons()}
 
                     <div className="tocDetails">
                       {details ? <div className="description" dangerouslySetInnerHTML={ {__html: details} }></div> : null}
                     </div>
-                    {this.props.sheet.topics && this.props.sheet.topics.length > 0 ?
+                    {sheet.topics && sheet.topics.length > 0 ?
                     <div className="tagsSection">
                         <h2 className="tagsTitle int-en">Tags</h2>
                         <h2 className="tagsTitle int-he">תוית</h2>
 
                         <div className="sheetTags">
-                          {this.props.sheet.topics.map((topic, i) => (
+                          {sheet.topics.map((topic, i) => (
                               <a href={"/topics/" + topic.slug}
                                 target="_blank"
                                 className="sheetTag button"
@@ -278,7 +275,6 @@ class SheetMetadata extends Component {
                         </div>
                     </div> : null }
 
-
                   </div>
                 </div>
               </div>
@@ -286,6 +282,7 @@ class SheetMetadata extends Component {
   }
 }
 SheetMetadata.propTypes = {
+  id:               PropTypes.number.isRequired,
   mode:             PropTypes.string.isRequired,
   settingsLanguage: PropTypes.string.isRequired,
   versionLanguage:  PropTypes.string,

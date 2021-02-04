@@ -11,7 +11,7 @@ import {
     SheetMetaDataBox,
     SheetAuthorStatement,
     SheetTitle,
-    GroupStatement,
+    CollectionStatement,
     ProfilePic,
 } from './Misc';
 
@@ -292,23 +292,20 @@ const defaultSheetTitle = (title) => {
 
 const defaultEmptyOutsideText = (sheetNodeNumber, textFragment) => {
   return {
-        type: "SheetItem",
-        children: [{
             type: "SheetOutsideText",
             node: sheetNodeNumber,
             children: [{
                 type: "paragraph",
                 children: [{text: textFragment}]
-            }],
-        }]
-    }
+            }]
+          }
 }
 
 function getInitialSheetNodes(sheet) {
   return sheet["sources"].map(source => source["node"])
 }
 
-function transformSheetJsonToDraft(sheet) {
+function transformSheetJsonToSlate(sheet) {
     const sheetTitle = sheet.title.stripHtmlKeepLineBreaks();
 
     let curNextNode = sheet.nextNode;
@@ -326,16 +323,15 @@ function transformSheetJsonToDraft(sheet) {
       //-------//
 
 
-      sourceNodes.push({
-          type: "SheetItem",
-          children: [renderSheetItem(source)]
-      });
+      sourceNodes.push(
+        renderSheetItem(source)
+      );
 
 
     });
 
     // Ensure there's always something to edit at bottom of sheet.
-    if (sourceNodes.length == 0 || (sourceNodes[sourceNodes.length - 1]["children"][0]["type"] != "SheetOutsideText")) {
+    if (sourceNodes.length == 0 || (sourceNodes[sourceNodes.length - 1]["children"] && sourceNodes[sourceNodes.length - 1]["children"][0]["type"] != "SheetOutsideText")) {
         sourceNodes.push({
           type: "spacer",
           children: [{text: ""}]
@@ -346,7 +342,6 @@ function transformSheetJsonToDraft(sheet) {
         {
             type: 'Sheet',
             status: sheet.status,
-            group: sheet.group || "",
             views: sheet.views,
             tags: sheet.tags || [],
             includedRefs: sheet.includedRefs,
@@ -364,9 +359,10 @@ function transformSheetJsonToDraft(sheet) {
             authorStatement: sheet.ownerName,
             authorImage: sheet.ownerImageUrl,
             title: sheet.title,
-            groupLogo: sheet.groupLogo || "",
+            displayedCollection: sheet.displayedCollection || "",
+            collectionName: sheet.collectionName || "",
+            collectionImage: sheet.collectionImage || "",
             likes: sheet.likes || [],
-
             children: [
                 {
                     type: 'SheetContent',
@@ -443,6 +439,8 @@ const SheetSourceElement = ({ attributes, children, element }) => {
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
 
   return (
+    <div className={"sheetItem"}>
+    {children}
     <div {...attributes} contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
         <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div>
@@ -469,12 +467,15 @@ const SheetSourceElement = ({ attributes, children, element }) => {
           </Slate>
         </div>
       </div>
-    </div>
+      </div>
+      <div className="clearFix"></div>
+      </div>
   );
 }
 
 const Element = props => {
     const { attributes, children, element } = props
+    const sheetItemClasses = `sheetItem ${Node.string(element) ? '':'empty'} ${element.type != ("SheetSource" || "SheetOutsideBiText") ? 'noPointer': ''}`;
     switch (element.type) {
         case 'spacer':
           return (
@@ -482,14 +483,6 @@ const Element = props => {
               {children}
             </div>
           )
-        case 'SheetItem':
-            const sheetItemClasses = `sheetItem ${Node.string(element) ? '':'empty'}`;
-            return (
-                <div className={sheetItemClasses} {...attributes}>
-                    {children}
-                <div className="clearFix"></div>
-                </div>
-            );
         case 'SheetSource':
             return (
               <SheetSourceElement {...props} />
@@ -497,46 +490,63 @@ const Element = props => {
 
         case 'SheetComment':
             return (
+              <div className={sheetItemClasses} {...attributes}>
                 <div className="SheetComment segment" {...attributes}>
                     {children}
                 </div>
-            );
-
+                <div className="clearFix"></div>
+              </div>
+            )
         case 'SheetOutsideText':
                 const SheetOutsideTextClasses = `SheetOutsideText segment ${element.lang}`;
                 return (
-                <div className={SheetOutsideTextClasses} {...attributes}>
-                    {element.loading ? <div className="sourceLoader"></div> : null}
-                    {children}
-                </div>
+                  <div className={sheetItemClasses} {...attributes}>
+                    <div className={SheetOutsideTextClasses} {...attributes}>
+                        {element.loading ? <div className="sourceLoader"></div> : null}
+                        {children}
+                    </div>
+                    <div className="clearFix"></div>
+                  </div>
             );
 
         case 'SheetOutsideBiText':
             return (
+              <div className={sheetItemClasses} {...attributes}>
                 <div className="SheetOutsideBiText segment" {...attributes}>
                     {children}
                 </div>
+                <div className="clearFix"></div>
+              </div>
             );
 
         case 'SheetMedia':
+            let mediaComponent
 
             if (element.mediaUrl.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
-              return <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
+              mediaComponent = <div className="SheetMedia media"><img className="addedMedia" src={element.mediaUrl} />{children}</div>
             }
             else if (element.mediaUrl.toLowerCase().indexOf('youtube') > 0) {
-              return <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
+              mediaComponent = <div className="media fullWidth SheetMedia"><div className="youTubeContainer"><iframe width="100%" height="100%" src={element.mediaUrl} frameBorder="0" allowFullScreen></iframe>{children}</div></div>
             }
             else if (element.mediaUrl.toLowerCase().indexOf('soundcloud') > 0) {
-              return <div className="SheetMedia media fullWidth"><iframe width="100%" height="166" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
+              mediaComponent = <div className="SheetMedia media fullWidth"><iframe width="100%" height="166" scrolling="no" frameBorder="no" src={element.mediaUrl}></iframe>{children}</div>
             }
 
             else if (element.mediaUrl.match(/\.(mp3)$/i) != null) {
-              return <div className="SheetMedia media fullWidth"><audio src={element.mediaUrl} type="audio/mpeg" controls>Your browser does not support the audio element.</audio>{children}</div>
+              mediaComponent= <div className="SheetMedia media fullWidth"><audio src={element.mediaUrl} type="audio/mpeg" controls>Your browser does not support the audio element.</audio>{children}</div>
             }
 
             else {
-              return <div className="SheetMedia media fullWidth">{children}</div>
+              mediaComponent = <div className="SheetMedia media fullWidth">{children}</div>
             }
+
+            return (
+              <div className={sheetItemClasses} {...attributes}>
+                {mediaComponent}
+                <div className="clearFix"></div>
+              </div>
+            );
+
 
         case 'he':
             const heSelected = useSelected();
@@ -619,11 +629,11 @@ const getNextSheetItemPath = (SheetItemPath) => {
 };
 
 async function getRefInText(editor, additionalOffset=0) {
-  const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")
-  if (!closestSheetItem) {return {}}
+  const closestSheetOutsideText = getClosestSheetElement(editor, editor.selection.focus.path, "SheetOutsideText")
+  if (!closestSheetOutsideText) {return {}}
 
   const paragraphsToCheck = Array.from(Editor.nodes(editor, {
-    at: closestSheetItem[1],
+    at: closestSheetOutsideText[1],
     match: n => n.type === "paragraph"
   }));
 
@@ -694,7 +704,7 @@ async function getRefInText(editor, additionalOffset=0) {
 
 
 const withSefariaSheet = editor => {
-    const {insertData, isVoid, normalizeNode} = editor;
+    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward} = editor;
 
     //Hack to override this built-in which often returns null when programmatically selecting the whole SheetSource
     Transforms.deselect = () => {}
@@ -704,102 +714,34 @@ const withSefariaSheet = editor => {
     };
 
 
-    const { deleteBackward } = editor
-
-    editor.deleteBackward = (...args) => {
-      const { selection } = editor;
-
-      if (selection && Range.isCollapsed(selection)) {
-        //
-        // This is a bit of a hack to ensure back spacing into a spacer
-        // gives the expected behavior.
-        //
-        // Without this, if one backspaces into a spacer from another SheetItem
-        // the sheet item loses its node id and it deletes some of the children.
-        // Instead, this function moves a space back to see if one would backspace
-        // into a spacer. If so, it stays there and then backspaces from the spacer
-        // moving up the SheetItem and no one is the wiser.
-        //
-        // If it's not in a spacer, the cursor returns to its previous position
-        // and deletes as expected, again, with no one the wiser...
-        //
-
-        Transforms.move(editor, { reverse: true })
-
-        const [match] = Editor.nodes(editor, {
-          match: n => n.type === 'spacer',
-        })
-        if (match) {
-          Transforms.move(editor, { reverse: true }) //move back one more spot and see if it's a SheetSource
-          const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem");
-          if (closestSheetItem && closestSheetItem[0]["children"][0].type == "SheetSource") {
-            Transforms.move(editor)
-            return
-          }
+    editor.deleteBackward = () => {
+        //if just before sheetSource, select it instead of delete
+        if (!getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+            Transforms.move(editor, { reverse: true })
+            if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+               return
+            }
+            else {
+                Editor.deleteForward(editor)
+                return;
+                }
         }
+
         else {
-          Transforms.move(editor)
+            deleteBackward()
+            return
         }
-        // end hacky spacer delete function
 
-        checkAndDeleteVoidAtPath(editor.selection.focus.path)
-      }
-      deleteBackward(...args)
     }
-
-    const { deleteForward } = editor
-
-    editor.deleteForward = (...args) => {
-      const { selection } = editor;
-
-      if (selection && Range.isCollapsed(selection)) {
-        //
-        // This is a bit of a hack to ensure that hitting delete in a spacer
-        // gives the expected behavior.
-        //
-        // Without this, if one hits delete in a spacer from another the SheetItem
-        // below loses its node id and it deletes some of the children.
-        //
-        const [match] = Editor.nodes(editor, {
-          match: n => n.type === 'spacer',
-        })
-        if (match) {
-          Transforms.move(editor)
-          editor.deleteBackward(...args)
-          return
-        }
-        // end hacky spacer delete function
-
-        checkAndDeleteVoidAtPath(editor.selection.focus.path)
-
-      }
-      deleteForward(...args)
-    }
-
-    const checkAndDeleteVoidAtPath = (path) => {
-      console.log(path)
-      var voidMatch = Editor.void(editor, {
-        at: path
-      });
-
-      if (voidMatch) {
-        event.preventDefault()
-        Transforms.delete(editor, {
-          at: voidMatch[1]
-        });
-      }
-    }
-
-
-
 
     editor.insertBreak = () => {
 
-        // if (!Range.isCollapsed(editor.selection)) {
-        //     editor.insertText("\n");
-        //     return
-        // }
-
+        // if enter in middle of line in SheetOutsideText insert soft break
+        if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetOutsideText") &&
+            !Point.equals(editor.selection.focus, Editor.end(editor, editor.selection.focus.path))) {
+                insertBreak()
+                return
+            }
 
         getRefInText(editor).then(query =>{
 
@@ -865,69 +807,44 @@ const withSefariaSheet = editor => {
       let sheetElementTypes = Object.values(sheet_item_els);
 
       if (node.type == "SheetOutsideText") {
-        const sheetItemAbove = (getNodeAbove(Path.parent(path)))
-        const sheetItemBelow = (getNodeBelow(Path.parent(path)))
-
-        //logic to merge sheetoutside text w/ adjacent SheetOutsideTexts above
-        if (sheetItemAbove.node && sheetItemAbove.node.children.length > 0 && sheetItemAbove.node.children[0].type == "SheetOutsideText") {{
-          const target = sheetItemAbove.path.concat([0])
-
-          const nodesToMove = Node.get(editor, target).children.length
-
-          for (let i = 0; i < nodesToMove; i++) {
-            Transforms.moveNodes(editor, { to: path.concat([0]), at: target.concat([nodesToMove-1-i]) })
-          }
-
-          Transforms.removeNodes(editor, { at: sheetItemAbove.path })
-
-          return
-
-
-        }}
-
-        //logic to merge sheetoutside text w/ adjacent SheetOutsideTexts below
-        if (sheetItemBelow.node && sheetItemBelow.node.children.length > 0 && sheetItemBelow.node.children[0].type == "SheetOutsideText") {{
-          const target = sheetItemBelow.path.concat([0])
-
-          const nodesToMove = Node.get(editor, target).children.length
-          const currentParagraphs = node.children.length
-
-          for (let i = 0; i < nodesToMove; i++) {
-            Transforms.moveNodes(editor, { to: path.concat([currentParagraphs+i]), at: target.concat([0]) })
-          }
-
-          Transforms.removeNodes(editor, { at: sheetItemBelow.path })
-
-          return
-
-        }}
-
 
         // Autoset language of an outside text for proper RTL/LTR handling
           const content = Node.string(node);
           const lang = Sefaria.hebrew.isHebrew(content) ? 'he' : 'en';
           Transforms.setNodes(editor, { lang: lang }, {at: path});
 
-      }
 
-      if (node.type == "Sheet") {
-        // if (node.children.length < 2) {
-        //   console.log('bad state -- sheet lost children')
-        // }
+          //solve issue of children content
+          for (const [child, childPath] of Node.children(editor, path)) {
+
+            //if there's raw text, wrap it in a pagraph
+            if (child.text) {
+            Transforms.wrapNodes(editor,
+              {
+                  type: "paragraph",
+                  children: [child],
+                  }
+                            ,{ at: childPath })
+              return
+            }
+          }
+
+          //merge with adjacent outside texts:
+          const nodeAbove = getNodeAbove(path)
+          const nodeBelow = getNodeBelow(path)
+
+          if (nodeAbove.node && nodeAbove.node.type == "SheetOutsideText") {
+              Transforms.mergeNodes(editor, { at: path})
+              return
+          }
+          if (nodeBelow.node && nodeBelow.node.type == "SheetOutsideText") {
+              Transforms.mergeNodes(editor, {at: nodeBelow.path})
+          }
       }
 
       if (node.type == "SheetContent") {
         // If sheet elements are in sheetcontent and not wrapped in sheetItem, wrap it.
         for (const [child, childPath] of Node.children(editor, path)) {
-          if (sheetElementTypes.includes(child.type)) {
-            Transforms.wrapNodes(editor,
-              {
-                  type: "SheetItem",
-                  children: [child],
-                  }
-                            ,{ at: childPath })
-            return
-          }
           if (child.hasOwnProperty('text')) {
 
             const fragmentText = child.text
@@ -956,117 +873,73 @@ const withSefariaSheet = editor => {
           }
         }
         }
+
+        //ensure there's always an editable space for a user to type at end and top of sheet
+        const lastSheetItem = node.children[node.children.length-1]
+        if (lastSheetItem.type != "spacer" && lastSheetItem.type != "SheetOutsideText") {
+            Transforms.insertNodes(editor,{type: 'spacer', children: [{text: ""}]}, {at: Editor.end(editor, [0,0])});
+            return
+        }
+
+        const firstSheetItem = node.children[0]
+        if (firstSheetItem.type != "spacer" && firstSheetItem.type != "SheetOutsideText") {
+            Transforms.insertNodes(editor,{type: 'spacer', children: [{text: ""}]}, {at: [0,0,0]});
+            return
+        }
       }
 
 
       if (node.type == "spacer") {
+
+        //Convert a spacer to an outside text if there's text inside it.
         if (Node.string(node) !== "") {
 
           const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, Node.string(node))
           const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,0]))
 
+          //This dance is required b/c it can't be changed in place
+          // it exits the spacer, deletes it, then places the new outside text in its place
           Transforms.move(editor);
           Transforms.delete(editor, {at: path});
           Transforms.insertNodes(editor, fragment, { at: path });
           incrementNextSheetNode(editor);
-          if (atEndOfDoc) {
-            // Transforms.move(editor, {to: Editor.end(editor, path)} )
-            Transforms.move(editor)
-            Transforms.move(editor, {unit: 'line', distance: 1})
 
+          if (atEndOfDoc) {
+            // sometimes the delete action above loses the cursor
+            //  at the end of the doc, this drops you back in place
+            ReactEditor.focus(editor)
+            Transforms.select(editor, Editor.end(editor, []));
           }
           else {
+            // gain back the cursor position that we exited above
             Transforms.move(editor, { reverse: true })
           }
           return
         }
-        if (Node.parent(editor, path).type != "SheetContent") {
-          Transforms.liftNodes(editor, { at: path })
-            return
-        }
+
+      //If a spacer gets stuck inside some other element, lift it up to top level
+      if (Node.parent(editor, path).type != "SheetContent") {
+        Transforms.liftNodes(editor, { at: path })
+          return
       }
-
-      if (node.type == "SheetItem") {
-        // All SheetItems should be children of Sheetcontent
-        if (Node.parent(editor, path).type != "SheetContent") {
-          Transforms.liftNodes(editor, { at: path })
-            return
-        }
-
-        for (const [child, childPath] of Node.children(editor, path)) {
-          //lift spacers to top level
-          if (child.type == "spacer") {
-              Transforms.liftNodes(editor, { at: childPath })
-                return
-            }
-          //delete blank text nodes
-          else if (child.text === "") {
-            Transforms.delete(editor, {at: path});
-          }
-          //enforce requirement that sheetItems only be of a specific type
-          else if (!sheetElementTypes.includes(child.type)) {
-            Transforms.unwrapNodes(editor, { at: childPath })
-            return
-          }
-          //don't allow more than a single block element in a sheet Item
-          else if (node.children && node.children.length > 1) {
-            Transforms.liftNodes(editor, { at: childPath })
-            return
-          }
-
-        }
-
-        if (node.children[0] && node.children[0].type !== "SheetOutsideText") {
-          const belowNode = getNodeBelow(path)
-          const aboveNode = getNodeAbove(path)
-
-          if (!belowNode.node) {
-            Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: Editor.end(editor, path) });
-            return
-        }
-          else if (belowNode.node.type !== "spacer") {
-            Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: belowNode.path });
-            return
-          }
-
-          if (!aboveNode.node) {
-            Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: Editor.start(editor, path) });
-            return
-        }
-          else if (aboveNode.node.type !== "spacer") {
-            Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: aboveNode.path });
-            return
-          }
-        }
-      }
+    }
 
       if (sheetElementTypes.includes(node.type)) {
         //Any nested sheet element should be lifted
-
-        if (Node.parent(editor, path).type == "SheetContent") {
-          Transforms.wrapNodes(editor,
-            {
-                type: "SheetItem",
-                children: [node],
-                }
-                          ,{ at: path })
-          return
-        }
-
-        if (Node.parent(editor, path).type !== "SheetItem") {
+        if (Node.parent(editor, path).type !== "SheetContent") {
           Transforms.liftNodes(editor, { at: path })
+          return
         }
       }
 
-      //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
       if (["SheetSource", "SheetOutsideBiText"].includes(node.type)) {
+        //anything pasted into a sheet source object or a sheet outsideBiText will be treated just as text content
         for (const [child, childPath] of Node.children(editor, path)) {
-          if (sheetElementTypes.includes(child.type) || child.type == "SheetItem") {
+          if (sheetElementTypes.includes(child.type)) {
             Transforms.unwrapNodes(editor, { at: childPath })
             return
           }
         }
-
       }
 
       if (node.type == "he" || node.type == "en") {
@@ -1093,16 +966,11 @@ const withSefariaSheet = editor => {
           }
       }
 
-      //if a sheetitem is stuck somewhere it shouldnt be raise it up to proper doc level
-      if (node.type == "SheetItem" && (Node.parent(editor, path)).type != "SheetContent") {
-          Transforms.liftNodes(editor, { at: path })
-      }
-
       //if a sheetSource is stuck somewhere it shouldnt be raise it up to proper doc level
-      if (node.type == "SheetSource" && (Node.parent(editor, path)).type != "SheetItem") {
-          Transforms.liftNodes(editor, { at: path })
+      if (node.type == "SheetSource" && (Node.parent(editor, path)).type != "SheetContent") {
+        Transforms.liftNodes(editor,{ at: path })
+        return
       }
-
 
       // Fall back to the original `normalizeNode` to enforce other constraints.
       normalizeNode(entry)
@@ -1141,10 +1009,10 @@ const incrementNextSheetNode = (editor) => {
 }
 
 const addItemToSheet = (editor, fragment, position) => {
-    const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")[1];
-    const nextSheetItemPath = Path.isPath(position) ? position : position == "top" ? closestSheetItem : getNextSheetItemPath(closestSheetItem);
+    // const closestSheetItem = getClosestSheetElement(editor, editor.selection.focus.path, "SheetItem")[1];
+    // const nextSheetItemPath = Path.isPath(position) ? position : position == "top" ? closestSheetItem : getNextSheetItemPath(closestSheetItem);
     incrementNextSheetNode(editor);
-    Transforms.insertNodes(editor, fragment, {at: nextSheetItemPath});
+    Transforms.insertNodes(editor, fragment);
 };
 
 
@@ -1152,10 +1020,9 @@ const addItemToSheet = (editor, fragment, position) => {
 const checkAndFixDuplicateSheetNodeNumbers = (editor) => {
   let existingSheetNodes = []
   for (const [child, childPath] of Node.children(editor, [0,0])) {
-    const sheetNode = child.children[0];
+    const sheetNode = child;
     if (existingSheetNodes.includes(sheetNode.node)) {
-      const newNodeEditPath = childPath.concat([0]);
-      Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: newNodeEditPath});
+      Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: childPath});
       existingSheetNodes.push(editor.children[0].nextNode);
       incrementNextSheetNode(editor)
     }
@@ -1167,15 +1034,12 @@ const checkAndFixDuplicateSheetNodeNumbers = (editor) => {
 
 const insertMedia = (editor, mediaUrl) => {
   const fragment = {
-      type: "SheetItem",
-      children: [{
           type: "SheetMedia",
           mediaUrl: mediaUrl,
           node: editor.children[0].nextNode,
           children: [{
                   text: ""
               }]
-      }]
   };
   addItemToSheet(editor, fragment, "bottom");
   Transforms.move(editor);
@@ -1191,8 +1055,6 @@ const insertSource = (editor, ref, path=null) => {
         const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
 
         const fragment = {
-            type: "SheetItem",
-            children: [{
                 type: "SheetSource",
                 node: editor.children[0].nextNode,
                 ref: text.ref,
@@ -1203,7 +1065,6 @@ const insertSource = (editor, ref, path=null) => {
                 children: [
                     {text: ""},
                 ]
-            }]
         };
         Transforms.setNodes(editor, { loading: false }, { at: currentNode[1] });
         addItemToSheet(editor, fragment, path ? path : "bottom");
@@ -1377,12 +1238,12 @@ const FormatButton = ({format}) => {
 };
 
 function saveSheetContent(doc, lastModified) {
-    const sheetTitle = document.querySelector(".sheetContent .sheetMetaDataBox .title").textContent;
+    const sheetTitle = document.querySelector(".sheetContent .sheetMetaDataBox .title") ? document.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
 
     const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
 
     const sources = sheetContent.map(item => {
-        const sheetItem = item.children[0];
+        const sheetItem = item;
         switch (sheetItem.type) {
             case 'SheetSource':
 
@@ -1447,13 +1308,13 @@ function saveSheetContent(doc, lastModified) {
     });
     let sheet = {
         status: doc.status,
-        group: doc.group,
         id: doc.id,
         promptedToPublish: doc.promptedToPublish,
         lastModified: lastModified,
         summary: doc.summary,
         options: doc.options,
         tags: doc.tags,
+        displayedCollection: doc.displayedCollection,
         title: sheetTitle == "" ? "Untitled" : sheetTitle,
         sources: sources.filter(x => !!x),
         nextNode: doc.nextNode,
@@ -1468,7 +1329,7 @@ function saveSheetContent(doc, lastModified) {
 
 const SefariaEditor = (props) => {
     const sheet = props.data;
-    const initValue = transformSheetJsonToDraft(sheet);
+    const initValue = transformSheetJsonToSlate(sheet);
     const renderElement = useCallback(props => <Element {...props} />, []);
     const [value, setValue] = useState(initValue)
     const [sheetNodes, setSheetNodes] = useState(getInitialSheetNodes(sheet))
@@ -1503,7 +1364,9 @@ const SefariaEditor = (props) => {
             setlastModified(res.dateModified);
             // console.log("saved at: "+ res.dateModified);
             setUnsavedChanges(false)
-            Sefaria.sheets._loadSheetByID[doc[0].id] = null
+
+            const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
+            Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
         });
     }
 
@@ -1560,9 +1423,18 @@ const SefariaEditor = (props) => {
         []
     );
 
+
     return (
-        // Add the editable component inside the context.
         <div>
+        {
+          /* debugger */
+
+          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: 1000, backgroundColor: '#ddd', fontSize: 12, zIndex: 9999}}>
+          // {JSON.stringify(editor.children[0,0])}
+          // </div>
+
+        }
+
         <SheetMetaDataBox>
             <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
             <SheetAuthorStatement
@@ -1577,9 +1449,10 @@ const SefariaEditor = (props) => {
               />
               <span>by <a href={sheet.ownerProfileUrl}>{sheet.ownerName}</a></span>
             </SheetAuthorStatement>
-            <GroupStatement
-                group={sheet.group}
-                groupLogo={sheet.groupLogo}
+            <CollectionStatement
+                name={sheet.collectionName}
+                slug={sheet.displayedCollection}
+                image={sheet.collectionImage}
             />
         </SheetMetaDataBox>
 

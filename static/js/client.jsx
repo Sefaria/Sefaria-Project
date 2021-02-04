@@ -6,10 +6,10 @@ const SefariaReact = require('./ReaderApp');
 
 
 $(function() {
-  var container = document.getElementById('s2');
-  var loadingPlaceholder = document.getElementById('appLoading');
-  var footerContainer = document.getElementById('footerContainer');
-  var component;
+  let container = document.getElementById('s2');
+  const loadingPlaceholder = document.getElementById('appLoading');
+  const footerContainer = document.getElementById('footerContainer');
+  let component = null;
   DjangoCSRF.init();
   var renderFunc = ReactDOM.hydrate;
   if (loadingPlaceholder){
@@ -23,21 +23,9 @@ $(function() {
 
   } else {
     // Rendering the Header & Footer only on top of a static page
-    var settings = {
-      language: DJANGO_VARS.contentLang,
-      layoutDefault: $.cookie("layoutDefault") || "segmented",
-      layoutTalmud:  $.cookie("layoutTalmud")  || "continuous",
-      layoutTanakh:  $.cookie("layoutTanakh")  || "segmented",
-      color:         $.cookie("color")         || "light",
-      biLayout:      $.cookie("biLayout")      || "stacked",
-      fontSize:      $.cookie("fontSize")      || 62.5,
-      aliyotTorah:   $.cookie("aliyotTorah")   || "aliyotOff",
-      vowels:        $.cookie("vowels")        || "all"
-    };
-    var multiPanel = $(window).width() > 600;
-    component = React.createElement(SefariaReact.ReaderApp, {
+    let staticProps = {
+      multiPanel: $(window).width() > 600,
       headerMode: true,
-      multiPanel: multiPanel,
       initialRefs: [],
       initialFilter: [],
       initialMenu: null,
@@ -45,10 +33,12 @@ $(function() {
       initialSheetsTag: null,
       initialNavigationCategories: [],
       initialNavigationTopicCategory: "",
-      initialSettings: settings,
       initialPanels: [],
-      interfaceLang: DJANGO_VARS.interfaceLang
-    });
+    };
+
+    let mergedStaticProps = { ...DJANGO_VARS.props, ...staticProps };
+    Sefaria.unpackDataFromProps(mergedStaticProps);
+    component = React.createElement(SefariaReact.ReaderApp, mergedStaticProps);
     renderFunc(component, container);
     if (footerContainer){
       renderFunc(React.createElement(SefariaReact.Footer), footerContainer);

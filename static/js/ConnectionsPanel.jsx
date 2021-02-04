@@ -420,10 +420,11 @@ class ConnectionsPanel extends Component {
 
     } else if (this.props.mode == "Add Connection To Sheet"){
         let refForSheet = (this.props.connectionData && "connectionRefs" in this.props.connectionData) ? this.props.connectionData["connectionRefs"] : this.props.srefs;
+        let versionsForSheet = (this.props.connectionData && "versions" in this.props.connectionData) ? this.props.connectionData["versions"] : {"en":null,"he":null};
         content = (<div>
                   <AddToSourceSheetBox
                     srefs={refForSheet}
-                    currVersions={{"en":null,"he":null}} //sidebar doesn't actually do versions
+                    currVersions={versionsForSheet} //sidebar doesn't actually do versions
                     contentLanguage={this.props.masterPanelLanguage}
                     selectedWords={null}
                     nodeRef = {this.props.nodeRef}
@@ -645,11 +646,12 @@ class ResourcesList extends Component {
               <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
               {this.props.webpagesCount && this.props.webpagesCount > 0 ? <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} /> : null }
               {this.props.topicsCount && this.props.topicsCount > 0 ? <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={this.props.topicsCount} onClick={() => this.props.setConnectionsMode("Topics")} /> : null }
-              <ToolsButton en="Translations" he="תרגומים" image="layers.png" onClick={() => this.props.setConnectionsMode("Translations")} />
+              <ToolsButton en="Translations" he="תרגומים" image="translation.svg" onClick={() => this.props.setConnectionsMode("Translations")} />
               <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
               {this.props.audioCount && this.props.audioCount > 0 ? <ToolsButton en="Torah Readings" he="קריאה בתורה" image="audio.svg" onClick={() => this.props.setConnectionsMode("Torah Readings")} /> : null }
               <ToolsButton en="Chavruta" he="חברותא" image="video.svg" onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Chavruta")} />
+              <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
               <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
               <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
@@ -672,8 +674,6 @@ class SheetNodeConnectionTools extends Component {
                 <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
               : null }
                 <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
-
-                <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
                 <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
             </div>);
   }
@@ -804,6 +804,13 @@ class PublicSheetsList extends Component {
     var content = sheets.length ? sheets.filter(sheet => {
       // My sheets are shown already in MySheetList
       return sheet.owner !== Sefaria._uid && sheet.id !== this.props.connectedSheet;
+    }).sort((a,b ) => {
+      // First sort by language / interface language
+      let aHe, bHe;
+      [aHe, bHe] = [a.title, b.title].map(Sefaria.hebrew.isHebrew);
+      if (aHe !== bHe) { return (bHe ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
+      // Then by number of views
+      return b.views - a.views;
     }).map(sheet => {
       return (<SheetListing sheet={sheet} key={sheet.sheetUrl} handleSheetClick={this.props.handleSheetClick} connectedRefs={this.props.srefs} />)
     }, this) : null;
@@ -814,6 +821,7 @@ PublicSheetsList.propTypes = {
   srefs: PropTypes.array.isRequired,
   connectedSheet: PropTypes.string,
 };
+
 
 const TopicList = ({ srefs, interfaceLang, contentLang }) => {
   // segment ref topicList can be undefined even if loaded
@@ -883,6 +891,14 @@ class WebPagesList extends Component {
   setFilter(filter) {
     this.props.setWebPagesFilter(filter);
   }
+  webSitesSort(a, b) {
+    // First sort by site language / interface language
+    let aHe, bHe;
+    [aHe, bHe] = [a.name, b.name].map(Sefaria.hebrew.isHebrew);
+    if (aHe !== bHe) { return (bHe ? -1 : 1) * (Sefaria.interfaceLang === "hebrew" ? -1 : 1); }
+    // Then by number of pages
+    return b.count - a.count;
+  }
   render() {
     let webpages = Sefaria.webPagesByRef(this.props.srefs)
     let content = [];
@@ -896,7 +912,7 @@ class WebPagesList extends Component {
           sites[page.siteName] = {name: page.siteName, faviconUrl: page.faviconUrl, count: 1};
         }
       });
-      sites = Object.values(sites).sort((a, b) => b.count - a.count);
+      sites = Object.values(sites).sort(this.webSitesSort);
       content = sites.map(site => {
         return (<div className="website toolsButton" onClick={()=>this.setFilter(site.name)} key={site.name}>
           <img className="icon" src={site.faviconUrl} />
@@ -977,7 +993,6 @@ class ToolsList extends Component {
 
     return (
       <div>
-        <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
         <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={addTranslation} />
         <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg"onClick={() => !Sefaria._uid  ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Add Connection")} />
         { editText ? (<ToolsButton en="Edit Text" he="עריכת טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
@@ -1044,14 +1059,11 @@ class ShareBox extends Component {
   render() {
     var url = this.props.url;
 
-    // Not quite working...
-    // var fbButton = <iframe src={"https://www.facebook.com/plugins/share_button.php?href=" + encodeURIComponent(this.props.url) + '&layout=button&size=large&mobile_iframe=true&appId=206308089417064&width=73&height=28'} width="73" height="28" style={{border:"none", overflow: "hidden"}} scrolling="no" frameborder="0" allowTransparency="true"></iframe>
-
     var shareFacebook = function() {
       Sefaria.util.openInNewTab("https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(url));
     };
     var shareTwitter = function() {
-      Sefaria.util.openInNewTab("https://twitter.com/home?status=" + url);
+      Sefaria.util.openInNewTab("https://twitter.com/share?url=" + encodeURIComponent(url));
     };
     var shareEmail = function() {
       Sefaria.util.openInNewTab("mailto:?&subject=Text on Sefaria&body=" + url);
@@ -1346,16 +1358,16 @@ class AddConnectionBox extends Component {
 
                 <Dropdown
                   options={[
-                            {value: "",               label: "None"},
-                            {value: "commentary",     label: "Commentary"},
-                            {value: "quotation",      label: "Quotation"},
-                            {value: "midrash",        label: "Midrash"},
-                            {value: "ein mishpat",    label: "Ein Mishpat / Ner Mitsvah"},
-                            {value: "mesorat hashas", label: "Mesorat HaShas"},
-                            {value: "reference",      label: "Reference"},
-                            {value: "related",        label: "Related Passage"}
+                            {value: "",               label: Sefaria._("None", "AddConnectionBox")},
+                            {value: "commentary",     label: Sefaria._("Commentary", "AddConnectionBox")},
+                            {value: "quotation",      label: Sefaria._("Quotation", "AddConnectionBox")},
+                            {value: "midrash",        label: Sefaria._("Midrash", "AddConnectionBox")},
+                            {value: "ein mishpat",    label: Sefaria._("Ein Mishpat / Ner Mitsvah", "AddConnectionBox")},
+                            {value: "mesorat hashas", label: Sefaria._("Mesorat HaShas", "AddConnectionBox")},
+                            {value: "reference",      label: Sefaria._("Reference", "AddConnectionBox")},
+                            {value: "related",        label: Sefaria._("Related Passage", "AddConnectionBox")}
                           ]}
-                  placeholder={"Select Type"}
+                  placeholder={Sefaria._("Select Type", "AddConnectionBox")}
                   onSelect={this.setType} />
 
                 <div className="button fillWidth" onClick={this.addConnection}>

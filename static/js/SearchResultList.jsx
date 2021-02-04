@@ -311,7 +311,8 @@ class SearchResultList extends Component {
               <SearchSheetResult
                     data={result}
                     query={this.props.query}
-                    key={result._id} />);
+                    key={result._id}
+                    onResultClick={this.props.onResultClick} />);
         }
 
         var loadingMessage   = (<LoadingMessage message="Searching..." heMessage="מבצע חיפוש..." />);

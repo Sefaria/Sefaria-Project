@@ -22,8 +22,8 @@
 	{% elif notification.type == "follow" %}
 		{{ notification.content.follower|user_link|absolute_link }} {% trans "is now following you" %}.
 	
-	{% elif notification.type == "group add" %}
-        {{ notification.content.adder|user_link|absolute_link  }} {% trans "added you to the group" %} {{ notification.content.group_name|group_link|absolute_link  }}.
+	{% elif notification.type == "collection add" %}
+        {{ notification.content.adder|user_link|absolute_link  }} {% trans "added you to the collection" %} {{ notification.content.collection_slug|collection_link|absolute_link  }}.
 
 	{% elif notification.type == "discuss" %}
 		{{ notification.content.adder|user_link|absolute_link }} {% trans "added a note to a" %}

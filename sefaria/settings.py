@@ -92,10 +92,9 @@ TEMPLATES = [
                     "sefaria.system.context_processors.cache_timestamp",
                     "sefaria.system.context_processors.large_data",
                     "sefaria.system.context_processors.body_flags",
-                    "sefaria.system.context_processors.user_and_notifications",
-                    "sefaria.system.context_processors.calendar_links",
                     "sefaria.system.context_processors.header_html",
                     "sefaria.system.context_processors.footer_html",
+                    "sefaria.system.context_processors.base_props",
             ],
             'loaders': [
                 #'django_mobile.loader.Loader',
@@ -296,10 +295,11 @@ CACHES = {
     }
 }
 
+
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "endOfYear-2020-banner-7",
-    "style":      "banner", # "modal" or "banner"
-    "repetition": 1,
+    "name":       "innovation-2021",
+    "style":      "modal", # "modal" or "banner"
+    "repetition": 2,
     "condition":  {
         "returning_only": False,
         "english_only": False,
@@ -307,12 +307,16 @@ GLOBAL_INTERRUPTING_MESSAGE = {
         "debug": False,
     }
 }
+
 # GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab environment specific settings from a file which
 # is left out of the repo.
-try:
-    from sefaria.local_settings import *
+try: 
+    if os.getenv("CI_RUN"):
+        from sefaria.local_settings_ci import *
+    else:
+        from sefaria.local_settings import *
 except ImportError:
     from sefaria.local_settings_example import *
 

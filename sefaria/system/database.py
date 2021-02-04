@@ -10,7 +10,8 @@ from pymongo.errors import OperationFailure
 if hasattr(sys, '_doc_build'):
     db = ""
 else:
-    TEST_DB = SEFARIA_DB + "_test"
+    # TEST_DB = SEFARIA_DB + "_test"
+    TEST_DB = SEFARIA_DB 
     client = pymongo.MongoClient(MONGO_HOST, MONGO_PORT)
 
     if not hasattr(sys, '_called_from_test'):
@@ -18,12 +19,7 @@ else:
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
             db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
     else:
-        # copydb deprecated in 4.2.  https://docs.mongodb.com/v4.0/release-notes/4.0-compatibility/#deprecate-copydb-clone-cmds
-        if TEST_DB not in client.list_database_names():
-            client.admin.command('copydb',
-                                 fromdb=SEFARIA_DB,
-                                 todb=TEST_DB)
-        db = client[TEST_DB]
+        db = client[TEST_DB] 
         if SEFARIA_DB_USER and SEFARIA_DB_PASSWORD:
             db.authenticate(SEFARIA_DB_USER, SEFARIA_DB_PASSWORD)
 
@@ -37,13 +33,14 @@ def drop_test():
     client.drop_database(TEST_DB)
 
 
-def refresh_test():
-    global client
-    drop_test()
-    # copydb deprecated in 4.2.  https://docs.mongodb.com/v4.0/release-notes/4.0-compatibility/#deprecate-copydb-clone-cmds
-    client.admin.command('copydb',
-                         fromdb=SEFARIA_DB,
-                         todb=TEST_DB)
+# Not used
+# def refresh_test():
+#     global client
+#     drop_test()
+#     # copydb deprecated in 4.2.  https://docs.mongodb.com/v4.0/release-notes/4.0-compatibility/#deprecate-copydb-clone-cmds
+#     client.admin.command('copydb',
+#                          fromdb=SEFARIA_DB,
+#                          todb=TEST_DB)
 
 
 def ensure_indices(active_db=None):
@@ -51,6 +48,12 @@ def ensure_indices(active_db=None):
     indices = [
         ('following', ["follower"],{}),
         ('following', ["followee"],{}),
+        ('groups', ["name"], {}),
+        ('groups', ["sheets"], {}),
+        ('groups', ["slug"], {'unique': True}),
+        ('groups', ["privateSlug"], {'unique': True}),
+        ('groups', ["members"], {}),
+        ('groups', ["admins"], {}),
         ('history', ["revision"],{}),
         ('history', ["method"],{}),
         ('history', [[("ref", pymongo.ASCENDING), ("version", pymongo.ASCENDING), ("language", pymongo.ASCENDING)]],{}),
@@ -66,8 +69,8 @@ def ensure_indices(active_db=None):
         ('history', ["title"],{}),
         ('index', ["title"],{}),
         ('index_queue', [[("lang", pymongo.ASCENDING), ("version", pymongo.ASCENDING), ("ref", pymongo.ASCENDING)]],{'unique': True}),
-        ('links', ["refs"],{}),
-        ('links', [[("refs",  pymongo.ASCENDING), ("generated_by", pymongo.ASCENDING)]],{}),
+        ('links', [[("refs.0",  1), ("refs.1", 1)]], {"unique": True}),
+        ('links', [[("refs", pymongo.ASCENDING), ("generated_by", pymongo.ASCENDING)]],{}),
         ('links', ["refs.0"],{}),
         ('links', ["refs.1"],{}),
         ('links', ["expandedRefs0"],{}),
@@ -94,7 +97,7 @@ def ensure_indices(active_db=None):
         ('sheets', ["owner"],{}),
         ('sheets', ["assignment_id"],{}),
         ('sheets', ["is_featured"],{}),
-        ('sheets', ["group"], {}),
+        ('sheets', ["displayedCollection"], {}),
         ('sheets', [[("views", pymongo.DESCENDING)]],{}),
         ('links', [[("owner", pymongo.ASCENDING), ("date_modified", pymongo.DESCENDING)]], {}),
         ('texts', ["title"],{}),

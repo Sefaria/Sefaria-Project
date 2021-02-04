@@ -218,11 +218,11 @@ class Notification(abst.AbstractMongoRecord):
         self.content["follower"] = follower_id
         return self
 
-    def make_group_add(self, adder_id, group_name):
-        """Make this Notification for being added to a group"""
-        self.type                  = "group add"
-        self.content["adder"]      = adder_id
-        self.content["group_name"] = group_name
+    def make_collection_add(self, adder_id, collection_slug):
+        """Make this Notification for being added to a collection"""
+        self.type                       = "collection add"
+        self.content["adder"]           = adder_id
+        self.content["collection_slug"] = collection_slug
         return self
 
     def make_discuss(self, adder_id=None, discussion_path=None):
@@ -260,12 +260,12 @@ class Notification(abst.AbstractMongoRecord):
     def actor_id(self):
         """The id of the user who acted in this notification"""
         keys = {
-            "message":       "sender",
-            "sheet like":    "liker",
-            "sheet publish": "publisher", 
-            "follow":        "follower",
-            "group add":     "adder",
-            "discuss":       "adder",
+            "message":        "sender",
+            "sheet like":     "liker",
+            "sheet publish":  "publisher", 
+            "follow":         "follower",
+            "collection add": "adder",
+            "discuss":        "adder",
         }
         return self.content[keys[self.type]]
 
