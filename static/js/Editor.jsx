@@ -331,7 +331,7 @@ function transformSheetJsonToSlate(sheet) {
     });
 
     // Ensure there's always something to edit at bottom of sheet.
-    if (sourceNodes.length == 0 || (sourceNodes[sourceNodes.length - 1]["children"][0]["type"] != "SheetOutsideText")) {
+    if (sourceNodes.length == 0 || (sourceNodes[sourceNodes.length - 1]["children"] && sourceNodes[sourceNodes.length - 1]["children"][0]["type"] != "SheetOutsideText")) {
         sourceNodes.push({
           type: "spacer",
           children: [{text: ""}]
