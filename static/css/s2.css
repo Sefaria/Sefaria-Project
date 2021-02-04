@@ -1771,7 +1771,7 @@ a.navBlockTitle {
   }
 }
 .navBlockDescription {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 18px;
   color: #666;
   margin-inline-end: 20px;
@@ -1900,10 +1900,12 @@ a.navBlockTitle {
   color: #666;
   margin: 0 0 10px;
 }
-.readerNavCategoryMenu h2 .en {
+.readerNavCategoryMenu h2 .en,
+.readerNavCategoryMenu h2 .categoryDescription .en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
-.readerNavCategoryMenu h2 .he {
+.readerNavCategoryMenu h2 .he,
+.readerNavCategoryMenu h2 .categoryDescription .he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .readerNavCategoryMenu .categoryDescription.top {
@@ -1911,9 +1913,15 @@ a.navBlockTitle {
   margin-top: -26px;
   margin-bottom: 40px;
 }
+.readerNavCategoryMenu h2 .categoryDescription {
+  text-transform: none;
+  position: relative;
+  top: -1px;
+  margin-inline-start: 3px;
+}
 .readerNavCategoryMenu .categoryDescription {
   margin-bottom: 16px;
-  font-size: 16px;
+  font-size: 14px;
   color: #666;
 }
 .readerNavCategoryMenu .categoryDescription .en {
