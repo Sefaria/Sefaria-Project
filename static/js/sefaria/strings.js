@@ -85,7 +85,6 @@ const Strings = {
     "Move Source Down": "הזזת מקור מטה",
     "Outdent Source": "הזחת מקור החוצה",
     "Indent Source": "הזחת מקור פנימה",
-    "Remove": "הסרת מקור",
     "Create New" : "יצירת חדש",
     "Close" : "סגירה",
     "by": "", // by line on sheets in reader, intentionally left blank
@@ -172,7 +171,6 @@ const Strings = {
     "Resend Invitation": "שליחת הזמנה חוזרת",
     "Invitation Resent": "ההזמנה החוזרת נשלחה",
     "There was an error sending your invitation.": "אירעה שגיאה בשליחת ההזמנה שלך.",
-    "Remove": "הסרה",
     "Are you sure you want to change your collection role? You won't be able to undo this action unless another owner restores your permissions.": "האם ברצונך לשנות את ההרשאה שלך באסופה? פעולה זו היא בלתי הפיכה, ולאחריה רק מנהלים אחרים של האסופה יוכל לשחזר את ההרשאות שלך.",
     "Are you sure you want to leave this collection?": "האם ברצונך לעזוב את האסופה?",
     "Are you sure you want to remove this person from this collection?": "האם ברצונך להסיר משתמש זה מן האסופה?",
