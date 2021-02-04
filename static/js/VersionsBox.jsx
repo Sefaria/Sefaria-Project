@@ -3,6 +3,7 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import VersionBlock  from './VersionBlock';
 import TextRange  from './TextRange';
+import {ConnectionButtons, OpenConnectionTabButton, AddConnectionToSheetButton} from './TextList';
 import { LoadingMessage } from './Misc';
 import { RecentFilterSet } from './ConnectionFilters';
 import Component             from 'react-class';
@@ -125,6 +126,7 @@ class VersionsBox extends Component {
         recentVFilters={this.props.recentVFilters}
         setFilter={this.props.setFilter}
         onRangeClick={onRangeClick}
+        setConnectionsMode={this.props.setConnectionsMode}
         onCitationClick={this.props.onCitationClick}
       />
     );
@@ -199,8 +201,11 @@ class VersionsTextList extends Component {
           hideTitle={true}
           numberLabel={0}
           basetext={false}
-          onRangeClick={this.props.onRangeClick}
           onCitationClick={this.props.onCitationClick} />
+          <ConnectionButtons>
+            <OpenConnectionTabButton srefs={this.props.srefs} openInTabCallback={this.props.onRangeClick}/>
+            <AddConnectionToSheetButton srefs={this.props.srefs} versions={{[language]: vTitle}} addToSheetCallback={this.props.setConnectionsMode}/>
+          </ConnectionButtons>
       </div>);
   }
 }

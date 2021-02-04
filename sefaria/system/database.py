@@ -69,7 +69,7 @@ def ensure_indices(active_db=None):
         ('history', ["title"],{}),
         ('index', ["title"],{}),
         ('index_queue', [[("lang", pymongo.ASCENDING), ("version", pymongo.ASCENDING), ("ref", pymongo.ASCENDING)]],{'unique': True}),
-        #('links', [[("refs.0",  1), ("refs.1", 1)]], {"unique": True}), Uncomment after deduping on prod
+        ('links', [[("refs.0",  1), ("refs.1", 1)]], {"unique": True}),
         ('links', [[("refs", pymongo.ASCENDING), ("generated_by", pymongo.ASCENDING)]],{}),
         ('links', ["refs.0"],{}),
         ('links', ["refs.1"],{}),

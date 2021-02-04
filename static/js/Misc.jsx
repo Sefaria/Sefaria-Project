@@ -19,18 +19,28 @@ const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
   </span>
 );
 
-const IntText = ({className, children}) => {
+
+const IntText = ({className, children, en, he}) => {
   // Renders a single span for interface string with either class `int-en`` or `int-he`
   // depending on Sefaria.interfaceLang.
-  // `children` is the English string, which will be translated with Sefaria._ if needed. 
+  // `children` is the English string, which will be translated with Sefaria._ if needed.
+  // If `en` and `he` are explicitly passed, use them intead of tryingt o translate `children`.
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   const cls = classNames({"int-en": !isHebrew, "int-he": isHebrew}) + (className ? " " + className : "");
-  return <span className={cls}>{Sefaria._(children)}</span>
+  let text;
+  if (en && he) {
+    text = isHebrew ? he : en;
+  } else {
+    text = Sefaria._(children);
+  }
+  return <span className={cls}>{text}</span>
 };
+
 
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
 );
+
 
 /* flexible profile picture that overrides the default image of gravatar with text with the user's initials */
 class ProfilePic extends Component {

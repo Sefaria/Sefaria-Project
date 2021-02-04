@@ -2607,7 +2607,7 @@ class Ref(object, metaclass=RefCacheType):
                 for i in range(delta, len(self.sections)):
                     try:
                         self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
-                                                                                       range_parts[i - delta])
+                                                                                       range_parts[i - delta], sections=self.sections[i])
                     except (ValueError, IndexError):
                         raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
             elif self._lang == "en":

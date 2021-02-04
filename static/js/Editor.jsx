@@ -305,7 +305,7 @@ function getInitialSheetNodes(sheet) {
   return sheet["sources"].map(source => source["node"])
 }
 
-function transformSheetJsonToDraft(sheet) {
+function transformSheetJsonToSlate(sheet) {
     const sheetTitle = sheet.title.stripHtmlKeepLineBreaks();
 
     let curNextNode = sheet.nextNode;
@@ -331,7 +331,7 @@ function transformSheetJsonToDraft(sheet) {
     });
 
     // Ensure there's always something to edit at bottom of sheet.
-    if (sourceNodes.length == 0 || (sourceNodes[sourceNodes.length - 1]["children"][0]["type"] != "SheetOutsideText")) {
+    if (sourceNodes.length == 0 || (sourceNodes[sourceNodes.length - 1]["children"] && sourceNodes[sourceNodes.length - 1]["children"][0]["type"] != "SheetOutsideText")) {
         sourceNodes.push({
           type: "spacer",
           children: [{text: ""}]
@@ -704,7 +704,7 @@ async function getRefInText(editor, additionalOffset=0) {
 
 
 const withSefariaSheet = editor => {
-    const {insertData, isVoid, normalizeNode} = editor;
+    const {insertData, insertBreak, isVoid, normalizeNode} = editor;
 
     //Hack to override this built-in which often returns null when programmatically selecting the whole SheetSource
     Transforms.deselect = () => {}
@@ -717,11 +717,12 @@ const withSefariaSheet = editor => {
 
     editor.insertBreak = () => {
 
-        // if (!Range.isCollapsed(editor.selection)) {
-        //     editor.insertText("\n");
-        //     return
-        // }
-
+        // if enter in middle of line in SheetOutsideText insert soft break
+        if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetOutsideText") &&
+            !Point.equals(editor.selection.focus, Editor.end(editor, editor.selection.focus.path))) {
+                insertBreak()
+                return
+            }
 
         getRefInText(editor).then(query =>{
 
@@ -808,12 +809,18 @@ const withSefariaSheet = editor => {
               return
             }
           }
-      }
 
-      if (node.type == "Sheet") {
-        // if (node.children.length < 2) {
-        //   console.log('bad state -- sheet lost children')
-        // }
+          //merge with adjacent outside texts:
+          const nodeAbove = getNodeAbove(path)
+          const nodeBelow = getNodeBelow(path)
+
+          if (nodeAbove.node && nodeAbove.node.type == "SheetOutsideText") {
+              Transforms.mergeNodes(editor, { at: path})
+              return
+          }
+          if (nodeBelow.node && nodeBelow.node.type == "SheetOutsideText") {
+              Transforms.mergeNodes(editor, {at: nodeBelow.path})
+          }
       }
 
       if (node.type == "SheetContent") {
@@ -846,6 +853,19 @@ const withSefariaSheet = editor => {
             Transforms.delete(editor, {at: childPath  });
           }
         }
+        }
+
+        //ensure there's always an editable space for a user to type at end and top of sheet
+        const lastSheetItem = node.children[node.children.length-1]
+        if (lastSheetItem.type != "spacer" && lastSheetItem.type != "SheetOutsideText") {
+            Transforms.insertNodes(editor,{type: 'spacer', children: [{text: ""}]}, {at: Editor.end(editor, [0,0])});
+            return
+        }
+
+        const firstSheetItem = node.children[0]
+        if (firstSheetItem.type != "spacer" && firstSheetItem.type != "SheetOutsideText") {
+            Transforms.insertNodes(editor,{type: 'spacer', children: [{text: ""}]}, {at: [0,0,0]});
+            return
         }
       }
 
@@ -885,31 +905,6 @@ const withSefariaSheet = editor => {
       }
     }
 
-      // if (node.type == "SheetItem") {
-      //   if (node.children[0] && node.children[0].type !== "SheetOutsideText") {
-      //     const belowNode = getNodeBelow(path)
-      //     const aboveNode = getNodeAbove(path)
-      //
-      //     if (!belowNode.node) {
-      //       Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: Editor.end(editor, path) });
-      //       return
-      //   }
-      //     else if (belowNode.node.type !== "spacer") {
-      //       Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: belowNode.path });
-      //       return
-      //     }
-      //
-      //     if (!aboveNode.node) {
-      //       Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: Editor.start(editor, path) });
-      //       return
-      //   }
-      //     else if (aboveNode.node.type !== "spacer") {
-      //       Transforms.insertNodes(editor, {type: 'spacer', children: [{text: ""}]}, { at: aboveNode.path });
-      //       return
-      //     }
-      //   }
-      // }
-
       if (sheetElementTypes.includes(node.type)) {
         //Any nested sheet element should be lifted
         if (Node.parent(editor, path).type !== "SheetContent") {
@@ -925,17 +920,6 @@ const withSefariaSheet = editor => {
             Transforms.unwrapNodes(editor, { at: childPath })
             return
           }
-        }
-
-        // if source is the first thing added on a page add a spacer above to
-        // allow for editting and prevent JS Slate error around addinbg a void
-        // as first element in doc.
-
-        if (getNodeAbove(Path.parent(path)).path == null) {
-          const fragment = defaultEmptyOutsideText(editor.children[0].nextNode, "")
-          incrementNextSheetNode(editor);
-          Transforms.insertNodes(editor, fragment, { at: [0,0,0] });
-          return
         }
       }
 
@@ -1017,10 +1001,9 @@ const addItemToSheet = (editor, fragment, position) => {
 const checkAndFixDuplicateSheetNodeNumbers = (editor) => {
   let existingSheetNodes = []
   for (const [child, childPath] of Node.children(editor, [0,0])) {
-    const sheetNode = child.children[0];
+    const sheetNode = child;
     if (existingSheetNodes.includes(sheetNode.node)) {
-      const newNodeEditPath = childPath.concat([0]);
-      Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: newNodeEditPath});
+      Transforms.setNodes(editor, {node: editor.children[0].nextNode}, {at: childPath});
       existingSheetNodes.push(editor.children[0].nextNode);
       incrementNextSheetNode(editor)
     }
@@ -1327,7 +1310,7 @@ function saveSheetContent(doc, lastModified) {
 
 const SefariaEditor = (props) => {
     const sheet = props.data;
-    const initValue = transformSheetJsonToDraft(sheet);
+    const initValue = transformSheetJsonToSlate(sheet);
     const renderElement = useCallback(props => <Element {...props} />, []);
     const [value, setValue] = useState(initValue)
     const [sheetNodes, setSheetNodes] = useState(getInitialSheetNodes(sheet))
@@ -1362,7 +1345,9 @@ const SefariaEditor = (props) => {
             setlastModified(res.dateModified);
             // console.log("saved at: "+ res.dateModified);
             setUnsavedChanges(false)
-            Sefaria.sheets._loadSheetByID[doc[0].id] = null
+
+            const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
+            Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
         });
     }
 
@@ -1418,6 +1403,7 @@ const SefariaEditor = (props) => {
         () => withSefariaSheet(withLinks(withHistory(withReact(createEditor())))),
         []
     );
+
 
     return (
         <div>
