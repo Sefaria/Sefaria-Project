@@ -18,6 +18,7 @@ from sefaria.system.database import db
 from sefaria.model.lexicon import LexiconEntrySet
 from sefaria.system.exceptions import InputError, IndexSchemaError, DictionaryEntryNotFoundError, SheetNotFoundError
 from sefaria.utils.hebrew import decode_hebrew_numeral, encode_small_hebrew_numeral, encode_hebrew_numeral, encode_hebrew_daf, hebrew_term, sanitize
+from sefaria.utils.talmud import daf_to_section
 
 """
                 -----------------------------------------
@@ -959,7 +960,7 @@ class NumberedTitledTreeNode(TitledTreeNode):
                 else:
                     reg = rf"{parens_lookbehind}{prefix_group})"
             else:
-                word_break_group = r'(?:^|\s|\(|\[)'
+                word_break_group = r'(?:^|\s|\(|\[|-|/)' #r'(?:^|\s|\(|\[)'
                 if kwargs.get("for_js"):
                     reg = rf"{word_break_group}{prefix_group}"  # safari still does not support lookbehinds (although this issue shows they're working on it https://bugs.webkit.org/show_bug.cgi?id=174931)
                 else:
@@ -976,18 +977,17 @@ class NumberedTitledTreeNode(TitledTreeNode):
             if parentheses:
                 reg += r"(?=(?:[)\]])|(?:[.,:;?!\s<][^\])]*?[)\]]))"
             else:
-                reg += r"(?=[.,:;?!\s})\]<]|$)" if kwargs.get("for_js") else r"(?=\W|$)" if not kwargs.get(
+                reg += r"(?=[-/.,:;?!\s})\]<]|$)" if kwargs.get("for_js") else r"(?=\W|$)" if not kwargs.get(
                     "terminated") else r"$"
             self._regexes[key] = regex.compile(reg, regex.VERBOSE) if compiled else reg
         return self._regexes[key]
 
     def address_regex(self, lang, **kwargs):
-        group = "a0" if not kwargs.get("for_js") else None
+        group = "a0"
         reg = self._addressTypes[0].regex(lang, group, **kwargs)
-
         if not self._addressTypes[0].stop_parsing(lang):
             for i in range(1, self.depth):
-                group = "a{}".format(i) if not kwargs.get("for_js") else None
+                group = "a{}".format(i)
                 reg += "(" + self.after_address_delimiter_ref + self._addressTypes[i].regex(lang, group, **kwargs) + ")"
                 if not kwargs.get("strict", False):
                     reg += "?"
@@ -999,13 +999,13 @@ class NumberedTitledTreeNode(TitledTreeNode):
 
             reg += r"(?:\s*([-\u2010-\u2015\u05be]|to)\s*"  # maybe there's a dash (either n or m dash) and a range
             reg += r"(?=\S)"  # must be followed by something (Lookahead)
-            group = "ar0" if not kwargs.get("for_js") else None
+            group = "ar0"
             reg += self._addressTypes[0].regex(lang, group, **kwargs)
             if not self._addressTypes[0].stop_parsing(lang):
                 reg += "?"
                 for i in range(1, self.depth):
                     reg += r"(?:(?:" + self.after_address_delimiter_ref + r")?"
-                    group = "ar{}".format(i) if not kwargs.get("for_js") else None
+                    group = "ar{}".format(i)
                     reg += "(" + self._addressTypes[i].regex(lang, group, **kwargs) + ")"
                     # assuming strict isn't relevant on ranges  # if not kwargs.get("strict", False):
                     reg += ")?"
@@ -1872,14 +1872,14 @@ class AddressType(object):
                 reg = self.section_patterns[lang]
                 if not strict:
                     reg += "?"
-                reg += self._core_regex(lang, group_id)
+                reg += self._core_regex(lang, group_id, **kwargs)
                 return reg
             else:
-                return self._core_regex(lang, group_id)
+                return self._core_regex(lang, group_id, **kwargs)
         except KeyError:
             raise Exception("Unknown Language passed to AddressType: {}".format(lang))
 
-    def _core_regex(self, lang, group_id=None):
+    def _core_regex(self, lang, group_id=None, **kwargs):
         """
         The regular expression part that matches this address reference
         :param lang: "en" or "he"
@@ -1942,7 +1942,7 @@ class AddressType(object):
             return sanitize(encode_small_hebrew_numeral(i), punctuation) if i < 1200 else encode_hebrew_numeral(i, punctuation=punctuation)
 
     @staticmethod
-    def toStrByAddressType(atype, lang, i):
+    def to_str_by_address_type(atype, lang, i):
         """
         Return string verion of `i` given `atype`
         :param str atype: name of address type
@@ -1954,6 +1954,19 @@ class AddressType(object):
             raise IndexSchemaError("No matching class for addressType {}".format(atype))
         return klass(0).toStr(lang, i)
 
+    @staticmethod
+    def to_class_by_address_type(atype):
+        """
+        Return class that corresponds to 'atype'
+        :param atype:
+        :return:
+        """
+        try:
+            klass = globals()["Address" + atype]
+        except KeyError:
+            raise IndexSchemaError("No matching class for addressType {}".format(atype))
+        return klass(0)
+
     # Is this used?
     def storage_offset(self):
         return 0
@@ -1961,7 +1974,7 @@ class AddressType(object):
 
 class AddressDictionary(AddressType):
     # Important here is language of the dictionary, not of the text where the reference is.
-    def _core_regex(self, lang, group_id=None):
+    def _core_regex(self, lang, group_id=None, **kwargs):
         if group_id:
             reg = r"(?P<" + group_id + r">"
         else:
@@ -1985,17 +1998,61 @@ class AddressTalmud(AddressType):
         "en": r"""(?:(?:[Ff]olios?|[Dd]af|[Pp](ages?|s?\.))?\s*)""",  # the internal ? is a hack to allow a non match, even if 'strict'
         "he": r"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
     }
+    amud_patterns = {
+        "en": "[ABabᵃᵇ]",
+        "he": '''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])'''
+    }
 
-    def _core_regex(self, lang, group_id=None):
-        if group_id:
+    @classmethod
+    def oref_to_amudless_tref(cls, ref, lang):
+        """
+        Remove last amud from `ref`. Assumes `ref` ends in a Talmud address.
+        This may have undesirable affect if `ref` doesn't end in a Talmud address
+        """
+        normal_form = ref.he_normal() if lang == 'he' else ref.normal()
+        return re.sub(f"{cls.amud_patterns[lang]}$", '', normal_form)
+
+    @classmethod
+    def parse_range_end(cls, ref, parts, base):
+        if len(parts) == 1 and len(ref.sections) == 1:
+            # check for Talmud ref without amud, such as Berakhot 2, we don't want "Berakhot 2a" but "Berakhot 2a-2b"
+            # so change toSections if ref_lacks_amud
+            if ref._lang == "he":
+                ref_lacks_amud = re.search(cls.amud_patterns["he"], base) is None
+            else:
+                ref_lacks_amud = re.search(cls.amud_patterns["en"]+"{1}$", base) is None
+            if ref_lacks_amud:
+                ref.toSections[0] += 1
+        elif len(parts) == 2:
+            ref.toSections = parts[1].split(".")  # this was converting space to '.', for some reason.
+            # 'Shabbat 23a-b'
+            if ref.toSections[0] in ['b', 'B', 'ᵇ']:
+                ref.toSections[0] = ref.sections[0] + 1
+
+            # 'Shabbat 24b-25a'
+            elif re.search(cls.amud_patterns[ref._lang], ref.toSections[0]):
+                ref.toSections[0] = AddressTalmud(0).toNumber(ref._lang, ref.toSections[0])
+
+            # 'Shabbat 24b.12-24'
+            else:
+                delta = len(ref.sections) - len(ref.toSections)
+                for i in range(delta - 1, -1, -1):
+                    ref.toSections.insert(0, ref.sections[i])
+
+            ref.toSections = [int(x) for x in ref.toSections]
+
+    def _core_regex(self, lang, group_id=None, **kwargs):
+        if group_id and kwargs.get("for_js", False) == False:
             reg = r"(?P<" + group_id + r">"
         else:
             reg = r"("
 
         if lang == "en":
-            reg += r"\d+[abᵃᵇ]?)"
+            reg += r"\d*" if group_id == "ar0" else r"\d+" #if ref is Berakhot 2a:1-3a:4, "ar0" is 3a when group_id == "ar0", we don't want to require digit, as ref could be Berakhot 2a-b
+            reg += r"{}?)".format(self.amud_patterns["en"])
         elif lang == "he":
-            reg += self.hebrew_number_regex() + r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])?)'''
+            reg += self.hebrew_number_regex() + r'''{}?)'''.format(self.amud_patterns["he"])
+
 
         return reg
 
@@ -2004,11 +2061,12 @@ class AddressTalmud(AddressType):
             return True
         return False
 
-    def toNumber(self, lang, s):
+    def toNumber(self, lang, s, **kwargs):
         if lang == "en":
             try:
-                if s[-1] in ["a", "b", 'ᵃ', 'ᵇ']:
+                if re.search(self.amud_patterns["en"]+"{1}$", s):
                     amud = s[-1]
+                    s = self.toStr(lang, kwargs['sections']) if s == 'b' else s
                     daf = int(s[:-1])
                 else:
                     amud = "a"
@@ -2021,24 +2079,25 @@ class AddressTalmud(AddressType):
                 raise InputError("{} exceeds max of {} dafs.".format(daf, self.length))
 
             indx = daf * 2
-            if amud == "a" or amud == "ᵃ":
+            if amud in ["A", "a", "ᵃ"]:
                 indx -= 1
             return indx
         elif lang == "he":
             num = re.split("[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
             if s[-1] == ":" or (
-                    s[-1] == "\u05d1"    #bet
-                        and
+                    s[-1] == "\u05d1"  # bet
+                    and
                     ((len(s) > 2 and s[-2] in ", ")  # simple bet
                      or (len(s) > 4 and s[-3] == '\u05e2')  # ayin"bet
                      or (len(s) > 5 and s[-4] == "\u05e2")  # ayin''bet
                     )
-            ):
+                    ):
                 return daf  # amud B
             return daf - 1
 
             #if s[-1] == "." or (s[-1] == u"\u05d0" and len(s) > 2 and s[-2] in ",\s"):
+
 
     @classmethod
     def toStr(cls, lang, i, **kwargs):
@@ -2089,7 +2148,7 @@ class AddressFolio(AddressType):
         "he": r"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
     }
 
-    def _core_regex(self, lang, group_id=None):
+    def _core_regex(self, lang, group_id=None, **kwargs):
         if group_id:
             reg = r"(?P<" + group_id + r">"
         else:
@@ -2108,7 +2167,7 @@ class AddressFolio(AddressType):
             return True
         return False
 
-    def toNumber(self, lang, s):
+    def toNumber(self, lang, s, **kwargs):
         if lang == "en":
             try:
                 if s[-1] in ["a", "b", "c", "d", 'ᵃ', 'ᵇ', 'ᶜ', 'ᵈ']:
@@ -2199,7 +2258,7 @@ class AddressInteger(AddressType):
     """
     :class:`AddressType` for Integer addresses
     """
-    def _core_regex(self, lang, group_id=None):
+    def _core_regex(self, lang, group_id=None, **kwargs):
         if group_id:
             reg = r"(?P<" + group_id + r">"
         else:
@@ -2212,7 +2271,7 @@ class AddressInteger(AddressType):
 
         return reg
 
-    def toNumber(self, lang, s):
+    def toNumber(self, lang, s, **kwargs):
         if lang == "en":
             return int(s)
         elif lang == "he":
@@ -2293,8 +2352,7 @@ class AddressVolume(AddressInteger):
         )
         """
     }
-
-
+    
 class AddressSiman(AddressInteger):
     section_patterns = {
         "en": r"""(?:(?:[Ss]iman)?\s*)""",

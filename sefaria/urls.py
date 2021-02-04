@@ -203,6 +203,11 @@ urlpatterns += [
     url(r'^api/sheets/(?P<sheet_id>\d+)/export_to_drive$',            sheets_views.export_to_drive),
 ]
 
+# Unlink Google Account Subscribe
+urlpatterns += [
+    url(r'^unlink-gauth$', sefaria_views.unlink_gauth),
+]
+
 # Collections API
 urlpatterns += [
     url(r'^api/collections/user-collections/(?P<user_id>\d+)$', sheets_views.user_collections_api),

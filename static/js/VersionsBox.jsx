@@ -3,6 +3,7 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import VersionBlock  from './VersionBlock';
 import TextRange  from './TextRange';
+import {ConnectionButtons, OpenConnectionTabButton, AddConnectionToSheetButton} from './TextList';
 import { LoadingMessage } from './Misc';
 import { RecentFilterSet } from './ConnectionFilters';
 import Component             from 'react-class';
@@ -47,7 +48,7 @@ class VersionsBox extends Component {
   };
   openVersionInSidebar(versionTitle, versionLanguage) {
     this.props.setConnectionsMode("Translation Open");
-    this.props.setFilter(versionTitle);
+    this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
   };
   sortVersionsByActiveLang(prioritize=null){
     const standard_langs = ["en", "he"];
@@ -99,8 +100,8 @@ class VersionsBox extends Component {
                     openVersionInReader={this.props.selectVersion}
                     openVersionInSidebar={this.openVersionInSidebar}
                     viewExtendedNotes={this.props.viewExtendedNotes}
-                    isCurrent={(this.props.currObjectVersions.en && this.props.currObjectVersions.en.versionTitle === v.versionTitle) ||
-                              (this.props.currObjectVersions.he && this.props.currObjectVersions.he.versionTitle === v.versionTitle)}
+                    isCurrent={(this.props.currObjectVersions.en && this.props.currObjectVersions.en.versionTitle === v.versionTitle && lang == 'en') ||
+                              (this.props.currObjectVersions.he && this.props.currObjectVersions.he.versionTitle === v.versionTitle && lang == 'he')}
                   />
                 ))
               }
@@ -112,7 +113,11 @@ class VersionsBox extends Component {
   }
   renderModeSelected() {
     // open text in versionslist with current version selected
-    const currSelectedVersions = this.props.vFilter.length ? {[Sefaria.versionLanguage(this.props.vFilter[0])]: this.props.vFilter[0]} : {en: null, he: null};
+    let currSelectedVersions = {en: null, he: null};
+    if (this.props.vFilter.length) {
+      const [vTitle, lang] = Sefaria.deconstructVersionsKey(this.props.vFilter[0]);
+      currSelectedVersions = {[lang]: vTitle};
+    }
     const onRangeClick = (sref)=>{this.props.onRangeClick(sref, false, currSelectedVersions)};
     return (
       <VersionsTextList
@@ -121,6 +126,7 @@ class VersionsBox extends Component {
         recentVFilters={this.props.recentVFilters}
         setFilter={this.props.setFilter}
         onRangeClick={onRangeClick}
+        setConnectionsMode={this.props.setConnectionsMode}
         onCitationClick={this.props.onCitationClick}
       />
     );
@@ -164,10 +170,10 @@ class VersionsTextList extends Component {
     if (filter.length) {
       this.setState({loaded: false});
       const sectionRef = this.getSectionRef();
-      const language = Sefaria.versionLanguage(filter[0]);
+      const [vTitle, language] = Sefaria.deconstructVersionsKey(filter[0]);
       let enVersion = null, heVersion = null;
-      if (language === "en") { enVersion = filter[0]; }
-      else                   { heVersion = filter[0]; }
+      if (language === "en") { enVersion = vTitle; }
+      else                   { heVersion = vTitle; }
       Sefaria.getText(sectionRef, {enVersion, heVersion}).then(() => {this.setState({loaded: true})});
     }
   }
@@ -177,8 +183,7 @@ class VersionsTextList extends Component {
     return sectionRef;
   }
   render() {
-    const vlang = Sefaria.versionLanguage(this.props.vFilter[0]);
-
+    const [vTitle, language] = Sefaria.deconstructVersionsKey(this.props.vFilter[0]);
     return !this.state.loaded || !this.props.vFilter.length ?
       (<LoadingMessage />) :
       (<div className="versionsTextList">
@@ -191,13 +196,16 @@ class VersionsTextList extends Component {
         <TextRange
           panelPosition ={this.props.panelPosition}
           sref={Sefaria.humanRef(this.props.srefs)}
-          currVersions={{[vlang]: this.props.vFilter[0]}}
+          currVersions={{[language]: vTitle}}
           useVersionLanguage={true}
           hideTitle={true}
           numberLabel={0}
           basetext={false}
-          onRangeClick={this.props.onRangeClick}
           onCitationClick={this.props.onCitationClick} />
+          <ConnectionButtons>
+            <OpenConnectionTabButton srefs={this.props.srefs} openInTabCallback={this.props.onRangeClick}/>
+            <AddConnectionToSheetButton srefs={this.props.srefs} versions={{[language]: vTitle}} addToSheetCallback={this.props.setConnectionsMode}/>
+          </ConnectionButtons>
       </div>);
   }
 }

@@ -11,9 +11,7 @@
 
 {% block head %}
     <link rel="stylesheet" type="text/css" href="{% static 'css/tooltipster.css' %}" />
-    {% if not is_public %}
-        <meta name="robots" content="noindex, nofollow">
-    {% endif %}
+    <meta name="robots" content="noindex, nofollow">
     {% if EMBED %}
         <link rel="canonical" href="{{ canonical_url }}">
     {% endif %}

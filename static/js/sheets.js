@@ -458,7 +458,7 @@ $(function() {
 			}
 		});
 
-	// Sheet Language Options 
+	// Sheet Language Options
 	$("#hebrew, #english, #bilingual").click(function(){
 		var mode = this.id;
 		var shortMode = this.id.substring(0,2);
@@ -548,7 +548,7 @@ $(function() {
 		var $target = $(".activeSource").find(".text").find(".he");
 		$target.html(stripNikkud($target.html()));
 		Sefaria.track.sheets("Remove Nikkudot");
-		autoSave();
+		// autoSave();
 	});
 
 	$("#splitSourceToSegment").click(function() {
@@ -2141,6 +2141,7 @@ sjs.sheetTagger = {
 			position: {my: dropdownAnchorSide + " top", at: dropdownAnchorSide + " bottom"},
 			select: function(event, ui) {
 				sjs.sheetTagger.addTagFromInput(ui.item.value);
+				return false;
 			},
 			focus: ( event, ui ) => {
                 $(".ui-menu-item.ui-state-focus").removeClass("ui-state-focus");
@@ -2940,7 +2941,7 @@ function buildSource($target, source, appendOrInsert) {
 			additionalRefData = additionalRefData + " data-sourceprefix='"+source["options"]["sourcePrefix"]+"'";
 		}
 
-		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'" + additionalRefData + ">" + 
+		var commentHtml = "<div " + attributionData + " data-node='" + source.node + "'" + additionalRefData + ">" +
 			"<div class='sourceNumber he'></div><div class='sourceNumber en'></div>" +
 			"<span class='commentIcon'><i class='fa fa-comment-o fa'></i></span>" +
 			("userLink" in source ? "<div class='addedBy s2AddedBy'>" + source.userLink + "</div>" : "")	+
@@ -3494,7 +3495,7 @@ function exportToDrive() {
 		},
 		statusCode: {
 			401: function() {
-				window.location.href = "/gauth?next=" + encodeURIComponent(window.location.pathname + "#onload=exportToDrive");
+				window.location.href = "/gauth?next=" + encodeURIComponent(window.location.protocol + '//' + window.location.host + window.location.pathname + "?editor=1#onload=exportToDrive");
 			}
 		}
 	});

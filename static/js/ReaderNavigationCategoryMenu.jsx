@@ -59,7 +59,7 @@ class ReaderNavigationCategoryMenu extends Component {
     const catContents    = Sefaria.tocItemsByCategories(categories);
     const nestLevel      = this.props.category == "Commentary" ? 1 : 0;
     const footer         = this.props.compare ? null : <Footer />;
-    const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, noLangToggleInHebrew: 1});
+    const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, noLangToggleInHebrew: 1, compare: this.props.compare});
     const contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (<div className={navMenuClasses}>
               <MobileHeader

@@ -90,7 +90,7 @@ jobs:
       - run: ls
       - run: pwd
       - name: Run Jest Tests
-        run: npm run jest-travis
+        run: npm run jest-gha
       - name: Handle Jest Test Results # later, upload
         run: cat /home/runner/jestResults.json
         if: ${{ always() }}
@@ -216,7 +216,7 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_tests_on_github.py --tests PageloadSuite | tee /home/runner/selenium-sauce-all.txt
+        run: python3 ./reader/browsertest/run_tests_on_github.py --tests PageloadSuite | tee /home/runner/selenium-sauce-all.txt ; echo $?
         env:
           SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
           SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
