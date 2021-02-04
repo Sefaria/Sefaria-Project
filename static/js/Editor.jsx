@@ -704,7 +704,7 @@ async function getRefInText(editor, additionalOffset=0) {
 
 
 const withSefariaSheet = editor => {
-    const {insertData, insertBreak, isVoid, normalizeNode} = editor;
+    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward} = editor;
 
     //Hack to override this built-in which often returns null when programmatically selecting the whole SheetSource
     Transforms.deselect = () => {}
@@ -714,6 +714,25 @@ const withSefariaSheet = editor => {
     };
 
 
+    editor.deleteBackward = () => {
+        //if just before sheetSource, select it instead of delete
+        if (!getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+            Transforms.move(editor, { reverse: true })
+            if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+               return
+            }
+            else {
+                Editor.deleteForward(editor)
+                return;
+                }
+        }
+
+        else {
+            deleteBackward()
+            return
+        }
+
+    }
 
     editor.insertBreak = () => {
 
