@@ -1345,7 +1345,9 @@ const SefariaEditor = (props) => {
             setlastModified(res.dateModified);
             // console.log("saved at: "+ res.dateModified);
             setUnsavedChanges(false)
-            Sefaria.sheets._loadSheetByID[doc[0].id] = null
+
+            const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
+            Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
         });
     }
 
