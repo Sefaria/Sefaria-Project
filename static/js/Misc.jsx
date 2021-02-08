@@ -40,7 +40,6 @@ const IntText = ({className, children, en, he}) => {
     text = Sefaria._(en)
   }else{
     let childrenArr = React.Children.toArray(children);
-    console.log(childrenArr);
     if (childrenArr.length == 1) {
       text = Sefaria._(children);
     }else if (childrenArr.length > 1){
