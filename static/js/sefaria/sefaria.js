@@ -866,7 +866,6 @@ Sefaria = extend(Sefaria, {
     return this._saveItemsByRef(data, this._links);
   },
   _saveItemsByRef: function(data, store) {
-    console.log(data)
     // For a set of items from the API, save each set split by the specific ref the items points to.
     // E.g, API is called on "Genesis 1", this function also stores the data in buckets like "Genesis 1:1", "Genesis 1:2" etc.
     var splitItems = {}; // Aggregate links by anchorRef
@@ -1250,10 +1249,6 @@ _media: {},
   mediaByRef: function(refs) {
     refs = typeof refs == "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
     var ref = Sefaria.normRefList(refs);
-
-    console.log(ref)
-    console.log(refs)
-
     var media = [];
     refs.map(r => {
       if (this._media[r]) { media = media.concat(this._media[r]); }
