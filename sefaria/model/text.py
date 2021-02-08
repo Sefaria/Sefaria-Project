@@ -4133,6 +4133,20 @@ class Ref(object, metaclass=RefCacheType):
         return self.index_node.full_title("he")
 
     def _get_normal(self, lang):
+        from sefaria.model.schema import AddressTalmud
+        if self.is_range() and self.index_node.addressTypes[
+            len(self.sections) - 1] == "Talmud":  # is self a range that is as deep as a Talmud addressType?
+            if self.sections[-1] % 2 == 1 and self.toSections[-1] % 2 == 0:  # starts at amud alef and ends at bet?
+                start_daf = AddressTalmud.oref_to_amudless_tref(self.starting_ref(), lang)
+                end_daf = AddressTalmud.oref_to_amudless_tref(self.ending_ref(), lang)
+                if start_daf == end_daf:
+                    return start_daf
+                else:
+                    range_wo_last_amud = AddressTalmud.oref_to_amudless_tref(self, lang)
+                    # looking for rest of ref after dash
+                    end_range = re.search(f'-(.+)$', range_wo_last_amud).group(1)
+                    return f"{start_daf}-{end_range}"
+
         normal = self.index_node.full_title(lang)
         if not normal:
             if lang != "en":
