@@ -32,12 +32,6 @@ class Sheet extends Component {
     this.ensureData();
 
   }
-  componentDidUpdate(prevProps, prevState) {
-    if (prevProps.editor == true && this.props.editor == false) {
-      Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad, true);
-      console.log('reloading')
-    }
-  }
   getSheetFromCache() {
     return Sefaria.sheets.loadSheetByID(this.props.id);
   }
@@ -47,7 +41,6 @@ class Sheet extends Component {
   onDataLoad(data) {
     this.forceUpdate();
     this.preloadConnections();
-    if (!(this.props.editor) && document.getElementById('sheetEditToggle')) {document.getElementById('sheetEditToggle').click()}
   }
   ensureData() {
     if (!this.getSheetFromCache()) {
@@ -55,7 +48,6 @@ class Sheet extends Component {
     } else {
       this.preloadConnections();
     }
-    if (!(this.props.editor) && document.getElementById('sheetEditToggle')) {document.getElementById('sheetEditToggle').click()}
   }
   preloadConnections() {
     const data = this.getSheetFromCache();
@@ -112,8 +104,7 @@ class Sheet extends Component {
     }
     return (
         <div className={classes}>
-          {  this.props.editor == true && sheet ?
-            /*sheet && Sefaria._uid == sheet.owner && $.cookie("new_editor") ? */
+          { sheet && Sefaria._uid == sheet.owner && $.cookie("new_editor") ?
             <div className="sheetContent"><SefariaEditor data={sheet} /></div>
             : content}
         </div>

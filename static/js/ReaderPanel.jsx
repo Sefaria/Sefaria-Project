@@ -313,20 +313,6 @@ class ReaderPanel extends Component {
     const sheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(sheetId, sheet => resolve(sheet))));
     this.conditionalSetState({mode: 'Sheet', sheet, menuOpen: null});
   }
-  toggleSheetEditMode(buttonstate) {
-      if (buttonstate == true) {
-          this.conditionalSetState({
-              editSheet: false
-          })
-      } else {
-          this.conditionalSetState({
-              editSheet: true
-          })
-          if (this.props.hasSidebar) {
-            this.props.closeConnectionPanel(this.props.panelPosition)
-          }
-      }
-  }
   updateTextColumn(refs) {
     // Change the refs in the current TextColumn, for infinite scroll up/down.
     this.replaceHistory = true;
@@ -652,12 +638,10 @@ class ReaderPanel extends Component {
         let newSheet = this.state.sheet;
         delete newSheet.editor
         this.conditionalSetState({ sheet: newSheet});
-        this.toggleSheetEditMode(false)
       }
         items.push(<Sheet
           panelPosition ={this.props.panelPosition}
           id={this.state.sheet.id}
-          editor={this.state.editSheet}
           key={"sheet-"+this.state.sheet.id}
           highlightedNodes={this.state.highlightedNodes}
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
@@ -1070,7 +1054,6 @@ class ReaderPanel extends Component {
           showBaseText={this.showBaseText}
           sheet={this.state.sheet}
           toggleSheetEditMode={this.toggleSheetEditMode}
-          editSheet={this.state.editSheet}
           currentRef={this.state.currentlyVisibleRef}
           highlightedRef={(!!this.state.highlightedRefs && this.state.highlightedRefs.length) ? Sefaria.normRef(this.state.highlightedRefs) : null}
           currentMode={this.currentMode.bind(this)}
@@ -1286,13 +1269,6 @@ class ReaderControls extends Component {
 
     var rightControls = hideHeader || connectionsHeader ? null :
       (<div className="rightButtons">
-          {this.props.sheet && Sefaria._uid == this.props.sheet.owner && $.cookie("new_editor") ?
-              <button id="sheetEditToggle" onClick={() => this.props.toggleSheetEditMode(this.props.editSheet)}>
-                {this.props.editSheet == true ? <img src={"/static/icons/iconmonstr-eye-4.svg"} alt="Eye icon" />:<img src={"/static/icons/iconmonstr-pencil-2.svg"} alt="Pencil icon" />}
-                <span className="int-en">{this.props.editSheet == true ? "View" : "Edit"}</span>
-                <span className="int-he">{this.props.editSheet == true ? "צפייה" : "עריכה"}</span>
-              </button>
-            : null }
           <SaveButton
             historyObject={this.props.historyObject}
             tooltip={true}
