@@ -207,6 +207,8 @@ class EditCollectionPage extends Component {
         </div>
         : null }
 
+        {/* Only show publish option on existing collections, since new collections are empty */}
+        {this.props.initialData ?
         <div className="field">
           <label>
               <IntText>List on Sefaria</IntText>
@@ -232,12 +234,13 @@ class EditCollectionPage extends Component {
               <span className="int-he">האסופה שלך הוגדרה כציבורית, אך המנהלים שלנו הגיעו למסקנה שהיא אינה רלוונטית לכלל משתמשי ספריא. לשאלות יש ליצור עימנו קשר בכתובת <a href="mailto:hello@sefari.org">hello@sefaria.org</a>.</span>
           </div> }
         </div>
+        : null }
 
         {this.props.initialData ?
-          <div className="deleteCollection" onClick={this.delete}>
-            <IntText>Delete Collection</IntText>
-          </div>
-          : null}
+        <div className="deleteCollection" onClick={this.delete}>
+          <IntText>Delete Collection</IntText>
+        </div>
+        : null}
 
       </div>);
   }

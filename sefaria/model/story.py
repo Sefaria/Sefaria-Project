@@ -10,7 +10,6 @@ import random
 from datetime import datetime
 
 from sefaria.utils.hebrew import hebrew_term
-from sefaria.utils.talmud import amud_ref_to_daf_ref
 from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 from . import abstract as abst
@@ -1121,7 +1120,7 @@ class TopicTextsStoryFactory(AbstractStoryFactory):
 def daf_yomi_ref():
     from sefaria.utils.calendars import get_keyed_calendar_items
     cal = get_keyed_calendar_items()["Daf Yomi"]
-    daf_ref = amud_ref_to_daf_ref(text.Ref(cal["ref"]))
+    daf_ref = text.Ref(cal["ref"])
     return daf_ref
 
 def daf_yomi_display_value():

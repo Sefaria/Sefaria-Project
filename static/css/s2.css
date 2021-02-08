@@ -3739,7 +3739,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .parashahHeader.aliyah span {
   text-transform: uppercase;
 }
-.bilingual .parashahHeader .en {
+.bilingual .parashahHeader .he {
   display: none;
 }
 .title + .text span:first-child .parashahHeader {
@@ -4354,7 +4354,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList.fullPanel .recentFilterSet {
   margin: 0 0 12px 0;
 }
-.textList.fullPanel .recentFilterSet .textFilter,
+.textList .recentFilterSet .textFilter,
 .connectionsPanelHeader .recentFilterSet.topFilters .textFilter {
   display: inline-block;
   padding: 0;
@@ -4369,7 +4369,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-inline-end: 14px;
   margin-inline-start: 0;
 }
-.textList.fullPanel .recentFilterSet .textFilter.on, .connectionsPanelHeader .recentFilterSet.topFilters .textFilter.on {
+.textList .recentFilterSet .textFilter.on, .connectionsPanelHeader .recentFilterSet.topFilters .textFilter.on {
   color: #000000;
   border-bottom-color: var(--category-color);
 }
@@ -4378,6 +4378,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .hebrew .textList .recentFilterSet.filterSet {
   direction: rtl;
+}
+.textList.singlePanel .connectionsHeader .topFilters{
+  overflow-x: scroll;
+  overflow-y: hidden;
 }
 .topFiltersInner {
   display: inline-block;
@@ -4388,6 +4392,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textList.fullPanel .topFiltersInner {
   white-space: normal;
+}
+.textList.singlePanel .versionsTextList .topFiltersInner .textFilter {
+  padding: 5px;
+  margin-bottom: 5px;
+  color: #999;
+}
+.textList.singlePanel .versionsTextList .topFiltersInner {
+  white-space: pre-wrap;
 }
 .showMoreFilters {
   vertical-align: middle;
@@ -4922,16 +4934,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 0;
   padding-bottom: 0;
 }
-.textListTextRangeBox .connection-buttons{
+.textListTextRangeBox .connection-buttons, .versionsTextList .connection-buttons{
   margin-bottom: 28px;
   display: flex;
   align-items: center;
   align-content: flex-start;
 }
-.textListTextRangeBox .connection-buttons.access-user .connection-button.delete-link{
+.connection-buttons.access-user .connection-button.delete-link{
   display:none;
 }
-.textListTextRangeBox .connection-buttons .connection-button{
+.connection-buttons .connection-button{
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -4941,14 +4953,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
   cursor: pointer;
 }
-.singlePanel .textListTextRangeBox .connection-buttons .connection-button{
+.singlePanel .connection-buttons .connection-button{
   text-align: start;
   margin-inline-end: 5px;
 }
-.textListTextRangeBox .connection-buttons .connection-button .int-en{
+.connection-buttons .connection-button .int-en{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.textListTextRangeBox .connection-buttons .connection-button .int-he{
+.connection-buttons .connection-button .int-he{
   font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toolsMessage {
@@ -4956,7 +4968,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   font-size: 18px;
 }
-.textListTextRangeBox .connection-buttons .connection-button::before{
+.connection-buttons .connection-button::before{
   line-height: 25px;
   color: #999999;
   vertical-align: middle;
@@ -4964,13 +4976,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   transform: scale(0.55);
   display: inline-block;
 }
-.textListTextRangeBox .connection-buttons .panel-open-link::before{
+.connection-buttons .panel-open-link::before{
   content: url("/static/icons/open-panel.svg");
 }
-.textListTextRangeBox .connection-buttons .delete-link::before{
+.connection-buttons .delete-link::before{
   content: url("/static/icons/remove-connection.svg");
 }
-.textListTextRangeBox .connection-buttons .add-to-sheet-link::before{
+.connection-buttons .add-to-sheet-link::before{
   content: url("/static/icons/add-to-sheet.svg");
 }
 .toolsButton {
@@ -7370,10 +7382,6 @@ span.purim-emoji img{
 .sheetContent .media .mediaCaption.heOnly .en,
 .sheetContent .media .mediaCaption.enOnly .he {
   display: none;
-}
-.sheetContent .spacer {
-  line-height: 18px;
-  font-size: 18px;
 }
 .sheetContent .spacer:only-of-type.empty {
   line-height: inherit;

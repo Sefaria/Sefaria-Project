@@ -29,13 +29,19 @@ class Test_Ref(object):
         ref = Ref("Jeremiah 7:17\u201118")  # test with unicode dash
         assert ref.toSections == [7, 18]
 
-    def test_short_bible_refs(self):  # this behavior is changed from earlier
+    def test_short_bible_refs(self):
         assert Ref("Exodus") != Ref("Exodus 1")
         assert Ref("Exodus").padded_ref() == Ref("Exodus 1")
 
-    def test_short_talmud_refs(self):  # this behavior is changed from earlier
+    def test_short_talmud_refs(self):
         assert Ref("Sanhedrin 2a") != Ref("Sanhedrin")
-        assert Ref("Sanhedrin 2a") == Ref("Sanhedrin 2")
+
+    def test_talmud_refs_without_amud(self):
+        assert Ref("Sanhedrin 2") == Ref("Sanhedrin 2a-2b")
+        assert Ref("Shabbat 7") == Ref("Shabbat 7a-7b")
+
+    def test_talmud_refs_short_range(self):
+        assert Ref("Shabbat 7a-b") == Ref("Shabbat 7a-7b")
 
     # This test runs for 90% of this suite's time, and passes.  Seems pretty trivial.  Can we trim it?
     @pytest.mark.deep
@@ -179,7 +185,6 @@ class Test_Ref(object):
         assert Ref("Naftali Seva Ratzon on Pesach Haggadah, Magid, Ha Lachma Anya 2").next_section_ref().normal() == "Naftali Seva Ratzon on Pesach Haggadah, Magid, We Were Slaves in Egypt 2"
         assert Ref("Ephod Bad on Pesach Haggadah, Magid, First Half of Hallel 4").next_section_ref().normal() == "Ephod Bad on Pesach Haggadah, Barech, Pour Out Thy Wrath 2"
         assert Ref("Kos Shel Eliyahu on Pesach Haggadah, Magid, Second Cup of Wine 2").next_section_ref() is Ref('Kos Eliyahu on Pesach Haggadah, Barech, Pour Out Thy Wrath 2')
-
 
     def test_prev_ref(self):
         assert Ref("Job 4:5").prev_section_ref().normal() == "Job 3"
@@ -574,6 +579,59 @@ class Test_normal_forms(object):
         assert Ref("Rashi on Shabbat 12a.10").url() == "Rashi_on_Shabbat.12a.10"
 
 
+class Test_display(object):
+    def test_easy(self):
+        # English
+        assert Ref("Genesis 2:5").display('en') == Ref("Genesis 2:5").normal()
+        assert Ref("Shabbat 32b").display('en') == Ref("Shabbat 32b").normal()
+        assert Ref("Mishnah Peah 4:2-4").display('en') == Ref("Mishnah Peah 4:2-4").normal()
+
+        # Hebrew
+        assert Ref("Genesis 2:5").display('he') == Ref("Genesis 2:5").he_normal()
+        assert Ref("Shabbat 32b").display('he') == Ref("Shabbat 32b").he_normal()
+        assert Ref("Mishnah Peah 4:2-4").display('he') == Ref("Mishnah Peah 4:2-4").he_normal()
+
+    def test_talmud_range_short(self):
+        oref = Ref("Berakhot 2a-2b")
+        assert oref.display('en') == "Berakhot 2"
+        assert oref.display('he') == "ברכות ב׳"
+
+    def test_talmud_range_long(self):
+        oref = Ref("Berakhot 2a-3b")
+        assert oref.display('en') == "Berakhot 2-3"
+        assert oref.display('he') == "ברכות ב׳-ג׳"
+
+    def test_talmud_range_a_to_a(self):
+        oref = Ref("Berakhot 2a-3a")
+        assert oref.display('en') == oref.normal()
+        assert oref.display('he') == oref.he_normal()
+
+    def test_talmud_range_b_to_b(self):
+        oref = Ref("Bava Metzia 20b-21b")
+        assert oref.display('en') == oref.normal()
+        assert oref.display('he') == oref.he_normal()
+
+    def test_talmud_segment_range(self):
+        oref = Ref("Bava Metzia 20a:1-20b:1")
+        assert oref.display('en') == oref.normal()
+        assert oref.display('he') == oref.he_normal()
+
+    def test_zohar_volume_range(self):
+        oref = Ref("Zohar 1-2")
+        assert oref.display('en') == oref.normal()
+        assert oref.display('he') == oref.he_normal()
+
+    def test_zohar_daf_range(self):
+        oref = Ref("Zohar 1:25a-27b")
+        assert oref.display('en') == "Zohar 1:25-27"
+        assert oref.display('he') == "זוהר א׳:כ״ה-כ״ז"
+
+    def test_zohar_volume_daf_range(self):
+        oref = Ref("Zohar 1:25a-2:27b")
+        assert oref.display('en') == "Zohar 1:25-2:27"
+        assert oref.display('he') == "זוהר א׳:כ״ה-ב׳:כ״ז"
+
+
 class Test_term_refs(object):
     def test_ref_resolution(self):
         assert Ref("bo") ==  Ref('Exodus 10:1-13:16')
@@ -593,7 +651,7 @@ class Test_Ambiguous_Forms(object):
     def test_mishnah_check_first(self):
         assert Ref("Shabbat 8:7") == Ref('Mishnah Shabbat 8:7')
         assert Ref("Shabbat 28:7").normal() == 'Shabbat 28a:7'
-        assert Ref("Shabbat 7") == Ref("Shabbat 7a")
+        assert Ref("Shabbat 7") == Ref("Shabbat 7a-7b")
         assert Ref("Shabbat 7a:1") != Ref("Shabbat 7:1")
 
 
@@ -816,7 +874,6 @@ class Test_Talmud_at_Second_Place(object):
         assert Ref("Zohar, Lech Lecha")
         assert Ref("Zohar, Bo")
 
-    @pytest.mark.xfail(reason="unknown")
     def test_range_short_form(self):
         assert Ref("Zohar 2.15a - 15b").sections[1] == 29
         assert Ref("Zohar 2.15a - 15b").toSections[1] == 30
