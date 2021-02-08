@@ -127,6 +127,7 @@ const Strings = {
     "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
     "Public Domain": "בנחלת הכלל",
     "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
+    "Location: ": "מיקום: ",
 
     // Collections
     // Edit collection page

@@ -1423,7 +1423,7 @@ function ManuscriptImage(props) {
         : <p className={"english manuscriptCaption"}>{manuscript.manuscript.title}</p>
     }
       <div className="meta">
-        <span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br/>
+        <IntText>Location: </IntText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br/>
         {
           manuscript.manuscript[description] ? <span className={cls}>{manuscript.manuscript[description]}<br/></span> : ''
         }
