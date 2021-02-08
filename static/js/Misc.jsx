@@ -25,7 +25,7 @@ const HebrewText = ({children}) => (
 const EnglishText = ({children}) => (
     <>{children}</>
 )
-const IntText = ({className, children, en, he}) => {
+const IntText = ({className, children, en, he, context}) => {
   // Renders a single span for interface string with either class `int-en`` or `int-he`
   // depending on Sefaria.interfaceLang.
   // `children` is the English string, which will be translated with Sefaria._ if needed.
@@ -37,11 +37,11 @@ const IntText = ({className, children, en, he}) => {
   if (en && he) { // Prioritze explicit props passed in for text of the element
     text = isHebrew ? he : en;
   }else if (en && !he){ // Allow a `en` prop to be passed alone as a i18n key
-    text = Sefaria._(en)
+    text = Sefaria._(en, context)
   }else{ // Also handle composition with children
     const chlCount = React.Children.count(children);
     if (chlCount == 1) { // Same as passing in a `en` key but with children syntax
-      text = Sefaria._(children);
+      text = Sefaria._(children, context);
     }else if (chlCount <= Object.keys(languageElements).length){ // When multiple languages are passed in via children
       let chlArr = React.Children.toArray(children);
       let currLangComponent = languageElements[Sefaria.interfaceLang];
