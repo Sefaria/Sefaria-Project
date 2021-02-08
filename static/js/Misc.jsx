@@ -25,7 +25,7 @@ const HebrewText = ({children}) => (
 const EnglishText = ({children}) => (
     <>{children}</>
 )
-const IntText = ({className, children, en, he, context}) => {
+const IntText = ({children, en, he, context, className}) => {
   // Renders a single span for interface string with either class `int-en`` or `int-he`
   // depending on Sefaria.interfaceLang.
   // `children` is the English string, which will be translated with Sefaria._ if needed.
@@ -55,9 +55,20 @@ const IntText = ({className, children, en, he, context}) => {
 };
 IntText.propTypes = {
   children: PropTypes.oneOfType([
-    PropTypes.arrayOf(PropTypes.oneOfType([EnglishText, HebrewText])),
-    PropTypes.string,
-  ])
+      PropTypes.string,
+      PropTypes.arrayOf(function(children, key, componentName, location, propFullName) {
+        if (!(children[key].type && ([EnglishText, HebrewText].indexOf(children[key].type) != -1) )) {
+          return new Error(
+            'Invalid prop `' + propFullName + '` supplied to' +
+            ' `' + componentName + '`. Validation failed.'
+          );
+        }
+      }),
+  ]),
+  en: PropTypes.string,
+  he: PropTypes.string,
+  context: PropTypes.string,
+  className: PropTypes.string
 };
 
 
@@ -2188,6 +2199,8 @@ export {
   InterruptingMessage,
   InterfaceTextWithFallback,
   IntText,
+  EnglishText,
+  HebrewText,
   LanguageToggleButton,
   Link,
   LoadingMessage,
