@@ -4937,7 +4937,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .manuscript {
   border-bottom: 1px solid #DDDDDD;
-  margin: 29px;
+  margin: 29px 34px;
   padding-bottom: 19px;
 }
 
