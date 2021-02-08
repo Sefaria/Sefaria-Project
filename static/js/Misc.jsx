@@ -783,8 +783,10 @@ DangerousInterfaceBlock.propTypes = {
 
 const SimpleInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
-            <span className="int-en">{en}</span>
-            <span className="int-he">{he}</span>
+            <IntText>
+              <EnglishText>{en}</EnglishText>
+              <HebrewText>{he}</HebrewText>
+            </IntText>
         </div>
     );
 SimpleInterfaceBlock.propTypes = {
@@ -833,8 +835,10 @@ const SimpleLinkedInline = ({children, aclasses, en, he, url, onClick}) => (
         </a>
         :
         <a href={url} className={aclasses} onClick={onClick}>
-          <span className="int-en">{en}</span>
-          <span className="int-he">{he}</span>
+          <IntText>
+            <EnglishText>{en}</EnglishText>
+            <HebrewText>{he}</HebrewText>
+          </IntText>
         </a>
 );
 
