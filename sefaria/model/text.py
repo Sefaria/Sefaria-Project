@@ -4142,9 +4142,7 @@ class Ref(object, metaclass=RefCacheType):
                 if start_daf == end_daf:
                     return start_daf
                 else:
-                    range_wo_last_amud = AddressTalmud.oref_to_amudless_tref(self, lang)
-                    # looking for rest of ref after dash
-                    end_range = re.search(f'-(.+)$', range_wo_last_amud).group(1)
+                    end_range = end_daf.split()[-1]
                     return f"{start_daf}-{end_range}"
 
         normal = self.index_node.full_title(lang)
