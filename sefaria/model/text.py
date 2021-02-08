@@ -4132,9 +4132,14 @@ class Ref(object, metaclass=RefCacheType):
     def he_book(self):
         return self.index_node.full_title("he")
 
-    def _get_normal(self, lang):
+    def _get_normal(self, lang, parse_talmud_range=True):
+        """
+        :param lang:
+        :param parse_talmud_range: if True, and ref is in the form Berakhot 2a-3b, return Berakhot 2-3; otherwise, Berakhot 2a-3b is returned
+        :return:
+        """
         from sefaria.model.schema import AddressTalmud
-        if self.is_range() and self.index_node.addressTypes[
+        if parse_talmud_range and self.is_range() and self.index_node.addressTypes[
             len(self.sections) - 1] == "Talmud":  # is self a range that is as deep as a Talmud addressType?
             if self.sections[-1] % 2 == 1 and self.toSections[-1] % 2 == 0:  # starts at amud alef and ends at bet?
                 start_daf = AddressTalmud.oref_to_amudless_tref(self.starting_ref(), lang)
@@ -4142,7 +4147,9 @@ class Ref(object, metaclass=RefCacheType):
                 if start_daf == end_daf:
                     return start_daf
                 else:
-                    end_range = end_daf.split()[-1]
+                    range_wo_last_amud = AddressTalmud.oref_to_amudless_tref(self, lang)
+                    # looking for rest of ref after dash
+                    end_range = re.search(f'-(.+)$', range_wo_last_amud).group(1)
                     return f"{start_daf}-{end_range}"
 
         normal = self.index_node.full_title(lang)
@@ -4234,25 +4241,6 @@ class Ref(object, metaclass=RefCacheType):
         if not self._normal:
             self._normal = self._get_normal("en")
         return self._normal
-
-    def display(self, lang) -> str:
-        """
-        :return str: Display string that is not necessarily a valid `Ref`
-        """
-        from sefaria.model.schema import AddressTalmud
-        if self.is_range() and self.index_node.addressTypes[len(self.sections)-1] == "Talmud":  # is self a range that is as deep as a Talmud addressType?
-            if self.sections[-1] % 2 == 1 and self.toSections[-1] % 2 == 0:  # starts at amud alef and ends at bet?
-                start_daf = AddressTalmud.oref_to_amudless_tref(self.starting_ref(), lang)
-                end_daf = AddressTalmud.oref_to_amudless_tref(self.ending_ref(), lang)
-                if start_daf == end_daf:
-                    return start_daf
-                else:
-                    range_wo_last_amud = AddressTalmud.oref_to_amudless_tref(self, lang)
-                    # looking for rest of ref after dash
-                    end_range = re.search(f'-(.+)$', range_wo_last_amud).group(1)
-                    return f"{start_daf}-{end_range}"
-
-        return self.he_normal() if lang == 'he' else self.normal()
 
     def text(self, lang="en", vtitle=None, exclude_copyrighted=False):
         """

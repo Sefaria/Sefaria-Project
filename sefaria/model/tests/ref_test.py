@@ -606,7 +606,7 @@ class Test_normal_forms(object):
 
     def test_zohar_volume_range(self):
         oref = Ref("Zohar 1-2")
-        assert oref.normal() == oref.normal()
+        assert oref.normal() == "Zohar 1-2"
         assert oref.he_normal() == "זוהר א׳-ב׳"
 
     def test_zohar_daf_range(self):

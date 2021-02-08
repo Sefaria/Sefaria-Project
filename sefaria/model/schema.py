@@ -2009,7 +2009,7 @@ class AddressTalmud(AddressType):
         Remove last amud from `ref`. Assumes `ref` ends in a Talmud address.
         This may have undesirable affect if `ref` doesn't end in a Talmud address
         """
-        normal_form = ref.he_normal() if lang == 'he' else ref.normal()
+        normal_form = ref._get_normal(lang, parse_talmud_range=False)
         return re.sub(f"{cls.amud_patterns[lang]}$", '', normal_form)
 
     @classmethod
