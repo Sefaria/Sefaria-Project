@@ -19,21 +19,47 @@ const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
   </span>
 );
 
-
+const HebrewText = ({children}) => (
+    <>{children}</>
+)
+const EnglishText = ({children}) => (
+    <>{children}</>
+)
 const IntText = ({className, children, en, he}) => {
   // Renders a single span for interface string with either class `int-en`` or `int-he`
   // depending on Sefaria.interfaceLang.
   // `children` is the English string, which will be translated with Sefaria._ if needed.
   // If `en` and `he` are explicitly passed, use them intead of tryingt o translate `children`.
+  const languageElements = {"english" : EnglishText, "hebrew": HebrewText};
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   const cls = classNames({"int-en": !isHebrew, "int-he": isHebrew}) + (className ? " " + className : "");
   let text;
   if (en && he) {
     text = isHebrew ? he : en;
-  } else {
-    text = Sefaria._(children);
+  }else if (en && !he){
+    text = Sefaria._(en)
+  }else{
+    let childrenArr = React.Children.toArray(children);
+    console.log(childrenArr);
+    if (childrenArr.length == 1) {
+      text = Sefaria._(children);
+    }else if (childrenArr.length > 1){
+      let currLangComponent = languageElements[Sefaria.interfaceLang];
+      console.log(currLangComponent);
+      //loop through looking for correct language
+      for (const ch of childrenArr) {
+        console.log(ch );
+        console.log(`instanceof:  ${ch instanceof currLangComponent}` );
+        if (ch.type) console.log(`type ==  ${ch.type == currLangComponent}` );
+      }
+      let newChildren = childrenArr.filter(x=> x.type == currLangComponent);
+      text = newChildren[0];
+    }
   }
   return <span className={cls}>{text}</span>
+};
+IntText.propTypes = {
+
 };
 
 
@@ -775,8 +801,10 @@ SimpleContentBlock.propTypes = {
 const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick}) => (
         <div className={classes} onClick={onClick}>
             <a href={url} className={aclasses}>
-              <span className="int-en">{en}</span>
-              <span className="int-he">{he}</span>
+              <IntText>
+                <EnglishText>{en}</EnglishText>
+                <HebrewText>{he}</HebrewText>
+              </IntText>
             </a>
             {children}
         </div>
@@ -788,6 +816,18 @@ SimpleLinkedBlock.propTypes = {
     classes: PropTypes.string,
     aclasses: PropTypes.string
 };
+
+const SimpleLinkedInline = ({children, aclasses, en, he, url, onClick}) => (
+    children || (en && !he) ?
+        <a href={url} className={aclasses} onClick={onClick}>
+          <IntText>{children}</IntText>
+        </a>
+        :
+        <a href={url} className={aclasses} onClick={onClick}>
+          <span className="int-en">{en}</span>
+          <span className="int-he">{he}</span>
+        </a>
+);
 
 
 class BlockLink extends Component {
