@@ -331,7 +331,7 @@ function transformSheetJsonToSlate(sheet) {
     });
 
     // Ensure there's always something to edit at bottom of sheet.
-    if (sourceNodes.length == 0 || (sourceNodes[sourceNodes.length - 1]["children"][0]["type"] != "SheetOutsideText")) {
+    if (sourceNodes.length == 0 || (sourceNodes[sourceNodes.length - 1]["children"] && sourceNodes[sourceNodes.length - 1]["children"][0]["type"] != "SheetOutsideText")) {
         sourceNodes.push({
           type: "spacer",
           children: [{text: ""}]
@@ -704,7 +704,7 @@ async function getRefInText(editor, additionalOffset=0) {
 
 
 const withSefariaSheet = editor => {
-    const {insertData, insertBreak, isVoid, normalizeNode} = editor;
+    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward} = editor;
 
     //Hack to override this built-in which often returns null when programmatically selecting the whole SheetSource
     Transforms.deselect = () => {}
@@ -714,6 +714,25 @@ const withSefariaSheet = editor => {
     };
 
 
+    editor.deleteBackward = () => {
+        //if just before sheetSource, select it instead of delete
+        if (!getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+            Transforms.move(editor, { reverse: true })
+            if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+               return
+            }
+            else {
+                Editor.deleteForward(editor)
+                return;
+                }
+        }
+
+        else {
+            deleteBackward()
+            return
+        }
+
+    }
 
     editor.insertBreak = () => {
 
@@ -1219,7 +1238,7 @@ const FormatButton = ({format}) => {
 };
 
 function saveSheetContent(doc, lastModified) {
-    const sheetTitle = document.querySelector(".sheetContent .sheetMetaDataBox .title").textContent;
+    const sheetTitle = document.querySelector(".sheetContent .sheetMetaDataBox .title") ? document.querySelector(".sheetContent .sheetMetaDataBox .title").textContent : "Untitled"
 
     const sheetContent = doc.children.find(el => el.type == "SheetContent").children;
 
@@ -1345,7 +1364,9 @@ const SefariaEditor = (props) => {
             setlastModified(res.dateModified);
             // console.log("saved at: "+ res.dateModified);
             setUnsavedChanges(false)
-            Sefaria.sheets._loadSheetByID[doc[0].id] = null
+
+            const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
+            Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
         });
     }
 
