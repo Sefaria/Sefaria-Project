@@ -1425,13 +1425,14 @@ function ManuscriptImage(props) {
       <div className="meta">
         <IntText>Location: </IntText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br/>
         {
-          manuscript.manuscript[description] ? <span className={cls}>{manuscript.manuscript[description]}<br/></span> : ''
+          manuscript.manuscript[description]
+            ? <span>
+                <IntText en={'Courtesy of: '} he={'הודות ל'} />
+                <span className={cls}>{manuscript.manuscript[description]}<br/></span>
+              </span>
+            : ''
         }
-        {
-          (props.interfaceLang === 'hebrew')
-            ? <span className={'int-he'}>{`מקור: `}</span>
-            : <span className={'int-en'}>{`Source: `}</span>
-        }
+        <IntText en={'Source: '} he={'מקור: '}/>
         <a href={manuscript.manuscript['source']} target="_blank">{manuscript.manuscript['source'].replace("https://", "")}</a>
       </div>
 
