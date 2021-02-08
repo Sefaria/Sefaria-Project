@@ -34,18 +34,21 @@ const IntText = ({className, children, en, he}) => {
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   const cls = classNames({"int-en": !isHebrew, "int-he": isHebrew}) + (className ? " " + className : "");
   let text;
-  if (en && he) {
+  if (en && he) { // Prioritze explicit props passed in for text of the element
     text = isHebrew ? he : en;
-  }else if (en && !he){
+  }else if (en && !he){ // Allow a `en` prop to be passed alone as a i18n key
     text = Sefaria._(en)
-  }else{
-    let childrenArr = React.Children.toArray(children);
-    if (childrenArr.length == 1) {
+  }else{ // Also handle composition with children
+    const chlCount = React.Children.count(children);
+    if (chlCount == 1) { // Same as passing in a `en` key but with children syntax
       text = Sefaria._(children);
-    }else if (childrenArr.length > 1){
+    }else if (chlCount <= Object.keys(languageElements).length){ // When multiple languages are passed in via children
+      let chlArr = React.Children.toArray(children);
       let currLangComponent = languageElements[Sefaria.interfaceLang];
-      let newChildren = childrenArr.filter(x=> x.type == currLangComponent);
-      text = newChildren[0];
+      let newChildren = chlArr.filter(x=> x.type == currLangComponent);
+      text = newChildren[0]; //assumes one language element per IntText, may be too naive
+    }else{
+      console.log("Error too many children")
     }
   }
   return <span className={cls}>{text}</span>
