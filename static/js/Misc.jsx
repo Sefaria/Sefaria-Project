@@ -45,13 +45,6 @@ const IntText = ({className, children, en, he}) => {
       text = Sefaria._(children);
     }else if (childrenArr.length > 1){
       let currLangComponent = languageElements[Sefaria.interfaceLang];
-      console.log(currLangComponent);
-      //loop through looking for correct language
-      for (const ch of childrenArr) {
-        console.log(ch );
-        console.log(`instanceof:  ${ch instanceof currLangComponent}` );
-        if (ch.type) console.log(`type ==  ${ch.type == currLangComponent}` );
-      }
       let newChildren = childrenArr.filter(x=> x.type == currLangComponent);
       text = newChildren[0];
     }
