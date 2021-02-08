@@ -1,7 +1,7 @@
 import {
   SheetListing,
   LoadingMessage,
-  SimpleLinkedBlock,
+  SimpleLinkedBlock, IntText, EnglishText, HebrewText
 } from './Misc';
 import {
   RecentFilterSet,
@@ -235,7 +235,6 @@ class TextList extends Component {
                                         {Sefaria.is_moderator ?
                                         <DeleteConnectionButton delUrl={"/api/links/" + link._id} connectionDeleteCallback={this.onDataChange}/> : null
                                         }
-
                                       </ConnectionButtons>
                                   </div>);
 
