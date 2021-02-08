@@ -51,7 +51,10 @@ const IntText = ({className, children, en, he}) => {
   return <span className={cls}>{text}</span>
 };
 IntText.propTypes = {
-
+  children: PropTypes.oneOfType([
+    PropTypes.arrayOf(PropTypes.oneOfType([EnglishText, HebrewText])),
+    PropTypes.string,
+  ])
 };
 
 
