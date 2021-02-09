@@ -897,11 +897,12 @@ def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_la
 	:param bool use_as_typed:
 	"""
 	new_topic_list = []
+	from sefaria.model import library
+	topic_map = library.get_topic_mapping()
 	if len(topic_list) > 0:
-		topic_set = {topic.slug: topic for topic in TopicSet({'$or': [{'slug': topic['slug']} for topic in topic_list]})}
 		for topic in topic_list:
-			topic_obj = topic_set.get(topic['slug'], None)
-			if topic_obj is None:
+			topic_titles = topic_map.get(topic['slug'], None)
+			if topic_titles is None:
 				continue
 			new_topic = topic.copy()
 			tag_lang = 'en'
@@ -909,9 +910,9 @@ def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_la
 				tag_lang = 'he' if is_hebrew(new_topic['asTyped']) else 'en'
 				new_topic[tag_lang] = new_topic['asTyped']
 			if not use_as_typed or tag_lang == 'en':
-				new_topic['he'] = topic_obj.get_primary_title('he')
+				new_topic['he'] = topic_titles["he"]
 			if not use_as_typed or tag_lang == 'he':
-				new_topic['en'] = topic_obj.get_primary_title('en')
+				new_topic['en'] = topic_titles["en"]
 
 			if backwards_compat_lang_fields is not None:
 				for lang in ('en', 'he'):
