@@ -4448,7 +4448,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList.fullPanel .recentFilterSet {
   margin: 0 0 12px 0;
 }
-.textList.fullPanel .recentFilterSet .textFilter,
+.textList .recentFilterSet .textFilter,
 .connectionsPanelHeader .recentFilterSet.topFilters .textFilter {
   display: inline-block;
   padding: 0;
@@ -4463,7 +4463,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-inline-end: 14px;
   margin-inline-start: 0;
 }
-.textList.fullPanel .recentFilterSet .textFilter.on, .connectionsPanelHeader .recentFilterSet.topFilters .textFilter.on {
+.textList .recentFilterSet .textFilter.on, .connectionsPanelHeader .recentFilterSet.topFilters .textFilter.on {
   color: #000000;
   border-bottom-color: var(--category-color);
 }
@@ -4472,6 +4472,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .hebrew .textList .recentFilterSet.filterSet {
   direction: rtl;
+}
+.textList.singlePanel .connectionsHeader .topFilters{
+  overflow-x: scroll;
+  overflow-y: hidden;
 }
 .topFiltersInner {
   display: inline-block;
@@ -4483,21 +4487,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList.fullPanel .topFiltersInner {
   white-space: normal;
 }
-.textList.singlePanel .topFiltersInner .textFilter {
+.textList.singlePanel .versionsTextList .topFiltersInner .textFilter {
   padding: 5px;
   margin-bottom: 5px;
-  /*border: 1px solid #ccc;*/
-  border-radius: 5px;
   color: #999;
 }
-.textList.singlePanel .topFiltersInner .textFilter:hover{
-  color: black;
-  background-color: #cccccc;
-}
-.textList.singlePanel .topFiltersInner .textFilter.on {
-  color: black;
-}
-.textList.singlePanel .topFiltersInner {
+.textList.singlePanel .versionsTextList .topFiltersInner {
   white-space: pre-wrap;
 }
 .showMoreFilters {
