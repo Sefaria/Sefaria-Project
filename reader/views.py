@@ -181,6 +181,7 @@ def base_props(request):
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
+            "_uses_new_editor": request.COOKIES.get("new_editor", False),
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
@@ -188,7 +189,6 @@ def base_props(request):
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": getattr(profile.settings,"reading_history", True),
             "following": profile.followees.uids,
-
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
             "notificationsHtml": profile.recent_notifications().to_HTML(),

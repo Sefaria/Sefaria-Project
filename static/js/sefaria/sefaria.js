@@ -2400,6 +2400,7 @@ Sefaria.unpackDataFromProps = function(props) {
   const dataPassedAsProps = [
       "_uid",
       "_email",
+      "_uses_new_editor",
       "slug",
       "is_moderator",
       "is_editor",
