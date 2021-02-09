@@ -1075,8 +1075,17 @@ class ReaderApp extends Component {
     if (path.indexOf("?") !== -1) {
       return false;
 
+    } else if (path == "/") {
+      this.showHome();
+
     } else if (path == "/texts") {
       this.showLibrary();
+
+    } else if (path == "/texts/history") {
+      this.showHistory();
+
+    } else if (path == "/texts/saved") {
+      this.showSaved();
 
     } else if (path.match(/\/texts\/.+/)) {
       this.showLibrary(path.slice(7).split("/"));
@@ -1098,6 +1107,9 @@ class ReaderApp extends Component {
 
     } else if (path.match(/\/sheets\/\d+/)) {
       this.openPanel("Sheet " + path.slice(8));
+
+    } else if (path == "/topics") {
+      this.showTopics();
 
     } else if (path.match(/\/topics\/[^\/]+/)) {
       this.openTopic(path.slice(8));
@@ -1664,6 +1676,18 @@ class ReaderApp extends Component {
       panel = this.makePanelState({menuOpen: "search", "searchTab": "sheet", searchQuery, textSearchState, sheetSearchState });
       this.setState({panels: [panel]});
     }
+  }
+  showHome() {
+    this.setStateInHeaderOrSinglePanel({menuOpen: "homefeed"});
+  }  
+  showSaved() {
+    this.setStateInHeaderOrSinglePanel({menuOpen: "saved"});
+  }
+  showHistory() {
+    this.setStateInHeaderOrSinglePanel({menuOpen: "history"});
+  }
+  showTopics() {
+    this.setStateInHeaderOrSinglePanel({menuOpen: "topics"});
   }
   showNotifications() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "notifications"});

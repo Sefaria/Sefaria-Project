@@ -4,6 +4,7 @@ import {
   TestMessage,
   ProfilePic,
   InterfaceLanguageMenu,
+  IntText,
 } from './Misc';
 import React, { useState, useEffect, useRef} from 'react';
 import PropTypes  from 'prop-types';
@@ -302,32 +303,34 @@ class Header extends Component {
     return (<div className="header" role="banner">
               <div className={headerInnerClasses}>
                 <div className="headerNavSection">
-                    <a href="/texts" aria-label={this.state.menuOpen === "navigation" && this.state.navigationCategories.length == 0 ? "Return to text" : "Open the Sefaria Library Table of Contents" } className="library"><i className="fa fa-bars"></i></a>
-                    <div id="searchBox" className={searchBoxClasses}>
-                      <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                      <input className={inputClasses}
-                             id="searchInput"
-                             placeholder={Sefaria._("Search")}
-                             onKeyUp={this.handleSearchKeyUp}
-                             onFocus={this.focusSearch}
-                             onBlur={this.blurSearch}
-                             maxLength={75}
-                      title={Sefaria._("Search for Texts or Keywords Here")}/>
-                    </div>
+                    { Sefaria._siteSettings.TORAH_SPECIFIC ? <a className="home" href="/" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> : null }
+                    <a href="/texts" className="library"><IntText>Texts</IntText></a>
+                    <a href="/topics" className="library"><IntText>Topics</IntText></a>
                 </div>
-                <div className="headerHomeSection">
-                    { Sefaria._siteSettings.TORAH_SPECIFIC ? <a className="home" href="/?home" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> : null }
-                </div>
+
                 <div className="headerLinksSection">
                   { headerMessage }
+                  
+                  <div id="searchBox" className={searchBoxClasses}>
+                    <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+                    <input className={inputClasses}
+                           id="searchInput"
+                           placeholder={Sefaria._("Search")}
+                           onKeyUp={this.handleSearchKeyUp}
+                           onFocus={this.focusSearch}
+                           onBlur={this.blurSearch}
+                           maxLength={75}
+                    title={Sefaria._("Search for Texts or Keywords Here")}/>
+                  </div>
+
                   { Sefaria._uid ?
-                      <LoggedInButtons headerMode={this.props.headerMode}/>
-                      :
-                      <LoggedOutButtons headerMode={this.props.headerMode}/>
+                    <LoggedInButtons headerMode={this.props.headerMode}/>
+                    : <LoggedOutButtons headerMode={this.props.headerMode}/>
                   }
                   { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
                 </div>
               </div>
+
               { viewContent ?
                 (<div className="headerNavContent">
                   {viewContent}
@@ -401,7 +404,12 @@ function LoggedInButtons({headerMode}){
   const notificationsClasses = classNames({notifications: 1, unread: unread});
   return(
       <div className="accountLinks">
-          <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>{Sefaria.notificationCount}</a>
+          <a href="/texts/history" aria-label="See My History">
+            <img src="/static/icons/bookmarks.svg" />
+          </a>      
+          <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
+            <img src="/static/icons/notification.svg" />
+          </a>
           <a href="/my/profile" className="my-profile">
             <ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
           </a>

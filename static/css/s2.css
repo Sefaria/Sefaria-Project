@@ -338,30 +338,31 @@ input.noselect {
 .headerOnly .headerInner, .headerInner.boxShadow {
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.interface-hebrew .headerInner{
+.interface-hebrew .headerInner {
   direction: rtl;
 }
-
-.headerInner .headerNavSection{
+.headerInner .headerNavSection {
   display: flex;
   justify-content: flex-start;
 }
-.headerInner .headerHomeSection{
-  position: absolute;
-  top: 17px;
-  left: 50%;
-  margin-left: -46px;
+.headerInner .headerNavSection a {
+  font-size: 16px;
+  color: #666;
+  margin-inline-end: 30px;
+  font-weight: 500;
+  line-height: 25px;
+  vertical-align: middle;
 }
-.headerInner .headerLinksSection{
+.headerInner .headerLinksSection {
   display: flex;
   justify-content: flex-end;
   min-width: 40%;
   align-items: center;
 }
-.header .header-nav{
+.header .header-nav {
   margin-top: 1px;
 }
-.header .header-links{
+.header .header-links {
   margin-top: 1px;
 }
 .header .library, .header .home, .header .my-profile, .header .notifications, .header .readerNavMenuSearchButton {
@@ -377,14 +378,13 @@ input.noselect {
   align-items: center;
   padding: 0;
   text-align: inherit;
-  margin: 0 17px 0 17px;
   background: #EDEDEC;
   border-radius: 250px;
   width: 140px;
   height: 30px;
 }
 .header .searchBox.searchFocused {
-  width: 240px;
+  width: 280px;
 }
 .header .searchBox input {
   background-color: transparent; /*for firefox */
@@ -403,7 +403,7 @@ input.noselect {
   width: 100px;
 }
 .header .searchFocused .search {
-  width: 160px;
+  width: 200px;
 }
 .header .search.hebrewSearch {
   font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -425,14 +425,8 @@ input.noselect {
 .header .home img {
   vertical-align: middle;
   width: 92px;
-}
-.header .login:first-child{
-  -webkit-margin-end: 0px;
-  -moz-margin-end: 0px;
-  margin-inline-end: 0px;
-}
-.header .notifications {
-  margin: 0 17px;
+  height: 25px;
+  margin-top: -6px;
 }
 @media (max-width: 540px) {
   .header .home {
@@ -464,13 +458,19 @@ input.noselect {
   margin-top: 2px;
   color: #666;
 }
+.header .accountLinks a {
+  margin-inline-start: 17px;
+}
+.header .accountLinks.anon a {
+  margin: 0;
+}
 .header .accountLinks.anon a:last-child{
   background: #FFFFFF;
   border: 1px solid #EDEDEC;
   box-sizing: border-box;
   border-radius: 6px;
 }
-.header .interfaceLinks{
+.header .interfaceLinks {
   display: block;
   align-items: center;
   margin-top: 2px;
@@ -481,7 +481,7 @@ input.noselect {
   -moz-margin-start: 20px;
   margin-inline-start: 20px;
 }
-.header .interfaceLinks img{
+.header .interfaceLinks img {
   height: 18px;
   width: 18px;
   vertical-align: middle;
@@ -592,18 +592,6 @@ input.noselect {
 .header .library .fa {
   position: relative;
   top: 1px;
-}
-.header .notifications {
-  display: inline-block;
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-  line-height: 24px;
-  height: 24px;
-  width: 24px;
-  text-align: center;
-  border-radius: 50%;
-  background-color: #aaa;
-  color: white;
-  font-size: 16px;
 }
 .header .notifications.unread {
   background-color: #EFB4B6;
