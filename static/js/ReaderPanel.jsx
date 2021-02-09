@@ -638,7 +638,6 @@ class ReaderPanel extends Component {
         let newSheet = this.state.sheet;
         delete newSheet.editor
         this.conditionalSetState({ sheet: newSheet});
-        this.toggleSheetEditMode(false)
       }
         items.push(<Sheet
           panelPosition ={this.props.panelPosition}
