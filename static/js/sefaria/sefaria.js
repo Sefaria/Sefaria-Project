@@ -1924,13 +1924,13 @@ _media: {},
     _loadSheetByID: {},
     loadSheetByID: function(id, callback, reset) {
       if (reset) {
-        this._loadSheetByID[id] = null;
+        delete this._loadSheetByID[id];
       }
-      var sheet = this._loadSheetByID[id];
+      const sheet = this._loadSheetByID[id];
       if (sheet) {
         if (callback) { callback(sheet); }
       } else {
-        var url = "/api/sheets/" + id +"?more_data=1";
+        const url = "/api/sheets/" + id +"?more_data=1";
          $.getJSON(url, data => {
             if ("error" in data) {
                 console.log(data["error"])

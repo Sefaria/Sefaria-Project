@@ -331,7 +331,7 @@ function transformSheetJsonToSlate(sheet) {
     });
 
     // Ensure there's always something to edit at bottom of sheet.
-    if (sourceNodes.length == 0 || (sourceNodes[sourceNodes.length - 1]["children"][0]["type"] != "SheetOutsideText")) {
+    if (sourceNodes.length == 0 || (sourceNodes[sourceNodes.length - 1]["children"] && sourceNodes[sourceNodes.length - 1]["children"][0]["type"] != "SheetOutsideText")) {
         sourceNodes.push({
           type: "spacer",
           children: [{text: ""}]
@@ -1345,7 +1345,9 @@ const SefariaEditor = (props) => {
             setlastModified(res.dateModified);
             // console.log("saved at: "+ res.dateModified);
             setUnsavedChanges(false)
-            Sefaria.sheets._loadSheetByID[doc[0].id] = null
+
+            const updatedSheet = {...Sefaria.sheets._loadSheetByID[doc[0].id], ...res};
+            Sefaria.sheets._loadSheetByID[doc[0].id] = updatedSheet
         });
     }
 

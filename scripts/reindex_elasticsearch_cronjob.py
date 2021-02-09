@@ -20,8 +20,7 @@ up-to-date mongo dump).
 try:
     last_sheet_timestamp = datetime.now().isoformat()
     update_pagesheetrank()
-    index_all(merged=False)
-    index_all(merged=True)
+    index_all()
     r = requests.post("https://www.sefaria.org/admin/index-sheets-by-timestamp", data={"timestamp": last_sheet_timestamp, "apikey": SEFARIA_BOT_API_KEY})
     if "error" in r.text:
         raise Exception("Error when calling admin/index-sheets-by-timestamp API: " + r.text)

@@ -113,7 +113,7 @@ class OfflineTextIndexer(object):
         # dict of words: list of all ref_nums which that words appears in
         cls.words_2_ref_nums = defaultdict(set)
 
-        TextIndexer.index_all("", True, for_es=False, action=OfflineTextIndexer.index_segment)
+        TextIndexer.index_all("", for_es=False, action=OfflineTextIndexer.index_segment)
         # after it's done there's likely an extra section that hasn't been indexed
         cls.index_section(cls.curr_title, cls.section_ref, cls.curr_section_text)
 
