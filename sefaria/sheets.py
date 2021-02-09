@@ -901,9 +901,7 @@ def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_la
 	topic_map = library.get_topic_mapping()
 	if len(topic_list) > 0:
 		for topic in topic_list:
-			topic_titles = topic_map.get(topic['slug'], None)
-			if topic_titles is None:
-				topic_titles = {"en": topic['asTyped'], "he": topic['asTyped']}
+			topic_titles = topic_map.get(topic['slug'], {"en": topic['asTyped'], "he": topic['asTyped']})
 			new_topic = topic.copy()
 			tag_lang = 'en'
 			if use_as_typed:
