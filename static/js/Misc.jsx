@@ -13,6 +13,7 @@ import 'react-image-crop/dist/ReactCrop.css';
 
 // interface text that can fallback to alternate langauge if current language doesn't have content
 const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
+    //TODO deprecate this and all of its various props usages
   <span>
     <span className={classNames({"int-en": 1, "but-text-is-he": !en, italics: isItalics && isItalics.en })}>{en || he}{endContent}</span>
     <span className={classNames({"int-he": 1, "but-text-is-en": !he, italics: isItalics && isItalics.he })}>{he || en}{endContent}</span>
@@ -34,10 +35,8 @@ const IntText = ({children, en, he, context, className}) => {
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   const cls = classNames({"int-en": !isHebrew, "int-he": isHebrew}) + (className ? " " + className : "");
   let text;
-  if (en && he) { // Prioritze explicit props passed in for text of the element
-    text = isHebrew ? he : en;
-  }else if (en && !he){ // Allow a `en` prop to be passed alone as a i18n key
-    text = Sefaria._(en, context)
+  if (en || he) {// Prioritze explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
+    text = isHebrew ? (he || en) : (en || he);
   }else{ // Also handle composition with children
     const chlCount = React.Children.count(children);
     if (chlCount == 1) { // Same as passing in a `en` key but with children syntax
