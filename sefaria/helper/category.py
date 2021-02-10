@@ -2,7 +2,7 @@ from sefaria.model import *
 from sefaria.system.exceptions import BookNameError
 
 
-def moveIndexInto(index, cat):
+def move_index_into(index, cat):
     if not isinstance(index, Index):
         try:
             index = library.get_index(index)
@@ -13,15 +13,69 @@ def moveIndexInto(index, cat):
         cat = Category().load({"path": cat})
 
     index.categories = cat.path[:]
-    print("Moving - " + index.get_title() + " to " + str(index.categories) + " (moveIndexInto)")
+    print("Moving - " + index.get_title() + " to " + str(index.categories) + " (move_index_into)")
     index.save(override_dependencies=True)
 
 
-def moveCategoryInto(cat, parent):
+def rename_category(cat, en, he=None):
+    """
+
+    :param cat:
+    :param en:
+    :param he:
+    :return:
+    """
+    if not isinstance(cat, Category):
+        cat = Category().load({"path": cat})
+    assert isinstance(cat, Category)
+
+    if en is None:
+        raise Exception("Need en name for category {} renaming.".format(cat.path[-1]))
+
+    old_category_path = cat.path[:]
+    path_length = len(old_category_path)
+
+    if not Term().load({"name": en}):
+        if he is None:
+            raise Exception("Need Hebrew term names for {}".format(en))
+        print("adding term for " + en)
+        term = Term()
+        term.name = en
+        term.add_primary_titles(en, he)
+        term.scheme = "toc_categories"
+        term.save()
+    cat.add_shared_term(en)
+    cat.path[-1] = en
+    cat.lastPath = en
+    print("Renaming category to {}".format(en))
+    cat.save(override_dependencies=True)
+
+    # move all matching categories
+    clauses = [{"path." + str(i): cname} for i, cname in enumerate(old_category_path)]
+    query = {"$and": clauses}
+    for c in CategorySet(query):
+        # replace old_parent_path with new_parent_path
+        c.path = cat.path + c.path[path_length:]
+        print("Saving moved category - " + str(c.path) + " (rename_category)")
+        c.save(override_dependencies=True)
+
+    # move all matching Indexes
+    clauses = [{"categories." + str(i): cname} for i, cname in enumerate(old_category_path)]
+    query = {"$and": clauses}
+    for ind in IndexSet(query):
+        assert isinstance(ind, Index)
+        ind.categories = cat.path + ind.categories[path_length:]
+        print("Moving - " + ind.get_title() + " to " + str(ind.categories) + " (rename_category)")
+        ind.save(override_dependencies=True)
+
+    return cat
+
+
+def move_category_into(cat, parent):
     """
     c = Category().load({'path': ["Tanaitic", "Minor Tractates"]})
     p = Category().load({"path": ["Talmud", "Bavli"]})
-    moveCategoryInto(c, p)
+    move_category_into(c, p)
 
     if parent is None, move to root.
 
@@ -58,19 +112,8 @@ def moveCategoryInto(cat, parent):
     for ind in IndexSet(query):
         assert isinstance(ind, Index)
         ind.categories = new_parent_path + ind.categories[old_parent_length:]
-        print("Moving - " + ind.get_title() + " to " + str(ind.categories) + " (moveCategoryInto)")
+        print("Moving - " + ind.get_title() + " to " + str(ind.categories) + " (move_category_into)")
         ind.save(override_dependencies=True)
-
-    """
-     Handle commentary on parallel trees separately.
-     "title": "Commentary of Chida on Tractate Gerim",
-     "categories": [
-     "Tanaitic",
-     "Commentary",
-     "Commentary of Chida",
-     "Minor Tractates"
-     ],
-    """
 
 
 def create_category(path, en=None, he=None, searchRoot=None):
