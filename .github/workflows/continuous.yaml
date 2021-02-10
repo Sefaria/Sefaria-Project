@@ -515,9 +515,11 @@ jobs:
 
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
+        timeout-minutes: 25
         env: 
           # dependent on GITHUB_ACTION, which is implicitly passed in
           TEST_NAME: pytest
+          
 
       - name: Get Logs From Cluster
         run: kubectl logs --tail=-1 -l ci-run=$GITHUB_ACTION,test-name=pytest | tee /home/runner/pytestResultsPod.txt
