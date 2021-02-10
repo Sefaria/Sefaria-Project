@@ -111,7 +111,7 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
             const chItem = item.contents[0];
             if (chItem.hidden) { continue; }
             content.push((
-                <TextMenuItem item={chItem} category={category} showInHebrew={showInHebrew} nestLevel={nestLevel}/>
+                <TextMenuItem item={chItem} categories={categories} showInHebrew={showInHebrew} nestLevel={nestLevel}/>
             ));
 
         // Create a link to a subcategory
@@ -163,7 +163,7 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
     // Add a Text
     } else {
         content.push((
-            <TextMenuItem item={item} category={category} showInHebrew={showInHebrew} nestLevel={nestLevel}/>
+            <TextMenuItem item={item} categories={categories} showInHebrew={showInHebrew} nestLevel={nestLevel}/>
         ));
     }
   }
@@ -219,8 +219,8 @@ const MenuItem = ({href, dref, nestLevel, title, heTitle, group, cats, incomplet
     );
 };
 
-const TextMenuItem = ({item, category, showInHebrew, nestLevel}) => {
-        const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, category);
+const TextMenuItem = ({item, categories, showInHebrew, nestLevel}) => {
+        const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, categories);
         const lastPlace = Sefaria.lastPlaceForText(item.title);
         const ref =  lastPlace ? lastPlace.ref : item.firstSection;
         return (
@@ -259,19 +259,17 @@ const TalmudToggle = ({categories, setCategories}) => {
     </div>);
 };
 
-const getRenderedTextTitleString = (title, heTitle, category) => {
 
+const getRenderedTextTitleString = (title, heTitle, categories) => {
 
     const whiteList = ['Imrei Yosher on Ruth', 'Duties of the Heart (abridged)'];  // ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma', 'Midrash Aggadah'];
     if (whiteList.indexOf(title) > -1) {
         return [title, heTitle];
     }
 
-    const displayCategory = category;
-    const displayHeCategory = Sefaria.hebrewTerm(category);
     const replaceTitles = {
-        "en": ['Jerusalem Talmud', displayCategory],
-        "he": ['תלמוד ירושלמי', displayHeCategory]
+        "en": ['Jerusalem Talmud'].concat(categories),
+        "he": ['תלמוד ירושלמי'].concat(categories.map(Sefaria.hebrewTerm))
     };
     const replaceOther = {
         "en" : [", ", "; ", " on ", " to ", " of "],
@@ -281,11 +279,13 @@ const getRenderedTextTitleString = (title, heTitle, category) => {
     //this will replace a category name at the beginning of the title string and any connector strings (0 or 1) that follow.
     const titleRe = new RegExp(`^(${replaceTitles['en'].join("|")})(${replaceOther['en'].join("|")})?`);
     const heTitleRe = new RegExp(`^(${replaceTitles['he'].join("|")})(${replaceOther['he'].join("|")})?`);
-    title   = title === displayCategory ? title : title.replace(titleRe, "");
-    heTitle = heTitle === displayHeCategory ? heTitle : heTitle.replace(heTitleRe, "");
+    title   = title === categories.slice(-1)[0] ? title : title.replace(titleRe, "");
+    heTitle = heTitle === Sefaria.hebrewTerm(categories.slice(-1)[0]) ? heTitle : heTitle.replace(heTitleRe, "");
 
     return [title, heTitle];
 };
+
+
 const hebrewContentSort = (enCats) => {
     // Sorts contents of this category by Hebrew Alphabetical
     //console.log(cats);
