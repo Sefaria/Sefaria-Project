@@ -440,7 +440,6 @@ const SheetSourceElement = ({ attributes, children, element }) => {
 
   return (
     <div className={"sheetItem"}>
-    {children}
     <div {...attributes} contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
         <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div>
@@ -454,7 +453,6 @@ const SheetSourceElement = ({ attributes, children, element }) => {
           </Slate>
         </div>
       </div>
-        {children}
       <div className={classNames(enClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
         <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.ref}</div>
         <div className="sourceContentText">
@@ -469,6 +467,7 @@ const SheetSourceElement = ({ attributes, children, element }) => {
       </div>
       </div>
       <div className="clearFix"></div>
+      {children}
       </div>
   );
 }
@@ -715,6 +714,10 @@ const withSefariaSheet = editor => {
 
 
     editor.deleteBackward = () => {
+
+        const atStartOfDoc = Point.equals(editor.selection.focus, Editor.start(editor, [0,0]))
+        if (atStartOfDoc) {return}
+
         //if just before sheetSource, select it instead of delete
         if (!getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
             Transforms.move(editor, { reverse: true })

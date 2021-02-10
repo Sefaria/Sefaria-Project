@@ -39,6 +39,7 @@ from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.media import get_media_for_ref
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
+from sefaria.model.manuscript import ManuscriptPageSet
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.client.util import jsonResponse
@@ -180,6 +181,7 @@ def base_props(request):
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
+            "_uses_new_editor": request.COOKIES.get("new_editor", False),
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
@@ -187,7 +189,6 @@ def base_props(request):
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": getattr(profile.settings,"reading_history", True),
             "following": profile.followees.uids,
-
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
             "notificationsHtml": profile.recent_notifications().to_HTML(),
@@ -339,7 +340,8 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         }
         if filter and len(filter):
             # List of sidebar modes that can function inside a URL parameter to open the sidebar in that state.
-            sidebarModes = ("Sheets", "Notes", "About", "Translations", "Translation Open", "WebPages", "extended notes", "Topics", "Torah Readings")
+            sidebarModes = ("Sheets", "Notes", "About", "Translations", "Translation Open",
+                            "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts")
             if filter[0] in sidebarModes:
                 panel["connectionsMode"] = filter[0]
                 del panel['filter']
@@ -1994,6 +1996,7 @@ def related_api(request, tref):
             "notes": [],  # get_notes(oref, public=True) # Hiding public notes for now
             "webpages": get_webpages_for_ref(tref),
             "topics": get_topics_for_ref(tref, annotate=True),
+            "manuscripts": ManuscriptPageSet.load_set_for_client(tref),
             "media": get_media_for_ref(tref),
         }
         for value in response.values():
@@ -4183,6 +4186,16 @@ def visual_garden_page(request, g):
 @requires_csrf_token
 def custom_page_not_found(request, exception, template_name='404.html'):
     return render_template(request, template_name=template_name, app_props=None, template_context={}, status=404)
+
+@catch_error_as_json
+@csrf_exempt
+def manuscripts_for_source(request, tref):
+    if request.method == "GET":
+        if not Ref.is_ref(tref):
+            return jsonResponse({"error": "Unrecognized Reference"})
+        return jsonResponse(ManuscriptPageSet.load_set_for_client(tref))
+    else:
+        return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @requires_csrf_token
