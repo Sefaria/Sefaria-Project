@@ -92,6 +92,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
                   </div>
                   <NavSidebar modules={sidebarModules} />
                 </div>
+                {footer}
               </div>
             </div>);
 };

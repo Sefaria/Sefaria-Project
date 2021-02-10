@@ -1131,7 +1131,7 @@ input.noselect {
   padding: 30px 10px;
 }
 .readerNavMenu .content .contentInner {
-  max-width: 660px;
+  width: 660px;
   margin: 0 auto;
   min-height: 520px;
 }
@@ -1736,7 +1736,6 @@ input.resourcesLink {
 }
 .navBlockTitle {
   background-color: white;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   text-align: start;
   font-size: 24px;
   padding: 14px 0 8px;
@@ -1753,6 +1752,9 @@ a.navBlockTitle {
   display: block;
   margin-inline-end: 20px;
 }
+.navBlockTitle .int-en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
 @media (max-width: 450px) {
   .navBlockTitle {
     font-size: 16px;
@@ -1766,6 +1768,13 @@ a.navBlockTitle {
 }
 .navBlockDescription .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.interface-english .navBlockDescription.clamped .int-en,
+.interface-hebrew .navBlockDescription.clamped .int-he {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;  
+  overflow: hidden;
 }
 .bilingual .navBlock .he {
   display: none;

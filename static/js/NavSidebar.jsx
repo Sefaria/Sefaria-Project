@@ -9,11 +9,11 @@ import Sefaria  from './sefaria/sefaria';
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar">
-    {modules.map(m => 
+    {modules.map((m, i) => 
       <Modules 
         type={m.type} 
         props={m.props || {}} 
-        key={m.type} />
+        key={i} />
     )}
   </div>
 };
@@ -28,6 +28,9 @@ const Modules = ({type, props}) => {
     "SponsorADay":        SponsorADay,
     "WeeklyTorahPortion": WeeklyTorahPortion,
     "DafYomi":            DafYomi,
+    "AboutTopics":        AboutTopics,
+    "TrendingTopics":     TrendingTopics,
+    "TitledText":         TitledText,
   };
   const ModuleType = moduleTypes[type];
   return <ModuleType {...props} />
@@ -44,26 +47,20 @@ const ModuleTitle = ({children}) => (
 );
 
 
-const TitledTextModule = ({title, text}) => (
-  <Module>
-    <ModuleTitle>{title}</ModuleTitle>
-    <IntText>{text}</IntText>
+const TitledText = ({enTitle, heTitle, enText, heText}) => {
+  console.log({enTitle, heTitle, enText, heText});
+  return <Module>
+    <ModuleTitle><IntText en={enTitle} he={heTitle} /></ModuleTitle>
+    <IntText en={enText} he={heText} />
   </Module>
-);
-
-
-const TitledBodyModule = ({title, children}) => (
-  <Module>
-    <ModuleTitle>{title}</ModuleTitle>
-    {children}
-  </Module>
-);
+};
 
 
 const TheJewishLibrary = () => (
-  <TitledTextModule
-    title="The Jewish Library"
-    text="The tradition of Torah texts is a vast, interconnected network that forms a conversation across space and time. The five books of the Torah form its foundation, and each generation of later texts functions as a commentary on those that came before it." />
+  <Module>
+    <ModuleTitle>The Jewish Library</ModuleTitle>
+    <IntText>The tradition of Torah texts is a vast, interconnected network that forms a conversation across space and time. The five books of the Torah form its foundation, and each generation of later texts functions as a commentary on those that came before it.</IntText>
+  </Module>
 );
 
 
@@ -81,7 +78,8 @@ const PopularTexts = ({texts}) => (
 
 
 const SponsorADay = () => (
-  <TitledBodyModule title="Sponsor A Day of Learning">
+  <Module>
+    <ModuleTitle>Sponsor A Day of Learning</ModuleTitle>
     <IntText>With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.</IntText>
     <button className="button small">
       <a href="https://sefaria.nationbuilder.com/sponsor" target="_blank">
@@ -89,7 +87,7 @@ const SponsorADay = () => (
         <IntText>Sponsor A Day</IntText>
       </a>
     </button>
-  </TitledBodyModule>
+  </Module>
 );
 
 
@@ -156,5 +154,26 @@ const DafYomi = () => {
     </Module>
   );
 };
+
+
+const AboutTopics = () => (
+  <Module>
+    <ModuleTitle>About Topics</ModuleTitle>
+    <IntText>Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.</IntText>
+  </Module>
+);
+
+
+const TrendingTopics = () => (
+  <Module>
+    <ModuleTitle>Trending Topics</ModuleTitle>
+    {Sefaria.trendingTopics.map((topic, i) => 
+      <div className="navSidebarLink ref" key={i}>
+        <a href={"/topics/" + topic.slug}><IntText en={topic.en} he={topic.he}/></a>
+      </div>
+    )}
+  </Module>
+);
+
 
 export default NavSidebar;

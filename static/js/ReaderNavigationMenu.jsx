@@ -19,9 +19,7 @@ import {TopicCategory} from './TopicPage';
 
 // The Navigation menu for browsing and searching texts
 const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCategories, setNavTopic, 
-        setTopic, onClose, openNav, openSearch, showMoreTexts, setMoreTexts,
-        showMoreTopics, setMoreTopics, toggleLanguage, openMenu, 
-        handleClick, openDisplaySettings,
+        setTopic, onClose, openNav, openSearch, toggleLanguage, openMenu, handleClick, openDisplaySettings,
         hideHeader, hideNavHeader, multiPanel, home, compare, interfaceLang}) => {
 
   const initialWidth = hideNavHeader ? 1000 : 500; // Assume we're in a small panel if we're hiding the nav header

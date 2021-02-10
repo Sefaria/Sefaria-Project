@@ -2456,6 +2456,7 @@ Sefaria.unpackDataFromProps = function(props) {
       "interfaceLang",
       "interruptingMessage",
 
+      "trendingTopics",
       "_siteSettings",
       "_debug",
   ];

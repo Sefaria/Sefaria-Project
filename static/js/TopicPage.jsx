@@ -17,11 +17,13 @@ import {
   TabView,
   LoadingMessage,
   Link,
-  TwoOrThreeBox,
+  NBox,
   InterfaceTextWithFallback,
   FilterableList,
   ToolTipped,
+  IntText,
 } from './Misc';
+import NavSidebar from './NavSidebar';
 import Footer from './Footer';
 import { useIncrementalLoad } from './Hooks';
 
@@ -153,23 +155,46 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang,
 
       })
       .map((t,i) => {
-      const { slug, children, en, he } = t;
-      const openTopic = e => {
-        e.preventDefault();
-        t.children ? setNavTopic(slug, {en, he}) : setTopic(slug, {en, he});
-      };
-      return <a href={`/topics/${children ? 'category/' : ''}${slug}`}
-         onClick={openTopic}
-         className="blockLink"
-         key={i}>
-          <span className='en'>{en || he}</span>
-          <span className='he'>{he || en}</span>
-      </a>
-    });
+        const { slug, children, en, he, description} = t;
+        const openTopic = e => {
+          e.preventDefault();
+          t.children ? setNavTopic(slug, {en, he}) : setTopic(slug, {en, he});
+        };
+        return (
+            <div className="navBlock">
+              <a href={`/topics/${children ? 'category/' : ''}${slug}`}
+                 className="navBlockTitle" 
+                 onClick={openTopic}
+                 key={i}>
+                <IntText en={en} he={he} />
+              </a>
+              {description ?
+              <div className="navBlockDescription clamped">
+                <IntText en={description.en} he={description.he} />
+              </div>
+              : null }
+            </div>
+        );
+      });
 
-    const footer         = compare ? null : <Footer />;
-    const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: hideNavHeader, noLangToggleInHebrew: 1});
-    const contentClasses = classNames({content: 1, readerTocTopics:1, hasFooter: footer != null});
+    const sidebarModules = [
+      {type: "TrendingTopics"},
+      {type: "SponsorADay"},
+    ];
+    if (topicData.description) {
+      sidebarModules.unshift({
+        type: "TitledText",
+        props: {
+          enTitle: "About",
+          heTitle: Sefaria._("About"),
+          enText: topicData.description.en,
+          heText: topicData.description.he
+        }
+      });
+    }
+
+    const navMenuClasses = classNames({readerNavMenu: 1, noHeader: hideNavHeader, noLangToggleInHebrew: 1});
+    const contentClasses = classNames({content: 1, readerTocTopics:1, hasFooter: 1});
     return (
         <div className={navMenuClasses}>
             {hideNavHeader ? null : (<MobileHeader
@@ -181,15 +206,16 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang,
               openDisplaySettings={openDisplaySettings}
             />)}
             <div className={contentClasses}>
-                <div className="contentInner">
-                    <TopicHeader topic={topic} topicData={topicData}
-                      multiPanel={multiPanel} interfaceLang={interfaceLang} isCat
-                      openDisplaySettings={openDisplaySettings}
-                      openSearch={openSearch}
-                      onClose={onClose} />
-                    <TwoOrThreeBox content={topicBlocks} width={width} />
+                <div className="sidebarLayout">
+                  <div className="contentInner">
+                      <h1><IntText en={topicTitle.en} he={topicTitle.he} /></h1>
+                      <div className="readerNavCategories">
+                        <NBox content={topicBlocks} n={2} />
+                      </div>
+                  </div>
+                  <NavSidebar modules={sidebarModules} />
                 </div>
-                {footer}
+                <Footer />
             </div>
         </div>
     );

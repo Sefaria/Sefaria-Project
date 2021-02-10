@@ -364,6 +364,7 @@ Header.propTypes = {
   toggleSignUpModal:           PropTypes.func.isRequired,
 };
 
+
 function LoggedOutButtons({headerMode}){
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
@@ -392,6 +393,7 @@ function LoggedOutButtons({headerMode}){
     </div>
   );
 }
+
 
 function LoggedInButtons({headerMode}){
   const [isClient, setIsClient] = useState(false);

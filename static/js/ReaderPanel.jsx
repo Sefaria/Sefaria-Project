@@ -17,6 +17,7 @@ import Sheet  from './Sheet';
 import SheetMetadata  from './SheetMetadata';
 import TopicPageAll  from './TopicPageAll';
 import {TopicPage}  from './TopicPage';
+import TopicsPage from './TopicsPage';
 import CollectionPage from "./CollectionPage"
 import NotificationsPanel  from './NotificationsPanel';
 import MyNotesPanel  from './MyNotesPanel';
@@ -408,14 +409,6 @@ class ReaderPanel extends Component {
   setNavigationTopic(topic, topicTitle) {
     this.conditionalSetState({menuOpen: 'navigation', navigationTopicCategory: topic, navigationTopicTitle: topicTitle, navigationTopic: null, topicTitle: null});
   }
-  setMoreTexts(val) {
-    this.replaceHistory = true;
-    this.conditionalSetState({showMoreTexts: val});
-  }
-  setMoreTopics(val) {
-    this.replaceHistory = true;
-    this.conditionalSetState({showMoreTopics: val});
-  }
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
   }
@@ -769,14 +762,10 @@ class ReaderPanel extends Component {
                     categories={this.state.navigationCategories || []}
                     topic={this.state.navigationTopicCategory || ""}
                     topicTitle={this.state.navigationTopicTitle}
-                    showMoreTexts={this.state.showMoreTexts}
-                    showMoreTopics={this.state.showMoreTopics}
                     settings={this.state.settings}
                     setCategories={this.setNavigationCategories}
                     setNavTopic={this.setNavigationTopic}
                     setTopic={this.setTopic}
-                    setMoreTexts={this.setMoreTexts}
-                    setMoreTopics={this.setMoreTopics}
                     setOption={this.setOption}
                     toggleLanguage={this.toggleLanguage}
                     onClose={this.onClose}
@@ -921,21 +910,35 @@ class ReaderPanel extends Component {
           />
         );
       } else {
-        menu = (<TopicPageAll
-                  interfaceLang={this.props.interfaceLang}
-                  width={this.state.width}
-                  setTopic={this.setTopic}
-                  openNav={this.openMenu.bind(null, "navigation")}
-                  close={this.closeMenus}
-                  multiPanel={this.props.multiPanel}
-                  hideNavHeader={this.props.hideNavHeader}
-                  toggleLanguage={this.toggleLanguage}
-                  navHome={this.openMenu.bind(null, "navigation")}
-                  openDisplaySettings={this.openDisplaySettings}
-                  key={"TopicPageAll"}
-                />);
+        menu = (
+          <TopicsPage
+            key={"TopicsPage"}
+            interfaceLang={this.props.interfaceLang}
+            setNavTopic={this.setNavigationTopic}
+            onClose={this.onClose}
+            openNav={openNav}
+            openSearch={this.openSearch}
+            openMenu={this.openMenu}
+            openDisplaySettings={this.openDisplaySettings}
+            hideNavHeader={this.props.hideNavHeader}
+          />
+        );
       }
 
+    } else if (this.state.menuOpen === "topicsAZ") {
+      menu = (<TopicPageAll
+                interfaceLang={this.props.interfaceLang}
+                width={this.state.width}
+                setTopic={this.setTopic}
+                openNav={this.openMenu.bind(null, "navigation")}
+                close={this.closeMenus}
+                multiPanel={this.props.multiPanel}
+                hideNavHeader={this.props.hideNavHeader}
+                toggleLanguage={this.toggleLanguage}
+                navHome={this.openMenu.bind(null, "navigation")}
+                openDisplaySettings={this.openDisplaySettings}
+                key={"TopicPageAll"}
+              />);
     } else if (this.state.menuOpen === "notifications") {
       menu = (<NotificationsPanel
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}

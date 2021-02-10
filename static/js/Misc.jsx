@@ -28,8 +28,8 @@ const IntText = ({className, children, en, he}) => {
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   const cls = classNames({"int-en": !isHebrew, "int-he": isHebrew}) + (className ? " " + className : "");
   let text;
-  if (en && he) {
-    text = isHebrew ? he : en;
+  if (en || he) {
+    text = isHebrew ? (he || en) : (en || he);
   } else if (children) {
     text = Sefaria._(children);
   } else {
