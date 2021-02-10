@@ -10,7 +10,7 @@ substitutions:
   _GKE_CLUSTER: cluster-1
   _SUBDOMAIN: readonly-test
   _GKE_NAMESPACE: default
-  _SHARED_TOKEN: deadbeefn
+  _SHARED_TOKEN: deadbeef
   _K8S_ADMIN_BRANCH: master
 
 steps:
