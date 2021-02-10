@@ -81,7 +81,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
                       <span className="en">{tocObject.enDesc}</span>
                       <span className="he">{tocObject.heDesc}</span>
                     </div> : null}
-                    <CategoryAttribution categories={cats} />
+                    <CategoryAttribution categories={cats} asEdition={true} />
                     <ReaderNavigationCategoryMenuContents
                       contents={catContents}
                       categories={cats}

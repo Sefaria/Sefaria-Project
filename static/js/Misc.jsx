@@ -1846,29 +1846,25 @@ TestMessage.propTypes = {
 };
 
 
-class CategoryAttribution extends Component {
-  render() {
-    var attribution = Sefaria.categoryAttribution(this.props.categories);
-    if (!attribution) { return null; }
-    var linkedContent = <a href={attribution.link}>
-                          <span className="en">{attribution.english}</span>
-                          <span className="he">{attribution.hebrew}</span>
-                        </a>;
-    var unlinkedContent = <span>
-                            <span className="en">{attribution.english}</span>
-                            <span className="he">{attribution.hebrew}</span>
-                          </span>;
-    return <div className="categoryAttribution">
-            {this.props.linked ? linkedContent : unlinkedContent}
-           </div>;
-  }
-}
-CategoryAttribution.propTypes = {
-  categories: PropTypes.array.isRequired,
-  linked:     PropTypes.bool,
-};
-CategoryAttribution.defaultProps = {
-  linked:     true,
+const CategoryAttribution = ({categories, linked = true, asEdition}) => {
+  var attribution = Sefaria.categoryAttribution(categories);
+  if (!attribution) { return null; }
+
+  const en = asEdition ? attribution.englishAsEdition : attribution.english;
+  const he = asEdition ? attribution.hebrewAsEdition : attribution.hebrew;  
+
+  const content = linked ? 
+      <a href={attribution.link}>
+        <span className="en">{en}</span>
+        <span className="he">{he}</span>
+      </a> 
+      :
+      <span>
+        <span className="en">{en}</span>
+        <span className="he">{he}</span>
+      </span>;
+  
+  return <div className="categoryAttribution">{content}</div>;
 };
 
 
