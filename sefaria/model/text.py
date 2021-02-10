@@ -4527,6 +4527,7 @@ class Library(object):
         else: # TODO: Dont love this, it breaks the pattern of where we do cache invalidation toward redis,  but the way these objects are created currently makes it diffucult to make sure the cache is updated anywhere else. In any dependecy trigger, the search toc is updated in the library, and that becomes more recent than whats in cache, when usually the reverse is true. if we can clean up all the methods relating to the large library objects and standardize, that'd be good
             scache.set_shared_cache_elem('search_filter_toc', self._search_filter_toc)
         self._search_filter_toc_json = self.get_search_filter_toc_json(rebuild=True)
+        self._topic_toc =self.get_topic_toc(rebuild=True)
         self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
         self._category_id_dict = None
         scache.delete_template_cache("texts_list")
