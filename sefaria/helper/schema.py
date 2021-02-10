@@ -604,14 +604,20 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         def rewrite_source(source):
             requires_save = False
             if "ref" in source:
+                original_tref = source["ref"]
                 try:
-                    ref = Ref(source["ref"])
-                except (InputError, ValueError):
-                    print("Error: In clean_sheets.rewrite_source: failed to instantiate Ref {}".format(source["ref"]))
-                else:
-                    if needs_rewrite(source['ref']):
-                        requires_save = True
+                    rewrite = needs_rewrite(source["ref"])
+                except (InputError, ValueError) as e:
+                    print('needs_rewrite method threw exception:', source["ref"], e)
+                    rewrite = False
+                if rewrite:
+                    requires_save = True
+                    try:
                         source["ref"] = rewriter(source['ref'])
+                    except (InputError, ValueError) as e:
+                        print('rewriter threw exception:', source["ref"], e)
+                    if source["ref"] != original_tref and not Ref.is_ref(source["ref"]):
+                        print('rewiter created an invalid Ref:', source["ref"])
             if "subsources" in source:
                 for subsource in source["subsources"]:
                     requires_save = rewrite_source(subsource) or requires_save
