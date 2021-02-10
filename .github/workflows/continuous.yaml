@@ -506,7 +506,7 @@ jobs:
       - name: Define GITHUB_SHA_SHORT
         run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
       - name: Start Job
-        run: envsubst '${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
+        run: envsubst '${GITHUB_ACTION},${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
         env:
           # dependent on GITHUB_ACTION, which is implicitly passed in
           DEPLOY_ENV: ${{env.GITHUB_SHA_SHORT}}
