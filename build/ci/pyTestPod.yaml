@@ -17,8 +17,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: web
-          # image: "${WEB_IMAGE_NAME}:${WEB_IMAGE_TAG}"
-          image: gcr.io/development-205018/sefaria-web-cats:sandbox-84160def-69c1-47d3-adb9-de5a6d3eed50
+          image: "${WEB_IMAGE_NAME}:${WEB_IMAGE_TAG}"
           imagePullPolicy: Always
           command: ["bash"]
           args: ["-c", "pip3 install pytest-django; pytest -v -m \"not deep and not failing\" ./sefaria; exit 0"]

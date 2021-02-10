@@ -508,10 +508,10 @@ jobs:
       - name: Start Job
         run: envsubst '${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
         env:
+          # dependent on GITHUB_ACTION, which is implicitly passed in
           DEPLOY_ENV: ${{env.GITHUB_SHA_SHORT}}
           WEB_IMAGE_NAME: gcr.io/${{secrets.DEV_PROJECT}}/sefaria-web-dev
           WEB_IMAGE_TAG: ${{env.GITHUB_SHA_SHORT}}
-          TIMESTAMP: ${{env.GITHUB_SHA_SHORT}} # temp
 
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
@@ -519,9 +519,8 @@ jobs:
           # dependent on GITHUB_ACTION, which is implicitly passed in
           TEST_NAME: pytest
 
-      - name: Get logs 
-        run: kc logs --tail=-1 -l ci-run=deadbeefy,test-name=pytest | tee /home/runner/pytestResultsPod.txt
-        run: kubectl logs -l ci-run=$GITHUB_ACTION,test-name=pytest | tee /home/runner/pytestResultsPod.txt
+      - name: Get Logs From Cluster
+        run: kubectl logs --tail=-1 -l ci-run=$GITHUB_ACTION,test-name=pytest | tee /home/runner/pytestResultsPod.txt
       
       - name: Authenticate GHA Runner to GCP
         uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
