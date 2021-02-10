@@ -7563,9 +7563,8 @@ span.purim-emoji img{
   padding-inline-end: 15px;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
 }
-.sheetItem .SheetSource.selected,
-.sheetItem .SheetSource.selected .en {
-  background-color: #F0F8FF;
+.sheetItem .SheetSource.selected {
+  box-shadow: 0px 1px 10px #CCE6FF;
 }
 .sheetItem .SheetSource .he,
 .sheetItem .SheetSource .en {
