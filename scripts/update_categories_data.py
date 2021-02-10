@@ -33,4 +33,4 @@ for l in cr:
     c.heDesc      = l[2].strip()
     c.enShortDesc = l[3].strip()
     c.heShortDesc = l[4].strip()
-    c.save()
+    c.save(override_dependencies=True)
