@@ -3,15 +3,15 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   labels:
-    ci-run: ${GITHUB_ACTION}
+    ci-run: ${GITHUB_RUN_ID}
     test-name: pytest
-  name: ${DEPLOY_ENV}-pytest-sandbox-${GITHUB_ACTION}
+  name: ${DEPLOY_ENV}-pytest-sandbox-${GITHUB_RUN_ID}
 spec:
   backoffLimit: 2
   template:
     metadata:
       labels:
-        ci-run: ${GITHUB_ACTION}
+        ci-run: ${GITHUB_RUN_ID}
         test-name: pytest
     spec:
       restartPolicy: Never

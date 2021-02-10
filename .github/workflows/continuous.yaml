@@ -506,9 +506,9 @@ jobs:
       - name: Define GITHUB_SHA_SHORT
         run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
       - name: Start Job
-        run: envsubst '${GITHUB_ACTION},${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
+        run: envsubst '${GITHUB_RUN_ID},${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
         env:
-          # dependent on GITHUB_ACTION, which is implicitly passed in
+          # dependent on GITHUB_RUN_ID, which is implicitly passed in
           DEPLOY_ENV: ${{env.GITHUB_SHA_SHORT}}
           WEB_IMAGE_NAME: gcr.io/${{secrets.DEV_PROJECT}}/sefaria-web-dev
           WEB_IMAGE_TAG: ${{env.GITHUB_SHA_SHORT}}
@@ -517,12 +517,11 @@ jobs:
         run: ./build/ci/waitForCIJob.bash
         timeout-minutes: 25
         env: 
-          # dependent on GITHUB_ACTION, which is implicitly passed in
+          # dependent on GITHUB_RUN_ID, which is implicitly passed in
           TEST_NAME: pytest
-          
 
       - name: Get Logs From Cluster
-        run: kubectl logs --tail=-1 -l ci-run=$GITHUB_ACTION,test-name=pytest | tee /home/runner/pytestResultsPod.txt
+        run: kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest | tee /home/runner/pytestResultsPod.txt
       
       - name: Authenticate GHA Runner to GCP
         uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
