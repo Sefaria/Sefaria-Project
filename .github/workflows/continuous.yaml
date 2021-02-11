@@ -485,6 +485,18 @@ jobs:
         run: gsutil cp /home/runner/selenium-pageloadsuite-sauce.txt gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/selenium-pageloadsuite-sauce.txt
         if: ${{ always() }}
 
+  pytest-test-wait:
+    name: Test Wait Script
+    runs-on: ubuntu-latest
+    steps:      
+      - name: Wait For Job To Finish
+        run: ./build/ci/waitForCIJob-test.bash
+        timeout-minutes: 25
+        env: 
+          # dependent on GITHUB_RUN_ID, which is implicitly passed in
+          TEST_NAME: pytest
+          TEST_INPUT: "559262285"
+
   pytest-job:
     name: Run PyTest Job
     needs:
