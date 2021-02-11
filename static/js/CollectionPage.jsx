@@ -3,7 +3,6 @@ import {
   DropdownModal,
   DropdownButton,
   DropdownOptionList,
-  InterfaceTextWithFallback,
   LanguageToggleButton,
   LoadingMessage,
   TwoOrThreeBox,
@@ -218,9 +217,12 @@ class CollectionPage extends Component {
       topicList = topicList ? topicList.map(topic => {
           const filterThisTag = this.handleTagButtonClick.bind(this, topic.slug);
           const classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTopic == topic.slug});
-          return (<div className={classes} onClick={filterThisTag} key={topic.slug}>
-            <InterfaceTextWithFallback en={topic.en} he={topic.he} endContent={<span className="enInHe">{` (${topic.count})`}</span>} />
-          </div>);
+          return (
+              <div className={classes} onClick={filterThisTag} key={topic.slug}>
+                <IntText en={topic.en} he={topic.he}/>
+                <span className="enInHe">{` (${topic.count})`}</span>
+              </div>
+          );
         }) : null;
 
       sheets = this.state.sheetFilterTopic ? sheets.filter(sheet => sheet.topics && sheet.topics.reduce((accum, curr) => accum || this.state.sheetFilterTopic === curr.slug, false)) : sheets;

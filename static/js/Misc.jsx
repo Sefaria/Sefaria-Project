@@ -11,15 +11,18 @@ import { usePaginatedDisplay } from './Hooks'
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
-// interface text that can fallback to alternate langauge if current language doesn't have content
-const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
-    //TODO deprecate this and all of its various props usages
-  <span>
-    <span className={classNames({"int-en": 1, "heInEn": !en, italics: isItalics && isItalics.en })}>{en || he}{endContent}</span>
-    <span className={classNames({"int-he": 1, "enInHe": !he, italics: isItalics && isItalics.he })}>{he || en}{endContent}</span>
-  </span>
-);
-
+/**
+ * Component meant to simply denote a language specific string to go inside an IntText element
+ * ```
+ * <IntText>
+ *     <EnglishText>lorem ipsum</EnglishText>
+ *     <HebrewText>lorem ipsum</HebrewText>
+ * </IntText>
+ * ```
+ * @param children
+ * @returns {JSX.Element}
+ * @constructor
+ */
 const HebrewText = ({children}) => (
     <>{children}</>
 )
@@ -27,10 +30,14 @@ const EnglishText = ({children}) => (
     <>{children}</>
 )
 const IntText = ({children, en, he, context, className}) => {
-  // Renders a single span for interface string with either class `int-en`` or `int-he`
-  // depending on Sefaria.interfaceLang.
-  // `children` is the English string, which will be translated with Sefaria._ if needed.
-  // If `en` and `he` are explicitly passed, use them intead of tryingt o translate `children`.
+  /**
+   * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
+   *  If passed explicit "en" and/or "he" props, will only use those to determine correct text or fallback text to display.
+   *  Otherwise:
+   * `children` can be the English string, which will be translated with Sefaria._ if needed.
+   * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
+   * `context` is passed to Sefaria._ for additional translation context
+   */
   const languageElements = {"english" : EnglishText, "hebrew": HebrewText};
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   let cls = classNames({"int-en": !isHebrew, "int-he": isHebrew}) + (className ? " " + className : "");
@@ -55,6 +62,7 @@ const IntText = ({children, en, he, context, className}) => {
   return <span className={cls}>{text}</span>
 };
 IntText.propTypes = {
+  //Makes sure that children passed in are either a single string, or an array consisting only of <EnglishText>, <HebrewTExt>
   children: PropTypes.oneOfType([
       PropTypes.string,
       PropTypes.arrayOf(function(children, key, componentName, location, propFullName) {
@@ -1397,7 +1405,7 @@ const SheetListing = ({
         key={i}
         onClick={handleTopicClick.bind(null, topic.slug)}
       >
-        <InterfaceTextWithFallback {...topic} />
+        <IntText {...topic} />
         {separator}
       </a>
     );
@@ -1933,7 +1941,7 @@ class SheetTopicLink extends Component {
     const { slug, en, he } = this.props.topic;
     return (
       <a href={`/topics/${slug}`} onClick={this.handleTagClick}>
-        <InterfaceTextWithFallback en={en} he={he} />
+        <IntText en={en} he={he} />
       </a>
     );
   }
@@ -2202,7 +2210,6 @@ export {
   FilterableList,
   GlobalWarningMessage,
   InterruptingMessage,
-  InterfaceTextWithFallback,
   IntText,
   EnglishText,
   HebrewText,

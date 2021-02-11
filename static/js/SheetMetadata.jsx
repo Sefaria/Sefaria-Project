@@ -1,5 +1,4 @@
 import {
-  InterfaceTextWithFallback,
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuDisplaySettingsButton,
   CategoryAttribution,
@@ -268,7 +267,7 @@ class SheetMetadata extends Component {
                                 className="sheetTag button"
                                 key={i}
                               >
-                                <InterfaceTextWithFallback en={topic.en} he={topic.he} />
+                                <IntText en={topic.en} he={topic.he} />
                               </a>
                             ))
                           }
