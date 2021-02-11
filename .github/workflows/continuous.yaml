@@ -507,7 +507,7 @@ jobs:
         env: 
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           TEST_NAME: pytest
-          TEST_INPUT: "559262285"
+          TEST_INPUT: 559262285
 
   pytest-job:
     name: Run PyTest Job
