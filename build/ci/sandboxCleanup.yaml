@@ -9,11 +9,11 @@ steps:
   # run k8s-admin/v2/scripts/cleanupSandboxes.bash
 
   - name: "gcr.io/cloud-builders/git"
-    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', 'master', "--depth", "1"]
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', 'lorenzo/sandboxcleanup', "--depth", "1"]
     id: k8s-admin_clone
     wait_for: [ "-" ]
 
-  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.2"
     id: deploy_sandbox
     dir: k8s-admin/v2
     entrypoint: bash
@@ -21,9 +21,7 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECTL_VERSION=1.16'
       - 'KUBECONFIG=/root/.kube/config'
+    wait_for: [ "k8s-admin_clone" ]
 ...
-
-
-
