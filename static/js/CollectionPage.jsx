@@ -9,6 +9,7 @@ import {
   SheetListing,
   SinglePanelNavHeader,
   ProfilePic,
+  SimpleLinkedBlock,
   IntText,
 } from './Misc';
 import React  from 'react';
@@ -215,13 +216,12 @@ class CollectionPage extends Component {
       var isAdmin        = collection.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
 
       topicList = topicList ? topicList.map(topic => {
-          const filterThisTag = this.handleTagButtonClick.bind(this, topic.slug);
+          const filterThisTag = (event) => {event.preventDefault(); this.handleTagButtonClick(topic.slug)};
           const classes = classNames({navButton: 1, sheetButton: 1, active: this.state.sheetFilterTopic == topic.slug});
           return (
-              <div className={classes} onClick={filterThisTag} key={topic.slug}>
-                <IntText en={topic.en} he={topic.he}/>
+              <SimpleLinkedBlock onClick={filterThisTag} en={topic.en} he={topic.he} classes={classes} key={topic.slug} url={`?${topic.slug}`}>
                 <span className="enInHe">{` (${topic.count})`}</span>
-              </div>
+              </SimpleLinkedBlock>
           );
         }) : null;
 

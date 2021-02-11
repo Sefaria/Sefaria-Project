@@ -821,10 +821,7 @@ SimpleContentBlock.propTypes = {
 const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick}) => (
         <div className={classes} onClick={onClick}>
             <a href={url} className={aclasses}>
-              <IntText>
-                <EnglishText>{en}</EnglishText>
-                <HebrewText>{he}</HebrewText>
-              </IntText>
+              <IntText en={en} he={he}/>
             </a>
             {children}
         </div>
