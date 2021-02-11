@@ -4873,11 +4873,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #999;
 }
 .webpageList .webpage .stats,
-.mediaList .media .meta {
+.mediaList .media .meta,
+.manuscript .meta {
   font-size: 13px;
   color: #999;
   margin-top: 5px;
 }
+.manuscript .meta span,
+.manuscript .meta a {
+  font-family: "Roboto", "sans-serif";
+  margin-top: 2px;
+}
+.manuscript .meta .int-he {
+  font-family: "Heebo", "sans-serif";
+}
+
 .webpageList.empty .loadingMessage {
   margin-top: 0px;
 }
@@ -4893,6 +4903,62 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .webpageList .webpagesLinkerMessage a {
   color: #999;
   text-decoration: underline;
+}
+.manuscriptImage {
+  width: auto;
+  max-height: 180px;
+  border-radius: 3px;
+}
+.manuscriptCaption {
+  font-family: "Adobe Garamond Pro", "sans-serif";
+  font-size: 18px;
+  line-height: 22px;
+  margin-top: 13px;
+  margin-bottom: 2px;
+  border-bottom: 0px;
+  text-align: left;
+}
+.manuscriptCaptionHe {
+  font-family: "Taamey Frank", "Heebo", "sans-serif";
+  font-size: 22px;
+  line-height: 22px;
+  margin-top: 13px;
+  margin-bottom: 2px;
+  border-bottom: 0px;
+  text-align: right;
+}
+.fullSizeImageLink {
+  width: 292px;
+  height: 23px;
+  left: 830px;
+  top: 367px;
+
+  font-family: "Roboto", "sans-serif";
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 15px;
+  color: #999999
+}
+.manuscript {
+  border-bottom: 1px solid #DDDDDD;
+  margin: 29px 34px;
+  padding-bottom: 19px;
+}
+
+.manuscript a {
+  color: inherit;
+}
+/*.manuscriptBorder {*/
+/*  border: 1px solid #dddddd;*/
+/*  position: absolute;*/
+/*  width: 292px;*/
+/*  height: 0px;*/
+/*  left: 830px;*/
+/*  top: 409px;*/
+/*}*/
+.manuscriptList :last-child {
+  border-bottom: 0px solid red;
 }
 .textList.marginless .webpageList.empty .loadingMessage {
   margin: 50px 40px;
@@ -7502,9 +7568,8 @@ span.purim-emoji img{
   padding-inline-end: 15px;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
 }
-.sheetItem .SheetSource.selected,
-.sheetItem .SheetSource.selected .en {
-  background-color: #F0F8FF;
+.sheetItem .SheetSource.selected {
+  box-shadow: 0px 1px 10px #CCE6FF;
 }
 .sheetItem .SheetSource .he,
 .sheetItem .SheetSource .en {

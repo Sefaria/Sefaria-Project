@@ -4463,6 +4463,9 @@ class Library(object):
         self._full_term_mapping = {}
         self._simple_term_mapping_json = None
 
+        # Topics
+        self._topic_mapping = {}
+
         # Initialization Checks
         # These values are set to True once their initialization is complete
         self._toc_tree_is_ready = False
@@ -4503,6 +4506,7 @@ class Library(object):
 
     def rebuild(self, include_toc = False, include_auto_complete=False):
         self.get_simple_term_mapping_json(rebuild=True)
+        self._build_topic_mapping()
         self._build_index_maps()
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
@@ -4523,24 +4527,19 @@ class Library(object):
         else: # TODO: Dont love this, it breaks the pattern of where we do cache invalidation toward redis,  but the way these objects are created currently makes it diffucult to make sure the cache is updated anywhere else. In any dependecy trigger, the search toc is updated in the library, and that becomes more recent than whats in cache, when usually the reverse is true. if we can clean up all the methods relating to the large library objects and standardize, that'd be good
             scache.set_shared_cache_elem('search_filter_toc', self._search_filter_toc)
         self._search_filter_toc_json = self.get_search_filter_toc_json(rebuild=True)
+        self._topic_toc =self.get_topic_toc(rebuild=True)
         self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
         self._category_id_dict = None
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
         self._full_title_list_jsons = {}
 
-        """
-        # These seem needless, and counterproductive (certainly in the rebuild(include_toc=True) case)
-
-        self._simple_term_mapping = {}
-        self._full_term_mapping = {}
-        """
-
     def init_shared_cache(self, rebuild=False):
         self.get_toc(rebuild=rebuild)
         self.get_toc_json(rebuild=rebuild)
         self.get_search_filter_toc(rebuild=rebuild)
         self.get_search_filter_toc_json(rebuild=rebuild)
+        self.get_topic_mapping(rebuild=rebuild)
         self.get_topic_toc(rebuild=rebuild)
         self.get_topic_toc_json(rebuild=rebuild)
         self.get_text_titles_json(rebuild=rebuild)
@@ -4556,11 +4555,9 @@ class Library(object):
             self.set_last_cached_time()
         return self.last_cached
 
-
     def set_last_cached_time(self):
         self.last_cached = time.time() # just use the unix timestamp, we dont need any fancy timezone faffing, just objective point in time.
         scache.set_shared_cache_elem("last_cached", self.last_cached)
-
 
     def get_toc(self, rebuild=False):
         """
@@ -5048,6 +5045,19 @@ class Library(object):
             self.build_term_mappings()
         return self._full_term_mapping.get(term_name)
 
+    def get_topic(self, slug):
+        return self._topic_mapping[slug]
+
+    def get_topic_mapping(self, rebuild=False):
+        tm = self._topic_mapping
+        if not tm or rebuild:
+            tm = self._build_topic_mapping()
+        return tm
+
+    def _build_topic_mapping(self):
+        from .topic import Topic, TopicSet
+        self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
+        return self._topic_mapping
 
     #todo: only used in bio scripts
     def get_index_forest(self):

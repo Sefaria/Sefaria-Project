@@ -125,7 +125,7 @@ class SheetMetadata extends Component {
     return (
       <div>
         <div>
-          {Sefaria._uid == sheet.owner && !$.cookie("new_editor") ?
+          {Sefaria._uid == sheet.owner && !Sefaria._uses_new_editor ?
           <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
             <IntText>Edit</IntText>
           </a> : null }
@@ -138,7 +138,7 @@ class SheetMetadata extends Component {
             <IntText>Add to Collection</IntText>
           </a>
 
-          {Sefaria._uid !== sheet.owner && !$.cookie("new_editor") ?
+          {Sefaria._uid !== sheet.owner && !Sefaria._uses_new_editor ?
           <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
             <IntText>View in Editor</IntText>
           </a> : null }
@@ -150,7 +150,7 @@ class SheetMetadata extends Component {
             <span className="int-he">צפייה בהעתק &raquo;</span>
         </a></div> : null }
 
-        {$.cookie("new_editor") ? 
+        {Sefaria._uses_new_editor ?
         <a className="smallText" href={"/sheets/"+sheet.id+"?editor=1"}>
           <span className="int-en">View in the old sheets experience</span>
           <span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span>
