@@ -4132,26 +4132,7 @@ class Ref(object, metaclass=RefCacheType):
     def he_book(self):
         return self.index_node.full_title("he")
 
-    def _get_normal(self, lang, parse_talmud_range=True):
-        """
-        :param lang:
-        :param parse_talmud_range: if True, and ref is in the form Berakhot 2a-3b, return Berakhot 2-3; otherwise, Berakhot 2a-3b is returned
-        :return:
-        """
-        from sefaria.model.schema import AddressTalmud
-        if parse_talmud_range and self.is_range() and self.index_node.addressTypes[
-            len(self.sections) - 1] == "Talmud":  # is self a range that is as deep as a Talmud addressType?
-            if self.sections[-1] % 2 == 1 and self.toSections[-1] % 2 == 0:  # starts at amud alef and ends at bet?
-                start_daf = AddressTalmud.oref_to_amudless_tref(self.starting_ref(), lang)
-                end_daf = AddressTalmud.oref_to_amudless_tref(self.ending_ref(), lang)
-                if start_daf == end_daf:
-                    return start_daf
-                else:
-                    range_wo_last_amud = AddressTalmud.oref_to_amudless_tref(self, lang)
-                    # looking for rest of ref after dash
-                    end_range = re.search(f'-(.+)$', range_wo_last_amud).group(1)
-                    return f"{start_daf}-{end_range}"
-
+    def _get_normal(self, lang):
         normal = self.index_node.full_title(lang)
         if not normal:
             if lang != "en":
@@ -4223,9 +4204,7 @@ class Ref(object, metaclass=RefCacheType):
             18 June 2015: Removed the special casing for Hebrew Talmud sub daf numerals
             Previously, talmud lines had been normalised as arabic numerals
         '''
-        if not self._he_normal:
-            self._he_normal = self._get_normal("he")
-        return self._he_normal
+        return self.normal('he')
 
     def uid(self):
         """
@@ -4234,13 +4213,21 @@ class Ref(object, metaclass=RefCacheType):
         """
         return self.normal() + ("<d>" if self.index_node.is_default() else "")
 
-    def normal(self):
+    def normal(self, lang='en'):
         """
         :return string: Normal English string form
         """
-        if not self._normal:
-            self._normal = self._get_normal("en")
-        return self._normal
+        normal_attr = "_normal" if lang == 'en' else "_he_normal"
+        normal_form = ""
+
+        if not getattr(self, normal_attr, None):
+            if len(self.sections) > 0 and hasattr(AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections) - 1]), "normal_range") and self.is_range():
+                address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections) - 1])
+                normal_form = address_class.normal_range(self, lang)
+            else:
+                normal_form = self._get_normal(lang)
+            setattr(self, normal_attr, normal_form)
+        return getattr(self, normal_attr)
 
     def text(self, lang="en", vtitle=None, exclude_copyrighted=False):
         """

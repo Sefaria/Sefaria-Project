@@ -2009,8 +2009,24 @@ class AddressTalmud(AddressType):
         Remove last amud from `ref`. Assumes `ref` ends in a Talmud address.
         This may have undesirable affect if `ref` doesn't end in a Talmud address
         """
-        normal_form = ref._get_normal(lang, parse_talmud_range=False)
+        normal_form = ref._get_normal(lang)
         return re.sub(f"{cls.amud_patterns[lang]}$", '', normal_form)
+
+
+    @classmethod
+    def normal_range(cls, ref, lang):
+        if ref.sections[-1] % 2 == 1 and ref.toSections[-1] % 2 == 0:  # starts at amud alef and ends at bet?
+            start_daf = AddressTalmud.oref_to_amudless_tref(ref.starting_ref(), lang)
+            end_daf = AddressTalmud.oref_to_amudless_tref(ref.ending_ref(), lang)
+            if start_daf == end_daf:
+                return start_daf
+            else:
+                range_wo_last_amud = AddressTalmud.oref_to_amudless_tref(ref, lang)
+                # looking for rest of ref after dash
+                end_range = re.search(f'-(.+)$', range_wo_last_amud).group(1)
+                return f"{start_daf}-{end_range}"
+        else:
+            return ref._get_normal(lang)
 
     @classmethod
     def parse_range_end(cls, ref, parts, base):
