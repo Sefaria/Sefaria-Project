@@ -15,8 +15,8 @@ import 'react-image-crop/dist/ReactCrop.css';
 const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
     //TODO deprecate this and all of its various props usages
   <span>
-    <span className={classNames({"int-en": 1, "but-text-is-he": !en, italics: isItalics && isItalics.en })}>{en || he}{endContent}</span>
-    <span className={classNames({"int-he": 1, "but-text-is-en": !he, italics: isItalics && isItalics.he })}>{he || en}{endContent}</span>
+    <span className={classNames({"int-en": 1, "heInEn": !en, italics: isItalics && isItalics.en })}>{en || he}{endContent}</span>
+    <span className={classNames({"int-he": 1, "enInHe": !he, italics: isItalics && isItalics.he })}>{he || en}{endContent}</span>
   </span>
 );
 

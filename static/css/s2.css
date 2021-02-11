@@ -30,14 +30,14 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   font-family: "Heebo", sans-serif;
   direction: rtl;
 }
-.int-he.but-text-is-en {
+.int-he.enInHe {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   direction: ltr;
 }
 .int-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.int-en.but-text-is-he {
+.int-en.heInEn {
   font-family: "Heebo", sans-serif;
   direction: rtl;
 }
@@ -48,11 +48,17 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   color: #000;
 }
 .pageTitle .int-en,
-.pageTitle .int-he.but-text-is-en {
+.pageTitle .int-he.enInHe {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 30px;
   font-weight: normal;
   color: #000;
+}
+.readerPanel.hebrew .he .enInHe {
+  font-size: 83%;
+}
+.enInHe{
+  unicode-bidi: isolate;
 }
 .chapterText .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -74,14 +80,14 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   letter-spacing: 0.1em;
 }
 .smallText .int-en,
-.smallText .int-he.but-text-is-en {
+.smallText .int-he.enInHe {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   font-weight: normal;
   color: #999;
 }
 .systemText .int-en,
-.systemText .int-he.but-text-is-en {
+.systemText .int-he.enInHe {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   font-weight: normal;
@@ -102,7 +108,7 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   color: #000;
 }
 .pageTitle .int-he,
-.pageTitle .int-en.but-text-is-he {
+.pageTitle .int-en.heInEn {
   font-family: "Heebo", sans-serif;
   font-size: 30px;
   font-weight: normal;
@@ -125,14 +131,14 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   letter-spacing: 0.1em;
 }
 .smallText .int-he,
-.smallText .int-en.but-text-is-he {
+.smallText .int-en.heInEn {
   font-family: "Heebo", sans-serif;
   font-size: 13px;
   font-weight: normal;
   color: #999;
 }
 .systemText .int-he,
-.systemText .int-en.but-text-is-he {
+.systemText .int-en.heInEn {
   font-family: "Heebo", sans-serif;
   font-size: 16px;
   font-weight: normal;
@@ -1049,12 +1055,6 @@ input.noselect {
   display: inline;
   text-align: right;
 }
-.readerPanel.hebrew .he .enInHe {
-  font-size: 83%;
-}
-.enInHe{
-  unicode-bidi: isolate;
-}
 .readerPanel .recentPanel .sheetLink.recentItem .he{
   font-family: "adobe-garamond-pro", "Taamey Frank", "Crimson Text", Georgia, serif;
 }
@@ -1412,7 +1412,7 @@ input.noselect {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 36px;
 }
-.pageTitle .topicTitleInHe .but-text-is-he {
+.pageTitle .topicTitleInHe .heInEn {
   color: #888;
   font-size: 20px;
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
