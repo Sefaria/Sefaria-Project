@@ -262,7 +262,8 @@ const TalmudToggle = ({categories, setCategories}) => {
 
 const getRenderedTextTitleString = (title, heTitle, categories) => {
 
-    const whiteList = ['Imrei Yosher on Ruth', 'Duties of the Heart (abridged)'];  // ['Midrash Mishlei', 'Midrash Tehillim', 'Midrash Tanchuma', 'Midrash Aggadah'];
+    const whiteList = ['Imrei Yosher on Ruth', 'Duties of the Heart (abridged)', 'Midrash Mishlei',
+        'Midrash Tehillim', 'Midrash Tanchuma', 'Midrash Aggadah'];
     if (whiteList.indexOf(title) > -1) {
         return [title, heTitle];
     }
