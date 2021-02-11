@@ -33,10 +33,12 @@ const IntText = ({children, en, he, context, className}) => {
   // If `en` and `he` are explicitly passed, use them intead of tryingt o translate `children`.
   const languageElements = {"english" : EnglishText, "hebrew": HebrewText};
   const isHebrew = Sefaria.interfaceLang === "hebrew";
-  const cls = classNames({"int-en": !isHebrew, "int-he": isHebrew}) + (className ? " " + className : "");
+  let cls = classNames({"int-en": !isHebrew, "int-he": isHebrew}) + (className ? " " + className : "");
   let text;
   if (en || he) {// Prioritze explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
     text = isHebrew ? (he || en) : (en || he);
+    let fallbackCls = (isHebrew && !he) ? "enInHe" : ((!isHebrew && !en) ? "heInEn" : "" );
+    cls += fallbackCls;
   }else{ // Also handle composition with children
     const chlCount = React.Children.count(children);
     if (chlCount == 1) { // Same as passing in a `en` key but with children syntax
