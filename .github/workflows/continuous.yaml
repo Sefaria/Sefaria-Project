@@ -491,14 +491,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Wait For Job To Finish
-        run: ./build/ci/waitForCIJob-test.bash
-        timeout-minutes: 25
-        env: 
-          # dependent on GITHUB_RUN_ID, which is implicitly passed in
-          TEST_NAME: pytest
-          TEST_INPUT: "559262285"
-          
+
+
       - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
           service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
@@ -506,6 +500,14 @@ jobs:
 
       - name: Authenticate GHA Runner To Target Cluster
         run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
+
+      - name: Wait For Job To Finish
+        run: ./build/ci/waitForCIJob-test.bash
+        timeout-minutes: 25
+        env: 
+          # dependent on GITHUB_RUN_ID, which is implicitly passed in
+          TEST_NAME: pytest
+          TEST_INPUT: "559262285"
 
   pytest-job:
     name: Run PyTest Job
