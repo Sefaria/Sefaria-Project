@@ -539,7 +539,7 @@ jobs:
 
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
-        timeout-minutes: 25
+        timeout-minutes: 20
         env: 
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           TEST_NAME: pytest
