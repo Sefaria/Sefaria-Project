@@ -9,7 +9,7 @@ steps:
   # run k8s-admin/v2/scripts/cleanupSandboxes.bash
 
   - name: "gcr.io/cloud-builders/git"
-    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', 'lorenzo/sandboxcleanup', "--depth", "1"]
+    args: ['clone', 'https://source.developers.google.com/p/production-deployment/r/k8s-admin', '--branch', 'master', "--depth", "1"]
     id: k8s-admin_clone
     wait_for: [ "-" ]
 
