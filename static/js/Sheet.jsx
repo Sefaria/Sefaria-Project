@@ -21,10 +21,6 @@ import {
 class Sheet extends Component {
   constructor(props) {
     super(props);
-
-    this.state = {
-        scrollDir: "down",
-    }
   }
   componentDidMount() {
     this.$container = $(ReactDOM.findDOMNode(this));
@@ -64,13 +60,32 @@ class Sheet extends Component {
     var width = Sefaria.util.getScrollbarWidth();
     this.$container.css({paddingRight: 0, paddingLeft: width});
   }
-  setScrollDir(event) {
-    if (event.nativeEvent.wheelDelta > 0) {
-      this.setState({scrollDir: "up"});
-    } else {
-      this.setState({scrollDir: "down"});
+  handleClick(ref, e) {
+    e.preventDefault();
+    e.stopPropagation();
+    this.props.onRefClick(ref);
+  }
+
+  sheetSourceClick(source, event) {
+    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
+      event.preventDefault();
+      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
+      this.handleClick(ref, event);
+      event.stopPropagation();
+      Sefaria.track.event("Reader", "Citation Link Click", ref);
+    }
+
+    if(event.target.tagName.toLowerCase() === 'a') {
+      window.open(event.target.href, "_blank");
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    else {
+      this.props.onSegmentClick(source);
     }
   }
+
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
@@ -87,7 +102,6 @@ class Sheet extends Component {
             onSegmentClick={this.props.onSegmentClick}
             highlightedNodes={this.props.highlightedNodes}
             highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-            scrollDir={this.state.scrollDir}
             authorStatement={sheet.ownerName}
             authorUrl={sheet.ownerProfileUrl}
             authorImage={sheet.ownerImageUrl}
@@ -95,6 +109,7 @@ class Sheet extends Component {
             collectionSlug={sheet.displayedCollection}
             collectionImage={sheet.collectionImage}
             editable={Sefaria._uid == sheet.owner}
+            sheetSourceClick={this.sheetSourceClick}
             hasSidebar={this.props.hasSidebar}
             setSelectedWords={this.props.setSelectedWords}
             sheetNumbered={sheet.options.numbered}
@@ -105,7 +120,15 @@ class Sheet extends Component {
     return (
         <div className={classes}>
           { sheet && Sefaria._uid == sheet.owner && Sefaria._uses_new_editor ?
-            <div className="sheetContent"><SefariaEditor data={sheet} /></div>
+            <div className="sheetContent">
+              <SefariaEditor
+                  data={sheet}
+                  hasSidebar={this.props.hasSidebar}
+                  sheetSourceClick={this.props.onSegmentClick}
+                  highlightedNodes={this.props.highlightedNodes}
+                  highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+              />
+            </div>
             : content}
         </div>
     )
@@ -203,30 +226,6 @@ class SheetContent extends Component {
       }
     }
   }
-  handleClick(ref, e) {
-    e.preventDefault();
-    e.stopPropagation();
-    this.props.onRefClick(ref);
-  }
-  sheetSourceClick(source, event) {
-    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
-      event.preventDefault();
-      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
-      this.handleClick(ref, event);
-      event.stopPropagation();
-      Sefaria.track.event("Reader", "Citation Link Click", ref);
-    }
-
-    if(event.target.tagName.toLowerCase() === 'a') {
-      window.open(event.target.href, "_blank");
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    else {
-      this.props.onSegmentClick(source);
-    }
-  }
   render() {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
       const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
@@ -242,9 +241,9 @@ class SheetContent extends Component {
             source={source}
             sourceNum={i + 1}
             linkCount={Sefaria.linkCount(source.ref)}
-            handleClick={this.handleClick}
+            handleClick={this.props.handleClick}
             cleanHTML={this.cleanHTML}
-            sheetSourceClick={this.sheetSourceClick.bind(this, source)}
+            sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
             highlighted={highlighted}
             sheetNumbered={this.props.sheetNumbered}
           />
@@ -257,9 +256,9 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
-            handleClick={this.handleClick}
+            handleClick={this.props.handleClick}
             cleanHTML={this.cleanHTML}
-            sheetSourceClick={this.sheetSourceClick.bind(this, source)}
+            sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
             highlightedNodes={this.props.highlightedNodes}
             sheetNumbered={this.props.sheetNumbered}
           />
@@ -272,9 +271,9 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
-            handleClick={this.handleClick}
+            handleClick={this.props.handleClick}
             cleanHTML={this.cleanHTML}
-            sheetSourceClick={this.sheetSourceClick.bind(this, source)}
+            sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
             highlightedNodes={this.props.highlightedNodes}
             sheetNumbered={this.props.sheetNumbered}
          />
@@ -287,9 +286,9 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
-            handleClick={this.handleClick}
+            handleClick={this.props.handleClick}
             cleanHTML={this.cleanHTML}
-            sheetSourceClick={this.sheetSourceClick.bind(this, source)}
+            sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
             highlightedNodes={this.props.highlightedNodes}
             sheetNumbered={this.props.sheetNumbered}
           />
@@ -301,10 +300,10 @@ class SheetContent extends Component {
           <SheetMedia
             key={i}
             sourceNum={i + 1}
-            handleClick={this.handleClick}
+            handleClick={this.props.handleClick}
             cleanHTML={this.cleanHTML}
             source={source}
-            sheetSourceClick={this.sheetSourceClick.bind(this, source)}
+            sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
             highlightedNodes={this.props.highlightedNodes}
             sheetNumbered={this.props.sheetNumbered}
           />

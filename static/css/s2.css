@@ -3868,7 +3868,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sheetContent .segment.highlight .en,
 .sheetContent .segment.highlight .he,
 .readerPanel.bilingual.heLeft .sheetContent .segment.highlight,
-.readerPanel.bilingual.heRight .sheetContent .segment.highlight {
+.readerPanel.bilingual.heRight .sheetContent .segment.highlight,
+.editorContent .sheetItem.highlight,
+.editorContent .sheetItem.highlight .SheetSource .en,
+.editorContent .sheetItem.highlight .SheetSource::after
+{
   background-color: #F0F7FF;
 }
 .sheetContent .segment.highlight .linkCount .en,
@@ -6146,6 +6150,27 @@ a .button:hover {
 .sheetMetaDataBox .title:focus:before {
   content: "";
 }
+
+.editorSidebarToggle {
+  position: fixed;
+  right: 30px;
+  height: 30px;
+  width: 30px;
+  border-radius: 30px;
+  border: none;
+  background-color: #FBFBFA;
+  cursor: pointer;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.editorSidebarToggle:active {
+  box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.25);
+}
+
+.editorSidebarToggle::after {
+  content: url("/static/img/3vdots.svg");
+}
+
 .collectionListingImage {
   height: 100%;
   width: 100%;
@@ -7735,11 +7760,6 @@ section.SheetSource .SheetOutsideBiText {
     background-color: #FBFBFA;
 
 }
-
-.sheetItem .SheetSource.selected:after {
-   background-color: #F0F8FF;
-}
-
 
 .sheetItem .SheetOutsideBiText {
   border-left: 4px solid;

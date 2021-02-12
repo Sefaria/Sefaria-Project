@@ -17,6 +17,7 @@ import {
 
 import classNames from 'classnames';
 import $ from "./sefaria/sefariaJquery";
+import ReactDOM from "react-dom";
 
 const sheet_item_els = {
     ref: 'SheetSource',
@@ -433,13 +434,13 @@ const SheetSourceElement = ({ attributes, children, element }) => {
 
 
   const isActive = selected && focused;
-
-  const classes = {SheetSource: 1, segment: 1, selected: isActive };
+  const sheetItemClasses = {sheetItem: 1, highlight: editor.children[0].highlightedNode == element.node}
+  const classes = {SheetSource: 1, segment: 1, selected: isActive};
   const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false };
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
 
   return (
-    <div className={"sheetItem"}>
+    <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref}>
     <div {...attributes} contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
         <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div>
@@ -474,7 +475,13 @@ const SheetSourceElement = ({ attributes, children, element }) => {
 
 const Element = props => {
     const { attributes, children, element } = props
-    const sheetItemClasses = `sheetItem ${Node.string(element) ? '':'empty'} ${element.type != ("SheetSource" || "SheetOutsideBiText") ? 'noPointer': ''}`;
+    const sheetItemClasses = {
+        sheetItem: 1,
+        empty: !(Node.string(element)),
+        noPointer: element.type != ("SheetSource" || "SheetOutsideBiText"),
+        highlight: useSlate().children[0].highlightedNode == element.node
+    }
+
     switch (element.type) {
         case 'spacer':
           return (
@@ -489,7 +496,7 @@ const Element = props => {
 
         case 'SheetComment':
             return (
-              <div className={sheetItemClasses} {...attributes}>
+              <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
                 <div className="SheetComment segment" {...attributes}>
                     {children}
                 </div>
@@ -499,7 +506,7 @@ const Element = props => {
         case 'SheetOutsideText':
                 const SheetOutsideTextClasses = `SheetOutsideText segment ${element.lang}`;
                 return (
-                  <div className={sheetItemClasses} {...attributes}>
+                  <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
                     <div className={SheetOutsideTextClasses} {...attributes}>
                         {element.loading ? <div className="sourceLoader"></div> : null}
                         {children}
@@ -510,7 +517,7 @@ const Element = props => {
 
         case 'SheetOutsideBiText':
             return (
-              <div className={sheetItemClasses} {...attributes}>
+              <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
                 <div className="SheetOutsideBiText segment" {...attributes}>
                     {children}
                 </div>
@@ -540,12 +547,11 @@ const Element = props => {
             }
 
             return (
-              <div className={sheetItemClasses} {...attributes}>
+              <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
                 {mediaComponent}
                 <div className="clearFix"></div>
               </div>
             );
-
 
         case 'he':
             const heSelected = useSelected();
@@ -1331,6 +1337,7 @@ function saveSheetContent(doc, lastModified) {
 
 
 const SefariaEditor = (props) => {
+    const editorContainer = useRef();
     const sheet = props.data;
     const initValue = transformSheetJsonToSlate(sheet);
     const renderElement = useCallback(props => <Element {...props} />, []);
@@ -1358,6 +1365,28 @@ const SefariaEditor = (props) => {
         },
         [currentDocument] // Only re-call effect if value or delay changes
     );
+
+  useEffect(() => {
+      let timeOutId = null;
+      const onScrollListener = () => {
+          clearTimeout(timeOutId);
+          timeOutId = setTimeout(
+              () => {
+                  if(props.hasSidebar) {
+                      onEditorSidebarToggleClick()
+                  }
+              }, 200
+          )
+      }
+
+     editorContainer.current.parentNode.parentNode.addEventListener("scroll", onScrollListener)
+
+      return () => {
+          editorContainer.current.parentNode.parentNode.removeEventListener("scroll", onScrollListener)
+      }
+      }, [props.highlightedNodes]
+  );
+
 
     function saveDocument(doc) {
         const json = saveSheetContent(doc[0], lastModified);
@@ -1420,6 +1449,43 @@ const SefariaEditor = (props) => {
         }
     };
 
+    const getHighlightedByScrollPos = () => {
+        const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+        let segmentToHighlight = null
+
+        const segments = editorContainer.current.querySelectorAll(".sheetItem");
+
+        for (let segment of segments) {
+            const segmentbbox = segment.getBoundingClientRect();
+            if (
+                (segmentbbox.top >= 105 && segmentbbox.bottom < vh) /* segment fully within viewport */ ||
+                (segmentbbox.bottom >= vh/2) /* segment fills entire viewport */
+            ) {
+                segmentToHighlight = segment;
+                break;
+            }
+        }
+
+        return segmentToHighlight
+
+    }
+
+    const onEditorSidebarToggleClick = event => {
+
+        const segmentToHighlight = getHighlightedByScrollPos()
+        const sheetNode = segmentToHighlight.getAttribute("data-sheet-node")
+        const sheetRef = segmentToHighlight.getAttribute("data-sefaria-ref")
+
+        let source = {
+            'node': sheetNode,
+        }
+        if (!!sheetRef) {
+            source["ref"] = sheetRef
+        }
+        Transforms.setNodes(editor, {highlightedNode: sheetNode}, {at: [0]});
+        props.sheetSourceClick(source)
+    }
+
 
     const editor = useMemo(
         () => withSefariaSheet(withLinks(withHistory(withReact(createEditor())))),
@@ -1428,7 +1494,7 @@ const SefariaEditor = (props) => {
 
 
     return (
-        <div>
+        <div ref={editorContainer}>
         {
           /* debugger */
 
@@ -1437,6 +1503,8 @@ const SefariaEditor = (props) => {
           // </div>
 
         }
+
+        <button className="editorSidebarToggle" onClick={(e)=>onEditorSidebarToggleClick(e) } aria-label="Click to open the sidebar" />
 
         <SheetMetaDataBox>
             <SheetTitle tabIndex={0} title={sheet.title} editable={true} blurCallback={() => saveDocument(currentDocument)}/>
