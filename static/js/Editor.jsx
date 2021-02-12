@@ -1363,12 +1363,13 @@ const SefariaEditor = (props) => {
                 clearTimeout(handler);
             };
         },
-        [currentDocument] // Only re-call effect if value or delay changes
+        [currentDocument[0].children[0]] // Only re-call effect if value or delay changes
     );
 
   useEffect(() => {
       let timeOutId = null;
       const onScrollListener = () => {
+          ReactEditor.deselect(editor)
           clearTimeout(timeOutId);
           timeOutId = setTimeout(
               () => {
@@ -1390,7 +1391,7 @@ const SefariaEditor = (props) => {
 
     function saveDocument(doc) {
         const json = saveSheetContent(doc[0], lastModified);
-        // console.log('saving...')
+        console.log('saving...')
 
         $.post("/api/sheets/", {"json": json}, res => {
             setlastModified(res.dateModified);
