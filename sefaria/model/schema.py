@@ -2025,7 +2025,7 @@ class AddressTalmud(AddressType):
                 # looking for rest of ref after dash
                 end_range = re.search(f'-(.+)$', range_wo_last_amud).group(1)
                 return f"{start_daf}-{end_range}"
-        else:
+        else: #range is in the form Shabbat 7b-8a, Shabbat 7a-8a, or Shabbat 7b-8b.  no need to special case it
             return ref._get_normal(lang)
 
     @classmethod

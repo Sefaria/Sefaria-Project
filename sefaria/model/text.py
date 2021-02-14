@@ -4215,12 +4215,12 @@ class Ref(object, metaclass=RefCacheType):
 
     def normal(self, lang='en'):
         """
-        :return string: Normal English string form
+        :return string: Normal English or Hebrew string form
         """
         normal_attr = "_normal" if lang == 'en' else "_he_normal"
-        normal_form = ""
-
         if not getattr(self, normal_attr, None):
+            #check if the second last section has function normal_range and the ref is a range. if true, parse
+            #using address_class's normal_range function.  this is necessary to return Shabbat 7a-8b as Shabbat 7-8
             if len(self.sections) > 0 and hasattr(AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections) - 1]), "normal_range") and self.is_range():
                 address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections) - 1])
                 normal_form = address_class.normal_range(self, lang)
