@@ -1914,7 +1914,7 @@ class ReaderApp extends Component {
       var key   = i + title;
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
       panels.push(<div className={classes} style={style} key={key}>
-                    <ContentLanguageContext.Provider value={"language": panel.settings.language}>
+                    <ContentLanguageContext.Provider value={{"language": panel.settings.language}}>
                     <ReaderPanel
                       panelPosition={i}
                       initialState={panel}
