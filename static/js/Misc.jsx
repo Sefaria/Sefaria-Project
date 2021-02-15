@@ -69,7 +69,7 @@ const InterfaceText = ({children, en, he, context, className}) => {
     const chlCount = React.Children.count(children);
     if (chlCount == 1) { // Same as passing in a `en` key but with children syntax
       text = Sefaria._(children, context);
-    }else if (chlCount <= Object.keys(languageElements).length){ // When multiple languages are passed in via children
+    }else if (chlCount <= Object.keys(AvailableLanguages()).length){ // When multiple languages are passed in via children
       let newChildren = filterChildrenByLanguage(children, Sefaria.interfaceLang);
       text = newChildren[0]; //assumes one language element per InterfaceText, may be too naive
     }else{
