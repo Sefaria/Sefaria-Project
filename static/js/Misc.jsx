@@ -1,5 +1,5 @@
 //const React      = require('react');
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
 import { CollectionsModal } from "./CollectionsWidget";
@@ -7,7 +7,8 @@ import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component from 'react-class';
-import { usePaginatedDisplay } from './Hooks'
+import { usePaginatedDisplay } from './Hooks';
+import {ContentLanguageContext} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
@@ -41,7 +42,12 @@ const AvailableLanguagesValidator = (children, key, componentName, location, pro
       );
     }
 };
-
+const filterChildrenByLanguage = (children, language) => {
+  let chlArr = React.Children.toArray(children);
+  let currLangComponent = AvailableLanguages()[language];
+  let newChildren = chlArr.filter(x=> x.type == currLangComponent);
+  return newChildren;
+};
 
 const InterfaceText = ({children, en, he, context, className}) => {
   /**
@@ -54,7 +60,7 @@ const InterfaceText = ({children, en, he, context, className}) => {
    */
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   let cls = classNames({"int-en": !isHebrew, "int-he": isHebrew}) + (className ? " " + className : "");
-  let text;
+  let text = null;
   if (en || he) {// Prioritze explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
     text = isHebrew ? (he || en) : (en || he);
     let fallbackCls = (isHebrew && !he) ? "enInHe" : ((!isHebrew && !en) ? "heInEn" : "" );
@@ -64,15 +70,13 @@ const InterfaceText = ({children, en, he, context, className}) => {
     if (chlCount == 1) { // Same as passing in a `en` key but with children syntax
       text = Sefaria._(children, context);
     }else if (chlCount <= Object.keys(languageElements).length){ // When multiple languages are passed in via children
-      let chlArr = React.Children.toArray(children);
-      let currLangComponent = AvailableLanguages()[Sefaria.interfaceLang];
-      let newChildren = chlArr.filter(x=> x.type == currLangComponent);
+      let newChildren = filterChildrenByLanguage(children, Sefaria.interfaceLang);
       text = newChildren[0]; //assumes one language element per InterfaceText, may be too naive
     }else{
       console.log("Error too many children")
     }
   }
-  return <span className={cls}>{text}</span>
+  return (<span className={cls}>{text}</span>);
 };
 InterfaceText.propTypes = {
   //Makes sure that children passed in are either a single string, or an array consisting only of <EnglishText>, <HebrewText>
@@ -86,6 +90,24 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
+const ContentText = ({children}) => {
+  /**
+   * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
+   * Gets the active content language from Context and renders only the appropriate child(ren) for given language
+   * Takes only children to allow complex html to be fed in
+   * @type {{language: string}}
+   */
+  const contentLanguage = useContext(ContentLanguageContext);
+  let newChildren = filterChildrenByLanguage(children, contentLanguage.language);
+  let text = newChildren[0]; //assumes one language element per InterfaceText, may be too naive
+  return (
+    <>{text}</>
+  )
+};
+ContentText.propTypes = {
+  //Makes sure that children passed in are an array consisting only of <EnglishText>, <HebrewText>
+  children: PropTypes.arrayOf(AvailableLanguagesValidator)
+};
 
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
@@ -2198,6 +2220,7 @@ export {
   GlobalWarningMessage,
   InterruptingMessage,
   InterfaceText,
+  ContentText,
   EnglishText,
   HebrewText,
   LanguageToggleButton,
