@@ -29,6 +29,20 @@ const HebrewText = ({children}) => (
 const EnglishText = ({children}) => (
     <>{children}</>
 )
+
+const AvailableLanguages = () => {
+  return {"english" : EnglishText, "hebrew": HebrewText};
+};
+const AvailableLanguagesValidator = (children, key, componentName, location, propFullName) => {
+    if (!(children[key].type && (Object.values(AvailableLanguages()).indexOf(children[key].type) != -1) )) {
+      return new Error(
+        'Invalid prop `' + propFullName + '` supplied to' +
+        ' `' + componentName + '`. Validation failed.'
+      );
+    }
+};
+
+
 const IntText = ({children, en, he, context, className}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
@@ -38,7 +52,6 @@ const IntText = ({children, en, he, context, className}) => {
    * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
    * `context` is passed to Sefaria._ for additional translation context
    */
-  const languageElements = {"english" : EnglishText, "hebrew": HebrewText};
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   let cls = classNames({"int-en": !isHebrew, "int-he": isHebrew}) + (className ? " " + className : "");
   let text;
@@ -52,7 +65,7 @@ const IntText = ({children, en, he, context, className}) => {
       text = Sefaria._(children, context);
     }else if (chlCount <= Object.keys(languageElements).length){ // When multiple languages are passed in via children
       let chlArr = React.Children.toArray(children);
-      let currLangComponent = languageElements[Sefaria.interfaceLang];
+      let currLangComponent = AvailableLanguages()[Sefaria.interfaceLang];
       let newChildren = chlArr.filter(x=> x.type == currLangComponent);
       text = newChildren[0]; //assumes one language element per IntText, may be too naive
     }else{
@@ -65,14 +78,7 @@ IntText.propTypes = {
   //Makes sure that children passed in are either a single string, or an array consisting only of <EnglishText>, <HebrewTExt>
   children: PropTypes.oneOfType([
       PropTypes.string,
-      PropTypes.arrayOf(function(children, key, componentName, location, propFullName) {
-        if (!(children[key].type && ([EnglishText, HebrewText].indexOf(children[key].type) != -1) )) {
-          return new Error(
-            'Invalid prop `' + propFullName + '` supplied to' +
-            ' `' + componentName + '`. Validation failed.'
-          );
-        }
-      }),
+      PropTypes.arrayOf(AvailableLanguagesValidator),
   ]),
   en: PropTypes.string,
   he: PropTypes.string,
