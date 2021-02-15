@@ -98,10 +98,14 @@ const ContentText = ({children}) => {
    * @type {{language: string}}
    */
   const contentLanguage = useContext(ContentLanguageContext);
-  let newChildren = __filterChildrenByLanguage(children, contentLanguage.language);
-  let text = newChildren[0]; //assumes one language element per InterfaceText, may be too naive
+  let renderedElements = null;
+  if (Object.keys(AvailableLanguages()).indexOf(contentLanguage.language) != -1){
+    renderedElements = __filterChildrenByLanguage(children, contentLanguage.language);
+  }else{
+    renderedElements = children;
+  }
   return (
-    <>{text}</>
+    <>{renderedElements}</>
   )
 };
 ContentText.propTypes = {
