@@ -99,9 +99,9 @@ const ContentText = ({children}) => {
    */
   const contentLanguage = useContext(ContentLanguageContext);
   let renderedElements = null;
-  if (Object.keys(AvailableLanguages()).indexOf(contentLanguage.language) != -1){
+  if (Object.keys(AvailableLanguages()).indexOf(contentLanguage.language) != -1){ //not bilingual
     renderedElements = __filterChildrenByLanguage(children, contentLanguage.language);
-  }else{
+  }else{ // yes bilingual, so dont bother filtering.
     renderedElements = children;
   }
   return (
