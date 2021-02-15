@@ -5,7 +5,7 @@ import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
-import {ContentText} from "./Misc";
+import {ContentText, EnglishText, HebrewText} from "./Misc";
 
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
@@ -553,8 +553,8 @@ class TextSegment extends Component {
       linkCountElement = this.props.showLinkCount ? (
           <div className="linkCount sans" title={linkCount + " Connections Available"}>
             <ContentText>
-              <span className="en"><span className="linkCountDot" style={style}></span></span>
-              <span className="he"><span className="linkCountDot" style={style}></span></span>
+             <EnglishText><span className="en"><span className="linkCountDot" style={style}></span></span></EnglishText>
+             <HebrewText><span className="he"><span className="linkCountDot" style={style}></span></span></HebrewText>
             </ContentText>
           </div>
       ) : null;
@@ -564,8 +564,12 @@ class TextSegment extends Component {
     let segmentNumber = this.props.segmentNumber ? (
         <div className="segmentNumber sans">
           <ContentText>
-            <span className="en"> <span className="segmentNumberInner">{this.props.segmentNumber}</span> </span>
-            <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}</span> </span>
+            <EnglishText>
+              <span className="en"><span className="segmentNumberInner">{this.props.segmentNumber}</span></span>
+            </EnglishText>
+            <HebrewText>
+              <span className="he"><span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}</span></span>
+            </HebrewText>
           </ContentText>
         </div>
     ) : null;
@@ -598,8 +602,8 @@ class TextSegment extends Component {
         {segmentNumber}
         {linkCountElement}
         <ContentText>
-          <p lang={this.props.heLangCode} className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p>
-          <p lang={this.props.enLangCode} className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p>
+          <EnglishText><p lang={this.props.heLangCode} className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p></EnglishText>
+          <HebrewText><p lang={this.props.enLangCode} className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p></HebrewText>
         </ContentText>
         <div className="clearFix"></div>
       </div>
