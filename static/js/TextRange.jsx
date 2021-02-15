@@ -508,8 +508,8 @@ class TextSegment extends Component {
     }
   }
   formatItag(lang, text) {
-    var $newElement = $("<div>" + text + "</div>");
-    var textValue = function(i) {
+    let $newElement = $("<div>" + text + "</div>");
+    const textValue = function(i) {
       if ($(i).attr('data-label')) {
         return $(i).attr('data-label');
       } else {
@@ -544,12 +544,12 @@ class TextSegment extends Component {
     return text;
   }
   render() {
-    var linkCountElement;
+    let linkCountElement = null;
     if (this.props.showLinkCount) {
-      var linkCount = this.props.linkCount;
-      var minOpacity = 20, maxOpacity = 70;
-      var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
-      var style = {opacity: linkScore};
+      const linkCount = this.props.linkCount;
+      const minOpacity = 20, maxOpacity = 70;
+      const linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
+      const style = {opacity: linkScore};
       linkCountElement = this.props.showLinkCount ? (<div className="linkCount sans" title={linkCount + " Connections Available"}>
                                                     <span className="en"><span className="linkCountDot" style={style}></span></span>
                                                     <span className="he"><span className="linkCountDot" style={style}></span></span>
@@ -557,12 +557,12 @@ class TextSegment extends Component {
     } else {
       linkCountElement = "";
     }
-    var segmentNumber = this.props.segmentNumber ? (<div className="segmentNumber sans">
+    let segmentNumber = this.props.segmentNumber ? (<div className="segmentNumber sans">
                                                       <span className="en"> <span className="segmentNumberInner">{this.props.segmentNumber}</span> </span>
                                                       <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}</span> </span>
                                                     </div>) : null;
-    var he = this.props.he || "";
-    var en = this.props.en || "";
+    let he = this.props.he || "";
+    let en = this.props.en || "";
 
     // render itags
     if (this.props.filter && this.props.filter.length > 0) {
@@ -572,7 +572,7 @@ class TextSegment extends Component {
     he = this.addHighlights(he);
     en = this.addHighlights(en);
 
-    var classes=classNames({
+    const classes=classNames({
       segment: 1,
       highlight: this.props.highlight,
       heOnly: !this.props.en,
@@ -583,7 +583,10 @@ class TextSegment extends Component {
         return false;
     }
     return (
-      <div tabIndex="0" className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress} data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)} aria-label={"Click to see links to "+this.props.sref}>
+      <div tabIndex="0"
+           className={classes} onClick={this.handleClick} onKeyPress={this.handleKeyPress}
+           data-ref={this.props.sref} aria-controls={"panel-"+(this.props.panelPosition+1)}
+           aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
         <p lang={this.props.heLangCode} className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p>
