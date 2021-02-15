@@ -5,7 +5,6 @@ import classNames  from 'classnames';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
-import {ContentLanguageContext} from "./context";
 
 
 class TextRange extends Component {
@@ -594,7 +593,6 @@ class TextSegment extends Component {
     );
   }
 }
-TextSegment.contextType = ContentLanguageContext;
 TextSegment.propTypes = {
   sref:            PropTypes.string,
   en:              PropTypes.string,
