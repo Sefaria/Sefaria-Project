@@ -1436,7 +1436,36 @@ const SefariaEditor = (props) => {
         }
     };
 
+    const ensureInView = e => {
+          /*
+            Slate doesn't always scroll to content beyond the viewport -- this should fix that.
+           */
+          if (editor.selection == null) return
+
+          try {
+            /*
+              Need a try/catch because sometimes you get an error like:
+              Cannot resolve a DOM node from Slate node: {"type":"p","children":[{"text":"","by":-1,"at":-1}]}
+             */
+            const domPoint = ReactEditor.toDOMPoint(
+              editor,
+              editor.selection.focus
+            )
+            const node = domPoint[0]
+            if (node == null) return
+
+            const element = node.parentElement
+            if (element == null) return
+            console.log(element)
+            if (whereIsElementInViewport(element) == "in viewport") return
+            element.scrollIntoView({ behavior: "auto", block: "end" })
+          } catch (e) {
+            //Do nothing if there is an error.
+          }
+    }
+
     const onKeyDown = event => {
+        ensureInView(event)
 
         for (const hotkey in HOTKEYS) {
           if (isHotkey(hotkey, event)) {
@@ -1452,18 +1481,24 @@ const SefariaEditor = (props) => {
         }
     };
 
-    const getHighlightedByScrollPos = () => {
+    const whereIsElementInViewport = (element) => {
+        const elementbbox = element.getBoundingClientRect();
         const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
+        if (elementbbox.top >= 105 && elementbbox.bottom < vh) {
+            return "in viewport"
+        }
+        if (elementbbox.bottom >= vh/2 && element) {
+            return "past half"
+        }
+    }
+
+    const getHighlightedByScrollPos = () => {
         let segmentToHighlight = null
 
         const segments = editorContainer.current.querySelectorAll(".sheetItem");
 
         for (let segment of segments) {
-            const segmentbbox = segment.getBoundingClientRect();
-            if (
-                (segmentbbox.top >= 105 && segmentbbox.bottom < vh) /* segment fully within viewport */ ||
-                (segmentbbox.bottom >= vh/2) /* segment fills entire viewport */
-            ) {
+            if (whereIsElementInViewport(segment) == ("in viewport" || "past half")) {
                 segmentToHighlight = segment;
                 break;
             }
