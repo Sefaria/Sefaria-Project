@@ -840,19 +840,6 @@ SimpleLinkedBlock.propTypes = {
     aclasses: PropTypes.string
 };
 
-const SimpleLinkedInline = ({children, aclasses, en, he, url, onClick}) => (
-    children || (en && !he) ?
-        <a href={url} className={aclasses} onClick={onClick}>
-          <IntText>{children}</IntText>
-        </a>
-        :
-        <a href={url} className={aclasses} onClick={onClick}>
-          <IntText>
-            <EnglishText>{en}</EnglishText>
-            <HebrewText>{he}</HebrewText>
-          </IntText>
-        </a>
-);
 
 
 class BlockLink extends Component {
