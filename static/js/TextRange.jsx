@@ -550,17 +550,25 @@ class TextSegment extends Component {
       const minOpacity = 20, maxOpacity = 70;
       const linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
       const style = {opacity: linkScore};
-      linkCountElement = this.props.showLinkCount ? (<div className="linkCount sans" title={linkCount + " Connections Available"}>
-                                                    <span className="en"><span className="linkCountDot" style={style}></span></span>
-                                                    <span className="he"><span className="linkCountDot" style={style}></span></span>
-                                                  </div>) : null;
+      linkCountElement = this.props.showLinkCount ? (
+          <div className="linkCount sans" title={linkCount + " Connections Available"}>
+            <ContentText>
+              <span className="en"><span className="linkCountDot" style={style}></span></span>
+              <span className="he"><span className="linkCountDot" style={style}></span></span>
+            </ContentText>
+          </div>
+      ) : null;
     } else {
       linkCountElement = "";
     }
-    let segmentNumber = this.props.segmentNumber ? (<div className="segmentNumber sans">
-                                                      <span className="en"> <span className="segmentNumberInner">{this.props.segmentNumber}</span> </span>
-                                                      <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}</span> </span>
-                                                    </div>) : null;
+    let segmentNumber = this.props.segmentNumber ? (
+        <div className="segmentNumber sans">
+          <ContentText>
+            <span className="en"> <span className="segmentNumberInner">{this.props.segmentNumber}</span> </span>
+            <span className="he"> <span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}</span> </span>
+          </ContentText>
+        </div>
+    ) : null;
     let he = this.props.he || "";
     let en = this.props.en || "";
 
@@ -589,8 +597,10 @@ class TextSegment extends Component {
            aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
-        <p lang={this.props.heLangCode} className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p>
-        <p lang={this.props.enLangCode} className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p>
+        <ContentText>
+          <p lang={this.props.heLangCode} className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p>
+          <p lang={this.props.enLangCode} className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p>
+        </ContentText>
         <div className="clearFix"></div>
       </div>
     );
