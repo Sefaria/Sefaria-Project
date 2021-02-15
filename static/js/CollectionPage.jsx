@@ -10,7 +10,7 @@ import {
   SinglePanelNavHeader,
   ProfilePic,
   SimpleLinkedBlock,
-  IntText,
+  InterfaceText,
 } from './Misc';
 import React  from 'react';
 import PropTypes  from 'prop-types';
@@ -282,7 +282,7 @@ class CollectionPage extends Component {
             <span className="int-he">דפי מקורות</span>
           </a>
           <a className={classNames({bubbleTab: 1, active: this.state.tab == "members"})} onClick={this.setTab.bind(null, "members")}>
-            <IntText>Editors</IntText>
+            <InterfaceText>Editors</InterfaceText>
           </a>
           { isAdmin ?
             <a className="bubbleTab" href={"/collections/" + collection.slug + "/settings"}>
@@ -335,14 +335,14 @@ class CollectionPage extends Component {
 
           {!sheets.length ? (isMember ?
                   <div className="emptyMessage">
-                    <IntText>You can add sheets to this collection on your profile.</IntText>
+                    <InterfaceText>You can add sheets to this collection on your profile.</InterfaceText>
                     <br />
                     <a className="button" href="/my/profile">
-                      <IntText>Open Profile</IntText>
+                      <InterfaceText>Open Profile</InterfaceText>
                     </a>
                   </div>
                 : <div className="emptyMessage">
-                    <IntText>There are no sheets in this collection yet.</IntText>
+                    <InterfaceText>There are no sheets in this collection yet.</InterfaceText>
                   </div>) : null}
           </div>
           : null }
@@ -443,11 +443,11 @@ class CollectionInvitationBox extends Component {
               <div className="collectionInvitationBoxInner">
                 <input id="collectionInvitationInput" placeholder={Sefaria._("Email Address")} />
                 <div className="button" onClick={this.onInviteClick}>
-                  <IntText>Invite</IntText>
+                  <InterfaceText>Invite</InterfaceText>
                 </div>
               </div>
               {this.state.message ?
-                <div className="collectionInvitationBoxMessage"><IntText>{this.state.message}</IntText></div>
+                <div className="collectionInvitationBoxMessage"><InterfaceText>{this.state.message}</InterfaceText></div>
                 : null}
             </div>);
   }
@@ -486,7 +486,7 @@ class CollectionMemberListing extends Component {
         </div>
 
         <div className="collectionMemberListingRoleBox">
-          <span className="collectionMemberListingRole"><IntText>{this.props.member.role}</IntText></span>
+          <span className="collectionMemberListingRole"><InterfaceText>{this.props.member.role}</InterfaceText></span>
           {this.props.isAdmin || this.props.isSelf ?
             <CollectionMemberListingActions
               member={this.props.member}
@@ -518,7 +518,7 @@ class CollectionInvitationListing extends Component {
         </span>
 
         <div className="collectionMemberListingRoleBox">
-          <span className="collectionMemberListingRole"><IntText>Invited</IntText></span>
+          <span className="collectionMemberListingRole"><InterfaceText>Invited</InterfaceText></span>
           <CollectionMemberListingActions
             member={this.props.member}
             slug={this.props.slug}
@@ -618,34 +618,34 @@ class CollectionMemberListingActions extends Component {
           <div className="collectionMemberListingActionsMenu">
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "admin")}>
-                <span className={classNames({role: 1, current: this.props.member.role == "Owner"})}><IntText>Owner</IntText></span>
-                - <IntText>can invite & edit settings</IntText>
+                <span className={classNames({role: 1, current: this.props.member.role == "Owner"})}><InterfaceText>Owner</InterfaceText></span>
+                - <InterfaceText>can invite & edit settings</InterfaceText>
               </div>
               : null }
             {this.props.isAdmin ?
               <div className="action" onClick={this.setRole.bind(this, "member")}>
-                <span className={classNames({role: 1, current: this.props.member.role == "Editor"})}><IntText>Editor</IntText></span>
-                - <IntText>can add & remove sheets</IntText>
+                <span className={classNames({role: 1, current: this.props.member.role == "Editor"})}><InterfaceText>Editor</InterfaceText></span>
+                - <InterfaceText>can add & remove sheets</InterfaceText>
               </div>
               : null}
             {this.props.isAdmin || this.props.isSelf ?
               <div className="action" onClick={this.removeMember}>
-                <span className="role"><IntText>{this.props.isSelf ? "Leave Collection" : "Remove"}</IntText></span>
+                <span className="role"><InterfaceText>{this.props.isSelf ? "Leave Collection" : "Remove"}</InterfaceText></span>
               </div>
             : null }
             {this.props.isInvitation  && !this.state.invitationResent ?
               <div className="action" onClick={this.resendInvitation}>
-                <span className="role"><IntText>Resend Invitation</IntText></span>
+                <span className="role"><InterfaceText>Resend Invitation</InterfaceText></span>
               </div>
               : null}
             {this.props.isInvitation  && this.state.invitationResent ?
               <div className="action">
-                <span className="role"><IntText>Invitation Resent</IntText></span>
+                <span className="role"><InterfaceText>Invitation Resent</InterfaceText></span>
               </div>
               : null}
             {this.props.isInvitation ?
               <div className="action" onClick={this.removeInvitation}>
-                <span className="role"><IntText>Remove</IntText></span>
+                <span className="role"><InterfaceText>Remove</InterfaceText></span>
 
               </div>
               : null}

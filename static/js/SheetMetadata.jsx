@@ -3,7 +3,7 @@ import {
   ReaderNavigationMenuDisplaySettingsButton,
   CategoryAttribution,
   CategoryColorLine,
-  IntText,
+  InterfaceText,
   LoadingMessage,
   LoginPrompt,
 } from './Misc';
@@ -127,20 +127,20 @@ class SheetMetadata extends Component {
         <div>
           {Sefaria._uid == sheet.owner && !Sefaria._uses_new_editor ?
           <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
-            <IntText>Edit</IntText>
+            <InterfaceText>Edit</InterfaceText>
           </a> : null }
 
           <a href="#" className="button white" onClick={this.copySheet}>
-            <IntText>{this.state.sheetCopyStatus}</IntText>
+            <InterfaceText>{this.state.sheetCopyStatus}</InterfaceText>
           </a>
 
           <a href="#" className="button white" onClick={this.toggleCollectionsModal}>
-            <IntText>Add to Collection</IntText>
+            <InterfaceText>Add to Collection</InterfaceText>
           </a>
 
           {Sefaria._uid !== sheet.owner && !Sefaria._uses_new_editor ?
           <a href={"/sheets/"+sheet.id+"?editor=1"} className="button white" role="button">
-            <IntText>View in Editor</IntText>
+            <InterfaceText>View in Editor</InterfaceText>
           </a> : null }
         </div>
 
@@ -267,7 +267,7 @@ class SheetMetadata extends Component {
                                 className="sheetTag button"
                                 key={i}
                               >
-                                <IntText en={topic.en} he={topic.he} />
+                                <InterfaceText en={topic.en} he={topic.he} />
                               </a>
                             ))
                           }

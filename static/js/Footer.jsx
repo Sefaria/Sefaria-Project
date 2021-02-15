@@ -2,7 +2,7 @@ import React  from 'react';
 import Sefaria  from './sefaria/sefaria';
 import PropTypes from'prop-types';
 import $  from './sefaria/sefariaJquery';
-import { IntText, NewsletterSignUpForm } from './Misc';
+import { InterfaceText, NewsletterSignUpForm } from './Misc';
 import Component from 'react-class';
 
 const Section = ({en, he, children}) => (
@@ -129,7 +129,7 @@ class Footer extends Component {
               </div>
               <div id="siteLanguageToggle">
                   <div id="siteLanguageToggleLabel">
-                      <IntText>Site Language</IntText>
+                      <InterfaceText>Site Language</InterfaceText>
                   </div>
                   <a href={"/interface/english?next=" + next} id="siteLanguageEnglish"
                      onClick={this.trackLanguageClick.bind(null, "English")}>English

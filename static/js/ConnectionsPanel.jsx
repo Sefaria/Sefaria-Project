@@ -8,7 +8,7 @@ import {
   Note,
   FeedbackBox,
   ProfilePic,
-  ToolTipped, IntText,
+  ToolTipped, InterfaceText,
 } from './Misc';
 
 import {
@@ -1423,16 +1423,16 @@ function ManuscriptImage(props) {
         : <p className={"english manuscriptCaption"}>{manuscript.manuscript.title}</p>
     }
       <div className="meta">
-        <IntText>Location: </IntText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br/>
+        <InterfaceText>Location: </InterfaceText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br/>
         {
           manuscript.manuscript[description]
             ? <span>
-                <IntText en={'Courtesy of: '} he={'הודות ל'} />
+                <InterfaceText en={'Courtesy of: '} he={'הודות ל'} />
                 <span className={cls}>{manuscript.manuscript[description]}<br/></span>
               </span>
             : ''
         }
-        <IntText en={'Source: '} he={'מקור: '}/>
+        <InterfaceText en={'Source: '} he={'מקור: '}/>
         <a href={manuscript.manuscript['source']} target="_blank">{manuscript.manuscript['source'].replace("https://", "")}</a>
       </div>
 

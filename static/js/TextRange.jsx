@@ -6,6 +6,7 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
 
+
 class TextRange extends Component {
   // A Range or text defined a by a single Ref. Specially treated when set as 'basetext'.
   // This component is responsible for retrieving data from `Sefaria` for the ref that defines it.

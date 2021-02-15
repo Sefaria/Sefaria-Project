@@ -18,7 +18,7 @@ import {
   LoadingMessage,
   Link,
   TwoOrThreeBox,
-  IntText,
+  InterfaceText,
   FilterableList,
   ToolTipped,
 } from './Misc';
@@ -207,7 +207,7 @@ const TopicHeader = ({
     <div>
         <div className="topicTitle pageTitle">
           <h1>
-            <IntText en={en} he={he}/>
+            <InterfaceText en={en} he={he}/>
           </h1>
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
@@ -511,7 +511,7 @@ const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) 
     onClick={onClick.bind(null, topic, topicTitle)} key={topic}
     title={topicTitle.en}
   >
-    <IntText en={topicTitle.en} he={topicTitle.he}/>
+    <InterfaceText en={topicTitle.en} he={topicTitle.he}/>
   </Link>
 );
 TopicLink.propTypes = {
@@ -612,22 +612,22 @@ TopicSideColumn.propTypes = {
 const ReadingsComponent = ({ parashaData, tref }) => (
   <div className="readings link-section">
     <h2>
-      <IntText en={"Readings"} he={"פרשיות והפטרות"} />
+      <InterfaceText en={"Readings"} he={"פרשיות והפטרות"} />
     </h2>
     <span className="smallText parasha-date">
-      <IntText en={Sefaria.util.localeDate(parashaData.date)} he={Sefaria.util.localeDate(parashaData.date)} />
+      <InterfaceText en={Sefaria.util.localeDate(parashaData.date)} he={Sefaria.util.localeDate(parashaData.date)} />
       <span className="separator">·</span>
-      <IntText {...parashaData.he_date} />
+      <InterfaceText {...parashaData.he_date} />
     </span>
 
-    <div className="sectionTitleText"><IntText en={"Torah"} he={"תורה"} /></div>
-    <a href={'/' + tref.url} className="contentText"><IntText en={tref.en} he={norm_hebrew_ref(tref.he)} /></a>
-    <div className="sectionTitleText"><IntText en={"Haftarah"} he={"הפטרה"} /></div>
+    <div className="sectionTitleText"><InterfaceText en={"Torah"} he={"תורה"} /></div>
+    <a href={'/' + tref.url} className="contentText"><InterfaceText en={tref.en} he={norm_hebrew_ref(tref.he)} /></a>
+    <div className="sectionTitleText"><InterfaceText en={"Haftarah"} he={"הפטרה"} /></div>
     <div className="haftarot">
     {
       parashaData.haftarah.map(h => (
         <a href={'/' + h.url} className="contentText" key={h.url}>
-          <IntText en={h.displayValue.en} he={norm_hebrew_ref(h.displayValue.he)} />
+          <InterfaceText en={h.displayValue.en} he={norm_hebrew_ref(h.displayValue.he)} />
         </a>
       ))
     }

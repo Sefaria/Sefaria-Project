@@ -1,7 +1,7 @@
 import {
   SheetListing,
   LoadingMessage,
-  SimpleLinkedBlock, IntText, EnglishText, HebrewText
+  SimpleLinkedBlock, InterfaceText, EnglishText, HebrewText
 } from './Misc';
 import {
   RecentFilterSet,
