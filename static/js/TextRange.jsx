@@ -602,8 +602,8 @@ class TextSegment extends Component {
         {segmentNumber}
         {linkCountElement}
         <ContentText>
-          <EnglishText><p lang={this.props.heLangCode} className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p></EnglishText>
-          <HebrewText><p lang={this.props.enLangCode} className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p></HebrewText>
+          <HebrewText><p lang={this.props.heLangCode} className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p></HebrewText>
+          <EnglishText><p lang={this.props.enLangCode} className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p></EnglishText>
         </ContentText>
         <div className="clearFix"></div>
       </div>
