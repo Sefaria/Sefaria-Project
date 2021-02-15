@@ -1913,8 +1913,11 @@ class ReaderApp extends Component {
       // Use a combination of the panel number and text title
       var key   = i + title;
       var classes = classNames({readerPanelBox: 1, sidebar: panel.mode == "Connections"});
+      const panelContentLanguage = {
+        language: panel.settings.language,
+      };
       panels.push(<div className={classes} style={style} key={key}>
-                    <ContentLanguageContext.Provider value={{"language": panel.settings.language}}>
+                    <ContentLanguageContext.Provider value={panelContentLanguage}>
                     <ReaderPanel
                       panelPosition={i}
                       initialState={panel}

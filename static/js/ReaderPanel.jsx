@@ -45,7 +45,7 @@ import Component from 'react-class';
 class ReaderPanel extends Component {
   constructor(props) {
     super(props);
-    var state = this.clonePanel(props.initialState);
+    let state = this.clonePanel(props.initialState);
     state["initialAnalyticsTracked"] = false;
     this.state = state;
     return;
