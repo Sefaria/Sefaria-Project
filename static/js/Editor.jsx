@@ -102,8 +102,7 @@ const format_to_html_lookup = format_tag_pairs.reduce((obj, item) => {
 
 export const deserialize = el => {
     if (el.nodeType === 3) {
-        const textToReturn = el.textContent.replace(/\u2800/g, ''); // this removes the temporary hacky braile character added to render empty paragraphs and br line breaks in parseSheetItemHTML()
-        return textToReturn
+        return el.textContent
     } else if (el.nodeType !== 1) {
         return null
     } else if (el.nodeName === 'BR') {
@@ -129,8 +128,12 @@ export const deserialize = el => {
     }
 
     if (ELEMENT_TAGS[nodeName]) {
+        let new_children = children
+        if(!children[0]) {
+            new_children = [{'text':''}]
+        }
         const attrs = ELEMENT_TAGS[nodeName](el);
-        return jsx('element', attrs, children)
+        return jsx('element', attrs, new_children)
     }
 
     if (TEXT_TAGS[nodeName]) {
@@ -195,7 +198,6 @@ function renderSheetItem(source) {
                     node: source.node,
                     heText: parseSheetItemHTML(source.text.he),
                     enText: parseSheetItemHTML(source.text.en),
-                    title: null,
                     children: [
                         {text: ""},
                     ]
@@ -271,7 +273,7 @@ function renderSheetItem(source) {
 }
 
 function parseSheetItemHTML(rawhtml) {
-    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r)/gm, "").replace(/(<p><br><\/p>|<p> <\/p>|<div><\/div>|<p><\/p>)/gm, "<div>⠀</div>") // this is an ugly hack that adds the blank braile unicode character to ths string for a moment to ensure that the empty paragraph string gets rendered, this character will be removed later.
+    const preparseHtml = rawhtml.replace(/\u00A0/g, ' ').replace(/(\r\n|\n|\r)/gm, "")
     const parsed = new DOMParser().parseFromString(preparseHtml, 'text/html');
     const fragment = deserialize(parsed.body);
     const slateJSON = fragment.length > 0 ? fragment : [{text: ''}];
