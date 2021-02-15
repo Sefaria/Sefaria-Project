@@ -12,12 +12,12 @@ import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
 /**
- * Component meant to simply denote a language specific string to go inside an IntText element
+ * Component meant to simply denote a language specific string to go inside an InterfaceText element
  * ```
- * <IntText>
+ * <InterfaceText>
  *     <EnglishText>lorem ipsum</EnglishText>
  *     <HebrewText>lorem ipsum</HebrewText>
- * </IntText>
+ * </InterfaceText>
  * ```
  * @param children
  * @returns {JSX.Element}
@@ -25,10 +25,10 @@ import 'react-image-crop/dist/ReactCrop.css';
  */
 const HebrewText = ({children}) => (
     <>{children}</>
-)
+);
 const EnglishText = ({children}) => (
     <>{children}</>
-)
+);
 
 const AvailableLanguages = () => {
   return {"english" : EnglishText, "hebrew": HebrewText};
@@ -43,7 +43,7 @@ const AvailableLanguagesValidator = (children, key, componentName, location, pro
 };
 
 
-const IntText = ({children, en, he, context, className}) => {
+const InterfaceText = ({children, en, he, context, className}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
    *  If passed explicit "en" and/or "he" props, will only use those to determine correct text or fallback text to display.
@@ -67,15 +67,15 @@ const IntText = ({children, en, he, context, className}) => {
       let chlArr = React.Children.toArray(children);
       let currLangComponent = AvailableLanguages()[Sefaria.interfaceLang];
       let newChildren = chlArr.filter(x=> x.type == currLangComponent);
-      text = newChildren[0]; //assumes one language element per IntText, may be too naive
+      text = newChildren[0]; //assumes one language element per InterfaceText, may be too naive
     }else{
       console.log("Error too many children")
     }
   }
   return <span className={cls}>{text}</span>
 };
-IntText.propTypes = {
-  //Makes sure that children passed in are either a single string, or an array consisting only of <EnglishText>, <HebrewTExt>
+InterfaceText.propTypes = {
+  //Makes sure that children passed in are either a single string, or an array consisting only of <EnglishText>, <HebrewText>
   children: PropTypes.oneOfType([
       PropTypes.string,
       PropTypes.arrayOf(AvailableLanguagesValidator),
@@ -798,10 +798,7 @@ DangerousInterfaceBlock.propTypes = {
 
 const SimpleInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
-            <IntText>
-              <EnglishText>{en}</EnglishText>
-              <HebrewText>{he}</HebrewText>
-            </IntText>
+            <InterfaceText en={en} he={he} />
         </div>
     );
 SimpleInterfaceBlock.propTypes = {
@@ -827,7 +824,7 @@ SimpleContentBlock.propTypes = {
 const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick}) => (
         <div className={classes} onClick={onClick}>
             <a href={url} className={aclasses}>
-              <IntText en={en} he={he}/>
+              <InterfaceText en={en} he={he}/>
             </a>
             {children}
         </div>
@@ -1236,7 +1233,7 @@ const SinglePanelNavHeader = (props) =>
           <CategoryColorLine category={props.colorLineCategory || "Other"} />
           <ReaderNavigationMenuMenuButton onClick={props.navHome} />
           <h2>
-            <IntText>{props.title}</IntText>
+            <InterfaceText>{props.title}</InterfaceText>
           </h2>
           {props.showDisplaySettings ?
             <ReaderNavigationMenuDisplaySettingsButton onClick={props.openDisplaySettings} />
@@ -1395,7 +1392,7 @@ const SheetListing = ({
         key={i}
         onClick={handleTopicClick.bind(null, topic.slug)}
       >
-        <IntText {...topic} />
+        <InterfaceText {...topic} />
         {separator}
       </a>
     );
@@ -1931,7 +1928,7 @@ class SheetTopicLink extends Component {
     const { slug, en, he } = this.props.topic;
     return (
       <a href={`/topics/${slug}`} onClick={this.handleTagClick}>
-        <IntText en={en} he={he} />
+        <InterfaceText en={en} he={he} />
       </a>
     );
   }
@@ -2200,7 +2197,7 @@ export {
   FilterableList,
   GlobalWarningMessage,
   InterruptingMessage,
-  IntText,
+  InterfaceText,
   EnglishText,
   HebrewText,
   LanguageToggleButton,
