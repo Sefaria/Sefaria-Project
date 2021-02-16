@@ -584,11 +584,15 @@ class TextSegment extends Component {
     he = this.addHighlights(he);
     en = this.addHighlights(en);
 
+    const heOnly = !this.props.en;
+    const enOnly = !this.props.he;
+    const overrideLanguage = (Sefaria.interfaceLang == "hebrew") ? "hebrew" : ((enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null);
+
     const classes=classNames({
       segment: 1,
       highlight: this.props.highlight,
-      heOnly: !this.props.en,
-      enOnly: !this.props.he,
+      heOnly: heOnly,
+      enOnly: enOnly,
       showNamedEntityLinks: !!this.props.onNamedEntityClick,
     });
     if(!this.props.en && !this.props.he){
@@ -601,7 +605,7 @@ class TextSegment extends Component {
            aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
-        <ContentText>
+        <ContentText override={overrideLanguage}>
           <HebrewText><p lang={this.props.heLangCode} className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p></HebrewText>
           <EnglishText><p lang={this.props.enLangCode} className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p></EnglishText>
         </ContentText>

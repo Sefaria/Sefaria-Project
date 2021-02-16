@@ -90,7 +90,7 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({children}) => {
+const ContentText = ({children, overrideLanguage}) => {
   /**
    * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
@@ -98,9 +98,10 @@ const ContentText = ({children}) => {
    * @type {{language: string}}
    */
   const contentLanguage = useContext(ContentLanguageContext);
+  const languageToFilter = overrideLanguage ? overrideLanguage : contentLanguage.language;
   let renderedElements = null;
-  if (Object.keys(AvailableLanguages()).indexOf(contentLanguage.language) != -1){ //not bilingual
-    renderedElements = __filterChildrenByLanguage(children, contentLanguage.language);
+  if (Object.keys(AvailableLanguages()).indexOf(languageToFilter) != -1){ //not bilingual
+    renderedElements = __filterChildrenByLanguage(children, languageToFilter);
   }else{ // yes bilingual, so dont bother filtering.
     renderedElements = children;
   }
