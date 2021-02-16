@@ -1917,7 +1917,6 @@ class ReaderApp extends Component {
         language: panel.settings.language,
       };
       panels.push(<div className={classes} style={style} key={key}>
-                    <ContentLanguageContext.Provider value={panelContentLanguage}>
                     <ReaderPanel
                       panelPosition={i}
                       initialState={panel}
@@ -1966,7 +1965,6 @@ class ReaderApp extends Component {
                       clearSelectedWords={clearSelectedWords}
                       clearNamedEntity={clearNamedEntity}
                     />
-                    </ContentLanguageContext.Provider>
                   </div>);
     }
     var boxClasses = classNames({wrapBoxScroll: wrapBoxScroll});

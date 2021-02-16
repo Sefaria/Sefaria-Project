@@ -586,7 +586,8 @@ class TextSegment extends Component {
 
     const heOnly = !this.props.en;
     const enOnly = !this.props.he;
-    const overrideLanguage = (Sefaria.interfaceLang == "hebrew") ? "hebrew" : ((enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null);
+    const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+
 
     const classes=classNames({
       segment: 1,

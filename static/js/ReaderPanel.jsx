@@ -40,6 +40,8 @@ import {
   ToggleSet,
 } from './Misc';
 import Component from 'react-class';
+import {ContentLanguageContext} from './context';
+
 
 
 class ReaderPanel extends Component {
@@ -1048,7 +1050,8 @@ class ReaderPanel extends Component {
     );
 
     return (
-      <div className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
+      <ContentLanguageContext.Provider value={contentLang}>
+        <div className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
         {hideReaderControls ? null :
         (<ReaderControls
           showBaseText={this.showBaseText}
@@ -1100,6 +1103,7 @@ class ReaderPanel extends Component {
         {this.state.displaySettingsOpen ? (<div className="mask" onClick={this.closeDisplaySettings}></div>) : null}
 
       </div>
+      </ContentLanguageContext.Provider>
     );
   }
 }
