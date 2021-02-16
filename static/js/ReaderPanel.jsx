@@ -49,6 +49,10 @@ class ReaderPanel extends Component {
     super(props);
     let state = this.clonePanel(props.initialState);
     state["initialAnalyticsTracked"] = false;
+    const contentLang = this.getContentLanguageOverride(state.mode, state.menuOpen) || state.settings.language;
+    state['contentLangSettings'] = {
+      "language": contentLang,
+    }
     this.state = state;
     return;
   }
@@ -119,6 +123,17 @@ class ReaderPanel extends Component {
       return;
     }
     this.setState({"error": message})
+  }
+  getContentLanguageOverride(mode, menuOpen) {
+    //Determines the actual content language used inside this ReaderPanel.
+    //Because it's called in the constructor, assume state isnt necessarily defined and pass variables mode and menuOpen manually
+    let contentLangOverride = null;
+    if (mode === "Connections" && Sefaria.interfaceLang === "hebrew") {
+      contentLangOverride = "hebrew";
+    }else if (["topics", "homefeed", "story_editor" ].includes(menuOpen)) {
+      contentLangOverride = (["english", "bilingual"].includes(Sefaria.interfaceLang)) ? "bilingual" : "hebrew";
+    }
+    return contentLangOverride;
   }
   _getClickTarget(event) {
     // searches for click target with the proper css class
@@ -633,7 +648,7 @@ class ReaderPanel extends Component {
 
     let items = [];
     let menu = null;
-    let contentLangOverride = null;
+
 
     if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
       if (this.state.sheet.editor) {
@@ -697,9 +712,6 @@ class ReaderPanel extends Component {
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {
       var langMode = this.props.masterPanelLanguage || this.state.settings.language;
       var data     = this.currentData();
-      if (this.state.mode === "Connections" && Sefaria.interfaceLang === "hebrew") {
-        contentLangOverride = "hebrew";
-      }
       var canEditText = data &&
                         ((langMode === "hebrew" && data.heVersionStatus !== "locked") ||
                         (langMode === "english" && data.versionStatus !== "locked") ||
@@ -893,11 +905,6 @@ class ReaderPanel extends Component {
                   />);
 
     } else if (this.state.menuOpen === "topics") {
-      if (Sefaria.interfaceLang === "hebrew") {
-        contentLangOverride = "hebrew";
-      } else if (Sefaria.interfaceLang === "english") {
-        contentLangOverride = "bilingual";
-      }
       if (this.state.navigationTopic) {
         menu = (
           <TopicPage
@@ -974,22 +981,12 @@ class ReaderPanel extends Component {
                     navHome={this.openMenu.bind(null, "navigation")}/>);
 
     } else if (this.state.menuOpen === "homefeed") {
-      if (Sefaria.interfaceLang === "hebrew") {
-        contentLangOverride = "hebrew";
-      } else if (Sefaria.interfaceLang === "english") {
-        contentLangOverride = "bilingual";
-      }
       menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
                     toggleSignUpModal={this.props.toggleSignUpModal}
       />);
 
     } else if (this.state.menuOpen === "story_editor") {
-      if (Sefaria.interfaceLang === "hebrew") {
-        contentLangOverride = "hebrew";
-      } else if (Sefaria.interfaceLang === "english") {
-        contentLangOverride = "bilingual";
-      }
       menu = (<StoryEditor
                     toggleSignUpModal={this.props.toggleSignUpModal}
                     interfaceLang={this.props.interfaceLang} />);
@@ -1037,10 +1034,9 @@ class ReaderPanel extends Component {
     }
 
     let classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};
-    let contentLang = contentLangOverride || this.state.settings.language;
-    classes[contentLang]              = 1
-    classes[this.currentLayout()]      = 1;
-    classes[this.state.settings.color] = 1;
+    classes[this.state.contentLangSettings.language]  = 1
+    classes[this.currentLayout()]                     = 1;
+    classes[this.state.settings.color]                = 1;
     classes = classNames(classes);
     var style = {"fontSize": this.state.settings.fontSize + "%"};
     var hideReaderControls = (
@@ -1050,7 +1046,7 @@ class ReaderPanel extends Component {
     );
 
     return (
-      <ContentLanguageContext.Provider value={contentLang}>
+      <ContentLanguageContext.Provider value={this.state.contentLangSettings}>
         <div className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
         {hideReaderControls ? null :
         (<ReaderControls
