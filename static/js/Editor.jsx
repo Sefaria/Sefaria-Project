@@ -159,23 +159,67 @@ export const serialize = (content) => {
         return (`${tagStringObj.preTags}${content.text.replace(/(\n)+/g, '<br>')}${tagStringObj.postTags}`)
     }
 
-    if (content.type == "link") {
-      const linkHTML =  content.children.reduce((acc, text) => {
-          return (acc + serialize(text))
-      },"");
+    if (content.type) {
 
-      return(content.ref ?
-        `<a href="${content.url}" class="refLink" data-ref="${content.ref}">${linkHTML}</a>`
-      : `<a href="${content.url}">${linkHTML}</a>`)
+        switch (content.type) {
+            case 'link': {
+                const linkHTML = content.children.reduce((acc, text) => {
+                    return (acc + serialize(text))
+                }, "");
+
+                return (content.ref ?
+                    `<a href="${content.url}" class="refLink" data-ref="${content.ref}">${linkHTML}</a>`
+                    : `<a href="${content.url}">${linkHTML}</a>`)
+            }
+
+            case 'paragraph': {
+                const paragraphHTML = content.children.reduce((acc, text) => {
+                    return (acc + serialize(text))
+                }, "");
+                return `<div>${paragraphHTML}</div>`
+            }
+
+            case 'list-item': {
+                const liHtml = content.children.reduce((acc, text) => {
+                    return (acc + serialize(text))
+                }, "");
+                return `<li>${liHtml}</li>`
+            }
+
+            case 'numbered-list': {
+                const olHtml = content.children.reduce((acc, text) => {
+                    return (acc + serialize(text))
+                }, "");
+                return `<ol>${olHtml}</ol>`
+            }
+
+            case 'bulleted-list': {
+                const ulHtml = content.children.reduce((acc, text) => {
+                    return (acc + serialize(text))
+                }, "");
+                return `<ul>${ulHtml}</ul>`
+            }
+
+            /*
+                BLOCKQUOTE: () => ({type: 'quote'}),
+                H1: () => ({type: 'heading-one'}),
+                H2: () => ({type: 'heading-two'}),
+                H3: () => ({type: 'heading-three'}),
+                H4: () => ({type: 'heading-four'}),
+                H5: () => ({type: 'heading-five'}),
+                H6: () => ({type: 'heading-six'}),
+                IMG: el => ({type: 'image', url: el.getAttribute('src')}),
+                PRE: () => ({type: 'code'}),
+            */
+
+
+        }
     }
 
-    //serialize paragraphs to <p>...</p>
-    if (content.type == "paragraph") {
-        const paragraphHTML =  content.children.reduce((acc, text) => {
-            return (acc + serialize(text))
-        },"");
-        return `<div>${paragraphHTML}</div>`
-    }
+
+
+
+
 
     const children = content.children ? content.children.map(serialize) : [];
 
@@ -595,6 +639,11 @@ const Element = props => {
             return (
                 <ul>{children}</ul>
             );
+        case 'numbered-list':
+            return (
+                <ol>{children}</ol>
+            );
+
         case 'list-item':
             return (
                 <li>{children}</li>
@@ -1456,7 +1505,6 @@ const SefariaEditor = (props) => {
 
             const element = node.parentElement
             if (element == null) return
-            console.log(element)
             if (whereIsElementInViewport(element) == "in viewport") return
             element.scrollIntoView({ behavior: "auto", block: "end" })
           } catch (e) {
