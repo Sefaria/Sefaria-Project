@@ -895,13 +895,13 @@ BlockLink.defaultProps = {
 class ToggleSet extends Component {
   // A set of options grouped together.
   render() {
-    var classes = {toggleSet: 1, separated: this.props.separated };
+    let classes = {toggleSet: 1, separated: this.props.separated };
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
-    var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    var style = {width: (width/this.props.options.length) + "%"};
-    var label = this.props.label ? (<span className="toggle-set-label">{this.props.label}</span>) : null;
+    const value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
+    const width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
+    let style = {width: (width/this.props.options.length) + "%"};
+    const label = this.props.label ? (<span className="toggle-set-label">{this.props.label}</span>) : null;
     return (
       <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
           {label}
@@ -983,12 +983,12 @@ class ToggleOption extends Component {
     }
   }
   render() {
-    var classes = {toggleOption: 1, on: this.props.on };
-    var tabIndexValue = this.props.on ? 0 : -1;
-    var ariaCheckedValue = this.props.on ? "true" : "false";
+    let classes = {toggleOption: 1, on: this.props.on };
+    const tabIndexValue = this.props.on ? 0 : -1;
+    const ariaCheckedValue = this.props.on ? "true" : "false";
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    var content = this.props.image ? (<img src={this.props.image} alt=""/>) :
+    let content = this.props.image ? (<img src={this.props.image} alt=""/>) :
                     this.props.fa ? (<i className={"fa fa-" + this.props.fa}></i>) :
                       (<span dangerouslySetInnerHTML={ {__html: this.props.content} }></span>);
     return (
