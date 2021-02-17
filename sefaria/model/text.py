@@ -2008,7 +2008,7 @@ class TextFamily(object):
             if wrapNamedEntities and len(c._versions) > 0:
                 from . import RefTopicLinkSet
                 named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in oref.all_segment_refs()]}, "charLevelData.versionTitle": c._versions[0].versionTitle, "charLevelData.language": language})
-                if named_entities.count() > 0:
+                if len(named_entities) > 0:
                     # assumption is that refTopicLinks are all to unranged refs
                     ne_by_secs = defaultdict(list)
                     for ne in named_entities:
@@ -2024,10 +2024,10 @@ class TextFamily(object):
             if wrapLinks and c.version_ids():
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.
-                from . import LinkSet
+                from . import Link
                 query = oref.ref_regex_query()
                 query.update({"generated_by": "add_links_from_text"})  # , "source_text_oid": {"$in": c.version_ids()}
-                if LinkSet(query).count() > 0:
+                if Link().load(query) is not None:
                     text_modification_funcs += [lambda s, secs: library.get_wrapped_refs_string(s, lang=language, citing_only=True)]
             padded_sections, _ = oref.get_padded_sections()
             setattr(self, self.text_attr_map[language], c._get_text_after_modifications(text_modification_funcs, start_sections=padded_sections))
