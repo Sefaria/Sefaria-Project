@@ -12,7 +12,7 @@ class TextRange extends Component {
   // This component is responsible for retrieving data from `Sefaria` for the ref that defines it.
   componentDidMount() {
     this._isMounted = true;
-    var data = this.getText();
+    let data = this.getText();
     if (data && !this.dataPrefetched) {
       // If data was populated server side, onTextLoad was never called
       this.onTextLoad(data);
@@ -93,12 +93,12 @@ class TextRange extends Component {
     }
   }
   getText() {
-    var settings = {
+    let settings = {
       context: this.props.withContext ? 1 : 0,
       enVersion: this.props.currVersions.en || null,
       heVersion: this.props.currVersions.he || null
     };
-    var data = Sefaria.getTextFromCache(this.props.sref, settings);
+    let data = Sefaria.getTextFromCache(this.props.sref, settings);
 
     if ((!data || "updateFromAPI" in data) && !this.textLoading) { // If we don't have data yet, call trigger an API call
       this.textLoading = true;
@@ -138,7 +138,7 @@ class TextRange extends Component {
     }
   }
   _prefetchLinksAndNotes(data) {
-    var sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
+    let sectionRefs = data.isSpanning ? data.spanningRefs : [data.sectionRef];
     sectionRefs = sectionRefs.map(function(ref) {
       if (ref.indexOf("-") > -1) {
         ref = ref.split("-")[0];
@@ -148,7 +148,7 @@ class TextRange extends Component {
     });
 
     if (this.props.loadLinks && !Sefaria.linksLoaded(sectionRefs)) {
-      for (var i = 0; i < sectionRefs.length; i++) {
+      for (let i = 0; i < sectionRefs.length; i++) {
         Sefaria.related(sectionRefs[i], function() {
           if (this._isMounted) { this.forceUpdate(); }
         }.bind(this));
@@ -164,7 +164,7 @@ class TextRange extends Component {
     // Prefetch additional data (next, prev, links, notes etc) for this ref
     if (this.dataPrefetched) { return; }
 
-    var data = this.getText();
+    let data = this.getText();
     if (!data) { return; }
 
     // Load links at section level if spanning, so that cache is properly primed with section level refs
@@ -200,13 +200,13 @@ class TextRange extends Component {
     // on the rendered height of the text of each segment.
     if (!this.props.basetext) { return; }
 
-    var $text  = $(ReactDOM.findDOMNode(this));
-    var elemsAtPosition = {}; // Keyed by top position, an array of elements found there
-    var setTop = function() {
-      var $elem = $(this);
-      var top   = $elem.parent().position().top;
+    const $text  = $(ReactDOM.findDOMNode(this));
+    let elemsAtPosition = {}; // Keyed by top position, an array of elements found there
+    const setTop = function() {
+      const $elem = $(this);
+      const top   = $elem.parent().position().top;
       $elem.css({top: top, left: '', right: ''});
-      var list = elemsAtPosition[top] || [];
+      let list = elemsAtPosition[top] || [];
       list.push($elem);
       elemsAtPosition[top] = list;
     };
@@ -214,19 +214,19 @@ class TextRange extends Component {
     elemsAtPosition = {};  // resetting because we only want it to track segmentNumbers
     $text.find(".segmentNumber").each(setTop).show();
 
-    var side = this.props.settings.language == "hebrew" ? "right" : "left";
-    var selector = this.props.settings.language == "hebrew" ? ".he" : ".en";
-    var fixCollision = function ($elems) {
+    const side = this.props.settings.language == "hebrew" ? "right" : "left";
+    const selector = this.props.settings.language == "hebrew" ? ".he" : ".en";
+    const fixCollision = function ($elems) {
       // Takes an array of jQuery elements that all currently appear at the same top position
       if ($elems.length == 1) { return; }
       if ($elems.length == 2) {
-        var adjust1 = $elems[0].find(selector).find(".segmentNumberInner").width();
-        var adjust2 = $elems[1].find(selector).find(".segmentNumberInner").width();
+        const adjust1 = $elems[0].find(selector).find(".segmentNumberInner").width();
+        const adjust2 = $elems[1].find(selector).find(".segmentNumberInner").width();
         $elems[0].css(side, "-=" + adjust1);
         $elems[1].css(side, "+=" + adjust2);
       }
     };
-    for (var top in elemsAtPosition) {
+    for (let top in elemsAtPosition) {
       if (elemsAtPosition.hasOwnProperty(top)) {
         fixCollision(elemsAtPosition[top]);
       }
@@ -241,10 +241,10 @@ class TextRange extends Component {
   parashahHeader(data, segment, includeAliyout=false) {
     // Returns the English/Hebrew title of a Parasha, if `ref` is the beginning of a new parahsah
     // returns null otherwise.
-    //var data = this.getText();
+    //let data = this.getText();
     if (!data) { return null; }
     if ("alts" in data && data.alts.length && ((data.categories[1] == "Torah" && !data["isDependant"]) || data.categories[2] == "Onkelos")) {
-      var curRef = segment.ref;
+      const curRef = segment.ref;
       if ("alt" in segment && segment.alt != null){
         if(includeAliyout || "whole" in segment.alt){
           return {"en": segment.alt["en"][0], "he": segment.alt["he"][0], "parashaTitle": "whole" in segment.alt}
@@ -285,12 +285,12 @@ class TextRange extends Component {
       strip_text_re = (this.props.settings.vowels == "partial") ? nre : cnre;
     }
 
-    var segments      = Sefaria.makeSegments(data, this.props.withContext);
+    let segments      = Sefaria.makeSegments(data, this.props.withContext);
     if(segments.length > 0 && strip_text_re && !strip_text_re.test(segments[0].he)){
       strip_text_re = null; //if the first segment doesnt even match as containing vowels or cantillation- stop
     }
     let textSegments = segments.map((segment, i) => {
-      var highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
+      let highlight = this.props.highlightedRefs && this.props.highlightedRefs.length ?        // if highlighted refs are explicitly set
                             Sefaria.util.inArray(segment.ref, this.props.highlightedRefs) !== -1 || // highlight if this ref is in highlighted refs prop
                             Sefaria.util.inArray(Sefaria.sectionRef(segment.ref), this.props.highlightedRefs) !== -1 : // or if the highlighted refs include a section level ref including this ref
                             this.props.basetext && segment.highlight;  // otherwise highlight if this a basetext and the ref is specific
@@ -510,14 +510,15 @@ class TextSegment extends Component {
   formatItag(lang, text) {
     let $newElement = $("<div>" + text + "</div>");
     const textValue = function(i) {
+      let value;
       if ($(i).attr('data-label')) {
         return $(i).attr('data-label');
       } else {
         if (lang === "he") {
-          var value = Sefaria.hebrew.encodeHebrewNumeral($(i).attr('data-order'));
+          value = Sefaria.hebrew.encodeHebrewNumeral($(i).attr('data-order'));
         }
         else if (lang === "en") {
-          var value = $(i).attr('data-order');
+          value = $(i).attr('data-order');
         }
       }
       if (value === undefined) {
