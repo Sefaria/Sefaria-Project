@@ -151,7 +151,9 @@ class WebPage(abst.AbstractMongoRecord):
             r"yeshiva\.co\/(calendar|tags|dedication|errorpage)\/?",  # it seems anything under calendar is not an article
             r"yeshiva\.co\/midrash\/(category|rabbi)\/?",
             r"mayim\.org\.il\/?$",
-
+            r"kabbalahoftime\.com\/?$",
+            r"kabbalahoftime\.com\/\d{4}\/?$",  # page that aggregates all articles for the year
+            r"kabbalahoftime\.com\/\d{4}\/\d{2}\/?$",  # page that aggregates all articles for the month
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -785,5 +787,10 @@ sites_data = [
     {
         "name": "מחלקי המים",
         "domains": ["mayim.org.il"],
+    },
+    {
+        "name": "The Kabbalah of Time",
+        "domains": ["kabbalahoftime.com"],
+        "initial_title_branding": True,
     }
 ]
