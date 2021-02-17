@@ -1420,12 +1420,15 @@ const SefariaEditor = (props) => {
   useEffect(() => {
       let timeOutId = null;
       const onScrollListener = () => {
-          ReactEditor.deselect(editor)
           clearTimeout(timeOutId);
           timeOutId = setTimeout(
               () => {
                   if(props.hasSidebar) {
+                      // setCurrentSelection(editor.selection.focus)
+                      // console.log(currentSelection)
+                      ReactEditor.deselect(editor)
                       onEditorSidebarToggleClick()
+                      // Transforms.select(editor, currentSelection);
                   }
               }, 200
           )
@@ -1461,12 +1464,6 @@ const SefariaEditor = (props) => {
         // Prevents sources from being selected by clicks outside of editor
         return
       }
-        const selectedSheetSources = activeSheetSources(editor);
-        if (currentSelection != selectedSheetSources) {
-          setCurrentSelection(selectedSheetSources)
-        }
-
-
         if (currentDocument !== value) {
             setCurrentDocument(value);
         }
@@ -1532,7 +1529,7 @@ const SefariaEditor = (props) => {
     const whereIsElementInViewport = (element) => {
         const elementbbox = element.getBoundingClientRect();
         const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0)
-        if (elementbbox.top >= 105 && elementbbox.bottom < vh) {
+        if (elementbbox.top >= 200 && elementbbox.bottom < vh) {
             return "in viewport"
         }
         if (elementbbox.bottom >= vh/2 && element) {
@@ -1546,7 +1543,8 @@ const SefariaEditor = (props) => {
         const segments = editorContainer.current.querySelectorAll(".sheetItem");
 
         for (let segment of segments) {
-            if (whereIsElementInViewport(segment) == ("in viewport" || "past half")) {
+            const elementLoc = whereIsElementInViewport(segment)
+            if (elementLoc == "in viewport" || elementLoc == "past half") {
                 segmentToHighlight = segment;
                 break;
             }
