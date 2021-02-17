@@ -69,7 +69,7 @@ def ensure_indices(active_db=None):
         ('history', ["title"],{}),
         ('index', ["title"],{}),
         ('index_queue', [[("lang", pymongo.ASCENDING), ("version", pymongo.ASCENDING), ("ref", pymongo.ASCENDING)]],{'unique': True}),
-        ('links', [[("refs.0",  1), ("refs.1", 1)]], {"unique": True}),
+        # ('links', [[("refs.0",  1), ("refs.1", 1)]], {"unique": True}),
         ('links', [[("refs", pymongo.ASCENDING), ("generated_by", pymongo.ASCENDING)]],{}),
         ('links', ["refs.0"],{}),
         ('links', ["refs.1"],{}),
@@ -128,7 +128,11 @@ def ensure_indices(active_db=None):
         ('trend', ["name"],{}),
         ('trend', ["uid"],{}),
         ('webpages', ["refs"],{}),
-        ('webpages', ["expandedRefs"],{})
+        ('webpages', ["expandedRefs"],{}),
+        ('manuscript_pages', ['expanded_refs'], {}),
+        ('manuscript_pages', [[("manuscript_slug", pymongo.ASCENDING), ("page_id", pymongo.ASCENDING)]], {'unique': True}),
+        ('manuscripts', ['slug'], {}),
+        ('manuscripts', ['title'], {}),
     ]
 
     for col, args, kwargs in indices:

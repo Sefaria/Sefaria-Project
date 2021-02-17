@@ -145,6 +145,11 @@ class WebPage(abst.AbstractMongoRecord):
             r"reconstructingjudaism\.org\/search\/",
             r"askhalacha\.com\/?$",
             r"askhalacha\.com\/qas\/?$",
+            r"yeshiva\.co\/?$",
+            r"yeshiva\.co\/404\/404.asp",
+            r"yeshiva\.co\/(ask|midrash)\/?$",
+            r"yeshiva\.co\/(calendar|tags|dedication|errorpage)\/?",  # it seems anything under calendar is not an article
+            r"yeshiva\.co\/midrash\/(category|rabbi)\/?",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -769,5 +774,10 @@ sites_data = [
     {
         "name": "AskHalacha",
         "domains": ["askhalacha.com"],
+    },
+    {
+        "name": "Yeshiva.co",
+        "domains": ["yeshiva.co"],
+        "title_branding": ["Ask the rabbi | Q&A | yeshiva.co"],
     },
 ]

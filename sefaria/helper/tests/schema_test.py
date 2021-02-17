@@ -366,13 +366,13 @@ def test_migrate_to_complex_structure():
     assert TextChunk(children[1].ref(), "en", "Schema Test").text == ["", "", p3]
     assert TextChunk(children[2].ref(), "en", "Schema Test").text == [[p4]]
 
-    assert isinstance(Link().load({'refs': ['MigrateBook, Part 1 1:1', 'Guide for the Perplexed, Part 1'],}), Link)
-    assert isinstance(Link().load({'refs': ['MigrateBook, Part 1 2:2', 'Guide for the Perplexed, Part 1 2'],}), Link)
-    assert isinstance(Link().load({'refs': ['MigrateBook, Part 2 3', 'Guide for the Perplexed, Part 2 4-8'],}), Link)
-    assert isinstance(Link().load({'refs': ['MigrateBook, Part 3 1', 'Guide for the Perplexed, Part 3 1'],}), Link)
-    assert Link().load({'refs': ['MigrateBook 5:4', 'Guide for the Perplexed, Introduction, Introduction, 3'],}) is None
-    assert isinstance(Link().load({'refs': ['MigrateBook, Part 1 1:2-5', 'Genesis 3'],}), Link)
-    assert isinstance(Link().load({'refs': ['MigrateBook, Part 1 2', 'Genesis 2'],}), Link)
+    assert isinstance(Link().load({'refs': sorted(['MigrateBook, Part 1 1:1', 'Guide for the Perplexed, Part 1']),}), Link)
+    assert isinstance(Link().load({'refs': sorted(['MigrateBook, Part 1 2:2', 'Guide for the Perplexed, Part 1 2']),}), Link)
+    assert isinstance(Link().load({'refs': sorted(['MigrateBook, Part 2 3', 'Guide for the Perplexed, Part 2 4-8']),}), Link)
+    assert isinstance(Link().load({'refs': sorted(['MigrateBook, Part 3 1', 'Guide for the Perplexed, Part 3 1']),}), Link)
+    assert Link().load({'refs': sorted(['MigrateBook 5:4', 'Guide for the Perplexed, Introduction, Introduction, 3']),}) is None
+    assert isinstance(Link().load({'refs': sorted(['MigrateBook, Part 1 1:2-5', 'Genesis 3']),}), Link)
+    assert isinstance(Link().load({'refs': sorted(['MigrateBook, Part 1 2', 'Genesis 2']),}), Link)
 
     sheet_sources = get_sheet_refs(TEST_SHEET_ID)
     assert all(not re.match(r'^MigrateBook [0-9]', source) for source in sheet_sources)
