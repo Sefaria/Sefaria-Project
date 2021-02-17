@@ -116,7 +116,9 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
 
   return <div className="collectionsWidget">
     <div className="collectionsWidgetTop">
-      <InterfaceText className={"collectionsWidgetTitle"}>Collections</InterfaceText>
+      <span className={"collectionsWidgetTitle"}>
+        <InterfaceText>Collections</InterfaceText>
+      </span>
       <div className="collectionsWidgetClose" onClick={onClose}>×</div>
     </div>
     <div className="collectionsWidgetList">
@@ -132,7 +134,11 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
         </label>
       })}
       {dataLoaded && collections.length == 0 ?
-        <InterfaceText className="emptyMessage">You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.</InterfaceText> : null }
+        <span className={"emptyMessage"}>
+          <InterfaceText>
+            You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.
+          </InterfaceText>
+        </span> : null }
     </div>
     <div className="collectionsWidgetCreate">
       <span className="collectionsWidgetPlus">+</span>
