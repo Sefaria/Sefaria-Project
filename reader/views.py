@@ -3480,8 +3480,10 @@ def profile_sync_api(request):
                 if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
                     profile.attr_time_stamps.update({field: settings_time_stamp})
+                    settingsInDB = profile.settings
+                    settingsInDB.update(field_data)
                     profile.update({
-                        field: field_data,
+                        field: settingsInDB,
                         "attr_time_stamps": profile.attr_time_stamps
                     })
                     profile_updated = True
