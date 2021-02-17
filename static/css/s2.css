@@ -7724,9 +7724,15 @@ section.SheetSource .SheetOutsideBiText {
   padding-inline-end: 20px;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
 }
-.sheetItem .SheetSource.selected,
-.sheetItem .SheetOutsideBiText.selected {
-  box-shadow: 0px 1px 10px #CCE6FF;
+.sheetItem .SheetSource.selected.segment,
+.sheetItem .SheetOutsideBiText.selected.segment {
+  border-top: 2px solid #CCE6FF;
+  border-bottom: 2px solid #CCE6FF;
+  border-inline-end: 2px solid #CCE6FF;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  margin-inline-end: -2px;
+
 }
 .sheetItem .SheetSource .he,
 .sheetItem .SheetSource .en,
