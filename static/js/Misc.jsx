@@ -49,7 +49,7 @@ const __filterChildrenByLanguage = (children, language) => {
   return newChildren;
 };
 
-const InterfaceText = ({children, en, he, context, className}) => {
+const InterfaceText = ({children, en, he, context}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
    *  If passed explicit "en" and/or "he" props, will only use those to determine correct text or fallback text to display.
@@ -59,12 +59,12 @@ const InterfaceText = ({children, en, he, context, className}) => {
    * `context` is passed to Sefaria._ for additional translation context
    */
   const isHebrew = Sefaria.interfaceLang === "hebrew";
-  let cls = classNames({"int-en": !isHebrew, "int-he": isHebrew}) + (className ? " " + className : "");
+  let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
   let text = null;
   if (en || he) {// Prioritze explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
     text = isHebrew ? (he || en) : (en || he);
     let fallbackCls = (isHebrew && !he) ? "enInHe" : ((!isHebrew && !en) ? "heInEn" : "" );
-    cls += fallbackCls;
+    elemclasses += fallbackCls;
   }else{ // Also handle composition with children
     const chlCount = React.Children.count(children);
     if (chlCount == 1) { // Same as passing in a `en` key but with children syntax
@@ -76,7 +76,7 @@ const InterfaceText = ({children, en, he, context, className}) => {
       console.log("Error too many children")
     }
   }
-  return (<span className={cls}>{text}</span>);
+  return (<span className={elemclasses}>{text}</span>);
 };
 InterfaceText.propTypes = {
   //Makes sure that children passed in are either a single string, or an array consisting only of <EnglishText>, <HebrewText>
@@ -99,6 +99,10 @@ const ContentText = ({children, overrideLanguage}) => {
    */
   const contentLanguage = useContext(ContentLanguageContext);
   const languageToFilter = overrideLanguage ? overrideLanguage : contentLanguage.language;
+  const langCode = languageToFilter.slice(0,2);
+  const elemclasses = classNames({
+    [langCode]: 1
+  })
   let renderedElements = null;
   if (Object.keys(AvailableLanguages()).indexOf(languageToFilter) != -1){ //not bilingual
     renderedElements = __filterChildrenByLanguage(children, languageToFilter);
