@@ -150,6 +150,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"yeshiva\.co\/(ask|midrash)\/?$",
             r"yeshiva\.co\/(calendar|tags|dedication|errorpage)\/?",  # it seems anything under calendar is not an article
             r"yeshiva\.co\/midrash\/(category|rabbi)\/?",
+            r"mayim\.org\.il\/?$",
+
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -778,6 +780,10 @@ sites_data = [
     {
         "name": "Yeshiva.co",
         "domains": ["yeshiva.co"],
-        "title_branding": ["Ask the rabbi | Q&A | yeshiva.co"],
+        "title_branding": ["Ask the rabbi | Q&A | yeshiva.co", "Beit Midrash | Torah Lessons | yeshiva.co", "yeshiva.co"],
     },
+    {
+        "name": "מחלקי המים",
+        "domains": ["mayim.org.il"],
+    }
 ]
