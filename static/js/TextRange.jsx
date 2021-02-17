@@ -607,10 +607,13 @@ class TextSegment extends Component {
            aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
-        <ContentText overrideLanguage={overrideLanguage}>
-          <HebrewText><p lang={this.props.heLangCode} className="he" dangerouslySetInnerHTML={ {__html: he + " "} }></p></HebrewText>
-          <EnglishText><p lang={this.props.enLangCode} className="en" dangerouslySetInnerHTML={ {__html: en + " "} }></p></EnglishText>
-        </ContentText>
+        <p>
+          <ContentText overrideLanguage={overrideLanguage} forceDangerouslySetInnerHTML={true}>
+            <HebrewText>{he}</HebrewText>
+            <EnglishText>{en}</EnglishText>
+          </ContentText>
+        </p>
+
         <div className="clearFix"></div>
       </div>
     );

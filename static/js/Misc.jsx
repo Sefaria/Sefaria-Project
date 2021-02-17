@@ -90,13 +90,14 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({children, overrideLanguage}) => {
+const ContentText = ({children, overrideLanguage, forceDangerouslySetInnerHTML = false}) => {
   /**
    * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
    * Takes only children to allow complex html to be fed in
    * @type {{language: string}}
    */
+  //dangerouslySetInnerHTML={ {__html: he + " "} }
   const contentLanguage = useContext(ContentLanguageContext);
   const languageToFilter = overrideLanguage ? overrideLanguage : contentLanguage.language;
   const langCode = languageToFilter.slice(0,2);
@@ -107,10 +108,10 @@ const ContentText = ({children, overrideLanguage}) => {
   if (Object.keys(AvailableLanguages()).indexOf(languageToFilter) != -1){ //not bilingual
     renderedElements = __filterChildrenByLanguage(children, languageToFilter);
   }else{ // yes bilingual, so dont bother filtering.
-    renderedElements = children;
+    renderedElements = React.Children.toArray(children);
   }
   return (
-    <>{renderedElements}</>
+    <span className={elemclasses} lang={langCode}>{renderedElements}</span>
   )
 };
 ContentText.propTypes = {
