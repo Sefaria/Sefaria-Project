@@ -501,20 +501,23 @@ class ReaderPanel extends Component {
   }
   setOption(option, value) {
     if (option === "fontSize") {
-      var step = 1.15;
-      var size = this.state.settings.fontSize;
+      const step = 1.15;
+      const size = this.state.settings.fontSize;
       value = (value === "smaller" ? size/step : size*step);
     } else if (option === "layout") {
-      var category = this.currentCategory();
-      var option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
+      const category = this.currentCategory();
+      const option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
     }
 
     this.state.settings[option] = value;
-    var state = {settings: this.state.settings};
+    let state = {settings: this.state.settings};
     if (option !== "fontSize") { state.displaySettingsOpen = false; }
     $.cookie(option, value, {path: "/"});
     if (option === "language") {
       $.cookie("contentLang", value, {path: "/"});
+      state['contentLangSettings'] = {
+        "language": value,
+      }
       this.replaceHistory = true;
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
@@ -1034,6 +1037,7 @@ class ReaderPanel extends Component {
     }
 
     let classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};
+    console.log(`Render Panel #${this.props.panelPosition}: Language - ${this.state.contentLangSettings}`);
     classes[this.state.contentLangSettings.language]  = 1
     classes[this.currentLayout()]                     = 1;
     classes[this.state.settings.color]                = 1;

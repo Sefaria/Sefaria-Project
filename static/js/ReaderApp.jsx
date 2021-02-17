@@ -1227,8 +1227,8 @@ class ReaderApp extends Component {
     // When the driving panel changes language, carry that to the dependent panel
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
     if (!this.state.panels[n]) { debugger; }
-    var langChange  = state.settings && state.settings.language !== this.state.panels[n].settings.language;
-    var next        = this.state.panels[n+1];
+    let langChange  = state.settings && state.settings.language !== this.state.panels[n].settings.language;
+    let next        = this.state.panels[n+1];
     if (langChange && next && next.mode === "Connections" && state.settings.language !== "bilingual") {
         next.settings.language = state.settings.language;
     }
@@ -1241,7 +1241,7 @@ class ReaderApp extends Component {
       this.checkPanelScrollIntentAndSaveRecent(state, n);
     }
     this.state.panels[n] = extend(this.state.panels[n], state);
-    var new_state = {panels: this.state.panels};
+    let new_state = {panels: this.state.panels};
     if(this.didDefaultPanelSettingsChange(state)){
       new_state["defaultPanelSettings"] = Sefaria.util.clone(state.settings);
     }
