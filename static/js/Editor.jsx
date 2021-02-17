@@ -1424,11 +1424,8 @@ const SefariaEditor = (props) => {
           timeOutId = setTimeout(
               () => {
                   if(props.hasSidebar) {
-                      // setCurrentSelection(editor.selection.focus)
-                      // console.log(currentSelection)
                       ReactEditor.deselect(editor)
                       onEditorSidebarToggleClick()
-                      // Transforms.select(editor, currentSelection);
                   }
               }, 200
           )

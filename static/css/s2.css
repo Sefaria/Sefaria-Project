@@ -7350,7 +7350,11 @@ span.purim-emoji img{
   margin-left: 0;
 }
 .readerPanel.english .sheetItem.segment.heOnly .segmentNumber .en,
-.readerPanel.hebrew .sheetItem.segment.enOnly .segmentNumber .he {
+.readerPanel.hebrew .sheetItem.segment.enOnly .segmentNumber .he
+.readerPanel.hebrew section.SheetSource .sheetItem.enOnly > .en,
+.readerPanel.english section.SheetSource .sheetItem.heOnly > .he,
+.readerPanel.hebrew section.SheetOutsideBiText .sheetItem.enOnly > .en,
+.readerPanel.english section.SheetOutsideBiText .sheetItem.heOnly > .he  {
   display: block;
 }
 .sheetTocIcon {
