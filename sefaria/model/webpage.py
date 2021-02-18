@@ -151,7 +151,10 @@ class WebPage(abst.AbstractMongoRecord):
             r"yeshiva\.co\/(calendar|tags|dedication|errorpage)\/?",  # it seems anything under calendar is not an article
             r"yeshiva\.co\/midrash\/(category|rabbi)\/?",
             r"mayim\.org\.il\/?$",
-
+            r"kabbalahoftime\.com\/?$",
+            r"kabbalahoftime\.com\/\d{4}\/?$",  # page that aggregates all articles for the year
+            r"kabbalahoftime\.com\/\d{4}\/\d{2}\/?$",  # page that aggregates all articles for the month
+            r"jewishcontemplatives\.blogspot\.com\/?$",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -217,15 +220,16 @@ class WebPage(abst.AbstractMongoRecord):
         title = str(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
-        separators = ["-", "|", "—", "»", "•"]
-        for separator in separators:
+        separators = [("-", True), ("|", True), ("—", True), ("»", True), ("•", True), (":", False)]
+        for separator, is_padded in separators:
+            padding = ' ' if is_padded else ''
             for brand in brands:
                 if self._site_data.get("initial_title_branding", False):
-                    brand_str = "{} {} ".format(brand, separator)
+                    brand_str = f"{brand}{padding}{separator} "
                     if title.startswith(brand_str):
                         title = title[len(brand_str):]
                 else:
-                    brand_str = " {} {}".format(separator, brand)
+                    brand_str = f" {separator}{padding}{brand}"
                     if title.endswith(brand_str):
                         title = title[:-len(brand_str)]
 
@@ -785,5 +789,15 @@ sites_data = [
     {
         "name": "מחלקי המים",
         "domains": ["mayim.org.il"],
+    },
+    {
+        "name": "The Kabbalah of Time",
+        "domains": ["kabbalahoftime.com"],
+        "initial_title_branding": True,
+    },
+    {
+        "name": "Jewish Contemplatives",
+        "domains": ["jewishcontemplatives.blogspot.com"],
+        "initial_title_branding": True,
     }
 ]

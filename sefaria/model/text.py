@@ -4204,9 +4204,7 @@ class Ref(object, metaclass=RefCacheType):
             18 June 2015: Removed the special casing for Hebrew Talmud sub daf numerals
             Previously, talmud lines had been normalised as arabic numerals
         '''
-        if not self._he_normal:
-            self._he_normal = self._get_normal("he")
-        return self._he_normal
+        return self.normal('he')
 
     def uid(self):
         """
@@ -4215,32 +4213,21 @@ class Ref(object, metaclass=RefCacheType):
         """
         return self.normal() + ("<d>" if self.index_node.is_default() else "")
 
-    def normal(self):
+    def normal(self, lang='en'):
         """
-        :return string: Normal English string form
+        :return string: Normal English or Hebrew string form
         """
-        if not self._normal:
-            self._normal = self._get_normal("en")
-        return self._normal
-
-    def display(self, lang) -> str:
-        """
-        :return str: Display string that is not necessarily a valid `Ref`
-        """
-        from sefaria.model.schema import AddressTalmud
-        if self.is_range() and self.index_node.addressTypes[len(self.sections)-1] == "Talmud":  # is self a range that is as deep as a Talmud addressType?
-            if self.sections[-1] % 2 == 1 and self.toSections[-1] % 2 == 0:  # starts at amud alef and ends at bet?
-                start_daf = AddressTalmud.oref_to_amudless_tref(self.starting_ref(), lang)
-                end_daf = AddressTalmud.oref_to_amudless_tref(self.ending_ref(), lang)
-                if start_daf == end_daf:
-                    return start_daf
-                else:
-                    range_wo_last_amud = AddressTalmud.oref_to_amudless_tref(self, lang)
-                    # looking for rest of ref after dash
-                    end_range = re.search(f'-(.+)$', range_wo_last_amud).group(1)
-                    return f"{start_daf}-{end_range}"
-
-        return self.he_normal() if lang == 'he' else self.normal()
+        normal_attr = "_normal" if lang == 'en' else "_he_normal"
+        if not getattr(self, normal_attr, None):
+            #check if the second last section has function normal_range and the ref is a range. if true, parse
+            #using address_class's normal_range function.  this is necessary to return Shabbat 7a-8b as Shabbat 7-8
+            if len(self.sections) > 0 and hasattr(AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections) - 1]), "normal_range") and self.is_range():
+                address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections) - 1])
+                normal_form = address_class.normal_range(self, lang)
+            else:
+                normal_form = self._get_normal(lang)
+            setattr(self, normal_attr, normal_form)
+        return getattr(self, normal_attr)
 
     def text(self, lang="en", vtitle=None, exclude_copyrighted=False):
         """
