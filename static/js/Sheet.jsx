@@ -369,11 +369,13 @@ class SheetSource extends Component {
           this.props.highlighted ? "highlight" : null,
           (this.props.source.text && this.props.source.text.en && this.props.source.text.en.stripHtml() == "...") || (this.props.source.text && !this.props.source.text.en.stripHtml()) ? "heOnly" : null,
           (this.props.source.text && this.props.source.text.he && this.props.source.text.he.stripHtml() == "...") || (this.props.source.text && !this.props.source.text.he.stripHtml()) ? "enOnly" : null,
-          this.props.source.options ? this.props.source.options.indented : null,
           this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null
       );
 
-       const sectionClasses= classNames("SheetSource", this.props.highlighted ? "highlight" : null)
+       const sectionClasses= classNames("SheetSource",
+            this.props.highlighted ? "highlight" : null,
+            this.props.source.options ? this.props.source.options.indented : null,
+          )
 
     return (
 
@@ -498,10 +500,14 @@ class SheetOutsideBiText extends Component {
           (this.props.source.outsideBiText.en && this.props.source.outsideBiText.en.stripHtml() == "...") || (!this.props.source.outsideBiText.en.stripHtml()) ? "heOnly" : null,
           (this.props.source.outsideBiText.he && this.props.source.outsideBiText.he.stripHtml() == "...") || (!this.props.source.outsideBiText.he.stripHtml()) ? "enOnly" : null,
           this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
-          this.props.source.options ? this.props.source.options.indented : null
       )
+
+      const sectionClasses= classNames("SheetOutsideBiText",
+           this.props.source.options ? this.props.source.options.indented : null,
+         )
+
     return (
-        <section className="SheetOutsideBiText">
+      <section className={sectionClasses}>
       <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
             <div className="segmentNumber sheetSegmentNumber sans">
               <span className="en">
