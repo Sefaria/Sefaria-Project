@@ -3,7 +3,7 @@
 import pytest
 
 from sefaria.model import *
-from sefaria.model.manuscript import *
+
 
 
 def make_testing_manuscript_page(manuscript_slug, page_id, **kwargs) -> ManuscriptPage:
