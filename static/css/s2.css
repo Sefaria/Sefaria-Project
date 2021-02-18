@@ -3692,6 +3692,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-weight: lighter;
   letter-spacing: 1px;
 }
+
+.sheetContent .customSourceTitle {
+  padding-top: 14px;
+}
+
+
 .dark .textRange.basetext .title, .dark .sheetContent .title {
   color: #ccc;
 }
