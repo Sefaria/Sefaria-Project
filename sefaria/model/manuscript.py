@@ -1,9 +1,10 @@
 # encoding=utf-8
+#from __future__ import annotations
 
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.system.database import db
 from sefaria.model.abstract import AbstractMongoRecord, AbstractMongoSet
-from sefaria.model import *
+from sefaria.model.text import Ref
 
 
 class ManuscriptError(Exception):
