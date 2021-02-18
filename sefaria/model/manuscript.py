@@ -1,5 +1,4 @@
 # encoding=utf-8
-#from __future__ import annotations
 
 from sefaria.system.exceptions import InputError, DuplicateRecordError
 from sefaria.system.database import db
@@ -25,7 +24,7 @@ class Manuscript(AbstractMongoRecord):
         'he_description'
     ]
 
-    def normalize_slug_field(self, slug_field):
+    def normalize_slug_field(self, slug_field: str) -> str:
         """
         Duplicates are forbidden for Manuscript slugs. Character normalization only, duplicates raise
         a DuplicateRecordError
@@ -104,7 +103,7 @@ class ManuscriptPage(AbstractMongoRecord):
             if not len(test_refs):
                 break
 
-    def validate(self, verbose=False):
+    def validate(self, verbose=False) -> bool:
         """
         helper method, useful for seeing if the underlying data is valid without raising any errors
         :param verbose:
@@ -125,7 +124,7 @@ class ManuscriptPage(AbstractMongoRecord):
             raise ManuscriptError('bad ref associated with this Manuscript Page')
 
     @staticmethod
-    def get_expanded_refs_for_source(oref):
+    def get_expanded_refs_for_source(oref: Ref):
         return [r.normal() for r in oref.all_segment_refs()]
 
     def set_expanded_refs(self):
@@ -166,7 +165,7 @@ class ManuscriptPageSet(AbstractMongoSet):
     recordClass = ManuscriptPage
 
     @staticmethod
-    def expanded_ref_query_for_ref(oref):
+    def expanded_ref_query_for_ref(oref: Ref):
         return [{'expanded_refs': {'$regex': r}} for r in oref.regex(as_list=True)]
 
     @classmethod
@@ -174,7 +173,7 @@ class ManuscriptPageSet(AbstractMongoSet):
         return cls({'$or': cls.expanded_ref_query_for_ref(oref)}, hint='expanded_refs_1')
 
     @classmethod
-    def load_set_for_client(cls, tref):
+    def load_set_for_client(cls, tref: str):
         """
         This method returns an array of results that can be converted to JSON instead of Sefaria MongoSet instances.
         This method uses a mongo aggregation to JOIN the manuscript with the manuscript page.
