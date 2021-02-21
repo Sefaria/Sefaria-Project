@@ -156,6 +156,7 @@ class WebPage(abst.AbstractMongoRecord):
             r"kabbalahoftime\.com\/\d{4}\/\d{2}\/?$",  # page that aggregates all articles for the month
             r"jewishcontemplatives\.blogspot\.com\/?$",
             r"orayta\.org\/orayta-torah\/orayta-byte-parsha-newsletter",
+            r"jewishencyclopedia\.com\/(directory|contribs|search)",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -809,5 +810,11 @@ sites_data = [
         "name": "Rabbi Efrem Goldberg",
         "domains": ["rabbiefremgoldberg.org"],
         "normalization_rules": ["use https", "remove www", "remove url params"],
+    },
+    {
+        "name": "Jewish Encyclopedia",
+        "domains": ["jewishencyclopedia.com"],
+        "title_branding": ["JewishEncyclopedia.com"],
+        "normalization_rules": ["remove url params", "use https", "remove www"]
     }
 ]
