@@ -804,5 +804,10 @@ sites_data = [
         "name": "Orayta",
         "domains": ["orayta.org"],
         "normalization_rules": ["use https", "remove www"],
+    },
+    {
+        "name": "Rabbi Efrem Goldberg",
+        "domains": ["rabbiefremgoldberg.org"],
+        "normalization_rules": ["use https", "remove www", "remove url params"],
     }
 ]
