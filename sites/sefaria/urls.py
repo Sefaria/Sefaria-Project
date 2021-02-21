@@ -7,7 +7,6 @@ from sefaria.settings import STATIC_URL
 
 
 static_pages = [
-    "about",
     "strategy",
     "supporters",
     "team",
@@ -44,7 +43,8 @@ static_pages = [
     "powered-by-sefaria-contest-2020",
 ]
 
-static_pages_by_lang =[
+static_pages_by_lang = [
+    "about",
     "donate",
 ]
 
