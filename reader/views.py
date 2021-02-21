@@ -3922,6 +3922,14 @@ def serve_static(request, page):
     """
     return render_template(request,'static/%s.html' % page, None, {})
 
+@ensure_csrf_cookie
+def serve_static_by_lang(request, page):
+    """
+    Serve a static page whose template matches the URL
+    """
+    return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), None, {})
+
+
 
 @ensure_csrf_cookie
 def explore(request, topCat, bottomCat, book1, book2, lang=None):

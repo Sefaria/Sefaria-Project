@@ -8,7 +8,6 @@ from sefaria.settings import STATIC_URL
 
 static_pages = [
     "about",
-    "donate",
     "strategy",
     "supporters",
     "team",
@@ -45,6 +44,10 @@ static_pages = [
     "powered-by-sefaria-contest-2020",
 ]
 
+static_pages_by_lang =[
+    "donate",
+]
+
 
 # Static and Semi Static Content
 site_urlpatterns = [
@@ -56,6 +59,7 @@ site_urlpatterns = [
     url(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),
     url(r'^\.well-known/apple-app-site-association/?$', reader_views.apple_app_site_association),
     url(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
+    url(r'^(%s)/?$' % "|".join(static_pages_by_lang), reader_views.serve_static_by_lang),
     url(r'^healthz/?$', reader_views.application_health_api),
 ]
 
