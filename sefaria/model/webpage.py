@@ -155,6 +155,7 @@ class WebPage(abst.AbstractMongoRecord):
             r"kabbalahoftime\.com\/\d{4}\/?$",  # page that aggregates all articles for the year
             r"kabbalahoftime\.com\/\d{4}\/\d{2}\/?$",  # page that aggregates all articles for the month
             r"jewishcontemplatives\.blogspot\.com\/?$",
+            r"orayta\.org\/orayta-torah\/orayta-byte-parsha-newsletter",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -798,5 +799,10 @@ sites_data = [
         "name": "Jewish Contemplatives",
         "domains": ["jewishcontemplatives.blogspot.com"],
         "initial_title_branding": True,
+    },
+    {
+        "name": "Orayta",
+        "domains": ["orayta.org"],
+        "normalization_rules": ["use https", "remove www"],
     }
 ]
