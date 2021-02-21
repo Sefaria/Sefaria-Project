@@ -220,9 +220,8 @@ class WebPage(abst.AbstractMongoRecord):
         title = str(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
-        separators = [("-", True), ("|", True), ("—", True), ("»", True), ("•", True), (":", False)]
-        for separator, is_padded in separators:
-            padding = ' ' if is_padded else ''
+        separators = [("-", ' '), ("|", ' '), ("—", ' '), ("»", ' '), ("•", ' '), (":", '')]
+        for separator, padding in separators:
             for brand in brands:
                 if self._site_data.get("initial_title_branding", False):
                     brand_str = f"{brand}{padding}{separator} "
