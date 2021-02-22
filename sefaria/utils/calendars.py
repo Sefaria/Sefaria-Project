@@ -58,7 +58,7 @@ def daf_yomi(datetime_obj):
 
         daf_yomi.append({
             'title': {'en': 'Daf Yomi', 'he': 'דף יומי'},
-            'displayValue': {'en': rf.display('en'), 'he': rf.display('he')},
+            'displayValue': {'en': rf.normal(), 'he': rf.he_normal()},
             'url': rf.url(),
             'ref': rf.normal(),
             'order': 3,
@@ -146,7 +146,7 @@ def daf_weekly(datetime_obj):
         rf = model.Ref(d)
         daf_weekly_list.append({
             "title": {"en": "Daf a Week", "he": "דף השבוע"},
-            "displayValue": {"en": rf.display('en'), "he": rf.display('he')},
+            "displayValue": {"en": rf.normal(), "he": rf.he_normal()},
             "url": rf.url(),
             "ref": rf.normal(),
             "order": 8,
