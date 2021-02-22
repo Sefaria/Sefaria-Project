@@ -1209,7 +1209,7 @@ class ReaderControls extends Component {
     var oref = Sefaria.ref(this.props.currentRef);
 
     if (this.props.sheet) {
-      title = this.props.sheet.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ');
+      title = this.props.sheet.title.stripHtmlConvertLineBreaks();
       heTitle = title;
       if (title == "") {
         title = "Untitled";
