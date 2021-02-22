@@ -5030,6 +5030,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-bottom: 1px solid #DDDDDD;
   margin: 29px 34px;
   padding-bottom: 19px;
+  overflow-x: hidden;
 }
 
 .manuscript a {
@@ -7287,8 +7288,8 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   padding: 20px 0;
   border-top: solid 1px #CCC;
 }
-.versionBlock .versionTitle .he{
-
+.singlePanel .versionsBox .versionBlock .versionTitle .he {
+    display: inline;
 }
 .versionBlock .versionTitle a {
   color: black;

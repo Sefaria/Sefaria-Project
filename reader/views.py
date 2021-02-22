@@ -37,7 +37,6 @@ from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.media import get_media_for_ref
 from sefaria.model.schema import SheetLibraryNode
 from sefaria.model.trend import user_stats_data, site_stats_data
-from sefaria.model.manuscript import ManuscriptPageSet
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.client.util import jsonResponse
@@ -3419,8 +3418,10 @@ def profile_sync_api(request):
                 if settings_time_stamp > profile.attr_time_stamps[field]:
                     # this change happened after other changes in the db
                     profile.attr_time_stamps.update({field: settings_time_stamp})
+                    settingsInDB = profile.settings
+                    settingsInDB.update(field_data)
                     profile.update({
-                        field: field_data,
+                        field: settingsInDB,
                         "attr_time_stamps": profile.attr_time_stamps
                     })
                     profile_updated = True
@@ -3859,6 +3860,14 @@ def serve_static(request, page):
     Serve a static page whose template matches the URL
     """
     return render_template(request,'static/%s.html' % page, None, {})
+
+@ensure_csrf_cookie
+def serve_static_by_lang(request, page):
+    """
+    Serve a static page whose template matches the URL
+    """
+    return render_template(request,'static/{}/{}.html'.format(request.LANGUAGE_CODE, page), None, {})
+
 
 
 @ensure_csrf_cookie

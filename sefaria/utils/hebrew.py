@@ -414,10 +414,14 @@ def strip_nikkud(rawString):
 
 
 #todo: rewrite to handle edge case of hebrew words in english texts, and latin characters in Hebrew text
+
+any_hebrew = regex.compile("\p{Hebrew}")
+any_english = regex.compile("[a-zA-Z]")
+
 def is_hebrew(s, heb_only=False):
-	if not heb_only and regex.search("\p{Hebrew}", s):
+	if not heb_only and any_hebrew.search(s):
 		return True
-	elif heb_only and regex.search("\p{Hebrew}", s) and not regex.search("[a-zA-Z]", s):
+	elif heb_only and any_hebrew.search(s) and not any_english.search(s):
 		return True
 	return False
 

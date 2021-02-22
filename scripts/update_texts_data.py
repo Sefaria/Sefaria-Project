@@ -47,6 +47,7 @@ if len(unhandled) > 0:
     print("Indexes not covered in the sheet:")
     for a in sorted(unhandled):
         print(a)
+    print("\n******************\n")
 
 for l in rows:
     try:
@@ -75,15 +76,13 @@ for l in rows:
         ("era", eras.get(l[11]))]
 
     for aname, value in attrs:
-        obj_val = getattr(i, aname, None)
-        if (obj_val or value) and (getattr(i, aname, None) != value):
+        obj_val = getattr(i, aname, "")
+        if (obj_val or value) and (obj_val != value):
             setattr(i, aname, value)
             needs_save = True
     if needs_save:
         print("o - {}".format(l[0]))
         i.save(override_dependencies=True)
-    else:
-        print(".")
 
 
 # clear out all earlier author data:
