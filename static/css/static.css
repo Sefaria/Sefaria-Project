@@ -97,7 +97,7 @@
   padding-bottom: 15px;
   border-bottom: 1px solid #eee;
 }
-.static p {
+.static p, .static section {
   margin: initial;
   font-size: 18px;
   line-height: 1.5;
@@ -710,34 +710,66 @@ p.registration-links a:hover{
 .static div.single-button.center {
   text-align: center;
 }
+#donatePage h3{
+  font-size: inherit;
+  font-weight: bold;
+  display: inline;
+  text-transform: none;
+  color: inherit;
+  letter-spacing: 1px;
+  border-bottom: none;
+}
+#donatePage .notice{
+  font-style: italic;
+}
+#donatePage .donateIntroduction{
+  text-align: center;
+}
+#donatePage section p{
+  margin-top: 10px;
+}
+#donatePage #givingOpportunities{
+
+}
+#donatePage #givingOpportunities .givingOpportunitiesDesc{
+  font-style: italic;
+  padding-inline-start: 5%;
+}
 #donatePage #donateOptions .donateOption {
   margin-bottom: 35px;
+}
+#donatePage #donateOptions .donateOption p{
+  display: inline;
 }
 #donatePage .faq p.question {
   font-weight: bold;
 }
 #donatePage .faq p.answer {
-  margin-left: 40px;
-  text-indent: -20px;
+  padding-inline-start: 40px;
 }
-#donatePage .faq p.question:before {
+/*#donatePage .faq p.question:before {
   content: "Q)";
 }
 #donatePage .faq p.answer:before {
   content: "A)";
+}*/
+#donatePage address{
+  font-size: 20px;
 }
-.interface-hebrew #donatePage .faq p.answer{
-  margin-right: 40px;
-  text-indent: -20px;
+#donatePage ul li{
+  list-style: none;
+  font-size: 18px;
+  line-height: 27px
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.interface-hebrew #donatePage .faq p.question:before {
+/*.interface-hebrew #donatePage .faq p.question:before {
   content: "ש)";
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 .interface-hebrew #donatePage .faq p.answer:before {
   content: "ת)";
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
-}
+}*/
 #supportersPage{
   text-align: center;
 }

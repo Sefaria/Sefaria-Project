@@ -1382,7 +1382,8 @@ class AtomicTest(AbstractTest):
             self.driver.execute_script('"**** Enter {} ****"'.format(self.name()))
             self.body()
             self.driver.execute_script('"**** Exit {} ****"'.format(self.name()))
-        except Exception:
+        except Exception as e:
+            print(e)
             err = traceback.format_exc()
             result = SingleTestResult(self.__class__, self.cap, False, err)
         else:
@@ -1616,9 +1617,9 @@ class TestResultSet(AbstractTestResult):
         percentage_passed = (float(passed_tests) / total_tests) * 100 if total_tests > 0 else 0
         ret += "\n\n{}/{} - {:.0f}% passed\n".format(passed_tests, total_tests, percentage_passed)
 
-        if passed_tests < total_tests:
-            for failed_test in [t for t in self._test_results if not t.success]:
-                ret += "\n\n{}\n".format(str(failed_test))
+        # if passed_tests < total_tests:
+        #     for failed_test in [t for t in self._test_results if not t.success]:
+        #         ret += "\n\n{}\n".format(str(failed_test))
 
         return ret
 
@@ -1675,7 +1676,7 @@ class Trial(object):
         elif platform == "localselenium": # local selenium, remote application
             self.BASE_URL = os.getenv('CI_URL')
             self.caps = caps if caps else LOCAL_SELENIUM_CAPS
-            self.is_local = False # 'is_local' refers to the application location
+            self.is_local = True # 'is_local' refers to the application location
 
         else:
             self.is_local = False
@@ -1779,7 +1780,7 @@ class Trial(object):
         except Exception as e:
             # Test errors are caught before this.
             # An exception at this level means that the infrastructure erred.
-
+            print(e)
             msg = traceback.format_exc()
             if self.isVerbose:
                 self.carp("{} / {} - Aborted\n{}\n".format(test_class.__name__, Trial.cap_to_string(cap), msg))
@@ -1826,17 +1827,7 @@ class Trial(object):
         result_set.include([t for t in tresults if t and t.success])
         failing_results = [t for t in tresults if t and not t.success]
 
-        # test failures twice, in order to avoid false failures
-        if exception_thrown and is_first_test:
-            self.carp("\nRetesting all configurations on {}: ".format(test_class.__name__), always=True)
-            second_test_results = self._test_on_all(test_class, caps)
-            result_set.include(second_test_results)
-        elif len(failing_results) > 0 and is_first_test:
-            self.carp("\nRetesting {} configurations on {}: ".format(len(failing_results), test_class.__name__), always=True)
-            second_test_results = self._test_on_all(test_class, [t.cap for t in failing_results])
-            result_set.include(second_test_results)
-        elif is_second_test:
-            result_set.include(failing_results)
+        result_set.include(failing_results)
         return result_set
 
     def run(self):
