@@ -543,3 +543,99 @@ def test_version_walk_thru_contents():
             v.walk_thru_contents(action)
 
 
+def test_version_set_text_at_segment_ref():
+    ti1 = "Test Set Text 1"
+    ti2 = "Test Set Text Complex"
+    i1 = model.Index().load({"title": ti1})
+    if i1 is not None:
+        i1.delete()
+    i2 = model.Index().load({"title": ti2})
+    if i2 is not None:
+        i2.delete()
+    v1 = model.Version().load({"title": ti1, "versionTitle": "Version 1 TEST"})
+    if v1 is not None:
+        v1.delete()
+    v2 = model.Version().load({"title": ti2, "versionTitle": "Version 2 TEST"})
+    if v2 is not None:
+        v2.delete()
+
+    i1 = model.Index({
+        "title": ti1,
+        "heTitle": "בלה1",
+        "titleVariants": [ti1],
+        "sectionNames": ["Chapter", "Paragraph"],
+        "categories": ["Musar"],
+        "lengths": [50, 501]
+    }).save()
+    v1 = model.Version(
+                {
+                    "chapter": i1.nodes.create_skeleton(),
+                    "versionTitle": "Version 1 TEST",
+                    "versionSource": "blabla",
+                    "language": "en",
+                    "title": i1.title
+                }
+    )
+    v1.chapter = [[''],[''],["original text", "2nd"]]
+
+    v1.save()
+    v1.set_text_at_segment_ref(model.Ref(f"{ti1} 3:2"), "new text")
+    assert v1.chapter[2][1] == "new text"
+
+    i2 = model.Index({
+        "title": ti2,
+        "heTitle": "2בלה",
+        "titleVariants": [ti2],
+        "schema": {
+            "nodes": [
+                {
+                    "nodes": [
+                        {
+                            "nodeType": "JaggedArrayNode",
+                            "depth": 2,
+                            "sectionNames": ["Chapter", "Paragraph"],
+                            "addressTypes": ["Integer", "Integer"],
+                            "titles": [{"text": "Node 2", "lang": "en", "primary": True}, {"text": "Node 2 he", "lang": "he", "primary": True}],
+                            "key": "Node 2"
+                        }
+                    ],
+                    "titles": [{"text": "Node 1", "lang": "en", "primary": True}, {"text": "Node 1 he", "lang": "he", "primary": True}],
+                    "key": "Node 1"
+                }
+            ],
+            "titles": [{"text": ti2, "lang": "en", "primary": True},
+                       {"text": ti2 + "he", "lang": "he", "primary": True}],
+            "key": ti2
+        },
+        "categories": ["Musar"]
+    }).save()
+    v2 = model.Version(
+                {
+                    "chapter": i2.nodes.create_skeleton(),
+                    "versionTitle": "Version 2 TEST",
+                    "versionSource": "blabla",
+                    "language": "en",
+                    "title": i2.title
+                }
+    )
+    v2.chapter = {"Node 1": {"Node 2": [[''],[''],["original text", "2nd"]]}}
+    v2.save()
+    v2.set_text_at_segment_ref(model.Ref(f"{ti2}, Node 1, Node 2 3:2"), "new text")
+    assert v2.chapter["Node 1"]["Node 2"][2][1] == "new text"
+
+    with pytest.raises(AssertionError):
+        # shouldn't work for section level
+        v2.set_text_at_segment_ref(model.Ref(f"{ti2}, Node 1, Node 2 3"), "blah")
+
+    with pytest.raises(AssertionError):
+        # shouldn't work for node level
+        v2.set_text_at_segment_ref(model.Ref(f"{ti2}, Node 1, Node 2"), "blah")
+
+    i1.delete()
+    i2.delete()
+    v1.delete()
+    v2.delete()
+
+
+
+

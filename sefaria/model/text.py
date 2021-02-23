@@ -1244,6 +1244,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
             action(item, tref, heTref, self)
 
     def set_text_at_segment_ref(self, oref, new_text):
+        assert oref.is_segment_level(), "set_text_at_segment_ref requires a segment level ref"
         address_list = oref.storage_address(format='list')
         curr_node = self.chapter
         for address in address_list[1:]:
@@ -1254,7 +1255,9 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         assert isinstance(curr_node, list)
         for section in oref.sections[:-1]:
             curr_node = curr_node[section-1]
-        curr_node[oref.sections[-1]-1] = new_text
+
+        segment_index = oref.sections[-1]-1
+        curr_node[segment_index] = new_text
 
 
 class VersionSet(abst.AbstractMongoSet):
