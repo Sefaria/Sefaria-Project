@@ -546,37 +546,8 @@ class TextSegment extends Component {
   }
   render() {
     let linkCountElement = null;
-    if (this.props.showLinkCount) {
-      const linkCount = this.props.linkCount;
-      const minOpacity = 20, maxOpacity = 70;
-      const linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
-      const style = {opacity: linkScore};
-      linkCountElement = this.props.showLinkCount ? (
-          <div className="linkCount sans" title={linkCount + " Connections Available"}>
-            <ContentText>
-             <EnglishText><span className="en"><span className="linkCountDot" style={style}></span></span></EnglishText>
-             <HebrewText><span className="he"><span className="linkCountDot" style={style}></span></span></HebrewText>
-            </ContentText>
-          </div>
-      ) : null;
-    } else {
-      linkCountElement = "";
-    }
-    let segmentNumber = this.props.segmentNumber ? (
-        <div className="segmentNumber sans">
-          <ContentText>
-            <EnglishText>
-              <span className="en"><span className="segmentNumberInner">{this.props.segmentNumber}</span></span>
-            </EnglishText>
-            <HebrewText>
-              <span className="he"><span className="segmentNumberInner">{Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}</span></span>
-            </HebrewText>
-          </ContentText>
-        </div>
-    ) : null;
     let he = this.props.he || "";
     let en = this.props.en || "";
-
     // render itags
     if (this.props.filter && this.props.filter.length > 0) {
       he = this.formatItag("he", he);
@@ -588,6 +559,32 @@ class TextSegment extends Component {
     const heOnly = !this.props.en;
     const enOnly = !this.props.he;
     const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+
+    if (this.props.showLinkCount) {
+      const linkCount = this.props.linkCount;
+      const minOpacity = 20, maxOpacity = 70;
+      const linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
+      const style = {opacity: linkScore};
+      linkCountElement = this.props.showLinkCount ? (
+          <div className="linkCount sans" title={linkCount + " Connections Available"}>
+             <span className="linkCountDot" style={style}>
+               <ContentText overrideLanguage={overrideLanguage} contentByLanguage={{"en": "", "he": ""}} />
+             </span>
+          </div>
+      ) : null;
+    } else {
+      linkCountElement = "";
+    }
+    let segmentNumber = this.props.segmentNumber ? (
+        <div className="segmentNumber sans">
+          <span className="segmentNumberInner">
+             <ContentText overrideLanguage={overrideLanguage}
+                          contentByLanguage={{"en": this.props.segmentNumber, "he": Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}}
+             />
+          </span>
+        </div>
+    ) : null;
+
 
 
     const classes=classNames({
@@ -608,10 +605,7 @@ class TextSegment extends Component {
         {segmentNumber}
         {linkCountElement}
         <p>
-          <ContentText overrideLanguage={overrideLanguage} forceDangerouslySetInnerHTML={true}>
-            <HebrewText>{he}</HebrewText>
-            <EnglishText>{en}</EnglishText>
-          </ContentText>
+          <ContentText overrideLanguage={overrideLanguage} htmlByLanguage={{"he": he, "en": en }}/>
         </p>
 
         <div className="clearFix"></div>
