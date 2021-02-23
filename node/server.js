@@ -123,6 +123,9 @@ server.post('/Footer/:cachekey', function(req, res) {
   res.send(html);
 });
 
+server.get('/healthz', function(req, res) {
+  res.send('Healthy')
+})
 
 const main = async function(){
   console.log("Startup. Prefetching cached data:");
