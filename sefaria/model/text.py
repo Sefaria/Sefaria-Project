@@ -923,6 +923,44 @@ class AbstractTextRecord(object):
             base_text = AbstractTextRecord.remove_html(base_text)
         return JaggedTextArray(base_text)
 
+    def get_top_level_jas(self):
+        """
+        Returns tuple with two items 
+            1) ja_list: list of highest level JaggedArrays
+            2) parent_key_list: list of tuples (parent, ja_key) where parent is the SchemaNode parent of the corresponding ja in ja_list and ja_key is the key of that ja in parent
+        parent_key_list is helpful if you need to update each jagged array
+        """
+        return self._get_top_level_jas_helper(getattr(self, self.text_attr, None))
+    
+    def _get_top_level_jas_helper(self, item, parent=None, item_key=None):
+        """
+        Helper function for get_top_level_jas to help with recursion
+        """
+        jas = []
+        parent_key_list = []
+        if isinstance(item, dict):
+            for key, child in item.items():
+                temp_jas, temp_parent_key_list = self._get_top_level_jas_helper(child, item, key)
+                jas += temp_jas
+                parent_key_list += temp_parent_key_list
+        elif isinstance(item, list):
+            jas += [item]
+            parent_key_list = [(parent, item_key)]
+        return jas, parent_key_list
+
+    def _trim_ending_whitespace(self):
+        """
+        Trims blank segments from end of every section
+        :return:
+        """
+        jas, parent_key_list = self.get_top_level_jas()
+        for ja, (parent_node, ja_key) in zip(jas, parent_key_list):
+            new_ja = JaggedTextArray(ja).trim_ending_whitespace().array()
+            if parent_node is None:
+                setattr(self, self.text_attr, new_ja)
+            else:
+                parent_node[ja_key] = new_ja
+
     def as_string(self):
         content = getattr(self, self.text_attr, None)
         if isinstance(content, str):
@@ -1134,6 +1172,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                 self.priority = float(self.priority)
             except ValueError as e:
                 self.priority = None
+        self._trim_ending_whitespace()
 
     def _sanitize(self):
         # sanitization happens on TextChunk saving
@@ -1542,13 +1581,6 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
             # check for strings where arrays expected, except for last pass
             if pos < self._ref_depth - 2 and isinstance(parent_content[val - 1], str):
                 parent_content[val - 1] = [parent_content[val - 1]]
-
-    def _trim_ending_whitespace(self):
-        """
-        Trims blank segments from end of every section
-        :return:
-        """
-        self.text = JaggedTextArray(self.text).trim_ending_whitespace().array()
 
     def _check_available_text_pre_save(self):
         """
