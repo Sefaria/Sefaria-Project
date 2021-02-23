@@ -1189,7 +1189,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     def walk_thru_contents(self, action, item=None, tref=None, heTref=None, schema=None, addressTypes=None, terms_dict=None):
         """
         Walk through content of version and run `action` for each segment. Only required parameter to call is `action`
-        :param func action: (segment_str, tref, version) => None
+        :param func action: (segment_str, tref, he_tref, version) => None
         """
         def get_primary_title(lang, titles):
             return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
