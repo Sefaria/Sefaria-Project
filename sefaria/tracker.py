@@ -36,26 +36,52 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     if vsource:
         chunk.versionSource = vsource  # todo: log this change
     if chunk.save():
-        model.log_text(user, action, oref, lang, vtitle, old_text, chunk.text, **kwargs)
-        if USE_VARNISH:
-            invalidate_ref(oref, lang=lang, version=vtitle, purge=True)
-            if oref.next_section_ref():
-                invalidate_ref(oref.next_section_ref(), lang=lang, version=vtitle, purge=True)
-            if oref.prev_section_ref():
-                invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
-        if not kwargs.get("skip_links", None):
-            from sefaria.helper.link import add_links_from_text
-            # Some commentaries can generate links to their base text automatically
-            linker = oref.autolinker(user=user)
-            if linker:
-                linker.refresh_links(**kwargs)
-            # scan text for links to auto add
-            add_links_from_text(oref, lang, chunk.text, chunk.full_version._id, user, **kwargs)
-
-            if USE_VARNISH:
-                invalidate_linked(oref)
+        post_modify_text(user, action, oref, lang, vtitle, old_text, chunk.text, chunk.full_version._id, **kwargs)
 
     return chunk
+
+
+def modify_bulk_text(user, version:model.Version, text_map: dict, vsource=None, **kwargs) -> None:
+    def populate_change_map(old_text, en_tref, he_tref, _):
+        nonlocal change_map
+        new_text = text_map.get(en_tref, None)
+        if new_text is None or new_text == old_text:
+            return
+        change_map[en_tref] = (old_text, new_text, Ref(en_tref))
+    
+    change_map = {}
+    version.walk_thru_contents(populate_change_map)
+    if vsource:
+        version.versionSource = vsource  # todo: log this change
+    # modify version in place
+    for _, new_text, oref in change_map.values():
+        version.set_text_at_segment_ref(oref, new_text)
+    
+    version.save()
+
+    for old_text, new_text, oref in change_map.values():
+        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, version._id)
+
+
+def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, version_id, **kwargs) -> None:
+    model.log_text(user, action, oref, lang, vtitle, old_text, curr_text, **kwargs)
+    if USE_VARNISH:
+        invalidate_ref(oref, lang=lang, version=vtitle, purge=True)
+        if oref.next_section_ref():
+            invalidate_ref(oref.next_section_ref(), lang=lang, version=vtitle, purge=True)
+        if oref.prev_section_ref():
+            invalidate_ref(oref.prev_section_ref(), lang=lang, version=vtitle, purge=True)
+    if not kwargs.get("skip_links", None):
+        from sefaria.helper.link import add_links_from_text
+        # Some commentaries can generate links to their base text automatically
+        linker = oref.autolinker(user=user)
+        if linker:
+            linker.refresh_links(**kwargs)
+        # scan text for links to auto add
+        add_links_from_text(oref, lang, curr_text, version_id, user, **kwargs)
+
+        if USE_VARNISH:
+            invalidate_linked(oref)
 
 
 def add(user, klass, attrs, **kwargs):

@@ -1243,6 +1243,19 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         elif isinstance(item, str):
             action(item, tref, heTref, self)
 
+    def set_text_at_segment_ref(self, oref, new_text):
+        address_list = oref.storage_address(format='list')
+        curr_node = self.chapter
+        for address in address_list[1:]:
+            curr_node = curr_node.get(address)
+            if not curr_node:
+                logger.warning(f'Could not find address "{address}" in version {self}. Full oref {oref.normal()}')
+                return
+        assert isinstance(curr_node, list)
+        for section in oref.sections[:-1]:
+            curr_node = curr_node[section-1]
+        curr_node[oref.sections[-1]-1] = new_text
+
 
 class VersionSet(abst.AbstractMongoSet):
     """
@@ -3975,13 +3988,15 @@ class Ref(object, metaclass=RefCacheType):
             return "Z"
 
     """ Methods for working with Versions and VersionSets """
-    def storage_address(self):
+    def storage_address(self, format="string"):
         """
         Return the storage location within a Version for this Ref.
 
-        :return string:
+        :return string or list: if format == 'string' return string where each address is separated by period else return list of addresses
         """
-        return ".".join(["chapter"] + self.index_node.address()[1:])
+        address_list = ["chapter"] + self.index_node.address()[1:]
+        if format == "list": return address_list
+        return ".".join(address_list)
 
     def part_projection(self):
         """
