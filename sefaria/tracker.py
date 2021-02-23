@@ -47,7 +47,7 @@ def modify_bulk_text(user, version:model.Version, text_map: dict, vsource=None, 
         new_text = text_map.get(en_tref, None)
         if new_text is None or new_text == old_text:
             return
-        change_map[en_tref] = (old_text, new_text, Ref(en_tref))
+        change_map[en_tref] = (old_text, new_text, model.Ref(en_tref))
     
     change_map = {}
     version.walk_thru_contents(populate_change_map)
