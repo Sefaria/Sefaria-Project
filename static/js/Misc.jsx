@@ -90,38 +90,29 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({children, overrideLanguage, forceDangerouslySetInnerHTML = false}) => {
+const ContentText = ({contentByLanguage, htmlByLanguage, overrideLanguage}) => {
     /**
    * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
    * Takes only children to allow complex html to be fed in
    * @type {{language: string}}
    */
-  //dangerouslySetInnerHTML={ {__html: he + " "} }
+  const [content, isDangerouslySetInnerHTML]  = htmlByLanguage ? [htmlByLanguage, true] : [contentByLanguage, false];
+  const availableLanguages = ["english", "hebrew"];
   const contentLanguage = useContext(ContentLanguageContext);
   const languageToFilter = overrideLanguage ? overrideLanguage : contentLanguage.language;
-  const langCode = languageToFilter.slice(0,2);
-  const elemclasses = classNames({
-    [langCode]: 1
-  })
-  let renderedElements = null;
-  if (Object.keys(AvailableLanguages()).indexOf(languageToFilter) != -1){ //not bilingual
-    renderedElements = __filterChildrenByLanguage(children, languageToFilter);
-  }else{ // yes bilingual, so dont bother filtering.
-    renderedElements = React.Children.toArray(children);
-  }
-  if(forceDangerouslySetInnerHTML){
-    console.log(renderedElements);
-    return (renderedElements.map(x =>
-      <span className={elemclasses} lang={langCode} dangerouslySetInnerHTML={{__html: x.props.children}}></span>));
-  }else{
-    return (renderedElements.map(x => <span className={elemclasses} lang={langCode}>{x}</span>));
-  }
+  const isMultiLinugal = availableLanguages.indexOf(languageToFilter) == -1;
+  let renderedItems = Object.entries(content).filter(([lang, text])=>{
+    return isMultiLinugal ? true : ((lang ==  languageToFilter.slice(0,2)) ? true : false  );
+  });
+  return renderedItems.map( x =>
+      isDangerouslySetInnerHTML ?
+          <span className={x[0]} lang={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
+          :
+          <span className={x[0]} lang={x[0]}>{x[1]}</span>
+  );
 };
-ContentText.propTypes = {
-  //Makes sure that children passed in are an array consisting only of <EnglishText>, <HebrewText>
-  children: PropTypes.arrayOf(AvailableLanguagesValidator)
-};
+
 
 const LoadingRing = () => (
   <div className="lds-ring"><div></div><div></div><div></div><div></div></div>
