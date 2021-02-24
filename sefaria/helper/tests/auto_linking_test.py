@@ -231,6 +231,16 @@ class Test_AutoLinker(object):
         link_set_lambda = lambda x: LinkSet({"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"})
         cls.desired_link_counts["Many to One on Genesis"] = link_set_lambda("Many to One on Genesis").count()
         cls.desired_link_counts["One to One on Genesis"] = link_set_lambda("One to One on Genesis").count()
+
+        title = 'Kos Eliyahu on Pesach Haggadah'
+        i = library.get_index(title)
+        Version({
+            "chapter": i.nodes.create_skeleton(),
+            "versionTitle": "test",
+            "versionSource": "blabla",
+            "language": "he",
+            "title": i.title
+        }).save()
         #print 'End of test setup'
 
     @classmethod
@@ -248,6 +258,7 @@ class Test_AutoLinker(object):
         i.delete()
         i = Index().load({"title": "One to One on Genesis"})
         i.delete()
+        v = Version().load({"title": 'Kos Eliyahu on Pesach Haggadah', "versionTitle": "test", "language": "he"})
 
     def test_rebuild_commentary_links(self):
         #test simple adding links
@@ -493,21 +504,10 @@ class Test_AutoLinker(object):
         title = 'Kos Eliyahu on Pesach Haggadah'
         section_tref = 'Kos Eliyahu on Pesach Haggadah, Kadesh 1'
         lang = 'he'
-        vtitle = "test modify_bulk_text"
+        vtitle = "test"
         rf = Ref(title)
         regex = rf.regex()
         version = Version().load({"title": title, "versionTitle": vtitle, "language": lang})
-        if version is not None:
-            version.delete()
-        i = library.get_index(title)
-        version = Version({
-            "chapter": i.nodes.create_skeleton(),
-            "versionTitle": vtitle,
-            "versionSource": "blabla",
-            "language": "en",
-            "title": i.title
-        })
-        version.save()
         text_map = {
             f"{section_tref}:1": "more text",
             f"{section_tref}:2": "even more text",
@@ -520,7 +520,6 @@ class Test_AutoLinker(object):
         tracker.modify_bulk_text(1, version, text_map)
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert link_count == (desired_link_count+4)
-        print("ADD", link_count)
         for tref, mod_text in text_map.items():
             seg_index = int(tref.split(':')[-1])-1
             version.chapter["Kadesh"][0][seg_index] = mod_text
@@ -532,6 +531,4 @@ class Test_AutoLinker(object):
         tracker.modify_bulk_text(1, version, text_map)
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert link_count == desired_link_count
-        print("REMOVE", link_count)
-        version.delete()
 
