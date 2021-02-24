@@ -1288,15 +1288,11 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         curr_node = self.chapter
         for address in address_list[1:]:
             curr_node = curr_node.get(address)
-            if not curr_node:
+            if curr_node is None:
                 logger.warning(f'Could not find address "{address}" in version {self}. Full oref {oref.normal()}')
                 return
         assert isinstance(curr_node, list)
-        for section in oref.sections[:-1]:
-            curr_node = curr_node[section-1]
-
-        segment_index = oref.sections[-1]-1
-        curr_node[segment_index] = new_text
+        curr_node = JaggedArray(curr_node).set_element([s-1 for s in oref.sections], new_text, '').array()
 
 
 class VersionSet(abst.AbstractMongoSet):

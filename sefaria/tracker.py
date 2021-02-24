@@ -43,16 +43,22 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
 
 def modify_bulk_text(user, version:model.Version, text_map: dict, vsource=None, **kwargs) -> None:
     def populate_change_map(old_text, en_tref, he_tref, _):
-        nonlocal change_map
+        nonlocal change_map, existing_tref_set
+        existing_tref_set.add(en_tref)
         new_text = text_map.get(en_tref, None)
         if new_text is None or new_text == old_text:
             return
         change_map[en_tref] = (old_text, new_text, model.Ref(en_tref))
-    
     change_map = {}
+    existing_tref_set = set()
     version.walk_thru_contents(populate_change_map)
+    new_ref_set = set(text_map.keys()).difference(existing_tref_set)
+    for new_tref in new_ref_set:
+        change_map[new_tref] = ('', text_map[new_tref], model.Ref(new_tref))
+
     if vsource:
         version.versionSource = vsource  # todo: log this change
+
     # modify version in place
     for _, new_text, oref in change_map.values():
         version.set_text_at_segment_ref(oref, new_text)
