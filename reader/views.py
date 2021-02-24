@@ -14,6 +14,7 @@ from collections import OrderedDict
 import pytz
 from html import unescape
 import redis
+import os
 
 from rest_framework.decorators import api_view
 from django.template.loader import render_to_string, get_template
@@ -4282,8 +4283,8 @@ def rollout_health_api(request):
         'multiserverReady': isMultiserverReachable(),
         'redisReady': isRedisReachable(),
         'nodejsReady': isNodeJsReachable(),
+        'revisionNumber': os.getenv("HELM_REVISION"),
     }
-
     return http.JsonResponse(response)
 
 @login_required
