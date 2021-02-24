@@ -4276,14 +4276,14 @@ def rollout_health_api(request):
         statusCode = urllib.request.urlopen(url).status
         return statusCode == "200"
 
-    response = {
+    resp = {
         'allReady': isRedisReachable and isMultiserverReachable and isNodeJsReachable,
         'multiserverReady': isMultiserverReachable(),
         'redisReady': isRedisReachable(),
         'nodejsReady': isNodeJsReachable(),
         'revisionNumber': os.getenv("HELM_REVISION"),
     }
-    return http.JsonResponse(response)
+    return http.JsonResponse(resp)
 
 @login_required
 def daf_roulette_redirect(request):
