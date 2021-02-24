@@ -7,6 +7,7 @@ from sefaria.system.database import db
 
 from io import StringIO
 from html.parser import HTMLParser
+from datetime import datetime, timedelta
 
 class MLStripper(HTMLParser):
     def __init__(self):
@@ -25,8 +26,9 @@ def strip_tags(html):
     s.feed(html)
     return s.get_data()
 
-
-sheets = db.sheets.find()
+cutoff = datetime.now() - timedelta(days=7)
+query = {"dateModified": {"$lt": cutoff.isoformat()}}
+sheets = db.sheets.find(query)
 
 all_suspect_sheets = set([])
 
