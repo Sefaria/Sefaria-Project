@@ -6148,6 +6148,9 @@ a .button:hover {
 .sheetMetaDataBox .title {
   display: block;
 }
+.sheetMetaDataBox .title br {
+    display: none
+}
 .sheetMetaDataBox .title:empty:before {
   content: "Untitled";
   color: #999;
