@@ -4276,7 +4276,7 @@ def rollout_health_api(request):
     def isNodeJsReachable():
         url = NODE_HOST + "/healthz"
         statusCode = urllib.request.urlopen(url).status
-        return statusCode == "200"
+        return statusCode == 200
 
     resp = {
         'allReady': isRedisReachable() and isMultiserverReachable() and isNodeJsReachable(),
