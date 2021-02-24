@@ -543,98 +543,96 @@ def test_version_walk_thru_contents():
             v.walk_thru_contents(action)
 
 
-def test_version_set_text_at_segment_ref():
-    ti1 = "Test Set Text 1"
-    ti2 = "Test Set Text Complex"
-    i1 = model.Index().load({"title": ti1})
-    if i1 is not None:
-        i1.delete()
-    i2 = model.Index().load({"title": ti2})
-    if i2 is not None:
-        i2.delete()
-    v1 = model.Version().load({"title": ti1, "versionTitle": "Version 1 TEST"})
-    if v1 is not None:
-        v1.delete()
-    v2 = model.Version().load({"title": ti2, "versionTitle": "Version 2 TEST"})
-    if v2 is not None:
-        v2.delete()
+class TestModifyVersion:
+    simpleIndexTitle = "Test ModifyVersion Simple"
+    complexIndexTitle = "Test ModifyVersion Complex"
+    vtitle = "Version TEST"
+    vlang = "he"
 
-    i1 = model.Index({
-        "title": ti1,
-        "heTitle": "בלה1",
-        "titleVariants": [ti1],
-        "sectionNames": ["Chapter", "Paragraph"],
-        "categories": ["Musar"],
-        "lengths": [50, 501]
-    }).save()
-    v1 = model.Version(
-                {
-                    "chapter": i1.nodes.create_skeleton(),
-                    "versionTitle": "Version 1 TEST",
-                    "versionSource": "blabla",
-                    "language": "en",
-                    "title": i1.title
-                }
-    )
-    v1.chapter = [[''],[''],["original text", "2nd"]]
+    @classmethod
+    def setup_class(cls):
+        cls.simpleIndex = model.Index({
+            "title": cls.simpleIndexTitle,
+            "heTitle": "בלה1",
+            "titleVariants": [cls.simpleIndexTitle],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+            "lengths": [50, 501]
+        }).save()
+        cls.simpleVersion = model.Version(
+            {
+                "chapter": cls.simpleIndex.nodes.create_skeleton(),
+                "versionTitle": "Version 1 TEST",
+                "versionSource": "blabla",
+                "language": "en",
+                "title": cls.simpleIndexTitle
+            }
+        )
+        cls.simpleVersion.chapter = [[''], [''], ["original text", "2nd"]]
+        cls.simpleVersion.save()
+        cls.complexIndex = model.Index({
+            "title": cls.complexIndexTitle,
+            "heTitle": "2בלה",
+            "titleVariants": [cls.complexIndexTitle],
+            "schema": {
+                "nodes": [
+                    {
+                        "nodes": [
+                            {
+                                "nodeType": "JaggedArrayNode",
+                                "depth": 2,
+                                "sectionNames": ["Chapter", "Paragraph"],
+                                "addressTypes": ["Integer", "Integer"],
+                                "titles": [{"text": "Node 2", "lang": "en", "primary": True}, {"text": "Node 2 he", "lang": "he", "primary": True}],
+                                "key": "Node 2"
+                            }
+                        ],
+                        "titles": [{"text": "Node 1", "lang": "en", "primary": True}, {"text": "Node 1 he", "lang": "he", "primary": True}],
+                        "key": "Node 1"
+                    }
+                ],
+                "titles": [{"text": cls.complexIndexTitle, "lang": "en", "primary": True},
+                           {"text": cls.complexIndexTitle + "he", "lang": "he", "primary": True}],
+                "key": cls.complexIndexTitle
+            },
+            "categories": ["Musar"]
+        }).save()
+        cls.complexVersion = model.Version(
+                    {
+                        "chapter": cls.complexIndex.nodes.create_skeleton(),
+                        "versionTitle": "Version 2 TEST",
+                        "versionSource": "blabla",
+                        "language": "en",
+                        "title": cls.complexIndexTitle
+                    }
+        )
+        cls.complexVersion.chapter = {"Node 1": {"Node 2": [[''],[''],["original text", "2nd"]]}}
+        cls.complexVersion.save()
 
-    v1.save()
-    v1.set_text_at_segment_ref(model.Ref(f"{ti1} 3:2"), "new text")
-    assert v1.chapter[2][1] == "new text"
+    @classmethod
+    def teardown_class(cls):
+        cls.simpleIndex.delete()
+        cls.complexIndex.delete()
+        cls.simpleVersion.delete()
+        cls.complexVersion.delete()
 
-    i2 = model.Index({
-        "title": ti2,
-        "heTitle": "2בלה",
-        "titleVariants": [ti2],
-        "schema": {
-            "nodes": [
-                {
-                    "nodes": [
-                        {
-                            "nodeType": "JaggedArrayNode",
-                            "depth": 2,
-                            "sectionNames": ["Chapter", "Paragraph"],
-                            "addressTypes": ["Integer", "Integer"],
-                            "titles": [{"text": "Node 2", "lang": "en", "primary": True}, {"text": "Node 2 he", "lang": "he", "primary": True}],
-                            "key": "Node 2"
-                        }
-                    ],
-                    "titles": [{"text": "Node 1", "lang": "en", "primary": True}, {"text": "Node 1 he", "lang": "he", "primary": True}],
-                    "key": "Node 1"
-                }
-            ],
-            "titles": [{"text": ti2, "lang": "en", "primary": True},
-                       {"text": ti2 + "he", "lang": "he", "primary": True}],
-            "key": ti2
-        },
-        "categories": ["Musar"]
-    }).save()
-    v2 = model.Version(
-                {
-                    "chapter": i2.nodes.create_skeleton(),
-                    "versionTitle": "Version 2 TEST",
-                    "versionSource": "blabla",
-                    "language": "en",
-                    "title": i2.title
-                }
-    )
-    v2.chapter = {"Node 1": {"Node 2": [[''],[''],["original text", "2nd"]]}}
-    v2.save()
-    v2.set_text_at_segment_ref(model.Ref(f"{ti2}, Node 1, Node 2 3:2"), "new text")
-    assert v2.chapter["Node 1"]["Node 2"][2][1] == "new text"
+    def test_version_set_text_at_segment_ref(self):
 
-    with pytest.raises(AssertionError):
-        # shouldn't work for section level
-        v2.set_text_at_segment_ref(model.Ref(f"{ti2}, Node 1, Node 2 3"), "blah")
+        self.simpleVersion.set_text_at_segment_ref(model.Ref(f"{self.simpleIndexTitle} 3:2"), "new text")
+        assert self.simpleVersion.chapter[2][1] == "new text"
 
-    with pytest.raises(AssertionError):
-        # shouldn't work for node level
-        v2.set_text_at_segment_ref(model.Ref(f"{ti2}, Node 1, Node 2"), "blah")
 
-    i1.delete()
-    i2.delete()
-    v1.delete()
-    v2.delete()
+        self.complexVersion.set_text_at_segment_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3:2"), "new text")
+        assert self.complexVersion.chapter["Node 1"]["Node 2"][2][1] == "new text"
+
+        with pytest.raises(AssertionError):
+            # shouldn't work for section level
+            self.complexVersion.set_text_at_segment_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3"), "blah")
+
+        with pytest.raises(AssertionError):
+            # shouldn't work for node level
+            self.complexVersion.set_text_at_segment_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2"), "blah")
+
 
 
 
