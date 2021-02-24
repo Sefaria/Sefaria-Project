@@ -771,25 +771,33 @@ const withSefariaSheet = editor => {
 
 
     editor.deleteBackward = () => {
-
         const atStartOfDoc = Point.equals(editor.selection.focus, Editor.start(editor, [0,0]))
         if (atStartOfDoc) {return}
 
         //if just before sheetSource, select it instead of delete
-        if (!getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+        if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+            deleteBackward()
+            return
+        }
+
+        else {
+            // dance to get in correct spot so delete forward works below
             Transforms.move(editor, { reverse: true })
             if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
                return
             }
             else {
-                Editor.deleteForward(editor)
-                return;
+                //when spacer is deleted it moves you to sheetItem above, we need to add a space back in
+                if (getClosestSheetElement(editor, editor.selection.focus.path, "spacer")) {
+                    Editor.deleteForward(editor)
+                    Transforms.move(editor)
                 }
-        }
 
-        else {
-            deleteBackward()
-            return
+                else {
+                    Editor.deleteForward(editor)
+                }
+                return;
+            }
         }
 
     }
