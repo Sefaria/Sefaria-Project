@@ -218,7 +218,7 @@ class SheetMetadata extends Component {
                       <span className="he">{Sefaria.hebrewTerm("Sheets")}</span>
                     </a>
                     <div className="tocTitle" role="heading" aria-level="1">
-                      <span>{title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ')}</span>
+                      <span>{title.stripHtmlConvertLineBreaks()}</span>
                     </div>
 
                     <div className="tocDetail authorStatement">
