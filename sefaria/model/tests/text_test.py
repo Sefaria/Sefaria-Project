@@ -564,11 +564,11 @@ class TestModifyVersion:
                 "chapter": cls.simpleIndex.nodes.create_skeleton(),
                 "versionTitle": "Version 1 TEST",
                 "versionSource": "blabla",
-                "language": "en",
+                "language": "he",
                 "title": cls.simpleIndexTitle
             }
         )
-        cls.simpleVersion.chapter = [[''], [''], ["original text", "2nd"]]
+        cls.simpleVersion.chapter = [['1'], ['2'], ["original text", "2nd"]]
         cls.simpleVersion.save()
         cls.complexIndex = model.Index({
             "title": cls.complexIndexTitle,
@@ -589,6 +589,14 @@ class TestModifyVersion:
                         ],
                         "titles": [{"text": "Node 1", "lang": "en", "primary": True}, {"text": "Node 1 he", "lang": "he", "primary": True}],
                         "key": "Node 1"
+                    },
+                    {
+                        "nodeType": "JaggedArrayNode",
+                        "depth": 1,
+                        "sectionNames": ["Paragraph"],
+                        "addressTypes": ["Integer"],
+                        "titles": [{"text": "Node 3", "lang": "en", "primary": True}, {"text": "Node 3 he", "lang": "he", "primary": True}],
+                        "key": "Node 3"
                     }
                 ],
                 "titles": [{"text": cls.complexIndexTitle, "lang": "en", "primary": True},
@@ -606,7 +614,7 @@ class TestModifyVersion:
                         "title": cls.complexIndexTitle
                     }
         )
-        cls.complexVersion.chapter = {"Node 1": {"Node 2": [[''],[''],["original text", "2nd"]]}}
+        cls.complexVersion.chapter = {"Node 1": {"Node 2": [['yo'],['', 'blah'],["original text", "2nd"]]}, "Node 3": ['1', '2', '3', '4']}
         cls.complexVersion.save()
 
     @classmethod
@@ -616,8 +624,7 @@ class TestModifyVersion:
         cls.simpleVersion.delete()
         cls.complexVersion.delete()
 
-    def test_version_set_text_at_segment_ref(self):
-
+    def test_set_text_at_segment_ref(self):
         self.simpleVersion.set_text_at_segment_ref(model.Ref(f"{self.simpleIndexTitle} 3:2"), "new text")
         assert self.simpleVersion.chapter[2][1] == "new text"
 
@@ -633,7 +640,48 @@ class TestModifyVersion:
             # shouldn't work for node level
             self.complexVersion.set_text_at_segment_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2"), "blah")
 
+    def test_get_top_level_jas_text_chunk(self):
+        tc = model.Ref(self.simpleIndexTitle).text('he')
+        jas, parent_key_list = tc.get_top_level_jas()
+        assert len(jas) == 1 == len(parent_key_list)
+        assert jas[0][1][0] == '2'
+        assert parent_key_list[0][0] is None
+        assert parent_key_list[0][1] is None
 
+    def test_get_top_level_jas_version_simple(self):
+        jas, parent_key_list = self.simpleVersion.get_top_level_jas()
+        assert len(jas) == 1 == len(parent_key_list)
+        assert jas[0][1][0] == '2'
+        assert parent_key_list[0][0] is None
+        assert parent_key_list[0][1] is None
+
+    def test_get_top_level_jas_version_complex(self):
+        jas, parent_key_list = self.complexVersion.get_top_level_jas()
+        assert len(jas) == 2 == len(parent_key_list)
+        assert jas[0][1][1] == 'blah'
+        assert jas[1][3] == '4'
+        for ja, (parent, key) in zip(jas, parent_key_list):
+            assert parent[key] == ja
+
+    def test_trim_ending_whitespace_text_chunk(self):
+        tc = model.Ref(self.simpleIndexTitle).text('he')
+        original_len = len(tc.text[0])
+        tc.text[0] += ['', '', '   ', None]
+        tc._trim_ending_whitespace()
+        assert len(tc.text[0]) == original_len
+
+    def test_trim_ending_whitespace_version_simple(self):
+        original_len = len(self.simpleVersion.chapter[0])
+        self.simpleVersion.chapter[0] += ['', '', '   ', None]
+        self.simpleVersion._trim_ending_whitespace()
+        assert len(self.simpleVersion.chapter[0]) == original_len
+
+    def test_trim_ending_whitespace_version_complex(self):
+        node = self.complexVersion.chapter['Node 1']['Node 2']
+        original_len = len(node[0])
+        node[0] += ['', '', '   ', None]
+        self.complexVersion._trim_ending_whitespace()
+        assert (len(self.complexVersion.chapter['Node 1']['Node 2'][0]) == original_len)
 
 
 
