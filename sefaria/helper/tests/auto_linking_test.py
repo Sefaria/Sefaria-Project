@@ -9,10 +9,10 @@ from sefaria.helper.schema import convert_simple_index_to_complex, insert_first_
 class Test_AutoLinker(object):
     link_set_lambda = lambda x: LinkSet({"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"})
     rashi_on_genesis_links = link_set_lambda("Rashi on Genesis")
-    kos_eliyahu_links = link_set_lambda("Kos Shel Eliyahu on Pesach Haggadah")
+    kos_eliyahu_links = link_set_lambda("Kos Eliyahu on Pesach Haggadah")
     desired_link_counts = {
         'Rashi on Genesis': rashi_on_genesis_links.count(),
-        'Kos Shel Eliyahu on Pesach Haggadah': kos_eliyahu_links.count(),
+        'Kos Eliyahu on Pesach Haggadah': kos_eliyahu_links.count(),
     }
 
     @classmethod
@@ -259,7 +259,7 @@ class Test_AutoLinker(object):
         assert len(found) == desired_link_count
 
     def test_rebuild_commentary_links_complex(self):
-        title = 'Kos Shel Eliyahu on Pesach Haggadah'
+        title = 'Kos Eliyahu on Pesach Haggadah'
         rf = Ref(title)
         linker = rf.autolinker(user=1)
         desired_link_count = self.desired_link_counts[title]
@@ -333,7 +333,7 @@ class Test_AutoLinker(object):
 
     def test_refresh_commentary_links_complex(self):
         #test that there are the same number of links before and after
-        title = 'Kos Shel Eliyahu on Pesach Haggadah'
+        title = 'Kos Eliyahu on Pesach Haggadah'
         rf = Ref(title)
         regex = rf.regex()
         desired_link_count = self.desired_link_counts[title]
@@ -468,8 +468,8 @@ class Test_AutoLinker(object):
         assert link_count == desired_link_count
 
     def test_refresh_links_with_text_save_complex(self):
-        title = 'Kos Shel Eliyahu on Pesach Haggadah'
-        section_tref = 'Kos Shel Eliyahu on Pesach Haggadah, Kadesh 1'
+        title = 'Kos Eliyahu on Pesach Haggadah'
+        section_tref = 'Kos Eliyahu on Pesach Haggadah, Kadesh 1'
         stext = ["thlerkawje alkejal ekjlkej", "eaflkje arheahrlka jhklajdhkl ADJHKL"]
         lang = 'he'
         vtitle = "test"
