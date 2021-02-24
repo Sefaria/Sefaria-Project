@@ -4277,12 +4277,15 @@ def rollout_health_api(request):
         return statusCode == "200"
 
     resp = {
-        'allReady': isRedisReachable and isMultiserverReachable and isNodeJsReachable,
+        'allReady': isRedisReachable() and isMultiserverReachable() and isNodeJsReachable(),
         'multiserverReady': isMultiserverReachable(),
         'redisReady': isRedisReachable(),
         'nodejsReady': isNodeJsReachable(),
         'revisionNumber': os.getenv("HELM_REVISION"),
     }
+
+    print(resp)
+
     return http.JsonResponse(resp)
 
 @login_required
