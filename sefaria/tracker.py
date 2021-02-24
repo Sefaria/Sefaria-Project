@@ -54,6 +54,10 @@ def modify_bulk_text(user, version:model.Version, text_map: dict, vsource=None, 
     version.walk_thru_contents(populate_change_map)
     new_ref_set = set(text_map.keys()).difference(existing_tref_set)
     for new_tref in new_ref_set:
+        if len(text_map[new_tref].strip()) == 0:
+            # this ref doesn't exist for this version. probably exists in a different version
+            # no reason to add to change_map if it has not content
+            continue
         change_map[new_tref] = ('', text_map[new_tref], model.Ref(new_tref))
 
     if vsource:
