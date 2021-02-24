@@ -6,6 +6,7 @@ text.py
 import time
 import logging
 from functools import reduce
+from typing import Optional, Union
 logger = logging.getLogger(__name__)
 
 import sys
@@ -923,7 +924,7 @@ class AbstractTextRecord(object):
             base_text = AbstractTextRecord.remove_html(base_text)
         return JaggedTextArray(base_text)
 
-    def get_top_level_jas(self):
+    def get_top_level_jas(self) -> tuple:
         """
         Returns tuple with two items 
             1) ja_list: list of highest level JaggedArrays
@@ -931,8 +932,28 @@ class AbstractTextRecord(object):
         parent_key_list is helpful if you need to update each jagged array
         """
         return self._get_top_level_jas_helper(getattr(self, self.text_attr, None))
+
+    def get_node_by_key_list(self, key_list: list) -> tuple:
+        """
+        Given return node at self.text_attr[addr1][addr2]...[addr_n] where addr_i in address_list
+        There doesn't seem to be a nice way to do this in Python
+        Returns tuple of three items
+            1) node at key_list
+            2) parent node
+            3) key of node in parent node
+        Returns (None, None, None) if address_list has a non-existing key
+        """
+        curr_node = getattr(self, self.text_attr, None)
+        parent, node_key = None, None
+        for key in key_list:
+            parent = curr_node
+            node_key = key
+            curr_node = curr_node.get(key)
+            if curr_node is None:
+                return None, None, None
+        return curr_node, parent, node_key
     
-    def _get_top_level_jas_helper(self, item, parent=None, item_key=None):
+    def _get_top_level_jas_helper(self, item: Union[dict, list], parent=None, item_key=None) -> tuple:
         """
         Helper function for get_top_level_jas to help with recursion
         """
@@ -1282,17 +1303,27 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         elif isinstance(item, str):
             action(item, tref, heTref, self)
 
-    def set_text_at_segment_ref(self, oref, new_text):
+    def set_text_at_segment_ref(self, oref, new_text: str) -> None:
+        """
+        Modifies version in place at `oref`
+        Currently, oref is required to be a segment ref for simplicity,
+        although it is not difficult to modify this function to handle any jagged array
+        """
         assert oref.is_segment_level(), "set_text_at_segment_ref requires a segment level ref"
-        address_list = oref.storage_address(format='list')
-        curr_node = self.chapter
-        for address in address_list[1:]:
-            curr_node = curr_node.get(address)
-            if curr_node is None:
-                logger.warning(f'Could not find address "{address}" in version {self}. Full oref {oref.normal()}')
-                return
-        assert isinstance(curr_node, list)
-        curr_node = JaggedArray(curr_node).set_element([s-1 for s in oref.sections], new_text, '').array()
+        key_list = oref.storage_address(format='list')[1:]  # ignore first element which is 'chapter
+        highest_ja, parent_node, ja_key = self.get_node_by_key_list(key_list)
+        if highest_ja is None:
+            logger.warning(f'Could not find address "{", ".join(key_list)}" in version {self}. Full oref {oref.normal()}')
+            return
+        assert isinstance(highest_ja, list)
+
+        updated_ja = JaggedArray(highest_ja).set_element([s-1 for s in oref.sections], new_text, '').array()
+        # NOTE: technically the following lines are unnecessary since previous line edits ja in place
+        # however, since this is very unclear (and error prone), best to explicitly update ja
+        if parent_node is None:
+            self.chapter = updated_ja
+        else:
+            parent_node[ja_key] = updated_ja
 
 
 class VersionSet(abst.AbstractMongoSet):
