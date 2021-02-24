@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load static %}
+
+{% block title %}{% trans "Donate to Sefaria" %}{% endblock %}
+
+{% block description %}{% trans "Support Sefaria by making a tax-deductible donation online or by check or wire transfer." %}{% endblock %}
+
+{% block content %}
+
+<main id="donatePage" class="container static biReady">
+    <div class="inner">
+        <header>
+            <h1>
+                <span class="int-en">SUPPORT THE FUTURE OF TORAH</span>
+            </h1>
+        </header>
+        <aside class="section covidNotice notice">
+            <p>
+                <span class="int-en">
+                    Due to the ongoing pandemic, check donation processing in the Sefaria office is delayed.
+                    Please email <a href="mailto:donate@sefaria.org">donate@sefaria.org</a> for assistance making a wire transfer or online gift.
+                </span>
+            </p>
+        </aside>
+        <section class="section donateIntroduction">
+            <p>
+                <span class="int-en">
+                    With your help, Sefaria will be the digital home of the Jewish canon and the platform for the future of Jewish learning,
+                    innovation, and conversation.
+                </span>
+            </p>
+            <p>
+                <span class="int-en">
+                    Sefaria is a 501(c)3 charitable organization; donations are tax-deductible as allowed by law.
+                </span>
+            </p>
+            <p>
+                <span class="int-en">
+                    Thank you so much for supporting Sefaria today!
+                </span>
+            </p>
+            <div class="single-button center">
+                <a class="button big blue control-elem" role="button" href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank">
+                    <span class="int-en">Donate</span>
+                </a>
+            </div>
+        </section>
+        <section id="givingOpportunities" class="section">
+            <header>
+                <h2>
+                    <span class="int-en">Giving Opportunities</span>
+                </h2>
+            </header>
+            <section>
+                <p>
+                    <span class="int-en">
+                        Join the <a href="https://sefaria.nationbuilder.com/sustainers_b" target="_blank">Sustainers Community with a Monthly Donation</a>
+                     </span>
+                </p>
+                <p class="givingOpportunitiesDesc">
+                    <span class="int-en">
+                        By making a monthly donation today,
+                        you will join our community of Sustainers who provide a dependable base of revenue to keep the library running and growing.
+                    </span>
+                </p>
+            </section>
+            <section>
+                <p>
+                    <span class="int-en">
+                        <a href="https://sefaria.nationbuilder.com/sponsor" target="_blank">Sponsor a Day, Week, or Month of Learning</a>
+                     </span>
+                </p>
+                <p class="givingOpportunitiesDesc">
+                    <span class="int-en">
+                        Honor, remember, and celebrate your friends and loved ones by dedicating a day, week, or a month
+                        of learning on Sefaria in their merit.
+                        Your dedication language will appear in Sefaria's table of contents.
+                    </span>
+                </p>
+            </section>
+        </section>
+        <section id="donateOptions" class="section">
+            <header>
+                <h2>
+                    <span class="int-en">Ways to Give</span>
+                </h2>
+            </header>
+            <section class="donateOption">
+                <h3>
+                    <span class="int-en">Online: </span>
+                </h3>
+                <p>
+                    <span class="int-en">
+                        Donate on our <a href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank">primary donation page</a> processed by Stripe.
+                    </span>
+                    <span class="int-en">
+                        You can also make a donation through <a href="https://sefaria.nationbuilder.com/" target="_blank">PayPal</a>.
+                    </span>
+                </p>
+            </section>
+            <section class="donateOption">
+                <h3>
+                    <span class="int-en">Checks</span>
+                </h3>
+                <p>
+                     <span class="int-en"> can be made payable to "Sefaria" and mailed to:</span>
+                </p>
+                <address>
+                    Sefaria <br/>
+                    195 Montague Street <br/>
+                    14th Floor <br/>
+                    Brooklyn, NY 11201<br/>
+                </address>
+            </section>
+            <section class="donateOption">
+                <h3>
+                    <span class="int-en">Wire Transfer: </span>
+                </h3>
+                <p>
+                    <span class="int-en">Email <a href="mailto:hannah@sefaria.org">hannah@sefaria.org</a> for Sefaria's wire information.</span>
+                </p>
+            </section>
+            <section class="notice">
+                <p>
+                    <span class="int-en">
+                        If you live outside the U.S., we accept donations from most countries.
+                    </span>
+                </p>
+                <p>
+                    <span class="int-en">
+                        To avoid processing fees on large donations, we kindly ask that you donate by check or wire transfer.
+                    </span>
+                </p>
+            </section>
+        </section>
+        <section class="section otherInformation">
+            <header>
+                <h2>
+                    <span class="int-en">Other Information</span>
+                </h2>
+            </header>
+            <section>
+                <span class="int-en">
+                    <a target="_blank" href="{% static "files/Sefaria 2019 990 - Public - Client Copy.PDF" %}">Sefaria’s 990</a>
+                </span>
+            </section>
+            <section>
+                <span class="int-en">
+                    <a target="_blank" href="{% static "files/Sefaria_Strategic_Plan.pdf" %}">Strategic Plan</a>
+                </span>
+            </section>
+            <section>
+                <span class="int-en">
+                    <a target="_blank" href="https://www.guidestar.org/profile/46-4406454">Guidestar Platinum Rating </a>
+                </span>
+            </section>
+            <section>
+                <p>
+                    <span class="int-en">Sefaria takes pride in its financial stewardship as a fully transparent, 501(c)3 charitable organization. Sefaria's EIN is 46-4406454. </span>
+                </p>
+            </section>
+        </section>
+        <section class="section contactInformation">
+            <header>
+                <h2>
+                    <span class="int-en">Contact Information</span>
+                </h2>
+            </header>
+            <section>
+                <p>
+                    <span class="int-en">
+                        If you have questions about making a donation, please email Hannah Goldberger, Development Manager at <a href="mailto:hannah@sefaria.org">hannah@sefaria.org</a> or call <a href="tel:3477730077">347-773-0077</a>.
+                    </span>
+                </p>
+            </section>
+        </section>
+        <section class="section faqs">
+            <header>
+                <h2>
+                    <span class="int-en">Donation FAQs</span>
+                </h2>
+            </header>
+            <section class="faq">
+                <p class="question">
+                    <span class="int-en">
+                        How will I receive my donation receipt?
+                    </span>
+                </p>
+                <p class="answer">
+                    <span class="int-en">
+                        If you donate online, you will receive an e-receipt. If you donate by check or wire, you will receive a receipt by mail.
+                    </span>
+                </p>
+            </section>
+            <section class="faq">
+                <p class="question">
+                    <span class="int-en">
+                        Can I donate in shekels and/or receive an Israeli tax receipt?
+                    </span>
+                </p>
+                <p class="answer">
+                    <span class="int-en">
+                        Unfortunately, we are not set up to receive donations in shekels or issue Israeli tax receipts as this point.
+                        We hope to be able to offer these options to Sefaria supporters in Israel in the future.
+                        If you have questions about making a gift from Israel, please contact <a href="mailto:hannah@sefaria.org">hannah@sefaria.org</a>.
+                    </span>
+                </p>
+            </section>
+            <section class="faq">
+                <p class="question">
+                    <span class="int-en">
+                        Is my donation tax-deductible?
+                    </span>
+                </p>
+                <p class="answer">
+                    <span class="int-en">
+                        Donations to Sefaria are tax deductible as allowed by law.
+                        We are a registered charity in the United States (Sefaria's EIN is 46-4406454).
+                        Currently, we cannot issue tax receipts in Israel, the United Kingdom, or Canada.
+                    </span>
+                </p>
+            </section>
+            <section class="faq">
+                <p class="question">
+                    <span class="int-en">
+                        Can I donate by eCheck?
+                    </span>
+                </p>
+                <p class="answer">
+                    <span class="int-en">
+                        Yes, you can donate by eCheck. Please enter the mailing address listed above.
+                    </span>
+                </p>
+            </section>
+        </section>
+    </div>
+</main>
+{% endblock %}

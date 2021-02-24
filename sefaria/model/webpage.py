@@ -155,6 +155,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"kabbalahoftime\.com\/\d{4}\/?$",  # page that aggregates all articles for the year
             r"kabbalahoftime\.com\/\d{4}\/\d{2}\/?$",  # page that aggregates all articles for the month
             r"jewishcontemplatives\.blogspot\.com\/?$",
+            r"orayta\.org\/orayta-torah\/orayta-byte-parsha-newsletter",
+            r"jewishencyclopedia\.com\/(directory|contribs|search)",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -220,9 +222,8 @@ class WebPage(abst.AbstractMongoRecord):
         title = str(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
-        separators = [("-", True), ("|", True), ("—", True), ("»", True), ("•", True), (":", False)]
-        for separator, is_padded in separators:
-            padding = ' ' if is_padded else ''
+        separators = [("-", ' '), ("|", ' '), ("—", ' '), ("»", ' '), ("•", ' '), (":", '')]
+        for separator, padding in separators:
             for brand in brands:
                 if self._site_data.get("initial_title_branding", False):
                     brand_str = f"{brand}{padding}{separator} "
@@ -799,5 +800,21 @@ sites_data = [
         "name": "Jewish Contemplatives",
         "domains": ["jewishcontemplatives.blogspot.com"],
         "initial_title_branding": True,
+    },
+    {
+        "name": "Orayta",
+        "domains": ["orayta.org"],
+        "normalization_rules": ["use https", "remove www"],
+    },
+    {
+        "name": "Rabbi Efrem Goldberg",
+        "domains": ["rabbiefremgoldberg.org"],
+        "normalization_rules": ["use https", "remove www", "remove url params"],
+    },
+    {
+        "name": "Jewish Encyclopedia",
+        "domains": ["jewishencyclopedia.com"],
+        "title_branding": ["JewishEncyclopedia.com"],
+        "normalization_rules": ["remove url params", "use https", "remove www"]
     }
 ]

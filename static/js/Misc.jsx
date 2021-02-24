@@ -1294,7 +1294,7 @@ const SheetListing = ({
     }
   };
 
-  const title = sheet.title ? sheet.title.stripHtml() : "Untitled Source Sheet";
+  const title = sheet.title ? sheet.title.stripHtmlConvertLineBreaks() : "Untitled Source Sheet";
 
   const viewsIcon = sheet.public ?
     <div className="sheetViews sans"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
@@ -2084,9 +2084,9 @@ const SheetTitle = (props) => (
              contentEditable={props.editable}
              suppressContentEditableWarning={true}
              onBlur={props.editable ? props.blurCallback : null}
-             style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml().replace(/&amp;/g, '&')) ? "rtl" :"ltr"}}
+             style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml()) ? "rtl" :"ltr"}}
         >
-            {props.title ? props.title.stripHtml() : ""}
+            {props.title ? props.title.stripHtmlConvertLineBreaks() : ""}
         </span>
     )
 SheetTitle.propTypes = {

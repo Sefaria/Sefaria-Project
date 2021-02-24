@@ -30,7 +30,7 @@ jobs:
       - selenium-pageloadsuite-local
       - selenium-pageloadsuite-sauce
       - selenium-readersuite-local
-      # - pytest-cluster
+      - pytest-job
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -144,7 +144,7 @@ jobs:
     runs-on: ubuntu-latest
     services: 
       selenium:
-        image: selenium/standalone-firefox:3.141.59
+        image: selenium/standalone-firefox:3.141.59-zirconium
         ports: [ "4444:4444" ]
         volumes: ["/dev/shm:/dev/shm"]
     steps:
@@ -200,7 +200,8 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_local_sel.py --parallel --tests PageloadSuite | tee /home/runner/selenium-pageloadsuite-local.txt ; echo $?
+        run: python3 ./reader/browsertest/run_local_sel.py --parallel --tests PageloadSuite | tee /home/runner/selenium-pageloadsuite-local.txt #  ; echo $?
+        shell: bash
         env:
           CI_RUN: "true"
           CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
@@ -232,7 +233,7 @@ jobs:
     runs-on: ubuntu-latest
     services: 
       selenium:
-        image: selenium/standalone-firefox:3.141.59
+        image: selenium/standalone-firefox:3.141.59-zirconium
         ports: [ "4444:4444" ]
         volumes: ["/dev/shm:/dev/shm"]
     steps:
@@ -288,7 +289,8 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_local_sel.py --parallel --tests ReaderSuite | tee /home/runner/selenium-readersuite-local.txt ; echo $?
+        run: python3 ./reader/browsertest/run_local_sel.py --parallel --tests ReaderSuite | tee /home/runner/selenium-readersuite-local.txt #  ; echo $?
+        shell: bash
         env:
           CI_RUN: "true"
           CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
@@ -320,7 +322,7 @@ jobs:
     runs-on: ubuntu-latest
     services: 
       selenium:
-        image: selenium/standalone-firefox:3.141.59
+        image: selenium/standalone-firefox:3.141.59-zirconium
         ports: [ "4444:4444" ]
         volumes: ["/dev/shm:/dev/shm"]
     steps:
@@ -376,7 +378,8 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_local_sel.py --parallel | tee /home/runner/selenium-allsuites-local.txt ; echo $?
+        run: python3 ./reader/browsertest/run_local_sel.py --parallel | tee /home/runner/selenium-allsuites-local.txt #  ; echo $?
+        shell: bash
         env:
           CI_RUN: "true"
           CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
@@ -405,9 +408,7 @@ jobs:
     name: "Selenium: PageLoad Suite on Sauce Labs Firefox"
     needs: sandbox-ready
     runs-on: ubuntu-latest
-
     steps:
-
       # BEGIN SETUP
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -459,7 +460,8 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_tests_on_github.py --tests PageloadSuite | tee /home/runner/selenium-pageloadsuite-sauce.txt ; echo $?
+        run: python3 ./reader/browsertest/run_tests_on_github.py --tests PageloadSuite | tee /home/runner/selenium-pageloadsuite-sauce.txt #  ; echo $?
+        shell: bash
         env:
           SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
           SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
@@ -546,7 +548,7 @@ jobs:
       - selenium-pageloadsuite-local
       - selenium-pageloadsuite-sauce
       - selenium-readersuite-local
-      #- pytest-cluster
+      - pytest-job
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout
@@ -584,6 +586,11 @@ jobs:
       - name: Define BUILD_RESULT_SUBDIR
         run: echo "BUILD_RESULT_SUBDIR=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
         if: ${{ always() }}
+
+      - name: Populate report.html template
+        if: ${{ always() }}
+        run: envsubst '${GITHUB_REPOSITORY},${GITHUB_SHA}' < ./build/ci/report.html.tmpl > ./build/ci/report.html
+        shell: bash
 
       - name: Upload Build Results
         run: gsutil cp ./build/ci/report.html gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/report.html

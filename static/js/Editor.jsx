@@ -353,7 +353,7 @@ function getInitialSheetNodes(sheet) {
 }
 
 function transformSheetJsonToSlate(sheet) {
-    const sheetTitle = sheet.title.stripHtmlKeepLineBreaks();
+    const sheetTitle = sheet.title.stripHtmlConvertLineBreaks();
 
     let curNextNode = sheet.nextNode;
 
