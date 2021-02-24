@@ -476,6 +476,18 @@ class Test_AutoLinker(object):
         oref = Ref(section_tref)
         rf = Ref(title)
         regex = rf.regex()
+        i = library.get_index(title)
+        version = Version().load({"title": title, "versionTitle": vtitle, "language": lang})
+        if version is not None:
+            version.delete()
+        version = Version({
+            "chapter": i.nodes.create_skeleton(),
+            "versionTitle": vtitle,
+            "versionSource": "blabla",
+            "language": lang,
+            "title": i.title
+        })
+        version.save()
         #original count
         desired_link_count = self.desired_link_counts[title]
         # add some text (adding two more comment than there is already)
@@ -488,4 +500,4 @@ class Test_AutoLinker(object):
         tracker.modify_text(1, oref, vtitle, lang, chunk.text)
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert link_count == desired_link_count
-
+        version.delete()
