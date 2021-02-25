@@ -118,7 +118,7 @@ class WebPage(abst.AbstractMongoRecord):
             r"truah\.org\/\?s=",
             r"truah\.org\/(holiday|page|resource-types)\/",
             r"clevelandjewishnews\.com$",
-            r"clevelandjewishnews\.cpm\/news\/",
+            r"clevelandjewishnews\.com\/news\/",
             r"ots\.org\.il\/news\/",
             r"ots\.org\.il\/.+\/page\/\d+\/",
             r"ots\.org\.il\/tag\/.+",
