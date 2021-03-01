@@ -4278,8 +4278,10 @@ def rollout_health_api(request):
         statusCode = urllib.request.urlopen(url).status
         return statusCode == 200
 
+    allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable()
+
     resp = {
-        'allReady': isRedisReachable() and isMultiserverReachable() and isNodeJsReachable(),
+        'allReady': allReady,
         'multiserverReady': isMultiserverReachable(),
         'redisReady': isRedisReachable(),
         'nodejsReady': isNodeJsReachable(),
@@ -4288,7 +4290,12 @@ def rollout_health_api(request):
 
     print(resp)
 
-    return http.JsonResponse(resp)
+    if allReady:
+        statusCode = 200
+    else:
+        statusCode = 503
+
+    return http.JsonResponse(resp, status=statusCode)
 
 @login_required
 def daf_roulette_redirect(request):
