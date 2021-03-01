@@ -307,31 +307,33 @@ class Util {
         };
 
         String.prototype.stripHtml = function() {
-           /*if (INBROWSER) {
-             var tmp = document.createElement("div");
-             tmp.innerHTML = this;
-             return tmp.textContent|| "";
-           } else {*/
-            return striptags(this.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' '));
-           //}
+          return striptags(this.replace(/\u00a0/g, ' ').decodeHtmlEntities());
         };
 
         String.prototype.stripNikkud = function() {
           return this.replace(/[\u0591-\u05C7]/g,"");
         }
 
-        String.prototype.stripHtmlKeepLineBreaks = function() {
-            return striptags(this.replace(/\u00a0/g, ' ').replace(/&nbsp;/g, ' ').replace(/<p>/g, ' <p>').replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' '));
+        String.prototype.stripHtmlConvertLineBreaks = function() {
+          // Converts line breaks to spaces
+          return striptags(this.replace(/\u00a0/g, ' ').decodeHtmlEntities().replace(/<p>/g, ' <p>').replace(/(<br>|\n)+/g,' '));
         };
 
-
         String.prototype.escapeHtml = function() {
-            return this.replace(/&/g,'&amp;')
-                        .replace(/</g,'&lt;')
-                        .replace(/>/g,'&gt;')
-                        .replace(/'/g,'&apos;')
-                        .replace(/"/g,'&quot;')
-                        .replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
+          return this.replace(/&/g,'&amp;')
+                      .replace(/</g,'&lt;')
+                      .replace(/>/g,'&gt;')
+                      .replace(/'/g,'&apos;')
+                      .replace(/"/g,'&quot;')
+                      .replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1<br />$2');
+        };
+
+        String.prototype.decodeHtmlEntities = function() {
+          return this.replace(/&nbsp;/gi, " ")
+                      .replace(/&amp;/gi, "&")
+                      .replace(/&quot;/gi, `"`)
+                      .replace(/&lt;/gi, "<")
+                      .replace(/&gt;/gi, ">");
         };
 
         if (!String.prototype.startsWith) {

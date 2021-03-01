@@ -6,18 +6,28 @@
 ---
 substitutions:
   _ENV_NAME: prod
-  _GKE_REGION: us-east1-b
+  # _GKE_REGION: us-east1-b
   _GKE_CLUSTER: cluster-1
   _SUBDOMAIN: readonly
   _GKE_NAMESPACE: default
-  _K8S_ADMIN_BRANCH: master
+  # _K8S_ADMIN_BRANCH: master
+  _MCS_BRANCH: master
 
 steps:
+
+  # git clone mobileContentServer
+  # trigger build job
+  - name: gcr.io/cloud-builders/git
+    id: mcs_clone
+    args: [ "clone", "https://github.com/Sefaria/MobileContentServer.git", "--branch", "${_MCS_BRANCH}", "--single-branch"]
+
   - name: gcr.io/cloud-builders/gcloud
     entrypoint: "bash"
     args: [ "-c", "./deployMobileContent.bash" ]
-    dir: build/mobileContentServer
+    dir: MobileContentServer/build/
     id: set_variable
+    wait_for:
+      - mcs_clone
     env:
       - 'ENV_NAME=${_ENV_NAME}'
       - 'GKE_CLUSTER=${_GKE_CLUSTER}'

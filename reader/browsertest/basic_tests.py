@@ -176,9 +176,14 @@ class PagesLoad(AtomicTest):
         print("Done loading home")
         self.load_people()
         print("Done loading people ")
-        #logged in stuff
+
+class PagesLoadLoggedIn(AtomicTest):
+    suite_class = PageloadSuite
+    every_build = True
+
+    def body(self):
+        self.load_toc()
         self.login_user()
-        
         self.load_my_profile()
         # self.load_notifications()
         print("Done loading user")
@@ -187,7 +192,7 @@ class PagesLoad(AtomicTest):
         print("Done loading account")
         self.load_private_sheets()
         print("Done loading private sheets")
-        self.load_private_groups()
+        ## self.load_private_groups() # fails -- /my/groups no longer exists
         print("Done loading private groups")
         self.load_notifications()
 

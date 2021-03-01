@@ -1,108 +1,88 @@
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: batch/v1
+kind: Job
 metadata:
   labels:
-    ci-pod-test-name: ${DEPLOY_ENV}
-  name: ${DEPLOY_ENV}-pytest-sandbox-${TIMESTAMP}
+    ci-run: "${GITHUB_RUN_ID}"
+    test-name: pytest
+  name: "${DEPLOY_ENV}-pytest-sandbox-${GITHUB_RUN_ID}"
 spec:
-  restartPolicy: Never
-  containers:
-    - name: web
-      image: "${WEB_IMAGE_NAME}:${WEB_IMAGE_TAG}"
-      imagePullPolicy: Always
-      command: ["bash"]
-      args: ["-c", "while true; do echo Waiting; sleep 100; done"]
-      env:
-        # WEB_CONCURRENCY is used for determining the number of server workers
-        - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: /app/logging-secret.json
-        - name: ENV_NAME
-          value: "${DEPLOY_ENV}"
-        - name: STACK_COMPONENT
-          value: web
-        # - name: CI_RUN
-        #   value: "true"
-      ports:
-        - containerPort: 80
-          protocol: TCP
-      resources:
-        requests:
-          memory: "9Gi"
-          cpu: "1500m"
-        limits:
-          memory: "10Gi"
-          cpu: "2000m"
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        ci-run: "${GITHUB_RUN_ID}"
+        test-name: pytest
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: web
+          image: "${WEB_IMAGE_NAME}:${WEB_IMAGE_TAG}"
+          imagePullPolicy: Always
+          command: ["bash"]
+          args: ["-c", "pip3 install pytest-django; pytest -v -m \"not deep and not failing\" ./sefaria; exit 0"]
+          env:
+            # WEB_CONCURRENCY is used for determining the number of server workers
+            - name: GOOGLE_APPLICATION_CREDENTIALS
+              value: /app/logging-secret.json
+            - name: ENV_NAME
+              value: "${DEPLOY_ENV}"
+            - name: STACK_COMPONENT
+              value: web
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          resources:
+            requests:
+              memory: "3Gi"
+              cpu: "500m"
+            limits:
+              memory: "3Gi"
+              cpu: "1000m"
 
-      volumeMounts:
-        # https://stackoverflow.com/questions/53491603/kubernetes-volumemounts-a-file-not-a-directory
-        - mountPath: /app/sefaria/local_settings.py
-          name: local-settings
-          subPath: local_settings.py
-          readOnly: true
-        - mountPath: /varnish-secret
-          name: varnish-secret
-          readOnly: true
-        - mountPath: /school-lookup-data
-          name: school-lookup-data
-          readOnly: true
-        - mountPath: /client-secret
-          name: client-secret
-          readOnly: true
-        - mountPath: /google-cloud-secret
-          name: backup-manager-secret
-          readOnly: true
-        - mountPath: /app/logging-secret.json
-          name: logging-secret
-          subPath: logging-secret.json
-          readOnly: true
-        - mountPath: /log
-          name: logdir
-    - name: django-log
-      image: busybox
-      args: [/bin/sh, -c, 'touch /log/django_request.log && chmod 777 /log/django_request.log && tail -n+1 -f /log/django_request.log | grep -v "WARNING django.request" > /dev/stderr']
-      volumeMounts:
+          volumeMounts:
+            # https://stackoverflow.com/questions/53491603/kubernetes-volumemounts-a-file-not-a-directory
+            - mountPath: /app/sefaria/local_settings.py
+              name: local-settings
+              subPath: local_settings.py
+              readOnly: true
+            - mountPath: /varnish-secret
+              name: varnish-secret
+              readOnly: true
+            - mountPath: /school-lookup-data
+              name: school-lookup-data
+              readOnly: true
+            - mountPath: /client-secret
+              name: client-secret
+              readOnly: true
+            - mountPath: /google-cloud-secret
+              name: backup-manager-secret
+              readOnly: true
+            - mountPath: /app/logging-secret.json
+              name: logging-secret
+              subPath: logging-secret.json
+              readOnly: true
+            - mountPath: /log
+              name: logdir  
+      volumes:
+        - name:  local-settings
+          secret:
+            secretName: local-settings-${DEPLOY_ENV}
+        - name: client-secret
+          secret:
+            secretName: google-client-secret-${DEPLOY_ENV}
+        - name: backup-manager-secret  # used to access google cloud
+          secret:
+            secretName: backup-manager-secret-${DEPLOY_ENV}
+        - name: logging-secret
+          secret:
+            secretName: logging-secret-${DEPLOY_ENV}
+        - name: varnish-secret
+          secret:
+            secretName: varnish-secret-${DEPLOY_ENV}
+        - name:  school-lookup-data
+          secret:
+            secretName: school-lookup-data-${DEPLOY_ENV}
         - name: logdir
-          mountPath: /log
-      resources:
-        requests:
-          memory: "512Mi"
-          cpu: "200m"
-        limits:
-          memory: "796Mi"
-          cpu: "400m"   
-    - name: gunicorn-log
-      image: busybox
-      args: [/bin/sh, -c, 'touch /log/gunicorn-error.log && chmod 777 /log/gunicorn-error.log && tail -n+1 -f /log/gunicorn-error.log | grep -v "WARNING django.request" > /dev/stderr']
-      volumeMounts:
-        - name: logdir
-          mountPath: /log
-      resources:
-        requests:
-          memory: "512Mi"
-          cpu: "200m"
-        limits:
-          memory: "796Mi"
-          cpu: "400m"    
-  volumes:
-    - name:  local-settings
-      secret:
-        secretName: local-settings-${DEPLOY_ENV}
-    - name: client-secret
-      secret:
-        secretName: google-client-secret-${DEPLOY_ENV}
-    - name: backup-manager-secret  # used to access google cloud
-      secret:
-        secretName: backup-manager-secret-${DEPLOY_ENV}
-    - name: logging-secret
-      secret:
-        secretName: logging-secret-${DEPLOY_ENV}
-    - name: varnish-secret
-      secret:
-        secretName: varnish-secret-${DEPLOY_ENV}
-    - name:  school-lookup-data
-      secret:
-        secretName: school-lookup-data-${DEPLOY_ENV}
-    - name: logdir
-      emptyDir: {}    
+          emptyDir: {}   
 ...

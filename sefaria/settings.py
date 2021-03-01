@@ -295,9 +295,9 @@ CACHES = {
     }
 }
 
-
+"""
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "innovation-2021-banner",
+    "name":       "innovation-2021-banner-3",
     "style":      "banner", # "modal" or "banner"
     "repetition": 1,
     "condition":  {
@@ -307,8 +307,8 @@ GLOBAL_INTERRUPTING_MESSAGE = {
         "debug": False,
     }
 }
-
-# GLOBAL_INTERRUPTING_MESSAGE = None
+"""
+GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab environment specific settings from a file which
 # is left out of the repo.
