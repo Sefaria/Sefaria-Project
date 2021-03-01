@@ -6,6 +6,7 @@ text.py
 import time
 import logging
 from functools import reduce
+from typing import Optional, Union
 logger = logging.getLogger(__name__)
 
 import sys
@@ -923,6 +924,64 @@ class AbstractTextRecord(object):
             base_text = AbstractTextRecord.remove_html(base_text)
         return JaggedTextArray(base_text)
 
+    def get_top_level_jas(self) -> tuple:
+        """
+        Returns tuple with two items 
+            1) ja_list: list of highest level JaggedArrays
+            2) parent_key_list: list of tuples (parent, ja_key) where parent is the SchemaNode parent of the corresponding ja in ja_list and ja_key is the key of that ja in parent
+        parent_key_list is helpful if you need to update each jagged array
+        """
+        return self._get_top_level_jas_helper(getattr(self, self.text_attr, None))
+
+    def get_node_by_key_list(self, key_list: list) -> tuple:
+        """
+        Given return node at self.text_attr[addr1][addr2]...[addr_n] where addr_i in address_list
+        There doesn't seem to be a nice way to do this in Python
+        Returns tuple of three items
+            1) node at key_list
+            2) parent node
+            3) key of node in parent node
+        Returns (None, None, None) if address_list has a non-existing key
+        """
+        curr_node = getattr(self, self.text_attr, None)
+        parent, node_key = None, None
+        for key in key_list:
+            parent = curr_node
+            node_key = key
+            curr_node = curr_node.get(key)
+            if curr_node is None:
+                return None, None, None
+        return curr_node, parent, node_key
+    
+    def _get_top_level_jas_helper(self, item: Union[dict, list], parent=None, item_key=None) -> tuple:
+        """
+        Helper function for get_top_level_jas to help with recursion
+        """
+        jas = []
+        parent_key_list = []
+        if isinstance(item, dict):
+            for key, child in item.items():
+                temp_jas, temp_parent_key_list = self._get_top_level_jas_helper(child, item, key)
+                jas += temp_jas
+                parent_key_list += temp_parent_key_list
+        elif isinstance(item, list):
+            jas += [item]
+            parent_key_list = [(parent, item_key)]
+        return jas, parent_key_list
+
+    def _trim_ending_whitespace(self):
+        """
+        Trims blank segments from end of every section
+        :return:
+        """
+        jas, parent_key_list = self.get_top_level_jas()
+        for ja, (parent_node, ja_key) in zip(jas, parent_key_list):
+            new_ja = JaggedTextArray(ja).trim_ending_whitespace().array()
+            if parent_node is None:
+                setattr(self, self.text_attr, new_ja)
+            else:
+                parent_node[ja_key] = new_ja
+
     def as_string(self):
         content = getattr(self, self.text_attr, None)
         if isinstance(content, str):
@@ -1134,6 +1193,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                 self.priority = float(self.priority)
             except ValueError as e:
                 self.priority = None
+        self._trim_ending_whitespace()
 
     def _sanitize(self):
         # sanitization happens on TextChunk saving
@@ -1189,7 +1249,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     def walk_thru_contents(self, action, item=None, tref=None, heTref=None, schema=None, addressTypes=None, terms_dict=None):
         """
         Walk through content of version and run `action` for each segment. Only required parameter to call is `action`
-        :param func action: (segment_str, tref, version) => None
+        :param func action: (segment_str, tref, he_tref, version) => None
         """
         def get_primary_title(lang, titles):
             return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
@@ -1242,6 +1302,28 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                     print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
         elif isinstance(item, str):
             action(item, tref, heTref, self)
+
+    def set_text_at_segment_ref(self, oref, new_text: str) -> None:
+        """
+        Modifies version in place at `oref`
+        Currently, oref is required to be a segment ref for simplicity,
+        although it is not difficult to modify this function to handle any jagged array
+        """
+        assert oref.is_segment_level(), "set_text_at_segment_ref requires a segment level ref"
+        key_list = oref.storage_address(format='list')[1:]  # ignore first element which is 'chapter
+        highest_ja, parent_node, ja_key = self.get_node_by_key_list(key_list)
+        if highest_ja is None:
+            logger.warning(f'Could not find address "{", ".join(key_list)}" in version {self}. Full oref {oref.normal()}')
+            return
+        assert isinstance(highest_ja, list)
+
+        updated_ja = JaggedArray(highest_ja).set_element([s-1 for s in oref.sections], new_text, '').array()
+        # NOTE: technically the following lines are unnecessary since previous line edits ja in place
+        # however, since this is very unclear (and error prone), best to explicitly update ja
+        if parent_node is None:
+            self.chapter = updated_ja
+        else:
+            parent_node[ja_key] = updated_ja
 
 
 class VersionSet(abst.AbstractMongoSet):
@@ -1526,13 +1608,6 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
             # check for strings where arrays expected, except for last pass
             if pos < self._ref_depth - 2 and isinstance(parent_content[val - 1], str):
                 parent_content[val - 1] = [parent_content[val - 1]]
-
-    def _trim_ending_whitespace(self):
-        """
-        Trims blank segments from end of every section
-        :return:
-        """
-        self.text = JaggedTextArray(self.text).trim_ending_whitespace().array()
 
     def _check_available_text_pre_save(self):
         """
@@ -3975,13 +4050,15 @@ class Ref(object, metaclass=RefCacheType):
             return "Z"
 
     """ Methods for working with Versions and VersionSets """
-    def storage_address(self):
+    def storage_address(self, format="string"):
         """
         Return the storage location within a Version for this Ref.
 
-        :return string:
+        :return string or list: if format == 'string' return string where each address is separated by period else return list of addresses
         """
-        return ".".join(["chapter"] + self.index_node.address()[1:])
+        address_list = ["chapter"] + self.index_node.address()[1:]
+        if format == "list": return address_list
+        return ".".join(address_list)
 
     def part_projection(self):
         """
