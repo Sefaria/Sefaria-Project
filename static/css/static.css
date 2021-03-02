@@ -722,6 +722,9 @@ p.registration-links a:hover{
 #donatePage .notice{
   font-style: italic;
 }
+#donatePage .covidNotice span {
+    font-size: 0.8em;
+}
 #donatePage .donateIntroduction{
   text-align: center;
 }

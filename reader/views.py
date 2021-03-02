@@ -2372,11 +2372,14 @@ def terms_api(request, name):
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 
-def get_name_completions(name, limit, ref_only):
+def get_name_completions(name, limit, ref_only, topic_override=False):
     lang = "he" if is_hebrew(name) else "en"
     completer = library.ref_auto_completer(lang) if ref_only else library.full_auto_completer(lang)
     object_data = None
     ref = None
+    topic = None
+    if topic_override:
+        topic = Topic().load({"titles.text": name})
     try:
         ref = Ref(name)
         inode = ref.index_node
@@ -2411,7 +2414,8 @@ def get_name_completions(name, limit, ref_only):
         "completion_objects": completion_objects,
         "lang": lang,
         "object_data": object_data,
-        "ref": ref
+        "ref": ref,
+        "topic": topic,
     }
 
 
@@ -2419,16 +2423,23 @@ def get_name_completions(name, limit, ref_only):
 def name_api(request, name):
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
-
+    topic_override = name.startswith('#')
+    name = name[1:] if topic_override else name
     # Number of results to return.  0 indicates no limit
     LIMIT = int(request.GET.get("limit", 10))
     ref_only = request.GET.get("ref_only", False)
-    completions_dict = get_name_completions(name, LIMIT, ref_only)
+    completions_dict = get_name_completions(name, LIMIT, ref_only, topic_override)
     ref = completions_dict["ref"]
+    topic = completions_dict["topic"]
+    d = {
+        "lang": completions_dict["lang"],
+        "is_ref": False,
+        "completions": completions_dict["completions"],
+        "completion_objects": completions_dict["completion_objects"],
+    }
     if ref:
         inode = ref.index_node
-        d = {
-            "lang": completions_dict["lang"],
+        d.update({
             "is_ref": True,
             "is_book": ref.is_book_level(),
             "is_node": len(ref.sections) == 0,
@@ -2444,31 +2455,21 @@ def name_api(request, name):
             "internalToSections": ref.toSections,
             "sections": ref.normal_sections(),  # this switch is to match legacy behavior of parseRef
             "toSections": ref.normal_toSections(),
-            "completions": completions_dict["completions"],
-            "completion_objects": completions_dict["completion_objects"],
             # todo: ADD textual completions as well (huh?)
             "examples": []
-        }
+        })
         if inode.has_numeric_continuation():
             inode = inode.get_default_child() if inode.has_default_child() else inode
             d["sectionNames"] = inode.sectionNames
             d["heSectionNames"] = list(map(hebrew_term, inode.sectionNames))
             d["addressExamples"] = [t.toStr("en", 3*i+3) for i,t in enumerate(inode._addressTypes)]
             d["heAddressExamples"] = [t.toStr("he", 3*i+3) for i,t in enumerate(inode._addressTypes)]
-
-    else:
-        # This is not a Ref
-        d = {
-            "lang": completions_dict["lang"],
-            "is_ref": False,
-            "completions": completions_dict["completions"],
-            "completion_objects": completions_dict["completion_objects"],
-        }
-
+    elif topic:
+        d['topic_slug'] = topic.slug
+    elif completions_dict["object_data"]:
         # let's see if it's a known name of another sort
-        if completions_dict["object_data"]:
-            d["type"] = completions_dict["object_data"]["type"]
-            d["key"] = completions_dict["object_data"]["key"]
+        d["type"] = completions_dict["object_data"]["type"]
+        d["key"] = completions_dict["object_data"]["key"]
 
     return jsonResponse(d)
 

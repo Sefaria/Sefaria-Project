@@ -220,6 +220,10 @@ class Header extends Component {
           Sefaria.track.event("Search", action, query);
           this.clearSearchBox();
           this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+        } else if (!!d["topic_slug"]) {
+          Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
+          this.clearSearchBox();
+          this.props.openTopic(d["topic_slug"]);
         } else if (d["type"] === "Person" || d["type"] === "Group" || d["type"] === "TocCategory") {
           this.redirectToObject(d["type"], d["key"]);
         } else {
@@ -362,6 +366,7 @@ Header.propTypes = {
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,
   toggleSignUpModal:           PropTypes.func.isRequired,
+  openTopic:                   PropTypes.func.isRequired,
 };
 
 

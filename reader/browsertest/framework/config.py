@@ -4,7 +4,7 @@ BS_MAX_THREADS = 2
 SAUCE_MAX_THREADS = 5
 
 REMOTE_URL = "https://vecino.cauldron.sefaria.org"
-LOCAL_URL = "http://localhost:80"
+LOCAL_URL = "http://localhost:8000"
 
 TEMPER = 15  # default wait time in seconds
 # According to http://gs.statcounter.com/#browser_version-ww-monthly-201602-201604-bar
