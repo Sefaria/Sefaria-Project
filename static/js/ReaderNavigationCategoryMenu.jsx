@@ -66,7 +66,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
               />
               <div className={contentClasses}>
                 <div className="sidebarLayout">
-                  <div className="contentInner">
+                  <div className="contentInner followsContentLang">
                     {hideNavHeader ? 
                     <div className="navTitle">
                       <h1>

@@ -1164,6 +1164,12 @@ input.noselect {
   display: flex;
   flex-direction: row;
 }
+.interface-hebrew .sidebarLayout {
+  direction: rtl;
+}
+.readerPanel.hebrew .followsContentLang {
+  direction: rtl;
+}
 .navSidebar {
   width: 380px;
   background-color: #FBFBFA;
@@ -1298,7 +1304,7 @@ input.noselect {
   justify-content: space-between;
   align-items: center;
 }
-.interface-hebrew .readerNavTop{
+.interface-hebrew .readerNavTop {
   direction: rtl;
 }
 .readerNavTop .readerNavTopStart {
@@ -1820,7 +1826,7 @@ a.navBlockTitle {
 .interface-hebrew .navBlockDescription.clamped .int-he {
   display: -webkit-box;
   -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;  
+  -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .bilingual .navBlock .he {
