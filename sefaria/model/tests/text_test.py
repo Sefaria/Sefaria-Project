@@ -639,6 +639,18 @@ class TestModifyVersion:
         assert self.complexVersion.chapter["Node 1"]["Node 2"] == [["blah", "blarg"], ['more content']]
         self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2"), [['yo'],['', 'blah'],["original text", "2nd"]])  # set back to original content for other tests
 
+    def test_sub_content_with_ref_padding(self):
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 3:5"), "new text")
+        assert self.simpleVersion.chapter[2][2] == ""
+        assert self.simpleVersion.chapter[2][3] == ""
+        assert self.simpleVersion.chapter[2][4] == "new text"
+
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 5:1"), "new text2")
+        assert self.simpleVersion.chapter[3] == []
+        assert self.simpleVersion.chapter[4][0] == "new text2"
+
+        # reset
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle}"), [['1'], ['2'], ["original text", "2nd"]])
 
     def test_get_top_level_jas_text_chunk(self):
         tc = model.Ref(self.simpleIndexTitle).text('he')
