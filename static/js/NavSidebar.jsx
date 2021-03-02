@@ -51,14 +51,16 @@ const Module = ({children, blue}) => {
 };
 
 
-const ModuleTitle = ({children}) => (
-  <h3><IntText>{children}</IntText></h3>
+const ModuleTitle = ({children, en, he}) => (
+  children ?
+    <h3><IntText>{children}</IntText></h3>
+    : <h3><IntText en={en} he={he} /></h3>
 );
 
 
 const TitledText = ({enTitle, heTitle, enText, heText}) => {
   return <Module>
-    <ModuleTitle><IntText en={enTitle} he={heTitle} /></ModuleTitle>
+    <ModuleTitle en={enTitle} he={heTitle} />
     <IntText en={enText} he={heText} />
   </Module>
 };
