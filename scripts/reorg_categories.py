@@ -20,6 +20,7 @@ for en, he in [
     ("Tanakh Commentary", "מפרשי תנ״ך"),
     ("Mishnah Commentary", "מפרשי תלמוד"),
     ("Talmud Commentary", "מפרשי משנה"),
+    ("Eliezer Berkovits", "אליעזר ברקוביץ")
 ]:
     new_term = Term()
     new_term.name = en
@@ -227,6 +228,7 @@ cat_kook = create_category(["Jewish Thought", "Modern", "Rav Kook"], "Rav Kook",
 books_kook = ["Orot",
               "Orot HaKodesh",
               "Orot HaTorah",
+              "Orot HaTeshuvah",
               "For the Perplexed of the Generation",
               "Maamar Hador",
               "Shmonah Kvatzim",
@@ -459,7 +461,9 @@ a_books = [
     'Pele Yoetz',
     'Shemirat HaLashon',
     "Yesod V'Shoresh HaAvodah",
-    "Maamar Torat HaBayit"]
+    "Maamar Torat HaBayit",
+    "Ahavat Yisrael",
+    "Kuntres Sefat Tamim"]
 
 m_books = [
     "Tzipita L'Yeshuah",
@@ -848,7 +852,8 @@ co = [
     'Chibbah Yeteirah on Torah',
     'Depths of Yonah',
     'From David to Destruction',
-    "JPS 1985 Footnotes"
+    "JPS 1985 Footnotes",
+    "Moses; A Human Life"
 ]
 
 chida = [
@@ -866,6 +871,11 @@ rr_books = ['Redeeming Relevance; Deuteronomy',
       'Redeeming Relevance; Numbers'
 ]
 
+ar_books = [
+    "MeAvur HaAretz; on Joshua",
+    "Ish Leshivto; on Judges",
+    "Ish Kilvavo; on Samuel"
+]
 
 move_category_into(["Tanakh", "Commentary", "Malbim Beur Hamilot"], ["Tanakh", "Commentary", "Malbim"])
 
@@ -875,6 +885,7 @@ mo_cat = create_category(["Tanakh", "Modern Commentary on Tanakh"], "Modern Comm
                            "פירושים מודרניים על התנ״ך", searchRoot="Tanakh Commentary")
 chida_cat = create_category(["Tanakh", "Acharonim on Tanakh", "Chida"], "Chida", 'חיד״א')
 rr_cat = create_category(["Tanakh", "Modern Commentary on Tanakh", "Redeeming Relevance"], "Redeeming Relevance", "פדיון הרלוונטיות")
+ar_cat = create_category(["Tanakh", "Modern Commentary on Tanakh", "Avraham Remer"], "Avraham Remer", "אברהם רמר")
 
 c = Category().load({"path": ["Tanakh", "Targum"]})
 c.searchRoot = "Targum"
@@ -888,7 +899,8 @@ groups = [
     (ah, ah_cat),
     (co, mo_cat),
     (chida, chida_cat),
-    (rr_books, rr_cat)
+    (rr_books, rr_cat),
+    (ar_books, ar_cat)
 ]
 
 for works, cat in groups:
@@ -1028,7 +1040,8 @@ co = ['Beur Reuven on Bava Kamma',
       'Reshimot Shiurim',
       'Steinsaltz',
       'Daf Shevui',
-      "Abraham Cohen Footnotes to the English Translation of Masechet Berakhot"]
+      "Abraham Cohen Footnotes to the English Translation of Masechet Berakhot",
+      "Rereading the Rabbis; A Woman's Voice"]
 
 rc = [
     'Korban Netanel',
@@ -1189,6 +1202,5 @@ for c in cs:
     else:
         print("Category without term: {}".format(c.get_primary_title()))
 
-# Category without term: Eliezer Berkovits
 # Click Talmud -> Commentary of Chida (crash)
 
