@@ -30,6 +30,7 @@ urlpatterns = [
     url(r'^texts/(?P<cats>.+)?$', reader_views.texts_category_list),
     url(r'^search/?$', reader_views.search),
     url(r'^search-autocomplete-redirecter/?$', reader_views.search_autocomplete_redirecter),
+    url(r'^calendars/?$', reader_views.calendars),
     url(r'^collections/?$', reader_views.public_collections),
     url(r'^collections/new$', reader_views.edit_collection_page),
     url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),

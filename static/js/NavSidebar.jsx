@@ -39,6 +39,7 @@ const Modules = ({type, props}) => {
     "JoinTheConversation": JoinTheConversation,
     "GetTheApp":           GetTheApp,
     "StayConnected":       StayConnected,
+    "AboutStudySchedules": AboutStudySchedules,
   };
   const ModuleType = moduleTypes[type];
   return <ModuleType {...props} />
@@ -326,6 +327,14 @@ const StayConnected = () => {
     </Module>
   );
 };
+
+
+const AboutStudySchedules = () => (
+  <Module>
+    <ModuleTitle>Study Schedules</ModuleTitle>
+    <IntText>Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar. Following this practice, many other calendars have been created to help communities of learners work through specific texts together.</IntText>
+  </Module>
+);
 
 
 

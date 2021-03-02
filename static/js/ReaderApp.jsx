@@ -591,6 +591,11 @@ class ReaderApp extends Component {
             hist.url = "collections";
             hist.mode = "collcetionsPublic";
             break;
+          case "calendars":
+            hist.title = Sefaria._("Study Schedule") + " | " + Sefaria._(siteName);
+            hist.url = "calendars";
+            hist.mode = "calendars";
+            break;
           case "myNotes":
             hist.title = Sefaria._("My Notes on " + siteName);
             hist.url = "my/notes";
@@ -1098,6 +1103,9 @@ class ReaderApp extends Component {
 
     } else if (path == "/notifications") {
       this.showNotifications();
+
+    } else if (path == "/calendars") {
+      this.showCalendars();
 
     } else if (path == "/torahtracker") {
       this.showUserStats();
@@ -1688,6 +1696,9 @@ class ReaderApp extends Component {
   }
   showNotifications() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "notifications"});
+  }
+  showCalendars() {
+    this.setStateInHeaderOrSinglePanel({menuOpen: "calendars"});
   }
   showUserStats() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "user_stats"});

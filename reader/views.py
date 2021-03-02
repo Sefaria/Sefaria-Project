@@ -895,6 +895,12 @@ def texts_list(request):
     return menu_page(request, page="navigation", title=title, desc=desc)
 
 
+def calendars(request):
+    title = _("Study Schedules") + " | " + _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
+    desc  = _("Weekly Torah portions, Daf Yomi and other schedules for Torah learning.")
+    return menu_page(request, page="calendars", title=title, desc=desc)
+
+
 @login_required
 def saved(request):
     title = _("My Saved Content")
@@ -936,6 +942,7 @@ def story_editor(request):
 def user_stats(request):
     title = _("User Stats")
     return menu_page(request, page="user_stats", title=title)
+
 
 @login_required
 def account(request):

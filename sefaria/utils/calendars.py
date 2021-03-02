@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-calendar.py - functions for looking up information relating texts to dates.
+ar.py - functions for looking up information relating texts to dates.
 
 Uses MongoDB collections: dafyomi, parshiot
 """
@@ -44,6 +44,7 @@ def daily_929(datetime_obj):
         'category': rf.index.get_primary_category()
     }]
 
+
 @graceful_exception(logger=logger, return_value=[])
 def daf_yomi(datetime_obj):
     """
@@ -66,6 +67,7 @@ def daf_yomi(datetime_obj):
         })
     return daf_yomi
 
+
 @graceful_exception(logger=logger, return_value=[])
 def daily_mishnayot(datetime_obj):
     mishnah_items = []
@@ -82,6 +84,7 @@ def daily_mishnayot(datetime_obj):
         'category': rf.index.get_primary_category()
     })
     return mishnah_items
+
 
 @graceful_exception(logger=logger, return_value=[])
 def daily_rambam(datetime_obj):
@@ -213,14 +216,17 @@ def make_haftarah_response_from_calendar_entry(db_parasha, custom=None):
 
 def make_parashah_response_from_calendar_entry(db_parasha):
     rf = model.Ref(db_parasha["ref"])
+    parasha_topic = model.Topic().load({"parasha": db_parasha["parasha"]})
     parasha = {
         'title': {'en': 'Parashat Hashavua', 'he': 'פרשת השבוע'},
         'displayValue': {'en': db_parasha["parasha"], 'he': hebrew_parasha_name(db_parasha["parasha"])},
         'url': rf.url(),
         'ref': rf.normal(),
+        'heRef': rf.he_normal(),
         'order': 1,
         'category': rf.index.get_primary_category(),
-        'extraDetails': {'aliyot': db_parasha["aliyot"]}
+        'extraDetails': {'aliyot': db_parasha["aliyot"]},
+        'description': parasha_topic.description
     }
     return [parasha]
 
@@ -228,6 +234,7 @@ def make_parashah_response_from_calendar_entry(db_parasha):
 def aliyah_ref(parasha_db, aliyah):
     assert 1 <= aliyah <= 7
     return model.Ref(parasha_db["aliyot"][aliyah - 1])
+
 
 def get_parasha(datetime_obj, diaspora=True, parasha=None):
     """
@@ -282,12 +289,14 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items = [item for item in cal_items if item]
     return cal_items
 
+
 def get_keyed_calendar_items(diaspora=True, custom=None):
     cal_items = get_todays_calendar_items(diaspora=diaspora, custom=custom)
     cal_dict = {}
     for cal_item in cal_items:
         cal_dict[cal_item["title"]["en"]] = cal_item
     return cal_dict
+
 
 def get_todays_calendar_items(diaspora=True, custom=None):
     return get_all_calendar_items(timezone.localtime(timezone.now()), diaspora=diaspora, custom=custom)

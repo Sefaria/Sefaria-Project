@@ -25,6 +25,7 @@ import UserHistoryPanel  from './UserHistoryPanel';
 import UserProfile  from './UserProfile';
 import UpdatesPanel  from './UpdatesPanel';
 import HomeFeed  from './HomeFeed';
+import CalendarsPage from './CalendarsPage'
 import StoryEditor  from './StoryEditor';
 import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
@@ -1003,7 +1004,7 @@ class ReaderPanel extends Component {
                     navHome={this.openMenu.bind(null, "navigation")} />);
 
     } else if (this.state.menuOpen === "user_stats") {
-      menu = (<UserStats/>);
+      menu = (<UserStats />);
 
     } else if (this.state.menuOpen === "modtools") {
       menu = (<ModeratorToolsPanel
@@ -1035,6 +1036,9 @@ class ReaderPanel extends Component {
           navHome={this.openMenu.bind(null, "navigation")}
         />
       );
+    } else if (this.state.menuOpen === "calendars") {
+      menu = (<CalendarsPage 
+                multiPanel={this.props.multiPanel} />);
     }
 
     let classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};

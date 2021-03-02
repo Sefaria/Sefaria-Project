@@ -1784,7 +1784,7 @@ input.resourcesLink {
   padding-bottom: 12px;
   border-top: 1px solid #EDEDEC;
 }
-.navBlock.textCategoryListing {
+.navBlock.withColorLine {
   border-top: 4px solid transparent;
 }
 .navBlockTitle {
@@ -6807,6 +6807,17 @@ body #keyboardInputMaster tbody tr td table tbody tr td:active,
 body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
     border: 1px solid #eee;
     background: #eee;
+}
+.calendarRef {
+  font-size: 18px;
+  color: #666;
+  display: flex;
+}
+.calendarRef a {
+  color: inherit;
+}
+.calendarRef img {
+  margin-top: 2px;
 }
 #editCollectionPageContainerInner {
   position: relative;

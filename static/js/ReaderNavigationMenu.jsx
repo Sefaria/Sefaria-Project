@@ -90,7 +90,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   let categoryListings = Sefaria.toc.map(cat => {
     const style = {"borderColor": Sefaria.palette.categoryColor(cat.category)};
     const openCat = e => {e.preventDefault(); setCategories([cat.category])};
-    return <div className="textCategoryListing navBlock" style={style}>
+    return <div className="navBlock withColorLine" style={style}>
             <a href={`/texts/${cat.category}`} className="navBlockTitle" data-cat={cat.category} onClick={openCat}>
               <span className="en">{cat.category}</span>
               <span className="he">{cat.heCategory}</span>

@@ -62,11 +62,7 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
 
   const sidebarModules = [
     {type: "AboutTopics"},
-    {type: "TrendingTopics", 
-     props: {
-        texts: ["Genesis", "Pirkei Avot", "Shabbat", "Pesach Haggadah", "Sefer HaChinukh"]
-      }
-    },
+    {type: "TrendingTopics"},
     {type: "GetTheApp"},
     {type: "SupportSefaria"},
   ];
