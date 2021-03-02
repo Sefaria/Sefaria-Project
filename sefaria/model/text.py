@@ -870,7 +870,6 @@ class AbstractSchemaContent(object):
         assert not ref.is_range()
         return self.sub_content(ref.index_node.version_address(), [i - 1 for i in ref.sections], value)
 
-    #TODO: test me
     def sub_content(self, key_list=None, indx_list=None, value=None):
         """
         Get's or sets values deep within the content of this version.
@@ -888,15 +887,10 @@ class AbstractSchemaContent(object):
             indx_list = []
         ja = reduce(lambda d, k: d[k], key_list, self.get_content())
         if indx_list:
-            sa = reduce(lambda a, i: a[i], indx_list[:-1], ja)
-            #
-            # todo: If the existing array has smaller dimension than the value being set, then it needs to be padded.
             if value is not None:
-                # only works at lowest level
-                # if indx_list[-1] >= len(sa):
-                #     sa += [""] * (indx_list[-1] - len(sa) + 1)
-                sa[indx_list[-1]] = value
-            return sa[indx_list[-1]]
+                # NOTE: JaggedArrays modify their store in place, so this change will affect `self`
+                JaggedArray(ja).set_element(indx_list, value, '')
+            return reduce(lambda a, i: a[i], indx_list, ja)
         else:
             if value is not None:
                 ja[:] = value
@@ -1311,28 +1305,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                     print("index error for addressTypes {} ref {} - vtitle {}".format(addressTypes, tref, self.versionTitle))
         elif isinstance(item, str):
             action(item, tref, heTref, self)
-
-    def set_text_at_segment_ref(self, oref, new_text: str) -> None:
-        """
-        Modifies version in place at `oref`
-        Currently, oref is required to be a segment ref for simplicity,
-        although it is not difficult to modify this function to handle any jagged array
-        """
-        assert oref.is_segment_level(), "set_text_at_segment_ref requires a segment level ref"
-        key_list = oref.storage_address(format='list')[1:]  # ignore first element which is 'chapter
-        highest_ja, parent_node, ja_key = self.get_node_by_key_list(key_list)
-        if highest_ja is None:
-            logger.warning(f'Could not find address "{", ".join(key_list)}" in version {self}. Full oref {oref.normal()}')
-            return
-        assert isinstance(highest_ja, list)
-
-        updated_ja = JaggedArray(highest_ja).set_element([s-1 for s in oref.sections], new_text, '').array()
-        # NOTE: technically the following lines are unnecessary since previous line edits ja in place
-        # however, since this is very unclear (and error prone), best to explicitly update ja
-        if parent_node is None:
-            self.chapter = updated_ja
-        else:
-            parent_node[ja_key] = updated_ja
 
 
 class VersionSet(abst.AbstractMongoSet):
