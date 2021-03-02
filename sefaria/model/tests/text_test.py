@@ -628,7 +628,6 @@ class TestModifyVersion:
         self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 3:2"), "new text")
         assert self.simpleVersion.chapter[2][1] == "new text"
 
-
         self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3:2"), "new text")
         assert self.complexVersion.chapter["Node 1"]["Node 2"][2][1] == "new text"
 
