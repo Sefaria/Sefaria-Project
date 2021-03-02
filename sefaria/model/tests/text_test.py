@@ -624,21 +624,19 @@ class TestModifyVersion:
         cls.simpleVersion.delete()
         cls.complexVersion.delete()
 
-    def test_set_text_at_segment_ref(self):
-        self.simpleVersion.set_text_at_segment_ref(model.Ref(f"{self.simpleIndexTitle} 3:2"), "new text")
+    def test_sub_content_with_ref(self):
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 3:2"), "new text")
         assert self.simpleVersion.chapter[2][1] == "new text"
 
 
-        self.complexVersion.set_text_at_segment_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3:2"), "new text")
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3:2"), "new text")
         assert self.complexVersion.chapter["Node 1"]["Node 2"][2][1] == "new text"
 
-        with pytest.raises(AssertionError):
-            # shouldn't work for section level
-            self.complexVersion.set_text_at_segment_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3"), "blah")
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3"), ["blah", "blarg"])
+        assert self.complexVersion.chapter["Node 1"]["Node 2"][2] == ["blah", "blarg"]
 
-        with pytest.raises(AssertionError):
-            # shouldn't work for node level
-            self.complexVersion.set_text_at_segment_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2"), "blah")
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2"), [["blah", "blarg"], ['more content']])
+        assert self.complexVersion.chapter["Node 1"]["Node 2"] == [["blah", "blarg"], ['more content']]
 
     def test_get_top_level_jas_text_chunk(self):
         tc = model.Ref(self.simpleIndexTitle).text('he')

@@ -65,7 +65,7 @@ def modify_bulk_text(user, version:model.Version, text_map: dict, vsource=None, 
 
     # modify version in place
     for _, new_text, oref in change_map.values():
-        version.set_text_at_segment_ref(oref, new_text)
+        version.sub_content_with_ref(oref, new_text)
     
     version.save()
 
