@@ -4517,11 +4517,7 @@ class Library(object):
             self._toc_tree = self.get_toc_tree(rebuild=True)
         self._toc = self.get_toc(rebuild=True)
         self._toc_json = self.get_toc_json(rebuild=True)
-<<<<<<< HEAD
-        self._topic_toc =self.get_topic_toc(rebuild=True)
-=======
         self._topic_toc = self.get_topic_toc(rebuild=True)
->>>>>>> cat_reorg
         self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
         self._category_id_dict = None
         scache.delete_template_cache("texts_list")

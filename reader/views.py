@@ -227,7 +227,7 @@ def base_props(request):
             "color":         request.COOKIES.get("color", "light"),
             "fontSize":      request.COOKIES.get("fontSize", 62.5),
         },
-        "trendingTopics": trending_topics(days=7, ntags=5), # TODO reset days to 7
+        "trendingTopics": trending_topics(days=7, ntags=5),
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
     })

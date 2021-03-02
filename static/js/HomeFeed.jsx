@@ -3,7 +3,9 @@ import Component from 'react-class';
 import $ from './sefaria/sefariaJquery';
 import Sefaria from './sefaria/sefaria';
 import PropTypes from 'prop-types';
+import classNames  from 'classnames';
 import {Story} from './Story';
+import NavSidebar from './NavSidebar';
 import Footer from'./Footer';
 import { usePaginatedScroll } from './Hooks';
 import {
@@ -191,6 +193,33 @@ function HomeFeed(props) {
     Sefaria._stories.page
   );
 
+  const sidebarModules = [
+    {type: "AboutSefaria"},
+    {type: "Resources"},
+    {type: "JoinTheConversation"},
+    {type: "GetTheApp"},
+    {type: "StayConnected"},
+    {type: "SupportSefaria", props: {blue: true}},
+  ];
+
+  const classes = classNames({readerNavMenu:1, noHeader: 1});
+  const contentClasses = classNames({content: 1, hasFooter: 1});
+
+  return (
+    <div className={classes} key="0">
+      <div className={contentClasses}>
+        <div className="sidebarLayout">
+          <div className="contentInner mainColumn">
+            {stories.length ? stories.map((s,i) => Story(s, i, props)) : <LoadingMessage />}
+          </div>
+          <NavSidebar modules={sidebarModules} />
+        </div>
+        <Footer />
+      </div>
+    </div>
+    );
+
+  /*  
   return (
     <div className="homeFeedWrapper">
       <div className="content hasFooter" ref={scrollable_element}>
@@ -222,12 +251,14 @@ function HomeFeed(props) {
         </div>
       </div>
     </div>);
+    */
 }
 HomeFeed.propTypes = {
   interfaceLang:      PropTypes.string,
   toggleSignUpModal:  PropTypes.func.isRequired,
   onlySharedStories:  PropTypes.bool,
 };
+
 
 /*
 class NewHomeFeedbackBox extends Component {

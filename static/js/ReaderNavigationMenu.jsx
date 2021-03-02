@@ -136,6 +136,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
       }
     },
     {type: "SponsorADay"},
+    {type: "GetTheApp"},
   ];
 
   const footer = compare ? null : <Footer />;
@@ -220,13 +221,14 @@ const Dedication = () => {
     }, []);
 
     return (
-        !dedicationData ? null :
+        dedicationData && dedicationData.en && dedicationData.he ?
         <div className="dedication">
           <span>
               <span className="int-en">{dedicationData.en}</span>
               <span className="int-he">{dedicationData.he}</span>
           </span>
         </div>
+        : null
     );
 };
 

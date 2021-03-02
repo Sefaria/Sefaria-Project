@@ -318,6 +318,12 @@ def trending_topics(days=7, ntags=14):
 	} for topic in filter(lambda x: len(x["authors"]) > 1, topics)], use_as_typed=False, backwards_compat_lang_fields={'en': 'tag', 'he': 'he_tag'})
 	results = sorted(results, key=lambda x: -x["author_count"])
 
+
+	# For testing purposes: if nothing is trennding specified number of days, 
+	# (because local data is stale) look at a bigger window
+	if len(results) == 0:
+		return trending_topics(days=180, ntags=ntags)
+
 	return results[:ntags]
 
 

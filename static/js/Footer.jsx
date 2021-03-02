@@ -35,30 +35,6 @@ class Footer extends Component {
   trackLanguageClick(language){
     Sefaria.track.setInterfaceLanguage('interface language footer', language);
   }
-  handleSubscribeKeyUp(e) {
-    if (e.keyCode === 13) {
-      this.handleSubscribe();
-    }
-  }
-  handleSubscribe() {
-    var email = $("#newsletterInput").val();
-    if (Sefaria.util.isValidEmailAddress(email)) {
-      Sefaria.track.event("Footer", "Subscribe from Footer", "");
-      this.setState({subscribeMessage: "Subscribing..."});
-      var list = Sefaria.interfaceLang == "hebrew" ? "Announcements_General_Hebrew" : "Announcements_General"
-      $.post("/api/subscribe/" + email + "?lists=" + list, function(data) {
-        if ("error" in data) {
-          this.setState({subscribeMessage: data.error});
-        } else {
-          this.setState({subscribeMessage: Sefaria._("Subscribed! Welcome to our list.")});
-        }
-      }.bind(this)).error(function(data) {
-        this.setState({subscribeMessage: Sefaria._("Sorry, there was an error.")});
-      }.bind(this));
-    } else {
-      this.setState({subscribeMessage: Sefaria._("Please enter a valid email address.")});
-    }
-  }
   render() {
     if (!Sefaria._siteSettings.TORAH_SPECIFIC) { return null; }
 

@@ -67,7 +67,8 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
         texts: ["Genesis", "Pirkei Avot", "Shabbat", "Pesach Haggadah", "Sefer HaChinukh"]
       }
     },
-    {type: "SponsorADay"},
+    {type: "GetTheApp"},
+    {type: "SupportSefaria"},
   ];
 
   const classes = classNames({readerNavMenu:1, noHeader: !hideHeader, noLangToggleInHebrew: 1 });

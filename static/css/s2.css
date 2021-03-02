@@ -1165,8 +1165,7 @@ input.noselect {
   flex-direction: row;
 }
 .navSidebar {
-  width: 292px;
-  padding: 0 44px;
+  width: 380px;
   background-color: #FBFBFA;
   /* HACK: add grey background beyond bounding box of sidebar by utilizing negative margins! */
   border-top: 80px solid #FBFBFA;
@@ -1177,6 +1176,7 @@ input.noselect {
   font-size: 16px;
   color: #666;
   margin-bottom: 34px;
+  padding: 0 44px;
 }
 .readerPanel .navSidebarModule h3 {
   margin: 0 0 20px;
@@ -1186,6 +1186,14 @@ input.noselect {
   border-bottom: 1px solid #CCC;
   padding-bottom: 14px;
   font-weight: 500;
+}
+.navSidebarModule.blue {
+  background-color: #18345D;
+  color: white;
+  padding: 34px 44px 45px;
+}
+.readerPanel .navSidebarModule.blue h3 {
+  color: white;
 }
 .navSidebarIcon {
   opacity: 0.4;
@@ -1202,6 +1210,9 @@ input.noselect {
 .navSidebarLink a {
   color: black;
 }
+.navSidebarLink.gray a {
+  color: #666;
+}
 .navSidebarLink.ref {
   font-size: 18px;
 }
@@ -1211,20 +1222,39 @@ input.noselect {
 .navSidebarLink.ref .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
-.navSidebar button {
+.navSidebar .linkList {
+  margin-top: 20px;
+}
+.navSidebar .button {
   margin: 12px 0 0 0;
-  display: block;
 }
-.navSidebar button a {
-  color: inherit;
-}
-.navSidebar button img {
+.navSidebar .button img {
   filter: invert(1);
   height: 18px;
   width: 18px;
   margin-inline-end: 10px;
   vertical-align: middle;
   margin-top: -2px;
+}
+.navSidebar .button.white img {
+  filter: none;
+  opacity: .6;
+}
+.navSidebar .button.white.appButton img {
+  opacity: 1;
+  width: 15px;
+  margin-inline-end: 5px;
+}
+.navSidebar .button.appButton.ios img {
+  margin-top: -5px;
+}
+.navSidebar .button + .button {
+  margin-inline-start: 7px;
+}
+.navSidebar .button.appButton.iconOnly img {
+  width: 18px;
+  height: 18px;
+  margin: 0;
 }
 .navSidebar .readingsSection {
   margin-bottom: 15px;
@@ -1236,6 +1266,23 @@ input.noselect {
 .navSidebar a.allLink {
   color: #999;
   font-size: 13px;
+}
+.navSidebar a.inTextLink {
+  color: inherit;
+  text-decoration: underline;
+}
+.navSidebar .newsletterSignUpBox {
+  margin-top: 20px;
+}
+.navSidebar .newsletterSignUpBox .newsletterInput {
+  width: 100%;
+  box-sizing: border-box;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border: none;
+}
+.navSidebar .newsletterSignUpBox .newsletterInput::placeholder {
+  font-style: normal;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerNavTop {
   width: 100%;
@@ -5851,7 +5898,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0 2px 6px 2px;
   cursor: pointer;
   font-size: 16px;
-  letter-spacing: 0.1em;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
   line-height: 19px;
@@ -5921,12 +5967,17 @@ a .button:hover {
   letter-spacing: normal;
 }
 .button img.buttonIcon {
-    width: 16px;
-    height: 16px;
-    opacity: .4;
-    margin: 0 5px;
-    position: relative;
-    top: 2px;
+  width: 16px;
+  height: 16px;
+  opacity: .4;
+  margin: 0 5px;
+  position: relative;
+  top: 2px;
+}
+.button.appButton {
+  box-shadow: none;
+  border: 2px solid #18345D;
+  color: #18345D;
 }
 ::placeholder {
    font-style: italic;
@@ -7035,7 +7086,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 .newsletterSignUpBox .newsletterInput {
   border-radius: 6px;
-  padding: 8px 32px 11px 16px;
+  padding: 10px 32px 12px 16px;
   width: 150px;
   font-size: 15px;
   border: 1px solid #EEE;
@@ -7070,7 +7121,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: italic;
   text-align: center;
-  width: 200px;
   direction: ltr;
 }
 #footer .section.connect a {
@@ -8495,7 +8545,6 @@ body .homeFeedWrapper .content {
   width: 470px;
 }
 .mainColumn {
-  flex: 1;
   margin: 0 45px 0 30px;
 }
 .homeFeedWrapper .mainColumn {

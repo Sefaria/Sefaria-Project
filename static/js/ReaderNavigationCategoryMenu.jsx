@@ -381,7 +381,8 @@ const getSidebarModules = (categories) => {
   const customModules = path in modules ? modules[path] : [];
 
   const defaultModules = [
-    {type: "SponsorADay"}
+    {type: "Visualizations", props: {categories}},
+    {type: "SupportSefaria"},
   ]; 
 
   return customModules.concat(defaultModules);
