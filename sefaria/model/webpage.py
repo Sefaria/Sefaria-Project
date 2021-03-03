@@ -118,7 +118,7 @@ class WebPage(abst.AbstractMongoRecord):
             r"truah\.org\/\?s=",
             r"truah\.org\/(holiday|page|resource-types)\/",
             r"clevelandjewishnews\.com$",
-            r"clevelandjewishnews\.cpm\/news\/",
+            r"clevelandjewishnews\.com\/news\/",
             r"ots\.org\.il\/news\/",
             r"ots\.org\.il\/.+\/page\/\d+\/",
             r"ots\.org\.il\/tag\/.+",
@@ -157,6 +157,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"jewishcontemplatives\.blogspot\.com\/?$",
             r"orayta\.org\/orayta-torah\/orayta-byte-parsha-newsletter",
             r"jewishencyclopedia\.com\/(directory|contribs|search)",
+            r"orhalev\.org\/blogs\/parasha-and-practice\/?$",
+            r"orhalev\.org\/blogs\/tag\/",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -816,5 +818,14 @@ sites_data = [
         "domains": ["jewishencyclopedia.com"],
         "title_branding": ["JewishEncyclopedia.com"],
         "normalization_rules": ["remove url params", "use https", "remove www"]
+    },
+    {
+        "name": "Wilderness Torah",
+        "domains": ["wildernesstorah.org"],
+    },
+    {
+        "name": "Or HaLev",
+        "domains": ["orhalev.org"],
+        "normalization_rules": ["use https", "remove www"]
     }
 ]

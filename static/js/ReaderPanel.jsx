@@ -197,7 +197,6 @@ class ReaderPanel extends Component {
     }
   }
   handleSheetSegmentClick(source) {
-    // console.log(source);
     this.conditionalSetState({highlightedNodes: source.node});
     const sheetRef = "Sheet " + this.state.sheet.id + ":" + source.node;
     if (this.state.mode ==="SheetAndConnections") {
@@ -1209,7 +1208,7 @@ class ReaderControls extends Component {
     var oref = Sefaria.ref(this.props.currentRef);
 
     if (this.props.sheet) {
-      title = this.props.sheet.title.stripHtmlKeepLineBreaks().replace(/&amp;/g, '&').replace(/(<br>|\n)+/g,' ');
+      title = this.props.sheet.title.stripHtmlConvertLineBreaks();
       heTitle = title;
       if (title == "") {
         title = "Untitled";

@@ -785,7 +785,7 @@ Sefaria = extend(Sefaria, {
     let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
     queryString = (queryString ? "?" + queryString : "");
     return this._cachedApiPromise({
-        url:   this.apiHost + "/api/name/" + trimmed_name + queryString,
+        url:   this.apiHost + "/api/name/" + encodeURIComponent(trimmed_name) + queryString,
         key:   trimmed_name + queryString,
         store: this._lookups
     });
