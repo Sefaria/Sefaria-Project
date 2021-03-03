@@ -279,7 +279,7 @@ const RambanLandingPage = () => {
             ].map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
         <CallToActionFooterWithButton
-            href="/donate"
+            href="mailto:hannah@sefaria.org"
             he_href=""
             enText="Sponsor a parshah today."
             heText=""

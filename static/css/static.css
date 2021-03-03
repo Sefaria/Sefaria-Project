@@ -2897,6 +2897,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPage .staticPageHeaderTextBoxTextOnly .simpleButtonWrapper {
   width: auto;
+  display: flex;
+  justify-content: center;
   padding-bottom: 80px;
 }
 .staticPage .simpleButtonWrapper .button {
@@ -2929,7 +2931,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPageHeaderTextTextOnly {
   font-size: 16px;
-  max-width: 280px;
   line-height: 22px;
   padding-bottom: 25px;
 }
