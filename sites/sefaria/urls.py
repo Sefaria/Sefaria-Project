@@ -9,7 +9,6 @@ from sefaria.settings import STATIC_URL
 static_pages = [
     "strategy",
     "supporters",
-    "team",
     "help",
     "connect",
     "visualizations",
@@ -46,6 +45,7 @@ static_pages = [
 static_pages_by_lang = [
     "about",
     "donate",
+    "team",
 ]
 
 

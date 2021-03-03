@@ -920,12 +920,9 @@ p.registration-links a:hover{
 #teamPage .teamBoardMember .teamTitle {
   font-size: 16px;
 }
-#teamPage .teamMember .teamEmail {
-  color: #999;
-}
-#teamPage .teamMember .teamBio {
-  margin-top: 20px;
-  white-space: normal;
+#teamContact {
+  margin-top: 60px;
+  line-height: 2;
 }
 #editProfilePage {
   color: #666;
