@@ -2775,15 +2775,29 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .staticPageHeader .staticPageHeaderTextBox {
   flex: 7;
 }
+.staticPage .staticPageHeader .staticPageHeaderTextBoxTextOnly {
+  flex: 7;
+}
 .staticPage .staticPageHeader .staticPageHeaderImg {
   flex: 9;
   min-height: 290px;
+}
+.staticPage .staticPageHeader .staticPageHeaderImgTextOnly {
+  display: none;
 }
 .interface-english .staticPage .staticPageHeader .staticPageHeaderTextBox {
   padding-right: 10px;
 }
 .interface-hebrew .staticPage .staticPageHeader .staticPageHeaderTextBox {
   padding-left: 10px;
+}
+.interface-english .staticPage .staticPageHeader .staticPageHeaderTextBoxTextOnly {
+  padding-right: 10px;
+  text-align: center;
+}
+.interface-hebrew .staticPage .staticPageHeader .staticPageHeaderTextBoxTextOnly {
+  padding-left: 10px;
+  text-align: center;
 }
 .staticPage .staticPageH2 {
   padding: 55px 0 10px;
@@ -2853,6 +2867,10 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   width: 66%;
   padding-bottom: 80px;
 }
+.staticPage .staticPageHeaderTextBoxTextOnly .simpleButtonWrapper {
+  width: 66%;
+  padding-bottom: 80px;
+}
 .staticPage .simpleButtonWrapper .button {
   border-radius: 0;
   min-height: 47px;
@@ -2881,9 +2899,19 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   line-height: 22px;
   padding-bottom: 25px;
 }
+.staticPageHeaderTextTextOnly {
+  font-size: 16px;
+  max-width: 280px;
+  line-height: 22px;
+  padding-bottom: 25px;
+}
+
 .staticPageHeaderImg img {
   width: 100%;
   display: block;
+}
+.staticPageHeaderImgTextOnly img {
+  display: none;
 }
 .staticPageAbout {
   padding: 50px 0;
@@ -2964,6 +2992,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
     padding-top: 30px;
   }
   .staticPage .staticPageHeader .staticPageHeaderImg {
+    margin-top: 20px;
+  }
+  .staticPage .staticPageHeader .staticPageHeaderImgTextOnly {
     margin-top: 20px;
   }
   .staticPage .simpleButtonWrapper,

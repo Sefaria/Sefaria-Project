@@ -41,6 +41,7 @@ static_pages = [
     "remote-learning",
     "sheets",
     "powered-by-sefaria-contest-2020",
+    "ramban-landing-page"
 ]
 
 static_pages_by_lang = [

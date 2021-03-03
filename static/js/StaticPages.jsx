@@ -238,6 +238,51 @@ const ContestLandingPage = () => (
 );
 */
 
+
+const RambanLandingPage = () => (
+    <StaticPage>
+        <Header
+            enTitle="Ramban on Torah: A Translation"
+            enText="Sefaria is thrilled to be able to offer Rabbi Charles Chavel's classic English translation of Ramban (Nachmanides) on Torah
+            to the world.  This historic launch makes a complete version of this work available online for the very first time,
+            and it will remain free for use and re-use under a CC-BY license. We are profoundly grateful to the following donors for making this possible."
+            enActionText="Read the Text"
+            enActionURL="/texts/Tanakh/Commentary/Ramban"
+            heTitle=""
+            heText=""
+            heActionURL="/texts/Tanakh/Commentary/Ramban"
+            heActionText=""
+            enImg=""
+            heImg=""
+            />
+        <GreyBox light={true}>
+            <H2Block
+                en="Thank you to our Sponsors"
+                he=""
+            />
+        </GreyBox>
+            <Feature
+            enTitle="Organize Sources"
+            enText="Sheets let you mix and match sources from our library. Type in a source title and chapter to add it to your sheet, then edit the source to cut it down or customize  the translation. Use sources in any order you wish. "
+            enImg="/static/img/sheets-landing-page/organizesources.jpg"
+            enImgAlt="Organize Sources"
+            heTitle="סדרו את המקורות"
+            heText="תוכלו לבחור טקסטים מתוך שלל המקורות בספרייה שלנו ולצרף אותם לדף מקורות. הקלידו את שם המקור ואת מספר הפרק כדי להוסיף אותו לדף המקורות שלכם. בשלב הבא תוכלו לערוך ולקצר את המקור, לבחור בתרגום אחר ולארגן את המקורות בסדר הרצוי לכם."
+            heImg="/static/img/sheets-landing-page/organizesources_HEB.jpg"
+            heImgAlt="סדרו את המקורות"
+            borderColor="#004E5F"
+        />
+            <CallToActionFooterWithButton
+            href="/donate"
+            he_href=""
+            enText="Sponsor a parshah today."
+            heText=""
+            enButtonText="Sponsor"
+            heButtonText=""
+        />
+    </StaticPage>
+);
+
 const SheetsLandingPage = () => (
     <StaticPage>
         <Header
@@ -383,7 +428,6 @@ const SheetsLandingPage = () => (
         />
     </StaticPage>
 );
-
 
 const RemoteLearningPage = () => (
     <StaticPage>
@@ -960,24 +1004,34 @@ const H2Block = ({en, he, classes}) =>
         </h2>
     </div>;
 
-const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, enActionURL, enActionText, heActionURL, heActionText}) => (
-    <div className="staticPageHeader">
+const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, enActionURL, enActionText, heActionURL, heActionText}) => {
+    var textBoxClass = "staticPageHeaderTextBox";
+    var imgClass = "staticPageHeaderImg";
+    var textClass = "staticPageHeaderText";
+    if (enImg === "" && heImg === "") {
+        textBoxClass += "TextOnly";
+        imgClass += "TextOnly";
+        textClass += "TextOnly";
+    }
+    return <div className="staticPageHeader">
         <div className="staticPageBlockInner flexContainer">
-            <div className="staticPageHeaderTextBox">
+            <div className={textBoxClass}>
                 <h1>
                     <span className="int-en">{enTitle}</span>
                     <span className="int-he">{heTitle}</span>
                 </h1>
-                <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText} />
-                {enActionURL ? <SimpleButton en={enActionText} he={heActionText} href={enActionURL} he_href={heActionURL} white={true}/> : null}
+                <SimpleInterfaceBlock classes={textClass} he={heText} en={enText}/>
+                {enActionURL ?
+                    <SimpleButton en={enActionText} he={heActionText} href={enActionURL} he_href={heActionURL}
+                                  white={true}/> : null}
             </div>
-            <div className="staticPageHeaderImg">
-                <img className="int-en" src={enImg} alt={enImgAlt} />
-                <img className="int-he" src={heImg} alt={heImgAlt} />
+            <div className={imgClass}>
+                <img className="int-en" src={enImg} alt={enImgAlt}/>
+                <img className="int-he" src={heImg} alt={heImgAlt}/>
             </div>
         </div>
     </div>
-);
+};
 
 const Section = ({children}) =>
     <div className={"staticPageBlockInner staticPageSection"}>
@@ -1112,4 +1166,5 @@ export {
     RemoteLearningPage,
     SheetsLandingPage,
     PBSC2020LandingPage,
+    RambanLandingPage
 }
