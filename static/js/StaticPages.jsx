@@ -273,7 +273,7 @@ const RambanLandingPage = () => {
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox width={width} content={
             [
-                ["Bereshit", "Creation", "Ya"], ["Noach", "Flood", "OK"], ["Toldot", "Dont remember", "No"]
+                ["Bereshit", "Leib and Linda Koyfman", "In memory of Hilary and Mo Koyfman"], ["Noach", "tk", "tk"], ["Lech Lecha", "Rabbi David Aldajem", "In support of Sefaria"]
             ].map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
         <GreyBox light={true}>
@@ -286,7 +286,7 @@ const RambanLandingPage = () => {
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox width={width} content={
             [
-                ["Bereshit", "Creation", "Ya"], ["Noach", "Flood", "OK"], ["Toldot", "Dont remember", "No"]
+                ["Bereshit", "Leib and Linda Koyfman", "In memory of Hilary and Mo Koyfman"], ["Noach", "tk", "tk"], ["Lech Lecha", "Rabbi David Aldajem", "In support of Sefaria"]
             ].map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
         <GreyBox light={true}>
@@ -298,7 +298,7 @@ const RambanLandingPage = () => {
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox width={width} content={
             [
-                ["Bereshit", "Creation", "Ya"], ["Noach", "Flood", "OK"], ["Toldot", "Dont remember", "No"]
+                ["Bereshit", "Leib and Linda Koyfman", "In memory of Hilary and Mo Koyfman"], ["Noach", "tk", "tk"], ["Lech Lecha", "Rabbi David Aldajem", "In support of Sefaria"]
             ].map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
         <GreyBox light={true}>
@@ -311,7 +311,7 @@ const RambanLandingPage = () => {
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox width={width} content={
             [
-                ["Bereshit", "Creation", "Ya"], ["Noach", "Flood", "OK"], ["Toldot", "Dont remember", "No"]
+                ["Bereshit", "Leib and Linda Koyfman", "In memory of Hilary and Mo Koyfman"], ["Noach", "tk", "tk"], ["Lech Lecha", "Rabbi David Aldajem", "In support of Sefaria"]
             ].map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
         <GreyBox light={true}>
@@ -324,7 +324,7 @@ const RambanLandingPage = () => {
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox width={width} content={
             [
-                ["Bereshit", "Creation", "Ya"], ["Noach", "Flood", "OK"], ["Toldot", "Dont remember", "No"]
+                ["Bereshit", "Leib and Linda Koyfman", "In memory of Hilary and Mo Koyfman"], ["Noach", "tk", "tk"], ["Lech Lecha", "Rabbi David Aldajem", "In support of Sefaria"]
             ].map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
         <Spacer/>
