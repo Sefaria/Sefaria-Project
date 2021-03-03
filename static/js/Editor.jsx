@@ -401,7 +401,6 @@ function transformSheetJsonToSlate(sheet) {
             promptedToPublish: sheet.promptedToPublish,
             options: sheet.options,
             nextNode: curNextNode,
-            edittingSource: false,
             authorUrl: sheet.ownerProfileUrl,
             authorStatement: sheet.ownerName,
             authorImage: sheet.ownerImageUrl,
@@ -423,10 +422,10 @@ function transformSheetJsonToSlate(sheet) {
 }
 
 function isSourceEditable(e, editor) {
-  if (editor.children[0]["edittingSource"]) {return true}
+  if (editor.edittingSource) {return true}
 
   const isEditable = (Range.isRange(editor.selection) && !Range.isCollapsed(editor.selection))
-  Transforms.setNodes(editor, {edittingSource: isEditable}, {at: [0]});
+  editor.edittingSource = isEditable;
   return (isEditable)
 }
 
@@ -480,7 +479,7 @@ const SheetSourceElement = ({ attributes, children, element }) => {
 
 
   const isActive = selected && focused;
-  const sheetItemClasses = {sheetItem: 1, highlight: editor.children[0].highlightedNode == element.node}
+  const sheetItemClasses = {sheetItem: 1, highlight: editor.highlightedNode == element.node}
   const classes = {SheetSource: 1, segment: 1, selected: isActive};
   const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false };
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
@@ -525,7 +524,7 @@ const Element = props => {
         sheetItem: 1,
         empty: !(Node.string(element)),
         noPointer: element.type != ("SheetSource" || "SheetOutsideBiText"),
-        highlight: useSlate().children[0].highlightedNode == element.node
+        highlight: useSlate().highlightedNode == element.node
     }
 
     switch (element.type) {
@@ -601,7 +600,7 @@ const Element = props => {
 
         case 'he':
             const heSelected = useSelected();
-            const heEditable = useSlate().children[0]["edittingSource"];
+            const heEditable = useSlate().edittingSource;
             const heClasses = {he: 1, editable: heEditable, selected: heSelected };
             return (
                 <div className={classNames(heClasses)}>
@@ -610,7 +609,7 @@ const Element = props => {
             );
         case 'en':
             const enSelected = useSelected();
-            const enEditable = useSlate().children[0]["edittingSource"];
+            const enEditable = useSlate().edittingSource;
             const enClasses = {en: 1, editable: enEditable, selected: enSelected };
             return (
                 <div className={classNames(enClasses)}>
@@ -703,7 +702,7 @@ async function getRefInText(editor, additionalOffset=0) {
     for (const query of match) {
       if (query.length > 50 || query.trim() == "") {return {}}
 
-      const ref = await Sefaria.getName(encodeURIComponent(query))
+      const ref = await Sefaria.getName(query)
       .then(d => {  return d    });
 
       const selectDistance = query.replace("\n","").length + additionalOffset;
@@ -1426,23 +1425,51 @@ const SefariaEditor = (props) => {
     );
 
   useEffect(() => {
-      let timeOutId = null;
+      let scrollTimeOutId = null;
       const onScrollListener = () => {
-          clearTimeout(timeOutId);
-          timeOutId = setTimeout(
+          clearTimeout(scrollTimeOutId);
+          scrollTimeOutId = setTimeout(
               () => {
                   if(props.hasSidebar) {
                       ReactEditor.deselect(editor)
                       onEditorSidebarToggleClick()
                   }
               }, 200
-          )
+          );
       }
 
+      let clickTimeOutId = null;
+      const onClickListener = (e) => {
+        clearTimeout(clickTimeOutId);
+        clickTimeOutId = setTimeout(
+          () => {
+            if(props.hasSidebar) {
+            let sheetElementTypes = Object.values(sheet_item_els);
+              for(const node of Node.ancestors(editor, editor.selection.focus.path)) {
+                  if (sheetElementTypes.includes(node[0].type)) {
+                    console.log(editor)
+                      if (node[0].node != editor.highlightedNode) {
+                        updateSidebar(node[0].node, node[0].ref)
+                        if (node[0].type != "SheetSource") {
+                          Transforms.select(editor, editor.blurSelection);
+                          ReactEditor.focus(editor);
+                        }
+                      }
+                      break;
+                  }
+              }
+            }
+          }, 20);
+      }
+
+
      editorContainer.current.parentNode.parentNode.addEventListener("scroll", onScrollListener)
+     editorContainer.current.parentNode.parentNode.addEventListener("click", onClickListener)
+
 
       return () => {
           editorContainer.current.parentNode.parentNode.removeEventListener("scroll", onScrollListener)
+          editorContainer.current.parentNode.parentNode.removeEventListener("click", onClickListener)
       }
       }, [props.highlightedNodes]
   );
@@ -1463,17 +1490,12 @@ const SefariaEditor = (props) => {
     }
 
     function onChange(value) {
-      if(!ReactEditor.isFocused(editor)) {
-        ReactEditor.focus(editor);
-        Transforms.select(editor, Editor.end(editor, []));
-        // Prevents sources from being selected by clicks outside of editor
-        return
-      }
         if (currentDocument !== value) {
             setCurrentDocument(value);
         }
 
         setValue(value)
+
     }
 
     const beforeInput = event => {
@@ -1512,6 +1534,10 @@ const SefariaEditor = (props) => {
           } catch (e) {
             //Do nothing if there is an error.
           }
+    }
+
+    const onBlur = event => {
+      editor.blurSelection = editor.selection
     }
 
     const onKeyDown = event => {
@@ -1559,21 +1585,24 @@ const SefariaEditor = (props) => {
 
     }
 
-    const onEditorSidebarToggleClick = event => {
+    const updateSidebar = (sheetNode, sheetRef) => {
+      let source = {
+          'node': sheetNode,
+      }
+      if (!!sheetRef) {
+          source["ref"] = sheetRef
+      }
+      editor.highlightedNode = sheetNode
+      props.sheetSourceClick(source)
 
+    }
+
+    const onEditorSidebarToggleClick = event => {
         const segmentToHighlight = getHighlightedByScrollPos()
         if (!segmentToHighlight) {return}
         const sheetNode = segmentToHighlight.getAttribute("data-sheet-node")
         const sheetRef = segmentToHighlight.getAttribute("data-sefaria-ref")
-
-        let source = {
-            'node': sheetNode,
-        }
-        if (!!sheetRef) {
-            source["ref"] = sheetRef
-        }
-        Transforms.setNodes(editor, {highlightedNode: sheetNode}, {at: [0]});
-        props.sheetSourceClick(source)
+        updateSidebar(sheetNode, sheetRef)
     }
 
 
@@ -1624,6 +1653,7 @@ const SefariaEditor = (props) => {
                   renderElement={renderElement}
                   spellCheck
                   onKeyDown={onKeyDown}
+                  onBlur={onBlur}
                   onDOMBeforeInput={beforeInput}
               />
           </Slate>
