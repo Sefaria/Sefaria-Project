@@ -1783,7 +1783,7 @@ ResponsiveNBox.propTypes = {
 };
 ResponsiveNBox.defaultProps = {
   threshold_2: 500, //above threshold_2, there will be 2 columns
-  threshold_3: 1000 //above threshold_3, there will be 3 columns
+  threshold_3: 1200 //above threshold_3, there will be 3 columns
 
 };
 

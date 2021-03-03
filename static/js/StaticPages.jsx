@@ -242,7 +242,7 @@ const ContestLandingPage = () => (
 
 
 const RambanLandingPage = () => {
-
+    var width = typeof window !== "undefined" ? window.innerWidth : 1000;
     return <StaticPage>
         <Header
             enTitle="Ramban on Torah: A Translation"
@@ -264,20 +264,72 @@ const RambanLandingPage = () => {
                 he=""
             />
         </GreyBox>
-        <div className="staticPageBlockInner flexContainer">
-
         <GreyBox light={true}>
-            <H2Block
-                en="BERESHIT"
-                he=""
-            />
+        <H2Block
+            en="BERESHIT"
+            he=""
+        />
         </GreyBox>
-
-        <ResponsiveNBox width={800} content={
+        <div className="staticPageBlockInner flexContainer">
+        <ResponsiveNBox width={width} content={
             [
                 ["Bereshit", "Creation", "Ya"], ["Noach", "Flood", "OK"], ["Toldot", "Dont remember", "No"]
             ].map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
+        <GreyBox light={true}>
+            <H2Block
+                en="SHEMOT"
+                he=""
+            />
+        </GreyBox>
+
+        <div className="staticPageBlockInner flexContainer">
+        <ResponsiveNBox width={width} content={
+            [
+                ["Bereshit", "Creation", "Ya"], ["Noach", "Flood", "OK"], ["Toldot", "Dont remember", "No"]
+            ].map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
+        </div>
+        <GreyBox light={true}>
+            <H2Block
+                en="VAYIKRA"
+                he=""
+            />
+        </GreyBox>
+        <div className="staticPageBlockInner flexContainer">
+        <ResponsiveNBox width={width} content={
+            [
+                ["Bereshit", "Creation", "Ya"], ["Noach", "Flood", "OK"], ["Toldot", "Dont remember", "No"]
+            ].map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
+        </div>
+        <GreyBox light={true}>
+            <H2Block
+                en="BAMIDBAR"
+                he=""
+            />
+        </GreyBox>
+
+        <div className="staticPageBlockInner flexContainer">
+        <ResponsiveNBox width={width} content={
+            [
+                ["Bereshit", "Creation", "Ya"], ["Noach", "Flood", "OK"], ["Toldot", "Dont remember", "No"]
+            ].map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
+        </div>
+        <GreyBox light={true}>
+            <H2Block
+                en="DEVARIM"
+                he=""
+            />
+        </GreyBox>
+
+        <div className="staticPageBlockInner flexContainer">
+        <ResponsiveNBox width={width} content={
+            [
+                ["Bereshit", "Creation", "Ya"], ["Noach", "Flood", "OK"], ["Toldot", "Dont remember", "No"]
+            ].map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
+        </div>
+        <Spacer/>
+        <Spacer/>
+        <Spacer/>
         <CallToActionFooterWithButton
             href="mailto:hannah@sefaria.org"
             he_href=""
