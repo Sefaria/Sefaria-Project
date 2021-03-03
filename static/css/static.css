@@ -2713,6 +2713,34 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   }
 }
 
+.parasha {
+  width: 100%;
+}
+.parasha .parashaTitle {
+  font-family: Garamond,Baskerville,Baskerville Old Face,Hoefler Text,Times New Roman,serif;
+  font-style: normal;
+  font-weight: lighter;
+  font-size: 30px;
+  line-height: 50px;
+  padding-top: 50px;
+}
+
+.parasha .parashaSponsorNames {
+  font-family: Roboto, serif;
+  font-style: normal;
+  font-weight: lighter;
+  font-size: 24px;
+  line-height: 50px;
+}
+
+.parasha .parashaMessage {
+  font-family: Roboto, serif;
+  font-style: italic;
+  font-weight: lighter;
+  font-size: 24px;
+  line-height: 40px;
+}
+
 /* Static Page Templates */
 
 .staticPage {
@@ -2868,7 +2896,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   padding-bottom: 80px;
 }
 .staticPage .staticPageHeaderTextBoxTextOnly .simpleButtonWrapper {
-  width: 66%;
+  width: auto;
   padding-bottom: 80px;
 }
 .staticPage .simpleButtonWrapper .button {

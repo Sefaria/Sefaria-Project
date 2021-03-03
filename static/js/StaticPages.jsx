@@ -2,6 +2,8 @@ import React from 'react';
 import {
     SimpleInterfaceBlock,
     NewsletterSignUpForm,
+    TwoOrThreeBox,
+    ResponsiveNBox
 } from './Misc';
 import palette from './sefaria/palette';
 import classNames from 'classnames';
@@ -239,8 +241,9 @@ const ContestLandingPage = () => (
 */
 
 
-const RambanLandingPage = () => (
-    <StaticPage>
+const RambanLandingPage = () => {
+
+    return <StaticPage>
         <Header
             enTitle="Ramban on Torah: A Translation"
             enText="Sefaria is thrilled to be able to offer Rabbi Charles Chavel's classic English translation of Ramban (Nachmanides) on Torah
@@ -254,25 +257,28 @@ const RambanLandingPage = () => (
             heActionText=""
             enImg=""
             heImg=""
-            />
+        />
         <GreyBox light={true}>
             <H2Block
                 en="Thank you to our Sponsors"
                 he=""
             />
         </GreyBox>
-            <Feature
-            enTitle="Organize Sources"
-            enText="Sheets let you mix and match sources from our library. Type in a source title and chapter to add it to your sheet, then edit the source to cut it down or customize  the translation. Use sources in any order you wish. "
-            enImg="/static/img/sheets-landing-page/organizesources.jpg"
-            enImgAlt="Organize Sources"
-            heTitle="סדרו את המקורות"
-            heText="תוכלו לבחור טקסטים מתוך שלל המקורות בספרייה שלנו ולצרף אותם לדף מקורות. הקלידו את שם המקור ואת מספר הפרק כדי להוסיף אותו לדף המקורות שלכם. בשלב הבא תוכלו לערוך ולקצר את המקור, לבחור בתרגום אחר ולארגן את המקורות בסדר הרצוי לכם."
-            heImg="/static/img/sheets-landing-page/organizesources_HEB.jpg"
-            heImgAlt="סדרו את המקורות"
-            borderColor="#004E5F"
-        />
-            <CallToActionFooterWithButton
+        <div className="staticPageBlockInner flexContainer">
+
+        <GreyBox light={true}>
+            <H2Block
+                en="BERESHIT"
+                he=""
+            />
+        </GreyBox>
+
+        <ResponsiveNBox width={800} content={
+            [
+                ["Bereshit", "Creation", "Ya"], ["Noach", "Flood", "OK"], ["Toldot", "Dont remember", "No"]
+            ].map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
+        </div>
+        <CallToActionFooterWithButton
             href="/donate"
             he_href=""
             enText="Sponsor a parshah today."
@@ -281,7 +287,7 @@ const RambanLandingPage = () => (
             heButtonText=""
         />
     </StaticPage>
-);
+};
 
 const SheetsLandingPage = () => (
     <StaticPage>
@@ -1102,6 +1108,14 @@ const ImageWithText = ({enText, heText, enImg, heImg, enImgAlt, heImgAlt}) => (
                 <img className="int-he" src={heImg} alt={heImgAlt}/>
             </div>
         </div>
+    </div>
+);
+
+const Parasha = ({title, sponsorNames, message}) => (
+    <div className="parasha">
+            <div className="parashaTitle">{title}</div>
+            <div className="parashaSponsorNames">{sponsorNames}</div>
+            <div className="parashaMessage">{message}</div>
     </div>
 );
 

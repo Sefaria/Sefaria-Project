@@ -1763,6 +1763,31 @@ TwoOrThreeBox.defaultProps = {
 };
 
 
+class ResponsiveNBox extends Component {
+  // Wrap a list of elements into one, two or three column table, depending on window width
+  render() {
+      if (this.props.width > this.props.threshold_3) {
+        return (<NBox content={this.props.content} n={3}/>);
+      } else if (this.props.width > this.props.threshold_2) {
+        return (<NBox content={this.props.content} n={2}/>);
+      } else {
+        return (<NBox content={this.props.content} n={1}/>);
+      }
+  }
+}
+ResponsiveNBox.propTypes = {
+  content:    PropTypes.array.isRequired,
+  width:      PropTypes.number.isRequired,
+  threshold_2: PropTypes.number,
+  threshold_3: PropTypes.number
+};
+ResponsiveNBox.defaultProps = {
+  threshold_2: 500, //above threshold_2, there will be 2 columns
+  threshold_3: 1000 //above threshold_3, there will be 3 columns
+
+};
+
+
 class Dropdown extends Component {
   constructor(props) {
     super(props);
@@ -2179,6 +2204,7 @@ export {
   ToggleSet,
   ToolTipped,
   TwoOrThreeBox,
+  ResponsiveNBox,
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,
