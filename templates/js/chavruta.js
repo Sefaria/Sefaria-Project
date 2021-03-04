@@ -21,6 +21,8 @@ const sdpConstraints = {
 
 let clientRoom;
 
+let chavrutaTime = 0;
+
 const socket = io.connect('//{{ rtc_server }}');
 
 socket.on('return rooms', function(numRooms) {
@@ -49,7 +51,6 @@ socket.on('created', function(room) {
 
 socket.on('join', function(room) {
   console.log('user joined room: ' + room);
-  Sefaria.track.event("DafRoulette", "Chevruta Match Made");
   clientRoom = room;
   isChannelReady = true;
   socket.emit('send user info', '{{ client_name }}', '{{ client_uid }}', room);
@@ -58,10 +59,15 @@ socket.on('join', function(room) {
 
 socket.on('got user name', function(userName, uid) {
   console.log('got user name')
+  Sefaria.track.event("DafRoulette", "Chevruta Match Made");
   document.getElementById("chevrutaName").innerHTML = userName;
   document.getElementById("chevrutaUID").value = uid;
   localStorage.setItem('lastChevrutaID', uid);
   localStorage.setItem('lastChevrutaTimeStamp', Date.now());
+
+  setInterval(function(){
+    chavrutaTime = chavrutaTime + 1
+  }, 60000);
 });
 
 socket.on('user reported', function(){
@@ -157,10 +163,9 @@ function addAdditionalHTML() {
   document.getElementById("iframeContainer").appendChild(iframe);
 }
 
-
 function getNewChevruta() {
   Sefaria.track.event("DafRoulette", "New Chevruta Click", "");
-  socket.emit('bye', clientRoom);
+  byebye();
 }
 
 
@@ -224,7 +229,7 @@ function maybeStart() {
 
 window.onbeforeunload = function() {
   console.log('onbeforeunload')
-  socket.emit('bye', clientRoom);
+  byebye();
 };
 
 /////////////////////////////////////////////////////////
@@ -248,7 +253,7 @@ function createPeerConnection() {
     setTimeout(function(){
       console.log('checking not in phantom room')
         if (isStarted && !isInitiator && pc.iceConnectionState == "new") {
-          socket.emit('bye', clientRoom);
+          byebye();
         }
     }, 5000);
 
@@ -276,7 +281,7 @@ function handleIceCandidate(event) {
     setTimeout(function(){
       console.log('checking if remote stream exists')
       if (!remoteStream) {
-        socket.emit('bye', clientRoom);
+        byebye();
       }
     }, 3000);
   }
@@ -322,14 +327,22 @@ function handleRemoteStreamRemoved(event) {
 
 function handleIceConnectionChange(event) {
   if (pc.iceConnectionState == "disconnected" || pc.iceConnectionState == "failed") {
-    socket.emit('bye', clientRoom);
+    byebye();
   }
   console.log(pc.iceConnectionState);
 }
 
 function handleRemoteHangup() {
+  console.log(chavrutaTime)
+  Sefaria.track.event("DafRoulette", "Chevruta Ended", "Minutes Learned", chavrutaTime);
   window.onbeforeunload = null;
   location.reload();
+}
+
+function byebye(){
+    console.log(chavrutaTime)
+    Sefaria.track.event("DafRoulette", "Chevruta Ended", "Minutes Learned", chavrutaTime);
+    socket.emit('bye', clientRoom);
 }
 
 

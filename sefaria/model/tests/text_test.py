@@ -624,21 +624,33 @@ class TestModifyVersion:
         cls.simpleVersion.delete()
         cls.complexVersion.delete()
 
-    def test_set_text_at_segment_ref(self):
-        self.simpleVersion.set_text_at_segment_ref(model.Ref(f"{self.simpleIndexTitle} 3:2"), "new text")
+    def test_sub_content_with_ref(self):
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 3:2"), "new text")
         assert self.simpleVersion.chapter[2][1] == "new text"
 
-
-        self.complexVersion.set_text_at_segment_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3:2"), "new text")
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3:2"), "new text")
         assert self.complexVersion.chapter["Node 1"]["Node 2"][2][1] == "new text"
 
-        with pytest.raises(AssertionError):
-            # shouldn't work for section level
-            self.complexVersion.set_text_at_segment_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3"), "blah")
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3"), ["blah", "blarg"])
+        assert self.complexVersion.chapter["Node 1"]["Node 2"][2] == ["blah", "blarg"]
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3"), ["original text", "2nd"])  # set back to original content for other tests
 
-        with pytest.raises(AssertionError):
-            # shouldn't work for node level
-            self.complexVersion.set_text_at_segment_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2"), "blah")
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2"), [["blah", "blarg"], ['more content']])
+        assert self.complexVersion.chapter["Node 1"]["Node 2"] == [["blah", "blarg"], ['more content']]
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2"), [['yo'],['', 'blah'],["original text", "2nd"]])  # set back to original content for other tests
+
+    def test_sub_content_with_ref_padding(self):
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 3:5"), "new text")
+        assert self.simpleVersion.chapter[2][2] == ""
+        assert self.simpleVersion.chapter[2][3] == ""
+        assert self.simpleVersion.chapter[2][4] == "new text"
+
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 5:1"), "new text2")
+        assert self.simpleVersion.chapter[3] == []
+        assert self.simpleVersion.chapter[4][0] == "new text2"
+
+        # reset
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle}"), [['1'], ['2'], ["original text", "2nd"]])
 
     def test_get_top_level_jas_text_chunk(self):
         tc = model.Ref(self.simpleIndexTitle).text('he')

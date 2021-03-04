@@ -771,6 +771,14 @@ def add_num_sources_to_topics():
     ])
 
 
+def make_titles_unique():
+    ts = TopicSet()
+    for t in ts:
+        unique = {tuple(tit.values()): tit for tit in t.titles}
+        if len(unique) != len(t.titles):
+            t.titles = list(unique.values())
+            t.save()
+
 def get_ref_safely(tref):
     try:
         oref = Ref(tref)
@@ -805,6 +813,7 @@ def recalculate_secondary_topic_data():
         for l in (all_ref_links + related_links)
     ])
     add_num_sources_to_topics()
+    make_titles_unique()
 
 
 def set_all_slugs_to_primary_title():
