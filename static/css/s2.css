@@ -4031,6 +4031,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
 }
 .segment .segmentNumber .segmentNumberInner,
+.segment .segmentNumber .segmentNumberInner .he,
 .textRange .numberLabel .numberLabelInner {
   font-size: 12px;
   vertical-align: middle;
