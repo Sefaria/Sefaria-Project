@@ -90,19 +90,19 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({contentByLanguage, htmlByLanguage, overrideLanguage}) => {
+const ContentText = ({content, html, overrideLanguage}) => {
     /**
    * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
    * Takes only children to allow complex html to be fed in
    * @type {{language: string}}
    */
-  const [content, isDangerouslySetInnerHTML]  = htmlByLanguage ? [htmlByLanguage, true] : [contentByLanguage, false];
+  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [content, false];
   const availableLanguages = ["english", "hebrew"];
   const contentLanguage = useContext(ContentLanguageContext);
   const languageToFilter = overrideLanguage ? overrideLanguage : contentLanguage.language;
   const isMultiLinugal = availableLanguages.indexOf(languageToFilter) == -1;
-  let renderedItems = Object.entries(content).filter(([lang, text])=>{
+  let renderedItems = Object.entries(contentVariable).filter(([lang, text])=>{
     return isMultiLinugal ? true : ((lang ==  languageToFilter.slice(0,2)) ? true : false  );
   });
   return renderedItems.map( x =>

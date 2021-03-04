@@ -568,7 +568,7 @@ class TextSegment extends Component {
       linkCountElement = this.props.showLinkCount ? (
           <div className="linkCount sans" title={linkCount + " Connections Available"}>
              <span className="linkCountDot" style={style}>
-               <ContentText overrideLanguage={overrideLanguage} contentByLanguage={{"en": "", "he": ""}} />
+               <ContentText content={{"en": "", "he": ""}} />
              </span>
           </div>
       ) : null;
@@ -578,8 +578,7 @@ class TextSegment extends Component {
     let segmentNumber = this.props.segmentNumber ? (
         <div className="segmentNumber sans">
           <span className="segmentNumberInner">
-             <ContentText overrideLanguage={overrideLanguage}
-                          contentByLanguage={{"en": this.props.segmentNumber, "he": Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}}
+             <ContentText content={{"en": this.props.segmentNumber, "he": Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}}
              />
           </span>
         </div>
@@ -605,7 +604,7 @@ class TextSegment extends Component {
         {segmentNumber}
         {linkCountElement}
         <p>
-          <ContentText overrideLanguage={overrideLanguage} htmlByLanguage={{"he": he, "en": en }}/>
+          <ContentText overrideLanguage={overrideLanguage} html={{"he": he, "en": en }}/>
         </p>
 
         <div className="clearFix"></div>
