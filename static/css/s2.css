@@ -4027,6 +4027,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: none;
   line-height: 1.4;
 }
+.hebrew .segment .segmentNumber,
+.hebrew .segment .linkCount {
+  display: none;
+  line-height: 1.6;
+}
 .sheetContent .segment .linkCount {
   display: inline-block;
 }
