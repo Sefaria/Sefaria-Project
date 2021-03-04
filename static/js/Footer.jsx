@@ -108,7 +108,7 @@ class Footer extends Component {
 
           <div className="section last connect">
               <div className="header connect">
-                  <IntText>Connect</IntText>
+                  <InterfaceText>Connect</InterfaceText>
               </div>
               <NewsletterSignUpForm contextName="Footer" />
               <LikeFollowButtons />
