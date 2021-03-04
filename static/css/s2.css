@@ -3776,8 +3776,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .continuous .clearFix {
   display: none;
 }
+
 .segment > .he,
-.segment > .en {
+.segment > .en,
+.segment > p > .he,
+.segment > p > .en {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -3785,32 +3788,41 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 26px;
 }
 .bilingual .segment > .he,
-.bilingual .segment > .en {
+.bilingual .segment > .en,
+.bilingual .segment > p > .he,
+.bilingual .segment > p > .en {
   display: block;
 }
-.bilingual .segment > .en {
+.bilingual .segment > .en ,
+.bilingual .segment > p > .en {
   text-align: left;
 }
-.bilingual .segment > .he {
+.bilingual .segment > .he,
+.bilingual .segment > p > .he {
   text-align: right;
 }
 .stacked.bilingual .basetext .segment {
   margin-bottom: 14px;
   display: block;
 }
-.stacked.bilingual .segment > .en {
+.stacked.bilingual .segment > .en,
+.stacked.bilingual .segment > p > .en {
   margin-top: 6px;
   text-align: left;
 }
-.stacked.bilingual .sheetContent .segment > .en {
+.stacked.bilingual .sheetContent .segment > .en,
+.stacked.bilingual .sheetContent .segment > p > .en {
   margin-top: 0;
 }
-.stacked.bilingual .basetext .segment > .en {
+.stacked.bilingual .basetext .segment > .en ,
+.stacked.bilingual .basetext .segment > p > .en {
   margin: 10px 0 20px;
   color: #666;
 }
 .stacked.bilingual .segment.heOnly > .he,
-.stacked.bilingual .segment.enOnly > .en {
+.stacked.bilingual .segment.enOnly > .en,
+.stacked.bilingual .segment.heOnly > p > .he,
+.stacked.bilingual .segment.enOnly > p > .en {
   display: block;
 }
 .heLeft.bilingual .basetext .text,
@@ -3819,10 +3831,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heRight.bilingual .sheetContent .text {
   padding: 0;
 }
+
 .heLeft.bilingual .segment > .en,
 .heLeft.bilingual .segment > .he,
 .heRight.bilingual .segment > .en,
-.heRight.bilingual .segment > .he {
+.heRight.bilingual .segment > .he,
+.heLeft.bilingual .segment > p > .en,
+.heLeft.bilingual .segment > p > .he,
+.heRight.bilingual .segment > p > .en,
+.heRight.bilingual .segment > p > .he {
   width: 50%;
   box-sizing: border-box;
   display: block;
@@ -3830,30 +3847,42 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heLeft.bilingual .sheetItem.enOnly > .en,
 .heLeft.bilingual .sheetItem.heOnly > .he,
 .heRight.bilingual .sheetItem.enOnly > .en,
-.heRight.bilingual .sheetItem.heOnly > .he {
+.heRight.bilingual .sheetItem.heOnly > .he,
+.heLeft.bilingual .sheetItem.enOnly > p > .en,
+.heLeft.bilingual .sheetItem.heOnly > p > .he,
+.heRight.bilingual .sheetItem.enOnly > p > .en,
+.heRight.bilingual .sheetItem.heOnly > p > .he {
   width: 100%;
   padding-right: 0;
   padding-left: 0;
 }
-.readerPanel .sheetItem.heOnly > .en {
+.readerPanel .sheetItem.heOnly > .en,
+.readerPanel .sheetItem.heOnly > p > .en {
   display: none;
 }
-.readerPanel .sheetItem.heOnly > .he {
+.readerPanel .sheetItem.heOnly > .he,
+.readerPanel .sheetItem.heOnly > p > .he {
   display: block;
 }
-.readerPanel .sheetItem.enOnly > .he {
+.readerPanel .sheetItem.enOnly > .he,
+.readerPanel .sheetItem.enOnly > p > .he {
   display: none;
 }
-.readerPanel .sheetItem.enOnly > .en {
+.readerPanel .sheetItem.enOnly > .en,
+.readerPanel .sheetItem.enOnly > p > .en {
   display: block;
 }
 .heLeft.bilingual .segment > .en,
-.heRight.bilingual .segment > .he {
+.heRight.bilingual .segment > .he ,
+.heLeft.bilingual .segment > p > .en,
+.heRight.bilingual .segment > p > .he {
   float: right;
   padding-left: 20px;
 }
 .heRight.bilingual .segment > .en,
-.heLeft.bilingual .segment > .he {
+.heLeft.bilingual .segment > .he,
+.heRight.bilingual .segment > p > .en,
+.heLeft.bilingual .segment > p > .he {
   float: left;
   padding-right: 20px;
 }
