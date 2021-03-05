@@ -16,7 +16,7 @@ import SearchPage  from './SearchPage';
 import Sheet  from './Sheet';
 import SheetMetadata  from './SheetMetadata';
 import TopicPageAll  from './TopicPageAll';
-import {TopicPage}  from './TopicPage';
+import {TopicPage, TopicCategory}  from './TopicPage';
 import TopicsPage from './TopicsPage';
 import CollectionPage from "./CollectionPage"
 import NotificationsPanel  from './NotificationsPanel';
@@ -396,6 +396,7 @@ class ReaderPanel extends Component {
       menuOpen: menu,
       mode: "Text",
       initialAnalyticsTracked: false,
+      navigationCategories: null,
       navigationSheetTag: null,
       navigationTopic: null,
       navigationTopicTitle: null,
@@ -407,7 +408,15 @@ class ReaderPanel extends Component {
     this.conditionalSetState({navigationCategories: categories});
   }
   setNavigationTopic(topic, topicTitle) {
-    this.conditionalSetState({menuOpen: 'navigation', navigationTopicCategory: topic, navigationTopicTitle: topicTitle, navigationTopic: null, topicTitle: null});
+    this.conditionalSetState({
+      menuOpen: 'topics',
+      navigationTopicCategory: topic,
+      navigationTopicTitle: topicTitle,
+      navigationTopic: null,
+      topicTitle: null,
+      navigationCategories: null,
+
+    });
   }
   setSheetTag (tag) {
     this.conditionalSetState({navigationSheetTag: tag});
@@ -450,6 +459,7 @@ class ReaderPanel extends Component {
   setTopic(navigationTopic, topicTitle) {
     this.conditionalSetState({
         menuOpen: "topics",
+        navigationTopicCategory: null,
         navigationTopic,
         topicTitle
     });
@@ -764,8 +774,6 @@ class ReaderPanel extends Component {
                     topicTitle={this.state.navigationTopicTitle}
                     settings={this.state.settings}
                     setCategories={this.setNavigationCategories}
-                    setNavTopic={this.setNavigationTopic}
-                    setTopic={this.setTopic}
                     setOption={this.setOption}
                     toggleLanguage={this.toggleLanguage}
                     onClose={this.onClose}
@@ -885,7 +893,21 @@ class ReaderPanel extends Component {
       } else if (Sefaria.interfaceLang === "english") {
         contentLangOverride = "bilingual";
       }
-      if (this.state.navigationTopic) {
+      if (this.state.navigationTopicCategory) {
+        menu = 
+          <TopicCategory
+            topic={this.state.navigationTopicCategory}
+            topicTitle={this.state.navigationTopicTitle}
+            setTopic={this.setTopic}
+            setNavTopic={this.setNavigationTopic}
+            interfaceLang={this.props.interfaceLang}
+            compare={this.state.compare}
+            hideNavHeader={this.props.hideNavHeader}
+            openDisplaySettings={this.openDisplaySettings}
+            openSearch={this.openSearch}
+            onClose={this.onClose}
+          />
+      } else if (this.state.navigationTopic) {
         menu = (
           <TopicPage
             tab={this.state.topicsTab}

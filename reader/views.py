@@ -668,13 +668,13 @@ def texts_category_list(request, cats):
 
 
 @sanitize_get_params
-def topics_toc_page(request, topicCategory):
+def topics_category_page(request, topicCategory):
     """
     List of topics in a category.
     """
     topic_obj = Topic.init(topicCategory)
     props={
-        "initialMenu": "navigation",
+        "initialMenu": "topics",
         "initialNavigationTopicCategory": topicCategory,
         "initialNavigationTopicTitle": {
             "en": topic_obj.get_primary_title('en'),

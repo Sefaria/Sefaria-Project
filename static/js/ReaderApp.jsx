@@ -490,6 +490,7 @@ class ReaderApp extends Component {
     var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
     var states = headerPanel ? [this.state.header] : this.state.panels;
     var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
+    const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL. 
     const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open",
@@ -510,11 +511,9 @@ class ReaderApp extends Component {
             hist.mode  = "home";
             break;
           case "navigation":
-            const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
-            var topics   = state.navigationTopicCategory;
-            hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : topics ? state.navigationTopicTitle[shortLang] + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
-            hist.url   = topics ? "topics/category/" + topics : "texts" + (cats ? "/" + cats : "");
+            hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
+            hist.url   = "texts" + (cats ? "/" + cats : "");
             hist.mode  = "navigation";
             break;
           case "text toc":
@@ -552,11 +551,14 @@ class ReaderApp extends Component {
             hist.mode  = "search";
             break;
           case "topics":
-            if (states[i].navigationTopic) {
-              const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
+            if (state.navigationTopic) {
               hist.url = `topics/${state.navigationTopic}?tab=${state.topicsTab}`;
               hist.title = `${state.topicTitle[shortLang]} | ${ Sefaria._("Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.")}`;
               hist.mode  = "topic";
+            } else if (state.navigationTopicCategory) {
+              var topic  = state.navigationTopicCategory;
+              hist.title = state.navigationTopicTitle[shortLang] + " | " + Sefaria._(siteName);
+              hist.url   =  "topics/category/" + topic;
             } else {
               hist.url   = "topics";
               hist.title = Sefaria._("Topics | " + siteName);
@@ -1692,7 +1694,7 @@ class ReaderApp extends Component {
     this.setStateInHeaderOrSinglePanel({menuOpen: "history"});
   }
   showTopics() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "topics"});
+    this.setStateInHeaderOrSinglePanel({menuOpen: "topics", navigationTopicCategory: null, navigationTopic: null});
   }
   showNotifications() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "notifications"});

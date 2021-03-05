@@ -62,30 +62,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
         </div>
     );
   }
-
-  // Topics List
-  if (topic.length) {
-    return (
-        <div ref={ref} className="readerNavMenu" onClick={handleClick}>
-            <TopicCategory
-              topic={topic}
-              topicTitle={topicTitle}
-              setTopic={setTopic}
-              setNavTopic={setNavTopic}
-              toggleLanguage={toggleLanguage}
-              contentLang={settings.language}
-              interfaceLang={interfaceLang}
-              width={width}
-              multiPanel={multiPanel}
-              compare={compare}
-              hideNavHeader={hideNavHeader}
-              openDisplaySettings={openDisplaySettings}
-              openSearch={openSearch}
-              onClose={onClose}
-            />
-        </div>
-    )
-  }
+  
   // Root Library Menu
   let categoryListings = Sefaria.toc.map(cat => {
     const style = {"borderColor": Sefaria.palette.categoryColor(cat.category)};

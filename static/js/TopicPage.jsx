@@ -113,7 +113,8 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
 };
 
 
-const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang, width, multiPanel, compare, hideNavHeader, contentLang, openDisplaySettings, openSearch, onClose}) => {
+const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang, 
+  compare, hideNavHeader, openDisplaySettings, openSearch, onClose}) => {
     
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
