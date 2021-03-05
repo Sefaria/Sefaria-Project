@@ -52,11 +52,15 @@ const Module = ({children, blue}) => {
 };
 
 
-const ModuleTitle = ({children, en, he}) => (
-  children ?
-    <h3><IntText>{children}</IntText></h3>
-    : <h3><IntText en={en} he={he} /></h3>
-);
+const ModuleTitle = ({children, en, he, h1}) => {
+  const content = children ?
+    <IntText>{children}</IntText>
+    : <IntText en={en} he={he} />;
+
+  return h1 ?
+    <h1>{content}</h1>
+    : <h3>{content}</h3>
+};
 
 
 const TitledText = ({enTitle, heTitle, enText, heText}) => {
@@ -69,7 +73,7 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
 
 const AboutSefaria = () => (
   <Module>
-    <ModuleTitle>A Living Library of Torah</ModuleTitle>
+    <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle>
     <IntText>Sefaria is a place to explore 3,000 years of Jewish texts. We offer you direct access to texts, translations, and commentaries for free so that you participate in the tradition of making meaning of our heritage.</IntText> <a href="/about" className="inTextLink"><IntText>Learn More</IntText> <IntText>&rsaquo;</IntText></a>
   </Module>
 );
@@ -331,7 +335,7 @@ const StayConnected = () => {
 
 const AboutStudySchedules = () => (
   <Module>
-    <ModuleTitle>Study Schedules</ModuleTitle>
+    <ModuleTitle h1={true}>Study Schedules</ModuleTitle>
     <IntText>Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar. Following this practice, many other calendars have been created to help communities of learners work through specific texts together.</IntText>
   </Module>
 );

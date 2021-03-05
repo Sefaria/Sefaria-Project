@@ -1184,7 +1184,8 @@ input.noselect {
   margin-bottom: 34px;
   padding: 0 44px;
 }
-.readerPanel .navSidebarModule h3 {
+.readerPanel .navSidebarModule h3,
+.readerPanel .navSidebarModule h1 {
   margin: 0 0 20px;
   font-size: 22px;
   text-transform: none;
@@ -1192,6 +1193,7 @@ input.noselect {
   border-bottom: 1px solid #CCC;
   padding-bottom: 14px;
   font-weight: 500;
+  height: auto;
 }
 .navSidebarModule.blue {
   background-color: #18345D;
@@ -1403,7 +1405,8 @@ input.noselect {
 .readerNavTop .searchBox .readerSearch {
   flex: 1;
 }
-.readerNavMenu h1 {
+.readerNavMenu h1,
+.readerNavMenu h2.styledH1 {
   text-align: start;
   color: #666;
   height: 48px;
@@ -1411,6 +1414,7 @@ input.noselect {
   font-size: 22px;
   font-weight: 500;
   margin: 0;
+  text-transform: none;
 }
 .readerNavMenu.topicPanel {
   background-color: white;
@@ -1771,6 +1775,7 @@ input.resourcesLink {
 }
 .readerNavCategories {
   width: 100%;
+  margin-bottom: 30px;
 }
 .readerNavCategories a {
   color: #000;
@@ -6846,6 +6851,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-size: 18px;
   color: #666;
   display: flex;
+  margin: 2px 0 16px;
 }
 .calendarRef a {
   color: inherit;
