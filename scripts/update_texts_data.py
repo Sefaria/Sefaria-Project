@@ -4,6 +4,7 @@ django.setup()
 
 import csv
 import requests
+from io import StringIO
 
 from sefaria.model import *
 from sefaria.system.database import db
@@ -34,8 +35,8 @@ eras = {
 
 url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx60DLNs8Dp0l2xpsPjrxD3dBpIKASXSBiE-zjq74SvUIc-hD-mHwCxsuJpQYNVHIh7FDBwx7Pp9zR/pub?gid=480609494&single=true&output=csv'
 response = requests.get(url)
-lines = str.splitlines(response.text)
-cr = csv.reader(lines)
+data = response.content.decode("utf-8")
+cr = csv.reader(StringIO(data))
 
 
 rows = list(cr)[3:]

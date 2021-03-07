@@ -553,7 +553,6 @@ const Element = props => {
                 return (
                   <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
                     <div className={SheetOutsideTextClasses} {...attributes}>
-                        {element.loading ? <div className="sourceLoader"></div> : null}
                         {children}
                     </div>
                     <div className="clearFix"></div>
@@ -632,7 +631,10 @@ const Element = props => {
             )
         case 'paragraph':
             return (
-                <div>{children}</div>
+                <div>
+                    {element.loading ? <div className="sourceLoader"></div> : null}
+                    {children}
+                </div>
             );
         case 'bulleted-list':
             return (
@@ -1112,10 +1114,9 @@ const insertMedia = (editor, mediaUrl) => {
   Transforms.move(editor);
 }
 
-const insertSource = (editor, ref, path=null) => {
+const insertSource = (editor, ref, path) => {
 
-    const currentNode = getClosestSheetElement(editor, path ? path : editor.selection.focus.path, "SheetOutsideText")
-    Transforms.setNodes(editor, { loading: true }, {at: currentNode[1]});
+    Transforms.setNodes(editor, { loading: true }, {at: path});
 
     Sefaria.getText(ref).then(text => {
         const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
@@ -1133,7 +1134,7 @@ const insertSource = (editor, ref, path=null) => {
                     {text: ""},
                 ]
         };
-        Transforms.setNodes(editor, { loading: false }, { at: currentNode[1] });
+        Transforms.setNodes(editor, { loading: false }, { at: path });
         addItemToSheet(editor, fragment, path ? path : "bottom");
         checkAndFixDuplicateSheetNodeNumbers(editor)
         Transforms.move(editor, { unit: 'block', distance: 9 })
