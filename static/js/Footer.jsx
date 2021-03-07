@@ -8,9 +8,7 @@ import Component from 'react-class';
 const Section = ({en, he, children}) => (
     <div className="section">
       <div className="header">
-          {Sefaria.interfaceLang == "hebrew" ? 
-          <span className="int-he">{he}</span>
-          : <span className="int-en">{en}</span>}
+         <InterfaceText en={en} he={he}/>
       </div>
       {children}
     </div>
@@ -18,9 +16,7 @@ const Section = ({en, he, children}) => (
 
 const Link = ({href, en, he, blank}) => (
     <a href={href} target={blank ? "_blank" : "_self"}>
-      {Sefaria.interfaceLang == "hebrew" ? 
-      <span className="int-he">{he}</span>
-      : <span className="int-en">{en}</span>}
+      <InterfaceText en={en} he={he}/>
     </a>
 );
 
