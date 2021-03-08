@@ -4,6 +4,7 @@ django.setup()
 
 import csv
 import requests
+from io import StringIO
 
 from sefaria.model import *
 
@@ -17,8 +18,8 @@ from sefaria.model import *
 
 url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx60DLNs8Dp0l2xpsPjrxD3dBpIKASXSBiE-zjq74SvUIc-hD-mHwCxsuJpQYNVHIh7FDBwx7Pp9zR/pub?gid=1537266127&single=true&output=csv'
 response = requests.get(url)
-lines = str.splitlines(response.text)
-cr = csv.reader(lines)
+data = response.content.decode("utf-8")
+cr = csv.reader(StringIO(data))
 
 next(cr)
 for l in cr:
@@ -32,4 +33,4 @@ for l in cr:
     c.heDesc      = l[2].strip()
     c.enShortDesc = l[3].strip()
     c.heShortDesc = l[4].strip()
-    c.save()
+    c.save(override_dependencies=True)
