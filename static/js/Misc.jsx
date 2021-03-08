@@ -49,19 +49,21 @@ const __filterChildrenByLanguage = (children, language) => {
   return newChildren;
 };
 
-const InterfaceText = ({children, en, he, context}) => {
+const InterfaceText = ({content, html, children, context}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
-   *  If passed explicit "en" and/or "he" props, will only use those to determine correct text or fallback text to display.
+   *  If passed explicit content or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
    *  Otherwise:
    * `children` can be the English string, which will be translated with Sefaria._ if needed.
    * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
    * `context` is passed to Sefaria._ for additional translation context
    */
+  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [content, false];
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
   let text = null;
-  if (en || he) {// Prioritze explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
+  if (contentVariable) {// Prioritze explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
+    let [he, en] = contentVariable;
     text = isHebrew ? (he || en) : (en || he);
     let fallbackCls = (isHebrew && !he) ? "enInHe" : ((!isHebrew && !en) ? "heInEn" : "" );
     elemclasses += fallbackCls;
@@ -76,7 +78,12 @@ const InterfaceText = ({children, en, he, context}) => {
       console.log("Error too many children")
     }
   }
-  return (<span className={elemclasses}>{text}</span>);
+  return (
+      isDangerouslySetInnerHTML ?
+          <span className={elemclasses} dangerouslySetInnerHTML={{__html: text}}/>
+          :
+          <span className={elemclasses}>{text}</span>
+  );
 };
 InterfaceText.propTypes = {
   //Makes sure that children passed in are either a single string, or an array consisting only of <EnglishText>, <HebrewText>
