@@ -2715,6 +2715,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 
 .parasha {
   width: 100%;
+  padding-left: 6px;
+
 }
 .parasha .parashaTitle {
   font-family: Garamond,Baskerville,Baskerville Old Face,Hoefler Text,Times New Roman,serif;
@@ -2722,14 +2724,14 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-weight: lighter;
   font-size: 30px;
   line-height: 50px;
-  padding-top: 50px;
+  padding-top: 30px;
 }
 
 .parasha .parashaSponsorNames {
   font-family: Roboto, serif;
   font-style: normal;
   font-weight: lighter;
-  font-size: 20px;
+  font-size: 16px;
   line-height: 50px;
 }
 
@@ -2737,8 +2739,9 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-family: Roboto, serif;
   font-style: italic;
   font-weight: lighter;
-  font-size: 20px;
-  line-height: 40px;
+  font-size: 16px;
+  width: 75%;
+
 }
 
 /* Static Page Templates */
@@ -2805,6 +2808,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .staticPage .staticPageHeader .staticPageHeaderTextBoxTextOnly {
   flex: 7;
+  text-align: center;
+  font-size: 2em;
 }
 .staticPage .staticPageHeader .staticPageHeaderImg {
   flex: 9;
@@ -2821,11 +2826,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .interface-english .staticPage .staticPageHeader .staticPageHeaderTextBoxTextOnly {
   padding-right: 10px;
-  text-align: center;
+  padding-top: 10px;
 }
 .interface-hebrew .staticPage .staticPageHeader .staticPageHeaderTextBoxTextOnly {
   padding-left: 10px;
-  text-align: center;
+  padding-top: 10px;
 }
 .staticPage .staticPageH2 {
   padding: 55px 0 10px;
@@ -2899,7 +2904,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   width: auto;
   display: flex;
   justify-content: center;
-  padding-bottom: 80px;
+  padding-bottom: 40px;
 }
 .staticPage .simpleButtonWrapper .button {
   border-radius: 0;
@@ -2923,6 +2928,17 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPageHeader h1 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
+
+.staticPageHeader .staticPageHeaderTextBoxTextOnly h1 {
+  line-height: 52px;
+  margin: 0 0 14px 0;
+  padding-bottom: 20px;
+}
+.staticPageHeader .staticPageHeaderTextBoxTextOnly h1 .int-en {
+  font-family: Garamond,Baskerville,Baskerville Old Face,Hoefler Text,Times New Roman,serif;
+  font-weight: lighter;
+  font-size: 46px;
+}
 .staticPageHeaderText {
   font-size: 16px;
   max-width: 280px;
@@ -2932,7 +2948,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPageHeaderTextTextOnly {
   font-size: 16px;
   line-height: 22px;
-  padding-bottom: 25px;
+  padding-bottom: 40px;
+  text-align: left;
+  font-weight: lighter;
+  font-family: Garamond,Baskerville,Baskerville Old Face,Hoefler Text,Times New Roman,serif;
+
 }
 
 .staticPageHeaderImg img {

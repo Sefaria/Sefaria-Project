@@ -258,58 +258,62 @@ const RambanLandingPage = () => {
             enImg=""
             heImg=""
         />
-        <GreyBox light={true}>
             <H2Block
                 en="Thank you to our Sponsors"
                 he=""
             />
-        </GreyBox>
         <H2Block
             en="BERESHIT"
             he=""
-        />
+        />        <Spacer/>
+
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox width={width} content={
-            [['Bereshit', 'Leib and Linda Koyfman', 'In honor of Hilary and Mo Koyfman and family'], ['Noach', '', ''], ['Lech Lecha', 'Rabbi David Aladjem', 'In support of Sefaria'], ['Vayera', 'Howard and Tova Weiser', 'In honor of their children and grandchildren'], ['Chayei Sara', 'Rechtschaffen Family', "In honor of the 30th anniversary of Andrew Rechtscaffen's bar mitzvah."], ['Toldot ', 'Shapira-Stern Family', 'In honor of David Shapira'], ['Vayetzei', 'Available for Sponsorship', '-----'], ['Vayishlach', 'Available for Sponsorship', '-----'], ['Vayashev', 'Available for Sponsorship', '-----'], ['Miketz', 'Raquel and Aryeh Rubin', 'In memory of the one and a half million children'], ['Vayigash', 'Laurie and Milton Wakschlag', 'In memory of their parents Fishel and Sheva Wakschlag'], ['Vayechi', 'The Stein Children', 'In memory of their father Jacob K. Stein z"l']]
+            [['Bereshit', 'Leib and Linda Koyfman', 'In honor of Hilary and Mo Koyfman and family'], ['Noach', '', ''], ['Lech Lecha', 'Rabbi David Aladjem', 'In support of Sefaria'], ['Vayera', 'Howard and Tova Weiser', 'In honor of their children and grandchildren'], ['Chayei Sara', 'Rechtschaffen Family', "In honor of the 30th anniversary of Andrew Rechtscaffen's bar mitzvah."], ['Toldot ', 'Shapira-Stern Family', 'In honor of David Shapira'], ['Vayetzei', 'Available for Sponsorship', ''], ['Vayishlach', 'Available for Sponsorship', ''], ['Vayashev', 'Available for Sponsorship', ''], ['Miketz', 'Raquel and Aryeh Rubin', 'In memory of the one and a half million children'], ['Vayigash', 'Laurie and Milton Wakschlag', 'In memory of their parents Fishel and Sheva Wakschlag'], ['Vayechi', 'The Stein Children', 'In memory of their father Jacob K. Stein z"l']]
 .map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
             <H2Block
                 en="SHEMOT"
                 he=""
-            />
+            />        <Spacer/>
+
 
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox width={width} content={
-            [['Shemot', 'Sam and Debbie Moed', 'In memory of Henry I. Zeisel, who derived tremendous joy from learning. We dedicate this perush of his bar mitzvah parasha with love'], ['Vaera', 'Will Lennon', 'In memory of Dr. Arthur Helft'], ['Bo', 'Available for Sponsorship', '-----'], ['Beshalach', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ['Yitro', 'Anonymous Sponsor', 'To honor the memory of Joe and Rose Rudis'], ['Mishpatim ', 'Available for Sponsorship', '-----'], ['Terumah', 'Julia Baum and Adam Feldman', 'In memory of Earl Katz and Annette Steinman'], ['Tetzevei', '', ''], ['Ki Tisa', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ['Vayahkel', 'The Berkowitz Family', "In honor of our parent's and grandparent's (Bebe, Bepop, Pop pop, and grandmama) who provide a sense of inspiration and demonstrate a desire to constantly learn more."], ['Pekudei', '', '']]
+            [['Shemot', 'Sam and Debbie Moed', 'In memory of Henry I. Zeisel, who derived tremendous joy from learning. We dedicate this perush of his bar mitzvah parasha with love'], ['Vaera', 'Will Lennon', 'In memory of Dr. Arthur Helft'], ['Bo', 'Available for Sponsorship', ''], ['Beshalach', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ['Yitro', 'Anonymous Sponsor', 'To honor the memory of Joe and Rose Rudis'], ['Mishpatim ', 'Available for Sponsorship', ''], ['Terumah', 'Julia Baum and Adam Feldman', 'In memory of Earl Katz and Annette Steinman'], ['Tetzevei', '', ''], ['Ki Tisa', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ['Vayahkel', 'The Berkowitz Family', "In honor of our parent's and grandparent's (Bebe, Bepop, Pop pop, and grandmama) who provide a sense of inspiration and demonstrate a desire to constantly learn more."], ['Pekudei', '', '']]
 .map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
             <H2Block
                 en="VAYIKRA"
                 he=""
-            />
+            />        <Spacer/>
+
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox width={width} content={
-            [['Vayikra', 'Edy and Jacob Kupietzky and Family', ''], ['Tzav', '', ''], ['Shmini', 'Joshua and Dinah Foer', '-----'], ['Tazria', 'Diane & Howard Zack & Family', 'In honor of their parents'], ['Metzora', 'Anne Germanacos', 'To Rabbi Noa Kusher and Rabbi Jessica Kate Meyer in gratitude for their brilliance and resilience during the pandemic, and their friendship in all times.'], ['Achrei Mot', 'Anne Germanacos', 'To Rabbi Noa Kusher and Rabbi Jessica Kate Meyer in gratitude for their brilliance and resilience during the pandemic, and their friendship in all times.'], ['Kedoshim', 'Karine and Michael Bloch', 'In honor of our children Eitan, Yoel, and Tali'], ['Emor', 'Joshua and Dinah Foer', '-----'], ['Behar ', 'Tamar and Eric Goldstein', 'In honor of Aryeh’s aufruf'], ['Bechukotai ', 'Tamar and Eric Goldstein', 'In honor of Aryeh’s aufruf']]
+            [['Vayikra', 'Edy and Jacob Kupietzky and Family', ''], ['Tzav', '', ''], ['Shmini', 'Joshua and Dinah Foer', ''], ['Tazria', 'Diane & Howard Zack & Family', 'In honor of their parents'], ['Metzora', 'Anne Germanacos', 'To Rabbi Noa Kusher and Rabbi Jessica Kate Meyer in gratitude for their brilliance and resilience during the pandemic, and their friendship in all times.'], ['Achrei Mot', 'Anne Germanacos', 'To Rabbi Noa Kusher and Rabbi Jessica Kate Meyer in gratitude for their brilliance and resilience during the pandemic, and their friendship in all times.'], ['Kedoshim', 'Karine and Michael Bloch', 'In honor of our children Eitan, Yoel, and Tali'], ['Emor', 'Joshua and Dinah Foer', ''], ['Behar ', 'Tamar and Eric Goldstein', 'In honor of Aryeh’s aufruf'], ['Bechukotai ', 'Tamar and Eric Goldstein', 'In honor of Aryeh’s aufruf']]
 .map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
             <H2Block
                 en="BAMIDBAR"
                 he=""
-            />
+            />        <Spacer/>
+
 
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox width={width} content={
-            [['Bamidbar', '', ''], ['Nasso', 'Annoymous Sponsor', 'In honor of Tzeela, Rina Faiga, Dalia and Penina Malka'], ["Beha'alotcha", 'Available for Sponsorship', '-----'], ["Sh'lach", 'Meyer Family', 'In honor of the bar mitzvah of George Meyer'], ['Korach', '', ''], ['Chukat', '', ''], ['Balak', 'Available for Sponsorship', '-----'], ['Pinchas', 'The Berkowitz Family', "In honor of our parent's and grandparent's (Bebe, Bepop, Pop pop, and grandmama) who provide a sense of inspiration and demonstrate a desire to constantly learn more."], ['Matot', '', ''], ['Masei', 'Available for Sponsorship', '-----']]
+            [['Bamidbar', '', ''], ['Nasso', 'Annoymous Sponsor', 'In honor of Tzeela, Rina Faiga, Dalia and Penina Malka'], ["Beha'alotcha", 'Available for Sponsorship', ''], ["Sh'lach", 'Meyer Family', 'In honor of the bar mitzvah of George Meyer'], ['Korach', '', ''], ['Chukat', '', ''], ['Balak', 'Available for Sponsorship', ''], ['Pinchas', 'The Berkowitz Family', "In honor of our parent's and grandparent's (Bebe, Bepop, Pop pop, and grandmama) who provide a sense of inspiration and demonstrate a desire to constantly learn more."], ['Matot', '', ''], ['Masei', 'Available for Sponsorship', '']]
 .map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
             <H2Block
                 en="DEVARIM"
                 he=""
             />
+                    <Spacer/>
+
 
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox width={width} content={
-            [['Devarim', 'Available for Sponsorship', '-----'], ['Vaetchanan', 'Becky and Avi Katz', 'In honor of Sefaria'], ['Eikev', 'Annoymous Sponsor', '-----'], ["Re'eh", 'Tamar and Eric Goldstein', "In honor of Adin's aufruf"], ['Shoftim', 'Tricia Gibbs', 'In memory of F. Warren Hellman'], ['Ki Tetzei', 'The Katz Family', 'In honor of the victims of Covid-19'], ['Ki Tavo ', 'Rechtschaffen Family', "In honor of the 3rd anniversary of Jordan Rechtscaffen's bar mitzvah"], ['Nitzavim', 'Jeremy Rosenthal', 'In honor of Judy and Stuart Rosenthal, in gratitude for their commitment to a sustained Jewish future.'], ['Vayeilech', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ["Ha'Azinu", 'Mayer', 'In honour of Shalom Rosenzweig, on the occasion of his Bar Mitzvah, October 10, 1992.'], ["V'Zot HaBerachah", 'Elisha Wiesel', 'In memory of Elie Wiesel']]
+            [['Devarim', 'Available for Sponsorship', ''], ['Vaetchanan', 'Becky and Avi Katz', 'In honor of Sefaria'], ['Eikev', 'Annoymous Sponsor', ''], ["Re'eh", 'Tamar and Eric Goldstein', "In honor of Adin's aufruf"], ['Shoftim', 'Tricia Gibbs', 'In memory of F. Warren Hellman'], ['Ki Tetzei', 'The Katz Family', 'In honor of the victims of Covid-19'], ['Ki Tavo ', 'Rechtschaffen Family', "In honor of the 3rd anniversary of Jordan Rechtscaffen's bar mitzvah"], ['Nitzavim', 'Jeremy Rosenthal', 'In honor of Judy and Stuart Rosenthal, in gratitude for their commitment to a sustained Jewish future.'], ['Vayeilech', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ["Ha'Azinu", 'Mayer', 'In honour of Shalom Rosenzweig, on the occasion of his Bar Mitzvah, October 10, 1992.'], ["V'Zot HaBerachah", 'Elisha Wiesel', 'In memory of Elie Wiesel']]
 .map(i => <Parasha title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
         <Spacer/>
