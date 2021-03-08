@@ -91,8 +91,8 @@ InterfaceText.propTypes = {
       PropTypes.string,
       PropTypes.arrayOf(AvailableLanguagesValidator),
   ]),
-  en: PropTypes.string,
-  he: PropTypes.string,
+  content: PropTypes.object,
+  html: PropTypes.object,
   context: PropTypes.string,
   className: PropTypes.string
 };
