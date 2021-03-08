@@ -506,7 +506,7 @@ class ReaderPanel extends Component {
       value = (value === "smaller" ? size/step : size*step);
     } else if (option === "layout") {
       const category = this.currentCategory();
-      const option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
+      option = category === "Tanakh" || category === "Talmud" ? "layout" + category : "layoutDefault";
     }
 
     this.state.settings[option] = value;
