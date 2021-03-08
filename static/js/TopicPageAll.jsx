@@ -53,7 +53,7 @@ class TopicPageAll extends Component {
         title={"Explore sources related to '" + item.slug + "'"}
         key={item.slug}
       >
-        <InterfaceText {...item.primaryTitle} />
+        <InterfaceText content={item.primaryTitle} />
       </Link>
     );
   }

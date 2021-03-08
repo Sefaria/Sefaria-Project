@@ -1427,12 +1427,12 @@ function ManuscriptImage(props) {
         {
           manuscript.manuscript[description]
             ? <span>
-                <InterfaceText en={'Courtesy of: '} he={'הודות ל'} />
+                <InterfaceText content={{en:'Courtesy of: ', he:'הודות ל'}} />
                 <span className={cls}>{manuscript.manuscript[description]}<br/></span>
               </span>
             : ''
         }
-        <InterfaceText en={'Source: '} he={'מקור: '}/>
+        <InterfaceText content={{en:'Source: ', he:'מקור: '}}/>
         <a href={manuscript.manuscript['source']} target="_blank">{manuscript.manuscript['source'].replace("https://", "")}</a>
       </div>
 

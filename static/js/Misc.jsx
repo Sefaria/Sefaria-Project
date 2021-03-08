@@ -831,7 +831,7 @@ DangerousInterfaceBlock.propTypes = {
 
 const SimpleInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
-            <InterfaceText en={en} he={he} />
+            <InterfaceText content={{en:en, he:he}} />
         </div>
     );
 SimpleInterfaceBlock.propTypes = {
@@ -857,7 +857,7 @@ SimpleContentBlock.propTypes = {
 const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick}) => (
         <div className={classes} onClick={onClick}>
             <a href={url} className={aclasses}>
-              <InterfaceText en={en} he={he}/>
+              <InterfaceText content={{en:en, he:he}}/>
             </a>
             {children}
         </div>
@@ -1961,7 +1961,7 @@ class SheetTopicLink extends Component {
     const { slug, en, he } = this.props.topic;
     return (
       <a href={`/topics/${slug}`} onClick={this.handleTagClick}>
-        <InterfaceText en={en} he={he} />
+        <InterfaceText content={{en:en, he:he}} />
       </a>
     );
   }

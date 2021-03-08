@@ -267,7 +267,7 @@ class SheetMetadata extends Component {
                                 className="sheetTag button"
                                 key={i}
                               >
-                                <InterfaceText en={topic.en} he={topic.he} />
+                                <InterfaceText content={{en:topic.en, he:topic.he}} />
                               </a>
                             ))
                           }
