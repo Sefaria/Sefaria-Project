@@ -603,7 +603,7 @@ class TextSegment extends Component {
            aria-label={"Click to see links to "+this.props.sref}>
         {segmentNumber}
         {linkCountElement}
-        <p>
+        <p className="segmentText">
           <ContentText overrideLanguage={overrideLanguage} html={{"he": he, "en": en }}/>
         </p>
 

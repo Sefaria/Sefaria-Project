@@ -3776,7 +3776,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .continuous .clearFix {
   display: none;
 }
-
+.segment .segmentText{
+  display: inline;
+}
 .segment > .he,
 .segment > .en,
 .segment > p > .he,
