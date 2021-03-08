@@ -63,7 +63,7 @@ const InterfaceText = ({content, html, children, context}) => {
   let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
   let text = null;
   if (contentVariable) {// Prioritze explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
-    let [he, en] = contentVariable;
+    let {he, en} = contentVariable;
     text = isHebrew ? (he || en) : (en || he);
     let fallbackCls = (isHebrew && !he) ? "enInHe" : ((!isHebrew && !en) ? "heInEn" : "" );
     elemclasses += fallbackCls;
