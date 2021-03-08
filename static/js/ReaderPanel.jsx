@@ -619,8 +619,7 @@ class ReaderPanel extends Component {
       return this.state.width > 500 ? this.state.settings.biLayout : "stacked";
     }
     const category = this.currentCategory();
-    let option = "layoutDefault";
-    option = (category && (category === "Tanakh" || category === "Talmud")) ? "layout" + category : "layoutDefault";
+    const option = (category && (category === "Tanakh" || category === "Talmud")) ? "layout" + category : "layoutDefault";
     return this.state.settings[option];
   }
   handleKeyPress(e) {
