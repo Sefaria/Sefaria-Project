@@ -819,8 +819,7 @@ LanguageToggleButton.propTypes = {
 
 const DangerousInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
-          <span className="int-en" dangerouslySetInnerHTML={ {__html: en } } />
-          <span className="int-he" dangerouslySetInnerHTML={ {__html: he } } />
+          <InterfaceText html={{"en": en, "he":he}} />
         </div>
     );
 DangerousInterfaceBlock.propTypes = {
