@@ -45,6 +45,7 @@ psycopg2==2.8.6
 py2-py3-django-email-as-username==1.7.1
 pymongo>=3.7
 pytest==6.1.1
+pytest-django
 pytz
 pyyaml==5.3.1
 rauth==0.7.3
