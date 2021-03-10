@@ -161,7 +161,8 @@ class RecentFilterSet extends Component {
     // If the current filter is not already in the top set, put it first
     if (this.props.filter.length) {
       let filter = this.props.filter[0];
-      for (let i=0; i < topLinks.length; i++) {
+      let i = 0;
+      for (i; i < topLinks.length; i++) {
         if (recentFilters[i].book === filter ||
             recentFilters[i].category == filter ) { break; }
       }
