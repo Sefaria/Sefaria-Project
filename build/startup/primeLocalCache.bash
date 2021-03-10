@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# Wait for nginx to become available
-
 targetHostname=${TARGET_HOSTNAME:-localhost}
 
 # Define list of endpoints to query before the pods head into service
