@@ -1,12 +1,5 @@
-import {InterfaceText} from "./Misc";
-
-const {
-  LanguageToggleButton,
-  ReaderNavigationMenuCloseButton,
-}                = require('./Misc');
-const {
-  RecentFilterSet
-}                = require('./ConnectionFilters');
+import {InterfaceText, EnglishText, HebrewText, LanguageToggleButton, ReaderNavigationMenuCloseButton } from "./Misc";
+import {RecentFilterSet} from "./ConnectionFilters";
 import React  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
