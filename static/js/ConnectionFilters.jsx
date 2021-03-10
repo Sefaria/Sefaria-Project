@@ -20,8 +20,8 @@ class CategoryFilter extends Component {
     }
   }
   render() {
-    var filterSuffix = this.props.category  == "Quoting Commentary" ? "Quoting" : null;
-    var textFilters = this.props.showBooks ? this.props.books.map(function(book, i) {
+    const filterSuffix = this.props.category  == "Quoting Commentary" ? "Quoting" : null;
+    const textFilters = this.props.showBooks ? this.props.books.map(function(book, i) {
      return (<TextFilter
                 srefs={this.props.srefs}
                 key={i}
@@ -37,13 +37,13 @@ class CategoryFilter extends Component {
                 on={Sefaria.util.inArray(book.book, this.props.filter) !== -1} />);
     }.bind(this)) : null;
 
-    var color        = Sefaria.palette.categoryColor(this.props.category);
-    var style        = {"borderTop": "4px solid " + color};
-    var innerClasses = classNames({categoryFilter: 1, withBooks: this.props.showBooks, on: this.props.on});
-    var count        = (<span className="connectionsCount"> ({this.props.count})</span>);
-    var handleClick  = this.handleClick;
-    var url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
-    var innerFilter = (
+    const color        = Sefaria.palette.categoryColor(this.props.category);
+    const style        = {"borderTop": "4px solid " + color};
+    let innerClasses = classNames({categoryFilter: 1, withBooks: this.props.showBooks, on: this.props.on});
+    let count        = (<span className="connectionsCount"> ({this.props.count})</span>);
+    let handleClick  = this.handleClick;
+    const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
+    let innerFilter = (
       <div className={innerClasses} data-name={this.props.category}>
         <span className="en">
           <span className="filterInner">
@@ -53,8 +53,8 @@ class CategoryFilter extends Component {
         </span>
         <span className="he">{this.props.heCategory}{count}</span>
       </div>);
-    var wrappedFilter = <a href={url} onClick={handleClick}>{innerFilter}</a>;
-    var outerClasses = classNames({categoryFilterGroup: 1, withBooks: this.props.showBooks});
+    let wrappedFilter = <a href={url} onClick={handleClick}>{innerFilter}</a>;
+    let outerClasses = classNames({categoryFilterGroup: 1, withBooks: this.props.showBooks});
     return (
       <div className={outerClasses} style={style}>
         {wrappedFilter}
@@ -142,11 +142,12 @@ class RecentFilterSet extends Component {
   }
   render() {
     // Annotate filter texts with category
-    var recentFilters = this.props.recentFilters.map(function(filter) {
-      var filterAndSuffix = filter.split("|");
+    let recentFilters;
+    recentFilters = this.props.recentFilters.map(function(filter) {
+      let filterAndSuffix = filter.split("|");
       filter              = filterAndSuffix[0];
-      var filterSuffix    = filterAndSuffix.length == 2 ? filterAndSuffix[1] : null;
-      var index           = Sefaria.index(filter);
+      let filterSuffix    = filterAndSuffix.length == 2 ? filterAndSuffix[1] : null;
+      let index           = Sefaria.index(filter);
       const filterKey       = filter + (filterSuffix ? `|${filterSuffix}` : '');
       return {
         book: filter,
@@ -156,20 +157,21 @@ class RecentFilterSet extends Component {
         filterKey,
       };
     });
-    var topLinks = [];
+    let topLinks = [];
     // If the current filter is not already in the top set, put it first
     if (this.props.filter.length) {
       let filter = this.props.filter[0];
-      for (var i=0; i < topLinks.length; i++) {
+      for (let i=0; i < topLinks.length; i++) {
         if (recentFilters[i].book === filter ||
             recentFilters[i].category == filter ) { break; }
       }
       if (i == recentFilters.length) {
-        var index = Sefaria.index(filter);
+        let index = Sefaria.index(filter);
+        let annotatedFilter;
         if (index) {
-          var annotatedFilter = {book: filter, heBook: index.heTitle, category: index.primary_category };
+          annotatedFilter = {book: filter, heBook: index.heTitle, category: index.primary_category };
         } else {
-          var annotatedFilter = {book: filter, heBook: filter.en, category: "Other" };
+          annotatedFilter = {book: filter, heBook: filter.en, category: "Other" };
         }
 
         recentFilters = [annotatedFilter].concat(topLinks).slice(0,5);
@@ -177,7 +179,7 @@ class RecentFilterSet extends Component {
         // topLinks.move(i, 0);
       }
     }
-    var recentFilters = recentFilters.map(function(book) {
+    recentFilters = recentFilters.map(function(book) {
      return (<TextFilter
                 srefs={this.props.srefs}
                 key={book.filterKey}
@@ -194,7 +196,7 @@ class RecentFilterSet extends Component {
                 on={Sefaria.util.inArray(book.filterKey, this.props.filter) !== -1} />);
     }.bind(this));
 
-    var classes = classNames({recentFilterSet: 1, topFilters: this.props.asHeader, filterSet: 1});
+    let classes = classNames({recentFilterSet: 1, topFilters: this.props.asHeader, filterSet: 1});
     return (
       <div className={classes}>
         <div className="topFiltersInner">{recentFilters}</div>
