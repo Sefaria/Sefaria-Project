@@ -1207,6 +1207,8 @@ class ReaderControls extends Component {
   render() {
     let title = this.props.currentRef || "";
     let heTitle = "";
+    let sectionString = "";
+    let heSectionString = "";
     let categoryAttribution = null;
     const oref = Sefaria.ref(this.props.currentRef);
 
@@ -1218,12 +1220,11 @@ class ReaderControls extends Component {
         heTitle = "ללא שם";
       }
     } else if (oref) {
-      let sectionString = oref.ref.replace(oref.indexTitle, "");
-      let heSectionString = oref.heRef.replace(oref.heIndexTitle, "");
-      title = <span>{oref.indexTitle}<span className="sectionString">{sectionString}</span></span>
-      heTitle = <span>{oref.heIndexTitle}<span className="sectionString">{heSectionString}</span></span>
-      categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories) ?
-                                  <CategoryAttribution categories={oref.categories} linked={false} /> : null;
+      sectionString = oref.ref.replace(oref.indexTitle, "");
+      heSectionString = oref.heRef.replace(oref.heIndexTitle, "");
+      title = oref.indexTitle; //<span className="sectionString">{sectionString}</span></span>
+      heTitle = oref.heIndexTitle; //<span className="sectionString">{heSectionString}</span></span>
+      categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories);
     }
 
     const mode              = this.props.currentMode();
@@ -1256,6 +1257,9 @@ class ReaderControls extends Component {
                 :
                 <div>
                   <ContentText content={{en: title, he: heTitle}} />
+                  <span className="sectionString">
+                    <ContentText content={{en: sectionString, he: heSectionString }} />
+                  </span>
                 </div>
             }
             { title ? (<i className="fa fa-angle-down"></i>) : null }
