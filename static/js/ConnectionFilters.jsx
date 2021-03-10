@@ -40,24 +40,24 @@ class CategoryFilter extends Component {
     const color        = Sefaria.palette.categoryColor(this.props.category);
     const style        = {"borderTop": "4px solid " + color};
     let innerClasses = classNames({categoryFilter: 1, withBooks: this.props.showBooks, on: this.props.on});
-    let count        = (<span className="connectionsCount"> ({this.props.count})</span>);
     let handleClick  = this.handleClick;
     const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";
-    let innerFilter = (
-      <div className={innerClasses} data-name={this.props.category}>
-        <span className="en">
-          <span className="filterInner">
-            <span className="filterText">{this.props.category}{count}</span>
-            {this.props.hasEnglish && Sefaria._siteSettings.TORAH_SPECIFIC ? <EnglishAvailableTag /> : null}
-          </span>
-        </span>
-        <span className="he">{this.props.heCategory}{count}</span>
-      </div>);
-    let wrappedFilter = <a href={url} onClick={handleClick}>{innerFilter}</a>;
     let outerClasses = classNames({categoryFilterGroup: 1, withBooks: this.props.showBooks});
     return (
       <div className={outerClasses} style={style}>
-        {wrappedFilter}
+        <a href={url} onClick={handleClick}>
+          <div className={innerClasses} data-name={this.props.category}>
+            <span className="filterInner">
+              <span className="filterText">
+                <ContentText content={{en: this.props.category, he: this.props.heCategory }} />
+                <span className="connectionsCount"> ({this.props.count})</span>
+              </span>
+              <span className="en">
+                {this.props.hasEnglish && Sefaria._siteSettings.TORAH_SPECIFIC ? <EnglishAvailableTag /> : null}
+              </span>
+            </span>
+          </div>
+        </a>
         {textFilters}
       </div>
     );
