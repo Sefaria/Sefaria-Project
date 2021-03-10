@@ -83,7 +83,7 @@ class TextFilter extends Component {
   // A clickable representation of connections by Text or Commentator
   handleClick(e) {
     e.preventDefault();
-    var filter = this.props.filterSuffix ? this.props.book + "|" + this.props.filterSuffix : this.props.book;
+    let filter = this.props.filterSuffix ? this.props.book + "|" + this.props.filterSuffix : this.props.book;
     this.props.setFilter(filter, this.props.updateRecent);
     if (Sefaria.site) {
       if (this.props.inRecentFilters) { Sefaria.track.event("Reader", "Text Filter in Recent Click", filter); }
