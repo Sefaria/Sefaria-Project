@@ -7402,6 +7402,8 @@ span.purim-emoji img{
 .sheetContent .sheetItem.segment .sourceContentText {
   margin-bottom: 18px;
   display: block;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {

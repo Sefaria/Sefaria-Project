@@ -761,7 +761,7 @@ async function getRefInText(editor, additionalOffset=0) {
 
 
 const withSefariaSheet = editor => {
-    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward} = editor;
+    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward, setFragmentData} = editor;
 
     //Hack to override this built-in which often returns null when programmatically selecting the whole SheetSource
     Transforms.deselect = () => {}
@@ -801,6 +801,16 @@ const withSefariaSheet = editor => {
             }
         }
 
+    }
+
+    editor.setFragmentData = (data) => {
+        setFragmentData(data);
+        //dance required to ensure a cut source is properly deleted when the delete part of cut is fired
+        if (editor.cuttingSource) {
+            Transforms.move(editor, { distance: 1, unit: 'character',  edge: 'anchor' })
+            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, edge: 'focus' })
+            editor.cuttingSource = false
+        }
     }
 
     editor.insertBreak = () => {
@@ -1537,6 +1547,18 @@ const SefariaEditor = (props) => {
           }
     }
 
+    const onCutorCopy = event => {
+        const nodeAbove = Editor.above(editor, { match: n => Editor.isBlock(editor, n) })
+
+        if (nodeAbove[0].type == "SheetSource") {
+            editor.cuttingSource = true;
+            //can't select an empty void -- so we select before and after as well
+            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, edge: 'anchor' })
+            Transforms.move(editor, { distance: 1, unit: 'character', edge: 'focus' })
+        }
+
+    }
+
     const onBlur = event => {
       editor.blurSelection = editor.selection
     }
@@ -1654,6 +1676,8 @@ const SefariaEditor = (props) => {
                   renderElement={renderElement}
                   spellCheck
                   onKeyDown={onKeyDown}
+                  onCut={onCutorCopy}
+                  onCopy={onCutorCopy}
                   onBlur={onBlur}
                   onDOMBeforeInput={beforeInput}
               />
