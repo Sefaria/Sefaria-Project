@@ -1225,8 +1225,8 @@ class ReaderControls extends Component {
     } else if (oref) {
       sectionString = oref.ref.replace(oref.indexTitle, "");
       heSectionString = oref.heRef.replace(oref.heIndexTitle, "");
-      title = oref.indexTitle; //<span className="sectionString">{sectionString}</span></span>
-      heTitle = oref.heIndexTitle; //<span className="sectionString">{heSectionString}</span></span>
+      title = oref.indexTitle;
+      heTitle = oref.heIndexTitle;
       categoryAttribution = oref && Sefaria.categoryAttribution(oref.categories);
     }
 
