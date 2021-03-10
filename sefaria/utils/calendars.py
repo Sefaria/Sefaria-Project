@@ -51,6 +51,9 @@ def daf_yomi(datetime_obj):
     """
     date_str = datetime_obj.strftime(" %m/ %d/%Y").replace(" 0", "").replace(" ", "")
     daf = db.dafyomi.find_one({"date": date_str})
+    daf_en, daf_he = None, None
+    if 'displayValue' in daf:
+        daf_en, daf_he = daf['displayValue'].get('en', None), daf['displayValue'].get('he', None)
     daf_str = [daf["daf"]] if isinstance(daf["daf"], str) else daf["daf"]
     daf_yomi = []
     for d in daf_str:
@@ -58,7 +61,7 @@ def daf_yomi(datetime_obj):
 
         daf_yomi.append({
             'title': {'en': 'Daf Yomi', 'he': 'דף יומי'},
-            'displayValue': {'en': rf.normal(), 'he': rf.he_normal()},
+            'displayValue': {'en': daf_en if daf_en else rf.normal(), 'he': daf_he if daf_he else rf.he_normal()},
             'url': rf.url(),
             'ref': rf.normal(),
             'order': 3,
