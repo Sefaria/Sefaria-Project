@@ -41,7 +41,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     return chunk
 
 
-def modify_bulk_text(user:int, version:model.Version, text_map: dict, vsource=None, **kwargs) -> None:
+def modify_bulk_text(user:int, version:model.Version, text_map: dict, vsource=None, **kwargs) -> dict:
     """
     user: user ID of user making modification
     version: version object of text being modified
@@ -70,13 +70,19 @@ def modify_bulk_text(user:int, version:model.Version, text_map: dict, vsource=No
         version.versionSource = vsource  # todo: log this change
 
     # modify version in place
+    error_map = {}
     for _, new_text, oref in change_map.values():
-        version.sub_content_with_ref(oref, new_text)
-    
+        try:
+            version.sub_content_with_ref(oref, new_text)
+        except Exception as e:
+            error_map[oref.normal()] = f"Ref doesn't match schema of version. Exception: {repr(e)}"
     version.save()
 
     for old_text, new_text, oref in change_map.values():
+        if oref.normal() in error_map: continue
         post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, version._id, **kwargs)
+
+    return error_map
 
 
 def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, version_id, **kwargs) -> None:

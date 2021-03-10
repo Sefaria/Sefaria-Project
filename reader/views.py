@@ -1206,7 +1206,8 @@ def interface_language_redirect(request, language):
 
 @catch_error_as_json
 @csrf_exempt
-def modify_bulk_text_api(request, title, vtitle, language):
+def modify_bulk_text_api(request, title):
+    title = title.replace('_', ' ')
     if request.method == "POST":
         skip_links = request.GET.get("skip_links", False)
         count_after = int(request.GET.get("count_after", 0))
@@ -1214,12 +1215,15 @@ def modify_bulk_text_api(request, title, vtitle, language):
         if not j:
             return jsonResponse({"error": "Missing 'json' parameter in post data."})
         t = json.loads(j)
-        version = Version().load({"title": title, "versionTitle": vtitle, "language": language})
+        versionTitle = t['versionTitle']
+        language = t['language']
+        versionSource = t.get("versionSource", None)
+        version = Version().load({"title": title, "versionTitle": versionTitle, "language": language})
         if version is None:
-            return jsonResponse({"error": f"Version does not exist. Title: {title}, VTitle: {vtitle}, Language: {language}"})
+            return jsonResponse({"error": f"Version does not exist. Title: {title}, VTitle: {versionTitle}, Language: {language}"})
 
         def modify(uid):
-            tracker.modify_bulk_text(uid, version, t['text_map'], vsource=t.get("versionSource", None), skip_links=skip_links, count_after=count_after)
+            return tracker.modify_bulk_text(uid, version, t['text_map'], vsource=versionSource, skip_links=skip_links, count_after=count_after)
 
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
@@ -1228,13 +1232,13 @@ def modify_bulk_text_api(request, title, vtitle, language):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            modify(apikey['uid'])
-            return jsonResponse({"status": "ok"})
+            error_map = modify(apikey['uid'])
+            return jsonResponse({"status": "ok", "ref_error_map": error_map})
         else:
             @csrf_protect
             def protected_post(request):
-                modify(request.user.id)
-                return jsonResponse({"status": "ok"})
+                error_map = modify(request.user.id)
+                return jsonResponse({"status": "ok", "ref_error_map": error_map})
             return protected_post(request)        
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
