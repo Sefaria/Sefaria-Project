@@ -1,3 +1,5 @@
+import {InterfaceText} from "./Misc";
+
 const {
   LanguageToggleButton,
   ReaderNavigationMenuCloseButton,
@@ -48,11 +50,11 @@ class ConnectionsPanelHeader extends Component {
   }
   render() {
     const previousMode = this.previousModes[this.props.connectionsMode];
+    let title;
     if (this.props.connectionsMode == "Resources") {
       // Top Level Menu
-      var title = <div className="connectionsHeaderTitle">
-                    {this.props.interfaceLang == "english" ? <div className="int-en">Resources</div> : null }
-                    {this.props.interfaceLang == "hebrew" ? <div className="int-he">קישורים וכלים</div> : null }
+      title = <div className="connectionsHeaderTitle">
+                    <InterfaceText content={{en: "Resources" , he:"קישורים וכלים" }} />
                   </div>;
 
     } else if ((this.props.previousCategory && this.props.connectionsMode == "TextList") || previousMode) {
@@ -60,7 +62,7 @@ class ConnectionsPanelHeader extends Component {
       const prev = previousMode ? previousMode.splitCamelCase() : this.props.previousCategory;
       const prevHe = previousMode ? Sefaria._(prev) : Sefaria._(this.props.previousCategory);
       const url = Sefaria.util.replaceUrlParam("with", prev);
-      var title = <a href={url} className="connectionsHeaderTitle active" onClick={this.onClick}>
+      title = <a href={url} className="connectionsHeaderTitle active" onClick={this.onClick}>
                     {this.props.interfaceLang == "english" ? <div className="int-en"><i className="fa fa-chevron-left"></i>{this.props.multiPanel ? prev : null }</div> : null }
                     {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>{this.props.multiPanel ? prevHe : null }</div> : null }
                   </a>;
@@ -71,7 +73,7 @@ class ConnectionsPanelHeader extends Component {
         e.preventDefault();
         this.props.setConnectionsMode("Resources");
       }.bind(this);
-      var title = <a href={url} className="connectionsHeaderTitle active" onClick={onClick}>
+      title = <a href={url} className="connectionsHeaderTitle active" onClick={onClick}>
                     {this.props.interfaceLang == "english" ? <div className="int-en"><i className="fa fa-chevron-left"></i>Resources</div> : null }
                     {this.props.interfaceLang == "hebrew" ? <div className="int-he"><i className="fa fa-chevron-right"></i>קישורים וכלים</div> : null }
                   </a>;
