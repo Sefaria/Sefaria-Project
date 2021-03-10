@@ -120,16 +120,6 @@ steps:
     wait_for:
       - generate_robots_file
 
-  # Copy robots.txt into file
-  # Later, combined this with the script above
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
-    dir: k8s-admin/v2
-    id: copy_k8s-admin_to_chart
-    entrypoint: cp
-    args: ["-f", "./app_settings/nginx/_robots.txt", "./charts/sefaria/robots.txt"]
-    wait_for:
-      - generate_robots_file
-
   - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.1.2"
     id: deploy_sandbox
     dir: k8s-admin/v2
