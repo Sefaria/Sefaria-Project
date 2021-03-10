@@ -5119,6 +5119,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   padding: 20px 34px;
 }
+.toolsButton .toolsButtonText .connectionsCount::before{
+  content: " ";
+}
 .topicList.topicsHe {
   direction: rtl;
 }
