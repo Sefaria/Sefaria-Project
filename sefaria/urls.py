@@ -134,6 +134,7 @@ urlpatterns += [
     url(r'^api/texts/parashat_hashavua$', reader_views.parashat_hashavua_api),
     url(r'^api/texts/random?$', reader_views.random_text_api),
     url(r'^api/texts/random-by-topic/?$', reader_views.random_by_topic_api),
+    url(r'^api/texts/modify-bulk/(?P<title>.+)/(?P<vtitle>.+)/(?P<language>.+)$', reader_views.modify_bulk_text_api),
     url(r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.old_text_versions_api_redirect),
     url(r'^api/texts/(?P<tref>.+)$', reader_views.texts_api),
     url(r'^api/index/?$', reader_views.table_of_contents_api),
