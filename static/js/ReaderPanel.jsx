@@ -1269,7 +1269,7 @@ class ReaderControls extends Component {
             { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
           </a>
           </h1>
-          <div onClick={this.stopPropagation()}>
+          <div onClick={this.stopPropagation}>
             {
               categoryAttribution ? <CategoryAttribution categories={oref.categories} linked={false} /> : null
             }
