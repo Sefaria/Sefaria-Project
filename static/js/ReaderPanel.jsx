@@ -1204,6 +1204,9 @@ class ReaderControls extends Component {
       this.state.runningQuery.cancel();
     }
   }
+  stopPropagation(e){
+    e.stopPropagation();
+  }
   render() {
     let title = this.props.currentRef || "";
     let heTitle = "";
@@ -1266,8 +1269,10 @@ class ReaderControls extends Component {
             { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
           </a>
           </h1>
-          <div onClick={(e) => {e.stopPropagation();}}>
-            {categoryAttribution}
+          <div onClick={this.stopPropagation()}>
+            {
+              categoryAttribution ? <CategoryAttribution categories={oref.categories} linked={false} /> : null
+            }
           </div>
         </header>
       </div>);
