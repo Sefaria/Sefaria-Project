@@ -4503,9 +4503,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .filterInner {
   display: flex;
-}
-.filterInner .filterText {
-  flex: 1;
+  justify-content: space-between;
 }
 .categoryFilterGroup.withBooks {
   border-bottom: 1px solid #E5E5E5;

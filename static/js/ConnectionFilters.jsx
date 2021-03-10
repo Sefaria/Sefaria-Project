@@ -3,6 +3,7 @@ import Sefaria from './sefaria/sefaria';
 import classNames from 'classnames';
 import PropTypes from 'prop-types';
 import Component      from 'react-class';
+import {ContentText} from "./Misc";
 
 
 class CategoryFilter extends Component {
@@ -94,20 +95,22 @@ class TextFilter extends Component {
     const color = Sefaria.palette.categoryColor(this.props.category);
     const style = {"--category-color": color};
     const name = this.props.book == this.props.category ? this.props.book.toUpperCase() : this.props.book;
-    const count = this.props.hideCounts || !this.props.count ? "" : ( <span className="connectionsCount">&nbsp;({this.props.count})</span>);
+    const showCount = !this.props.hideCounts && !!this.props.count;
     const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + name:"";
     const upperClass = classNames({uppercase: this.props.book === this.props.category});
     return (
       <a href={url} onClick={this.handleClick}>
         <div data-name={name} className={classes} style={style} >
             <div className={upperClass}>
-              <span className="en">
                 <span className="filterInner">
-                  <span className="filterText">{name}{count}</span>
-                  {this.props.hasEnglish && Sefaria._siteSettings.TORAH_SPECIFIC ? <EnglishAvailableTag /> : null}
+                  <span className="filterText">
+                    <ContentText content={{en: name, he: this.props.heBook }} />
+                    {showCount ? <span className="connectionsCount">&nbsp;({this.props.count})</span> : null}
+                  </span>
+                  <span className="en">
+                    {this.props.hasEnglish && Sefaria._siteSettings.TORAH_SPECIFIC ? <EnglishAvailableTag /> : null}
+                  </span>
                 </span>
-              </span>
-              <span className="he">{this.props.heBook}{count}</span>
             </div>
         </div>
       </a>
