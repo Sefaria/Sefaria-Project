@@ -4290,8 +4290,10 @@ def rollout_health_api(request):
 
     if allReady:
         statusCode = 200
+        logger.info("Passed rollout healthcheck.")
     else:
         statusCode = 503
+        logger.warn("Failed rollout healthcheck. Healthcheck Response: {}".format(resp))
 
     return http.JsonResponse(resp, status=statusCode)
 
