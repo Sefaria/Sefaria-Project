@@ -2713,12 +2713,19 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   }
 }
 
-.parasha {
+
+/* Static Page Templates */
+
+.staticPage {
+  background-color: #fff;
+}
+
+.staticPage .parashaSponsorship {
   width: 100%;
   padding-left: 6px;
 
 }
-.parasha .parashaTitle {
+.staticPage .parashaSponsorship .parashaTitle {
   font-family: Garamond,Baskerville,Baskerville Old Face,Hoefler Text,Times New Roman,serif;
   font-style: normal;
   font-weight: lighter;
@@ -2727,7 +2734,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   padding-top: 30px;
 }
 
-.parasha .parashaSponsorNames {
+.staticPage .parashaSponsorship .parashaSponsorNames {
   font-family: Roboto, serif;
   font-style: normal;
   font-weight: lighter;
@@ -2735,7 +2742,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   line-height: 50px;
 }
 
-.parasha .parashaMessage {
+.staticPage .parashaSponsorship .parashaMessage {
   font-family: Roboto, serif;
   font-style: italic;
   font-weight: lighter;
@@ -2744,11 +2751,58 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 
 }
 
-/* Static Page Templates */
 
-.staticPage {
-  background-color: #fff;
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  flex: 7;
+  text-align: center;
+  font-size: 2em;
 }
+
+.interface-english .staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-right: 10px;
+  padding-top: 10px;
+}
+.interface-hebrew .staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-left: 10px;
+  padding-top: 10px;
+}
+
+.staticPage .staticPageHeader.textOnly .staticPageHeaderImg {
+display: none;
+}
+
+.staticPage .staticPageHeader.textOnly .staticPageHeaderImg img {
+display: none;
+}
+
+.staticPage .staticPageHeader.textOnly .staticPageHeaderText {
+  font-size: 16px;
+  line-height: 22px;
+  padding-bottom: 40px;
+  text-align: left;
+  font-weight: lighter;
+  font-family: Garamond,Baskerville,Baskerville Old Face,Hoefler Text,Times New Roman,serif;
+  max-width: 100%;
+}
+
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox h1 {
+  line-height: 52px;
+  margin: 0 0 14px 0;
+  padding-bottom: 20px;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox h1 .int-en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-weight: lighter;
+  font-size: 46px;
+}
+
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox .simpleButtonWrapper {
+  width: auto;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 40px;
+}
+
 .staticPage .staticPageBlockInner {
   width: 800px;
   margin: 0 auto;
@@ -2806,32 +2860,19 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .staticPageHeader .staticPageHeaderTextBox {
   flex: 7;
 }
-.staticPage .staticPageHeader .staticPageHeaderTextBoxTextOnly {
-  flex: 7;
-  text-align: center;
-  font-size: 2em;
-}
+
 .staticPage .staticPageHeader .staticPageHeaderImg {
   flex: 9;
   min-height: 290px;
 }
-.staticPage .staticPageHeader .staticPageHeaderImgTextOnly {
-  display: none;
-}
+
 .interface-english .staticPage .staticPageHeader .staticPageHeaderTextBox {
   padding-right: 10px;
 }
 .interface-hebrew .staticPage .staticPageHeader .staticPageHeaderTextBox {
   padding-left: 10px;
 }
-.interface-english .staticPage .staticPageHeader .staticPageHeaderTextBoxTextOnly {
-  padding-right: 10px;
-  padding-top: 10px;
-}
-.interface-hebrew .staticPage .staticPageHeader .staticPageHeaderTextBoxTextOnly {
-  padding-left: 10px;
-  padding-top: 10px;
-}
+
 .staticPage .staticPageH2 {
   padding: 55px 0 10px;
   margin: 0;
@@ -2900,12 +2941,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   width: 66%;
   padding-bottom: 80px;
 }
-.staticPage .staticPageHeaderTextBoxTextOnly .simpleButtonWrapper {
-  width: auto;
-  display: flex;
-  justify-content: center;
-  padding-bottom: 40px;
-}
+
 .staticPage .simpleButtonWrapper .button {
   border-radius: 0;
   min-height: 47px;
@@ -2929,39 +2965,19 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 
-.staticPageHeader .staticPageHeaderTextBoxTextOnly h1 {
-  line-height: 52px;
-  margin: 0 0 14px 0;
-  padding-bottom: 20px;
-}
-.staticPageHeader .staticPageHeaderTextBoxTextOnly h1 .int-en {
-  font-family: Garamond,Baskerville,Baskerville Old Face,Hoefler Text,Times New Roman,serif;
-  font-weight: lighter;
-  font-size: 46px;
-}
 .staticPageHeaderText {
   font-size: 16px;
   max-width: 280px;
   line-height: 22px;
   padding-bottom: 25px;
 }
-.staticPageHeaderTextTextOnly {
-  font-size: 16px;
-  line-height: 22px;
-  padding-bottom: 40px;
-  text-align: left;
-  font-weight: lighter;
-  font-family: Garamond,Baskerville,Baskerville Old Face,Hoefler Text,Times New Roman,serif;
 
-}
 
 .staticPageHeaderImg img {
   width: 100%;
   display: block;
 }
-.staticPageHeaderImgTextOnly img {
-  display: none;
-}
+
 .staticPageAbout {
   padding: 50px 0;
 }
@@ -3043,9 +3059,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   .staticPage .staticPageHeader .staticPageHeaderImg {
     margin-top: 20px;
   }
-  .staticPage .staticPageHeader .staticPageHeaderImgTextOnly {
-    margin-top: 20px;
-  }
+
   .staticPage .simpleButtonWrapper,
   .staticPage .feature .featureText,
   .staticPage .feature .featureImage,
