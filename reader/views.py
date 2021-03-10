@@ -4273,8 +4273,12 @@ def rollout_health_api(request):
 
     def isNodeJsReachable():
         url = NODE_HOST + "/healthz"
-        statusCode = urllib.request.urlopen(url).status
-        return statusCode == 200
+        try:
+            statusCode = urllib.request.urlopen(url).status
+            return statusCode == 200
+        except Exception as e:
+            logger.warn(e)
+            return False
 
     allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable()
 
