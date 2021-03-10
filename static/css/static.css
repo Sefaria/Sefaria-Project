@@ -8,6 +8,9 @@
 .interface-hebrew .staticPage {
   direction:rtl;
 }
+.interface-hebrew .staticPage.englishOnly {
+  direction:ltr;
+}
 .static {
   font-size: 16px;
   background-color: #FBFBFA;
@@ -2720,6 +2723,10 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   background-color: #fff;
 }
 
+.staticPage.englishOnly {
+  direction: ;
+}
+
 .staticPage .parashaSponsorship {
   width: 100%;
   padding-left: 6px;
@@ -2764,6 +2771,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 }
 .interface-hebrew .staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
   padding-left: 10px;
+  padding-top: 10px;
+}
+
+.interface-hebrew .staticPage.englishOnly .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-right: 10px;
   padding-top: 10px;
 }
 
@@ -2872,7 +2884,9 @@ display: none;
 .interface-hebrew .staticPage .staticPageHeader .staticPageHeaderTextBox {
   padding-left: 10px;
 }
-
+.interface-hebrew .staticPage.englishOnly .staticPageHeader .staticPageHeaderTextBox {
+  padding-right: 10px;
+}
 .staticPage .staticPageH2 {
   padding: 55px 0 10px;
   margin: 0;
