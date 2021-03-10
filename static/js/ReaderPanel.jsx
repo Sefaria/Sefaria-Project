@@ -37,7 +37,7 @@ import {
   SaveButton,
   CategoryColorLine,
   CategoryAttribution,
-  ToggleSet,
+  ToggleSet, ContentText,
 } from './Misc';
 import Component from 'react-class';
 import {ContentLanguageContext} from './context';
@@ -1246,20 +1246,26 @@ class ReaderControls extends Component {
             interfaceLang={this.props.interfaceLang}/>
         </div>) :
       (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheet? this.openSheetMeta : this.openTextToc}>
-        <div className={"readerTextTocBox" + (this.props.sheet ? " sheetBox":"")} role="heading" aria-level="1" aria-live="polite">
-          <a href={url} aria-label={"Show table of contents for " + this.props.currentRef} >
+        <header className={"readerTextTocBox" + (this.props.sheet ? " sheetBox":"")} role="heading" aria-level="1" aria-live="polite">
+          <h1>
+            <a href={url} aria-label={"Show table of contents for " + this.props.currentRef} >
             { title ? (<i className="fa fa-angle-down invisible"></i>) : null }
             { this.props.sheet? <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
-            { this.props.sheet? <div style={{"direction": Sefaria.hebrew.isHebrew(title) ? "rtl" :"ltr"}}><span>{title}</span></div> :
-            <div><span className="en">{title}</span>
-            <span className="he">{heTitle}</span></div> }
+            { this.props.sheet?
+                <div style={{"direction": Sefaria.hebrew.isHebrew(title) ? "rtl" :"ltr"}}><span>{title}</span></div>
+                :
+                <div>
+                  <ContentText content={{en: title, he: heTitle}} />
+                </div>
+            }
             { title ? (<i className="fa fa-angle-down"></i>) : null }
             { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
           </a>
+          </h1>
           <div onClick={(e) => {e.stopPropagation();}}>
             {categoryAttribution}
           </div>
-        </div>
+        </header>
       </div>);
 
     let leftControls = hideHeader || connectionsHeader ? null :

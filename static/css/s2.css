@@ -3326,6 +3326,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc a:hover {
   text-decoration: none;
 }
+.readerControls .readerTextToc .readerTextTocBox h1 {
+    display: unset;
+    font-size: unset;
+    font-weight: unset;
+    margin-block-start: unset;
+    margin-block-end: unset;
+}
 .readerControls .readerTextToc .readerTextTocBox a {
   display: flex;
   align-items: center;
