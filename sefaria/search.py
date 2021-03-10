@@ -785,13 +785,7 @@ def index_all_of_type(type, skip=0, debug=False):
         print('STARTING IN T-MINUS {}'.format(10 - i))
         pytime.sleep(1)
 
-    if skip == 0:
-        create_index(index_names_dict['new'], type)
-    if type == 'text':
-        TextIndexer.clear_cache()
-        TextIndexer.index_all(index_names_dict['new'], debug=debug)
-    elif type == 'sheet':
-        index_public_sheets(index_names_dict['new'])
+    index_all_of_type_by_index_name(type, index_names_dict['new'], skip, debug)
 
     try:
         #index_client.put_settings(index=index_names_dict['current'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
@@ -799,6 +793,17 @@ def index_all_of_type(type, skip=0, debug=False):
         print("Successfully deleted alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current']))
     except NotFoundError:
         print("Failed to delete alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current']))
+
+
+    #TEMPORARY FOR TOC MIGRATION
+    if type == 'text':
+        try:
+            #index_client.put_settings(index=index_names_dict['current'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
+            index_client.delete_alias(index='text-toc-migration', name=index_names_dict['alias'])
+            print("Successfully deleted alias {} for index {}".format(index_names_dict['alias'], 'text-toc-migration'))
+        except NotFoundError:
+            print("Failed to delete alias {} for index {}".format(index_names_dict['alias'], 'text-toc-migration'))
+
     clear_index(index_names_dict['alias']) # make sure there are no indexes with the alias_name
 
     #index_client.put_settings(index=index_names_dict['new'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
@@ -806,3 +811,13 @@ def index_all_of_type(type, skip=0, debug=False):
 
     if index_names_dict['new'] != index_names_dict['current']:
         clear_index(index_names_dict['current'])
+
+
+def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False):
+    if skip == 0:
+        create_index(index_name, type)
+    if type == 'text':
+        TextIndexer.clear_cache()
+        TextIndexer.index_all(index_name, debug=debug)
+    elif type == 'sheet':
+        index_public_sheets(index_name)
