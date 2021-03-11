@@ -1895,8 +1895,10 @@ class LoadingMessage extends Component {
     var heMessage = this.props.heMessage || "טוען מידע...";
     var classes = "loadingMessage " + (this.props.className || "");
     return (<div className={classes}>
-              <span className="int-en">{message}</span>
-              <span className="int-he">{heMessage}</span>
+              <InterfaceText>
+                <EnglishText>{message}</EnglishText>
+                <HebrewText>{heMessage}</HebrewText>
+              </InterfaceText>
             </div>);
   }
 }
