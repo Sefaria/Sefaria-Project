@@ -3501,8 +3501,6 @@ def saved_history_for_ref(request):
 
 def _get_anonymous_user_history(request):
     import urllib.parse
-    recents = json.loads(urllib.parse.unquote(request.COOKIES.get("recentlyViewed", '[]')))  # for backwards compat
-    recents = UserProfile.transformOldRecents(None, recents)
     history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
     return recents+history
 
@@ -3592,9 +3590,8 @@ def home(request):
     if show_feed:
         return redirect("/new-home")
 
-    recent = request.COOKIES.get("recentlyViewed", None)
     last_place = request.COOKIES.get("user_history", None)
-    if (recent or last_place or request.user.is_authenticated) and "home" not in request.GET:
+    if (last_place or request.user.is_authenticated) and "home" not in request.GET:
         return redirect("/texts")
 
     calendar_items = get_keyed_calendar_items(request.diaspora)
