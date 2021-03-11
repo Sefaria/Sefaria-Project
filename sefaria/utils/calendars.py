@@ -219,7 +219,15 @@ def make_haftarah_response_from_calendar_entry(db_parasha, custom=None):
 
 def make_parashah_response_from_calendar_entry(db_parasha):
     rf = model.Ref(db_parasha["ref"])
-    parasha_topic = model.Topic().load({"parasha": db_parasha["parasha"]})
+    
+    parashiot = db_parasha["parasha"].split("-") # Could be a double parashah
+    p_en, p_he = [], []
+    for p in parashiot:
+        parasha_topic = model.Topic().load({"parasha": p})
+        p_en.append(parasha_topic.description["en"])
+        p_he.append(parasha_topic.description["he"])
+    parasha_description = {"en": "\n\n".join(p_en), "he": "\n\n".join(p_he)}
+
     parasha = {
         'title': {'en': 'Parashat Hashavua', 'he': 'פרשת השבוע'},
         'displayValue': {'en': db_parasha["parasha"], 'he': hebrew_parasha_name(db_parasha["parasha"])},
@@ -229,7 +237,7 @@ def make_parashah_response_from_calendar_entry(db_parasha):
         'order': 1,
         'category': rf.index.get_primary_category(),
         'extraDetails': {'aliyot': db_parasha["aliyot"]},
-        'description': parasha_topic.description
+        'description': parasha_description
     }
     return [parasha]
 

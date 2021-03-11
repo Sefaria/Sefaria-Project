@@ -31,7 +31,7 @@ const CalendarsPage = ({multiPanel}) => {
 
   const calendars = reformatCalendars();
 
-  const parashaCalendars = ["Parashat Hashavua", "Haftarah (A)", "Haftarah (S)"];
+  const parashaCalendars = ["Parashat Hashavua", "Haftarah (A)", "Haftarah (S)", "Haftarah"];
   const dailyCalendars   = ["Daf Yomi", "929", "Daily Mishnah", "Daily Rambam", "Daily Rambam (3)", "Halakhah Yomit"];
   const weeklyCalendars  = ["Daf a Week"];
 
@@ -131,11 +131,12 @@ const calendarDescriptions = {
   "Daf Yomi": {
     en: "A study program that covers a page of Talmud a day. In this way, the entire Talmud is completed in about seven and a half years.",
     he: "",
-    enDisplayTitle: "Talmud (Daf Yomi)",
+    enDisplayTitle: "Daf Yomi (Talmud)",
   },
   "929": {
     en: "A study program in which participants study five of the Bible’s 929 chapters a week, completing it in about three and a half years.",
-    he: ""
+    he: "",
+    enDisplayTitle: "929 (Tanakh)",
   },
   "Daily Mishnah": {
     en: "A program of daily study in which participants study two Mishnahs (teachings) each day in order to finish the entire Mishnah in six years.",
@@ -153,7 +154,7 @@ const calendarDescriptions = {
   "Daf a Week": {
     en: "A study program  that covers a page of Talmud a week. By going at a slower pace, it facilitates greater mastery and retention.",
     he: "",
-    enDisplayTitle: "Talmud (Daf a Week)"
+    enDisplayTitle: "Daf a Week (Talmud)"
   },
   "Halakhah Yomit": {
     en: "A four year daily study program in which participants study central legal texts that cover most of the daily and yearly rituals.",
