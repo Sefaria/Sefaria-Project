@@ -6,7 +6,7 @@ import {
   LoadingMessage,
   NBox,
   InterfaceText,
-  ContentText
+  ContentText, EnglishText, HebrewText,
 } from './Misc';
 import React  from 'react';
 import ReactDOM  from 'react-dom';
@@ -231,28 +231,30 @@ class ReaderTextTableOfContents extends Component {
             <div className="versionSectionSummary versionSectionSummaryHidden" aria-hidden="true">
               {Sefaria._siteSettings.TORAH_SPECIFIC ?
               <span>
-                <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
-                <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
+                <InterfaceText>
+                  <EnglishText>{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</EnglishText>
+                  <HebrewText>{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</HebrewText>
+                </InterfaceText>
               </span> :
               <span>
-                <span className="int-en">{`${numVersions["en"]}`}</span>
-                <span className="int-he">{`${numVersions["en"]}`}</span>
-              </span> }
+                  <span>{`${numVersions["en"]}`}</span>
+              </span>
+              }
             </div>
             <div className="versionSectionTitle">
-              <span className="int-en">Versions</span>
-              <span className="int-he">גרסאות</span>
+              <InterfaceText content={{en:"Versions", he:"גרסאות" }}/>
               {(this.state.versionsDropDownOpen) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
             </div>
             <div className="versionSectionSummary">
               {Sefaria._siteSettings.TORAH_SPECIFIC ?
               <span>
-                <span className="int-en">{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</span>
-                <span className="int-he">{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</span>
+                <InterfaceText>
+                  <EnglishText>{`${numVersions["en"]} English, ${numVersions["he"]} Hebrew`}</EnglishText>
+                  <HebrewText>{`${numVersions["he"]} עברית, ${numVersions["en"]} אנגלית`}</HebrewText>
+                </InterfaceText>
               </span> :
               <span>
-                <span className="int-en">{`${numVersions["en"]}`}</span>
-                <span className="int-he">{`${numVersions["en"]}`}</span>
+                <span>{`${numVersions["en"]}`}</span>
               </span> }
             </div>
           </h2>
@@ -314,8 +316,7 @@ class ReaderTextTableOfContents extends Component {
 
       let downloadButton = <div className="versionDownloadButton">
           <div className="downloadButtonInner">
-            <span className="int-en">Download</span>
-            <span className="int-he">הורדה</span>
+            <InterfaceText>Download</InterfaceText>
           </div>
         </div>;
       const formatStrings = {
@@ -326,8 +327,7 @@ class ReaderTextTableOfContents extends Component {
       downloadSection = (
         <div className="dlSection">
           <h2 className="dlSectionTitle">
-            <span className="int-en">Download Text</span>
-            <span className="int-he">הורדת הטקסט</span>
+            <InterfaceText>Download Text</InterfaceText>
           </h2>
           <select
             className="dlVersionSelect dlVersionTitleSelect"
@@ -361,8 +361,7 @@ class ReaderTextTableOfContents extends Component {
                   </div>
                   <div className="readerTextToc readerTextTocHeader">
                     <div className="readerTextTocBox">
-                      <span className="int-en">Table of Contents</span>
-                      <span className="int-he">תוכן העניינים</span>
+                      <InterfaceText>Table of Contents</InterfaceText>
                     </div>
                   </div>
                   <div className="rightButtons">
@@ -382,26 +381,22 @@ class ReaderTextTableOfContents extends Component {
                   :<div className="contentInner">
                   <div className="tocTop">
                     <a className="tocCategory" href={catUrl}>
-                      <span className="en">{category}</span>
-                      <span className="he">{Sefaria.hebrewTerm(category)}</span>
+                      <ContentText content={{en:category, he:Sefaria.hebrewTerm(category)}}/>
                     </a>
                     <div className="tocTitle" role="heading" aria-level="1">
-                      <span className="en">{title}</span>
-                      <span className="he">{heTitle}</span>
+                      <ContentText content={{en:title, he:heTitle}}/>
                       {moderatorSection}
                     </div>
                     {this.isTextToc()?
                       <div className="currentSection" role="heading" aria-level="2">
-                        <span className="en">{section}</span>
-                        <span className="he">{heSection}</span>
+                        <ContentText content={{en:section, he:heSection}}/>
                       </div>
                     : null}
                     <CategoryAttribution categories={categories} />
                     {this.state.indexDetails && this.state.indexDetails.dedication ?
                         <div className="dedication">
                           <span>
-                            <span className="en" dangerouslySetInnerHTML={ {__html: this.state.indexDetails.dedication.en} } />
-                            <span className="he" dangerouslySetInnerHTML={ {__html: this.state.indexDetails.dedication.he} } />
+                            <ContentText html={{en:this.state.indexDetails.dedication.en, he:this.state.indexDetails.dedication.he}}/>
                           </span>
                         </div> : ""}
                     {detailsSection}

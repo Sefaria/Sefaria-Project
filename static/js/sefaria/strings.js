@@ -288,6 +288,11 @@ const Strings = {
     //Profile
     " at ": " ב-",
     "on Sefaria": " בספריא",
+
+    //TextTableofContents
+    "Download": "הורדה",
+    "Download Text": "הורדת הטקסט",
+    "Table of Contents": "תוכן העניינים",
   },
   _i18nInterfaceStringsWithContext: {
     "AddConnectionBox": {
