@@ -293,6 +293,8 @@ const Strings = {
     "Download": "הורדה",
     "Download Text": "הורדת הטקסט",
     "Table of Contents": "תוכן העניינים",
+    "Hebrew Versions": "בעברית",
+    "English Versions": "באנגלית",
   },
   _i18nInterfaceStringsWithContext: {
     "AddConnectionBox": {

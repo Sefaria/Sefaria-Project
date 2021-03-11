@@ -863,8 +863,7 @@ class JaggedArrayNodeSection extends Component {
         content.push(
           <div className="tocSection" key={i}>
             <div className="sectionName">
-              <span className="he">{Sefaria.hebrewTerm(this.props.sectionNames[0]) + " " +heSection}</span>
-              <span className="en">{this.props.sectionNames[0] + " " + enSection}</span>
+              <ContentText content={{ en:this.props.sectionNames[0] + " " + enSection , he: Sefaria.hebrewTerm(this.props.sectionNames[0]) + " " +heSection}}/>
             </div>
             <JaggedArrayNodeSection
               depth={this.props.depth - 1}
@@ -895,8 +894,7 @@ class JaggedArrayNodeSection extends Component {
       var ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
       var link = (
         <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
-          <span className="he">{heSection}</span>
-          <span className="en">{section}</span>
+          <ContentText content={{en:section, he:heSection}}/>
         </a>
       );
       sectionLinks.push(link);
@@ -938,8 +936,7 @@ class ArrayMapNode extends Component {
         }
         return (
           <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
-            <span className="he">{heSection}</span>
-            <span className="en">{section}</span>
+            <ContentText content={{en:section, he:heSection}}/>
           </a>
         );
       }.bind(this));
@@ -950,8 +947,9 @@ class ArrayMapNode extends Component {
       return (
         <a className="schema-node-toc linked" href={Sefaria.normRef(this.props.schema.wholeRef)} data-ref={this.props.schema.wholeRef}>
           <span className="schema-node-title" role="heading" aria-level="3">
-            <span className="he">{this.props.schema.heTitle} <i className="schema-node-control fa fa-angle-left"></i></span>
-            <span className="en">{this.props.schema.title} <i className="schema-node-control fa fa-angle-right"></i></span>
+            <ContentText content={{en:this.props.schema.title, he:this.props.schema.heTitle}}/>
+            <span className="he"><i className="schema-node-control fa fa-angle-left"></i></span>
+            <span className="en"><i className="schema-node-control fa fa-angle-right"></i></span>
           </span>
         </a>);
     }
@@ -970,8 +968,7 @@ class DictionaryNode extends Component {
       var ref = m[1];
       return (
           <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
-            <span className="he">{letter}</span>
-            <span className="en">{letter}</span>
+            <ContentText content={{en:letter, he:letter}} />
           </a>
         );
       });
@@ -988,8 +985,7 @@ class CommentatorList extends Component {
     var content = this.props.commentatorList.map(function(commentator, i) {
       var ref = commentator.refs_to_base_texts[this.props.title];
       return (<a className="refLink linked" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
-                <span className="he">{commentator.heCollectiveTitle}</span>
-                <span className="en">{commentator.collectiveTitle}</span>
+                <ContentText content={{en:commentator.collectiveTitle, he:commentator.heCollectiveTitle}}/>
             </a>);
     }.bind(this));
 
@@ -1026,14 +1022,14 @@ class VersionsList extends Component {
         {(!!heVersionBlocks.length) ?
           <div className="versionLanguageBlock">
             <div className="versionLanguageHeader">
-              <span className="int-en">Hebrew Versions</span><span className="int-he">בעברית</span>
+              <InterfaceText>Hebrew Versions</InterfaceText>
             </div>
             <div>{heVersionBlocks}</div>
           </div> : null}
         {(!!enVersionBlocks.length) ?
           <div className="versionLanguageBlock">
             <div className="versionLanguageHeader">
-              <span className="int-en">English Versions</span><span className="int-he">באנגלית</span>
+              <InterfaceText>English Versions</InterfaceText>
             </div>
             <div>{enVersionBlocks}</div>
           </div>: null}
@@ -1138,8 +1134,11 @@ class ReadMoreText extends Component {
       {text}
       {this.state.expanded ? null :
         <span className="readMoreLink" onClick={() => this.setState({expanded: true})}>
-          <span className="int-en">Read More ›</span>
-          <span className="int-he">קרא עוד ›</span>
+          <InterfaceText>
+            <EnglishText className="int-en">Read More ›</EnglishText>
+            <HebrewText className="int-he">קרא עוד ›</HebrewText>
+          </InterfaceText>
+
         </span>
       }
     </div>
