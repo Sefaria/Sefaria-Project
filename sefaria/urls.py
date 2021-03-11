@@ -390,6 +390,7 @@ urlpatterns += [
     url(r'^admin/run/tests', sefaria_views.run_tests),
     url(r'^admin/export/all', sefaria_views.export_all),
     url(r'^admin/error', sefaria_views.cause_error),
+    url(r'^admin/account-stats', sefaria_views.account_stats),
     url(r'^admin/sheet-stats', sefaria_views.sheet_stats),
     url(r'^admin/untagged-sheets', sefaria_views.untagged_sheets),
     url(r'^admin/spam', sefaria_views.spam_dashboard),

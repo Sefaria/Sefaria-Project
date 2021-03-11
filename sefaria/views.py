@@ -680,6 +680,16 @@ def cause_error(request):
     erorr = error
     return jsonResponse(resp)
 
+@staff_member_required
+def account_stats(request):
+    from django.contrib.auth.models import User
+    from sefaria.stats import account_creation_stats
+
+    html = account_creation_stats()
+    html += "\n\nTotal Accounts: {}".format(User.objects.count())
+
+    return HttpResponse("<pre>" + html + "<pre>")
+
 
 @staff_member_required
 def sheet_stats(request):
@@ -690,7 +700,21 @@ def sheet_stats(request):
     html += "Public Sheets: %d\n" % db.sheets.find({"status": "public"}).count()
 
 
-    html += "\nUnique Source Sheet creators per month:\n\n"
+    html += "\n\nYearly Totals Sheets / Public Sheets / Sheet Creators:\n\n"
+    start = datetime.today().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    years = 4
+    for i in range(years):
+        end      = start
+        start    = end - relativedelta(years=1)
+        query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
+        cursor   = db.sheets.find(query)
+        total    = cursor.count()
+        creators = len(cursor.distinct("owner"))
+        query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}, "status": "public"}
+        ptotal   = db.sheets.find(query).count()
+        html += "{}: {} / {} / {}\n".format(start.strftime("%Y"), total, ptotal, creators)
+
+    html += "\n\nUnique Source Sheet creators per month:\n\n"
     start = datetime.today().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     months = 30
     for i in range(months):
