@@ -1646,9 +1646,9 @@ const SefariaEditor = (props) => {
         {
           /* debugger */
 
-          <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: 1000, backgroundColor: '#ddd', fontSize: 12, zIndex: 9999}}>
-          {JSON.stringify(editor.children[0,0])}
-          </div>
+          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: 1000, backgroundColor: '#ddd', fontSize: 12, zIndex: 9999}}>
+          // {JSON.stringify(editor.children[0,0])}
+          // </div>
 
         }
 
