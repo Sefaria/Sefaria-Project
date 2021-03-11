@@ -674,17 +674,16 @@ class ReaderPanel extends Component {
     }
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       const oref  = Sefaria.parseRef(this.state.refs[0]);
-      const title = oref && oref.index ? oref.index : "empty";
-      const bookTitle = oref && oref.index ? oref.index  : "";
-      const heBookTitle = oref ? oref.heTitle : "";
+      const index = oref && oref.index ? Sefaria.index(oref.index) : null;
+      const [textColumnBookTitle, heTextColumnBookTitle] = index ? [index.title, index.heTitle] : [null, null];
       items.push(<TextColumn
           panelPosition ={this.props.panelPosition}
           srefs={this.state.refs.slice()}
           currVersions={this.state.currVersions}
           highlightedRefs={this.state.highlightedRefs}
           basetext={true}
-          bookTitle={bookTitle}
-          heBookTitle={heBookTitle}
+          bookTitle={textColumnBookTitle}
+          heBookTitle={heTextColumnBookTitle}
           withContext={true}
           loadLinks={true}
           prefetchNextPrev={true}
@@ -708,7 +707,7 @@ class ReaderPanel extends Component {
           filter={this.state.filter}
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
-          key={title + "-TextColumn"} />);
+          key={`${title ? title : "empty"}-TextColumn`} />);
     }
 
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {
