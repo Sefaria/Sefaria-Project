@@ -303,10 +303,11 @@ class TextRange extends Component {
                     parashahHeader: 1,
                     aliyah: !parashahNames.parashaTitle,
                   });
-          parashahHeader = <div className={pclasses}>
-            <span className="en">{ parashahNames.en }</span>
-            <span className="he">{ parashahNames.he }</span>
-          </div>;
+          parashahHeader = (
+              <div className={pclasses}>
+                <ContentText content={{en: parashahNames.en, he:parashahNames.he}}/>
+              </div>
+          );
         }
       }
       segment.he = strip_text_re ? segment.he.replace(strip_text_re, "") : segment.he;
@@ -363,15 +364,13 @@ class TextRange extends Component {
       }
       sidebarNum = <div className="numberLabel sans itag">
         <span className="numberLabelInner">
-          <span className="en">{enDisplayValue}</span>
-          <span className="he">{heDisplayValue}</span>
+          <ContentText content={{en:enDisplayValue, he:heDisplayValue}} />
         </span>
       </div>;
     } else if (showNumberLabel && this.props.numberLabel) {
       sidebarNum = <div className="numberLabel sans">
         <span className="numberLabelInner">
-          <span className="en">{this.props.numberLabel}</span>
-          <span className="he">{Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}</span>
+          <ContentText content={{en:this.props.numberLabel, he:Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}} />
         </span>
       </div>;
     } else { sidebarNum = null;}
