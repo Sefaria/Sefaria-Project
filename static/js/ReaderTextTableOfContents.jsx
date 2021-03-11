@@ -5,6 +5,8 @@ import {
   CategoryColorLine,
   LoadingMessage,
   NBox,
+  InterfaceText,
+  ContentText
 } from './Misc';
 import React  from 'react';
 import ReactDOM  from 'react-dom';
@@ -55,15 +57,16 @@ class ReaderTextTableOfContents extends Component {
   loadData() {
     // Ensures data this text is in cache, rerenders after data load if needed
     Sefaria.getIndexDetails(this.props.title).then(data => this.setState({indexDetails: data}));
+    let ref;
     if (this.isBookToc()) {
-      var ref  = this.getDataRef();
-      var versions = Sefaria.versions(ref);
+      ref  = this.getDataRef();
+      let versions = Sefaria.versions(ref);
       if (!versions) {
         Sefaria.versions(ref, () => this.forceUpdate() );
       }
     } else if (this.isTextToc()) {
-      var ref  = this.getDataRef();
-      var data = this.getData();
+      ref  = this.getDataRef();
+      let data = this.getData();
       if (!data) {
         Sefaria.text(
           ref,
@@ -74,7 +77,7 @@ class ReaderTextTableOfContents extends Component {
   }
   getVersionsList() {
     if (this.isTextToc()) {
-      var data = this.getData();
+      let data = this.getData();
       if (!data) { return null; }
       return data.versions;
     } else if (this.isBookToc()) {
@@ -84,13 +87,13 @@ class ReaderTextTableOfContents extends Component {
   getCurrentVersion() {
     // For now treat bilingual as english. TODO show attribution for 2 versions in bilingual case.
     if (this.isBookToc()) { return null; }
-    var d = this.getData();
+    let d = this.getData();
     if (!d) { return null; }
-    var currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
+    let currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
     if (currentLanguage == "en" && !d.text.length) {currentLanguage = "he"}
     if (currentLanguage == "he" && !d.he.length) {currentLanguage = "en"}
 
-    var currentVersion = {
+    let currentVersion = {
       language:               currentLanguage,
       versionTitle:           currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
       versionSource:          currentLanguage == "he" ? d.heVersionSource : d.versionSource,
@@ -108,9 +111,9 @@ class ReaderTextTableOfContents extends Component {
     return currentVersion;
   }
   handleClick(e) {
-    var $a = $(e.target).closest("a");
+    const $a = $(e.target).closest("a");
     if ($a.length && ($a.hasClass("sectionLink") || $a.hasClass("linked"))) {
-      var ref = $a.attr("data-ref");
+      let ref = $a.attr("data-ref");
       ref = decodeURIComponent(ref);
       ref = Sefaria.humanRef(ref);
       this.props.close();
@@ -128,7 +131,7 @@ class ReaderTextTableOfContents extends Component {
     this.setState({versionsDropDownOpen: !this.state.versionsDropDownOpen});
   }
   onDlVersionSelect(event) {
-    var versionTitle, versionLang;
+    let versionTitle, versionLang;
     [versionTitle, versionLang] = event.target.value.split("/");
     this.setState({
       dlVersionTitle: versionTitle,
@@ -158,39 +161,41 @@ class ReaderTextTableOfContents extends Component {
     return null;
   }
   render() {
-    var title     = this.props.title;
-    var index     = Sefaria.index(title);
-    var heTitle   = index ? index.heTitle : title;
-    var category  = this.props.category;
+    const title     = this.props.title;
+    const index     = Sefaria.index(title);
+    const heTitle   = index ? index.heTitle : title;
+    const category  = this.props.category;
+    let catUrl;
     if (category == "Commentary") {
-      var catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Commentary") + 1).join("/");
+      catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Commentary") + 1).join("/");
     } else if (category == "Targum") {
-      var catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Targum") + 1).join("/");
+      catUrl  = "/texts/" + index.categories.slice(0, index.categories.indexOf("Targum") + 1).join("/");
     } else {
-      var catUrl  = "/texts/" + category;
+      catUrl  = "/texts/" + category;
     }
 
-    var currentVersionElement = null;
-    var defaultVersionString = "Default Version"; // TODO. this var is currently unused. consider removing
-    var defaultVersionObject = null; // TODO also unused
-    var versionSection = null;
-    var downloadSection = null;
+    let currentVersionElement = null;
+    let defaultVersionString = "Default Version"; // TODO. this var is currently unused. consider removing
+    let defaultVersionObject = null; // TODO also unused
+    let versionSection = null;
+    let downloadSection = null;
 
     // Text Details
-    var detailsSection = this.state.indexDetails ? <TextDetails index={this.state.indexDetails} narrowPanel={this.props.narrowPanel} /> : null;
-    var isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
+    let detailsSection = this.state.indexDetails ? <TextDetails index={this.state.indexDetails} narrowPanel={this.props.narrowPanel} /> : null;
+    let isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
 
+    let section, heSection;
     if (this.isTextToc()) {
-      var sectionStrings = Sefaria.sectionString(this.props.currentRef);
-      var section   = sectionStrings.en.named;
-      var heSection = sectionStrings.he.named;
+      let sectionStrings = Sefaria.sectionString(this.props.currentRef);
+      section   = sectionStrings.en.named;
+      heSection = sectionStrings.he.named;
     }
 
     // Current Version (Text TOC only)
-    var cv = this.getCurrentVersion();
+    let cv = this.getCurrentVersion();
     if (cv) {
       if (cv.merged) {
-        var uniqueSources = cv.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
+        let uniqueSources = cv.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
         defaultVersionString += " (Merged from " + uniqueSources + ")";
         currentVersionElement = (<div className="versionTitle">Merged from { uniqueSources }</div>);
       } else {
@@ -267,15 +272,15 @@ class ReaderTextTableOfContents extends Component {
     }
 
 
-    var moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
+    const moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
 
     // Downloading
-    var languageInHebrew = {'en': 'אנגלית', 'he': 'עברית'};
+    const languageInHebrew = {'en': 'אנגלית', 'he': 'עברית'};
     if (versions) {
-      var dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
-      var dl_versions = [<option key="/" value="0" dir="auto" disabled>{ Sefaria.interfaceLang == "hebrew"? "הגדרות גרסה" : "Version Settings" }</option>];
-      var pdVersions = versions.filter(this.isVersionPublicDomain);
-      var addMergedFor = pdVersions.map(v => v.language).unique(); // Only show merged option for languages we have
+      let dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
+      let dl_versions = [<option key="/" value="0" dir="auto" disabled>{ Sefaria.interfaceLang == "hebrew"? "הגדרות גרסה" : "Version Settings" }</option>];
+      let pdVersions = versions.filter(this.isVersionPublicDomain);
+      let addMergedFor = pdVersions.map(v => v.language).unique(); // Only show merged option for languages we have
       if (cv) {
         if (cv.merged) {
           // Add option for current merged Version
@@ -287,7 +292,7 @@ class ReaderTextTableOfContents extends Component {
         } else {
           // Add Option for current non-merged version
           if (this.isVersionPublicDomain(cv)) {
-            var versionTitleInHebrew = cv.versionTitleInHebrew || cv.versionTitle;
+            let versionTitleInHebrew = cv.versionTitleInHebrew || cv.versionTitle;
             dl_versions.push(
             <option value={cv.versionTitle + "/" + cv.language} key={cv.versionTitle + "/" + cv.language}>
               {Sefaria.interfaceLang == "hebrew" ? `${versionTitleInHebrew} (גרסה נוכחית, ${languageInHebrew[cv.language]})` : `${cv.versionTitle} (Current Version, ${cv.language})`}
@@ -307,18 +312,18 @@ class ReaderTextTableOfContents extends Component {
         </option>,
       ));
 
-      var downloadButton = <div className="versionDownloadButton">
+      let downloadButton = <div className="versionDownloadButton">
           <div className="downloadButtonInner">
             <span className="int-en">Download</span>
             <span className="int-he">הורדה</span>
           </div>
         </div>;
-      var formatStrings = {
+      const formatStrings = {
         none: {english: "File Format", hebrew: "סוג הקובץ"},
         txt: {english: "Text (with Tags)", hebrew: "טקסט (עם תיוגים)"},
         plaintxt: {english: "Text (without Tags)", hebrew: "טקסט (ללא תיוגים)"}
       };
-      var downloadSection = (
+      downloadSection = (
         <div className="dlSection">
           <h2 className="dlSectionTitle">
             <span className="int-en">Download Text</span>
@@ -342,9 +347,9 @@ class ReaderTextTableOfContents extends Component {
       );
     }
 
-    var closeClick = (this.isBookToc()) ? this.props.closePanel : this.props.close;
-    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel, noLangToggleInHebrew: this.props.interfaceLang == 'hebrew'});
-    var categories = Sefaria.index(this.props.title).categories;
+    const closeClick = (this.isBookToc()) ? this.props.closePanel : this.props.close;
+    let classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel, noLangToggleInHebrew: this.props.interfaceLang == 'hebrew'});
+    const categories = Sefaria.index(this.props.title).categories;
 
 
     return (<div className={classes}>
