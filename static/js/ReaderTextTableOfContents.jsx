@@ -481,22 +481,26 @@ class TextDetails extends Component {
       <div className="tocDetails">
         { authors.length ?
           <div className="tocDetail">
-              <span className="int-he">
+            <InterfaceText>
+              <HebrewText>
                 מחבר: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.he}</a> )}
-              </span>
-              <span className="int-en">
+              </HebrewText>
+              <EnglishText>
                 Author: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.en}</a> )}
-              </span>
+              </EnglishText>
+            </InterfaceText>
           </div>
           : null }
         { !!enDesc ?
           <div className="tocDetail description">
-              <div className="int-he">
-                <ReadMoreText text={heDesc} initialWords={initialWords} />
-              </div>
-              <div className="int-en">
+            <InterfaceText>
+              <EnglishText>
                 <ReadMoreText text={enDesc} initialWords={initialWords} />
-              </div>
+              </EnglishText>
+              <HebrewText>
+                <ReadMoreText text={heDesc} initialWords={initialWords} />
+              </HebrewText>
+            </InterfaceText>
           </div>
           : null }
       </div>);
