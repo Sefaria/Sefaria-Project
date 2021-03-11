@@ -344,28 +344,6 @@ class TextRange extends Component {
                       lowlight: this.props.lowlight
                   });
 
-    const open        = () => { this.props.onNavigationClick(this.props.sref) };
-    const compare     = () => { this.props.onCompareClick(this.props.sref) };
-    const connections = () => { this.props.onOpenConnectionsClick([this.props.sref]) };
-
-    const actionLinks = (<div className="actionLinks">
-                        <span className="openLink" onClick={open}>
-                          <img src="/static/img/open-64.png" alt="" />
-                          <span className="en">Open</span>
-                          <span className="he">פתח</span>
-                        </span>
-                        <span className="compareLink" onClick={compare}>
-                          <img src="/static/img/compare-64.png" alt="" />
-                          <span className="en">Compare</span>
-                          <span className="he">השווה</span>
-                        </span>
-                        <span className="connectionsLink" onClick={connections}>
-                          <i className="fa fa-link"></i>
-                          <span className="en">Connections</span>
-                          <span className="he">קשרים</span>
-                        </span>
-                      </div>);
-
     // configure number display for inline references
     let sidebarNum;
     const displaySidebarNumber = (this.props.inlineReference &&
@@ -439,9 +417,6 @@ TextRange.propTypes = {
   onRangeClick:           PropTypes.func,
   onSegmentClick:         PropTypes.func,
   onCitationClick:        PropTypes.func,
-  onNavigationClick:      PropTypes.func,
-  onCompareClick:         PropTypes.func,
-  onOpenConnectionsClick: PropTypes.func,
   onNamedEntityClick:     PropTypes.func,
   showBaseText:           PropTypes.func,
   unsetTextHighlight:     PropTypes.func,
