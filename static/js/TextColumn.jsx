@@ -1,4 +1,5 @@
 import {
+  ContentText,
   LoadingMessage
 } from './Misc';
 import React  from 'react';
@@ -357,8 +358,9 @@ class TextColumn extends Component {
   
       bookTitle = noPrev ? 
         <div className="bookMetaDataBox" key="bookTitle">
-          <div className="title en" role="heading" aria-level="1" style={{"direction": "ltr"}}>{this.props.bookTitle}</div>
-          <div className="title he" role="heading" aria-level="1" style={{"direction": "rtl"}}>{this.props.heBookTitle}</div>
+          <div className="title" role="heading" aria-level="1">
+            <ContentText content={{en: this.props.bookTitle, he: this.props.heBookTitle}} />
+          </div>
         </div> : null;
 
       pre = this.state.showScrollPlaceholders ? 
