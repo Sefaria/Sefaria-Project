@@ -707,7 +707,7 @@ class ReaderPanel extends Component {
           filter={this.state.filter}
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
-          key={`${title ? title : "empty"}-TextColumn`} />);
+          key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />);
     }
 
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {
