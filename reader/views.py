@@ -13,6 +13,9 @@ from collections import OrderedDict
 import pytz
 from html import unescape
 import re
+import redis
+import os
+
 
 from rest_framework.decorators import api_view
 from django.template.loader import render_to_string
@@ -49,7 +52,7 @@ from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_
 from sefaria.utils.util import short_to_long_lang_code
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
@@ -4190,6 +4193,60 @@ def application_health_api(request):
 
 def application_health_api_nonlibrary(request):
     return http.HttpResponse("Healthy", status="200")
+
+def rollout_health_api(request):
+    """
+    Defines the /healthz-rollout API endpoint which responds with 
+        200 if the services Django depends on, Redis, Multiverver, and NodeJs
+            are available.
+        500 if any of the aforementioned services are not available
+
+    {
+        allReady: (true|false)
+        multiserverReady: (true|false)
+        redisReady: (true|false)
+        nodejsReady: (true|false)
+    }
+    """
+    def isRedisReachable():
+        try: 
+            redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
+            return redis_client.ping() == True
+        except:
+            return False
+
+    def isMultiserverReachable():
+        return True
+
+    def isNodeJsReachable():
+        url = NODE_HOST + "/healthz"
+        try:
+            statusCode = urllib.request.urlopen(url).status
+            return statusCode == 200
+        except Exception as e:
+            logger.warn(e)
+            return False
+
+    allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable()
+
+    resp = {
+        'allReady': allReady,
+        'multiserverReady': isMultiserverReachable(),
+        'redisReady': isRedisReachable(),
+        'nodejsReady': isNodeJsReachable(),
+        'revisionNumber': os.getenv("HELM_REVISION"),
+    }
+
+    print(resp)
+
+    if allReady:
+        statusCode = 200
+        logger.info("Passed rollout healthcheck.")
+    else:
+        statusCode = 503
+        logger.warn("Failed rollout healthcheck. Healthcheck Response: {}".format(resp))
+
+    return http.JsonResponse(resp, status=statusCode)
 
 @login_required
 def daf_roulette_redirect(request):

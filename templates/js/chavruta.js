@@ -326,21 +326,29 @@ function handleRemoteStreamRemoved(event) {
 }
 
 function handleIceConnectionChange(event) {
-  if (pc.iceConnectionState == "disconnected" || pc.iceConnectionState == "failed") {
+  if (pc.iceConnectionState == "failed") {
     byebye();
+  }
+  //"disconnected" could be a temporary state caused by any number of factors that could be automatically fixed w/o intervention
+  // this gives the app a chance to re-establish the connection before restarting
+  else if(pc.iceConnectionState == "disconnected") {
+        console.log("iceConnection is disconnected -- waiting 5 seconds to see if reconnects")
+        setTimeout(function(){
+        if (pc.iceConnectionState == "disconnected") {
+          byebye();
+        }
+    }, 5000);
   }
   console.log(pc.iceConnectionState);
 }
 
 function handleRemoteHangup() {
-  console.log(chavrutaTime)
   Sefaria.track.event("DafRoulette", "Chevruta Ended", "Minutes Learned", chavrutaTime);
   window.onbeforeunload = null;
   location.reload();
 }
 
 function byebye(){
-    console.log(chavrutaTime)
     Sefaria.track.event("DafRoulette", "Chevruta Ended", "Minutes Learned", chavrutaTime);
     socket.emit('bye', clientRoom);
 }
