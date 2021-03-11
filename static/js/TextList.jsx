@@ -225,10 +225,7 @@ class TextList extends Component {
                                       basetext={false}
                                       textHighlights={link.highlightedWords || null}
                                       inlineReference={link.inline_reference || null}
-                                      onCitationClick={this.props.onCitationClick}
-                                      onNavigationClick={this.props.onNavigationClick}
-                                      onCompareClick={this.props.onCompareClick}
-                                      onOpenConnectionsClick={this.props.onOpenConnectionsClick} />
+                                      onCitationClick={this.props.onCitationClick}/>
                                       <ConnectionButtons>
                                         <OpenConnectionTabButton srefs={[link.sourceRef]} openInTabCallback={this.props.onTextClick}/>
                                         <AddConnectionToSheetButton srefs={[link.sourceRef]} addToSheetCallback={this.props.setConnectionsMode}/>
@@ -267,9 +264,6 @@ TextList.propTypes = {
   setConnectionsMode:      PropTypes.func,
   onTextClick:             PropTypes.func,
   onCitationClick:         PropTypes.func,
-  onNavigationClick:       PropTypes.func,
-  onCompareClick:          PropTypes.func,
-  onOpenConnectionsClick:  PropTypes.func,
   onDataChange:            PropTypes.func,
   handleSheetClick:        PropTypes.func,
   openNav:                 PropTypes.func,

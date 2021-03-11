@@ -750,9 +750,6 @@ class ReaderPanel extends Component {
           noteBeingEdited={this.state.noteBeingEdited}
           onTextClick={this.handleTextListClick}
           onCitationClick={this.handleCitationClick}
-          onNavigationClick={this.props.onNavigationClick}
-          onOpenConnectionsClick={this.props.onOpenConnectionsClick}
-          onCompareClick={this.showBaseText}
           openComparePanel={this.props.openComparePanel}
           closePanel={this.props.closePanel}
           selectedWords={this.state.selectedWords}

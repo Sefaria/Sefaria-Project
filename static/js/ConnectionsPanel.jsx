@@ -325,9 +325,6 @@ class ConnectionsPanel extends Component {
                     setConnectionsMode={this.props.setConnectionsMode}
                     onTextClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
-                    onNavigationClick={this.props.onNavigationClick}
-                    onCompareClick={this.props.onCompareClick}
-                    onOpenConnectionsClick={this.props.onOpenConnectionsClick}
                     handleSheetClick={this.props.handleSheetClick}
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
@@ -619,9 +616,6 @@ ConnectionsPanel.propTypes = {
   canEditText:             PropTypes.bool,
   onTextClick:             PropTypes.func,
   onCitationClick:         PropTypes.func,
-  onNavigationClick:       PropTypes.func,
-  onCompareClick:          PropTypes.func,
-  onOpenConnectionsClick:  PropTypes.func,
   openNav:                 PropTypes.func,
   openDisplaySettings:     PropTypes.func,
   closePanel:              PropTypes.func,
