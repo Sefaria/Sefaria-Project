@@ -404,8 +404,7 @@ class TextRange extends Component {
         {this.props.hideTitle ? null :
         (<div className="title">
           <div className="titleBox" role="heading" aria-level="2">
-            <span className="en" >{title}</span>
-            <span className="he">{heTitle}</span>
+            <ContentText content={{en: title, he: heTitle}} />
           </div>
           {this.props.titleButtons ? <div className="buttons" onClick={e => e.stopPropagation()}>{this.props.titleButtons}</div> : null }
         </div>)}
