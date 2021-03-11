@@ -47,20 +47,23 @@
           "Talmud":             "#ccb479",
           "Halakhah":           "#802f3e",
           "Kabbalah":           "#594176",
-          "Philosophy":         "#7f85a9",
+          "Philosophy":         "#7f85a9",   // to delete
+          "Jewish Thought":     "#7f85a9",
           "Liturgy":            "#ab4e66",
-          "Tanaitic":           "#00827f",
+          "Tanaitic":           "#00827f",   // to delete
+          "Tosefta":            "#00827f",
           "Parshanut":          "#9ab8cb",
           "Chasidut":           "#97b386",
           "Musar":              "#7c406f",
           "Responsa":           "#cb6158",
-          "Apocrypha":          "#c7a7b4",
-          "Other":              "#073570",
+          "Apocrypha":          "#c7a7b4",   // to delete
+          "Second Temple":      "#c7a7b4",
+          "Other":              "#073570",   // to delete
           "Quoting Commentary": "#cb6158",
           "Sheets":             "#7c406f",
           "Community":          "#7c406f",
           "Targum":             "#7f85a9",
-          "Modern Works":       "#7c406f",
+          "Modern Works":       "#7c406f",   // to delete
           "Modern Commentary":  "#7c406f",
         };
         popUpElem = document.createElement("div");

@@ -5,7 +5,6 @@
 var DJANGO_DATA_VARS = {
   _dataLoaded:          true,
   toc:                  {{ toc_json }},
-  search_toc:           {{ search_toc_json }},
   topic_toc:            {{ topic_toc_json }},
   terms:                {{ terms_json}},
   books:                {{ titles_json }},

@@ -52,7 +52,7 @@ class Test_AutoLinker(object):
             'dependence': "Commentary",
             "base_text_titles": ["Genesis"],
             "base_text_mapping": "many_to_one_default_only",
-            'categories': ['Tanakh', "Commentary"],
+            'categories': ['Tanakh', "Rishonim on Tanakh"],
         })
         index.save()
 
@@ -153,7 +153,7 @@ class Test_AutoLinker(object):
             'dependence': 'Commentary',
             'base_text_titles': ['Genesis'],
             'base_text_mapping': 'one_to_one_default_only',
-            'categories': ['Tanakh', 'Commentary'],
+            'categories': ['Tanakh', 'Rishonim on Tanakh'],
         })
         index.save()
 
