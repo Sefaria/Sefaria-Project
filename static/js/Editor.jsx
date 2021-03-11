@@ -1019,6 +1019,11 @@ const withSefariaSheet = editor => {
             return
           }
         }
+        const nextPath = Path.next(path)
+        if (Node.get(editor, nextPath).type != "spacer" && Node.get(editor, Path.next(path)).type != "SheetOutsideText") {
+             console.log(nextPath)
+             Transforms.insertNodes(editor,{type: 'spacer', children: [{text: ""}]}, {at: nextPath});
+        }
       }
 
       if (node.type == "he" || node.type == "en") {
@@ -1092,6 +1097,7 @@ const addItemToSheet = (editor, fragment, position) => {
     // const nextSheetItemPath = Path.isPath(position) ? position : position == "top" ? closestSheetItem : getNextSheetItemPath(closestSheetItem);
     incrementNextSheetNode(editor);
     Transforms.insertNodes(editor, fragment);
+    Editor.normalize(editor, { force: true })
 };
 
 
@@ -1147,7 +1153,7 @@ const insertSource = (editor, ref, path) => {
         Transforms.setNodes(editor, { loading: false }, { at: path });
         addItemToSheet(editor, fragment, path ? path : "bottom");
         checkAndFixDuplicateSheetNodeNumbers(editor)
-        Transforms.move(editor, { unit: 'block', distance: 9 })
+        Transforms.move(editor, { unit: 'block', distance: 1 })
     });
 };
 
@@ -1640,9 +1646,9 @@ const SefariaEditor = (props) => {
         {
           /* debugger */
 
-          // <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: 1000, backgroundColor: '#ddd', fontSize: 12, zIndex: 9999}}>
-          // {JSON.stringify(editor.children[0,0])}
-          // </div>
+          <div style={{position: 'fixed', left: 0, top: 0, width: 300, height: 1000, backgroundColor: '#ddd', fontSize: 12, zIndex: 9999}}>
+          {JSON.stringify(editor.children[0,0])}
+          </div>
 
         }
 
