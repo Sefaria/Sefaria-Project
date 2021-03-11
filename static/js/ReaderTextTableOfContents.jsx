@@ -663,8 +663,7 @@ class TabbedToggleSet extends Component {
       return (
         <div className="altStructToggleBox" key={i}>
           <a className={classes} onClick={handleClick} href={url}>
-              <span className="int-he">{option.heText}</span>
-              <span className="int-en">{option.text}</span>
+              <InterfaceText content={{en:option.text, he:option.heText}} />
           </a>
         </div>
       );
