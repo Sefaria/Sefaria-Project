@@ -531,6 +531,7 @@ class TextSegment extends Component {
 
     const heOnly = !this.props.en;
     const enOnly = !this.props.he;
+    const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
 
     if (this.props.showLinkCount) {
       const linkCount = this.props.linkCount;
@@ -576,7 +577,7 @@ class TextSegment extends Component {
         {segmentNumber}
         {linkCountElement}
         <p className="segmentText">
-          <ContentText html={{"he": he, "en": en }}/>
+          <ContentText overrideLanguage={overrideLanguage} html={{"he": he+ " ", "en": en+ " " }}/>
         </p>
 
         <div className="clearFix"></div>
