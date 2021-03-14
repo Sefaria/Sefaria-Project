@@ -947,8 +947,6 @@ class ArrayMapNode extends Component {
         <a className="schema-node-toc linked" href={Sefaria.normRef(this.props.schema.wholeRef)} data-ref={this.props.schema.wholeRef}>
           <span className="schema-node-title" role="heading" aria-level="3">
             <ContentText content={{en:this.props.schema.title, he:this.props.schema.heTitle}}/>
-            <span className="he"><i className="schema-node-control fa fa-angle-left"></i></span>
-            <span className="en"><i className="schema-node-control fa fa-angle-right"></i></span>
           </span>
         </a>);
     }
