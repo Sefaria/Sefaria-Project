@@ -97,7 +97,7 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({content, html, overrideLanguage}) => {
+const ContentText = ({content, html, overrideBiLanguage}) => {
     /**
    * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
@@ -107,6 +107,11 @@ const ContentText = ({content, html, overrideLanguage}) => {
   const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [content, false];
   const availableLanguages = ["english", "hebrew"];
   const contentLanguage = useContext(ContentLanguageContext);
+
+  let heOnly = contentVariable["en"].length === 0;
+  let enOnly = contentVariable["he"].length === 0;
+  const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
+
   const languageToFilter = overrideLanguage ? overrideLanguage : contentLanguage.language;
   const isMultiLinugal = availableLanguages.indexOf(languageToFilter) == -1;
   let renderedItems = Object.entries(contentVariable).filter(([lang, text])=>{
@@ -114,7 +119,7 @@ const ContentText = ({content, html, overrideLanguage}) => {
   });
   return renderedItems.map( x =>
       isDangerouslySetInnerHTML ?
-          <span className={x[0]} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
+          <span className={x[0]} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1] + " "}}/>
           :
           <span className={x[0]} lang={x[0]} key={x[0]}>{x[1]}</span>
   );
