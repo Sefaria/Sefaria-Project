@@ -2328,7 +2328,8 @@ a.readerNavCategory {
   font-size: 122%;
   margin-inline-start: 9px;
 }
-.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after,
+.readerApp.interface-hebrew .readerTextTableOfContents.noLangToggleInHebrew .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
   content: "\f107";
 }
 .readerTextTableOfContents .content .schema-node-contents.closed {
