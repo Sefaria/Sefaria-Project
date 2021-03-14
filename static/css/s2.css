@@ -2325,6 +2325,7 @@ a.readerNavCategory {
 .readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title:after {
   content: "\f104";
   font-size: 122%;
+  margin-inline-start: 9px;
 }
 .readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
   content: "\f107";
