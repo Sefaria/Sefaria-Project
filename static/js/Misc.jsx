@@ -97,7 +97,7 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({content, html}) => {
+const ContentText = ({content, html, overrideBiLanguage}) => {
     /**
    * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
@@ -106,17 +106,11 @@ const ContentText = ({content, html}) => {
    */
   const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [content, false];
   const availableLanguages = ["english", "hebrew"];
-  const interfaceLangsOverrideContent = ["hebrew"];
   const contentLanguage = useContext(ContentLanguageContext);
 
   let heOnly = contentVariable["en"].length === 0;
   let enOnly = contentVariable["he"].length === 0;
-  let overrideLanguage = null;
-  if(isDangerouslySetInnerHTML){
-    overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
-  }else{
-    overrideLanguage = interfaceLangsOverrideContent.indexOf(Sefaria.interfaceLang) != -1 ? Sefaria.interfaceLang : null;
-  }
+  const overrideLanguage = (enOnly || heOnly) ? (heOnly ? "hebrew" : "english") : null;
 
   const languageToFilter = overrideLanguage ? overrideLanguage : contentLanguage.language;
   const isMultiLinugal = availableLanguages.indexOf(languageToFilter) == -1;
