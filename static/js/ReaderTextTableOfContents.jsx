@@ -18,6 +18,7 @@ import ExtendedNotes from './ExtendedNotes';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component   from 'react-class';
+import {ContentLanguageContext} from './context';
 
 
 class ReaderTextTableOfContents extends Component {
@@ -352,7 +353,7 @@ class ReaderTextTableOfContents extends Component {
     const categories = Sefaria.index(this.props.title).categories;
 
 
-    return (<div className={classes}>
+    let returnContents = (<div className={classes}>
               <CategoryColorLine category={category} />
               <div className="readerControls">
                 <div className="readerControlsInner">
@@ -432,6 +433,15 @@ class ReaderTextTableOfContents extends Component {
                 </div>}
               </div>
             </div>);
+    if (Sefaria.interfaceLang == "hebrew"){
+      return (
+          <ContentLanguageContext.Provider value={{language: "hebrew"}}>
+            {returnContents}
+          </ContentLanguageContext.Provider>
+      )
+    }else{
+      return returnContents
+    }
   }
 }
 ReaderTextTableOfContents.propTypes = {
