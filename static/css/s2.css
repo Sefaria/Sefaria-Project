@@ -2309,11 +2309,9 @@ a.readerNavCategory {
 .readerTextTableOfContents .content .schema-node-toc {
   display: block;
 }
-.readerTextTableOfContents .content .schema-node-toc:not(.linked) .schema-node-title:after {
+.readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title:after {
   content: "\f105";
   display: inline-block;
-  font: normal normal normal 14px/1 FontAwesome;
-  font-size: 14px;
   font-size: inherit;
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
@@ -2321,10 +2319,14 @@ a.readerNavCategory {
   font-family: FontAwesome;
   margin-inline-start: 8px;
 }
-.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) .schema-node-title:after {
-  content: "\f104";
+.readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+  content: "\f107";
 }
-.readerTextTableOfContents .content .schema-node-toc:not(.linked) .schema-node-title.open:after {
+.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title:after {
+  content: "\f104";
+  font-size: 122%;
+}
+.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
   content: "\f107";
 }
 .readerTextTableOfContents .content .schema-node-contents.closed {
@@ -2332,9 +2334,6 @@ a.readerNavCategory {
 }
 .readerTextTableOfContents .content .schema-node-toc .schema-node-contents.closed {
   display: block;
-}
-.readerTextTableOfContents .content .schema-node-control {
-  margin: 0 4px;
 }
 .readerTextTableOfContents .content .tocLevel {
   display: block;
