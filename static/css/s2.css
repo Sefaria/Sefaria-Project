@@ -2319,6 +2319,7 @@ a.readerNavCategory {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-family: FontAwesome;
+  margin-inline-start: 8px;
 }
 .readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) .schema-node-title:after {
   content: "\f104";
