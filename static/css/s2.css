@@ -2309,6 +2309,23 @@ a.readerNavCategory {
 .readerTextTableOfContents .content .schema-node-toc {
   display: block;
 }
+.readerTextTableOfContents .content .schema-node-toc:not(.linked) .schema-node-title:after {
+  content: "\f105";
+  display: inline-block;
+  font: normal normal normal 14px/1 FontAwesome;
+  font-size: 14px;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: FontAwesome;
+}
+.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) .schema-node-title:after {
+  content: "\f104";
+}
+.readerTextTableOfContents .content .schema-node-toc:not(.linked) .schema-node-title.open:after {
+  content: "\f107";
+}
 .readerTextTableOfContents .content .schema-node-contents.closed {
   display: none;
 }

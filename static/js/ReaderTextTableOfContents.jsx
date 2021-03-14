@@ -730,15 +730,13 @@ class SchemaNode extends Component {
           var path = this.props.refPath + ", " + node.title;
           return (
             <div className="schema-node-toc" data-ref={path} key={i}>
-              <span className="schema-node-title"
+              <span className={`schema-node-title ${this.state.collapsed[i] ? "collapsed" : "open"}`}
                     onClick={this.toggleCollapse.bind(null, i)}
                     onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)}
                     role="heading"
                     aria-level="3"
                     aria-hidden="true" tabIndex={0}>
                 <ContentText content={{en: node.title, he: node.heTitle}} />
-                <span className="he"><i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
-                <span className="en"><i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
               {!this.state.collapsed[i] ?
               <div className="schema-node-contents">
@@ -767,10 +765,11 @@ class SchemaNode extends Component {
           return (
             <div className="schema-node-toc" key={i}>
               { !node.default ?
-              <span className="schema-node-title" onClick={this.toggleCollapse.bind(null, i)} role="heading" aria-level="3" tabIndex={0} onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)} >
+              <span className={`schema-node-title ${this.state.collapsed[i] ? "collapsed" : "open"}`}
+                    role="heading" aria-level="3" tabIndex={0}
+                    onClick={this.toggleCollapse.bind(null, i)}
+                    onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)} >
                 <ContentText content={{en: node.title, he: node.heTitle}} />
-                <span className="he"><i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "left" : "down")}></i></span>
-                <span className="en"><i className={"schema-node-control fa fa-angle-" + (this.state.collapsed[i] ? "right" : "down")}></i></span>
               </span>
               : null }
               { !this.state.collapsed[i] ?
