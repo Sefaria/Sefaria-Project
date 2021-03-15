@@ -92,9 +92,11 @@ class ReaderApp extends Component {
           collectionTag: props.initialCollectionTag,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
-        if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
-        else if (panels[0].currVersions.he)                         { panels[0].settings.language = "hebrew"; }
-        else if (panels[0].currVersions.en)                         { panels[0].settings.language = "english"; }
+        if (!initialPanel.hasOwnProperty("settings")) {
+          if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
+          else if (panels[0].currVersions.he)                         { panels[0].settings.language = "hebrew"; }
+          else if (panels[0].currVersions.en)                         { panels[0].settings.language = "english"; }
+        }
         if (mode === "SheetAndConnections") {
           panels[0].highlightedRefs = props.initialRefs;
         }
@@ -138,7 +140,7 @@ class ReaderApp extends Component {
           collectionTag: props.initialCollectionTag,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
-        if (!"settings" in props.initialPanels[0]) {
+        if (!initialPanel.hasOwnProperty("settings")) {
           if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
           else if (panels[0].currVersions.he)                         { panels[0].settings.language = "hebrew"; }
           else if (panels[0].currVersions.en)                         { panels[0].settings.language = "english"; }
@@ -193,7 +195,7 @@ class ReaderApp extends Component {
           currVersions: props.initialPanels.length ? props.initialPanels[0].currVersions : {en:null,he:null},
           settings: ("settings" in props.initialPanels[0]) ? extend(Sefaria.util.clone(defaultPanelSettings), props.initialPanels[0].settings) : Sefaria.util.clone(defaultPanelSettings)
         };
-        if (!"settings" in props.initialPanels[0]) {
+        if (!props.initialPanels[0].hasOwnProperty("settings")) {
           if (p.currVersions.he && p.currVersions.en) { p.settings.language = "bilingual"; }
           else if (p.currVersions.he)                 { p.settings.language = "hebrew" }
           else if (p.currVersions.en)                 { p.settings.language = "english" }
@@ -211,7 +213,7 @@ class ReaderApp extends Component {
         } else {
           panel = this.clonePanel(props.initialPanels[i]);
           panel.settings = Sefaria.util.clone(defaultPanelSettings);
-          if (!"settings" in props.initialPanels[i]) {
+          if (!props.initialPanels[i].hasOwnProperty("settings")) {
             if (panel.currVersions.he && p.currVersions.en) { panel.settings.language = "bilingual"; }
             else if (panel.currVersions.he)                 { panel.settings.language = "hebrew" }
             else if (panel.currVersions.en)                 { panel.settings.language = "english" }
