@@ -918,7 +918,7 @@ class ArrayMapNode extends Component {
       var sectionLinks = this.props.schema.refs.map(function(ref, i) {
         i += this.props.schema.offset || 0;
         if (ref === "") {
-          return (null)
+          return null;
         }
         if (this.props.schema.addressTypes[0] === "Talmud") {
           var section = Sefaria.hebrew.intToDaf(i);
