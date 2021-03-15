@@ -65,15 +65,19 @@ class AbstractIndex(object):
         return self.nodes.primary_title(lang)
 
     def set_title(self, title, lang="en"):
+        if getattr(self, 'nodes', None) is None:
+            if lang == "en":
+                self._title = title
+            return
+
         if lang == "en":
             self._title = title  # we need to store the title attr in a physical storage, note that .title is a virtual property
-        if getattr(self, 'nodes', None):
             self.nodes.key = title
 
-            old_primary = self.nodes.primary_title(lang)
-            self.nodes.add_title(title, lang, True, True)
-            if old_primary != title:  # then remove the old title, we don't want it.
-                self.nodes.remove_title(old_primary, lang)
+        old_primary = self.nodes.primary_title(lang)
+        self.nodes.add_title(title, lang, True, True)
+        if old_primary != title:  # then remove the old title, we don't want it.
+            self.nodes.remove_title(old_primary, lang)
 
     title = property(get_title, set_title)
 
@@ -183,18 +187,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "categories"
     ]
     optional_attrs = [
-        "titleVariants",      # required for old style
         "schema",             # required for new style
-        "sectionNames",       # required for old style simple texts, sometimes erroneously present for commentary
-        "heTitle",            # optional for old style
-        "heTitleVariants",    # optional for old style
-        "maps",               # deprecated
         "alt_structs",        # optional for new style
         "default_struct",     # optional for new style
         "order",              # optional for old style and new
-        "length",             # optional for old style
-        "lengths",            # optional for old style
-        "transliteratedTitle",# optional for old style
         "authors",
         "enDesc",
         "heDesc",
@@ -212,7 +208,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "collective_title",     # (str) string value for a group of index records - the former commentator name. Requires a matching term.
         "is_cited",             # (bool) only indexes with this attribute set to True will be picked up as a citation in a text by default
         "lexiconName",          # (str) For dictionaries - the name used in the Lexicon collection
-        "dedication"            # (dict) Dedication texts, keyed by language
+        "dedication",           # (dict) Dedication texts, keyed by language
+        "hidden"                # (bool) Default false.  If not present, Index is visible in all TOCs.  True value hides the text in the main TOC, but keeps it in the search toc.
     ]
 
     def __str__(self):
@@ -659,7 +656,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
         from sefaria.model import Category
-        if not Category().load({"path": self.categories}) and not Category().load({"path": ["Other"] + self.categories}):
+        if not Category().load({"path": self.categories}):
             raise InputError("You must create category {} before adding texts to it.".format("/".join(self.categories)))
 
         '''
@@ -716,11 +713,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         order = getattr(self, 'order', None)
         if order:
             return order[0]
-        elif getattr(self, 'base_text_titles', None):
-            orders = [a for a in filter(None, [library.get_index(x).get_toc_index_order() for x in self.base_text_titles])]
-            if len(orders) > 0:
-                return min(orders)
         return None
+
+    def get_base_text_order(self):
+        if getattr(self, 'base_text_titles', None):
+            base_orders = [a for a in filter(None, [library.get_index(x).get_toc_index_order() for x in self.base_text_titles])]
+            if len(base_orders) > 0:
+                return min(base_orders) or 10000
+        return 10000
 
     def slim_toc_contents(self):
         toc_contents_dict = {
@@ -730,6 +730,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         order = self.get_toc_index_order()
         if order:
             toc_contents_dict["order"] = order
+
+        base_text_order = self.get_base_text_order()
+        if base_text_order:
+            toc_contents_dict["base_text_order"] = base_text_order
 
         return toc_contents_dict
 
@@ -752,9 +756,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["enComplete"] = bool(vstate.get_flag("enComplete"))
             toc_contents_dict["heComplete"] = bool(vstate.get_flag("heComplete"))
 
-        ord = self.get_toc_index_order()
-        if ord:
-            toc_contents_dict["order"] = ord
+        order = self.get_toc_index_order()
+        if order:
+            toc_contents_dict["order"] = order
+
 
         if hasattr(self, "collective_title"):
             toc_contents_dict["commentator"] = self.collective_title # todo: deprecate Only used in s1 js code
@@ -764,6 +769,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         if hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
+            toc_contents_dict["base_text_order"] = self.get_base_text_order()
             if include_first_section:
                 toc_contents_dict["refs_to_base_texts"] = self.get_base_texts_and_first_refs()
             if "collectiveTitle" not in toc_contents_dict:
@@ -772,6 +778,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         if hasattr(self, 'base_text_mapping'):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping
+
+        if hasattr(self, 'hidden'):
+            toc_contents_dict["hidden"] = self.hidden
 
         return toc_contents_dict
 
@@ -818,7 +827,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang, vtitle=vtitle)
 
     def get_primary_category(self):
-        if self.is_dependant_text() and self.dependence.capitalize() in self.categories:
+        if self.is_dependant_text():
             return self.dependence.capitalize()
         else:
             return self.categories[0]
@@ -4002,7 +4011,6 @@ class Ref(object, metaclass=RefCacheType):
 
         :return string:
         """
-        #Todo: handle complex texts.  Right now, all complex results are grouped under the root of the text
 
         cats = self.index.categories[:]
 
@@ -4483,8 +4491,6 @@ class Library(object):
         self._topic_toc_json = None
         self._topic_link_types = None
         self._topic_data_sources = None
-        self._search_filter_toc = None
-        self._search_filter_toc_json = None
         self._category_id_dict = None
         self._toc_size = 16
 
@@ -4553,17 +4559,12 @@ class Library(object):
         if include_toc:
             self.rebuild_toc()
 
-    def rebuild_toc(self, skip_toc_tree=False, skip_filter_toc=False):
+    def rebuild_toc(self, skip_toc_tree=False):
         if not skip_toc_tree:
             self._toc_tree = self.get_toc_tree(rebuild=True)
         self._toc = self.get_toc(rebuild=True)
         self._toc_json = self.get_toc_json(rebuild=True)
-        if not skip_filter_toc:
-            self._search_filter_toc = self.get_search_filter_toc(rebuild=True)
-        else: # TODO: Dont love this, it breaks the pattern of where we do cache invalidation toward redis,  but the way these objects are created currently makes it diffucult to make sure the cache is updated anywhere else. In any dependecy trigger, the search toc is updated in the library, and that becomes more recent than whats in cache, when usually the reverse is true. if we can clean up all the methods relating to the large library objects and standardize, that'd be good
-            scache.set_shared_cache_elem('search_filter_toc', self._search_filter_toc)
-        self._search_filter_toc_json = self.get_search_filter_toc_json(rebuild=True)
-        self._topic_toc =self.get_topic_toc(rebuild=True)
+        self._topic_toc = self.get_topic_toc(rebuild=True)
         self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
         self._category_id_dict = None
         scache.delete_template_cache("texts_list")
@@ -4573,8 +4574,6 @@ class Library(object):
     def init_shared_cache(self, rebuild=False):
         self.get_toc(rebuild=rebuild)
         self.get_toc_json(rebuild=rebuild)
-        self.get_search_filter_toc(rebuild=rebuild)
-        self.get_search_filter_toc_json(rebuild=rebuild)
         self.get_topic_mapping(rebuild=rebuild)
         self.get_topic_toc(rebuild=rebuild)
         self.get_topic_toc_json(rebuild=rebuild)
@@ -4692,6 +4691,37 @@ class Library(object):
             return topic_json['children']
         return topic_json
 
+    def get_search_filter_toc(self):
+        """
+        Returns TOC, modified  according to `Category.searchRoot` flags to correspond to the filters
+        """
+        from sefaria.model.category import TocTree, CategorySet, TocCategory
+        from sefaria.site.categories import CATEGORY_ORDER
+        toctree = TocTree(self)     # Don't use the cached one.  We're going to rejigger it.
+        root = toctree.get_root()
+
+        reroots = CategorySet({"searchRoot": {"$exists": True}})
+
+        # Get all the unique new roots, create nodes for them, and attach them to the tree
+        new_root_titles = list({c.searchRoot for c in reroots})
+        new_root_titles.sort(key=lambda t: CATEGORY_ORDER.index(t.split()[0]))
+        new_roots = {}
+        for t in new_root_titles:
+            tc = TocCategory()
+            tc.add_title(t, "en", primary=True)
+            tc.add_title(Term.normalize(t, "he"), "he", primary=True)
+            tc.append_to(root)
+            new_roots[t] = tc
+
+        # Re-parent all of the nodes with "searchRoot"
+        for cat in reroots:
+            tocnode = toctree.lookup(cat.path)
+            tocnode.detach()
+            tocnode.append_to(new_roots[cat.searchRoot])
+
+        # todo: return 'thin' param when search toc is retired.
+        return [c.serialize(thin=True) for c in root.children]
+
     def get_topic_link_type(self, link_type):
         from .topic import TopicLinkTypeSet
         if not self._topic_link_types:
@@ -4713,33 +4743,6 @@ class Library(object):
     def get_collections_in_library(self):
         return self._toc_tree.get_collections_in_library()
 
-    def get_search_filter_toc(self, rebuild=False):
-        """
-        Returns table of contents object from cache,
-        DB or by generating it, as needed.
-        """
-        if rebuild or not self._search_filter_toc:
-            if not rebuild:
-                self._search_filter_toc = scache.get_shared_cache_elem('search_filter_toc')
-            if rebuild or not self._search_filter_toc:
-                from sefaria.summaries import update_search_filter_table_of_contents
-                self._search_filter_toc = update_search_filter_table_of_contents()
-                scache.set_shared_cache_elem('search_filter_toc', self._search_filter_toc)
-                self.set_last_cached_time()
-        return self._search_filter_toc
-
-    def get_search_filter_toc_json(self, rebuild=False):
-        """
-        Returns JSON representation of TOC.
-        """
-        if rebuild or not self._search_filter_toc_json:
-            if not rebuild:
-                self._search_filter_toc_json = scache.get_shared_cache_elem('search_filter_toc_json')
-            if rebuild or not self._search_filter_toc_json:
-                self._search_filter_toc_json = json.dumps(self.get_search_filter_toc(), ensure_ascii=False)
-                scache.set_shared_cache_elem('search_filter_toc_json', self._search_filter_toc_json)
-                self.set_last_cached_time()
-        return self._search_filter_toc_json
 
     def build_full_auto_completer(self):
         from .autospell import AutoCompleter
@@ -4814,10 +4817,7 @@ class Library(object):
 
         self.get_toc_tree().update_title(indx, recount=True)
 
-        from sefaria.summaries import update_title_in_toc
-        self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, recount=False, for_search=True)
-
-        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
+        self.rebuild_toc(skip_toc_tree=True)
 
     def delete_index_from_toc(self, indx, categories = None):
         """
@@ -4832,10 +4832,7 @@ class Library(object):
         if toc_node:
             self.get_toc_tree().remove_index(toc_node)
 
-        from sefaria.summaries import recur_delete_element_from_toc
-        self._search_filter_toc = recur_delete_element_from_toc(indx.title, self.get_search_filter_toc())
-
-        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
+        self.rebuild_toc(skip_toc_tree=True)
 
     def update_index_in_toc(self, indx, old_ref=None):
         """
@@ -4850,10 +4847,7 @@ class Library(object):
 
         self.get_toc_tree().update_title(indx, old_ref=old_ref, recount=False)
 
-        from sefaria.summaries import update_title_in_toc
-        self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, old_ref=old_ref, recount=False, for_search=True)
-
-        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
+        self.rebuild_toc(skip_toc_tree=True)
 
     def get_index(self, bookname):
         """
@@ -5526,7 +5520,6 @@ class Library(object):
             return f"""<a href="/topics/{link_slug}" class="namedEntityLink" data-slug="{slug}">{mention}</a>"""
         return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
-
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
         if toc is None:
             if not self._category_id_dict:
@@ -5539,10 +5532,10 @@ class Library(object):
             name = c["category"] if "category" in c else c["title"]
             if cat_head:
                 key = "/".join([cat_head, name])
-                val = code_head + format(i, '02')
+                val = code_head + format(i, '03')
             else:
                 key = name
-                val = "A" + format(i, '02')
+                val = "A" + format(i, '03')
 
             d[key] = val
             if "contents" in c:

@@ -41,7 +41,13 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     return chunk
 
 
-def modify_bulk_text(user, version:model.Version, text_map: dict, vsource=None, **kwargs) -> None:
+def modify_bulk_text(user:int, version:model.Version, text_map: dict, vsource=None, **kwargs) -> None:
+    """
+    user: user ID of user making modification
+    version: version object of text being modified
+    text_map: dict with segment ref keys and text values. Each key/value pair represents a segment that should be modified. Segments that don't have changes will be ignored.
+    vsource: optional parameter to set the version source of the version. not sure why this is here. I copied it from modify_text.
+    """
     def populate_change_map(old_text, en_tref, he_tref, _):
         nonlocal change_map, existing_tref_set
         existing_tref_set.add(en_tref)

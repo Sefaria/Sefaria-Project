@@ -159,6 +159,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"jewishencyclopedia\.com\/(directory|contribs|search)",
             r"orhalev\.org\/blogs\/parasha-and-practice\/?$",
             r"orhalev\.org\/blogs\/tag\/",
+            r"talmudology\.com\/?$",
+            r"talmudology\.com\/[^\/]+$",  # seems everything at the top level is not an article
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -827,5 +829,10 @@ sites_data = [
         "name": "Or HaLev",
         "domains": ["orhalev.org"],
         "normalization_rules": ["use https", "remove www"]
+    },
+    {
+        "name": "Talmudology",
+        "domains": ["talmudology.com"],
+        "normalization_rules": ["use https", "remove www"],
     }
 ]

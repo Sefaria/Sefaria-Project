@@ -61,6 +61,7 @@ site_urlpatterns = [
     url(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
     url(r'^(%s)/?$' % "|".join(static_pages_by_lang), reader_views.serve_static_by_lang),
     url(r'^healthz/?$', reader_views.application_health_api),
+    url(r'^healthz-rollout/?$', reader_views.rollout_health_api),
 ]
 
 

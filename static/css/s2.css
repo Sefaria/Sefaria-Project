@@ -7384,6 +7384,14 @@ span.purim-emoji img{
 .readerPanel .sheetItem {
   position: relative;
 }
+.heLeft.bilingual section.SheetSource .sheetItem.enOnly > .en,
+.heLeft.bilingual section.SheetSource .sheetItem.heOnly > .he,
+.heRight.bilingual section.SheetSource .sheetItem.enOnly > .en,
+.heRight.bilingual section.SheetSource .sheetItem.heOnly > .he {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+}
 .readerPanel .sheetItem.indented-1,
 .readerPanel section.SheetSource.indented-1,
 .readerPanel section.SheetOutsideBiText.indented-1 {
@@ -7472,6 +7480,8 @@ span.purim-emoji img{
 .sheetContent .sheetItem.segment .sourceContentText {
   margin-bottom: 18px;
   display: block;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {

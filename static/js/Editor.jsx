@@ -31,6 +31,7 @@ const voidElements = [
     "ProfilePic",
     "SheetMedia",
     "SheetSource",
+    "SheetOutsideBiText"
 ];
 
 
@@ -276,15 +277,10 @@ function renderSheetItem(source) {
             const content = (
                 {
                     type: sheet_item_els[sheetItemType],
+                    heText: parseSheetItemHTML(source.outsideBiText.he),
+                    enText: parseSheetItemHTML(source.outsideBiText.en),
                     children: [
-                        {
-                            type: "he",
-                            children: parseSheetItemHTML(source.outsideBiText.he)
-                        },
-                        {
-                            type: "en",
-                            children: parseSheetItemHTML(source.outsideBiText.en)
-                        }
+                        {text: ""},
                     ],
                     node: source.node
                 }
@@ -429,7 +425,7 @@ function isSourceEditable(e, editor) {
   return (isEditable)
 }
 
-const SheetSourceElement = ({ attributes, children, element }) => {
+const BoxedSheetElement = ({ attributes, children, element }) => {
   const editor = useSlate();
 
   const sheetSourceEnEditor = useMemo(() => withLinks(withHistory(withReact(createEditor()))), [])
@@ -480,7 +476,12 @@ const SheetSourceElement = ({ attributes, children, element }) => {
 
   const isActive = selected && focused;
   const sheetItemClasses = {sheetItem: 1, highlight: editor.highlightedNode == element.node}
-  const classes = {SheetSource: 1, segment: 1, selected: isActive};
+  const classes = {
+      SheetSource: element.ref ? 1 : 0,
+      SheetOutsideBiText: element.ref ? 0 : 1,
+      segment: 1,
+      selected: isActive
+  };
   const heClasses = {he: 1, selected: isActive, editable: activeSourceLangContent == "he" ? true : false };
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
 
@@ -488,8 +489,8 @@ const SheetSourceElement = ({ attributes, children, element }) => {
     <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref}>
     <div {...attributes} contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-        <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div>
-        <div className="sourceContentText">
+          {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div> : null }
+          <div className="sourceContentText">
           <Slate editor={sheetSourceHeEditor} value={sheetHeSourceValue} onChange={value => onHeChange(value)}>
           <HoverMenu/>
             <Editable
@@ -500,7 +501,7 @@ const SheetSourceElement = ({ attributes, children, element }) => {
         </div>
       </div>
       <div className={classNames(enClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
-        <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.ref}</div>
+        {element.ref ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.ref}</div> : null }
         <div className="sourceContentText">
           <Slate editor={sheetSourceEnEditor} value={sheetEnSourceValue} onChange={value => onEnChange(value)}>
           <HoverMenu/>
@@ -536,8 +537,14 @@ const Element = props => {
           )
         case 'SheetSource':
             return (
-              <SheetSourceElement {...props} />
+              <BoxedSheetElement {...props} />
             )
+
+        case 'SheetOutsideBiText':
+            return (
+              <BoxedSheetElement {...props} />
+            );
+
 
         case 'SheetComment':
             return (
@@ -559,15 +566,6 @@ const Element = props => {
                   </div>
             );
 
-        case 'SheetOutsideBiText':
-            return (
-              <div className={classNames(sheetItemClasses)} {...attributes} data-sheet-node={element.node}>
-                <div className="SheetOutsideBiText segment" {...attributes}>
-                    {children}
-                </div>
-                <div className="clearFix"></div>
-              </div>
-            );
 
         case 'SheetMedia':
             let mediaComponent
@@ -761,7 +759,7 @@ async function getRefInText(editor, additionalOffset=0) {
 
 
 const withSefariaSheet = editor => {
-    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward} = editor;
+    const {insertData, insertBreak, isVoid, normalizeNode, deleteBackward, setFragmentData} = editor;
 
     //Hack to override this built-in which often returns null when programmatically selecting the whole SheetSource
     Transforms.deselect = () => {}
@@ -801,6 +799,16 @@ const withSefariaSheet = editor => {
             }
         }
 
+    }
+
+    editor.setFragmentData = (data) => {
+        setFragmentData(data);
+        //dance required to ensure a cut source is properly deleted when the delete part of cut is fired
+        if (editor.cuttingSource) {
+            Transforms.move(editor, { distance: 1, unit: 'character',  edge: 'anchor' })
+            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, edge: 'focus' })
+            editor.cuttingSource = false
+        }
     }
 
     editor.insertBreak = () => {
@@ -1009,6 +1017,11 @@ const withSefariaSheet = editor => {
             return
           }
         }
+        const nextPath = Path.next(path)
+        if (Node.get(editor, nextPath).type != "spacer" && Node.get(editor, Path.next(path)).type != "SheetOutsideText") {
+             console.log(nextPath)
+             Transforms.insertNodes(editor,{type: 'spacer', children: [{text: ""}]}, {at: nextPath});
+        }
       }
 
       if (node.type == "he" || node.type == "en") {
@@ -1082,6 +1095,7 @@ const addItemToSheet = (editor, fragment, position) => {
     // const nextSheetItemPath = Path.isPath(position) ? position : position == "top" ? closestSheetItem : getNextSheetItemPath(closestSheetItem);
     incrementNextSheetNode(editor);
     Transforms.insertNodes(editor, fragment);
+    Editor.normalize(editor, { force: true })
 };
 
 
@@ -1137,7 +1151,7 @@ const insertSource = (editor, ref, path) => {
         Transforms.setNodes(editor, { loading: false }, { at: path });
         addItemToSheet(editor, fragment, path ? path : "bottom");
         checkAndFixDuplicateSheetNodeNumbers(editor)
-        Transforms.move(editor, { unit: 'block', distance: 9 })
+        Transforms.move(editor, { unit: 'block', distance: 1 })
     });
 };
 
@@ -1315,11 +1329,11 @@ function saveSheetContent(doc, lastModified) {
         switch (sheetItem.type) {
             case 'SheetSource':
 
-                const enSerializedText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
+                const enSerializedSourceText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
                   return concatenatedSegments + serialize(currentSegment)
                 }, "" ) );
 
-                const heSerializedText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
+                const heSerializedSourceText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
                   return concatenatedSegments + serialize(currentSegment)
                 }, "" ) );
 
@@ -1327,17 +1341,26 @@ function saveSheetContent(doc, lastModified) {
                     "ref": sheetItem.ref,
                     "heRef": sheetItem.heRef,
                     "text": {
-                        "en": enSerializedText !== "" ? enSerializedText : "...",
-                        "he": heSerializedText !== "" ? heSerializedText : "...",
+                        "en": enSerializedSourceText !== "" ? enSerializedSourceText : "...",
+                        "he": heSerializedSourceText !== "" ? heSerializedSourceText : "...",
                     },
                     "node": sheetItem.node,
                 };
                 return (source);
             case 'SheetOutsideBiText':
+
+                const enSerializedOutsideText = (sheetItem.enText.reduce( (concatenatedSegments, currentSegment) => {
+                  return concatenatedSegments + serialize(currentSegment)
+                }, "" ) );
+
+                const heSerializedOutsideText = (sheetItem.heText.reduce( (concatenatedSegments, currentSegment) => {
+                  return concatenatedSegments + serialize(currentSegment)
+                }, "" ) );
+
                 let outsideBiText = {
                     "outsideBiText": {
-                        "en": serialize(sheetItem.children.find(el => el.type == "en")),
-                        "he": serialize(sheetItem.children.find(el => el.type == "he")),
+                        "en": enSerializedOutsideText !== "" ? enSerializedOutsideText : "...",
+                        "he": heSerializedOutsideText !== "" ? heSerializedOutsideText : "...",
                     },
                     "node": sheetItem.node,
 
@@ -1537,6 +1560,18 @@ const SefariaEditor = (props) => {
           }
     }
 
+    const onCutorCopy = event => {
+        const nodeAbove = Editor.above(editor, { match: n => Editor.isBlock(editor, n) })
+
+        if (nodeAbove[0].type == "SheetSource") {
+            editor.cuttingSource = true;
+            //can't select an empty void -- so we select before and after as well
+            Transforms.move(editor, { distance: 1, unit: 'character', reverse: true, edge: 'anchor' })
+            Transforms.move(editor, { distance: 1, unit: 'character', edge: 'focus' })
+        }
+
+    }
+
     const onBlur = event => {
       editor.blurSelection = editor.selection
     }
@@ -1654,6 +1689,8 @@ const SefariaEditor = (props) => {
                   renderElement={renderElement}
                   spellCheck
                   onKeyDown={onKeyDown}
+                  onCut={onCutorCopy}
+                  onCopy={onCutorCopy}
                   onBlur={onBlur}
                   onDOMBeforeInput={beforeInput}
               />
