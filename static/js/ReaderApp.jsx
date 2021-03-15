@@ -138,9 +138,11 @@ class ReaderApp extends Component {
           collectionTag: props.initialCollectionTag,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
-        if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
-        else if (panels[0].currVersions.he)                         { panels[0].settings.language = "hebrew"; }
-        else if (panels[0].currVersions.en)                         { panels[0].settings.language = "english"; }
+        if (!"settings" in props.initialPanels[0]) {
+          if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
+          else if (panels[0].currVersions.he)                         { panels[0].settings.language = "hebrew"; }
+          else if (panels[0].currVersions.en)                         { panels[0].settings.language = "english"; }
+        }
         if (mode === "TextAndConnections") {
           panels[0].highlightedRefs = props.initialRefs;
         }
