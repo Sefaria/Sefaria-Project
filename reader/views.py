@@ -1,22 +1,24 @@
 # -*- coding: utf-8 -*-
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from elasticsearch_dsl import Search
 from elasticsearch import Elasticsearch
 from random import choice
 import json
 import urllib.request, urllib.parse, urllib.error
-import dateutil.parser
 from bson.json_util import dumps
 import socket
 import bleach
 from collections import OrderedDict
 import pytz
 from html import unescape
+import redis
+import os
+import re
 
 from rest_framework.decorators import api_view
-from django.template.loader import render_to_string, get_template
-from django.shortcuts import render, get_object_or_404, redirect
+from django.template.loader import render_to_string
+from django.shortcuts import render, redirect
 from django.http import Http404, QueryDict
 from django.contrib.auth.decorators import login_required
 from django.contrib.admin.views.decorators import staff_member_required
@@ -30,8 +32,6 @@ from django.utils.html import strip_tags
 from bson.objectid import ObjectId
 
 from sefaria.model import *
-from sefaria.workflows import *
-from sefaria.reviews import *
 from sefaria.google_storage_manager import GoogleStorageManager
 from sefaria.model.user_profile import UserProfile, user_link, user_started_text, public_user_data
 from sefaria.model.collection import CollectionSet
@@ -42,22 +42,21 @@ from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
 from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.client.util import jsonResponse
-from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, make_leaderboard, make_leaderboard_condition, text_at_revision, record_version_deletion, record_index_deletion
+from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
 from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
-from sefaria.summaries import get_or_make_summary_node
-from sefaria.sheets import get_sheets_for_ref, public_sheets, get_sheets_by_topic, user_sheets, user_tags, trending_topics, sheet_to_dict, get_top_sheets, public_tag_list, get_sheet_for_panel, annotate_user_links
+from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links
 from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
-from sefaria.utils.talmud import daf_to_section
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
-from sefaria.utils.util import short_to_long_lang_code, titlecase
+from sefaria.utils.util import short_to_long_lang_code
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref
+from sefaria.system.database import db
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -67,25 +66,25 @@ logger = logging.getLogger(__name__)
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
-logger.warn("Initializing library objects.")
-logger.warn("Initializing TOC Tree")
+logger.warning("Initializing library objects.")
+logger.warning("Initializing TOC Tree")
 library.get_toc_tree()
 
 
 """ """
-logger.warn("Initializing Full Auto Completer")
+logger.warning("Initializing Full Auto Completer")
 library.build_full_auto_completer()
 
-logger.warn("Initializing Ref Auto Completer")
+logger.warning("Initializing Ref Auto Completer")
 library.build_ref_auto_completer()
 
-logger.warn("Initializing Lexicon Auto Completers")
+logger.warning("Initializing Lexicon Auto Completers")
 library.build_lexicon_auto_completers()
 
-logger.warn("Initializing Cross Lexicon Auto Completer")
+logger.warning("Initializing Cross Lexicon Auto Completer")
 library.build_cross_lexicon_auto_completer()
 
-logger.warn("Initializing Shared Cache")
+logger.warning("Initializing Shared Cache")
 library.init_shared_cache()
 """ """
 
@@ -269,7 +268,7 @@ def catchall(request, tref, sheet=None):
 
     if sheet is None:
         try:
-            oref = model.Ref(tref)
+            oref = Ref(tref)
         except PartialRefInputError as e:
             logger.warning('{}'.format(e))
             matched_ref = Ref(e.matched_part)
@@ -646,19 +645,16 @@ def texts_category_list(request, cats):
         cats = cats.replace("Tanach", "Tanakh")
         return redirect("/texts/%s" % cats)
 
-    cats  = cats.split("/")
-    if cats != ["recent"]:
-        toc        = library.get_toc()
-        cat_toc    = get_or_make_summary_node(toc, cats, make_if_not_found=False)
-        if cat_toc is None or len(cats) == 0:
+    if cats == "recent":
+        title = _("Recently Viewed")
+        desc  = _("Texts that you've recently viewed on Sefaria.")
+    else:
+        cats = cats.split("/")
+        if len(cats) == 0 or library.get_toc_tree().lookup(cats) is None:
             return texts_list(request)
         cat_string = ", ".join(cats) if request.interfaceLang == "english" else ", ".join([hebrew_term(cat) for cat in cats])
         title = cat_string + _(" | Sefaria")
         desc  = _("Read %(categories)s texts online with commentaries and connections.") % {'categories': cat_string}
-
-    else:
-        title = _("Recently Viewed")
-        desc  = _("Texts that you've recently viewed on Sefaria.")
 
     props = {
         "initialMenu": "navigation",
@@ -1109,7 +1105,7 @@ def edit_text(request, ref=None, lang=None, version=None):
     else:
         initJSON = json.dumps({"mode": "add new"})
 
-    titles = json.dumps(model.library.full_title_list())
+    titles = json.dumps(library.full_title_list())
     page_title = "%s %s" % (mode, ref) if ref else "Add a New Text"
 
     return render_template(request,'edit_text.html', None, {
@@ -1214,7 +1210,7 @@ def count_and_index(c_oref, c_lang, vtitle, to_count=1):
 
     from sefaria.settings import SEARCH_INDEX_ON_SAVE
     if SEARCH_INDEX_ON_SAVE:
-        model.IndexQueue({
+        IndexQueue({
             "ref": c_oref.normal(),
             "lang": c_lang,
             "version": vtitle,
@@ -1417,10 +1413,6 @@ def table_of_contents_api(request):
 
 
 @catch_error_as_json
-def search_filter_table_of_contents_api(request):
-    return jsonResponse(library.get_search_filter_toc(), callback=request.GET.get("callback", None))
-
-@catch_error_as_json
 def search_autocomplete_redirecter(request):
     query = request.GET.get("q", "")
     completions_dict = get_name_completions(query, 1, False)
@@ -1451,7 +1443,7 @@ def opensearch_suggestions_api(request):
 
 @catch_error_as_json
 def text_titles_api(request):
-    return jsonResponse({"books": model.library.full_title_list()}, callback=request.GET.get("callback", None))
+    return jsonResponse({"books": library.full_title_list()}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1500,7 +1492,7 @@ def index_api(request, title, v2=False, raw=False):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            return jsonResponse(func(apikey["uid"], model.Index, j, method="API", v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True))
+            return jsonResponse(func(apikey["uid"], Index, j, method="API", v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True))
         else:
             title = j.get("oldTitle", j.get("title"))
             try:
@@ -1513,7 +1505,7 @@ def index_api(request, title, v2=False, raw=False):
         @csrf_protect
         def protected_index_post(request):
             return jsonResponse(
-                func(request.user.id, model.Index, j, v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True)
+                func(request.user.id, Index, j, v2=v2, raw=raw, force_complex=True).contents(v2=v2, raw=raw, force_complex=True)
             )
         return protected_index_post(request)
 
@@ -1755,7 +1747,7 @@ def links_api(request, link_id_or_ref=None):
         # use the correct function if params indicate this is a note save
         # func = save_note if "type" in j and j["type"] == "note" else save_link
         #obj = func(apikey["uid"], model.Link, link, **kwargs)
-        obj = func(uid, model.Link, link, **kwargs)
+        obj = func(uid, Link, link, **kwargs)
         try:
             if USE_VARNISH:
                 revarnish_link(obj)
@@ -1764,7 +1756,7 @@ def links_api(request, link_id_or_ref=None):
         return format_object_for_client(obj)
 
     def _internal_do_delete(request, link_id_or_ref, uid):
-        obj = tracker.delete(uid, model.Link, link_id_or_ref, callback=revarnish_link)
+        obj = tracker.delete(uid, Link, link_id_or_ref, callback=revarnish_link)
         return obj
 
     if request.method == "GET":
@@ -1773,7 +1765,7 @@ def links_api(request, link_id_or_ref=None):
             return jsonResponse({"error": "Missing text identifier"}, callback)
         #The Ref instanciation is just to validate the Ref and let an error bubble up.
         #TODO is there are better way to validate the ref from GET params?
-        model.Ref(link_id_or_ref)
+        Ref(link_id_or_ref)
         with_text = int(request.GET.get("with_text", 1))
         with_sheet_links = int(request.GET.get("with_sheet_links", 0))
         return jsonResponse(get_links(link_id_or_ref, with_text=with_text, with_sheet_links=with_sheet_links), callback)
@@ -1919,14 +1911,14 @@ def notes_api(request, note_id_or_ref):
                 return jsonResponse({"error": "Unrecognized API key."})
             note["owner"] = apikey["uid"]
             response = format_object_for_client(
-                func(apikey["uid"], model.Note, note, method="API")
+                func(apikey["uid"], Note, note, method="API")
             )
         else:
             note["owner"] = request.user.id
             @csrf_protect
             def protected_note_post(req):
                 resp = format_object_for_client(
-                    func(req.user.id, model.Note, note)
+                    func(req.user.id, Note, note)
                 )
                 return resp
             response = protected_note_post(request)
@@ -1954,7 +1946,7 @@ def notes_api(request, note_id_or_ref):
         if not request.user.is_authenticated:
             return jsonResponse({"error": "You must be logged in to delete notes."})
         return jsonResponse(
-            tracker.delete(request.user.id, model.Note, note_id_or_ref)
+            tracker.delete(request.user.id, Note, note_id_or_ref)
         )
 
     return jsonResponse({"error": "Unsupported HTTP method."})
@@ -1981,7 +1973,7 @@ def related_api(request, tref):
     Single API to bundle available content related to `tref`.
     """
     if request.GET.get("private", False) and request.user.is_authenticated:
-        oref = model.Ref(tref)
+        oref = Ref(tref)
         response = {
             "sheets": get_sheets_for_ref(tref, uid=request.user.id),
             "notes": get_notes(oref, uid=request.user.id, public=False)
@@ -2010,7 +2002,7 @@ def versions_api(request, tref):
     """
     API for retrieving available text versions list of a ref.
     """
-    oref = model.Ref(tref)
+    oref = Ref(tref)
     versions = oref.version_list()
 
     return jsonResponse(versions, callback=request.GET.get("callback", None))
@@ -2082,7 +2074,7 @@ def set_lock_api(request, tref, lang, version):
     API to set an edit lock on a text segment.
     """
     user = request.user.id if request.user.is_authenticated else 0
-    model.set_lock(model.Ref(tref).normal(), lang, version.replace("_", " "), user)
+    set_lock(Ref(tref).normal(), lang, version.replace("_", " "), user)
     return jsonResponse({"status": "ok"})
 
 
@@ -2091,7 +2083,7 @@ def release_lock_api(request, tref, lang, version):
     """
     API to release the edit lock on a text segment.
     """
-    model.release_lock(model.Ref(tref).normal(), lang, version.replace("_", " "))
+    release_lock(Ref(tref).normal(), lang, version.replace("_", " "))
     return jsonResponse({"status": "ok"})
 
 
@@ -2100,7 +2092,7 @@ def check_lock_api(request, tref, lang, version):
     """
     API to check whether a text segment currently has an edit lock.
     """
-    locked = model.check_lock(model.Ref(tref).normal(), lang, version.replace("_", " "))
+    locked = check_lock(Ref(tref).normal(), lang, version.replace("_", " "))
     return jsonResponse({"locked": locked})
 
 
@@ -2233,7 +2225,7 @@ def category_api(request, path=None):
 
     if request.method == "POST":
         def _internal_do_post(request, cat, uid, **kwargs):
-            return tracker.add(uid, model.Category, cat, **kwargs).contents()
+            return tracker.add(uid, Category, cat, **kwargs).contents()
 
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
@@ -2350,12 +2342,12 @@ def terms_api(request, name):
                     term["_id"] = t._id
 
                 func = tracker.update if request.GET.get("update", False) else tracker.add
-                return func(uid, model.Term, term, **kwargs).contents()
+                return func(uid, Term, term, **kwargs).contents()
 
             elif request.method == "DELETE":
                 if not t:
                     return {"error": 'Term "%s" does not exist.' % name}
-                return tracker.delete(uid, model.Term, t._id)
+                return tracker.delete(uid, Term, t._id)
 
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
@@ -2898,7 +2890,7 @@ def texts_history_api(request, tref, lang=None, version=None):
     if request.method != "GET":
         return jsonResponse({"error": "Unsupported HTTP method."})
 
-    tref = model.Ref(tref).normal()
+    tref = Ref(tref).normal()
     refRe = '^%s$|^%s:' % (tref, tref)
     if lang and version:
         query = {"ref": {"$regex": refRe }, "language": lang, "version": version.replace("_", " ")}
@@ -2944,58 +2936,6 @@ def texts_history_api(request, tref, lang=None, version=None):
     summary["lastUpdated"] = updated
 
     return jsonResponse(summary, callback=request.GET.get("callback", None))
-
-
-@catch_error_as_json
-def reviews_api(request, tref=None, lang=None, version=None, review_id=None):
-    if request.method == "GET":
-        callback=request.GET.get("callback", None)
-        if tref and lang and version:
-            nref = model.Ref(tref).normal()
-            version = version.replace("_", " ")
-
-            reviews = get_reviews(nref, lang, version)
-            last_edit = get_last_edit_date(nref, lang, version)
-            score_since_last_edit = get_review_score_since_last_edit(nref, lang, version, reviews=reviews, last_edit=last_edit)
-
-            for r in reviews:
-                r["date"] = r["date"].isoformat()
-
-            response = {
-                "ref":                nref,
-                "lang":               lang,
-                "version":            version,
-                "reviews":            reviews,
-                "reviewCount":        len(reviews),
-                "scoreSinceLastEdit": score_since_last_edit,
-                "lastEdit":           last_edit.isoformat() if last_edit else None,
-            }
-        elif review_id:
-            response = {}
-
-        return jsonResponse(response, callback)
-
-    elif request.method == "POST":
-        if not request.user.is_authenticated:
-            return jsonResponse({"error": "You must be logged in to write reviews."})
-        j = request.POST.get("json")
-        if not j:
-            return jsonResponse({"error": "No post JSON."})
-        j = json.loads(j)
-
-        response = save_review(j, request.user.id)
-        return jsonResponse(response)
-
-    elif request.method == "DELETE":
-        if not review_id:
-            return jsonResponse({"error": "No review ID given for deletion."})
-
-        return jsonResponse(delete_review(review_id, request.user.id))
-
-    else:
-        return jsonResponse({"error": "Unsupported HTTP method."})
-
-
 
 
 @sanitize_get_params
@@ -3233,7 +3173,7 @@ def segment_history(request, tref, lang, version, page=1):
     View revision history for the text segment named by ref / lang / version.
     """
     try:
-        oref = model.Ref(tref)
+        oref = Ref(tref)
     except InputError:
         raise Http404
 
@@ -3279,7 +3219,7 @@ def revert_api(request, tref, lang, version, revision):
 
     revision = int(revision)
     version = version.replace("_", " ")
-    oref = model.Ref(tref)
+    oref = Ref(tref)
 
     new_text = text_at_revision(oref.normal(), version, lang, revision)
 
@@ -3555,8 +3495,6 @@ def saved_history_for_ref(request):
 
 def _get_anonymous_user_history(request):
     import urllib.parse
-    recents = json.loads(urllib.parse.unquote(request.COOKIES.get("recentlyViewed", '[]')))  # for backwards compat
-    recents = UserProfile.transformOldRecents(None, recents)
     history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
     return recents+history
 
@@ -3646,9 +3584,8 @@ def home(request):
     if show_feed:
         return redirect("/new-home")
 
-    recent = request.COOKIES.get("recentlyViewed", None)
     last_place = request.COOKIES.get("user_history", None)
-    if (recent or last_place or request.user.is_authenticated) and "home" not in request.GET:
+    if (last_place or request.user.is_authenticated) and "home" not in request.GET:
         return redirect("/texts")
 
     calendar_items = get_keyed_calendar_items(request.diaspora)
@@ -3986,7 +3923,7 @@ def explore(request, topCat, bottomCat, book1, book2, lang=None):
         "Tosefta": {
             "title": "Tosefta",
             "heTitle": "התוספתא",
-            "shapeParam": "Tanaitic/Tosefta",
+            "shapeParam": "Tosefta",
             "linkCountParam": "Tosefta",
         },
         "MidrashRabbah": {
@@ -4247,6 +4184,60 @@ def application_health_api(request):
 
 def application_health_api_nonlibrary(request):
     return http.HttpResponse("Healthy", status="200")
+
+def rollout_health_api(request):
+    """
+    Defines the /healthz-rollout API endpoint which responds with 
+        200 if the services Django depends on, Redis, Multiverver, and NodeJs
+            are available.
+        500 if any of the aforementioned services are not available
+
+    {
+        allReady: (true|false)
+        multiserverReady: (true|false)
+        redisReady: (true|false)
+        nodejsReady: (true|false)
+    }
+    """
+    def isRedisReachable():
+        try: 
+            redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
+            return redis_client.ping() == True
+        except:
+            return False
+
+    def isMultiserverReachable():
+        return True
+
+    def isNodeJsReachable():
+        url = NODE_HOST + "/healthz"
+        try:
+            statusCode = urllib.request.urlopen(url).status
+            return statusCode == 200
+        except Exception as e:
+            logger.warn(e)
+            return False
+
+    allReady = isRedisReachable() and isMultiserverReachable() and isNodeJsReachable()
+
+    resp = {
+        'allReady': allReady,
+        'multiserverReady': isMultiserverReachable(),
+        'redisReady': isRedisReachable(),
+        'nodejsReady': isNodeJsReachable(),
+        'revisionNumber': os.getenv("HELM_REVISION"),
+    }
+
+    print(resp)
+
+    if allReady:
+        statusCode = 200
+        logger.info("Passed rollout healthcheck.")
+    else:
+        statusCode = 503
+        logger.warn("Failed rollout healthcheck. Healthcheck Response: {}".format(resp))
+
+    return http.JsonResponse(resp, status=statusCode)
 
 @login_required
 def daf_roulette_redirect(request):

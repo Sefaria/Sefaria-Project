@@ -368,7 +368,6 @@ class UserProfile(object):
 
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
-        profile = self.migrateFromOldRecents(profile)
         if profile:
             self.update(profile, ignore_flags_on_init=True)
         elif self.exists():
@@ -435,22 +434,6 @@ class UserProfile(object):
             except AttributeError:
                 return None
         return [_f for _f in [xformer(r) for r in recents] if _f]
-
-    def migrateFromOldRecents(self, profile):
-        """
-        migrate from recentlyViewed which is a flat list and only saves one item per book to readingHistory, which is a dict and saves all reading history
-        """
-        if profile is None:
-            profile = {}  # for testing, user doesn't need to exist
-        if "recentlyViewed" in profile:
-            user_history = self.transformOldRecents(self.id, profile['recentlyViewed'])
-            for temp_uh in user_history:
-                uh = UserHistory(temp_uh)
-                uh.save()
-            profile.pop('recentlyViewed', None)
-            db.profiles.find_one_and_update({"id": self.id}, {"$unset": {"recentlyViewed": True}})
-            self.save()
-        return profile
 
     def update(self, obj, ignore_flags_on_init=False):
         """

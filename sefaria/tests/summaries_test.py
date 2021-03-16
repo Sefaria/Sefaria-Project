@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import json
 import pytest
-import sefaria.summaries as s
-import sefaria.model as model
-import sefaria.system.cache as scache
 from sefaria.system.exceptions import BookNameError
 from sefaria.utils.testing_utils import *
 
@@ -37,7 +33,6 @@ class Test_Toc(object):
 
     def test_toc_integrity(self):
         self.recur_toc_integrity(model.library.get_toc())
-        self.recur_toc_integrity(model.library.get_search_filter_toc())
 
     def recur_toc_integrity(self, toc, depth=0):
         for toc_elem in toc:
@@ -55,7 +50,7 @@ class Test_Toc(object):
     def verify_category_node_integrity(self, node):
         # search toc doesn't have 'enComplete' or 'heComplete' empty categories don't have 'contents'
         try:
-            assert set(node.keys()) <= {'category', 'heCategory', 'contents', 'enComplete', 'heComplete'}
+            assert set(node.keys()) <= {'category', 'heCategory', 'contents', 'enComplete', 'heComplete', 'order', "isPrimary","searchRoot"}
             if getattr(node, 'contents', None):
                 assert {'category', 'heCategory', 'contents'} <= set(node.keys())
                 assert isinstance(node['contents'], list)
@@ -71,7 +66,7 @@ class Test_Toc(object):
 
     def verify_text_node_integrity(self, node):
         global text_titles
-        expected_keys = set(('title', 'heTitle'))
+        expected_keys = {'title', 'heTitle'}
         assert set(node.keys()) >= expected_keys
         assert (node['title'] in text_titles), node['title']
         assert 'category' not in node
@@ -113,7 +108,7 @@ class Test_Toc(object):
             "heTitle": "פםפם",
             "titleVariants": [],
             "sectionNames": ["Chapter", "Paragraph"],
-            "categories": ["Philosophy"]
+            "categories": ["Jewish Thought"]
         })
         verify_existence_across_tocs(new_index.title, None)
         new_index.save()
@@ -144,23 +139,20 @@ class Test_Toc(object):
             "base_text_titles": ["Joshua"],
             "collective_title": "Harchev Davar",
             "sectionNames": ["Chapter", "Paragraph", "Comment"],
-            "categories": ["Tanakh", "Commentary", "Harchev Davar"]
+            "categories": ["Tanakh", "Acharonim on Tanakh", "Harchev Davar"]
         })
         verify_existence_across_tocs(new_commentary_index.title, None)
         new_commentary_index.save()
         verify_title_existence_in_toc(new_commentary_index.title, expected_toc_location=new_commentary_index.categories, toc=model.library.get_toc())
-        verify_title_existence_in_toc(new_commentary_index.title, expected_toc_location=["Tanakh Commentaries", "Harchev Davar"], toc=model.library.get_search_filter_toc())
         new_commentary_index.delete()
         verify_existence_across_tocs(new_commentary_index.title, None)
 
     def test_index_attr_change(self):
         indx = model.Index().load({"title": "Or HaChaim on Genesis"})
-        verify_title_existence_in_toc(indx.title, expected_toc_location=['Tanakh', 'Commentary', 'Or HaChaim', 'Torah'], toc=model.library.get_toc())
-        verify_title_existence_in_toc(indx.title, expected_toc_location=['Tanakh Commentaries', 'Or HaChaim', 'Torah'], toc=model.library.get_search_filter_toc())
+        verify_title_existence_in_toc(indx.title, expected_toc_location=["Tanakh", "Acharonim on Tanakh", "Or HaChaim", "Torah"], toc=model.library.get_toc())
         indx.nodes.add_title("Or HaChaim HaKadosh", "en")
         indx.save()
-        verify_title_existence_in_toc(indx.title, expected_toc_location=['Tanakh', 'Commentary', 'Or HaChaim', 'Torah'])
-        verify_title_existence_in_toc(indx.title, expected_toc_location=['Tanakh Commentaries', 'Or HaChaim', 'Torah'], toc=model.library.get_search_filter_toc())
+        verify_title_existence_in_toc(indx.title, expected_toc_location=["Tanakh", "Acharonim on Tanakh", "Or HaChaim", "Torah"])
 
 
         indx2 = model.Index().load({"title": "Sefer Kuzari"}) #Was Tanya, but Tanya has a hebrew title clash problem, momentarily.
@@ -168,8 +160,6 @@ class Test_Toc(object):
         indx2.nodes.add_title("Kuzari Test", "en")
         indx2.save()
         verify_existence_across_tocs(indx2.title, expected_toc_location=indx2.categories)
-
-    #todo: undo these changes
 
     def test_text_change(self):
         pass
