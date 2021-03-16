@@ -3537,9 +3537,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .fa.invisible {
   visibility: hidden;
 }
-.bilingual .readerTextToc .he {
+/*.bilingual .readerTextToc .he {
   display: none;
-}
+}*/
 .readerOptions img {
   height: 16px;
 }
@@ -3741,7 +3741,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .dark .textRange.basetext .title .titleBox, .dark .sheetContent .title .titleBox {
   border-bottom: 4px solid #666;
 }
-.bilingual .textRange.basetext .title .he, .bilingual .sheetContent .title .he {
+.bilingual .sheetContent .title .he {
   display: none;
 }
 .interface-hebrew .readerPanel.english .textRange,
@@ -3776,9 +3776,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .parashahHeader.aliyah span {
   text-transform: uppercase;
-}
-.bilingual .parashahHeader .he {
-  display: none;
 }
 .title + .text span:first-child .parashahHeader {
   margin-top: -5px;
@@ -4045,11 +4042,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .bilingual .linkCount .linkCountDot,
 .bilingual .numberLabel .numberLabelInner {
   margin-top: 0;
-}
-.bilingual .segmentNumber .he,
-.bilingual .linkCount .he,
-.bilingual .numberLabel .he {
-  display: none;
 }
 .segment .segmentNumber,
 .segment .linkCount {
@@ -7471,11 +7463,6 @@ span.purim-emoji img{
 .bookMetaDataBox {
   margin: 40px auto;
   text-align: center;
-}
-.bilingual .bookMetaDataBox .he,
-.english .bookMetaDataBox .he,
-.hebrew .bookMetaDataBox .en {
-  display: none;
 }
 .sheetContent .sheetItem.segment .sourceContentText {
   margin-bottom: 18px;

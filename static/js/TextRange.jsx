@@ -305,7 +305,7 @@ class TextRange extends Component {
                   });
           parashahHeader = (
               <div className={pclasses}>
-                <ContentText text={{en: parashahNames.en, he:parashahNames.he}}/>
+                <ContentText text={{en: parashahNames.en, he:parashahNames.he}} defaultToInterfaceOnBilingual={true}/>
               </div>
           );
         }
@@ -364,13 +364,13 @@ class TextRange extends Component {
       }
       sidebarNum = <div className="numberLabel sans itag">
         <span className="numberLabelInner">
-          <ContentText text={{en:enDisplayValue, he:heDisplayValue}} />
+          <ContentText text={{en:enDisplayValue, he:heDisplayValue}} defaultToInterfaceOnBilingual={true}/>
         </span>
       </div>;
     } else if (showNumberLabel && this.props.numberLabel) {
       sidebarNum = <div className="numberLabel sans">
         <span className="numberLabelInner">
-          <ContentText text={{en:this.props.numberLabel, he:Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}} />
+          <ContentText text={{en:this.props.numberLabel, he:Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}} defaultToInterfaceOnBilingual={true} />
         </span>
       </div>;
     } else { sidebarNum = null;}
@@ -381,7 +381,7 @@ class TextRange extends Component {
         {this.props.hideTitle ? null :
         (<div className="title">
           <div className="titleBox" role="heading" aria-level="2">
-            <ContentText text={{en: title, he: heTitle}} />
+            <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true}/>
           </div>
           {this.props.titleButtons ? <div className="buttons" onClick={e => e.stopPropagation()}>{this.props.titleButtons}</div> : null }
         </div>)}
@@ -551,7 +551,9 @@ class TextSegment extends Component {
     let segmentNumber = this.props.segmentNumber ? (
         <div className="segmentNumber sans">
           <span className="segmentNumberInner">
-             <ContentText text={{"en": this.props.segmentNumber, "he": Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}}
+             <ContentText
+                 text={{"en": this.props.segmentNumber, "he": Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}}
+                 defaultToInterfaceOnBilingual={true}
              />
           </span>
         </div>

@@ -49,10 +49,10 @@ class ReaderPanel extends Component {
     super(props);
     let state = this.clonePanel(props.initialState);
     state["initialAnalyticsTracked"] = false;
-    const contentLang = this.getContentLanguageOverride(state.settings.language, state.mode, state.menuOpen);
+    /*const contentLang = this.getContentLanguageOverride(state.settings.language, state.mode, state.menuOpen);
     state['contentLangSettings'] = {
       "language": contentLang,
-    }
+    }*/
     this.state = state;
     return;
   }
@@ -514,10 +514,10 @@ class ReaderPanel extends Component {
     let state = {settings: this.state.settings};
     if (option !== "fontSize") { state.displaySettingsOpen = false; }
     if (option === "language") {
-      let adjustedValue = this.getContentLanguageOverride(value, this.state.mode, this.state.menuOpen);
+      /*let adjustedValue = this.getContentLanguageOverride(value, this.state.mode, this.state.menuOpen);
       state['contentLangSettings'] = {
         "language": adjustedValue
-      }
+      }*/
       $.cookie("contentLang", value, {path: "/"});
       this.replaceHistory = true;
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
@@ -617,7 +617,7 @@ class ReaderPanel extends Component {
     }
   }
   currentLayout() {
-    if (this.state.contentLangSettings.language == "bilingual") {
+    if (this.state.settings.language == "bilingual") {
       return this.state.width > 500 ? this.state.settings.biLayout : "stacked";
     }
     const category = this.currentCategory();
@@ -652,7 +652,7 @@ class ReaderPanel extends Component {
 
     let items = [];
     let menu = null;
-
+    const contextContentLang = {"language": this.getContentLanguageOverride(this.state.settings.language, this.state.mode, this.state.menuOpen)};
 
     if (this.state.mode === "Sheet" || this.state.mode === "SheetAndConnections" ) {
       if (this.state.sheet.editor) {
@@ -1034,7 +1034,7 @@ class ReaderPanel extends Component {
     }
 
     let classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};
-    classes[this.state.contentLangSettings.language]  = 1
+    classes[contextContentLang.language]  = 1
     classes[this.currentLayout()]                     = 1;
     classes[this.state.settings.color]                = 1;
     classes = classNames(classes);
@@ -1046,7 +1046,7 @@ class ReaderPanel extends Component {
     );
 
     return (
-      <ContentLanguageContext.Provider value={this.state.contentLangSettings}>
+      <ContentLanguageContext.Provider value={contextContentLang}>
         <div className={classes} onKeyDown={this.handleKeyPress} role="region" id={"panel-"+this.props.panelPosition}>
         {hideReaderControls ? null :
         (<ReaderControls
@@ -1257,9 +1257,9 @@ class ReaderControls extends Component {
                 <div style={{"direction": Sefaria.hebrew.isHebrew(title) ? "rtl" :"ltr"}}><span>{title}</span></div>
                 :
                 <div>
-                  <ContentText text={{en: title, he: heTitle}} />
+                  <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
                   <span className="sectionString">
-                    <ContentText text={{en: sectionString, he: heSectionString }} />
+                    <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
                   </span>
                 </div>
             }

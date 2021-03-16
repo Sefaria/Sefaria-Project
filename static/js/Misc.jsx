@@ -97,7 +97,7 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({text, html, overrideLanguage}) => {
+const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual= false}) => {
     /**
    * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
@@ -105,12 +105,11 @@ const ContentText = ({text, html, overrideLanguage}) => {
    * @type {{language: string}}
    */
   const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
-  const availableLanguages = ["english", "hebrew"];
   const contentLanguage = useContext(ContentLanguageContext);
-  const languageToFilter = overrideLanguage ? overrideLanguage : contentLanguage.language;
-  const isMultiLinugal = availableLanguages.indexOf(languageToFilter) == -1;
-  let renderedItems = Object.entries(contentVariable).filter(([lang, text])=>{
-    return isMultiLinugal ? true : ((lang ==  languageToFilter.slice(0,2)) ? true : false  );
+  const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language == "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
+  const langShort = languageToFilter.slice(0,2);
+  let renderedItems = Object.entries(contentVariable).filter(([lang, _])=>{
+    return (languageToFilter == "bilingual") ? true : ((lang ==  langShort) ? true : false  );
   });
   return renderedItems.map( x =>
       isDangerouslySetInnerHTML ?
