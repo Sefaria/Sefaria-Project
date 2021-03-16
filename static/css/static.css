@@ -2725,16 +2725,13 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 
 .staticPage hr {
   border-top: 1px solid #ccc;
-  margin: 30px;
-}
-
-.staticPage.englishOnly {
-  direction: ;
+  width: 50%;
+  margin-top: 30px;
 }
 
 .staticPage .parashaSponsorship {
   width: 100%;
-  padding-left: 6px;
+  padding-left: 20%;
 
 }
 .staticPage .parashaSponsorship .parashaTitle {
@@ -2742,8 +2739,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-style: normal;
   font-weight: lighter;
   font-size: 30px;
-  line-height: 50px;
-  padding-top: 30px;
+  padding-top: 50px;
 }
 
 .staticPage .parashaSponsorship .parashaSponsorNames {
@@ -2751,7 +2747,17 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-style: normal;
   font-weight: lighter;
   font-size: 16px;
-  line-height: 50px;
+  padding-top: 25px;
+  width: 75%;
+}
+
+.staticPage .parashaSponsorship .parashaSponsorNames a {
+  text-decoration: none;
+}
+
+.staticPage .parashaSponsorship .parashaSponsorNames a:link, a:visited, a:hover, a:active {
+  text-decoration: none;
+  color: black;
 }
 
 .staticPage .parashaSponsorship .parashaMessage {
@@ -2760,7 +2766,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-weight: lighter;
   font-size: 16px;
   width: 75%;
-
+  padding-top: 25px;
 }
 
 
@@ -2868,7 +2874,12 @@ display: none;
   font-size: 30px;
   line-height: 36px;
   width: 50%;
-}.staticPage .staticPageCallToActionFooter .callToActionText .int-en {
+}
+.staticPage .staticPageCallToActionFooter .callToActionText.noButton {
+  width: 100%;
+  text-align: center;
+}
+.staticPage .staticPageCallToActionFooter .callToActionText .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .staticPage .staticPageCallToActionFooter .newsletterSignUpBox .subscribeMessage {
@@ -3071,7 +3082,7 @@ display: none;
   .staticPage .staticPageH2 {
     width: 100%;
   }
-  .staticPageCallToActionFooter .simpleButtonWrapper,
+  .staticPageFooter .simpleButtonWrapper,
   .staticPage .feature .featureImage {
     padding-top: 30px;
   }

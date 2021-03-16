@@ -259,15 +259,9 @@ const RambanLandingPage = () => {
             enImg=""
             heImg=""
         />
-            <H2Block
-                en="Thank you to our Sponsors"
-                he=""
-            />
-             <Spacer/>
-
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox content={
-[['Bereshit', 'Leib and Linda Koyfman', 'In honor of Hilary and Mo Koyfman and family'], ['Noach', 'Tali and Sender Cohen', ''], ['Lech Lecha', 'Rabbi David Aladjem', 'In support of Sefaria'], ['Vayera', 'Howard and Tova Weiser', 'In honor of their children and grandchildren'], ['Chayei Sara', 'Rechtschaffen Family', "In honor of the 30th anniversary of Andrew Rechtscaffen's bar mitzvah."], ['Toldot ', 'Shapira-Stern Family', 'In honor of David Shapira'], ['Vayetzei', 'Available for Sponsorship', ''], ['Vayishlach', 'Available for Sponsorship', ''], ['Vayashev', 'Available for Sponsorship', ''], ['Miketz', 'Raquel and Aryeh Rubin', 'In memory of the one and a half million children'], ['Vayigash', 'Laurie and Milton Wakschlag', 'In memory of their parents Fishel and Sheva Wakschlag'], ['Vayechi', 'The Stein Children', 'In memory of their father Jacob K. Stein z"l']]
+[['Bereshit', 'Leib and Linda Koyfman', 'In honor of Hilary and Mo Koyfman and family'], ['Noach', 'Tali and Sender Cohen', ''], ['Lech Lecha', 'Rabbi David Aladjem', 'In support of Sefaria'], ['Vayera', 'Howard and Tova Weiser', 'In honor of their children and grandchildren'], ['Chayei Sara', 'Rechtschaffen Family', "In honor of the 30th anniversary of Andrew Rechtscaffen's bar mitzvah."], ['Toldot ', 'Shapira-Stern Family', 'In honor of David Shapira'], ['Vayetzei', 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ['Vayishlach', 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ['Vayashev', 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ['Miketz', 'Raquel and Aryeh Rubin', 'In memory of the one and a half million children'], ['Vayigash', 'Laurie and Milton Wakschlag', 'In memory of their parents Fishel and Sheva Wakschlag'], ['Vayechi', 'The Stein Children', 'In memory of their father Jacob K. Stein z"l']]
 .map(i => <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
             <hr/>
@@ -275,7 +269,7 @@ const RambanLandingPage = () => {
 
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox content={
-[['Shemot', 'Sam and Debbie Moed', 'In memory of Henry I. Zeisel, who derived tremendous joy from learning. This perush of his bar mitzvah parashah is dedicated with love.'], ['Vaera', 'The loving children and children-in-laws of Arthur Helft', 'In memory of Dr. Arthur Helft '], ['Bo', 'Available for Sponsorship', ''], ['Beshalach', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ['Yitro', 'Anonymous Sponsor', 'To honor the memory of Joe and Rose Rudis'], ['Mishpatim ', 'Available for Sponsorship', ''], ['Terumah', 'Julia Baum and Adam Feldman', 'In memory of Earl Katz and Annette Steinman'], ['Tetzevei', 'Huti and Jay', 'In Gratitude to all the Health Care Workers during the Pandemic'], ['Ki Tisa', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ['Vayahkel', 'The Berkowitz Family', 'In honor of their parents and grandparents (Bebe, Bepop, Pop pop, and grandmama) who provide a sense of inspiration and demonstrate a desire to constantly learn more.'], ['Pekudei', 'The Hiltzik Family', '']]
+[['Shemot', 'Sam and Debbie Moed', 'In memory of Henry I. Zeisel, who derived tremendous joy from learning. This perush of his bar mitzvah parashah is dedicated with love.'], ['Vaera', 'The loving children and children-in-laws of Arthur Helft', 'In memory of Dr. Arthur Helft '], ['Bo', 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ['Beshalach', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ['Yitro', 'Anonymous Sponsor', 'To honor the memory of Joe and Rose Rudis'], ['Mishpatim ', 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ['Terumah', 'Julia Baum and Adam Feldman', 'In memory of Earl Katz and Annette Steinman'], ['Tetzevei', 'Huti and Jay', 'In Gratitude to all the Health Care Workers during the Pandemic'], ['Ki Tisa', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ['Vayahkel', 'The Berkowitz Family', 'In honor of their parents and grandparents (Bebe, Bepop, Pop pop, and grandmama) who provide a sense of inspiration and demonstrate a desire to constantly learn more.'], ['Pekudei', 'The Hiltzik Family', '']]
 .map(i => <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
             <hr/>
@@ -290,7 +284,7 @@ const RambanLandingPage = () => {
 
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox content={
-[['Bamidbar', 'The Hiltzik Family', ''], ['Nasso', 'Annoymous Sponsor', 'In honor of Tzeela, Rina Faiga, Dalia and Penina Malka'], ["Beha'alotcha", 'Available for Sponsorship', ''], ["Sh'lach", 'Meyer Family', 'In honor of the bar mitzvah of George Meyer'], ['Korach', 'Fred Blau and Maayan Roth', 'In memory of Sarita Blau, loving mother and teacher'], ['Chukat', 'Kevin Waldman', 'In support of Sefaria'], ['Balak', 'Available for Sponsorship', ''], ['Pinchas', 'The Berkowitz Family', "In honor of our parent's and grandparent's (Bebe, Bepop, Pop pop, and grandmama) who provide a sense of inspiration and demonstrate a desire to constantly learn more."], ['Matot', 'Shprintzy and Effy', 'Dedicated in memory of the late Mendel Schoenberg, son of the late Naftali Binyamin and Shprintza. Born in Sanok, Poland, in Elul, between the years 5684 and 5686. Passed away at a ripe old age at his home in Brooklyn, New York, on the First Night of Chanukah 5779'], ['Masei', 'Nadine and Beni Gesundheit', '']]
+[['Bamidbar', 'The Hiltzik Family', ''], ['Nasso', 'Annoymous Sponsor', 'In honor of Tzeela, Rina Faiga, Dalia and Penina Malka'], ["Beha'alotcha", 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ["Sh'lach", 'Meyer Family', 'In honor of the bar mitzvah of George Meyer'], ['Korach', 'Fred Blau and Maayan Roth', 'In memory of Sarita Blau, loving mother and teacher'], ['Chukat', 'Kevin Waldman', 'In support of Sefaria'], ['Balak', 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ['Pinchas', 'The Berkowitz Family', "In honor of our parent's and grandparent's (Bebe, Bepop, Pop pop, and grandmama) who provide a sense of inspiration and demonstrate a desire to constantly learn more."], ['Matot', 'Shprintzy and Effy', 'Dedicated in memory of the late Mendel Schoenberg, son of the late Naftali Binyamin and Shprintza. Born in Sanok, Poland, in Elul, between the years 5684 and 5686. Passed away at a ripe old age at his home in Brooklyn, New York, on the First Night of Chanukah 5779'], ['Masei', 'Nadine and Beni Gesundheit', '']]
 .map(i => <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
             <hr/>
@@ -298,19 +292,15 @@ const RambanLandingPage = () => {
 
         <div className="staticPageBlockInner flexContainer">
         <ResponsiveNBox content={
-[['Devarim', 'Available for Sponsorship', ''], ['Vaetchanan', 'Becky and Avi Katz', 'In honor of Sefaria'], ['Eikev', 'Annoymous Sponsor', ''], ["Re'eh", 'Tamar and Eric Goldstein', "In honor of Adin's aufruf"], ['Shoftim', 'Tricia Gibbs', 'In memory of F. Warren Hellman'], ['Ki Tetzei', 'The Katz Family', 'In honor of the victims of Covid-19'], ['Ki Tavo ', 'Rechtschaffen Family', "In honor of the 3rd anniversary of Jordan Rechtscaffen's bar mitzvah"], ['Nitzavim', 'Jeremy Rosenthal', 'In honor of Judy and Stuart Rosenthal, in gratitude for their commitment to a sustained Jewish future.'], ['Vayeilech', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ["Ha'Azinu", 'Mayer', 'In honour of Shalom Rosenzweig, on the occasion of his Bar Mitzvah, October 10, 1992.'], ["V'Zot HaBerachah", 'Elisha Wiesel', 'In memory of Elie Wiesel']]
+[['Devarim', 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ['Vaetchanan', 'Becky and Avi Katz', 'In honor of Sefaria'], ['Eikev', 'Annoymous Sponsor', ''], ["Re'eh", 'Tamar and Eric Goldstein', "In honor of Adin's aufruf"], ['Shoftim', 'Tricia Gibbs', 'In memory of F. Warren Hellman'], ['Ki Tetzei', 'The Katz Family', 'In honor of the victims of Covid-19'], ['Ki Tavo ', 'Rechtschaffen Family', "In honor of the 3rd anniversary of Jordan Rechtscaffen's bar mitzvah"], ['Nitzavim', 'Jeremy Rosenthal', 'In honor of Judy and Stuart Rosenthal, in gratitude for their commitment to a sustained Jewish future.'], ['Vayeilech', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ["Ha'Azinu", 'Mayer', 'In honour of Shalom Rosenzweig, on the occasion of his Bar Mitzvah, October 10, 1992.'], ["V'Zot HaBerachah", 'Elisha Wiesel', 'In memory of Elie Wiesel']]
 .map(i => <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
         </div>
         <Spacer/>
         <Spacer/>
         <Spacer/>
-        <CallToActionFooterWithButton
-            href="mailto:donate@sefaria.org?subject=Ramban Sponsorship"
-            he_href="mailto:donate@sefaria.org?subject=Ramban Sponsorship"
-            enText="Sponsor a parashah today."
-            heText="Sponsor a parashah today."
-            enButtonText="Sponsor"
-            heButtonText="Sponsor"
+        <CallToActionFooter
+            enText="Interested in sponsoring a parashah? Please email hannah@sefaria.org for more information."
+            heText="Interested in sponsoring a parashah? Please email hannah@sefaria.org for more information."
         />
     </StaticPage>
 };
@@ -1101,6 +1091,14 @@ const CallToActionFooterWithButton = ({href, he_href, enText, heText, enButtonTe
     </div>
 );
 
+const CallToActionFooter = ({enText, heText}) => (
+    <div className="staticPageCallToActionFooter">
+        <div className="staticPageBlockInner flexContainer">
+            <SimpleInterfaceBlock classes="callToActionText noButton" en={enText} he={heText} />
+        </div>
+    </div>
+);
+
 const CallToActionFooterWithNewsletter = ({enText, heText, includeEducatorOption}) => (
     <div className="staticPageCallToActionFooter">
         <div className="staticPageBlockInner flexContainer">
@@ -1141,8 +1139,8 @@ const ParashaSponsorship = ({title, sponsorNames, message}) => {
     if (sponsorNames === "Available for Sponsorship") {
         return <div className="parashaSponsorship">
             <div className="parashaTitle">{title}</div>
-            <div className="parashaSponsorNames"><b><i>{sponsorNames}</i></b></div>
-            <div className="parashaMessage">{message}</div>
+            <div className="parashaSponsorNames"><a href={message}><b><i>{sponsorNames}</i></b></a></div>
+            <div className="parashaMessage"></div>
         </div>
     }
     else {
