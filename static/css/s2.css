@@ -7524,6 +7524,11 @@ span.purim-emoji img{
   top: -44px;
   margin-bottom: -44px;
 }
+.sheetItem.empty:not(.active),
+.spacer.empty:not(.active) {
+  margin-top: -14px;
+}
+
 .sheetContent .sheetItem .SheetOutsideText.segment p {
   margin: 0
 }

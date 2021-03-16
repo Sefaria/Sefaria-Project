@@ -521,17 +521,22 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
 
 const Element = props => {
     const { attributes, children, element } = props
+
     const sheetItemClasses = {
         sheetItem: 1,
         empty: !(Node.string(element)),
         noPointer: element.type != ("SheetSource" || "SheetOutsideBiText"),
-        highlight: useSlate().highlightedNode == element.node
+        highlight: useSlate().highlightedNode == element.node,
+        active: useSelected()
     }
 
     switch (element.type) {
         case 'spacer':
+        const spacerClasses = {
+          spacer: 1, empty: 1, active: useSelected()
+        }
           return (
-            <div className="spacer empty">
+            <div className={classNames(spacerClasses)}>
               {children}
             </div>
           )
@@ -916,8 +921,11 @@ const withSefariaSheet = editor => {
           }
           if (nodeBelow.node && nodeBelow.node.type == "SheetOutsideText") {
               Transforms.mergeNodes(editor, {at: nodeBelow.path})
+              return
           }
       }
+
+
 
       if (node.type == "SheetContent") {
         // If sheet elements are in sheetcontent and not wrapped in sheetItem, wrap it.
