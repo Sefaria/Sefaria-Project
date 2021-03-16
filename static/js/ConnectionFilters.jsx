@@ -49,7 +49,7 @@ class CategoryFilter extends Component {
           <div className={innerClasses} data-name={this.props.category}>
             <span className="filterInner">
               <span className="filterText">
-                <InterfaceText text={{en: this.props.category, he: this.props.heCategory }} />
+                <ContentText content={{en: this.props.category, he: this.props.heCategory }} />
                 <span className="connectionsCount"> ({this.props.count})</span>
               </span>
               <span className="en">
@@ -104,7 +104,7 @@ class TextFilter extends Component {
             <div className={upperClass}>
                 <span className="filterInner">
                   <span className="filterText">
-                    <InterfaceText text={{en: name, he: this.props.heBook }} />
+                    <ContentText content={{en: name, he: this.props.heBook }} />
                     {showCount ? <span className="connectionsCount">&nbsp;({this.props.count})</span> : null}
                   </span>
                   <span className="en">

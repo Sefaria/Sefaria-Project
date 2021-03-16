@@ -305,7 +305,7 @@ class TextRange extends Component {
                   });
           parashahHeader = (
               <div className={pclasses}>
-                <InterfaceText text={{en: parashahNames.en, he:parashahNames.he}}/>
+                <ContentText content={{en: parashahNames.en, he:parashahNames.he}}/>
               </div>
           );
         }
@@ -364,13 +364,13 @@ class TextRange extends Component {
       }
       sidebarNum = <div className="numberLabel sans itag">
         <span className="numberLabelInner">
-          <InterfaceText text={{en:enDisplayValue, he:heDisplayValue}} />
+          <ContentText content={{en:enDisplayValue, he:heDisplayValue}} />
         </span>
       </div>;
     } else if (showNumberLabel && this.props.numberLabel) {
       sidebarNum = <div className="numberLabel sans">
         <span className="numberLabelInner">
-          <InterfaceText text={{en:this.props.numberLabel, he:Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}} />
+          <ContentText content={{en:this.props.numberLabel, he:Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}} />
         </span>
       </div>;
     } else { sidebarNum = null;}
@@ -381,7 +381,7 @@ class TextRange extends Component {
         {this.props.hideTitle ? null :
         (<div className="title">
           <div className="titleBox" role="heading" aria-level="2">
-            <InterfaceText text={{en: title, he: heTitle}} />
+            <ContentText content={{en: title, he: heTitle}} />
           </div>
           {this.props.titleButtons ? <div className="buttons" onClick={e => e.stopPropagation()}>{this.props.titleButtons}</div> : null }
         </div>)}
@@ -541,7 +541,7 @@ class TextSegment extends Component {
       linkCountElement = this.props.showLinkCount ? (
           <div className="linkCount sans" title={linkCount + " Connections Available"}>
              <span className="linkCountDot" style={style}>
-               <InterfaceText text={{"en": "", "he": ""}} />
+               <ContentText content={{"en": "", "he": ""}} />
              </span>
           </div>
       ) : null;
@@ -551,7 +551,7 @@ class TextSegment extends Component {
     let segmentNumber = this.props.segmentNumber ? (
         <div className="segmentNumber sans">
           <span className="segmentNumberInner">
-             <InterfaceText text={{"en": this.props.segmentNumber, "he": Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}}
+             <ContentText content={{"en": this.props.segmentNumber, "he": Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}}
              />
           </span>
         </div>

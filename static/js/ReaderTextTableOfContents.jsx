@@ -382,15 +382,15 @@ class ReaderTextTableOfContents extends Component {
                   :<div className="contentInner">
                   <div className="tocTop">
                     <a className="tocCategory" href={catUrl}>
-                      <InterfaceText text={{en:category, he:Sefaria.hebrewTerm(category)}}/>
+                      <ContentText content={{en:category, he:Sefaria.hebrewTerm(category)}}/>
                     </a>
                     <div className="tocTitle" role="heading" aria-level="1">
-                      <InterfaceText text={{en:title, he:heTitle}}/>
+                      <ContentText content={{en:title, he:heTitle}}/>
                       {moderatorSection}
                     </div>
                     {this.isTextToc()?
                       <div className="currentSection" role="heading" aria-level="2">
-                        <InterfaceText text={{en:section, he:heSection}}/>
+                        <ContentText content={{en:section, he:heSection}}/>
                       </div>
                     : null}
                     <CategoryAttribution categories={categories} />
@@ -739,7 +739,7 @@ class SchemaNode extends Component {
                     role="heading"
                     aria-level="3"
                     aria-hidden="true" tabIndex={0}>
-                <InterfaceText text={{en: node.title, he: node.heTitle}} />
+                <ContentText content={{en: node.title, he: node.heTitle}} />
               </span>
               {!this.state.collapsed[i] ?
               <div className="schema-node-contents">
@@ -760,7 +760,7 @@ class SchemaNode extends Component {
           return (
             <a className="schema-node-toc linked" href={Sefaria.normRef(path)} data-ref={path} key={i}>
               <span className="schema-node-title" role="heading" aria-level="3">
-                <InterfaceText text={{en:node.title , he:node.heTitle }}/>
+                <ContentText content={{en:node.title , he:node.heTitle }}/>
               </span>
             </a>);
         } else {
@@ -772,7 +772,7 @@ class SchemaNode extends Component {
                     role="heading" aria-level="3" tabIndex={0}
                     onClick={this.toggleCollapse.bind(null, i)}
                     onKeyPress={function(e) {e.charCode == 13 ? this.toggleCollapse(i):null}.bind(this)} >
-                <InterfaceText text={{en: node.title, he: node.heTitle}} />
+                <ContentText content={{en: node.title, he: node.heTitle}} />
               </span>
               : null }
               { !this.state.collapsed[i] ?
@@ -865,7 +865,7 @@ class JaggedArrayNodeSection extends Component {
         content.push(
           <div className="tocSection" key={i}>
             <div className="sectionName">
-              <InterfaceText text={{ en:this.props.sectionNames[0] + " " + enSection , he: Sefaria.hebrewTerm(this.props.sectionNames[0]) + " " +heSection}}/>
+              <ContentText content={{ en:this.props.sectionNames[0] + " " + enSection , he: Sefaria.hebrewTerm(this.props.sectionNames[0]) + " " +heSection}}/>
             </div>
             <JaggedArrayNodeSection
               depth={this.props.depth - 1}
@@ -896,7 +896,7 @@ class JaggedArrayNodeSection extends Component {
       var ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
       var link = (
         <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
-          <InterfaceText text={{en:section, he:heSection}}/>
+          <ContentText content={{en:section, he:heSection}}/>
         </a>
       );
       sectionLinks.push(link);
@@ -941,7 +941,7 @@ class ArrayMapNode extends Component {
         }
         return (
           <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
-            <InterfaceText text={{en:section, he:heSection}}/>
+            <ContentText content={{en:section, he:heSection}}/>
           </a>
         );
       }.bind(this));
@@ -952,7 +952,7 @@ class ArrayMapNode extends Component {
       return (
         <a className="schema-node-toc linked" href={Sefaria.normRef(this.props.schema.wholeRef)} data-ref={this.props.schema.wholeRef}>
           <span className="schema-node-title" role="heading" aria-level="3">
-            <InterfaceText text={{en:this.props.schema.title, he:this.props.schema.heTitle}}/>
+            <ContentText content={{en:this.props.schema.title, he:this.props.schema.heTitle}}/>
           </span>
         </a>);
     }
@@ -971,7 +971,7 @@ class DictionaryNode extends Component {
       var ref = m[1];
       return (
           <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
-            <InterfaceText text={{en:letter, he:letter}} />
+            <ContentText content={{en:letter, he:letter}} />
           </a>
         );
       });
@@ -988,7 +988,7 @@ class CommentatorList extends Component {
     var content = this.props.commentatorList.map(function(commentator, i) {
       var ref = commentator.refs_to_base_texts[this.props.title];
       return (<a className="refLink linked" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
-                <InterfaceText text={{en:commentator.collectiveTitle, he:commentator.heCollectiveTitle}}/>
+                <ContentText content={{en:commentator.collectiveTitle, he:commentator.heCollectiveTitle}}/>
             </a>);
     }.bind(this));
 
