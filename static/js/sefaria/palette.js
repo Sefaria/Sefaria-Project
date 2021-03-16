@@ -28,20 +28,23 @@ palette.categoryColors = {
   "Talmud":             palette.colors.yellow,
   "Halakhah":           palette.colors.red,
   "Kabbalah":           palette.colors.purple,
-  "Philosophy":         palette.colors.lavender,
+  "Philosophy":         palette.colors.lavender,  // to delete
+  "Jewish Thought":     palette.colors.lavender,
   "Liturgy":            palette.colors.darkpink,
-  "Tanaitic":           palette.colors.teal,
+  "Tanaitic":           palette.colors.teal,    // to delete
+  "Tosefta":            palette.colors.teal,
   "Parshanut":          palette.colors.paleblue,
   "Chasidut":           palette.colors.lightgreen,
   "Musar":              palette.colors.raspberry,
   "Responsa":           palette.colors.orange,
-  "Apocrypha":          palette.colors.lightpink,
-  "Other":              palette.colors.darkblue,
+  "Apocrypha":          palette.colors.lightpink,   // to delete
+  "Second Temple":      palette.colors.lightpink,   // to delete
+  "Other":              palette.colors.darkblue,    // to delete
   "Quoting Commentary": palette.colors.orange,
   "Sheets":             palette.colors.darkblue,
   "Community":          palette.colors.raspberry,
   "Targum":             palette.colors.lavender,
-  "Modern Works":       palette.colors.lightbg,
+  "Modern Works":       palette.colors.lightbg,    // to delete
   "Modern Commentary":  palette.colors.lightbg,
   "Reference":          palette.colors.tan,
   "Static":             "linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%)"

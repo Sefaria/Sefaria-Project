@@ -5,7 +5,6 @@ search.py - full-text search for Sefaria using ElasticSearch
 Writes to MongoDB Collection: index_queue
 """
 import os
-from pprint import pprint
 from datetime import datetime, timedelta
 import re
 import bleach
@@ -15,8 +14,6 @@ import pymongo
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 import logging
-import json
-import math
 from logging import NullHandler
 from collections import defaultdict
 import time as pytime
@@ -35,7 +32,6 @@ from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
 from .settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, SEARCH_INDEX_NAME_MERGED, STATICFILES_DIRS
 from sefaria.site.site_settings import SITE_SETTINGS
-from sefaria.utils.hebrew import hebrew_term
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu
 
@@ -256,7 +252,7 @@ def create_index(index_name, type):
             }
         }
     }
-    print('CReating index {}'.format(index_name))
+    print('Creating index {}'.format(index_name))
     index_client.create(index=index_name, body=settings)
 
     if type == 'text':
@@ -589,11 +585,8 @@ class TextIndexer(object):
         """
         Create a document for indexing from the text specified by ref/version/lang
         """
-        oref = Ref(tref)
-        text = TextFamily(oref, context=0, commentary=False, version=version, lang=lang).contents()
-
+        # Don't bother indexing if there's no content
         if not content:
-            # Don't bother indexing if there's no content
             return False
 
         content_wo_cant = strip_cantillation(content, strip_vowels=False).strip()
@@ -602,20 +595,28 @@ class TextIndexer(object):
         if len(content_wo_cant) == 0:
             return False
 
-        if getattr(cls.curr_index, "dependence", None) == 'Commentary' and "Commentary" in text["categories"]:  # uch, special casing
-            temp_categories = text["categories"][:]
-            temp_categories.remove('Commentary')
-            temp_categories[0] += " Commentaries"  # this will create an additional bucket for each top level category's commentary
-        else:
-            temp_categories = categories
+        oref = Ref(tref)
+        toc_tree = library.get_toc_tree()
+        cats = oref.index.categories
+
+        indexed_categories = categories  # the default
+
+        # get the full path of every cat along the way.
+        # starting w/ the longest,
+        # check if they're root swapped.
+        paths = [cats[:i] for i in range(len(cats), 0, -1)]
+        for path in paths:
+            cnode = toc_tree.lookup(path)
+            if getattr(cnode, "searchRoot", None) is not None:
+                # Use the specified searchRoot, with the rest of the category path appended.
+                indexed_categories = [cnode.searchRoot] + cats[len(path) - 1:]
+                break
 
         tp = cls.best_time_period
-        if not tp is None:
+        if tp is not None:
             comp_start_date = int(tp.start)
         else:
             comp_start_date = 3000  # far in the future
-
-        # section_ref = tref[:tref.rfind(u":")] if u":" in tref else (tref[:re.search(ur" \d+$", tref).start()] if re.search(ur" \d+$", tref) is not None else tref)
 
         ref_data = RefData().load({"ref": tref})
         pagesheetrank = ref_data.pagesheetrank if ref_data is not None else RefData.DEFAULT_PAGERANK * RefData.DEFAULT_SHEETRANK
@@ -626,10 +627,10 @@ class TextIndexer(object):
             "version": version,
             "lang": lang,
             "version_priority": version_priority if version_priority is not None else 1000,
-            "titleVariants": text["titleVariants"],
-            "categories": temp_categories,
+            "titleVariants": oref.index_node.all_tree_titles("en"),
+            "categories": indexed_categories,
             "order": oref.order_id(),
-            "path": "/".join(temp_categories + [cls.curr_index.title]),
+            "path": "/".join(indexed_categories + [cls.curr_index.title]),
             "pagesheetrank": pagesheetrank,
             "comp_date": comp_start_date,
             #"hebmorph_semi_exact": content_wo_cant,
@@ -784,13 +785,7 @@ def index_all_of_type(type, skip=0, debug=False):
         print('STARTING IN T-MINUS {}'.format(10 - i))
         pytime.sleep(1)
 
-    if skip == 0:
-        create_index(index_names_dict['new'], type)
-    if type == 'text':
-        TextIndexer.clear_cache()
-        TextIndexer.index_all(index_names_dict['new'], debug=debug)
-    elif type == 'sheet':
-        index_public_sheets(index_names_dict['new'])
+    index_all_of_type_by_index_name(type, index_names_dict['new'], skip, debug)
 
     try:
         #index_client.put_settings(index=index_names_dict['current'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
@@ -798,9 +793,31 @@ def index_all_of_type(type, skip=0, debug=False):
         print("Successfully deleted alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current']))
     except NotFoundError:
         print("Failed to delete alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current']))
+
+
+    #TEMPORARY FOR TOC MIGRATION
+    if type == 'text':
+        try:
+            #index_client.put_settings(index=index_names_dict['current'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
+            index_client.delete_alias(index='text-toc-migration', name=index_names_dict['alias'])
+            print("Successfully deleted alias {} for index {}".format(index_names_dict['alias'], 'text-toc-migration'))
+        except NotFoundError:
+            print("Failed to delete alias {} for index {}".format(index_names_dict['alias'], 'text-toc-migration'))
+
     clear_index(index_names_dict['alias']) # make sure there are no indexes with the alias_name
 
     #index_client.put_settings(index=index_names_dict['new'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
     index_client.put_alias(index=index_names_dict['new'], name=index_names_dict['alias'])
+
     if index_names_dict['new'] != index_names_dict['current']:
         clear_index(index_names_dict['current'])
+
+
+def index_all_of_type_by_index_name(type, index_name, skip=0, debug=False):
+    if skip == 0:
+        create_index(index_name, type)
+    if type == 'text':
+        TextIndexer.clear_cache()
+        TextIndexer.index_all(index_name, debug=debug)
+    elif type == 'sheet':
+        index_public_sheets(index_name)
