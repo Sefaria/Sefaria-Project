@@ -527,13 +527,12 @@ const Element = props => {
         empty: !(Node.string(element)),
         noPointer: element.type != ("SheetSource" || "SheetOutsideBiText"),
         highlight: useSlate().highlightedNode == element.node,
-        active: useSelected()
     }
 
     switch (element.type) {
         case 'spacer':
         const spacerClasses = {
-          spacer: 1, empty: 1, active: useSelected()
+          spacer: 1, empty: 1
         }
           return (
             <div className={classNames(spacerClasses)}>
