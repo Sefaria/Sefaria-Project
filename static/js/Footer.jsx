@@ -8,7 +8,7 @@ import Component from 'react-class';
 const Section = ({en, he, children}) => (
     <div className="section">
       <div className="header">
-         <InterfaceText content={{en:en, he:he}}/>
+         <InterfaceText text={{en:en, he:he}}/>
       </div>
       {children}
     </div>
@@ -16,7 +16,7 @@ const Section = ({en, he, children}) => (
 
 const Link = ({href, en, he, blank}) => (
     <a href={href} target={blank ? "_blank" : "_self"}>
-      <InterfaceText content={{en:en, he:he}}/>
+      <InterfaceText text={{en:en, he:he}}/>
     </a>
 );
 

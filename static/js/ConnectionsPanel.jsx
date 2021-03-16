@@ -1034,7 +1034,7 @@ class ToolsButton extends Component {
       <a href={url} className="toolsButton sans noselect" data-name={this.props.en} onClick={this.onClick}>
         {icon}
         <span className="toolsButtonText">
-            <InterfaceText content={{en: this.props.en , he: this.props.he }} />
+            <InterfaceText text={{en: this.props.en , he: this.props.he }} />
             {this.props.count ? (<span className="connectionsCount">({this.props.count})</span>) : null}
         </span>
       </a>)
@@ -1419,12 +1419,12 @@ function ManuscriptImage(props) {
         {
           manuscript.manuscript[description]
             ? <span>
-                <InterfaceText content={{en:'Courtesy of: ', he:'הודות ל'}} />
+                <InterfaceText text={{en:'Courtesy of: ', he:'הודות ל'}} />
                 <span className={cls}>{manuscript.manuscript[description]}<br/></span>
               </span>
             : ''
         }
-        <InterfaceText content={{en:'Source: ', he:'מקור: '}}/>
+        <InterfaceText text={{en:'Source: ', he:'מקור: '}}/>
         <a href={manuscript.manuscript['source']} target="_blank">{manuscript.manuscript['source'].replace("https://", "")}</a>
       </div>
 

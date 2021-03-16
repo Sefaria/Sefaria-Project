@@ -48,7 +48,7 @@ class ConnectionsPanelHeader extends Component {
     if (this.props.connectionsMode == "Resources") {
       // Top Level Menu
       title = <div className="connectionsHeaderTitle">
-                    <InterfaceText content={{en: "Resources" , he:"קישורים וכלים" }} />
+                    <InterfaceText text={{en: "Resources" , he:"קישורים וכלים" }} />
                   </div>;
 
     } else if ((this.props.previousCategory && this.props.connectionsMode == "TextList") || previousMode) {

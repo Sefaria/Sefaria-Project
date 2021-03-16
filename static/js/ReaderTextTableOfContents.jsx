@@ -243,7 +243,7 @@ class ReaderTextTableOfContents extends Component {
               }
             </div>
             <div className="versionSectionTitle">
-              <InterfaceText content={{en:"Versions", he:"גרסאות" }}/>
+              <InterfaceText text={{en:"Versions", he:"גרסאות" }}/>
               {(this.state.versionsDropDownOpen) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
             </div>
             <div className="versionSectionSummary">
@@ -666,7 +666,7 @@ class TabbedToggleSet extends Component {
       return (
         <div className="altStructToggleBox" key={i}>
           <a className={classes} onClick={handleClick} href={url}>
-              <InterfaceText content={{en:option.text, he:option.heText}} />
+              <InterfaceText text={{en:option.text, he:option.heText}} />
           </a>
         </div>
       );

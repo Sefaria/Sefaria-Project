@@ -49,7 +49,7 @@ const __filterChildrenByLanguage = (children, language) => {
   return newChildren;
 };
 
-const InterfaceText = ({content, html, children, context}) => {
+const InterfaceText = ({text, html, children, context}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
    *  If passed explicit content or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
@@ -58,31 +58,31 @@ const InterfaceText = ({content, html, children, context}) => {
    * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
    * `context` is passed to Sefaria._ for additional translation context
    */
-  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [content, false];
+  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
   const isHebrew = Sefaria.interfaceLang === "hebrew";
   let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
-  let text = null;
+  let textResponse = null;
   if (contentVariable) {// Prioritze explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
     let {he, en} = contentVariable;
-    text = isHebrew ? (he || en) : (en || he);
+    textResponse = isHebrew ? (he || en) : (en || he);
     let fallbackCls = (isHebrew && !he) ? "enInHe" : ((!isHebrew && !en) ? "heInEn" : "" );
     elemclasses += fallbackCls;
   }else{ // Also handle composition with children
     const chlCount = React.Children.count(children);
     if (chlCount == 1) { // Same as passing in a `en` key but with children syntax
-      text = Sefaria._(children, context);
+      textResponse = Sefaria._(children, context);
     }else if (chlCount <= Object.keys(AvailableLanguages()).length){ // When multiple languages are passed in via children
       let newChildren = __filterChildrenByLanguage(children, Sefaria.interfaceLang);
-      text = newChildren[0]; //assumes one language element per InterfaceText, may be too naive
+      textResponse = newChildren[0]; //assumes one language element per InterfaceText, may be too naive
     }else{
       console.log("Error too many children")
     }
   }
   return (
       isDangerouslySetInnerHTML ?
-          <span className={elemclasses} dangerouslySetInnerHTML={{__html: text}}/>
+          <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
           :
-          <span className={elemclasses}>{text}</span>
+          <span className={elemclasses}>{textResponse}</span>
   );
 };
 InterfaceText.propTypes = {
@@ -831,7 +831,7 @@ DangerousInterfaceBlock.propTypes = {
 
 const SimpleInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
-            <InterfaceText content={{en:en, he:he}} />
+            <InterfaceText text={{en:en, he:he}} />
         </div>
     );
 SimpleInterfaceBlock.propTypes = {
@@ -857,7 +857,7 @@ SimpleContentBlock.propTypes = {
 const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick}) => (
         <div className={classes} onClick={onClick}>
             <a href={url} className={aclasses}>
-              <InterfaceText content={{en:en, he:he}}/>
+              <InterfaceText text={{en:en, he:he}}/>
             </a>
             {children}
         </div>
@@ -1425,7 +1425,7 @@ const SheetListing = ({
         key={i}
         onClick={handleTopicClick.bind(null, topic.slug)}
       >
-        <InterfaceText {...topic} />
+        <InterfaceText text={topic} />
         {separator}
       </a>
     );
@@ -1961,7 +1961,7 @@ class SheetTopicLink extends Component {
     const { slug, en, he } = this.props.topic;
     return (
       <a href={`/topics/${slug}`} onClick={this.handleTagClick}>
-        <InterfaceText content={{en:en, he:he}} />
+        <InterfaceText text={{en:en, he:he}} />
       </a>
     );
   }
