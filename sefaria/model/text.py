@@ -2644,7 +2644,8 @@ class Ref(object, metaclass=RefCacheType):
 
         if hasattr(address_class, "parse_range_end"):
             base_wout_title = base.replace(title + " ", "")
-            address_class.parse_range_end(self, parts, base_wout_title)
+            end = len(self.index.versionState().content["_all"]["shape"]) #last available section
+            address_class.parse_range_end(self, parts, base_wout_title, end)
         elif len(parts) == 2: # Parse range end portion, if it exists
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
             if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[

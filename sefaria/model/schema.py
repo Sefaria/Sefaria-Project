@@ -2029,17 +2029,19 @@ class AddressTalmud(AddressType):
             return ref._get_normal(lang)
 
     @classmethod
-    def parse_range_end(cls, ref, parts, base):
+    def parse_range_end(cls, ref, parts, base, end):
         def ref_lacks_amud(part):
             if ref._lang == "he":
                 return re.search(cls.amud_patterns["he"], part) is None
             else:
-                return re.search(cls.amud_patterns["en"]+"{1}$", part) is None
+                return re.search(cls.amud_patterns["en"] + "{1}$", part) is None
 
         if len(parts) == 1 and len(ref.sections) == 1:
             # check for Talmud ref without amud, such as Berakhot 2, we don't want "Berakhot 2a" but "Berakhot 2a-2b"
             # so change toSections if ref_lacks_amud
-            if ref_lacks_amud(base):
+            if ref_lacks_amud(base) and ref.toSections[0] < end:
+                # 'end' is last available section, so only increase if
+                # ref_lacks_amud AND ref.toSections is before the end
                 ref.toSections[0] += 1
         elif len(parts) == 2:
             ref.toSections = parts[1].split(".")  # this was converting space to '.', for some reason.
@@ -2054,6 +2056,8 @@ class AddressTalmud(AddressType):
             # 'Shabbat 7-8' -> 'Shabbat 7a-8b'
             elif ref_lacks_amud(parts[1]) and len(ref.sections) == len(ref.toSections) == 1:
                 ref.toSections[0] = AddressTalmud(0).toNumber(ref._lang, "{}b".format(ref.toSections[0]))
+                while ref.toSections[0] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
+                    ref.toSections[0] -= 1
 
             # 'Shabbat 24b.12-24'
             else:
@@ -2062,6 +2066,7 @@ class AddressTalmud(AddressType):
                     ref.toSections.insert(0, ref.sections[i])
 
             ref.toSections = [int(x) for x in ref.toSections]
+
 
     def _core_regex(self, lang, group_id=None, **kwargs):
         if group_id and kwargs.get("for_js", False) == False:
