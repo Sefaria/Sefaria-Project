@@ -2039,7 +2039,7 @@ class AddressTalmud(AddressType):
         if len(parts) == 1 and len(ref.sections) == 1:
             # check for Talmud ref without amud, such as Berakhot 2, we don't want "Berakhot 2a" but "Berakhot 2a-2b"
             # so change toSections if ref_lacks_amud
-            if ref_lacks_amud(base) and ref.toSections[0] < end:
+            if ref_lacks_amud(base) and (end is None or ref.toSections[0] < end):
                 # 'end' is last available section, so only increase if
                 # ref_lacks_amud AND ref.toSections is before the end
                 ref.toSections[0] += 1
@@ -2056,8 +2056,9 @@ class AddressTalmud(AddressType):
             # 'Shabbat 7-8' -> 'Shabbat 7a-8b'
             elif ref_lacks_amud(parts[1]) and len(ref.sections) == len(ref.toSections) == 1:
                 ref.toSections[0] = AddressTalmud(0).toNumber(ref._lang, "{}b".format(ref.toSections[0]))
-                while ref.toSections[0] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
-                    ref.toSections[0] -= 1
+                if end is not None:
+                    while ref.toSections[0] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
+                        ref.toSections[0] -= 1
 
             # 'Shabbat 24b.12-24'
             else:
