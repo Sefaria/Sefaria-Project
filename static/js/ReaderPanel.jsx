@@ -49,7 +49,7 @@ class ReaderPanel extends Component {
     super(props);
     let state = this.clonePanel(props.initialState);
     state["initialAnalyticsTracked"] = false;
-    const contentLang = this.getContentLanguageOverride(state.mode, state.menuOpen) || state.settings.language;
+    const contentLang = this.getContentLanguageOverride(state.settings.language, state.mode, state.menuOpen);
     state['contentLangSettings'] = {
       "language": contentLang,
     }
@@ -69,7 +69,6 @@ class ReaderPanel extends Component {
       newSettings["language"] = this.state.sheet.options.language || "bilingual"
       this.conditionalSetState({ settings: newSettings});
     }
-
   }
   componentWillUnmount() {
     window.removeEventListener("resize", this.setWidth);
@@ -124,14 +123,16 @@ class ReaderPanel extends Component {
     }
     this.setState({"error": message})
   }
-  getContentLanguageOverride(mode, menuOpen) {
+  getContentLanguageOverride(originalLanguage, mode, menuOpen) {
     //Determines the actual content language used inside this ReaderPanel.
     //Because it's called in the constructor, assume state isnt necessarily defined and pass variables mode and menuOpen manually
-    let contentLangOverride = null;
+    let contentLangOverride = originalLanguage;
     if (mode === "Connections" && Sefaria.interfaceLang === "hebrew") {
       contentLangOverride = "hebrew";
     }else if (["topics", "homefeed", "story_editor" ].includes(menuOpen)) {
       contentLangOverride = (["english", "bilingual"].includes(Sefaria.interfaceLang)) ? "bilingual" : "hebrew";
+    }else if (["text toc", "book toc"].includes(menuOpen)) {
+      contentLangOverride = (Sefaria.interfaceLang === "hebrew") ? "hebrew" : ((originalLanguage === "bilingual") ? "english" : originalLanguage);
     }
     return contentLangOverride;
   }
@@ -512,15 +513,16 @@ class ReaderPanel extends Component {
     this.state.settings[option] = value;
     let state = {settings: this.state.settings};
     if (option !== "fontSize") { state.displaySettingsOpen = false; }
-    $.cookie(option, value, {path: "/"});
     if (option === "language") {
-      $.cookie("contentLang", value, {path: "/"});
+      let adjustedValue = this.getContentLanguageOverride(value, this.state.mode, this.state.menuOpen);
       state['contentLangSettings'] = {
-        "language": value,
+        "language": adjustedValue
       }
+      $.cookie("contentLang", value, {path: "/"});
       this.replaceHistory = true;
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
     }
+    $.cookie(option, value, {path: "/"});
     this.conditionalSetState(state);
   }
   setConnectionsMode(mode, connectionData = null) {
@@ -615,7 +617,7 @@ class ReaderPanel extends Component {
     }
   }
   currentLayout() {
-    if (this.state.settings.language == "bilingual") {
+    if (this.state.contentLangSettings.language == "bilingual") {
       return this.state.width > 500 ? this.state.settings.biLayout : "stacked";
     }
     const category = this.currentCategory();

@@ -353,7 +353,7 @@ class ReaderTextTableOfContents extends Component {
     const categories = Sefaria.index(this.props.title).categories;
 
 
-    let returnContents = (<div className={classes}>
+    return (<div className={classes}>
               <CategoryColorLine category={category} />
               <div className="readerControls">
                 <div className="readerControlsInner">
@@ -432,16 +432,8 @@ class ReaderTextTableOfContents extends Component {
                   {isDictionary ? null : downloadSection}
                 </div>}
               </div>
-            </div>);
-    if (Sefaria.interfaceLang == "hebrew"){
-      return (
-          <ContentLanguageContext.Provider value={{language: "hebrew"}}>
-            {returnContents}
-          </ContentLanguageContext.Provider>
-      )
-    }else{
-      return returnContents
-    }
+            </div>
+    );
   }
 }
 ReaderTextTableOfContents.propTypes = {
