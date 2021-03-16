@@ -459,6 +459,7 @@ ReaderTextTableOfContents.propTypes = {
 
 class TextDetails extends Component {
  render() {
+   /** todo fix interfacetext */
     var index = this.props.index;
     var makeDescriptionText = function(compWord, compPlace, compDate, description) {
       var composed = compPlace || compDate ? compWord + [compPlace, compDate].filter(x => !!x).join(" ") : null;
@@ -1131,6 +1132,7 @@ class ReadMoreText extends Component {
     this.state = {expanded: props.text.split(" ").length < props.initialWords};
   }
   render() {
+    /** todo fix interfacetext */
     var text = this.state.expanded ? this.props.text : this.props.text.split(" ").slice(0, this.props.initialWords).join (" ") + "...";
     return <div className="readMoreText">
       {text}

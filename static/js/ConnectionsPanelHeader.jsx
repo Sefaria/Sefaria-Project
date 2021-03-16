@@ -42,6 +42,7 @@ class ConnectionsPanelHeader extends Component {
     }
   }
   render() {
+      /** TODO: fix for interfacetext */
     const previousMode = this.previousModes[this.props.connectionsMode];
     let title;
     if (this.props.connectionsMode == "Resources") {
