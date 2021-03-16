@@ -1257,9 +1257,9 @@ class ReaderControls extends Component {
                 <div style={{"direction": Sefaria.hebrew.isHebrew(title) ? "rtl" :"ltr"}}><span>{title}</span></div>
                 :
                 <div>
-                  <ContentText content={{en: title, he: heTitle}} />
+                  <ContentText text={{en: title, he: heTitle}} />
                   <span className="sectionString">
-                    <ContentText content={{en: sectionString, he: heSectionString }} />
+                    <ContentText text={{en: sectionString, he: heSectionString }} />
                   </span>
                 </div>
             }

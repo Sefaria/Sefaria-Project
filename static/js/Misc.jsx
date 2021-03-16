@@ -97,14 +97,14 @@ InterfaceText.propTypes = {
   className: PropTypes.string
 };
 
-const ContentText = ({content, html, overrideLanguage}) => {
+const ContentText = ({text, html, overrideLanguage}) => {
     /**
    * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
    * Takes only children to allow complex html to be fed in
    * @type {{language: string}}
    */
-  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [content, false];
+  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
   const availableLanguages = ["english", "hebrew"];
   const contentLanguage = useContext(ContentLanguageContext);
   const languageToFilter = overrideLanguage ? overrideLanguage : contentLanguage.language;
@@ -1933,10 +1933,10 @@ class CategoryAttribution extends Component {
     var attribution = Sefaria.categoryAttribution(this.props.categories);
     if (!attribution) { return null; }
     var linkedContent = <a href={attribution.link}>
-                          <ContentText content={{en: attribution.english, he: attribution.hebrew }} />
+                          <ContentText text={{en: attribution.english, he: attribution.hebrew }} />
                         </a>;
     var unlinkedContent = <span>
-                            <ContentText content={{en: attribution.english, he: attribution.hebrew }} />
+                            <ContentText text={{en: attribution.english, he: attribution.hebrew }} />
                           </span>;
     return <div className="categoryAttribution">
             {this.props.linked ? linkedContent : unlinkedContent}

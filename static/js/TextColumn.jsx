@@ -359,7 +359,7 @@ class TextColumn extends Component {
       bookTitle = noPrev ? 
         <div className="bookMetaDataBox" key="bookTitle">
           <div className="title" role="heading" aria-level="1">
-            <ContentText content={{en: this.props.bookTitle, he: this.props.heBookTitle}} />
+            <ContentText text={{en: this.props.bookTitle, he: this.props.heBookTitle}} />
           </div>
         </div> : null;
 
