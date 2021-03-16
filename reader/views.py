@@ -1219,7 +1219,12 @@ def modify_bulk_text_api(request, title):
             return jsonResponse({"error": f"Version does not exist. Title: {title}, VTitle: {versionTitle}, Language: {language}"})
 
         def modify(uid):
-            return tracker.modify_bulk_text(uid, version, t['text_map'], vsource=versionSource, skip_links=skip_links, count_after=count_after)
+            error_map = tracker.modify_bulk_text(uid, version, t['text_map'], vsource=versionSource, skip_links=skip_links, count_after=count_after)
+            response = {"status": "ok"}
+            if len(error_map) > 0:
+                response["status"] = "some refs failed"
+                response["ref_error_map"] = error_map
+            return response
 
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
@@ -1228,13 +1233,11 @@ def modify_bulk_text_api(request, title):
             apikey = db.apikeys.find_one({"key": key})
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
-            error_map = modify(apikey['uid'])
-            return jsonResponse({"status": "ok", "ref_error_map": error_map})
+            return jsonResponse(modify(apikey['uid']))
         else:
             @csrf_protect
             def protected_post(request):
-                error_map = modify(request.user.id)
-                return jsonResponse({"status": "ok", "ref_error_map": error_map})
+                return jsonResponse(modify(request.user.id))
             return protected_post(request)        
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
