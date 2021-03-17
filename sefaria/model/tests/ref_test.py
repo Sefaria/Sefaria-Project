@@ -43,6 +43,12 @@ class Test_Ref(object):
     def test_talmud_refs_short_range(self):
         assert Ref("Shabbat 7a-b") == Ref("Shabbat 7a-7b")
 
+    def test_refs_beyond_end_of_book(self):
+        assert Ref("Yoma 88") == Ref("Yoma 88a")
+        assert Ref("Yoma 87-90") == Ref("Yoma 87a-88a")
+        assert Ref("Zohar 1:251") == Ref("Zohar 1:251a")
+        assert Ref("Zohar 1:250-251") == Ref("Zohar 1:250a-251a")
+
     # This test runs for 90% of this suite's time, and passes.  Seems pretty trivial.  Can we trim it?
     @pytest.mark.deep
     def test_each_title(object):

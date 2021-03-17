@@ -2034,7 +2034,7 @@ class AddressTalmud(AddressType):
         :param ref: Ref object (example: Zohar 1:2-3)
         :param parts: list of text of Ref; if Ref is a range, list will be of length 2; otherwise, length 1;
         if Ref == Zohar 1:2-3, parts = ["Zohar 1:2", "3"]
-        :param base: the Ref string without title; in the above example, base would be "1:2-3"
+        :param base: parts[0] without title; in the above example, base would be "1:2"
         :return:
         """
         def ref_lacks_amud(part):
@@ -2081,6 +2081,9 @@ class AddressTalmud(AddressType):
             end = len(availableTexts) if len(ref.sections) == 1 else len(availableTexts[ref.toSections[0] - 1])
         while ref.toSections[-1] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
             ref.toSections[-1] -= 1
+
+        if len(ref.sections) == len(ref.toSections) + 1:
+            ref.toSections.insert(0, ref.sections[0])
 
 
 
