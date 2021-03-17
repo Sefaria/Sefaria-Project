@@ -1763,6 +1763,36 @@ TwoOrThreeBox.defaultProps = {
 };
 
 
+const ResponsiveNBox = ({content}) => {
+
+  const initialWidth = window.innerWidth;
+  const [width, setWidth] = useState(initialWidth);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    deriveAndSetWidth();
+    window.addEventListener("resize", deriveAndSetWidth);
+    return () => {
+        window.removeEventListener("resize", deriveAndSetWidth);
+    }
+  }, []);
+
+  const deriveAndSetWidth = () => {
+    setWidth(window.innerWidth);
+  }
+
+  const threshold_2 = 500; //above threshold_2, there will be 2 columns
+  const threshold_3 = 1500; //above threshold_3, there will be 3 columns
+  if (width > threshold_3) {
+    return (<NBox content={content} n={3}/>);
+  } else if (width > threshold_2) {
+    return (<NBox content={content} n={2}/>);
+  } else {
+    return (<NBox content={content} n={1}/>);
+  }
+};
+
+
 class Dropdown extends Component {
   constructor(props) {
     super(props);
@@ -2179,6 +2209,7 @@ export {
   ToggleSet,
   ToolTipped,
   TwoOrThreeBox,
+  ResponsiveNBox,
   SheetMetaDataBox,
   SheetAuthorStatement,
   SheetTitle,

@@ -2,6 +2,8 @@ import React from 'react';
 import {
     SimpleInterfaceBlock,
     NewsletterSignUpForm,
+    TwoOrThreeBox,
+    ResponsiveNBox
 } from './Misc';
 import palette from './sefaria/palette';
 import classNames from 'classnames';
@@ -238,6 +240,74 @@ const ContestLandingPage = () => (
 );
 */
 
+
+const RambanLandingPage = () => {
+    const email_link = <a href="mailto:hannah@sefaria.org?Subject=Ramban Sponsorship">hannah@sefaria.org</a>
+    return <StaticPage optionalClass="englishOnly">
+        <Header
+            enTitle="Ramban on Torah: A Translation"
+            enText="Sefaria is thrilled to release Rabbi Charles Chavel's classic English translation of Rabbi Moshe ben Nachman (known as Ramban or Nachmanides) on Torah. This historic launch makes a complete bilingual version of Ramban's commentary available online for the very first time, and it will remain free for use and re-use under a CC-BY license. We are profoundly grateful to the following donors for making this possible."
+            enActionText="Read the Text"
+            enActionURL="/texts/Tanakh/Rishonim%20on%20Tanakh/Ramban"
+            heTitle="Ramban on Torah: A Translation"
+            heText="Sefaria is thrilled to be able to offer Rabbi Charles Chavel's classic English translation of Ramban (Nachmanides) on Torah
+            to the world.  This historic launch makes a complete version of this work available online for the very first time,
+            and it will remain free for use and re-use under a CC-BY license. We are profoundly grateful to the following donors for making this possible."
+            heActionURL="/texts/Tanakh/Rishonim%20on%20Tanakh/Ramban"
+            heActionText="Read the Text"
+            enImg=""
+            heImg=""
+        />
+        <div className="staticPageBlockInner flexContainer">
+        <ResponsiveNBox content={
+[['Bereshit', 'Leib and Linda Koyfman', 'In honor of Hilary and Mo Koyfman and family'], ['Noach', 'Tali and Sender Cohen', ''], ['Lech Lecha', 'Rabbi David Aladjem', 'In support of Sefaria'], ['Vayera', 'Howard and Tova Weiser', 'In honor of their children and grandchildren'], ['Chayei Sara', 'Rechtschaffen Family', "In honor of the 30th anniversary of Andrew Rechtscaffen's bar mitzvah."], ['Toldot ', 'Shapira-Stern Family', 'In honor of David Shapira'], ['Vayetzei', 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ['Vayishlach', 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ['Vayashev', 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ['Miketz', 'Raquel and Aryeh Rubin', 'In memory of the one and a half million children'], ['Vayigash', 'Laurie and Milton Wakschlag', 'In memory of their parents Fishel and Sheva Wakschlag'], ['Vayechi', 'The Stein Children', 'In memory of their father Jacob K. Stein z"l']]
+.map(i => <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
+        </div>
+            <hr/>
+
+
+        <div className="staticPageBlockInner flexContainer">
+        <ResponsiveNBox content={
+[['Shemot', 'Sam and Debbie Moed', 'In memory of Henry I. Zeisel, who derived tremendous joy from learning. This perush of his bar mitzvah parashah is dedicated with love.'], ['Vaera', 'The loving children and children-in-laws of Arthur Helft', 'In memory of Dr. Arthur Helft '], ['Bo', 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ['Beshalach', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ['Yitro', 'Anonymous Sponsor', 'To honor the memory of Joe and Rose Rudis'], ['Mishpatim ', 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ['Terumah', 'Julia Baum and Adam Feldman', 'In memory of Earl Katz and Annette Steinman'], ['Tetzevei', 'Huti and Jay', 'In Gratitude to all the Health Care Workers during the Pandemic'], ['Ki Tisa', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ['Vayahkel', 'The Berkowitz Family', 'In honor of their parents and grandparents (Bebe, Bepop, Pop pop, and grandmama) who provide a sense of inspiration and demonstrate a desire to constantly learn more.'], ['Pekudei', 'The Hiltzik Family', '']]
+.map(i => <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
+        </div>
+            <hr/>
+
+        <div className="staticPageBlockInner flexContainer">
+        <ResponsiveNBox content={
+[['Vayikra', 'Edy and Jacob Kupietzky and Family', ''], ['Tzav', 'Rabbi Ruth Adar', 'In memory of K\'vod HaRav André Zaoui, z"l.'], ['Shmini', 'Joshua and Dinah Foer', ''], ['Tazria', 'Diane & Howard Zack & Family', 'In honor of their parents'], ['Metzora', 'Anne Germanacos', 'To Rabbi Noa Kusher and Rabbi Jessica Kate Meyer in gratitude for their brilliance and resilience during the pandemic, and their friendship in all times.'], ['Achrei Mot', 'Anne Germanacos', 'To Rabbi Noa Kusher and Rabbi Jessica Kate Meyer in gratitude for their brilliance and resilience during the pandemic, and their friendship in all times.'], ['Kedoshim', 'Karine and Michael Bloch', 'In honor of our children Eitan, Yoel, and Tali'], ['Emor', 'Joshua and Dinah Foer', ''], ['Behar ', 'Tamar and Eric Goldstein', 'In honor of Aryeh’s aufruf'], ['Bechukotai ', 'Tamar and Eric Goldstein', 'In honor of Aryeh’s aufruf']]
+.map(i => <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
+        </div>
+            <hr/>
+
+
+        <div className="staticPageBlockInner flexContainer">
+        <ResponsiveNBox content={
+[['Bamidbar', 'The Hiltzik Family', ''], ['Nasso', 'Annoymous Sponsor', 'In honor of Tzeela, Rina Faiga, Dalia and Penina Malka'], ["Beha'alotcha", 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ["Sh'lach", 'Meyer Family', 'In honor of the bar mitzvah of George Meyer'], ['Korach', 'Fred Blau and Maayan Roth', 'In memory of Sarita Blau, loving mother and teacher'], ['Chukat', 'Kevin Waldman', 'In support of Sefaria'], ['Balak', 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ['Pinchas', 'The Berkowitz Family', "In honor of our parent's and grandparent's (Bebe, Bepop, Pop pop, and grandmama) who provide a sense of inspiration and demonstrate a desire to constantly learn more."], ['Matot', 'Shprintzy and Effy', 'Dedicated in memory of the late Mendel Schoenberg, son of the late Naftali Binyamin and Shprintza. Born in Sanok, Poland, in Elul, between the years 5684 and 5686. Passed away at a ripe old age at his home in Brooklyn, New York, on the First Night of Chanukah 5779'], ['Masei', 'Nadine and Beni Gesundheit', '']]
+.map(i => <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
+        </div>
+            <hr/>
+
+
+        <div className="staticPageBlockInner flexContainer">
+        <ResponsiveNBox content={
+[['Devarim', 'Available for Sponsorship', 'mailto:hannah@sefaria.org?subject=Ramban Sponsorship'], ['Vaetchanan', 'Becky and Avi Katz', 'In honor of Sefaria'], ['Eikev', 'Annoymous Sponsor', ''], ["Re'eh", 'Tamar and Eric Goldstein', "In honor of Adin's aufruf"], ['Shoftim', 'Tricia Gibbs', 'In memory of F. Warren Hellman'], ['Ki Tetzei', 'The Katz Family', 'In honor of the victims of Covid-19'], ['Ki Tavo ', 'Rechtschaffen Family', "In honor of the 3rd anniversary of Jordan Rechtscaffen's bar mitzvah"], ['Nitzavim', 'Jeremy Rosenthal', 'In honor of Judy and Stuart Rosenthal, in gratitude for their commitment to a sustained Jewish future.'], ['Vayeilech', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l'], ["Ha'Azinu", 'Mayer', 'In honour of Shalom Rosenzweig, on the occasion of his Bar Mitzvah, October 10, 1992.'], ["V'Zot HaBerachah", 'Elisha Wiesel', 'In memory of Elie Wiesel']]
+.map(i => <ParashaSponsorship title={i[0]} sponsorNames={i[1]} message={i[2]}/>)}/>
+        </div>
+        <Spacer/>
+        <Spacer/>
+        <Spacer/>
+        <div className="staticPageCallToActionFooter">
+        <div className="staticPageBlockInner flexContainer">
+            <div className="callToActionText noButton">
+            <span className="int-en">Interested in sponsoring a parashah? Please email {email_link} for more information.</span>
+            <span className="int-he">Interested in sponsoring a parashah? Please email {email_link} for more information.</span>
+        </div>
+        </div>
+        </div>
+    </StaticPage>
+};
+
 const SheetsLandingPage = () => (
     <StaticPage>
         <Header
@@ -383,7 +453,6 @@ const SheetsLandingPage = () => (
         />
     </StaticPage>
 );
-
 
 const RemoteLearningPage = () => (
     <StaticPage>
@@ -939,11 +1008,15 @@ const PBSC2020LandingPage = () => (
 );
 
 
-const StaticPage = ({children}) => (
-    <div className="staticPage">
+const StaticPage = ({children, optionalClass=""}) => {
+    var staticPageClass = "staticPage";
+    if (optionalClass !== "") {
+        staticPageClass += " " + optionalClass;
+    }
+    return <div className={staticPageClass}>
         {children}
     </div>
-);
+};
 
 const Spacer = ({height}) => <div className={"staticPageSpacer"} style={{height: height || 60}}></div>;
 
@@ -960,24 +1033,30 @@ const H2Block = ({en, he, classes}) =>
         </h2>
     </div>;
 
-const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, enActionURL, enActionText, heActionURL, heActionText}) => (
-    <div className="staticPageHeader">
+const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, enActionURL, enActionText, heActionURL, heActionText}) => {
+    var staticPageHeaderClass = "staticPageHeader"
+    if (enImg === "" && heImg === "") {
+        staticPageHeaderClass += " textOnly";
+    }
+    return <div className={staticPageHeaderClass}>
         <div className="staticPageBlockInner flexContainer">
             <div className="staticPageHeaderTextBox">
                 <h1>
                     <span className="int-en">{enTitle}</span>
                     <span className="int-he">{heTitle}</span>
                 </h1>
-                <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText} />
-                {enActionURL ? <SimpleButton en={enActionText} he={heActionText} href={enActionURL} he_href={heActionURL} white={true}/> : null}
+                <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
+                {enActionURL ?
+                    <SimpleButton en={enActionText} he={heActionText} href={enActionURL} he_href={heActionURL}
+                                  white={true}/> : null}
             </div>
             <div className="staticPageHeaderImg">
-                <img className="int-en" src={enImg} alt={enImgAlt} />
-                <img className="int-he" src={heImg} alt={heImgAlt} />
+                <img className="int-en" src={enImg} alt={enImgAlt}/>
+                <img className="int-he" src={heImg} alt={heImgAlt}/>
             </div>
         </div>
     </div>
-);
+};
 
 const Section = ({children}) =>
     <div className={"staticPageBlockInner staticPageSection"}>
@@ -1011,6 +1090,14 @@ const CallToActionFooterWithButton = ({href, he_href, enText, heText, enButtonTe
         <div className="staticPageBlockInner flexContainer">
             <SimpleInterfaceBlock classes="callToActionText" en={enText} he={heText} />
             <SimpleButton href={href} he_href={he_href} en={enButtonText} he={heButtonText} white={true}/>
+        </div>
+    </div>
+);
+
+const CallToActionFooter = ({enText, heText}) => (
+    <div className="staticPageCallToActionFooter">
+        <div className="staticPageBlockInner flexContainer">
+            <SimpleInterfaceBlock classes="callToActionText noButton" en={enText} he={heText} />
         </div>
     </div>
 );
@@ -1050,6 +1137,24 @@ const ImageWithText = ({enText, heText, enImg, heImg, enImgAlt, heImgAlt}) => (
         </div>
     </div>
 );
+
+
+const ParashaSponsorship = ({title, sponsorNames, message}) => {
+    if (sponsorNames === "Available for Sponsorship") {
+        return <div className="parashaSponsorship">
+            <div className="parashaTitle">{title}</div>
+            <div className="parashaSponsorNames"><a href={message}><b><i>{sponsorNames}</i></b></a></div>
+        </div>
+    }
+    else {
+        return <div className="parashaSponsorship">
+            <div className="parashaTitle">{title}</div>
+            <div className="parashaSponsorNames">{sponsorNames}</div>
+            {message ?
+            <div className="parashaMessage">{message}</div> : null }
+        </div>
+    }
+};
 
 const Feature = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, borderColor, link}) => (
     <div className="feature">
@@ -1112,4 +1217,5 @@ export {
     RemoteLearningPage,
     SheetsLandingPage,
     PBSC2020LandingPage,
+    RambanLandingPage
 }
