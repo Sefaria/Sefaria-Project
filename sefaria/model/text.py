@@ -2640,12 +2640,12 @@ class Ref(object, metaclass=RefCacheType):
 
         self.toSections = self.sections[:]
 
-        address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[0])
+        #retrieve the address class of the last section in the ref
+        address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections)-1])
 
         if hasattr(address_class, "parse_range_end"):
             base_wout_title = base.replace(title + " ", "")
-            end = len(self.index.versionState().content["_all"]["shape"]) #last available section
-            address_class.parse_range_end(self, parts, base_wout_title, end)
+            address_class.parse_range_end(self, parts, base_wout_title)
         elif len(parts) == 2: # Parse range end portion, if it exists
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
             if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[

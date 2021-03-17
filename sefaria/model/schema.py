@@ -2029,43 +2029,60 @@ class AddressTalmud(AddressType):
             return ref._get_normal(lang)
 
     @classmethod
-    def parse_range_end(cls, ref, parts, base, end):
+    def parse_range_end(cls, ref, parts, base):
+        """
+        :param ref: Ref object (example: Zohar 1:2-3)
+        :param parts: list of text of Ref; if Ref is a range, list will be of length 2; otherwise, length 1;
+        if Ref == Zohar 1:2-3, parts = ["Zohar 1:2", "3"]
+        :param base: the Ref string without title; in the above example, base would be "1:2-3"
+        :return:
+        """
         def ref_lacks_amud(part):
             if ref._lang == "he":
                 return re.search(cls.amud_patterns["he"], part) is None
             else:
                 return re.search(cls.amud_patterns["en"] + "{1}$", part) is None
 
-        if len(parts) == 1 and len(ref.sections) == 1:
-            # check for Talmud ref without amud, such as Berakhot 2, we don't want "Berakhot 2a" but "Berakhot 2a-2b"
+        availableTexts = ref.index.versionState().content["_all"]["availableTexts"]
+
+
+        if len(parts) == 1:
+            # check for Talmud ref without amud, such as Berakhot 2 or Zohar 1:2,
+            # we don't want "Berakhot 2a" or "Zohar 1:2a" but "Berakhot 2a-2b" and "Zohar 1:2a-2b"
             # so change toSections if ref_lacks_amud
-            if ref_lacks_amud(base) and ref.toSections[0] < end:
-                # 'end' is last available section, so only increase if
-                # ref_lacks_amud AND ref.toSections is before the end
-                ref.toSections[0] += 1
+            if ref_lacks_amud(base):
+                ref.toSections[-1] += 1
         elif len(parts) == 2:
             ref.toSections = parts[1].split(".")  # this was converting space to '.', for some reason.
-            # 'Shabbat 23a-b'
-            if ref.toSections[0] in ['b', 'B', 'ᵇ']:
-                ref.toSections[0] = ref.sections[0] + 1
 
-            # 'Shabbat 24b-25a'
-            elif re.search(cls.amud_patterns[ref._lang], ref.toSections[0]):
-                ref.toSections[0] = AddressTalmud(0).toNumber(ref._lang, ref.toSections[0])
+            # 'Shabbat 23a-b' or 'Zohar 1:2a-b'
+            if ref.toSections[-1] in ['b', 'B', 'ᵇ']:
+                ref.toSections[-1] = ref.sections[-1] + 1
 
-            # 'Shabbat 7-8' -> 'Shabbat 7a-8b'
-            elif ref_lacks_amud(parts[1]) and len(ref.sections) == len(ref.toSections) == 1:
-                ref.toSections[0] = AddressTalmud(0).toNumber(ref._lang, "{}b".format(ref.toSections[0]))
-                while ref.toSections[0] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
-                    ref.toSections[0] -= 1
+            # 'Shabbat 24b-25a' or 'Zohar 2:24b-25a'
+            elif re.search(cls.amud_patterns[ref._lang], ref.toSections[-1]):
+                ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, ref.toSections[-1])
 
-            # 'Shabbat 24b.12-24'
-            else:
-                delta = len(ref.sections) - len(ref.toSections)
-                for i in range(delta - 1, -1, -1):
-                    ref.toSections.insert(0, ref.sections[i])
+            # 'Shabbat 7-8' -> 'Shabbat 7a-8b'; 'Zohar 3:7-8' -> 'Zohar 3:7a-8b'
+            elif ref_lacks_amud(parts[1]):
+                ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, "{}b".format(ref.toSections[-1]))
 
-            ref.toSections = [int(x) for x in ref.toSections]
+        ref.toSections[0] = int(ref.toSections[0])
+        ref.sections[0] = int(ref.sections[0])
+
+        # below code makes sure toSections doesn't go pass end of section/book
+        if ref.sections[0] == ref.toSections[0] or len(ref.sections) > len(ref.toSections):
+            # for 'Zohar 1:2', 'end' will be last amud in Zohar 1,
+            # and for Berakhot 2a, 'end' will be last amud in Berakhot
+            end = len(availableTexts) if len(ref.sections) == 1 else len(availableTexts[ref.sections[0] - 1])
+        else:
+            # else case is, for example, ref == Zohar 1:14a-3:2a;
+            # in this case, we want to find last amud in Zohar 3
+            end = len(availableTexts) if len(ref.sections) == 1 else len(availableTexts[ref.toSections[0] - 1])
+        while ref.toSections[-1] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
+            ref.toSections[-1] -= 1
+
+
 
 
     def _core_regex(self, lang, group_id=None, **kwargs):
