@@ -819,7 +819,11 @@ const withSefariaSheet = editor => {
 
         // if enter in middle of line in SheetOutsideText insert soft break
         if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetOutsideText") &&
-            !Point.equals(editor.selection.focus, Editor.end(editor, editor.selection.focus.path))) {
+            !(
+                Point.equals(editor.selection.focus, Editor.end(editor, editor.selection.focus.path)) ||
+                Point.equals(editor.selection.focus, Editor.start(editor, editor.selection.focus.path) )
+            )
+        ) {
                 insertBreak()
                 return
             }
