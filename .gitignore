@@ -54,6 +54,7 @@ node_modules
 # Visual Studio Code directory #
 #####################
 /.vscode
+*.code-workspace
 
 # pystest cache #
 #####################
