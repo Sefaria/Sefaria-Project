@@ -2043,9 +2043,6 @@ class AddressTalmud(AddressType):
             else:
                 return re.search(cls.amud_patterns["en"] + "{1}$", part) is None
 
-        availableTexts = ref.index.versionState().content["_all"]["availableTexts"]
-
-
         if len(parts) == 1:
             # check for Talmud ref without amud, such as Berakhot 2 or Zohar 1:2,
             # we don't want "Berakhot 2a" or "Zohar 1:2a" but "Berakhot 2a-2b" and "Zohar 1:2a-2b"
@@ -2056,7 +2053,7 @@ class AddressTalmud(AddressType):
             ref.toSections = parts[1].split(".")  # this was converting space to '.', for some reason.
 
             # 'Shabbat 23a-b' or 'Zohar 1:2a-b'
-            if ref.toSections[-1] in ['b', 'B', 'ᵇ']:
+            if ref.toSections[-1] in ['b', 'B', 'ᵇ', 'ב']:
                 ref.toSections[-1] = ref.sections[-1] + 1
 
             # 'Shabbat 24b-25a' or 'Zohar 2:24b-25a'
@@ -2069,21 +2066,32 @@ class AddressTalmud(AddressType):
 
         ref.toSections[0] = int(ref.toSections[0])
         ref.sections[0] = int(ref.sections[0])
+        if len(ref.sections) == len(ref.toSections) + 1:
+            ref.toSections.insert(0, ref.sections[0])
 
         # below code makes sure toSections doesn't go pass end of section/book
-        if ref.sections[0] == ref.toSections[0] or len(ref.sections) > len(ref.toSections):
-            # for 'Zohar 1:2', 'end' will be last amud in Zohar 1,
-            # and for Berakhot 2a, 'end' will be last amud in Berakhot
-            end = len(availableTexts) if len(ref.sections) == 1 else len(availableTexts[ref.sections[0] - 1])
-        else:
-            # else case is, for example, ref == Zohar 1:14a-3:2a;
+        if len(ref.sections) > 1 and ref.sections[0] != ref.toSections[0]:
+            # this case is, for example, ref == Zohar 1:14a-3:2a;
             # in this case, we want to find last amud in Zohar 3
-            end = len(availableTexts) if len(ref.sections) == 1 else len(availableTexts[ref.toSections[0] - 1])
+            relevant_sections = ref.toSections
+        else:
+            # for 'Zohar 1:2', 'end' will be last amud in Zohar 1,
+            # and for Berakhot 2, 'end' will be last amud in Berakhot
+            relevant_sections = ref.sections
+
+
+        if getattr(ref.index_node, "lengths", None) is None:
+            availableTexts = ref.index.versionState().content["_all"]["availableTexts"]
+            end = len(availableTexts) if len(ref.sections) == 1 else len(availableTexts[relevant_sections[0] - 1])
+        else:
+            end = ref.index_node.lengths[len(ref.sections)-1]
+            if ref.is_bavli():
+                end += 2
+
         while ref.toSections[-1] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
             ref.toSections[-1] -= 1
 
-        if len(ref.sections) == len(ref.toSections) + 1:
-            ref.toSections.insert(0, ref.sections[0])
+
 
 
 
