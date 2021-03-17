@@ -2726,7 +2726,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage hr {
   border-top: 1px solid #ccc;
   width: 50%;
-  margin-top: 30px;
+  margin-top: 60px;
 }
 
 .staticPage .parashaSponsorship {
@@ -2735,7 +2735,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 
 }
 .staticPage .parashaSponsorship .parashaTitle {
-  font-family: Garamond,Baskerville,Baskerville Old Face,Hoefler Text,Times New Roman,serif;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: lighter;
   font-size: 30px;
@@ -2767,6 +2767,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 16px;
   width: 75%;
   padding-top: 25px;
+  line-height: 1.3;
 }
 
 

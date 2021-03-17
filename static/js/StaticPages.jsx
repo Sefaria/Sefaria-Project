@@ -242,12 +242,11 @@ const ContestLandingPage = () => (
 
 
 const RambanLandingPage = () => {
+    const email_link = <a href="mailto:hannah@sefaria.org?Subject=Ramban Sponsorship">hannah@sefaria.org</a>
     return <StaticPage optionalClass="englishOnly">
         <Header
             enTitle="Ramban on Torah: A Translation"
-            enText="Sefaria is thrilled to be able to offer Rabbi Charles Chavel's classic English translation of Ramban (Nachmanides) on Torah
-            to the world.  This historic launch makes a complete version of this work available online for the very first time,
-            and it will remain free for use and re-use under a CC-BY license. We are profoundly grateful to the following donors for making this possible."
+            enText="Sefaria is thrilled to release Rabbi Charles Chavel's classic English translation of Rabbi Moshe ben Nachman (known as Ramban or Nachmanides) on Torah. This historic launch makes a complete bilingual version of Ramban's commentary available online for the very first time, and it will remain free for use and re-use under a CC-BY license. We are profoundly grateful to the following donors for making this possible."
             enActionText="Read the Text"
             enActionURL="/texts/Tanakh/Rishonim%20on%20Tanakh/Ramban"
             heTitle="Ramban on Torah: A Translation"
@@ -298,10 +297,14 @@ const RambanLandingPage = () => {
         <Spacer/>
         <Spacer/>
         <Spacer/>
-        <CallToActionFooter
-            enText="Interested in sponsoring a parashah? Please email hannah@sefaria.org for more information."
-            heText="Interested in sponsoring a parashah? Please email hannah@sefaria.org for more information."
-        />
+        <div className="staticPageCallToActionFooter">
+        <div className="staticPageBlockInner flexContainer">
+            <div className="callToActionText noButton">
+            <span className="int-en">Interested in sponsoring a parashah? Please email {email_link} for more information.</span>
+            <span className="int-he">Interested in sponsoring a parashah? Please email {email_link} for more information.</span>
+        </div>
+        </div>
+        </div>
     </StaticPage>
 };
 
@@ -1135,19 +1138,20 @@ const ImageWithText = ({enText, heText, enImg, heImg, enImgAlt, heImgAlt}) => (
     </div>
 );
 
+
 const ParashaSponsorship = ({title, sponsorNames, message}) => {
     if (sponsorNames === "Available for Sponsorship") {
         return <div className="parashaSponsorship">
             <div className="parashaTitle">{title}</div>
             <div className="parashaSponsorNames"><a href={message}><b><i>{sponsorNames}</i></b></a></div>
-            <div className="parashaMessage"></div>
         </div>
     }
     else {
-                return <div className="parashaSponsorship">
+        return <div className="parashaSponsorship">
             <div className="parashaTitle">{title}</div>
             <div className="parashaSponsorNames">{sponsorNames}</div>
-            <div className="parashaMessage">{message}</div>
+            {message ?
+            <div className="parashaMessage">{message}</div> : null }
         </div>
     }
 };
