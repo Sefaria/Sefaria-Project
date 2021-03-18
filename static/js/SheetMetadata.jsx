@@ -32,11 +32,26 @@ class SheetMetadata extends Component {
       showCollectionsModal: false,
       tags: [],
       suggestions: [],
+      summary: ''
     };
     this.reactTags = React.createRef()
   }
   componentDidMount() {
     this._isMounted = true;
+    const sheet = (this.getSheetFromCache())
+
+    const tags = sheet.topics.map((topic, i) => ({
+          id: i,
+          name: topic["asTyped"]
+        })
+      )
+
+
+    this.setState({
+      tags: tags,
+      summary: sheet.summary,
+    })
+
   }
   componentWillUnmount() {
     this._isMounted = false;
@@ -136,6 +151,9 @@ class SheetMetadata extends Component {
     this.setState({ tags })
   }
 
+  handleSummaryChange(e) {
+    this.setState({summary: event.target.value})
+  }
 
   generateSheetMetaDataButtons() {
     const sheet = this.getSheetFromCache();
@@ -298,7 +316,7 @@ class SheetMetadata extends Component {
                       <p>{sheet.status == "public" ? "Your sheet is published on Sefaria and visible to others through search and topics." : "List your sheet on Sefaria for others to discover."}</p>
                       <hr/>
                       <p className={"smallText"}>Summary</p>
-                      <textarea rows="3" placeholder="Write a short description of your sheet..."></textarea>
+                      <textarea rows="3" placeholder="Write a short description of your sheet..." value={this.state.summary} onChange={this.handleSummaryChange}></textarea>
                       <p className={"smallText"}>Topics</p>
                       <ReactTags
                         ref={this.reactTags}
