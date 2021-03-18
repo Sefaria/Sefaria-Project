@@ -52,7 +52,7 @@ const __filterChildrenByLanguage = (children, language) => {
 const InterfaceText = ({text, html, children, context}) => {
   /**
    * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
-   *  If passed explicit content or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
+   *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
    *  Otherwise:
    * `children` can be the English string, which will be translated with Sefaria._ if needed.
    * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
@@ -98,11 +98,13 @@ InterfaceText.propTypes = {
 };
 
 const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual= false}) => {
-    /**
+  /**
    * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
-   * Takes only children to allow complex html to be fed in
-   * @type {{language: string}}
+   * text {{text: object}} a dictionary {en: "some text", he: "some transalted text"} to use for each language
+   * html {{html: object}} a dictionary {en: "some html", he: "some transalted html"} to use for each language in the case where it needs to be dangerously set html
+   * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
+   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingunal mode, and default them to what the interface language is
    */
   const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
   const contentLanguage = useContext(ContentLanguageContext);
