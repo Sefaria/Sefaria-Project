@@ -1964,10 +1964,10 @@ class CategoryAttribution extends Component {
     var attribution = Sefaria.categoryAttribution(this.props.categories);
     if (!attribution) { return null; }
     var linkedContent = <a href={attribution.link}>
-                          <ContentText text={{en: attribution.english, he: attribution.hebrew }} />
+                          <ContentText text={{en: attribution.english, he: attribution.hebrew }} defaultToInterfaceOnBilingual={true} />
                         </a>;
     var unlinkedContent = <span>
-                            <ContentText text={{en: attribution.english, he: attribution.hebrew }} />
+                            <ContentText text={{en: attribution.english, he: attribution.hebrew }} defaultToInterfaceOnBilingual={true} />
                           </span>;
     return <div className="categoryAttribution">
             {this.props.linked ? linkedContent : unlinkedContent}
