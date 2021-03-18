@@ -2152,6 +2152,8 @@ def flag_text_api(request, title, lang, version):
 
     `language` attributes are not handled.
     """
+    _attributes_to_save = Version.optional_attrs + ["versionSource"]
+
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
         if not key:
@@ -2169,7 +2171,7 @@ def flag_text_api(request, title, lang, version):
         vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
         if flags.get("newVersionTitle"):
             vobj.versionTitle = flags.get("newVersionTitle")
-        for flag in vobj.optional_attrs:
+        for flag in _attributes_to_save:
             if flag in flags:
                 setattr(vobj, flag, flags[flag])
         vobj.save()
@@ -2183,7 +2185,7 @@ def flag_text_api(request, title, lang, version):
             vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
             if flags.get("newVersionTitle"):
                 vobj.versionTitle = flags.get("newVersionTitle")
-            for flag in vobj.optional_attrs:
+            for flag in _attributes_to_save:
                 if flag in flags:
                     setattr(vobj, flag, flags[flag])
             vobj.save()
