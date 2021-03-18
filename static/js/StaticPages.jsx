@@ -248,12 +248,12 @@ const RambanLandingPage = () => {
             enTitle="Ramban on Torah: A Translation"
             enText="Sefaria is thrilled to release Rabbi Charles Chavel's classic English translation of Rabbi Moshe ben Nachman (known as Ramban or Nachmanides) on Torah. This historic launch makes a complete bilingual version of Ramban's commentary available online for the very first time, and it will remain free for use and re-use under a CC-BY license. We are profoundly grateful to the following donors for making this possible."
             enActionText="Read the Text"
-            enActionURL="/Ramban_on_Genesis.1.1?lang=en"
+            enActionURL="/texts/Tanakh/Rishonim%20on%20Tanakh/Ramban"
             heTitle="Ramban on Torah: A Translation"
             heText="Sefaria is thrilled to be able to offer Rabbi Charles Chavel's classic English translation of Ramban (Nachmanides) on Torah
             to the world.  This historic launch makes a complete version of this work available online for the very first time,
             and it will remain free for use and re-use under a CC-BY license. We are profoundly grateful to the following donors for making this possible."
-            heActionURL="/Ramban_on_Genesis.1.1?lang=en"
+            heActionURL="/texts/Tanakh/Rishonim%20on%20Tanakh/Ramban"
             heActionText="Read the Text"
             enImg=""
             heImg=""
