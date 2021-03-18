@@ -17,7 +17,7 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import sanitizeHtml  from 'sanitize-html';
 import Component from 'react-class';
-
+import ReactTags from 'react-tag-autocomplete'
 
 class SheetMetadata extends Component {
   // Menu for the Table of Contents for a single text
@@ -30,7 +30,10 @@ class SheetMetadata extends Component {
       sheetSaves: null,
       sheetLikeAdjustment: 0,
       showCollectionsModal: false,
+      tags: [],
+      suggestions: [],
     };
+    this.reactTags = React.createRef()
   }
   componentDidMount() {
     this._isMounted = true;
@@ -121,6 +124,19 @@ class SheetMetadata extends Component {
       this.setState({showCollectionsModal: !this.state.showCollectionsModal});      
     }
   }
+
+  onTagDelete (i) {
+    const tags = this.state.tags.slice(0)
+    tags.splice(i, 1)
+    this.setState({ tags })
+  }
+
+  onTagAddition (tag) {
+    const tags = [].concat(this.state.tags, tag)
+    this.setState({ tags })
+  }
+
+
   generateSheetMetaDataButtons() {
     const sheet = this.getSheetFromCache();
     return (
@@ -168,8 +184,10 @@ class SheetMetadata extends Component {
   render() {
     const sheet = this.getSheetFromCache();
     const timestampCreated = Date.parse(sheet.dateCreated)/1000;
-    var title = sheet.title;
-    var authorStatement;
+    console.log(sheet)
+    const canEdit = Sefaria._uid == sheet.owner;
+    const title = sheet.title;
+    let authorStatement;
 
     if (sheet.attribution) {
       authorStatement = sheet.attribution;
@@ -186,10 +204,10 @@ class SheetMetadata extends Component {
 
 
     // Text Details
-    var details = sheet.summary;
+    const details = sheet.summary;
 
-    var closeClick = this.props.close;
-    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel, noLangToggleInHebrew: this.props.interfaceLang == 'hebrew'});
+    const closeClick = this.props.close;
+    const classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel, noLangToggleInHebrew: this.props.interfaceLang == 'hebrew'});
 
     return (<div className={classes}>
               <CategoryColorLine category="Sheets" />
@@ -254,9 +272,9 @@ class SheetMetadata extends Component {
                     {this.generateSheetMetaDataButtons()}
 
                     <div className="tocDetails">
-                      {details ? <div className="description" dangerouslySetInnerHTML={ {__html: details} }></div> : null}
+                      {details && !canEdit ? <div className="description" dangerouslySetInnerHTML={ {__html: details} }></div> : null}
                     </div>
-                    {sheet.topics && sheet.topics.length > 0 ?
+                    {sheet.topics && sheet.topics.length > 0 && !canEdit ?
                     <div className="tagsSection">
                         <h2 className="tagsTitle int-en">Tags</h2>
                         <h2 className="tagsTitle int-he">תוית</h2>
@@ -274,6 +292,30 @@ class SheetMetadata extends Component {
                           }
                         </div>
                     </div> : null }
+
+                    {canEdit ? <div className={"publishBox"}>
+                      <h3 className={"header"}>Publish Sheet</h3>
+                      <p>{sheet.status == "public" ? "Your sheet is published on Sefaria and visible to others through search and topics." : "List your sheet on Sefaria for others to discover."}</p>
+                      <hr/>
+                      <p className={"smallText"}>Summary</p>
+                      <textarea rows="3" placeholder="Write a short description of your sheet..."></textarea>
+                      <p className={"smallText"}>Topics</p>
+                      <ReactTags
+                        ref={this.reactTags}
+                        allowNew={true}
+                        tags={this.state.tags}
+                        suggestions={this.state.suggestions}
+                        onDelete={this.onTagDelete.bind(this)}
+                        placeholderText={"Add a topic..."}
+                        onAddition={this.onTagAddition.bind(this)} />
+
+                        <div className={"publishButton"}>
+                        <a href="#" className="button" onClick={this.togglePublish}>
+                          <IntText>{"Publish"}</IntText>
+                        </a>
+                        </div>
+
+                    </div> : null}
 
                   </div>
                 </div>
