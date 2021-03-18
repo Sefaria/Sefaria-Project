@@ -8,6 +8,9 @@
 .interface-hebrew .staticPage {
   direction:rtl;
 }
+.interface-hebrew .staticPage.englishOnly {
+  direction:ltr;
+}
 .static {
   font-size: 16px;
   background-color: #FBFBFA;
@@ -2713,10 +2716,94 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   }
 }
 
+
 /* Static Page Templates */
 
 .staticPage {
   background-color: #fff;
+}
+.staticPage hr {
+  border-top: 1px solid #ccc;
+  margin-top: 60px;
+}
+.staticPage .parashaSponsorship .parashaTitle {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: lighter;
+  font-size: 30px;
+  padding-top: 50px;
+}
+.staticPage .parashaSponsorship .parashaSponsorNames {
+  font-family: Roboto, serif;
+  font-style: normal;
+  font-weight: lighter;
+  font-size: 16px;
+  padding-top: 25px;
+  width: 75%;
+}
+.staticPage .parashaSponsorship .parashaSponsorNames a {
+  text-decoration: none;
+}
+.staticPage .parashaSponsorship .parashaSponsorNames a {
+  text-decoration: none;
+  color: black;
+}
+.staticPage .parashaSponsorship .parashaMessage {
+  font-family: Roboto, serif;
+  font-style: italic;
+  font-weight: lighter;
+  font-size: 16px;
+  width: 75%;
+  padding-top: 25px;
+  line-height: 1.3;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  flex: 7;
+  text-align: center;
+  font-size: 2em;
+}
+.interface-english .staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-right: 10px;
+  padding-top: 10px;
+}
+.interface-hebrew .staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-left: 10px;
+  padding-top: 10px;
+}
+.interface-hebrew .staticPage.englishOnly .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-right: 10px;
+  padding-top: 10px;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderImg {
+display: none;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderImg img {
+display: none;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderText {
+  font-size: 16px;
+  line-height: 22px;
+  padding-bottom: 40px;
+  text-align: left;
+  font-weight: lighter;
+  font-family: Garamond,Baskerville,Baskerville Old Face,Hoefler Text,Times New Roman,serif;
+  max-width: 100%;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox h1 {
+  line-height: 52px;
+  margin: 0 0 14px 0;
+  padding-bottom: 20px;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox h1 .int-en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-weight: lighter;
+  font-size: 46px;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox .simpleButtonWrapper {
+  width: auto;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 40px;
 }
 .staticPage .staticPageBlockInner {
   width: 800px;
@@ -2766,7 +2853,18 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 30px;
   line-height: 36px;
   width: 50%;
-}.staticPage .staticPageCallToActionFooter .callToActionText .int-en {
+}
+.staticPage .staticPageCallToActionFooter .callToActionText a {
+  color: inherit;
+}
+.staticPage .staticPageCallToActionFooter .callToActionText a {
+
+}
+.staticPage .staticPageCallToActionFooter .callToActionText.noButton {
+  width: 100%;
+  text-align: center;
+}
+.staticPage .staticPageCallToActionFooter .callToActionText .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .staticPage .staticPageCallToActionFooter .newsletterSignUpBox .subscribeMessage {
@@ -2775,15 +2873,20 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .staticPageHeader .staticPageHeaderTextBox {
   flex: 7;
 }
+
 .staticPage .staticPageHeader .staticPageHeaderImg {
   flex: 9;
   min-height: 290px;
 }
+
 .interface-english .staticPage .staticPageHeader .staticPageHeaderTextBox {
   padding-right: 10px;
 }
 .interface-hebrew .staticPage .staticPageHeader .staticPageHeaderTextBox {
   padding-left: 10px;
+}
+.interface-hebrew .staticPage.englishOnly .staticPageHeader .staticPageHeaderTextBox {
+  padding-right: 10px;
 }
 .staticPage .staticPageH2 {
   padding: 55px 0 10px;
@@ -2853,6 +2956,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   width: 66%;
   padding-bottom: 80px;
 }
+
 .staticPage .simpleButtonWrapper .button {
   border-radius: 0;
   min-height: 47px;
@@ -2875,16 +2979,20 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPageHeader h1 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
+
 .staticPageHeaderText {
   font-size: 16px;
   max-width: 280px;
   line-height: 22px;
   padding-bottom: 25px;
 }
+
+
 .staticPageHeaderImg img {
   width: 100%;
   display: block;
 }
+
 .staticPageAbout {
   padding: 50px 0;
 }
@@ -2959,13 +3067,14 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   .staticPage .staticPageH2 {
     width: 100%;
   }
-  .staticPageCallToActionFooter .simpleButtonWrapper,
+  .staticPageFooter .simpleButtonWrapper,
   .staticPage .feature .featureImage {
     padding-top: 30px;
   }
   .staticPage .staticPageHeader .staticPageHeaderImg {
     margin-top: 20px;
   }
+
   .staticPage .simpleButtonWrapper,
   .staticPage .feature .featureText,
   .staticPage .feature .featureImage,

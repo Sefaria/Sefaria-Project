@@ -41,7 +41,7 @@ def modify_text(user, oref, vtitle, lang, text, vsource=None, **kwargs):
     return chunk
 
 
-def modify_bulk_text(user:int, version:model.Version, text_map: dict, vsource=None, **kwargs) -> None:
+def modify_bulk_text(user:int, version:model.Version, text_map: dict, vsource=None, **kwargs) -> dict:
     """
     user: user ID of user making modification
     version: version object of text being modified
@@ -70,13 +70,19 @@ def modify_bulk_text(user:int, version:model.Version, text_map: dict, vsource=No
         version.versionSource = vsource  # todo: log this change
 
     # modify version in place
+    error_map = {}
     for _, new_text, oref in change_map.values():
-        version.sub_content_with_ref(oref, new_text)
-    
+        try:
+            version.sub_content_with_ref(oref, new_text)
+        except Exception as e:
+            error_map[oref.normal()] = f"Ref doesn't match schema of version. Exception: {repr(e)}"
     version.save()
 
     for old_text, new_text, oref in change_map.values():
-        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, version._id)
+        if oref.normal() in error_map: continue
+        post_modify_text(user, kwargs.get("type"), oref, version.language, version.versionTitle, old_text, new_text, version._id, **kwargs)
+
+    return error_map
 
 
 def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, version_id, **kwargs) -> None:
@@ -98,6 +104,28 @@ def post_modify_text(user, action, oref, lang, vtitle, old_text, curr_text, vers
 
         if USE_VARNISH:
             invalidate_linked(oref)
+    
+    count_and_index(oref, lang, vtitle, to_count=kwargs.get("count_after", 1))
+
+
+def count_and_index(oref, lang, vtitle, to_count=1):
+    from sefaria.settings import SEARCH_INDEX_ON_SAVE, MULTISERVER_ENABLED
+    from sefaria.system.multiserver.coordinator import server_coordinator
+
+    # count available segments of text
+    if to_count:
+        model.library.recount_index_in_toc(oref.index)
+        if MULTISERVER_ENABLED:
+            server_coordinator.publish_event("library", "recount_index_in_toc", [oref.index.title])
+
+    
+    if SEARCH_INDEX_ON_SAVE:
+        model.IndexQueue({
+            "ref": oref.normal(),
+            "lang": lang,
+            "version": vtitle,
+            "type": "ref",
+        }).save()
 
 
 def add(user, klass, attrs, **kwargs):

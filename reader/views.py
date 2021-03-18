@@ -1200,22 +1200,46 @@ def interface_language_redirect(request, language):
     return response
 
 
-#todo: is this used elsewhere? move it?
-def count_and_index(c_oref, c_lang, vtitle, to_count=1):
-    # count available segments of text
-    if to_count:
-        library.recount_index_in_toc(c_oref.index)
-        if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("library", "recount_index_in_toc", [c_oref.index.title])
+@catch_error_as_json
+@csrf_exempt
+def modify_bulk_text_api(request, title):
+    title = title.replace('_', ' ')
+    if request.method == "POST":
+        skip_links = request.GET.get("skip_links", False)
+        count_after = int(request.GET.get("count_after", 0))
+        j = request.POST.get("json")
+        if not j:
+            return jsonResponse({"error": "Missing 'json' parameter in post data."})
+        t = json.loads(j)
+        versionTitle = t['versionTitle']
+        language = t['language']
+        versionSource = t.get("versionSource", None)
+        version = Version().load({"title": title, "versionTitle": versionTitle, "language": language})
+        if version is None:
+            return jsonResponse({"error": f"Version does not exist. Title: {title}, VTitle: {versionTitle}, Language: {language}"})
 
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
-        IndexQueue({
-            "ref": c_oref.normal(),
-            "lang": c_lang,
-            "version": vtitle,
-            "type": "ref",
-        }).save()
+        def modify(uid):
+            error_map = tracker.modify_bulk_text(uid, version, t['text_map'], vsource=versionSource, skip_links=skip_links, count_after=count_after)
+            response = {"status": "ok"}
+            if len(error_map) > 0:
+                response["status"] = "some refs failed"
+                response["ref_error_map"] = error_map
+            return response
+
+        if not request.user.is_authenticated:
+            key = request.POST.get("apikey")
+            if not key:
+                return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return jsonResponse({"error": "Unrecognized API key."})
+            return jsonResponse(modify(apikey['uid']))
+        else:
+            @csrf_protect
+            def protected_post(request):
+                return jsonResponse(modify(request.user.id))
+            return protected_post(request)        
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1320,6 +1344,8 @@ def texts_api(request, tref):
 
         oref = oref.default_child_ref()  # Make sure we're on the textual child
         skip_links = request.GET.get("skip_links", False)
+        count_after = int(request.GET.get("count_after", 0))
+
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
@@ -1328,17 +1354,13 @@ def texts_api(request, tref):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             t = json.loads(j)
-            chunk = tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API", skip_links=skip_links)
-            count_after = int(request.GET.get("count_after", 0))
-            count_and_index(oref, chunk.lang, chunk.vtitle, count_after)
+            tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API", skip_links=skip_links, count_after=count_after)
             return jsonResponse({"status": "ok"})
         else:
             @csrf_protect
             def protected_post(request):
                 t = json.loads(j)
-                chunk = tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t.get("versionSource", None), skip_links=skip_links)
-                count_after = int(request.GET.get("count_after", 1))
-                count_and_index(oref, chunk.lang, chunk.vtitle, count_after)
+                tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t.get("versionSource", None), skip_links=skip_links, count_after=count_after)
                 return jsonResponse({"status": "ok"})
             return protected_post(request)
 
@@ -2130,6 +2152,8 @@ def flag_text_api(request, title, lang, version):
 
     `language` attributes are not handled.
     """
+    _attributes_to_save = Version.optional_attrs + ["versionSource"]
+
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
         if not key:
@@ -2147,7 +2171,7 @@ def flag_text_api(request, title, lang, version):
         vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
         if flags.get("newVersionTitle"):
             vobj.versionTitle = flags.get("newVersionTitle")
-        for flag in vobj.optional_attrs:
+        for flag in _attributes_to_save:
             if flag in flags:
                 setattr(vobj, flag, flags[flag])
         vobj.save()
@@ -2161,7 +2185,7 @@ def flag_text_api(request, title, lang, version):
             vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
             if flags.get("newVersionTitle"):
                 vobj.versionTitle = flags.get("newVersionTitle")
-            for flag in vobj.optional_attrs:
+            for flag in _attributes_to_save:
                 if flag in flags:
                     setattr(vobj, flag, flags[flag])
             vobj.save()
