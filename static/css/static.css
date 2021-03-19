@@ -2732,6 +2732,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-weight: lighter;
   font-size: 30px;
   padding-top: 50px;
+  display: block;
+}
+.staticPage .parashaSponsorship .parashaTitle:hover {
+  color: black;
+  text-decoration: none;
 }
 .staticPage .parashaSponsorship .parashaSponsorNames {
   font-family: Roboto, serif;
