@@ -6298,6 +6298,13 @@ a .button:hover {
   text-align: end;
 }
 
+.publishBox .publishButton .button.published {
+  background-color: #EDEDEC;
+  border: 1px solid #CCCCCC;
+  color: #666666
+}
+
+
 .publishBox p {
   margin-bottom: 9px;
  }

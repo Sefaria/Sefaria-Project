@@ -32,7 +32,9 @@ class SheetMetadata extends Component {
       showCollectionsModal: false,
       tags: [],
       suggestions: [],
-      summary: ''
+      summary: '',
+      published: null,
+      lastModified: null,
     };
     this.reactTags = React.createRef()
   }
@@ -43,7 +45,7 @@ class SheetMetadata extends Component {
     const tags = sheet.topics.map((topic, i) => ({
           id: i,
           name: topic["asTyped"],
-          slug: topic["slug"]
+          slug: topic["slug"],
         })
       )
 
@@ -51,6 +53,9 @@ class SheetMetadata extends Component {
     this.setState({
       tags: tags,
       summary: sheet.summary,
+      published: sheet.status == "public",
+      lastModified: sheet.dateModified,
+
     })
 
   }
@@ -82,22 +87,55 @@ class SheetMetadata extends Component {
   onDataLoad(data) {
     this.forceUpdate();
   }
+  updateSheetTags() {
+
+  }
+
+  togglePublish() {
+    const newPublishState = this.state.published ? "unlisted" : "public";
+    let updatedSheet = Sefaria.util.clone(this.loadSheetData(this.props.id))
+    updatedSheet.status = newPublishState;
+    updatedSheet.lastModified = this.state.lastModified;
+    delete updatedSheet._id;
+    this.setState({published: !this.state.published})
+    const postJSON = JSON.stringify(updatedSheet);
+    this.postSheet(postJSON);
+
+  }
+
+
+  loadSheetData(sheetID) {
+    if (Sefaria.sheets.loadSheetByID(sheetID)) {
+        return(Sefaria.sheets.loadSheetByID(sheetID));
+    }
+    else {
+      Sefaria.sheets.loadSheetByID(sheetID, (data) => {
+          return(data);
+      });
+    }
+  }
+
   copySheet() {
     if (!Sefaria._uid) {
         this.props.toggleSignUpModal();
     } else if (this.state.sheetCopyStatus == "Copy") {
         this.setState({sheetCopyStatus: "Copying..."});
-        if (Sefaria.sheets.loadSheetByID(this.props.id)) {
-            var data = Sefaria.sheets.loadSheetByID(this.props.id)
-            this.filterAndSaveCopiedSheetData(data);
-        }
-        else {
-          Sefaria.sheets.loadSheetByID(this.props.id, (data) => {
-              this.filterAndSaveCopiedSheetData(data);
-          });
-        }
+        this.filterAndSaveCopiedSheetData(this.loadSheetData(this.props.id))
     }
   }
+
+  postSheet(postJSON) {
+    $.post("/api/sheets/", {"json": postJSON}, (data) => {
+        if (data.id)  {
+          this.setState({lastModified: data.dateModified})
+          console.log('w00t')
+
+        } else if ("error" in data) {
+            console.log(data.error);
+        }
+    })
+  }
+
   filterAndSaveCopiedSheetData(data) {
     var newSheet = Sefaria.util.clone(data);
     newSheet.status = "unlisted";
@@ -327,7 +365,7 @@ class SheetMetadata extends Component {
 
                     {canEdit ? <div className={"publishBox"}>
                       <h3 className={"header"}>Publish Sheet</h3>
-                      <p>{sheet.status == "public" ? "Your sheet is published on Sefaria and visible to others through search and topics." : "List your sheet on Sefaria for others to discover."}</p>
+                      <p>{this.state.published ? "Your sheet is published on Sefaria and visible to others through search and topics." : "List your sheet on Sefaria for others to discover."}</p>
                       <hr/>
                       <p className={"smallText"}>Summary</p>
                       <textarea rows="3" placeholder="Write a short description of your sheet..." value={this.state.summary} onChange={this.handleSummaryChange}></textarea>
@@ -345,8 +383,8 @@ class SheetMetadata extends Component {
                       />
 
                         <div className={"publishButton"}>
-                        <a href="#" className="button" onClick={this.togglePublish}>
-                          <IntText>{"Publish"}</IntText>
+                        <a href="#" className={this.state.published ? "button published" : "button"} onClick={this.togglePublish}>
+                          <IntText>{this.state.published ? "Unpublish" : "Publish"}</IntText>
                         </a>
                         </div>
 
