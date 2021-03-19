@@ -6295,11 +6295,51 @@ a .button:hover {
 
 .publishBox .publishButton {
   margin: 18px 0 28px 0;
+  text-align: end;
 }
 
 .publishBox p {
   margin-bottom: 9px;
  }
+
+.publishBox .react-tags__suggestions ul {
+  position: absolute;
+  left:0;
+  top: 100%;
+  margin: 4px -1px;
+  padding: 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  min-width: 300px;
+}
+
+.publishBox .react-tags__suggestions li {
+  border-bottom: none;
+  padding: 6px 8px;
+}
+
+.publishBox .react-tags__suggestions li mark {
+  text-decoration: none;
+  background: none;
+  font-weight: normal;
+}
+
+.publishBox .react-tags__suggestions li:hover {
+  cursor: pointer;
+  background: #eee;
+}
+
+.publishBox .react-tags__suggestions li.is-active {
+  background: #b7cfe0;
+}
+
+.publishBox .react-tags__suggestions li.is-disabled {
+  opacity: 0.5;
+  cursor: auto;
+}
+
 
 .editorSidebarToggle {
   position: fixed;

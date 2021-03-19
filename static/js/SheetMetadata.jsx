@@ -42,7 +42,8 @@ class SheetMetadata extends Component {
 
     const tags = sheet.topics.map((topic, i) => ({
           id: i,
-          name: topic["asTyped"]
+          name: topic["asTyped"],
+          slug: topic["slug"]
         })
       )
 
@@ -151,7 +152,21 @@ class SheetMetadata extends Component {
     this.setState({ tags })
   }
 
-  handleSummaryChange(e) {
+  updateSuggestedTags(input) {
+    if (input == "") return
+    Sefaria.getName(input, false, 0).then(d => {
+      const topics = d.completion_objects
+          .filter(obj => obj.type === "Topic")
+          .map((filteredObj, index) => ({
+            id: index,
+            name: filteredObj.title
+          })
+      )
+      return topics
+    }).then(topics => this.setState({suggestions: topics}))
+  }
+
+  handleSummaryChange(event) {
     this.setState({summary: event.target.value})
   }
 
@@ -202,7 +217,6 @@ class SheetMetadata extends Component {
   render() {
     const sheet = this.getSheetFromCache();
     const timestampCreated = Date.parse(sheet.dateCreated)/1000;
-    console.log(sheet)
     const canEdit = Sefaria._uid == sheet.owner;
     const title = sheet.title;
     let authorStatement;
@@ -325,7 +339,10 @@ class SheetMetadata extends Component {
                         suggestions={this.state.suggestions}
                         onDelete={this.onTagDelete.bind(this)}
                         placeholderText={"Add a topic..."}
-                        onAddition={this.onTagAddition.bind(this)} />
+                        delimiters={["Enter", "Tab", ","]}
+                        onAddition={this.onTagAddition.bind(this)}
+                        onInput={this.updateSuggestedTags.bind(this)}
+                      />
 
                         <div className={"publishButton"}>
                         <a href="#" className="button" onClick={this.togglePublish}>
