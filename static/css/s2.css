@@ -15,6 +15,9 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+a{
+  color: inherit;
+}
 /*
 Style Guide Font Hierarchy
 https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
@@ -30,14 +33,14 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   font-family: "Heebo", sans-serif;
   direction: rtl;
 }
-.int-he.but-text-is-en {
+.int-he.enInHe {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   direction: ltr;
 }
 .int-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.int-en.but-text-is-he {
+.int-en.heInEn {
   font-family: "Heebo", sans-serif;
   direction: rtl;
 }
@@ -48,11 +51,17 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   color: #000;
 }
 .pageTitle .int-en,
-.pageTitle .int-he.but-text-is-en {
+.pageTitle .int-he.enInHe {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 30px;
   font-weight: normal;
   color: #000;
+}
+.readerPanel.hebrew .he .enInHe {
+  font-size: 83%;
+}
+.enInHe{
+  unicode-bidi: isolate;
 }
 .chapterText .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -74,14 +83,14 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   letter-spacing: 0.1em;
 }
 .smallText .int-en,
-.smallText .int-he.but-text-is-en {
+.smallText .int-he.enInHe {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   font-weight: normal;
   color: #999;
 }
 .systemText .int-en,
-.systemText .int-he.but-text-is-en {
+.systemText .int-he.enInHe {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   font-weight: normal;
@@ -102,7 +111,7 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   color: #000;
 }
 .pageTitle .int-he,
-.pageTitle .int-en.but-text-is-he {
+.pageTitle .int-en.heInEn {
   font-family: "Heebo", sans-serif;
   font-size: 30px;
   font-weight: normal;
@@ -125,14 +134,14 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   letter-spacing: 0.1em;
 }
 .smallText .int-he,
-.smallText .int-en.but-text-is-he {
+.smallText .int-en.heInEn {
   font-family: "Heebo", sans-serif;
   font-size: 13px;
   font-weight: normal;
   color: #999;
 }
 .systemText .int-he,
-.systemText .int-en.but-text-is-he {
+.systemText .int-en.heInEn {
   font-family: "Heebo", sans-serif;
   font-size: 16px;
   font-weight: normal;
@@ -1049,12 +1058,6 @@ input.noselect {
   display: inline;
   text-align: right;
 }
-.readerPanel.hebrew .he .enInHe {
-  font-size: 83%;
-}
-.enInHe{
-  unicode-bidi: isolate;
-}
 .readerPanel .recentPanel .sheetLink.recentItem .he{
   font-family: "adobe-garamond-pro", "Taamey Frank", "Crimson Text", Georgia, serif;
 }
@@ -1412,7 +1415,7 @@ input.noselect {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 36px;
 }
-.pageTitle .topicTitleInHe .but-text-is-he {
+.pageTitle .topicTitleInHe .heInEn {
   color: #888;
   font-size: 20px;
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -1859,6 +1862,7 @@ a.readerNavCategory {
   align-items: inherit;
   flex-direction: column;
 }
+
 .readerNavCategoryMenu .blockLink,
 .gridBox .navButton {
   display: flex;
@@ -1895,6 +1899,7 @@ a.readerNavCategory {
   width: 100%;
   height: 100%;
   padding: 13px 8px 19px;
+  display: inline-block;
 }
 .readerNavMenu .readerNavCategoryMenu .blockLink.incomplete {
   opacity: 0.65;
@@ -2304,14 +2309,34 @@ a.readerNavCategory {
 .readerTextTableOfContents .content .schema-node-toc {
   display: block;
 }
+.readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title:after {
+  content: "\f105";
+  display: inline-block;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: FontAwesome;
+  margin-inline-start: 8px;
+}
+.readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+  content: "\f107";
+}
+.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title:after,
+.readerApp.interface-hebrew .readerTextTableOfContents.noLangToggleInHebrew .content .schema-node-toc:not(.linked) > .schema-node-title:after {
+  content: "\f104";
+  font-size: 122%;
+  margin-inline-start: 9px;
+}
+.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after,
+.readerApp.interface-hebrew .readerTextTableOfContents.noLangToggleInHebrew .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+  content: "\f107";
+}
 .readerTextTableOfContents .content .schema-node-contents.closed {
   display: none;
 }
 .readerTextTableOfContents .content .schema-node-toc .schema-node-contents.closed {
   display: block;
-}
-.readerTextTableOfContents .content .schema-node-control {
-  margin: 0 4px;
 }
 .readerTextTableOfContents .content .tocLevel {
   display: block;
@@ -3321,6 +3346,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc a:hover {
   text-decoration: none;
 }
+.readerControls .readerTextToc .readerTextTocBox h1 {
+    display: unset;
+    font-size: unset;
+    font-weight: unset;
+    margin-block-start: unset;
+    margin-block-end: unset;
+}
 .readerControls .readerTextToc .readerTextTocBox a {
   display: flex;
   align-items: center;
@@ -3463,11 +3495,22 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerTextTocHeader.readerTextToc {
   font-size: 16px;
 }
-.hebrew .readerControls .readerTextToc {
-  direction: rtl;
+.readerControls .readerTextToc{
   min-width: 0;
 }
-.hebrew .readerControls .readerTextToc .readerTextTocBox,
+.hebrew .readerControls .readerTextToc {
+  direction: rtl;
+}
+.english .readerControls .readerTextToc {
+  direction: ltr;
+}
+.interface-english .bilingual .readerControls .readerTextToc {
+  direction: ltr;
+}
+.interface-hebrew .bilingual .readerControls .readerTextToc {
+  direction: rtl;
+}
+
 .interface-hebrew .bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox,
 .interface-hebrew .english .readerControls .readerTextToc .readerTextTocBox.sheetBox {
   padding-left: 23px;
@@ -3505,9 +3548,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .fa.invisible {
   visibility: hidden;
 }
-.bilingual .readerTextToc .he {
+/*.bilingual .readerTextToc .he {
   display: none;
-}
+}*/
 .readerOptions img {
   height: 16px;
 }
@@ -3709,7 +3752,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .dark .textRange.basetext .title .titleBox, .dark .sheetContent .title .titleBox {
   border-bottom: 4px solid #666;
 }
-.bilingual .textRange.basetext .title .he, .bilingual .sheetContent .title .he {
+.bilingual .sheetContent .title .he {
   display: none;
 }
 .interface-hebrew .readerPanel.english .textRange,
@@ -3745,9 +3788,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .parashahHeader.aliyah span {
   text-transform: uppercase;
 }
-.bilingual .parashahHeader .he {
-  display: none;
-}
 .title + .text span:first-child .parashahHeader {
   margin-top: -5px;
 }
@@ -3771,8 +3811,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .continuous .clearFix {
   display: none;
 }
+.segment .segmentText{
+  display: inline;
+}
 .segment > .he,
-.segment > .en {
+.segment > .en,
+.segment > p > .he,
+.segment > p > .en {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -3780,32 +3825,41 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 26px;
 }
 .bilingual .segment > .he,
-.bilingual .segment > .en {
+.bilingual .segment > .en,
+.bilingual .segment > p > .he,
+.bilingual .segment > p > .en {
   display: block;
 }
-.bilingual .segment > .en {
+.bilingual .segment > .en ,
+.bilingual .segment > p > .en {
   text-align: left;
 }
-.bilingual .segment > .he {
+.bilingual .segment > .he,
+.bilingual .segment > p > .he {
   text-align: right;
 }
 .stacked.bilingual .basetext .segment {
   margin-bottom: 14px;
   display: block;
 }
-.stacked.bilingual .segment > .en {
+.stacked.bilingual .segment > .en,
+.stacked.bilingual .segment > p > .en {
   margin-top: 6px;
   text-align: left;
 }
-.stacked.bilingual .sheetContent .segment > .en {
+.stacked.bilingual .sheetContent .segment > .en,
+.stacked.bilingual .sheetContent .segment > p > .en {
   margin-top: 0;
 }
-.stacked.bilingual .basetext .segment > .en {
+.stacked.bilingual .basetext .segment > .en ,
+.stacked.bilingual .basetext .segment > p > .en {
   margin: 10px 0 20px;
   color: #666;
 }
 .stacked.bilingual .segment.heOnly > .he,
-.stacked.bilingual .segment.enOnly > .en {
+.stacked.bilingual .segment.enOnly > .en,
+.stacked.bilingual .segment.heOnly > p > .he,
+.stacked.bilingual .segment.enOnly > p > .en {
   display: block;
 }
 .heLeft.bilingual .basetext .text,
@@ -3814,10 +3868,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heRight.bilingual .sheetContent .text {
   padding: 0;
 }
+
 .heLeft.bilingual .segment > .en,
 .heLeft.bilingual .segment > .he,
 .heRight.bilingual .segment > .en,
-.heRight.bilingual .segment > .he {
+.heRight.bilingual .segment > .he,
+.heLeft.bilingual .segment > p > .en,
+.heLeft.bilingual .segment > p > .he,
+.heRight.bilingual .segment > p > .en,
+.heRight.bilingual .segment > p > .he {
   width: 50%;
   box-sizing: border-box;
   display: block;
@@ -3825,30 +3884,42 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heLeft.bilingual .sheetItem.enOnly > .en,
 .heLeft.bilingual .sheetItem.heOnly > .he,
 .heRight.bilingual .sheetItem.enOnly > .en,
-.heRight.bilingual .sheetItem.heOnly > .he {
+.heRight.bilingual .sheetItem.heOnly > .he,
+.heLeft.bilingual .sheetItem.enOnly > p > .en,
+.heLeft.bilingual .sheetItem.heOnly > p > .he,
+.heRight.bilingual .sheetItem.enOnly > p > .en,
+.heRight.bilingual .sheetItem.heOnly > p > .he {
   width: 100%;
   padding-right: 0;
   padding-left: 0;
 }
-.readerPanel .sheetItem.heOnly > .en {
+.readerPanel .sheetItem.heOnly > .en,
+.readerPanel .sheetItem.heOnly > p > .en {
   display: none;
 }
-.readerPanel .sheetItem.heOnly > .he {
+.readerPanel .sheetItem.heOnly > .he,
+.readerPanel .sheetItem.heOnly > p > .he {
   display: block;
 }
-.readerPanel .sheetItem.enOnly > .he {
+.readerPanel .sheetItem.enOnly > .he,
+.readerPanel .sheetItem.enOnly > p > .he {
   display: none;
 }
-.readerPanel .sheetItem.enOnly > .en {
+.readerPanel .sheetItem.enOnly > .en,
+.readerPanel .sheetItem.enOnly > p > .en {
   display: block;
 }
 .heLeft.bilingual .segment > .en,
-.heRight.bilingual .segment > .he {
+.heRight.bilingual .segment > .he ,
+.heLeft.bilingual .segment > p > .en,
+.heRight.bilingual .segment > p > .he {
   float: right;
   padding-left: 20px;
 }
 .heRight.bilingual .segment > .en,
-.heLeft.bilingual .segment > .he {
+.heLeft.bilingual .segment > .he,
+.heRight.bilingual .segment > p > .en,
+.heLeft.bilingual .segment > p > .he {
   float: left;
   padding-right: 20px;
 }
@@ -3983,20 +4054,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .bilingual .numberLabel .numberLabelInner {
   margin-top: 0;
 }
-.bilingual .segmentNumber .he,
-.bilingual .linkCount .he,
-.bilingual .numberLabel .he {
-  display: none;
-}
 .segment .segmentNumber,
 .segment .linkCount {
   display: none;
   line-height: 1.4;
 }
+.hebrew .segment .segmentNumber,
+.hebrew .segment .linkCount {
+  display: none;
+  line-height: 1.6;
+}
 .sheetContent .segment .linkCount {
   display: inline-block;
 }
 .segment .segmentNumber .segmentNumberInner,
+.segment .segmentNumber .segmentNumberInner .he,
 .textRange .numberLabel .numberLabelInner {
   font-size: 12px;
   vertical-align: middle;
@@ -4454,9 +4526,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .filterInner {
   display: flex;
-}
-.filterInner .filterText {
-  flex: 1;
+  justify-content: space-between;
 }
 .categoryFilterGroup.withBooks {
   border-bottom: 1px solid #E5E5E5;
@@ -5071,6 +5141,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 16px;
   letter-spacing: 1px;
   padding: 20px 34px;
+}
+.toolsButton .toolsButtonText .connectionsCount::before{
+  content: " ";
 }
 .topicList.topicsHe {
   direction: rtl;
@@ -7401,11 +7474,6 @@ span.purim-emoji img{
 .bookMetaDataBox {
   margin: 40px auto;
   text-align: center;
-}
-.bilingual .bookMetaDataBox .he,
-.english .bookMetaDataBox .he,
-.hebrew .bookMetaDataBox .en {
-  display: none;
 }
 .sheetContent .sheetItem.segment .sourceContentText {
   margin-bottom: 18px;

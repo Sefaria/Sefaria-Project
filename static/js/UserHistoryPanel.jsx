@@ -6,7 +6,7 @@ import {
   TextBlockLink,
   LanguageToggleButton,
   LoadingMessage,
-  IntText,
+  InterfaceText,
 } from './Misc';
 import React  from 'react';
 import PropTypes  from 'prop-types';
@@ -99,7 +99,7 @@ class UserHistoryPanel extends Component {
               <h1>
               {this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null}
-              <IntText>{ title }</IntText>
+              <InterfaceText>{ title }</InterfaceText>
             </h1>
             : null }
             { content }

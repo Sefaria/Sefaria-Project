@@ -1,5 +1,5 @@
 //const React      = require('react');
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
 import { CollectionsModal } from "./CollectionsWidget";
@@ -7,33 +7,118 @@ import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component from 'react-class';
-import { usePaginatedDisplay } from './Hooks'
+import { usePaginatedDisplay } from './Hooks';
+import {ContentLanguageContext} from './context';
 import ReactCrop from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 
-// interface text that can fallback to alternate langauge if current language doesn't have content
-const InterfaceTextWithFallback = ({ en, he, isItalics, endContent }) => (
-  <span>
-    <span className={classNames({"int-en": 1, "but-text-is-he": !en, italics: isItalics && isItalics.en })}>{en || he}{endContent}</span>
-    <span className={classNames({"int-he": 1, "but-text-is-en": !he, italics: isItalics && isItalics.he })}>{he || en}{endContent}</span>
-  </span>
+/**
+ * Component meant to simply denote a language specific string to go inside an InterfaceText element
+ * ```
+ * <InterfaceText>
+ *     <EnglishText>lorem ipsum</EnglishText>
+ *     <HebrewText>lorem ipsum</HebrewText>
+ * </InterfaceText>
+ * ```
+ * @param children
+ * @returns {JSX.Element}
+ * @constructor
+ */
+const HebrewText = ({children}) => (
+    <>{children}</>
+);
+const EnglishText = ({children}) => (
+    <>{children}</>
 );
 
+const AvailableLanguages = () => {
+  return {"english" : EnglishText, "hebrew": HebrewText};
+};
+const AvailableLanguagesValidator = (children, key, componentName, location, propFullName) => {
+    if (!(children[key].type && (Object.values(AvailableLanguages()).indexOf(children[key].type) != -1) )) {
+      return new Error(
+        'Invalid prop `' + propFullName + '` supplied to' +
+        ' `' + componentName + '`. Validation failed.'
+      );
+    }
+};
+const __filterChildrenByLanguage = (children, language) => {
+  let chlArr = React.Children.toArray(children);
+  let currLangComponent = AvailableLanguages()[language];
+  let newChildren = chlArr.filter(x=> x.type == currLangComponent);
+  return newChildren;
+};
 
-const IntText = ({className, children, en, he}) => {
-  // Renders a single span for interface string with either class `int-en`` or `int-he`
-  // depending on Sefaria.interfaceLang.
-  // `children` is the English string, which will be translated with Sefaria._ if needed.
-  // If `en` and `he` are explicitly passed, use them intead of tryingt o translate `children`.
+const InterfaceText = ({text, html, children, context}) => {
+  /**
+   * Renders a single span for interface string with either class `int-en`` or `int-he` depending on Sefaria.interfaceLang.
+   *  If passed explicit text or html objects as props with "en" and/or "he", will only use those to determine correct text or fallback text to display.
+   *  Otherwise:
+   * `children` can be the English string, which will be translated with Sefaria._ if needed.
+   * `children` can also take the form of <LangText> components above, so they can be used for longer paragrpahs or paragraphs containing html, if needed.
+   * `context` is passed to Sefaria._ for additional translation context
+   */
+  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
   const isHebrew = Sefaria.interfaceLang === "hebrew";
-  const cls = classNames({"int-en": !isHebrew, "int-he": isHebrew}) + (className ? " " + className : "");
-  let text;
-  if (en && he) {
-    text = isHebrew ? he : en;
-  } else {
-    text = Sefaria._(children);
+  let elemclasses = classNames({"int-en": !isHebrew, "int-he": isHebrew});
+  let textResponse = null;
+  if (contentVariable) {// Prioritze explicit props passed in for text of the element, does not attempt to use Sefaria._() for this case
+    let {he, en} = contentVariable;
+    textResponse = isHebrew ? (he || en) : (en || he);
+    let fallbackCls = (isHebrew && !he) ? "enInHe" : ((!isHebrew && !en) ? "heInEn" : "" );
+    elemclasses += fallbackCls;
+  }else{ // Also handle composition with children
+    const chlCount = React.Children.count(children);
+    if (chlCount == 1) { // Same as passing in a `en` key but with children syntax
+      textResponse = Sefaria._(children, context);
+    }else if (chlCount <= Object.keys(AvailableLanguages()).length){ // When multiple languages are passed in via children
+      let newChildren = __filterChildrenByLanguage(children, Sefaria.interfaceLang);
+      textResponse = newChildren[0]; //assumes one language element per InterfaceText, may be too naive
+    }else{
+      console.log("Error too many children")
+    }
   }
-  return <span className={cls}>{text}</span>
+  return (
+      isDangerouslySetInnerHTML ?
+          <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
+          :
+          <span className={elemclasses}>{textResponse}</span>
+  );
+};
+InterfaceText.propTypes = {
+  //Makes sure that children passed in are either a single string, or an array consisting only of <EnglishText>, <HebrewText>
+  children: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.arrayOf(AvailableLanguagesValidator),
+  ]),
+  content: PropTypes.object,
+  html: PropTypes.object,
+  context: PropTypes.string,
+  className: PropTypes.string
+};
+
+const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingual= false}) => {
+  /**
+   * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
+   * Gets the active content language from Context and renders only the appropriate child(ren) for given language
+   * text {{text: object}} a dictionary {en: "some text", he: "some transalted text"} to use for each language
+   * html {{html: object}} a dictionary {en: "some html", he: "some transalted html"} to use for each language in the case where it needs to be dangerously set html
+   * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
+   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingunal mode, and default them to what the interface language is
+   */
+  const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
+  const contentLanguage = useContext(ContentLanguageContext);
+  const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language == "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
+  const langShort = languageToFilter.slice(0,2);
+  let renderedItems = Object.entries(contentVariable).filter(([lang, _])=>{
+    return (languageToFilter == "bilingual") ? true : ((lang ==  langShort) ? true : false  );
+  });
+  return renderedItems.map( x =>
+      isDangerouslySetInnerHTML ?
+          <span className={x[0]} lang={x[0]} key={x[0]} dangerouslySetInnerHTML={{__html: x[1]}}/>
+          :
+          <span className={x[0]} lang={x[0]} key={x[0]}>{x[1]}</span>
+  );
 };
 
 
@@ -735,8 +820,7 @@ LanguageToggleButton.propTypes = {
 
 const DangerousInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
-          <span className="int-en" dangerouslySetInnerHTML={ {__html: en } } />
-          <span className="int-he" dangerouslySetInnerHTML={ {__html: he } } />
+          <InterfaceText html={{"en": en, "he":he}} />
         </div>
     );
 DangerousInterfaceBlock.propTypes = {
@@ -748,8 +832,7 @@ DangerousInterfaceBlock.propTypes = {
 
 const SimpleInterfaceBlock = ({en, he, classes}) => (
         <div className={classes}>
-            <span className="int-en">{en}</span>
-            <span className="int-he">{he}</span>
+            <InterfaceText text={{en:en, he:he}} />
         </div>
     );
 SimpleInterfaceBlock.propTypes = {
@@ -775,8 +858,7 @@ SimpleContentBlock.propTypes = {
 const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick}) => (
         <div className={classes} onClick={onClick}>
             <a href={url} className={aclasses}>
-              <span className="int-en">{en}</span>
-              <span className="int-he">{he}</span>
+              <InterfaceText text={{en:en, he:he}}/>
             </a>
             {children}
         </div>
@@ -788,6 +870,7 @@ SimpleLinkedBlock.propTypes = {
     classes: PropTypes.string,
     aclasses: PropTypes.string
 };
+
 
 
 class BlockLink extends Component {
@@ -819,13 +902,13 @@ BlockLink.defaultProps = {
 class ToggleSet extends Component {
   // A set of options grouped together.
   render() {
-    var classes = {toggleSet: 1, separated: this.props.separated };
+    let classes = {toggleSet: 1, separated: this.props.separated };
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    var value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
-    var width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
-    var style = {width: (width/this.props.options.length) + "%"};
-    var label = this.props.label ? (<span className="toggle-set-label">{this.props.label}</span>) : null;
+    const value = this.props.name === "layout" ? this.props.currentLayout() : this.props.settings[this.props.name];
+    const width = 100.0 - (this.props.separated ? (this.props.options.length - 1) * 3 : 0);
+    let style = {width: (width/this.props.options.length) + "%"};
+    const label = this.props.label ? (<span className="toggle-set-label">{this.props.label}</span>) : null;
     return (
       <div className={classes} role={this.props.role} aria-label={this.props.ariaLabel}>
           {label}
@@ -907,12 +990,12 @@ class ToggleOption extends Component {
     }
   }
   render() {
-    var classes = {toggleOption: 1, on: this.props.on };
-    var tabIndexValue = this.props.on ? 0 : -1;
-    var ariaCheckedValue = this.props.on ? "true" : "false";
+    let classes = {toggleOption: 1, on: this.props.on };
+    const tabIndexValue = this.props.on ? 0 : -1;
+    const ariaCheckedValue = this.props.on ? "true" : "false";
     classes[this.props.name] = 1;
     classes = classNames(classes);
-    var content = this.props.image ? (<img src={this.props.image} alt=""/>) :
+    let content = this.props.image ? (<img src={this.props.image} alt=""/>) :
                     this.props.fa ? (<i className={"fa fa-" + this.props.fa}></i>) :
                       (<span dangerouslySetInnerHTML={ {__html: this.props.content} }></span>);
     return (
@@ -1184,7 +1267,7 @@ const SinglePanelNavHeader = (props) =>
           <CategoryColorLine category={props.colorLineCategory || "Other"} />
           <ReaderNavigationMenuMenuButton onClick={props.navHome} />
           <h2>
-            <IntText>{props.title}</IntText>
+            <InterfaceText>{props.title}</InterfaceText>
           </h2>
           {props.showDisplaySettings ?
             <ReaderNavigationMenuDisplaySettingsButton onClick={props.openDisplaySettings} />
@@ -1343,7 +1426,7 @@ const SheetListing = ({
         key={i}
         onClick={handleTopicClick.bind(null, topic.slug)}
       >
-        <InterfaceTextWithFallback {...topic} />
+        <InterfaceText text={topic} />
         {separator}
       </a>
     );
@@ -1843,8 +1926,10 @@ class LoadingMessage extends Component {
     var heMessage = this.props.heMessage || "טוען מידע...";
     var classes = "loadingMessage " + (this.props.className || "");
     return (<div className={classes}>
-              <span className="int-en">{message}</span>
-              <span className="int-he">{heMessage}</span>
+              <InterfaceText>
+                <EnglishText>{message}</EnglishText>
+                <HebrewText>{heMessage}</HebrewText>
+              </InterfaceText>
             </div>);
   }
 }
@@ -1879,12 +1964,10 @@ class CategoryAttribution extends Component {
     var attribution = Sefaria.categoryAttribution(this.props.categories);
     if (!attribution) { return null; }
     var linkedContent = <a href={attribution.link}>
-                          <span className="en">{attribution.english}</span>
-                          <span className="he">{attribution.hebrew}</span>
+                          <ContentText text={{en: attribution.english, he: attribution.hebrew }} defaultToInterfaceOnBilingual={true} />
                         </a>;
     var unlinkedContent = <span>
-                            <span className="en">{attribution.english}</span>
-                            <span className="he">{attribution.hebrew}</span>
+                            <ContentText text={{en: attribution.english, he: attribution.hebrew }} defaultToInterfaceOnBilingual={true} />
                           </span>;
     return <div className="categoryAttribution">
             {this.props.linked ? linkedContent : unlinkedContent}
@@ -1909,7 +1992,7 @@ class SheetTopicLink extends Component {
     const { slug, en, he } = this.props.topic;
     return (
       <a href={`/topics/${slug}`} onClick={this.handleTagClick}>
-        <InterfaceTextWithFallback en={en} he={he} />
+        <InterfaceText text={{en:en, he:he}} />
       </a>
     );
   }
@@ -2178,8 +2261,10 @@ export {
   FilterableList,
   GlobalWarningMessage,
   InterruptingMessage,
-  InterfaceTextWithFallback,
-  IntText,
+  InterfaceText,
+  ContentText,
+  EnglishText,
+  HebrewText,
   LanguageToggleButton,
   Link,
   LoadingMessage,
