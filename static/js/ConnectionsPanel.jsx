@@ -1445,6 +1445,20 @@ ManuscriptImageList.propTypes = {
   contentLang: PropTypes.string.isRequired,
 };
 
+
+const ConnectionsPanelSection = ({title, children}) => {
+    return (
+        <>
+            <div className="connectionPanelSectionHeader">
+                <span className="connectionPanelSectionHeaderInner">
+                    <InterfaceText context="ConnectionPanelSection">{title}</InterfaceText>
+                </span>
+            </div>
+            {children}
+        </>
+    );
+}
+
 export {
   ConnectionsPanel,
   ConnectionsPanelHeader,
