@@ -127,8 +127,7 @@ class SheetMetadata extends Component {
     $.post("/api/sheets/", {"json": postJSON}, (data) => {
         if (data.id)  {
           this.setState({lastModified: data.dateModified})
-          console.log('w00t')
-
+          delete Sefaria.sheets._loadSheetByID[data.id]
         } else if ("error" in data) {
             console.log(data.error);
         }
@@ -178,15 +177,27 @@ class SheetMetadata extends Component {
     }
   }
 
+  updateTopics(tags) {
+    const topics = tags.map(tag => ({
+          asTyped: tag.name,
+          slug: tag.slug,
+        })
+    )
+    const postJSON = JSON.stringify(topics);
+    $.post(`/api/sheets/${this.props.id}/topics`, {"topics": postJSON});
+  }
+
   onTagDelete (i) {
-    const tags = this.state.tags.slice(0)
-    tags.splice(i, 1)
-    this.setState({ tags })
+    const tags = this.state.tags.slice(0);
+    tags.splice(i, 1);
+    this.setState({ tags });
+    this.updateTopics(tags);
   }
 
   onTagAddition (tag) {
-    const tags = [].concat(this.state.tags, tag)
-    this.setState({ tags })
+    const tags = [].concat(this.state.tags, tag);
+    this.setState({ tags });
+    this.updateTopics(tags);
   }
 
   updateSuggestedTags(input) {
@@ -196,7 +207,8 @@ class SheetMetadata extends Component {
           .filter(obj => obj.type === "Topic")
           .map((filteredObj, index) => ({
             id: index,
-            name: filteredObj.title
+            name: filteredObj.title,
+            slug: filteredObj.key
           })
       )
       return topics
@@ -363,12 +375,14 @@ class SheetMetadata extends Component {
                     </div> : null }
 
                     {canEdit ? <div className={"publishBox"}>
-                      <h3 className={"header"}>Publish Sheet</h3>
-                      <p>{this.state.published ? "Your sheet is published on Sefaria and visible to others through search and topics." : "List your sheet on Sefaria for others to discover."}</p>
+                      <h3 className={"header"}>
+                        <InterfaceText>Publish Sheet</InterfaceText>
+                      </h3>
+                      <p><InterfaceText>{this.state.published ? "Your sheet is published on Sefaria and visible to others through search and topics." : "List your sheet on Sefaria for others to discover."}</InterfaceText></p>
                       <hr/>
-                      <p className={"smallText"}>Summary</p>
+                      <p className={"smallText"}><InterfaceText>Summary</InterfaceText></p>
                       <textarea rows="3" placeholder="Write a short description of your sheet..." value={this.state.summary} onChange={this.handleSummaryChange}></textarea>
-                      <p className={"smallText"}>Topics</p>
+                      <p className={"smallText"}><InterfaceText>Topics</InterfaceText></p>
                       <ReactTags
                         ref={this.reactTags}
                         allowNew={true}
@@ -383,7 +397,7 @@ class SheetMetadata extends Component {
 
                         <div className={"publishButton"}>
                         <a href="#" className={this.state.published ? "button published" : "button"} onClick={this.togglePublish}>
-                          <IntText>{this.state.published ? "Unpublish" : "Publish"}</IntText>
+                          <InterfaceText>{this.state.published ? "Unpublish" : "Publish"}</InterfaceText>
                         </a>
                         </div>
 
