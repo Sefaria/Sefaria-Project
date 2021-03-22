@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-	IntText,
+	InterfaceText,
 } from "./Misc"
 import Sefaria  from './sefaria/sefaria';
 
@@ -116,7 +116,9 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
 
   return <div className="collectionsWidget">
     <div className="collectionsWidgetTop">
-      <IntText className={"collectionsWidgetTitle"}>Collections</IntText>
+      <span className={"collectionsWidgetTitle"}>
+        <InterfaceText>Collections</InterfaceText>
+      </span>
       <div className="collectionsWidgetClose" onClick={onClose}>×</div>
     </div>
     <div className="collectionsWidgetList">
@@ -132,7 +134,11 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
         </label>
       })}
       {dataLoaded && collections.length == 0 ?
-        <IntText className="emptyMessage">You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.</IntText> : null }
+        <span className={"emptyMessage"}>
+          <InterfaceText>
+            You can use collections to organize your sheets or public sheets you like. Collections can shared privately or made public on Sefaria.
+          </InterfaceText>
+        </span> : null }
     </div>
     <div className="collectionsWidgetCreate">
       <span className="collectionsWidgetPlus">+</span>
@@ -141,13 +147,13 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       </div>
       {newName.length ?
       <div className="button extraSmall white collectionsWidgetCreateButton" onClick={onCreateClick}>
-        <IntText>Create</IntText>
+        <InterfaceText>Create</InterfaceText>
       </div>
       : null}
     </div>
     <div className="collectionsWidgetDone">
        <div className="button large fillWidth" onClick={onClose}>
-        <IntText>Done</IntText>
+        <InterfaceText>Done</InterfaceText>
       </div>     
     </div>
   </div>

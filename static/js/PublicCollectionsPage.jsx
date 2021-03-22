@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  IntText,
+  InterfaceText,
   LoadingMessage,
   SinglePanelNavHeader,
 } from './Misc';
@@ -47,12 +47,12 @@ function PublicCollectionsPage({multiPanel, navHome}) {
         <div className="contentInner">
           {multiPanel ?
           <h1>
-            <IntText>Collections</IntText>
+            <InterfaceText>Collections</InterfaceText>
           </h1> : null}
           {multiPanel ?
           <center>
             <a className="button white" href="/collections/new">
-              <IntText>Create a Collection</IntText>
+              <InterfaceText>Create a Collection</InterfaceText>
             </a>
           </center> : null}
 
@@ -62,7 +62,7 @@ function PublicCollectionsPage({multiPanel, navHome}) {
                   collectionsList.public.map(function(item) {
                     return <CollectionListing data={item} key={item.name} />
                   })
-                  : <IntText>There are no public collections yet.</IntText>)
+                  : <InterfaceText>There are no public collections yet.</InterfaceText>)
                 : <LoadingMessage />
             }
           </div>
@@ -100,15 +100,15 @@ function CollectionListing({data, showMembership, small}) {
                   {data.listed ? null :
                     (<span className="unlisted">
                       <img src="/static/img/eye-slash.svg"/>
-                      <IntText>Unlisted</IntText>
+                      <InterfaceText>Unlisted</InterfaceText>
                     </span>) }
 
                   {data.listed ? null :
                   <span className="collectionListingDetailSeparator">•</span> }
                   
                   <span className="collectionListingDetail collectionListingSheetCount">
-                    <IntText>{`${data.sheetCount} `}</IntText>
-                    <IntText>Sheets</IntText>
+                    <InterfaceText>{`${data.sheetCount} `}</InterfaceText>
+                    <InterfaceText>Sheets</InterfaceText>
                   </span>
 
                   {data.memberCount > 1 && small ? 
@@ -116,8 +116,8 @@ function CollectionListing({data, showMembership, small}) {
 
                   {data.memberCount > 1 && small ?
                   <span className="collectionListingDetail collectionListingMemberCount">
-                    <IntText>{`${data.memberCount} `}</IntText>
-                    <IntText>Editors</IntText>
+                    <InterfaceText>{`${data.memberCount} `}</InterfaceText>
+                    <InterfaceText>Editors</InterfaceText>
                   </span> : null }
                 </div>
               </div>
