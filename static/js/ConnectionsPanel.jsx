@@ -41,6 +41,7 @@ class ConnectionsPanel extends Component {
       currObjectVersions: {en: null, he: null},
       mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
       linksLoaded: false, // has the list of refs been loaded
+      connectionSummaryExpanded: false,
     };
   }
   componentDidMount() {
@@ -1448,3 +1449,5 @@ export {
   ConnectionsPanel,
   ConnectionsPanelHeader,
 };
+
+
