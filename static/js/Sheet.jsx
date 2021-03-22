@@ -113,6 +113,7 @@ class Sheet extends Component {
             hasSidebar={this.props.hasSidebar}
             setSelectedWords={this.props.setSelectedWords}
             sheetNumbered={sheet.options.numbered}
+            hideImages={!!sheet.hideImages}
             sheetID={sheet.id}
           />
       )
@@ -158,7 +159,6 @@ class SheetContent extends Component {
     }
     this.debouncedAdjustHighlightedAndVisible();
   }
-
   handleTextSelection() {
     console.log('here!')
     const selectedWords = Sefaria.util.getNormalizedSelectionString(); //this gets around the above issue
@@ -167,8 +167,6 @@ class SheetContent extends Component {
       this.props.setSelectedWords(selectedWords);
     }
   }
-
-
   getHighlightThreshhold() {
     // Returns the distance from the top of screen that we want highlighted segments to appear below.
     return this.props.multiPanel ? 200 : 70;
@@ -306,6 +304,7 @@ class SheetContent extends Component {
             sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
             highlightedNodes={this.props.highlightedNodes}
             sheetNumbered={this.props.sheetNumbered}
+            hideImages={this.props.hideImages}
           />
         )
       }
@@ -351,6 +350,7 @@ class SheetContent extends Component {
 class SheetItem extends Component {
 
 }
+
 
 class SheetSource extends Component {
   render() {
@@ -546,11 +546,9 @@ class SheetMedia extends Component {
     var mediaURL = this.props.source.media;
     var caption  = this.props.source.caption;
 
-    if (mediaURL.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
+    if (this.isImage()) {
       mediaLink = '<img class="addedMedia" src="' + mediaURL + '" />';
-      mediaClass = "media"
     }
-
     else if (mediaURL.toLowerCase().indexOf('youtube') > 0) {
       mediaLink = '<div class="youTubeContainer"><iframe width="100%" height="100%" src=' + mediaURL + ' frameborder="0" allowfullscreen></iframe></div>';
     }
@@ -581,32 +579,33 @@ class SheetMedia extends Component {
 
     return "<div class='" + mediaClass + "'>" + mediaLink + mediaCaption + "</div>";
   }
+  isImage() {
+    return (this.props.source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null);
+  }
   render() {
-      var containerClasses = classNames("sheetItem",
-          "segment",
-          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
-          this.props.source.options ? this.props.source.options.indented : null
-      );
+    if (this.props.hideImages && this.isImage()) { return null; }
+    var containerClasses = classNames("sheetItem",
+        "segment",
+        this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+        this.props.source.options ? this.props.source.options.indented : null
+    );
     return (
       <section className="SheetMedia">
-      <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
-            <div className="segmentNumber sheetSegmentNumber sans">
-              <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
-              <span className="he"> <span
-                className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
-            </div>
+        <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+          <div className="segmentNumber sheetSegmentNumber sans">
+            <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
+            <span className="he"> <span
+              className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
+          </div>
 
-        <div className="sourceContentText centeredSheetContent" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedContent()} }></div>
-        <div className="clearFix"></div>
-        {this.props.source.addedBy ?
+          <div className="sourceContentText centeredSheetContent" dangerouslySetInnerHTML={ {__html: this.makeMediaEmbedContent()} }></div>
+          <div className="clearFix"></div>
+          {this.props.source.addedBy ?
             <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
-            : null
-        }
-
-      </div>
+            : null }
+        </div>
       </section>
-
-    )
+    );
   }
 }
 
