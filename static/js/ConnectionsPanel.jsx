@@ -1048,7 +1048,8 @@ ToolsButton.propTypes = {
   icon:    PropTypes.string,
   image:   PropTypes.string,
   count:   PropTypes.number,
-  onClick: PropTypes.func
+  onClick: PropTypes.func,
+  persistOnEmpty: PropTypes.bool
 };
 
 
