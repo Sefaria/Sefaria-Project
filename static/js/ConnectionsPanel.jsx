@@ -1015,31 +1015,32 @@ ToolsList.propTypes = {
 };
 
 
-class ToolsButton extends Component {
-  onClick(e) {
-    e.preventDefault();
-    this.props.onClick();
-  }
-  render() {
-    let icon = null;
-    if (this.props.icon) {
-      let iconName = "fa-" + this.props.icon;
+const ToolsButton = ({en, he, icon, image, count, onClick, persistOnEmpty = true}) => {
+    const clickHandler = (e) => {
+        e.preventDefault();
+        onClick();
+    }
+
+    let iconElem = null;
+    if (icon) {
+      let iconName = "fa-" + icon;
       let classes = {fa: 1, toolsButtonIcon: 1};
       classes[iconName] = 1;
-      icon = (<i className={classNames(classes)} />)
-    } else if (this.props.image) {
-      icon = (<img src={"/static/img/" + this.props.image} className="toolsButtonIcon" alt="" />);
+      iconElem = (<i className={classNames(classes)} />)
+    } else if (image) {
+      iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt="" />);
     }
-    const url = Sefaria.util.replaceUrlParam("with", this.props.en);
+    const url = Sefaria.util.replaceUrlParam("with", en);
     return (
-      <a href={url} className="toolsButton sans noselect" data-name={this.props.en} onClick={this.onClick}>
-        {icon}
+      persistOnEmpty || (count && count > 0) ?
+      <a href={url} className="toolsButton sans noselect" data-name={en} onClick={clickHandler}>
+        {iconElem}
         <span className="toolsButtonText">
-            <InterfaceText text={{en: this.props.en , he: this.props.he }} />
-            {this.props.count ? (<span className="connectionsCount">({this.props.count})</span>) : null}
+            <InterfaceText text={{en: en , he: he }} />
+            {count ? (<span className="connectionsCount">({count})</span>) : null}
         </span>
-      </a>)
-  }
+      </a> : null
+    );
 }
 ToolsButton.propTypes = {
   en:      PropTypes.string.isRequired,
