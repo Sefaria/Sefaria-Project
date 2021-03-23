@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-import structlog
+import logging
 from django.conf import settings
 import requests, json, traceback
 from requests.exceptions import ConnectionError
