@@ -1805,7 +1805,7 @@ input.resourcesLink {
 }
 .readerNavCategories .gridBox .gridBoxItem,
 .readerNavCategoryMenu .category .gridBoxItem {
-  margin: 0 4px;
+  margin: 0 7px;
   padding: 0;
 }
 .navBlock {
@@ -4572,16 +4572,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .gridBox .gridBoxRow {
   display: flex;
   justify-content: space-between;
+  margin-bottom: 6px;
 }
 .gridBox .gridBoxItem {
   flex: 1;
-  border: 3px solid transparent;
   overflow: hidden;
    /* HACK: overflow hidden will hide any box shadow beneath (b/c overflow cuts off at padding-box) can get around this by increasing padding-box and decreasing margin-box. see here https://stackoverflow.com/questions/33949013/css-overflow-hidden-cuts-shadow*/
   display: flex;
   flex-direction: column;
   padding: 5px;
-  margin: -5px;
+  margin: -5px -2px;
 }
 .gridBox .gridBoxItem.placeholder {
   visibility: hidden;
