@@ -36,6 +36,7 @@ class SheetMetadata extends Component {
       lastModified: null,
     };
     this.reactTags = React.createRef()
+    this.debouncedSaveSummary = Sefaria.util.debounce(this.saveSummary, 250);
   }
   componentDidMount() {
     this._isMounted = true;
@@ -90,9 +91,9 @@ class SheetMetadata extends Component {
 
   }
 
-  togglePublish() {
+  async togglePublish() {
     const newPublishState = this.state.published ? "unlisted" : "public";
-    let updatedSheet = Sefaria.util.clone(this.loadSheetData(this.props.id))
+    let updatedSheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(this.props.id, sheet => resolve(sheet))));
     updatedSheet.status = newPublishState;
     updatedSheet.lastModified = this.state.lastModified;
     delete updatedSheet._id;
@@ -126,8 +127,9 @@ class SheetMetadata extends Component {
   postSheet(postJSON) {
     $.post("/api/sheets/", {"json": postJSON}, (data) => {
         if (data.id)  {
+          console.log('saved...')
           this.setState({lastModified: data.dateModified})
-          delete Sefaria.sheets._loadSheetByID[data.id]
+          Sefaria.sheets._loadSheetByID[data.id] = data;
         } else if ("error" in data) {
             console.log(data.error);
         }
@@ -177,14 +179,19 @@ class SheetMetadata extends Component {
     }
   }
 
-  updateTopics(tags) {
+  async updateTopics(tags) {
+    let updatedSheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(this.props.id, sheet => resolve(sheet))));
+
     const topics = tags.map(tag => ({
           asTyped: tag.name,
           slug: tag.slug,
         })
     )
-    const postJSON = JSON.stringify(topics);
-    $.post(`/api/sheets/${this.props.id}/topics`, {"topics": postJSON});
+    updatedSheet.topics = topics;
+    updatedSheet.lastModified = this.state.lastModified;
+    delete updatedSheet._id;
+    const postJSON = JSON.stringify(updatedSheet);
+    this.postSheet(postJSON)
   }
 
   onTagDelete (i) {
@@ -215,8 +222,19 @@ class SheetMetadata extends Component {
     }).then(topics => this.setState({suggestions: topics}))
   }
 
+  async saveSummary() {
+    let updatedSheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(this.props.id, sheet => resolve(sheet))));
+    updatedSheet.summary = this.state.summary;
+    updatedSheet.lastModified = this.state.lastModified;
+    delete updatedSheet._id;
+    const postJSON = JSON.stringify(updatedSheet);
+    this.postSheet(postJSON)
+  }
+
   handleSummaryChange(event) {
-    this.setState({summary: event.target.value})
+    const newSummary = event.target.value
+    this.setState({summary: newSummary})
+    this.debouncedSaveSummary()
   }
 
   generateSheetMetaDataButtons() {
@@ -265,6 +283,9 @@ class SheetMetadata extends Component {
   }
   render() {
     const sheet = this.getSheetFromCache();
+
+    if (!sheet) {return (<LoadingMessage/>)}
+
     const timestampCreated = Date.parse(sheet.dateCreated)/1000;
     const canEdit = Sefaria._uid == sheet.owner;
     const title = sheet.title;
