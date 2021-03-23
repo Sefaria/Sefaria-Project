@@ -1,5 +1,5 @@
 import {
-  IntText,
+  InterfaceText,
   NBox,
 } from './Misc';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -75,7 +75,7 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
           <div className={contentClasses}>
             <div className="sidebarLayout">
               <div className="contentInner">
-                <h1><IntText>Explore by Topic</IntText></h1>
+                <h1><InterfaceText>Explore by Topic</InterfaceText></h1>
                 { categoryListings }
               </div>
               <NavSidebar modules={sidebarModules} />

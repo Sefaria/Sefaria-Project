@@ -2083,15 +2083,17 @@ _media: {},
       }, {});
     },
     _publicSheets: {},
-    publicSheets: function(offset, numberToRetrieve, callback) {
+    publicSheets: function(offset, numberToRetrieve, skipCache, callback) {
       if (!offset) offset = 0;
-      if (!numberToRetrieve) numberToRetrieve = 50;
+      if (!numberToRetrieve) numberToRetrieve = 30;
       // Returns a list of public sheets
       var sheets = this._publicSheets["offset"+offset+"num"+numberToRetrieve];
-      if (sheets) {
+      if (sheets && !skipCache) {
         if (callback) { callback(sheets); }
       } else {
         var url = Sefaria.apiHost + "/api/sheets/all-sheets/"+numberToRetrieve+"/"+offset;
+        var url = "https://www.sefaria.org/api/sheets/all-sheets/"+numberToRetrieve+"/"+offset;
+
         Sefaria._api(url, function(data) {
           this._publicSheets["offset"+offset+"num"+numberToRetrieve] = data.sheets;
           if (callback) { callback(data.sheets); }
@@ -2472,6 +2474,7 @@ Sefaria.unpackDataFromProps = function(props) {
       "interruptingMessage",
 
       "trendingTopics",
+      "homepage",
       "_siteSettings",
       "_debug",
   ];

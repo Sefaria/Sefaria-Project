@@ -18,10 +18,9 @@ import {
   LoadingMessage,
   Link,
   NBox,
-  InterfaceTextWithFallback,
+  InterfaceText,
   FilterableList,
   ToolTipped,
-  IntText,
 } from './Misc';
 import NavSidebar from './NavSidebar';
 import Footer from './Footer';
@@ -167,11 +166,11 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang,
                  className="navBlockTitle" 
                  onClick={openTopic}
                  key={i}>
-                <IntText en={en} he={he} />
+                <InterfaceText text={{en, he}} />
               </a>
               {description ?
               <div className="navBlockDescription clamped">
-                <IntText en={description.en} he={description.he} />
+                <InterfaceText text={{en: description.en, he: description.he}} />
               </div>
               : null }
             </div>
@@ -209,7 +208,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang,
             <div className={contentClasses}>
                 <div className="sidebarLayout">
                   <div className="contentInner">
-                      <h1><IntText en={topicTitle.en} he={topicTitle.he} /></h1>
+                      <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                       <div className="readerNavCategories">
                         <NBox content={topicBlocks} n={2} />
                       </div>
@@ -234,7 +233,7 @@ const TopicHeader = ({
     <div>
         <div className="topicTitle pageTitle">
           <h1>
-            <InterfaceTextWithFallback en={en} he={he} isItalics={false} />
+            <InterfaceText text={{en:en, he:he}}/>
           </h1>
         </div>
        {!topicData && !isCat ?<LoadingMessage/> : null}
@@ -538,11 +537,7 @@ const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) 
     onClick={onClick.bind(null, topic, topicTitle)} key={topic}
     title={topicTitle.en}
   >
-    <InterfaceTextWithFallback
-      en={topicTitle.en}
-      he={topicTitle.he}
-      isItalics={false}
-    />
+    <InterfaceText text={{en:topicTitle.en, he:topicTitle.he}}/>
   </Link>
 );
 TopicLink.propTypes = {
@@ -643,22 +638,22 @@ TopicSideColumn.propTypes = {
 const ReadingsComponent = ({ parashaData, tref }) => (
   <div className="readings link-section">
     <h2>
-      <InterfaceTextWithFallback en={"Readings"} he={"פרשיות והפטרות"} />
+      <InterfaceText text={{en:"Readings", he:"פרשיות והפטרות"}}  />
     </h2>
     <span className="smallText parasha-date">
-      <InterfaceTextWithFallback en={Sefaria.util.localeDate(parashaData.date)} he={Sefaria.util.localeDate(parashaData.date)} />
+      <InterfaceText text={{en:Sefaria.util.localeDate(parashaData.date), he:Sefaria.util.localeDate(parashaData.date)}} />
       <span className="separator">·</span>
-      <InterfaceTextWithFallback {...parashaData.he_date} />
+      <InterfaceText text={parashaData.he_date} />
     </span>
 
-    <div className="sectionTitleText"><InterfaceTextWithFallback en={"Torah"} he={"תורה"} /></div>
-    <a href={'/' + tref.url} className="contentText"><InterfaceTextWithFallback en={tref.en} he={norm_hebrew_ref(tref.he)} /></a>
-    <div className="sectionTitleText"><InterfaceTextWithFallback en={"Haftarah"} he={"הפטרה"} /></div>
+    <div className="sectionTitleText"><InterfaceText text={{en:"Torah", he:"תורה"}} /></div>
+    <a href={'/' + tref.url} className="contentText"><InterfaceText text={{en:tref.en, he:norm_hebrew_ref(tref.he)}} /></a>
+    <div className="sectionTitleText"><InterfaceText text={{en:"Haftarah", he:"הפטרה"}}/></div>
     <div className="haftarot">
     {
       parashaData.haftarah.map(h => (
         <a href={'/' + h.url} className="contentText" key={h.url}>
-          <InterfaceTextWithFallback en={h.displayValue.en} he={norm_hebrew_ref(h.displayValue.he)} />
+          <InterfaceText text={{en:h.displayValue.en, he:norm_hebrew_ref(h.displayValue.he)}} />
         </a>
       ))
     }

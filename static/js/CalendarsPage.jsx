@@ -1,5 +1,5 @@
 import {
-  IntText,
+  InterfaceText,
   NBox,
 } from './Misc';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -55,15 +55,15 @@ const CalendarsPage = ({multiPanel}) => {
           <div className={contentClasses}>
             <div className="sidebarLayout">
               <div className="contentInner">
-                <h2 className="styledH1"><IntText>Weekly Torah Portion</IntText></h2>
+                <h2 className="styledH1"><InterfaceText>Weekly Torah Portion</InterfaceText></h2>
                 <div className="readerNavCategories">
                   <NBox content={parashaListings} n={2} />
                 </div>
-                <h2 className="styledH1"><IntText>Daily Study</IntText></h2>
+                <h2 className="styledH1"><InterfaceText>Daily Study</InterfaceText></h2>
                 <div className="readerNavCategories">
                   <NBox content={dailyListings} n={2} />
                 </div>
-                <h2 className="styledH1"><IntText>Weekly Study</IntText></h2>
+                <h2 className="styledH1"><InterfaceText>Weekly Study</InterfaceText></h2>
                 <div className="readerNavCategories">
                   <NBox content={weeklyListings} n={2} />
                 </div>

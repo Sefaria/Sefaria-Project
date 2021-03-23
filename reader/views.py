@@ -47,7 +47,7 @@ from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, 
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
 from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
-from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha
+from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.utils.util import short_to_long_lang_code
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache
@@ -230,6 +230,7 @@ def base_props(request):
             "fontSize":      request.COOKIES.get("fontSize", 62.5),
         },
         "trendingTopics": trending_topics(days=7, ntags=5),
+        "homepage": get_homepage_items(),
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
     })
@@ -2160,6 +2161,8 @@ def flag_text_api(request, title, lang, version):
 
     `language` attributes are not handled.
     """
+    _attributes_to_save = Version.optional_attrs + ["versionSource"]
+
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
         if not key:
@@ -2177,7 +2180,7 @@ def flag_text_api(request, title, lang, version):
         vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
         if flags.get("newVersionTitle"):
             vobj.versionTitle = flags.get("newVersionTitle")
-        for flag in vobj.optional_attrs:
+        for flag in _attributes_to_save:
             if flag in flags:
                 setattr(vobj, flag, flags[flag])
         vobj.save()
@@ -2191,7 +2194,7 @@ def flag_text_api(request, title, lang, version):
             vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
             if flags.get("newVersionTitle"):
                 vobj.versionTitle = flags.get("newVersionTitle")
-            for flag in vobj.optional_attrs:
+            for flag in _attributes_to_save:
                 if flag in flags:
                     setattr(vobj, flag, flags[flag])
             vobj.save()
@@ -3598,6 +3601,55 @@ def account_settings(request):
     })
 
 
+def get_homepage_items():
+    from sefaria.helper.topic import get_topic_by_parasha
+    parashah = get_todays_parasha()
+    ptopic = get_topic_by_parasha(parashah["parasha"])
+
+    return {
+        "parashah": {
+            "heading": "The Torah Portion - " + parashah["parasha"],
+            "sheet": get_featured_sheet_from_topic(ptopic.slug)
+        },
+        "featured": {
+            "heading": "Featured",
+            "sheet": get_featured_sheet_from_collection("bronfman-fellowship")
+        },
+        "holiday": {
+            "heading": "Passover",
+            "sheet": get_featured_sheet_from_topic("passover")
+        },  
+    }
+
+
+def get_featured_sheet_from_collection(collection):
+    import random
+    collection = Collection().load({"slug": collection})
+    if not collection:
+        return None
+
+    sheets = collection.sheet_contents()
+
+    return random.choice(sheets) if len(sheets) else None
+
+
+def get_featured_sheet_from_topic(slug):
+    import random
+    from sefaria.sheets import sheet_list
+    from sefaria.model.topic import RefTopicLinkSet
+    sheet_links = RefTopicLinkSet({"is_sheet": True, "toTopic": slug})
+    sids = [int(s.ref.replace("Sheet ", "")) for s in sheet_links]
+    if not len(sids):
+        return None
+
+    sheets = sheet_list({
+        "id": {"$in": sids},
+        "summary": {"$exists": 1},
+    })
+    sheets = [s for s in sheets if not is_hebrew(s["title"]) and len(s["summary"]) > 140]
+    return random.choice(sheets)
+
+
 @ensure_csrf_cookie
 def home(request):
     """
@@ -3801,6 +3853,7 @@ def random_by_topic_api(request):
     resp = jsonResponse({"ref": tref, "topic": random_topic.contents(), "url": url}, callback=cb)
     resp['Content-Type'] = "application/json; charset=utf-8"
     return resp
+
 
 @csrf_exempt
 def dummy_search_api(request):
@@ -4186,6 +4239,7 @@ def custom_server_error(request, template_name='500.html'):
     #t = get_template(template_name) # You need to create a 500.html template.
     #return http.HttpResponseServerError(t.render({'request_path': request.path}, request))
 
+
 def apple_app_site_association(request):
     teamID = "2626EW4BML"
     bundleID = "org.sefaria.sefariaApp"
@@ -4201,6 +4255,7 @@ def apple_app_site_association(request):
         }
     })
 
+
 def application_health_api(request):
     """
     Defines the /healthz API endpoint which responds with
@@ -4212,8 +4267,10 @@ def application_health_api(request):
     else:
         return http.HttpResponse("Unhealthy", status="500")
 
+
 def application_health_api_nonlibrary(request):
     return http.HttpResponse("Healthy", status="200")
+
 
 def rollout_health_api(request):
     """
@@ -4269,6 +4326,7 @@ def rollout_health_api(request):
 
     return http.JsonResponse(resp, status=statusCode)
 
+
 @login_required
 def daf_roulette_redirect(request):
     return render_template(request,'static/chavruta.html', None, {
@@ -4277,6 +4335,7 @@ def daf_roulette_redirect(request):
         "starting_ref": "todays-daf-yomi",
         "roulette": "1",
     })
+
 
 @login_required
 def chevruta_redirect(request):

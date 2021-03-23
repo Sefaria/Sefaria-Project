@@ -4,7 +4,7 @@ import {
   TestMessage,
   ProfilePic,
   InterfaceLanguageMenu,
-  IntText,
+  InterfaceText,
 } from './Misc';
 import React, { useState, useEffect, useRef} from 'react';
 import PropTypes  from 'prop-types';
@@ -308,8 +308,8 @@ class Header extends Component {
               <div className={headerInnerClasses}>
                 <div className="headerNavSection">
                     { Sefaria._siteSettings.TORAH_SPECIFIC ? <a className="home" href="/" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> : null }
-                    <a href="/texts" className="library"><IntText>Texts</IntText></a>
-                    <a href="/topics" className="library"><IntText>Topics</IntText></a>
+                    <a href="/texts" className="library"><InterfaceText>Texts</InterfaceText></a>
+                    <a href="/topics" className="library"><InterfaceText>Topics</InterfaceText></a>
                 </div>
 
                 <div className="headerLinksSection">

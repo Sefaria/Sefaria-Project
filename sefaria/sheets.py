@@ -154,6 +154,7 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 	projection = {
 		"id": 1,
 		"title": 1,
+		"summary": 1,
 		"status": 1,
 		"owner": 1,
 		"views": 1,
@@ -181,11 +182,13 @@ def sheet_to_dict(sheet):
 	sheet_dict = {
 		"id": sheet["id"],
 		"title": strip_tags(sheet["title"]) if "title" in sheet else "Untitled Sheet",
+		"summary": sheet.get("summary", None),
 		"status": sheet["status"],
 		"author": sheet["owner"],
 		"ownerName": profile["name"],
 		"ownerImageUrl": profile["imageUrl"],
 		"ownerProfileUrl": profile["profileUrl"],
+		"ownerOrganization": profile["organization"],
 		"sheetUrl": "/sheets/" + str(sheet["id"]),
 		"views": sheet["views"],
 		"displayedCollection": sheet.get("displayedCollection", None),

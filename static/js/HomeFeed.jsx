@@ -9,9 +9,148 @@ import NavSidebar from './NavSidebar';
 import Footer from'./Footer';
 import { usePaginatedScroll } from './Hooks';
 import {
-    NewsletterSignUpForm, 
-    LoadingMessage 
+    InterfaceText,
+    LoadingMessage, 
+    NBox,
+    NewsletterSignUpForm,
+    ProfileListing,
 } from './Misc';
+
+
+const HomeFeed = ({toggleSignUpModal, onlySharedStories}) => {
+  // Start with recent sheets in the cache, if any
+  const [recentSheets, setRecentSheets] = useState(Sefaria.sheets.publicSheets(0, 12));
+
+  // But also make an API call check for updates
+  useEffect(() => {
+    Sefaria.sheets.publicSheets(0, 12, true, (data) => setRecentSheets(data));
+  });
+
+  const makeFeaturedBlock = ([data, heading]) => (
+    <FeaturedSheet
+     heading={heading}
+     title={data.title}
+     sheetId={data.id}
+     description={data.summary}
+     author={{
+        uid: data.author,
+        url: data.ownerProfileUrl,
+        image: data.ownerImageUrl,
+        name: data.ownerName,
+        organization: data.ownerOrganization,
+        is_followed: false,
+        toggleSignUpModal: ()=>{}
+     }} />
+  );
+
+  const [parashahBlock, featuredBlock, holidayBlock] = [
+    [Sefaria.homepage.parashah.sheet, Sefaria.homepage.parashah.heading],
+    [Sefaria.homepage.featured.sheet, Sefaria.homepage.featured.heading],
+    [Sefaria.homepage.holiday.sheet, Sefaria.homepage.holiday.heading]
+  ].map(makeFeaturedBlock);
+
+  const recentSheetsBlock =
+    <>
+      <h2 className="styledH1"><InterfaceText>Recently Published</InterfaceText></h2>
+      {recentSheets ?
+      recentSheets.map(s => [s, null]).map(makeFeaturedBlock)
+      : <LoadingMessage />}
+    </>
+
+
+  const sidebarModules = [
+    {type: "AboutSefaria"},
+    {type: "Resources"},
+    {type: "JoinTheConversation"},
+    {type: "GetTheApp"},
+    {type: "StayConnected"},
+    {type: "SupportSefaria", props: {blue: true}},
+  ];
+
+  const classes = classNames({readerNavMenu:1, noHeader: 1, homepage: 1});
+  const contentClasses = classNames({content: 1, hasFooter: 1});
+
+  return (
+    <div className={classes} key="0">
+      <div className={contentClasses}>
+        <div className="sidebarLayout">
+          <div className="contentInner mainColumn">
+            <NBox content={[parashahBlock, featuredBlock]} n={2} />
+            
+            {holidayBlock ?
+            <NBox content={[holidayBlock]} n={1} />
+            : null }
+
+            <NBox content={[recentSheetsBlock]} n={1} />
+
+          </div>
+          <NavSidebar modules={sidebarModules} />
+        </div>
+        <Footer />
+      </div>
+    </div>
+    );
+
+  /*  
+  return (
+    <div className="homeFeedWrapper">
+      <div className="content hasFooter" ref={scrollable_element}>
+        <div className="contentInner">
+        <div id="homeCover">
+            <video id="homeVideo" poster="/static/img/home-video-narrow.jpg" preload="auto" autoPlay={true} loop="loop" muted="muted" volume="0">
+                <source src="/static/img/home-video-narrow.webm" type="video/webm" />
+                <source src="/static/img/home-video-narrow.mp4" type="video/mp4" />
+                Video of sofer writing letters of the Torah
+            </video>
+            <h1 className="featureTitle">
+                <span className="int-en">A Living Library of Jewish Texts</span>
+                <span className="int-he">ספרייה חיה של טקסטים יהודיים</span>
+            </h1>
+            <div className="sub">
+                <span className="int-en">Explore 3,000 years of Jewish texts in Hebrew and English translation. <a href="/about">Learn More &rsaquo;</a></span>
+                <span className="int-he">3,000 שנה של טקסטים יהודיים בעברית ובתרגום לאנגלית פרוסים לפניכם. <a href="/about">לקריאה נוספת&rsaquo;</a></span>
+            </div>
+        </div>
+
+        <div className="columnLayout">
+            <div className="mainColumn">
+                <div className="storyFeedInner">
+                {stories.length ? stories.map((s,i) => Story(s, i, props)) : <LoadingMessage />}
+                </div>
+            </div>
+            <HomeFeedSidebar />
+        </div>
+        </div>
+      </div>
+    </div>);
+    */
+}
+HomeFeed.propTypes = {
+  toggleSignUpModal:  PropTypes.func.isRequired,
+  onlySharedStories:  PropTypes.bool,
+};
+
+
+const FeaturedSheet = ({heading, title, sheetId, description, author}) => (
+  <div className="featuredSheet navBlock">
+    { heading ?
+    <div className="featuredSheetHeading">
+      <InterfaceText>{heading}</InterfaceText>
+    </div>
+    : null}
+    <a href={`/sheet/${sheetId}`} className="navBlockTitle">
+      <InterfaceText>{title}</InterfaceText>
+    </a>
+    {description ?
+    <div className="navBlockDescription">
+      <InterfaceText>{description}</InterfaceText>
+    </div>
+    : null}
+    <ProfileListing {...author} />
+  </div>
+);
+
+
 
 function CategoryLink({category}) {
     return ( <a className="sideCatLink refLink" href={"/texts/" + category} style={{borderColor: Sefaria.palette.categoryColor(category)}}>
@@ -22,6 +161,7 @@ function CategoryLink({category}) {
 CategoryLink.propTypes = {
     category: PropTypes.string.isRequired,
 };
+
 
 function HomeFeedSidebar() {
     return (<div className="sideColumn">
@@ -176,88 +316,6 @@ function HomeFeedSidebar() {
           </div>
     );
 }
-
-function HomeFeed(props) {
-  const {interfaceLang, toggleSignUpModal, onlySharedStories} = props;
-  const [stories, setStories] = useState(Sefaria._stories.stories);
-  const scrollable_element = useRef();
-
-  usePaginatedScroll(
-    scrollable_element,
-    "/api/stories?" + (onlySharedStories ? "shared_only=1" : ""),
-    data => {
-      Sefaria._stories.stories = Sefaria._stories.stories.concat(data.stories);
-      Sefaria._stories.page = data.page + 1;
-      setStories(Sefaria._stories.stories)
-    },
-    Sefaria._stories.page
-  );
-
-  const sidebarModules = [
-    {type: "AboutSefaria"},
-    {type: "Resources"},
-    {type: "JoinTheConversation"},
-    {type: "GetTheApp"},
-    {type: "StayConnected"},
-    {type: "SupportSefaria", props: {blue: true}},
-  ];
-
-  const classes = classNames({readerNavMenu:1, noHeader: 1});
-  const contentClasses = classNames({content: 1, hasFooter: 1});
-
-  return (
-    <div className={classes} key="0">
-      <div className={contentClasses}>
-        <div className="sidebarLayout">
-          <div className="contentInner mainColumn">
-            {stories.length ? stories.map((s,i) => Story(s, i, props)) : <LoadingMessage />}
-          </div>
-          <NavSidebar modules={sidebarModules} />
-        </div>
-        <Footer />
-      </div>
-    </div>
-    );
-
-  /*  
-  return (
-    <div className="homeFeedWrapper">
-      <div className="content hasFooter" ref={scrollable_element}>
-        <div className="contentInner">
-        <div id="homeCover">
-            <video id="homeVideo" poster="/static/img/home-video-narrow.jpg" preload="auto" autoPlay={true} loop="loop" muted="muted" volume="0">
-                <source src="/static/img/home-video-narrow.webm" type="video/webm" />
-                <source src="/static/img/home-video-narrow.mp4" type="video/mp4" />
-                Video of sofer writing letters of the Torah
-            </video>
-            <h1 className="featureTitle">
-                <span className="int-en">A Living Library of Jewish Texts</span>
-                <span className="int-he">ספרייה חיה של טקסטים יהודיים</span>
-            </h1>
-            <div className="sub">
-                <span className="int-en">Explore 3,000 years of Jewish texts in Hebrew and English translation. <a href="/about">Learn More &rsaquo;</a></span>
-                <span className="int-he">3,000 שנה של טקסטים יהודיים בעברית ובתרגום לאנגלית פרוסים לפניכם. <a href="/about">לקריאה נוספת&rsaquo;</a></span>
-            </div>
-        </div>
-
-        <div className="columnLayout">
-            <div className="mainColumn">
-                <div className="storyFeedInner">
-                {stories.length ? stories.map((s,i) => Story(s, i, props)) : <LoadingMessage />}
-                </div>
-            </div>
-            <HomeFeedSidebar />
-        </div>
-        </div>
-      </div>
-    </div>);
-    */
-}
-HomeFeed.propTypes = {
-  interfaceLang:      PropTypes.string,
-  toggleSignUpModal:  PropTypes.func.isRequired,
-  onlySharedStories:  PropTypes.bool,
-};
 
 
 /*

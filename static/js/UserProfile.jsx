@@ -7,7 +7,7 @@ import {
   ProfileListing,
   ProfilePic,
   FollowButton,
-  IntText,
+  InterfaceText,
 } from './Misc';
 import React  from 'react';
 import PropTypes  from 'prop-types';
@@ -88,19 +88,19 @@ class UserProfile extends Component {
      return (
         <div className="emptyList">
           <div className="emptyListText">
-            <IntText>{this.props.profile.full_name}</IntText>
-            <IntText> hasn't shared any collections yet.</IntText>
+            <InterfaceText>{this.props.profile.full_name}</InterfaceText>
+            <InterfaceText> hasn't shared any collections yet.</InterfaceText>
           </div>
         </div>);
     }
     return (
       <div className="emptyList">
         <div className="emptyListText">
-          <IntText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</IntText>
+          <InterfaceText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</InterfaceText>
         </div>
         <a href="/collections/new" className="resourcesLink">
           <img src="/static/icons/collection.svg" alt="Collection icon" />
-            <IntText>Create a New Collection</IntText>
+            <InterfaceText>Create a New Collection</InterfaceText>
         </a>
       </div>);
   }
@@ -115,7 +115,7 @@ class UserProfile extends Component {
       <div className="sheet-header">
         <a href="/collections/new" className="resourcesLink">
           <img src="/static/icons/collection.svg" alt="Collection icon" />
-            <IntText>Create a New Collection</IntText>
+            <InterfaceText>Create a New Collection</InterfaceText>
         </a>
       </div>
     );
@@ -192,8 +192,8 @@ class UserProfile extends Component {
       return (
         <div className="emptyList">
           <div className="emptyListText">
-            <IntText>{this.props.profile.full_name}</IntText>
-            <IntText> hasn't shared any sheets yet.</IntText>
+            <InterfaceText>{this.props.profile.full_name}</InterfaceText>
+            <InterfaceText> hasn't shared any sheets yet.</InterfaceText>
           </div>
         </div>
       );

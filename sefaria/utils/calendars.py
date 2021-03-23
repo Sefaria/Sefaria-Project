@@ -261,6 +261,11 @@ def get_parasha(datetime_obj, diaspora=True, parasha=None):
 
     return p
 
+
+def get_todays_parasha(diaspora=True):
+    return get_parasha(timezone.localtime(timezone.now()), diaspora=diaspora)
+
+
 @graceful_exception(logger=logger, return_value=[])
 def parashat_hashavua_and_haftara(datetime_obj, diaspora=True, custom=None, parasha=None, ret_type='list'):
     db_parasha = get_parasha(datetime_obj, diaspora=diaspora, parasha=parasha)

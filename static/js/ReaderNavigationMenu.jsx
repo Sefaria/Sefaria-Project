@@ -4,7 +4,7 @@ import {
   TwoOrThreeBox,
   NBox,
   LanguageToggleButton,
-  IntText,
+  InterfaceText,
 } from './Misc';
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes  from 'prop-types';
@@ -95,7 +95,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
     <h1>
       { multiPanel && interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
        <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
-      <IntText>Browse the Library</IntText>
+      <InterfaceText>Browse the Library</InterfaceText>
     </h1>;
 
 
@@ -141,9 +141,7 @@ ReaderNavigationMenu.propTypes = {
   topic:               PropTypes.string.isRequired,
   settings:            PropTypes.object.isRequired,
   setCategories:       PropTypes.func.isRequired,
-  setNavTopic:         PropTypes.func.isRequired,
   onClose:             PropTypes.func.isRequired,
-  openNav:             PropTypes.func.isRequired,
   openSearch:          PropTypes.func.isRequired,
   openMenu:            PropTypes.func.isRequired,
   handleClick:         PropTypes.func.isRequired,

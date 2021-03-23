@@ -1,5 +1,5 @@
 import {
-  IntText,
+  InterfaceText,
 } from './Misc';
 import React  from 'react';
 import classNames  from 'classnames';
@@ -54,8 +54,8 @@ const Module = ({children, blue}) => {
 
 const ModuleTitle = ({children, en, he, h1}) => {
   const content = children ?
-    <IntText>{children}</IntText>
-    : <IntText en={en} he={he} />;
+    <InterfaceText>{children}</InterfaceText>
+    : <InterfaceText text={{en, he}} />;
 
   return h1 ?
     <h1>{content}</h1>
@@ -66,7 +66,7 @@ const ModuleTitle = ({children, en, he, h1}) => {
 const TitledText = ({enTitle, heTitle, enText, heText}) => {
   return <Module>
     <ModuleTitle en={enTitle} he={heTitle} />
-    <IntText en={enText} he={heText} />
+    <InterfaceText text={{en: enText, he: heText}} />
   </Module>
 };
 
@@ -74,7 +74,7 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
 const AboutSefaria = () => (
   <Module>
     <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle>
-    <IntText>Sefaria is a place to explore 3,000 years of Jewish texts. We offer you direct access to texts, translations, and commentaries for free so that you participate in the tradition of making meaning of our heritage.</IntText> <a href="/about" className="inTextLink"><IntText>Learn More</IntText> <IntText>&rsaquo;</IntText></a>
+    <InterfaceText>Sefaria is a place to explore 3,000 years of Jewish texts. We offer you direct access to texts, translations, and commentaries for free so that you participate in the tradition of making meaning of our heritage.</InterfaceText> <a href="/about" className="inTextLink"><InterfaceText>Learn More</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText></a>
   </Module>
 );
 
@@ -98,7 +98,7 @@ const Resources = () => (
 const TheJewishLibrary = () => (
   <Module>
     <ModuleTitle>The Jewish Library</ModuleTitle>
-    <IntText>The tradition of Torah texts is a vast, interconnected network that forms a conversation across space and time. The five books of the Torah form its foundation, and each generation of later texts functions as a commentary on those that came before it.</IntText>
+    <InterfaceText>The tradition of Torah texts is a vast, interconnected network that forms a conversation across space and time. The five books of the Torah form its foundation, and each generation of later texts functions as a commentary on those that came before it.</InterfaceText>
   </Module>
 );
 
@@ -109,7 +109,7 @@ const PopularTexts = ({texts}) => (
     {texts.map(text => 
       <div className="navSidebarLink ref" key={text}>
         <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
-        <a href={"/" + Sefaria.normRef(text)}><IntText>{text}</IntText></a>
+        <a href={"/" + Sefaria.normRef(text)}><InterfaceText>{text}</InterfaceText></a>
       </div>
     )}
   </Module>
@@ -119,11 +119,11 @@ const PopularTexts = ({texts}) => (
 const SupportSefaria = ({blue}) => (
   <Module blue={blue}>
     <ModuleTitle>Support Sefaria</ModuleTitle>
-    <IntText>Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</IntText>
+    <InterfaceText>Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.</InterfaceText>
     <br />
     <a className={"button small" + (blue ? " white" : "")} href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank">
       <img src="/static/img/heart.png" alt="donation icon" />
-      <IntText>Make a Donation</IntText>
+      <InterfaceText>Make a Donation</InterfaceText>
     </a>
   </Module>
 );
@@ -132,11 +132,11 @@ const SupportSefaria = ({blue}) => (
 const SponsorADay = () => (
   <Module>
     <ModuleTitle>Sponsor A Day of Learning</ModuleTitle>
-    <IntText>With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.</IntText>
+    <InterfaceText>With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.</InterfaceText>
     <br />
     <a className="button small" href="https://sefaria.nationbuilder.com/sponsor" target="_blank">
       <img src="/static/img/heart.png" alt="donation icon" />
-      <IntText>Sponsor A Day</IntText>
+      <InterfaceText>Sponsor A Day</InterfaceText>
     </a>
   </Module>
 );
@@ -149,8 +149,8 @@ const AboutTextCategory = ({cats}) => {
 
   return (
     <Module>
-      <h3><IntText en={enTitle} he={heTitle}/></h3>
-      <IntText en={tocObject.enDesc} he={tocObject.heDesc} />
+      <h3><InterfaceText text={{en: enTitle, he: heTitle}} /></h3>
+      <InterfaceText text={{en: tocObject.enDesc, he: tocObject.heDesc}} />
     </Module>
   );
 };
@@ -164,22 +164,26 @@ const WeeklyTorahPortion = () => {
     <Module>
       <ModuleTitle>Weekly Torah Portion</ModuleTitle>
       <div className="readingsSection">
-        <IntText className="readingsSectionTitle" en={parashah.displayValue.en} he={parashah.displayValue.he} />
+        <span className="readingsSectionTitle">
+          <InterfaceText text={{en: parashah.displayValue.en, he: parashah.displayValue.he}} />
+        </span>
         <div className="navSidebarLink ref">
           <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
-          <a href={"/" + parashah.url}><IntText>{parashah.ref}</IntText></a>
+          <a href={"/" + parashah.url}><InterfaceText>{parashah.ref}</InterfaceText></a>
         </div>
       </div>
       <div className="readingsSection">
-        <IntText className="readingsSectionTitle">Haftarah</IntText>
+        <span className="readingsSectionTitle">
+          <InterfaceText >Haftarah</InterfaceText>
+        </span>
         {haftarot.map(h => 
         <div className="navSidebarLink ref" key={h.url}>
           <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
-          <a href={"/" + h.url}><IntText>{h.ref}</IntText></a>
+          <a href={"/" + h.url}><InterfaceText>{h.ref}</InterfaceText></a>
         </div>)}
       </div>
       <a href="/topics/category/torah-portions" className="allLink">
-        <IntText>All Portions</IntText> <IntText>&rsaquo;</IntText>
+        <InterfaceText>All Portions</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
       </a>
     </Module>
   );
@@ -193,11 +197,13 @@ const DafYomi = () => {
     <Module>
       <ModuleTitle>Daily Study</ModuleTitle>
       <div className="readingsSection">
-        <IntText className="readingsSectionTitle">Daf Yomi</IntText>
+        <span className="readingsSectionTitle">
+          <InterfaceText >Daf Yomi</InterfaceText>
+        </span>
         <div className="navSidebarLink ref">
           <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
           <a href={"/" + daf.url}>
-            <IntText en={daf.displayValue.en} he={daf.displayValue.he}/>
+            <InterfaceText text={{en: daf.displayValue.en, he: daf.displayValue.he}} />
           </a>
         </div>
       </div>
@@ -238,17 +244,17 @@ const Visualizations = ({categories}) => {
   return (
     <Module>
       <ModuleTitle>Visualizations</ModuleTitle>
-      <IntText>Explore interconnections among texts with our interactive visualizations.</IntText>
+      <InterfaceText>Explore interconnections among texts with our interactive visualizations.</InterfaceText>
       <div className="linkList">
         {links.map((link, i) => 
           <div className="navSidebarLink gray" key={i}>
             <img src="/static/icons/visualization.svg" className="navSidebarIcon" alt={Sefaria._("visualization icon")} />
-            <a href={link.url}><IntText en={link.en} he={link.he}/></a>
+            <a href={link.url}><InterfaceText text={{en: link.en, he: link.he}} /></a>
           </div>
         )}
       </div>
       <a href="/visualizations" className="allLink">
-        <IntText>All Visualizations</IntText> <IntText>&rsaquo;</IntText>
+        <InterfaceText>All Visualizations</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
       </a>
     </Module>
   );
@@ -258,7 +264,7 @@ const Visualizations = ({categories}) => {
 const AboutTopics = () => (
   <Module>
     <ModuleTitle>About Topics</ModuleTitle>
-    <IntText>Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.</IntText>
+    <InterfaceText>Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.</InterfaceText>
   </Module>
 );
 
@@ -268,7 +274,7 @@ const TrendingTopics = () => (
     <ModuleTitle>Trending Topics</ModuleTitle>
     {Sefaria.trendingTopics.map((topic, i) => 
       <div className="navSidebarLink ref" key={i}>
-        <a href={"/topics/" + topic.slug}><IntText en={topic.en} he={topic.he}/></a>
+        <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
       </div>
     )}
   </Module>
@@ -278,11 +284,11 @@ const TrendingTopics = () => (
 const JoinTheConversation = () => (
   <Module>
     <ModuleTitle>Join the Conversation</ModuleTitle>
-    <IntText>Mix and match sources from our library, along with outside sources, comments, images and videos.</IntText>
+    <InterfaceText>Mix and match sources from our library, along with outside sources, comments, images and videos.</InterfaceText>
     <br />
     <a className="button small" href="/sheets/new">
       <img src="/static/icons/new-sheet.svg" alt="make a sheet icon" />
-      <IntText>Make a Sheet</IntText>
+      <InterfaceText>Make a Sheet</InterfaceText>
     </a>
   </Module>
 );
@@ -291,15 +297,15 @@ const JoinTheConversation = () => (
 const GetTheApp = () => (
   <Module>
     <ModuleTitle>Get the Mobile App</ModuleTitle>
-    <IntText>Access the Jewish library anywhere and anytime with the</IntText> <a href="/mobile" className="inTextLink"><IntText>Sefaria mobile app.</IntText></a>
+    <InterfaceText>Access the Jewish library anywhere and anytime with the</InterfaceText> <a href="/mobile" className="inTextLink"><InterfaceText>Sefaria mobile app.</InterfaceText></a>
     <br />
     <a target="_blank" className="button small white appButton ios" href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8">
       <img src="/static/icons/ios.svg" alt={Sefaria._("Sefaria app on IOS")} />
-      <IntText>iOS</IntText>
+      <InterfaceText>iOS</InterfaceText>
     </a>
     <a target="_blank" className="button small white appButton" href="https://play.google.com/store/apps/details?id=org.sefaria.sefaria">
       <img src="/static/icons/android.svg" alt={Sefaria._("Sefaria app on Android")} />
-      <IntText>Android</IntText>
+      <InterfaceText>Android</InterfaceText>
     </a>
   </Module>
 );
@@ -311,7 +317,7 @@ const StayConnected = () => {
   return (
     <Module>
       <ModuleTitle>Stay Connected</ModuleTitle>
-      <IntText>Get updates on new texts, learning resources, features, and more.</IntText>
+      <InterfaceText>Get updates on new texts, learning resources, features, and more.</InterfaceText>
       <br />
       <NewsletterSignUpForm context="sidebar" />
 
@@ -336,7 +342,7 @@ const StayConnected = () => {
 const AboutStudySchedules = () => (
   <Module>
     <ModuleTitle h1={true}>Study Schedules</ModuleTitle>
-    <IntText>Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar. Following this practice, many other calendars have been created to help communities of learners work through specific texts together.</IntText>
+    <InterfaceText>Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar. Following this practice, many other calendars have been created to help communities of learners work through specific texts together.</InterfaceText>
   </Module>
 );
 
@@ -345,7 +351,7 @@ const AboutStudySchedules = () => (
 const IconLink = ({text, url, icon}) => (
   <div className="navSidebarLink gray">
     <img src={"/static/icons/" + icon} className="navSidebarIcon" alt={`${Sefaria._(text)} ${Sefaria._("icon")}`} />
-    <a href={url}><IntText>{text}</IntText></a>
+    <a href={url}><InterfaceText>{text}</InterfaceText></a>
   </div>
 );
 
