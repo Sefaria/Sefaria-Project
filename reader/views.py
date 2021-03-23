@@ -929,12 +929,6 @@ def updates(request):
     return menu_page(request, page="updates", title=title, desc=desc)
 
 
-def new_home(request):
-    title = _("Sefaria: a Living Library of Jewish Texts Online")
-    desc  = _( "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
-    return menu_page(request, page="homefeed", title=title, desc=desc)
-
-
 @staff_member_required
 def story_editor(request):
     title = _("Story Editor")
@@ -3601,6 +3595,22 @@ def account_settings(request):
     })
 
 
+@ensure_csrf_cookie
+def home(request):
+    """
+    Homepage
+    """
+    title = _("Sefaria: a Living Library of Jewish Texts Online")
+    desc  = _( "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
+
+    return menu_page(request, page="home", title=title, desc=desc)
+
+
+def new_home_redirect(request):
+    """ Redirect old /new-home urls to / """
+    return redirect("/")
+
+
 def get_homepage_items():
     from sefaria.helper.topic import get_topic_by_parasha
     parashah = get_todays_parasha()
@@ -3612,7 +3622,7 @@ def get_homepage_items():
             "sheet": get_featured_sheet_from_topic(ptopic.slug)
         },
         "featured": {
-            "heading": "Featured",
+            "heading": "On Talmud",
             "sheet": get_featured_sheet_from_collection("bronfman-fellowship")
         },
         "holiday": {
@@ -3648,39 +3658,6 @@ def get_featured_sheet_from_topic(slug):
     })
     sheets = [s for s in sheets if not is_hebrew(s["title"]) and len(s["summary"]) > 140]
     return random.choice(sheets)
-
-
-@ensure_csrf_cookie
-def home(request):
-    """
-    Homepage
-    """
-    if request.user_agent.is_mobile:
-        return mobile_home(request)
-
-    if not SITE_SETTINGS["TORAH_SPECIFIC"]:
-        return redirect("/texts")
-
-    show_feed = request.user.is_authenticated
-
-    if show_feed:
-        return redirect("/new-home")
-
-    last_place = request.COOKIES.get("user_history", None)
-    if (last_place or request.user.is_authenticated) and "home" not in request.GET:
-        return redirect("/texts")
-
-    calendar_items = get_keyed_calendar_items(request.diaspora)
-    daf_today = calendar_items["Daf Yomi"]
-    parasha   = calendar_items["Parashat Hashavua"]
-    metrics   = db.metrics.find().sort("timestamp", -1).limit(1)[0]
-
-    return render_template(request,'static/home.html', None, {
-        "metrics": metrics,
-        "daf_today": daf_today,
-        "parasha": parasha,
-        "canonical_url": canonical_url(request)
-    })
 
 
 @ensure_csrf_cookie

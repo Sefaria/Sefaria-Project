@@ -40,7 +40,6 @@ urlpatterns = [
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
-    url(r'^new-home/?$', reader_views.new_home),
     url(r'^story_editor/?$', reader_views.story_editor),
     url(r'^torahtracker/?$', reader_views.user_stats),
 ]
@@ -119,6 +118,7 @@ urlpatterns += [
 
 # Redirects for legacy URLs
 urlpatterns += [
+    url(r'^new-home/?$', reader_views.new_home_redirect),
     url(r'^account/?$', reader_views.my_profile),
     url(r'^sheets/tags/?$', reader_views.topics_redirect),
     url(r'^sheets/tags/(?P<tag>.+)$', reader_views.topic_page_redirect),

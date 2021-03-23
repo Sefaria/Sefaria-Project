@@ -131,9 +131,9 @@ class ReaderPanel extends Component {
     let contentLangOverride = originalLanguage;
     if (mode === "Connections" && Sefaria.interfaceLang === "hebrew") {
       contentLangOverride = "hebrew";
-    }else if (["topics", "homefeed", "story_editor" ].includes(menuOpen)) {
+    } else if (["topics", "home", "story_editor" ].includes(menuOpen)) {
       contentLangOverride = (["english", "bilingual"].includes(Sefaria.interfaceLang)) ? "bilingual" : "hebrew";
-    }else if (["text toc", "book toc"].includes(menuOpen)) {
+    } else if (["text toc", "book toc"].includes(menuOpen)) {
       contentLangOverride = (Sefaria.interfaceLang === "hebrew") ? "hebrew" : ((originalLanguage === "bilingual") ? "english" : originalLanguage);
     }
     return contentLangOverride;
@@ -372,8 +372,8 @@ class ReaderPanel extends Component {
   }
   closeMenus() {
     let state = {
-      // If there's no content to show, return to home
-      menuOpen: this.state.refs.slice(-1)[0] ? null: "home",
+      // If there's no content to show, return to navigation
+      menuOpen: this.state.refs.slice(-1)[0] ? null: "navigation",
       // searchQuery: null,
       // appliedSearchFilters: [],
       navigationCategories: null,
@@ -774,13 +774,12 @@ class ReaderPanel extends Component {
           key="connections" />
       );
     }
-    if (this.state.menuOpen === "home" || this.state.menuOpen == "navigation") {
+    if (this.state.menuOpen == "navigation") {
       const openInPanel   = function(pos, ref) { this.showBaseText(ref) }.bind(this);
       const openNav       = this.state.compare ? this.props.openComparePanel : this.openMenu.bind(null, "navigation");
 
       menu = (<ReaderNavigationMenu
                     key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory: "navHome"}
-                    home={this.state.menuOpen === "home"}
                     compare={this.state.compare}
                     interfaceLang={this.props.interfaceLang}
                     multiPanel={this.props.multiPanel}
@@ -1006,7 +1005,7 @@ class ReaderPanel extends Component {
                     multiPanel={this.props.multiPanel}
                     navHome={this.openMenu.bind(null, "navigation")}/>);
 
-    } else if (this.state.menuOpen === "homefeed") {
+    } else if (this.state.menuOpen === "home") {
       menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
                     toggleSignUpModal={this.props.toggleSignUpModal}

@@ -639,11 +639,6 @@ class ReaderApp extends Component {
             hist.url = "texts/history";
             hist.mode = "history";
             break;
-          case "homefeed":
-            hist.title = Sefaria._("Sefaria Stories");
-            hist.url = "new-home";
-            hist.mode = "homefeed";
-            break;
         }
 
       } else if (state.mode === "Text") {
@@ -1691,7 +1686,7 @@ class ReaderApp extends Component {
     }
   }
   showHome() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "homefeed"});
+    this.setStateInHeaderOrSinglePanel({menuOpen: "home"});
   }  
   showSaved() {
     this.setStateInHeaderOrSinglePanel({menuOpen: "saved"});
