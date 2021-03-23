@@ -14,6 +14,7 @@ import pymongo
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
 import structlog
+import logging
 from logging import NullHandler
 from collections import defaultdict
 import time as pytime
