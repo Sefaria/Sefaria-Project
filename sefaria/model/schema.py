@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import copy
 
-import logging
+import structlog
 from functools import reduce
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 try:
     import re2 as re

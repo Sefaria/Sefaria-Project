@@ -15,8 +15,8 @@ from sefaria.model.schema import SheetLibraryNode
 from sefaria.utils import hebrew
 from sefaria.system.database import db
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 try:
     import re2 as re

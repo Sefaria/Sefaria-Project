@@ -4,7 +4,7 @@
 abstract.py - abstract classes for Sefaria models
 """
 import collections
-import logging
+import structlog
 import copy
 import bleach
 import re
@@ -18,7 +18,7 @@ from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
 logging.basicConfig()
-logger = logging.getLogger("abstract")
+logger = structlog.get_logger(__name__)
 logger.setLevel(logging.WARNING)
 
 

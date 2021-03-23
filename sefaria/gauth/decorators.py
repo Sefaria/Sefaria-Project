@@ -11,8 +11,8 @@ import google.auth
 import google.oauth2
 import google_auth_oauthlib.flow
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 def gauth_required(scope, ajax=False):
     """

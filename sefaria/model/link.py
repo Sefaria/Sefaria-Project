@@ -11,8 +11,8 @@ from sefaria.system.database import db
 from . import abstract as abst
 from . import text
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class Link(abst.AbstractMongoRecord):

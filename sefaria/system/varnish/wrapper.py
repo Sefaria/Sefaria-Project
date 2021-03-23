@@ -10,8 +10,8 @@ from sefaria.system.exceptions import InputError
 from sefaria.utils.util import graceful_exception
 
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 @graceful_exception(logger=logger, return_value=None)
