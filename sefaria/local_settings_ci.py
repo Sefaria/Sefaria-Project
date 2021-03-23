@@ -228,10 +228,10 @@ MOBILE_APP_KEY = "MOBILE_APP_KEY"
 
 """ to use logging, in any module:
 # import the logging library
-import logging
+import structlog
 
 # Get an instance of a logger
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 #log stuff
 logger.critical()

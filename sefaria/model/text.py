@@ -4,10 +4,10 @@ text.py
 """
 
 import time
-import logging
+import structlog
 from functools import reduce
 from typing import Optional, Union
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 import sys
 import regex

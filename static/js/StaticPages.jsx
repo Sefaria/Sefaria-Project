@@ -283,7 +283,7 @@ const RambanLandingPage = () => {
             ['Vaera', 'The loving children and children-in-law of Arthur Helft', 'In memory of Dr. Arthur Helft', '/Exodus.6.2?with=Ramban'],
             ['Bo', null, null, '/Exodus.10.1?with=Ramban'],
             ['Beshalach', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l', '/Exodus.13.17?with=Ramban'],
-            ['Yitro', 'Anonymous', 'In memory of Joe and Rose Rudis', '/Exodus.18.1?with=Ramban'],
+            ['Yitro', 'Anonymous', 'To honor the memory of Joe and Rose Rudis', '/Exodus.18.1?with=Ramban'],
             ['Mishpatim ', null, null, '/Exodus.21.1?with=Ramban'],
             ['Terumah', 'Julia Baum and Adam Feldman', 'In memory of Earl Katz and Annette Steinman', '/Exodus.25.1?with=Ramban'],
             ['Tetzaveh', 'Huti and Jay', 'In Gratitude to all the Health Care Workers during the Pandemic', '/Exodus.27.20?with=Ramban'],

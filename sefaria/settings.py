@@ -120,6 +120,7 @@ MIDDLEWARE = [
     'sefaria.system.middleware.CORSDebugMiddleware',
     'sefaria.system.middleware.SharedCacheMiddleware',
     'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
+    'django_structlog.middlewares.RequestMiddleware',
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
@@ -185,10 +186,10 @@ LOCALE_PATHS = (
 
 """ to use logging, in any module:
 # import the logging library
-import logging
+import structlog
 
 # Get an instance of a logger
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 #log stuff
 logger.critical()
