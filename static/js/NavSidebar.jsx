@@ -30,6 +30,7 @@ const Modules = ({type, props}) => {
     "PopularTexts":        PopularTexts,
     "SupportSefaria":      SupportSefaria,
     "SponsorADay":         SponsorADay,
+    "StudySchedules":      StudySchedules,
     "WeeklyTorahPortion":  WeeklyTorahPortion,
     "DafYomi":             DafYomi,
     "AboutTopics":         AboutTopics,
@@ -156,31 +157,95 @@ const AboutTextCategory = ({cats}) => {
 };
 
 
-const WeeklyTorahPortion = () => {
+const ParashahLink = () => {
   const parashah = Sefaria.calendars.filter(c => c.title.en === "Parashat Hashavua")[0];
-  const haftarot = Sefaria.calendars.filter(c => c.title.en.startsWith("Haftarah"))
+  return (
+    <div className="navSidebarLink ref">
+      <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
+      <a href={"/" + parashah.url}><InterfaceText>{parashah.ref}</InterfaceText></a>
+    </div>
+  );
+};
 
+
+const ParashahName = () => {
+  const parashah = Sefaria.calendars.filter(c => c.title.en === "Parashat Hashavua")[0];
+  return <InterfaceText text={{en: parashah.displayValue.en, he: parashah.displayValue.he}} />
+};
+
+
+const HaftarotLinks = () => {
+  const haftarot = Sefaria.calendars.filter(c => c.title.en.startsWith("Haftarah"))
+  return (
+    <>
+      {haftarot.map(h => 
+      <div className="navSidebarLink ref" key={h.url}>
+        <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
+        <a href={"/" + h.url}><InterfaceText>{h.ref}</InterfaceText></a>
+      </div>)}
+    </>
+  );
+};
+
+
+const DafLink = () => {
+  const daf = Sefaria.calendars.filter(c => c.title.en === "Daf Yomi")[0];
+  return (
+    <div className="navSidebarLink ref">
+      <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
+      <a href={"/" + daf.url}>
+        <InterfaceText text={{en: daf.displayValue.en, he: daf.displayValue.he}} />
+      </a>
+    </div>
+  );
+}
+
+
+const StudySchedules = () => {
   return (
     <Module>
-      <ModuleTitle>Weekly Torah Portion</ModuleTitle>
+      <ModuleTitle>Study Schedules</ModuleTitle>
       <div className="readingsSection">
         <span className="readingsSectionTitle">
-          <InterfaceText text={{en: parashah.displayValue.en, he: parashah.displayValue.he}} />
+          <InterfaceText>Weekly Torah Portion</InterfaceText> - <ParashahName />
         </span>
-        <div className="navSidebarLink ref">
-          <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
-          <a href={"/" + parashah.url}><InterfaceText>{parashah.ref}</InterfaceText></a>
-        </div>
+        <ParashahLink />
       </div>
       <div className="readingsSection">
         <span className="readingsSectionTitle">
           <InterfaceText >Haftarah</InterfaceText>
         </span>
-        {haftarot.map(h => 
-        <div className="navSidebarLink ref" key={h.url}>
-          <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
-          <a href={"/" + h.url}><InterfaceText>{h.ref}</InterfaceText></a>
-        </div>)}
+        <HaftarotLinks />
+      </div>
+      <div className="readingsSection">
+        <span className="readingsSectionTitle">
+          <InterfaceText >Daf Yomi</InterfaceText>
+        </span>
+        <DafLink />
+      </div>
+      <a href="/calendars" className="allLink">
+        <InterfaceText>All Study Schedules</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
+      </a>
+    </Module>
+  );
+};
+
+
+const WeeklyTorahPortion = () => {
+  return (
+    <Module>
+      <ModuleTitle>Weekly Torah Portion</ModuleTitle>
+      <div className="readingsSection">
+        <span className="readingsSectionTitle">
+          <ParashahName />
+        </span>
+        <ParashahLink />
+      </div>
+      <div className="readingsSection">
+        <span className="readingsSectionTitle">
+          <InterfaceText >Haftarah</InterfaceText>
+        </span>
+        <HaftarotLinks />
       </div>
       <a href="/topics/category/torah-portions" className="allLink">
         <InterfaceText>All Portions</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText>
@@ -191,8 +256,6 @@ const WeeklyTorahPortion = () => {
 
 
 const DafYomi = () => {
-  const daf = Sefaria.calendars.filter(c => c.title.en === "Daf Yomi")[0];
-
   return (
     <Module>
       <ModuleTitle>Daily Study</ModuleTitle>
@@ -200,12 +263,7 @@ const DafYomi = () => {
         <span className="readingsSectionTitle">
           <InterfaceText >Daf Yomi</InterfaceText>
         </span>
-        <div className="navSidebarLink ref">
-          <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
-          <a href={"/" + daf.url}>
-            <InterfaceText text={{en: daf.displayValue.en, he: daf.displayValue.he}} />
-          </a>
-        </div>
+        <DafLink />
       </div>
     </Module>
   );

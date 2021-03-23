@@ -107,11 +107,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
 
   const sidebarModules = [
     {type: "TheJewishLibrary"},
-    {type: "PopularTexts", 
-     props: {
-        texts: ["Genesis", "Pirkei Avot", "Shabbat", "Pesach Haggadah", "Sefer HaChinukh"]
-      }
-    },
+    {type: "StudySchedules"},
     {type: "SponsorADay"},
     {type: "GetTheApp"},
   ];
