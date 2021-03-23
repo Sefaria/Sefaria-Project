@@ -1036,6 +1036,7 @@ class ReaderPanel extends Component {
           multiPanel={this.props.multiPanel}
           menuOpen={this.state.menuOpen}
           handleClick={this.handleClick}
+          openMenu={this.openMenu}
           openNav={this.openMenu.bind(null, "navigation")}
           openDisplaySettings={this.openDisplaySettings}
           toggleLanguage={this.toggleLanguage}

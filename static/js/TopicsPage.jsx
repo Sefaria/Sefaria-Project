@@ -46,7 +46,7 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
               <span className="en">{cat.categoryDescription.en}</span>
               <span className="he">{cat.categoryDescription.he}</span>
             </div>
-          </div>
+          </div>;
   });
   categoryListings = (<div className="readerNavCategories"><NBox content={categoryListings} n={2} /></div>);
 
@@ -70,7 +70,7 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
   const classes = classNames({readerNavMenu:1, noHeader: !hideHeader, noLangToggleInHebrew: 1 });
   const contentClasses = classNames({content: 1, hasFooter: 1});
 
-  return(<div ref={ref} className={classes} key="0">
+  return (<div ref={ref} className={classes} key="0">
           {topContent}
           <div className={contentClasses}>
             <div className="sidebarLayout">

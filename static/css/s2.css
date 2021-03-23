@@ -1163,6 +1163,26 @@ input.noselect {
   cursor: pointer;
   font-size: 22px;
 }
+.navTitleTab {
+  margin-inline-end: 26px;
+  color: #999;
+}
+.navTitleTab:hover {
+  color: inherit;
+  text-decoration: none;
+}
+.navTitleTab.current {
+  color: inherit;
+  pointer-events: none;
+}
+.navTitleTab img {
+  height: 14px;
+  margin-inline-end: 6px;
+  opacity: 0.4;
+}
+.navTitleTab.current img {
+  opacity: 0.6;
+}
 .sidebarLayout {
   display: flex;
   flex-direction: row;

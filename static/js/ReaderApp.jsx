@@ -635,7 +635,7 @@ class ReaderApp extends Component {
             hist.mode = "saved";
             break;
           case "history":
-            hist.title = Sefaria._("My User History");
+            hist.title = Sefaria._("My Reading History");
             hist.url = "texts/history";
             hist.mode = "history";
             break;
