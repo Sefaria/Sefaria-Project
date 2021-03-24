@@ -737,7 +737,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         return toc_contents_dict
 
-    def toc_contents(self, include_first_section=True, include_flags=True):
+    def toc_contents(self, include_first_section=False, include_flags=True, include_base_texts=False):
         """Returns to a dictionary used to represent this text in the library wide Table of Contents"""
         toc_contents_dict = {
             "title": self.get_title(),
@@ -762,14 +762,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         if order:
             toc_contents_dict["order"] = order
 
-
         if hasattr(self, "collective_title"):
             toc_contents_dict["commentator"] = self.collective_title # todo: deprecate Only used in s1 js code
             toc_contents_dict["heCommentator"] = hebrew_term(self.collective_title) # todo: deprecate Only used in s1 js code
             toc_contents_dict["collectiveTitle"] = self.collective_title
             toc_contents_dict["heCollectiveTitle"] = hebrew_term(self.collective_title)
 
-        if hasattr(self, 'base_text_titles'):
+        if include_base_texts and hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
             toc_contents_dict["base_text_order"] = self.get_base_text_order()
             if include_first_section:
@@ -778,7 +777,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 toc_contents_dict["collectiveTitle"] = self.title
                 toc_contents_dict["heCollectiveTitle"] = self.get_title("he")
 
-        if hasattr(self, 'base_text_mapping'):
+        if include_base_texts and hasattr(self, 'base_text_mapping'):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping
 
         if hasattr(self, 'hidden'):

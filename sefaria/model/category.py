@@ -272,7 +272,7 @@ class TocTree(object):
                 self._first_comment_lookup.get(frozenset([btitle, title]), d["firstSection"])
                 for btitle in d["base_text_titles"]
                 }
-
+        
         return TocTextIndex(d, index_object=index)
 
     def _add_category(self, cat):

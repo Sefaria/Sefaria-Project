@@ -262,13 +262,11 @@ const MenuItem = ({href, dref, nestLevel, title, heTitle, cats, incomplete, enDe
 
 const TextMenuItem = ({item, categories, showInHebrew, nestLevel}) => {
         const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, categories);
-        const lastPlace = Sefaria.lastPlaceForText(item.title);
-        const ref =  lastPlace ? lastPlace.ref : item.firstSection;
         return (
             <MenuItem
-                href        = {"/" + Sefaria.normRef(ref)}
+                href        = {"/" + Sefaria.normRef(item.title)}
                 incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
-                dref        = {ref}
+                dref        = {item.title}
                 nestLevel   = {nestLevel}
                 title       = {title}
                 heTitle     = {heTitle}
