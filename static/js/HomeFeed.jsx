@@ -24,7 +24,7 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories}) => {
   // But also make an API call check for updates
   useEffect(() => {
     Sefaria.sheets.publicSheets(0, 12, true, (data) => setRecentSheets(data));
-  });
+  }, []);
 
   const makeFeaturedBlock = ([data, heading]) => (
     <FeaturedSheet
