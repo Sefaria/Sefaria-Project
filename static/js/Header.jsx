@@ -408,7 +408,7 @@ function LoggedInButtons({headerMode}){
   const notificationsClasses = classNames({notifications: 1, unread: unread});
   return(
       <div className="accountLinks">
-          <a href="/texts/history" aria-label="See My History">
+          <a href="/texts/saved" aria-label="See My Saved Texts">
             <img src="/static/icons/bookmarks.svg" />
           </a>      
           <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>

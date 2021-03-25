@@ -435,7 +435,7 @@ input.noselect {
   vertical-align: middle;
   width: 92px;
   height: 25px;
-  margin-top: -6px;
+  margin-top: -7px;
 }
 @media (max-width: 540px) {
   .header .home {
