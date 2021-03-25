@@ -1877,6 +1877,10 @@ class ReaderApp extends Component {
     } else {
       widths = panelStates.map( panel => evenWidth );
     }
+    // Header should not show box-shadow over panels that have color line
+    const hasColorLine = ["sheets", "sheets meta"];
+    const headerHasBoxShadow = 
+      (!!this.state.header.menuOpen && hasColorLine.indexOf(this.state.header.menuOpen) === -1);
     var header = this.props.multiPanel || this.state.panels.length == 0 ?
                   (<Header
                     initialState={this.state.header}
@@ -1902,6 +1906,7 @@ class ReaderApp extends Component {
                     getLicenseMap={this.getLicenseMap}
                     translateISOLanguageCode={this.translateISOLanguageCode}
                     openTopic={this.openTopic}
+                    hasBoxShadow={headerHasBoxShadow}
                     toggleSignUpModal={this.toggleSignUpModal} />) : null;
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)

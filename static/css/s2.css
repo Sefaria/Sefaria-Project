@@ -1199,7 +1199,7 @@ input.noselect {
   /* HACK: add grey background beyond bounding box of sidebar by utilizing negative margins! */
   border-top: 80px solid #FBFBFA;
   border-bottom: 120px solid #FBFBFA;
-  margin: -80px 0 -120px 0;
+  margin: -80px 0 0 0;
 }
 .navSidebarModule {
   font-size: 16px;
@@ -1298,6 +1298,10 @@ input.noselect {
   color: #999;
   font-size: 13px;
 }
+.navSideBar a.moreLink:hover {
+  color: inherit;
+  cursor: pointer;
+}
 .navSidebar a.inTextLink {
   color: inherit;
   text-decoration: underline;
@@ -1314,6 +1318,13 @@ input.noselect {
 .navSidebar .newsletterSignUpBox .newsletterInput::placeholder {
   font-style: normal;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.aboutTextMetadata {
+  margin-bottom: 20px;
+}
+.aboutTextMetadata .aboutTextComposedText,
+.aboutTextMetadata .aboutTextAuthorText {
+  color: black;
 }
 .readerNavTop {
   width: 100%;
@@ -2121,9 +2132,6 @@ a.navBlockTitle {
 .readerApp.interface-hebrew .readerNavMenu.noLangToggleInHebrew .he {
   display: inline;
 }
-.bilingual .readerTextTableOfContents .he {
-  display: none;
-}
 .readerTextTableOfContents .readerTextToc {
   letter-spacing: 1px;
   text-transform: uppercase;
@@ -2146,11 +2154,13 @@ a.navBlockTitle {
 .readerTextTableOfContents .categoryAttribution,
 .readerTextTableOfContents .dedication {
   margin: 28px 0;
-}
-.readerTextTableOfContents .categoryAttribution, .readerTextTableOfContents .dedication {
   text-align: center;
   font-size: 18px;
   font-style: italic;
+}
+.readerTextTableOfContents .categoryAttribution,
+.readerTextTableOfContents .dedication {
+  text-align: start;
 }
 .readerTextTableOfContents .categoryAttribution .he,
 .readerTextTableOfContents .dedication .int-he,
@@ -2172,16 +2182,22 @@ a.navBlockTitle {
   color:#999;
   font-size: 14px;
   text-transform: uppercase;
-  margin-bottom: 8px;
   letter-spacing: 1px;
+}
+.readerTextTableOfContents .tocCategory .en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .readerTextTableOfContents .tocTitle,
 .sheetContent .title,
 .bookMetaDataBox .title {
   text-align: center;
-  font-size: 28px;
+  font-size: 30px;
   line-height: 1.3;
   unicode-bidi: plaintext;
+}
+.readerTextTableOfContents.bookPage .tocTitle {
+  text-align: start;
+  margin-bottom: 8px;
 }
 .readerTextTableOfContents .currentSection,
 .readerTextTableOfContents .authorStatement,
@@ -2215,16 +2231,15 @@ a.navBlockTitle {
   height: 30px;
   display: inline-block;
   vertical-align: middle;
-  margin-right: 10px;
+  margin-inline-end: 10px;
   float:none;
-}
-.interface-hebrew .imageBox {
-  margin-right: 0;
-  margin-left: 10px;
 }
 .authorStatement span p
  {
   display: inline-block;
+}
+.bookPage .readButton {
+  margin: 6px 0px 12px;
 }
 .readerTextTableOfContents .sheetMeta {
   font-size: 14px;
@@ -2275,7 +2290,6 @@ a.navBlockTitle {
   line-height: 1.4;
   text-align: center;
 }
-
 .readerTextTableOfContents .currentVersionBox {
   margin-bottom: 18px;
 }
@@ -2289,7 +2303,7 @@ a.navBlockTitle {
   display: inline;
   cursor: pointer;
   color: #666;
-  margin: 7px 6px 0;
+  margin: 13px 6px 0;
   font-size: 14px;
   position: absolute;
 }
@@ -2381,6 +2395,9 @@ a.navBlockTitle {
   text-align: center;
   height: 100%;
 }
+.readerTextTableOfContents.bookPage .content {
+  text-align: start;
+}
 .readerTextTableOfContents .content .sheetTags {
   display: flex;
   flex-direction: row;
@@ -2398,7 +2415,7 @@ a.navBlockTitle {
   font-weight: lighter;
   margin: 1px;
   text-align: center;
-  background-color: white;
+  background-color: #FBFBFA;
   color: #666;
   cursor: pointer;
   padding: 0 6px;
@@ -2421,6 +2438,7 @@ a.navBlockTitle {
   display: table;
   table-layout: fixed;
   width: 100%;
+  border-bottom: 1px solid #CCC;
 }
 .readerTextTableOfContents .content .structTogglesInner {
   display: table-row;
@@ -2435,23 +2453,21 @@ a.navBlockTitle {
   font-family: "Heebo", sans-serif;
 }
 .readerTextTableOfContents .structToggles .altStructToggleBox {
-  display: table-cell;
-  height: 37px;
+  display: inline-block;
 }
 .altStructToggleBox a, .altStructToggleBox a:hover, .altStructToggleBox a:visited, .altStructToggleBox a:link, .altStructToggleBox a:active {
   text-decoration: none;
 }
 
 .readerTextTableOfContents .structToggles .altStructToggle {
+  padding-bottom: 8px;
   display: block;
-  padding: 8px;
-  color: #999;
+  color: #666;
+  margin-inline-end: 30px;
   cursor: pointer;
-  font-size: 13px;
-  text-align: center;
-  text-transform: uppercase;
+  font-size: 22px;
+  text-align: start;
   letter-spacing: 1px;
-  border-bottom: 1px solid #CCC;
 }
 .readerTextTableOfContents .structToggles .altStructToggle.active {
   color: black;
@@ -2472,7 +2488,7 @@ a.navBlockTitle {
 }
 .readerTextTableOfContents .content .tocContent {
   padding: 30px 0 40px;
-  text-align: left;
+  text-align: start;
 }
 .readerTextTableOfContents.narrowPanel .tocContent {
   padding: 0 0 40px;
@@ -2490,9 +2506,12 @@ a.navBlockTitle {
   display: block;
   width: 100%;
 }
+.readerTextTableOfContents .content .schema-node-toc > .schema-node-title {
+  font-size: 24px;
+}
 .readerTextTableOfContents .content .schema-node-title {
   color: black;
-  font-size: 16px;
+  font-size: 18px;
   display: inline-block;
   margin-bottom: 10px;
   cursor: pointer;
@@ -2534,7 +2553,6 @@ a.navBlockTitle {
 }
 .readerTextTableOfContents .content .tocLevel {
   display: block;
-  margin: 0 auto;
 }
 .readerTextTableOfContents .content .tocContent > .tocLevel > .schema-node-toc {
   margin: 10px 0;

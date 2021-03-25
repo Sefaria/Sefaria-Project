@@ -1,7 +1,7 @@
 import {
   InterfaceText,
 } from './Misc';
-import React  from 'react';
+import React, { useState } from 'react';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
@@ -28,6 +28,7 @@ const Modules = ({type, props}) => {
     "TheJewishLibrary":    TheJewishLibrary,
     "AboutTextCategory":   AboutTextCategory,
     "PopularTexts":        PopularTexts,
+    "AboutText":           AboutText,
     "SupportSefaria":      SupportSefaria,
     "SponsorADay":         SponsorADay,
     "StudySchedules":      StudySchedules,
@@ -35,6 +36,7 @@ const Modules = ({type, props}) => {
     "DafYomi":             DafYomi,
     "AboutTopics":         AboutTopics,
     "TrendingTopics":      TrendingTopics,
+    "RelatedTopics":       RelatedTopics,
     "TitledText":          TitledText,
     "Visualizations":      Visualizations,
     "JoinTheConversation": JoinTheConversation,
@@ -42,6 +44,7 @@ const Modules = ({type, props}) => {
     "StayConnected":       StayConnected,
     "AboutStudySchedules": AboutStudySchedules,
   };
+  if (!type) { return null; }
   const ModuleType = moduleTypes[type];
   return <ModuleType {...props} />
 }
@@ -152,6 +155,57 @@ const AboutTextCategory = ({cats}) => {
     <Module>
       <h3><InterfaceText text={{en: enTitle, he: heTitle}} /></h3>
       <InterfaceText text={{en: tocObject.enDesc, he: tocObject.heDesc}} />
+    </Module>
+  );
+};
+
+
+const AboutText = ({index}) => {
+  const lang = Sefaria.interfaceLang === "hebrew" ? "he" : "en"
+
+  let composed = [index.compPlaceString?.[lang], index.compDateString?.[lang]].filter(x=>!!x).join(", ");
+  composed = composed.replace(/[()]/g, "");
+
+  if (index.categories.length == 2 && index.categories[0] == "Tanakh" && ["Torah", "Prophets", "Writings"].indexOf(index.categories[1]) !== -1) {
+    // Don't show date/time for Tanakh.
+    composed = null;
+  }
+
+  let authors   = index?.authors || [];
+  authors = authors.filter((x) => !!x[lang]).map(a => <a href={"/person/" + a.en} key={a.en}><InterfaceText>{a[lang]}</InterfaceText></a>);
+  authors = [].concat(...authors.map(x => [<span>, </span>, x])).slice(1); // Like a join for an array of React elements
+
+  const description = lang === "he" ? index.heDesc : index.enDesc;
+
+  if (!authors.length && !composed && !description) { return null; }
+
+  return (
+    <Module>
+      <h3><InterfaceText>About this Text</InterfaceText></h3>
+      { composed || authors.length ?
+      <div className="aboutTextMetadata">
+        
+        {authors.length ? 
+        <div className="aboutTextAuthor">
+          {authors.length == 1 ?
+          <InterfaceText>Author:</InterfaceText> 
+          : <InterfaceText>Authors:</InterfaceText>}
+          <span className="aboutTextAuthorText">
+            &nbsp;{authors}
+          </span>
+        </div> : null}
+
+        {composed ?
+        <div className="aboutTextComposed">
+          <InterfaceText>Composed:</InterfaceText>
+          <span className="aboutTextComposedText">
+            &nbsp;<InterfaceText>{composed}</InterfaceText>
+          </span>
+        </div> : null}
+
+      </div> : null}
+      {description ?
+      <InterfaceText>{description}</InterfaceText> : null}
     </Module>
   );
 };
@@ -337,6 +391,28 @@ const TrendingTopics = () => (
     )}
   </Module>
 );
+
+
+const RelatedTopics = ({topics}) => {
+  if (!topics.length) { return null; }
+  const [showMore, setShowMore] = useState(false);
+  const showMoreLink = !showMore && topics.length > 5;
+  const shownTopics = showMore ? topics : topics.slice(0,5);
+  return (
+    <Module>
+      <ModuleTitle>Related Topics</ModuleTitle>
+      {shownTopics.map((topic, i) => 
+        <div className="navSidebarLink ref" key={i}>
+          <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.title.en, he: topic.title.he}}/></a>
+        </div>
+      )}
+      {showMoreLink ?
+      <a className="moreLink" onClick={()=>{setShowMore(true);}}>
+        <InterfaceText>More</InterfaceText>
+      </a> : null}
+    </Module>
+  );
+};
 
 
 const JoinTheConversation = () => (

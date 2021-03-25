@@ -298,10 +298,7 @@ class Header extends Component {
     const headerMessage = this.props.headerMessage ?
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
-    // Header should not show box-shadow over panels that have color line
-    const hasColorLine = ["sheets", "sheets meta"];
-    const hasBoxShadow = (!!this.state.menuOpen && hasColorLine.indexOf(this.state.menuOpen) === -1);
-    const headerInnerClasses = classNames({headerInner: 1, boxShadow: hasBoxShadow});
+    const headerInnerClasses = classNames({headerInner: 1, boxShadow: this.props.hasBoxShadow});
     const inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang === "english", hebrewSearch: this.props.interfaceLang === "hebrew"});
     const searchBoxClasses = classNames({searchBox: 1, searchFocused: this.state.searchFocused});
     return (<div className="header" role="banner">

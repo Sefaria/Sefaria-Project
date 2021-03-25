@@ -12,9 +12,11 @@ import React  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
+import NavSidebar from './NavSidebar';
 import DictionarySearch  from './DictionarySearch';
 import VersionBlock  from './VersionBlock';
 import ExtendedNotes from './ExtendedNotes';
+import Footer  from './Footer';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Component   from 'react-class';
@@ -181,39 +183,11 @@ class ReaderTextTableOfContents extends Component {
     let versionSection = null;
     let downloadSection = null;
 
-    // Text Details
-    let detailsSection = this.state.indexDetails ? <TextDetails index={this.state.indexDetails} narrowPanel={this.props.narrowPanel} /> : null;
-    let isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
-
     let section, heSection;
     if (this.isTextToc()) {
       let sectionStrings = Sefaria.sectionString(this.props.currentRef);
       section   = sectionStrings.en.named;
       heSection = sectionStrings.he.named;
-    }
-
-    // Current Version (Text TOC only)
-    let cv = this.getCurrentVersion();
-    if (cv) {
-      if (cv.merged) {
-        let uniqueSources = cv.sources.filter(function(item, i, ar){ return ar.indexOf(item) === i; }).join(", ");
-        defaultVersionString += " (Merged from " + uniqueSources + ")";
-        currentVersionElement = (<div className="versionTitle">Merged from { uniqueSources }</div>);
-      } else {
-        if (!this.props.version) {
-          defaultVersionObject = this.state.versions.find(v => (cv.language == v.language && cv.versionTitle == v.versionTitle));
-          defaultVersionString += defaultVersionObject ? " (" + defaultVersionObject.versionTitle + ")" : "";
-        }
-        currentVersionElement = (<VersionBlock
-          rendermode="toc-open-version"
-          title={title}
-          version={cv}
-          currVersions={this.props.currVersions}
-          currentRef={this.props.currentRef}
-          showHistory={true}
-          getLicenseMap={this.props.getLicenseMap}
-          viewExtendedNotes={this.props.viewExtendedNotes}/>);
-      }
     }
 
     // Versions List
@@ -274,10 +248,8 @@ class ReaderTextTableOfContents extends Component {
       );
     }
 
-
-    const moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
-
     // Downloading
+    const cv = this.getCurrentVersion();
     const languageInHebrew = {'en': 'אנגלית', 'he': 'עברית'};
     if (versions) {
       let dlReady = (this.state.dlVersionTitle && this.state.dlVersionFormat && this.state.dlVersionLanguage);
@@ -348,91 +320,116 @@ class ReaderTextTableOfContents extends Component {
       );
     }
 
+    const readButton = !this.state.indexDetails || this.isTextToc() ? null :
+      Sefaria.lastPlaceForText(title) ? 
+        <a className="button readButton" href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}>
+          <InterfaceText>Continue Reading</InterfaceText>
+        </a>
+        :
+        <a className="button readButton" href={"/" + Sefaria.normRef(this.state.indexDetails["firstSectionRef"])}>
+          <InterfaceText>Start Reading</InterfaceText>
+        </a>   
+
+
+    const sidebarModules = !this.state.indexDetails ? [] :
+      [
+        {type: "AboutText", props: {index: this.state.indexDetails}},
+        {type: "RelatedTopics", props: { topics: this.state.indexDetails.relatedTopics}},
+      ];
+
+    const isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
+    const moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
     const closeClick = (this.isBookToc()) ? this.props.closePanel : this.props.close;
-    let classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel, noLangToggleInHebrew: this.props.interfaceLang == 'hebrew'});
     const categories = Sefaria.index(this.props.title).categories;
 
+    const classes = classNames({
+      readerTextTableOfContents:1,
+      readerNavMenu:1,
+      noHeader: this.isBookToc(),
+      bookPage: this.isBookToc(),
+      narrowPanel: this.props.narrowPanel,
+      noLangToggleInHebrew: this.props.interfaceLang == 'hebrew'});
 
-    return (<div className={classes}>
-              <CategoryColorLine category={category} />
-              <div className="readerControls">
-                <div className="readerControlsInner">
-                  <div className="leftButtons">
-                    <ReaderNavigationMenuCloseButton onClick={closeClick}/>
-                  </div>
-                  <div className="readerTextToc readerTextTocHeader">
-                    <div className="readerTextTocBox">
-                      <InterfaceText>Table of Contents</InterfaceText>
-                    </div>
-                  </div>
-                  <div className="rightButtons">
-                    {this.props.interfaceLang !== "hebrew" ?
-                      <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
-                      : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />}
-                  </div>
+    return (
+      <div className={classes}>
+        <CategoryColorLine category={category} />
+        {this.isTextToc() ?
+        <>
+          <div className="readerControls">
+            <div className="readerControlsInner">
+              <div className="leftButtons">
+                <ReaderNavigationMenuCloseButton onClick={closeClick}/>
+              </div>
+              <div className="readerTextToc readerTextTocHeader">
+                <div className="readerTextTocBox">
+                  <InterfaceText>Table of Contents</InterfaceText>
                 </div>
               </div>
-              <div className="content">
-                {this.props.mode === "extended notes"
-                  ? <ExtendedNotes
-                    title={this.props.title}
-                    currVersions={this.props.currVersions}
-                    backFromExtendedNotes={this.props.backFromExtendedNotes}
-                  />
-                  :<div className="contentInner">
-                  <div className="tocTop">
-                    <a className="tocCategory" href={catUrl}>
-                      <ContentText text={{en:category, he:Sefaria.hebrewTerm(category)}}/>
-                    </a>
-                    <div className="tocTitle" role="heading" aria-level="1">
-                      <ContentText text={{en:title, he:heTitle}}/>
-                      {moderatorSection}
-                    </div>
-                    {this.isTextToc()?
-                      <div className="currentSection" role="heading" aria-level="2">
-                        <ContentText text={{en:section, he:heSection}}/>
-                      </div>
-                    : null}
-                    <CategoryAttribution categories={categories} />
-                    {this.state.indexDetails && this.state.indexDetails.dedication ?
-                        <div className="dedication">
-                          <span>
-                            <ContentText html={{en:this.state.indexDetails.dedication.en, he:this.state.indexDetails.dedication.he}}/>
-                          </span>
-                        </div> : ""}
-                    {detailsSection}
-                  </div>
-                  {this.isTextToc()?
-                    <div className="currentVersionBox">
-                      {currentVersionElement || (<LoadingMessage />)}
-                    </div>
-                  : null}
-                  {this.state.indexDetails ?
-                  <div>
-                    { isDictionary ? <DictionarySearch
-                        lexiconName={this.state.indexDetails.lexiconName}
-                        title={this.props.title}
-                        interfaceLang={this.props.interfaceLang}
-                        showBaseText={this.props.showBaseText}
-                        contextSelector=".readerTextTableOfContents"
-                        currVersions={this.props.currVersions}/> : ""}
-                    <div onClick={this.handleClick}>
-                      <TextTableOfContentsNavigation
-                        schema={this.state.indexDetails.schema}
-                        isDictionary={isDictionary}
-                        commentatorList={Sefaria.commentaryList(this.props.title)}
-                        alts={this.state.indexDetails.alts}
-                        defaultStruct={"default_struct" in this.state.indexDetails && this.state.indexDetails.default_struct in this.state.indexDetails.alts ? this.state.indexDetails.default_struct : "default"}
-                        narrowPanel={this.props.narrowPanel}
-                        title={this.props.title}/>
-                    </div>
-                  </div>
-                  : <LoadingMessage />}
-                  {versionSection}
-                  {isDictionary ? null : downloadSection}
-                </div>}
+              <div className="rightButtons">
+                {this.props.interfaceLang !== "hebrew" ?
+                  <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
+                  : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />}
               </div>
             </div>
+          </div>
+        </> : null}
+
+        <div className="content">
+          <div className="sidebarLayout">
+            <div className="contentInner">
+              <div className="tocTop">
+
+                <div className="tocTitle" role="heading" aria-level="1">
+                  <ContentText text={{en:title, he:heTitle}}/>
+                  {moderatorSection}
+                </div>
+
+                <a className="tocCategory" href={catUrl}>
+                  <ContentText text={{en:category, he:Sefaria.hebrewTerm(category)}}/>
+                </a>
+
+                <CategoryAttribution categories={categories} />
+
+                {this.state.indexDetails && this.state.indexDetails.dedication ?
+                  <div className="dedication">
+                    <span>
+                      <ContentText html={{en:this.state.indexDetails.dedication.en, he:this.state.indexDetails.dedication.he}}/>
+                    </span>
+                  </div> : null }
+              </div>
+
+              {this.state.indexDetails ?
+              <div>
+                {readButton}
+
+                {isDictionary ? 
+                <DictionarySearch
+                  lexiconName={this.state.indexDetails.lexiconName}
+                  title={this.props.title}
+                  interfaceLang={this.props.interfaceLang}
+                  showBaseText={this.props.showBaseText}
+                  contextSelector=".readerTextTableOfContents"
+                  currVersions={this.props.currVersions}/> : null }
+
+                <div onClick={this.handleClick}>
+                  <TextTableOfContentsNavigation
+                    schema={this.state.indexDetails.schema}
+                    isDictionary={isDictionary}
+                    commentatorList={Sefaria.commentaryList(this.props.title)}
+                    alts={this.state.indexDetails.alts}
+                    defaultStruct={"default_struct" in this.state.indexDetails && this.state.indexDetails.default_struct in this.state.indexDetails.alts ? this.state.indexDetails.default_struct : "default"}
+                    narrowPanel={this.props.narrowPanel}
+                    title={this.props.title} />
+                </div>
+              </div> : <LoadingMessage />}
+            </div>
+            {this.isBookToc() ? 
+            <NavSidebar modules={sidebarModules} /> : null}
+          </div>
+          {this.isBookToc() ?
+          <Footer /> : null}
+        </div>
+      </div>
     );
   }
 }
@@ -454,64 +451,6 @@ ReaderTextTableOfContents.propTypes = {
   interfaceLang:    PropTypes.string,
   extendedNotes:    PropTypes.string,
   extendedNotesHebrew: PropTypes.string
-};
-
-
-class TextDetails extends Component {
- render() {
-   /** todo fix interfacetext */
-    var index = this.props.index;
-    var makeDescriptionText = function(compWord, compPlace, compDate, description) {
-      var composed = compPlace || compDate ? compWord + [compPlace, compDate].filter(x => !!x).join(" ") : null;
-      return [composed, description].filter(x => !!x).join(". ");
-    };
-    var enDesc = makeDescriptionText("Composed in ", "compPlaceString" in index ? index.compPlaceString.en : null, "compDateString" in index ? index.compDateString.en : null, index.enDesc);
-    var heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in index ? index.compPlaceString.he : null, "compDateString" in index ? index.compDateString.he : null, index.heDesc);
-
-    if (index.categories.length == 2 && index.categories[0] == "Tanakh") {
-      // Don't show date/time for Tanakh.
-      enDesc = index.enDesc || "";
-      heDesc = index.heDesc || "";
-    }
-
-    var authors = "authors" in this.props.index ? this.props.index.authors : [];
-
-    if (!authors.length && !enDesc) { return null; }
-
-    var initialWords = this.props.narrowPanel ? 12 : 30;
-
-    return (
-      <div className="tocDetails">
-        { authors.length ?
-          <div className="tocDetail">
-            <InterfaceText>
-              <HebrewText>
-                מחבר: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.he}</a> )}
-              </HebrewText>
-              <EnglishText>
-                Author: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.en}</a> )}
-              </EnglishText>
-            </InterfaceText>
-          </div>
-          : null }
-        { !!enDesc ?
-          <div className="tocDetail description">
-            <InterfaceText>
-              <EnglishText>
-                <ReadMoreText text={enDesc} initialWords={initialWords} />
-              </EnglishText>
-              <HebrewText>
-                <ReadMoreText text={heDesc} initialWords={initialWords} />
-              </HebrewText>
-            </InterfaceText>
-          </div>
-          : null }
-      </div>);
-  }
-}
-TextDetails.propTypes = {
-  index:       PropTypes.object.isRequired,
-  narrowPanel: PropTypes.bool,
 };
 
 
@@ -796,7 +735,6 @@ SchemaNode.propTypes = {
   schema:      PropTypes.object.isRequired,
   refPath:     PropTypes.string.isRequired
 };
-
 
 
 class JaggedArrayNode extends Component {
@@ -1156,70 +1094,19 @@ ReadMoreText.defaultProps = {
   initialWords: 30
 };
 
-// class ExtendedNotes extends Component {
-//   constructor(props) {
-//     super(props);
-//     this.state = {'notesLanguage': Sefaria.interfaceLang, 'extendedNotes': '', 'langToggle': false};
-//   }
-//   getVersionData(versionList){
-//     const versionTitle = this.props.currVersions['en'] ? this.props.currVersions['en'] : this.props.currVersions['he'];
-//     const thisVersion = versionList.filter(x=>x.versionTitle===versionTitle)[0];
-//     let extendedNotes = {'english': thisVersion.extendedNotes, 'hebrew': thisVersion.extendedNotesHebrew};
-//
-//     if (extendedNotes.english && extendedNotes.hebrew){
-//       this.setState({'extendedNotes': extendedNotes, 'langToggle': true});
-//     }
-//     else if (extendedNotes.english && !extendedNotes.hebrew) {
-//       this.setState({'extendedNotes': extendedNotes, 'notesLanguage': 'english'});
-//     }
-//     else if (extendedNotes.hebrew && !extendedNotes.english) {
-//       this.setState({'extendedNotes': extendedNotes, 'notesLanguage': 'hebrew'});
-//     }
-//     else{
-//       this.props.backFromExtendedNotes();
-//     }
-//   }
-//   componentDidMount() {
-//     // use Sefaria.versions(ref, cb), where cb will invoke setState
-//     Sefaria.versions(this.props.title, this.getVersionData);
-//   }
-//   goBack(event) {
-//     event.preventDefault();
-//     this.props.backFromExtendedNotes();
-//   }
-//   changeLanguage(event) {
-//     event.preventDefault();
-//     if (this.state.notesLanguage==='english') {
-//       this.setState({'notesLanguage': 'hebrew'});
-//     }
-//     else {
-//       this.setState({'notesLanguage': 'english'});
-//     }
-//   }
-//   render() {
-//     let notes = '';
-//     if (this.state.extendedNotes) {
-//       notes = this.state.extendedNotes[this.state.notesLanguage];
-//       if (this.state.notesLanguage==='hebrew' && !notes){
-//         notes = 'לא קיימים רשימות מורחבות בשפה העברית עבור גרסה זו';
-//       }
-//       else if (this.state.notesLanguage==='english' && !notes){
-//         notes = 'Extended notes in English do not exist for this version';
-//       }
-//     }
-//       return <div className="extendedNotes">
-//         <a onClick={this.goBack} href={`${this.props.title}`}>
-//           {Sefaria.interfaceLang==="hebrew" ? "חזור" : "Back"}
-//         </a>
-//         {this.state.extendedNotes
-//           ? <div className="extendedNotesText" dangerouslySetInnerHTML={ {__html: notes} }></div>
-//         : <LoadingMessage/>}
-//         {this.state.langToggle ? <a onClick={this.changeLanguage} href={`${this.props.title}`}>
-//           {this.state.notesLanguage==='english' ? 'עברית' : 'English'}
-//         </a> : ''}
-//       </div>
-//   }
-// }
+
+/*
+  TODO what happened to ExtendedNotes?
+
+  {this.props.mode === "extended notes" ?
+  <ExtendedNotes
+    title={this.props.title}
+    currVersions={this.props.currVersions}
+    backFromExtendedNotes={this.props.backFromExtendedNotes}
+  />
+  : null }
+*/
+
 
 
 export default ReaderTextTableOfContents;

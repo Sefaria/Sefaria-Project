@@ -239,7 +239,23 @@ def get_topics_for_ref(tref, annotate=False):
             data_source = library.get_topic_data_source(data_source_slug)
             link['dataSource'] = data_source.displayName
             link['dataSource']['slug'] = data_source_slug
+    
+    serialized.sort(key=cmp_to_key(sort_refs_by_relevance))
     return serialized
+
+
+def get_topics_for_book(title, annotate=False):
+    all_topics = get_topics_for_ref(title, annotate=annotate)
+
+    topic_counts = defaultdict(int)
+    topic_data   = {}
+    for topic in all_topics:
+        topic_counts[topic["topic"]] += 1
+        topic_data[topic["topic"]] = {"slug": topic["topic"], "title": topic["title"]}
+
+    topic_order = sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)
+
+    return [topic_data[topic[0]] for topic in topic_order]
 
 
 """

@@ -747,7 +747,7 @@ Sefaria = extend(Sefaria, {
   _indexDetails: {},
   getIndexDetails: function(title) {
     return this._cachedApiPromise({
-        url:   Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1",
+        url:   Sefaria.apiHost + "/api/v2/index/" + title + "?with_content_counts=1&with_related_topics=1",
         key:   title,
         store: this._indexDetails
     });

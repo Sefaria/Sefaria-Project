@@ -40,7 +40,8 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories}) => {
         organization: data.ownerOrganization,
         is_followed: false,
         toggleSignUpModal: ()=>{}
-     }} />
+     }} 
+     key={data.id} />
   );
 
   const [parashahBlock, featuredBlock, holidayBlock] = [

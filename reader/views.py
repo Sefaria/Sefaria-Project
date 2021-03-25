@@ -55,7 +55,7 @@ from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES,
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
-from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref
+from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
 from sefaria.system.database import db
 
 if USE_VARNISH:
@@ -302,6 +302,8 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
     additionally setting `text` field with textual content.
     """
     if oref.is_book_level():
+        index_details = library.get_index(oref.normal()).contents(v2=True, with_content_counts=True)
+        index_details["relatedTopics"] = get_topics_for_book(oref.normal(), annotate=True)
         if kwargs.get('extended notes', 0) and (versionEn is not None or versionHe is not None):
             currVersions = {"en": versionEn, "he": versionHe}
             if versionEn is not None and versionHe is not None:
@@ -314,14 +316,14 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
             panel = {
                 "menuOpen": "extended notes",
                 "bookRef": oref.normal(),
-                "indexDetails": library.get_index(oref.normal()).contents_with_content_counts(),
+                "indexDetails": index_details,
                 "currVersions": currVersions
             }
         else:
             panel = {
                 "menuOpen": "book toc",
                 "bookRef": oref.normal(),
-                "indexDetails": library.get_index(oref.normal()).contents_with_content_counts(),
+                "indexDetails": index_details,
                 "versions": oref.version_list()
             }
     else:
@@ -1484,10 +1486,8 @@ def index_api(request, title, v2=False, raw=False):
     """
     if request.method == "GET":
         try:
-            if request.GET.get("with_content_counts", False):
-                i = library.get_index(title).contents_with_content_counts()
-            else:
-                i = library.get_index(title).contents(v2=v2, raw=raw)
+            with_content_counts = bool(request.GET.get("with_content_counts", False))
+            i = library.get_index(title).contents(v2=v2, raw=raw, with_content_counts=with_content_counts)
         except InputError as e:
             node = library.get_schema_node(title)  # If the request were for v1 and fails, this falls back to v2.
             if not node:
@@ -1495,6 +1495,9 @@ def index_api(request, title, v2=False, raw=False):
             if node.is_default():
                 node = node.parent
             i = node.as_index_contents()
+
+        if request.GET.get("with_related_topics", False):
+            i["relatedTopics"] = get_topics_for_book(title, annotate=True)
 
         return jsonResponse(i, callback=request.GET.get("callback", None))
 
@@ -1575,8 +1578,6 @@ def link_count_api(request, cat1, cat2):
 
     elif request.method == "POST":
         return {"error": "Not implemented."}
-
-
 
 
 @catch_error_as_json
