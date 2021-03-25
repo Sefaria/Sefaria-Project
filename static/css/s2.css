@@ -1134,7 +1134,7 @@ input.noselect {
   padding: 30px 10px;
 }
 .readerNavMenu .content .contentInner {
-  width: 660px;
+  width: 680px;
   margin: 0 auto;
   min-height: 520px;
 }
@@ -1298,7 +1298,7 @@ input.noselect {
   color: #999;
   font-size: 13px;
 }
-.navSideBar a.moreLink:hover {
+.navSidebar a.moreLink:hover {
   color: inherit;
   cursor: pointer;
 }
@@ -2407,25 +2407,19 @@ a.navBlockTitle {
 }
 .readerTextTableOfContents .content .sectionLink {
   display: inline-block;
-  height: 38px;
-  min-width: 38px;
-  line-height: 38px;
+  height: 50px;
+  min-width: 50px;
+  line-height: 50px;
   vertical-align: middle;
-  font-size: 13px;
+  font-size: 18px;
   font-weight: lighter;
-  margin: 1px;
+  margin: 3px;
   text-align: center;
   background-color: #FBFBFA;
   color: #666;
   cursor: pointer;
   padding: 0 6px;
   box-sizing: border-box;
-}
-.readerTextTableOfContents .content .sectionLink .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.readerTextTableOfContents .content .sectionLink  .he {
-  font-family: "Heebo", sans-serif;
 }
 .interface-hebrew .readerTextTableOfContents .content .structToggles{
   direction: rtl;
