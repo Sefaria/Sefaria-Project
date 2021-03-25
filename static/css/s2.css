@@ -1476,7 +1476,7 @@ input.noselect {
   margin-top: 20px;
 }
 .topicPanel .mainColumn {
-  padding: 0 0 0 50px;
+  padding: 0 40px;
 }
 @media (max-width: 450px) {
   .topicPanel .mainColumn,
@@ -8844,7 +8844,7 @@ body .homeFeedWrapper .content {
 }
 .storyFeedInner,
 .interface-hebrew .storyFeedInner {
-  max-width: 700px;
+  width: 700px;
   margin: 0 auto;
   padding-top: 60px;
 }

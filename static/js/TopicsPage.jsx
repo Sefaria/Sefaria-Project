@@ -63,6 +63,7 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
   const sidebarModules = [
     {type: "AboutTopics"},
     {type: "TrendingTopics"},
+    {type: "JoinTheConversation"},
     {type: "GetTheApp"},
     {type: "SupportSefaria"},
   ];
