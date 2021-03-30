@@ -224,8 +224,9 @@ def make_parashah_response_from_calendar_entry(db_parasha):
     p_en, p_he = [], []
     for p in parashiot:
         parasha_topic = model.Topic().load({"parasha": p})
-        p_en.append(parasha_topic.description["en"])
-        p_he.append(parasha_topic.description["he"])
+        if parasha_topic:
+            p_en.append(parasha_topic.description["en"])
+            p_he.append(parasha_topic.description["he"])
     parasha_description = {"en": "\n\n".join(p_en), "he": "\n\n".join(p_he)}
 
     parasha = {

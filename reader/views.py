@@ -3613,18 +3613,30 @@ def new_home_redirect(request):
 
 
 def get_homepage_items():
+    import random
     from sefaria.helper.topic import get_topic_by_parasha
     parashah = get_todays_parasha()
     ptopic = get_topic_by_parasha(parashah["parasha"])
+    if ptopic:
+        parashah_sheet = get_featured_sheet_from_topic(ptopic.slug)
+    else:
+        parashah_sheet = get_featured_sheet_from_ref(parashah["ref"])
+
+
+    featured_collections = (
+        ("On Talmud", "bronfman-fellowship"),
+        ("New on Sefaria", "the-sefaria-blog")
+    )
+    featured = random.choice(featured_collections)
 
     return {
         "parashah": {
             "heading": "The Torah Portion - " + parashah["parasha"],
-            "sheet": get_featured_sheet_from_topic(ptopic.slug)
+            "sheet": parashah_sheet
         },
         "featured": {
-            "heading": "On Talmud",
-            "sheet": get_featured_sheet_from_collection("bronfman-fellowship")
+            "heading": featured[0],
+            "sheet": get_featured_sheet_from_collection(featured[1])
         },
         "holiday": {
             "heading": "Passover",
@@ -3657,8 +3669,15 @@ def get_featured_sheet_from_topic(slug):
         "id": {"$in": sids},
         "summary": {"$exists": 1},
     })
-    sheets = [s for s in sheets if not is_hebrew(s["title"]) and len(s["summary"]) > 140]
+    sheets = [s for s in sheets if not is_hebrew(s["title"]) and s["summary"] and len(s["summary"]) > 140]
     return random.choice(sheets)
+
+
+def get_featured_sheet_from_ref(ref):
+    import random
+    sheets = get_sheets_for_ref(ref)
+    sheets = [s for s in sheets if not is_hebrew(s["title"]) and s["summary"] and len(s["summary"]) > 140]
+    return random.choice(sheets)      
 
 
 @ensure_csrf_cookie
