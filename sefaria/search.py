@@ -13,11 +13,12 @@ import pymongo
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
+import structlog
 import logging
 from logging import NullHandler
 from collections import defaultdict
 import time as pytime
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
@@ -38,7 +39,7 @@ import sefaria.model.queue as qu
 es_client = Elasticsearch(SEARCH_ADMIN)
 index_client = IndicesClient(es_client)
 
-tracer = logging.getLogger('elasticsearch')
+tracer = structlog.get_logger(__name__)
 tracer.setLevel(logging.CRITICAL)
 #tracer.addHandler(logging.FileHandler('/tmp/es_trace.log'))
 tracer.addHandler(NullHandler())

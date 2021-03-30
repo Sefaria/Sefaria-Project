@@ -3012,7 +3012,7 @@ function buildSource($target, source, appendOrInsert) {
 		if (source.media.match(/\.(jpeg|jpg|gif|png)$/i) != null) {
 			mediaLink = '<img class="addedMedia" src="'+source.media+'" />';
 			mediaClass = "media";
-			wrapperClass += (sjs.current.hideImages ? " hidden" : "");
+			wrapperClass += (!sjs.is_owner && sjs.current.hideImages ? " hidden" : "");
 		}
 		else if (source.media.toLowerCase().indexOf('youtube') > 0) {
 			mediaLink = '<iframe width="560" height="315" src='+source.media+' frameborder="0" allowfullscreen></iframe>'

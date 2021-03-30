@@ -500,6 +500,8 @@ const SheetsLandingPage = () => (
             enButtonText="How to Create a Sheet"
             heButtonText="איך יוצרים דף מקורות"
         />
+
+        <center><a href="https://bbyo.org/afikoman-found" target="_blank"><img src="/static/img/Afikoman_Black.png" style={{height:"100px", margin: "50px"}}/></a></center>
     </StaticPage>
 );
 

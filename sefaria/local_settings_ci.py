@@ -6,6 +6,8 @@ relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
 
 import structlog
+import os
+import re
 
 # These are things you need to change!
 
@@ -228,10 +230,10 @@ MOBILE_APP_KEY = "MOBILE_APP_KEY"
 
 """ to use logging, in any module:
 # import the logging library
-import logging
+import structlog
 
 # Get an instance of a logger
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 #log stuff
 logger.critical()
@@ -245,26 +247,33 @@ if you are logging to a file, make sure the directory exists and is writeable by
 
 
 LOGGING = {
-    "version": 1, 
-    "disable_existing_loggers": True,
-    "formatters": {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
         "json_formatter": {
             "()": structlog.stdlib.ProcessorFormatter,
             "processor": structlog.processors.JSONRenderer(),
         },
     },
-    "handlers": {
-        "console": {
+    'handlers': {
+        'default': {
             "class": "logging.StreamHandler",
             "formatter": "json_formatter",
         },
     },
-    "loggers": {
+    'loggers': {
         '': {
-            'handlers': ['console',],
-            'level': 'INFO',
-            'propagate': True 
-        }
+            'handlers': ['default'],
+            'propagate': False,
+        },
+        'django': {
+            'handlers': ['default'],
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['default'],
+            'propagate': False,
+        },
     }
 }
 
