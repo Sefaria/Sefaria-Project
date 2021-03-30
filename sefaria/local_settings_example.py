@@ -1,12 +1,10 @@
 # An example of settings needed in a local_settings.py file.
 # copy this file to sefaria/local_settings.py and provide local info to run.
 import os.path
+import structlog
 from datetime import timedelta
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
-import structlog
-import os
-import re
 
 # These are things you need to change!
 
