@@ -17,6 +17,27 @@ from sefaria.model import *
 from sefaria.utils.hebrew import is_hebrew
 
 
+def get_other_fancy_quote_titles(title):
+    """
+    If there is a quotation, fancy quotation, or gershayim in title, return two titles also with quotations.
+    For example, if title is 'S"A', return a list of 'S”A' and
+    'S״A'
+    :param title: str
+    :return: list
+    """
+    titles = []
+    quotes = ['"', '״', '”']
+    found_quotes = []
+    for quote in quotes:
+        if quote in title:
+            found_quotes.append(quote)
+
+    for found_quote_char in found_quotes:
+        for quote_char in quotes:
+            if quote_char != found_quote_char:
+                titles.append(title.replace(found_quote_char, quote_char))
+    return titles
+
 def add_spelling(category, old, new, lang="en"):
     """
     For a given category, on every index in that title that matches 'old' create a new title with 'new' replacing 'old'

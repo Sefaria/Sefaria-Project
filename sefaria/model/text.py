@@ -36,6 +36,7 @@ from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED
 from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.helper.text import get_other_fancy_quote_titles
 
 """
                 ----------------------------------
@@ -591,6 +592,25 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return super(Index, self).load_from_dict(d, is_init)
 
     def _normalize(self):
+        index_titles = [self.get_title('he')]
+        for title in self.schema["titles"]:
+            if title["lang"] == "he":
+                index_titles.append(title["text"])
+
+        for title in index_titles:
+            new_titles = get_other_fancy_quote_titles(title)
+            for new_title in new_titles:
+                if new_title not in index_titles:
+                    self.nodes.add_title(new_title, 'he')
+
+        for node in self.nodes.children:
+            node_titles = node.get_titles('he')
+            for node_title in node_titles:
+                new_titles = get_other_fancy_quote_titles(node_title)
+                for new_title in new_titles:
+                    if new_title not in node_titles:
+                        node.add_title(new_title, 'he')
+
         self.title = self.title.strip()
         self.title = self.title[0].upper() + self.title[1:]
 
