@@ -8,7 +8,7 @@ import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import MobileHeader from './MobileHeader';
-import NavSidebar from './NavSidebar';
+import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
 import Component from 'react-class';
 

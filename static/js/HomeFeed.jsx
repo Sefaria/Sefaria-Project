@@ -5,7 +5,7 @@ import Sefaria from './sefaria/sefaria';
 import PropTypes from 'prop-types';
 import classNames  from 'classnames';
 import {Story} from './Story';
-import NavSidebar from './NavSidebar';
+import { NavSidebar, JoinTheConversation } from './NavSidebar';
 import Footer from'./Footer';
 import { usePaginatedScroll } from './Hooks';
 import {
@@ -26,43 +26,50 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories}) => {
     Sefaria.sheets.publicSheets(0, 12, true, (data) => setRecentSheets(data));
   }, []);
 
-  const makeFeaturedBlock = ([data, heading]) => (
-    <FeaturedSheet
-     heading={heading}
-     title={data.title}
-     sheetId={data.id}
-     description={data.summary}
-     author={{
-        uid: data.author,
-        url: data.ownerProfileUrl,
-        image: data.ownerImageUrl,
-        name: data.ownerName,
-        organization: data.ownerOrganization,
-        is_followed: false,
-        toggleSignUpModal: ()=>{}
-     }} 
-     key={data.id} />
-  );
+  const makeFeaturedBlock = ([data, heading]) => {
+    return (
+      <FeaturedSheet
+       heading={heading}
+       title={data.title}
+       sheetId={data.id}
+       description={data.summary}
+       author={{
+          uid: data.author || data.owner,
+          url: data.ownerProfileUrl,
+          image: data.ownerImageUrl,
+          name: data.ownerName,
+          organization: data.ownerOrganization,
+          is_followed: false,
+          toggleSignUpModal: ()=>{},
+       }} 
+       key={data.id} />
+    );
+  };
 
   const [parashahBlock, featuredBlock, holidayBlock] = [
     [Sefaria.homepage.parashah.sheet, Sefaria.homepage.parashah.heading],
     [Sefaria.homepage.featured.sheet, Sefaria.homepage.featured.heading],
-    [Sefaria.homepage.holiday.sheet, Sefaria.homepage.holiday.heading]
+    [Sefaria.homepage.holiday.sheet,  Sefaria.homepage.holiday.heading]
   ].map(makeFeaturedBlock);
 
-  const recentSheetsBlock =
-    <>
-      <h2 className="styledH1"><InterfaceText>Recently Published</InterfaceText></h2>
-      {recentSheets ?
-      recentSheets.map(s => [s, null]).map(makeFeaturedBlock)
-      : <LoadingMessage />}
-    </>
 
+  const recentSheetsContent = !recentSheets ? <LoadingMessage /> :
+                                  recentSheets.map(s => [s, null])
+                                    .map(makeFeaturedBlock)
+  if (recentSheets) {
+    recentSheetsContent.splice(2, 0, <JoinTheConversation wide={true} />);
+  }
+  console.log(recentSheetsContent);
+  const recentSheetsBlock = (
+    <>
+      <div className="featuredSheetHeading"><InterfaceText>Recently Published</InterfaceText></div>
+      {recentSheetsContent}
+    </>
+  );
 
   const sidebarModules = [
     {type: "AboutSefaria"},
     {type: "Resources"},
-    {type: "JoinTheConversation"},
     {type: "GetTheApp"},
     {type: "StayConnected"},
     {type: "SupportSefaria", props: {blue: true}},
@@ -83,7 +90,6 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories}) => {
             : null }
 
             <NBox content={[recentSheetsBlock]} n={1} />
-
           </div>
           <NavSidebar modules={sidebarModules} />
         </div>
@@ -139,7 +145,7 @@ const FeaturedSheet = ({heading, title, sheetId, description, author}) => (
       <InterfaceText>{heading}</InterfaceText>
     </div>
     : null}
-    <a href={`/sheet/${sheetId}`} className="navBlockTitle">
+    <a href={`/sheets/${sheetId}`} className="navBlockTitle">
       <InterfaceText>{title}</InterfaceText>
     </a>
     {description ?

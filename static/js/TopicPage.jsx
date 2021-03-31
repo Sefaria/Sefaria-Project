@@ -22,7 +22,7 @@ import {
   FilterableList,
   ToolTipped,
 } from './Misc';
-import NavSidebar from './NavSidebar';
+import { NavSidebar } from './NavSidebar';
 import Footer from './Footer';
 import { useIncrementalLoad } from './Hooks';
 

@@ -12,7 +12,7 @@ import React  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
-import NavSidebar from './NavSidebar';
+import { NavSidebar } from './NavSidebar';
 import DictionarySearch  from './DictionarySearch';
 import VersionBlock  from './VersionBlock';
 import ExtendedNotes from './ExtendedNotes';

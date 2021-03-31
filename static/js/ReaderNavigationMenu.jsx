@@ -11,7 +11,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
-import NavSidebar from './NavSidebar';
+import { NavSidebar } from './NavSidebar';
 import ReaderNavigationCategoryMenu  from './ReaderNavigationCategoryMenu';
 import Footer  from './Footer';
 import MobileHeader from './MobileHeader';

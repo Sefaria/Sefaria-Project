@@ -1194,7 +1194,7 @@ input.noselect {
   direction: rtl;
 }
 .navSidebar {
-  width: 380px;
+  width: 390px;
   background-color: #FBFBFA;
   /* HACK: add grey background beyond bounding box of sidebar by utilizing negative margins! */
   border-top: 80px solid #FBFBFA;
@@ -1256,10 +1256,10 @@ input.noselect {
 .navSidebar .linkList {
   margin-top: 20px;
 }
-.navSidebar .button {
+.navSidebarModule .button {
   margin: 12px 0 0 0;
 }
-.navSidebar .button img {
+.navSidebarModule .button img {
   filter: invert(1);
   height: 18px;
   width: 18px;
@@ -1318,6 +1318,15 @@ input.noselect {
 .navSidebar .newsletterSignUpBox .newsletterInput::placeholder {
   font-style: normal;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.navSidebarModule.wide {
+  display: flex;
+}
+.navSidebarModule.wide div:first-child {
+  flex: 1;
+}
+.navSidebarModule.wide .button {
+  margin-top: 0;
 }
 .aboutTextMetadata {
   margin-bottom: 20px;
@@ -1874,11 +1883,11 @@ a.navBlockTitle {
 .featuredSheet.navBlock {
   border: none;
 }
-.featuredSheet .featuredSheetHeading {
+.featuredSheetHeading {
   color: #666;
   font-size: 18px;
 }
-.featuredSheet .featuredSheetHeading .int-en {
+.featuredSheetHeading .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .featuredSheet .navBlockDescription {
@@ -1886,6 +1895,14 @@ a.navBlockTitle {
 }
 .featuredSheet .authorByLine {
   margin-bottom: 10px;
+}
+.navSidebarModule.wide {
+  background-color: #FAFAFB;
+  padding: 24px;
+}
+.navSidebarModule.wide h3 {
+  border-bottom: none;
+  margin-bottom: 0px;
 }
 .homepage .gridBox + .gridBox {
   border-top: 1px solid #CCC;
@@ -9014,7 +9031,7 @@ img.smallProfileImage {
 .systemText.authorOrganization span {
   color: #999;
 }
-.mainColumn a {
+.mainColumn a:not(.button) {
   color: #000;
 }
 .storyBody a {

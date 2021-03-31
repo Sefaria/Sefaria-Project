@@ -50,8 +50,8 @@ const Modules = ({type, props}) => {
 }
 
 
-const Module = ({children, blue}) => {
-  const classes = classNames({navSidebarModule: 1, blue: blue});
+const Module = ({children, blue, wide}) => {
+  const classes = classNames({navSidebarModule: 1, blue, wide});
   return <div className={classes}>{children}</div>
 };
 
@@ -78,7 +78,13 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
 const AboutSefaria = () => (
   <Module>
     <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle>
-    <InterfaceText>Sefaria is a place to explore 3,000 years of Jewish texts. We offer you direct access to texts, translations, and commentaries for free so that you participate in the tradition of making meaning of our heritage.</InterfaceText> <a href="/about" className="inTextLink"><InterfaceText>Learn More</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText></a>
+    <InterfaceText>Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying and interpreting Torah.</InterfaceText> <a href="/about" className="inTextLink"><InterfaceText>Learn More</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText></a>
+    <br />
+    <a className="button small" href="/texts">
+      <img src="/static/icons/iconmonstr-book-15.svg" alt="library icon" />
+      <InterfaceText>Explore the Library</InterfaceText>
+    </a>
+    <br /><br />
   </Module>
 );
 
@@ -415,17 +421,22 @@ const RelatedTopics = ({topics}) => {
 };
 
 
-const JoinTheConversation = () => (
-  <Module>
-    <ModuleTitle>Join the Conversation</ModuleTitle>
-    <InterfaceText>Mix and match sources from our library, along with outside sources, comments, images and videos.</InterfaceText>
-    <br />
-    <a className="button small" href="/sheets/new">
-      <img src="/static/icons/new-sheet.svg" alt="make a sheet icon" />
-      <InterfaceText>Make a Sheet</InterfaceText>
-    </a>
-  </Module>
-);
+const JoinTheConversation = ({wide}) => {
+  return (
+    <Module wide={wide}>
+      <div>
+        <ModuleTitle>Join the Conversation</ModuleTitle>
+        <InterfaceText>Combine sources from our library with your own comments, questions, images, and videos.</InterfaceText>
+      </div>
+      <div>
+        <a className="button small" href="/sheets/new">
+          <img src="/static/icons/new-sheet.svg" alt="make a sheet icon" />
+          <InterfaceText>Make a Sheet</InterfaceText>
+        </a>
+      </div>
+    </Module>
+  );
+};
 
 
 const GetTheApp = () => (
@@ -490,4 +501,7 @@ const IconLink = ({text, url, icon}) => (
 );
 
 
-export default NavSidebar;
+export {
+  NavSidebar,
+  JoinTheConversation
+};

@@ -7,7 +7,7 @@ import React  from 'react';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
-import NavSidebar from './NavSidebar';
+import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
 import MobileHeader from './MobileHeader';
 
