@@ -1992,7 +1992,12 @@ class TextFamily(object):
             "en": "digitizedBySefaria",
             "he": "heDigitizedBySefaria",
             "default": False,
-        }
+        },
+        "license": {
+            "en": "license",
+            "he": "heLicense",
+            "default": "unknown"
+        },
     }
     sourceMap = {
         "en": "sources",
