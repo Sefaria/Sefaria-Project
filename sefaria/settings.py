@@ -296,6 +296,7 @@ CACHES = {
     }
 }
 
+"""
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "pesach-2021-banner",
     "style":      "banner", # "modal" or "banner"
@@ -309,7 +310,7 @@ GLOBAL_INTERRUPTING_MESSAGE = {
 }
 """
 GLOBAL_INTERRUPTING_MESSAGE = None
-"""
+
 # Grab environment specific settings from a file which
 # is left out of the repo.
 try: 
