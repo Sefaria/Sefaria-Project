@@ -499,7 +499,7 @@ class TextSegment extends Component {
       }
       return value;
     };
-    $newElement.find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
+    $newElement.find('i[data-commentator="' + escape(this.props.filter[0]) + '"]').each(function () {
       $(this).replaceWith('<sup class="itag">' + textValue(this) + "</sup>");
     });
     return $newElement.html();
