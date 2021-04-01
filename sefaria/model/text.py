@@ -1160,7 +1160,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "status",
         "priority",
         "license",
-        "licenseVetted",
         "versionNotes",
         "digitizedBySefaria",
         "method",
@@ -1973,12 +1972,6 @@ class TextFamily(object):
             "en": "versionStatus",
             "he": "heVersionStatus"
         },
-        "license": {
-            "en": "license",
-            "he": "heLicense",
-            "condition": "licenseVetted",
-            "default": "unknown"
-        },
         "versionNotes": {
             "en": "versionNotes",
             "he": "heVersionNotes"
@@ -2225,10 +2218,7 @@ class TextFamily(object):
                 ver = chunk.version()
                 if ver:
                     for key, val in list(self.attr_map.items()):
-                        if not val.get("condition") or getattr(ver, val.get("condition"), False):
-                            d[val[language]] = getattr(ver, key, val.get("default", ""))
-                        else:
-                            d[val[language]] = val.get("default")
+                        d[val[language]] = val.get("default")
 
         # replace ints with daf strings (3->"2a") for Talmud addresses
         # this could be simpler if was done for every value - but would be slower.

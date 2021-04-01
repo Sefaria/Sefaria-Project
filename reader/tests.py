@@ -1298,7 +1298,6 @@ class VersionAttrsPostTest(SefariaTestCase):
         vattrs = {
             "status" : "locked",
             "license" : "Public domain",
-            "licenseVetted" : True,
             "digitizedBySefaria" : True,
             "priority" : 1
         }
