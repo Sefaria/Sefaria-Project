@@ -2080,16 +2080,12 @@ class AddressTalmud(AddressType):
             relevant_sections = ref.sections
 
 
-        if getattr(ref.index_node, "lengths", None) is None:
-            availableTexts = ref.index.versionState().content["_all"]["availableTexts"]
-            end = len(availableTexts) if len(ref.sections) == 1 else len(availableTexts[relevant_sections[0] - 1])
-        else:
+        if getattr(ref.index_node, "lengths", None):
             end = ref.index_node.lengths[len(ref.sections)-1]
             if ref.is_bavli():
                 end += 2
-
-        while ref.toSections[-1] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
-            ref.toSections[-1] -= 1
+            while ref.toSections[-1] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
+                ref.toSections[-1] -= 1
 
 
 
