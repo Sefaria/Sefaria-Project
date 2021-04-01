@@ -1069,6 +1069,9 @@ class Sheet(abstract.AbstractMongoRecord):
 	# Warning: this class doesn't implement all of the saving logic in save_sheet()
 	# In current form should only be used for reading or for changes that are known to be
 	# safe and without need of side effects.
+	#
+	# Warning: there are fields on some individual sheet documents that aren't enumerated here,
+	# trying to load a document with an attribute not listed here will cause an error.
 
 	collection = 'sheets'
 

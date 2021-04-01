@@ -478,7 +478,7 @@ def collections_inclusion_api(request, slug, action, sheet_id):
     if not collection.is_member(request.user.id):
         return jsonResponse({"error": "Only members of this collection my change its contents."})
     sheet_id = int(sheet_id)
-    sheet = Sheet().load({"id": sheet_id})
+    sheet = db.sheets.find_one({"id": sheet_id})
     if not sheet:
         return jsonResponse({"error": "No sheet with id {}.".format(sheet_id)})
 
