@@ -2218,7 +2218,7 @@ class TextFamily(object):
                 ver = chunk.version()
                 if ver:
                     for key, val in list(self.attr_map.items()):
-                        d[val[language]] = val.get("default")
+                        d[val[language]] = getattr(ver, key, val.get("default", ""))
 
         # replace ints with daf strings (3->"2a") for Talmud addresses
         # this could be simpler if was done for every value - but would be slower.
