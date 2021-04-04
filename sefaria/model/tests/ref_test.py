@@ -607,17 +607,17 @@ class Test_normal_forms(object):
     def test_zohar_volume_range(self):
         oref = Ref("Zohar 1-2")
         assert oref.normal() == "Zohar 1-2"
-        assert oref.he_normal() == "זוהר א׳-ב׳"
+        assert oref.he_normal() == "ספר הזהר א׳-ב׳"
 
     def test_zohar_daf_range(self):
         oref = Ref("Zohar 1:25a-27b")
         assert oref.normal() == "Zohar 1:25-27"
-        assert oref.he_normal() == "זוהר א׳:כ״ה-כ״ז"
+        assert oref.he_normal() == "ספר הזהר א׳:כ״ה-כ״ז"
 
     def test_zohar_volume_daf_range(self):
         oref = Ref("Zohar 1:25a-2:27b")
         assert oref.normal() == "Zohar 1:25-2:27"
-        assert oref.he_normal() == "זוהר א׳:כ״ה-ב׳:כ״ז"
+        assert oref.he_normal() == "ספר הזהר א׳:כ״ה-ב׳:כ״ז"
 
 
 
