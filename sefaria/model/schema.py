@@ -2070,16 +2070,6 @@ class AddressTalmud(AddressType):
             ref.toSections.insert(0, ref.sections[0])
 
         # below code makes sure toSections doesn't go pass end of section/book
-        if len(ref.sections) > 1 and ref.sections[0] != ref.toSections[0]:
-            # this case is, for example, ref == Zohar 1:14a-3:2a;
-            # in this case, we want to find last amud in Zohar 3
-            relevant_sections = ref.toSections
-        else:
-            # for 'Zohar 1:2', 'end' will be last amud in Zohar 1,
-            # and for Berakhot 2, 'end' will be last amud in Berakhot
-            relevant_sections = ref.sections
-
-
         if getattr(ref.index_node, "lengths", None):
             end = ref.index_node.lengths[len(ref.sections)-1]
             if ref.is_bavli():
