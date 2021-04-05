@@ -36,7 +36,7 @@ from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED
 from sefaria.system.multiserver.coordinator import server_coordinator
-from sefaria.helper.text import get_other_fancy_quote_titles
+from sefaria.helper.text import get_other_quote_titles
 
 """
                 ----------------------------------
@@ -591,38 +591,47 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 # self.titleVariants.remove(d["oldTitle"])  # let this be determined by user
         return super(Index, self).load_from_dict(d, is_init)
 
-    def _normalize(self):
-        self.title = self.title.strip().replace('״', '"').replace('”', '"')
-        self.title = self.title[0].upper() + self.title[1:]
-        he_title = self.get_title('he').replace('״', '"').replace('”', '"')
-        self.nodes.add_title(he_title, 'he', True, True)
 
-        if getattr(self, "is_cited", False):
-            index_titles = [self.get_title('he')]
-            for title in self.schema["titles"]:
-                if title["lang"] == "he":
-                    index_titles.append(title["text"])
+    def normalize_titles_with_quotations(self):
+        # for all Index and node hebrew titles, this function does the following:
+        # 1. any title that has regular quotes, gershayim, or fancy quotes will now have two corresponding
+        # titles where the characters are exactly the same except for the type of quote
+        # 2. all primary titles will not have gershayim or fancy quotes, but only have regular quotes or none at all.
+        # 3. all titles have either gershayim or fancy quotes or regular quotes or none at all,
+        # so that no title can have two different types of quotes.
+        primary_title = self.get_title('he').replace('״', '"').replace('”', '"')
+        self.nodes.add_title(primary_title, 'he', True, True)
+        index_titles = [primary_title]
+        for title in self.schema["titles"]:
+            if title["lang"] == "he" and title.get("primary", False) == False:
+                index_titles.append(title["text"])
 
-            for title in index_titles:
-                new_titles = get_other_fancy_quote_titles(title)
-                for new_title in new_titles:
-                    if new_title not in index_titles:
-                        self.nodes.add_title(new_title, 'he')
+        for title in index_titles:
+            title = title.replace('״', '"').replace('”', '"')
+            new_titles = [title] + get_other_quote_titles(title)
+            for new_title in new_titles:
+                if new_title not in index_titles:
+                    self.nodes.add_title(new_title, 'he')
 
-            for node in self.nodes.children:
+        for node in self.nodes.children:
+            if getattr(node, "default", False) == False and getattr(node, "sharedTitle", "") == "":
                 primary_title = node.get_primary_title('he')
-                node_titles = [primary_title != t for t in node.get_titles('he')]
+                primary_title = primary_title.replace('״', '"').replace('”', '"')
+                node.add_title(primary_title, 'he', True, True)
+                node_titles = node.get_titles('he')
                 for node_title in node_titles:
-                    found_quotes = []
-                    for quote in ['"', '״', '”']:
-                        if quote in node_title:
-                            found_quotes.append(quote)
-                    if len(found_quotes) > 1:
-                        node_title = node_title.replace('״', '"').replace('”', '"')
-                    new_titles = get_other_fancy_quote_titles(node_title)
+                    node_title = node_title.replace('״', '"').replace('”', '"')
+                    new_titles = [node_title] + get_other_quote_titles(node_title)
                     for new_title in new_titles:
                         if new_title not in node_titles:
                             node.add_title(new_title, 'he')
+
+    def _normalize(self):
+        self.title = self.title.strip()
+        self.title = self.title[0].upper() + self.title[1:]
+
+        if getattr(self, "is_cited", False):
+            self.normalize_titles_with_quotations()
 
         if isinstance(getattr(self, "authors", None), str):
             self.authors = [self.authors]

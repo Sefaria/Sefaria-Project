@@ -17,7 +17,8 @@ from sefaria.model import *
 from sefaria.utils.hebrew import is_hebrew
 
 
-def get_other_fancy_quote_titles(title):
+
+def get_other_quote_titles(title):
     """
     If there is a quotation, fancy quotation, or gershayim in title, return two titles also with quotations.
     For example, if title is 'S"A', return a list of 'S”A' and
