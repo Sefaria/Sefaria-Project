@@ -7,7 +7,7 @@ Writes to MongoDB Collection: sheets
 import sys
 import hashlib
 import urllib.request, urllib.parse, urllib.error
-import logging
+import structlog
 import regex
 import dateutil.parser
 import bleach
@@ -34,14 +34,14 @@ from .history import record_sheet_publication, delete_sheet_publication
 from .settings import SEARCH_INDEX_ON_SAVE
 from . import search
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 if not hasattr(sys, '_doc_build'):
 	from django.contrib.auth.models import User
 from django.contrib.humanize.templatetags.humanize import naturaltime
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 def get_sheet(id=None):
@@ -1069,6 +1069,9 @@ class Sheet(abstract.AbstractMongoRecord):
 	# Warning: this class doesn't implement all of the saving logic in save_sheet()
 	# In current form should only be used for reading or for changes that are known to be
 	# safe and without need of side effects.
+	#
+	# Warning: there are fields on some individual sheet documents that aren't enumerated here,
+	# trying to load a document with an attribute not listed here will cause an error.
 
 	collection = 'sheets'
 

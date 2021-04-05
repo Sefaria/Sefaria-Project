@@ -1595,10 +1595,12 @@ line-height: normal;
 	direction: rtl;
 }
 
+.mediaWrapper.hidden {
+	display: none;
+}
 .addedMedia {
 	max-width: 100%;
 }
-
 .media {
 	margin: 0 auto;
 	display: table;

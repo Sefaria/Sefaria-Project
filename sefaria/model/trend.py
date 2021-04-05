@@ -13,8 +13,8 @@ from . import text
 
 from sefaria.system.database import db
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 def read_in_category_key(c):

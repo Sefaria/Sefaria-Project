@@ -8,8 +8,8 @@ from . import abstract as abst
 from . import text
 from sefaria.system.database import db
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class WebPage(abst.AbstractMongoRecord):
@@ -161,6 +161,7 @@ class WebPage(abst.AbstractMongoRecord):
             r"orhalev\.org\/blogs\/tag\/",
             r"talmudology\.com\/?$",
             r"talmudology\.com\/[^\/]+$",  # seems everything at the top level is not an article
+            r"sephardi\.co\.uk\/(category|community|tag|test)\/",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -834,5 +835,9 @@ sites_data = [
         "name": "Talmudology",
         "domains": ["talmudology.com"],
         "normalization_rules": ["use https", "remove www"],
+    },
+    {
+        "name": "S and P Sephardi Community",
+        "domains": ["sephardi.org.uk"],
     }
 ]
