@@ -13,6 +13,12 @@ from sefaria.sheets import save_sheet
 from sefaria.system.database import db
 
 
+url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSL8vy0MbanOBqSQIW_h73uolEFphleIL08OvpJwhQuCH82cUyjTcyoOH817anHRVYQYnMDxXy16kf1/pub?gid=0&single=true&output=csv'
+response = requests.get(url)
+data = response.content.decode("utf-8")
+cr = csv.reader(StringIO(data))
+rows = list(cr)[1:]
+
 column_types = [
 	"owner_email",
 	"title",
@@ -29,18 +35,15 @@ template = {
 	"status": "public",
 }
 
-url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSL8vy0MbanOBqSQIW_h73uolEFphleIL08OvpJwhQuCH82cUyjTcyoOH817anHRVYQYnMDxXy16kf1/pub?gid=0&single=true&output=csv'
-response = requests.get(url)
-data = response.content.decode("utf-8")
-cr = csv.reader(StringIO(data))
-rows = list(cr)[1:]
+def free_text_rewriter(text):
+	return re.sub(r'^(Rav \w+:)', r"<b>\1</b>", text)
 
 
 class GeneratedSheet():
-	def __init__(self, column_types, data, template={}):
+	def __init__(self, column_types, data, template={}, free_text_rewriter=lambda x: x):
 		self.column_types = column_types
 		self.data = data
-
+		self.free_text_rewriter = free_text_rewriter
 		self.sheet = {
 			"sources": []
 		}
@@ -49,7 +52,6 @@ class GeneratedSheet():
 		self.generate()
 
 	def generate(self):
-
 		for i in range(len(self.data)):
 			if self.column_types[i]:
 				self.process_item(self.column_types[i], self.data[i])
@@ -95,7 +97,7 @@ class GeneratedSheet():
 		paragraphs = text.split("\n")
 		for paragraph in paragraphs:
 			self.sheet["sources"].append({
-				"outsideText": paragraph
+				"outsideText": self.free_text_rewriter(paragraph)
 			})
 
 	def print(self):
@@ -115,6 +117,7 @@ class GeneratedSheet():
 
 	def save(self):
 		sheet = save_sheet(self.sheet, self.sheet["owner"])
+		self.id = sheet["id"]
 		self.post_save()
 		print("Saved sheet {}".format(sheet["id"]))
 
@@ -123,7 +126,13 @@ class GeneratedSheet():
 			self.add_to_collection(self.sheet["displayedCollection"])
 
 	def add_to_collection(self, slug):
-		pass
+		c = Collection().load({"slug": slug})
+		c.sheets.append(self.id)
+		c.save()
 
 
-#gs = GeneratedSheet(column_types=column_types, data=rows[0], template=template)
+def run():
+	for row in rows:
+		gs = GeneratedSheet(column_types=column_types, data=row, template=template, free_text_rewriter=free_text_rewriter)
+		gs.save()
+		print("{}, {}".format(gs.sheet["title"], gs.id))
