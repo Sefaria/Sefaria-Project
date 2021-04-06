@@ -2640,31 +2640,22 @@ class Ref(object, metaclass=RefCacheType):
 
         self.toSections = self.sections[:]
 
-        address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[0])
+        #retrieve the address class of the last section in the ref
+        address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections)-1])
 
         if hasattr(address_class, "parse_range_end"):
             base_wout_title = base.replace(title + " ", "")
             address_class.parse_range_end(self, parts, base_wout_title)
         elif len(parts) == 2: # Parse range end portion, if it exists
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
-            if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[
-                                                                  1:]]):  # in process. developing logic that should work for all languages / texts
-                range_parts = re.split("[., :]+", parts[1])
-                delta = len(self.sections) - len(range_parts)
-                for i in range(delta, len(self.sections)):
-                    try:
-                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
-                                                                                       range_parts[i - delta], sections=self.sections[i])
-                    except (ValueError, IndexError):
-                        raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
-            elif self._lang == "en":
-                range_parts = re.split("[.:, ]+", parts[1])
-                delta = len(self.sections) - len(range_parts)
-                for i in range(delta, len(self.sections)):
-                    try:
-                        self.toSections[i] = int(range_parts[i - delta])
-                    except (ValueError, IndexError):
-                        raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
+            range_parts = re.split("[.:, ]+", parts[1])
+            delta = len(self.sections) - len(range_parts)
+            for i in range(delta, len(self.sections)):
+                try:
+                    self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
+                                                                                   range_parts[i - delta], sections=self.sections[i])
+                except (ValueError, IndexError):
+                    raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node

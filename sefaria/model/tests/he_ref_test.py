@@ -125,6 +125,9 @@ class Test_parse_he_ref(object):
         assert m.Ref("ברכות ח") == m.Ref("Berakhot 8a-8b")
         assert m.Ref("ברכות ב") == m.Ref("Berakhot 2a-2b")
 
+    def test_talmud_aleph_to_bet(self):
+        assert m.Ref("שבת לג, א–ב") == m.Ref("Shabbat 33")
+
     def test_bible_word_end(self):
         with pytest.raises(InputError):
             r = m.Ref('דברים לברק')
