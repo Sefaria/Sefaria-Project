@@ -102,6 +102,26 @@ def daily_rambam(datetime_obj):
         'category': rf.index.get_primary_category()
     }]
 
+@graceful_exception(logger=logger, return_value=[])
+def arukh_hashulchan(datetime_obj):
+    items = []
+    datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
+    database_obj = db.arukh_hashulchan.find_one({"date": {"$eq": datetime_obj}})
+    if not database_obj:
+        return []
+    rf = database_obj["refs"]
+    rf = model.Ref(rf)
+    display_en = rf.normal()
+    display_he = rf.he_normal()
+    items.append({
+        "title": {"en": "Arukh HaShulchan Yomi", "he": 'ערוך השולחן היומי'},
+        "displayValue": {"en": display_en, "he": display_he},
+        "url": rf.url(),
+        "ref": rf.normal(),
+        "order": 7,
+        "category": rf.index.get_primary_category()
+    })
+    return items
 
 @graceful_exception(logger=logger, return_value=[])
 def daily_rambam_three(datetime_obj):
@@ -274,6 +294,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return []
     cal_items  = []
+    cal_items += arukh_hashulchan(datetime_obj)
     cal_items += parashat_hashavua_and_haftara(datetime_obj, diaspora=diaspora, custom=custom)
     cal_items += daf_yomi(datetime_obj)
     cal_items += daily_929(datetime_obj)
