@@ -270,11 +270,21 @@ class ConnectionsPanel extends Component {
                     />
                  </div>);
     } else if (this.props.mode === "Resources") {
-      content = (<div>
-                  { this.state.flashMessage ?
-                    <div className="flashMessage sans">{this.state.flashMessage}</div>
-                    : null }
-                  <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
+      let resourcesButtonCounts = {
+        sheets: Sefaria.sheets.sheetsTotalCount(this.props.srefs),
+        webpages: Sefaria.webPagesByRef(this.props.srefs).length,
+        audio: Sefaria.mediaByRef(this.props.srefs).length,
+        topics: Sefaria.topicsByRefCount(this.props.srefs),
+        manuscripts: Sefaria.manuscriptsByRef(this.props.srefs).length
+      }
+      let toolsButtonsCounts = {
+        notes: Sefaria.notesTotalCount(this.props.srefs),
+      }
+      content = (
+          <div>
+              { this.state.flashMessage ? <div className="flashMessage sans">{this.state.flashMessage}</div> : null }
+              <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
+              <ConnectionsPanelSection title="Related Texts">
                   <ConnectionsSummary
                     srefs={this.props.srefs}
                     showBooks={false}
@@ -285,19 +295,20 @@ class ConnectionsPanel extends Component {
                     setFilter={this.props.setFilter}
                     setConnectionsMode={this.props.setConnectionsMode}
                     setConnectionsCategory={this.props.setConnectionsCategory} />
-                  <ResourcesList
-                    multiPanel={this.props.multiPanel}
-                    setConnectionsMode={this.props.setConnectionsMode}
-                    openComparePanel={this.props.openComparePanel}
-                    toggleSignUpModal = {this.props.toggleSignUpModal}
-                    sheetsCount={Sefaria.sheets.sheetsTotalCount(this.props.srefs)}
-                    notesCount={Sefaria.notesTotalCount(this.props.srefs)}
-                    webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length}
-					          audioCount={Sefaria.mediaByRef(this.props.srefs).length}
-                    topicsCount={Sefaria.topicsByRefCount(this.props.srefs)}
-                    manuscriptsCount={Sefaria.manuscriptsByRef(this.props.srefs).length}
-                  />
-                  </div>);
+              </ConnectionsPanelSection>
+              {/*this.props.multiPanel ?
+                <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
+              : null */}
+              <ConnectionsPanelSection title={"Resources"}>
+                <ResourcesList setConnectionsMode={this.props.setConnectionsMode} counts={resourcesButtonCounts} />
+              </ConnectionsPanelSection>
+              <ConnectionsPanelSection title={"Tools"}>
+                <ToolsList setConnectionsMode={this.props.setConnectionsMode} toggleSignUpModal = {this.props.toggleSignUpModal} counts={toolsButtonsCounts} />
+              </ConnectionsPanelSection>
+
+
+          </div>
+      );
 
     } else if (this.props.mode === "ConnectionsList") {
       content = (<ConnectionsSummary
@@ -487,8 +498,8 @@ class ConnectionsPanel extends Component {
                     interfaceLang={this.props.interfaceLang}
                     key="Media"/>);
 
-    } else if (this.props.mode === "Tools") {
-      content = (<ToolsList
+    } else if (this.props.mode === "Advanced Tools") {
+      content = (<AdvancedToolsList
                     srefs={this.props.srefs}
                     toggleSignUpModal={this.props.toggleSignUpModal}
                     canEditText={this.props.canEditText}
@@ -572,7 +583,7 @@ class ConnectionsPanel extends Component {
       />);
     }
 
-    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) != -1;
+    var marginless = ["Resources", "ConnectionsList", "Advanced Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) != -1;
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
@@ -638,38 +649,41 @@ ConnectionsPanel.propTypes = {
 };
 
 
-class ResourcesList extends Component {
+const ResourcesList = ({setConnectionsMode, counts}) => {
   // A list of Resources in addition to connection
-  render() {
-    return (<div className="resourcesList">
-              {this.props.multiPanel ?
-                <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
-              : null }
-              <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={this.props.sheetsCount} onClick={() => this.props.setConnectionsMode("Sheets")} />
-              {this.props.webpagesCount && this.props.webpagesCount > 0 ? <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpage.svg" count={this.props.webpagesCount} onClick={() => this.props.setConnectionsMode("WebPages")} /> : null }
-              {this.props.topicsCount && this.props.topicsCount > 0 ? <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={this.props.topicsCount} onClick={() => this.props.setConnectionsMode("Topics")} /> : null }
-              <ToolsButton en="Translations" he="תרגומים" image="translation.svg" onClick={() => this.props.setConnectionsMode("Translations")} />
-              <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
-              <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
-              {
-                this.props.manuscriptsCount ?
-                  <ToolsButton en={"Manuscripts"} he={"כתבי יד"} image={"manuscript-icon.png"} count={this.props.manuscriptsCount} onClick={() => this.props.setConnectionsMode("manuscripts")}/>
-                  : null
-              }
-              {this.props.audioCount && this.props.audioCount > 0 ? <ToolsButton en="Torah Readings" he="קריאה בתורה" image="audio.svg" onClick={() => this.props.setConnectionsMode("Torah Readings")} /> : null }
-              <ToolsButton en="Chavruta" he="חברותא" image="video.svg" onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Chavruta")} />
-              <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
-              <ToolsButton en="Tools" he="כלים" icon="gear" onClick={() => this.props.setConnectionsMode("Tools")} />
-              <ToolsButton en="Feedback" he="משוב" icon="comment" onClick={() => this.props.setConnectionsMode("Feedback")} />
-            </div>);
-  }
+    return (
+        <div className="resourcesList">
+            <ToolsButton en="Translations" he="תרגומים" image="translation.svg" onClick={() => setConnectionsMode("Translations")} />
+            <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} onClick={() => setConnectionsMode("Sheets")} />
+            <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]}  displayCriteria={counts["topics"] && counts["topics"] > 0} onClick={() => setConnectionsMode("Topics")} />
+            <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} displayCriteria={counts["webpages"] && counts["webpages"] > 0} onClick={() => setConnectionsMode("WebPages")} />
+            <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscript-icon.png" count={counts["manuscripts"]} displayCriteria={counts["manuscripts"] && counts["manuscripts"] > 0} onClick={() => setConnectionsMode("manuscripts")}/>
+            <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" displayCriteria={counts["audio"] && counts["audio"] > 0} onClick={() => setConnectionsMode("Torah Readings")} />
+        </div>
+    );
 }
 ResourcesList.propTypes = {
-  multiPanel:         PropTypes.bool.isRequired,
   setConnectionsMode: PropTypes.func.isRequired,
-  openComparePanel:   PropTypes.func.isRequired,
-  sheetsCount:        PropTypes.number.isRequired,
-  notesCount:         PropTypes.number.isRequired,
+  counts:        PropTypes.object.isRequired,
+}
+
+const ToolsList = ({setConnectionsMode, toggleSignUpModal, counts}) => {
+  // A list of Resources in addition to connection
+    return (
+        <div className="resourcesList">
+              <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" onClick={() => setConnectionsMode("Lexicon")} />
+              <ToolsButton en="Notes" he="הערות" image="notes.svg" count={counts["notes"]} onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Notes")} />
+              <ToolsButton en="Chavruta" he="חברותא" image="chavruta.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Chavruta")} />
+              <ToolsButton en="Share" he="שתף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
+              <ToolsButton en="Advanced" he="כלים מתקדמים" image="advancedtools.svg" onClick={() => setConnectionsMode("Advanced Tools")} />
+              <ToolsButton en="Feedback" he="משוב" image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} />
+        </div>
+    );
+}
+ToolsList.propTypes = {
+    setConnectionsMode: PropTypes.func.isRequired,
+    toggleSignUpModal:  PropTypes.func.isRequired,
+    counts:        PropTypes.object.isRequired,
 }
 
 
@@ -968,7 +982,7 @@ WebPagesList.propTypes = {
   srefs: PropTypes.array.isRequired,
 };
 
-class ToolsList extends Component {
+class AdvancedToolsList extends Component {
   render() {
     var editText  = this.props.canEditText ? function() {
         var refString = this.props.srefs[0];
@@ -1006,7 +1020,7 @@ class ToolsList extends Component {
       </div>);
   }
 }
-ToolsList.propTypes = {
+AdvancedToolsList.propTypes = {
   srefs:               PropTypes.array.isRequired,  // an array of ref strings
   canEditText:         PropTypes.bool,
   currVersions:        PropTypes.object,
@@ -1015,7 +1029,7 @@ ToolsList.propTypes = {
 };
 
 
-const ToolsButton = ({en, he, icon, image, count, onClick, persistOnEmpty = true}) => {
+const ToolsButton = ({en, he, icon, image, count, onClick, displayCriteria = true}) => {
     const clickHandler = (e) => {
         e.preventDefault();
         onClick();
@@ -1032,7 +1046,7 @@ const ToolsButton = ({en, he, icon, image, count, onClick, persistOnEmpty = true
     }
     const url = Sefaria.util.replaceUrlParam("with", en);
     return (
-      persistOnEmpty || (count && count > 0) ?
+      displayCriteria ?
       <a href={url} className="toolsButton sans noselect" data-name={en} onClick={clickHandler}>
         {iconElem}
         <span className="toolsButtonText">

@@ -4488,13 +4488,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   float: right;
 }
 .categoryFilter {
-  text-transform: uppercase;
-  padding: 19px 34px;
+  margin: 19px 34px;
   font-size: 18px;
   cursor: pointer;
-  line-height: 18px;
+  line-height: 21.6px;
   color: #000;
   -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
+
 }
 .textFilter {
   padding: 19px 34px;
@@ -4530,6 +4530,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .categoryFilterGroup.withBooks {
   border-bottom: 1px solid #E5E5E5;
+  border-top: 4px solid;
+  border-top-color: var(--category-color);
+}
+.categoryFilterGroup.withBooks .categoryFilter{
+  text-transform: uppercase;
 }
 .categoryFilterGroup a:hover {
   text-decoration: none;
@@ -5071,6 +5076,24 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 20px 34px;
   color: #999;
 }
+.connectionsPanel .connectionPanelSectionHeader{
+  margin-inline: 34px;
+  margin-top: 35px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #CCCCCC;
+  padding-bottom: 13px;
+}
+.connectionsPanel .connectionPanelSectionHeader .connectionPanelSectionHeaderInner{
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0em;
+  text-align: justified;
+  color: #666666;
+  text-transform: uppercase;
+
+}
 .connectionsPanel .connectionsSummaryLoading .loadingMessage {
   margin-top: 0;
 }
@@ -5136,11 +5159,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   justify-content: flex-start;
   color: #000;
-  border-top: 1px solid #E5E5E5;
+  /*border-top: 1px solid #E5E5E5;*/
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 1px;
-  padding: 20px 34px;
+  margin: 20px 34px;
 }
 .toolsButton .toolsButtonText .connectionsCount::before{
   content: " ";
@@ -5211,9 +5234,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .topicsHe .topicButton .smallText {
   text-align: right;
-}
-.toolsButton:last-child {
-  border-bottom: 1px solid #E5E5E5;
 }
 .toolsButton:hover {
   text-decoration: none;

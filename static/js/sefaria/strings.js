@@ -308,6 +308,11 @@ const Strings = {
       "Reference": "עיון",
       "Related Passage": "קשר אחר",
     },
+    "ConnectionPanelSection":{
+      "Related Texts": "מקורות קשורים",
+      "Resources": "עזרים",
+      "Tools": "כלים",
+    }
   },
 };
 
