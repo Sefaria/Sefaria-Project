@@ -18,54 +18,6 @@ import {
 
 
 const HomeFeed = ({toggleSignUpModal, onlySharedStories}) => {
-  // Start with recent sheets in the cache, if any
-  const [recentSheets, setRecentSheets] = useState(Sefaria.sheets.publicSheets(0, 12));
-
-  // But also make an API call check for updates
-  useEffect(() => {
-    Sefaria.sheets.publicSheets(0, 12, true, (data) => setRecentSheets(data));
-  }, []);
-
-  const makeFeaturedBlock = ([data, heading]) => {
-    return (
-      <FeaturedSheet
-       heading={heading}
-       title={data.title}
-       sheetId={data.id}
-       description={data.summary}
-       author={{
-          uid: data.author || data.owner,
-          url: data.ownerProfileUrl,
-          image: data.ownerImageUrl,
-          name: data.ownerName,
-          organization: data.ownerOrganization,
-          is_followed: false,
-          toggleSignUpModal: ()=>{},
-       }} 
-       key={data.id} />
-    );
-  };
-
-  const [parashahBlock, featuredBlock, holidayBlock] = [
-    [Sefaria.homepage.parashah.sheet, Sefaria.homepage.parashah.heading],
-    [Sefaria.homepage.featured.sheet, Sefaria.homepage.featured.heading],
-    [Sefaria.homepage.holiday.sheet,  Sefaria.homepage.holiday.heading]
-  ].map(makeFeaturedBlock);
-
-
-  const recentSheetsContent = !recentSheets ? <LoadingMessage /> :
-                                  recentSheets.map(s => [s, null])
-                                    .map(makeFeaturedBlock)
-  if (recentSheets) {
-    recentSheetsContent.splice(2, 0, <JoinTheConversation wide={true} />);
-  }
-  console.log(recentSheetsContent);
-  const recentSheetsBlock = (
-    <>
-      <div className="featuredSheetHeading"><InterfaceText>Recently Published</InterfaceText></div>
-      {recentSheetsContent}
-    </>
-  );
 
   const sidebarModules = [
     {type: "AboutSefaria"},
@@ -83,13 +35,27 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories}) => {
       <div className={contentClasses}>
         <div className="sidebarLayout">
           <div className="contentInner mainColumn">
-            <NBox content={[parashahBlock, featuredBlock]} n={2} />
+            <h2><InterfaceText>The Torah Portion</InterfaceText></h2>
+            <NBox content={[
+              <AboutParashah parashahTopic={Sefaria.homepage.parashah.parashahTopic} />,
+              <FeaturedSheet {...Sefaria.homepage.parashah.sheet} />
+            ]} n={2} />
             
-            {holidayBlock ?
-            <NBox content={[holidayBlock]} n={1} />
-            : null }
+            <h2><InterfaceText>Upcoming Holidays</InterfaceText></h2>
+            <NBox content={[
+              <AboutHoliday {...Sefaria.homepage.holiday.holidayTopic} />,
+              <FeaturedSheet {...Sefaria.homepage.holiday.sheet} />
+            ]} n={2} />
 
-            <NBox content={[recentSheetsBlock]} n={1} />
+            <div className="headerBordered">
+              <h2><InterfaceText>{Sefaria.homepage.featured.heading}</InterfaceText></h2>
+              <NBox content={[
+                <FeaturedSheet {...Sefaria.homepage.featured.sheet} />
+              ]} n={1} />
+            </div>
+            
+            <RecenltyPublished />
+
           </div>
           <NavSidebar modules={sidebarModules} />
         </div>
@@ -97,6 +63,141 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories}) => {
       </div>
     </div>
     );
+}
+HomeFeed.propTypes = {
+  toggleSignUpModal:  PropTypes.func.isRequired,
+  onlySharedStories:  PropTypes.bool,
+};
+
+
+const AboutParashah = ({parashahTopic}) => {
+  const {primaryTitle, description, slug, ref} = parashahTopic;
+  const title = {
+    en: primaryTitle.en.replace("Parashat ", ""),
+    he: primaryTitle.he.replace("פרשת ", ""),
+  }
+  const style = {"borderColor": Sefaria.palette.categoryColor("Tanakh")};
+  return (
+    <div className="navBlock withColorLine" style={style}>
+      <a href={`/topics/${slug}`} className="navBlockTitle">
+        <InterfaceText text={title} />
+      </a>       
+      <div className="navBlockDescription">
+        <InterfaceText text={description} />
+      </div>
+      <div className="readingLinks">
+        <div className="readingLinksHeader">
+          <InterfaceText>Torah Reading</InterfaceText>
+        </div>
+        <div className="calendarRef">
+          <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
+          <a href={`/${ref.url}`} className="">
+            <InterfaceText text={ref} />
+          </a> 
+        </div>
+      </div>
+    </div>
+  )
+};
+
+
+const AboutHoliday = ({primaryTitle, description, slug, readings}) => {
+  return (
+    <div className="navBlock" >
+      <a href={`/topics/${slug}`} className="navBlockTitle">
+        <InterfaceText text={primaryTitle} />
+      </a>       
+      <div className="navBlockDescription">
+        <InterfaceText text={description} />
+      </div>
+      {!readings ? null :
+      <div className="readingLinks">
+        <div className="readingLinksHeader">
+          <InterfaceText>Readings for</InterfaceText>&nbsp;<InterfaceText text={primaryTitle} />
+        </div>
+        {readings.map(ref => (
+          <div className="calendarRef" key={ref.url}>
+            <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
+            <a href={`/${ref.url}`} className="">
+              <InterfaceText text={ref} />
+           </a> 
+          </div>)
+        )}
+      </div> }
+    </div>
+  )
+};
+
+
+const RecenltyPublished = () => {
+  const pageSize = 12;
+  const [nSheetsLoaded, setNSheetsLoded] = useState(pageSize);
+  // Start with recent sheets in the cache, if any
+  const [recentSheets, setRecentSheets] = useState(Sefaria.sheets.publicSheets(0, pageSize));
+
+  // But also make an API call immeditately to check for updates
+  useEffect(() => {
+    Sefaria.sheets.publicSheets(0, pageSize, true, (data) => setRecentSheets(data));
+  }, []);
+
+  const loadMore = () => {
+    Sefaria.sheets.publicSheets(nSheetsLoaded, pageSize, true, (data) => {
+      setRecentSheets(recentSheets.concat(data));
+      setNSheetsLoded(nSheetsLoaded + pageSize);
+    });
+  };
+
+  const recentSheetsContent = !recentSheets ? [<LoadingMessage />] :
+                                recentSheets.map(s => <FeaturedSheet {...s} />);
+  if (recentSheets) {
+    recentSheetsContent.splice(2, 0, <JoinTheConversation wide={true} />);
+    recentSheetsContent.push(
+      <a className="button small white" onClick={loadMore}>
+        <InterfaceText>Load More</InterfaceText>
+      </a>
+    );
+  }
+  return (
+    <div className="recentlyPublished headerBordered">            
+      <h2><InterfaceText>Recently Published</InterfaceText></h2>
+      <NBox content={recentSheetsContent} n={1} />
+    </div>
+  );
+};
+
+
+const FeaturedSheet = (props) => {
+  const {heading, title, id, summary} = props;
+  const author = {
+    uid: props.author || props.owner,
+    url: props.ownerProfileUrl,
+    image: props.ownerImageUrl,
+    name: props.ownerName,
+    organization: props.ownerOrganization,
+    is_followed: false,
+    toggleSignUpModal: ()=>{},
+  };
+
+  return (
+    <div className="featuredSheet navBlock">
+      { heading ?
+      <div className="featuredSheetHeading">
+        <InterfaceText>{heading}</InterfaceText>
+      </div>
+      : null}
+      <a href={`/sheets/${id}`} className="navBlockTitle">
+        <InterfaceText>{title}</InterfaceText>
+      </a>
+      {summary ?
+      <div className="navBlockDescription">
+        <InterfaceText>{summary}</InterfaceText>
+      </div>
+      : null}
+      <ProfileListing {...author} />
+    </div>
+  );
+};
+
 
   /*  
   return (
@@ -131,34 +232,9 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories}) => {
       </div>
     </div>);
     */
-}
-HomeFeed.propTypes = {
-  toggleSignUpModal:  PropTypes.func.isRequired,
-  onlySharedStories:  PropTypes.bool,
-};
 
 
-const FeaturedSheet = ({heading, title, sheetId, description, author}) => (
-  <div className="featuredSheet navBlock">
-    { heading ?
-    <div className="featuredSheetHeading">
-      <InterfaceText>{heading}</InterfaceText>
-    </div>
-    : null}
-    <a href={`/sheets/${sheetId}`} className="navBlockTitle">
-      <InterfaceText>{title}</InterfaceText>
-    </a>
-    {description ?
-    <div className="navBlockDescription">
-      <InterfaceText>{description}</InterfaceText>
-    </div>
-    : null}
-    <ProfileListing {...author} />
-  </div>
-);
-
-
-
+/*
 function CategoryLink({category}) {
     return ( <a className="sideCatLink refLink" href={"/texts/" + category} style={{borderColor: Sefaria.palette.categoryColor(category)}}>
                 <span className="int-en">{category}</span>
@@ -325,7 +401,6 @@ function HomeFeedSidebar() {
 }
 
 
-/*
 class NewHomeFeedbackBox extends Component {
   constructor(props) {
     super(props);

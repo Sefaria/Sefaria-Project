@@ -3616,32 +3616,43 @@ def get_homepage_items():
     import random
     from sefaria.helper.topic import get_topic_by_parasha
     parashah = get_todays_parasha()
-    ptopic = get_topic_by_parasha(parashah["parasha"])
-    if ptopic:
-        parashah_sheet = get_featured_sheet_from_topic(ptopic.slug)
+    parashah_topic = get_topic_by_parasha(parashah["parasha"])
+    if parashah_topic:
+        parashah_sheet = get_featured_sheet_from_topic(parashah_topic.slug)
     else:
         parashah_sheet = get_featured_sheet_from_ref(parashah["ref"])
+    parashah_sheet["heading"] = "On " + parashah["parasha"]
 
+
+    holiday_topic = Topic().load({"slug": "sefirat-haomer"}).contents()
+    holiday_topic["readings"] = [{
+        "url": "Pirkei_Avot",
+        "en": "Pirkei Avot",
+        "he": "Pirkei Avot"        
+    }]
+    holiday_sheet = get_featured_sheet_from_topic("sefirat-haomer")
+    holiday_sheet["heading"] = "On Sefirat Ha'Omer"
 
     featured_collections = (
-        ("On Talmud", "bronfman-fellowship"),
+        ("Discover Talmud", "bronfman-fellowship"),
         ("New on Sefaria", "the-sefaria-blog")
     )
     featured = random.choice(featured_collections)
+    featured_sheet = get_featured_sheet_from_collection(featured[1])
 
     return {
         "parashah": {
-            "heading": "The Torah Portion - " + parashah["parasha"],
+            "parashahTopic": parashah_topic.contents(),
             "sheet": parashah_sheet
+        },
+        "holiday": {
+            "holidayTopic": holiday_topic,
+            "sheet": holiday_sheet,
         },
         "featured": {
             "heading": featured[0],
-            "sheet": get_featured_sheet_from_collection(featured[1])
+            "sheet": featured_sheet,
         },
-        "holiday": {
-            "heading": "Passover",
-            "sheet": get_featured_sheet_from_topic("passover")
-        },  
     }
 
 

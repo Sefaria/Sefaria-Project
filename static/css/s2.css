@@ -1200,6 +1200,7 @@ input.noselect {
   border-top: 80px solid #FBFBFA;
   border-bottom: 120px solid #FBFBFA;
   margin: -80px 0 0 0;
+  padding-bottom: 100px;
 }
 .navSidebarModule {
   font-size: 16px;
@@ -1321,6 +1322,7 @@ input.noselect {
 }
 .navSidebarModule.wide {
   display: flex;
+  margin-bottom: 0;
 }
 .navSidebarModule.wide div:first-child {
   flex: 1;
@@ -1880,12 +1882,15 @@ a.navBlockTitle {
 .bilingual .navBlock .he {
   display: none;
 }
-.featuredSheet.navBlock {
-  border: none;
+.featuredSheet {
+}
+.featuredSheet.navBlock .navBlockTitle {
+  padding-top: 7px;
 }
 .featuredSheetHeading {
   color: #666;
   font-size: 18px;
+  padding-top: 17px;
 }
 .featuredSheetHeading .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -1894,7 +1899,6 @@ a.navBlockTitle {
   margin-bottom: 12px;
 }
 .featuredSheet .authorByLine {
-  margin-bottom: 10px;
 }
 .navSidebarModule.wide {
   background-color: #FAFAFB;
@@ -1904,9 +1908,49 @@ a.navBlockTitle {
   border-bottom: none;
   margin-bottom: 0px;
 }
-.homepage .gridBox + .gridBox {
+.readerPanel .homepage .mainColumn h2 {
+  text-transform: none;
+  font-size: 30px;
+  color: #666;
+  margin-top: 0;
+  margin-bottom: 14px;
+}
+.readerPanel .homepage .mainColumn h2 .int-en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.homepage .navBlock {
   border-top: 1px solid #CCC;
-  padding-top: 30px;
+}
+.homepage .navBlock.withColorLine {
+  border-top: 4px solid transparent;
+}
+.homepage .gridBox {
+  margin-bottom: 30px;
+}
+.homepage .readingLinks {
+  margin-top: 20px;
+}
+.homepage .readingLinksHeader {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.homepage .readingLinks a {
+  font-size: 18px;
+}
+.homepage .readingLinks a .int-en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.homepage .readingLinks a .int-he {
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+}
+.homepage .headerBordered h2 {
+  padding-bottom: 20px;
+  border-bottom: 1px solid #CCC;
+  margin-bottom: 6px;
+}
+.homepage .headerBordered .navBlock {
+  border-top: 0;
 }
 .bilingual .readerNavMenu .he {
   display: none;
@@ -4610,16 +4654,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   flex-direction: column;
   padding: 5px;
-  margin: -5px -2px;
 }
 .gridBox .gridBoxItem.placeholder {
   visibility: hidden;
 }
 .gridBox .gridBoxItem:first-child {
-  margin-inline-start: 0;
+  padding-inline-start: 0;
 }
 .gridBox .gridBoxItem:last-child {
-  margin-inline-end: 0;
+  padding-inline-end: 0;
 }
 @media (max-width: 450px) {
   .gridBox .gridBoxItem {
@@ -6077,6 +6120,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   line-height: 19px;
   text-align: center;
   border: none;
+  width: fit-content;
 }
 a.button {
   color: white;
@@ -7382,7 +7426,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   font-family: "Heebo", sans-serif;
 }
 .multiPanel .readerNavMenu .content.hasFooter #footer {
-  margin-top: 120px;
 }
 .gemarra-regular, .gemarra-italic {
   font-weight: bold;
