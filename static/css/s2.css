@@ -2495,9 +2495,6 @@ a.readerNavCategory {
 .versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover{
   text-decoration: none;
 }
-.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsLabel{
-  display: none;
-}
 .versionBlock .versionDetails .versionBuyImage .versionDetailsImageLink img{
   height: 120px;
 }
