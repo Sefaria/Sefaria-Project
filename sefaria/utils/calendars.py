@@ -294,7 +294,6 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     if not SITE_SETTINGS["TORAH_SPECIFIC"]:
         return []
     cal_items  = []
-    cal_items += arukh_hashulchan(datetime_obj)
     cal_items += parashat_hashavua_and_haftara(datetime_obj, diaspora=diaspora, custom=custom)
     cal_items += daf_yomi(datetime_obj)
     cal_items += daily_929(datetime_obj)
@@ -303,6 +302,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items += daily_rambam_three(datetime_obj)
     cal_items += daf_weekly(datetime_obj)
     cal_items += halakhah_yomit(datetime_obj)
+    cal_items += arukh_hashulchan(datetime_obj)
     cal_items = [item for item in cal_items if item]
     return cal_items
 
