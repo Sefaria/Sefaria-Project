@@ -485,9 +485,9 @@ def collections_inclusion_api(request, slug, action, sheet_id):
     if action == "remove":
         if sheet_id in collection.sheets:
             collection.sheets.remove(sheet_id)
-            if request.user.id == sheet.owner and getattr(sheet, "displayedCollection", None) == collection.slug:
-                sheet.displayedCollection = None
-                sheet.save()
+            if request.user.id == sheet["owner"] and sheet.get("displayedCollection", None) == collection.slug:
+                sheet["displayedCollection"] = None
+                db.sheets.find_one_and_replace({"id": sheet["id"]}, sheet)
         else:
             return jsonResponse({"error": "Sheet with id {} is not in this collection.".format(sheet_id)})
     if action == "add":
@@ -495,9 +495,9 @@ def collections_inclusion_api(request, slug, action, sheet_id):
             collection.sheets.append(sheet_id)
             # If a sheet's owner adds it to a collection, and the sheet is not highlighted
             # in another collection, set it to highlight this collection.
-            if request.user.id == sheet.owner and not bool(getattr(sheet, "displayedCollection", None)):
-                sheet.displayedCollection = collection.slug
-                sheet.save()
+            if request.user.id == sheet["owner"] and not sheet.get("displayedCollection", None):
+                sheet["displayedCollection"] = collection.slug
+                db.sheets.find_one_and_replace({"id": sheet["id"]}, sheet)
 
     collection.save()
     is_member = request.user.is_authenticated and collection.is_member(request.user.id)
