@@ -2134,8 +2134,8 @@ class TextFamily(object):
                     if getattr(n, "refs", None):
                         for i, r in enumerate(n.refs):
                             # hack to skip Rishon, skip empty refs
-                            if i==0 or not r:
-                                continue;
+                            if i == 0 or not r:
+                                continue
                             subRef = Ref(r)
                             subRefStart = subRef.starting_ref()
                             if oref.contains(subRefStart) and not oref == subRefStart:
@@ -3836,7 +3836,7 @@ class Ref(object, metaclass=RefCacheType):
                 return False
 
             # If other's start is after my start, I don't need to keep checking
-            if other.sections[i] > self.toSections[i]:
+            if other.sections[i] > self.sections[i]:
                 break
 
         return True
