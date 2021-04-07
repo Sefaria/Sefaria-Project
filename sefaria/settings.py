@@ -298,12 +298,12 @@ CACHES = {
 
 """
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "paths-to-freedom",
-    "style":      "modal", # "modal" or "banner"
+    "name":       "pesach-2021-banner",
+    "style":      "banner", # "modal" or "banner"
     "repetition": 1,
     "condition":  {
         "returning_only": False,
-        "english_only": True,
+        "english_only": False,
         "desktop_only": False,
         "debug": False,
     }

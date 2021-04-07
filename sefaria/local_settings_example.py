@@ -4,6 +4,9 @@ import os.path
 from datetime import timedelta
 relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
                                os.path.realpath(__file__)), *x)
+import structlog
+import os
+import re
 
 # These are things you need to change!
 
@@ -241,105 +244,52 @@ SIMPLE_JWT = {
 # using our API outside of the app. Mainly for registration
 MOBILE_APP_KEY = "MOBILE_APP_KEY"
 
-""" to use logging, in any module:
-# import the logging library
-import structlog
-
-# Get an instance of a logger
-logger = structlog.get_logger(__name__)
-
-#log stuff
-logger.critical()
-logger.error()
-logger.warning()
-logger.info()
-logger.debug()
-
-if you are logging to a file, make sure the directory exists and is writeable by the server.
-"""
-
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'formatters': {
-        'standard': {
-            'format': '%(asctime)s - %(levelname)s %(name)s: %(message)s'
+        "json_formatter": {
+            "()": structlog.stdlib.ProcessorFormatter,
+            "processor": structlog.processors.JSONRenderer(),
         },
-        'simple': {
-            'format': '%(levelname)s %(message)s'
-        },
-        'verbose': {
-            'format': '%(asctime)s - %(levelname)s: [%(name)s] %(process)d %(thread)d %(message)s'
-        },
-
-    },
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
-        },
-        'require_debug_true': {
-            '()': 'django.utils.log.RequireDebugTrue'
-        }
     },
     'handlers': {
         'default': {
-            'level':'INFO',
-            'class':'logging.handlers.RotatingFileHandler',
-            'filename': relative_to_abs_path('../log/sefaria.log'),
-            'maxBytes': 1024*1024*5, # 5 MB
-            'backupCount': 5,
-            'formatter':'standard',
+            "class": "logging.StreamHandler",
+            "formatter": "json_formatter",
         },
-        'custom_debug' :{
-            'level':'DEBUG',
-            'class':'logging.handlers.RotatingFileHandler',
-            'filename': relative_to_abs_path('../log/debug.log'),
-            'maxBytes': 1024*1024*5, # 5 MB
-            'backupCount': 5,
-            'formatter':'verbose',
-            'filters': ['require_debug_true'],
-        },
-        'console':{
-            'level':'INFO',
-            'class':'logging.StreamHandler',
-            'formatter': 'simple',
-            'filters': ['require_debug_true'],
-        },
-
-        'null': {
-            'level':'INFO',
-            'class':'logging.NullHandler',
-        },
-
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
-        },
-        'request_handler': {
-            'level':'INFO',
-            'class':'logging.handlers.RotatingFileHandler',
-            'filename': relative_to_abs_path('../log/django_request.log'),
-            'maxBytes': 1024*1024*5, # 5 MB
-            'backupCount': 20,
-            'formatter':'standard',
-        }
     },
     'loggers': {
         '': {
-            'handlers': ['default', 'console', 'custom_debug'],
-            'level': 'DEBUG',
-            'propagate': True
+            'handlers': ['default'],
+            'propagate': False,
         },
         'django': {
-            'handlers': ['null'],
+            'handlers': ['default'],
             'propagate': False,
-            'level': 'INFO',
         },
         'django.request': {
-            'handlers': ['mail_admins', 'request_handler'],
-            'level': 'INFO',
-            'propagate': True,
+            'handlers': ['default'],
+            'propagate': False,
         },
     }
 }
+
+structlog.configure(
+    processors=[
+        structlog.stdlib.filter_by_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.stdlib.add_logger_name,
+        structlog.stdlib.add_log_level,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.UnicodeDecoder(),
+        structlog.processors.ExceptionPrettyPrinter(),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    context_class=structlog.threadlocal.wrap_dict(dict),
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)

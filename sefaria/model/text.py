@@ -21,7 +21,7 @@ try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
 except ImportError:
-    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
+    logger.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
 from . import abstract as abst
@@ -1160,7 +1160,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "status",
         "priority",
         "license",
-        "licenseVetted",
         "versionNotes",
         "digitizedBySefaria",
         "method",
@@ -1973,12 +1972,6 @@ class TextFamily(object):
             "en": "versionStatus",
             "he": "heVersionStatus"
         },
-        "license": {
-            "en": "license",
-            "he": "heLicense",
-            "condition": "licenseVetted",
-            "default": "unknown"
-        },
         "versionNotes": {
             "en": "versionNotes",
             "he": "heVersionNotes"
@@ -1999,7 +1992,12 @@ class TextFamily(object):
             "en": "digitizedBySefaria",
             "he": "heDigitizedBySefaria",
             "default": False,
-        }
+        },
+        "license": {
+            "en": "license",
+            "he": "heLicense",
+            "default": "unknown"
+        },
     }
     sourceMap = {
         "en": "sources",
@@ -2225,10 +2223,7 @@ class TextFamily(object):
                 ver = chunk.version()
                 if ver:
                     for key, val in list(self.attr_map.items()):
-                        if not val.get("condition") or getattr(ver, val.get("condition"), False):
-                            d[val[language]] = getattr(ver, key, val.get("default", ""))
-                        else:
-                            d[val[language]] = val.get("default")
+                        d[val[language]] = getattr(ver, key, val.get("default", ""))
 
         # replace ints with daf strings (3->"2a") for Talmud addresses
         # this could be simpler if was done for every value - but would be slower.
@@ -2640,31 +2635,22 @@ class Ref(object, metaclass=RefCacheType):
 
         self.toSections = self.sections[:]
 
-        address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[0])
+        #retrieve the address class of the last section in the ref
+        address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections)-1])
 
         if hasattr(address_class, "parse_range_end"):
             base_wout_title = base.replace(title + " ", "")
             address_class.parse_range_end(self, parts, base_wout_title)
         elif len(parts) == 2: # Parse range end portion, if it exists
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
-            if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[
-                                                                  1:]]):  # in process. developing logic that should work for all languages / texts
-                range_parts = re.split("[., :]+", parts[1])
-                delta = len(self.sections) - len(range_parts)
-                for i in range(delta, len(self.sections)):
-                    try:
-                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
-                                                                                       range_parts[i - delta], sections=self.sections[i])
-                    except (ValueError, IndexError):
-                        raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
-            elif self._lang == "en":
-                range_parts = re.split("[.:, ]+", parts[1])
-                delta = len(self.sections) - len(range_parts)
-                for i in range(delta, len(self.sections)):
-                    try:
-                        self.toSections[i] = int(range_parts[i - delta])
-                    except (ValueError, IndexError):
-                        raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
+            range_parts = re.split("[.:, ]+", parts[1])
+            delta = len(self.sections) - len(range_parts)
+            for i in range(delta, len(self.sections)):
+                try:
+                    self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
+                                                                                   range_parts[i - delta], sections=self.sections[i])
+                except (ValueError, IndexError):
+                    raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node

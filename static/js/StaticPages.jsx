@@ -281,7 +281,7 @@ const RambanLandingPage = () => {
         <ResponsiveNBox content={
             [['Shemot', 'Sam and Debbie Moed', 'In memory of Henry I. Zeisel, who derived tremendous joy from learning. This perush of his bar mitzvah parashah is dedicated with love.', '/Exodus.1.1?with=Ramban'],
             ['Vaera', 'The loving children and children-in-law of Arthur Helft', 'In memory of Dr. Arthur Helft', '/Exodus.6.2?with=Ramban'],
-            ['Bo', null, null, '/Exodus.10.1?with=Ramban'],
+            ['Bo', 'Honey Kessler Amado', 'In memory of her husband, Ralph A. Amado; her parents, Bernard and Mildred Kessler; and our teacher, Rabbi Moshe ben Nachman (Nachmanides).', '/Exodus.10.1?with=Ramban'],
             ['Beshalach', 'Nicole and Raanan Agus', 'In memory of Dr. Saul G. Agus z"l', '/Exodus.13.17?with=Ramban'],
             ['Yitro', 'Anonymous', 'To honor the memory of Joe and Rose Rudis', '/Exodus.18.1?with=Ramban'],
             ['Mishpatim ', null, null, '/Exodus.21.1?with=Ramban'],
@@ -500,6 +500,8 @@ const SheetsLandingPage = () => (
             enButtonText="How to Create a Sheet"
             heButtonText="איך יוצרים דף מקורות"
         />
+
+        <center><a href="https://bbyo.org/afikoman-found" target="_blank"><img src="/static/img/Afikoman_Black.png" style={{height:"100px", margin: "50px"}}/></a></center>
     </StaticPage>
 );
 

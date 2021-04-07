@@ -63,11 +63,11 @@
 			<span class="int-he">היסטורית קריאה</span>
         </label>
 		<div class="toggleSet doubleOption control-elem" role="radiogroup">
-			<div role="radio" data-name="reading-history" data-value=true class="toggleOption {% if profile.settings.reading_history %} active{% endif %}" tabindex="{% if profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+			<div role="radio" data-name="reading-history" data-value=true class="toggleOption {% if "reading_history" not in profile.settings or profile.settings.reading_history %} active{% endif %}" tabindex="{% if "reading_history" not in profile.settings or profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">On</span>
                 <span class="int-he">פעילה</span>
             </div><!--
-			--><div role="radio" data-name="reading-history" data-value=false class="toggleOption {% if not profile.settings.reading_history %} active{% endif %}" tabindex="{% if not profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+			--><div role="radio" data-name="reading-history" data-value=false class="toggleOption {% if "reading_history" in profile.settings and not profile.settings.reading_history %} active{% endif %}" tabindex="{% if "reading_history" in profile.settings and not profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
                 <span class="int-en">Off</span>
                 <span class="int-he">כבויה</span>
             </div>

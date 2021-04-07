@@ -43,6 +43,10 @@ class Test_Ref(object):
     def test_talmud_refs_short_range(self):
         assert Ref("Shabbat 7a-b") == Ref("Shabbat 7a-7b")
 
+    def test_refs_beyond_end_of_book(self):
+        assert Ref("Yoma 88") == Ref("Yoma 88a")
+        assert Ref("Yoma 87-90") == Ref("Yoma 87a-88a")
+
     # This test runs for 90% of this suite's time, and passes.  Seems pretty trivial.  Can we trim it?
     @pytest.mark.deep
     def test_each_title(object):
@@ -607,17 +611,17 @@ class Test_normal_forms(object):
     def test_zohar_volume_range(self):
         oref = Ref("Zohar 1-2")
         assert oref.normal() == "Zohar 1-2"
-        assert oref.he_normal() == "זוהר א׳-ב׳"
+        assert oref.he_normal() == "ספר הזהר א׳-ב׳"
 
     def test_zohar_daf_range(self):
         oref = Ref("Zohar 1:25a-27b")
         assert oref.normal() == "Zohar 1:25-27"
-        assert oref.he_normal() == "זוהר א׳:כ״ה-כ״ז"
+        assert oref.he_normal() == "ספר הזהר א׳:כ״ה-כ״ז"
 
     def test_zohar_volume_daf_range(self):
         oref = Ref("Zohar 1:25a-2:27b")
         assert oref.normal() == "Zohar 1:25-2:27"
-        assert oref.he_normal() == "זוהר א׳:כ״ה-ב׳:כ״ז"
+        assert oref.he_normal() == "ספר הזהר א׳:כ״ה-ב׳:כ״ז"
 
 
 

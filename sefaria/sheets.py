@@ -154,6 +154,7 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 	projection = {
 		"id": 1,
 		"title": 1,
+		"summary": 1,
 		"status": 1,
 		"owner": 1,
 		"views": 1,
@@ -181,6 +182,7 @@ def sheet_to_dict(sheet):
 	sheet_dict = {
 		"id": sheet["id"],
 		"title": strip_tags(sheet["title"]) if "title" in sheet else "Untitled Sheet",
+		"summary": sheet.get("summary", None),
 		"status": sheet["status"],
 		"author": sheet["owner"],
 		"ownerName": profile["name"],
@@ -1069,6 +1071,9 @@ class Sheet(abstract.AbstractMongoRecord):
 	# Warning: this class doesn't implement all of the saving logic in save_sheet()
 	# In current form should only be used for reading or for changes that are known to be
 	# safe and without need of side effects.
+	#
+	# Warning: there are fields on some individual sheet documents that aren't enumerated here,
+	# trying to load a document with an attribute not listed here will cause an error.
 
 	collection = 'sheets'
 
