@@ -309,7 +309,7 @@ const Strings = {
       "Related Passage": "קשר אחר",
     },
     "ConnectionPanelSection":{
-      "Related Texts": "מקורות קשורים",
+      "Related Texts": "מקורות לעיון",
       "Resources": "עזרים",
       "Tools": "כלים",
     }
