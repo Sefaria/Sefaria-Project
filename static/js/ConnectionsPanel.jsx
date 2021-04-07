@@ -41,8 +41,11 @@ class ConnectionsPanel extends Component {
       currObjectVersions: {en: null, he: null},
       mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
       linksLoaded: false, // has the list of refs been loaded
-      connectionSummaryExpanded: false,
+      connectionSummaryCollapsed: true,
     };
+  }
+  toggleTopLevelCollapsed(){
+      this.setState({connectionSummaryCollapsed: !this.state.connectionSummaryCollapsed});
   }
   componentDidMount() {
     this._isMounted = true;
@@ -295,7 +298,10 @@ class ConnectionsPanel extends Component {
                     setFilter={this.props.setFilter}
                     setConnectionsMode={this.props.setConnectionsMode}
                     setConnectionsCategory={this.props.setConnectionsCategory}
-                    openComparePanel={this.props.openComparePanel}/>
+                    openComparePanel={this.props.openComparePanel}
+                    collapsed={this.state.connectionSummaryCollapsed}
+                    toggleTopLevelCollapsed={this.toggleTopLevelCollapsed}
+                  />
               </ConnectionsPanelSection>
               <ConnectionsPanelSection title={"Resources"}>
                 <ResourcesList setConnectionsMode={this.props.setConnectionsMode} counts={resourcesButtonCounts} />
@@ -709,6 +715,7 @@ class ConnectionsSummary extends Component {
   // If `category` is present, shows a single category, otherwise all categories.
   // If `showBooks`, show specific text counts beneath each category.
   render() {
+    const collapsedTopLevelLimit = 4;
     const refs          = this.props.srefs;
     const excludedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
     const oref          = Sefaria.ref(refs[0]);
@@ -783,8 +790,28 @@ class ConnectionsSummary extends Component {
     if (this.props.multiPanel && isTopLevel){
         connectionsSummary.push(<ToolsButton en="Other Text" he="טקסט נוסף" image="compare.svg" onClick={this.props.openComparePanel} control="content" />);
     }
+    let summaryToggle = null;
+    if(isTopLevel && this.props.collapsed && connectionsSummary.length > collapsedTopLevelLimit){
+        connectionsSummary = connectionsSummary.slice(0,3) //get the first 3 items
+        summaryToggle = (
+            <span className="expandSummaries" role="button">
+                <ToolsButton en="More" he="עוד" image="more.svg" onClick={this.props.toggleTopLevelCollapsed} control="content" />
+            </span>
+        );
+    }else if(isTopLevel && !this.props.collapsed){
+        summaryToggle = (
+            <span className="collapseSummaries" role="button" onClick={this.props.toggleTopLevelCollapsed}>
+                <ToolsButton en="See Less" he="פחות" image="less.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" />
+            </span>
+        )
+    }
 
-    return (<div>{connectionsSummary}</div>);
+    return (
+        <div>
+            {connectionsSummary}
+            {summaryToggle}
+        </div>
+    );
    }
 }
 ConnectionsSummary.propTypes = {

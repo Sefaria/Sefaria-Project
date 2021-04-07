@@ -4493,6 +4493,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000;
   -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
 }
+.collapseSummaries .toolsButton{
+  margin-inline-start: 60px;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 18px;
+  color: #999999;
+  align-items: center;
+}
+.collapseSummaries .toolsButton img.toolsButtonIcon{
+  height: 9px;
+}
 .categoryFilter .filterText{
   margin-inline-start: 10px;
   margin-inline-end: auto;
