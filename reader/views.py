@@ -315,6 +315,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
                         currVersions[key] = None
             panel = {
                 "menuOpen": "extended notes",
+                "mode": "Menu",
                 "bookRef": oref.normal(),
                 "indexDetails": index_details,
                 "currVersions": currVersions
@@ -322,6 +323,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
         else:
             panel = {
                 "menuOpen": "book toc",
+                "mode": "Menu",
                 "bookRef": oref.normal(),
                 "indexDetails": index_details,
                 "versions": oref.version_list()
@@ -565,17 +567,14 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         i += 1
 
     props = {
-        "headerMode":                  False,
-        "initialRefs":                 panels[0].get("refs", []),
-        "initialFilter":               panels[0].get("filter", None), # used only for mobile, TextAndConnections case.
-        "initialBookRef":              panels[0].get("bookRef", None),
-        "initialPanels":               panels,
-        "initialPanelCap":             len(panels),
-        "initialQuery":                None,
-        "initialSheetsTag":            None,
-        "initialNavigationCategories": None,
-        "initialNavigationTopicCategory":     None,
-        "initialNavigationTopicTitle": None,
+        "headerMode":                     False,
+        "initialPanels":                  panels,
+        "initialPanelCap":                len(panels),
+        "initialQuery":                   None,
+        "initialSheetsTag":               None,
+        "initialNavigationCategories":    None,
+        "initialNavigationTopicCategory": None,
+        "initialNavigationTopicTitle":    None,
     }
     if sheet == None:
         title = primary_ref.he_normal() if request.interfaceLang == "hebrew" else primary_ref.normal()
@@ -626,6 +625,7 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "ldBreadcrumbs":  breadcrumb,
         "noindex":        noindex,
     })
+
 
 def _reduce_ranged_ref_text_to_first_section(text_list):
     """

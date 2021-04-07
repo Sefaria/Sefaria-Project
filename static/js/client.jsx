@@ -30,14 +30,6 @@ $(function() {
     let staticProps = {
       multiPanel: $(window).width() > 600,
       headerMode: true,
-      initialRefs: [],
-      initialFilter: [],
-      initialMenu: null,
-      initialQuery: null,
-      initialSheetsTag: null,
-      initialNavigationCategories: [],
-      initialNavigationTopicCategory: "",
-      initialPanels: [],
     };
 
     let mergedStaticProps = { ...DJANGO_VARS.props, ...staticProps };

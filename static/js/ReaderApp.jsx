@@ -30,207 +30,69 @@ class ReaderApp extends Component {
     super(props);
     // TODO clean up generation of initial panels objects.
     // Currently these get generated in reader/views.py then regenerated again in ReaderApp.
-    this.MIN_PANEL_WIDTH = 360.0;
-    var panels               = [];
-    var header               = {};
-    var defaultVersions      = Sefaria.util.clone(props.initialDefaultVersions) || {};
-    var defaultPanelSettings = this.getDefaultPanelSettings();
+    this.MIN_PANEL_WIDTH       = 360.0;
+    let panels                 = [];
 
-    if (!props.multiPanel && !props.headerMode) {
-      if (props.initialPanels && props.initialPanels.length > 0 && props.initialPanels[0].menuOpen == "book toc") {
-        panels[0] = {
-            settings: Sefaria.util.clone(defaultPanelSettings),
-            menuOpen: "book toc",
-            //mode: "Text",
-            bookRef:  props.initialPanels[0].bookRef
-        };
-      } else if (props.initialPanels && props.initialPanels.length > 0 && props.initialPanels[0].menuOpen === "extended notes"){
-         panels[0] = {
-            settings:      Sefaria.util.clone(defaultPanelSettings),
-            menuOpen:      "extended notes",
-            currVersions:  props.initialPanels[0].currVersions,
-            bookRef:       props.initialPanels[0].bookRef
-        };
-      } else if (props.initialPath.search(/\/sheets\/\d+/g) !== -1) {
-        var mode = props.initialFilter ? "SheetAndConnections" : "Sheet";
-        var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
-
-        panels[0] = {
-          highlightedNodes: initialPanel.highlightedNodes,
-          sheetID: initialPanel.sheetID,
-          sheet: initialPanel.sheet,
-          refs: props.initialRefs,
-          mode: mode,
-          filter: props.initialFilter,
-          versionFilter: props.initialVersionFilter,
-          menuOpen: props.initialMenu,
-          connectionsMode: initialPanel.connectionsMode || "Resources",
-          currVersions: initialPanel.currVersions || {en:null, he:null},
-          searchQuery: props.initialQuery,
-          searchTab: props.initialSearchTab || "text",
-          topicsTab: props.initialTopicsTab || "sources",
-          textSearchState: new SearchState({
-            type: 'text',
-            appliedFilters: props.initialTextSearchFilters,
-            field: props.initialTextSearchField,
-            appliedFilterAggTypes: props.initialTextSearchFilterAggTypes,
-            sortType: props.initialTextSearchSortType,
-          }),
-          sheetSearchState: new SearchState({
-            type: 'sheet',
-            appliedFilters: props.initialSheetSearchFilters,
-            appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
-            sortType: props.initialSheetSearchSortType,
-          }),
-          navigationCategories: props.initialNavigationCategories,
-          navigationTopicCategory: props.initialNavigationTopicCategory,
-          navigationTopic: props.initialTopic,
-          navigationTopicTitle: props.initialNavigationTopicTitle,
-          topicTitle: props.initialTopicTitle,
-          profile: props.initialProfile,
-          profileTab: props.initialProfileTab,
-          collectionName: props.initialCollectionName,
-          collectionSlug: props.initialCollectionSlug,
-          collectionTag: props.initialCollectionTag,
-          settings: Sefaria.util.clone(defaultPanelSettings)
-        };
-        if (!initialPanel.hasOwnProperty("settings")) {
-          if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
-          else if (panels[0].currVersions.he)                         { panels[0].settings.language = "hebrew"; }
-          else if (panels[0].currVersions.en)                         { panels[0].settings.language = "english"; }
-        }
-        if (mode === "SheetAndConnections") {
-          panels[0].highlightedRefs = props.initialRefs;
-        }
-      }
-      else {
-        var mode = props.initialFilter ? "TextAndConnections" : "Text";
-        var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
-        panels[0] = {
-          refs: props.initialRefs,
-          mode: mode,
-          filter: props.initialFilter,
-          versionFilter: props.initialVersionFilter,
-          menuOpen: props.initialMenu,
-          connectionsMode: initialPanel.connectionsMode || "Resources",
-          currVersions: initialPanel.currVersions || {en:null, he:null},
-          searchQuery: props.initialQuery,
-          searchTab: props.initialSearchTab || "text",
-          topicsTab: props.initialTopicsTab || "sources",
-          textSearchState: new SearchState({
-            type: 'text',
-            appliedFilters: props.initialTextSearchFilters,
-            field: props.initialTextSearchField,
-            appliedFilterAggTypes: props.initialTextSearchFilterAggTypes,
-            sortType: props.initialTextSearchSortType,
-          }),
-          sheetSearchState: new SearchState({
-            type: 'sheet',
-            appliedFilters: props.initialSheetSearchFilters,
-            appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
-            sortType: props.initialSheetSearchSortType,
-          }),
-          navigationCategories: props.initialNavigationCategories,
-          navigationTopicCategory: props.initialNavigationTopicCategory,
-          navigationTopic: props.initialTopic,
-          navigationTopicTitle: props.initialNavigationTopicTitle,
-          topicTitle: props.initialTopicTitle,
-          profile: props.initialProfile,
-          profileTab: props.initialProfileTab,
-          collectionName: props.initialCollectionName,
-          collectionSlug: props.initialCollectionSlug,
-          collectionTag: props.initialCollectionTag,
-          settings: Sefaria.util.clone(defaultPanelSettings)
-        };
-        if (!initialPanel.hasOwnProperty("settings")) {
-          if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
-          else if (panels[0].currVersions.he)                         { panels[0].settings.language = "hebrew"; }
-          else if (panels[0].currVersions.en)                         { panels[0].settings.language = "english"; }
-        }
-        if (mode === "TextAndConnections") {
-          panels[0].highlightedRefs = props.initialRefs;
-        }
-      }
-    } else {
-      var headerState = {
-        mode: "Header",
-        refs: props.initialRefs,
-        bookRef: props.initialBookRef,
-        menuOpen: props.initialMenu,
-        searchQuery: props.initialQuery,
-        searchTab: props.initialSearchTab || "text",
-        topicsTab: props.initialTopicsTab || "sources",
+    if (props.initialMenu) {
+      // If a menu is specified in `initialMenu`, make a panel for it
+      panels[0] = {
+        mode:                    "Menu",
+        menuOpen:                props.initialMenu,
+        searchQuery:             props.initialQuery,
+        searchTab:               props.initialSearchTab,
+        topicsTab:               props.initialTopicsTab,
         textSearchState: new SearchState({
           type: 'text',
-          appliedFilters: props.initialTextSearchFilters,
-          field: props.initialTextSearchField,
+          appliedFilters:        props.initialTextSearchFilters,
+          field:                 props.initialTextSearchField,
           appliedFilterAggTypes: props.initialTextSearchFilterAggTypes,
-          sortType: props.initialTextSearchSortType,
+          sortType:              props.initialTextSearchSortType,
         }),
         sheetSearchState: new SearchState({
           type: 'sheet',
-          appliedFilters: props.initialSheetSearchFilters,
+          appliedFilters:        props.initialSheetSearchFilters,
           appliedFilterAggTypes: props.initialSheetSearchFilterAggTypes,
-          sortType: props.initialSheetSearchSortType,
+          sortType:              props.initialSheetSearchSortType,
         }),
-        navigationCategories: props.initialNavigationCategories,
+        navigationCategories:    props.initialNavigationCategories,
         navigationTopicCategory: props.initialNavigationTopicCategory,
-        navigationTopic: props.initialTopic,
-        navigationTopicTitle: props.initialNavigationTopicTitle,
-        topicTitle: props.initialTopicTitle,
-        profile: props.initialProfile || "sheets",
-        profileTab: props.initialProfileTab,
-        collectionName: props.initialCollectionName,
-        collectionSlug: props.initialCollectionSlug,
-        collectionTag: props.initialCollectionTag,
-        settings: Sefaria.util.clone(defaultPanelSettings)
+        navigationTopic:         props.initialTopic,
+        navigationTopicTitle:    props.initialNavigationTopicTitle,
+        topicTitle:              props.initialTopicTitle,
+        profile:                 props.initialProfile,
+        profileTab:              props.initialProfileTab,
+        collectionName:          props.initialCollectionName,
+        collectionSlug:          props.initialCollectionSlug,
+        collectionTag:           props.initialCollectionTag,
       };
-      header = this.makePanelState(headerState);
-      if (props.initialRefs.length) {
-        var p = {
-          refs: props.initialRefs,
-          mode: "Text",
-          filter: props.initialPanels[0].filter,
-          versionFilter: props.initialPanels[0].versionFilter,
-          menuOpen: props.initialPanels[0].menuOpen,
-          highlightedRefs: props.initialPanels[0].highlightedRefs || [],
-          currVersions: props.initialPanels.length ? props.initialPanels[0].currVersions : {en:null,he:null},
-          settings: ("settings" in props.initialPanels[0]) ? extend(Sefaria.util.clone(defaultPanelSettings), props.initialPanels[0].settings) : Sefaria.util.clone(defaultPanelSettings)
-        };
-        if (!props.initialPanels[0].hasOwnProperty("settings")) {
-          if (p.currVersions.he && p.currVersions.en) { p.settings.language = "bilingual"; }
-          else if (p.currVersions.he)                 { p.settings.language = "hebrew" }
-          else if (p.currVersions.en)                 { p.settings.language = "english" }
-        }
-        panels.push(p);
-      }
-      for (var i = panels.length; i < props.initialPanels.length; i++) {
-        var panel;
-        if (props.initialPanels[i].menuOpen == "book toc") {
-          panel = {
-              menuOpen: props.initialPanels[i].menuOpen,
-              bookRef:  props.initialPanels[i].bookRef,
-              settings: ("settings" in props.initialPanels[i]) ? extend(Sefaria.util.clone(defaultPanelSettings), props.initialPanels[i].settings) : Sefaria.util.clone(defaultPanelSettings)
-          };
-        } else {
-          panel = this.clonePanel(props.initialPanels[i]);
-          panel.settings = Sefaria.util.clone(defaultPanelSettings);
-          if (!props.initialPanels[i].hasOwnProperty("settings")) {
-            if (panel.currVersions.he && p.currVersions.en) { panel.settings.language = "bilingual"; }
-            else if (panel.currVersions.he)                 { panel.settings.language = "hebrew" }
-            else if (panel.currVersions.en)                 { panel.settings.language = "english" }
-          }
-        }
-        panels.push(panel);
-      }
     }
-    panels = panels.map(panel => this.makePanelState(panel));
 
-    var layoutOrientation = (props.interfaceLang == "english") ? "ltr" : "rtl";
+    const defaultPanelSettings = this.getDefaultPanelSettings();
+
+    const initialPanels = props.initialPanels || [];
+    panels = panels.concat(initialPanels.map(this.clonePanel));
+
+    panels = panels.map(panel => {
+      if (!panel.hasOwnProperty("settings") && !!panel.currVersions) {
+        // If a panel doesn't have its own settings, but it does have a text version set
+        // make sure the settings show the language of the version set.
+        if (panel.currVersions.he && panel.currVersions.en) { panel.settings = {language: "bilingual"}; }
+        else if (panel.currVersions.he)                     { panel.settings = {language: "hebrew"}; }
+        else if (panel.currVersions.en)                     { panel.settings = {language: "english"}; }
+      }
+      panel.settings = extend(Sefaria.util.clone(defaultPanelSettings), (panel.settings || {}));
+
+      if (panel.mode.endsWith("AndConnections")) {
+        panel.highlightedRefs = initialPanel.refs;
+      }
+      return panel;  
+    }).map(panel => this.makePanelState(panel));
+
+    const defaultVersions   = Sefaria.util.clone(props.initialDefaultVersions) || {};
+    const layoutOrientation = (props.interfaceLang == "hebrew") ? "rtl" : "ltr";
 
     this.state = {
       panels: panels,
-      header: header,
       headerMode: props.headerMode,
       defaultVersions: defaultVersions,
       defaultPanelSettings: Sefaria.util.clone(defaultPanelSettings),
@@ -240,6 +102,62 @@ class ReaderApp extends Component {
       initialAnalyticsTracked: false,
       showSignUpModal: false,
     };
+  }
+  makePanelState(state) {
+    // Return a full representation of a single panel's state, given a partial representation in `state`
+    var panel = {
+      mode:                    state.mode,                   // "Text", "TextAndConnections", "Connections", "Sheet", "SheetAndConnection", "Menu"
+      refs:                    state.refs                    || [], // array of ref strings
+      filter:                  state.filter                  || [],
+      versionFilter:           state.versionFilter           || [],
+      connectionsMode:         state.connectionsMode         || "Resources",
+      currVersions:            state.currVersions            || {en:null,he:null},
+      highlightedRefs:         state.highlightedRefs         || [],
+      highlightedNodes:        state.highlightedNodes        || null,
+      currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
+      recentFilters:           state.recentFilters           || state.filter || [],
+      recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
+      menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
+      navigationCategories:    state.navigationCategories    || [],
+      navigationTopicCategory: state.navigationTopicCategory || "",
+      sheet:                   state.sheet                   || null,
+      sheetNodes:              state.sheetNodes              || null,
+      nodeRef:                 state.nodeRef                 || null,
+      navigationTopic:         state.navigationTopic         || null,
+      navigationTopicTitle:    state.navigationTopicTitle    || null,
+      topicTitle:              state.topicTitle              || null,
+      collectionName:          state.collectionName          || null,
+      collectionSlug:          state.collectionSlug          || null,
+      collectionTag:           state.collectionTag           || null,
+      searchQuery:             state.searchQuery             || null,
+      searchTab:               state.searchTab               || 'text',
+      topicsTab:               state.topicsTab               || 'sources',
+      textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
+      sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
+      compare:                 state.compare                 || false,
+      openSidebarAsConnect:    state.openSidebarAsConnect    || false,
+      bookRef:                 state.bookRef                 || null,
+      settings:                state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
+      displaySettingsOpen:     false,
+      tagSort:                 state.tagSort                 || "count",
+      mySheetSort:             state.mySheetSort             || "date",
+      initialAnalyticsTracked: state.initialAnalyticsTracked || false,
+      selectedWords:           state.selectedWords           || "",
+      selectedNamedEntity:     state.selectedNamedEntity     || null,
+      selectedNamedEntityText: state.selectedNamedEntityText || null,
+      textHighlights:          state.textHighlights          || null,
+      profile:                 state.profile                 || null,
+      profileTab:              state.profileTab              || "sheets",
+    };
+    // if version is not set for the language you're in, see if you can retrieve it from cache
+    if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
+      var oRef = Sefaria.ref(panel.refs[0]);
+      if (oRef) {
+        const lang = panel.settings.language == "hebrew"?"he":"en";
+        panel.currVersions[lang] = this.getCachedVersion(oRef.indexTitle, lang);
+      }
+    }
+    return panel;
   }
   componentDidMount() {
     this.updateHistoryState(true); // make sure initial page state is in history, (passing true to replace)
@@ -309,22 +227,13 @@ class ReaderApp extends Component {
     // console.log(event.state);
     if (state) {
       this.justPopped = true;
+      
       // history does not preserve custom objects
-      const h = state.header;
-      if (!!h) {
-        h.textSearchState = h.textSearchState && new SearchState(h.textSearchState);
-        h.sheetSearchState = h.sheetSearchState && new SearchState(h.sheetSearchState);
-      }
       if (state.panels) {
         for (let p of state.panels) {
           p.textSearchState = p.textSearchState && new SearchState(p.textSearchState);
           p.sheetSearchState = p.sheetSearchState && new SearchState(p.sheetSearchState);
         }
-      }
-
-      if (!h && state.panels) {
-        // make sure header is closed
-        state.header = this.makePanelState({"mode": "Header"});
       }
       this.setState(state, () => {
         if (state.scrollPosition) {
@@ -337,15 +246,14 @@ class ReaderApp extends Component {
     }
   }
   trackPageview() {
-      var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
-      var panels = headerPanel ? [this.state.header] : this.state.panels;
+      var panels = this.state.panels;
       var textPanels = panels.filter(panel => (panel.refs.length || panel.bookRef) && panel.mode !== "Connections");
       var connectionPanels = panels.filter(panel => panel.mode == "Connections");
 
       // Set Page Type
       // Todo: More specificity for sheets - browsing, reading, writing
-      if (panels.length < 1) { debugger; }
-      else { Sefaria.track.setPageType(panels[0].menuOpen || panels[0].mode); }
+      const pageType = !panels.length ? "Static" : (panels[0].menuOpen || panels[0].mode);
+      Sefaria.track.setPageType(pageType);
 
       // Number of panels as e.g. "2" meaning 2 text panels or "3.2" meaning 3 text panels and 2 connection panels
       if (connectionPanels.length == 0) {
@@ -400,24 +308,15 @@ class ReaderApp extends Component {
     // Compare the current state to the state last pushed to history,
     // Return true if the change warrants pushing to history.
     if (!history.state
-        || (!history.state.panels && !history.state.header)
         || (!history.state.panels && !!this.state.panels)
         || (history.state.panels && (history.state.panels.length !== this.state.panels.length))
-        || (history.state.header && (history.state.header.menuOpen !== this.state.header.menuOpen))
       ) {
       // If there's no history or the number or basic state of panels has changed
       return true;
     }
 
-    var prevPanels, nextPanels;
-    if (this.props.multiPanel) {
-      var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
-      prevPanels = headerPanel ? [history.state.header] : history.state.panels;
-      nextPanels = headerPanel ? [this.state.header] : this.state.panels;
-    } else {
-      prevPanels = history.state.panels;
-      nextPanels = this.state.panels;
-    }
+    const prevPanels = history.state.panels || [];
+    const nextPanels = this.state.panels || [];
 
     for (let i = 0; i < prevPanels.length; i++) {
       // Cycle through each panel, compare previous state to next state, looking for differences
@@ -487,14 +386,11 @@ class ReaderApp extends Component {
     } else {
       return "";
     }
-
   }
   makeHistoryState() {
     // Returns an object with state, title and url params for the current state
     var histories = [];
-    // When the header has a panel open, only look at its content for history
-    var headerPanel = this.state.header.menuOpen || (!this.state.panels.length && this.state.header.mode === "Header");
-    var states = headerPanel ? [this.state.header] : this.state.panels;
+    var states = this.state.panels;
     var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
     const shortLang = Sefaria.interfaceLang == 'hebrew' ? 'he' : 'en';
 
@@ -688,15 +584,6 @@ class ReaderApp extends Component {
           hist.aliyot = (state.settings.aliyotTorah == "aliyotOff") ? 0 : 1;
         }
 
-      } else if (state.mode === "Header") {
-        hist.title    = document.title;
-        hist.url      = window.location.pathname.slice(1);
-        if (window.location.search != ""){
-          // Replace initial ? of query string with & which logic below expects
-          hist.url += "&" + window.location.search.slice(1);
-        }
-        hist.mode   = "Header"
-
       } else if (state.mode === "Sheet") {
         hist.title = state.sheet.title.stripHtml();
         var sheetURLSlug = state.highlightedNodes ? state.sheet.id + "." + state.highlightedNodes : state.sheet.id;
@@ -718,13 +605,23 @@ class ReaderApp extends Component {
         hist.mode     = "SheetAndConnections";
       }
 
-      if (state.mode !== "Header") {
-        if (!state.settings) { debugger; }
-        hist.lang =  state.settings.language ? state.settings.language.substring(0,2) : "bi";
-      }
+      if (!state.settings) { debugger; }
+      hist.lang =  state.settings.language ? state.settings.language.substring(0,2) : "bi";
       histories.push(hist);
     }
-    if (!histories.length) {debugger;}
+
+    if (!histories.length) {
+      // If there were no panels, we're in headerMode over a static page
+      histories[0] = {
+        title: document.title,
+        url: window.location.pathname.slice(1),
+        mode: "Header",
+      };
+      if (window.location.search != ""){
+        // Replace initial ? of query string with & which logic below expects
+        histories[0].url += "&" + window.location.search.slice(1);
+      }
+    }
 
     // Now merge all history objects into one
     var title =  histories.length ? histories[0].title : "Sefaria";
@@ -740,9 +637,7 @@ class ReaderApp extends Component {
     if("aliyot" in histories[0]) {
         url += "&aliyot=" + histories[0].aliyot;
     }
-    hist = (headerPanel)
-        ? {state: {header: states[0]}, url: url, title: title}
-        : {state: {panels: states}, url: url, title: title};
+    hist = {state: {panels: states}, url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
       if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") || (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections")) {
         if (i == 1) {
@@ -828,8 +723,7 @@ class ReaderApp extends Component {
   }
   _refState() {
     // Return a single flat list of all the refs across all panels
-    var panels = (this.props.multiPanel)? this.state.panels : [this.state.header];
-    return [].concat(...panels.map(p => p.refs || []))
+    return [].concat(...this.state.panels.map(p => p.refs || []))
   }
   // These two methods to check scroll intent have similar implementations on the panel level.  Refactor?
   // Dec 2018 - somewhat refactored
@@ -860,62 +754,6 @@ class ReaderApp extends Component {
     intentDelay = intentDelay || 3000;  // Number of milliseconds to demonstrate intent
     if (timer) { clearTimeout(timer); }
     return window.setTimeout(cb, intentDelay);
-  }
-  makePanelState(state) {
-    // Return a full representation of a single panel's state, given a partial representation in `state`
-    var panel = {
-      mode:                    state.mode,                   // "Text", "TextAndConnections", "Connections", "Sheet", "SheetAndConnection"
-      refs:                    state.refs                    || [], // array of ref strings
-      filter:                  state.filter                  || [],
-      versionFilter:           state.versionFilter           || [],
-      connectionsMode:         state.connectionsMode         || "Resources",
-      currVersions:            state.currVersions            || {en:null,he:null},
-      highlightedRefs:         state.highlightedRefs         || [],
-      highlightedNodes:        state.highlightedNodes        || null,
-      currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
-      recentFilters:           state.recentFilters           || state.filter || [],
-      recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
-      menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
-      navigationCategories:    state.navigationCategories    || [],
-      navigationTopicCategory: state.navigationTopicCategory || "",
-      sheet:                   state.sheet                   || null,
-      sheetNodes:              state.sheetNodes              || null,
-      nodeRef:                 state.nodeRef                 || null,
-      navigationTopic:         state.navigationTopic         || null,
-      navigationTopicTitle:    state.navigationTopicTitle    || null,
-      topicTitle:              state.topicTitle              || null,
-      collectionName:          state.collectionName          || null,
-      collectionSlug:          state.collectionSlug          || null,
-      collectionTag:           state.collectionTag           || null,
-      searchQuery:             state.searchQuery             || null,
-      searchTab:               state.searchTab               || 'text',
-      topicsTab:               state.topicsTab               || 'sources',
-      textSearchState:         state.textSearchState         || new SearchState({ type: 'text' }),
-      sheetSearchState:        state.sheetSearchState        || new SearchState({ type: 'sheet' }),
-      compare:                 state.compare                 || false,
-      openSidebarAsConnect:    state.openSidebarAsConnect    || false,
-      bookRef:                 state.bookRef                 || null,
-      settings:                state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
-      displaySettingsOpen:     false,
-      tagSort:                 state.tagSort                 || "count",
-      mySheetSort:             state.mySheetSort             || "date",
-      initialAnalyticsTracked: state.initialAnalyticsTracked || false,
-      selectedWords:           state.selectedWords           || "",
-      selectedNamedEntity:     state.selectedNamedEntity     || null,
-      selectedNamedEntityText: state.selectedNamedEntityText || null,
-      textHighlights:          state.textHighlights          || null,
-      profile:                 state.profile                 || null,
-      profileTab:              state.profileTab              || "sheets",
-    };
-    // if version is not set for the language you're in, see if you can retrieve it from cache
-    if (this.state && panel.refs.length && ((panel.settings.language === "hebrew" && !panel.currVersions.he) || (panel.settings.language !== "hebrew" && !panel.currVersions.en ))) {
-      var oRef = Sefaria.ref(panel.refs[0]);
-      if (oRef) {
-        const lang = panel.settings.language == "hebrew"?"he":"en";
-        panel.currVersions[lang] = this.getCachedVersion(oRef.indexTitle, lang);
-      }
-    }
-    return panel;
   }
   setScrollPositionInHistory(e) {
     const $scrollContainer = $(e.target);
@@ -949,7 +787,7 @@ class ReaderApp extends Component {
   setContainerMode() {
     // Applies CSS classes to the React container and body so that the App can function as a header only on top of a static page.
     if (this.props.headerMode) {
-      if (this.state.header.menuOpen || this.state.panels.length) {
+      if (this.state.panels && this.state.panels.length) {
         $("#s2").removeClass("headerOnly");
         $("body").css({overflow: "hidden"})
                   .removeClass("hasBannerMessage");
@@ -1136,45 +974,32 @@ class ReaderApp extends Component {
     }
     return true;
   }
-  _getStateAndSetStateForHeaderPanelFuncs(n) {
-    // helper func to avoid code duplication in funcs of type `updateXInHeader` / `updateXInPanel`
-    return {
-      tempState:    (typeof n === 'undefined') ? this.state.header : this.state.panels[n],
-      tempSetState: (typeof n === 'undefined') ? this.setHeaderState : this.setPanelState.bind(this, n),
-    };
-  }
   unsetTextHighlight(n) {
     this.setPanelState(n, { textHighlights: null });
   }
-  _getSearchStateName(type) { return `${type}SearchState`; }
-  _getSearchState(state, type) { return !!state && state[this._getSearchStateName(type)]; }
-  updateQueryInHeader(query) {
-    this.updateQuery(undefined, query);
+  _getSearchStateName(type) { 
+    return `${type}SearchState`; 
+  }
+  _getSearchState(state, type) { 
+    return !!state && state[this._getSearchStateName(type)];
   }
   updateQuery(n, query) {
-    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
+    const state = this.state.panels[n];
     const updates = {
       searchQuery: query,
-      textSearchState: tempState.textSearchState.update({ filtersValid: false }),
-      sheetSearchState: tempState.sheetSearchState.update({ filtersValid: false }),
+      textSearchState: state.textSearchState.update({ filtersValid: false }),
+      sheetSearchState: state.sheetSearchState.update({ filtersValid: false }),
     };
-    tempSetState(updates);
-  }
-  updateSearchTabInHeader(searchTab) {
-    this.updateSearchTab(undefined, searchTab);
+    this.setPanelState(n, updates);
   }
   updateSearchTab(n, searchTab) {
-    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
-    tempSetState({ searchTab });
-  }
-  updateAvailableFiltersInHeader(type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
-    this.updateAvailableFilters(undefined, ...arguments);
+    this.setPanelState(n, { searchTab });
   }
   updateAvailableFilters(n, type, availableFilters, filterRegistry, orphanFilters, aggregationsToUpdate) {
-    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
-    const searchState = this._getSearchState(tempState, type);
+    const state = this.state.panels[n];
+    const searchState = this._getSearchState(state, type);
     const searchStateName = this._getSearchStateName(type);
-    tempSetState({
+    this.setPanelState(n, {
       [searchStateName]: !!searchState ?
         searchState.update({
           availableFilters,
@@ -1191,12 +1016,9 @@ class ReaderApp extends Component {
       })
     });
   }
-  updateSearchFilterInHeader(type, filterNode) {
-    this.updateSearchFilter(undefined, ...arguments);
-  }
   updateSearchFilter(n, type, filterNode) {
-    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
-    const searchState = this._getSearchState(tempState, type);
+    const state = this.state.panels[n];
+    const searchState = this._getSearchState(state, type);
     const searchStateName = this._getSearchStateName(type);
     if (filterNode.isUnselected()) {
       filterNode.setSelected(true);
@@ -1205,38 +1027,28 @@ class ReaderApp extends Component {
     }
     const update = Sefaria.search.getAppliedSearchFilters(searchState.availableFilters)
     update["lastAppliedAggType"] = filterNode.aggType;
-    tempSetState({
+    this.setPanelState(n, {
       [searchStateName]: searchState.update(update)
     });
   }
-  updateSearchOptionFieldInHeader(type, field) {
-    this.updateSearchOptionField(undefined, ...arguments);
-  }
   updateSearchOptionField(n, type, field) {
-    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
-    const searchState = this._getSearchState(tempState, type);
+    const state = this.state.panels[n];
+    const searchState = this._getSearchState(state, type);
     const searchStateName = this._getSearchStateName(type);
-    tempSetState({
+    this.setPanelState(n, {
       [searchStateName]: searchState.update({ field, filtersValid: false })
     });
   }
-  updateSearchOptionSortInHeader(type, sortType) {
-    this.updateSearchOptionSort(undefined, ...arguments);
-  }
   updateSearchOptionSort(n, type, sortType) {
-    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
-    const searchState = this._getSearchState(tempState, type);
+    const state = this.state.panels[n];
+    const searchState = this._getSearchState(state, type);
     const searchStateName = this._getSearchStateName(type);
-    tempSetState({
+    this.setPanelState(n, {
       [searchStateName]: searchState.update({ sortType })
     });
   }
-  updateTopicsTabInHeader(topicsTab) {
-    this.updateTopicsTab(undefined, ...arguments);
-  }
   updateTopicsTab(n, topicsTab) {
-    const { tempState, tempSetState } = this._getStateAndSetStateForHeaderPanelFuncs(n);
-    tempSetState({ topicsTab });
+    this.setPanelState(n, { topicsTab });
   }
   setPanelState(n, state, replaceHistory) {
     this.replaceHistory  = Boolean(replaceHistory);
@@ -1408,11 +1220,6 @@ class ReaderApp extends Component {
     this.state.defaultVersions[indexTitle] = this.state.defaultVersions[indexTitle] || {};
     this.state.defaultVersions[indexTitle][language] = versionTitle;  // Does this need a setState?  I think not.
   }
-  setHeaderState(state, replaceHistory, cb) {
-    this.replaceHistory  = Boolean(replaceHistory);
-    this.state.header = extend(this.state.header, state);
-    this.setState({header: this.state.header}, cb);
-  }
   setDefaultOption(option, value) {
     if (value !== this.state.defaultPanelSettings[option]) {
       this.state.defaultPanelSettings[option] = value;
@@ -1460,7 +1267,6 @@ class ReaderApp extends Component {
     var newPanels = this.state.panels.slice();
     newPanels.splice(n+1, 0, panel);
     this.setState({panels: newPanels});
-    this.setHeaderState({menuOpen: null});
     this.saveLastPlace(panel, n+1);
   }
   openPanelAtEnd(ref, currVersions) {
@@ -1639,101 +1445,72 @@ class ReaderApp extends Component {
     }
   }
   showLibrary(categories) {
-    if (this.props.multiPanel) {
-      var headerState = this.makePanelState({mode: "Header", menuOpen: "navigation", navigationCategories: categories});
-      if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
-        headerState.settings.language = "english";
-      }
-      this.setState({header: headerState});
-
-    } else {
-      if (this.state.panels.length) {
-        this.state.panels[0].menuOpen = "navigation";
-      } else {
-        this.state.panels[0] = this.makePanelState({menuOpen: "navigation", navigationCategories: categories});
-      }
-      if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
-        this.state.panels[0].settings.language = "english";
-      }
-      this.setState({panels: this.state.panels, header: {}, headerMode: false});
+    let state = {menuOpen: "navigation", navigationCategories: categories, "mode": "Menu"};
+    state = this.makePanelState(state);
+    if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
+      this.state.panels[0].settings.language = "english";
     }
+    this.setSinglePanelState(state);
   }
   showSearch(searchQuery) {
     let panel;
-    const textSearchState =  (!!this.state.header && !!this.state.header.textSearchState)  ? this.state.header.textSearchState.update({ filtersValid: false })  : new SearchState({ type: 'text' });
-    const sheetSearchState = (!!this.state.header && !!this.state.header.searchStateSheet) ? this.state.header.searchStateSheet.update({ filtersValid: false }) : new SearchState({ type: 'sheet' });
+    const textSearchState =  (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].textSearchState)  ? this.state.panels[0].textSearchState.update({ filtersValid: false })  : new SearchState({ type: 'text' });
+    const sheetSearchState = (!!this.state.panels && this.state.panels.length && !!this.state.panels[0].searchStateSheet) ? this.state.panels[0].searchStateSheet.update({ filtersValid: false }) : new SearchState({ type: 'sheet' });
 
-    if (this.props.multiPanel) {
-      const searchTab = !!this.state.header ? this.state.header.searchTab : "text";
-      panel = this.makePanelState({mode: "Header", menuOpen: "search", searchQuery, searchTab, textSearchState, sheetSearchState });
-      this.setState({header: panel, panels: []});
-    } else {
-      panel = this.makePanelState({menuOpen: "search", searchQuery, textSearchState, sheetSearchState });
-      this.setState({panels: [panel]});
-    }
+    const searchTab = !!this.state.panels && this.state.panels.length ? this.state.panels[0].searchTab : "text";
+    this.setSinglePanelState({mode: "Menu", menuOpen: "search", searchQuery, searchTab, textSearchState, sheetSearchState });
   }
   searchInCollection(searchQuery, collection) {
     let panel;
     const textSearchState =  new SearchState({ type: 'text' });
     const sheetSearchState = new SearchState({ type: 'sheet',  appliedFilters: [collection], appliedFilterAggTypes: ['collections']});
 
-    if (this.props.multiPanel) {
-      panel = this.makePanelState({mode: "Header", menuOpen: "search", "searchTab": "sheet", searchQuery, textSearchState, sheetSearchState });
-      this.setState({header: panel, panels: []});
-    } else {
-      panel = this.makePanelState({menuOpen: "search", "searchTab": "sheet", searchQuery, textSearchState, sheetSearchState });
-      this.setState({panels: [panel]});
-    }
+    this.setSinglePanelState({mode: "Menu", menuOpen: "search", "searchTab": "sheet", searchQuery, textSearchState, sheetSearchState });
   }
   showHome() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "home"});
+    this.setSinglePanelState({menuOpen: "home"});
   }  
   showSaved() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "saved"});
+    this.setSinglePanelState({menuOpen: "saved"});
   }
   showHistory() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "history"});
+    this.setSinglePanelState({menuOpen: "history"});
   }
   showTopics() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "topics", navigationTopicCategory: null, navigationTopic: null});
+    this.setSinglePanelState({menuOpen: "topics", navigationTopicCategory: null, navigationTopic: null});
   }
   showNotifications() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "notifications"});
+    this.setSinglePanelState({menuOpen: "notifications"});
   }
   showCalendars() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "calendars"});
+    this.setSinglePanelState({menuOpen: "calendars"});
   }
   showUserStats() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "user_stats"});
+    this.setSinglePanelState({menuOpen: "user_stats"});
   }
   showCollections() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "collectionsPublic"});
+    this.setSinglePanelState({menuOpen: "collectionsPublic"});
   }
   showMyNotes() {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "myNotes"});
+    this.setSinglePanelState({menuOpen: "myNotes"});
   }
-  setStateInHeaderOrSinglePanel(state, cb) {
-    // Updates state in the header panel if we're in mutli-panel, else in the first panel if we're in single panel
-    // If we're in single panel mode but `this.state.panels` is empty, make a default first panel
-    if (this.props.multiPanel) {
-      this.setHeaderState(state, false, cb);
-    } else {
-      state = this.makePanelState(state);
-      this.setState({panels: [state]}, cb);
-    }
+  setSinglePanelState(state) {
+    // Sets state to be a single panel with properties of `state`
+    state = this.makePanelState(state);
+    this.setState({panels: [state], headerMode: false});
   }
   openTopic(slug) {
     Sefaria.getTopic(slug).then(topic => {
-      this.setStateInHeaderOrSinglePanel({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle });
+      this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle });
     });
   }
   openProfile(slug) {
     Sefaria.profileAPI(slug).then(profile => {
-      this.setStateInHeaderOrSinglePanel({ menuOpen: "profile", profile, profileTab: "sheets" });
+      this.setSinglePanelState({ menuOpen: "profile", profile, profileTab: "sheets" });
     });
   }
   openCollection(slug) {
-    this.setStateInHeaderOrSinglePanel({menuOpen: "collection",  collectionSlug: slug});
+    this.setSinglePanelState({menuOpen: "collection",  collectionSlug: slug});
   }
   getHistoryObject(panel, hasSidebar) {
     // get rave to send to /api/profile/user_history
@@ -1879,26 +1656,16 @@ class ReaderApp extends Component {
     }
     // Header should not show box-shadow over panels that have color line
     const hasColorLine = ["sheets", "sheets meta"];
-    const headerHasBoxShadow = 
-      (!!this.state.header.menuOpen && hasColorLine.indexOf(this.state.header.menuOpen) === -1);
+    const headerHasBoxShadow = !!this.state.panels[0] && hasColorLine.indexOf(this.state.panels[0].menuOpen) === -1;
     var header = this.props.multiPanel || this.state.panels.length == 0 ?
                   (<Header
-                    initialState={this.state.header}
                     interfaceLang={this.props.interfaceLang}
-                    setCentralState={this.setHeaderState}
                     onRefClick={this.handleNavigationClick}
                     setDefaultOption={this.setDefaultOption}
                     showLibrary={this.showLibrary}
                     showSearch={this.showSearch}
                     searchInCollection={this.searchInCollection}
                     openURL={this.openURL}
-                    onQueryChange={this.updateQueryInHeader}
-                    updateSearchTab={this.updateSearchTabInHeader}
-                    updateTopicsTab={this.updateTopicsTabInHeader}
-                    updateSearchFilter={this.updateSearchFilterInHeader}
-                    updateSearchOptionField={this.updateSearchOptionFieldInHeader}
-                    updateSearchOptionSort={this.updateSearchOptionSortInHeader}
-                    registerAvailableFilters={this.updateAvailableFiltersInHeader}
                     setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                     headerMode={this.props.headerMode}
                     panelsOpen={panelStates.length}
@@ -1915,6 +1682,7 @@ class ReaderApp extends Component {
     for (var i = 0; i < panelStates.length; i++) {
       var panel                    = this.clonePanel(panelStates[i]);
       if (!("settings" in panel )) { debugger; }
+      const hideNavHeader                = !!(this.props.multiPanel && panel.menuOpen);
       var offset                         = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
       var width                          = widths[i];
       var style                          = (this.state.layoutOrientation=="ltr")?{width: width + unit, left: offset + unit}:{width: width + unit, right: offset + unit};
@@ -1988,6 +1756,7 @@ class ReaderApp extends Component {
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}
                       allOpenRefs={allOpenRefs}
+                      hideNavHeader={hideNavHeader}
                       hasSidebar={this.doesPanelHaveSidebar(i)}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       layoutWidth={width}

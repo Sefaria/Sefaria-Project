@@ -116,7 +116,10 @@ def header_html(request):
     global HEADER
     if USE_NODE:
         lang = request.interfaceLang
-        LOGGED_OUT_HEADER = HEADER['logged_out'][lang] or render_react_component("ReaderApp", {"headerMode": True, "_uid": None, "interfaceLang": lang, "_siteSettings": SITE_SETTINGS})
+        LOGGED_OUT_HEADER = HEADER['logged_out'][lang] or render_react_component("ReaderApp", {"headerMode": True,
+                                                                                                "_uid": None,
+                                                                                                "interfaceLang": lang,
+                                                                                                "_siteSettings": SITE_SETTINGS})
         LOGGED_IN_HEADER = HEADER['logged_in'][lang] or render_react_component("ReaderApp", {"headerMode": True,
                                                                                              "_uid": True,
                                                                                              "interfaceLang": lang,

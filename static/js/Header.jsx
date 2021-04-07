@@ -20,7 +20,9 @@ class Header extends Component {
   constructor(props) {
     super(props);
 
-    this.state = props.initialState;
+    this.state = {
+      searchFocused: false
+    };
     this._searchOverridePre = Sefaria._('Search for') +': "';
     this._searchOverridePost = '"';
     this._type_icon_map = {
@@ -46,11 +48,6 @@ class Header extends Component {
     if (this.state.menuOpen === "search" && this.state.searchQuery === null) {
       // If this is an empty search page, comically, lazily make it full
       this.props.showSearch("Search");
-    }
-  }
-  componentWillReceiveProps(nextProps) {
-    if (nextProps.initialState) {
-      this.setState(nextProps.initialState);
     }
   }
   _searchOverrideRegex() {
@@ -268,6 +265,7 @@ class Header extends Component {
     }
   }
   render() {
+    /*
     var viewContent = this.state.menuOpen ?
                         (<ReaderPanel
                           initialState={this.state}
@@ -276,7 +274,6 @@ class Header extends Component {
                           multiPanel={true}
                           onNavTextClick={this.props.onRefClick}
                           onSearchResultClick={this.props.onRefClick}
-                          onRecentClick={this.props.onRecentClick}
                           setDefaultOption={this.props.setDefaultOption}
                           onQueryChange={this.props.onQueryChange}
                           updateSearchTab={this.props.updateSearchTab}
@@ -294,6 +291,8 @@ class Header extends Component {
                           translateISOLanguageCode={this.props.translateISOLanguageCode}
                           toggleSignUpModal={this.props.toggleSignUpModal}
                         />) : null;
+
+    */
 
     const headerMessage = this.props.headerMessage ?
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
@@ -332,30 +331,19 @@ class Header extends Component {
                 </div>
               </div>
 
-              { viewContent ?
-                (<div className="headerNavContent">
-                  {viewContent}
-                 </div>) : null}
               { this.state.showTestMessage ? <TestMessage hide={this.hideTestMessage} /> : null}
               <GlobalWarningMessage />
             </div>);
   }
 }
 Header.propTypes = {
-  initialState:                PropTypes.object.isRequired,
   headerMode:                  PropTypes.bool,
-  setCentralState:             PropTypes.func,
   interfaceLang:               PropTypes.string,
   onRefClick:                  PropTypes.func,
   onRecentClick:               PropTypes.func,
   showLibrary:                 PropTypes.func,
   showSearch:                  PropTypes.func,
   setDefaultOption:            PropTypes.func,
-  onQueryChange:               PropTypes.func,
-  updateSearchFilter:          PropTypes.func,
-  updateSearchOptionField:     PropTypes.func,
-  updateSearchOptionSort:      PropTypes.func,
-  registerAvailableFilters:    PropTypes.func,
   searchInCollection:          PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
   headerMesssage:              PropTypes.string,
