@@ -1,9 +1,9 @@
 // Initially copypasta'd from https://github.com/mhart/react-server-example
 // https://github.com/mhart/react-server-example/blob/master/server.js
-                     require('source-map-support').install();
-                     require('css-modules-require-hook')({  // so that node can handle require statements for css files
-                         generateScopedName: '[name]',
-                     });
+require('source-map-support').install();
+require('css-modules-require-hook')({  // so that node can handle require statements for css files
+   generateScopedName: '[name]',
+});
 const redis         = require('redis');
 const { promisify } = require("util");
 const http          = require('http'),
@@ -18,12 +18,21 @@ const http          = require('http'),
     ReaderApp       = React.createFactory(SefariaReact.ReaderApp);
 
 const server = express();
+const expressWinston = require('express-winston');
+const winston = require('winston');
+const logger = winston.createLogger({
+    transports: [
+        new winston.transports.Console({}),
+    ],
+    format: winston.format.json(),
+});
+
 server.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
 server.use(bodyParser.json({limit: '50mb'}));
 
-const log = settings.DEBUG ? console.log : function() {};
+// const log = settings.DEBUG ? console.log : function() {};
 
-const cacheKeyMapping = {"toc": "toc", "topic_toc": "topic_toc", "terms": "term_mapping", "books": "books_en" }
+const cacheKeyMapping = {"toc": "toc", "topic_toc": "topic_toc", "terms": "term_mapping", "books": "books_en" };
 let sharedCacheData = {
   /*
   Not data, but a unix timestamp (originally) passed from django indicating when data was last updated on this node process. i
@@ -37,12 +46,12 @@ let sharedCacheData = {
   "books": null
 };
 
-const cache = redis.createClient(`redis://${settings.REDIS_HOST}:${settings.REDIS_PORT}`, {prefix: ':1:'})
+const cache = redis.createClient(`redis://${settings.REDIS_HOST}:${settings.REDIS_PORT}`, {prefix: ':1:'});
 const getAsync = promisify(cache.get).bind(cache);
 
 
 const loadSharedData = async function({ last_cached_to_compare = null, startup = false } = {}){
-    console.log("Load Shared Data- Input last cached timestamp to compare: " + last_cached_to_compare);
+    logger.info("Load Shared Data - Input last cached timestamp to compare: " + last_cached_to_compare);
     //TODO: If the data wasnt placed in Redis by django to begin with, well, we're screwed.
     // Or you know, fix it so Node does send a signal to Django to populate cache.
     let redisCalls = [];
@@ -56,7 +65,7 @@ const loadSharedData = async function({ last_cached_to_compare = null, startup =
             sharedCacheData[key] = JSON.parse(resp);
           }
         }).catch(error => {
-          console.log(`${value}: ${error.message}`);
+          logger.error(`${value}: ${error.message}`);
         }));
       }
     }
@@ -70,86 +79,124 @@ const loadSharedData = async function({ last_cached_to_compare = null, startup =
       console.error(e.message);
       return Promise.reject(e); //Is this the correct way??
     }
-}
+};
 
 const cacheTimestampNeedsUpdating = function(cache_timestamp = "last_cached", timestamp_to_compare){
   return sharedCacheData[cache_timestamp] < timestamp_to_compare;
-}
+};
 
 const needsUpdating = function(cachekey, last_cached_to_compare){
   return !sharedCacheData[cachekey] || cacheTimestampNeedsUpdating("last_cached", last_cached_to_compare);
-}
+};
 
 const renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
   SefariaReact.sefariaSetup(data); //Do we really need to do Sefaria.setup every request?
   SefariaReact.unpackDataFromProps(props);
-  log("Time to set data: %dms", timer.elapsed());
+  timer.ms_to_set_data = timer.elapsed();
   const html  = ReactDOMServer.renderToString(ReaderApp(props));
-  log("Time to render: %dms", timer.elapsed());
+  timer.ms_to_render = timer.elapsed();
   return html;
 };
+const router = express.Router();
+router.get('/error', function(req, res, next) {
+  // here we cause an error in the pipeline so we see express-winston in action.
+  return next(new Error("This is an error and it should be logged to the console"));
+});
 
-server.post('/ReaderApp/:cachekey', function(req, res) {
+router.post('/ReaderApp/:cachekey', function(req, res) {
   const timer = {
     start: new Date(),
     elapsed: function() { return (new Date() - this.start); }
   };
   const props = JSON.parse(req.body.propsJSON);
   let request_last_cached = props["last_cached"];
-  log("Processing request: ", props.initialRefs || props.initialMenu, props.initialPath);
-  console.log("Last cached time from server: ", request_last_cached, new Date(request_last_cached*1000).toUTCString())
-  console.log("last cached time stored: ", sharedCacheData["last_cached"], new Date(sharedCacheData["last_cached"]*1000).toUTCString())
+  logger.debug("Begin processing request: ", props);
+  logger.debug("Last cached time from server: " + request_last_cached + " " + new Date(request_last_cached*1000).toUTCString());
+  logger.debug("last cached time stored: " + sharedCacheData["last_cached"] + " " + new Date(sharedCacheData["last_cached"]*1000).toUTCString());
   // var cacheKey = req.params.cachekey
-  log("Time to props: %dms", timer.elapsed());
+  timer.ms_to_props = timer.elapsed();
   loadSharedData({last_cached_to_compare: request_last_cached}).then(response => {
-    try{
-      log("Time to validate cache data: %dms", timer.elapsed());
+    try {
+      timer.ms_to_validate_cache = timer.elapsed();
       const resphtml = renderReaderApp(props, sharedCacheData, timer);
       res.end(resphtml);
-      log("Time to complete: %dms", timer.elapsed());
-    }catch (render_e){
-      console.log(render_e);
+      timer.ms_to_complete = timer.elapsed();
+    } catch (render_e){
+      logger.error(render_e);
     }
+    delete timer.start;
+    delete timer.elapsed;
+    logger.info({
+      initialRefs: props.initialRefs,
+      initialMenu: props.initialMenu,
+      initialPath: props.initialPath,
+      timing: timer
+    });
   }).catch(error => {
     res.status(500).end('Data required for render is missing:  ' + error.message);
   });
 });
 
-server.post('/Footer/:cachekey', function(req, res) {
+router.post('/Footer/:cachekey', function(req, res) {
   const props = JSON.parse(req.body.propsJSON);
   SefariaReact.unpackDataFromProps(props);
   const html  = ReactDOMServer.renderToString(React.createElement(SefariaReact.Footer));
   res.send(html);
 });
 
-server.get('/healthz', function(req, res) {
+router.get('/healthz', function(req, res) {
   res.send('Healthy')
-})
+});
+
+// express-winston logger makes sense BEFORE the router
+server.use(expressWinston.logger({
+  transports: [
+    new winston.transports.Console()
+  ],
+  format: winston.format.combine(
+    winston.format.colorize(),
+    winston.format.json()
+  )
+}));
+
+// Now we can tell the app to use our routing code:
+server.use(router);
+
+// express-winston errorLogger makes sense AFTER the router.
+server.use(expressWinston.errorLogger({
+  transports: [
+    new winston.transports.Console()
+  ],
+  format: winston.format.combine(
+    winston.format.colorize(),
+    winston.format.json()
+  )
+}));
 
 const main = async function(){
-  console.log("Startup. Prefetching cached data:");
-  try{
+  logger.info("Startup. Prefetching cached data:");
+  try {
     await loadSharedData({startup: true});
   }
-  catch (e){
-    console.log("Redis data not ready yet");
+  catch (e) {
+    logger.info("Redis data not ready yet");
   }
   server.listen(settings.NODEJS_PORT, function() {
-    console.log('Redis Host: ' + settings.REDIS_HOST);
-    console.log('Redis Port: ' + settings.REDIS_PORT);
-    console.log('Debug: ' + settings.DEBUG);
-    console.log('Listening on ' + settings.NODEJS_PORT);
+    logger.info('Redis Host: ' + settings.REDIS_HOST);
+    logger.info('Redis Port: ' + settings.REDIS_PORT);
+    logger.info('Debug: ' + settings.DEBUG);
+    logger.info('Listening on ' + settings.NODEJS_PORT);
   });
-}
+};
 
 cache.on('error', function (err) {
-  console.error('Redis Connection Error ' + err);
+  logger.error('Redis Connection Error ' + err);
 });
 cache.on('connect', function() {
-  console.log('Connected to Redis');
+  logger.info('Connected to Redis');
   cache.select(1, function (){
-    console.log("REDIS DB: ", cache.selected_db);
+    logger.info("REDIS DB: " + cache.selected_db);
     main();
   })
 });
