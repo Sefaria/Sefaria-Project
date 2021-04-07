@@ -1,14 +1,14 @@
 import {
-  Dropdown,
-  LoadingMessage,
-  LoginPrompt,
-  LanguageToggleButton,
-  ReaderNavigationMenuCloseButton,
-  SheetListing,
-  Note,
-  FeedbackBox,
-  ProfilePic,
-  ToolTipped, InterfaceText,
+    Dropdown,
+    LoadingMessage,
+    LoginPrompt,
+    LanguageToggleButton,
+    ReaderNavigationMenuCloseButton,
+    SheetListing,
+    Note,
+    FeedbackBox,
+    ProfilePic,
+    ToolTipped, InterfaceText, ContentText,
 } from './Misc';
 
 import {
@@ -294,11 +294,9 @@ class ConnectionsPanel extends Component {
                     contentLang={this.props.contentLang}
                     setFilter={this.props.setFilter}
                     setConnectionsMode={this.props.setConnectionsMode}
-                    setConnectionsCategory={this.props.setConnectionsCategory} />
+                    setConnectionsCategory={this.props.setConnectionsCategory}
+                    openComparePanel={this.props.openComparePanel}/>
               </ConnectionsPanelSection>
-              {/*this.props.multiPanel ?
-                <ToolsButton en="Other Text" he="טקסט נוסף" icon="search" onClick={this.props.openComparePanel} />
-              : null */}
               <ConnectionsPanelSection title={"Resources"}>
                 <ResourcesList setConnectionsMode={this.props.setConnectionsMode} counts={resourcesButtonCounts} />
               </ConnectionsPanelSection>
@@ -759,7 +757,7 @@ class ConnectionsSummary extends Component {
       summary = topSummary;
     }
 
-    const connectionsSummary = summary.map(function(cat, i) {
+    let connectionsSummary = summary.map(function(cat, i) {
 
       const books = this.props.contentLang === "hebrew"
                     ? cat.books.concat().sort(Sefaria.linkSummaryBookSortHebrew.bind(null, baseCat))
@@ -781,6 +779,10 @@ class ConnectionsSummary extends Component {
           key={cat.category} />
       );
     }.bind(this));
+    // add the "Other Text" Button
+    if (this.props.multiPanel && isTopLevel){
+        connectionsSummary.push(<ToolsButton en="Other Text" he="טקסט נוסף" image="compare.svg" onClick={this.props.openComparePanel} control="content" />);
+    }
 
     return (<div>{connectionsSummary}</div>);
    }
@@ -1029,7 +1031,7 @@ AdvancedToolsList.propTypes = {
 };
 
 
-const ToolsButton = ({en, he, icon, image, count, onClick, displayCriteria = true}) => {
+const ToolsButton = ({en, he, icon, image, count, onClick, control="interface", displayCriteria = true}) => {
     const clickHandler = (e) => {
         e.preventDefault();
         onClick();
@@ -1045,12 +1047,13 @@ const ToolsButton = ({en, he, icon, image, count, onClick, displayCriteria = tru
       iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt="" />);
     }
     const url = Sefaria.util.replaceUrlParam("with", en);
+    const wrapperClasses = classNames({toolsButton: 1, sans: control == "interface", noselect: 1})
     return (
       displayCriteria ?
-      <a href={url} className="toolsButton sans noselect" data-name={en} onClick={clickHandler}>
+      <a href={url} className={wrapperClasses} data-name={en} onClick={clickHandler}>
         {iconElem}
         <span className="toolsButtonText">
-            <InterfaceText text={{en: en , he: he }} />
+            {control == "interface" ? <InterfaceText text={{en: en , he: he }} /> : <ContentText text={{en: en , he: he }}/>}
             {count ? (<span className="connectionsCount">({count})</span>) : null}
         </span>
       </a> : null

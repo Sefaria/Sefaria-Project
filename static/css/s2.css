@@ -3761,7 +3761,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .interface-english .readerPanel.hebrew .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
-.interface-english .readerPanel.hebrew .tocContent{
+.interface-english .readerPanel.hebrew .tocContent,
+.interface-english .readerPanel.hebrew .toolsButton:not(.sans){
   direction: rtl;
 }
 .basetext .text, .sheetContent .text {
@@ -4491,7 +4492,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   line-height: 21.6px;
   color: #000;
   -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
-
+}
+.categoryFilter .filterText{
+  margin-inline-start: 10px;
+  margin-inline-end: auto;
 }
 .textFilter {
   padding: 19px 34px;
@@ -5236,7 +5240,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
   color: inherit;
 }
-.toolsButton .en {
+.toolsButton.sans .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .toolsButton .toolsButtonIcon {
