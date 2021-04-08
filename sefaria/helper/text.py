@@ -345,7 +345,6 @@ def make_versions_csv():
         "status",
         "priority",
         "license",
-        "licenseVetted",
         "versionNotes",
         "digitizedBySefaria",
         "method",
