@@ -791,19 +791,21 @@ class ConnectionsSummary extends Component {
         connectionsSummary.push(<ToolsButton en="Other Text" he="טקסט נוסף" image="compare.svg" onClick={this.props.openComparePanel} control="content" />);
     }
     let summaryToggle = null;
-    if(isTopLevel && this.props.collapsed && connectionsSummary.length > collapsedTopLevelLimit){
-        connectionsSummary = connectionsSummary.slice(0,3) //get the first 3 items
-        summaryToggle = (
-            <span className="expandSummaries" role="button">
-                <ToolsButton en="More" he="עוד" image="more.svg" onClick={this.props.toggleTopLevelCollapsed} control="content" />
-            </span>
-        );
-    }else if(isTopLevel && !this.props.collapsed){
-        summaryToggle = (
-            <span className="collapseSummaries" role="button" onClick={this.props.toggleTopLevelCollapsed}>
-                <ToolsButton en="See Less" he="פחות" image="less.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" />
-            </span>
-        )
+    if(isTopLevel && connectionsSummary.length > collapsedTopLevelLimit){
+        if(this.props.collapsed){
+            connectionsSummary = connectionsSummary.slice(0,3) //get the first 3 items
+            summaryToggle = (
+                <span className="expandSummaries" role="button">
+                    <ToolsButton en="More" he="עוד" image="more.svg" onClick={this.props.toggleTopLevelCollapsed} control="content" />
+                </span>
+            );
+        }else{
+            summaryToggle = (
+                <span className="collapseSummaries" role="button" onClick={this.props.toggleTopLevelCollapsed}>
+                    <ToolsButton en="See Less" he="פחות" image="less.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" />
+                </span>
+            )
+        }
     }
 
     return (
