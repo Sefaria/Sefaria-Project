@@ -6239,6 +6239,11 @@ a .button:hover {
   max-width: 540px;
   margin: 0 auto;
   font-size: 16px;
+  color: #666;
+}
+
+.publishBox .smallText .int-en, .publishBox .smallText .int-he.enInHe {
+  color: #666;
 }
 
 .publishBox h3 {
@@ -6246,6 +6251,8 @@ a .button:hover {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: 500;
   color: #666;
+  margin-top: 12px;
+  margin-bottom: 14px;
   text-transform: none;
   text-align: start;
 }
@@ -6273,6 +6280,7 @@ a .button:hover {
   font-size: 18px;
   color: #000;
   border: none;
+  border-radius: 6px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   font-style: normal;
   padding: 10px;
@@ -6288,7 +6296,7 @@ a .button:hover {
 .publishBox .react-tags {
   position: relative;
   padding: 10px 10px 4px 10px;
-  border-radius: 1px;
+  border-radius: 6px;
   background-color: #fff;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   /* shared font styles */
@@ -6364,7 +6372,7 @@ a .button:hover {
 }
 
 .publishBox .publishButton {
-  margin: 18px 0 28px 0;
+  margin: 18px 0;
   text-align: end;
 }
 
