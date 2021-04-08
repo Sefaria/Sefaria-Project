@@ -45,16 +45,13 @@ import Component from 'react-class';
 import {ContentLanguageContext} from './context';
 
 
-
 class ReaderPanel extends Component {
   constructor(props) {
     super(props);
     let state = this.clonePanel(props.initialState);
     state["initialAnalyticsTracked"] = false;
-    /*const contentLang = this.getContentLanguageOverride(state.settings.language, state.mode, state.menuOpen);
-    state['contentLangSettings'] = {
-      "language": contentLang,
-    }*/
+    state.width = this.props.multiPanel ? 1000 : 500; // Assume we're in a small panel not using multipanel 
+
     this.state = state;
     return;
   }
@@ -797,6 +794,7 @@ class ReaderPanel extends Component {
                     openSearch={this.openSearch}
                     openMenu={this.openMenu}
                     openDisplaySettings={this.openDisplaySettings}
+                    initialWidth={this.state.width}
                     hideNavHeader={this.props.hideNavHeader}
                     toggleSignUpModal={this.props.toggleSignUpModal}
                   />);
@@ -911,6 +909,7 @@ class ReaderPanel extends Component {
             setNavTopic={this.setNavigationTopic}
             interfaceLang={this.props.interfaceLang}
             compare={this.state.compare}
+            initialWidth={this.state.width}
             hideNavHeader={this.props.hideNavHeader}
             openDisplaySettings={this.openDisplaySettings}
             openSearch={this.openSearch}
@@ -998,6 +997,7 @@ class ReaderPanel extends Component {
                 hideNavHeader={this.props.hideNavHeader}
                 navHome={this.openMenu.bind(null, "navigation")}
                 multiPanel={this.props.multiPanel}
+                initialWidth={this.state.width}
                 interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.state.menuOpen === "collectionsPublic") {
@@ -1009,6 +1009,7 @@ class ReaderPanel extends Component {
       menu = (<HomeFeed
                     interfaceLang={this.props.interfaceLang}
                     toggleSignUpModal={this.props.toggleSignUpModal}
+                    initialWidth={this.state.width}
       />);
 
     } else if (this.state.menuOpen === "story_editor") {

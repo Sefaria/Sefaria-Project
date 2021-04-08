@@ -4,20 +4,20 @@ import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import MobileHeader from './MobileHeader';
 import {
-    SheetBlock,
-    StorySheetList,
-    SaveLine,
-    StoryTitleBlock,
-    ColorBarBox,
-    StoryBodyBlock,
-    StoryFrame,
-    textPropType
+  SheetBlock,
+  StorySheetList,
+  SaveLine,
+  StoryTitleBlock,
+  ColorBarBox,
+  StoryBodyBlock,
+  StoryFrame,
+  textPropType,
 } from './Story';
 import {
   TabView,
   LoadingMessage,
   Link,
-  NBox,
+  ResponsiveNBox,
   InterfaceText,
   FilterableList,
   ToolTipped,
@@ -113,7 +113,7 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
 
 
 const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang, 
-  compare, hideNavHeader, openDisplaySettings, openSearch, onClose}) => {
+  compare, hideNavHeader, initialWidth, openDisplaySettings, openSearch, onClose}) => {
     
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
@@ -210,7 +210,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang,
                   <div className="contentInner">
                       <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
                       <div className="readerNavCategories">
-                        <NBox content={topicBlocks} n={2} />
+                        <ResponsiveNBox content={topicBlocks} initialWidth={initialWidth} />
                       </div>
                   </div>
                   <NavSidebar modules={sidebarModules} />

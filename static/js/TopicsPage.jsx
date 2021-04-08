@@ -1,6 +1,7 @@
 import {
   InterfaceText,
-  NBox,
+  ContentText,
+  ResponsiveNBox,
 } from './Misc';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes  from 'prop-types';
@@ -17,18 +18,6 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
         hideHeader, hideNavHeader, interfaceLang}) => {
 
   const initialWidth = hideNavHeader ? 1000 : 500; // Assume we're in a small panel if we're hiding the nav header
-  const [width, setWidth] = useState(initialWidth);
-
-  const ref = useRef(null);
-  useEffect(() => {
-    deriveAndSetWidth();
-    window.addEventListener("resize", deriveAndSetWidth);
-    return () => {
-        window.removeEventListener("resize", deriveAndSetWidth);
-    }
-  }, []);
-
-  const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : initialWidth);
 
   const navHome = () => {
     setNavTopic("", null);
@@ -48,7 +37,11 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
             </div>
           </div>;
   });
-  categoryListings = (<div className="readerNavCategories"><NBox content={categoryListings} n={2} /></div>);
+  categoryListings = (
+    <div className="readerNavCategories">
+      <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
+    </div>
+  );
 
   const topContent = hideNavHeader ? null :
     <MobileHeader
@@ -71,7 +64,7 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
   const classes = classNames({readerNavMenu:1, noHeader: !hideHeader, noLangToggleInHebrew: 1 });
   const contentClasses = classNames({content: 1, hasFooter: 1});
 
-  return (<div ref={ref} className={classes} key="0">
+  return (<div className={classes} key="0">
           {topContent}
           <div className={contentClasses}>
             <div className="sidebarLayout">

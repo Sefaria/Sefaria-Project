@@ -1846,9 +1846,9 @@ TwoOrThreeBox.defaultProps = {
 };
 
 
-const ResponsiveNBox = ({content}) => {
+const ResponsiveNBox = ({content, initialWidth}) => {
 
-  const initialWidth = window.innerWidth;
+  initialWidth = initialWidth || (window ? window.innerWidth : 1000);
   const [width, setWidth] = useState(initialWidth);
   const ref = useRef(null);
 
@@ -1860,19 +1860,18 @@ const ResponsiveNBox = ({content}) => {
     }
   }, []);
 
-  const deriveAndSetWidth = () => {
-    setWidth(window.innerWidth);
-  }
+  const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : initialWidth);
 
-  const threshold_2 = 500; //above threshold_2, there will be 2 columns
-  const threshold_3 = 1500; //above threshold_3, there will be 3 columns
-  if (width > threshold_3) {
-    return (<NBox content={content} n={3}/>);
-  } else if (width > threshold_2) {
-    return (<NBox content={content} n={2}/>);
-  } else {
-    return (<NBox content={content} n={1}/>);
-  }
+  const threshold2 = 500; //above threshold2, there will be 2 columns
+  const threshold3 = 1500; //above threshold3, there will be 3 columns
+  const n = (width >= threshold3) ? 3 :
+    (width >= threshold2) ? 2 : 1;
+
+  return (
+    <div className="responsiveNBox" ref={ref}>
+      <NBox content={content} n={n}/>
+    </div>
+  );
 };
 
 

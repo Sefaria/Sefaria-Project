@@ -1,6 +1,6 @@
 import {
   CategoryAttribution,
-  NBox,
+  ResponsiveNBox,
   LanguageToggleButton,
 } from './Misc';
 import React  from 'react';
@@ -14,7 +14,7 @@ import MobileHeader from './MobileHeader';
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
-            toggleLanguage, openDisplaySettings, navHome, width, compare, hideNavHeader,
+            toggleLanguage, openDisplaySettings, navHome, initialWidth, compare, hideNavHeader,
             contentLang, interfaceLang}) => {
 
     // Show Talmud with Toggles
@@ -85,7 +85,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
                     <ReaderNavigationCategoryMenuContents
                       contents={catContents}
                       categories={cats}
-                      width={width}
+                      initialWidth={initialWidth}
                       category={category}
                       contentLang={contentLang}
                       nestLevel={nestLevel} />
@@ -103,7 +103,7 @@ ReaderNavigationCategoryMenu.propTypes = {
   toggleLanguage:      PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func.isRequired,
   navHome:             PropTypes.func.isRequired,
-  width:               PropTypes.number,
+  initialWidth:        PropTypes.number,
   compare:             PropTypes.bool,
   hideNavHeader:       PropTypes.bool,
   contentLang:         PropTypes.string,
@@ -112,7 +112,7 @@ ReaderNavigationCategoryMenu.propTypes = {
 
 
 // Inner content of Category menu (just category title and boxes of texts/subcategories)
-const ReaderNavigationCategoryMenuContents = ({category, contents, categories, contentLang, width, nestLevel}) =>  {
+const ReaderNavigationCategoryMenuContents = ({category, contents, categories, contentLang, initialWidth, nestLevel}) =>  {
   const content = [];
   const cats = categories || [];
   const showInHebrew = contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew";
@@ -172,7 +172,7 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
                         <ReaderNavigationCategoryMenuContents
                           contents      = {item.contents}
                           categories    = {newCats}
-                          width         = {width}
+                          initialWidth  = {initialWidth}
                           nestLevel     = {nestLevel + 1}
                           category      = {item.category}
                           contentLang   = {contentLang} />
@@ -209,7 +209,7 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
     // Walk through content looking for runs of texts/subcats to group together into a table
     if (content[i].type === "div") { // this is a subcategory
       if (currentRun.length) {
-        boxedContent.push((<NBox content={currentRun} n={2} key={i} />));
+        boxedContent.push((<ResponsiveNBox content={currentRun} intialWidth={initialWidth} key={i} />));
         currentRun = [];
       }
       boxedContent.push(content[i]);
@@ -218,18 +218,18 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
     }
   }
   if (currentRun.length) {
-    boxedContent.push((<NBox content={currentRun} n={2} key={i} />));
+    boxedContent.push((<ResponsiveNBox content={currentRun} initialWidth={initialWidth} key={i} />));
   }
   return (<div>{boxedContent}</div>);
 
 };
 ReaderNavigationCategoryMenuContents.propTypes = {
-  category:    PropTypes.string.isRequired,
-  contents:    PropTypes.array.isRequired,
-  categories:  PropTypes.array.isRequired,
-  contentLang: PropTypes.string,
-  width:       PropTypes.number,
-  nestLevel:   PropTypes.number
+  category:     PropTypes.string.isRequired,
+  contents:     PropTypes.array.isRequired,
+  categories:   PropTypes.array.isRequired,
+  contentLang:  PropTypes.string,
+  initialWidth: PropTypes.number,
+  nestLevel:    PropTypes.number
 };
 ReaderNavigationCategoryMenuContents.defaultProps = {
   contents: []

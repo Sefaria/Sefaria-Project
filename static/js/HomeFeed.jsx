@@ -10,14 +10,15 @@ import Footer from'./Footer';
 import { usePaginatedScroll } from './Hooks';
 import {
     InterfaceText,
-    LoadingMessage, 
+    LoadingMessage,
     NBox,
+    ResponsiveNBox,
     NewsletterSignUpForm,
     ProfileListing,
 } from './Misc';
 
 
-const HomeFeed = ({toggleSignUpModal, onlySharedStories}) => {
+const HomeFeed = ({toggleSignUpModal, onlySharedStories, initialWidth}) => {
 
   const sidebarModules = [
     {type: "AboutSefaria"},
@@ -36,22 +37,22 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories}) => {
         <div className="sidebarLayout">
           <div className="contentInner mainColumn">
             <h2><InterfaceText>The Torah Portion</InterfaceText></h2>
-            <NBox content={[
+            <ResponsiveNBox content={[
               <AboutParashah parashahTopic={Sefaria.homepage.parashah.parashahTopic} />,
               <FeaturedSheet {...Sefaria.homepage.parashah.sheet} />
-            ]} n={2} />
+            ]} initialWidth={initialWidth} />
             
             <h2><InterfaceText>Upcoming Holidays</InterfaceText></h2>
-            <NBox content={[
+            <ResponsiveNBox content={[
               <AboutHoliday {...Sefaria.homepage.holiday.holidayTopic} />,
               <FeaturedSheet {...Sefaria.homepage.holiday.sheet} />
-            ]} n={2} />
+            ]} initialWidth={initialWidth} />
 
             <div className="headerBordered">
               <h2><InterfaceText>{Sefaria.homepage.featured.heading}</InterfaceText></h2>
-              <NBox content={[
+              <ResponsiveNBox content={[
                 <FeaturedSheet {...Sefaria.homepage.featured.sheet} />
-              ]} n={1} />
+              ]} initialWidth={initialWidth} />
             </div>
             
             <RecenltyPublished />

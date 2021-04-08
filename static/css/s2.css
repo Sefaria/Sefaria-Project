@@ -1185,6 +1185,11 @@ input.noselect {
   display: flex;
   flex-direction: row;
 }
+@media (max-width: 500px) {
+  .sidebarLayout {
+    flex-direction: column;
+  }
+} 
 .interface-hebrew .sidebarLayout {
   direction: rtl;
 }

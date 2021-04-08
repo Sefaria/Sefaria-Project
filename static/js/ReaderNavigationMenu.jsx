@@ -3,8 +3,9 @@ import {
   TextBlockLink,
   TwoOrThreeBox,
   NBox,
+  ResponsiveNBox,
   LanguageToggleButton,
-  InterfaceText,
+  InterfaceText, ContentText,
 } from './Misc';
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes  from 'prop-types';
@@ -20,21 +21,7 @@ import {TopicCategory} from './TopicPage';
 // The Navigation menu for browsing and searching texts
 const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCategories, setNavTopic, 
         setTopic, onClose, openNav, openSearch, toggleLanguage, openMenu, handleClick, openDisplaySettings,
-        hideHeader, hideNavHeader, multiPanel, home, compare, interfaceLang}) => {
-
-  const initialWidth = hideNavHeader ? 1000 : 500; // Assume we're in a small panel if we're hiding the nav header
-  const [width, setWidth] = useState(initialWidth);
-
-  const ref = useRef(null);
-  useEffect(() => {
-    deriveAndSetWidth();
-    window.addEventListener("resize", deriveAndSetWidth);
-    return () => {
-        window.removeEventListener("resize", deriveAndSetWidth);
-    }
-  }, []);
-
-  const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : initialWidth);
+        hideHeader, hideNavHeader, multiPanel, initialWidth, home, compare, interfaceLang}) => {
 
   const navHome = () => {
     setCategories([]);
@@ -45,21 +32,21 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   // List of Texts in a Category
   if (categories.length) {
     return (
-        <div ref={ref} className="readerNavMenu" onClick={handleClick}>
-            <ReaderNavigationCategoryMenu
-              categories={categories}
-              category={categories.slice(-1)[0]}
-              closeNav={onClose}
-              setCategories={setCategories}
-              toggleLanguage={toggleLanguage}
-              openDisplaySettings={openDisplaySettings}
-              navHome={navHome}
-              compare={compare}
-              hideNavHeader={hideNavHeader}
-              width={width}
-              contentLang={settings.language}
-              interfaceLang={interfaceLang} />
-        </div>
+      <div className="readerNavMenu" onClick={handleClick}>
+        <ReaderNavigationCategoryMenu
+          categories={categories}
+          category={categories.slice(-1)[0]}
+          closeNav={onClose}
+          setCategories={setCategories}
+          toggleLanguage={toggleLanguage}
+          openDisplaySettings={openDisplaySettings}
+          navHome={navHome}
+          compare={compare}
+          hideNavHeader={hideNavHeader}
+          initialWidth={initialWidth}
+          contentLang={settings.language}
+          interfaceLang={interfaceLang} />
+      </div>
     );
   }
   
@@ -69,16 +56,17 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
     const openCat = e => {e.preventDefault(); setCategories([cat.category])};
     return <div className="navBlock withColorLine" style={style}>
             <a href={`/texts/${cat.category}`} className="navBlockTitle" data-cat={cat.category} onClick={openCat}>
-              <span className="en">{cat.category}</span>
-              <span className="he">{cat.heCategory}</span>
+              <ContentText text={{en: cat.category, he: cat.heCategory}} defaultToInterfaceOnBilingual={true} />
             </a>
             <div className="navBlockDescription">
-              <span className="en">{cat.enShortDesc}</span>
-              <span className="he">{cat.heShortDesc}</span>
+              <ContentText text={{en: cat.enShortDesc, he: cat.heShortDesc}} defaultToInterfaceOnBilingual={true} />
             </div>
           </div>
   });
-  categoryListings = (<div className="readerNavCategories"><NBox content={categoryListings} n={2} /></div>);
+  categoryListings = (
+    <div className="readerNavCategories">
+      <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
+    </div>);
 
   const topContent = hideNavHeader ? null :
     <MobileHeader
@@ -116,7 +104,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   const classes = classNames({readerNavMenu:1, noHeader: !hideHeader, compare: compare, home: home, noLangToggleInHebrew: 1 });
   const contentClasses = classNames({content: 1, hasFooter: footer != null});
 
-  return(<div ref={ref} className={classes} onClick={handleClick} key="0">
+  return(<div className={classes} onClick={handleClick} key="0">
           {topContent}
           <div className={contentClasses}>
             <div className="sidebarLayout">
@@ -149,15 +137,7 @@ ReaderNavigationMenu.propTypes = {
   home:                PropTypes.bool,
   compare:             PropTypes.bool,
   interfaceLang:       PropTypes.string,
-};  
-
-
-const TocLink = ({en, he, img, alt, href, resourcesLink, classes, onClick}) =>
-    <a className={(resourcesLink?"resourcesLink ":"") + (classes||"")} href={href} onClick={onClick}>
-        {img?<img src={img} alt={alt} />:""}
-        <span className="int-en">{en}</span>
-        <span className="int-he">{he}</span>
-    </a>;
+};
 
 
 const Dedication = () => {
@@ -207,6 +187,16 @@ const Dedication = () => {
 export default ReaderNavigationMenu;
 
 /*
+
+
+  const TocLink = ({en, he, img, alt, href, resourcesLink, classes, onClick}) =>
+    <a className={(resourcesLink?"resourcesLink ":"") + (classes||"")} href={href} onClick={onClick}>
+        {img?<img src={img} alt={alt} />:""}
+        <span className="int-en">{en}</span>
+        <span className="int-he">{he}</span>
+    </a>;
+
+
 
   title="Texts" heTitle="טקסטים"
 

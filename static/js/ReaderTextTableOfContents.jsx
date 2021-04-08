@@ -5,6 +5,7 @@ import {
   CategoryColorLine,
   LoadingMessage,
   NBox,
+  ResponsiveNBox,
   InterfaceText,
   ContentText, EnglishText, HebrewText,
 } from './Misc';
