@@ -185,7 +185,7 @@ def base_props(request):
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
-            "is_history_enabled": getattr(profile.settings,"reading_history", True),
+            "is_history_enabled": profile.settings.get("reading_history", True),
             "following": profile.followees.uids,
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
@@ -916,7 +916,7 @@ def saved(request):
 def user_history(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
-        uhistory =  profile.get_user_history(secondary=False, serialized=True) if profile.settings["reading_history"] else []
+        uhistory =  profile.get_user_history(secondary=False, serialized=True) if profile.settings.get("reading_history", True) else []
     else:
         uhistory = _get_anonymous_user_history(request)
     props = {"userHistory": uhistory}
@@ -3539,7 +3539,7 @@ def profile_get_user_history(request):
         else:
             saved, secondary, last_place, oref = get_url_params_user_history(request)
             user = UserProfile(id=request.user.id)
-            if not user.settings["reading_history"] and not saved:
+            if "reading_history" in user.settings and not user.settings["reading_history"] and not saved:
                 return jsonResponse([])
             return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place))
     return jsonResponse({"error": "Unsupported HTTP method."})
