@@ -4503,7 +4503,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-items: center;
 }
 .collapseSummaries .toolsButton img.toolsButtonIcon{
-  height: 9px;
+  height: 10px;
+  width: 10px;
+}
+.collapseSummaries .toolsButtonI .toolsButtonText{
+  margin-inline-start: 5px;
 }
 .categoryFilter .filterText{
   margin-inline-start: 10px;
