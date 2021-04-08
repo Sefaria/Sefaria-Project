@@ -406,6 +406,7 @@ class ReaderApp extends Component {
       var hist  = {url: ""};
 
       if (state.menuOpen) {
+        hist.menuPage = true;
         switch (state.menuOpen) {
           case "home":
             hist.title = Sefaria._("Sefaria: a Living Library of Jewish Texts Online");
@@ -567,7 +568,6 @@ class ReaderApp extends Component {
         hist.url      = Sefaria.normRef(ref); // + "?with=" + sources;
         hist.mode     = "Connections";
 
-
       } else if (state.mode === "TextAndConnections") {
         var ref       = Sefaria.normRefList(state.highlightedRefs);
         var filter    = state.filter.length ? state.filter :
@@ -606,7 +606,9 @@ class ReaderApp extends Component {
       }
 
       if (!state.settings) { debugger; }
-      hist.lang =  state.settings.language ? state.settings.language.substring(0,2) : "bi";
+      if (!hist.menuPage) {
+        hist.lang = state.settings.language ? state.settings.language.substring(0,2) : "bi";
+      }
       histories.push(hist);
     }
 
