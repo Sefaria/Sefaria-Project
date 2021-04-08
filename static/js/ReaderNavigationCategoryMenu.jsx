@@ -75,7 +75,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
                       </h1>
                       {talmudToggle}
                       {interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
-                    </div> : {talmudToggle} }
+                    </div> : talmudToggle }
                     {Sefaria._showDescriptionAtTop ? 
                     <div className="categoryDescription top">
                       <span className="en">{tocObject.enDesc}</span>

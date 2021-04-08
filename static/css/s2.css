@@ -292,11 +292,7 @@ body.hasBannerMessage #s2.headerOnly {
   position: relative;
 }
 .noselect {
-  -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari/Opera */
-       -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, Chrome */
+  user-select: none;
 }
 input.noselect {
   -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
@@ -1137,6 +1133,8 @@ input.noselect {
   width: 680px;
   margin: 0 auto;
   min-height: 520px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .homeFeedWrapper .content .contentInner {
   max-width: none;
@@ -3001,14 +2999,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   letter-spacing: 1px;
   cursor: pointer;
-  padding: 15px;
+  padding: 15px 5px;
   -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none; /* Safari */
-   -khtml-user-select: none; /* Konqueror HTML */
-     -moz-user-select: none; /* Firefox */
-      -ms-user-select: none; /* Internet Explorer/Edge */
-          user-select: none; /* Non-prefixed version, currently
-                                supported by Chrome and Opera */
+  user-select: none;
 }
 .searchTopMatter .search-dropdown-button.active {
   color: #000;
@@ -3065,13 +3058,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   letter-spacing: 1px;
   cursor: pointer;
   font-weight: lighter;
-  -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none; /* Safari */
-   -khtml-user-select: none; /* Konqueror HTML */
-     -moz-user-select: none; /* Firefox */
-      -ms-user-select: none; /* Internet Explorer/Edge */
-          user-select: none; /* Non-prefixed version, currently
-                                supported by Chrome and Opera */
+  user-select: none;
 }
 .dropdown-button:hover {
   text-decoration: underline;
@@ -4298,19 +4285,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: 30px;
   text-align: center;
   -webkit-text-size-adjust: 100%;
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  -o-user-select: none;
   user-select: none;
 }
 .segmentNumber .segmentNumberInner,
 .linkCount .linkCountDot {
   display: inline-block;
-  -moz-user-select: none;
-  -khtml-user-select: none;
-  -webkit-user-select: none;
-  -o-user-select: none;
   user-select: none;
 }
 .bilingual .segmentNumber .segmentNumberInner,
@@ -9431,9 +9410,6 @@ a.topicLexiconTitle.contentText {
   position: relative;
   padding-inline-start: 28px;
   cursor: pointer;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
   user-select: none;
 }
 /* Hide the browser's default checkbox */
