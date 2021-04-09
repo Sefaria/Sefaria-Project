@@ -32,6 +32,8 @@ class SheetMetadata extends Component {
       tags: [],
       suggestions: [],
       summary: '',
+      validationFailed: 'none',
+      validationMsg: '',
       published: null,
       lastModified: null,
     };
@@ -90,8 +92,44 @@ class SheetMetadata extends Component {
   updateSheetTags() {
 
   }
+  isFormValidated() {
+    if (this.state.summary == '' && this.state.tags.length == 0) {
+      this.setState({
+        validationMsg: "Please add a description and topics to publish your sheet.",
+        validationFailed: "both"
+      });
+      return false
+    }
+    else if (this.state.summary == '') {
+      this.setState({
+        validationMsg: "Please add a description to publish your sheet.",
+        validationFailed: "summary"
+      });
+      return false
+    }
+
+    else if (this.state.tags.length == 0) {
+      this.setState({
+        validationMsg: "Please add topics to publish your sheet.",
+        validationFailed: "topics"
+      });
+      return false
+    }
+
+    else {
+      this.setState({
+        validationMsg: "",
+        validationFailed: "none"
+      });
+      return true
+    }
+  }
 
   async togglePublish() {
+    if (!this.state.published) {
+      if (!(this.isFormValidated())) {return}
+    }
+
     const newPublishState = this.state.published ? "unlisted" : "public";
     let updatedSheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(this.props.id, sheet => resolve(sheet))));
     updatedSheet.status = newPublishState;
@@ -175,7 +213,7 @@ class SheetMetadata extends Component {
     if (!Sefaria._uid) {
       this.props.toggleSignUpModal();
     } else {
-      this.setState({showCollectionsModal: !this.state.showCollectionsModal});      
+      this.setState({showCollectionsModal: !this.state.showCollectionsModal});
     }
   }
 
@@ -194,17 +232,21 @@ class SheetMetadata extends Component {
     this.postSheet(postJSON)
   }
 
-  onTagDelete (i) {
+  onTagDelete(i) {
     const tags = this.state.tags.slice(0);
     tags.splice(i, 1);
     this.setState({ tags });
     this.updateTopics(tags);
   }
 
-  onTagAddition (tag) {
+  onTagAddition(tag) {
     const tags = [].concat(this.state.tags, tag);
     this.setState({ tags });
     this.updateTopics(tags);
+  }
+
+  onTagValidate(tag) {
+    return this.state.tags.every((item) => item.name !== tag.name)
   }
 
   updateSuggestedTags(input) {
@@ -261,7 +303,7 @@ class SheetMetadata extends Component {
           </a> : null }
         </div>
 
-        {this.state.sheetCopyStatus == "Copied" ? 
+        {this.state.sheetCopyStatus == "Copied" ?
         <div><a href={"/sheets/"+this.state.copiedSheetId}>
             <span className="int-en">View Copy &raquo;</span>
             <span className="int-he">צפייה בהעתק &raquo;</span>
@@ -272,9 +314,9 @@ class SheetMetadata extends Component {
           <span className="int-en">View in the old sheets experience</span>
           <span className="int-he">תצוגה בפורמט הישן של דפי המקורות</span>
         </a> : null }
-      
-        {this.state.showCollectionsModal ? 
-        <CollectionsModal 
+
+        {this.state.showCollectionsModal ?
+        <CollectionsModal
           sheetID={sheet.id}
           close={this.toggleCollectionsModal} /> : null }
 
@@ -362,7 +404,8 @@ class SheetMetadata extends Component {
                     </div> : null }
                     <div className="sheetMeta">
                       <div className="int-en">
-                          Created {Sefaria.util.naturalTime(timestampCreated, "en")} ago · {sheet.views} Views · { !!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--'} Saves
+                          Created {Sefaria.util.naturalTime(timestampCreated, "en")} ago · {sheet.views} Views · { !!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--'} Saves {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>Not Published</span></span>)}
+
                       </div>
                       <div className="int-he">
                           <span>נוצר לפני  {Sefaria.util.naturalTime(timestampCreated, "he")} · </span>
@@ -397,13 +440,20 @@ class SheetMetadata extends Component {
 
                     {canEdit ? <div className={"publishBox"}>
                       <h3 className={"header"}>
-                        <InterfaceText>Publish Sheet</InterfaceText>
+                        <InterfaceText>{this.state.published ? "Publish Settings" : "Publish Sheet"}</InterfaceText>
                       </h3>
                       <p><InterfaceText>{this.state.published ? "Your sheet is published on Sefaria and visible to others through search and topics." : "List your sheet on Sefaria for others to discover."}</InterfaceText></p>
                       <hr/>
+                      {this.state.validationFailed == "none" ? null :  <p className="error"><InterfaceText>{this.state.validationMsg}</InterfaceText></p> }
                       <p className={"smallText"}><InterfaceText>Summary</InterfaceText></p>
-                      <textarea rows="3" placeholder="Write a short description of your sheet..." value={this.state.summary} onChange={this.handleSummaryChange}></textarea>
+                      <textarea
+                        className={this.state.validationFailed == "both" || this.state.validationFailed == "summary" ? "error" : ""}
+                        rows="3"
+                        maxLength="280"
+                        placeholder="Write a short description of your sheet..."
+                        value={this.state.summary} onChange={this.handleSummaryChange}></textarea>
                       <p className={"smallText"}><InterfaceText>Topics</InterfaceText></p>
+                      <div className={this.state.validationFailed == "both" || this.state.validationFailed == "topics" ? "error" : ""}>
                       <ReactTags
                         ref={this.reactTags}
                         allowNew={true}
@@ -413,8 +463,10 @@ class SheetMetadata extends Component {
                         placeholderText={"Add a topic..."}
                         delimiters={["Enter", "Tab", ","]}
                         onAddition={this.onTagAddition.bind(this)}
+                        onValidate={this.onTagValidate.bind(this)}
                         onInput={this.updateSuggestedTags.bind(this)}
                       />
+                      </div>
 
                         <div className={"publishButton"}>
                         <a href="#" className={this.state.published ? "button published" : "button"} onClick={this.togglePublish}>

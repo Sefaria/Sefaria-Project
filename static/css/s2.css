@@ -4763,7 +4763,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 8px;
 }
 .sheet .sheetTags .unlisted img,
-.collectionListing .collectionListingDetails .unlisted img {
+.collectionListing .collectionListingDetails .unlisted img,
+.tocTop .unlisted img {
   width: 13px;
   height: 13px;
   opacity: 0.4;
@@ -6246,6 +6247,15 @@ a .button:hover {
   color: #666;
 }
 
+.publishBox p.error {
+  color: red;
+}
+
+.publishBox .error .react-tags,
+.publishBox textarea.error {
+  border: 1px solid red;
+}
+
 .publishBox h3 {
   font-size: 22px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -6417,7 +6427,7 @@ a .button:hover {
 }
 
 .publishBox .react-tags__suggestions li.is-active {
-  background: #b7cfe0;
+  background: #eee;
 }
 
 .publishBox .react-tags__suggestions li.is-disabled {
