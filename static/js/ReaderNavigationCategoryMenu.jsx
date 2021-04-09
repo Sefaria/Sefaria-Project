@@ -2,6 +2,8 @@ import {
   CategoryAttribution,
   ResponsiveNBox,
   LanguageToggleButton,
+  InterfaceText,
+  ContentText,
 } from './Misc';
 import React  from 'react';
 import classNames  from 'classnames';
@@ -50,9 +52,10 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
 
     const talmudToggle   = <TalmudToggle categories={cats} setCategories={setCategories} />
     const footer         = compare ? null : <Footer />;
-    const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noHeader: hideNavHeader, noLangToggleInHebrew: 1, compare: compare});
+    const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noLangToggleInHebrew: 1, compare: compare});
     const contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (<div className={navMenuClasses}>
+              { compare ? 
               <MobileHeader
                 mode={'innerTOC'}
                 hideNavHeader={hideNavHeader}
@@ -62,24 +65,21 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
                 navHome={navHome}
                 compare={compare}
                 catTitle={catTitle}
-                heCatTitle={heCatTitle}
-              />
+                heCatTitle={heCatTitle} /> : null}
+              
               <div className={contentClasses}>
                 <div className="sidebarLayout">
                   <div className="contentInner followsContentLang">
-                    {hideNavHeader ? 
                     <div className="navTitle">
                       <h1>
-                        <span className="en">{catTitle}</span>
-                        <span className="he">{heCatTitle}</span>
+                        <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
                       </h1>
                       {talmudToggle}
                       {interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
-                    </div> : talmudToggle }
+                    </div>
                     {Sefaria._showDescriptionAtTop ? 
                     <div className="categoryDescription top">
-                      <span className="en">{tocObject.enDesc}</span>
-                      <span className="he">{tocObject.heDesc}</span>
+                      <ContentText text={{en: tocObject.enDesc, he: tocObject.heDesc}} defaultToInterfaceOnBilingual={true} />
                     </div> : null}
                     <CategoryAttribution categories={cats} asEdition={true} />
                     <ReaderNavigationCategoryMenuContents

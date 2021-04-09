@@ -28,7 +28,7 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories, initialWidth}) => {
     {type: "SupportSefaria", props: {blue: true}},
   ];
 
-  const classes = classNames({readerNavMenu:1, noHeader: 1, homepage: 1});
+  const classes = classNames({readerNavMenu:1, homepage: 1});
   const contentClasses = classNames({content: 1, hasFooter: 1});
 
   return (

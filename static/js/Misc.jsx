@@ -1262,25 +1262,6 @@ FollowButton.propTypes = {
   toggleSignUpModal: PropTypes.func,
 };
 
-const SinglePanelNavHeader = (props) =>
-      <div className="readerNavTop searchOnly">
-          <CategoryColorLine category={props.colorLineCategory || "Other"} />
-          <ReaderNavigationMenuMenuButton onClick={props.navHome} />
-          <h2>
-            <InterfaceText>{props.title}</InterfaceText>
-          </h2>
-          {props.showDisplaySettings ?
-            <ReaderNavigationMenuDisplaySettingsButton onClick={props.openDisplaySettings} />
-            : <div className="readerOptions"></div> }
-      </div>;
-SinglePanelNavHeader.propTypes = {
-  navHome:             PropTypes.func.isRequired,
-  title:               PropTypes.string,
-  showDisplaySettings: PropTypes.bool,
-  openDisplaySettings: PropTypes.func,
-  colorLineCategory:   PropTypes.string,
-};
-
 
 const CategoryColorLine = ({category}) =>
   <div className="categoryColorLine" style={{background: Sefaria.palette.categoryColor(category)}}/>;
@@ -2273,7 +2254,6 @@ export {
   FollowButton,
   ReaderNavigationMenuSection,
   ReaderNavigationMenuSearchButton,
-  SinglePanelNavHeader,
   SignUpModal,
   SheetListing,
   SheetAccessIcon,

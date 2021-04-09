@@ -346,7 +346,6 @@ class ReaderTextTableOfContents extends Component {
     const classes = classNames({
       readerTextTableOfContents:1,
       readerNavMenu:1,
-      noHeader: this.isBookToc(),
       bookPage: this.isBookToc(),
       narrowPanel: this.props.narrowPanel,
       noLangToggleInHebrew: this.props.interfaceLang == 'hebrew'});

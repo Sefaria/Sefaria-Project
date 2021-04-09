@@ -433,29 +433,6 @@ input.noselect {
   height: 25px;
   margin-top: -7px;
 }
-@media (max-width: 540px) {
-  .header .home {
-    display: none;
-  }
-  .header .accountLinks .login {
-    margin-left: 16px;
-  }
-  .header .searchBox input{
-    width: 45%;
-  }
-  .header .login:first-child {
-    margin: auto 20px;
-  }
-  .headerInner .headerNavSection{
-    width: 48%;
-  }
-  img.keyboardInputInitiator{
-    display: none;
-  }
-  .nochrome .header .home {
-    display: inline;
-  }
-}
 .header .accountLinks {
   display: flex;
   align-items: center;
@@ -634,9 +611,14 @@ input.noselect {
 .header .testWarning:hover {
   text-decoration: underline;
 }
-.header .he {
-  /* temp, until we support hebrew header */
-  display: none;
+.header .headerInner.mobileHeader {
+  padding: 0 15px;
+}
+.header .mobileHeader {
+  display: flex;
+}
+.header .mobileHeader div {
+  flex: 1;
 }
 .testMessageBox {
   position: fixed;
@@ -1110,23 +1092,18 @@ input.noselect {
 .homeFeedWrapper .content {
   position: relative;
   box-sizing: border-box;
-  padding: 30px 10px 10px;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   font-size: 14px;
 }
-.multiPanel .readerNavMenu .content {
-  padding: 30px 30px 70px 30px;
+.readerNavMenu .content {
+  padding: 60px 0 0 0;
 }
-.multiPanel .readerNavMenu .content.hasFooter {
-  padding: 30px 0 0 0;
+.singlePanel .readerNavMenu .content {
+  padding: 90px 0 0 0;
 }
-.multiPanel .readerNavMenu.noHeader .content,
-.multiPanel .homeFeedWrapper.noHeader .content {
-  padding-top: 60px;
-}
-.multiPanel .readerNavMenu.compare .content,
-.multiPanel .readerNavCategoryMenu.compare .content {
+.readerNavMenu.compare .content,
+.readerNavCategoryMenu.compare .content {
   padding: 30px 10px;
 }
 .readerNavMenu .content .contentInner {
@@ -1830,7 +1807,7 @@ input.resourcesLink {
 }
 .readerNavCategories .gridBox .gridBoxItem,
 .readerNavCategoryMenu .category .gridBoxItem {
-  margin: 0 7px;
+  margin: 0 15px;
   padding: 0;
 }
 .navBlock {
@@ -1860,11 +1837,6 @@ a.navBlockTitle {
 }
 .navBlockTitle .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-@media (max-width: 450px) {
-  .navBlockTitle {
-    font-size: 16px;
-  }
 }
 .navBlockDescription {
   font-size: 14px;
@@ -2055,12 +2027,6 @@ a.navBlockTitle {
 }
 .readerNavCategoryMenu {
   height: 100%;
-}
-.multiPanel .readerNavCategoryMenu .content {
-  padding: 100px 10px 10px;
-}
-.singlePanel .readerNavCategoryMenu .content {
-  padding-top: 0;
 }
 .readerNavMenu.readerNavCategoryMenu h1 {
   color: #000;
@@ -2454,7 +2420,6 @@ a.navBlockTitle {
   color: red;
 }
 .readerTextTableOfContents .content {
-  padding: 30px 10px 10px;
   box-sizing: border-box;
   text-align: center;
   height: 100%;
@@ -4509,7 +4474,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   line-height: 32px;
 }
-.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX{
+.readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX{
   height: 32px;
   width: 30px;
   display: flex;
@@ -4520,11 +4485,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0 15px;
 }
 .connectionsHeader .readerNavMenuCloseButton.circledX,
-.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX{
+.readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX{
   width: 20px;
 }
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
-.readerNavMenu.noHeader.compare .readerNavTop .readerNavMenuCloseButton.circledX img {
+.readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX img {
   opacity: 0.4;
   height: 20px;
   width: 20px;
@@ -4641,15 +4606,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .gridBox .gridBoxItem:first-child {
   padding-inline-start: 0;
+  margin-inline-start: 0;
 }
 .gridBox .gridBoxItem:last-child {
   padding-inline-end: 0;
-}
-@media (max-width: 450px) {
-  .gridBox .gridBoxItem {
-    border: solid transparent;
-    border-width: 2px 4px;
-  }
+  margin-inline-start: 0;
 }
 .dark .filterSet td {
   border-color: #555;
@@ -8882,6 +8843,8 @@ body .homeFeedWrapper .content {
   width: 700px;
   margin: 0 auto;
   padding-top: 60px;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 .storyByLine:hover .smallFollowButton,
 .authorName:hover .smallFollowButton {

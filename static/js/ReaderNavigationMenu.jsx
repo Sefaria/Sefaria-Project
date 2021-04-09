@@ -68,7 +68,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
       <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
     </div>);
 
-  const topContent = hideNavHeader ? null :
+  const topContent = compare ? 
     <MobileHeader
       mode={home ? 'home' : 'mainTOC'}
       navHome={navHome}
@@ -77,7 +77,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
       onClose={onClose}
       compare={compare}
       openSearch={openSearch}
-    />;
+    /> : null;
 
   const title = compare ? null : 
     <h1>
@@ -101,7 +101,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   ];
 
   const footer = compare ? null : <Footer />;
-  const classes = classNames({readerNavMenu:1, noHeader: !hideHeader, compare: compare, home: home, noLangToggleInHebrew: 1 });
+  const classes = classNames({readerNavMenu:1, compare: compare, home: home, noLangToggleInHebrew: 1 });
   const contentClasses = classNames({content: 1, hasFooter: footer != null});
 
   return(<div className={classes} onClick={handleClick} key="0">

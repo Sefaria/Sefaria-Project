@@ -1659,9 +1659,10 @@ class ReaderApp extends Component {
     // Header should not show box-shadow over panels that have color line
     const hasColorLine = ["sheets", "sheets meta"];
     const headerHasBoxShadow = !!this.state.panels[0] && hasColorLine.indexOf(this.state.panels[0].menuOpen) === -1;
-    var header = this.props.multiPanel || this.state.panels.length == 0 ?
-                  (<Header
+    const header = !this.props.multiPanel && this.state.panels.length && !this.state.panels[0].menuOpen ? null :
+                  <Header
                     interfaceLang={this.props.interfaceLang}
+                    multiPanel={this.props.multiPanel}
                     onRefClick={this.handleNavigationClick}
                     setDefaultOption={this.setDefaultOption}
                     showLibrary={this.showLibrary}
@@ -1676,7 +1677,7 @@ class ReaderApp extends Component {
                     translateISOLanguageCode={this.translateISOLanguageCode}
                     openTopic={this.openTopic}
                     hasBoxShadow={headerHasBoxShadow}
-                    toggleSignUpModal={this.toggleSignUpModal} />) : null;
+                    toggleSignUpModal={this.toggleSignUpModal} />;
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
                                   .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));

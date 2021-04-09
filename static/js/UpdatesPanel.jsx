@@ -6,7 +6,7 @@ import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Footer  from './Footer';
 import {
-  SinglePanelNavHeader,
+  InterfaceText,
 } from './Misc';
 import Component from 'react-class';
 
@@ -85,25 +85,16 @@ class UpdatesPanel extends Component {
     });
   }
   render() {
-    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: 1 };
+    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1};
     var classStr = classNames(classes);
 
     return (
       <div className={classStr}>
-        {this.props.multiPanel ? null :
-          <SinglePanelNavHeader
-            title="Updates"
-            heTitle="טקסטים חדשים"
-            navHome={this.props.navHome}
-            showDisplaySettings={false} />
-        }
         <div className="content hasFooter">
           <div className="contentInner">
-            {this.props.multiPanel ?
             <h1>
-              <span className="int-en">Updates</span>
-              <span className="int-he">עדכונים</span>
-            </h1> : null }
+              <InterfaceText>Updates</InterfaceText>
+            </h1>
 
             {Sefaria.is_moderator?<NewUpdateForm handleSubmit={this.handleSubmit} key={this.state.submitCount} error={this.state.error}/>:""}
 

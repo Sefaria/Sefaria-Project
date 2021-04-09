@@ -259,7 +259,7 @@ const Strings = {
     "research of Dr. Michael Sperling": "המחקר של ד\"ר מיכאל ספרלינג",
     "Read the Portion": "קראו את הפרשה",
     "My Notes": "הרשומות שלי",
-    "Updates": "טקסטים חדשים",
+    "Updates": "עדכונים",
 
     //user stats
     "Torah Tracker" : "לימוד במספרים",

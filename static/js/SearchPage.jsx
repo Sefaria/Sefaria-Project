@@ -25,19 +25,19 @@ class SearchPage extends Component {
     render () {
         var fontSize       = 62.5; // this.props.settings.fontSize, to make this respond to user setting. disabled for now.
         var style          = {"fontSize": fontSize + "%"};
-        var classes        = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader, compare: this.props.compare});
+        var classes        = classNames({readerNavMenu: 1, compare: this.props.compare});
         var contentClasses = classNames({content: 1, hasFooter: this.props.panelsOpen === 1});
         var isQueryHebrew  = Sefaria.hebrew.isHebrew(this.props.query);
         return (<div className={classes} key={this.props.query}>
-                  {this.props.hideNavHeader ? null :
+                  {this.props.compare ?
                   <MobileHeader
                     mode={'mainTOC'}
                     interfaceLang={this.props.interfaceLang}
                     showDisplaySettings={false}
                     onClose={this.props.close}
                     compare={this.props.compare}
-                    openSearch={this.props.onQueryChange}
-                  />}
+                    openSearch={this.props.onQueryChange} /> : null}
+
                   <div className={contentClasses}>
                     <div className="contentInner">
                       <div className="searchContentFrame">

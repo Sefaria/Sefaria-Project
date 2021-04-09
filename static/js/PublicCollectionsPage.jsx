@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   InterfaceText,
   LoadingMessage,
-  SinglePanelNavHeader,
 } from './Misc';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
@@ -34,15 +33,9 @@ function PublicCollectionsPage({multiPanel, navHome}) {
         .then(d => setCollectionsList(d));
   });
 
-  const classStr = classNames( {systemPanel: 1, readerNavMenu: 1, noHeader: 1 });
+  const classStr = classNames( {systemPanel: 1, readerNavMenu: 1});
   return (
     <div className={classStr}>
-      {multiPanel ? null :
-        <SinglePanelNavHeader
-          title="Collections"
-          navHome={navHome}
-          showDisplaySettings={false}/>
-      }
       <div className="content hasFooter">
         <div className="contentInner">
           {multiPanel ?

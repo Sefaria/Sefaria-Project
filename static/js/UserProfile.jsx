@@ -3,7 +3,6 @@ import {
   TabView,
   FilterableList,
   SheetListing,
-  SinglePanelNavHeader,
   ProfileListing,
   ProfilePic,
   FollowButton,
@@ -352,13 +351,7 @@ class UserProfile extends Component {
   }
   render() {
     return (
-      <div key={this.props.profile.id} className="profile-page readerNavMenu noHeader">
-        {this.props.multiPanel ? null :
-          <SinglePanelNavHeader
-            title="Profile"
-            navHome={this.props.navHome}
-            showDisplaySettings={false}/>
-        }
+      <div key={this.props.profile.id} className="profile-page readerNavMenu">
         <div className="content hasFooter noOverflowX">
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :

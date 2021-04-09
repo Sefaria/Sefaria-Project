@@ -969,6 +969,7 @@ class ReaderPanel extends Component {
                 openDisplaySettings={this.openDisplaySettings}
                 key={"TopicPageAll"}
               />);
+      
     } else if (this.state.menuOpen === "notifications") {
       menu = (<NotificationsPanel
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
@@ -1001,35 +1002,43 @@ class ReaderPanel extends Component {
                 interfaceLang={this.props.interfaceLang} />);
 
     } else if (this.state.menuOpen === "collectionsPublic") {
-      menu = (<PublicCollectionsPage
-                    multiPanel={this.props.multiPanel}
-                    navHome={this.openMenu.bind(null, "navigation")}/>);
+      menu = (
+        <PublicCollectionsPage
+          multiPanel={this.props.multiPanel}
+          navHome={this.openMenu.bind(null, "navigation")}/>
+      );
 
     } else if (this.state.menuOpen === "home") {
-      menu = (<HomeFeed
-                    interfaceLang={this.props.interfaceLang}
-                    toggleSignUpModal={this.props.toggleSignUpModal}
-                    initialWidth={this.state.width}
-      />);
+      menu = (
+        <HomeFeed
+          interfaceLang={this.props.interfaceLang}
+          toggleSignUpModal={this.props.toggleSignUpModal}
+          initialWidth={this.state.width} />
+      );
 
     } else if (this.state.menuOpen === "story_editor") {
-      menu = (<StoryEditor
-                    toggleSignUpModal={this.props.toggleSignUpModal}
-                    interfaceLang={this.props.interfaceLang} />);
-
+      menu = (
+        <StoryEditor
+          toggleSignUpModal={this.props.toggleSignUpModal}
+          interfaceLang={this.props.interfaceLang} />
+      );
 
     } else if (this.state.menuOpen === "updates") {
-      menu = (<UpdatesPanel
-                    interfaceLang={this.props.interfaceLang}
-                    multiPanel={this.props.multiPanel}
-                    navHome={this.openMenu.bind(null, "navigation")} />);
+      menu = (
+        <UpdatesPanel
+          interfaceLang={this.props.interfaceLang}
+          multiPanel={this.props.multiPanel}
+          navHome={this.openMenu.bind(null, "navigation")} />
+      );
 
     } else if (this.state.menuOpen === "user_stats") {
       menu = (<UserStats />);
 
     } else if (this.state.menuOpen === "modtools") {
-      menu = (<ModeratorToolsPanel
-                    interfaceLang={this.props.interfaceLang} />);
+      menu = (
+        <ModeratorToolsPanel
+          interfaceLang={this.props.interfaceLang} />
+      );
 
     } else if (this.state.menuOpen === "saved" || this.state.menuOpen === "history") {
       menu = (
@@ -1044,9 +1053,9 @@ class ReaderPanel extends Component {
           handleClick={this.handleNavigationClick}
           compare={this.state.compare}
           hideNavHeader={this.props.hideNavHeader}
-          interfaceLang={this.props.interfaceLang}
-        />
+          interfaceLang={this.props.interfaceLang} />
       );
+
     } else if (this.state.menuOpen === "profile") {
       menu = (
         <UserProfile
@@ -1055,12 +1064,15 @@ class ReaderPanel extends Component {
           setProfileTab={this.setProfileTab}
           toggleSignUpModal={this.props.toggleSignUpModal}
           multiPanel={this.props.multiPanel}
-          navHome={this.openMenu.bind(null, "navigation")}
-        />
+          navHome={this.openMenu.bind(null, "navigation")} />
       );
+
     } else if (this.state.menuOpen === "calendars") {
-      menu = (<CalendarsPage 
-                multiPanel={this.props.multiPanel} />);
+      menu = (
+        <CalendarsPage 
+          multiPanel={this.props.multiPanel}
+          initialWidth={this.state.width} />
+      );
     }
 
     let classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};

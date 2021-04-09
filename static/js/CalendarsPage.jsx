@@ -1,33 +1,17 @@
 import {
   InterfaceText,
-  NBox,
+  ResponsiveNBox,
 } from './Misc';
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import PropTypes  from 'prop-types';
+import React, { useState } from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
-import MobileHeader from './MobileHeader';
 import { NavSidebar }from './NavSidebar';
 import Footer  from './Footer';
 import Component from 'react-class';
 
 
-const CalendarsPage = ({multiPanel}) => {
-
-  const initialWidth = multiPanel ? 1000 : 500; // Assume we're in a small panel if we're hiding the nav header
-  const [width, setWidth] = useState(initialWidth);
-
-  const ref = useRef(null);
-  useEffect(() => {
-    deriveAndSetWidth();
-    window.addEventListener("resize", deriveAndSetWidth);
-    return () => {
-        window.removeEventListener("resize", deriveAndSetWidth);
-    }
-  }, []);
-
-  const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : initialWidth);
+const CalendarsPage = ({multiPanel, initialWidth}) => {
 
   const calendars = reformatCalendars();
 
@@ -48,24 +32,24 @@ const CalendarsPage = ({multiPanel}) => {
     {type: "SupportSefaria"},
   ];
 
-  const classes = classNames({readerNavMenu:1, noHeader: 1 });
+  const classes = classNames({readerNavMenu:1});
   const contentClasses = classNames({content: 1, hasFooter: 1});
 
-  return(<div ref={ref} className={classes} key="0">
+  return(<div className={classes} key="0">
           <div className={contentClasses}>
             <div className="sidebarLayout">
               <div className="contentInner">
                 <h2 className="styledH1"><InterfaceText>Weekly Torah Portion</InterfaceText></h2>
                 <div className="readerNavCategories">
-                  <NBox content={parashaListings} n={2} />
+                  <ResponsiveNBox content={parashaListings} initialWidth={initialWidth} />
                 </div>
                 <h2 className="styledH1"><InterfaceText>Daily Study</InterfaceText></h2>
                 <div className="readerNavCategories">
-                  <NBox content={dailyListings} n={2} />
+                  <ResponsiveNBox content={dailyListings} initialWidth={initialWidth} />
                 </div>
                 <h2 className="styledH1"><InterfaceText>Weekly Study</InterfaceText></h2>
                 <div className="readerNavCategories">
-                  <NBox content={weeklyListings} n={2} />
+                  <ResponsiveNBox content={weeklyListings} initialWidth={initialWidth} />
                 </div>
               </div>
               <NavSidebar modules={sidebarModules} />

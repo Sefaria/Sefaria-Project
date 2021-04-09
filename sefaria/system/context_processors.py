@@ -105,7 +105,8 @@ def large_data(request):
 
 HEADER = {
     'logged_in': {'english': None, 'hebrew': None},
-    'logged_out': {'english': None, 'hebrew': None}
+    'logged_out': {'english': None, 'hebrew': None},
+    'mobile': {'english': None, 'hebrew': None},
 }
 @user_only
 def header_html(request):
@@ -127,6 +128,12 @@ def header_html(request):
                                                                                              "profile_pic_url": "",
                                                                                              "full_name": "",
                                                                                              "_siteSettings": SITE_SETTINGS})
+        MOBILE_HEADER = HEADER["mobile"][lang] or render_react_component("ReaderApp", {"headerMode": True,
+                                                                                             "_uid": None,
+                                                                                             "interfaceLang": lang,
+                                                                                             "multiPanel": False,
+                                                                                             "_siteSettings": SITE_SETTINGS})
+
         LOGGED_OUT_HEADER = "" if "appLoading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
         LOGGED_IN_HEADER = "" if "appLoading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
         HEADER['logged_out'][lang] = LOGGED_OUT_HEADER
@@ -137,6 +144,7 @@ def header_html(request):
     return {
         "logged_in_header": LOGGED_IN_HEADER,
         "logged_out_header": LOGGED_OUT_HEADER,
+        "mobile_header": MOBILE_HEADER,
     }
 
 

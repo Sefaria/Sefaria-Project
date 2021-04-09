@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
-import MobileHeader from './MobileHeader';
 import {
   SheetBlock,
   StorySheetList,
@@ -193,18 +192,10 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang,
       });
     }
 
-    const navMenuClasses = classNames({readerNavMenu: 1, noHeader: hideNavHeader, noLangToggleInHebrew: 1});
+    const navMenuClasses = classNames({readerNavMenu: 1, noLangToggleInHebrew: 1});
     const contentClasses = classNames({content: 1, readerTocTopics:1, hasFooter: 1});
     return (
         <div className={navMenuClasses}>
-            {hideNavHeader ? null : (<MobileHeader
-              compare={compare}
-              mode="mainTOC"
-              onClose={onClose}
-              interfaceLang={interfaceLang}
-              openSearch={openSearch}
-              openDisplaySettings={openDisplaySettings}
-            />)}
             <div className={contentClasses}>
                 <div className="sidebarLayout">
                   <div className="contentInner">
@@ -353,17 +344,8 @@ const TopicPage = ({
       }
     }, [tabIndex]);
 
-    const classStr = classNames({topicPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader });
+    const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
     return <div className={classStr}>
-        {hideNavHeader ? null : 
-        (<MobileHeader
-          compare={false}
-          mode="mainTOC"
-          onClose={onClose}
-          interfaceLang={interfaceLang}
-          openSearch={openSearch}
-          openDisplaySettings={openDisplaySettings}
-        />)}
         <div className="content hasFooter noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">

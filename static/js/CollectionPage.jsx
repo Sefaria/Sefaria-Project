@@ -7,7 +7,6 @@ import {
   LoadingMessage,
   TwoOrThreeBox,
   SheetListing,
-  SinglePanelNavHeader,
   ProfilePic,
   SimpleLinkedBlock,
   InterfaceText,
@@ -365,15 +364,9 @@ class CollectionPage extends Component {
       </div>
     }
 
-    var classes = classNames({readerNavMenu: 1, noHeader: this.props.hideNavHeader});
+    var classes = classNames({readerNavMenu: 1});
     return <div className={classes}>
             <CategoryColorLine category="Sheets" />
-            {this.props.hideNavHeader ? null :
-            <SinglePanelNavHeader
-              title="Collection"
-              navHome={this.props.navHome}
-              showDisplaySettings={false}/>}
-
             <div className="content collectionPage hasFooter">
               {content}
               <Footer />

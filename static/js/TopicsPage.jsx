@@ -8,7 +8,6 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
-import MobileHeader from './MobileHeader';
 import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
 import Component from 'react-class';
@@ -43,16 +42,6 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
     </div>
   );
 
-  const topContent = hideNavHeader ? null :
-    <MobileHeader
-      mode={home ? 'home' : 'mainTOC'}
-      navHome={navHome}
-      interfaceLang={interfaceLang}
-      openDisplaySettings={openDisplaySettings}
-      onClose={onClose}
-      openSearch={openSearch}
-    />;
-
   const sidebarModules = [
     {type: "AboutTopics"},
     {type: "TrendingTopics"},
@@ -61,7 +50,7 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
     {type: "SupportSefaria"},
   ];
 
-  const classes = classNames({readerNavMenu:1, noHeader: !hideHeader, noLangToggleInHebrew: 1 });
+  const classes = classNames({readerNavMenu:1, noLangToggleInHebrew: 1 });
   const contentClasses = classNames({content: 1, hasFooter: 1});
 
   return (<div className={classes} key="0">

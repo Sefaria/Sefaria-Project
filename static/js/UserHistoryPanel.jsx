@@ -2,7 +2,6 @@ import {
   CategoryColorLine,
   ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuDisplaySettingsButton,
-  SinglePanelNavHeader,
   TextBlockLink,
   LanguageToggleButton,
   LoadingMessage,
@@ -12,7 +11,6 @@ import React, { useState, useEffect } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
-import MobileHeader from './MobileHeader';
 import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
 import Component from 'react-class';
@@ -80,22 +78,11 @@ const UserHistoryPanel = ({menuOpen, handleClick, toggleLanguage, openDisplaySet
   );
 
   const footer = compare ? null : <Footer />;
-  const navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, noHeader: hideNavHeader, compare: compare, noLangToggleInHebrew: 1});
+  const navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, compare: compare, noLangToggleInHebrew: 1});
   const contentClasses = classNames({content: 1, hasFooter: footer != null});
   
   return (
     <div onClick={handleClick} className={navMenuClasses}>
-      {hideNavHeader ? null :
-      <MobileHeader
-        mode={"innerTOC"}
-        navHome={openNav}
-        catTitle={title}
-        heCatTitle={Sefaria._(title)}
-        interfaceLang={Sefaria.interfaceLang}
-        openDisplaySettings={openDisplaySettings}
-        showDisplaySettings={Sefaria.interfaceLang !== "hebrew"}
-        compare={compare}
-      />}
       <div className={contentClasses}>
         <div className="sidebarLayout">
           <div className="contentInner">

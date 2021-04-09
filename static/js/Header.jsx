@@ -265,73 +265,73 @@ class Header extends Component {
     }
   }
   render() {
-    /*
-    var viewContent = this.state.menuOpen ?
-                        (<ReaderPanel
-                          initialState={this.state}
-                          interfaceLang={this.props.interfaceLang}
-                          setCentralState={this.props.setCentralState}
-                          multiPanel={true}
-                          onNavTextClick={this.props.onRefClick}
-                          onSearchResultClick={this.props.onRefClick}
-                          setDefaultOption={this.props.setDefaultOption}
-                          onQueryChange={this.props.onQueryChange}
-                          updateSearchTab={this.props.updateSearchTab}
-                          updateTopicsTab={this.props.updateTopicsTab}
-                          updateSearchFilter={this.props.updateSearchFilter}
-                          updateSearchOptionField={this.props.updateSearchOptionField}
-                          updateSearchOptionSort={this.props.updateSearchOptionSort}
-                          registerAvailableFilters={this.props.registerAvailableFilters}
-                          searchInCollection={this.props.searchInCollection}
-                          setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
-                          hideNavHeader={true}
-                          layoutWidth={100}
-                          analyticsInitialized={this.props.analyticsInitialized}
-                          getLicenseMap={this.props.getLicenseMap}
-                          translateISOLanguageCode={this.props.translateISOLanguageCode}
-                          toggleSignUpModal={this.props.toggleSignUpModal}
-                        />) : null;
-
-    */
-
     const headerMessage = this.props.headerMessage ?
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
-    const headerInnerClasses = classNames({headerInner: 1, boxShadow: this.props.hasBoxShadow});
+    const headerInnerClasses = classNames({headerInner: 1, boxShadow: this.props.hasBoxShadow, mobileHeader: !this.props.multiPanel});
     const inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang === "english", hebrewSearch: this.props.interfaceLang === "hebrew"});
     const searchBoxClasses = classNames({searchBox: 1, searchFocused: this.state.searchFocused});
+    
+    const headerContent = (
+      <>
+        <div className="headerNavSection">
+            { Sefaria._siteSettings.TORAH_SPECIFIC ? <a className="home" href="/" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> : null }
+            <a href="/texts" className="library"><InterfaceText>Texts</InterfaceText></a>
+            <a href="/topics" className="library"><InterfaceText>Topics</InterfaceText></a>
+            <a  href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank" className="library"><InterfaceText>Donate</InterfaceText></a>
+        </div>
+
+        <div className="headerLinksSection">
+          { headerMessage }
+          
+          <div id="searchBox" className={searchBoxClasses}>
+            <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+            <input className={inputClasses}
+                   id="searchInput"
+                   placeholder={Sefaria._("Search")}
+                   onKeyUp={this.handleSearchKeyUp}
+                   onFocus={this.focusSearch}
+                   onBlur={this.blurSearch}
+                   maxLength={75}
+            title={Sefaria._("Search for Texts or Keywords Here")}/>
+          </div>
+
+          { Sefaria._uid ?
+            <LoggedInButtons headerMode={this.props.headerMode}/>
+            : <LoggedOutButtons headerMode={this.props.headerMode}/>
+          }
+          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? 
+              <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
+        </div>
+      </>
+    );
+    
+    const mobileHeaderContent = (
+      <>
+        <div>
+          <a href="/texts" aria-label={Sefaria._("Menu")} className="library">
+            <i className="fa fa-bars"></i>
+          </a>
+        </div>
+        
+        <div className="mobileHeaderCenter">
+          { Sefaria._siteSettings.TORAH_SPECIFIC ? 
+          <a className="home" href="/" >
+            <img src="/static/img/logo.svg" alt="Sefaria Logo"/>
+          </a> : null }
+        </div>
+        
+        <div></div>
+      </>
+    );
+
     return (<div className="header" role="banner">
               <div className={headerInnerClasses}>
-                <div className="headerNavSection">
-                    { Sefaria._siteSettings.TORAH_SPECIFIC ? <a className="home" href="/" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> : null }
-                    <a href="/texts" className="library"><InterfaceText>Texts</InterfaceText></a>
-                    <a href="/topics" className="library"><InterfaceText>Topics</InterfaceText></a>
-                </div>
-
-                <div className="headerLinksSection">
-                  { headerMessage }
-                  
-                  <div id="searchBox" className={searchBoxClasses}>
-                    <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-                    <input className={inputClasses}
-                           id="searchInput"
-                           placeholder={Sefaria._("Search")}
-                           onKeyUp={this.handleSearchKeyUp}
-                           onFocus={this.focusSearch}
-                           onBlur={this.blurSearch}
-                           maxLength={75}
-                    title={Sefaria._("Search for Texts or Keywords Here")}/>
-                  </div>
-
-                  { Sefaria._uid ?
-                    <LoggedInButtons headerMode={this.props.headerMode}/>
-                    : <LoggedOutButtons headerMode={this.props.headerMode}/>
-                  }
-                  { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
-                </div>
+                {this.props.multiPanel ? headerContent : mobileHeaderContent}
               </div>
 
               { this.state.showTestMessage ? <TestMessage hide={this.hideTestMessage} /> : null}
+
               <GlobalWarningMessage />
             </div>);
   }

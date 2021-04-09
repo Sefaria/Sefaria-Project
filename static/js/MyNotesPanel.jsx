@@ -4,7 +4,6 @@ import {
   ReaderNavigationMenuDisplaySettingsButton,
   LanguageToggleButton,
   LoadingMessage,
-  SinglePanelNavHeader,
   Note,
 } from './Misc';
 import React  from 'react';

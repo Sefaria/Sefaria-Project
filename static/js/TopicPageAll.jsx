@@ -13,10 +13,8 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
-import MobileHeader from './MobileHeader';
 import Footer  from './Footer';
 import Component from 'react-class';
-
 
 
 class TopicPageAll extends Component {
@@ -72,22 +70,12 @@ class TopicPageAll extends Component {
       if (isHeInt) { return (0 + (!!b.primaryTitle.he)) - (0 + (!!a.primaryTitle.he)); }
       else         { return (0 + (!!b.primaryTitle.en)) - (0 + (!!a.primaryTitle.en)); }
     }).map(this.renderButton) : null;
-    const classStr = classNames({topicsPanel: 1, systemPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader });
+    const classStr = classNames({topicsPanel: 1, systemPanel: 1, readerNavMenu: 1});
     const navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
     const contentClasses = classNames({content: 1, hasFooter: 1});
     const inputClasses = classNames({topicFilterInput: 1, contentText: 1, en: !isHeInt, he: isHeInt});
     return (
       <div className={classStr}>
-        {this.props.hideNavHeader ? null :
-          <MobileHeader
-            mode="innerTOC"
-            hideNavHeader={this.props.hideNavHeader}
-            category="Other"
-            interfaceLang={Sefaria.interfaceLang}
-            navHome={this.props.navHome}
-            catTitle="Topics"
-            heCatTitle="נושאים"
-          />}
         <div className={contentClasses} onScroll={this.onScroll}>
           <div className="contentInner">
             {this.props.hideNavHeader ?
