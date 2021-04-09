@@ -733,6 +733,8 @@ class Test_comparisons(object):
         assert not Ref("Shabbat 5b:10-20").contains(Ref("Shabbat 5b:23-29"))
         assert not Ref("Shabbat 5b:10-20").contains(Ref("Shabbat 5b:15-29"))
 
+        assert not Ref("Steinsaltz_on_Jerusalem_Talmud_Shekalim.4.4.42-5.1.10").contains(Ref("Steinsaltz on Jerusalem Talmud Shekalim 4:4:1"))
+
     def test_precedes(self):
         assert Ref("Genesis 5:10-20").precedes(Ref("Genesis 5:21-25"))
         assert Ref("Genesis 5:10-20").precedes(Ref("Genesis 7:21-25"))
