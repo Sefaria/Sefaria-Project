@@ -986,7 +986,7 @@ Sefaria = extend(Sefaria, {
     return Object.values(dedupedLinks);
   },
   _linkSummaries: {},
-  linkSummary: function(ref, excludedSheet) {
+  linkSummary: function(ref, excludedSheet, categoryOrderOverrides = null) {
     // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of refs strings.
     // If `excludedSheet` is present, exclude links to that sheet ID.
@@ -1069,7 +1069,10 @@ Sefaria = extend(Sefaria, {
     // Sort the categories
     const categoryOrder = Sefaria.toc.map(function(cat) { return cat.category; });
     categoryOrder.splice(0, 0, "Commentary"); // Always show Commentary First
-    categoryOrder.splice(2, 0, "Targum");     // Show Targum after Tanakh
+    categoryOrder.splice(2, 0, "Targum");     // Show Targum after Tanakh (Or Tanakh's original location)
+    if (categoryOrderOverrides && categoryOrderOverrides.length >1){ //if we have been passed the "top connection categories" for this ref's categroy, preference them
+        categoryOrder.splice(1, 0, ...categoryOrderOverrides);
+    }
     summaryList.sort(function(a, b) {
       let orderA = categoryOrder.indexOf(a.category);
       let orderB = categoryOrder.indexOf(b.category);
