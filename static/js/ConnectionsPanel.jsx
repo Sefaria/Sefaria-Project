@@ -661,7 +661,7 @@ const ResourcesList = ({setConnectionsMode, counts}) => {
             <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} onClick={() => setConnectionsMode("Sheets")} />
             <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]}  displayCriteria={counts["topics"] && counts["topics"] > 0} onClick={() => setConnectionsMode("Topics")} />
             <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} displayCriteria={counts["webpages"] && counts["webpages"] > 0} onClick={() => setConnectionsMode("WebPages")} />
-            <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscript-icon.png" count={counts["manuscripts"]} displayCriteria={counts["manuscripts"] && counts["manuscripts"] > 0} onClick={() => setConnectionsMode("manuscripts")}/>
+            <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} displayCriteria={counts["manuscripts"] && counts["manuscripts"] > 0} onClick={() => setConnectionsMode("manuscripts")}/>
             <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" displayCriteria={counts["audio"] && counts["audio"] > 0} onClick={() => setConnectionsMode("Torah Readings")} />
         </div>
     );

@@ -5284,7 +5284,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .toolsButton img.toolsButtonIcon {
   width: 20px;
   height: 20px;
-  opacity: 0.4;
   vertical-align: middle;
 }
 .toolsButton .toolsButtonText{
