@@ -4493,7 +4493,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000;
   -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
 }
-.categoryFilter .filterInner:before{
+.categoryFilter:not(.withBooks) .filterInner:before{
   width: 18px;
   height: 16px;
   content: '';
@@ -4522,7 +4522,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .collapseSummaries .toolsButtonI .toolsButtonText{
   margin-inline-start: 5px;
 }
-.categoryFilter .filterText{
+.categoryFilter:not(.withBooks) .filterText{
   margin-inline-start: 10px;
   margin-inline-end: auto;
 }
