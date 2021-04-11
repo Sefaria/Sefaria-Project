@@ -48,7 +48,6 @@ class CategoryFilter extends Component {
         <a href={url} onClick={handleClick}>
           <div className={innerClasses} data-name={this.props.category}>
             <span className="filterInner">
-              <img src="/static/img/connection-book.svg" className="connectionSummaryIcon" alt="" />
               <span className="filterText">
                 <ContentText text={{en: this.props.category, he: this.props.heCategory }} />
                 <span className="connectionsCount"> ({this.props.count})</span>

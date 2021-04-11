@@ -4493,6 +4493,19 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #000;
   -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
 }
+.categoryFilter .filterInner:before{
+  width: 18px;
+  height: 16px;
+  content: '';
+  -webkit-mask: url("/static/img/connection-book.svg") no-repeat;
+  mask: url("/static/img/connection-book.svg") no-repeat;
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  line-height: 25px;
+  /**transform: scale(0.95);*/
+  display: inline-block;
+  background-color: var(--category-color);
+}
 .collapseSummaries .toolsButton{
   margin-inline-start: 60px;
   font-style: normal;
@@ -4544,6 +4557,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .filterInner {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 .categoryFilterGroup.withBooks {
   border-bottom: 1px solid #E5E5E5;
