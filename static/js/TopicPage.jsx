@@ -654,8 +654,52 @@ const ReadingsComponent = ({ parashaData, tref }) => (
 );
 
 
-const TopicMetaData = ({ timePeriod, properties }) => {
-  return null;
+const TopicMetaData = ({ timePeriod, properties={} }) => {
+  const tpSection = !!timePeriod ? (
+    <TopicSideSection title={{en: "Lived", he: "חי"}}>
+      <div><InterfaceText text={timePeriod.name} /></div>
+      <div><InterfaceText text={timePeriod.yearRange} /></div>
+    </TopicSideSection>
+  ) : null;
+  const propValues = [
+    {
+      url: {
+        en: (properties['enWikiLink'] || {})['value'],
+        he: (properties['heWikiLink'] || {})['value'],
+      },
+      title: 'Wikipedia',
+    },
+    {
+      url: {
+        en: (properties['jeLink'] || {})['value'],
+        he: (properties['jeLink'] || {})['value'],
+      },
+      title: 'Jewish Encyclopedia',
+    }
+  ];
+  const hasProps = propValues.reduce((accum, curr) => accum || curr.url.en || curr.url.he, false);
+  const propsSection = hasProps ? (
+    <TopicSideSection title={{en: "Learn More", he: ""}}>
+      {
+        propValues.map(propObj => {
+          const hasProp = propObj.url.en || propObj.url.he;
+          if (!hasProp) { return null; }
+          return (
+            <div key={propObj.title}>
+              <div><InterfaceText>{propObj.title}</InterfaceText></div>
+              <div><InterfaceText text={propObj.url} /></div>
+            </div>
+          );
+        })
+      }
+    </TopicSideSection>
+  ) : null;
+  return (
+    <>
+      { tpSection }
+      { propsSection }
+    </>
+  );
 };
 
 export {
