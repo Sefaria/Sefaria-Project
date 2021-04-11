@@ -795,9 +795,9 @@ class ConnectionsSummary extends Component {
     if (!summary) { return null; }
 
     if (this.props.category === "Commentary" ) {
-      // Show Quoting Commentary & Modern Commentary together with Commentary
+      // Show Quoting Commentary together with Commentary
       summary = summary.filter(cat => (cat.category.indexOf("Commentary") !== -1));
-      const order = ["Commentary", "Modern Commentary", "Quoting Commentary"];
+      const order = ["Commentary", "Quoting Commentary"];
       summary.sort((a, b) => {
         const ia = order.indexOf(a.category);
         const ib = order.indexOf(b.category);
@@ -812,9 +812,9 @@ class ConnectionsSummary extends Component {
       }
 
     } else if (isTopLevel) {
-      // Hide Quoting or Modern Commentary from the top level view
+      // Hide Quoting Commentary from the top level view
       let topSummary = summary.filter(cat => (cat.category.indexOf("Commentary") < 1));
-      // But include Quoting and Modern Commentary counts and english mark in top level Commentary section
+      // But include Quoting Commentary counts and english mark in top level Commentary section
       let subCommentaryCats = summary.filter(cat => (cat.category.indexOf("Commentary") > 1));
       if (subCommentaryCats.length && summary[0].category !== "Commentary") {
         // handle case of having Modern/Quoting Commentary, but no Commentary
