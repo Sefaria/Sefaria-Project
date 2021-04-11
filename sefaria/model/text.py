@@ -2116,7 +2116,7 @@ class TextFamily(object):
 
                     #It's in our territory
                     wholeRefStart = wholeRef.starting_ref()
-                    if oref.contains(wholeRefStart) and not oref == wholeRefStart:
+                    if oref.contains(wholeRefStart) and not wholeRefStart.contains(oref):
                         indxs = [k - 1 for k in wholeRefStart.in_terms_of(oref)]
                         val = {"en":[], "he":[]}
 
@@ -2134,11 +2134,11 @@ class TextFamily(object):
                     if getattr(n, "refs", None):
                         for i, r in enumerate(n.refs):
                             # hack to skip Rishon, skip empty refs
-                            if i==0 or not r:
-                                continue;
+                            if i == 0 or not r:
+                                continue
                             subRef = Ref(r)
                             subRefStart = subRef.starting_ref()
-                            if oref.contains(subRefStart) and not oref == subRefStart:
+                            if oref.contains(subRefStart) and not subRefStart.contains(oref):
                                 indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
                                 val = {"en":[], "he":[]}
 
@@ -3836,7 +3836,7 @@ class Ref(object, metaclass=RefCacheType):
                 return False
 
             # If other's start is after my start, I don't need to keep checking
-            if other.sections[i] > self.toSections[i]:
+            if other.sections[i] > self.sections[i]:
                 break
 
         return True
