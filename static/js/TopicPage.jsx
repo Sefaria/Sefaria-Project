@@ -117,7 +117,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang,
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
 
     useEffect(() => {
-        Sefaria.getTopic(topic).then(setTopicData);
+        Sefaria.getTopic(topic, {annotate_time_period: true}).then(setTopicData);
     }, [topic]);
 
     useEffect(() => {
@@ -260,7 +260,7 @@ const TopicPage = ({
     useEffect(() => {
       setTopicData(defaultTopicData); // Ensures topicTitle displays while loading
       const { promise, cancel } = Sefaria.makeCancelable((async () => {
-        const d = await Sefaria.getTopic(topic);
+        const d = await Sefaria.getTopic(topic, {annotate_time_period: true});
         if (d.parasha) { Sefaria.getParashaNextRead(d.parasha).then(setParashaData); }
         setTopicData(d);
         // Data remaining to fetch that was not already in the cache
@@ -421,6 +421,7 @@ const TopicPage = ({
                     <TopicSideColumn key={topic} slug={topic} links={topicData.links}
                       clearAndSetTopic={clearAndSetTopic} setNavTopic={setNavTopic}
                       parashaData={parashaData} tref={topicData.ref} interfaceLang={interfaceLang}
+                      timePeriod={topicData.timePeriod}
                     />
                     : null }
                 </div>
@@ -521,7 +522,7 @@ TopicLink.propTypes = {
 };
 
 
-const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, interfaceLang, setNavTopic }) => {
+const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, interfaceLang, setNavTopic, timePeriod }) => {
   const [showMoreMap, setShowMoreMap] = useState({});
   const category = Sefaria.topicTocCategory(slug);
   const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0) : [];
