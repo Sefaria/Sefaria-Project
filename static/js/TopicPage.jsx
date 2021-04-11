@@ -421,7 +421,7 @@ const TopicPage = ({
                     <TopicSideColumn key={topic} slug={topic} links={topicData.links}
                       clearAndSetTopic={clearAndSetTopic} setNavTopic={setNavTopic}
                       parashaData={parashaData} tref={topicData.ref} interfaceLang={interfaceLang}
-                      timePeriod={topicData.timePeriod}
+                      timePeriod={topicData.timePeriod} properties={topicData.properties}
                     />
                     : null }
                 </div>
@@ -522,8 +522,7 @@ TopicLink.propTypes = {
 };
 
 
-const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, interfaceLang, setNavTopic, timePeriod }) => {
-  const [showMoreMap, setShowMoreMap] = useState({});
+const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, interfaceLang, setNavTopic, timePeriod, properties }) => {
   const category = Sefaria.topicTocCategory(slug);
   const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0) : [];
   if (linkTypeArray.length === 0) {
@@ -542,6 +541,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
   const readingsComponent = (parashaData && tref) ? (
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
+  const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} />;
   const linksComponent = (
     links ?
         linkTypeArray.sort((a, b) => {
@@ -553,13 +553,15 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
         //alphabetical by en just to keep order consistent
         return a.title.en.localeCompare(b.title.en);
       })
-      .map(({ title, pluralTitle, links }) => (
-        <div key={title.en} className="link-section">
-          <h2>
-            <span className="int-en">{(links.length > 1 && pluralTitle) ? pluralTitle.en : title.en}</span>
-            <span className="int-he">{(links.length > 1 && pluralTitle) ? pluralTitle.he : title.he}</span>
-          </h2>
-          <div className="sideList">
+      .map(({ title, pluralTitle, links }) => {
+        const hasPlural = links.length > 1 && pluralTitle;
+        const pluralizedTitle = {
+          en: hasPlural ? pluralTitle.en : title.en,
+          he: hasPlural ? pluralTitle.he : title.he,
+        };
+        const hasMore = links.filter(l=>l.shouldDisplay !== false).length > 10;
+        return (
+          <TopicSideSection key={title.en+title.he} title={pluralizedTitle} hasMore={hasMore}>
             {
               links
               .filter(l => l.shouldDisplay !== false)
@@ -572,7 +574,6 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
                 if ((0+!!a.order) !== (0+!!b.order)) { return (0+!!b.order) - (0+!!a.order); }
                 return b.order.tfidf - a.order.tfidf;
               })
-              .slice(0, showMoreMap[title.en] ? undefined : 10)
               .map(l =>
                 TopicLink({
                   topic:l.topic, topicTitle: l.title,
@@ -582,24 +583,15 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
                 })
               )
             }
-          </div>
-          {
-            links.filter(l=>l.shouldDisplay !== false).length > 10 ?
-              (<div className="sideColumnMore" onClick={() => {
-                setShowMoreMap({...showMoreMap, [title.en]: !showMoreMap[title.en]});
-              }}>
-                <span className='int-en'>{ showMoreMap[title.en] ? "Less" : "More" }</span>
-                <span className='int-he'>{ showMoreMap[title.en] ? "פחות" : "עוד" }</span>
-              </div>)
-            : null
-          }
-        </div>
-      ))
+          </TopicSideSection>
+        );
+      })
     : null
   );
   return (
     <div>
       { readingsComponent }
+      { topicMetaData }
       { linksComponent }
     </div>
   )
@@ -609,6 +601,31 @@ TopicSideColumn.propTypes = {
   clearAndSetTopic: PropTypes.func.isRequired,
 };
 
+
+const TopicSideSection = ({ title, children, hasMore }) => {
+  const [showMore, setShowMore] = useState(false);
+  return (
+    <div key={title.en} className="link-section">
+      <h2>
+        <span className="int-en">{title.en}</span>
+        <span className="int-he">{title.he}</span>
+      </h2>
+      <div className="sideList">
+        { React.Children.toArray(children).slice(0, showMore ? undefined : 10) }
+      </div>
+      {
+        hasMore ?
+        (
+          <div className="sideColumnMore" onClick={() => setShowMore(!showMore)}>
+            <span className='int-en'>{ showMore ? "Less" : "More" }</span>
+            <span className='int-he'>{ showMore ? "פחות" : "עוד" }</span>
+          </div>
+        )
+        : null
+      }
+    </div>
+  );
+}
 
 const ReadingsComponent = ({ parashaData, tref }) => (
   <div className="readings link-section">
@@ -635,6 +652,11 @@ const ReadingsComponent = ({ parashaData, tref }) => (
     </div>
   </div>
 );
+
+
+const TopicMetaData = ({ timePeriod, properties }) => {
+  return null;
+};
 
 export {
   TopicPage,
