@@ -1377,14 +1377,18 @@ input.noselect {
   font-size: 18px;
   line-height: 26px;
 }
-.topicPanel .sideColumn .sideList a {
+.topicPanel .sideColumn .sideList a.relatedTopic {
   display: block;
   color: #000;
 }
-.topicPanel .sideColumn .sideList a .int-en {
+.topicPanel .sideColumn .sideList .topicMetaData .int-en,
+.topicPanel .sideColumn .sideList .topicMetaData .int-he {
+  color: #666;
+}
+.topicPanel .sideColumn .sideList a.relatedTopic .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
-.topicPanel .sideColumn .sideList a .int-he {
+.topicPanel .sideColumn .sideList a.relatedTopic .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .topicPanel .sideColumn .topicCategory {

@@ -21,6 +21,7 @@ import {
   InterfaceText,
   FilterableList,
   ToolTipped,
+  SimpleLinkedBlock,
 } from './Misc';
 import Footer from './Footer';
 import { useIncrementalLoad } from './Hooks';
@@ -657,8 +658,8 @@ const ReadingsComponent = ({ parashaData, tref }) => (
 const TopicMetaData = ({ timePeriod, properties={} }) => {
   const tpSection = !!timePeriod ? (
     <TopicSideSection title={{en: "Lived", he: "חי"}}>
-      <div><InterfaceText text={timePeriod.name} /></div>
-      <div><InterfaceText text={timePeriod.yearRange} /></div>
+      <div className="systemText topicMetaData"><InterfaceText text={timePeriod.name} /></div>
+      <div className="systemText topicMetaData"><InterfaceText text={timePeriod.yearRange} /></div>
     </TopicSideSection>
   ) : null;
   const propValues = [
@@ -682,13 +683,12 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
     <TopicSideSection title={{en: "Learn More", he: ""}}>
       {
         propValues.map(propObj => {
-          const hasProp = propObj.url.en || propObj.url.he;
-          if (!hasProp) { return null; }
+          const url = Sefaria.interfaceLang === "hebrew" ? (propObj.url.he || propObj.url.en) : (propObj.url.en || propObj.url.he);
+          if (!url) { return null; }
           return (
-            <div key={propObj.title}>
-              <div><InterfaceText>{propObj.title}</InterfaceText></div>
-              <div><InterfaceText text={propObj.url} /></div>
-            </div>
+            <SimpleLinkedBlock
+              en={propObj.title} he={Sefaria._(propObj.title)} url={url} aclasses={"systemText topicMetaData"}
+            />
           );
         })
       }
