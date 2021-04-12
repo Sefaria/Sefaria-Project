@@ -11,6 +11,9 @@
 .interface-hebrew .staticPage.englishOnly {
   direction:ltr;
 }
+.interface-hebrew .static .englishOnly {
+  direction:ltr;
+}
 .static {
   font-size: 16px;
   background-color: #FBFBFA;
