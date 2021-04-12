@@ -383,16 +383,18 @@
     <script type="application/javascript">
         let jobs = document.querySelectorAll(".job");
         let jobsList = document.getElementById("jobsLinks");
-        jobs.forEach( job => {
-            const href = job.id;
-            const title = job.querySelector("h2.anchorable").innerHTML;
-            let item = document.createElement("li");
-            let link = document.createElement("a");
-            link.href = `#${href}`;
-            link.innerText = title;
-            item.appendChild(link);
-            jobsList.appendChild(item);
-        })
+        if(jobs.length > 1){
+            jobs.forEach( job => {
+                const href = job.id;
+                const title = job.querySelector("h2.anchorable").innerHTML;
+                let item = document.createElement("li");
+                let link = document.createElement("a");
+                link.href = `#${href}`;
+                link.innerText = title;
+                item.appendChild(link);
+                jobsList.appendChild(item);
+            })
+        }
     </script>
 
 {% endblock %}

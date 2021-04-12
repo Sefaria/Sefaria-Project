@@ -1332,6 +1332,7 @@ p.registration-links a:hover{
   border-radius: 5px;
   display: flex;
   align-items: center;
+  max-width: 130px;
 }
 #jobsPage nav ul li:hover{
   background-color: #ededec;
