@@ -6256,6 +6256,12 @@ a .button:hover {
   border: 1px solid red;
 }
 
+.publishBox p strong {
+  color: black;
+  font-weight: 400;
+}
+
+
 .publishBox h3 {
   font-size: 22px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;

@@ -275,6 +275,19 @@ class SheetMetadata extends Component {
 
   handleSummaryChange(event) {
     const newSummary = event.target.value
+    console.log(event.target.value.length)
+    if (event.target.value.length >= 280) {
+      this.setState({
+        validationMsg: "The summary description is limited to 280 characters.",
+        validationFailed: "summary"
+      });
+    }
+    else {
+      this.setState({
+        validationMsg: "",
+        validationFailed: "none"
+      });
+    }
     this.setState({summary: newSummary})
     this.debouncedSaveSummary()
   }
@@ -442,7 +455,11 @@ class SheetMetadata extends Component {
                       <h3 className={"header"}>
                         <InterfaceText>{this.state.published ? "Publish Settings" : "Publish Sheet"}</InterfaceText>
                       </h3>
-                      <p><InterfaceText>{this.state.published ? "Your sheet is published on Sefaria and visible to others through search and topics." : "List your sheet on Sefaria for others to discover."}</InterfaceText></p>
+
+
+                      <p>
+                      <InterfaceText html={{en:this.state.published ? "Your sheet is <strong>published</strong> on Sefaria and visible to others through search and topics." : "List your sheet on Sefaria for others to discover."}} />
+                      </p>
                       <hr/>
                       {this.state.validationFailed == "none" ? null :  <p className="error"><InterfaceText>{this.state.validationMsg}</InterfaceText></p> }
                       <p className={"smallText"}><InterfaceText>Summary</InterfaceText></p>
