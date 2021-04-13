@@ -1315,10 +1315,12 @@ p.registration-links a:hover{
 }
 #jobsPage nav{
   text-align: center;
+  margin-top: 60px;
 }
 #jobsPage nav ul{
   display: flex;
-  justify-content: space-evenly;
+  flex-flow: column wrap;
+  justify-content: flex-start;
   margin-inline: auto;
   padding: initial;
 }
@@ -1332,9 +1334,9 @@ p.registration-links a:hover{
   border-radius: 5px;
   display: flex;
   align-items: center;
-  max-width: 130px;
+  /*max-width: 130px;*/
 }
-#jobsPage nav ul li:hover{
+#jobsPage nav ul li a:hover{
   background-color: #ededec;
 }
 #jobsPage nav ul li a{
