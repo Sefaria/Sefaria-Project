@@ -276,7 +276,7 @@ class SheetMetadata extends Component {
   handleSummaryChange(event) {
     const newSummary = event.target.value
     console.log(event.target.value.length)
-    if (event.target.value.length >= 280) {
+    if (event.target.value.length > 280) {
       this.setState({
         validationMsg: "The summary description is limited to 280 characters.",
         validationFailed: "summary"
@@ -466,7 +466,7 @@ class SheetMetadata extends Component {
                       <textarea
                         className={this.state.validationFailed == "both" || this.state.validationFailed == "summary" ? "error" : ""}
                         rows="3"
-                        maxLength="280"
+                        maxLength="281"
                         placeholder="Write a short description of your sheet..."
                         value={this.state.summary} onChange={this.handleSummaryChange}></textarea>
                       <p className={"smallText"}><InterfaceText>Topics</InterfaceText></p>
