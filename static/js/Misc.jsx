@@ -2117,7 +2117,7 @@ class FeedbackBox extends Component {
 
              <div className="button" role="button" onClick={() => this.sendFeedback()}>
                  <span className="int-en">Submit</span>
-                 <span className="int-he">שלח</span>
+                 <span className="int-he">שליחה</span>
              </div>
         </div>
     );
