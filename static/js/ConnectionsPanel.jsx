@@ -1117,7 +1117,7 @@ class AdvancedToolsList extends Component {
 
     return (
       <div>
-        <ToolsButton en="Add Translation" he="הוספת תרגום תרגום" image="tools-translate.svg" onClick={addTranslation} />
+        <ToolsButton en="Add Translation" he="הוספת תרגום" image="tools-translate.svg" onClick={addTranslation} />
         <ToolsButton en="Add Connection" he="הוספת קישור לטקסט אחר" image="tools-add-connection.svg" onClick={() => !Sefaria._uid  ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Add Connection")} />
         { editText ? (<ToolsButton en="Edit Text" he="עריכת טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
       </div>);
