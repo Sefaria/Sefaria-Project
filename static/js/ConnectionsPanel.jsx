@@ -281,7 +281,7 @@ class ConnectionsPanel extends Component {
         audio: Sefaria.mediaByRef(this.props.srefs).length,
         topics: Sefaria.topicsByRefCount(this.props.srefs),
         manuscripts: Sefaria.manuscriptsByRef(this.props.srefs).length,
-        translations: this.state.availableVersions.length, //versions dont come from the related api, so this one looks a bit different than the others. 
+        translations: this.state.availableVersions.length, //versions dont come from the related api, so this one looks a bit different than the others.
       }
       let toolsButtonsCounts = {
         notes: Sefaria.notesTotalCount(this.props.srefs),
