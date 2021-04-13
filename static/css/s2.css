@@ -3760,9 +3760,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   direction: ltr;
 }
 .interface-english .readerPanel.hebrew .textRange,
-.interface-english .readerPanel.hebrew .categoryFilterGroup,
-.interface-english .readerPanel.hebrew .tocContent,
-.interface-english .readerPanel.hebrew .toolsButton:not(.sans){
+/*.interface-english .readerPanel.hebrew .categoryFilterGroup,*/
+.interface-english .readerPanel.hebrew .tocContent{
   direction: rtl;
 }
 .basetext .text, .sheetContent .text {
@@ -4506,6 +4505,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
   background-color: var(--category-color);
 }
+.expandSummaries .toolsButton,
+.otherText .toolsButton{
+  font-size: 18px;
+}
 .collapseSummaries .toolsButton{
   margin-inline-start: 60px;
   font-style: normal;
@@ -4519,7 +4522,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 10px;
   width: 10px;
 }
-.collapseSummaries .toolsButtonI .toolsButtonText{
+.collapseSummaries .toolsButton .toolsButtonText{
   margin-inline-start: 5px;
 }
 .categoryFilter:not(.withBooks) .filterText{
@@ -5195,6 +5198,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 16px;
   letter-spacing: 1px;
   margin: 20px 34px;
+  align-items: center;
 }
 .toolsButton .toolsButtonText .connectionsCount::before{
   content: " ";
@@ -5270,8 +5274,22 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
   color: inherit;
 }
-.toolsButton.sans .en {
+.toolsButton.systemTypeface .toolsButtonText span.int-en,
+.toolsButton.systemTypeface .toolsButtonText span.en{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.toolsButton.textTypeface .toolsButtonText span.int-en,
+.toolsButton.textTypeface .toolsButtonText span.en{
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.toolsButton.systemTypeface .toolsButtonText span.int-he,
+.toolsButton.systemTypeface .toolsButtonText span.he{
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.toolsButton.textTypeface .toolsButtonText span.int-he,
+.toolsButton.textTypeface .toolsButtonText span.he{
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  font-size: 122%;
 }
 .toolsButton .toolsButtonIcon {
   color: #999;

@@ -856,7 +856,11 @@ class ConnectionsSummary extends Component {
     }.bind(this));
     // add the "Other Text" Button
     if (this.props.multiPanel && isTopLevel){
-        connectionsSummary.push(<ToolsButton en="Other Text" he="טקסט נוסף" image="compare.svg" onClick={this.props.openComparePanel} control="content" />);
+        connectionsSummary.push(
+            <span className="otherText">
+                <ToolsButton en="Other Text" he="טקסט נוסף" image="compare.svg" onClick={this.props.openComparePanel} control="content" typeface="text" />
+            </span>
+        );
     }
     let summaryToggle = null;
     if(isTopLevel && connectionsSummary.length > collapsedTopLevelLimit){
@@ -864,13 +868,13 @@ class ConnectionsSummary extends Component {
             connectionsSummary = connectionsSummary.slice(0,3) //get the first 3 items
             summaryToggle = (
                 <span className="expandSummaries" role="button">
-                    <ToolsButton en="More" he="עוד" image="more.svg" onClick={this.props.toggleTopLevelCollapsed} control="content" />
+                    <ToolsButton en="More" he="עוד" image="more.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" typeface="text" />
                 </span>
             );
         }else{
             summaryToggle = (
                 <span className="collapseSummaries" role="button" onClick={this.props.toggleTopLevelCollapsed}>
-                    <ToolsButton en="See Less" he="פחות" image="less.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" />
+                    <ToolsButton en="See Less" he="פחות" image="less.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" typeface="system" />
                 </span>
             )
         }
@@ -1128,7 +1132,7 @@ AdvancedToolsList.propTypes = {
 };
 
 
-const ToolsButton = ({en, he, icon, image, count, onClick, control="interface", displayCriteria = true}) => {
+const ToolsButton = ({en, he, icon, image, count, onClick, control="interface", typeface="system", displayCriteria = true}) => {
     const clickHandler = (e) => {
         e.preventDefault();
         onClick();
@@ -1144,7 +1148,7 @@ const ToolsButton = ({en, he, icon, image, count, onClick, control="interface", 
       iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt="" />);
     }
     const url = Sefaria.util.replaceUrlParam("with", en);
-    const wrapperClasses = classNames({toolsButton: 1, sans: control == "interface", noselect: 1})
+    const wrapperClasses = classNames({toolsButton: 1, [control+"Control"]: 1, [typeface+"Typeface"]: 1, noselect: 1})
     return (
       displayCriteria ?
       <a href={url} className={wrapperClasses} data-name={en} onClick={clickHandler}>
@@ -1163,7 +1167,6 @@ ToolsButton.propTypes = {
   image:   PropTypes.string,
   count:   PropTypes.number,
   onClick: PropTypes.func,
-  persistOnEmpty: PropTypes.bool
 };
 
 
