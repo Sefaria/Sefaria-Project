@@ -1919,6 +1919,11 @@ a.navBlockTitle {
 .homepage .readingLinks a .int-he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
+.homepage .calendarDate {
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 15px;
+}
 .homepage .headerBordered h2 {
   padding-bottom: 20px;
   border-bottom: 1px solid #CCC;

@@ -38,22 +38,38 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories, initialWidth}) => {
           <div className="contentInner mainColumn">
             <h2><InterfaceText>The Torah Portion</InterfaceText></h2>
             <ResponsiveNBox content={[
-              <AboutParashah parashahTopic={Sefaria.homepage.parashah.parashahTopic} />,
+              <AboutParashah parashahTopic={Sefaria.homepage.parashah.topic} />,
               <FeaturedSheet {...Sefaria.homepage.parashah.sheet} />
             ]} initialWidth={initialWidth} />
             
-            <h2><InterfaceText>Upcoming Holidays</InterfaceText></h2>
-            <ResponsiveNBox content={[
-              <AboutHoliday {...Sefaria.homepage.holiday.holidayTopic} />,
-              <FeaturedSheet {...Sefaria.homepage.holiday.sheet} />
-            ]} initialWidth={initialWidth} />
-
-            <div className="headerBordered">
-              <h2><InterfaceText>{Sefaria.homepage.featured.heading}</InterfaceText></h2>
+            {Sefaria.homepage.calendar ?
+            <div>
+              <h2><InterfaceText>The Jewish Calendar</InterfaceText></h2>
               <ResponsiveNBox content={[
-                <FeaturedSheet {...Sefaria.homepage.featured.sheet} />
+                <AboutHoliday {...Sefaria.homepage.calendar.topic} />,
+                <FeaturedSheet {...Sefaria.homepage.calendar.sheet} />
               ]} initialWidth={initialWidth} />
             </div>
+            : null }
+
+            {Sefaria.homepage.discover ?
+            <div>
+              <h2><InterfaceText>Discover Talmud</InterfaceText></h2>
+              <ResponsiveNBox content={[
+                <AboutDiscover discoverContent={Sefaria.homepage.discover.about} />,
+                <FeaturedSheet {...Sefaria.homepage.discover.sheet} />
+              ]} initialWidth={initialWidth} />
+            </div>
+            : null }
+
+            {Sefaria.homepage.featured ? 
+            <div className="headerBordered">
+              <h2><InterfaceText>{Sefaria.homepage.featured.heading}</InterfaceText></h2>
+              <NBox content={[
+                <FeaturedSheet {...Sefaria.homepage.featured.sheet} />
+              ]} n={1} />
+            </div>
+            : null }
             
             <RecenltyPublished />
 
@@ -102,12 +118,15 @@ const AboutParashah = ({parashahTopic}) => {
 };
 
 
-const AboutHoliday = ({primaryTitle, description, slug, readings}) => {
+const AboutHoliday = ({primaryTitle, description, slug, date, readings}) => {
   return (
     <div className="navBlock" >
       <a href={`/topics/${slug}`} className="navBlockTitle">
         <InterfaceText text={primaryTitle} />
-      </a>       
+      </a>
+      <div className="calendarDate">
+        <InterfaceText>{date}</InterfaceText>
+      </div>
       <div className="navBlockDescription">
         <InterfaceText text={description} />
       </div>
@@ -125,6 +144,35 @@ const AboutHoliday = ({primaryTitle, description, slug, readings}) => {
           </div>)
         )}
       </div> }
+    </div>
+  )
+};
+
+
+const AboutDiscover = ({discoverContent}) => {
+  const {title, description, ref} = discoverContent;
+  const cat   = Sefaria.refCategories(ref.url)[0]; 
+  const style = {"borderColor": Sefaria.palette.categoryColor(cat)};
+
+  return (
+    <div className="navBlock withColorLine" style={style}>
+      <a href={`/topics/${ref.url}`} className="navBlockTitle">
+        <InterfaceText>{title}</InterfaceText>
+      </a>
+      <div className="navBlockDescription">
+        <InterfaceText>{description}</InterfaceText>
+      </div>
+      <div className="readingLinks">
+        <div className="readingLinksHeader">
+          <InterfaceText>Readings</InterfaceText>
+        </div>
+          <div className="calendarRef" key={ref.url}>
+            <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
+            <a href={`/${ref.url}`} className="">
+              <InterfaceText text={ref} />
+           </a> 
+          </div>
+      </div>
     </div>
   )
 };

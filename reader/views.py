@@ -56,6 +56,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
+from sefaria.helper.homepage import get_homepage_items
 from sefaria.system.database import db
 
 if USE_VARNISH:
@@ -3609,86 +3610,7 @@ def home(request):
 
 def new_home_redirect(request):
     """ Redirect old /new-home urls to / """
-    return redirect("/")
-
-
-def get_homepage_items():
-    import random
-    from sefaria.helper.topic import get_topic_by_parasha
-    parashah = get_todays_parasha()
-    parashah_topic = get_topic_by_parasha(parashah["parasha"])
-    if parashah_topic:
-        parashah_sheet = get_featured_sheet_from_topic(parashah_topic.slug)
-    else:
-        parashah_sheet = get_featured_sheet_from_ref(parashah["ref"])
-    parashah_sheet["heading"] = "On " + parashah["parasha"]
-
-
-    holiday_topic = Topic().load({"slug": "sefirat-haomer"}).contents()
-    holiday_topic["readings"] = [{
-        "url": "Pirkei_Avot",
-        "en": "Pirkei Avot",
-        "he": "Pirkei Avot"        
-    }]
-    holiday_sheet = get_featured_sheet_from_topic("sefirat-haomer")
-    holiday_sheet["heading"] = "On Sefirat Ha'Omer"
-
-    featured_collections = (
-        ("Discover Talmud", "bronfman-fellowship"),
-        ("New on Sefaria", "the-sefaria-blog")
-    )
-    featured = random.choice(featured_collections)
-    featured_sheet = get_featured_sheet_from_collection(featured[1])
-
-    return {
-        "parashah": {
-            "parashahTopic": parashah_topic.contents(),
-            "sheet": parashah_sheet
-        },
-        "holiday": {
-            "holidayTopic": holiday_topic,
-            "sheet": holiday_sheet,
-        },
-        "featured": {
-            "heading": featured[0],
-            "sheet": featured_sheet,
-        },
-    }
-
-
-def get_featured_sheet_from_collection(collection):
-    import random
-    collection = Collection().load({"slug": collection})
-    if not collection:
-        return None
-
-    sheets = collection.sheet_contents()
-
-    return random.choice(sheets) if len(sheets) else None
-
-
-def get_featured_sheet_from_topic(slug):
-    import random
-    from sefaria.sheets import sheet_list
-    from sefaria.model.topic import RefTopicLinkSet
-    sheet_links = RefTopicLinkSet({"is_sheet": True, "toTopic": slug})
-    sids = [int(s.ref.replace("Sheet ", "")) for s in sheet_links]
-    if not len(sids):
-        return None
-
-    sheets = sheet_list({
-        "id": {"$in": sids},
-        "summary": {"$exists": 1},
-    })
-    sheets = [s for s in sheets if not is_hebrew(s["title"]) and s["summary"] and len(s["summary"]) > 140]
-    return random.choice(sheets)
-
-
-def get_featured_sheet_from_ref(ref):
-    import random
-    sheets = get_sheets_for_ref(ref)
-    sheets = [s for s in sheets if not is_hebrew(s["title"]) and s["summary"] and len(s["summary"]) > 140]
-    return random.choice(sheets)      
+    return redirect("/")    
 
 
 @ensure_csrf_cookie
