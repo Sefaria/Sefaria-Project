@@ -9380,6 +9380,33 @@ a.topicLexiconTitle.contentText {
     text-align: center;
   }
 }
+#homepagePreviewControls {
+  position: fixed;
+  width: 370px;
+  bottom: 0;
+  right: 0;
+  color: white;
+  z-index: 9999;
+  background-color: #18345D;
+  padding: 20px;
+  line-height: 1.6;
+  text-align: center;
+  border: 1px solid #ccc;
+}
+.interface-hebrew #homepagePreviewControls {
+  right: auto;
+  left: 0;
+}
+#homepagePreviewControls a.date {
+  display: block;
+  font-size: 22px;
+}
+#homepagePreviewControls a {
+  margin-inline-end: 10px;
+}
+#homepagePreviewControls a:hover {
+  color: inherit;
+}
 /* Customize checkmark inputs */
 .checkmarkLabel {
   display: block;

@@ -21,6 +21,7 @@ import {
   SignUpModal,
   InterruptingMessage,
   CookiesNotification,
+  HomepagePreviewControls,
 } from './Misc';
 import Component from 'react-class';
 
@@ -1793,6 +1794,8 @@ class ReaderApp extends Component {
     const sefariaModal = (
       <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
     );
+    const homepagePreviewControls = this.props.homepagePreview ? 
+      <HomepagePreviewControls date={this.props.homepagePreview} /> : null;
 
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
@@ -1804,6 +1807,7 @@ class ReaderApp extends Component {
                 {header}
                 {panels}
                 {sefariaModal}
+                {homepagePreviewControls}
                 <CookiesNotification />
               </div>
             </div>);

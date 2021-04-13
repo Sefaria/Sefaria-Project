@@ -39,7 +39,7 @@ def cache_get_key(*args, **kwargs):
     return key
 
 
-def django_cache(action="get", timeout=None, cache_key='', cache_prefix = None, default_on_miss = False, default_on_miss_value=None, cache_type=None):
+def django_cache(action="get", timeout=None, cache_key='', cache_prefix=None, default_on_miss=False, default_on_miss_value=None, cache_type=None):
     """
     Easily add caching to a function in django
     """

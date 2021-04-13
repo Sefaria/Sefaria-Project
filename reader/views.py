@@ -72,7 +72,7 @@ logger.warning("Initializing TOC Tree")
 library.get_toc_tree()
 
 
-""" """
+"""
 logger.warning("Initializing Full Auto Completer")
 library.build_full_auto_completer()
 
@@ -87,7 +87,7 @@ library.build_cross_lexicon_auto_completer()
 
 logger.warning("Initializing Shared Cache")
 library.init_shared_cache()
-""" """
+"""
 
 if server_coordinator:
     server_coordinator.connect()
@@ -981,8 +981,6 @@ def canonical_url(request):
         # Default params for texts, text toc, and text category
         path = re.sub("\?lang=bi(&aliyot=0)?$", "", path)
 
-    path = re.sub("\?home$", "", path) # remove param to force homepage load
-
     path = "" if path == "/" else path
     return host + path
 
@@ -1187,8 +1185,8 @@ def interface_language_redirect(request, language):
     Set the interfaceLang cookie, saves to UserProfile (if logged in)
     and redirects to `next` url param.
     """
-    next = request.GET.get("next", "/?home")
-    next = "/?home" if next == "undefined" else next
+    next = request.GET.get("next", "/")
+    next = "/" if next == "undefined" else next
 
     for domain in DOMAIN_LANGUAGES:
         if DOMAIN_LANGUAGES[domain] == language and not request.get_host() in domain:
@@ -3606,6 +3604,28 @@ def home(request):
     desc  = _( "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
 
     return menu_page(request, page="home", title=title, desc=desc)
+
+
+@staff_member_required
+def homepage_preview(request):
+    """
+    Preview the homepage as it will appear at some date in the future
+    """
+    date = request.GET.get("date")
+    homepage = get_homepage_items(date=date)
+
+    return menu_page(request, page="home", props={"homepage": homepage, "homepagePreview": date})
+
+
+@staff_member_required
+def homepage_reset(request):
+    """
+    Reset the cache of the homepage content from Google sheet
+    """
+    date = request.GET.get("next", None)
+    homepage = get_homepage_items(date=date, refresh=True)
+
+    return menu_page(request, page="home", props={"homepage": homepage, "homepagePreview": date})
 
 
 def new_home_redirect(request):

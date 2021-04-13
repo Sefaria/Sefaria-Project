@@ -2161,6 +2161,46 @@ class CookiesNotification extends Component {
 }
 
 
+const HomepagePreviewControls = ({date}) => {
+
+  const dateStr = (date, offset) => {
+    const d = new Date(date);
+    d.setDate(d.getDate() + offset)
+
+    return (
+      (d.getMonth() + 1) + "/" +
+      d.getDate() + "/" +
+      d.getFullYear().toString().slice(2)
+    );
+  };
+
+  const tomorrow = dateStr(date, 1);
+  const yesterday = dateStr(date, -1)
+
+  return (
+    <div id="homepagePreviewControls">
+      <InterfaceText>You are previewing the homepage for </InterfaceText>
+      <a className="date" href={"/admin/homepage-preview?date=" + date}>
+        <InterfaceText>{date}</InterfaceText>
+      </a>
+      <div>
+        <a href={"/admin/homepage-preview?date=" + yesterday}>
+          <InterfaceText>{"« " + yesterday}</InterfaceText>
+        </a>
+        <a href={"/admin/homepage-preview?date=" + tomorrow}>
+          <InterfaceText>{tomorrow + " »"}</InterfaceText>
+        </a>
+      </div>
+      <div>
+        <a href={"/admin/reset/homepage?next=" + date}>
+          <InterfaceText>Refresh Cache</InterfaceText>
+        </a>
+      </div>
+    </div>
+  );
+};
+
+
 const SheetTitle = (props) => (
         <span className="title"
              role="heading"
@@ -2236,6 +2276,7 @@ export {
   ContentText,
   EnglishText,
   HebrewText,
+  HomepagePreviewControls,
   LanguageToggleButton,
   Link,
   LoadingMessage,

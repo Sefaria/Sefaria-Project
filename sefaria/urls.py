@@ -290,7 +290,7 @@ urlpatterns += [
     url(r'^random/link$',        reader_views.random_redirect),
     url(r'^random/?$',           reader_views.random_text_page),
     url(r'^daf-roulette/?$',     reader_views.daf_roulette_redirect),
-    url(r'^chavruta/?$',     reader_views.chevruta_redirect),
+    url(r'^chavruta/?$',         reader_views.chevruta_redirect),
 ]
 
 # Registration
@@ -375,6 +375,7 @@ urlpatterns += [
     url(r'^admin/reset/toc$', sefaria_views.rebuild_toc),
     url(r'^admin/reset/ac$', sefaria_views.rebuild_auto_completer),
     url(r'^admin/reset/api/(?P<apiurl>.+)$', sefaria_views.reset_cached_api),
+    url(r'^admin/reset/homepage$', reader_views.homepage_reset),
     url(r'^admin/reset/(?P<tref>.+)$', sefaria_views.reset_ref),
     url(r'^admin/delete/orphaned-counts', sefaria_views.delete_orphaned_counts),
     url(r'^admin/rebuild/auto-links/(?P<title>.+)$', sefaria_views.rebuild_auto_links),
@@ -391,6 +392,7 @@ urlpatterns += [
     url(r'^admin/spam', sefaria_views.spam_dashboard),
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
+    url(r'^admin/homepage-preview', reader_views.homepage_preview),
     url(r'^admin/?', include(admin.site.urls)),
 ]
 
