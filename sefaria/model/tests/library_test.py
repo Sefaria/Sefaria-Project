@@ -96,7 +96,7 @@ class Test_get_refs_in_text(object):
     def test_ranged_ref(self, citing_only):
         trefs = ["Deuteronomy 23:8-9", "Job.2:3-3:1", "Leviticus 15:3 - 17:12", "Shabbat 15a-16b",
                  "Shabbat 15a:15-15b:13", "Shabbat 15a:10-13", "Rashi on Exodus 3:1-3:10", "Rashi on Exodus 3:1:1-3:1:3",
-                 "Rashi on Exodus 3:1:1-1:3", "Rashi on Exodus 3:1:1-3"]
+                 "Rashi on Exodus 3:1:1-1:3", "Rashi on Exodus 3:1:1-3", "Berakhot 3a-b"]
         test_strings = [
             "I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
             temp_tref in trefs
@@ -106,7 +106,7 @@ class Test_get_refs_in_text(object):
             assert matched_refs == [Ref(trefs[i])]
 
     def test_ranged_ref_not_cited(self):
-        trefs = ["Rashi on Shabbat 15a:10-13", "Shulchan Arukh, Orach Chayim 444:4–6"] # NOTE the m-dash in the Shulchan Arukh ref
+        trefs = ["Berakhot 2a-b", "Rashi on Shabbat 15a:10-13", "Shulchan Arukh, Orach Chayim 444:4–6"] # NOTE the m-dash in the Shulchan Arukh ref
         test_strings = [
             "I am going to quote a range. hopefully you can parse it. ({}) plus some other stuff.".format(temp_tref) for
             temp_tref in trefs
@@ -482,6 +482,46 @@ class Test_Term_Map(object):
         # Delete term causes cache refresh
         Term().load({"name": 'New Term'}).delete()
         assert old != library.get_simple_term_mapping()
+
+
+class TestNamedEntityWrapping:
+    @staticmethod
+    def make_ne_link(slug, ref, start, end, vtitle, lang, text):
+        link = RefTopicLink({
+            "toTopic": slug,
+            "dataSource": "sefaria",
+            "ref": ref,
+            "linkType": "mention",
+            "class": "refTopic",
+            "is_sheet": False,
+            "expandedRefs": [ref],  # assuming all ne links are to segment ref
+            "charLevelData": {
+                "startChar": start,
+                "endChar": end,
+                "versionTitle": vtitle,
+                "language": lang,
+                "text": text
+            }
+        })
+        return link
+
+    def test_get_wrapped_named_entities_string(self):
+        import re
+        text = "A blah. BBB yoyo and C"
+        links = [self.make_ne_link(m.group().lower(), 'Genesis 1:1', m.start(), m.end(), '1', 'en', m.group()) for m in re.finditer(r'[A-Z]+', text)]
+        wrapped = library.get_wrapped_named_entities_string(links, text)
+        wrapped_comp = """<a href="/topics/a" class="namedEntityLink" data-slug="a">A</a> blah. <a href="/topics/bbb" class="namedEntityLink" data-slug="bbb">BBB</a> yoyo and <a href="/topics/c" class="namedEntityLink" data-slug="c">C</a>"""
+        assert wrapped == wrapped_comp
+
+    def test_get_wrapped_named_entities_string_text_mismatch(self):
+        import re
+        text = "A blah. BBB yoyo and C"
+        links = [self.make_ne_link(m.group().lower(), 'Genesis 1:1', m.start(), m.end(), '1', 'en', m.group()) for m in re.finditer(r'[A-Z]+', text)]
+        links[0].charLevelData['startChar'] += 1  # manual offset to make text mismatch
+        links[0].charLevelData['endChar'] += 1
+        wrapped = library.get_wrapped_named_entities_string(links, text)
+        wrapped_comp = """A blah. <a href="/topics/bbb" class="namedEntityLink" data-slug="bbb">BBB</a> yoyo and <a href="/topics/c" class="namedEntityLink" data-slug="c">C</a>"""
+        assert wrapped == wrapped_comp
 
 
 def test_get_en_text_titles():

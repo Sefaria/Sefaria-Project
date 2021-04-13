@@ -18,6 +18,7 @@ from django.shortcuts import render, redirect
 from django.template.loader import render_to_string
 from django.template.response import TemplateResponse
 from django.utils.http import is_safe_url
+from django.utils.cache import patch_cache_control
 from django.contrib.auth import authenticate
 from django.contrib.auth import REDIRECT_FIELD_NAME, login as auth_login, logout as auth_logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
@@ -39,7 +40,7 @@ from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
 from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
-from sefaria.model.group import GroupSet
+from sefaria.model.collection import CollectionSet
 from sefaria.export import export_all as start_export_all
 from sefaria.datatype.jagged_array import JaggedTextArray
 # noinspection PyUnresolvedReferences
@@ -54,12 +55,15 @@ from sefaria.search import index_sheets_by_timestamp as search_index_sheets_by_t
 from sefaria.model import *
 from sefaria.system.multiserver.coordinator import server_coordinator
 
+from reader.views import render_template
+
+
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 def process_register_form(request, auth_method='session'):
@@ -72,9 +76,7 @@ def process_register_form(request, auth_method='session'):
                                 password=form.cleaned_data['password1'])
             p = UserProfile(id=user.id)
             p.assign_slug()
-            p.join_invited_groups()
-            if PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE:
-                p.add_partner_group_by_email()
+            p.join_invited_collections()
             if hasattr(request, "interfaceLang"):
                 p.settings["interface_language"] = request.interfaceLang
 
@@ -124,20 +126,19 @@ def register(request):
         else:
             form = SefariaNewUserForm()
 
-    return render(request, "registration/register.html", {'form': form, 'next': next})
+    return render_template(request, "registration/register.html", None, {'form': form, 'next': next})
 
 
 def maintenance_message(request):
-    resp = render(request,"static/maintenance.html",
-                                {"message": MAINTENANCE_MESSAGE})
-    resp.status_code = 503
+    resp = render_template(request,"static/maintenance.html", None, {"message": MAINTENANCE_MESSAGE}, status=503)
     return resp
 
 
 def accounts(request):
-    return render(request,"registration/accounts.html",
-                                {"createForm": UserCreationForm(),
-                                "loginForm": AuthenticationForm()})
+    return render_template(request,"registration/accounts.html", None, {
+        "createForm": UserCreationForm(),
+        "loginForm": AuthenticationForm()
+    })
 
 
 def subscribe(request, email):
@@ -154,6 +155,13 @@ def subscribe(request, email):
         return jsonResponse({"status": "ok"})
     else:
         return jsonResponse({"error": _("Sorry, there was an error.")})
+
+
+def unlink_gauth(request):
+    profile = UserProfile(id=request.user.id)
+    profile.update({"gauth_token": None})
+    profile.save()
+    return redirect(f"/profile/{profile.slug}")
 
 
 def generate_feedback(request):
@@ -195,7 +203,12 @@ def data_js(request):
     """
     Javascript populating dynamic data like book lists, toc.
     """
-    return render(request, "js/data.js", content_type="text/javascript")
+    response = render(request, "js/data.js", content_type="text/javascript; charset=utf-8")
+    patch_cache_control(response, max_age=31536000, immutable=True)
+    # equivalent to: response['Cache-Control'] = 'max-age=31536000, immutable'
+    # cache for a year (cant cache indefinitely) and mark immutable so browser cache never revalidates.
+    # This saves any roundtrip to the server untill the data.js url is changed upon update.
+    return response
 
 
 def sefaria_js(request):
@@ -212,7 +225,7 @@ def sefaria_js(request):
         "sefaria_js": sefaria_js,
     }
 
-    return render(request, "js/sefaria.js", attrs, content_type= "text/javascript")
+    return render(request, "js/sefaria.js", attrs, content_type= "text/javascript; charset=utf-8")
 
 def chavruta_js(request):
     """
@@ -229,7 +242,7 @@ def chavruta_js(request):
     }
 
 
-    return render(request, "js/chavruta.js", attrs, content_type="text/javascript")
+    return render(request, "js/chavruta.js", attrs, content_type="text/javascript; charset=utf-8")
 
 
 
@@ -243,10 +256,10 @@ def linker_js(request, linker_version=None):
 
     attrs = {
         "book_titles": json.dumps(model.library.citing_title_list("en")
-                      + model.library.citing_title_list("he"))
+                      + model.library.citing_title_list("he"), ensure_ascii=False)
     }
 
-    return render(request, linker_link, attrs, content_type = "text/javascript")
+    return render(request, linker_link, attrs, content_type = "text/javascript; charset=utf-8")
 
 
 def title_regex_api(request, titles):
@@ -441,6 +454,7 @@ def reset_index_cache_for_text(request, title):
 
     index = model.library.get_index(title)
     model.library.refresh_index_record_in_cache(index)
+    model.library.reset_text_titles_cache()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "refresh_index_record_in_cache", [index.title])
@@ -544,15 +558,6 @@ def rebuild_auto_completer(request):
     return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 
 
-'''
-# No usages found
-@staff_member_required
-def rebuild_counts_and_toc(request):
-    model.refresh_all_states()
-    return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
-'''
-
-
 @staff_member_required
 def reset_varnish(request, tref):
     if USE_VARNISH:
@@ -575,6 +580,7 @@ def reset_ref(request, tref):
     oref = model.Ref(tref)
     if oref.is_book_level():
         model.library.refresh_index_record_in_cache(oref.index)
+        model.library.reset_text_titles_cache()
         vs = model.VersionState(index=oref.index)
         vs.refresh()
         model.library.update_index_in_toc(oref.index)
@@ -665,6 +671,16 @@ def cause_error(request):
     erorr = error
     return jsonResponse(resp)
 
+@staff_member_required
+def account_stats(request):
+    from django.contrib.auth.models import User
+    from sefaria.stats import account_creation_stats
+
+    html = account_creation_stats()
+    html += "\n\nTotal Accounts: {}".format(User.objects.count())
+
+    return HttpResponse("<pre>" + html + "<pre>")
+
 
 @staff_member_required
 def sheet_stats(request):
@@ -675,7 +691,21 @@ def sheet_stats(request):
     html += "Public Sheets: %d\n" % db.sheets.find({"status": "public"}).count()
 
 
-    html += "\nUnique Source Sheet creators per month:\n\n"
+    html += "\n\nYearly Totals Sheets / Public Sheets / Sheet Creators:\n\n"
+    start = datetime.today().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    years = 4
+    for i in range(years):
+        end      = start
+        start    = end - relativedelta(years=1)
+        query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
+        cursor   = db.sheets.find(query)
+        total    = cursor.count()
+        creators = len(cursor.distinct("owner"))
+        query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}, "status": "public"}
+        ptotal   = db.sheets.find(query).count()
+        html += "{}: {} / {} / {}\n".format(start.strftime("%Y"), total, ptotal, creators)
+
+    html += "\n\nUnique Source Sheet creators per month:\n\n"
     start = datetime.today().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     months = 30
     for i in range(months):
@@ -738,12 +768,12 @@ def spam_dashboard(request):
 
         db.sheets.delete_many({"id": {"$in": spam_sheet_ids}})
 
-        return render(request, 'spam_dashboard.html',
-                      {"deleted_sheets": len(spam_sheet_ids),
-                       "sheet_ids": spam_sheet_ids,
-                       "reviewed_sheets": len(reviewed_sheet_ids),
-                       "spammers_deactivated": len(spammers)
-                       })
+        return render_template(request, 'spam_dashboard.html', None, {
+            "deleted_sheets": len(spam_sheet_ids),
+            "sheet_ids": spam_sheet_ids,
+            "reviewed_sheets": len(reviewed_sheet_ids),
+            "spammers_deactivated": len(spammers)
+        })
 
     else:
         date = request.GET.get("date", None)
@@ -764,10 +794,10 @@ def spam_dashboard(request):
         for sheet in sheets:
             sheets_list.append({"id": sheet["id"], "title": strip_tags(sheet["title"]), "owner": user_link(sheet["owner"])})
 
-        return render(request, 'spam_dashboard.html',
-                      {"title": "Potential Spam Sheets since %s" % date.strftime("%Y-%m-%d"),
-                       "sheets": sheets_list,
-                       })
+        return render_template(request, 'spam_dashboard.html', None, {
+            "title": "Potential Spam Sheets since %s" % date.strftime("%Y-%m-%d"),
+            "sheets": sheets_list,
+        })
 
 @staff_member_required
 def versions_csv(request):
@@ -807,7 +837,7 @@ def core_link_stats(request):
 def run_tests(request):
     # This was never fully developed, methinks
     from subprocess import call
-    from .local_settings import DEBUG
+    from .settings import DEBUG
     if not DEBUG:
         return
     call(["/var/bin/run_tests.sh"])
@@ -972,7 +1002,10 @@ def compare(request, secRef=None, lang=None, v1=None, v2=None):
     if v2:
         v2 = v2.replace("_", " ")
 
-    return render(request,'compare.html', {"JSON_PROPS": json.dumps({
-        'secRef': secRef,
-        'v1': v1, 'v2': v2,
-        'lang': lang,})})
+    return render_template(request,'compare.html', None, {
+        "JSON_PROPS": json.dumps({
+            'secRef': secRef,
+            'v1': v1, 'v2': v2,
+            'lang': lang,
+        })
+    })

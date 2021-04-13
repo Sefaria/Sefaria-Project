@@ -6,11 +6,13 @@ import {
   TextBlockLink,
   LanguageToggleButton,
   LoadingMessage,
+  InterfaceText,
 } from './Misc';
 import React  from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
+import MobileHeader from './MobileHeader';
 import Footer  from './Footer';
 import Component from 'react-class';
 
@@ -45,11 +47,13 @@ class UserHistoryPanel extends Component {
       });
     }
   }
-  navHome() {
-    this.props.openNav();
-  }
   render() {
-    const content = !!this.state.items ?
+    const content = (this.props.menuOpen === 'history' && !Sefaria.is_history_enabled) ? (
+        <div id="history-disabled-msg">
+          <span className="int-en">Reading history is currently disabled. You can re-enable this feature in your <a href="/settings/account">account settings</a>.</span>
+          <span className="int-he">היסטורית קריאה כבויה כרגע. ניתן להפעילה מחדש במסך <a href="/settings/account">ההגדרות</a>.</span>
+        </div>
+    ) : !!this.state.items ?
       this.state.items.reduce((accum, curr, index) => (  // reduce consecutive history items with the same ref
         (!accum.length || curr.ref !== accum[accum.length-1].ref) ? accum.concat([curr]) : accum
       ), [])
@@ -71,7 +75,7 @@ class UserHistoryPanel extends Component {
     ) : (<LoadingMessage />);
 
 
-    const title = this.props.menuOpen === "saved" ? Sefaria._("Saved") : Sefaria._("History");
+    const title = this.props.menuOpen === "saved" ? "Saved" : "History";
     const footer = this.props.compare ? null : <Footer />;
     const navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, noHeader: this.props.hideNavHeader, compare:this.props.compare, noLangToggleInHebrew: 1});
     const navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
@@ -79,20 +83,23 @@ class UserHistoryPanel extends Component {
     return (
       <div onClick={this.props.handleClick} className={navMenuClasses}>
         {this.props.hideNavHeader ? null :
-          <SinglePanelNavHeader
-            enTitle={title}
-            heTitle={title}
-            navHome={this.navHome}
-            showDisplaySettings={this.props.interfaceLang !== "hebrew"}
-            openDisplaySettings={this.props.openDisplaySettings}/>}
+        <MobileHeader
+          mode={"innerTOC"}
+          navHome={this.props.openNav}
+          catTitle={title}
+          heCatTitle={Sefaria._(title)}
+          interfaceLang={Sefaria.interfaceLang}
+          openDisplaySettings={this.props.openDisplaySettings}
+          showDisplaySettings={this.props.interfaceLang !== "hebrew"}
+          compare={this.props.compare}
+        />}
         <div className={contentClasses}>
           <div className="contentInner">
             {this.props.hideNavHeader ?
               <h1>
               {this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
-                <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null}
-              <span className="int-en">{ title }</span>
-              <span className="int-he">{ title }</span>
+              <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null}
+              <InterfaceText>{ title }</InterfaceText>
             </h1>
             : null }
             { content }

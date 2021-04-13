@@ -8,14 +8,14 @@ from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.model.topic import TopicLinkHelper
 from sefaria.system.database import db
-import logging
+import structlog
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
-def get_topic(topic, with_links, annotate_links, with_refs, group_related):
+def get_topic(topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters):
     topic_obj = Topic.init(topic)
-    response = topic_obj.contents()
+    response = topic_obj.contents(annotate_time_period=annotate_time_period)
     response['primaryTitle'] = {
         'en': topic_obj.get_primary_title('en'),
         'he': topic_obj.get_primary_title('he')
@@ -30,12 +30,13 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
         # can load faster by querying `topic_links` query just once
         all_links = topic_obj.link_set(_class=None)
         intra_links = [l.contents() for l in all_links if isinstance(l, IntraTopicLink)]
-        response['refs'] = [l.contents() for l in all_links if isinstance(l, RefTopicLink)]
+        response['refs'] = [l.contents() for l in all_links if isinstance(l, RefTopicLink) and (len(ref_link_type_filters) == 0 or l.linkType in ref_link_type_filters)]
     else:
         if with_links:
             intra_links = [l.contents() for l in topic_obj.link_set(_class='intraTopic')]
         if with_refs:
-            response['refs'] = [l.contents() for l in topic_obj.link_set(_class='refTopic')]
+            query_kwargs = {"linkType": {"$in": list(ref_link_type_filters)}} if len(ref_link_type_filters) > 0 else None
+            response['refs'] = [l.contents() for l in topic_obj.link_set(_class='refTopic', query_kwargs=query_kwargs)]
     if with_links:
         response['links'] = {}
         link_dups_by_type = defaultdict(set)  # duplicates can crop up when group_related is true
@@ -97,6 +98,15 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related):
                     subset_ref_map[seg_ref] += [len(new_refs) - 1]
 
         response['refs'] = new_refs
+    if getattr(topic_obj, 'isAmbiguous', False):
+        possibility_links = topic_obj.link_set(_class="intraTopic", query_kwargs={"linkType": TopicLinkType.possibility_type})
+        possibilities = []
+        for link in possibility_links:
+            possible_topic = Topic.init(link.topic)
+            if possible_topic is None:
+                continue
+            possibilities += [possible_topic.contents(annotate_time_period=annotate_time_period)]
+        response['possibilities'] = possibilities
     return response
 
 
@@ -755,11 +765,19 @@ def get_top_topic(sheet):
 
 
 def add_num_sources_to_topics():
-    updates = [{"numSources": RefTopicLinkSet({"toTopic": t.slug}).count(), "_id": t._id} for t in TopicSet()]
+    updates = [{"numSources": RefTopicLinkSet({"toTopic": t.slug, "linkType": {"$ne": "mention"}}).count(), "_id": t._id} for t in TopicSet()]
     db.topics.bulk_write([
         UpdateOne({"_id": t['_id']}, {"$set": {"numSources": t['numSources']}}) for t in updates
     ])
 
+
+def make_titles_unique():
+    ts = TopicSet()
+    for t in ts:
+        unique = {tuple(tit.values()): tit for tit in t.titles}
+        if len(unique) != len(t.titles):
+            t.titles = list(unique.values())
+            t.save()
 
 def get_ref_safely(tref):
     try:
@@ -795,3 +813,11 @@ def recalculate_secondary_topic_data():
         for l in (all_ref_links + related_links)
     ])
     add_num_sources_to_topics()
+    make_titles_unique()
+
+
+def set_all_slugs_to_primary_title():
+    # reset all slugs to their primary titles, if they have drifted away
+    # no-op if slug already corresponds to primary title
+    for t in TopicSet():
+        t.set_slug_to_primary_title()

@@ -3,9 +3,10 @@ import time
 
 from sefaria.settings import MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
 
+import structlog
 import logging
 logging.basicConfig()
-logger = logging.getLogger("multiserver")
+logger = structlog.get_logger(__name__)
 logger.setLevel(logging.INFO)
 
 from .messaging import MessagingNode
@@ -31,7 +32,11 @@ class MultiServerMonitor(MessagingNode):
 
         :return:
         """
-        msg = self.pubsub.get_message()
+        try:
+            msg = self.pubsub.get_message()
+        except Exception:
+            logger.error("Failed to connect to Redis instance while getting new message")
+            return
         if not msg:
             return
 
@@ -57,7 +62,11 @@ class MultiServerMonitor(MessagingNode):
         :return:
         """
         event_id = data["id"]
-        (_, subscribers) = self.redis_client.execute_command('PUBSUB', 'NUMSUB', MULTISERVER_REDIS_EVENT_CHANNEL)
+        try:
+            (_, subscribers) = self.redis_client.execute_command('PUBSUB', 'NUMSUB', MULTISERVER_REDIS_EVENT_CHANNEL)
+        except Exception:
+            logger.error("Failed to connect to Redis instance while getting subscriber count")
+            return
         expected = int(subscribers - 2)  # No confirms from the publisher or the monitor => subscribers - 2
         self.events[event_id] = {
             "data": data,

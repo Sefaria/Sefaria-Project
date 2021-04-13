@@ -8,8 +8,8 @@ from . import abstract as abst
 from . import text
 from sefaria.system.database import db
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class WebPage(abst.AbstractMongoRecord):
@@ -58,6 +58,7 @@ class WebPage(abst.AbstractMongoRecord):
         rewrite_rules = {
             "use https": lambda url: re.sub(r"^http://", "https://", url),
             "remove hash": lambda url: re.sub(r"#.+", "", url),
+            "remove url params": lambda url: re.sub(r"\?.+", "", url),
             "remove utm params": lambda url: re.sub(r"\?utm_.+", "", url),
             "remove fbclid param": lambda url: re.sub(r"\?fbclid=.+", "", url),
             "add www": lambda url: re.sub(r"^(https?://)(?!www\.)", r"\1www.", url),
@@ -83,6 +84,11 @@ class WebPage(abst.AbstractMongoRecord):
         because it matches a title/url we want to exclude or has no refs"""
         if len(self.refs) == 0:
             return True
+        if len(self.url.encode('utf-8')) > 1000:
+            # url field is indexed. Mongo doesn't allow indexing a field over 1000 bytes
+            from sefaria.system.database import db
+            db.webpages_long_urls.insert_one(self.contents())
+            return True
         url_regex = WebPage.excluded_pages_url_regex()
         title_regex = WebPage.excluded_pages_title_regex()
         return bool(re.search(url_regex, self.url) or re.search(title_regex, self.title))
@@ -90,7 +96,7 @@ class WebPage(abst.AbstractMongoRecord):
     @staticmethod
     def excluded_pages_url_regex():
         bad_urls = [
-            r"rabbisacks.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
+            r"rabbisacks\.org\/(.+\/)?\?s=",           # Rabbi Sacks search results
             r"halachipedia\.com\/index\.php\?search=", # Halachipedia search results
             r"halachipedia\.com\/index\.php\?diff=",   # Halachipedia diff pages
             r"myjewishlearning\.com\/\?post_type=evergreen", # These urls end up not working
@@ -98,6 +104,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"judaism\.codidact\.com\/.+\/history",
             r"judaism\.codidact\.com\/.+\/suggested-edit\/",
             r"judaism\.codidact\.com\/.+\/posts\/new\/",
+            r"judaism\.codidact\.com\/questions\/d+",  # these pages redirect to /posts
+            r"judaism\.codidact\.com\/users\/",
             r"jewishexponent\.com\/page\/\d",
             r"hebrewcollege\.edu\/blog\/(author\|category\|tag)\/",  # these function like indices of articles
             r"roshyeshivamaharat.org\/(author\|category\|tag)\/",
@@ -107,16 +115,53 @@ class WebPage(abst.AbstractMongoRecord):
             r"test\.hadran\.org\.il",
             r"www\.jtsa.edu\/search\/index\.php",
             r"jewschool\.com\/page\/",
-            r"truah.org\/\?s=",
-            r"truah.org\/(holiday|page|resource-types)\/",
+            r"truah\.org\/\?s=",
+            r"truah\.org\/(holiday|page|resource-types)\/",
             r"clevelandjewishnews\.com$",
-            r"clevelandjewishnews\.cpm\/news\/",
+            r"clevelandjewishnews\.com\/news\/",
+            r"ots\.org\.il\/news\/",
+            r"ots\.org\.il\/.+\/page\/\d+\/",
+            r"ots\.org\.il\/tag\/.+",
+            r"traditiononline\.org\/page\/\d+\/",
             r"toravoda\.org\.il\/%D7%90%D7%99%D7%A8%D7%95%D7%A2%D7%99%D7%9D-%D7%97%D7%9C%D7%95%D7%A4%D7%99\/",  # Neemanei Torah Vavoda list of past events
             r"929.org.il\/(lang\/en\/)?author/\d+$",  # Author index pages
+            r"rabbijohnnysolomon.com$",
+            r"rabbijohnnysolomon.com/shiurim/$",
+            r"rabbijohnnysolomon.com/shiurim/parasha/$",
+            r"rabbijohnnysolomon.com/shiurim/halacha/$",
             r"webcache\.googleusercontent\.com",
             r"translate\.googleusercontent\.com",
             r"dailympails\.gq\/",
             r"http:\/\/:localhost(:\d+)?",
+            r"jewfaq\.org\/search\.shtml", # Judaism 101, Search the Glossary and Index
+            r"avodah\.net\/(blog|category|tag)/",
+            r"hebrewcollege\.edu\/blog\/(author|tag)\/",
+            r"jewishideas\.org\/search\/",
+            r"jewishideas\.org\/articles\/",  # it seems you can write anything after articles/ and it leads to the same page?
+            r"jwa\.org\/encyclopedia\/author\/",  # tends to have articles by author that have snippets from article
+            r"jwa\.org\/encyclopedia\/content\/",
+            r"library\.yctorah\.org\/series\/",
+            r"reconstructingjudaism\.org\/taxonomy\/",
+            r"reconstructingjudaism\.org\/search\/",
+            r"askhalacha\.com\/?$",
+            r"askhalacha\.com\/qas\/?$",
+            r"yeshiva\.co\/?$",
+            r"yeshiva\.co\/404\/404.asp",
+            r"yeshiva\.co\/(ask|midrash)\/?$",
+            r"yeshiva\.co\/(calendar|tags|dedication|errorpage)\/?",  # it seems anything under calendar is not an article
+            r"yeshiva\.co\/midrash\/(category|rabbi)\/?",
+            r"mayim\.org\.il\/?$",
+            r"kabbalahoftime\.com\/?$",
+            r"kabbalahoftime\.com\/\d{4}\/?$",  # page that aggregates all articles for the year
+            r"kabbalahoftime\.com\/\d{4}\/\d{2}\/?$",  # page that aggregates all articles for the month
+            r"jewishcontemplatives\.blogspot\.com\/?$",
+            r"orayta\.org\/orayta-torah\/orayta-byte-parsha-newsletter",
+            r"jewishencyclopedia\.com\/(directory|contribs|search)",
+            r"orhalev\.org\/blogs\/parasha-and-practice\/?$",
+            r"orhalev\.org\/blogs\/tag\/",
+            r"talmudology\.com\/?$",
+            r"talmudology\.com\/[^\/]+$",  # seems everything at the top level is not an article
+            r"sephardi\.co\.uk\/(category|community|tag|test)\/",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -182,15 +227,15 @@ class WebPage(abst.AbstractMongoRecord):
         title = str(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
-        separators = ["-", "|", "—", "»", "•"]
-        for separator in separators:
+        separators = [("-", ' '), ("|", ' '), ("—", ' '), ("»", ' '), ("•", ' '), (":", '')]
+        for separator, padding in separators:
             for brand in brands:
                 if self._site_data.get("initial_title_branding", False):
-                    brand_str = "{} {} ".format(brand, separator)
+                    brand_str = f"{brand}{padding}{separator} "
                     if title.startswith(brand_str):
                         title = title[len(brand_str):]
                 else:
-                    brand_str = " {} {}".format(separator, brand)
+                    brand_str = f" {separator}{padding}{brand}"
                     if title.endswith(brand_str):
                         title = title[:-len(brand_str)]
 
@@ -497,6 +542,7 @@ sites_data = [
         "domains":                ["parshanut.com"],
         "title_branding":         ["PARSHANUT"],
         "initial_title_branding": True,
+        "normalization_rules":    ["use https"],
     },
     {
         "name":            "Real Clear Daf",
@@ -559,11 +605,13 @@ sites_data = [
     },
     {
         "name": "The Jewish Theological Seminary",
-        "domains": ["jtsa.edu"]
+        "domains": ["jtsa.edu"],
+        "normalization_rules": ["remove url params"],
     },
     {
         "name": "Ritualwell",
-        "domains": ["ritualwell.org"]
+        "domains": ["ritualwell.org"],
+        "normalization_rules": ["remove www"],
     },
     {
         "name": "Jewish Exponent",
@@ -578,7 +626,7 @@ sites_data = [
         "domains": ["hebrewcollege.edu"]
     },
     {
-        "name": ["מכון הדר"],
+        "name": "מכון הדר",
         "domains": ["mechonhadar.org.il"]
     },
     {
@@ -618,7 +666,7 @@ sites_data = [
     {
         "name": "The Jewish Virtual Library",
         "domains": ["jewishvirtuallibrary.org"],
-        "normalization_rules": ["use https"],
+        "normalization_rules": ["use https", "remove url params"],
     },
     {
         "name": "Lilith Magazine",
@@ -644,6 +692,7 @@ sites_data = [
     {
         "name": "Rav Kook Torah",
         "domains": ["ravkooktorah.org"],
+        "normalization_rules": ["remove www"]
     },
     {
         "name": "YUTorah Online",
@@ -678,7 +727,117 @@ sites_data = [
     #     "initial_title_branding": True
     # },
     {
-        "name": ["נאמני תורה ועבודה"],
+        "name": "נאמני תורה ועבודה",
         "domains": ["toravoda.org.il"],
+    },
+    {
+        "name": "Ohr Torah Stone",
+        "domains": ["ots.org.il"],
+        "title_branding": ["אור תורה סטון"]
+    },
+    {
+        "name": "Jewish Action",
+        "domains": ["jewishaction.com"],
+    },
+    {
+        "name": "Rabbi Johnny Solomon",
+        "domains": ["rabbijohnnysolomon.com"],
+    },
+    {
+        "name": "Moment Magazine",
+        "domains": ["momentmag.com"],
+    },
+    {
+        "name": "Jewish Action",
+        "domains": ["jewishaction.com"],
+    },
+    {
+        "name": "Orthodox Union (OU Torah)",
+        "domains": ["ou.org"],
+        "title_branding": ["Jewish Holidays", "OU Holidays", "OU", "OU Torah", "OU Life"],
+    },
+    {
+        "name": "Judaism 101 (JewFAQ)",
+        "domains": ["jewfaq.org"],
+        "title_branding": ["Judaism 101:"],
+        "initial_title_branding": True,
+        "normalization_rules": ["remove url params", "remove www"],
+    },
+    {
+        "name": "Jewish Women's Archive",
+        "domains": ["jwa.org"],
+    },
+    {
+        "name": "The Wexner Foundation",
+        "domains": ["wexnerfoundation.org"],
+    },
+    {
+        "name": "Jewish Drinking",
+        "domains": ["jewishdrinking.com"],
+    },
+    {
+        "name": "Avodah",
+        "domains": ["avodah.net"],
+    },
+    {
+        "name": "TorahWeb.org",
+        "domains": ["torahweb.org"],
+    },
+    {
+        "name": "AskHalacha",
+        "domains": ["askhalacha.com"],
+    },
+    {
+        "name": "Yeshiva.co",
+        "domains": ["yeshiva.co"],
+        "title_branding": ["Ask the rabbi | Q&A | yeshiva.co", "Beit Midrash | Torah Lessons | yeshiva.co", "yeshiva.co"],
+    },
+    {
+        "name": "מחלקי המים",
+        "domains": ["mayim.org.il"],
+    },
+    {
+        "name": "The Kabbalah of Time",
+        "domains": ["kabbalahoftime.com"],
+        "initial_title_branding": True,
+    },
+    {
+        "name": "Jewish Contemplatives",
+        "domains": ["jewishcontemplatives.blogspot.com"],
+        "initial_title_branding": True,
+    },
+    {
+        "name": "Orayta",
+        "domains": ["orayta.org"],
+        "normalization_rules": ["use https", "remove www"],
+    },
+    {
+        "name": "Rabbi Efrem Goldberg",
+        "domains": ["rabbiefremgoldberg.org"],
+        "normalization_rules": ["use https", "remove www", "remove url params"],
+    },
+    {
+        "name": "Jewish Encyclopedia",
+        "domains": ["jewishencyclopedia.com"],
+        "title_branding": ["JewishEncyclopedia.com"],
+        "normalization_rules": ["remove url params", "use https", "remove www"]
+    },
+    {
+        "name": "Wilderness Torah",
+        "domains": ["wildernesstorah.org"],
+    },
+    {
+        "name": "Or HaLev",
+        "domains": ["orhalev.org"],
+        "normalization_rules": ["use https", "remove www"]
+    },
+    {
+        "name": "Talmudology",
+        "domains": ["talmudology.com"],
+        "normalization_rules": ["use https", "remove www"],
+    },
+    {
+        "name": "S and P Sephardi Community",
+        "domains": ["sephardi.org.uk"],
     }
 ]

@@ -5,7 +5,7 @@ import {
   ProfilePic,
   InterfaceLanguageMenu,
 } from './Misc';
-import React  from 'react';
+import React, { useState, useEffect, useRef} from 'react';
 import PropTypes  from 'prop-types';
 import ReactDOM  from 'react-dom';
 import classNames  from 'classnames';
@@ -23,13 +23,20 @@ class Header extends Component {
     this._searchOverridePre = Sefaria._('Search for') +': "';
     this._searchOverridePost = '"';
     this._type_icon_map = {
-      "Group": "iconmonstr-share-6.svg",
+      "Collection": "collection.svg",
       "Person": "iconmonstr-pen-17.svg",
       "TocCategory": "iconmonstr-view-6.svg",
       "Topic": "iconmonstr-hashtag-1.svg",
       "ref": "iconmonstr-book-15.svg",
       "search": "iconmonstr-magnifier-2.svg",
       "Term": "iconmonstr-script-2.svg",
+    }
+  }
+  _type_icon(item) {
+    if (item.type === "User") {
+      return item.pic;
+    } else {
+      return `/static/icons/${this._type_icon_map[item.type]}`;
     }
   }
   componentDidMount() {
@@ -44,7 +51,6 @@ class Header extends Component {
     if (nextProps.initialState) {
       this.setState(nextProps.initialState);
     }
-    this.setState({notificationCount: Sefaria.notificationCount || 0});
   }
   _searchOverrideRegex() {
     return RegExp(`^${RegExp.escape(this._searchOverridePre)}(.*)${RegExp.escape(this._searchOverridePost)}`);
@@ -74,7 +80,7 @@ class Header extends Component {
           .toggleClass("search-override", !!override)
           .toggleClass("hebrew-result", !!is_hebrew)
           .toggleClass("english-result", !is_hebrew)
-          .append(`<img alt="${item.type}" src="/static/icons/${this._type_icon_map[item.type]}">`)
+          .append(`<img alt="${item.type}" class="ac-img-${item.type}" src="${this._type_icon(item)}">`)
           .append( $(`<a href="${this.getURLForObject(item.type, item.key)}" role='option' data-type-key="${item.type}-${item.key}"></a>` ).text( item.label ) )
           .appendTo( ul );
       }.bind(this)
@@ -106,11 +112,12 @@ class Header extends Component {
       },
       source: (request, response) => Sefaria.getName(request.term)
         .then(d => {
-          const comps = d["completion_objects"].map(o => ({
-            value: `${o['title']}${o["type"] === "ref" ? "" :` (${o["type"]})`}`,
-            label: o["title"],
-            key:   o["key"],
-            type:  o["type"]}));
+          const comps = d["completion_objects"].map(o => {
+            const c = {...o};
+            c["value"] = `${o['title']}${o["type"] === "ref" ? "" :` (${o["type"]})`}`;
+            c["label"] = o["title"];
+            return c;
+          });
           if (comps.length > 0) {
             const q = `${this._searchOverridePre}${request.term}${this._searchOverridePost}`;
             response(comps.concat([{value: "SEARCH_OVERRIDE", label: q, type: "search"}]));
@@ -176,14 +183,16 @@ class Header extends Component {
   getURLForObject(type, key) {
     if (type === "Person") {
       return `/person/${key}`;
-    } else if (type === "Group") {
-      return `/groups/${key.replace(/ /g,"-")}`;
+    } else if (type === "Collection") {
+      return `/collections/${key}`;
     } else if (type === "TocCategory") {
       return `/texts/${key.join('/')}`;
     } else if (type === "Topic") {
       return `/topics/${key}`;
     } else if (type === "ref") {
       return `/${key.replace(/ /g, '_')}`;
+    } else if (type === "User") {
+      return `/profile/${key}`;
     }
   }
   redirectToObject(type, key) {
@@ -210,6 +219,10 @@ class Header extends Component {
           Sefaria.track.event("Search", action, query);
           this.clearSearchBox();
           this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+        } else if (!!d["topic_slug"]) {
+          Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
+          this.clearSearchBox();
+          this.props.openTopic(d["topic_slug"]);
         } else if (d["type"] === "Person" || d["type"] === "Group" || d["type"] === "TocCategory") {
           this.redirectToObject(d["type"], d["key"]);
         } else {
@@ -271,35 +284,19 @@ class Header extends Component {
                           updateSearchOptionField={this.props.updateSearchOptionField}
                           updateSearchOptionSort={this.props.updateSearchOptionSort}
                           registerAvailableFilters={this.props.registerAvailableFilters}
-                          searchInGroup={this.props.searchInGroup}
+                          searchInCollection={this.props.searchInCollection}
                           setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                           hideNavHeader={true}
+                          layoutWidth={100}
                           analyticsInitialized={this.props.analyticsInitialized}
                           getLicenseMap={this.props.getLicenseMap}
                           translateISOLanguageCode={this.props.translateISOLanguageCode}
                           toggleSignUpModal={this.props.toggleSignUpModal}
                         />) : null;
 
-
-    var notificationsClasses = classNames({notifications: 1, unread: this.state.notificationCount > 0});
-    var nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
-    var headerMessage = this.props.headerMessage ?
+    const headerMessage = this.props.headerMessage ?
                           (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
                           null;
-    var loggedInLinks  = (<div className="accountLinks">
-                            <a href="/notifications" aria-label="See New Notifications" className={notificationsClasses}>{this.state.notificationCount}</a>
-                            <a href="/my/profile" className="my-profile"><ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} /></a>
-                         </div>);
-    var loggedOutLinks = (<div className="accountLinks anon">
-                          <a className="login loginLink" href={"/login" + nextParam}>
-                             <span className="int-en">Log in</span>
-                             <span className="int-he">התחבר</span>
-                           </a>
-                           <a className="login signupLink" href={"/register" + nextParam}>
-                             <span className="int-en">Sign up</span>
-                             <span className="int-he">הרשם</span>
-                           </a>
-                         </div>);
     // Header should not show box-shadow over panels that have color line
     const hasColorLine = ["sheets", "sheets meta"];
     const hasBoxShadow = (!!this.state.menuOpen && hasColorLine.indexOf(this.state.menuOpen) === -1);
@@ -327,8 +324,12 @@ class Header extends Component {
                 </div>
                 <div className="headerLinksSection">
                   { headerMessage }
-                  { Sefaria.loggedIn ? loggedInLinks : loggedOutLinks }
-                  { !Sefaria.loggedIn && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
+                  { Sefaria._uid ?
+                      <LoggedInButtons headerMode={this.props.headerMode}/>
+                      :
+                      <LoggedOutButtons headerMode={this.props.headerMode}/>
+                  }
+                  { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
                 </div>
               </div>
               { viewContent ?
@@ -355,14 +356,62 @@ Header.propTypes = {
   updateSearchOptionField:     PropTypes.func,
   updateSearchOptionSort:      PropTypes.func,
   registerAvailableFilters:    PropTypes.func,
-  searchInGroup:               PropTypes.func,
+  searchInCollection:          PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
   headerMesssage:              PropTypes.string,
   panelsOpen:                  PropTypes.number,
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,
   toggleSignUpModal:           PropTypes.func.isRequired,
+  openTopic:                   PropTypes.func.isRequired,
 };
 
+function LoggedOutButtons({headerMode}){
+  const [isClient, setIsClient] = useState(false);
+  const [next, setNext] = useState("/");
+  const [loginLink, setLoginLink] = useState("/login?next=/");
+  const [registerLink, setRegisterLink] = useState("/register?next=/");
+  useEffect(()=>{
+    setIsClient(true);
+  }, []);
+  useEffect(()=> {
+    if(isClient){
+      setNext(encodeURIComponent(Sefaria.util.currentPath()));
+      setLoginLink("/login?next="+next);
+      setRegisterLink("/register?next="+next);
+    }
+  })
+  return(
+    <div className="accountLinks anon">
+      <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
+         <span className="int-en">Log in</span>
+         <span className="int-he">התחבר</span>
+       </a>
+      <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
+         <span className="int-en">Sign up</span>
+         <span className="int-he">הרשם</span>
+      </a>
+    </div>
+  );
+}
+
+function LoggedInButtons({headerMode}){
+  const [isClient, setIsClient] = useState(false);
+  useEffect(()=>{
+    if(headerMode){
+      setIsClient(true);
+    }
+  }, []);
+  const unread = headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
+  const notificationsClasses = classNames({notifications: 1, unread: unread});
+  return(
+      <div className="accountLinks">
+          <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>{Sefaria.notificationCount}</a>
+          <a href="/my/profile" className="my-profile">
+            <ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
+          </a>
+       </div>
+  );
+}
 
 export default Header;

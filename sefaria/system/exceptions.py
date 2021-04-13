@@ -51,3 +51,7 @@ class DictionaryEntryNotFoundError(InputError):
 
 class SheetNotFoundError(InputError):
     pass
+
+
+class ManuscriptError(Exception):
+    pass

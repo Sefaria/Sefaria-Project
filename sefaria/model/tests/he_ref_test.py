@@ -115,6 +115,19 @@ class Test_parse_he_ref(object):
         assert r.sections[0] == 90
         assert len(r.sections) == 1
 
+    def test_talmud_refs_with_amud(self):
+        assert m.Ref("ברכות ח.") == m.Ref("Berakhot 8a")
+        assert m.Ref("ברכות ח:") == m.Ref("Berakhot 8b")
+        assert m.Ref("ברכות ח, א") == m.Ref("Berakhot 8a")
+        assert m.Ref("""ברכות ח ע"ב""") == m.Ref("Berakhot 8b")
+
+    def test_talmud_refs_without_amud(self):
+        assert m.Ref("ברכות ח") == m.Ref("Berakhot 8a-8b")
+        assert m.Ref("ברכות ב") == m.Ref("Berakhot 2a-2b")
+
+    def test_talmud_aleph_to_bet(self):
+        assert m.Ref("שבת לג, א–ב") == m.Ref("Shabbat 33")
+
     def test_bible_word_end(self):
         with pytest.raises(InputError):
             r = m.Ref('דברים לברק')
@@ -233,7 +246,7 @@ class Test_parse_he_ref(object):
         assert m.Ref('טהרות פרק ג משנה ב') == m.Ref("Mishnah Tahorot 3:2")
         assert m.Ref("שופטים כ י''א") == m.Ref("Judges 20:11")
         assert m.Ref("פסחים ד' נח:") == m.Ref("Pesachim 58b")
-        assert m.Ref('יבמות ס"ה') == m.Ref("Yevamot 65a")
+        assert m.Ref('יבמות ס"ה') == m.Ref("Yevamot 65a-65b")
         assert m.Ref('תהילים קי"ט') == m.Ref("Psalms 119")
         assert m.Ref("שמות כא, ד") == m.Ref("Exodus 21:4")
         assert m.Ref("שבת ד' כב.") == m.Ref("Shabbat 22a")
@@ -265,7 +278,6 @@ class Test_Hebrew_Quoting_Styles(object):
         assert m.Ref("שמות י׳ י״ב") == m.Ref('Exodus 10:12')
 
 
-
 #todo: surprised this works. Had been marked as failing.  What's the coverage of these kinds of refs?
 class Test_parse_he_commentary(object):
     def test_hebrew_commentary(self):
@@ -273,7 +285,6 @@ class Test_parse_he_commentary(object):
 
 
 class Test_parse_he_ref_range(object):
-    # Most hebrew ranges are not yet supported
     def test_hebrew_range_simple(self):
         assert m.Ref('שמות, כ"ד, יג-יד') == m.Ref('Exodus 24:13-14')
         assert m.Ref('במדבר, כ"ז, טו - כג') == m.Ref("Numbers 27:15-23")
@@ -286,11 +297,9 @@ class Test_parse_he_ref_range(object):
         assert m.Ref('רש"י על ויקרא ט״ו:ג׳-י״ז:י״ב') == m.Ref("Rashi on Leviticus 15:3-17:12")
         assert m.Ref('רש"י על שמות ג׳:א׳:א׳-ג׳') == m.Ref("Rashi on Exodus 3:1:1-3")
 
-    @pytest.mark.xfail(reason="unknown")
     def test_hebrew_range_talmud(self):
         assert m.Ref('שבת טו. - טז:') == m.Ref("Shabbat 15a-16b")
         assert m.Ref('שבת טו א - טז ב') == m.Ref("Shabbat 15a-16b")
-        # assert m.Ref(u'') == m.Ref("Shabbat 15a:15-15b:13")
 
     @pytest.mark.xfail(reason="unknown")
     def test_hebrew_range_talmud_commentary(self):
@@ -340,7 +349,6 @@ class Test_parse_he_Data_Types(object):
         # assert m.Ref(u'שמות ד פסוק ג - פרק ו') == m.Ref('Exodus 4:3-6:30')
         # assert m.Ref(u'שמות ד פסוק ג - פסוק ו') == m.Ref('Exodus 4:3-6')
         # assert m.Ref(u'שמות פרק ד - פרק ה פסוק ו') == m.Ref('Exodus 4:1-5:6')
-
 
 
 #todo: convert to all_titles_regex

@@ -193,17 +193,6 @@ Now download the required Javascript libraries and install some global tools for
     
 If the second command fails, you may have to install using `sudo npm run setup`
 
-The following environment variables, defined in `./node/local_settings.js`, can be set to configure the node instance:
-
-| Env Var | Default | Description |
-|---------|---------|-------------|
-| `DJANGO_HOST` | No default | The hostname of the Django service |
-| `DJANGO_PORT` | `80` | The port used by the Django service | 
-| `NODEJS_PORT` | `3000` | The port to be used by the NodeJs service |
-| `DEBUG` | `false` | Determines whether the NodeJs service should run in debug mode | 
-
-These variables can be set via command line explicitly, or set up to be defined when your machine's shell runs or set up in your IDE settings for running the node server. 
-
     
 #### Run Webpack
 
@@ -220,15 +209,45 @@ to bundle once. To watch the javascript for changes and automatically rebuild, r
 
 Sefaria uses React.js. To render HTML server-side, we use a Node.js server. For development, the site is fully functional without server-side rendering. For deploying in a production environemnet however server side HTML is very important for bots and SEO. 
 
+##### Install Redis
+
+To use server side rendering, you must also install Redis Cache. `brew install redis` or `sudo apt-get install redis`.
+
+##### Configure Django and Node to use Redis as a shared data store
+
+**Django**
+
+Update your `local_settings.py` file and replace the `CACHES` variable with the `CACHES` variable meant for server side rendering, commented out in `local_settings_example.py`.
+
+Also make sure the following are set: 
+```
+SESSION_CACHE_ALIAS = "default" #declares where Django's session engine will store data
+USER_AGENTS_CACHE = 'default' #declares where the Django user agent middleware will store data (cannot be JSON encoded!)
+SHARED_DATA_CACHE_ALIAS = 'shared' #Tells the application where to store data placed in cache by `sefaria.system.cache` shared-cache functions
+
+USE_NODE = True
+NODE_HOST = "http://localhost:3000" #Or whatever host and port you set node up to listen on
+
+```
+
+**Node**
+
+The following environment variables, defined in `./node/local_settings.js`, can be set to configure the node instance:
+
+| Env Var | Default | Description |
+|---------|---------|-------------|
+| `NODEJS_PORT` | `3000` | The port to be used by the NodeJs service |
+| `DEBUG` | `false` | Determines whether the NodeJs service should run in debug mode | 
+| `REDIS_HOST` | `"1270.0.1"` | The Redis instance to point Node to when running |
+| `REDIS_PORT` | `6379` | The Default port Redis listens on | 
+
+
+These variables can be set via command line explicitly, or set up to be defined when your machine's shell runs or set up in your IDE settings for running the node server. 
+
 For development, you can run the Node server using nodemon with:
 
     npm start
     
-You also need to set 
-
-    USE_NODE = True
-    
-in Django's `local_settings.py`. 
 
 To run webpack with server-side rendering, use:
 

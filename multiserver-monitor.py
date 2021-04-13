@@ -5,8 +5,8 @@ from sefaria.settings import MULTISERVER_ENABLED
 
 from sefaria.system.multiserver.monitor import MultiServerMonitor
 from sefaria.system.scheduler.scheduler import run_background_scheduler
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 if __name__ == '__main__':

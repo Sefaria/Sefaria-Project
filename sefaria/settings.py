@@ -89,14 +89,12 @@ TEMPLATES = [
                     "django.contrib.messages.context_processors.messages",
                     "django.template.context_processors.request",
                     "sefaria.system.context_processors.global_settings",
-                    "sefaria.system.context_processors.titles_json",
-                    "sefaria.system.context_processors.toc",
-                    "sefaria.system.context_processors.terms",
+                    "sefaria.system.context_processors.cache_timestamp",
+                    "sefaria.system.context_processors.large_data",
                     "sefaria.system.context_processors.body_flags",
-                    "sefaria.system.context_processors.user_and_notifications",
-                    "sefaria.system.context_processors.calendar_links",
                     "sefaria.system.context_processors.header_html",
                     "sefaria.system.context_processors.footer_html",
+                    "sefaria.system.context_processors.base_props",
             ],
             'loaders': [
                 #'django_mobile.loader.Loader',
@@ -120,7 +118,9 @@ MIDDLEWARE = [
     'sefaria.system.middleware.LanguageSettingsMiddleware',
     'sefaria.system.middleware.ProfileMiddleware',
     'sefaria.system.middleware.CORSDebugMiddleware',
+    'sefaria.system.middleware.SharedCacheMiddleware',
     'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
+    'django_structlog.middlewares.RequestMiddleware',
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
@@ -172,6 +172,7 @@ REST_FRAMEWORK = {
 }
 
 SESSION_SAVE_EVERY_REQUEST = True
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer' # this is the default anyway right now, but make sure
 
 LOCALE_PATHS = (
     relative_to_abs_path('../locale'),
@@ -185,10 +186,10 @@ LOCALE_PATHS = (
 
 """ to use logging, in any module:
 # import the logging library
-import logging
+import structlog
 
 # Get an instance of a logger
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 #log stuff
 logger.critical()
@@ -295,25 +296,28 @@ CACHES = {
     }
 }
 
-'''
+"""
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "survey-2020",
-    "style":      "modal", # "modal" or "banner"
+    "name":       "pesach-2021-banner",
+    "style":      "banner", # "modal" or "banner"
     "repetition": 1,
     "condition":  {
-        "returning_only": True,
+        "returning_only": False,
         "english_only": False,
         "desktop_only": False,
         "debug": False,
     }
 }
-'''
+"""
 GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab environment specific settings from a file which
 # is left out of the repo.
-try:
-    from sefaria.local_settings import *
+try: 
+    if os.getenv("CI_RUN"):
+        from sefaria.local_settings_ci import *
+    else:
+        from sefaria.local_settings import *
 except ImportError:
     from sefaria.local_settings_example import *
 

@@ -12,13 +12,13 @@
             <span class="int-he">הגדרות חשבון</span>
         </h1>
         <div class="end">
-            <a class="button transparent control-elem" href="/my/profile">
+            <a class="button small transparent control-elem" href="/my/profile">
                 <span class="int-en">Cancel</span>
-                <span class="int-he">בטל</span>
+                <span class="int-he">ביטול</span>
             </a>
-            <div id="saveAccountSettings" class="button blue control-elem" tabindex="0" role="button" >
+            <div id="saveAccountSettings" class="button small blue control-elem" tabindex="0" role="button" >
                 <span class="int-en">Save</span>
-                <span class="int-he">שמור</span>
+                <span class="int-he">שמירה</span>
             </div>
         </div>
     </div>
@@ -57,6 +57,23 @@
             </div>
 		</div>
 	</div>
+    <div id="readingHistory" class="section">
+		<label class="control-elem">
+            <span class="int-en">Reading History</span>
+			<span class="int-he">היסטורית קריאה</span>
+        </label>
+		<div class="toggleSet doubleOption control-elem" role="radiogroup">
+			<div role="radio" data-name="reading-history" data-value=true class="toggleOption {% if "reading_history" not in profile.settings or profile.settings.reading_history %} active{% endif %}" tabindex="{% if "reading_history" not in profile.settings or profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+                <span class="int-en">On</span>
+                <span class="int-he">פעילה</span>
+            </div><!--
+			--><div role="radio" data-name="reading-history" data-value=false class="toggleOption {% if "reading_history" in profile.settings and not profile.settings.reading_history %} active{% endif %}" tabindex="{% if "reading_history" in profile.settings and not profile.settings.reading_history %}0" aria-checked="true{% else %}-1" aria-checked="false{% endif %}">
+                <span class="int-en">Off</span>
+                <span class="int-he">כבויה</span>
+            </div>
+            <span id="reading-history-warning"></span>
+		</div>
+	</div>
     <div id="textualCustom" class="section">
 		<label class="control-elem">
             <span class="int-en">Preferred Custom (Weekly Haftarot)</span>
@@ -77,13 +94,13 @@
     <div id="username-change" class="section">
         <label class="control-elem">
                 <span class="int-en">Account Email (This is used for login)</span>
-                <span class="int-he">כתובת אימייל (משמשת לכניסה לחשבון)</span>
+                <span class="int-he">כתובת דוא"ל (משמשת לכניסה לחשבון)</span>
         </label>
         <div id="username-change-display" class="form-section">
             <input id="email-display" type="text" disabled="disabled" value="{{ user.email }}" />
-            <button id="change-email" type="button" class="button blue full">
+            <button id="change-email" type="button" class="button blue fillWidth">
                 <span class="int-en">Change Email</span>
-                <span class="int-he">החלפת כתובת מייל</span>
+                <span class="int-he">החלפת כתובת דוא"ל</span>
             </button>
             <span id="email-edit-ok"></span>
         </div>
@@ -91,9 +108,9 @@
             <input id="email" type="text" placeholder="{% trans "New Email" %}" autocomplete="off" />
             <input id="confirmEmail" type="text" placeholder="{% trans "Confirm New Email" %}" autocomplete="off" />
             <input id="confirmPassword" type="password" placeholder="{% trans "Password" %}" autocomplete="new-password" />
-            <button id="update-email" type="button" class="button blue full">
+            <button id="update-email" type="button" class="button blue fillWidth">
                 <span class="int-en">Update Email</span>
-                <span class="int-he">עדכון כתובת מייל</span>
+                <span class="int-he">עדכון כתובת דוא"ל</span>
             </button>
             <span id="email-edit-errors"></span>
         </div>
@@ -106,10 +123,20 @@
 {% block js %}
 	<script>
 		$(function(){
-		    var $curLang = $("#siteLanguage .toggleOption.active").attr("data-value");
+		    const $curLang = $("#siteLanguage .toggleOption.active").attr("data-value");
 			$(".toggleOption").click(function() {
-				$(this).closest(".toggleSet").find(".toggleOption").removeClass("active").attr("tabIndex","-1").attr("ariaChecked","false");
-				$(this).addClass("active").attr("tabIndex","0").attr("ariaChecked","true");
+			    let $this = $(this);
+				$this.closest(".toggleSet").find(".toggleOption").removeClass("active").attr("tabIndex","-1").attr("ariaChecked","false");
+				$this.addClass("active").attr("tabIndex","0").attr("ariaChecked","true");
+				if($this.attr("data-name") === "reading-history"){
+				    if($this.attr("data-value") == "false"){
+				        console.log("deleteing history");
+				        $('#readingHistory #reading-history-warning').text(Sefaria._("Turning this feature off will permanently delete your reading history.")).addClass('active');
+                    }else{
+				        console.log("enabling history");
+				        $('#readingHistory #reading-history-warning').removeClass('active');
+                    }
+                }
 			});
 
             $(".toggleOption").keyup(function(e){
@@ -123,11 +150,12 @@
 
 
 			$("#saveAccountSettings").click(function(){
-				var profile = {
+				let profile = {
 						settings: {
 							email_notifications: $("#emailNotifications .toggleOption.active").attr("data-value"),
 							interface_language: $("#siteLanguage .toggleOption.active").attr("data-value"),
-                            textual_custom: $("#textualCustom .toggleOption.active").attr("data-value")
+                            textual_custom: $("#textualCustom .toggleOption.active").attr("data-value"),
+                            reading_history: $("#readingHistory .toggleOption.active").attr("data-value") === "true" ? true : false,
 						}
 				};
 
@@ -135,9 +163,9 @@
 					if ("error" in data) {
 						alert(data.error);
 					} else {
-						alert("Settings Saved.");
+						alert(Sefaria._("Settings Saved"));
 						Sefaria.track.event("Settings", "Settings Save", $("#emailNotifications input:checked").val());
-						var $newLang = $("#siteLanguage .toggleOption.active").attr("data-value");
+						const $newLang = $("#siteLanguage .toggleOption.active").attr("data-value");
 						if($newLang != $curLang){
 						    Sefaria.track.setInterfaceLanguage("interface language account settings", $newLang);
                         }

@@ -1,36 +1,29 @@
 import {
-  CategoryColorLine,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuCloseButton,
-  ReaderNavigationMenuSearchButton,
-  ReaderNavigationMenuDisplaySettingsButton,
   ReaderNavigationMenuSection,
   TextBlockLink,
   TwoOrThreeBox,
-  TwoBox,
+  NBox,
   LanguageToggleButton,
 } from './Misc';
-//const React                        = require('react');
 import React, { useState, useEffect, useRef } from 'react';
-import ReactDOM  from 'react-dom';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import ReaderNavigationCategoryMenu  from './ReaderNavigationCategoryMenu';
 import Footer  from './Footer';
-import Component from 'react-class';
 import MobileHeader from './MobileHeader';
 import {TopicCategory} from './TopicPage';
 
 // The Navigation menu for browsing and searching texts, plus some site links.
 const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCategories, setNavTopic, 
-        setTopic, setOption, onClose, openNav, openSearch, showMoreTexts, setMoreTexts, 
+        setTopic, onClose, openNav, openSearch, showMoreTexts, setMoreTexts,
         showMoreTopics, setMoreTopics, toggleLanguage, openMenu, 
-        handleClick, openDisplaySettings, toggleSignUpModal,
+        handleClick, openDisplaySettings,
         hideHeader, hideNavHeader, multiPanel, home, compare, interfaceLang}) => {
 
-  const [width, setWidth] = useState(1000);
+  const initialWidth = hideNavHeader ? 1000 : 500; // Assume we're in a small panel if we're hiding the nav header
+  const [width, setWidth] = useState(initialWidth);
 
   const ref = useRef(null);
   useEffect(() => {
@@ -41,7 +34,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
     }
   }, []);
 
-  const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : 1000);
+  const deriveAndSetWidth = () => setWidth(ref.current ? ref.current.offsetWidth : initialWidth);
 
   const navHome = () => {
     setCategories([]);
@@ -162,8 +155,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
                 heDisplayValue={item.displayValue["he"]}
                 category={item.category}
                 showSections={false}
-                recentItem={false}
-                csrRequired={true}/>)
+                recentItem={false}/>)
   });
   calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={width} /></div>);
 
@@ -173,8 +165,8 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
             img="/static/img/new-sheet.svg"  alt="new source sheet icon" />,
       <TocLink en="Authors" he="רשימת מחברים" href="/people" resourcesLink={true}
             img="/static/img/authors-icon.png" alt="author icon"/>,
-      <TocLink en="Groups" he="קבוצות" href="/groups" resourcesLink={true}
-            img="/static/img/group.svg" alt="Groups icon"/>,
+      <TocLink en="Collections" he="אסופות" href="/collections" resourcesLink={true}
+            img="/static/icons/collection.svg" alt="Collections icon"/>,
       <TocLink en="Visualizations" he="תרשימים גרפיים" href="/visualizations" resourcesLink={true}
             img="/static/img/visualizations-icon.png" alt="visualization icon" />,
   ];
@@ -183,7 +175,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
     resources = resources.filter(r => torahSpecificResources.indexOf(r.props.href) == -1);
   }
-  resources = (<div className="readerTocResources"><TwoBox content={resources} width={width} /></div>);
+  resources = (<div className="readerTocResources"><NBox n={2} content={resources} width={width} /></div>);
 
 
   const topContent = hideNavHeader ? null : (
@@ -202,14 +194,14 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
       <TocLink en="Saved" he="שמורים" href="/texts/saved" resourcesLink={true} img="/static/img/star.png" alt="saved text icon"/>,
       <TocLink en="History" he="היסטוריה" href="/texts/history" resourcesLink={true} img="/static/img/clock.png" alt="history icon"/>
   ];
-  topUserData = (<div className="readerTocResources userDataButtons"><TwoBox content={topUserData} width={width} /></div>);
+  topUserData = (<div className="readerTocResources userDataButtons"><NBox n={2} content={topUserData} width={width} /></div>);
 
   let donation  = [
       <TocLink en="Make a Donation" he="תרומות" resourcesLink={true} classes="donationLink" img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/supportsefaria"/>,
       <TocLink en="Sponsor a day" he="תנו חסות ליום לימוד" resourcesLink={true} classes="donationLink" img="/static/img/calendar.svg" alt="donation icon" href="https://sefaria.nationbuilder.com/sponsor"/>,
   ];
 
-  donation = (<div className="readerTocResources"><TwoBox content={donation} width={width} /></div>);
+  donation = (<div className="readerTocResources"><NBox n={2} content={donation} width={width} /></div>);
 
 
   let topicBlocks = Sefaria.topicTocPage().map((t,i) => {
@@ -282,13 +274,11 @@ ReaderNavigationMenu.propTypes = {
   settings:            PropTypes.object.isRequired,
   setCategories:       PropTypes.func.isRequired,
   setNavTopic:         PropTypes.func.isRequired,
-  setOption:           PropTypes.func.isRequired,
   onClose:             PropTypes.func.isRequired,
   openNav:             PropTypes.func.isRequired,
   openSearch:          PropTypes.func.isRequired,
   openMenu:            PropTypes.func.isRequired,
   handleClick:         PropTypes.func.isRequired,
-  toggleSignUpModal:   PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func,
   toggleLanguage:      PropTypes.func,
   hideNavHeader:       PropTypes.bool,

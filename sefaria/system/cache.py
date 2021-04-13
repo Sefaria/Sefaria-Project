@@ -3,19 +3,17 @@ import hashlib
 import sys
 from functools import wraps
 from django.http import HttpRequest
+from sefaria import settings
+from django.core.cache import DEFAULT_CACHE_ALIAS
 
-import logging
-logger = logging.getLogger(__name__)
-
-try:
-    from sefaria.settings import USE_VARNISH
-except ImportError:
-    USE_VARNISH = False
+import structlog
+logger = structlog.get_logger(__name__)
 
 if not hasattr(sys, '_doc_build'):
     from django.core.cache import cache
     from django.core.cache import caches
 
+SHARED_DATA_CACHE_ALIAS = getattr(settings, 'SHARED_DATA_CACHE_ALIAS', DEFAULT_CACHE_ALIAS)
 
 #functions from here: http://james.lin.net.nz/2011/09/08/python-decorator-caching-your-functions/
 #and here: https://github.com/rchrd2/django-cache-decorator
@@ -26,7 +24,6 @@ if not hasattr(sys, '_doc_build'):
 def get_cache_factory(cache_type):
     if cache_type is None:
         cache_type = 'default'
-
     return caches[cache_type]
 
 
@@ -95,9 +92,17 @@ def get_cache_elem(key, cache_type=None):
     return cache_instance.get(key)
 
 
+def get_shared_cache_elem(key):
+    return get_cache_elem(key, cache_type=SHARED_DATA_CACHE_ALIAS)
+
+
 def set_cache_elem(key, value, timeout = None, cache_type=None):
     cache_instance = get_cache_factory(cache_type)
     return cache_instance.set(key, value, timeout)
+
+
+def set_shared_cache_elem(key, value, timeout=None):
+    return set_cache_elem(key, value, timeout, cache_type=SHARED_DATA_CACHE_ALIAS)
 
 
 def delete_cache_elem(key, cache_type=None):
@@ -111,6 +116,10 @@ def delete_cache_elem(key, cache_type=None):
                 retval = retval or cache_instance.delete(k)
             return retval
     return cache_instance.delete(key)
+
+
+def delete_shared_cache_elem(key):
+    return delete_cache_elem(key, cache_type=SHARED_DATA_CACHE_ALIAS)
 
 
 def get_template_cache(fragment_name='', *args):

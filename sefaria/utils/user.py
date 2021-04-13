@@ -18,6 +18,8 @@ def delete_user_account(uid, confirm=True):
             print("Canceled.")
             return
 
+    # Delete user's reading history
+    user.delete_user_history(exclude_saved=False, exclude_last_place=False)
     # Delete Sheets
     db.sheets.delete_many({"owner": uid})
     # Delete Notes
@@ -56,6 +58,9 @@ def merge_user_accounts(from_uid, into_uid, fill_in_profile_data=True, override_
     if input("Type 'MERGE' to confirm: ") != "MERGE":
         print("Canceled.")
         return
+
+    # Move user reading history
+    db.user_history.update_many({"uid": from_uid}, {"$set": {"uid": into_uid}})
     # Move group admins
     db.groups.update({"admins": from_uid}, {"$set": {"admins.$": into_uid}})
     # Move group members
@@ -109,44 +114,3 @@ def reset_all_api_keys():
         generate_api_key(key["uid"])
 
 
-def markGroup(group_name, partner_group, partner_role, silent=True):
-    # For users in specified group, update user profiles with given attributes
-    users = User.objects.filter(groups__name=group_name)
-    if len(users) == 0:
-        print("Could not find any users in group {}".format(group_name))
-        return
-    for user in users:
-        if not silent:
-            print("Marking {} as {} {}".format(user.email, partner_role, partner_group))
-        profile = model.UserProfile(id=user.id)
-        profile.partner_group = partner_group
-        profile.partner_role = partner_role
-        profile.save()
-
-
-def markEmailPattern(pattern, partner_group, partner_role, silent=True):
-    # For all users with matching email, update user profiles with given attributes
-    users = User.objects.filter(email__contains=pattern)
-    if len(users) == 0:
-        print("Could not find any users matching {}".format(pattern))
-        return
-    for user in users:
-        if not silent:
-            print("Marking {} as {} {}".format(user.email, partner_role, partner_group))
-        profile = model.UserProfile(id=user.id)
-        profile.partner_group = partner_group
-        profile.partner_role = partner_role
-        profile.save()
-
-
-def markUserByEmail(email, partner_group, partner_role, silent=True):
-    # For user with specified email, update user profile with given attributes
-    profile = model.UserProfile(email=email)
-    if not profile or profile.email != email:
-        print("Can not find {} != {}".format(email, profile.email))
-        return
-    if not silent:
-        print("Marking {} as {} {}".format(profile.email, partner_role, partner_group))
-    profile.partner_group = partner_group
-    profile.partner_role = partner_role
-    profile.save()

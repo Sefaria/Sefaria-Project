@@ -5,6 +5,7 @@ abstract.py - abstract classes for Sefaria models
 """
 import collections
 import logging
+import structlog
 import copy
 import bleach
 import re
@@ -18,7 +19,7 @@ from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
 logging.basicConfig()
-logger = logging.getLogger("abstract")
+logger = structlog.get_logger(__name__)
 logger.setLevel(logging.WARNING)
 
 
@@ -106,7 +107,7 @@ class AbstractMongoRecord(object):
         """
         Save the object to the Mongo data store.
         On completion, will emit a 'save' notification.  If a tracked attribute has changed, will emit an 'attributeChange' notification.
-        if override_dependencies is set to True, no notifcations will be emitted.
+        if override_dependencies is set to True, no notifications will be emitted.
         :return: the object
         """
         is_new_obj = self.is_new()
@@ -152,7 +153,14 @@ class AbstractMongoRecord(object):
         """
         return True
 
-    def delete(self, force=False):
+    def delete(self, force=False, override_dependencies=False):
+        """
+        Just before the delete is executed, will emit a 'delete' notification.
+
+        :param force: delete object, even if it fails a `can_delete()` check
+        :param override_dependencies: if override_dependencies is set to True, no notifications will be emitted.
+        :return:
+        """
         if not self.can_delete():
             if force:
                 logger.error("Forcing delete of {}.".format(str(self)))
@@ -163,7 +171,8 @@ class AbstractMongoRecord(object):
         if self.is_new():
             raise InputError("Can not delete {} that doesn't exist in database.".format(type(self).__name__))
 
-        notify(self, "delete")
+        if not override_dependencies:
+            notify(self, "delete")
         getattr(db, self.collection).delete_one({"_id": self._id})
 
     def delete_by_query(self, query, force=False):
@@ -358,9 +367,12 @@ class AbstractMongoSet(collections.abc.Iterable):
         for rec in self:
             rec.load_from_dict(attrs).save()
 
-    def delete(self, force=False):
-        for rec in self:
-            rec.delete(force=force)
+    def delete(self, force=False, bulk_delete=False):
+        if bulk_delete: # Bulk deletion is more performant but will not trigger dependencies.
+            getattr(db, self.recordClass.collection).delete_many(self.query)
+        else:
+            for rec in self:
+                rec.delete(force=force)
 
     def save(self):
         for rec in self:
@@ -490,7 +502,7 @@ def notify(inst, action, **kwargs):
 
     if action == "attributeChange":
         callbacks = deps.get((type(inst), action, kwargs["attr"]), None)
-        logger.debug("Notify: " + str(inst) + "." + kwargs["attr"] + ": " + kwargs["old"] + " is becoming " + kwargs["new"])
+        logger.debug("Notify: " + str(inst) + "." + str(kwargs["attr"]) + ": " + str(kwargs["old"]) + " is becoming " + str(kwargs["new"]))
     else:
         logger.debug("Notify: " + str(inst) + " is being " + action + "d.")
         callbacks = deps.get((type(inst), action, None), [])

@@ -3,9 +3,11 @@
 text.py
 """
 
-import logging
+import time
+import structlog
 from functools import reduce
-logger = logging.getLogger(__name__)
+from typing import Optional, Union
+logger = structlog.get_logger(__name__)
 
 import sys
 import regex
@@ -19,7 +21,7 @@ try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
 except ImportError:
-    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
+    logger.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
 from . import abstract as abst
@@ -29,7 +31,6 @@ from sefaria.system.database import db
 import sefaria.system.cache as scache
 from sefaria.system.exceptions import InputError, BookNameError, PartialRefInputError, IndexSchemaError, \
     NoVersionFoundError, DictionaryEntryNotFoundError
-from sefaria.utils.talmud import daf_to_section
 from sefaria.utils.hebrew import is_hebrew, hebrew_term
 from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
@@ -64,15 +65,19 @@ class AbstractIndex(object):
         return self.nodes.primary_title(lang)
 
     def set_title(self, title, lang="en"):
+        if getattr(self, 'nodes', None) is None:
+            if lang == "en":
+                self._title = title
+            return
+
         if lang == "en":
             self._title = title  # we need to store the title attr in a physical storage, note that .title is a virtual property
-        if getattr(self, 'nodes', None):
             self.nodes.key = title
 
-            old_primary = self.nodes.primary_title(lang)
-            self.nodes.add_title(title, lang, True, True)
-            if old_primary != title:  # then remove the old title, we don't want it.
-                self.nodes.remove_title(old_primary, lang)
+        old_primary = self.nodes.primary_title(lang)
+        self.nodes.add_title(title, lang, True, True)
+        if old_primary != title:  # then remove the old title, we don't want it.
+            self.nodes.remove_title(old_primary, lang)
 
     title = property(get_title, set_title)
 
@@ -182,21 +187,15 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "categories"
     ]
     optional_attrs = [
-        "titleVariants",      # required for old style
         "schema",             # required for new style
-        "sectionNames",       # required for old style simple texts, sometimes erroneously present for commentary
-        "heTitle",            # optional for old style
-        "heTitleVariants",    # optional for old style
-        "maps",               # deprecated
         "alt_structs",        # optional for new style
         "default_struct",     # optional for new style
         "order",              # optional for old style and new
-        "length",             # optional for old style
-        "lengths",            # optional for old style
-        "transliteratedTitle",# optional for old style
         "authors",
         "enDesc",
         "heDesc",
+        "enShortDesc",
+        "heShortDesc",
         "pubDate",
         "compDate",
         "compPlace",
@@ -209,7 +208,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         "collective_title",     # (str) string value for a group of index records - the former commentator name. Requires a matching term.
         "is_cited",             # (bool) only indexes with this attribute set to True will be picked up as a citation in a text by default
         "lexiconName",          # (str) For dictionaries - the name used in the Lexicon collection
-        "dedication"            # (dict) Dedication texts, keyed by language
+        "dedication",           # (dict) Dedication texts, keyed by language
+        "hidden"                # (bool) Default false.  If not present, Index is visible in all TOCs.  True value hides the text in the main TOC, but keeps it in the search toc.
     ]
 
     def __str__(self):
@@ -656,7 +656,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 raise InputError("Base Text Titles must point to existing texts in the system.")
 
         from sefaria.model import Category
-        if not Category().load({"path": self.categories}) and not Category().load({"path": ["Other"] + self.categories}):
+        if not Category().load({"path": self.categories}):
             raise InputError("You must create category {} before adding texts to it.".format("/".join(self.categories)))
 
         '''
@@ -713,11 +713,14 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         order = getattr(self, 'order', None)
         if order:
             return order[0]
-        elif getattr(self, 'base_text_titles', None):
-            orders = [a for a in filter(None, [library.get_index(x).get_toc_index_order() for x in self.base_text_titles])]
-            if len(orders) > 0:
-                return min(orders)
         return None
+
+    def get_base_text_order(self):
+        if getattr(self, 'base_text_titles', None):
+            base_orders = [a for a in filter(None, [library.get_index(x).get_toc_index_order() for x in self.base_text_titles])]
+            if len(base_orders) > 0:
+                return min(base_orders) or 10000
+        return 10000
 
     def slim_toc_contents(self):
         toc_contents_dict = {
@@ -727,6 +730,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         order = self.get_toc_index_order()
         if order:
             toc_contents_dict["order"] = order
+
+        base_text_order = self.get_base_text_order()
+        if base_text_order:
+            toc_contents_dict["base_text_order"] = base_text_order
 
         return toc_contents_dict
 
@@ -749,9 +756,10 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             toc_contents_dict["enComplete"] = bool(vstate.get_flag("enComplete"))
             toc_contents_dict["heComplete"] = bool(vstate.get_flag("heComplete"))
 
-        ord = self.get_toc_index_order()
-        if ord:
-            toc_contents_dict["order"] = ord
+        order = self.get_toc_index_order()
+        if order:
+            toc_contents_dict["order"] = order
+
 
         if hasattr(self, "collective_title"):
             toc_contents_dict["commentator"] = self.collective_title # todo: deprecate Only used in s1 js code
@@ -761,6 +769,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         if hasattr(self, 'base_text_titles'):
             toc_contents_dict["base_text_titles"] = self.base_text_titles
+            toc_contents_dict["base_text_order"] = self.get_base_text_order()
             if include_first_section:
                 toc_contents_dict["refs_to_base_texts"] = self.get_base_texts_and_first_refs()
             if "collectiveTitle" not in toc_contents_dict:
@@ -769,6 +778,9 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         if hasattr(self, 'base_text_mapping'):
             toc_contents_dict["base_text_mapping"] = self.base_text_mapping
+
+        if hasattr(self, 'hidden'):
+            toc_contents_dict["hidden"] = self.hidden
 
         return toc_contents_dict
 
@@ -815,7 +827,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return self.nodes.text_index_map(tokenizer=tokenizer, strict=strict, lang=lang, vtitle=vtitle)
 
     def get_primary_category(self):
-        if self.is_dependant_text() and self.dependence.capitalize() in self.categories:
+        if self.is_dependant_text():
             return self.dependence.capitalize()
         else:
             return self.categories[0]
@@ -858,7 +870,6 @@ class AbstractSchemaContent(object):
         assert not ref.is_range()
         return self.sub_content(ref.index_node.version_address(), [i - 1 for i in ref.sections], value)
 
-    #TODO: test me
     def sub_content(self, key_list=None, indx_list=None, value=None):
         """
         Get's or sets values deep within the content of this version.
@@ -876,15 +887,10 @@ class AbstractSchemaContent(object):
             indx_list = []
         ja = reduce(lambda d, k: d[k], key_list, self.get_content())
         if indx_list:
-            sa = reduce(lambda a, i: a[i], indx_list[:-1], ja)
-            #
-            # todo: If the existing array has smaller dimension than the value being set, then it needs to be padded.
             if value is not None:
-                # only works at lowest level
-                # if indx_list[-1] >= len(sa):
-                #     sa += [""] * (indx_list[-1] - len(sa) + 1)
-                sa[indx_list[-1]] = value
-            return sa[indx_list[-1]]
+                # NOTE: JaggedArrays modify their store in place, so this change will affect `self`
+                JaggedArray(ja).set_element(indx_list, value, '')
+            return reduce(lambda a, i: a[i], indx_list, ja)
         else:
             if value is not None:
                 ja[:] = value
@@ -920,6 +926,64 @@ class AbstractTextRecord(object):
         if base_text and remove_html:
             base_text = AbstractTextRecord.remove_html(base_text)
         return JaggedTextArray(base_text)
+
+    def get_top_level_jas(self) -> tuple:
+        """
+        Returns tuple with two items 
+            1) ja_list: list of highest level JaggedArrays
+            2) parent_key_list: list of tuples (parent, ja_key) where parent is the SchemaNode parent of the corresponding ja in ja_list and ja_key is the key of that ja in parent
+        parent_key_list is helpful if you need to update each jagged array
+        """
+        return self._get_top_level_jas_helper(getattr(self, self.text_attr, None))
+
+    def get_node_by_key_list(self, key_list: list) -> tuple:
+        """
+        Given return node at self.text_attr[addr1][addr2]...[addr_n] where addr_i in address_list
+        There doesn't seem to be a nice way to do this in Python
+        Returns tuple of three items
+            1) node at key_list
+            2) parent node
+            3) key of node in parent node
+        Returns (None, None, None) if address_list has a non-existing key
+        """
+        curr_node = getattr(self, self.text_attr, None)
+        parent, node_key = None, None
+        for key in key_list:
+            parent = curr_node
+            node_key = key
+            curr_node = curr_node.get(key)
+            if curr_node is None:
+                return None, None, None
+        return curr_node, parent, node_key
+    
+    def _get_top_level_jas_helper(self, item: Union[dict, list], parent=None, item_key=None) -> tuple:
+        """
+        Helper function for get_top_level_jas to help with recursion
+        """
+        jas = []
+        parent_key_list = []
+        if isinstance(item, dict):
+            for key, child in item.items():
+                temp_jas, temp_parent_key_list = self._get_top_level_jas_helper(child, item, key)
+                jas += temp_jas
+                parent_key_list += temp_parent_key_list
+        elif isinstance(item, list):
+            jas += [item]
+            parent_key_list = [(parent, item_key)]
+        return jas, parent_key_list
+
+    def _trim_ending_whitespace(self):
+        """
+        Trims blank segments from end of every section
+        :return:
+        """
+        jas, parent_key_list = self.get_top_level_jas()
+        for ja, (parent_node, ja_key) in zip(jas, parent_key_list):
+            new_ja = JaggedTextArray(ja).trim_ending_whitespace().array()
+            if parent_node is None:
+                setattr(self, self.text_attr, new_ja)
+            else:
+                parent_node[ja_key] = new_ja
 
     def as_string(self):
         content = getattr(self, self.text_attr, None)
@@ -1035,7 +1099,7 @@ class AbstractTextRecord(object):
         return False
 
     @staticmethod
-    def _strip_itags(s):
+    def _strip_itags(s, sections=None):
         soup = BeautifulSoup("<root>{}</root>".format(s), 'lxml')
         itag_list = soup.find_all(AbstractTextRecord._find_itags)
         for itag in itag_list:
@@ -1046,7 +1110,7 @@ class AbstractTextRecord(object):
             itag.decompose()
         return soup.root.encode_contents().decode()  # remove divs added
 
-    def _get_text_after_modifications(self, text_modification_funcs):
+    def _get_text_after_modifications(self, text_modification_funcs, start_sections=None):
         """
         :param text_modification_funcs: list(func). functions to apply in order on each segment in text chunk
         :return ja: Return jagged array after applying text_modification_funcs iteratively on each segment
@@ -1054,12 +1118,12 @@ class AbstractTextRecord(object):
         if len(text_modification_funcs) == 0:
             return getattr(self, self.text_attr)
 
-        def modifier(s):
+        def modifier(string, sections):
             for func in text_modification_funcs:
-                s = func(s)
-            return s
-
-        return self.ja().modify_by_function(modifier)
+                string = func(string, sections)
+            return string
+        start_sections = None if start_sections is None else [s-1 for s in start_sections]  # zero-indexed for ja
+        return self.ja().modify_by_function(modifier, start_sections)
 
     # Currently assumes that text is JA
     def _sanitize(self):
@@ -1096,7 +1160,6 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         "status",
         "priority",
         "license",
-        "licenseVetted",
         "versionNotes",
         "digitizedBySefaria",
         "method",
@@ -1132,6 +1195,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
                 self.priority = float(self.priority)
             except ValueError as e:
                 self.priority = None
+        self._trim_ending_whitespace()
 
     def _sanitize(self):
         # sanitization happens on TextChunk saving
@@ -1187,7 +1251,7 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
     def walk_thru_contents(self, action, item=None, tref=None, heTref=None, schema=None, addressTypes=None, terms_dict=None):
         """
         Walk through content of version and run `action` for each segment. Only required parameter to call is `action`
-        :param func action: (segment_str, tref, version) => None
+        :param func action: (segment_str, tref, he_tref, version) => None
         """
         def get_primary_title(lang, titles):
             return [t for t in titles if t.get("primary") and t.get("lang", "") == lang][0]["text"]
@@ -1232,8 +1296,8 @@ class Version(AbstractTextRecord, abst.AbstractMongoRecord, AbstractSchemaConten
         elif type(item) is list:
             for ii, i in enumerate(item):
                 try:
-                    temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.toStrByAddressType(addressTypes[0], "en", ii+1))
-                    temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.toStrByAddressType(addressTypes[0], "he", ii+1))
+                    temp_tref = tref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "en", ii+1))
+                    temp_heTref = heTref + "{}{}".format(" " if schema else ":", AddressType.to_str_by_address_type(addressTypes[0], "he", ii+1))
                     self.walk_thru_contents(action, i, temp_tref, temp_heTref, schema="", addressTypes=addressTypes[1:])
                 except IndexError as e:
                     print(str(e))
@@ -1524,13 +1588,6 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
             # check for strings where arrays expected, except for last pass
             if pos < self._ref_depth - 2 and isinstance(parent_content[val - 1], str):
                 parent_content[val - 1] = [parent_content[val - 1]]
-
-    def _trim_ending_whitespace(self):
-        """
-        Trims blank segments from end of every section
-        :return:
-        """
-        self.text = JaggedTextArray(self.text).trim_ending_whitespace().array()
 
     def _check_available_text_pre_save(self):
         """
@@ -1915,12 +1972,6 @@ class TextFamily(object):
             "en": "versionStatus",
             "he": "heVersionStatus"
         },
-        "license": {
-            "en": "license",
-            "he": "heLicense",
-            "condition": "licenseVetted",
-            "default": "unknown"
-        },
         "versionNotes": {
             "en": "versionNotes",
             "he": "heVersionNotes"
@@ -1941,14 +1992,19 @@ class TextFamily(object):
             "en": "digitizedBySefaria",
             "he": "heDigitizedBySefaria",
             "default": False,
-        }
+        },
+        "license": {
+            "en": "license",
+            "he": "heLicense",
+            "default": "unknown"
+        },
     }
     sourceMap = {
         "en": "sources",
         "he": "heSources"
     }
 
-    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False):
+    def __init__(self, oref, context=1, commentary=True, version=None, lang=None, version2=None, lang2=None, pad=True, alts=False, wrapLinks=False, stripItags=False, wrapNamedEntities=False):
         """
         :param oref:
         :param context:
@@ -1961,6 +2017,7 @@ class TextFamily(object):
         :param alts: Adds notes of where alt elements begin
         :param wrapLinks: whether to return the text requested with all internal citations marked up as html links <a>
         :param stripItags: whether to strip inline commentator tags and inline footnotes from text
+        :param wrapNamedEntities: whether to return the text requested with all known named entities marked up as html links <a>.
         :return:
         """
         if pad:
@@ -2002,17 +2059,32 @@ class TextFamily(object):
                 c = TextChunk(oref, language)
             self._chunks[language] = c
             text_modification_funcs = []
+            if wrapNamedEntities and len(c._versions) > 0:
+                from . import RefTopicLinkSet
+                named_entities = RefTopicLinkSet({"expandedRefs": {"$in": [r.normal() for r in oref.all_segment_refs()]}, "charLevelData.versionTitle": c._versions[0].versionTitle, "charLevelData.language": language})
+                if len(named_entities) > 0:
+                    # assumption is that refTopicLinks are all to unranged refs
+                    ne_by_secs = defaultdict(list)
+                    for ne in named_entities:
+                        try:
+                            temp_ref = Ref(ne.ref)
+                        except InputError:
+                            continue
+                        temp_secs = tuple(s-1 for s in temp_ref.sections)
+                        ne_by_secs[temp_secs] += [ne]
+                    text_modification_funcs += [lambda s, secs: library.get_wrapped_named_entities_string(ne_by_secs[tuple(secs)], s)]
             if stripItags:
-                text_modification_funcs += [c._strip_itags, lambda x: ' '.join(x.split()).strip()]
+                text_modification_funcs += [lambda s, secs: c._strip_itags(s), lambda s, secs: ' '.join(s.split()).strip()]
             if wrapLinks and c.version_ids():
                 #only wrap links if we know there ARE links- get the version, since that's the only reliable way to get it's ObjectId
                 #then count how many links came from that version. If any- do the wrapping.
-                from . import LinkSet
+                from . import Link
                 query = oref.ref_regex_query()
                 query.update({"generated_by": "add_links_from_text"})  # , "source_text_oid": {"$in": c.version_ids()}
-                if LinkSet(query).count() > 0:
-                    text_modification_funcs += [lambda s: library.get_wrapped_refs_string(s, lang=language, citing_only=True)]
-            setattr(self, self.text_attr_map[language], c._get_text_after_modifications(text_modification_funcs))
+                if Link().load(query) is not None:
+                    text_modification_funcs += [lambda s, secs: library.get_wrapped_refs_string(s, lang=language, citing_only=True)]
+            padded_sections, _ = oref.get_padded_sections()
+            setattr(self, self.text_attr_map[language], c._get_text_after_modifications(text_modification_funcs, start_sections=padded_sections))
 
         if oref.is_spanning():
             self.spanning = True
@@ -2044,7 +2116,7 @@ class TextFamily(object):
 
                     #It's in our territory
                     wholeRefStart = wholeRef.starting_ref()
-                    if oref.contains(wholeRefStart) and not oref == wholeRefStart:
+                    if oref.contains(wholeRefStart) and not wholeRefStart.contains(oref):
                         indxs = [k - 1 for k in wholeRefStart.in_terms_of(oref)]
                         val = {"en":[], "he":[]}
 
@@ -2062,11 +2134,11 @@ class TextFamily(object):
                     if getattr(n, "refs", None):
                         for i, r in enumerate(n.refs):
                             # hack to skip Rishon, skip empty refs
-                            if i==0 or not r:
-                                continue;
+                            if i == 0 or not r:
+                                continue
                             subRef = Ref(r)
                             subRefStart = subRef.starting_ref()
-                            if oref.contains(subRefStart) and not oref == subRefStart:
+                            if oref.contains(subRefStart) and not subRefStart.contains(oref):
                                 indxs = [k - 1 for k in subRefStart.in_terms_of(oref)]
                                 val = {"en":[], "he":[]}
 
@@ -2151,10 +2223,7 @@ class TextFamily(object):
                 ver = chunk.version()
                 if ver:
                     for key, val in list(self.attr_map.items()):
-                        if not val.get("condition") or getattr(ver, val.get("condition"), False):
-                            d[val[language]] = getattr(ver, key, val.get("default", ""))
-                        else:
-                            d[val[language]] = val.get("default")
+                        d[val[language]] = getattr(ver, key, val.get("default", ""))
 
         # replace ints with daf strings (3->"2a") for Talmud addresses
         # this could be simpler if was done for every value - but would be slower.
@@ -2566,29 +2635,22 @@ class Ref(object, metaclass=RefCacheType):
 
         self.toSections = self.sections[:]
 
-        # Parse range end portion, if it exists
-        if len(parts) == 2:
+        #retrieve the address class of the last section in the ref
+        address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections)-1])
+
+        if hasattr(address_class, "parse_range_end"):
+            base_wout_title = base.replace(title + " ", "")
+            address_class.parse_range_end(self, parts, base_wout_title)
+        elif len(parts) == 2: # Parse range end portion, if it exists
             self.__init_ref_pointer_vars()  # clear out any mistaken partial representations
-            if self._lang == "he" or any([a != "Integer" for a in self.index_node.addressTypes[1:]]):     # in process. developing logic that should work for all languages / texts
-                # todo: handle sections names in "to" part.  Handle talmud יד א - ב kind of cases.
-                range_parts = re.split("[., :]+", parts[1])
-                delta = len(self.sections) - len(range_parts)
-                for i in range(delta, len(self.sections)):
-                    try:
-                        self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang, range_parts[i - delta])
-                    except (ValueError, IndexError):
-                        raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
-            elif self._lang == "en":
-                if self.index_node.addressTypes[0] == "Talmud":
-                    self.__parse_talmud_range(parts[1])
-                else:
-                    range_parts = re.split("[.:, ]+", parts[1])
-                    delta = len(self.sections) - len(range_parts)
-                    for i in range(delta, len(self.sections)):
-                        try:
-                            self.toSections[i] = int(range_parts[i - delta])
-                        except (ValueError, IndexError):
-                            raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
+            range_parts = re.split("[.:, ]+", parts[1])
+            delta = len(self.sections) - len(range_parts)
+            for i in range(delta, len(self.sections)):
+                try:
+                    self.toSections[i] = self.index_node._addressTypes[i].toNumber(self._lang,
+                                                                                   range_parts[i - delta], sections=self.sections[i])
+                except (ValueError, IndexError):
+                    raise InputError("Couldn't understand text sections: '{}'.".format(self.tref))
 
     def __get_sections(self, reg, tref, use_node=None):
         use_node = use_node or self.index_node
@@ -2604,25 +2666,6 @@ class Ref(object, metaclass=RefCacheType):
                 sections.append(use_node._addressTypes[i].toNumber(self._lang, gs.get(gname)))
         return sections
 
-    def __parse_talmud_range(self, range_part):
-        #todo: make sure to-daf isn't out of range
-        self.toSections = range_part.split(".")  # this was converting space to '.', for some reason.
-
-        # 'Shabbat 23a-b'
-        if self.toSections[0] == 'b' or self.toSections[0] == 'ᵇ':
-            self.toSections[0] = self.sections[0] + 1
-
-        # 'Shabbat 24b-25a'
-        elif regex.match(r"\d+[abᵃᵇ]", self.toSections[0]):
-            self.toSections[0] = daf_to_section(self.toSections[0])
-
-        # 'Shabbat 24b.12-24'
-        else:
-            delta = len(self.sections) - len(self.toSections)
-            for i in range(delta - 1, -1, -1):
-                self.toSections.insert(0, self.sections[i])
-
-        self.toSections = [int(x) for x in self.toSections]
 
     def __eq__(self, other):
         return isinstance(other, Ref) and self.uid() == other.uid()
@@ -3793,7 +3836,7 @@ class Ref(object, metaclass=RefCacheType):
                 return False
 
             # If other's start is after my start, I don't need to keep checking
-            if other.sections[i] > self.toSections[i]:
+            if other.sections[i] > self.sections[i]:
                 break
 
         return True
@@ -3954,7 +3997,6 @@ class Ref(object, metaclass=RefCacheType):
 
         :return string:
         """
-        #Todo: handle complex texts.  Right now, all complex results are grouped under the root of the text
 
         cats = self.index.categories[:]
 
@@ -3974,13 +4016,15 @@ class Ref(object, metaclass=RefCacheType):
             return "Z"
 
     """ Methods for working with Versions and VersionSets """
-    def storage_address(self):
+    def storage_address(self, format="string"):
         """
         Return the storage location within a Version for this Ref.
 
-        :return string:
+        :return string or list: if format == 'string' return string where each address is separated by period else return list of addresses
         """
-        return ".".join(["chapter"] + self.index_node.address()[1:])
+        address_list = ["chapter"] + self.index_node.address()[1:]
+        if format == "list": return address_list
+        return ".".join(address_list)
 
     def part_projection(self):
         """
@@ -4203,9 +4247,7 @@ class Ref(object, metaclass=RefCacheType):
             18 June 2015: Removed the special casing for Hebrew Talmud sub daf numerals
             Previously, talmud lines had been normalised as arabic numerals
         '''
-        if not self._he_normal:
-            self._he_normal = self._get_normal("he")
-        return self._he_normal
+        return self.normal('he')
 
     def uid(self):
         """
@@ -4214,13 +4256,21 @@ class Ref(object, metaclass=RefCacheType):
         """
         return self.normal() + ("<d>" if self.index_node.is_default() else "")
 
-    def normal(self):
+    def normal(self, lang='en'):
         """
-        :return string: Normal English string form
+        :return string: Normal English or Hebrew string form
         """
-        if not self._normal:
-            self._normal = self._get_normal("en")
-        return self._normal
+        normal_attr = "_normal" if lang == 'en' else "_he_normal"
+        if not getattr(self, normal_attr, None):
+            #check if the second last section has function normal_range and the ref is a range. if true, parse
+            #using address_class's normal_range function.  this is necessary to return Shabbat 7a-8b as Shabbat 7-8
+            if len(self.sections) > 0 and hasattr(AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections) - 1]), "normal_range") and self.is_range():
+                address_class = AddressType.to_class_by_address_type(self.index_node.addressTypes[len(self.sections) - 1])
+                normal_form = address_class.normal_range(self, lang)
+            else:
+                normal_form = self._get_normal(lang)
+            setattr(self, normal_attr, normal_form)
+        return getattr(self, normal_attr)
 
     def text(self, lang="en", vtitle=None, exclude_copyrighted=False):
         """
@@ -4270,10 +4320,13 @@ class Ref(object, metaclass=RefCacheType):
         from . import LinkSet
         return LinkSet(self)
 
-    def topiclinkset(self):
+    def topiclinkset(self, with_char_level_links=False):
         from . import RefTopicLinkSet
         regex_list = self.regex(as_list=True)
-        return RefTopicLinkSet({"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]})
+        query = {"$or": [{"expandedRefs": {"$regex": r}} for r in regex_list]}
+        if not with_char_level_links:
+            query["charLevelData"] = {"$exists": False}
+        return RefTopicLinkSet(query)
 
     def autolinker(self, **kwargs):
         """
@@ -4388,6 +4441,9 @@ class Library(object):
     """
 
     def __init__(self):
+        #Timestamp when library last stored shared cache items (toc, terms, etc)
+        self.last_cached = None
+
         self.langs = ["en", "he"]
 
         # Maps, keyed by language, from index key to array of titles
@@ -4417,11 +4473,10 @@ class Library(object):
         self._toc = None
         self._toc_json = None
         self._toc_tree = None
+        self._topic_toc = None
         self._topic_toc_json = None
         self._topic_link_types = None
         self._topic_data_sources = None
-        self._search_filter_toc = None
-        self._search_filter_toc_json = None
         self._category_id_dict = None
         self._toc_size = 16
 
@@ -4434,6 +4489,10 @@ class Library(object):
         # Term Mapping
         self._simple_term_mapping = {}
         self._full_term_mapping = {}
+        self._simple_term_mapping_json = None
+
+        # Topics
+        self._topic_mapping = {}
 
         # Initialization Checks
         # These values are set to True once their initialization is complete
@@ -4445,7 +4504,7 @@ class Library(object):
 
 
         if not hasattr(sys, '_doc_build'):  # Can't build cache without DB
-            self.build_term_mappings()
+            self.get_simple_term_mapping() #this will implicitly call self.build_term_mappings() but also make sure its cached.
 
     def _build_index_maps(self):
         # Build index and title node dicts in an efficient way
@@ -4474,36 +4533,52 @@ class Library(object):
         # TOC is handled separately since it can be edited in place
 
     def rebuild(self, include_toc = False, include_auto_complete=False):
-        self.build_term_mappings()
+        self.get_simple_term_mapping_json(rebuild=True)
+        self._build_topic_mapping()
         self._build_index_maps()
         self._full_title_lists = {}
         self._full_title_list_jsons = {}
+        self.reset_text_titles_cache()
         self._title_regex_strings = {}
         self._title_regexes = {}
         Ref.clear_cache()
         if include_toc:
             self.rebuild_toc()
 
-    def rebuild_toc(self, skip_toc_tree=False, skip_filter_toc=False):
+    def rebuild_toc(self, skip_toc_tree=False):
         if not skip_toc_tree:
             self._toc_tree = self.get_toc_tree(rebuild=True)
         self._toc = self.get_toc(rebuild=True)
         self._toc_json = self.get_toc_json(rebuild=True)
-        if not skip_filter_toc:
-            self._search_filter_toc = self.get_search_filter_toc(rebuild=True)
-        self._search_filter_toc_json = self.get_search_filter_toc_json(rebuild=True)
+        self._topic_toc = self.get_topic_toc(rebuild=True)
         self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
         self._category_id_dict = None
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
         self._full_title_list_jsons = {}
 
-        """
-        # These seem needless, and counterproductive (certainly in the rebuild(include_toc=True) case)
+    def init_shared_cache(self, rebuild=False):
+        self.get_toc(rebuild=rebuild)
+        self.get_toc_json(rebuild=rebuild)
+        self.get_topic_mapping(rebuild=rebuild)
+        self.get_topic_toc(rebuild=rebuild)
+        self.get_topic_toc_json(rebuild=rebuild)
+        self.get_text_titles_json(rebuild=rebuild)
+        self.get_simple_term_mapping(rebuild=rebuild)
+        self.get_simple_term_mapping_json(rebuild=rebuild)
+        if rebuild:
+            scache.delete_shared_cache_elem("regenerating")
 
-        self._simple_term_mapping = {}
-        self._full_term_mapping = {}
-        """
+    def get_last_cached_time(self):
+        if not self.last_cached:
+            self.last_cached = scache.get_shared_cache_elem("last_cached")
+        if not self.last_cached:
+            self.set_last_cached_time()
+        return self.last_cached
+
+    def set_last_cached_time(self):
+        self.last_cached = time.time() # just use the unix timestamp, we dont need any fancy timezone faffing, just objective point in time.
+        scache.set_shared_cache_elem("last_cached", self.last_cached)
 
     def get_toc(self, rebuild=False):
         """
@@ -4512,10 +4587,11 @@ class Library(object):
         """
         if rebuild or not self._toc:
             if not rebuild:
-                self._toc = scache.get_cache_elem('toc_cache')
+                self._toc = scache.get_shared_cache_elem('toc')
             if rebuild or not self._toc:
                 self._toc = self.get_toc_tree().get_serialized_toc()  # update_table_of_contents()
-                scache.set_cache_elem('toc_cache', self._toc)
+                scache.set_shared_cache_elem('toc', self._toc)
+                self.set_last_cached_time()
         return self._toc
 
     def get_toc_json(self, rebuild=False):
@@ -4524,10 +4600,11 @@ class Library(object):
         """
         if rebuild or not self._toc_json:
             if not rebuild:
-                self._toc_json = scache.get_cache_elem('toc_json_cache')
+                self._toc_json = scache.get_shared_cache_elem('toc_json')
             if rebuild or not self._toc_json:
-                self._toc_json = json.dumps(self.get_toc())
-                scache.set_cache_elem('toc_json_cache', self._toc_json)
+                self._toc_json = json.dumps(self.get_toc(), ensure_ascii=False)
+                scache.set_shared_cache_elem('toc_json', self._toc_json)
+                self.set_last_cached_time()
         return self._toc_json
 
     def get_toc_tree(self, rebuild=False):
@@ -4537,9 +4614,30 @@ class Library(object):
         self._toc_tree_is_ready = True
         return self._toc_tree
 
+    def get_topic_toc(self, rebuild=False):
+        """
+        Returns dict representation of Topics TOC.
+         """
+        if rebuild or not self._topic_toc:
+            if not rebuild:
+                self._topic_toc = scache.get_shared_cache_elem('topic_toc')
+            if rebuild or not self._topic_toc:
+                self._topic_toc = self.get_topic_toc_json_recursive()
+                scache.set_shared_cache_elem('topic_toc', self._topic_toc)
+                self.set_last_cached_time()
+        return self._topic_toc
+
     def get_topic_toc_json(self, rebuild=False):
-        if not self._topic_toc_json or rebuild:
-            self._topic_toc_json = json.dumps(self.get_topic_toc_json_recursive())
+        """
+        Returns JSON representation of Topics TOC.
+        """
+        if rebuild or not self._topic_toc_json:
+            if not rebuild:
+                self._topic_toc_json = scache.get_shared_cache_elem('topic_toc_json')
+            if rebuild or not self._topic_toc_json:
+                self._topic_toc_json = json.dumps(self.get_topic_toc(), ensure_ascii=False)
+                scache.set_shared_cache_elem('topic_toc_json', self._topic_toc_json)
+                self.set_last_cached_time()
         return self._topic_toc_json
 
     def get_topic_toc_json_recursive(self, topic=None, explored=None, with_descriptions=False):
@@ -4562,6 +4660,8 @@ class Library(object):
                 description = getattr(topic, "description", None)
                 if description is not None and getattr(topic, "description_published", False):
                     topic_json['description'] = description
+                if getattr(topic, "categoryDescription", False):
+                    topic_json['categoryDescription'] = topic.categoryDescription
             explored.add(topic.slug)
         if len(children) > 0 or topic is None:  # make sure root gets children no matter what
             topic_json['children'] = []
@@ -4576,6 +4676,37 @@ class Library(object):
         if topic is None:
             return topic_json['children']
         return topic_json
+
+    def get_search_filter_toc(self):
+        """
+        Returns TOC, modified  according to `Category.searchRoot` flags to correspond to the filters
+        """
+        from sefaria.model.category import TocTree, CategorySet, TocCategory
+        from sefaria.site.categories import CATEGORY_ORDER
+        toctree = TocTree(self)     # Don't use the cached one.  We're going to rejigger it.
+        root = toctree.get_root()
+
+        reroots = CategorySet({"searchRoot": {"$exists": True}})
+
+        # Get all the unique new roots, create nodes for them, and attach them to the tree
+        new_root_titles = list({c.searchRoot for c in reroots})
+        new_root_titles.sort(key=lambda t: CATEGORY_ORDER.index(t.split()[0]))
+        new_roots = {}
+        for t in new_root_titles:
+            tc = TocCategory()
+            tc.add_title(t, "en", primary=True)
+            tc.add_title(Term.normalize(t, "he"), "he", primary=True)
+            tc.append_to(root)
+            new_roots[t] = tc
+
+        # Re-parent all of the nodes with "searchRoot"
+        for cat in reroots:
+            tocnode = toctree.lookup(cat.path)
+            tocnode.detach()
+            tocnode.append_to(new_roots[cat.searchRoot])
+
+        # todo: return 'thin' param when search toc is retired.
+        return [c.serialize(thin=True) for c in root.children]
 
     def get_topic_link_type(self, link_type):
         from .topic import TopicLinkTypeSet
@@ -4595,39 +4726,14 @@ class Library(object):
             }
         return self._topic_data_sources.get(data_source, None)
 
-    def get_groups_in_library(self):
-        return self._toc_tree.get_groups_in_library()
+    def get_collections_in_library(self):
+        return self._toc_tree.get_collections_in_library()
 
-    def get_search_filter_toc(self, rebuild=False):
-        """
-        Returns table of contents object from cache,
-        DB or by generating it, as needed.
-        """
-        if rebuild or not self._search_filter_toc:
-            if not rebuild:
-                self._search_filter_toc = scache.get_cache_elem('search_filter_toc_cache')
-            if rebuild or not self._search_filter_toc:
-                from sefaria.summaries import update_search_filter_table_of_contents
-                self._search_filter_toc = update_search_filter_table_of_contents()
-                scache.set_cache_elem('search_filter_toc_cache', self._search_filter_toc)
-        return self._search_filter_toc
-
-    def get_search_filter_toc_json(self, rebuild=False):
-        """
-        Returns JSON representation of TOC.
-        """
-        if rebuild or not self._search_filter_toc_json:
-            if not rebuild:
-                self._search_filter_toc_json = scache.get_cache_elem('search_filter_toc_json_cache')
-            if rebuild or not self._search_filter_toc_json:
-                self._search_filter_toc_json = json.dumps(self.get_search_filter_toc())
-                scache.set_cache_elem('search_filter_toc_json_cache', self._search_filter_toc_json)
-        return self._search_filter_toc_json
 
     def build_full_auto_completer(self):
         from .autospell import AutoCompleter
         self._full_auto_completer = {
-            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_groups=True) for lang in self.langs
+            lang: AutoCompleter(lang, library, include_people=True, include_topics=True, include_categories=True, include_parasha=False, include_users=True, include_collections=True) for lang in self.langs
         }
 
         for lang in self.langs:
@@ -4697,10 +4803,7 @@ class Library(object):
 
         self.get_toc_tree().update_title(indx, recount=True)
 
-        from sefaria.summaries import update_title_in_toc
-        self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, recount=False, for_search=True)
-
-        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
+        self.rebuild_toc(skip_toc_tree=True)
 
     def delete_index_from_toc(self, indx, categories = None):
         """
@@ -4715,10 +4818,7 @@ class Library(object):
         if toc_node:
             self.get_toc_tree().remove_index(toc_node)
 
-        from sefaria.summaries import recur_delete_element_from_toc
-        self._search_filter_toc = recur_delete_element_from_toc(indx.title, self.get_search_filter_toc())
-
-        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
+        self.rebuild_toc(skip_toc_tree=True)
 
     def update_index_in_toc(self, indx, old_ref=None):
         """
@@ -4733,10 +4833,7 @@ class Library(object):
 
         self.get_toc_tree().update_title(indx, old_ref=old_ref, recount=False)
 
-        from sefaria.summaries import update_title_in_toc
-        self._search_filter_toc = update_title_in_toc(self.get_search_filter_toc(), indx, old_ref=old_ref, recount=False, for_search=True)
-
-        self.rebuild_toc(skip_toc_tree=True, skip_filter_toc=True)
+        self.rebuild_toc(skip_toc_tree=True)
 
     def get_index(self, bookname):
         """
@@ -4898,37 +4995,6 @@ class Library(object):
             self._title_regexes[key] = reg
         return reg
 
-    def full_title_list(self, lang="en", with_terms=False):
-        """
-        :return: list of strings of all possible titles
-        :param lang: "he" or "en"
-        :param with_terms: if True, includes shared titles ('terms')
-        """
-
-        key = lang
-        key += "_terms" if with_terms else ""
-        titles = self._full_title_lists.get(key)
-        if not titles:
-            titles = list(self.get_title_node_dict(lang).keys())
-            if with_terms:
-                titles += list(self.get_term_dict(lang).keys())
-            self._full_title_lists[key] = titles
-        return titles
-
-    def citing_title_list(self, lang="en"):
-        """
-        :param lang: "he" or "en"
-        :return: list of all titles that can be recognized as an inline citation
-        """
-        key = "citing-{}".format(lang)
-        titles = self._full_title_lists.get(key)
-        if not titles:
-            titles = []
-            for i in IndexSet({"is_cited": True}):
-                titles.extend(self._index_title_maps[lang][i.title])
-            self._full_title_lists[key] = titles
-        return titles
-
     def ref_list(self):
         """
         :return: list of all section-level Refs in the library
@@ -4967,16 +5033,47 @@ class Library(object):
                     for title in term.get_titles(lang):
                         self._term_ref_maps[lang][title] = term.ref
 
-    def get_simple_term_mapping(self):
-        if not self._simple_term_mapping:
-            self.build_term_mappings()
+    def get_simple_term_mapping(self, rebuild=False):
+        if rebuild or not self._simple_term_mapping:
+            if not rebuild:
+                self._simple_term_mapping = scache.get_shared_cache_elem('term_mapping')
+            if rebuild or not self._simple_term_mapping:
+                self.build_term_mappings()
+                scache.set_shared_cache_elem('term_mapping', self._simple_term_mapping)
+                self.set_last_cached_time()
         return self._simple_term_mapping
+
+    def get_simple_term_mapping_json(self, rebuild=False):
+        """
+        Returns JSON representation of terms.
+        """
+        if rebuild or not self._simple_term_mapping_json:
+            if not rebuild:
+                self._simple_term_mapping_json = scache.get_shared_cache_elem('term_mapping_json')
+            if rebuild or not self._simple_term_mapping_json:
+                self._simple_term_mapping_json = json.dumps(self.get_simple_term_mapping(), ensure_ascii=False)
+                scache.set_shared_cache_elem('term_mapping_json', self._simple_term_mapping_json)
+                self.set_last_cached_time()
+        return self._simple_term_mapping_json
 
     def get_term(self, term_name):
         if not self._full_term_mapping:
             self.build_term_mappings()
         return self._full_term_mapping.get(term_name)
 
+    def get_topic(self, slug):
+        return self._topic_mapping[slug]
+
+    def get_topic_mapping(self, rebuild=False):
+        tm = self._topic_mapping
+        if not tm or rebuild:
+            tm = self._build_topic_mapping()
+        return tm
+
+    def _build_topic_mapping(self):
+        from .topic import Topic, TopicSet
+        self._topic_mapping = {t.slug: {"en": t.get_primary_title("en"), "he": t.get_primary_title("he")} for t in TopicSet()}
+        return self._topic_mapping
 
     #todo: only used in bio scripts
     def get_index_forest(self):
@@ -5011,20 +5108,67 @@ class Library(object):
         title = title.replace("_", " ")
         return self.get_title_node_dict(lang).get(title)
 
-    def get_text_titles_json(self, lang="en"):
+
+    def citing_title_list(self, lang="en"):
+        """
+        :param lang: "he" or "en"
+        :return: list of all titles that can be recognized as an inline citation
+        """
+        key = "citing-{}".format(lang)
+        titles = self._full_title_lists.get(key)
+        if not titles:
+            titles = []
+            for i in IndexSet({"is_cited": True}):
+                titles.extend(self._index_title_maps[lang][i.title])
+            self._full_title_lists[key] = titles
+        return titles
+
+
+    def full_title_list(self, lang="en", with_terms=False):
+        """
+        :return: list of strings of all possible titles
+        :param lang: "he" or "en"
+        :param with_terms: if True, includes shared titles ('terms')
+        """
+
+        key = lang
+        key += "_terms" if with_terms else ""
+        titles = self._full_title_lists.get(key)
+        if not titles:
+            titles = list(self.get_title_node_dict(lang).keys())
+            if with_terms:
+                titles += list(self.get_term_dict(lang).keys())
+            self._full_title_lists[key] = titles
+        return titles
+
+    def build_text_titles_json(self, lang="en"):
         """
         :return: JSON of full texts list, (cached)
         """
-        title_json = self._full_title_list_jsons.get(lang)
-        if not title_json:
-            title_list = self.full_title_list(lang=lang)
-            if lang == "en":
-                toc_titles = self.get_toc_tree().flatten()
-                secondary_list = list(set(title_list) - set(toc_titles))
-                title_list = toc_titles + secondary_list
-            title_json = json.dumps(title_list)
-            self._full_title_list_jsons[lang] = title_json
-        return title_json
+        title_list = self.full_title_list(lang=lang)
+        if lang == "en":
+            toc_titles = self.get_toc_tree().flatten()
+            secondary_list = list(set(title_list) - set(toc_titles))
+            title_list = toc_titles + secondary_list
+        return title_list
+
+    def get_text_titles_json(self, lang="en", rebuild=False):
+        if rebuild or not self._full_title_list_jsons.get(lang):
+            if not rebuild:
+                self._full_title_list_jsons[lang] = scache.get_shared_cache_elem('books_'+lang+'_json')
+            if rebuild or not self._full_title_list_jsons.get(lang):
+                title_list = self.build_text_titles_json(lang=lang)
+                title_list_json = json.dumps(title_list, ensure_ascii=False)
+                self._full_title_list_jsons[lang] = title_list_json
+                scache.set_shared_cache_elem('books_' + lang, title_list)
+                scache.set_shared_cache_elem('books_'+lang+'_json', title_list_json)
+                self.set_last_cached_time()
+        return self._full_title_list_jsons[lang]
+
+    def reset_text_titles_cache(self):
+        for lang in self.langs:
+            scache.delete_shared_cache_elem('books_' + lang)
+            scache.delete_shared_cache_elem('books_' + lang + '_json')
 
     def get_text_categories(self):
         """
@@ -5235,7 +5379,7 @@ class Library(object):
         for i in range(node.depth-1, -1, -1):
             toGname = "ar{}".format(i)
             if gs.get(toGname) is not None:
-                toSections.append(node._addressTypes[curr_address_index].toNumber(lang, gs.get(toGname)))
+                toSections.append(node._addressTypes[curr_address_index].toNumber(lang, gs.get(toGname), sections=sections[curr_address_index]))
                 curr_address_index -= 1
 
         if len(toSections) == 0:
@@ -5327,6 +5471,40 @@ class Library(object):
             outer_regex = regex.compile(outer_regex_str, regex.VERBOSE)
             return outer_regex.sub(lambda match: titles_regex.sub(_wrap_ref_match, match.group(0)), st)
 
+    @staticmethod
+    def get_wrapped_named_entities_string(links, s):
+        """
+        Parallel to library.get_wrapped_refs_string
+        Returns `s` with every link in `links` wrapped in an a-tag
+        """
+        if len(links) == 0:
+            return s
+        links.sort(key=lambda x: x.charLevelData['startChar'])
+
+        # replace all mentions with `dummy_char` so they can later be easily replaced using re.sub()
+        # this ensures char locations are preserved
+        dummy_char = "█"
+        char_list = list(s)
+        start_char_to_slug = {}
+        for link in links:
+            start = link.charLevelData['startChar']
+            end = link.charLevelData['endChar']
+            mention = s[start:end]
+            if mention != link.charLevelData['text']:
+                # dont link if current text at startChar:endChar doesn't match text on link
+                continue
+            start_char_to_slug[start] = (mention, link.toTopic, getattr(link, 'unambiguousToTopic', None))
+            char_list[start:end] = list(dummy_char*(end-start))
+        dummy_text = "".join(char_list)
+
+        def repl(match):
+            try:
+                mention, slug, unambiguous_slug = start_char_to_slug[match.start()]
+            except KeyError:
+                return match.group()
+            link_slug = unambiguous_slug or slug
+            return f"""<a href="/topics/{link_slug}" class="namedEntityLink" data-slug="{slug}">{mention}</a>"""
+        return re.sub(fr"{dummy_char}+", repl, dummy_text)
 
     def category_id_dict(self, toc=None, cat_head="", code_head=""):
         if toc is None:
@@ -5340,10 +5518,10 @@ class Library(object):
             name = c["category"] if "category" in c else c["title"]
             if cat_head:
                 key = "/".join([cat_head, name])
-                val = code_head + format(i, '02')
+                val = code_head + format(i, '03')
             else:
                 key = name
-                val = "A" + format(i, '02')
+                val = "A" + format(i, '03')
 
             d[key] = val
             if "contents" in c:
@@ -5487,6 +5665,7 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
     old_title = kwargs["old"]
 
     library.refresh_index_record_in_cache(indx, old_title=old_title)
+    library.reset_text_titles_cache()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title, old_title])
@@ -5498,12 +5677,14 @@ def process_index_title_change_in_core_cache(indx, **kwargs):
 def process_index_change_in_core_cache(indx, **kwargs):
     if kwargs.get("is_new"):
         library.add_index_record_to_cache(indx)
+        library.reset_text_titles_cache()
 
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "add_index_record_to_cache", [indx.title])
 
     else:
         library.refresh_index_record_in_cache(indx)
+        library.reset_text_titles_cache()
 
         if MULTISERVER_ENABLED:
             server_coordinator.publish_event("library", "refresh_index_record_in_cache", [indx.title])
@@ -5529,6 +5710,7 @@ def process_index_delete_in_toc(indx, **kwargs):
 
 def process_index_delete_in_core_cache(indx, **kwargs):
     library.remove_index_record_from_cache(indx)
+    library.reset_text_titles_cache()
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "remove_index_record_from_cache", [indx.title])
@@ -5538,7 +5720,8 @@ def process_index_delete_in_core_cache(indx, **kwargs):
 
 
 def reset_simple_term_mapping(o, **kwargs):
-    library.build_term_mappings()
+    library.get_simple_term_mapping(rebuild=True)
+
 
     if MULTISERVER_ENABLED:
         server_coordinator.publish_event("library", "build_term_mappings")

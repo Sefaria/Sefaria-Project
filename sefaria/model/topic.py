@@ -3,9 +3,9 @@ from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref
 from sefaria.system.exceptions import DuplicateRecordError
-import logging
+import structlog
 import regex as re
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
@@ -21,6 +21,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'alt_ids',
         'properties',
         'description',
+        'categoryDescription',
         'isTopLevelDisplay',
         'displayOrder',
         'numSources',
@@ -29,6 +30,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'ref',  # for topics with refs associated with them, this stores the tref (e.g. for a parashah)
         'good_to_promote',
         'description_published',  # bool to keep track of which descriptions we've vetted
+        'isAmbiguous',  # True if topic primary title can refer to multiple other topics
     ]
 
     @staticmethod
@@ -52,7 +54,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     def get_types(self, types=None, curr_path=None, search_slug_set=None):
         """
         WARNING: Expensive, lots of database calls
-        Checks if `self` has `topic_slug` as an ancestor when traversing `is-a` links
+        Gets all `is-a` ancestors of self. Returns early if `search_slug_set` is passed and it reaches any element in `search_slug_set`
         :param types: set(str), current known types, for recursive calls
         :param curr_path: current path of this recursive call
         :param search_slug_set: if passed, will return early once/if any element of `search_slug_set` is found
@@ -141,6 +143,14 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def should_display(self):
         return getattr(self, 'shouldDisplay', True) and getattr(self, 'numSources', 0) > 0
+
+    def set_slug_to_primary_title(self):
+        new_slug = self.get_primary_title('en')
+        if len(new_slug) == 0:
+            new_slug = self.get_primary_title('he')
+        new_slug = self.normalize_slug(new_slug)
+        if new_slug != self.slug:
+            self.set_slug(new_slug)
 
     def set_slug(self, new_slug):
         slug_field = self.slug_fields[0]
@@ -231,10 +241,28 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def contents(self, **kwargs):
         mini = kwargs.get('minify', False)
+        annotate_time_period = kwargs.get('annotate_time_period', False)
+
         d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
+        if annotate_time_period:
+            gen_symbol, _ = self.get_property("generation")
+            if gen_symbol is not None:
+                from sefaria.model.timeperiod import TimePeriod
+                tp = TimePeriod().load({"symbol": gen_symbol})
+                if tp is not None:
+                    d['timePeriod'] = {
+                        "name": {
+                            "en": tp.primary_name("en"),
+                            "he": tp.primary_name("he")
+                        },
+                        "yearRange": {
+                            "en": tp.period_string("en"),
+                            "he": tp.period_string("he")
+                        }
+                    }
         return d
 
     def get_primary_title(self, lang='en', with_disambiguation=True):
@@ -243,6 +271,8 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             disambig_text = self.title_group.get_title_attr(title, lang, 'disambiguation')
             if disambig_text:
                 title += f' ({disambig_text})'
+            elif getattr(self, 'isAmbiguous', False) and len(title) > 0:
+                title += ' (Ambiguous)'
         return title
 
     def get_titles(self, lang=None, with_disambiguation=True):
@@ -302,7 +332,8 @@ class TopicLinkHelper(object):
     ]
     optional_attrs = [
         'generatedBy',
-        'order'
+        'order',
+        'isJudgementCall',
     ]
     generated_by_sheets = "sheet-topic-aggregator"
 
@@ -416,7 +447,7 @@ class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
     sub_collection_query = {"class": "refTopic"}
     required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']  # is_sheet  and expandedRef attrs are defaulted automatically in normalize
-    optional_attrs = TopicLinkHelper.optional_attrs + ['text']
+    optional_attrs = TopicLinkHelper.optional_attrs + ['text', 'charLevelData', 'unambiguousToTopic']  # unambiguousToTopic is used when linking to an ambiguous topic. There are some instance when you need to decide on one of the options (e.g. linking to an ambiguous rabbi in frontend). this can be used as a proxy for toTopic in those cases.
 
     def _normalize(self):
         super(RefTopicLink, self)._normalize()
@@ -430,9 +461,14 @@ class RefTopicLink(abst.AbstractMongoRecord):
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
             # check for duplicates
-            duplicate = RefTopicLink().load(
-                {"linkType": self.linkType, "ref": self.ref, "toTopic": self.toTopic, "dataSource": getattr(self, 'dataSource', {"$exists": False}),
-                 "class": getattr(self, 'class')})
+            query = {"linkType": self.linkType, "ref": self.ref, "toTopic": self.toTopic, "dataSource": getattr(self, 'dataSource', {"$exists": False}), "class": getattr(self, 'class')}
+            if getattr(self, "charLevelData", None):
+                query["charLevelData.startChar"] = self.charLevelData['startChar']
+                query["charLevelData.endChar"] = self.charLevelData['endChar']
+                query["charLevelData.versionTitle"] = self.charLevelData['versionTitle']
+                query["charLevelData.language"] = self.charLevelData['language']
+
+            duplicate = RefTopicLink().load(query)
             if duplicate is not None:
                 raise DuplicateRecordError("Duplicate ref topic link for linkType '{}', ref '{}', toTopic '{}', dataSource '{}'".format(
                 self.linkType, self.ref, self.toTopic, getattr(self, 'dataSource', 'N/A')))
@@ -500,6 +536,7 @@ class TopicLinkType(abst.AbstractMongoRecord):
     ]
     related_type = 'related-to'
     isa_type = 'is-a'
+    possibility_type = 'possibility-for'
 
     def _validate(self):
         super(TopicLinkType, self)._validate()

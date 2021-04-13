@@ -5,7 +5,7 @@ from sefaria.model.abstract import AbstractMongoRecord
 from sefaria.system.exceptions import InputError
 from sefaria.system.database import db
 from sefaria.sheets import save_sheet
-from sefaria.utils.util import list_depth
+from sefaria.utils.util import list_depth, traverse_dict_tree
 
 import re
 
@@ -502,6 +502,7 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
     print('Updating Versions')
     for v in vs:
         assert isinstance(v, Version)
+
         if v.get_index() == index:
             chunk = TextChunk(ja_node.ref(), lang=v.language, vtitle=v.versionTitle)
         else:
@@ -521,8 +522,15 @@ def change_node_structure(ja_node, section_names, address_types=None, upsize_in_
             chunk.save()
 
         else:
-            chunk.text = ja.resize(delta).array()
-            chunk.save()
+            # we're going to save directly on the version to avoid weird mid change Ref bugs
+            new_text = ja.resize(delta).trim_ending_whitespace().array()
+            if isinstance(v.chapter, dict):  # complex text
+                version_address = ja_node.version_address()
+                parent = traverse_dict_tree(v.chapter, version_address[:-1])
+                parent[version_address[-1]] = new_text
+            else:
+                v.chapter = new_text
+            v.save()
 
     # For upsizing, we are editing refs to a structure that would not be valid till after the change, therefore
     # cascading must be performed here
@@ -596,14 +604,20 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         def rewrite_source(source):
             requires_save = False
             if "ref" in source:
+                original_tref = source["ref"]
                 try:
-                    ref = Ref(source["ref"])
-                except (InputError, ValueError):
-                    print("Error: In clean_sheets.rewrite_source: failed to instantiate Ref {}".format(source["ref"]))
-                else:
-                    if needs_rewrite(source['ref']):
-                        requires_save = True
+                    rewrite = needs_rewrite(source["ref"])
+                except (InputError, ValueError) as e:
+                    print('needs_rewrite method threw exception:', source["ref"], e)
+                    rewrite = False
+                if rewrite:
+                    requires_save = True
+                    try:
                         source["ref"] = rewriter(source['ref'])
+                    except (InputError, ValueError) as e:
+                        print('rewriter threw exception:', source["ref"], e)
+                    if source["ref"] != original_tref and not Ref.is_ref(source["ref"]):
+                        print('rewiter created an invalid Ref:', source["ref"])
             if "subsources" in source:
                 for subsource in source["subsources"]:
                     requires_save = rewrite_source(subsource) or requires_save
@@ -754,13 +768,11 @@ def generate_segment_mapping(title, mapping, output_file=None, mapped_title=lamb
 
                 segment_map[each_ref.normal()] = Ref(_obj=core_dict).normal()
 
-    #output results so that this map can be used again for other purposes
+    # output results so that this map can be used again for other purposes
     if output_file:
-        output_file = open(output_file, 'w')
-        assert type(output_file) is file
-        for key in segment_map:
-            output_file.write("KEY: {}, VALUE: {}".format(key, segment_map[key])+"\n")
-        output_file.close()
+        with open(output_file, 'w') as output_file:
+            for key in segment_map:
+                output_file.write("KEY: {}, VALUE: {}".format(key, segment_map[key])+"\n")
     return segment_map
 
 
@@ -874,7 +886,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
                     "title": new_version_title
                 }
             )
-        for attr in ['status', 'license', 'licenseVetted', 'method', 'versionNotes', 'priority', "digitizedBySefaria", "heversionSource"]:
+        for attr in ['status', 'license', 'method', 'versionNotes', 'priority', "digitizedBySefaria", "heversionSource"]:
             value = getattr(version, attr, None)
             if value:
                 setattr(new_version, attr, value)
@@ -950,3 +962,12 @@ def toc_plaintext():
     text = "".join([text_node(node, 0) for node in toc])
 
     print(text)
+
+
+def change_term_hebrew(en_primary, new_he):
+    t = Term().load({"name": en_primary})
+    assert t
+    old_primary = t.get_primary_title("he")
+    t.add_title(new_he, "he", True, True)
+    t.remove_title(old_primary, "he")
+    t.save()

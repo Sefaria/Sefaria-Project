@@ -8,6 +8,9 @@
 .interface-hebrew .staticPage {
   direction:rtl;
 }
+.interface-hebrew .staticPage.englishOnly {
+  direction:ltr;
+}
 .static {
   font-size: 16px;
   background-color: #FBFBFA;
@@ -97,7 +100,7 @@
   padding-bottom: 15px;
   border-bottom: 1px solid #eee;
 }
-.static p {
+.static p, .static section {
   margin: initial;
   font-size: 18px;
   line-height: 1.5;
@@ -165,35 +168,8 @@
 .static label.button {
   height: auto;
 }
-.static .row{
-
-}
 .static .error {
   color: red;
-}
-.static .inner div.single-button a.button{
-  margin: auto;
-}
-.static .inner .button {
-  border-radius: 7px;
-  padding: 16px 24px;
-  cursor: pointer;
-  font-size: 15px;
-  letter-spacing: 1px;
-  box-sizing: border-box;
-  text-align: center;
-}
-.static .inner .button.big {
-  width: 250px;
-}
-.static .inner .button.blue {
-  background-color: #212E50;
-  border: 1px solid #212E50;
-  color: white;
-}
-.static .inner .button.full{
-  width:100%;
-  margin: 10px 0;
 }
 .static img.fullWidth {
   width: 100%;
@@ -218,11 +194,9 @@
   font-weight: bold;
   color: #666;
 }
-
 .static .quotation a {
   color: #666;
 }
-
 .static .quotation he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
@@ -256,8 +230,7 @@
 }
 #homePage #homeCover h1.featureTitle {
   color: white;
-  height: 70px;
-  margin-bottom: 20px;
+  margin-bottom: 22px;
 }
 #homePage #homeCover h1.featureTitle .int-en,
 #homePage #homeCover h1.featureTitle .int-he {
@@ -663,19 +636,19 @@
   box-sizing: border-box;
 }
 .registrationContent input::placeholder { /* eventual spec? */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent input::-webkit-input-placeholder { /* Chrome/Opera/Safari */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent input::-moz-placeholder { /* Firefox 19+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent input:-ms-input-placeholder { /* IE 10+ */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent input:-moz-placeholder { /* Firefox 18- */
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .registrationContent #id_subscribe_announce, .registrationContent #id_subscribe_educator {
   width: auto;
@@ -693,7 +666,7 @@
 .registrationContent #register-form p:nth-of-type(5){
   padding-top: 10px;
 }
-.interface-hebrew input#id_email::-webkit-input-placeholder {
+.interface-hebrew input#id_email::placeholder {
   text-align: right;
 }
 input#id_email{
@@ -740,34 +713,69 @@ p.registration-links a:hover{
 .static div.single-button.center {
   text-align: center;
 }
+#donatePage h3{
+  font-size: inherit;
+  font-weight: bold;
+  display: inline;
+  text-transform: none;
+  color: inherit;
+  letter-spacing: 1px;
+  border-bottom: none;
+}
+#donatePage .notice{
+  font-style: italic;
+}
+#donatePage .covidNotice span {
+    font-size: 0.8em;
+}
+#donatePage .donateIntroduction{
+  text-align: center;
+}
+#donatePage section p{
+  margin-top: 10px;
+}
+#donatePage #givingOpportunities{
+
+}
+#donatePage #givingOpportunities .givingOpportunitiesDesc{
+  font-style: italic;
+  padding-inline-start: 5%;
+}
 #donatePage #donateOptions .donateOption {
   margin-bottom: 35px;
+}
+#donatePage #donateOptions .donateOption p{
+  display: inline;
 }
 #donatePage .faq p.question {
   font-weight: bold;
 }
 #donatePage .faq p.answer {
-  margin-left: 40px;
-  text-indent: -20px;
+  padding-inline-start: 40px;
 }
-#donatePage .faq p.question:before {
+/*#donatePage .faq p.question:before {
   content: "Q)";
 }
 #donatePage .faq p.answer:before {
   content: "A)";
+}*/
+#donatePage address{
+  font-size: 20px;
 }
-.interface-hebrew #donatePage .faq p.answer{
-  margin-right: 40px;
-  text-indent: -20px;
+#donatePage ul li{
+  list-style: none;
+  font-size: 18px;
+  line-height: 27px
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.interface-hebrew #donatePage .faq p.question:before {
+/*.interface-hebrew #donatePage .faq p.question:before {
   content: "ש)";
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
 }
 .interface-hebrew #donatePage .faq p.answer:before {
   content: "ת)";
   font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, san-serif;
-}
+}*/
 #supportersPage{
   text-align: center;
 }
@@ -915,12 +923,9 @@ p.registration-links a:hover{
 #teamPage .teamBoardMember .teamTitle {
   font-size: 16px;
 }
-#teamPage .teamMember .teamEmail {
-  color: #999;
-}
-#teamPage .teamMember .teamBio {
-  margin-top: 20px;
-  white-space: normal;
+#teamContact {
+  margin-top: 60px;
+  line-height: 2;
 }
 #editProfilePage {
   color: #666;
@@ -1076,6 +1081,7 @@ p.registration-links a:hover{
 }
 #accountSettingsPage .toggleSet {
   width: 100%;
+  text-align: center;
 }
 #accountSettingsPage input {
     width: 100%;
@@ -1093,7 +1099,7 @@ p.registration-links a:hover{
     background-color: #FBFBFA;
 }
 #accountSettingsPage input::placeholder{
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: normal;
   color: #999;
   padding-bottom: 15px;
@@ -1105,14 +1111,21 @@ p.registration-links a:hover{
   display: block;
   width 100%;
   margin: 10px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
 }
-#accountSettingsPage #email-edit-errors{
+#accountSettingsPage #email-edit-errors, #accountSettingsPage #reading-history-warning {
   color: #CB6158;
 }
 #accountSettingsPage #email-edit-ok{
   color: #666;
+}
+#accountSettingsPage #reading-history-warning{
+  display: none;
+}
+#accountSettingsPage #reading-history-warning.active{
+  margin: 10px;
+  display: inline-block;
 }
 .interface-hebrew #accountSettingsPage.static.biReady .toggleOption:first-child{
   border-top-right-radius: 4px;
@@ -1558,53 +1571,6 @@ p.registration-links a:hover{
   font-size: 20px;
   display: none;
 }
-
-#groupsPage {
-    margin: 70px auto;
-    text-align: center;
-}
-#groupsPage #groups {
-    margin-top: 40px;
-}
-#groupsPage .group {
-    margin: 10px;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    display: block;
-    text-align: left;
-    overflow: hidden;
-}
-#groupsPage .group:hover {
-    border: 1px solid #08c;
-}
-#groupsPage .groupName {
-    font-size: 18px;
-    line-height: 22px;
-    color: #555;
-    display: block;
-}
-#groupsPage .groupSettings {
-    display: none;
-    cursor: pointer;
-    position: absolute;
-    right: 8px;
-    top: 8px;
-    height: 20px;
-    line-height: 20px;
-    font-size: 18px;
-    color: black;
-}
-#groupsPage .group img.groupCover {
-}
-#groupsPage .group img.groupHeader {
-    display: none;
-}
-#groupsPage .group img {
-    width: 48px;
-    height: 48px;
-    float: left;
-}
-
 #visualGardenPage .control-results-containe{
   display: flex;
   display: -webkit-flex;
@@ -2174,11 +2140,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
   align-items: center;
+  justify-content: space-evenly;
 }
 #mobilePage #mobileDownloadLinks .mobileDownloadButtons .button img{
   height: 40px;
 }
-
 #mobilePage #mobileDownloadLinks .mobileDownloadButtons .button span{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-style: normal;
@@ -2189,7 +2155,6 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   color: #FFFFFF;
   letter-spacing: 0px;
 }
-
 #mobilePage #mobileNewsletterSocial{
   padding-bottom: 3%;
   padding-top: 3%;
@@ -2207,9 +2172,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   line-height: 36px;
   color: #000000;
   text-transform: initial;
-
 }
-
 #mobilePage #mobileNewsletterSocial .newsletterSignUpBox input.newsletterInput{
   width: 289px;
   height: 46px;
@@ -2243,14 +2206,11 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   right: 26px;
   left: auto;
 }
-
 .interface-hebrew #mobilePage #mobileNewsletterSocial input[type=image] {
   transform: scale(-1, 1);
   left: 26px;
   right: auto;
 }
-
-
 .interface-hebrew #mobilePage #mobileNewsletterSocial .newsletterSignUpBox img{
     position: relative;
     top: 4px;
@@ -2756,10 +2716,99 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   }
 }
 
+
 /* Static Page Templates */
 
 .staticPage {
   background-color: #fff;
+}
+.staticPage hr {
+  border-top: 1px solid #ccc;
+  margin-top: 60px;
+}
+.staticPage .parashaSponsorship .parashaTitle {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-style: normal;
+  font-weight: lighter;
+  font-size: 30px;
+  padding-top: 50px;
+  display: block;
+}
+.staticPage .parashaSponsorship .parashaTitle:hover {
+  color: black;
+  text-decoration: none;
+}
+.staticPage .parashaSponsorship .parashaSponsorNames {
+  font-family: Roboto, serif;
+  font-style: normal;
+  font-weight: lighter;
+  font-size: 16px;
+  padding-top: 25px;
+  width: 75%;
+}
+.staticPage .parashaSponsorship .parashaSponsorNames a {
+  text-decoration: none;
+}
+.staticPage .parashaSponsorship .parashaSponsorNames a {
+  text-decoration: none;
+  color: black;
+}
+.staticPage .parashaSponsorship .parashaMessage {
+  font-family: Roboto, serif;
+  font-style: italic;
+  font-weight: lighter;
+  font-size: 16px;
+  width: 75%;
+  padding-top: 25px;
+  line-height: 1.3;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  flex: 7;
+  text-align: center;
+  font-size: 2em;
+}
+.interface-english .staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-right: 10px;
+  padding-top: 10px;
+}
+.interface-hebrew .staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-left: 10px;
+  padding-top: 10px;
+}
+.interface-hebrew .staticPage.englishOnly .staticPageHeader.textOnly .staticPageHeaderTextBox {
+  padding-right: 10px;
+  padding-top: 10px;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderImg {
+display: none;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderImg img {
+display: none;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderText {
+  font-size: 16px;
+  line-height: 22px;
+  padding-bottom: 40px;
+  text-align: left;
+  font-weight: lighter;
+  font-family: Garamond,Baskerville,Baskerville Old Face,Hoefler Text,Times New Roman,serif;
+  max-width: 100%;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox h1 {
+  line-height: 52px;
+  margin: 0 0 14px 0;
+  padding-bottom: 20px;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox h1 .int-en {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-weight: lighter;
+  font-size: 46px;
+}
+.staticPage .staticPageHeader.textOnly .staticPageHeaderTextBox .simpleButtonWrapper {
+  width: auto;
+  display: flex;
+  justify-content: center;
+  padding-bottom: 40px;
 }
 .staticPage .staticPageBlockInner {
   width: 800px;
@@ -2809,7 +2858,18 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   font-size: 30px;
   line-height: 36px;
   width: 50%;
-}.staticPage .staticPageCallToActionFooter .callToActionText .int-en {
+}
+.staticPage .staticPageCallToActionFooter .callToActionText a {
+  color: inherit;
+}
+.staticPage .staticPageCallToActionFooter .callToActionText a {
+
+}
+.staticPage .staticPageCallToActionFooter .callToActionText.noButton {
+  width: 100%;
+  text-align: center;
+}
+.staticPage .staticPageCallToActionFooter .callToActionText .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .staticPage .staticPageCallToActionFooter .newsletterSignUpBox .subscribeMessage {
@@ -2818,15 +2878,20 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPage .staticPageHeader .staticPageHeaderTextBox {
   flex: 7;
 }
+
 .staticPage .staticPageHeader .staticPageHeaderImg {
   flex: 9;
   min-height: 290px;
 }
+
 .interface-english .staticPage .staticPageHeader .staticPageHeaderTextBox {
   padding-right: 10px;
 }
 .interface-hebrew .staticPage .staticPageHeader .staticPageHeaderTextBox {
   padding-left: 10px;
+}
+.interface-hebrew .staticPage.englishOnly .staticPageHeader .staticPageHeaderTextBox {
+  padding-right: 10px;
 }
 .staticPage .staticPageH2 {
   padding: 55px 0 10px;
@@ -2896,6 +2961,7 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   width: 66%;
   padding-bottom: 80px;
 }
+
 .staticPage .simpleButtonWrapper .button {
   border-radius: 0;
   min-height: 47px;
@@ -2918,16 +2984,20 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
 .staticPageHeader h1 .int-en {
   font-family: "adobe-garamond-pro", Georgia, serif;
 }
+
 .staticPageHeaderText {
   font-size: 16px;
   max-width: 280px;
   line-height: 22px;
   padding-bottom: 25px;
 }
+
+
 .staticPageHeaderImg img {
   width: 100%;
   display: block;
 }
+
 .staticPageAbout {
   padding: 50px 0;
 }
@@ -3002,13 +3072,14 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   .staticPage .staticPageH2 {
     width: 100%;
   }
-  .staticPageCallToActionFooter .simpleButtonWrapper,
+  .staticPageFooter .simpleButtonWrapper,
   .staticPage .feature .featureImage {
     padding-top: 30px;
   }
   .staticPage .staticPageHeader .staticPageHeaderImg {
     margin-top: 20px;
   }
+
   .staticPage .simpleButtonWrapper,
   .staticPage .feature .featureText,
   .staticPage .feature .featureImage,

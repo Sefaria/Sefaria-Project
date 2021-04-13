@@ -273,6 +273,7 @@ def pagerank_rank_ref_list(ref_list, normalize=False):
                 pr = {r: temp_pr for r, temp_pr in sorted_ranking[count:]}
     # map pr values onto ref_list
     ref_map = {r.normal(): [rr.normal() for rr in r.all_segment_refs()] for r in ref_list}
+    # TODO do we always want to choose max segment PR over the range? maybe average is better?
     ref_list_with_pr = sorted([
         (r, max([pr.get(rr, 0.0) for rr in ref_map[r.normal()]])) if len(ref_map[r.normal()]) > 0 else (r, 0.0) for r in
         ref_list

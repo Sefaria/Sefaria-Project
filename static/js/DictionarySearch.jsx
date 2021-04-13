@@ -135,11 +135,18 @@ class DictionarySearch extends Component {
   }
   displayWord(word) {
     // Either show results in sidebar, or show word in reader, depending on which mode we're in.
+    console.log(word)
     if (this.props.showWordList) {
       this.props.showWordList(word);
     } else if (this.props.showBaseText) {
       const ref = this.props.title + ", " + word;
-      this.props.showBaseText(ref, false, this.props.currVersions);
+      Sefaria.getText(ref).then(data => {
+        // Check that this ref exists first before trying to open a panel
+        if ("error" in data) {
+          return;
+        }
+        this.props.showBaseText(ref, false, this.props.currVersions);
+      })
     }
   }
   submitSearch(word, needsResolution) {

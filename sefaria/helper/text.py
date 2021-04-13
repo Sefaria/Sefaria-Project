@@ -1,9 +1,7 @@
 # encoding=utf-8
 import re
 
-import sefaria.summaries as summaries
 from sefaria.model import *
-from sefaria.system import cache as scache
 from sefaria.system.database import db
 from sefaria.datatype.jagged_array import JaggedTextArray
 from diff_match_patch import diff_match_patch
@@ -285,7 +283,7 @@ def find_and_replace_in_text(title, vtitle, lang, find_string, replace_string, u
     Replaces all instances of `find_string` with `replace_string` in the text specified by `title` / `vtitle` / `lang`.
     Changes are attributed to the user with `uid`. 
     """
-    def replacer(text):
+    def replacer(text, sections):
         return text.replace(find_string, replace_string)
 
     modify_text_by_function(title, vtitle, lang, replacer, uid)
@@ -347,7 +345,6 @@ def make_versions_csv():
         "status",
         "priority",
         "license",
-        "licenseVetted",
         "versionNotes",
         "digitizedBySefaria",
         "method",

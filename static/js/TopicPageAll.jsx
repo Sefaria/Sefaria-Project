@@ -6,7 +6,7 @@ import {
   LoadingMessage,
   TwoOrThreeBox,
   Link,
-  InterfaceTextWithFallback,
+  InterfaceText,
 } from './Misc';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PropTypes  from 'prop-types';
@@ -53,7 +53,7 @@ class TopicPageAll extends Component {
         title={"Explore sources related to '" + item.slug + "'"}
         key={item.slug}
       >
-        <InterfaceTextWithFallback {...item.primaryTitle} />
+        <InterfaceText text={item.primaryTitle} />
       </Link>
     );
   }
