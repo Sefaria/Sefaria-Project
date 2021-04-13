@@ -40,6 +40,7 @@ class ConnectionsPanel extends Component {
       flashMessage: null,
       currObjectVersions: {en: null, he: null},
       mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
+      availableVersions: [],
       linksLoaded: false, // has the list of refs been loaded
       connectionSummaryCollapsed: true,
     };
@@ -234,6 +235,7 @@ class ConnectionsPanel extends Component {
                   he: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
               },
               mainVersionLanguage: currentLanguage,
+              availableVersions: data.versions,
           });
       });
   }
@@ -278,7 +280,8 @@ class ConnectionsPanel extends Component {
         webpages: Sefaria.webPagesByRef(this.props.srefs).length,
         audio: Sefaria.mediaByRef(this.props.srefs).length,
         topics: Sefaria.topicsByRefCount(this.props.srefs),
-        manuscripts: Sefaria.manuscriptsByRef(this.props.srefs).length
+        manuscripts: Sefaria.manuscriptsByRef(this.props.srefs).length,
+        translations: this.state.availableVersions.length, //versions dont come from the related api, so this one looks a bit different than the others. 
       }
       let toolsButtonsCounts = {
         notes: Sefaria.notesTotalCount(this.props.srefs),
@@ -657,7 +660,7 @@ const ResourcesList = ({setConnectionsMode, counts}) => {
   // A list of Resources in addition to connection
     return (
         <div className="resourcesList">
-            <ToolsButton en="Translations" he="תרגומים" image="translation.svg" onClick={() => setConnectionsMode("Translations")} />
+            <ToolsButton en="Translations" he="תרגומים" image="translation.svg" count={counts["translations"]} onClick={() => setConnectionsMode("Translations")} />
             <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} onClick={() => setConnectionsMode("Sheets")} />
             <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]}  displayCriteria={counts["topics"] && counts["topics"] > 0} onClick={() => setConnectionsMode("Topics")} />
             <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} displayCriteria={counts["webpages"] && counts["webpages"] > 0} onClick={() => setConnectionsMode("WebPages")} />
