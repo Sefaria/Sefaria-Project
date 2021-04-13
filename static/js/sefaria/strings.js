@@ -91,7 +91,7 @@ const Strings = {
 
     // Reader Panel
     "Search" : "חיפוש",
-    "Search Dictionary": "חפש במילון",
+    "Search Dictionary": "חיפוש במילון",
     "Search for": "חיפוש",
     "Search for:": "חיפוש:",
     "Views": "צפיות",
