@@ -678,7 +678,7 @@ const ToolsList = ({setConnectionsMode, toggleSignUpModal, counts}) => {
               <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" onClick={() => setConnectionsMode("Lexicon")} />
               <ToolsButton en="Notes" he="הערות" image="notes.svg" count={counts["notes"]} onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Notes")} />
               <ToolsButton en="Chavruta" he="חברותא" image="chavruta.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Chavruta")} />
-              <ToolsButton en="Share" he="שתף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
+              <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
               <ToolsButton en="Advanced" he="כלים מתקדמים" image="advancedtools.svg" onClick={() => setConnectionsMode("Advanced Tools")} />
               <ToolsButton en="Feedback" he="משוב" image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} />
         </div>
