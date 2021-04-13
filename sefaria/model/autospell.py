@@ -292,6 +292,8 @@ class Completions(object):
         self._completion_strings = []
         self._raw_completion_strings = []  # May have dupes
         self._completion_objects = []
+        self._candidate_type_counters = defaultdict(int)
+        self._type_limit = 3
 
     def has_results(self):
         return len(self._completion_objects) > 0
@@ -332,24 +334,21 @@ class Completions(object):
 
         return
 
+    def _candidate_order(self, c):
+        self._candidate_type_counters[c[1]["type"]] += 1
+        if self._candidate_type_counters[c[1]["type"]] <= self._type_limit:
+            return c[1]["order"]
+        else:
+            return c[1]["order"] * 100
+
     def _collect_candidates(self):
         # Match titles that begin exactly this way
-
-        candidate_type_counters = defaultdict(int)
-        type_limit = 3
-        def candidate_order(c):
-            candidate_type_counters[c[1]["type"]] += 1
-            if candidate_type_counters[c[1]["type"]] <= type_limit:
-                return c[1]["order"]
-            else:
-                return c[1]["order"] * 100
-
         [cs, co] = self.get_new_continuations_from_string(self.normal_string)
 
         joined = list(zip(cs, co))
         if len(joined):
             # joined.sort(key=lambda w: w[1]["order"])
-            joined.sort(key=candidate_order)
+            joined.sort(key=self._candidate_order)
             self._raw_completion_strings, self._completion_objects = [list(_) for _ in zip(*joined)]
         else:
             self._raw_completion_strings, self._completion_objects = [], []
