@@ -662,7 +662,7 @@ const ResourcesList = ({setConnectionsMode, counts}) => {
             <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]}  displayCriteria={counts["topics"] && counts["topics"] > 0} onClick={() => setConnectionsMode("Topics")} />
             <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} displayCriteria={counts["webpages"] && counts["webpages"] > 0} onClick={() => setConnectionsMode("WebPages")} />
             <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} displayCriteria={counts["manuscripts"] && counts["manuscripts"] > 0} onClick={() => setConnectionsMode("manuscripts")}/>
-            <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" displayCriteria={counts["audio"] && counts["audio"] > 0} onClick={() => setConnectionsMode("Torah Readings")} />
+            <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" count={counts["audio"]} displayCriteria={counts["audio"] && counts["audio"] > 0} onClick={() => setConnectionsMode("Torah Readings")} />
         </div>
     );
 }
@@ -1117,8 +1117,8 @@ class AdvancedToolsList extends Component {
 
     return (
       <div>
-        <ToolsButton en="Add Translation" he="הוסף תרגום" image="tools-translate.svg" onClick={addTranslation} />
-        <ToolsButton en="Add Connection" he="הוסף קישור לטקסט אחר" image="tools-add-connection.svg" onClick={() => !Sefaria._uid  ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Add Connection")} />
+        <ToolsButton en="Add Translation" he="הוספת תרגום תרגום" image="tools-translate.svg" onClick={addTranslation} />
+        <ToolsButton en="Add Connection" he="הוספת קישור לטקסט אחר" image="tools-add-connection.svg" onClick={() => !Sefaria._uid  ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Add Connection")} />
         { editText ? (<ToolsButton en="Edit Text" he="עריכת טקסט" image="tools-edit-text.svg" onClick={editText} />) : null }
       </div>);
   }
