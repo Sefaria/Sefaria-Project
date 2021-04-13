@@ -272,8 +272,8 @@ const Strings = {
     "Etc": "שאר",
 
     // Chavruta
-    "Learn with a Chavruta": "ללמוד עם חברותא",
-    "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הזה:",
+    "Learn with a Chavruta": "לימוד בחברותא",
+    "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הבא:",
     "Start Call": "התחלת שיחה",
 
     // Subscribe & Register
