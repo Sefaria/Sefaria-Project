@@ -4505,11 +4505,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
   background-color: var(--category-color);
 }
-.expandSummaries .toolsButton,
-.otherText .toolsButton{
+.connectionsPanel .toolsButton.more{
   font-size: 18px;
 }
-.collapseSummaries .toolsButton{
+.connectionsPanel .toolsButton.less{
   margin-inline-start: 60px;
   font-style: normal;
   font-weight: normal;
@@ -4518,11 +4517,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #999999;
   align-items: center;
 }
-.collapseSummaries .toolsButton img.toolsButtonIcon{
+.connectionsPanel .toolsButton.less img.toolsButtonIcon{
   height: 10px;
   width: 10px;
 }
-.collapseSummaries .toolsButton .toolsButtonText{
+.connectionsPanel .toolsButton.less .toolsButtonText{
   margin-inline-start: 5px;
 }
 .connectionsPanel .toolsButton.aboutThisText {
