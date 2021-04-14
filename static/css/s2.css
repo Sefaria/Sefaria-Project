@@ -4506,7 +4506,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   background-color: var(--category-color);
 }
 .connectionsPanel .toolsButton.more{
-  font-size: 18px;
   color: #666666;
 }
 .connectionsPanel .toolsButton.seeLess{
