@@ -1151,7 +1151,7 @@ const ToolsButton = ({en, he, icon, image, count, onClick, control="interface", 
       iconElem = (<img src={"/static/img/" + image} className="toolsButtonIcon" alt="" />);
     }
     const url = Sefaria.util.replaceUrlParam("with", en);
-    const nameClass = en.replaceAll(" ", "");
+    const nameClass = en.camelize();
     const wrapperClasses = classNames({toolsButton: 1,[nameClass]:1, [control+"Control"]: 1, [typeface+"Typeface"]: 1, noselect: 1})
     return (
       displayCriteria ?
