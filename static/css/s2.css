@@ -4530,7 +4530,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 30px;
 }
 .categoryFilter:not(.withBooks) .filterText{
-  margin-inline-start: 10px;
+  margin-inline-start: 15px;
   margin-inline-end: auto;
 }
 .textFilter {
@@ -5309,7 +5309,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   vertical-align: middle;
 }
 .toolsButton .toolsButtonText{
-  margin: 0 10px;
+  margin-inline-start: 15px;
 }
 .shareInputBox {
   padding: 34px;
