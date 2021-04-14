@@ -442,6 +442,7 @@ input.noselect {
 }
 .header .accountLinks a {
   margin-inline-start: 17px;
+  position: relative;
 }
 .header .accountLinks.anon a {
   margin: 0;
@@ -575,8 +576,16 @@ input.noselect {
   position: relative;
   top: 1px;
 }
-.header .notifications.unread {
-  background-color: #EFB4B6;
+.header .notifications.unread::after {
+  content:"";
+  background-color: #CB6158;
+  width: 8px;
+  height: 8px;
+  border-radius: 4px;
+  display: block;
+  top: 3px;
+  right: 1px;
+  position: absolute;
 }
 .header .login {
   color: #666;
