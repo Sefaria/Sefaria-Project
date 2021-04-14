@@ -86,13 +86,11 @@ const UserHistoryPanel = ({menuOpen, handleClick, toggleLanguage, openDisplaySet
       <div className={contentClasses}>
         <div className="sidebarLayout">
           <div className="contentInner">
-            {hideNavHeader ?
-              <h1>
+            <div className="navTitle">
+              <h1>{ title }</h1>
               {Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null}
-              { title }
-            </h1>
-            : null }
+            </div>
             { content }
           </div>
           <NavSidebar modules={sidebarModules} />

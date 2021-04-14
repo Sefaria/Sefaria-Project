@@ -1,6 +1,3 @@
-import {
-  LoginPrompt,
-} from './Misc';
 import React  from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
@@ -9,6 +6,11 @@ import ReactDOM  from 'react-dom';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
 import Component from 'react-class';
+import { NavSidebar }from './NavSidebar';
+import {
+  InterfaceText,
+  LoginPrompt,
+} from './Misc';
 
 
 class NotificationsPanel extends Component {
@@ -62,19 +64,23 @@ class NotificationsPanel extends Component {
     this.forceUpdate();
   }
   render() {
-    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1};
-    var classStr = classNames(classes);
+    const sidebarModules = [{type: "StayConnected"}];
+    const classes = {readerNavMenu: 1};
+    const classStr = classNames(classes);
     return (
       <div className={classStr}>
         <div className="content hasFooter">
-          <div className="contentInner">
-            <h1>
-              <span className="int-en">Notifications</span>
-              <span className="int-he">התראות</span>
-            </h1>
-            { Sefaria._uid ?
+          <div className="sidebarLayout">
+            <div className="contentInner">
+              <h1>
+                <img className="notificationsTitleIcon" src="/static/icons/notification.svg" />
+                <InterfaceText>Notifications</InterfaceText>
+              </h1>
+              { Sefaria._uid ?
               (<div className="notificationsList" dangerouslySetInnerHTML={ {__html: Sefaria.notificationsHtml } }></div>) :
               (<LoginPrompt fullPanel={true} />) }
+            </div>
+            <NavSidebar modules={sidebarModules} />
           </div>
           <Footer />
         </div>

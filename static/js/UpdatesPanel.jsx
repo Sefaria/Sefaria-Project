@@ -85,7 +85,7 @@ class UpdatesPanel extends Component {
     });
   }
   render() {
-    var classes = {notificationsPanel: 1, systemPanel: 1, readerNavMenu: 1};
+    var classes = {readerNavMenu: 1};
     var classStr = classNames(classes);
 
     return (

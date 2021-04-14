@@ -80,11 +80,13 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
     /> : null;
 
   const title = compare ? null : 
-    <h1>
+    <div className="navTitle tight">
+      <h1>
+        <InterfaceText>Browse the Library</InterfaceText>
+      </h1>
       { multiPanel && interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
-       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
-      <InterfaceText>Browse the Library</InterfaceText>
-    </h1>;
+        <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
+    </div>
 
 
   const dedication = Sefaria._siteSettings.TORAH_SPECIFIC && !compare ? <Dedication /> : null;

@@ -33,7 +33,7 @@ function PublicCollectionsPage({multiPanel, navHome}) {
         .then(d => setCollectionsList(d));
   });
 
-  const classStr = classNames( {systemPanel: 1, readerNavMenu: 1});
+  const classStr = classNames( {readerNavMenu: 1});
   return (
     <div className={classStr}>
       <div className="content hasFooter">

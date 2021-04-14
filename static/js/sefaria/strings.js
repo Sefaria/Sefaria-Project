@@ -8,6 +8,7 @@ const Strings = {
     "The Sefaria Library": "תוכן העניינים של ספריא",
     "Sefaria Search": "חיפוש בספריא",
     "Sefaria Account": "חשבון בספריא",
+    "Notifcations": "התראות",
     "New Additions to the Sefaria Library": "חידושים בארון הספרים של ספריא",
     "My Notes on Sefaria": "ההערות שלי בספריא",
     "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.": "טקסטים ודפי מקורות מן התורה, התלמוד וספריית המקורות של ספריא.",

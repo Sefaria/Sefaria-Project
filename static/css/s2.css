@@ -1042,24 +1042,6 @@ input.noselect {
   opacity: 0.4;
   height: 18px;
 }
-.systemPanel.english .content .he {
-  display: none;
-}
-.systemPanel.hebrew .content .en {
-  display: none;
-}
-.interface-english .systemPanel .content .int-en {
-  display: inline;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.interface-english .systemPanel .content h1 .int-en {
-  display: inline;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-.interface-hebrew .systemPanel .content .int-he {
-  display: inline;
-  font-family: "Heebo", sans-serif;
-}
 .loadingMessage {
   font-size: 14px;
   font-style: italic;
@@ -1094,7 +1076,7 @@ input.noselect {
   box-sizing: border-box;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
-  font-size: 14px;
+  font-size: 16px;
 }
 .readerNavMenu .content {
   padding: 60px 0 0 0;
@@ -1123,8 +1105,17 @@ input.noselect {
 .navTitle {
   display: flex;
   flex-direction: row;
-  margin-bottom: 50px;
   justify-content: space-between;
+  margin-bottom: 40px;
+}
+.navTitle.tight {
+  margin-bottom: 15px;
+}
+.readerNavMenu .navTitle h1 {
+  margin-bottom: 0;
+}
+.navTitle + .dedication {
+  margin-bottom: 20px;
 }
 .navTitle .languageToggle {
   text-align: center;
@@ -1150,7 +1141,7 @@ input.noselect {
   color: inherit;
   pointer-events: none;
 }
-.navTitleTab img {
+.readerNavMenu h1 .navTitleTab img {
   height: 14px;
   margin-inline-end: 6px;
   opacity: 0.4;
@@ -1434,15 +1425,26 @@ input.noselect {
 .readerNavMenu h2.styledH1 {
   text-align: start;
   color: #666;
-  height: 48px;
   position: relative;
   font-size: 22px;
   font-weight: 500;
-  margin: 0;
+  margin: 0 0 40px 0;
+  height: auto;
   text-transform: none;
 }
-.readerNavMenu.topicPanel {
-  background-color: white;
+.readerNavMenu h1 img {
+  margin-inline-end: 9px;
+}
+.readerNavMenu h1 :not(.languageToggle) .en {
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.readerNavMenu h1 .button {
+  position: absolute;
+  right: 0;
+  top: 0;
+  padding: 0;
+  margin: 0;
+  line-height: 26px;
 }
 .singlePanel .readerNavCategoryMenu .readerTocTopics.content {
   padding-top: 30px;
@@ -2033,11 +2035,13 @@ a.navBlockTitle {
 .readerNavCategoryMenu {
   height: 100%;
 }
+.readerNavMenu.readerNavCategoryMenu .navTitle {
+  margin-bottom: 40px;
+}
 .readerNavMenu.readerNavCategoryMenu h1 {
   color: #000;
   text-transform: uppercase;
   font-size: 30px;
-  height: 30px;
 }
 .readerNavCategoryMenu h2 {
   font-size: 18px;
@@ -2123,10 +2127,6 @@ a.navBlockTitle {
 .readerNavMenu .navButton .he,
 .readerTextTableOfContents .refLink .he {
   text-align: center;
-}
-.systemPanel .blockLink {
-  padding: 13px 8px 19px;
-  border-radius: 7px;
 }
 .blockLink:active,
 .navButton:active,
@@ -5801,30 +5801,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   width: auto;
   margin: 0 6px;
 }
-.notificationsPanel .content {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  font-size: 16px;
-  color: #666;
-}
-.notificationsPanel .content a {
-  color: #000;
-  text-decoration: underline;
-}
-.systemPanel.readerNavMenu h1 {
-  margin: 0 0 40px 0;
-  height: auto;
-}
-.systemPanel.readerNavMenu h1 :not(.languageToggle) .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.systemPanel.readerNavMenu h1 .button {
-  position: absolute;
-  right: 0;
-  top: 0;
-  padding: 0;
-  margin: 0;
-  line-height: 26px;
-}
 .profile-pic {
   display: flex;
   justify-content: center;
@@ -5910,33 +5886,44 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .profile-page .logoutLink .int-he {
   font-family: "Heebo", sans-serif;
 }
-.notificationsPanel a {
-  color: #000;
-  text-decoration: underline;
-}
-.notificationsList {
-  margin-bottom: 100px;
-}
+.notificationsTitleIcon {position: relative;top: 2px;}
 .notificationsList .notification {
   width: auto;
   border-bottom: 1px solid #ccc;
   border-top: none;
-  padding: 27px 15px;
-  margin: 0;
+  padding-bottom: 27px;
+  margin-bottom: 27px;
+  line-height: 1.4;
+}
+.notificationsList .userLink {
+}
+.notificationsList a {
+  unicode-bidi: plaintext;
+  font-weight: bold;
+}
+.notificationsList a:hover {
+  color: inherit;
+}
+.notificationsList .sheetLink {
+  font-size: 22px;
+  margin-top: 10px;
+}
+.notificationsList .sheetLink a {
+  font-weight: normal;
+}
+.notificationsList .int-en .sheetLink {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .notificationsList .added-description {
   padding: 5px 0 0;
 }
-.notificationsPanel .notification .date {
+.notificationsList .notification .date {
   color: #999;
   font-size: 13px;
   margin-top: 8px;
 }
 .notificationsList .int-he {
   font-size: inherit;
-}
-.notificationsList .notification a{
-  unicode-bidi: plaintext;
 }
 .notification-message-link {
   display: inline-block;
