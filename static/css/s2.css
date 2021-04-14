@@ -5114,7 +5114,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #999;
 }
 .connectionsPanel .connectionPanelSectionHeader{
-  margin-inline: 34px;
+  margin-inline-start: 34px;
+  margin-inline-end: 34px;
   margin-top: 30px;
   margin-bottom: 15px;
   border-bottom: 1px solid #CCCCCC;
@@ -5215,6 +5216,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .toolsButton.topicButton {
   flex-direction: column;
   letter-spacing: unset;
+  align-items: initial;
+  border-top: 1px solid #E5E5E5;
+  padding: 20px 34px;
+  margin: initial;
 }
 .topicButton .topicButtonTitle {
   display: flex;
