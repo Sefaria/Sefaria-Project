@@ -36,7 +36,6 @@ from sefaria.utils.util import list_depth
 from sefaria.datatype.jagged_array import JaggedTextArray, JaggedArray
 from sefaria.settings import DISABLE_INDEX_SAVE, USE_VARNISH, MULTISERVER_ENABLED
 from sefaria.system.multiserver.coordinator import server_coordinator
-from sefaria.helper.text import get_other_quote_titles
 
 """
                 ----------------------------------
@@ -592,6 +591,22 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         return super(Index, self).load_from_dict(d, is_init)
 
 
+    @staticmethod
+    def get_title_quotations_variants(title):
+        """
+        If there is a quotation, fancy quotation, or gershayim in title, return two titles also with quotations.
+        For example, if title is 'S"A', return a list of 'S”A' and
+        'S״A'
+        :param title: str
+        :return: list
+        """
+        titles = []
+        quotes = ['"', '״', '”']
+        found_quotes = [quote for quote in quotes if quote in title]
+        for found_quote_char in found_quotes:
+            titles += [title.replace(found_quote_char, quote_char) for quote_char in quotes if quote_char != found_quote_char]
+        return titles
+
     def normalize_titles_with_quotations(self):
         # for all Index and node hebrew titles, this function does the following:
         # 1. any title that has regular quotes, gershayim, or fancy quotes will now have two corresponding
@@ -608,7 +623,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         for title in index_titles:
             title = title.replace('״', '"').replace('”', '"')
-            new_titles = [title] + get_other_quote_titles(title)
+            new_titles = [title] + self.get_title_quotations_variants(title)
             for new_title in new_titles:
                 if new_title not in index_titles:
                     self.nodes.add_title(new_title, 'he')
@@ -621,7 +636,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 node_titles = node.get_titles('he')
                 for node_title in node_titles:
                     node_title = node_title.replace('״', '"').replace('”', '"')
-                    new_titles = [node_title] + get_other_quote_titles(node_title)
+                    new_titles = [node_title] + self.get_title_quotations_variants(node_title)
                     for new_title in new_titles:
                         if new_title not in node_titles:
                             node.add_title(new_title, 'he')
