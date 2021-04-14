@@ -4507,6 +4507,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .connectionsPanel .toolsButton.more{
   font-size: 18px;
+  color: #666666;
 }
 .connectionsPanel .toolsButton.less{
   margin-inline-start: 60px;
