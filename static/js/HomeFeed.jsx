@@ -54,7 +54,10 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories, initialWidth}) => {
 
             {Sefaria.homepage.discover ?
             <div>
-              <h2><InterfaceText>Discover Talmud</InterfaceText></h2>
+              <h2>
+                <InterfaceText>Discover</InterfaceText>&nbsp;
+                <InterfaceText text={Sefaria.homepage.discover.about.category} />
+              </h2>
               <ResponsiveNBox content={[
                 <AboutDiscover discoverContent={Sefaria.homepage.discover.about} />,
                 <FeaturedSheet {...Sefaria.homepage.discover.sheet} />
@@ -231,7 +234,7 @@ const FeaturedSheet = (props) => {
     <div className="featuredSheet navBlock">
       { heading ?
       <div className="featuredSheetHeading">
-        <InterfaceText>{heading}</InterfaceText>
+        <InterfaceText text={heading} />
       </div>
       : null}
       <a href={`/sheets/${id}`} className="navBlockTitle">

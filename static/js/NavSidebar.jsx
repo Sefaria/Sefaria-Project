@@ -96,7 +96,7 @@ const Resources = () => (
       <IconLink text="Study Schedules" url="/calendars" icon="calendar.svg" />
       <IconLink text="Sheets" url="/sheets" icon="sheet.svg" />
       <IconLink text="Collections" url="/collections" icon="collection.svg" />
-      <IconLink text="Educators" url="/educators" icon="educators.svg" />
+      <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
       <IconLink text="Torah Tab" url="/torah-tab" icon="torah-tab.svg" />
       <IconLink text="Help" url="/help" icon="help.svg" />
@@ -442,7 +442,7 @@ const JoinTheConversation = ({wide}) => {
 const GetTheApp = () => (
   <Module>
     <ModuleTitle>Get the Mobile App</ModuleTitle>
-    <InterfaceText>Access the Jewish library anywhere and anytime with the</InterfaceText> <a href="/mobile" className="inTextLink"><InterfaceText>Sefaria mobile app.</InterfaceText></a>
+    <InterfaceText>Access the Jewish library anywhere and anytime with</InterfaceText> <a href="/mobile" className="inTextLink"><InterfaceText>the Sefaria mobile app.</InterfaceText></a>
     <br />
     <a target="_blank" className="button small white appButton ios" href="https://itunes.apple.com/us/app/sefaria/id1163273965?ls=1&mt=8">
       <img src="/static/icons/ios.svg" alt={Sefaria._("Sefaria app on IOS")} />

@@ -11,7 +11,7 @@ from django.utils import timezone
 from sefaria.model import Ref, Topic, Collection
 from sefaria.sheets import get_sheet, sheet_to_dict
 from sefaria.utils.calendars import get_parasha
-from sefaria.utils.hebrew import is_hebrew
+from sefaria.utils.hebrew import is_hebrew, hebrew_term, hebrew_parasha_name
 from sefaria.helper.topic import get_topic_by_parasha
 from sefaria.system.cache import django_cache, delete_cache_elem
 
@@ -84,7 +84,10 @@ def get_parashah_item(data, date=None, diaspora=True, interface_lang="english"):
   else:
     sheet = sheet_with_customization(todays_data)
 
-  sheet["heading"] = "On " + parashah_name
+  sheet["heading"] = {
+    "en": "On " + parashah_name,
+    "he": "על " + hebrew_parasha_name(parashah_name)
+  }
 
   return {
     "topic": parashah_topic.contents(),
@@ -103,7 +106,10 @@ def get_calendar_item(data, date):
     topic["primaryTitle"] = {"en": todays_data["Custom About Title"], "he": todays_data["Custom About Title"]}
 
   sheet = sheet_with_customization(todays_data)
-  sheet["heading"] = "On " + topic["primaryTitle"]["en"]
+  sheet["heading"] = {
+    "en": "On " + topic["primaryTitle"]["en"],
+    "he": "על " + topic["primaryTitle"]["he"],
+  }
 
   return {
     "topic": topic,
@@ -125,13 +131,20 @@ def get_discover_item(data, date):
         "url": oRef.url(),
         "en": oRef.normal(),
         "he": oRef.he_normal(),
+      },
+      "category": {
+        "en": oRef.index.get_primary_category(),
+        "he": hebrew_term(oRef.index.get_primary_category()),
       }
     }
   else:
     about = None
 
   sheet = sheet_with_customization(todays_data)
-  sheet["heading"] = "On Talmud"
+  sheet["heading"] = {
+    "en": "On " + about["category"]["en"],
+    "he": "על ה" + about["category"]["he"],
+  }
 
   return {
     "about": about,
