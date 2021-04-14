@@ -448,7 +448,7 @@ class Search {
         const registry = {};        // Mappings of "/" separated category path strings to FilterNode objects
 
         // create combined list of filters with {aggKey, docCount, path}
-        const filters = [
+        let filters = [
             ...appliedFilters.map(fkey => ({
                 aggKey: fkey,
                 docCount: 0,
@@ -460,6 +460,9 @@ class Search {
                 path: f["key"].split("/")
             }))
         ];
+
+        // Drop results that don't match our TOC.  This is needed for cases where the TOC updates, but the update hasn't gotten to the ES server yet.
+        filters = filters.filter(x => Sefaria._tocOrderLookup[x.aggKey]);
 
         // sort into search toc tree order
         filters.sort((a,b) => Sefaria.compareSearchCatPaths(a.aggKey, b.aggKey));
