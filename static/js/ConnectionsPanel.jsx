@@ -868,7 +868,7 @@ class ConnectionsSummary extends Component {
     let summaryToggle = null;
     if(isTopLevel && connectionsSummary.length > collapsedTopLevelLimit){
         if(this.props.collapsed){
-            connectionsSummary = connectionsSummary.slice(0,3) //get the first 3 items
+            connectionsSummary = connectionsSummary.slice(0, collapsedTopLevelLimit) //get the first x items
             summaryToggle = (
                 <ToolsButton en="More" he="עוד" image="more.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" typeface="system" />
             );
