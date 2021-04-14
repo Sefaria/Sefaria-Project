@@ -301,16 +301,22 @@ class ConnectionsPanel extends Component {
                     setFilter={this.props.setFilter}
                     setConnectionsMode={this.props.setConnectionsMode}
                     setConnectionsCategory={this.props.setConnectionsCategory}
-                    openComparePanel={this.props.openComparePanel}
                     collapsed={this.state.connectionSummaryCollapsed}
                     toggleTopLevelCollapsed={this.toggleTopLevelCollapsed}
                   />
               </ConnectionsPanelSection>
               <ConnectionsPanelSection title={"Resources"}>
-                <ResourcesList setConnectionsMode={this.props.setConnectionsMode} counts={resourcesButtonCounts} />
+                <ResourcesList
+                    setConnectionsMode={this.props.setConnectionsMode}
+                    counts={resourcesButtonCounts}
+                />
               </ConnectionsPanelSection>
               <ConnectionsPanelSection title={"Tools"}>
-                <ToolsList setConnectionsMode={this.props.setConnectionsMode} toggleSignUpModal = {this.props.toggleSignUpModal} counts={toolsButtonsCounts} />
+                <ToolsList
+                    setConnectionsMode={this.props.setConnectionsMode}
+                    toggleSignUpModal = {this.props.toggleSignUpModal}
+                    openComparePanel={this.props.multiPanel? this.props.openComparePanel : null}
+                    counts={toolsButtonsCounts} />
               </ConnectionsPanelSection>
 
 
@@ -674,11 +680,12 @@ ResourcesList.propTypes = {
   counts:        PropTypes.object.isRequired,
 }
 
-const ToolsList = ({setConnectionsMode, toggleSignUpModal, counts}) => {
+const ToolsList = ({setConnectionsMode, toggleSignUpModal, openComparePanel, counts}) => {
   // A list of Resources in addition to connection
     return (
         <div className="resourcesList">
               <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" onClick={() => setConnectionsMode("Lexicon")} />
+              {openComparePanel ? <ToolsButton en="Other Text" he="טקסט נוסף" image="compare-panel.svg" onClick={openComparePanel} /> : null }
               <ToolsButton en="Notes" he="הערות" image="notes.svg" count={counts["notes"]} onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Notes")} />
               <ToolsButton en="Chavruta" he="חברותא" image="chavruta.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Chavruta")} />
               <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
@@ -857,14 +864,7 @@ class ConnectionsSummary extends Component {
           key={cat.category} />
       );
     }.bind(this));
-    // add the "Other Text" Button
-    if (this.props.multiPanel && isTopLevel){
-        connectionsSummary.push(
-            <span className="otherText">
-                <ToolsButton en="Other Text" he="טקסט נוסף" image="compare.svg" onClick={this.props.openComparePanel} control="content" typeface="text" />
-            </span>
-        );
-    }
+
     let summaryToggle = null;
     if(isTopLevel && connectionsSummary.length > collapsedTopLevelLimit){
         if(this.props.collapsed){
