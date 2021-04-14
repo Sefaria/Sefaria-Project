@@ -36,7 +36,6 @@ urlpatterns = [
     url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
     url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
     url(r'^notifications/?$', reader_views.notifications),
-    url(r'^my/notes/?$', reader_views.my_notes),
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
     url(r'^modtools/upload_text$', sefaria_views.modtools_upload_workflowy),
@@ -120,6 +119,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^new-home/?$', reader_views.new_home_redirect),
     url(r'^account/?$', reader_views.my_profile),
+    url(r'^my/notes/?$', reader_views.my_notes_redirect),
     url(r'^sheets/tags/?$', reader_views.topics_redirect),
     url(r'^sheets/tags/(?P<tag>.+)$', reader_views.topic_page_redirect),
     url(r'^sheets/(?P<type>(public|private))/?$', reader_views.sheets_pages_redirect),

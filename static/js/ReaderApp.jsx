@@ -140,8 +140,6 @@ class ReaderApp extends Component {
       bookRef:                 state.bookRef                 || null,
       settings:                state.settings ? Sefaria.util.clone(state.settings) : Sefaria.util.clone(this.getDefaultPanelSettings()),
       displaySettingsOpen:     false,
-      tagSort:                 state.tagSort                 || "count",
-      mySheetSort:             state.mySheetSort             || "date",
       initialAnalyticsTracked: state.initialAnalyticsTracked || false,
       selectedWords:           state.selectedWords           || "",
       selectedNamedEntity:     state.selectedNamedEntity     || null,
@@ -501,11 +499,6 @@ class ReaderApp extends Component {
             hist.title = Sefaria._("Study Schedule") + " | " + Sefaria._(siteName);
             hist.url = "calendars";
             hist.mode = "calendars";
-            break;
-          case "myNotes":
-            hist.title = Sefaria._("My Notes on " + siteName);
-            hist.url = "my/notes";
-            hist.mode = "myNotes";
             break;
           case "updates":
             hist.title = Sefaria._("New Additions to the " + siteName + " Library");
@@ -941,9 +934,6 @@ class ReaderApp extends Component {
 
     } else if (path == "/my/profile") {
       this.openProfile(Sefaria.slug);
-
-    } else if (path == "/my/notes") {
-      this.showMyNotes();
 
     } else if (path == "/notifications") {
       this.showNotifications();
@@ -1493,9 +1483,6 @@ class ReaderApp extends Component {
   }
   showCollections() {
     this.setSinglePanelState({menuOpen: "collectionsPublic"});
-  }
-  showMyNotes() {
-    this.setSinglePanelState({menuOpen: "myNotes"});
   }
   setSinglePanelState(state) {
     // Sets state to be a single panel with properties of `state`

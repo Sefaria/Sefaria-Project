@@ -572,7 +572,6 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
         "initialPanels":                  panels,
         "initialPanelCap":                len(panels),
         "initialQuery":                   None,
-        "initialSheetsTag":               None,
         "initialNavigationCategories":    None,
         "initialNavigationTopicCategory": None,
         "initialNavigationTopicTitle":    None,
@@ -772,9 +771,8 @@ def public_collections(request):
 
 
 @login_required
-def my_notes(request):
-    title = _("My Notes on Sefaria")
-    return menu_page(request, page="myNotes", title=title)
+def my_notes_redirect(request):
+    return redirect("/my/profile?tab=notes")
 
 
 def topic_page_redirect(request, tag):
@@ -3556,7 +3554,10 @@ def my_profile(request):
     """
     Redirect to a user profile
     """
-    return redirect("/profile/%s" % UserProfile(id=request.user.id).slug)
+    url = "/profile/%s" % UserProfile(id=request.user.id).slug
+    if "tab" in request.GET:
+        url += "?tab=" + request.GET.get("tab")
+    return redirect(url) 
 
 
 def interrupting_messages_read_api(request, message):

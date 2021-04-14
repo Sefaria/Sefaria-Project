@@ -20,7 +20,6 @@ import {TopicPage, TopicCategory}  from './TopicPage';
 import TopicsPage from './TopicsPage';
 import CollectionPage from "./CollectionPage"
 import NotificationsPanel  from './NotificationsPanel';
-import MyNotesPanel  from './MyNotesPanel';
 import UserHistoryPanel  from './UserHistoryPanel';
 import UserProfile  from './UserProfile';
 import UpdatesPanel  from './UpdatesPanel';
@@ -73,24 +72,13 @@ class ReaderPanel extends Component {
     window.removeEventListener("resize", this.setWidth);
   }
   componentWillReceiveProps(nextProps) {
-    if (nextProps.initialFilter && !this.props.multiPanel) {
-      this.openConnectionsInPanel(nextProps.initialRefs);
-    }
     if (nextProps.searchQuery && this.state.menuOpen !== "search") {
       this.openSearch(nextProps.searchQuery);
     }
     if (this.state.menuOpen !== nextProps.initialMenu) {
       this.setState({menuOpen: nextProps.initialMenu});
     }
-    if (nextProps.initialState) {
-      this.setState(nextProps.initialState);
-    } else {
-      this.setState({
-        navigationCategories: nextProps.initialNavigationCategories || [],
-        navigationTopicCategory: nextProps.initialNavigationTopicCategory || "",
-        navigationSheetTag:   nextProps.initialSheetsTag || null
-      });
-    }
+    this.setState(nextProps.initialState);
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.layoutWidth !== this.props.layoutWidth) {
@@ -375,7 +363,6 @@ class ReaderPanel extends Component {
       // appliedSearchFilters: [],
       navigationCategories: null,
       navigationTopicCategory: null,
-      navigationSheetTag: null
     };
     this.conditionalSetState(state);
   }
@@ -393,7 +380,6 @@ class ReaderPanel extends Component {
       mode: "Sheet",
       navigationCategories: null,
       navigationTopicCategory: null,
-      navigationSheetTag: null
     };
     this.conditionalSetState(state);
 
@@ -403,7 +389,6 @@ class ReaderPanel extends Component {
       menuOpen: "navigation",
       navigationCategories: null,
       navigationTopicCategory: null,
-      navigationSheetTag: null
     };
     this.conditionalSetState(state);
   }
@@ -413,7 +398,6 @@ class ReaderPanel extends Component {
       mode: "Text",
       initialAnalyticsTracked: false,
       navigationCategories: null,
-      navigationSheetTag: null,
       navigationTopic: null,
       navigationTopicTitle: null,
       topicTitle: null,
@@ -433,9 +417,6 @@ class ReaderPanel extends Component {
       navigationCategories: null,
 
     });
-  }
-  setSheetTag (tag) {
-    this.conditionalSetState({navigationSheetTag: tag});
   }
   setCollectionTag (tag) {
     this.conditionalSetState({collectionTag: tag});
@@ -561,16 +542,6 @@ class ReaderPanel extends Component {
   setWidth() {
     this.setState({width: $(ReactDOM.findDOMNode(this)).width()});
     //console.log("Setting panel width", this.width);
-  }
-  setSheetTagSort(sort) {
-    this.conditionalSetState({
-      tagSort: sort,
-    });
-  }
-  setMySheetSort(sort) {
-    this.conditionalSetState({
-      mySheetSort: sort,
-    });
   }
   setCurrentlyVisibleRef(ref) {
      this.replaceHistory = true;
@@ -975,15 +946,6 @@ class ReaderPanel extends Component {
                     setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
                     interfaceLang={this.props.interfaceLang} />);
 
-    } else if (this.state.menuOpen === "myNotes") {
-      menu = (<MyNotesPanel
-                    interfaceLang={this.props.interfaceLang}
-                    multiPanel={this.props.multiPanel}
-                    hideNavHeader={this.props.hideNavHeader}
-                    navHome={this.openMenu.bind(null, "navigation")}
-                    openDisplaySettings={this.openDisplaySettings}
-                    toggleLanguage={this.toggleLanguage} />);
-
     } else if (this.state.menuOpen === "collection") {
       menu = (<CollectionPage
                 name={this.state.collectionName}
@@ -1146,24 +1108,7 @@ class ReaderPanel extends Component {
   }
 }
 ReaderPanel.propTypes = {
-  initialRefs:                 PropTypes.array,
-  initialMode:                 PropTypes.string,
-  initialConnectionsMode:      PropTypes.string,
-  initialVersion:              PropTypes.string,
-  initialVersionLanguage:      PropTypes.string,
-  initialFilter:               PropTypes.array,
-  initialHighlightedRefs:      PropTypes.array,
-  initialMenu:                 PropTypes.string,
-  initialQuery:                PropTypes.string,
-  initialTextAppliedSearchFilters: PropTypes.array,
-  initialTextSearchField:          PropTypes.string,
-  initialTextSearchSortType:       PropTypes.string,
-  initialSheetAppliedSearchFilters: PropTypes.array,
-  initialSheetSearchField:          PropTypes.string,
-  initialSheetSearchSortType:       PropTypes.string,
-  initialSheetsTag:            PropTypes.string,
-  initialProfile:              PropTypes.object,
-  initialState:                PropTypes.object, // if present, overrides all props above
+  initialState:                PropTypes.object,
   interfaceLang:               PropTypes.string,
   setCentralState:             PropTypes.func,
   onSegmentClick:              PropTypes.func,

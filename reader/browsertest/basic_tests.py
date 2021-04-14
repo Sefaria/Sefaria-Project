@@ -185,15 +185,7 @@ class PagesLoadLoggedIn(AtomicTest):
         self.load_toc()
         self.login_user()
         self.load_my_profile()
-        # self.load_notifications()
         print("Done loading user")
-        # self.load_notifications()
-        self.nav_to_account() # load_account might be superceded by load_my_profile or nav_to_account
-        print("Done loading account")
-        self.load_private_sheets()
-        print("Done loading private sheets")
-        ## self.load_private_groups() # fails -- /my/groups no longer exists
-        print("Done loading private groups")
         self.load_notifications()
 
 

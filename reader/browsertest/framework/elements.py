@@ -166,7 +166,7 @@ class AbstractTest(object):
         finally:
             return self
 
-    def nav_to_account(self):
+    def nav_to_profile(self):
         if self.is_logged_in():
             self.driver.find_element_by_css_selector('.accountLinks .my-profile').click()
         else:
@@ -174,7 +174,7 @@ class AbstractTest(object):
         return self
 
     def nav_to_sheets(self):
-        self.nav_to_account()
+        self.nav_to_profile()
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".profile-summary")))
         time.sleep(5)
         try:
@@ -1151,15 +1151,6 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, ".notificationsList > .notification")))
         return self
-
-    def load_private_sheets(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/sheets/private"))
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".sheet")))
-        return self
-
-    def load_private_groups(self):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/my/groups"))
-        WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, ".groupsList")))
 
     def load_url(self, url, test_selector):
         """

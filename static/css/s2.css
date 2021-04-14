@@ -1,4 +1,4 @@
-body {
+tbody {
   padding: 0;
   margin: 0;
   -webkit-text-size-adjust: 100%;
@@ -6864,9 +6864,6 @@ a .button:hover {
 .note a {
   color: #333;
   text-decoration: underline;
-}
-.myNotesPanel .noteList {
-  margin-bottom: 220px;
 }
 .noteListing {
   margin-bottom: 30px;

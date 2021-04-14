@@ -1973,44 +1973,6 @@ _media: {},
         }
       return tags;
     },
-    _tagList: {},
-    tagList: function(sortBy, callback) {
-      // Returns a list of all public source sheet tags, ordered by popularity
-      sortBy = typeof sortBy == "undefined" ? "count" : sortBy;
-      var tags = this._tagList[sortBy];
-      if (tags) {
-        if (callback) { callback(tags); }
-      } else if ("count" in this._tagList && (sortBy == "alpha")) {
-        // If we have one set of ordered tags already, we can do sorts locally.
-        var tags = this._tagList["count"].slice();
-        tags.sort(function(a, b) {
-          return a.tag > b.tag ? 1 : -1;
-        });
-        this._tagList["alpha"] = tags;
-      } else {
-        var url = Sefaria.apiHost + "/api/sheets/tag-list/" + sortBy;
-         Sefaria._api(url, function(data) {
-            this._tagList[sortBy] = data;
-            if (callback) { callback(data); }
-          }.bind(this));
-        }
-      return tags;
-    },
-    _userTagList: null,
-    userTagList: function(uid, callback) {
-      // Returns a list of all public source sheet tags, ordered by populartiy
-      var tags = this._userTagList;
-      if (tags) {
-        if (callback) { callback(tags); }
-      } else {
-        var url = Sefaria.apiHost + "/api/sheets/tag-list/user/"+uid;
-         Sefaria._api(url, function(data) {
-            this._userTagList = data;
-             if (callback) { callback(data); }
-          }.bind(this));
-        }
-      return tags;
-    },
     _sheetsByTag: {},
     sheetsByTag: function(tag, callback) {
       // Returns a list of public sheets matching a given tag.
@@ -2096,22 +2058,6 @@ _media: {},
 
         Sefaria._api(url, function(data) {
           this._publicSheets["offset"+offset+"num"+numberToRetrieve] = data.sheets;
-          if (callback) { callback(data.sheets); }
-        }.bind(this));
-      }
-      return sheets;
-    },
-    _topSheets: null,
-    topSheets: function(callback) {
-      // Returns a list of top sheets (recent sheets with some quality heuristic)
-      // TODO implements an API for this, currently just grabbing most recent 4
-      var sheets = this._topSheets;
-      if (sheets) {
-        if (callback) { callback(sheets); }
-      } else {
-        var url = Sefaria.apiHost + "/api/sheets/all-sheets/3/0";
-        Sefaria._api(url, function(data) {
-          this._topSheets = data.sheets;
           if (callback) { callback(data.sheets); }
         }.bind(this));
       }
@@ -2416,26 +2362,8 @@ Sefaria.unpackDataFromProps = function(props) {
         }
       }
   }
-  if (props.userSheets) {
-    Sefaria.sheets._userSheets[Sefaria._uid + "date"] = props.userSheets;
-  }
-  if (props.userTags) {
-    Sefaria.sheets._userTagList = props.userTags;
-  }
-  if (props.publicSheets) {
-    Sefaria.sheets._publicSheets = props.publicSheets;
-  }
-  if (props.tagSheets) {
-    Sefaria.sheets._sheetsByTag[props.initialSheetsTag] = props.tagSheets;
-  }
-  if (props.tagList) {
-    Sefaria.sheets._tagList["count"] = props.tagList;
-  }
   if (props.trendingTags) {
     Sefaria.sheets._trendingTags = props.trendingTags;
-  }
-  if (props.topSheets) {
-    Sefaria.sheets._topSheets = props.topSheets;
   }
   if (props.collectionData) {
     Sefaria._collections[props.initialCollectionSlug] = props.collectionData;
