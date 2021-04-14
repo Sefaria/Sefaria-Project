@@ -870,7 +870,7 @@ class ConnectionsSummary extends Component {
         if(this.props.collapsed){
             connectionsSummary = connectionsSummary.slice(0,3) //get the first 3 items
             summaryToggle = (
-                <ToolsButton en="More" he="עוד" image="more.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" typeface="text" />
+                <ToolsButton en="More" he="עוד" image="more.svg" onClick={this.props.toggleTopLevelCollapsed} control="interface" typeface="system" />
             );
         }else{
             summaryToggle = (
