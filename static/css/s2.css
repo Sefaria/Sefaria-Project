@@ -4509,7 +4509,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 18px;
   color: #666666;
 }
-.connectionsPanel .toolsButton.less{
+.connectionsPanel .toolsButton.seeLess{
   margin-inline-start: 60px;
   font-style: normal;
   font-weight: normal;
@@ -4518,15 +4518,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #999999;
   align-items: center;
 }
-.connectionsPanel .toolsButton.less img.toolsButtonIcon{
+.connectionsPanel .toolsButton.seeLess img.toolsButtonIcon{
   height: 10px;
   width: 10px;
 }
-.connectionsPanel .toolsButton.less .toolsButtonText{
+.connectionsPanel .toolsButton.seeLess .toolsButtonText{
   margin-inline-start: 5px;
 }
 .connectionsPanel .toolsButton.aboutThisText {
-    margin-top: 30px;
+  margin-top: 30px;
 }
 .categoryFilter:not(.withBooks) .filterText{
   margin-inline-start: 10px;
