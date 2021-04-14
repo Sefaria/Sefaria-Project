@@ -3611,7 +3611,7 @@ def homepage_preview(request):
     """
     Preview the homepage as it will appear at some date in the future
     """
-    date = request.GET.get("date")
+    date = request.GET.get("date", "5/23/21")
     homepage = get_homepage_items(date=date)
 
     return menu_page(request, page="home", props={"homepage": homepage, "homepagePreview": date})

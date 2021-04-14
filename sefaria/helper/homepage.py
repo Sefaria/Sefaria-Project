@@ -94,7 +94,7 @@ def get_parashah_item(data, date=None, diaspora=True, interface_lang="english"):
 
 def get_calendar_item(data, date):
   todays_data = get_todays_data(data, date)
-  if not todays_data:
+  if not todays_data or not todays_data["Topic URL"]:
     return None
 
   topic = topic_from_url(todays_data["Topic URL"])
@@ -113,19 +113,22 @@ def get_calendar_item(data, date):
 
 def get_discover_item(data, date):
   todays_data = get_todays_data(data, date)
-  if not todays_data:
+  if not todays_data or not todays_data["Sheet URL"]:
     return None
 
-  oRef = Ref(todays_data["Citation"])
-  about = {
-    "title": todays_data["Description Title"],
-    "description": todays_data["Description"],
-    "ref": {
-      "url": oRef.url(),
-      "en": oRef.normal(),
-      "he": oRef.he_normal(),
+  if todays_data["Citation"]: 
+    oRef = Ref(todays_data["Citation"])
+    about = {
+      "title": todays_data["Description Title"],
+      "description": todays_data["Description"],
+      "ref": {
+        "url": oRef.url(),
+        "en": oRef.normal(),
+        "he": oRef.he_normal(),
+      }
     }
-  }  
+  else:
+    about = None
 
   sheet = sheet_with_customization(todays_data)
   sheet["heading"] = "On Talmud"
@@ -138,7 +141,7 @@ def get_discover_item(data, date):
 
 def get_featured_item(data, date):
   todays_data = get_todays_data(data, date)
-  if not todays_data:
+  if not todays_data or not (todays_data["Block Title"] and todays_data["Sheet URL"]):
     return None
 
   sheet = sheet_with_customization(todays_data)
@@ -152,7 +155,7 @@ def get_featured_item(data, date):
 def get_todays_data(data, date):
   todays_data = None
   for day_data in data:
-    if day_data["Date"]:
+    if day_data["Date"] == date:
       todays_data = day_data
       break
   return todays_data
