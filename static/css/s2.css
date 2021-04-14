@@ -4493,8 +4493,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
 }
 .categoryFilter:not(.withBooks) .filterInner:before{
-  width: 21px;
-  height: 18px;
+  width: 18px;
+  height: 16px;
   content: '';
   -webkit-mask: url("/static/img/connection-book.svg") no-repeat;
   mask: url("/static/img/connection-book.svg") no-repeat;
@@ -5303,8 +5303,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 1px;
 }
 .toolsButton img.toolsButtonIcon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   vertical-align: middle;
 }
 .toolsButton .toolsButtonText{
