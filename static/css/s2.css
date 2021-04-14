@@ -4525,6 +4525,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .collapseSummaries .toolsButton .toolsButtonText{
   margin-inline-start: 5px;
 }
+.connectionsPanel .toolsButton.AboutthisText {
+    margin-top: 30px;
+}
 .categoryFilter:not(.withBooks) .filterText{
   margin-inline-start: 10px;
   margin-inline-end: auto;
