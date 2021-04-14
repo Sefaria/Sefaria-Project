@@ -13,10 +13,10 @@ from sefaria.sheets import get_sheet, sheet_to_dict
 from sefaria.utils.calendars import get_parasha
 from sefaria.utils.hebrew import is_hebrew, hebrew_term, hebrew_parasha_name
 from sefaria.helper.topic import get_topic_by_parasha
-from sefaria.system.cache import django_cache, delete_cache_elem
+from sefaria.system.cache import django_cache, delete_cache_elem, cache_get_key
 
 
-@django_cache(timeout=1 * 60 * 60, cache_key="homepage")
+@django_cache(timeout=1 * 60 * 60, cache_prefix="homepage")
 def get_homepage_data(language="english"):
   urls = {
     "english": {
@@ -61,7 +61,8 @@ def load_data_from_sheet(url):
 
 def get_homepage_items(date="5/23/21", language="englsih", diaspora=True, refresh=False):
   if refresh:
-    delete_cache_elem("homepage")
+    cache_key = cache_get_key("homepage", language=language)
+    delete_cache_elem(cache_key)
   
   data = get_homepage_data(language=language)
 
