@@ -17,17 +17,27 @@ from sefaria.system.cache import django_cache, delete_cache_elem
 
 
 @django_cache(timeout=1 * 60 * 60, cache_key="homepage")
-def get_homepage_data(interface_lang="english"):
-  parashah = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoHRVY9Z5MNhERjolxXzQ6Efp3SFTniHMgkSORWFPlkwoj5ppYeP8AyTX7yG_LcQ3p165iRNfOpOSZ/pub?output=csv'
-  calendar = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoHRVY9Z5MNhERjolxXzQ6Efp3SFTniHMgkSORWFPlkwoj5ppYeP8AyTX7yG_LcQ3p165iRNfOpOSZ/pub?gid=1789079733&single=true&output=csv'
-  discover = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoHRVY9Z5MNhERjolxXzQ6Efp3SFTniHMgkSORWFPlkwoj5ppYeP8AyTX7yG_LcQ3p165iRNfOpOSZ/pub?gid=2070604890&single=true&output=csv'
-  featured = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoHRVY9Z5MNhERjolxXzQ6Efp3SFTniHMgkSORWFPlkwoj5ppYeP8AyTX7yG_LcQ3p165iRNfOpOSZ/pub?gid=1926549189&single=true&output=csv'
+def get_homepage_data(language="english"):
+  urls = {
+    "english": {
+      "parashah": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoHRVY9Z5MNhERjolxXzQ6Efp3SFTniHMgkSORWFPlkwoj5ppYeP8AyTX7yG_LcQ3p165iRNfOpOSZ/pub?output=csv',
+      "calendar": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoHRVY9Z5MNhERjolxXzQ6Efp3SFTniHMgkSORWFPlkwoj5ppYeP8AyTX7yG_LcQ3p165iRNfOpOSZ/pub?gid=1789079733&single=true&output=csv',
+      "discover": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoHRVY9Z5MNhERjolxXzQ6Efp3SFTniHMgkSORWFPlkwoj5ppYeP8AyTX7yG_LcQ3p165iRNfOpOSZ/pub?gid=2070604890&single=true&output=csv',
+      "featured": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoHRVY9Z5MNhERjolxXzQ6Efp3SFTniHMgkSORWFPlkwoj5ppYeP8AyTX7yG_LcQ3p165iRNfOpOSZ/pub?gid=1926549189&single=true&output=csv',
+    },
+    "hebrew": {
+      "parashah": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=0&single=true&output=csv',
+      "calendar": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=1789079733&single=true&output=csv',
+      "discover": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=2070604890&single=true&output=csv',
+      "featured": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRefP0BMml1sC6Ic50t2ekkLLIh3SIH9uYEBjWmdRwmBGs0-NDFFhjU3vW_tFzj_ATpK2PwqNdpVwQ4/pub?gid=1926549189&single=true&output=csv',
+    },
+  }
 
   return {
-    "parashah": load_data_from_sheet(parashah),
-    "calendar": load_data_from_sheet(calendar),
-    "discover": load_data_from_sheet(discover),
-    "featured": load_data_from_sheet(featured),
+    "parashah": load_data_from_sheet(urls[language]["parashah"]),
+    "calendar": load_data_from_sheet(urls[language]["calendar"]),
+    "discover": load_data_from_sheet(urls[language]["discover"]),
+    "featured": load_data_from_sheet(urls[language]["featured"]),
   }
 
 
@@ -49,11 +59,11 @@ def load_data_from_sheet(url):
   return keyed_data
 
 
-def get_homepage_items(date="5/23/21", interface_lang="englsih", diaspora=True, refresh=False):
+def get_homepage_items(date="5/23/21", language="englsih", diaspora=True, refresh=False):
   if refresh:
     delete_cache_elem("homepage")
   
-  data = get_homepage_data()
+  data = get_homepage_data(language=language)
 
   if date is None:
     datetime_obj = timezone.localtime(timezone.now())

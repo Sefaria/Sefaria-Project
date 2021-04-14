@@ -231,7 +231,7 @@ def base_props(request):
             "fontSize":      request.COOKIES.get("fontSize", 62.5),
         },
         "trendingTopics": trending_topics(days=7, ntags=5),
-        "homepage": get_homepage_items(),
+        "homepage": get_homepage_items(language=request.interfaceLang),
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
     })
@@ -3612,7 +3612,7 @@ def homepage_preview(request):
     Preview the homepage as it will appear at some date in the future
     """
     date = request.GET.get("date", "5/23/21")
-    homepage = get_homepage_items(date=date)
+    homepage = get_homepage_items(date=date, language=request.interfaceLang)
 
     return menu_page(request, page="home", props={"homepage": homepage, "homepagePreview": date})
 
@@ -3623,7 +3623,7 @@ def homepage_reset(request):
     Reset the cache of the homepage content from Google sheet
     """
     date = request.GET.get("next", None)
-    homepage = get_homepage_items(date=date, refresh=True)
+    homepage = get_homepage_items(date=date, language=request.interfaceLang, refresh=True)
 
     return menu_page(request, page="home", props={"homepage": homepage, "homepagePreview": date})
 
