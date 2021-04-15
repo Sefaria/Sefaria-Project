@@ -79,11 +79,10 @@ const UserHistoryPanel = ({menuOpen, handleClick, toggleLanguage, openDisplaySet
 
   const footer = compare ? null : <Footer />;
   const navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, compare: compare, noLangToggleInHebrew: 1});
-  const contentClasses = classNames({content: 1, hasFooter: footer != null});
   
   return (
     <div onClick={handleClick} className={navMenuClasses}>
-      <div className={contentClasses}>
+      <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
             <div className="navTitle">

@@ -104,11 +104,10 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
 
   const footer = compare ? null : <Footer />;
   const classes = classNames({readerNavMenu:1, compare: compare, home: home, noLangToggleInHebrew: 1 });
-  const contentClasses = classNames({content: 1, hasFooter: footer != null});
 
   return(<div className={classes} onClick={handleClick} key="0">
           {topContent}
-          <div className={contentClasses}>
+          <div className="content">
             <div className="sidebarLayout">
               <div className="contentInner">
                 { title }

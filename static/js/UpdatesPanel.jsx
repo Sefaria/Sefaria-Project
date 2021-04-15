@@ -85,12 +85,9 @@ class UpdatesPanel extends Component {
     });
   }
   render() {
-    var classes = {readerNavMenu: 1};
-    var classStr = classNames(classes);
-
     return (
-      <div className={classStr}>
-        <div className="content hasFooter">
+      <div className="readerNavMenu">
+        <div className="content">
           <div className="contentInner">
             <h1>
               <InterfaceText>Updates</InterfaceText>

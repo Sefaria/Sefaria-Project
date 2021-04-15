@@ -72,11 +72,10 @@ class TopicPageAll extends Component {
     }).map(this.renderButton) : null;
     const classStr = classNames({topicsPanel: 1, readerNavMenu: 1});
     const navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
-    const contentClasses = classNames({content: 1, hasFooter: 1});
     const inputClasses = classNames({topicFilterInput: 1, contentText: 1, en: !isHeInt, he: isHeInt});
     return (
       <div className={classStr}>
-        <div className={contentClasses} onScroll={this.onScroll}>
+        <div className="content" onScroll={this.onScroll}>
           <div className="contentInner">
             {this.props.hideNavHeader ?
               <h1>

@@ -967,7 +967,7 @@ class ReaderPanel extends Component {
       menu = (
         <PublicCollectionsPage
           multiPanel={this.props.multiPanel}
-          navHome={this.openMenu.bind(null, "navigation")}/>
+          initialWidth={this.state.width} />
       );
 
     } else if (this.state.menuOpen === "home") {

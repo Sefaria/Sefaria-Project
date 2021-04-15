@@ -65,11 +65,9 @@ class NotificationsPanel extends Component {
   }
   render() {
     const sidebarModules = [{type: "StayConnected"}];
-    const classes = {readerNavMenu: 1};
-    const classStr = classNames(classes);
     return (
-      <div className={classStr}>
-        <div className="content hasFooter">
+      <div className="readerNavMenu">
+        <div className="content">
           <div className="sidebarLayout">
             <div className="contentInner">
               <h1>

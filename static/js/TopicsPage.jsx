@@ -50,12 +50,9 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
     {type: "SupportSefaria"},
   ];
 
-  const classes = classNames({readerNavMenu:1, noLangToggleInHebrew: 1 });
-  const contentClasses = classNames({content: 1, hasFooter: 1});
-
-  return (<div className={classes} key="0">
+  return (<div className="readerNavMenu noLangToggleInHebrew" key="0">
           {topContent}
-          <div className={contentClasses}>
+          <div className="content">
             <div className="sidebarLayout">
               <div className="contentInner">
                 <h1><InterfaceText>Explore by Topic</InterfaceText></h1>

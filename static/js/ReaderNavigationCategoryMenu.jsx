@@ -53,7 +53,6 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
     const talmudToggle   = <TalmudToggle categories={cats} setCategories={setCategories} />
     const footer         = compare ? null : <Footer />;
     const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noLangToggleInHebrew: 1, compare: compare});
-    const contentClasses = classNames({content: 1, hasFooter: footer != null});
     return (<div className={navMenuClasses}>
               { compare ? 
               <MobileHeader
@@ -67,7 +66,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
                 catTitle={catTitle}
                 heCatTitle={heCatTitle} /> : null}
               
-              <div className={contentClasses}>
+              <div className="content">
                 <div className="sidebarLayout">
                   <div className="contentInner followsContentLang">
                     <div className="navTitle">

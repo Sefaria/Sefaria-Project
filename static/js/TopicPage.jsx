@@ -192,11 +192,9 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang,
       });
     }
 
-    const navMenuClasses = classNames({readerNavMenu: 1, noLangToggleInHebrew: 1});
-    const contentClasses = classNames({content: 1, readerTocTopics:1, hasFooter: 1});
     return (
-        <div className={navMenuClasses}>
-            <div className={contentClasses}>
+        <div className="readerNavMenu noLangToggleInHebrew">
+            <div className="content readerTocTopics">
                 <div className="sidebarLayout">
                   <div className="contentInner">
                       <h1><InterfaceText text={{en: topicTitle.en, he: topicTitle.he}} /></h1>
@@ -346,7 +344,7 @@ const TopicPage = ({
 
     const classStr = classNames({topicPanel: 1, readerNavMenu: 1});
     return <div className={classStr}>
-        <div className="content hasFooter noOverflowX" ref={scrollableElement}>
+        <div className="content noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic} onClose={onClose} openSearch={openSearch} openDisplaySettings={openDisplaySettings} />

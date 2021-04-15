@@ -352,7 +352,7 @@ class UserProfile extends Component {
   render() {
     return (
       <div key={this.props.profile.id} className="profile-page readerNavMenu">
-        <div className="content hasFooter noOverflowX">
+        <div className="content noOverflowX">
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :
               <div>

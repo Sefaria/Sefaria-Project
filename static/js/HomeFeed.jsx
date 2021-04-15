@@ -28,12 +28,9 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories, initialWidth}) => {
     {type: "SupportSefaria", props: {blue: true}},
   ];
 
-  const classes = classNames({readerNavMenu:1, homepage: 1});
-  const contentClasses = classNames({content: 1, hasFooter: 1});
-
   return (
-    <div className={classes} key="0">
-      <div className={contentClasses}>
+    <div className="readerNavMenu homepage" key="0">
+      <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner mainColumn">
             <h2><InterfaceText>The Torah Portion</InterfaceText></h2>
@@ -254,7 +251,7 @@ const FeaturedSheet = (props) => {
   /*  
   return (
     <div className="homeFeedWrapper">
-      <div className="content hasFooter" ref={scrollable_element}>
+      <div className="content" ref={scrollable_element}>
         <div className="contentInner">
         <div id="homeCover">
             <video id="homeVideo" poster="/static/img/home-video-narrow.jpg" preload="auto" autoPlay={true} loop="loop" muted="muted" volume="0">

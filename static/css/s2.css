@@ -1,4 +1,4 @@
-tbody {
+body {
   padding: 0;
   margin: 0;
   -webkit-text-size-adjust: 100%;
@@ -1843,7 +1843,6 @@ input.resourcesLink {
 }
 a.navBlockTitle {
   color: #000;
-  display: block;
   margin-inline-end: 20px;
 }
 .navBlockTitle .int-en {
@@ -1864,6 +1863,10 @@ a.navBlockTitle {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+.interface-english .navBlockDescription.clamped5 .int-en,
+.interface-hebrew .navBlockDescription.clamped5 .int-he {
+  -webkit-line-clamp: 5;
 }
 .bilingual .navBlock .he {
   display: none;
@@ -6399,9 +6402,6 @@ a .button:hover {
 .tagString a:last-child:after {
   content: "";
 }
-.collectionsList {
-  margin-top: 30px;
-}
 .singlePanel .collectionsList {
   margin-top: 0;
 }
@@ -6409,7 +6409,6 @@ a .button:hover {
   text-align: center;
 }
 .collectionListing {
-  padding: 30px 0;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
@@ -6426,13 +6425,12 @@ a .button:hover {
   border-top: 1px solid #ccc;
 }
 .collectionListingImageBox {
-  width: 60px;
-  height: 60px;
-  float: left;
-  margin-right: 20px;
-}
-.interface-hebrew .collectionsList .collectionListingImageBox {
-  margin: 0 0 0 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  margin-inline-end: 10px;
+  display: inline-block;
+  overflow: hidden;
 }
 .sheetMetaDataBox .collectionListingImageBox,
 .tocTop .collectionListingImageBox {
@@ -6453,7 +6451,6 @@ a .button:hover {
 .sheetMetaDataBox .title:focus:before {
   content: "";
 }
-
 .editorSidebarToggle {
   position: fixed;
   right: 30px;
@@ -6465,15 +6462,12 @@ a .button:hover {
   cursor: pointer;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
-
 .editorSidebarToggle:active {
   box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.25);
 }
-
 .editorSidebarToggle::after {
   content: url("/static/img/3vdots.svg");
 }
-
 .collectionListingImage {
   height: 100%;
   width: 100%;
@@ -7364,8 +7358,6 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 }
 #footer a#siteLanguageHebrew {
   font-family: "Heebo", sans-serif;
-}
-.multiPanel .readerNavMenu .content.hasFooter #footer {
 }
 .gemarra-regular, .gemarra-italic {
   font-weight: bold;

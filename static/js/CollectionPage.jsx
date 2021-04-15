@@ -367,7 +367,7 @@ class CollectionPage extends Component {
     var classes = classNames({readerNavMenu: 1});
     return <div className={classes}>
             <CategoryColorLine category="Sheets" />
-            <div className="content collectionPage hasFooter">
+            <div className="content collectionPage">
               {content}
               <Footer />
             </div>;

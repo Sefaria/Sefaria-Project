@@ -32,11 +32,8 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
     {type: "SupportSefaria"},
   ];
 
-  const classes = classNames({readerNavMenu:1});
-  const contentClasses = classNames({content: 1, hasFooter: 1});
-
-  return(<div className={classes} key="0">
-          <div className={contentClasses}>
+  return(<div className="readerNavMenu" key="0">
+          <div className="content">
             <div className="sidebarLayout">
               <div className="contentInner">
                 <h2 className="styledH1"><InterfaceText>Weekly Torah Portion</InterfaceText></h2>

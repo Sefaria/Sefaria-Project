@@ -186,6 +186,7 @@ class Collection(abst.AbstractMongoRecord):
         contents = {
             "name": self.name,
             "slug": self.slug,
+            "description": getattr(self, "description", None),
             "imageUrl": getattr(self, "imageUrl", None),
             "headerUrl": getattr(self, "headerUrl", None),
             "memberCount": self.member_count(),

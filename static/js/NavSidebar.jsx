@@ -43,6 +43,7 @@ const Modules = ({type, props}) => {
     "GetTheApp":           GetTheApp,
     "StayConnected":       StayConnected,
     "AboutStudySchedules": AboutStudySchedules,
+    "AboutCollections":    AboutCollections,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -490,6 +491,21 @@ const AboutStudySchedules = () => (
     <InterfaceText>Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar. Following this practice, many other calendars have been created to help communities of learners work through specific texts together.</InterfaceText>
   </Module>
 );
+
+
+const AboutCollections = () => (
+  <Module>
+    <ModuleTitle h1={true}>About Collections</ModuleTitle>
+    <InterfaceText>Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.</InterfaceText>
+    <div>
+      <a className="button small" href="/collections/new">
+        <img src="/static/icons/collection.svg" alt="create a collection icon" />
+        <InterfaceText>Create a Collection</InterfaceText>
+      </a>
+    </div>
+  </Module>
+);
+
 
 
 
