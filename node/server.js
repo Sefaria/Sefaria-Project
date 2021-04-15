@@ -17,20 +17,12 @@ const http          = require('http'),
     SefariaReact    = require('../static/js/ReaderApp.jsx'),
     ReaderApp       = React.createFactory(SefariaReact.ReaderApp);
 
+const {logger, expressLogger, errorLogger} = require('./sefaria-logging');
+
 const server = express();
-const expressWinston = require('express-winston');
-const winston = require('winston');
-const logger = winston.createLogger({
-    transports: [
-        new winston.transports.Console({}),
-    ],
-    format: winston.format.json(),
-});
 
 server.use(bodyParser.urlencoded({ extended: false, limit: '50mb' }));
 server.use(bodyParser.json({limit: '50mb'}));
-
-// const log = settings.DEBUG ? console.log : function() {};
 
 const cacheKeyMapping = {"toc": "toc", "topic_toc": "topic_toc", "terms": "term_mapping", "books": "books_en" };
 let sharedCacheData = {
@@ -51,7 +43,7 @@ const getAsync = promisify(cache.get).bind(cache);
 
 
 const loadSharedData = async function({ last_cached_to_compare = null, startup = false } = {}){
-    logger.info("Load Shared Data - Input last cached timestamp to compare: " + last_cached_to_compare);
+    logger.debug("Load Shared Data - Input last cached timestamp to compare: " + last_cached_to_compare);
     //TODO: If the data wasnt placed in Redis by django to begin with, well, we're screwed.
     // Or you know, fix it so Node does send a signal to Django to populate cache.
     let redisCalls = [];
@@ -105,11 +97,18 @@ router.get('/error', function(req, res, next) {
 });
 
 router.post('/ReaderApp/:cachekey', function(req, res) {
-  const timer = {
+  // timing stored on locals so that it gets returned with the result to be logged
+  const timer = res.locals.timing = {
     start: new Date(),
     elapsed: function() { return (new Date() - this.start); }
   };
   const props = JSON.parse(req.body.propsJSON);
+  req.input_props = {               // For logging
+    initialRefs: props.initialRefs,
+    initialMenu: props.initialMenu,
+    initialPath: props.initialPath,
+  };
+
   let request_last_cached = props["last_cached"];
   logger.debug("Begin processing request: ", props);
   logger.debug("Last cached time from server: " + request_last_cached + " " + new Date(request_last_cached*1000).toUTCString());
@@ -119,20 +118,16 @@ router.post('/ReaderApp/:cachekey', function(req, res) {
   loadSharedData({last_cached_to_compare: request_last_cached}).then(response => {
     try {
       timer.ms_to_validate_cache = timer.elapsed();
+
       const resphtml = renderReaderApp(props, sharedCacheData, timer);
-      res.end(resphtml);
+
       timer.ms_to_complete = timer.elapsed();
+      delete res.locals.timing.elapsed;  // no need to pass this around
+
+      res.end(resphtml);
     } catch (render_e){
       logger.error(render_e);
     }
-    delete timer.start;
-    delete timer.elapsed;
-    logger.info({
-      initialRefs: props.initialRefs,
-      initialMenu: props.initialMenu,
-      initialPath: props.initialPath,
-      timing: timer
-    });
   }).catch(error => {
     res.status(500).end('Data required for render is missing:  ' + error.message);
   });
@@ -149,30 +144,9 @@ router.get('/healthz', function(req, res) {
   res.send('Healthy')
 });
 
-// express-winston logger makes sense BEFORE the router
-server.use(expressWinston.logger({
-  transports: [
-    new winston.transports.Console()
-  ],
-  format: winston.format.combine(
-    winston.format.colorize(),
-    winston.format.json()
-  )
-}));
-
-// Now we can tell the app to use our routing code:
+server.use(expressLogger);    // express-winston logger makes sense BEFORE the router
 server.use(router);
-
-// express-winston errorLogger makes sense AFTER the router.
-server.use(expressWinston.errorLogger({
-  transports: [
-    new winston.transports.Console()
-  ],
-  format: winston.format.combine(
-    winston.format.colorize(),
-    winston.format.json()
-  )
-}));
+server.use(errorLogger);      // express-winston errorLogger makes sense AFTER the router.
 
 const main = async function(){
   logger.info("Startup. Prefetching cached data:");
