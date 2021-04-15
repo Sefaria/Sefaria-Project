@@ -1,3 +1,11 @@
+import React  from 'react';
+import Component from 'react-class';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
+import { NavSidebar } from './NavSidebar';
+import Footer  from './Footer';
 import {
   CategoryColorLine,
   DropdownModal,
@@ -10,15 +18,8 @@ import {
   ProfilePic,
   SimpleLinkedBlock,
   InterfaceText,
+  ContentText,
 } from './Misc';
-import React  from 'react';
-import PropTypes  from 'prop-types';
-import classNames  from 'classnames';
-import $  from './sefaria/sefariaJquery';
-import Sefaria  from './sefaria/sefaria';
-import Footer  from './Footer';
-import Component from 'react-class';
-
 
 class CollectionPage extends Component {
   constructor(props) {
@@ -203,16 +204,34 @@ class CollectionPage extends Component {
   }
   render() {
     const collection = this.state.collectionData;
+    const sidebarModules = [];
+
     let content;
 
     if (!collection) {
-      content = <div className="contentInner"><LoadingMessage /></div>;
+      content = <LoadingMessage />;
     } else {
       var sheets         = collection.sheets;
       var topicList      = collection.topics;
       var members        = this.memberList();
       var isMember       = members && members.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
       var isAdmin        = collection.admins.filter(function(x) { return x.uid == Sefaria._uid } ).length !== 0;
+
+      const editorsBlock = (
+        <div>
+         { members.map(function (member, i) {
+            return <CollectionMemberListing
+                    member={member}
+                    isAdmin={isAdmin}
+                    isSelf={member.uid == Sefaria._uid}
+                    slug={this.props.slug}
+                    onDataChange={this.onDataChange}
+                    key={i} />
+            }.bind(this) )
+          }
+         {isAdmin ? <CollectionInvitationBox slug={this.props.slug} onDataChange={this.onDataChange}/> : null }
+        </div>
+      );
 
       topicList = topicList ? topicList.map(topic => {
           const filterThisTag = (event) => {event.preventDefault(); this.handleTagButtonClick(topic.slug)};
@@ -243,52 +262,42 @@ class CollectionPage extends Component {
                   key={sheet.id} />);
       }.bind(this));     
 
-      content = <div className="contentInner">
-        {collection.imageUrl ?
-          <img className="collectionImage" src={collection.imageUrl} alt={this.props.name}/>
-          : null }
 
+      if (collection.imageUrl) {
+        sidebarModules.push({type: "Image", props: {url: collection.imageUrl}});
+      }
+
+      sidebarModules.push({type: "Wrapper", props: {
+        title: "Editors",
+        content: editorsBlock}});
+
+      content = <div>
         <div className="collectionInfo">
-          <h1>
             {collection.toc ?
-            <span>
+            <div className="navTitle">
+              <h1>
+                <ContentText text={{en: collection.toc.title, he: collection.toc.heTitle}} />
+              </h1>
               { this.props.multiPanel && this.props.interfaceLang !== "hebrew" ? <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null }
-              <span className="en">{collection.toc.title}</span>
-              <span className="he">{collection.toc.heTitle}</span>
-            </span>
-            : collection.name }
-          </h1>
+            </div>
+            : <h1>{collection.name}</h1> }
 
-          {collection.websiteUrl ?
-            <a className="collectionWebsite" target="_blank" href={collection.websiteUrl}>{collection.websiteUrl}</a>
-            : null }
+          <a className="collectionLabel" href="/collections">
+            <InterfaceText>Collection</InterfaceText>
+          </a>
 
           {collection.toc ?
             <div className="collectionDescription">
-              <span>
-                <span className="en" dangerouslySetInnerHTML={ {__html: collection.toc.description} }></span>
-                <span className="he"dangerouslySetInnerHTML={ {__html: collection.toc.heDescription} }></span>
-              </span>
+              <ContentText html={{en: collection.toc.description, he: collection.toc.heDescription}} />
             </div>
           : collection.description ?
             <div className="collectionDescription"  dangerouslySetInnerHTML={ {__html: collection.description} }></div>
           : null }
-        </div>
 
-        <div className="tabs">
-          <a className={classNames({bubbleTab: 1, active: this.state.tab == "sheets"})} onClick={this.setTab.bind(null, "sheets")}>
-            <span className="int-en">Sheets</span>
-            <span className="int-he">דפי מקורות</span>
-          </a>
-          <a className={classNames({bubbleTab: 1, active: this.state.tab == "members"})} onClick={this.setTab.bind(null, "members")}>
-            <InterfaceText>Editors</InterfaceText>
-          </a>
-          { isAdmin ?
-            <a className="bubbleTab" href={"/collections/" + collection.slug + "/settings"}>
-              <span className="int-en">Settings</span>
-              <span className="int-he">הגדרות</span>
-            </a>
+          {collection.websiteUrl ?
+            <a className="collectionWebsite" target="_blank" href={collection.websiteUrl}>{collection.websiteUrl.replace(/https?:\/\//, "")}</a>
             : null }
+
         </div>
 
         { this.state.tab == "sheets" ?
@@ -345,33 +354,23 @@ class CollectionPage extends Component {
                   </div>) : null}
           </div>
           : null }
-
-          {this.state.tab == "members" ?
-            <div>
-             {isAdmin ? <CollectionInvitationBox slug={this.props.slug} onDataChange={this.onDataChange}/> : null }
-             { members.map(function (member, i) {
-                return <CollectionMemberListing
-                        member={member}
-                        isAdmin={isAdmin}
-                        isSelf={member.uid == Sefaria._uid}
-                        slug={this.props.slug}
-                        onDataChange={this.onDataChange}
-                        key={i} />
-                }.bind(this) )
-              }
-            </div>
-          : null }
       </div>
     }
 
-    var classes = classNames({readerNavMenu: 1});
-    return <div className={classes}>
-            <CategoryColorLine category="Sheets" />
-            <div className="content collectionPage">
+    return (
+      <div className="readerNavMenu">
+        <CategoryColorLine category="Sheets" />
+        <div className="content collectionPage">
+          <div className="sidebarLayout">
+            <div className="contentInner">
               {content}
-              <Footer />
-            </div>;
+            </div>
+            <NavSidebar modules={sidebarModules} />
           </div>
+          <Footer />
+        </div>
+      </div>
+    );
   }
 }
 CollectionPage.propTypes = {
@@ -383,6 +382,29 @@ CollectionPage.propTypes = {
   interfaceLang:      PropTypes.string,
   searchInCollection: PropTypes.func,
 };
+
+
+/*
+
+      
+        <div className="tabs">
+          <a className={classNames({bubbleTab: 1, active: this.state.tab == "sheets"})} onClick={this.setTab.bind(null, "sheets")}>
+            <span className="int-en">Sheets</span>
+            <span className="int-he">דפי מקורות</span>
+          </a>
+          <a className={classNames({bubbleTab: 1, active: this.state.tab == "members"})} onClick={this.setTab.bind(null, "members")}>
+            <InterfaceText>Editors</InterfaceText>
+          </a>
+          { isAdmin ?
+            <a className="bubbleTab" href={"/collections/" + collection.slug + "/settings"}>
+              <span className="int-en">Settings</span>
+              <span className="int-he">הגדרות</span>
+            </a>
+            : null }
+        </div>
+
+*/
+
 
 
 class CollectionInvitationBox extends Component {
@@ -435,7 +457,7 @@ class CollectionInvitationBox extends Component {
     return (<div className="collectionInvitationBox">
               <div className="collectionInvitationBoxInner">
                 <input id="collectionInvitationInput" placeholder={Sefaria._("Email Address")} />
-                <div className="button" onClick={this.onInviteClick}>
+                <div className="button small" onClick={this.onInviteClick}>
                   <InterfaceText>Invite</InterfaceText>
                 </div>
               </div>
@@ -465,21 +487,24 @@ class CollectionMemberListing extends Component {
     return (
       <div className="collectionMemberListing">
         <div className="collectionLeft">
-          <a href={this.props.member.profileUrl}>
+          <a href={this.props.member.profileUrl} className="collectionMemberListingPic">
             <ProfilePic
               url={this.props.member.imageUrl}
               name={this.props.member.name}
-              len={50}
+              len={40}
             />
           </a>
-
-          <a href={this.props.member.profileUrl} className="collectionMemberListingName">
-            {this.props.member.name}
-          </a>
+          <div>
+            <a href={this.props.member.profileUrl} className="collectionMemberListingName">
+              {this.props.member.name}
+            </a>
+            <div className="collectionMemberListingRole">
+              <InterfaceText>{this.props.member.role}</InterfaceText>
+            </div>
+          </div>
         </div>
 
         <div className="collectionMemberListingRoleBox">
-          <span className="collectionMemberListingRole"><InterfaceText>{this.props.member.role}</InterfaceText></span>
           {this.props.isAdmin || this.props.isSelf ?
             <CollectionMemberListingActions
               member={this.props.member}

@@ -1490,7 +1490,7 @@ const CollectionListing = ({data}) => {
   const imageUrl = "/static/icons/collection.svg";
   const collectionUrl = "/collections/" + data.slug;
   return (
-    <div className="collectionListing navBlock">
+    <div className="collectionListing">
       <div className="left-content">
         <div className="collectionListingText">
           

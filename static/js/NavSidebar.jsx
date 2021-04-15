@@ -44,6 +44,8 @@ const Modules = ({type, props}) => {
     "StayConnected":       StayConnected,
     "AboutStudySchedules": AboutStudySchedules,
     "AboutCollections":    AboutCollections,
+    "Image":               Image,
+    "Wrapper":             Wrapper,
   };
   if (!type) { return null; }
   const ModuleType = moduleTypes[type];
@@ -507,6 +509,19 @@ const AboutCollections = () => (
 );
 
 
+const Image = ({url}) => (
+  <Module>
+    <img className="imageModuleImage" src={url} />
+  </Module>
+);
+
+
+const Wrapper = ({title, content}) => (
+  <Module>
+    {title ? <ModuleTitle>{title}</ModuleTitle> : null}
+    {content}
+  </Module>
+);
 
 
 const IconLink = ({text, url, icon}) => (
