@@ -150,7 +150,7 @@ class MLStripper(HTMLParser):
         return ' '.join(self.fed)
 
 
-def strip_tags(html):
+def strip_tags(html, remove_new_lines=False):
     """
     Returns the text of html with tags stripped.
     Customized to insert a space between adjacent tags after stripping.
@@ -158,7 +158,10 @@ def strip_tags(html):
     html = html or ""
     s = MLStripper()
     s.feed(html)
-    return s.get_data().strip()
+    stripped = s.get_data().strip()
+    if remove_new_lines:
+        stripped = re.sub(r"\n+", " ", stripped)
+    return stripped
 
 
 def text_preview(en, he):
