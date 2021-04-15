@@ -1091,7 +1091,7 @@ input.noselect {
   padding: 60px 0 0 0;
 }
 .singlePanel .readerNavMenu .content {
-  padding: 90px 0 0 0;
+  padding: 85px 0 0 0;
 }
 .readerNavMenu.compare .content,
 .readerNavCategoryMenu.compare .content {
@@ -1183,11 +1183,20 @@ input.noselect {
   margin: -80px 0 0 0;
   padding-bottom: 100px;
 }
+.singlePanel .navSidebar {
+  width: 100%;
+  margin: 20px 0 0 0;
+  padding: 30px 0 0 0;
+  border: none;
+}
 .navSidebarModule {
   font-size: 16px;
   color: #666;
   margin-bottom: 34px;
   padding: 0 44px;
+}
+.singlePanel .navSidebarModule {
+  padding: 0 15px;
 }
 .readerPanel .navSidebarModule h3,
 .readerPanel .navSidebarModule h1 {
