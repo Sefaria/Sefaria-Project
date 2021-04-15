@@ -468,9 +468,6 @@ UserProfile.propTypes = {
 
 
 const EditorToggleHeader = ({usesneweditor}) => {
-
-  console.log(usesneweditor)
-
  const text = <InterfaceText>{usesneweditor ? "You are currently testing the new document editor" : "You are currently using the old document editor"}</InterfaceText>;
  const buttonText = <InterfaceText>{usesneweditor ? "Go back to old version" : "Try the new version"}</InterfaceText>;
  const buttonLink = (usesneweditor ? "/disable_new_editor" : "/enable_new_editor");
