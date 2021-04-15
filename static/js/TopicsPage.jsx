@@ -25,16 +25,16 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
 
   let categoryListings = Sefaria.topic_toc.map(cat => {
     const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
-    return <div className="navBlock">
-            <a href={`/topics/category/${cat.slug}`} className="navBlockTitle" onClick={openCat}>
-              <span className="en">{cat.en}</span>
-              <span className="he">{cat.he}</span>
-            </a>
-            <div className="navBlockDescription">
-              <span className="en">{cat.categoryDescription.en}</span>
-              <span className="he">{cat.categoryDescription.he}</span>
-            </div>
-          </div>;
+    return (
+      <div className="navBlock">
+        <a href={`/topics/category/${cat.slug}`} className="navBlockTitle" onClick={openCat}>
+          <InterfaceText text={cat} />
+        </a>
+        <div className="navBlockDescription">
+          <InterfaceText text={cat.categoryDescription} />
+        </div>
+      </div>
+    );
   });
   categoryListings = (
     <div className="readerNavCategories">
@@ -50,19 +50,20 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
     {type: "SupportSefaria"},
   ];
 
-  return (<div className="readerNavMenu noLangToggleInHebrew" key="0">
-          {topContent}
-          <div className="content">
-            <div className="sidebarLayout">
-              <div className="contentInner">
-                <h1><InterfaceText>Explore by Topic</InterfaceText></h1>
-                { categoryListings }
-              </div>
-              <NavSidebar modules={sidebarModules} />
-            </div>
-            <Footer />
+  return (
+    <div className="readerNavMenu noLangToggleInHebrew" key="0">
+      <div className="content">
+        <div className="sidebarLayout">
+          <div className="contentInner">
+            <h1><InterfaceText>Explore by Topic</InterfaceText></h1>
+            { categoryListings }
           </div>
-        </div>);
+          <NavSidebar modules={sidebarModules} />
+        </div>
+        <Footer />
+      </div>
+    </div>
+  );
 };
 
 
