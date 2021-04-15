@@ -1,22 +1,104 @@
+import React, { useState, useEffect, useRef} from 'react';
+import PropTypes  from 'prop-types';
+import ReactDOM  from 'react-dom';
+import Component from 'react-class';
+import classNames  from 'classnames';
+import $  from './sefaria/sefariaJquery';
+import Sefaria  from './sefaria/sefaria';
 import {
   ReaderNavigationMenuSearchButton,
   GlobalWarningMessage,
-  TestMessage,
   ProfilePic,
   InterfaceLanguageMenu,
   InterfaceText,
 } from './Misc';
-import React, { useState, useEffect, useRef} from 'react';
-import PropTypes  from 'prop-types';
-import ReactDOM  from 'react-dom';
-import classNames  from 'classnames';
-import $  from './sefaria/sefariaJquery';
-import Sefaria  from './sefaria/sefaria';
-import ReaderPanel from './ReaderPanel';
-import Component from 'react-class';
 
 
 class Header extends Component {
+  componentDidMount() {
+    window.addEventListener('keydown', this.handleFirstTab);
+  }
+  handleFirstTab(e) {
+    if (e.keyCode === 9) { // tab (i.e. I'm using a keyboard)
+      document.body.classList.add('user-is-tabbing');
+      window.removeEventListener('keydown', this.handleFirstTab);
+    }
+  }
+  render() {
+    const headerInnerClasses = classNames({
+      headerInner: 1,
+      boxShadow: this.props.hasBoxShadow,
+      mobileHeader: !this.props.multiPanel
+    });
+        
+    const headerContent = (
+      <>
+        <div className="headerNavSection">
+            { Sefaria._siteSettings.TORAH_SPECIFIC ? <a className="home" href="/" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> : null }
+            <a href="/texts" className="library"><InterfaceText>Texts</InterfaceText></a>
+            <a href="/topics" className="library"><InterfaceText>Topics</InterfaceText></a>
+            <a  href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank" className="library"><InterfaceText>Donate</InterfaceText></a>
+        </div>
+
+        <div className="headerLinksSection">
+          
+          <SearchBar 
+            onRefClick={this.props.onRefClick}
+            showSearch={this.props.showSearch}
+            openTopic={this.props.openTopic}
+            openURL={this.props.openURL} />
+
+          { Sefaria._uid ?
+            <LoggedInButtons headerMode={this.props.headerMode}/>
+            : <LoggedOutButtons headerMode={this.props.headerMode}/>
+          }
+          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? 
+              <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
+        </div>
+      </>
+    );
+    
+    const mobileHeaderContent = (
+      <>
+        <div>
+          <a href="/texts" aria-label={Sefaria._("Menu")} className="library">
+            <i className="fa fa-bars"></i>
+          </a>
+        </div>
+        
+        <div className="mobileHeaderCenter">
+          { Sefaria._siteSettings.TORAH_SPECIFIC ? 
+          <a className="home" href="/" >
+            <img src="/static/img/logo.svg" alt="Sefaria Logo"/>
+          </a> : null }
+        </div>
+        
+        <div></div>
+      </>
+    );
+
+    return (
+      <div className="header" role="banner">
+        <div className={headerInnerClasses}>
+          {this.props.multiPanel ? headerContent : mobileHeaderContent}
+        </div>
+        <GlobalWarningMessage />
+      </div>
+    );
+  }
+}
+Header.propTypes = {
+  multiPanel:   PropTypes.bool.isRequired,
+  headerMode:   PropTypes.bool.isRequired,
+  onRefClick:   PropTypes.func.isRequired,
+  showSearch:   PropTypes.func.isRequired,
+  openTopic:    PropTypes.func.isRequired,
+  openURL:      PropTypes.func.isRequired,
+  hasBoxShadow: PropTypes.bool.isRequired,
+};
+
+
+class SearchBar extends Component {
   constructor(props) {
     super(props);
 
@@ -35,19 +117,15 @@ class Header extends Component {
       "Term": "iconmonstr-script-2.svg",
     }
   }
+  componentDidMount() {
+    this.initAutocomplete();
+    window.addEventListener('keydown', this.handleFirstTab);
+  }
   _type_icon(item) {
     if (item.type === "User") {
       return item.pic;
     } else {
       return `/static/icons/${this._type_icon_map[item.type]}`;
-    }
-  }
-  componentDidMount() {
-    this.initAutocomplete();
-    window.addEventListener('keydown', this.handleFirstTab);
-    if (this.state.menuOpen === "search" && this.state.searchQuery === null) {
-      // If this is an empty search page, comically, lazily make it full
-      this.props.showSearch("Search");
     }
   }
   _searchOverrideRegex() {
@@ -68,7 +146,7 @@ class Header extends Component {
     return false;
   }
   initAutocomplete() {
-    $.widget( "custom.sefaria_autocomplete", $.ui.autocomplete, {
+    $.widget( "custom.sefariaAutocomplete", $.ui.autocomplete, {
       _renderItem: function(ul, item) {
         const override = item.label.match(this._searchOverrideRegex());
         const is_hebrew = Sefaria.hebrew.isHebrew(item.label);
@@ -83,9 +161,9 @@ class Header extends Component {
           .appendTo( ul );
       }.bind(this)
     });
-    const anchorSide = this.props.interfaceLang === "hebrew" ? "right+" : "left-";
-    const sideGap = this.props.interfaceLang === "hebrew" ? 38 : 40;
-    $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete({
+    const anchorSide = Sefaria.interfaceLang === "hebrew" ? "right+" : "left-";
+    const sideGap = Sefaria.interfaceLang === "hebrew" ? 38 : 40;
+    $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete({
       position: {my: anchorSide + sideGap + " top+18", at: anchorSide + "0 bottom"},
       minLength: 3,
       open: function($event, ui) {
@@ -129,7 +207,7 @@ class Header extends Component {
       if(document.getElementById('keyboardInputMaster')){ //if keyboard is open, ignore.
         return; //this prevents the icon from flashing on every key stroke.
       }
-      if(this.props.interfaceLang === 'english'){
+      if(Sefaria.interfaceLang === 'english'){
           $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"display": show ? "inline" : "none"});
       }
   }
@@ -150,18 +228,6 @@ class Header extends Component {
       this.showVirtualKeyboardIcon(false);
     }
   }
-  handleLibraryClick(e) {
-    e.preventDefault();
-    if (typeof sjs !== "undefined") {
-      window.location = "/texts";
-      return;
-    }
-    this.showLibrary();   
-  }
-  showLibrary(categories) {
-    this.props.showLibrary(categories);
-    this.clearSearchBox();
-  }
   showSearch(query) {
     query = query.trim();
     if (typeof sjs !== "undefined") {
@@ -170,13 +236,7 @@ class Header extends Component {
       return;
     }
     this.props.showSearch(query);
-    $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
-  }
-  showTestMessage() {
-    this.props.setCentralState({showTestMessage: true});
-  }
-  hideTestMessage() {
-    this.props.setCentralState({showTestMessage: false});
+    $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete("close");
   }
   getURLForObject(type, key) {
     if (type === "Person") {
@@ -216,12 +276,12 @@ class Header extends Component {
           var action = d["is_book"] ? "Search Box Navigation - Book" : "Search Box Navigation - Citation";
           Sefaria.track.event("Search", action, query);
           this.clearSearchBox();
-          this.handleRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+          this.props.onRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
         } else if (!!d["topic_slug"]) {
           Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
           this.clearSearchBox();
           this.props.openTopic(d["topic_slug"]);
-        } else if (d["type"] === "Person" || d["type"] === "Group" || d["type"] === "TocCategory") {
+        } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
           this.redirectToObject(d["type"], d["key"]);
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
@@ -231,17 +291,10 @@ class Header extends Component {
       });
   }
   closeSearchAutocomplete() {
-    $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
+    $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete("close");
   }
   clearSearchBox() {
-    $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefaria_autocomplete("close");
-  }
-  handleRefClick(ref, currVersions) {
-    if (this.props.headerMode) {
-      window.location.assign("/" + ref);
-      return;
-    }
-    this.props.onRefClick(ref, currVersions);
+    $(ReactDOM.findDOMNode(this)).find("input.search").val("").sefariaAutocomplete("close");
   }
   handleSearchKeyUp(event) {
     if (event.keyCode !== 13 || $(".ui-state-focus").length > 0) { return; }
@@ -258,104 +311,37 @@ class Header extends Component {
       $(ReactDOM.findDOMNode(this)).find(".search").focus();
     }
   }
-  handleFirstTab(e) {
-    if (e.keyCode === 9) { // tab (i.e. I'm using a keyboard)
-      document.body.classList.add('user-is-tabbing');
-      window.removeEventListener('keydown', this.handleFirstTab);
-    }
-  }
   render() {
-    const headerMessage = this.props.headerMessage ?
-                          (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
-                          null;
-    const headerInnerClasses = classNames({headerInner: 1, boxShadow: this.props.hasBoxShadow, mobileHeader: !this.props.multiPanel});
-    const inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang === "english", hebrewSearch: this.props.interfaceLang === "hebrew"});
+    const inputClasses = classNames({
+      search: 1,
+      keyboardInput: Sefaria.interfaceLang === "english",
+      hebrewSearch: Sefaria.interfaceLang === "hebrew"
+    });
     const searchBoxClasses = classNames({searchBox: 1, searchFocused: this.state.searchFocused});
-    
-    const headerContent = (
-      <>
-        <div className="headerNavSection">
-            { Sefaria._siteSettings.TORAH_SPECIFIC ? <a className="home" href="/" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> : null }
-            <a href="/texts" className="library"><InterfaceText>Texts</InterfaceText></a>
-            <a href="/topics" className="library"><InterfaceText>Topics</InterfaceText></a>
-            <a  href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank" className="library"><InterfaceText>Donate</InterfaceText></a>
-        </div>
 
-        <div className="headerLinksSection">
-          { headerMessage }
-          
-          <div id="searchBox" className={searchBoxClasses}>
-            <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
-            <input className={inputClasses}
-                   id="searchInput"
-                   placeholder={Sefaria._("Search")}
-                   onKeyUp={this.handleSearchKeyUp}
-                   onFocus={this.focusSearch}
-                   onBlur={this.blurSearch}
-                   maxLength={75}
-            title={Sefaria._("Search for Texts or Keywords Here")}/>
-          </div>
-
-          { Sefaria._uid ?
-            <LoggedInButtons headerMode={this.props.headerMode}/>
-            : <LoggedOutButtons headerMode={this.props.headerMode}/>
-          }
-          { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? 
-              <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
-        </div>
-      </>
+    return (
+      <div id="searchBox" className={searchBoxClasses}>
+        <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
+        <input className={inputClasses}
+               id="searchInput"
+               placeholder={Sefaria._("Search")}
+               onKeyUp={this.handleSearchKeyUp}
+               onFocus={this.focusSearch}
+               onBlur={this.blurSearch}
+               maxLength={75}
+        title={Sefaria._("Search for Texts or Keywords Here")}/>
+      </div>
     );
-    
-    const mobileHeaderContent = (
-      <>
-        <div>
-          <a href="/texts" aria-label={Sefaria._("Menu")} className="library">
-            <i className="fa fa-bars"></i>
-          </a>
-        </div>
-        
-        <div className="mobileHeaderCenter">
-          { Sefaria._siteSettings.TORAH_SPECIFIC ? 
-          <a className="home" href="/" >
-            <img src="/static/img/logo.svg" alt="Sefaria Logo"/>
-          </a> : null }
-        </div>
-        
-        <div></div>
-      </>
-    );
-
-    return (<div className="header" role="banner">
-              <div className={headerInnerClasses}>
-                {this.props.multiPanel ? headerContent : mobileHeaderContent}
-              </div>
-
-              { this.state.showTestMessage ? <TestMessage hide={this.hideTestMessage} /> : null}
-
-              <GlobalWarningMessage />
-            </div>);
   }
 }
-Header.propTypes = {
-  headerMode:                  PropTypes.bool,
-  interfaceLang:               PropTypes.string,
-  onRefClick:                  PropTypes.func,
-  onRecentClick:               PropTypes.func,
-  showLibrary:                 PropTypes.func,
-  showSearch:                  PropTypes.func,
-  setDefaultOption:            PropTypes.func,
-  searchInCollection:          PropTypes.func,
-  setUnreadNotificationsCount: PropTypes.func,
-  headerMesssage:              PropTypes.string,
-  panelsOpen:                  PropTypes.number,
-  analyticsInitialized:        PropTypes.bool,
-  getLicenseMap:               PropTypes.func.isRequired,
-  toggleSignUpModal:           PropTypes.func.isRequired,
-  openTopic:                   PropTypes.func.isRequired,
+SearchBar.propTypes = {
+  onRefClick:   PropTypes.func.isRequired,
+  showSearch:   PropTypes.func.isRequired,
+  openTopic:    PropTypes.func.isRequired,
 };
 
 
-function LoggedOutButtons({headerMode}){
+const LoggedOutButtons = ({headerMode}) => {
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
   const [loginLink, setLoginLink] = useState("/login?next=/");
@@ -385,7 +371,7 @@ function LoggedOutButtons({headerMode}){
 }
 
 
-function LoggedInButtons({headerMode}){
+const LoggedInButtons = ({headerMode}) => {
   const [isClient, setIsClient] = useState(false);
   useEffect(()=>{
     if(headerMode){
@@ -408,5 +394,6 @@ function LoggedInButtons({headerMode}){
        </div>
   );
 }
+
 
 export default Header;

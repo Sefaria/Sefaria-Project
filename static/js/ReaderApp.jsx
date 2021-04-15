@@ -1649,23 +1649,13 @@ class ReaderApp extends Component {
     const headerHasBoxShadow = !!this.state.panels[0] && hasColorLine.indexOf(this.state.panels[0].menuOpen) === -1;
     const header = !this.props.multiPanel && this.state.panels.length && !this.state.panels[0].menuOpen ? null :
                   <Header
-                    interfaceLang={this.props.interfaceLang}
                     multiPanel={this.props.multiPanel}
                     onRefClick={this.handleNavigationClick}
-                    setDefaultOption={this.setDefaultOption}
-                    showLibrary={this.showLibrary}
                     showSearch={this.showSearch}
-                    searchInCollection={this.searchInCollection}
                     openURL={this.openURL}
-                    setUnreadNotificationsCount={this.setUnreadNotificationsCount}
                     headerMode={this.props.headerMode}
-                    panelsOpen={panelStates.length}
-                    analyticsInitialized={this.state.initialAnalyticsTracked}
-                    getLicenseMap={this.getLicenseMap}
-                    translateISOLanguageCode={this.translateISOLanguageCode}
                     openTopic={this.openTopic}
-                    hasBoxShadow={headerHasBoxShadow}
-                    toggleSignUpModal={this.toggleSignUpModal} />;
+                    hasBoxShadow={headerHasBoxShadow} />;
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
                                   .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
