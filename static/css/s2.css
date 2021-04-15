@@ -1103,6 +1103,7 @@ input.noselect {
   min-height: 520px;
   max-width: 100%;
   box-sizing: border-box;
+  padding-bottom: 70px;
 }
 .homeFeedWrapper .content .contentInner {
   max-width: none;

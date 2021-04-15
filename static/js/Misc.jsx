@@ -1486,6 +1486,50 @@ const SheetListing = ({
 };
 
 
+const CollectionListing = ({data}) => {
+  const imageUrl = "/static/icons/collection.svg";
+  const collectionUrl = "/collections/" + data.slug;
+  return (
+    <div className="collectionListing navBlock">
+      <div className="left-content">
+        <div className="collectionListingText">
+          
+          <a href={collectionUrl} className="collectionListingName">
+            <img className="collectionListingImage" src={imageUrl} alt="Collection Icon"/>
+            {data.name}
+          </a>
+         
+          <div className="collectionListingDetails">
+            {data.listed ? null :
+              (<span className="unlisted">
+                <img src="/static/img/eye-slash.svg"/>
+                <InterfaceText>Unlisted</InterfaceText>
+              </span>) }
+
+            {data.listed ? null :
+            <span className="collectionListingDetailSeparator">•</span> }
+            
+            <span className="collectionListingDetail collectionListingSheetCount">
+              <InterfaceText>{`${data.sheetCount} `}</InterfaceText>
+              <InterfaceText>Sheets</InterfaceText>
+            </span>
+
+            {data.memberCount > 1 ? 
+            <span className="collectionListingDetailSeparator">•</span> : null }
+
+            {data.memberCount > 1 ?
+            <span className="collectionListingDetail collectionListingMemberCount">
+              <InterfaceText>{`${data.memberCount} `}</InterfaceText>
+              <InterfaceText>Editors</InterfaceText>
+            </span> : null }
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
 class Note extends Component {
   // Public or private note in the Sidebar.
   render() {
@@ -2264,6 +2308,7 @@ export {
   CategoryAttribution,
   CollectionStatement,
   CookiesNotification,
+  CollectionListing,
   Dropdown,
   DropdownButton,
   DropdownModal,

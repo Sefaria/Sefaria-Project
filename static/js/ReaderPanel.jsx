@@ -28,9 +28,7 @@ import CalendarsPage from './CalendarsPage'
 import StoryEditor  from './StoryEditor';
 import UserStats  from './UserStats';
 import ModeratorToolsPanel  from './ModeratorToolsPanel';
-import {
-  PublicCollectionsPage
-} from './PublicCollectionsPage';
+import PublicCollectionsPage from './PublicCollectionsPage';
 import {
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuMenuButton,

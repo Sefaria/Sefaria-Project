@@ -1,20 +1,21 @@
+import React  from 'react';
+import Component from 'react-class';
+import PropTypes  from 'prop-types';
+import Sefaria  from './sefaria/sefaria';
+import NoteListing  from './NoteListing';
+import Footer  from './Footer';
 import {
+  CollectionListing,
+  FilterableList,
   LoadingMessage,
   TabView,
-  FilterableList,
   SheetListing,
   ProfileListing,
   ProfilePic,
   FollowButton,
   InterfaceText,
 } from './Misc';
-import React  from 'react';
-import PropTypes  from 'prop-types';
-import Sefaria  from './sefaria/sefaria';
-import { CollectionListing } from './PublicCollectionsPage';
-import NoteListing  from './NoteListing';
-import Component from 'react-class';
-import Footer  from './Footer';
+
 
 class UserProfile extends Component {
   constructor(props) {
@@ -105,7 +106,7 @@ class UserProfile extends Component {
   }
   renderCollection(collection) {
     return (
-      <CollectionListing key={collection.slug} data={collection} showMembership={true} small={true} />
+      <CollectionListing key={collection.slug} data={collection} />
     );
   }
   renderCollectionHeader() {
