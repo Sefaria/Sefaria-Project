@@ -17,7 +17,7 @@ const http          = require('http'),
     SefariaReact    = require('../static/js/ReaderApp.jsx'),
     ReaderApp       = React.createFactory(SefariaReact.ReaderApp);
 
-const {logger, expressLogger, errorLogger} = require('./sefaria-logging');
+const {logger, expressLogger, errorLogger} = require('./sefaria-logging.js');
 
 const server = express();
 
