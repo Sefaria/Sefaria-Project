@@ -93,14 +93,14 @@ class SheetMetadata extends Component {
 
   }
   isFormValidated() {
-    if (this.state.summary == '' && this.state.tags.length == 0) {
+    if ((!this.state.summary || this.state.summary.trim() == '') && this.state.tags.length == 0) {
       this.setState({
         validationMsg: "Please add a description and topics to publish your sheet.",
         validationFailed: "both"
       });
       return false
     }
-    else if (this.state.summary == '') {
+    else if (!this.state.summary || this.state.summary.trim() == '') {
       this.setState({
         validationMsg: "Please add a description to publish your sheet.",
         validationFailed: "summary"
@@ -275,7 +275,6 @@ class SheetMetadata extends Component {
 
   handleSummaryChange(event) {
     const newSummary = event.target.value
-    console.log(event.target.value.length)
     if (event.target.value.length > 280) {
       this.setState({
         validationMsg: "The summary description is limited to 280 characters.",
