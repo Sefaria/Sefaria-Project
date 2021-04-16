@@ -8163,6 +8163,25 @@ section.SheetSource .SheetOutsideBiText {
 .profile-page .social-icon:hover img {
   opacity: 0.6;
 }
+.editorToggleHeader {
+  width: 100%;
+  background-color: #18345D;
+  color: white;
+  height: 60px;
+  font-size: 16px;
+  margin-top: -80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  left: 0;
+}
+.editorToggleHeader .button {
+  padding: 5px 8px;
+  margin-inline-start: 15px;
+  margin-top: 5px;
+}
+
 .sheetList .sheet {
   border-bottom: none;
 }
