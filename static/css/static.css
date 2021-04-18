@@ -1391,6 +1391,9 @@ p.registration-links a:hover{
 #jobsPage .job:first-of-type{
   margin-top: 90px;
 }
+#jobsPage .bold{
+  font-weight: bold;
+}
 #helpPage .section {
   margin-bottom: 60px;
 }
