@@ -821,11 +821,9 @@ const withSefariaSheet = editor => {
             }
 
         getRefInText(editor).then(query =>{
-
             if(query["is_segment"] || query["is_section"]) {
               return
             }
-
             Transforms.insertNodes(editor,{type: 'spacer', children: [{text: ""}]});
             checkAndFixDuplicateSheetNodeNumbers(editor)
             return;
@@ -1136,7 +1134,7 @@ const insertSource = (editor, ref, path) => {
         const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
         const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
 
-        const fragment = {
+        const fragment = [{
                 type: "SheetSource",
                 node: editor.children[0].nextNode,
                 ref: text.ref,
@@ -1147,7 +1145,8 @@ const insertSource = (editor, ref, path) => {
                 children: [
                     {text: ""},
                 ]
-        };
+        }, {type: 'spacer', children: [{text: ""}]}
+        ];
         Transforms.setNodes(editor, { loading: false }, { at: path });
         addItemToSheet(editor, fragment, path ? path : "bottom");
         checkAndFixDuplicateSheetNodeNumbers(editor)
