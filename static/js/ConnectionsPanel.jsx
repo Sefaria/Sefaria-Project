@@ -800,7 +800,8 @@ class ConnectionsSummary extends Component {
     const oref          = Sefaria.ref(refs[0]);
     const isTopLevel    = !this.props.category;
     const baseCat       = oref ? oref["categories"][0] : null;
-    let summary       = Sefaria.linkSummary(refs, excludedSheet, categoryOrderOverrides[oref.primary_category]);
+    const categoryOverridesForRef = (oref && oref.hasOwnProperty("primary_category")) ?  ((categoryOrderOverrides.hasOwnProperty(oref.primary_category)) ? categoryOrderOverrides[oref.primary_category] : null) : null;
+    let summary       = Sefaria.linkSummary(refs, excludedSheet, categoryOverridesForRef);
 
     if (!summary) { return null; }
 
