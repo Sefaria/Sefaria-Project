@@ -5213,6 +5213,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topicList.topicsEn {
   direction: ltr;
 }
+.interface-hebrew .topicList.topicsEn {
+  direction: ltr;
+}
 .toolsButton.topicButton {
   flex-direction: column;
   letter-spacing: unset;
