@@ -318,8 +318,6 @@ class ConnectionsPanel extends Component {
                     openComparePanel={this.props.multiPanel? this.props.openComparePanel : null}
                     counts={toolsButtonsCounts} />
               </ConnectionsPanelSection>
-
-
           </div>
       );
 
@@ -387,6 +385,21 @@ class ConnectionsPanel extends Component {
                   /> : null }
 
                 </div>);
+    } else if (this.props.mode == "Add Connection To Sheet"){
+        let refForSheet = (this.props.connectionData && "connectionRefs" in this.props.connectionData) ? this.props.connectionData["connectionRefs"] : this.props.srefs;
+        let versionsForSheet = (this.props.connectionData && "versions" in this.props.connectionData) ? this.props.connectionData["versions"] : {"en":null,"he":null};
+        content = (<div>
+                  <AddToSourceSheetBox
+                    srefs={refForSheet}
+                    currVersions={versionsForSheet} //sidebar doesn't actually do versions
+                    contentLanguage={this.props.masterPanelLanguage}
+                    selectedWords={null}
+                    nodeRef = {this.props.nodeRef}
+                    fullPanel={this.props.fullPanel}
+                    toggleSignUpModal = {this.props.toggleSignUpModal}
+                    setConnectionsMode={this.props.setConnectionsMode} />
+                   </div>);
+
     } else if (this.props.mode === "Chavruta") {
         const uuid = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
         const chevrutaURL = `${window.location.host}/chavruta?ref=${window.location.pathname.replace(/\//, '')}&rid=${uuid}`
@@ -440,21 +453,6 @@ class ConnectionsPanel extends Component {
                   </div>);
 
 
-
-    } else if (this.props.mode == "Add Connection To Sheet"){
-        let refForSheet = (this.props.connectionData && "connectionRefs" in this.props.connectionData) ? this.props.connectionData["connectionRefs"] : this.props.srefs;
-        let versionsForSheet = (this.props.connectionData && "versions" in this.props.connectionData) ? this.props.connectionData["versions"] : {"en":null,"he":null};
-        content = (<div>
-                  <AddToSourceSheetBox
-                    srefs={refForSheet}
-                    currVersions={versionsForSheet} //sidebar doesn't actually do versions
-                    contentLanguage={this.props.masterPanelLanguage}
-                    selectedWords={null}
-                    nodeRef = {this.props.nodeRef}
-                    fullPanel={this.props.fullPanel}
-                    toggleSignUpModal = {this.props.toggleSignUpModal}
-                    setConnectionsMode={this.props.setConnectionsMode} />
-                   </div>);
 
     } else if (this.props.mode === "Notes") {
       content = (<div>
