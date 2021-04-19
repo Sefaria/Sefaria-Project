@@ -5214,7 +5214,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   direction: ltr;
 }
 .interface-hebrew .topicList.topicsEn {
-  direction: ltr;
+  direction: rtl;
 }
 .toolsButton.topicButton {
   flex-direction: column;
@@ -5239,14 +5239,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topicButtonTitle .he {
   font-size: 122%;
 }
-.topicButton .saveButton.tooltip-toggle.three-dots-button {
-  margin-bottom: 0;
-  margin-left: 30px;
-}
-.topicsHe .topicButton .saveButton.tooltip-toggle.three-dots-button {
-  margin-right: 30px;
-  margin-left: 0;
-}
 .topicButton .three-dots-button.tooltip-toggle::before,
 .named-entity-title-bar .three-dots-button.tooltip-toggle::before {
   transform: none;
@@ -5264,7 +5256,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 10px;
   line-height: 18px;
   font-size: 18px;
-  text-align: left;
+  text-align: start;
 }
 .topicButton .smallText .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -5277,9 +5269,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 13px;
   font-weight: normal;
   color: #999;
-}
-.topicsHe .topicButton .smallText {
-  text-align: right;
 }
 .toolsButton:hover {
   text-decoration: none;
