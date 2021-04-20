@@ -45,11 +45,12 @@ def get_homepage_data(language="english"):
 
 def load_data_from_sheet(url):
   response = requests.get(url)
-  data = response.content.decode("utf-8")
-  cr = csv.reader(StringIO(data))
-  rows = list(cr)
-  fields = rows[1]
-  data   = rows[2:]
+  data     = response.content.decode("utf-8")
+  cr       = csv.reader(StringIO(data))
+  rows     = list(cr)
+  fields   = [translate_labels(f) for f in rows[1]]
+  data     = rows[2:]
+
 
   keyed_data = []
   for row in data:
@@ -136,8 +137,8 @@ def get_discover_item(data, date):
     return None
 
   try:
-      oRef = Ref(todays_data["Citation"])
-      about = {
+    oRef = Ref(todays_data["Citation"])
+    about = {
       "title": todays_data["Description Title"],
       "description": todays_data["Description"],
       "ref": {
@@ -249,6 +250,25 @@ def get_featured_sheet_from_ref(ref):
   sheets = get_sheets_for_ref(ref)
   sheets = [s for s in sheets if not is_hebrew(s["title"]) and s["summary"] and len(s["summary"]) > 140]
   return random.choice(sheets)  
+
+
+def translate_labels(label):
+  LABEL_TRANSLATIONS = {
+    "תאריך": "Date",
+    "פרשה":  "Parashah",
+    "קישור לדף המקורות": "Sheet URL",
+    "כותרת מיוחדת": "Custom Title",
+    "תקציר מיוחד": "Custom Summary",
+    "מוכן לפרסום": "Ready",
+    "כותרת נושא מיוחדת": "Custom About Title",
+    "קישור לדף הנושא": "Topic URL",
+    "תאריך לתצוגה":  "Displayed Date",
+    "כותרת תיאור": "Description Title",
+    "הפנייה": "Citation",
+    "תיאור": "Description",
+    "כותרת ראשית למקטע": "Block Title",
+  }
+  return LABEL_TRANSLATIONS.get(label, label)
 
 
 
