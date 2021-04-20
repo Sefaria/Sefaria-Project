@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 from sefaria.system.database import db
 from sefaria.system.exceptions import BookNameError, InputError
@@ -9,7 +9,6 @@ from sefaria.site.categories import REVERSE_ORDER, CATEGORY_ORDER, TOP_CATEGORIE
 from . import abstract as abstract
 from . import schema as schema
 from . import text as text
-from . import link as link
 from . import collection as collection
 
 
@@ -26,7 +25,9 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
         "enShortDesc",
         "heShortDesc",
         "titles",
-        "sharedTitle"
+        "sharedTitle",
+        "isPrimary",
+        "searchRoot",
     ]
 
     def __str__(self):
@@ -56,7 +57,7 @@ class Category(abstract.AbstractMongoRecord, schema.AbstractTitledOrTermedObject
 
     def _validate(self):
         super(Category, self)._validate()
-        assert self.lastPath == self.path[-1] == self.get_primary_title("en"), "Category name not matching"
+        assert self.lastPath == self.path[-1] == self.get_primary_title("en"), "Category name not matching" + " - " + self.lastPath + " / " + self.path[-1] + " / " + self.get_primary_title("en")
 
         if not self.sharedTitle and not self.get_titles_object():
             raise InputError("Category {} must have titles or a shared title".format(self))
@@ -142,6 +143,7 @@ def process_category_name_change_in_categories_and_indexes(changed_cat, **kwargs
 def toc_serial_to_objects(toc):
     """
     Build TOC object tree from serial representation
+    Was used to derive 1st class objects from TOC.  Not used in production.
     :param toc: Serialized TOC
     :return:
     """
@@ -231,27 +233,28 @@ class TocTree(object):
             :return:
             """
             title = node.primary_title("en")
-            complete = getattr(node, "enComplete", False)
-            complete_or_title_key = "1z" + title if complete else "2z" + title
 
+            # First sort by global order list below
             try:
-                # First sort by global order list below
                 return (False, CATEGORY_ORDER.index(title))
 
+            # Sort top level Commentary categories just below their base category
             except ValueError:
-                # Sort top level Commentary categories just below their base category
                 if isinstance(node, TocCategory):
                     temp_cat_name = title.replace(" Commentaries", "")
                     if temp_cat_name in TOP_CATEGORIES:
                         return (False, CATEGORY_ORDER.index(temp_cat_name) + 0.5)
 
                 # Sort by an explicit `order` field if present
-                # otherwise into two alphabetical list for complete and incomplete.
-                res = getattr(node, "order", complete_or_title_key)
+                # otherwise into an alphabetical list
+                res = getattr(node, "order", title)
                 return (isinstance(res, str), res)
 
         for cat in self.all_category_nodes():  # iterate all categories
-            cat.children.sort(key=_explicit_order_and_title)
+            if all([hasattr(ca, "base_text_order") for ca in cat.children]):
+                cat.children.sort(key=lambda c: c.base_text_order)
+            else:
+                cat.children.sort(key=_explicit_order_and_title)
             cat.children.sort(key=lambda node: 'zzz' + node.primary_title("en") if isinstance(node, TocCategory) and node.primary_title("en") in REVERSE_ORDER else 'a')
 
     def _make_index_node(self, index, old_title=None):
@@ -263,9 +266,6 @@ class TocTree(object):
         d["firstSection"] = vs.get("first_section_ref", None)
         d["heComplete"]   = vs.get("heComplete", False)
         d["enComplete"]   = vs.get("enComplete", False)
-        if title in CATEGORY_ORDER:
-            # If this text is listed in ORDER, consider its position in ORDER as its order field.
-            d["order"] = CATEGORY_ORDER.index(title)
 
         if "base_text_titles" in d and len(d["base_text_titles"]) > 0:
             d["refs_to_base_texts"] = {btitle:
@@ -277,7 +277,6 @@ class TocTree(object):
 
     def _add_category(self, cat):
         tc = TocCategory(category_object=cat)
-        tc.add_primary_titles(cat.get_primary_title("en"), cat.get_primary_title("he"))
         parent = self._path_hash[tuple(cat.path[:-1])] if len(cat.path[:-1]) else self._root
         parent.append(tc)
         self._path_hash[tuple(cat.path)] = tc
@@ -311,6 +310,7 @@ class TocTree(object):
         try:
             return self._path_hash[path]
         except KeyError:
+            # todo: remove this try, after getting rid of the "Other" cat.
             try:
                 return self._path_hash[tuple(["Other"]) + path]
             except KeyError:
@@ -333,7 +333,7 @@ class TocTree(object):
                 logger.warning("Failed to find VersionState for {} in TocTree.update_title()".format(title))
                 return
             vs.refresh()
-            sn = vs.state_node(index.nodes)
+            # sn = vs.state_node(index.nodes)
             self._vs_lookup[title] = {
                 "first_section_ref": vs.first_section_ref,
                 "heComplete": vs.get_flag("heComplete"),
@@ -361,6 +361,7 @@ class TocNode(schema.TitledTreeNode):
         "en": "",
         "he": ""
     }
+    thin_keys = []
 
     def __init__(self, serial=None, **kwargs):
         super(TocNode, self).__init__(serial, **kwargs)
@@ -381,8 +382,12 @@ class TocNode(schema.TitledTreeNode):
         if self.children:
             d["contents"] = [n.serialize(**kwargs) for n in self.children]
 
-        params = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if
-                  getattr(self, k, "BLANKVALUE") is not "BLANKVALUE"}
+        # thin param is used for generating search toc, and can be removed when search toc is retired.
+        if kwargs.get("thin") is True:
+            params = {k: getattr(self, k) for k in self.thin_keys if getattr(self, k, "BLANKVALUE") != "BLANKVALUE"}
+        else:
+            params = {k: getattr(self, k) for k in self.required_param_keys + self.optional_param_keys if
+                  getattr(self, k, "BLANKVALUE") != "BLANKVALUE"}
         if any(params):
             d.update(params)
 
@@ -401,11 +406,22 @@ class TocCategory(TocNode):
     def __init__(self, serial=None, **kwargs):
         self._category_object = kwargs.pop("category_object", None)
         super(TocCategory, self).__init__(serial, **kwargs)
+        if self._category_object:
+            self.add_primary_titles(self._category_object.get_primary_title("en"), self._category_object.get_primary_title("he"))
+            if getattr(self._category_object, "isPrimary", False):
+                self.isPrimary = True
+            if getattr(self._category_object, "searchRoot", False):
+                self.searchRoot = self._category_object.searchRoot
+        if self.primary_title() in CATEGORY_ORDER:
+            # If this text is listed in ORDER, consider its position in ORDER as its order field.
+            self.order = CATEGORY_ORDER.index(self.primary_title())
 
     optional_param_keys = [
         "order",
         "enComplete",
         "heComplete",
+        "isPrimary",
+        "searchRoot"
     ]
 
     title_attrs = {
@@ -429,9 +445,15 @@ class TocTextIndex(TocNode):
     enComplete: true
     heComplete: true
     """
+
+    thin_keys = ["order"]
+
     def __init__(self, serial=None, **kwargs):
         self._index_object = kwargs.pop("index_object", None)
         super(TocTextIndex, self).__init__(serial, **kwargs)
+        if self.primary_title() in CATEGORY_ORDER:
+            # If this text is listed in ORDER, consider its position in ORDER as its order field.
+            self.order = CATEGORY_ORDER.index(self.primary_title())
 
     def get_index_object(self):
         return self._index_object
@@ -450,7 +472,9 @@ class TocTextIndex(TocNode):
         "heCollectiveTitle",
         "commentator",
         "heCommentator",
-        "refs_to_base_texts"
+        "refs_to_base_texts",
+        "base_text_order",
+        "hidden"
     ]
     title_attrs = {
         "en": "title",

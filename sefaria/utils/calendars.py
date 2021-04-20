@@ -15,8 +15,8 @@ from sefaria.utils.util import graceful_exception
 from sefaria.utils.hebrew import encode_hebrew_numeral, hebrew_parasha_name
 from sefaria.site.site_settings import SITE_SETTINGS
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 """
@@ -51,6 +51,9 @@ def daf_yomi(datetime_obj):
     """
     date_str = datetime_obj.strftime(" %m/ %d/%Y").replace(" 0", "").replace(" ", "")
     daf = db.dafyomi.find_one({"date": date_str})
+    daf_en, daf_he = None, None
+    if 'displayValue' in daf:
+        daf_en, daf_he = daf['displayValue'].get('en', None), daf['displayValue'].get('he', None)
     daf_str = [daf["daf"]] if isinstance(daf["daf"], str) else daf["daf"]
     daf_yomi = []
     for d in daf_str:
@@ -58,7 +61,7 @@ def daf_yomi(datetime_obj):
 
         daf_yomi.append({
             'title': {'en': 'Daf Yomi', 'he': 'דף יומי'},
-            'displayValue': {'en': rf.display('en'), 'he': rf.display('he')},
+            'displayValue': {'en': daf_en if daf_en else rf.normal(), 'he': daf_he if daf_he else rf.he_normal()},
             'url': rf.url(),
             'ref': rf.normal(),
             'order': 3,
@@ -146,7 +149,7 @@ def daf_weekly(datetime_obj):
         rf = model.Ref(d)
         daf_weekly_list.append({
             "title": {"en": "Daf a Week", "he": "דף השבוע"},
-            "displayValue": {"en": rf.display('en'), "he": rf.display('he')},
+            "displayValue": {"en": rf.normal(), "he": rf.he_normal()},
             "url": rf.url(),
             "ref": rf.normal(),
             "order": 8,

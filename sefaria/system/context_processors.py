@@ -19,8 +19,8 @@ from sefaria.utils.util import short_to_long_lang_code
 from sefaria.utils.hebrew import hebrew_parasha_name
 from reader.views import render_react_component, _get_user_calendar_params
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 def builtin_only(view):
@@ -96,8 +96,6 @@ def large_data(request):
     return {
         "toc": library.get_toc(),
         "toc_json": library.get_toc_json(),
-        "search_toc": library.get_search_filter_toc(),
-        "search_toc_json": library.get_search_filter_toc_json(),
         "topic_toc": library.get_topic_toc(),
         "topic_toc_json": library.get_topic_toc_json(),
         "titles_json": library.get_text_titles_json(),

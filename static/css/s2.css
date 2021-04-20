@@ -15,6 +15,9 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+a{
+  color: inherit;
+}
 /*
 Style Guide Font Hierarchy
 https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
@@ -30,14 +33,14 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   font-family: "Heebo", sans-serif;
   direction: rtl;
 }
-.int-he.but-text-is-en {
+.int-he.enInHe {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   direction: ltr;
 }
 .int-en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
-.int-en.but-text-is-he {
+.int-en.heInEn {
   font-family: "Heebo", sans-serif;
   direction: rtl;
 }
@@ -48,11 +51,17 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   color: #000;
 }
 .pageTitle .int-en,
-.pageTitle .int-he.but-text-is-en {
+.pageTitle .int-he.enInHe {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 30px;
   font-weight: normal;
   color: #000;
+}
+.readerPanel.hebrew .he .enInHe {
+  font-size: 83%;
+}
+.enInHe{
+  unicode-bidi: isolate;
 }
 .chapterText .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -74,14 +83,14 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   letter-spacing: 0.1em;
 }
 .smallText .int-en,
-.smallText .int-he.but-text-is-en {
+.smallText .int-he.enInHe {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   font-weight: normal;
   color: #999;
 }
 .systemText .int-en,
-.systemText .int-he.but-text-is-en {
+.systemText .int-he.enInHe {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 16px;
   font-weight: normal;
@@ -102,7 +111,7 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   color: #000;
 }
 .pageTitle .int-he,
-.pageTitle .int-en.but-text-is-he {
+.pageTitle .int-en.heInEn {
   font-family: "Heebo", sans-serif;
   font-size: 30px;
   font-weight: normal;
@@ -125,14 +134,14 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   letter-spacing: 0.1em;
 }
 .smallText .int-he,
-.smallText .int-en.but-text-is-he {
+.smallText .int-en.heInEn {
   font-family: "Heebo", sans-serif;
   font-size: 13px;
   font-weight: normal;
   color: #999;
 }
 .systemText .int-he,
-.systemText .int-en.but-text-is-he {
+.systemText .int-en.heInEn {
   font-family: "Heebo", sans-serif;
   font-size: 16px;
   font-weight: normal;
@@ -1049,12 +1058,6 @@ input.noselect {
   display: inline;
   text-align: right;
 }
-.readerPanel.hebrew .he .enInHe {
-  font-size: 83%;
-}
-.enInHe{
-  unicode-bidi: isolate;
-}
 .readerPanel .recentPanel .sheetLink.recentItem .he{
   font-family: "adobe-garamond-pro", "Taamey Frank", "Crimson Text", Georgia, serif;
 }
@@ -1412,7 +1415,7 @@ input.noselect {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 36px;
 }
-.pageTitle .topicTitleInHe .but-text-is-he {
+.pageTitle .topicTitleInHe .heInEn {
   color: #888;
   font-size: 20px;
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -1859,6 +1862,7 @@ a.readerNavCategory {
   align-items: inherit;
   flex-direction: column;
 }
+
 .readerNavCategoryMenu .blockLink,
 .gridBox .navButton {
   display: flex;
@@ -1895,6 +1899,7 @@ a.readerNavCategory {
   width: 100%;
   height: 100%;
   padding: 13px 8px 19px;
+  display: inline-block;
 }
 .readerNavMenu .readerNavCategoryMenu .blockLink.incomplete {
   opacity: 0.65;
@@ -2304,14 +2309,34 @@ a.readerNavCategory {
 .readerTextTableOfContents .content .schema-node-toc {
   display: block;
 }
+.readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title:after {
+  content: "\f105";
+  display: inline-block;
+  font-size: inherit;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: FontAwesome;
+  margin-inline-start: 8px;
+}
+.readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+  content: "\f107";
+}
+.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title:after,
+.readerApp.interface-hebrew .readerTextTableOfContents.noLangToggleInHebrew .content .schema-node-toc:not(.linked) > .schema-node-title:after {
+  content: "\f104";
+  font-size: 122%;
+  margin-inline-start: 9px;
+}
+.readerPanel.hebrew .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after,
+.readerApp.interface-hebrew .readerTextTableOfContents.noLangToggleInHebrew .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
+  content: "\f107";
+}
 .readerTextTableOfContents .content .schema-node-contents.closed {
   display: none;
 }
 .readerTextTableOfContents .content .schema-node-toc .schema-node-contents.closed {
   display: block;
-}
-.readerTextTableOfContents .content .schema-node-control {
-  margin: 0 4px;
 }
 .readerTextTableOfContents .content .tocLevel {
   display: block;
@@ -2469,9 +2494,6 @@ a.readerNavCategory {
 }
 .versionBlock .versionDetails .versionDetailsLabel, .versionBlock .versionDetails .versionDetailsLabel:hover{
   text-decoration: none;
-}
-.readerTextTableOfContents .versionBlock .versionDetails .versionDetailsLabel{
-  display: none;
 }
 .versionBlock .versionDetails .versionBuyImage .versionDetailsImageLink img{
   height: 120px;
@@ -3321,6 +3343,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc a:hover {
   text-decoration: none;
 }
+.readerControls .readerTextToc .readerTextTocBox h1 {
+    display: unset;
+    font-size: unset;
+    font-weight: unset;
+    margin-block-start: unset;
+    margin-block-end: unset;
+}
 .readerControls .readerTextToc .readerTextTocBox a {
   display: flex;
   align-items: center;
@@ -3463,11 +3492,22 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerTextTocHeader.readerTextToc {
   font-size: 16px;
 }
-.hebrew .readerControls .readerTextToc {
-  direction: rtl;
+.readerControls .readerTextToc{
   min-width: 0;
 }
-.hebrew .readerControls .readerTextToc .readerTextTocBox,
+.hebrew .readerControls .readerTextToc {
+  direction: rtl;
+}
+.english .readerControls .readerTextToc {
+  direction: ltr;
+}
+.interface-english .bilingual .readerControls .readerTextToc {
+  direction: ltr;
+}
+.interface-hebrew .bilingual .readerControls .readerTextToc {
+  direction: rtl;
+}
+
 .interface-hebrew .bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox,
 .interface-hebrew .english .readerControls .readerTextToc .readerTextTocBox.sheetBox {
   padding-left: 23px;
@@ -3505,9 +3545,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerControls .readerTextToc .fa.invisible {
   visibility: hidden;
 }
-.bilingual .readerTextToc .he {
+/*.bilingual .readerTextToc .he {
   display: none;
-}
+}*/
 .readerOptions img {
   height: 16px;
 }
@@ -3692,6 +3732,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-weight: lighter;
   letter-spacing: 1px;
 }
+
+.sheetContent .customSourceTitle {
+  padding-top: 14px;
+}
+
+
 .dark .textRange.basetext .title, .dark .sheetContent .title {
   color: #ccc;
 }
@@ -3703,7 +3749,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .dark .textRange.basetext .title .titleBox, .dark .sheetContent .title .titleBox {
   border-bottom: 4px solid #666;
 }
-.bilingual .textRange.basetext .title .he, .bilingual .sheetContent .title .he {
+.bilingual .sheetContent .title .he {
   display: none;
 }
 .interface-hebrew .readerPanel.english .textRange,
@@ -3739,9 +3785,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .parashahHeader.aliyah span {
   text-transform: uppercase;
 }
-.bilingual .parashahHeader .he {
-  display: none;
-}
 .title + .text span:first-child .parashahHeader {
   margin-top: -5px;
 }
@@ -3765,8 +3808,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .continuous .clearFix {
   display: none;
 }
+.segment .segmentText{
+  display: inline;
+}
 .segment > .he,
-.segment > .en {
+.segment > .en,
+.segment > p > .he,
+.segment > p > .en {
   margin-top: 0;
   margin-bottom: 0;
 }
@@ -3774,32 +3822,41 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-bottom: 26px;
 }
 .bilingual .segment > .he,
-.bilingual .segment > .en {
+.bilingual .segment > .en,
+.bilingual .segment > p > .he,
+.bilingual .segment > p > .en {
   display: block;
 }
-.bilingual .segment > .en {
+.bilingual .segment > .en ,
+.bilingual .segment > p > .en {
   text-align: left;
 }
-.bilingual .segment > .he {
+.bilingual .segment > .he,
+.bilingual .segment > p > .he {
   text-align: right;
 }
 .stacked.bilingual .basetext .segment {
   margin-bottom: 14px;
   display: block;
 }
-.stacked.bilingual .segment > .en {
+.stacked.bilingual .segment > .en,
+.stacked.bilingual .segment > p > .en {
   margin-top: 6px;
   text-align: left;
 }
-.stacked.bilingual .sheetContent .segment > .en {
+.stacked.bilingual .sheetContent .segment > .en,
+.stacked.bilingual .sheetContent .segment > p > .en {
   margin-top: 0;
 }
-.stacked.bilingual .basetext .segment > .en {
+.stacked.bilingual .basetext .segment > .en ,
+.stacked.bilingual .basetext .segment > p > .en {
   margin: 10px 0 20px;
   color: #666;
 }
 .stacked.bilingual .segment.heOnly > .he,
-.stacked.bilingual .segment.enOnly > .en {
+.stacked.bilingual .segment.enOnly > .en,
+.stacked.bilingual .segment.heOnly > p > .he,
+.stacked.bilingual .segment.enOnly > p > .en {
   display: block;
 }
 .heLeft.bilingual .basetext .text,
@@ -3808,10 +3865,15 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heRight.bilingual .sheetContent .text {
   padding: 0;
 }
+
 .heLeft.bilingual .segment > .en,
 .heLeft.bilingual .segment > .he,
 .heRight.bilingual .segment > .en,
-.heRight.bilingual .segment > .he {
+.heRight.bilingual .segment > .he,
+.heLeft.bilingual .segment > p > .en,
+.heLeft.bilingual .segment > p > .he,
+.heRight.bilingual .segment > p > .en,
+.heRight.bilingual .segment > p > .he {
   width: 50%;
   box-sizing: border-box;
   display: block;
@@ -3819,30 +3881,42 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .heLeft.bilingual .sheetItem.enOnly > .en,
 .heLeft.bilingual .sheetItem.heOnly > .he,
 .heRight.bilingual .sheetItem.enOnly > .en,
-.heRight.bilingual .sheetItem.heOnly > .he {
+.heRight.bilingual .sheetItem.heOnly > .he,
+.heLeft.bilingual .sheetItem.enOnly > p > .en,
+.heLeft.bilingual .sheetItem.heOnly > p > .he,
+.heRight.bilingual .sheetItem.enOnly > p > .en,
+.heRight.bilingual .sheetItem.heOnly > p > .he {
   width: 100%;
   padding-right: 0;
   padding-left: 0;
 }
-.readerPanel .sheetItem.heOnly > .en {
+.readerPanel .sheetItem.heOnly > .en,
+.readerPanel .sheetItem.heOnly > p > .en {
   display: none;
 }
-.readerPanel .sheetItem.heOnly > .he {
+.readerPanel .sheetItem.heOnly > .he,
+.readerPanel .sheetItem.heOnly > p > .he {
   display: block;
 }
-.readerPanel .sheetItem.enOnly > .he {
+.readerPanel .sheetItem.enOnly > .he,
+.readerPanel .sheetItem.enOnly > p > .he {
   display: none;
 }
-.readerPanel .sheetItem.enOnly > .en {
+.readerPanel .sheetItem.enOnly > .en,
+.readerPanel .sheetItem.enOnly > p > .en {
   display: block;
 }
 .heLeft.bilingual .segment > .en,
-.heRight.bilingual .segment > .he {
+.heRight.bilingual .segment > .he ,
+.heLeft.bilingual .segment > p > .en,
+.heRight.bilingual .segment > p > .he {
   float: right;
   padding-left: 20px;
 }
 .heRight.bilingual .segment > .en,
-.heLeft.bilingual .segment > .he {
+.heLeft.bilingual .segment > .he,
+.heRight.bilingual .segment > p > .en,
+.heLeft.bilingual .segment > p > .he {
   float: left;
   padding-right: 20px;
 }
@@ -3868,7 +3942,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .sheetContent .segment.highlight .en,
 .sheetContent .segment.highlight .he,
 .readerPanel.bilingual.heLeft .sheetContent .segment.highlight,
-.readerPanel.bilingual.heRight .sheetContent .segment.highlight {
+.readerPanel.bilingual.heRight .sheetContent .segment.highlight,
+.editorContent .sheetItem.highlight,
+.editorContent .sheetItem.highlight .SheetSource .en,
+.editorContent .sheetItem.highlight .SheetSource::after
+{
   background-color: #F0F7FF;
 }
 .sheetContent .segment.highlight .linkCount .en,
@@ -3973,20 +4051,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .bilingual .numberLabel .numberLabelInner {
   margin-top: 0;
 }
-.bilingual .segmentNumber .he,
-.bilingual .linkCount .he,
-.bilingual .numberLabel .he {
-  display: none;
-}
 .segment .segmentNumber,
 .segment .linkCount {
   display: none;
   line-height: 1.4;
 }
+.hebrew .segment .segmentNumber,
+.hebrew .segment .linkCount {
+  display: none;
+  line-height: 1.6;
+}
 .sheetContent .segment .linkCount {
   display: inline-block;
 }
 .segment .segmentNumber .segmentNumberInner,
+.segment .segmentNumber .segmentNumberInner .he,
 .textRange .numberLabel .numberLabelInner {
   font-size: 12px;
   vertical-align: middle;
@@ -4444,9 +4523,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .filterInner {
   display: flex;
-}
-.filterInner .filterText {
-  flex: 1;
+  justify-content: space-between;
 }
 .categoryFilterGroup.withBooks {
   border-bottom: 1px solid #E5E5E5;
@@ -4868,11 +4945,21 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   color: #999;
 }
 .webpageList .webpage .stats,
-.mediaList .media .meta {
+.mediaList .media .meta,
+.manuscript .meta {
   font-size: 13px;
   color: #999;
   margin-top: 5px;
 }
+.manuscript .meta span,
+.manuscript .meta a {
+  font-family: "Roboto", "sans-serif";
+  margin-top: 2px;
+}
+.manuscript .meta .int-he {
+  font-family: "Heebo", "sans-serif";
+}
+
 .webpageList.empty .loadingMessage {
   margin-top: 0px;
 }
@@ -4888,6 +4975,63 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .webpageList .webpagesLinkerMessage a {
   color: #999;
   text-decoration: underline;
+}
+.manuscriptImage {
+  width: auto;
+  max-height: 180px;
+  border-radius: 3px;
+}
+.manuscriptCaption {
+  font-family: "Adobe Garamond Pro", "sans-serif";
+  font-size: 18px;
+  line-height: 22px;
+  margin-top: 13px;
+  margin-bottom: 2px;
+  border-bottom: 0px;
+  text-align: left;
+}
+.manuscriptCaptionHe {
+  font-family: "Taamey Frank", "Heebo", "sans-serif";
+  font-size: 22px;
+  line-height: 22px;
+  margin-top: 13px;
+  margin-bottom: 2px;
+  border-bottom: 0px;
+  text-align: right;
+}
+.fullSizeImageLink {
+  width: 292px;
+  height: 23px;
+  left: 830px;
+  top: 367px;
+
+  font-family: "Roboto", "sans-serif";
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 15px;
+  color: #999999
+}
+.manuscript {
+  border-bottom: 1px solid #DDDDDD;
+  margin: 29px 34px;
+  padding-bottom: 19px;
+  overflow-x: hidden;
+}
+
+.manuscript a {
+  color: inherit;
+}
+/*.manuscriptBorder {*/
+/*  border: 1px solid #dddddd;*/
+/*  position: absolute;*/
+/*  width: 292px;*/
+/*  height: 0px;*/
+/*  left: 830px;*/
+/*  top: 409px;*/
+/*}*/
+.manuscriptList :last-child {
+  border-bottom: 0px solid red;
 }
 .textList.marginless .webpageList.empty .loadingMessage {
   margin: 50px 40px;
@@ -4994,6 +5138,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 16px;
   letter-spacing: 1px;
   padding: 20px 34px;
+}
+.toolsButton .toolsButtonText .connectionsCount::before{
+  content: " ";
 }
 .topicList.topicsHe {
   direction: rtl;
@@ -6071,6 +6218,9 @@ a .button:hover {
 .sheetMetaDataBox .title {
   display: block;
 }
+.sheetMetaDataBox .title br {
+    display: none
+}
 .sheetMetaDataBox .title:empty:before {
   content: "Untitled";
   color: #999;
@@ -6080,6 +6230,27 @@ a .button:hover {
 .sheetMetaDataBox .title:focus:before {
   content: "";
 }
+
+.editorSidebarToggle {
+  position: fixed;
+  right: 30px;
+  height: 30px;
+  width: 30px;
+  border-radius: 30px;
+  border: none;
+  background-color: #FBFBFA;
+  cursor: pointer;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.editorSidebarToggle:active {
+  box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.25);
+}
+
+.editorSidebarToggle::after {
+  content: url("/static/img/3vdots.svg");
+}
+
 .collectionListingImage {
   height: 100%;
   width: 100%;
@@ -7130,8 +7301,8 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   padding: 20px 0;
   border-top: solid 1px #CCC;
 }
-.versionBlock .versionTitle .he{
-
+.singlePanel .versionsBox .versionBlock .versionTitle .he {
+    display: inline;
 }
 .versionBlock .versionTitle a {
   color: black;
@@ -7213,20 +7384,31 @@ span.purim-emoji img{
 .readerPanel .sheetItem {
   position: relative;
 }
+.heLeft.bilingual section.SheetSource .sheetItem.enOnly > .en,
+.heLeft.bilingual section.SheetSource .sheetItem.heOnly > .he,
+.heRight.bilingual section.SheetSource .sheetItem.enOnly > .en,
+.heRight.bilingual section.SheetSource .sheetItem.heOnly > .he {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+}
 .readerPanel .sheetItem.indented-1,
-.readerPanel .sheetItem.indented-1 {
-  padding-left:  30px;
-  padding-right: 30px;
+.readerPanel section.SheetSource.indented-1,
+.readerPanel section.SheetOutsideBiText.indented-1 {
+  margin-left:  30px;
+  margin-right: 30px;
 }
 .readerPanel .sheetItem.indented-2,
-.readerPanel .sheetItem.indented-2 {
-  padding-left:  60px;
-  padding-right: 60px;
+.readerPanel section.SheetSource.indented-2,
+.readerPanel section.SheetOutsideBiText.indented-2 {
+  margin-left:  60px;
+  margin-right: 60px;
 }
 .readerPanel .sheetItem.indented-3,
-.readerPanel .sheetItem.indented-3 {
-  padding-left:  90px;
-  padding-right: 90px;
+.readerPanel section.SheetSource.indented-3,
+.readerPanel section.SheetOutsideBiText.indented-3 {
+  margin-left:  90px;
+  margin-right: 90px;
 }
 .sheetContent .customSourceTitle {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -7259,7 +7441,11 @@ span.purim-emoji img{
   margin-left: 0;
 }
 .readerPanel.english .sheetItem.segment.heOnly .segmentNumber .en,
-.readerPanel.hebrew .sheetItem.segment.enOnly .segmentNumber .he {
+.readerPanel.hebrew .sheetItem.segment.enOnly .segmentNumber .he
+.readerPanel.hebrew section.SheetSource .sheetItem.enOnly > .en,
+.readerPanel.english section.SheetSource .sheetItem.heOnly > .he,
+.readerPanel.hebrew section.SheetOutsideBiText .sheetItem.enOnly > .en,
+.readerPanel.english section.SheetOutsideBiText .sheetItem.heOnly > .he  {
   display: block;
 }
 .sheetTocIcon {
@@ -7286,14 +7472,11 @@ span.purim-emoji img{
   margin: 40px auto;
   text-align: center;
 }
-.bilingual .bookMetaDataBox .he,
-.english .bookMetaDataBox .he,
-.hebrew .bookMetaDataBox .en {
-  display: none;
-}
 .sheetContent .sheetItem.segment .sourceContentText {
   margin-bottom: 18px;
   display: block;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
@@ -7412,7 +7595,8 @@ span.purim-emoji img{
 .sheetContent .sheetItem .SheetOutsideText.segment {
   margin: 0
 }
-.sheetContent .sheetItem .SheetSource.segment {
+.sheetContent .sheetItem .SheetSource.segment,
+.sheetContent .sheetItem .SheetOutsideBiText.segment {
   margin-top: 14px
 }
 .sheetContent .text.loading {
@@ -7491,54 +7675,130 @@ span.purim-emoji img{
 .sheetItem.ref-display-none .ref {
   display: none;
 }
-.sheetItem .SheetSource {
+section.SheetSource .en,
+section.SheetOutsideBiText .en {
+  background-color: #FBFBFA;
+}
+
+section.SheetSource,
+section.SheetOutsideBiText {
   border-inline-start: 4px solid;
-  padding-inline-start: 11px;
-  padding-inline-end: 15px;
+  box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
+  margin-bottom: 30px;
+}
+
+.readerPanel.hebrew section.SheetSource .sheetItem > .he,
+.readerPanel.english section.SheetSource .sheetItem > .en,
+.readerPanel.hebrew section.SheetOutsideBiText .sheetItem > .he,
+.readerPanel.english section.SheetOutsideBiText .sheetItem > .en {
+  display: block;
+}
+.readerPanel.hebrew section.SheetSource .sheetItem > .en,
+.readerPanel.english section.SheetSource .sheetItem > .he,
+.readerPanel.hebrew section.SheetOutsideBiText .sheetItem > .en,
+.readerPanel.english section.SheetOutsideBiText .sheetItem > .he  {
+  display: none;
+}
+
+.interface-english section.SheetSource .sheetItem > .he,
+.interface-english section.SheetSource .sheetItem > .en,
+.interface-english section.SheetOutsideBiText .sheetItem > .he,
+.interface-english section.SheetOutsideBiText .sheetItem > .en {
+  padding: 15px 20px 15px 16px;
+}
+.interface-hebrew section.SheetSource .sheetItem > .he,
+.interface-hebrew section.SheetSource .sheetItem > .en,
+.interface-hebrew section.SheetOutsideBiText .sheetItem > .he,
+.interface-hebrew section.SheetOutsideBiText .sheetItem > .en {
+  padding: 15px 16px 15px 20px;
+}
+
+.readerPanel.bilingual.stacked .sheetContent section.SheetSource .segment.highlight .he,
+.readerPanel.bilingual.stacked .sheetContent section.SheetOutsideBiText .segment.highlight .he {
+  padding-bottom: 15px;
+}
+
+
+section.SheetSource.highlight,
+section.SheetOutsideBiText.highlight {
+  background-color: #E9E9E7;
+}
+
+section.SheetSource .segmentNumber,
+section.SheetSource .SheetOutsideBiText {
+  display: none;
+}
+
+.sheetContent section.SheetSource.highlight .sheetItem.segment.highlight .sourceContentText,
+.sheetContent section.SheetSource .sheetItem.segment .sourceContentText,
+.sheetContent section.SheetOutsideBiText.highlight .sheetItem.segment.highlight .sourceContentText,
+.sheetContent section.SheetOutsideBiText .sheetItem.segment .sourceContentText {
+  margin: 0;
+}
+
+.sheetItem .SheetSource,
+.sheetItem .SheetOutsideBiText {
+  border-inline-start: 4px solid;
+  padding-inline-start: 16px;
+  padding-inline-end: 20px;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
 }
-.sheetItem .SheetSource.selected,
-.sheetItem .SheetSource.selected .en {
-  background-color: #F0F8FF;
+.sheetItem .SheetSource.selected.segment,
+.sheetItem .SheetOutsideBiText.selected.segment {
+  border-top: 2px solid #CCE6FF;
+  border-bottom: 2px solid #CCE6FF;
+  border-inline-end: 2px solid #CCE6FF;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  margin-inline-end: -2px;
+
 }
 .sheetItem .SheetSource .he,
-.sheetItem .SheetSource .en {
-  padding-inline-start: 11px;
-  padding-inline-end: 15px;
-  margin-inline-start: -11px;
-  margin-inline-end: -15px;
+.sheetItem .SheetSource .en,
+.sheetItem .SheetOutsideBiText .he,
+.sheetItem .SheetOutsideBiText .en {
+  padding-inline-start: 16px;
+  padding-inline-end: 20px;
+  margin-inline-start: -16px;
+  margin-inline-end: -20px;
 }
 .sheetItem .SheetSource .he.editable.selected .sourceContentText,
-.sheetItem .SheetSource .en.editable.selected .sourceContentText {
+.sheetItem .SheetSource .en.editable.selected .sourceContentText,
+.sheetItem .SheetOutsideBiText .he.editable.selected .sourceContentText,
+.sheetItem .SheetOutsideBiText .en.editable.selected .sourceContentText {
   background-color: #FFFFFF;
   box-shadow: inset 0px 0px 3px rgba(0, 0, 0, 0.3);
   border-radius: 6px;
 }
-.sheetItem .SheetSource ::selection {
+.sheetItem .SheetSource ::selection,
+.sheetItem .SheetOutsideBiText ::selection {
   background-color: rgba(0,0,0,0);
 }
 .sheetItem .SheetSource .he.editable.selected ::selection,
-.sheetItem .SheetSource .en.editable.selected ::selection {
+.sheetItem .SheetSource .en.editable.selected ::selection,
+.sheetItem .SheetOutsideBiText .he.editable.selected ::selection,
+.sheetItem .SheetOutsideBiText .en.editable.selected ::selection {
   background-color: #D2DCFF;
 }
-.sheetItem .SheetSource .en {
+.sheetItem .SheetSource .en,
+.sheetItem .SheetOutsideBiText .en {
   background-color: #FBFBFA;
 }
-.sheetItem .SheetSource .ref {
+.sheetItem .SheetSource .ref,
+.sheetItem .SheetOutsideBiText .ref {
   pointer-events: none;
   user-select: none;
 }
-.sheetItem .SheetSource:after {
+.sheetItem .SheetSource:after,
+.sheetItem .SheetOutsideBiText:after {
     content: " ";
     display: block;
     clear: both;
+    height: 15px;
+    background-color: #FBFBFA;
+
 }
-.sheetItem .SheetOutsideBiText {
-  border-left: 4px solid;
-  margin-left: -34px;
-  padding-left: 34px;
-  border-color: #073570;
-}
+
 .sheetItem .SheetMedia {
     margin-bottom: 14px;
 }
@@ -7692,6 +7952,25 @@ span.purim-emoji img{
 .profile-page .social-icon:hover img {
   opacity: 0.6;
 }
+.editorToggleHeader {
+  width: 100%;
+  background-color: #18345D;
+  color: white;
+  height: 60px;
+  font-size: 16px;
+  margin-top: -80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  left: 0;
+}
+.editorToggleHeader .button {
+  padding: 5px 8px;
+  margin-inline-start: 15px;
+  margin-top: 5px;
+}
+
 .sheetList .sheet {
   border-bottom: none;
 }

@@ -247,7 +247,7 @@ def add_ambiguous_topics():
     with open(f"{DATASETS_NAMED_ENTITY_LOC}/ambiguous_rabbis.json", "w") as fout:
         json.dump(out, fout, ensure_ascii=False, indent=2)
 
-def add_mentions():
+def add_mentions(title_list=None):
     bon_rabbis = TopicSet({"alt_ids.bonayich": {"$exists": True}})
     bon_set = {t.slug for t in bon_rabbis}
     all_slug_set = {t.slug for t in TopicSet()}
@@ -297,8 +297,11 @@ def add_mentions():
             mention_link['unambiguousToTopic'] = id_match_to_link
 
         out[key] = mention_link
-
-    RefTopicLinkSet({"linkType": "mention"}).delete()
+    del_query = {"linkType": "mention"}
+    if title_list:
+        title_reg = re.compile(fr"^(?:{'|'.join(title_list)})(?: |, )")
+        del_query['ref'] = title_reg
+    RefTopicLinkSet(del_query).delete()
     db.topic_links.bulk_write([InsertOne(v) for _, v in out.items()])
 
 def merge_duplicate_rabbis():
@@ -335,8 +338,8 @@ def get_raw_mentions():
     all_mentions = []
     with open(f"{DATASETS_NAMED_ENTITY_LOC}/ner_output_talmud.json", "r") as fin:
         all_mentions += json.load(fin)
-    with open(f"{DATASETS_NAMED_ENTITY_LOC}/ner_output_mishnah.json", "r") as fin:
-        all_mentions += json.load(fin)
+    # with open(f"{DATASETS_NAMED_ENTITY_LOC}/ner_output_mishnah.json", "r") as fin:
+    #     all_mentions += json.load(fin)
     # with open("data/ner_output_talmud.json", "r") as fin:
     #     all_mentions += json.load(fin)
     # with open("data/ner_output_tanakh.json", "r") as fin:
@@ -347,7 +350,7 @@ if __name__ == "__main__":
     # import_bonayich_into_topics()
     # import_rabi_rav_rabbis_into_topics()
     add_ambiguous_topics()
-    add_mentions()  # this should be the only relevant command to run going forward
+    add_mentions(library.get_indexes_in_category('Bavli'))  # this should be the only relevant command to run going forward
     # add_new_alt_titles()
     # merge_duplicate_rabbis()
     # delete_bonayich_rabbis_from_topics()

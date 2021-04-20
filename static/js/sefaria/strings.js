@@ -126,6 +126,7 @@ const Strings = {
     "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
     "Public Domain": "בנחלת הכלל",
     "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
+    "Location: ": "מיקום: ",
 
     // Collections
     // Edit collection page
@@ -287,6 +288,13 @@ const Strings = {
     //Profile
     " at ": " ב-",
     "on Sefaria": " בספריא",
+
+    //TextTableofContents
+    "Download": "הורדה",
+    "Download Text": "הורדת הטקסט",
+    "Table of Contents": "תוכן העניינים",
+    "Hebrew Versions": "בעברית",
+    "English Versions": "באנגלית",
   },
   _i18nInterfaceStringsWithContext: {
     "AddConnectionBox": {

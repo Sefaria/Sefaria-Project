@@ -134,10 +134,10 @@ urlpatterns += [
     url(r'^api/texts/parashat_hashavua$', reader_views.parashat_hashavua_api),
     url(r'^api/texts/random?$', reader_views.random_text_api),
     url(r'^api/texts/random-by-topic/?$', reader_views.random_by_topic_api),
+    url(r'^api/texts/modify-bulk/(?P<title>.+)$', reader_views.modify_bulk_text_api),
     url(r'^api/texts/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.old_text_versions_api_redirect),
     url(r'^api/texts/(?P<tref>.+)$', reader_views.texts_api),
     url(r'^api/index/?$', reader_views.table_of_contents_api),
-    url(r'^api/search-filter-index/?$', reader_views.search_filter_table_of_contents_api),
     url(r'^api/opensearch-suggestions/?$', reader_views.opensearch_suggestions_api),
     url(r'^api/index/titles/?$', reader_views.text_titles_api),
     url(r'^api/v2/raw/index/(?P<title>.+)$', reader_views.index_api, {'v2': True, 'raw': True}),
@@ -171,6 +171,7 @@ urlpatterns += [
     url(r'^api/user_stats/(?P<uid>.+)/?$', reader_views.user_stats_api),
     url(r'^api/site_stats/?$', reader_views.site_stats_api),
     url(r'^api/messages/?$', reader_views.messages_api),
+    url(r'^api/manuscripts/(?P<tref>.+)', reader_views.manuscripts_for_source)
 ]
 
 # Source Sheets API
@@ -240,12 +241,6 @@ urlpatterns += [
     url(r'^api/topics/(?P<topic>.+)$', reader_views.topics_api),
     url(r'^api/bulktopics$', reader_views.bulk_topic_api),
     url(r'^api/recommend/topics(/(?P<ref_list>.+))?', reader_views.recommend_topics_api),
-]
-
-# Reviews API
-urlpatterns += [
-    url(r'^api/reviews/(?P<tref>.+)/(?P<lang>\w\w)/(?P<version>.+)$', reader_views.reviews_api),
-    url(r'^api/reviews/(?P<review_id>.+)$', reader_views.reviews_api),
 ]
 
 # History API
@@ -389,6 +384,7 @@ urlpatterns += [
     url(r'^admin/run/tests', sefaria_views.run_tests),
     url(r'^admin/export/all', sefaria_views.export_all),
     url(r'^admin/error', sefaria_views.cause_error),
+    url(r'^admin/account-stats', sefaria_views.account_stats),
     url(r'^admin/sheet-stats', sefaria_views.sheet_stats),
     url(r'^admin/untagged-sheets', sefaria_views.untagged_sheets),
     url(r'^admin/spam', sefaria_views.spam_dashboard),

@@ -693,19 +693,57 @@ Sefaria = extend(Sefaria, {
         store: this._shape
     });
   },
-  _cacheIndexFromToc: function(toc) {
-    // Unpacks contents of Sefaria.toc into index cache.
-    for (var i = 0; i < toc.length; i++) {
-      if ("category" in toc[i]) {
-        Sefaria._translateTerms[toc[i].category] = {"en": toc[i].category, "he": toc[i].heCategory};
-        if (toc[i].contents) {
-            Sefaria._cacheIndexFromToc(toc[i].contents)
-        }
+  _tocOrderLookup: {},
+  _cacheFromToc: function(tocBranch, parentsPath = "", parentsOrders = [], rewrittenFrom = "", rewrittenTo = "") {
+    // Cache:
+    // - Index Data
+    // - Search TOC order
+    for (let i = 0; i < tocBranch.length; i++) {
+      let thisOrder = parentsOrders.concat([i]) ;
+      let thisPath =  (parentsPath ? parentsPath + "/" : "") + ("category" in tocBranch[i] ? tocBranch[i].category : tocBranch[i].title);
+
+      if (tocBranch[i].searchRoot) {
+          rewrittenFrom = thisPath;
+          rewrittenTo = tocBranch[i].searchRoot + "/" + tocBranch[i].category;
+          thisOrder = [100].concat(thisOrder);
+          Sefaria._tocOrderLookup[rewrittenTo] = thisOrder;
+      } else if (rewrittenFrom) {
+          const new_path = thisPath.replace(RegExp("^" + rewrittenFrom), rewrittenTo);
+          Sefaria._tocOrderLookup[new_path] = thisOrder;
       } else {
-        Sefaria.index(toc[i].title, toc[i]);
+          Sefaria._tocOrderLookup[thisPath] = thisOrder;
+      }
+
+      if ("category" in tocBranch[i]) {
+          Sefaria._translateTerms[tocBranch[i].category] = {"en": tocBranch[i].category, "he": tocBranch[i].heCategory};
+          if (tocBranch[i].contents) {
+              Sefaria._cacheFromToc(tocBranch[i].contents, thisPath, thisOrder, rewrittenFrom,  rewrittenTo)
+          }
+      } else {
+          Sefaria.index(tocBranch[i].title, tocBranch[i]);
       }
     }
   },
+  compareSearchCatPaths: function(a,b) {
+      // Given two paths, sort according to the cached numeric arrays of their locations in the toc
+      const aPath = Sefaria._tocOrderLookup[a];
+      const bPath = Sefaria._tocOrderLookup[b];
+
+      if (!(Array.isArray(aPath) && Array.isArray(bPath))) {
+          console.log(`Failed to compare paths: ${a} and ${b}`);
+          return 0;
+      }
+
+      // Favor the earliest lesser number
+      for (let i = 0; i < Math.min(aPath.length, bPath.length); i++) {
+          if (aPath[i] === bPath[i]) { continue; }
+          return aPath[i] < bPath[i] ? -1 : 1;
+      }
+
+      // Otherwise, favor the one higher in the toc
+      return aPath.length < bPath.length ? -1 : 1;
+  },
+
   _indexDetails: {},
   getIndexDetails: function(title) {
     return this._cachedApiPromise({
@@ -785,7 +823,7 @@ Sefaria = extend(Sefaria, {
     let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
     queryString = (queryString ? "?" + queryString : "");
     return this._cachedApiPromise({
-        url:   this.apiHost + "/api/name/" + trimmed_name + queryString,
+        url:   this.apiHost + "/api/name/" + encodeURIComponent(trimmed_name) + queryString,
         key:   trimmed_name + queryString,
         store: this._lookups
     });
@@ -1045,11 +1083,17 @@ Sefaria = extend(Sefaria, {
   linkSummaryBookSort: function(category, a, b, byHebrew) {
     // Sorter for links in a link summary, included a hard coded list of top spots by category
     // First sort by predefined "top"
-    const topByCategory = {
+    const hebrewTopByCategory = {
       "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
-      "Talmud": ["Rashi", "Tosafot"]
+      "Talmud": ["Rashi", "Tosafot"],
+      "Mishnah": ["Bartenura", "Rambam", "Ikar Tosafot Yom Tov", "Yachin", "Boaz"]
     };
-    const top = topByCategory[category] || [];
+    const englishTopByCategory = {
+      "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
+      "Talmud": ["Rashi", "Tosafot"],
+      "Mishnah": ["Bartenura", "English Explanation of Mishnah", "Rambam", "Ikar Tosafot Yom Tov", "Yachin", "Boaz"]
+    };
+    const top = (byHebrew ? hebrewTopByCategory[category] : englishTopByCategory[category]) || [];
     let aTop = top.indexOf(a.book);
     let bTop = top.indexOf(b.book);
     if (aTop !== -1 || bTop !== -1) {
@@ -1331,6 +1375,17 @@ _media: {},
        this.relatedApi(ref, callback);
     }
   },
+  _manuscripts: {},
+  manuscriptsByRef: function(refs) {
+    refs = typeof refs === "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
+    let manuscriptPages = [];
+    refs.forEach(r => {
+      if (this._manuscripts[r]) {
+        manuscriptPages = manuscriptPages.concat(this._manuscripts[r]);
+      }
+    })
+    return manuscriptPages
+  },
   relatedApi: function(ref, callback) {
     var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "?with_sheet_links=1";
     return this._api(url, data => {
@@ -1346,7 +1401,8 @@ _media: {},
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
           topics: this._saveTopicByRef(ref, data.topics || []),
-		      media: this._saveItemsByRef(data.media, this._media),
+          media: this._saveItemsByRef(data.media, this._media),
+          manuscripts: this._saveItemsByRef(data.manuscripts, this._manuscripts)
       };
 
        // Build split related data from individual split data arrays
@@ -1586,11 +1642,11 @@ _media: {},
   },
   tocItemsByCategories: function(cats) {
     // Returns the TOC items that correspond to the list of categories 'cats'
-    var list = Sefaria.util.clone(Sefaria.toc);
-    for (var i = 0; i < cats.length; i++) {
-      var found = false;
-      for (var k = 0; k < list.length; k++) {
-        if (list[k].category == cats[i]) {
+    let list = Sefaria.util.clone(Sefaria.toc);
+    for (let i = 0; i < cats.length; i++) {
+      let found = false;
+      for (let k = 0; k < list.length; k++) {
+        if (list[k].category === cats[i]) {
           list = Sefaria.util.clone(list[k].contents);
           found = true;
           break;
@@ -2181,7 +2237,7 @@ _media: {},
   },
   hebrewTerm: function(name) {
     // Returns a string translating `name` into Hebrew.
-    var categories = {
+    const categories = {
       "Quoting Commentary":   "פרשנות מצטטת",
       "Modern Commentary":    "פרשנות מודרנית",
       "Sheets":               "דפי מקורות",
@@ -2387,6 +2443,7 @@ Sefaria.unpackDataFromProps = function(props) {
   const dataPassedAsProps = [
       "_uid",
       "_email",
+      "_uses_new_editor",
       "slug",
       "is_moderator",
       "is_editor",
@@ -2451,7 +2508,7 @@ Sefaria.setup = function(data) {
     Sefaria._analytics_uid = Sefaria._uid;
     Sefaria._makeBooksDict();
     Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1};  //Todo: Wire this up to the server
-    Sefaria._cacheIndexFromToc(Sefaria.toc);
+    Sefaria._cacheFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
     Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._analytics_uid);

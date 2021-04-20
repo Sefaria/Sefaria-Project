@@ -54,6 +54,7 @@ class Collection(abst.AbstractMongoRecord):
                                 # `collectiveTitle` - optional dictionary with `en`, `he`, overiding title display in TOC/Sidebar.
                                 # `desscription` - string
                                 # `heDescription` - string
+                                # `dependence` - string - "Commentary" or "Targum"
                                 # These fields will override `name` and `description` for display
     ]
 
@@ -71,7 +72,7 @@ class Collection(abst.AbstractMongoRecord):
         website = getattr(self, "websiteUrl", False)
         if website and not website.startswith("https://"):
             if website.startswith("http://"):
-                # Only allow HTTPS. If you site doens't support it, deal with it!
+                # Only allow HTTPS. If you site doesn't support it, deal with it!
                 self.websiteUrl = website.replace("http://", "https://")
             else:
                 self.websiteUrl = "https://" + website

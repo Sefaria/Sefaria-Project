@@ -7,7 +7,7 @@ import {
   ProfileListing,
   ProfilePic,
   FollowButton,
-  IntText,
+  InterfaceText,
 } from './Misc';
 import React  from 'react';
 import PropTypes  from 'prop-types';
@@ -23,7 +23,7 @@ class UserProfile extends Component {
     this.state = this.getPrivateTabState(props);
   }
   componentDidUpdate(prevProps) {
-    if (!!this.props.profile && (!prevProps || prevProps.profile.id !== this.props.profile.id) 
+    if (!!this.props.profile && (!prevProps || prevProps.profile.id !== this.props.profile.id)
         || this.props.tab !== prevProps.tab) {
       this.setState(this.getPrivateTabState(this.props));
     }
@@ -88,19 +88,19 @@ class UserProfile extends Component {
      return (
         <div className="emptyList">
           <div className="emptyListText">
-            <IntText>{this.props.profile.full_name}</IntText>
-            <IntText> hasn't shared any collections yet.</IntText>
+            <InterfaceText>{this.props.profile.full_name}</InterfaceText>
+            <InterfaceText> hasn't shared any collections yet.</InterfaceText>
           </div>
         </div>);
     }
     return (
       <div className="emptyList">
         <div className="emptyListText">
-          <IntText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</IntText>
+          <InterfaceText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</InterfaceText>
         </div>
         <a href="/collections/new" className="resourcesLink">
           <img src="/static/icons/collection.svg" alt="Collection icon" />
-            <IntText>Create a New Collection</IntText>
+            <InterfaceText>Create a New Collection</InterfaceText>
         </a>
       </div>);
   }
@@ -115,7 +115,7 @@ class UserProfile extends Component {
       <div className="sheet-header">
         <a href="/collections/new" className="resourcesLink">
           <img src="/static/icons/collection.svg" alt="Collection icon" />
-            <IntText>Create a New Collection</IntText>
+            <InterfaceText>Create a New Collection</InterfaceText>
         </a>
       </div>
     );
@@ -192,8 +192,8 @@ class UserProfile extends Component {
       return (
         <div className="emptyList">
           <div className="emptyListText">
-            <IntText>{this.props.profile.full_name}</IntText>
-            <IntText> hasn't shared any sheets yet.</IntText>
+            <InterfaceText>{this.props.profile.full_name}</InterfaceText>
+            <InterfaceText> hasn't shared any sheets yet.</InterfaceText>
           </div>
         </div>
       );
@@ -339,7 +339,7 @@ class UserProfile extends Component {
     if (!Sefaria._uid) { this.props.toggleSignUpModal(); return; }
     this._messageModalRef.makeVisible();
   }
-  follow() { 
+  follow() {
     Sefaria.followAPI(this.props.profile.id);
   }
   openFollowers(e) {
@@ -350,6 +350,7 @@ class UserProfile extends Component {
     e.preventDefault();
     this.props.setProfileTab("following");
   }
+
   render() {
     return (
       <div key={this.props.profile.id} className="profile-page readerNavMenu noHeader">
@@ -360,6 +361,7 @@ class UserProfile extends Component {
             showDisplaySettings={false}/>
         }
         <div className="content hasFooter noOverflowX">
+          {this.props.profile.show_editor_toggle ?  <EditorToggleHeader usesneweditor={this.props.profile.uses_new_editor} /> : null}
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :
               <div>
@@ -463,6 +465,20 @@ class UserProfile extends Component {
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
+
+
+const EditorToggleHeader = ({usesneweditor}) => {
+ const text = <InterfaceText>{usesneweditor ? "You are currently testing the new document editor" : "You are currently using the old document editor"}</InterfaceText>;
+ const buttonText = <InterfaceText>{usesneweditor ? "Go back to old version" : "Try the new version"}</InterfaceText>;
+ const buttonLink = (usesneweditor ? "/disable_new_editor" : "/enable_new_editor");
+
+ return (
+   <div className="editorToggleHeader">
+     {text} <a href={buttonLink} className="button white" role="button">{buttonText}</a>
+   </div>
+ )
+}
+
 
 const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`

@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 import copy
 
-import logging
+import structlog
 from functools import reduce
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 try:
     import re2 as re
     re.set_fallback_notification(re.FALLBACK_WARNING)
 except ImportError:
-    logging.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/Sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
+    logger.warning("Failed to load 're2'.  Falling back to 're' for regular expression parsing. See https://github.com/Sefaria/Sefaria-Project/wiki/Regular-Expression-Engines")
     import re
 
 import regex
@@ -2009,37 +2009,78 @@ class AddressTalmud(AddressType):
         Remove last amud from `ref`. Assumes `ref` ends in a Talmud address.
         This may have undesirable affect if `ref` doesn't end in a Talmud address
         """
-        normal_form = ref.he_normal() if lang == 'he' else ref.normal()
+        normal_form = ref._get_normal(lang)
         return re.sub(f"{cls.amud_patterns[lang]}$", '', normal_form)
+
+
+    @classmethod
+    def normal_range(cls, ref, lang):
+        if ref.sections[-1] % 2 == 1 and ref.toSections[-1] % 2 == 0:  # starts at amud alef and ends at bet?
+            start_daf = AddressTalmud.oref_to_amudless_tref(ref.starting_ref(), lang)
+            end_daf = AddressTalmud.oref_to_amudless_tref(ref.ending_ref(), lang)
+            if start_daf == end_daf:
+                return start_daf
+            else:
+                range_wo_last_amud = AddressTalmud.oref_to_amudless_tref(ref, lang)
+                # looking for rest of ref after dash
+                end_range = re.search(f'-(.+)$', range_wo_last_amud).group(1)
+                return f"{start_daf}-{end_range}"
+        else: #range is in the form Shabbat 7b-8a, Shabbat 7a-8a, or Shabbat 7b-8b.  no need to special case it
+            return ref._get_normal(lang)
 
     @classmethod
     def parse_range_end(cls, ref, parts, base):
-        if len(parts) == 1 and len(ref.sections) == 1:
-            # check for Talmud ref without amud, such as Berakhot 2, we don't want "Berakhot 2a" but "Berakhot 2a-2b"
-            # so change toSections if ref_lacks_amud
+        """
+        :param ref: Ref object (example: Zohar 1:2-3)
+        :param parts: list of text of Ref; if Ref is a range, list will be of length 2; otherwise, length 1;
+        if Ref == Zohar 1:2-3, parts = ["Zohar 1:2", "3"]
+        :param base: parts[0] without title; in the above example, base would be "1:2"
+        :return:
+        """
+        def ref_lacks_amud(part):
             if ref._lang == "he":
-                ref_lacks_amud = re.search(cls.amud_patterns["he"], base) is None
+                return re.search(cls.amud_patterns["he"], part) is None
             else:
-                ref_lacks_amud = re.search(cls.amud_patterns["en"]+"{1}$", base) is None
-            if ref_lacks_amud:
-                ref.toSections[0] += 1
+                return re.search(cls.amud_patterns["en"] + "{1}$", part) is None
+
+        if len(parts) == 1:
+            # check for Talmud ref without amud, such as Berakhot 2 or Zohar 1:2,
+            # we don't want "Berakhot 2a" or "Zohar 1:2a" but "Berakhot 2a-2b" and "Zohar 1:2a-2b"
+            # so change toSections if ref_lacks_amud
+            if ref_lacks_amud(base):
+                ref.toSections[-1] += 1
         elif len(parts) == 2:
             ref.toSections = parts[1].split(".")  # this was converting space to '.', for some reason.
-            # 'Shabbat 23a-b'
-            if ref.toSections[0] in ['b', 'B', 'ᵇ']:
-                ref.toSections[0] = ref.sections[0] + 1
 
-            # 'Shabbat 24b-25a'
-            elif re.search(cls.amud_patterns[ref._lang], ref.toSections[0]):
-                ref.toSections[0] = AddressTalmud(0).toNumber(ref._lang, ref.toSections[0])
+            # 'Shabbat 23a-b' or 'Zohar 1:2a-b'
+            if ref.toSections[-1] in ['b', 'B', 'ᵇ', 'ב']:
+                ref.toSections[-1] = ref.sections[-1] + 1
 
-            # 'Shabbat 24b.12-24'
-            else:
-                delta = len(ref.sections) - len(ref.toSections)
-                for i in range(delta - 1, -1, -1):
-                    ref.toSections.insert(0, ref.sections[i])
+            # 'Shabbat 24b-25a' or 'Zohar 2:24b-25a'
+            elif re.search(cls.amud_patterns[ref._lang], ref.toSections[-1]):
+                ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, ref.toSections[-1])
 
-            ref.toSections = [int(x) for x in ref.toSections]
+            # 'Shabbat 7-8' -> 'Shabbat 7a-8b'; 'Zohar 3:7-8' -> 'Zohar 3:7a-8b'
+            elif ref_lacks_amud(parts[1]):
+                ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, "{}b".format(ref.toSections[-1]))
+
+        ref.toSections[0] = int(ref.toSections[0])
+        ref.sections[0] = int(ref.sections[0])
+        if len(ref.sections) == len(ref.toSections) + 1:
+            ref.toSections.insert(0, ref.sections[0])
+
+        # below code makes sure toSections doesn't go pass end of section/book
+        if getattr(ref.index_node, "lengths", None):
+            end = ref.index_node.lengths[len(ref.sections)-1]
+            if ref.is_bavli():
+                end += 2
+            while ref.toSections[-1] > end:  # Yoma 87-90 should become Yoma 87a-88a, since it ends at 88a
+                ref.toSections[-1] -= 1
+
+
+
+
+
 
     def _core_regex(self, lang, group_id=None, **kwargs):
         if group_id and kwargs.get("for_js", False) == False:

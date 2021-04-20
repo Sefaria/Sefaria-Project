@@ -2,7 +2,7 @@
 dependencies.py -- list cross model dependencies and subscribe listeners to changes.
 """
 
-from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, person, garden, notification, story, collection, library, category, ref_data, user_profile
+from . import abstract, link, note, history, schema, text, layer, version_state, timeperiod, person, garden, notification, story, collection, library, category, ref_data, user_profile, manuscript
 
 from .abstract import subscribe, cascade, cascade_to_list, cascade_delete, cascade_delete_to_list
 import sefaria.system.cache as scache
@@ -54,7 +54,6 @@ def process_version_title_change_in_search(ver, **kwargs):
         delete_version(text_index, kwargs.get("old"), ver.language)
         for ref in text_index.all_segment_refs():
             TextIndexer.index_ref(search_index_name, ref, kwargs.get("new"), ver.language, False)
-            # TextIndexer.index_ref(search_index_name_merged, ref, None, ver.language, True)
 
 
 # Version Title Change
@@ -117,6 +116,10 @@ subscribe(category.process_category_name_change_in_categories_and_indexes,  cate
 subscribe(text.rebuild_library_after_category_change,                   category.Category, "attributeChange", "lastPath")
 subscribe(text.rebuild_library_after_category_change,                   category.Category, "delete")
 subscribe(text.rebuild_library_after_category_change,                   category.Category, "save")
+
+# Manuscripts
+subscribe(manuscript.process_slug_change_in_manuscript,  manuscript.Manuscript, "attributeChange", "slug")
+subscribe(manuscript.process_manucript_deletion,         manuscript.Manuscript, "delete")
 
 '''
 # These are contained in the library rebuild, above.

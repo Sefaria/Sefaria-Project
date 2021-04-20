@@ -1,9 +1,7 @@
 # encoding=utf-8
 import re
 
-import sefaria.summaries as summaries
 from sefaria.model import *
-from sefaria.system import cache as scache
 from sefaria.system.database import db
 from sefaria.datatype.jagged_array import JaggedTextArray
 from diff_match_patch import diff_match_patch
@@ -347,7 +345,6 @@ def make_versions_csv():
         "status",
         "priority",
         "license",
-        "licenseVetted",
         "versionNotes",
         "digitizedBySefaria",
         "method",

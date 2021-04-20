@@ -6,7 +6,6 @@ from deepdiff import DeepDiff
 from sefaria.system.exceptions import InputError
 from sefaria.model import *
 import sefaria.model.category as c
-import sefaria.summaries as s
 
 
 class Test_Categories(object):
@@ -89,6 +88,10 @@ class Test_Categories(object):
         assert len(base_json) == len(new_json)
 
 
+"""
+Are these tests necessary anymore?
+They were useful in validating 1st class categories against older forms. 
+"""
 class Test_OO_Toc(object):
     def test_round_trip(self):
         base_toc = library.get_toc()
@@ -104,22 +107,3 @@ class Test_OO_Toc(object):
         new_json = json.dumps(rt_toc, sort_keys=True)
         assert len(base_json) == len(new_json)
 
-    @pytest.mark.xfail(reason="unknown")
-    def test_compare_db_toc_and_derived_toc(self):
-        derived_toc = s.update_table_of_contents()
-        base_json = json.dumps(derived_toc, sort_keys=True)
-        oo_toc = library.get_toc_tree()
-        serialized_oo_toc = oo_toc.get_root().serialize()["contents"]
-
-        # Deep test of toc lists
-        result = DeepDiff(derived_toc, serialized_oo_toc)
-        assert not result or all(["JPS" in j["new_value"] for i in list(result.values()) for j in list(i.values())])
-
-        if result:
-            # Irrelevant difference, but it makes the test below impossible.
-            return
-
-        # Check that the json is identical -
-        # that the round-trip didn't change anything by reference that would poison the deep test
-        new_json = json.dumps(serialized_oo_toc, sort_keys=True)
-        assert len(base_json) == len(new_json)

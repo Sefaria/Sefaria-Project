@@ -4,6 +4,7 @@ django.setup()
 
 import csv
 import requests
+from io import StringIO
 
 from sefaria.model import *
 from sefaria.system.database import db
@@ -34,8 +35,8 @@ eras = {
 
 url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSx60DLNs8Dp0l2xpsPjrxD3dBpIKASXSBiE-zjq74SvUIc-hD-mHwCxsuJpQYNVHIh7FDBwx7Pp9zR/pub?gid=480609494&single=true&output=csv'
 response = requests.get(url)
-lines = str.splitlines(response.text)
-cr = csv.reader(lines)
+data = response.content.decode("utf-8")
+cr = csv.reader(StringIO(data))
 
 
 rows = list(cr)[3:]
@@ -46,6 +47,7 @@ if len(unhandled) > 0:
     print("Indexes not covered in the sheet:")
     for a in sorted(unhandled):
         print(a)
+    print("\n******************\n")
 
 for l in rows:
     try:
@@ -74,15 +76,13 @@ for l in rows:
         ("era", eras.get(l[11]))]
 
     for aname, value in attrs:
-        obj_val = getattr(i, aname, None)
-        if (obj_val or value) and (getattr(i, aname, None) != value):
+        obj_val = getattr(i, aname, "")
+        if (obj_val or value) and (obj_val != value):
             setattr(i, aname, value)
             needs_save = True
     if needs_save:
         print("o - {}".format(l[0]))
         i.save(override_dependencies=True)
-    else:
-        print(".")
 
 
 # clear out all earlier author data:

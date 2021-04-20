@@ -1,6 +1,4 @@
-import sefaria.summaries as s
 import sefaria.model as model
-import sefaria.system.cache as scache
 
 
 """ SOME UTILS """
@@ -51,45 +49,4 @@ def verify_title_existence_in_toc(title, expected_toc_location=None, toc=None):
 
 
 def verify_existence_across_tocs(title, expected_toc_location=None):
-    tocs = [model.library.get_toc(), model.library.get_search_filter_toc()]
-    for toc in tocs:
-        verify_title_existence_in_toc(title, expected_toc_location, toc=toc)
-
-
-
-
-"""def get_toc_location_reversed(title):
-    toc = s.get_toc()
-    #hack to look from the other direction, so we encounter a different path than the original function if there is more than one.
-    r_toc = toc[::-1]
-    return get_toc_location(title, r_toc)
-
-def has_duplicate_toc_location(title,toc_path):
-    res_path = get_toc_location_reversed(title)
-    return toc_path_to_string(toc_path) == toc_path_to_string(res_path)
-
-"""
-
-
-"""
-def get_toc_location(title, toc=None):
-    if toc is None:
-        toc = s.get_toc()
-    for toc_elem in toc:
-        if 'title' in toc_elem:
-            if toc_elem['title'] == title:
-                return True
-        elif 'category' in toc_elem:
-            result  = get_toc_location(title, toc_elem['contents'])
-            if result:
-                #if we have a result, add the index location to a list that will eventually map to this text.
-                indices = [toc_elem['category']] + result if isinstance(result, list) else [toc_elem['category']]
-                return indices
-    return False
-"""
-
-
-
-
-
-
+    verify_title_existence_in_toc(title, expected_toc_location, toc=model.library.get_toc())

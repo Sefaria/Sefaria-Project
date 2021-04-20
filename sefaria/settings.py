@@ -120,6 +120,7 @@ MIDDLEWARE = [
     'sefaria.system.middleware.CORSDebugMiddleware',
     'sefaria.system.middleware.SharedCacheMiddleware',
     'sefaria.system.multiserver.coordinator.MultiServerEventListenerMiddleware',
+    'django_structlog.middlewares.RequestMiddleware',
     #'easy_timezones.middleware.EasyTimezoneMiddleware',
     #'django.middleware.cache.UpdateCacheMiddleware',
     #'django.middleware.cache.FetchFromCacheMiddleware',
@@ -185,10 +186,10 @@ LOCALE_PATHS = (
 
 """ to use logging, in any module:
 # import the logging library
-import logging
+import structlog
 
 # Get an instance of a logger
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 #log stuff
 logger.critical()
@@ -295,11 +296,11 @@ CACHES = {
     }
 }
 
-
+"""
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "innovation-2021",
-    "style":      "modal", # "modal" or "banner"
-    "repetition": 3,
+    "name":       "pesach-2021-banner",
+    "style":      "banner", # "modal" or "banner"
+    "repetition": 1,
     "condition":  {
         "returning_only": False,
         "english_only": False,
@@ -307,8 +308,8 @@ GLOBAL_INTERRUPTING_MESSAGE = {
         "debug": False,
     }
 }
-
-# GLOBAL_INTERRUPTING_MESSAGE = None
+"""
+GLOBAL_INTERRUPTING_MESSAGE = None
 
 # Grab environment specific settings from a file which
 # is left out of the repo.

@@ -22,7 +22,7 @@ from sefaria.model.text import AbstractIndex
 
 from sefaria.utils.talmud import section_to_daf
 from sefaria.system.exceptions import InputError
-from .summaries import CATEGORY_ORDER
+from .model.category import CATEGORY_ORDER
 from .settings import SEFARIA_EXPORT_PATH
 from sefaria.system.database import db
 
@@ -73,7 +73,7 @@ def make_json(doc):
     Returns JSON of 'doc' with export settings.
     """
     if "original_text" in doc:
-        doc = {k: v for k, v in doc.items() if k is not "original_text"}
+        doc = {k: v for k, v in doc.items() if k != "original_text"}
     return json.dumps(doc, indent=4, ensure_ascii=False)
 
 
@@ -724,7 +724,7 @@ def import_versions_from_file(csv_filename, columns):
 
 
 def _import_versions_from_csv(rows, columns, user_id):
-    from sefaria.tracker import modify_text
+    from sefaria.tracker import modify_bulk_text
 
     index_title = rows[0][columns[0]]  # assume the same index title for all
     index_node = Ref(index_title).index_node
@@ -754,10 +754,7 @@ def _import_versions_from_csv(rows, columns, user_id):
             }).save()
 
         # Populate it
+        text_map = {}
         for row in rows[5:]:
-            ref = Ref(row[0])
-            print("Saving: {}".format(ref.normal()))
-            try:
-                modify_text(user_id, ref, version_title, version_lang, row[column], type=action)
-            except InputError:
-                pass
+            text_map[row[0]] = row[column]
+        modify_bulk_text(user_id, v, text_map, type=action)

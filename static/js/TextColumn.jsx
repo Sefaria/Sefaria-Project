@@ -1,4 +1,5 @@
 import {
+  ContentText,
   LoadingMessage
 } from './Misc';
 import React  from 'react';
@@ -154,7 +155,7 @@ class TextColumn extends Component {
       // When a test is first loaded, scroll it down a small amount so that it is
       // possible to scroll up and trigginer infinites scroll up. This also hides 
       // "Loading..." div which sit above the text.
-      var top = this.scrollPlaceholderHeight;
+      const top = this.scrollPlaceholderHeight;
       // console.log("set Initial Scroll Postion: ", top);
       this.setScrollTop(top);
     }
@@ -162,13 +163,13 @@ class TextColumn extends Component {
   scrollToHighlighted() {
     // Scroll to the first highlighted segment
     if (!this._isMounted) { return; }
-    var $container   = this.$container;
-    var $readerPanel = $container.closest(".readerPanel");
-    var $highlighted = $container.find(".segment.highlight").first();
+    const $container   = this.$container;
+    const $readerPanel = $container.closest(".readerPanel");
+    const $highlighted = $container.find(".segment.highlight").first();
     if ($highlighted.length) {
-      var adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
-      var top = $highlighted.position().top + adjust - this.highlightThreshhold;
-      var top = top > this.scrollPlaceholderHeight ? top : this.scrollPlaceholderHeight;
+      const adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
+      let top = $highlighted.position().top + adjust - this.highlightThreshhold;
+      top = top > this.scrollPlaceholderHeight ? top : this.scrollPlaceholderHeight;
       this.setScrollTop(top);
       // console.log("scroll to highlighted: ", top);
       if ($readerPanel.attr("id") == $(".readerPanel:last").attr("id")) {
@@ -180,13 +181,13 @@ class TextColumn extends Component {
     // After one or more new TextRanges have just loaded in the first position, scroll
     // down to the TextRange that was visible before, so the TextColumn doesn't jump.
     // console.log("checking restore scroll after up");
-    var $texts  = this.$container.find(".basetext");
+    const $texts  = this.$container.find(".basetext");
     if ($texts.length < 2 || $texts.eq(0).hasClass("loading") ) { return; }
 
     this.loadingContentAtTop = false;
-    var targetTop = $texts.eq(this.numSectionsLoadedAtTop).position().top;
-    var adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
-    var top = targetTop + (2*this.node.scrollTop) - adjust;
+    const targetTop = $texts.eq(this.numSectionsLoadedAtTop).position().top;
+    const adjust = this.scrollPlaceholderHeight + this.scrollPlaceholderMargin;
+    const top = targetTop + (2*this.node.scrollTop) - adjust;
     this.setScrollTop(top);
     // console.log("scroll to restore after infinite up: " + top)  
   }
@@ -209,26 +210,26 @@ class TextColumn extends Component {
     // console.log("adjust Infinite Scroll");
     if (!this._isMounted) { return; }
     if (this.node.scrollHeight <= this.node.clientHeight) { return; }
-    var $node        = this.$container;
+    const $node        = this.$container;
 
-    var refs         = this.props.srefs.slice();
-    var $lastText    = $node.find(".textRange.basetext").last();
+    let refs         = this.props.srefs.slice();
+    const $lastText    = $node.find(".textRange.basetext").last();
     if (!$lastText.length) { console.log("no last basetext"); return; }
-    var lastTop      = $lastText.position().top;
-    var lastBottom   = lastTop + $lastText.outerHeight();
-    var windowHeight = $node.outerHeight();
-    var windowTop    = this.node.scrollTop;
-    var windowBottom = windowTop + windowHeight;
+    const lastTop      = $lastText.position().top;
+    const lastBottom   = lastTop + $lastText.outerHeight();
+    const windowHeight = $node.outerHeight();
+    const windowTop    = this.node.scrollTop;
+    let data;
     if (windowTop < 75 && !this.loadingContentAtTop && !downOnly) {
       // UP: add the previous section above then adjust scroll position so page doesn't jump
       // console.log("Inifite Scroll UP");
-      var topRef = refs[0];
-      var data   = Sefaria.ref(topRef);   // data for current ref
+      let topRef = refs[0];
+      data   = Sefaria.ref(topRef);   // data for current ref
       if (data && data.prev) {
         refs.splice(refs, 0, data.prev);  // Splice in at least the previous one (-1)
         this.numSectionsLoadedAtTop = 1;
 
-        var prevData, earlierData;
+        let prevData, earlierData;
 
         // Now, only add sources if we have data for them
         if(prevData = Sefaria.ref(data.prev)) {
@@ -252,12 +253,12 @@ class TextColumn extends Component {
         return;
       }
       //console.log("Down! Add next section");
-      var currentRef = refs.slice(-1)[0];
-      var data       = Sefaria.ref(currentRef);
+      let currentRef = refs.slice(-1)[0];
+      data       = Sefaria.ref(currentRef);
       if (data && data.next) {
         refs.push(data.next); // Append at least the next one
         let numSectionsAddToBottom = 1;
-        var nextData, laterData;
+        let nextData, laterData;
 
         // Now, only add sources if we have data for them
         if(nextData = Sefaria.ref(data.next)) {
@@ -285,14 +286,14 @@ class TextColumn extends Component {
     this.prevScrollPercentage = this.node.scrollTop / this.node.scrollHeight;
 
     // When using tab to navigate (i.e. a11y) set ref to currently focused ref
-    var $segment = null;
+    let $segment = null;
     if ($("body").hasClass("user-is-tabbing") && $(".segment:focus").length > 0) {
       $segment = $(".segment:focus").eq(0);
     } else {
-      var $container = this.$container;
+      const $container = this.$container;
       $container.find(".basetext .segment").each(function(i, segment) {
-        var top = $(segment).offset().top - $container.offset().top;
-        var bottom = $(segment).outerHeight() + top;
+        const top = $(segment).offset().top - $container.offset().top;
+        const bottom = $(segment).outerHeight() + top;
         if (bottom > this.windowMiddle || top >= this.highlightThreshhold) {
           $segment = $(segment);
           return false;
@@ -302,23 +303,23 @@ class TextColumn extends Component {
 
     if (!$segment) { return; }
 
-    var $section = $segment.closest(".textRange");
-    var sectionRef = $section.attr("data-ref");
+    const $section = $segment.closest(".textRange");
+    const sectionRef = $section.attr("data-ref");
     this.props.setCurrentlyVisibleRef(sectionRef);
 
     // don't move around highlighted segment when scrolling a single panel,
-    var shouldHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
+    const shouldHighlight = this.props.hasSidebar || this.props.mode === "TextAndConnections";
 
     if (shouldHighlight) {
-      var ref = $segment.attr("data-ref");
+      const ref = $segment.attr("data-ref");
       this.props.setTextListHighlight(ref);
     }
   }
   render() {
-    var classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
-    var index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
-    var isDictionary = (index && index.categories[0] == "Reference");
-    var content =  this.props.srefs.map(function(ref, k) {
+    let classes = classNames({textColumn: 1, connectionsOpen: this.props.mode === "TextAndConnections"});
+    const index = Sefaria.index(Sefaria.parseRef(this.props.srefs[0]).index);
+    const isDictionary = (index && index.categories[0] == "Reference");
+    let content =  this.props.srefs.map(function(ref, k) {
       return (<TextRange
         panelPosition ={this.props.panelPosition}
         sref={ref}
@@ -357,8 +358,9 @@ class TextColumn extends Component {
   
       bookTitle = noPrev ? 
         <div className="bookMetaDataBox" key="bookTitle">
-          <div className="title en" role="heading" aria-level="1" style={{"direction": "ltr"}}>{this.props.bookTitle}</div>
-          <div className="title he" role="heading" aria-level="1" style={{"direction": "rtl"}}>{this.props.heBookTitle}</div>
+          <div className="title" role="heading" aria-level="1">
+            <ContentText text={{en: this.props.bookTitle, he: this.props.heBookTitle}} defaultToInterfaceOnBilingual={true} />
+          </div>
         </div> : null;
 
       pre = this.state.showScrollPlaceholders ? 

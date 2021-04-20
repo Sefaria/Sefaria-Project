@@ -9,11 +9,13 @@ import $ from './sefaria/sefariaJquery';
 import EditCollectionPage from './EditCollectionPage';
 import Footer from './Footer';
 import SearchState from './sefaria/searchState';
+import {ContentLanguageContext} from './context';
 import {
   ContestLandingPage,
   RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,
+  RambanLandingPage
 } from './StaticPages';
 import {
   SignUpModal,
@@ -92,9 +94,11 @@ class ReaderApp extends Component {
           collectionTag: props.initialCollectionTag,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
-        if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
-        else if (panels[0].currVersions.he)                         { panels[0].settings.language = "hebrew"; }
-        else if (panels[0].currVersions.en)                         { panels[0].settings.language = "english"; }
+        if (!initialPanel.hasOwnProperty("settings")) {
+          if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
+          else if (panels[0].currVersions.he)                         { panels[0].settings.language = "hebrew"; }
+          else if (panels[0].currVersions.en)                         { panels[0].settings.language = "english"; }
+        }
         if (mode === "SheetAndConnections") {
           panels[0].highlightedRefs = props.initialRefs;
         }
@@ -138,9 +142,11 @@ class ReaderApp extends Component {
           collectionTag: props.initialCollectionTag,
           settings: Sefaria.util.clone(defaultPanelSettings)
         };
-        if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
-        else if (panels[0].currVersions.he)                         { panels[0].settings.language = "hebrew"; }
-        else if (panels[0].currVersions.en)                         { panels[0].settings.language = "english"; }
+        if (!initialPanel.hasOwnProperty("settings")) {
+          if (panels[0].currVersions.he && panels[0].currVersions.en) { panels[0].settings.language = "bilingual"; }
+          else if (panels[0].currVersions.he)                         { panels[0].settings.language = "hebrew"; }
+          else if (panels[0].currVersions.en)                         { panels[0].settings.language = "english"; }
+        }
         if (mode === "TextAndConnections") {
           panels[0].highlightedRefs = props.initialRefs;
         }
@@ -191,7 +197,7 @@ class ReaderApp extends Component {
           currVersions: props.initialPanels.length ? props.initialPanels[0].currVersions : {en:null,he:null},
           settings: ("settings" in props.initialPanels[0]) ? extend(Sefaria.util.clone(defaultPanelSettings), props.initialPanels[0].settings) : Sefaria.util.clone(defaultPanelSettings)
         };
-        if (!"settings" in props.initialPanels[0]) {
+        if (!props.initialPanels[0].hasOwnProperty("settings")) {
           if (p.currVersions.he && p.currVersions.en) { p.settings.language = "bilingual"; }
           else if (p.currVersions.he)                 { p.settings.language = "hebrew" }
           else if (p.currVersions.en)                 { p.settings.language = "english" }
@@ -209,7 +215,7 @@ class ReaderApp extends Component {
         } else {
           panel = this.clonePanel(props.initialPanels[i]);
           panel.settings = Sefaria.util.clone(defaultPanelSettings);
-          if (!"settings" in props.initialPanels[i]) {
+          if (!props.initialPanels[i].hasOwnProperty("settings")) {
             if (panel.currVersions.he && p.currVersions.en) { panel.settings.language = "bilingual"; }
             else if (panel.currVersions.he)                 { panel.settings.language = "hebrew" }
             else if (panel.currVersions.en)                 { panel.settings.language = "english" }
@@ -494,7 +500,8 @@ class ReaderApp extends Component {
     var siteName = Sefaria._siteSettings["SITE_NAME"]["en"]; // e.g. "Sefaria"
 
     // List of modes that the ConnectionsPanel may have which can be represented in a URL. 
-    const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open", "About", "WebPages", "extended notes", "Topics", "Torah Readings"]);
+    const sidebarModes = new Set(["Sheets", "Notes", "Translations", "Translation Open",
+      "About", "WebPages", "extended notes", "Topics", "Torah Readings", "manuscripts"]);
 
     for (var i = 0; i < states.length; i++) {
       // Walk through each panel, create a history object as though for this panel alone
@@ -1225,8 +1232,8 @@ class ReaderApp extends Component {
     // When the driving panel changes language, carry that to the dependent panel
     // However, when carrying a language change to the Tools Panel, do not carry over an incorrect version
     if (!this.state.panels[n]) { debugger; }
-    var langChange  = state.settings && state.settings.language !== this.state.panels[n].settings.language;
-    var next        = this.state.panels[n+1];
+    let langChange  = state.settings && state.settings.language !== this.state.panels[n].settings.language;
+    let next        = this.state.panels[n+1];
     if (langChange && next && next.mode === "Connections" && state.settings.language !== "bilingual") {
         next.settings.language = state.settings.language;
     }
@@ -1239,7 +1246,7 @@ class ReaderApp extends Component {
       this.checkPanelScrollIntentAndSaveRecent(state, n);
     }
     this.state.panels[n] = extend(this.state.panels[n], state);
-    var new_state = {panels: this.state.panels};
+    let new_state = {panels: this.state.panels};
     if(this.didDefaultPanelSettingsChange(state)){
       new_state["defaultPanelSettings"] = Sefaria.util.clone(state.settings);
     }
@@ -1866,6 +1873,7 @@ class ReaderApp extends Component {
                     analyticsInitialized={this.state.initialAnalyticsTracked}
                     getLicenseMap={this.getLicenseMap}
                     translateISOLanguageCode={this.translateISOLanguageCode}
+                    openTopic={this.openTopic}
                     toggleSignUpModal={this.toggleSignUpModal} />) : null;
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
@@ -2050,4 +2058,5 @@ export {
   RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,
+  RambanLandingPage
 };

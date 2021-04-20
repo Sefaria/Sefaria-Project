@@ -7,7 +7,7 @@ Writes to MongoDB Collection: sheets
 import sys
 import hashlib
 import urllib.request, urllib.parse, urllib.error
-import logging
+import structlog
 import regex
 import dateutil.parser
 import bleach
@@ -34,14 +34,14 @@ from .history import record_sheet_publication, delete_sheet_publication
 from .settings import SEARCH_INDEX_ON_SAVE
 from . import search
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 if not hasattr(sys, '_doc_build'):
 	from django.contrib.auth.models import User
 from django.contrib.humanize.templatetags.humanize import naturaltime
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 def get_sheet(id=None):
@@ -154,6 +154,7 @@ def sheet_list(query=None, sort=None, skip=0, limit=None):
 	projection = {
 		"id": 1,
 		"title": 1,
+		"summary": 1,
 		"status": 1,
 		"owner": 1,
 		"views": 1,
@@ -181,6 +182,7 @@ def sheet_to_dict(sheet):
 	sheet_dict = {
 		"id": sheet["id"],
 		"title": strip_tags(sheet["title"]) if "title" in sheet else "Untitled Sheet",
+		"summary": sheet.get("summary", None),
 		"status": sheet["status"],
 		"author": sheet["owner"],
 		"ownerName": profile["name"],
@@ -897,21 +899,22 @@ def add_langs_to_topics(topic_list: list, use_as_typed=True, backwards_compat_la
 	:param bool use_as_typed:
 	"""
 	new_topic_list = []
+	from sefaria.model import library
+	topic_map = library.get_topic_mapping()
 	if len(topic_list) > 0:
-		topic_set = {topic.slug: topic for topic in TopicSet({'$or': [{'slug': topic['slug']} for topic in topic_list]})}
 		for topic in topic_list:
-			topic_obj = topic_set.get(topic['slug'], None)
-			if topic_obj is None:
-				continue
+			# Fall back on `asTyped` if no data is in mapping yet. If neither `asTyped` nor mapping data is availble fail safe by reconstructing a title from a slug (HACK currently affecting trending topics if a new topic isn't in cache yet)
+			default_title = topic['asTyped'] if use_as_typed else topic['slug'].replace("-", " ").title()
+			topic_titles = topic_map.get(topic['slug'], {"en": default_title, "he": default_title})
 			new_topic = topic.copy()
 			tag_lang = 'en'
 			if use_as_typed:
 				tag_lang = 'he' if is_hebrew(new_topic['asTyped']) else 'en'
 				new_topic[tag_lang] = new_topic['asTyped']
 			if not use_as_typed or tag_lang == 'en':
-				new_topic['he'] = topic_obj.get_primary_title('he')
+				new_topic['he'] = topic_titles["he"]
 			if not use_as_typed or tag_lang == 'he':
-				new_topic['en'] = topic_obj.get_primary_title('en')
+				new_topic['en'] = topic_titles["en"]
 
 			if backwards_compat_lang_fields is not None:
 				for lang in ('en', 'he'):
@@ -1068,6 +1071,9 @@ class Sheet(abstract.AbstractMongoRecord):
 	# Warning: this class doesn't implement all of the saving logic in save_sheet()
 	# In current form should only be used for reading or for changes that are known to be
 	# safe and without need of side effects.
+	#
+	# Warning: there are fields on some individual sheet documents that aren't enumerated here,
+	# trying to load a document with an attribute not listed here will cause an error.
 
 	collection = 'sheets'
 
