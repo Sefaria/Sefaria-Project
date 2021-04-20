@@ -135,9 +135,9 @@ def get_discover_item(data, date):
   if not todays_data or not todays_data["Sheet URL"]:
     return None
 
-  if todays_data["Citation"]: 
-    oRef = Ref(todays_data["Citation"])
-    about = {
+  try:
+      oRef = Ref(todays_data["Citation"])
+      about = {
       "title": todays_data["Description Title"],
       "description": todays_data["Description"],
       "ref": {
@@ -150,19 +150,20 @@ def get_discover_item(data, date):
         "he": hebrew_term(oRef.index.get_primary_category()),
       }
     }
-  else:
-    about = None
 
-  sheet = sheet_with_customization(todays_data)
-  sheet["heading"] = {
-    "en": "On " + about["category"]["en"],
-    "he": "על ה" + about["category"]["he"],
-  }
+    sheet = sheet_with_customization(todays_data)
+    sheet["heading"] = {
+      "en": "On " + about["category"]["en"],
+      "he": "על ה" + about["category"]["he"],
+    }
 
-  return {
-    "about": about,
-    "sheet": sheet
-  }
+    return {
+      "about": about,
+      "sheet": sheet
+    }
+
+  except:
+    return None
 
 
 def get_featured_item(data, date):

@@ -3624,7 +3624,7 @@ def homepage_reset(request):
     """
     Reset the cache of the homepage content from Google sheet
     """
-    date = request.GET.get("next", None)
+    date = request.GET.get("next", "5/23/21")
     homepage = get_homepage_items(date=date, language=request.interfaceLang, refresh=True)
 
     return menu_page(request, page="home", props={"homepage": homepage, "homepagePreview": date})
