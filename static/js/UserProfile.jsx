@@ -23,7 +23,7 @@ class UserProfile extends Component {
     this.state = this.getPrivateTabState(props);
   }
   componentDidUpdate(prevProps) {
-    if (!!this.props.profile && (!prevProps || prevProps.profile.id !== this.props.profile.id) 
+    if (!!this.props.profile && (!prevProps || prevProps.profile.id !== this.props.profile.id)
         || this.props.tab !== prevProps.tab) {
       this.setState(this.getPrivateTabState(this.props));
     }
@@ -339,7 +339,7 @@ class UserProfile extends Component {
     if (!Sefaria._uid) { this.props.toggleSignUpModal(); return; }
     this._messageModalRef.makeVisible();
   }
-  follow() { 
+  follow() {
     Sefaria.followAPI(this.props.profile.id);
   }
   openFollowers(e) {
@@ -350,10 +350,12 @@ class UserProfile extends Component {
     e.preventDefault();
     this.props.setProfileTab("following");
   }
+
   render() {
     return (
       <div key={this.props.profile.id} className="profile-page readerNavMenu">
         <div className="content noOverflowX">
+          {this.props.profile.show_editor_toggle ?  <EditorToggleHeader usesneweditor={this.props.profile.uses_new_editor} /> : null}
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :
               <div>
@@ -457,6 +459,20 @@ class UserProfile extends Component {
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
+
+
+const EditorToggleHeader = ({usesneweditor}) => {
+ const text = <InterfaceText>{usesneweditor ? "You are currently testing the new document editor" : "You are currently using the old document editor"}</InterfaceText>;
+ const buttonText = <InterfaceText>{usesneweditor ? "Go back to old version" : "Try the new version"}</InterfaceText>;
+ const buttonLink = (usesneweditor ? "/disable_new_editor" : "/enable_new_editor");
+
+ return (
+   <div className="editorToggleHeader">
+     {text} <a href={buttonLink} className="button white" role="button">{buttonText}</a>
+   </div>
+ )
+}
+
 
 const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`

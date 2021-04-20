@@ -180,7 +180,7 @@ def base_props(request):
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
-            "_uses_new_editor": request.COOKIES.get("new_editor", False),
+            "_uses_new_editor": getattr(profile, "uses_new_editor", False),
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
@@ -749,16 +749,17 @@ def search(request):
 
 @login_required
 def enable_new_editor(request):
-    resp = home(request)
-    resp.set_cookie("new_editor", "yup", 60 * 60 * 24 * 365)
-    return resp
-
+    profile = UserProfile(id=request.user.id)
+    profile.update({"uses_new_editor": True, "show_editor_toggle": True})
+    profile.save()
+    return redirect(f"/profile/{profile.slug}")
 
 @login_required
 def disable_new_editor(request):
-    resp = home(request)
-    resp.delete_cookie("new_editor")
-    return resp
+    profile = UserProfile(id=request.user.id)
+    profile.update({"uses_new_editor": False})
+    profile.save()
+    return redirect(f"/profile/{profile.slug}")
 
 
 def public_collections(request):
@@ -1240,7 +1241,7 @@ def modify_bulk_text_api(request, title):
             @csrf_protect
             def protected_post(request):
                 return jsonResponse(modify(request.user.id))
-            return protected_post(request)        
+            return protected_post(request)
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
@@ -4225,7 +4226,7 @@ def application_health_api_nonlibrary(request):
 
 def rollout_health_api(request):
     """
-    Defines the /healthz-rollout API endpoint which responds with 
+    Defines the /healthz-rollout API endpoint which responds with
         200 if the services Django depends on, Redis, Multiverver, and NodeJs
             are available.
         500 if any of the aforementioned services are not available
@@ -4238,7 +4239,7 @@ def rollout_health_api(request):
     }
     """
     def isRedisReachable():
-        try: 
+        try:
             redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
             return redis_client.ping() == True
         except:
