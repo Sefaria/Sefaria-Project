@@ -270,30 +270,6 @@ def total_sheet_views_by_query(query):
 	return list(result)[0]["total"]
 
 
-def sheets_with_content_by_category(cat):
-	results = []
-	sids = set()
-	sheets = db.sheets.find({"status": "public"}, {"title": 1, "id": 1, "owner": 1, "includedRefs": 1, "status":1})
-	for sheet in sheets:
-		if sheet["owner"] == 101527:
-			continue
-		refs = []
-		for ref in sheet["includedRefs"]:
-			try:
-				oRef = Ref(ref)
-			except:
-				continue
-			if oRef.primary_category == cat:
-				refs.append(ref)
-				sids.add(sheet["id"])
-		if len(refs):
-			for ref in refs:
-				title = strip_tags(sheet["title"], remove_new_lines=True).strip()
-				print("www.sefaria.org/sheets/{}\t{}\t{}".format(sheet["id"], title, ref))
-
-	print("\n\n{} Sheet with {}".format(len(sids), cat))
-
-
 def account_creation_stats():
 	"""
 	Counts the number of accounts created each month for all users and separately for 

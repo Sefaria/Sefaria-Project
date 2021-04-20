@@ -10,8 +10,10 @@ from django.utils import timezone
 
 from sefaria.model import Ref, Topic, Collection
 from sefaria.sheets import get_sheet, sheet_to_dict
+from sefaria.system.database import db
 from sefaria.utils.calendars import get_parasha
 from sefaria.utils.hebrew import is_hebrew, hebrew_term, hebrew_parasha_name
+from sefaria.utils.util import strip_tags
 from sefaria.helper.topic import get_topic_by_parasha
 from sefaria.system.cache import django_cache, delete_cache_elem, cache_get_key
 
@@ -294,3 +296,81 @@ def dupe_rows(rows):
     if row[0] == last:
       print (", ".join(row))
     last = row[0]
+
+
+def sheets_with_content_by_category(cat, print_results=True):
+  """
+  Returns or prints a list of public sheets that include ref within the category `cat`.
+  `cat` may be either a string which is compared to each ref's `primary_category`,
+  or a list of strings which must match exactly the ref's index's `categories`.
+  """
+  results = []
+  sids = set()
+  sheets = db.sheets.find({"status": "public"}, {"title": 1, "id": 1, "owner": 1, "includedRefs": 1, "status":1})
+  for sheet in sheets:
+    if sheet["owner"] == 101527:
+      continue
+    refs = []
+    for ref in sheet["includedRefs"]:
+      try:
+        oRef = Ref(ref)
+      except:
+        continue
+      if oRef.primary_category == cat or oRef.index.categories == cat:
+        refs.append(ref)
+        sids.add(sheet["id"])
+    if len(refs):
+      for ref in refs:
+        title = strip_tags(sheet["title"], remove_new_lines=True).strip()
+        results.append([sheet["id"], title, ref])
+        if print_results:
+          print("www.sefaria.org/sheets/{}\t{}\t{}".format(sheet["id"], title, ref))
+
+  print("\n\n{} Sheet with {}".format(len(sids), cat))
+
+  if not print_results:
+    return results
+
+
+def sheets_by_parashah(print_results=True):
+  """
+  Returns or prints a list of public sheets that include verses of Torah, aggregated and
+  labeled by parashah.
+  """
+  sheets = sheets_with_content_by_category(["Tanakh", "Torah"], print_results=False)
+  parshiot = TermSet({"scheme": "Parasha"})
+  for p in parshiot:
+    p.oRef = Ref(p.ref)
+
+  def parashah_for_ref(ref):
+    oRef = Ref(ref)
+    for p in parshiot:
+      if p.oRef.overlaps(oRef):
+        return p
+    print("No parashah found for {}".format(ref))
+    return None
+
+  for sheet in sheets:
+    p = parashah_for_ref(sheet[2])
+    if p:
+      titles = [p.get_primary_title(), p.get_primary_title(lang="he")]
+    else:
+      titles = ["", ""]
+    sheet.extend(titles)
+
+  # Aggregate each row by parashah
+  results_index = {} 
+  for sheet in sheets:
+    key = str(sheet[0]) + sheet[3]
+    if key in results_index:
+      results_index[key][4] += ", " + sheet[2] # add to list of citations
+    else:
+      results_index[key] = [sheet[3], sheet[4], sheet[0], sheet[1], sheet[2]]
+
+  results = results_index.values()
+
+  if print_results:
+    for result in results:
+      print("{}\t{}\twww.sefaria.org/sheets/{}\t{}\t{}".format(*result))
+  else:
+    return sheets
