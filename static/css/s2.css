@@ -376,6 +376,9 @@ input.noselect {
 .header .library, .header .my-profile, .header .readerNavMenuSearchButton {
   display: inline-block;
   color: #999;
+  border: none;
+  background: transparent;
+  padding: 0;
 }
 .header .searchBox {
   overflow: hidden;
@@ -413,6 +416,67 @@ input.noselect {
 .header .search.hebrewSearch {
   font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
+}
+.mobileNavMenu {
+  position: fixed;
+  height: calc(100% - 60px);
+  box-sizing: border-box;
+  top: 60px;
+  width: 100%;
+  background-color: white;
+  left: 0;
+  z-index: 1000;
+}
+.mobileNavMenu.closed {
+  display: none;
+}
+.mobileNavMenu .searchLine {
+  padding: 15px: 20px;
+  border-bottom: 1px solid #EDEDEC;
+}
+.header .mobileNavMenu .searchBox,
+.header .mobileNavMenu .searchBox.searchFocused
+.header .mobileNavMenu .searchBox .search,
+.header .mobileNavMenu .searchBox.searchFocused .search {
+  width: 100%;
+}
+.header.mobile .ui-autocomplete {
+  width: 100%;
+}
+.mobileNavMenu a {
+  display: block;
+  color: #666;
+  font-size: 16px;
+  padding: 15px;
+  border-bottom: 1px solid #EDEDEC;
+}
+.mobileNavMenu a > img {
+  margin-inline-end: 15px;
+  width: 16px;
+  opacity: 0.6;
+  position: relative;
+  top: 3px;
+}
+.mobileNavMenu .mobileAccountLinks {
+  background-color: #FBFBFA;
+  border-top: 1px solid #CCC;
+  border-bottom: 1px solid #CCC;
+}
+.mobileNavMenu .mobileAccountLinks .login {
+  display: block;
+  padding: 15px;
+}
+.mobileNavMenu .profile-pic {
+  display: inline-block;
+  margin-inline-end: 11px;
+  position: relative;
+  top: 4px;
+}
+.mobileNavMenu .mobileAccountLinks .accountLinks {
+  display: block;
+}
+.mobileNavMenu .logout {
+  color: #999;
 }
 .ui-autocomplete .ui-menu-item.search-override {
   border-top: solid 1px #ccc;
@@ -620,14 +684,17 @@ input.noselect {
 .header .testWarning:hover {
   text-decoration: underline;
 }
-.header .headerInner.mobileHeader {
+.header .headerInner.mobile {
   padding: 0 15px;
 }
-.header .mobileHeader {
+.header .headerInner.mobile {
   display: flex;
 }
-.header .mobileHeader div {
+.header .headerInner.mobile div {
   flex: 1;
+}
+.header.mobile .searchLine {
+  padding: 15px;
 }
 .overlay {
   width: 100%;

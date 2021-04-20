@@ -15,6 +15,12 @@ import {
 
 
 class Header extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      mobileNavMenuOpen: false,
+    };
+  }
   componentDidMount() {
     window.addEventListener('keydown', this.handleFirstTab);
   }
@@ -24,24 +30,20 @@ class Header extends Component {
       window.removeEventListener('keydown', this.handleFirstTab);
     }
   }
+  toggleMobileNavMenu() {
+    this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});
+  }
   render() {
-    const headerInnerClasses = classNames({
-      headerInner: 1,
-      boxShadow: this.props.hasBoxShadow,
-      mobileHeader: !this.props.multiPanel
-    });
-        
     const headerContent = (
       <>
         <div className="headerNavSection">
-            { Sefaria._siteSettings.TORAH_SPECIFIC ? <a className="home" href="/" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> : null }
-            <a href="/texts" className="library"><InterfaceText>Texts</InterfaceText></a>
-            <a href="/topics" className="library"><InterfaceText>Topics</InterfaceText></a>
-            <a  href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank" className="library"><InterfaceText>Donate</InterfaceText></a>
+          { Sefaria._siteSettings.TORAH_SPECIFIC ? <a className="home" href="/" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> : null }
+          <a href="/texts" className="library"><InterfaceText>Texts</InterfaceText></a>
+          <a href="/topics" className="library"><InterfaceText>Topics</InterfaceText></a>
+          <a  href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank" className="library"><InterfaceText>Donate</InterfaceText></a>
         </div>
 
         <div className="headerLinksSection">
-          
           <SearchBar 
             onRefClick={this.props.onRefClick}
             showSearch={this.props.showSearch}
@@ -61,9 +63,9 @@ class Header extends Component {
     const mobileHeaderContent = (
       <>
         <div>
-          <a href="/texts" aria-label={Sefaria._("Menu")} className="library">
+          <button onClick={this.toggleMobileNavMenu} aria-label={Sefaria._("Menu")} className="library">
             <i className="fa fa-bars"></i>
-          </a>
+          </button>
         </div>
         
         <div className="mobileHeaderCenter">
@@ -77,11 +79,27 @@ class Header extends Component {
       </>
     );
 
+    const headerClasses = classNames({header: 1, mobile: !this.props.multiPanel});
+    const headerInnerClasses = classNames({
+      headerInner: 1,
+      boxShadow: this.props.hasBoxShadow,
+      mobile: !this.props.multiPanel
+    });
     return (
-      <div className="header" role="banner">
+      <div className={headerClasses} role="banner">
         <div className={headerInnerClasses}>
           {this.props.multiPanel ? headerContent : mobileHeaderContent}
         </div>
+
+        {this.props.multiPanel ? null :
+        <MobileNavMenu
+          visible={this.state.mobileNavMenuOpen}
+          onRefClick={this.props.onRefClick}
+          showSearch={this.props.showSearch}
+          openTopic={this.props.openTopic}
+          openURL={this.props.openURL}
+          close={this.toggleMobileNavMenu} />
+        }
         <GlobalWarningMessage />
       </div>
     );
@@ -162,7 +180,7 @@ class SearchBar extends Component {
       }.bind(this)
     });
     const anchorSide = Sefaria.interfaceLang === "hebrew" ? "right+" : "left-";
-    const sideGap = Sefaria.interfaceLang === "hebrew" ? 38 : 40;
+    const sideGap = this.props.fullWidth ? 55 : Sefaria.interfaceLang === "hebrew" ? 38 : 40;
     $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete({
       position: {my: anchorSide + sideGap + " top+18", at: anchorSide + "0 bottom"},
       minLength: 3,
@@ -204,12 +222,12 @@ class SearchBar extends Component {
     });
   }
   showVirtualKeyboardIcon(show){
-      if(document.getElementById('keyboardInputMaster')){ //if keyboard is open, ignore.
-        return; //this prevents the icon from flashing on every key stroke.
-      }
-      if(Sefaria.interfaceLang === 'english'){
-          $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"display": show ? "inline" : "none"});
-      }
+    if(document.getElementById('keyboardInputMaster')){ //if keyboard is open, ignore.
+      return; //this prevents the icon from flashing on every key stroke.
+    }
+    if(Sefaria.interfaceLang === 'english' && !this.props.hideHebrewKeyboard){
+      $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"display": show ? "inline" : "none"});
+    }
   }
   focusSearch(e) {
     const parent = document.getElementById('searchBox');
@@ -237,6 +255,7 @@ class SearchBar extends Component {
     }
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete("close");
+    this.props.onNavigate && this.props.onNavigate();
   }
   getURLForObject(type, key) {
     if (type === "Person") {
@@ -254,14 +273,15 @@ class SearchBar extends Component {
     }
   }
   redirectToObject(type, key) {
-      Sefaria.track.event("Search", `Search Box Navigation - ${type}`, key);
-      this.closeSearchAutocomplete();
-      this.clearSearchBox();
-      const url = this.getURLForObject(type, key);
-      const handled = this.props.openURL(url);
-      if (!handled) {
-        window.location = url;
-      }
+    Sefaria.track.event("Search", `Search Box Navigation - ${type}`, key);
+    this.closeSearchAutocomplete();
+    this.clearSearchBox();
+    const url = this.getURLForObject(type, key);
+    const handled = this.props.openURL(url);
+    if (!handled) {
+      window.location = url;
+    }
+    this.props.onNavigate && this.props.onNavigate();
   }
   submitSearch(query) {
     Sefaria.getName(query)
@@ -277,12 +297,17 @@ class SearchBar extends Component {
           Sefaria.track.event("Search", action, query);
           this.clearSearchBox();
           this.props.onRefClick(d["ref"]);  //todo: pass an onError function through here to the panel onError function which redirects to search
+          this.props.onNavigate && this.props.onNavigate();
+        
         } else if (!!d["topic_slug"]) {
           Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
           this.clearSearchBox();
           this.props.openTopic(d["topic_slug"]);
+          this.props.onNavigate && this.props.onNavigate();
+        
         } else if (d["type"] === "Person" || d["type"] === "Collection" || d["type"] === "TocCategory") {
           this.redirectToObject(d["type"], d["key"]);
+        
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
           this.closeSearchAutocomplete();
@@ -323,25 +348,28 @@ class SearchBar extends Component {
       <div id="searchBox" className={searchBoxClasses}>
         <ReaderNavigationMenuSearchButton onClick={this.handleSearchButtonClick} />
         <input className={inputClasses}
-               id="searchInput"
-               placeholder={Sefaria._("Search")}
-               onKeyUp={this.handleSearchKeyUp}
-               onFocus={this.focusSearch}
-               onBlur={this.blurSearch}
-               maxLength={75}
-        title={Sefaria._("Search for Texts or Keywords Here")}/>
+          id="searchInput"
+          placeholder={Sefaria._("Search")}
+          onKeyUp={this.handleSearchKeyUp}
+          onFocus={this.focusSearch}
+          onBlur={this.blurSearch}
+          maxLength={75}
+          title={Sefaria._("Search for Texts or Keywords Here")}/>
       </div>
     );
   }
 }
 SearchBar.propTypes = {
-  onRefClick:   PropTypes.func.isRequired,
-  showSearch:   PropTypes.func.isRequired,
-  openTopic:    PropTypes.func.isRequired,
+  onRefClick:         PropTypes.func.isRequired,
+  showSearch:         PropTypes.func.isRequired,
+  openTopic:          PropTypes.func.isRequired,
+  openURL:            PropTypes.func.isRequired,
+  fullWidth:          PropTypes.bool,
+  hideHebrewKeyboard: PropTypes.bool,
 };
 
 
-const LoggedOutButtons = ({headerMode}) => {
+const LoggedOutButtons = ({mobile}) => {
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
   const [loginLink, setLoginLink] = useState("/login?next=/");
@@ -356,15 +384,16 @@ const LoggedOutButtons = ({headerMode}) => {
       setRegisterLink("/register?next="+next);
     }
   })
-  return(
-    <div className="accountLinks anon">
+  const classes = classNames({accountLinks: !mobile, anon: !mobile});
+  return (
+    <div className={classes}>
       <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
-         <span className="int-en">Log in</span>
-         <span className="int-he">התחבר</span>
+         {mobile ? <img src="/static/img/profile.svg" /> : null }
+         <InterfaceText>Log in</InterfaceText>
        </a>
       <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
-         <span className="int-en">Sign up</span>
-         <span className="int-he">הרשם</span>
+         {mobile ? <img src="/static/img/profile.svg" /> : null }
+         <InterfaceText>Sign up</InterfaceText>
       </a>
     </div>
   );
@@ -380,20 +409,93 @@ const LoggedInButtons = ({headerMode}) => {
   }, []);
   const unread = headerMode ? ((isClient && Sefaria.notificationCount > 0) ? 1 : 0) : Sefaria.notificationCount > 0 ? 1 : 0
   const notificationsClasses = classNames({notifications: 1, unread: unread});
-  return(
-      <div className="accountLinks">
-          <a href="/texts/saved" aria-label="See My Saved Texts">
-            <img src="/static/icons/bookmarks.svg" />
-          </a>      
-          <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
-            <img src="/static/icons/notification.svg" />
-          </a>
-          <a href="/my/profile" className="my-profile">
-            <ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
-          </a>
-       </div>
+  return (
+    <div className="accountLinks">
+      <a href="/texts/saved" aria-label="See My Saved Texts">
+        <img src="/static/icons/bookmarks.svg" />
+      </a>      
+      <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>
+        <img src="/static/icons/notification.svg" />
+      </a>
+      <a href="/my/profile" className="my-profile">
+        <ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
+      </a>
+    </div>
   );
 }
 
+
+const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visible}) => {
+  const classes = classNames({
+    mobileNavMenu: 1,
+    closed: !visible,
+  });
+  return (
+    <div className={classes}>
+      <div className="searchLine">
+        <SearchBar
+          onRefClick={onRefClick}
+          showSearch={showSearch}
+          openTopic={openTopic}
+          openURL={openURL}
+          onNavigate={close}
+          fullWidth={true}
+          hideHebrewKeyboard={true} />
+      </div>
+      <a href="/" onClick={close}>
+        <img src="/static/icons/home.svg" />
+        <InterfaceText>Home</InterfaceText>
+      </a>
+      <a href="/texts" onClick={close}>
+        <img src="/static/img/book-icon-black.svg" />
+        <InterfaceText>Texts</InterfaceText>
+      </a>
+      <a href="/topics" onClick={close}>
+        <img src="/static/icons/topic.svg" />
+        <InterfaceText>Topics</InterfaceText>
+      </a>
+      <a href="/calendars" onClick={close}>
+        <img src="/static/icons/calendar.svg" />
+        <InterfaceText>Study Schedules</InterfaceText>
+      </a>
+      <a href="/collections" onClick={close}>
+        <img src="/static/icons/collection.svg" />
+        <InterfaceText>Collections</InterfaceText>
+      </a>
+
+      <div className="mobileAccountLinks">
+        {Sefaria._uid ?
+        <> 
+          <a href="/my/profile" onClick={close}>
+            <ProfilePic len={22} url={Sefaria.profile_pic_url} name={Sefaria.full_name} />
+            <InterfaceText>Profile</InterfaceText>
+          </a>
+          <a href="/texts/saved" onClick={close}>
+            <img src="/static/icons/bookmarks.svg" />
+            <InterfaceText>Saved & History</InterfaceText>
+          </a>
+          <a href="/notifications" onClick={close}>
+            <img src="/static/icons/notification.svg" />
+            <InterfaceText>Notifications</InterfaceText>
+          </a>
+        </>
+        :
+        <LoggedOutButtons mobile={true} />
+        }
+        <a href="/about">
+          <img src="/static/icons/info.svg" />
+          <InterfaceText>About Sefaria</InterfaceText>
+        </a>
+        {Sefaria._uid ?
+        <a href="/logout" className="logout">
+          <img src="/static/icons/logout.svg" />
+          <InterfaceText>Logout</InterfaceText>
+        </a>
+        : null }
+      </div>
+
+    </div>
+  );
+};
 
 export default Header;

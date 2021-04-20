@@ -18,6 +18,8 @@ const Strings = {
     " & ": " | ",
     "My Source Sheets" : "דפי המקורות שלי",
     "Public Source Sheets":"דפי מקורות פומביים",
+    "Log in": "התחבר",
+    "Sign up": "הרשם",
 
     // Home -- TODO replace, these are largely placeholders from Google Translate
     "Donate": "תרומות",
@@ -269,7 +271,6 @@ const Strings = {
     "Save texts": "שמרו טקסטים לקריאה חוזרת",
     "Follow your favorite authors": "עקבו אחר הסופרים האהובים עליכם",
     "Stay in the know": "השארו מעודכנים",
-    "Sign Up": "הרשמו לספריא",
     "Already have an account?": "כבר יש לכם חשבון?",
     "Sign\u00A0in": "התחברו",
     "Save": "שמירה",
