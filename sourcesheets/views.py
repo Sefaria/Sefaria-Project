@@ -56,8 +56,8 @@ def annotate_user_links(sources):
 @login_required
 @ensure_csrf_cookie
 def new_sheet(request):
-
-	if request.COOKIES.get("new_editor", None):
+	profile = UserProfile(id=request.user.id)
+	if getattr(profile, "uses_new_editor", False):
 		sheet = {
 				'status': 'unlisted',
 				'title': '',
