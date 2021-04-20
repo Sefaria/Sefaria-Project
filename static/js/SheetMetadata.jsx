@@ -95,14 +95,14 @@ class SheetMetadata extends Component {
   isFormValidated() {
     if ((!this.state.summary || this.state.summary.trim() == '') && this.state.tags.length == 0) {
       this.setState({
-        validationMsg: "Please add a description and topics to publish your sheet.",
+        validationMsg: Sefaria._("Please add a description and topics to publish your sheet."),
         validationFailed: "both"
       });
       return false
     }
     else if (!this.state.summary || this.state.summary.trim() == '') {
       this.setState({
-        validationMsg: "Please add a description to publish your sheet.",
+        validationMsg: Sefaria._("Please add a description to publish your sheet."),
         validationFailed: "summary"
       });
       return false
@@ -110,7 +110,7 @@ class SheetMetadata extends Component {
 
     else if (this.state.tags.length == 0) {
       this.setState({
-        validationMsg: "Please add topics to publish your sheet.",
+        validationMsg: Sefaria._("Please add topics to publish your sheet."),
         validationFailed: "topics"
       });
       return false
@@ -277,7 +277,7 @@ class SheetMetadata extends Component {
     const newSummary = event.target.value
     if (event.target.value.length > 280) {
       this.setState({
-        validationMsg: "The summary description is limited to 280 characters.",
+        validationMsg: Sefaria._("The summary description is limited to 280 characters."),
         validationFailed: "summary"
       });
     }
@@ -416,14 +416,13 @@ class SheetMetadata extends Component {
                     </div> : null }
                     <div className="sheetMeta">
                       <div className="int-en">
-                          Created {Sefaria.util.naturalTime(timestampCreated, "en")} ago · {sheet.views} Views · { !!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--'} Saves {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>Not Published</span></span>)}
+                          Created {Sefaria.util.naturalTime(timestampCreated, "en")} ago · {sheet.views} Views · { !!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--'} Saves {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>)}
 
                       </div>
                       <div className="int-he">
                           <span>נוצר לפני  {Sefaria.util.naturalTime(timestampCreated, "he")} · </span>
                           <span>{sheet.views} צפיות · </span>
-                          <span> {!!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--' } שמירות </span>
-                      </div>
+                          <span> {!!this.state.sheetSaves ? this.state.sheetSaves.length + this.state.sheetLikeAdjustment : '--' } שמירות </span> {this.state.published ? null : (<span className="unlisted">· <img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>)}                      </div>
                     </div>
 
                     {this.generateSheetMetaDataButtons()}
@@ -456,9 +455,13 @@ class SheetMetadata extends Component {
                       </h3>
 
 
-                      <p>
-                      <InterfaceText html={{en:this.state.published ? "Your sheet is <strong>published</strong> on Sefaria and visible to others through search and topics." : "List your sheet on Sefaria for others to discover."}} />
-                      </p>
+
+                      {this.state.published ?
+                        <p><InterfaceText>Your sheet is</InterfaceText> <strong><InterfaceText>published</InterfaceText></strong><InterfaceText>on Sefaria and visible to others through search and topics.</InterfaceText></p> :
+                        <p><InterfaceText>List your sheet on Sefaria for others to discover.</InterfaceText></p>
+                      }
+
+
                       <hr/>
                       {this.state.validationFailed == "none" ? null :  <p className="error"><InterfaceText>{this.state.validationMsg}</InterfaceText></p> }
                       <p className={"smallText"}><InterfaceText>Summary</InterfaceText></p>
@@ -466,7 +469,7 @@ class SheetMetadata extends Component {
                         className={this.state.validationFailed == "both" || this.state.validationFailed == "summary" ? "error" : ""}
                         rows="3"
                         maxLength="281"
-                        placeholder="Write a short description of your sheet..."
+                        placeholder={Sefaria._("Write a short description of your sheet...")}
                         value={this.state.summary} onChange={this.handleSummaryChange}></textarea>
                       <p className={"smallText"}><InterfaceText>Topics</InterfaceText></p>
                       <div className={this.state.validationFailed == "both" || this.state.validationFailed == "topics" ? "error" : ""}>
@@ -476,7 +479,7 @@ class SheetMetadata extends Component {
                         tags={this.state.tags}
                         suggestions={this.state.suggestions}
                         onDelete={this.onTagDelete.bind(this)}
-                        placeholderText={"Add a topic..."}
+                        placeholderText={Sefaria._("Add a topic...")}
                         delimiters={["Enter", "Tab", ","]}
                         onAddition={this.onTagAddition.bind(this)}
                         onValidate={this.onTagValidate.bind(this)}
