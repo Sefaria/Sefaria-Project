@@ -280,7 +280,7 @@ class ConnectionsPanel extends Component {
         sheets: Sefaria.sheets.sheetsTotalCount(this.props.srefs),
         webpages: Sefaria.webPagesByRef(this.props.srefs).length,
         audio: Sefaria.mediaByRef(this.props.srefs).length,
-        topics: Sefaria.topicsByRefCount(this.props.srefs),
+        topics: Sefaria.topicsByRefCount(this.props.srefs) || 0,
         manuscripts: Sefaria.manuscriptsByRef(this.props.srefs).length,
         translations: this.state.availableVersions.length, //versions dont come from the related api, so this one looks a bit different than the others.
       }
