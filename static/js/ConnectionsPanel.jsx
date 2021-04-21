@@ -275,7 +275,8 @@ class ConnectionsPanel extends Component {
                     />
                  </div>);
     } else if (this.props.mode === "Resources") {
-      let resourcesButtonCounts = {
+      const showConnectionSummary = !!Sefaria.linkSummary(this.props.srefs, this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null);
+      const resourcesButtonCounts = {
         sheets: Sefaria.sheets.sheetsTotalCount(this.props.srefs),
         webpages: Sefaria.webPagesByRef(this.props.srefs).length,
         audio: Sefaria.mediaByRef(this.props.srefs).length,
@@ -283,34 +284,43 @@ class ConnectionsPanel extends Component {
         manuscripts: Sefaria.manuscriptsByRef(this.props.srefs).length,
         translations: this.state.availableVersions.length, //versions dont come from the related api, so this one looks a bit different than the others.
       }
-      let toolsButtonsCounts = {
+      const showResourceButtons = Object.values(resourcesButtonCounts).some(elem => elem > 0);
+      const toolsButtonsCounts = {
         notes: Sefaria.notesTotalCount(this.props.srefs),
       }
       content = (
           <div>
               { this.state.flashMessage ? <div className="flashMessage sans">{this.state.flashMessage}</div> : null }
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
-              <ConnectionsPanelSection title="Related Texts">
-                  <ConnectionsSummary
-                    srefs={this.props.srefs}
-                    showBooks={false}
-                    multiPanel={this.props.multiPanel}
-                    filter={this.props.filter}
-                    nodeRef={this.props.nodeRef}
-                    contentLang={this.props.contentLang}
-                    setFilter={this.props.setFilter}
-                    setConnectionsMode={this.props.setConnectionsMode}
-                    setConnectionsCategory={this.props.setConnectionsCategory}
-                    collapsed={this.state.connectionSummaryCollapsed}
-                    toggleTopLevelCollapsed={this.toggleTopLevelCollapsed}
-                  />
-              </ConnectionsPanelSection>
-              <ConnectionsPanelSection title={"Resources"}>
-                <ResourcesList
-                    setConnectionsMode={this.props.setConnectionsMode}
-                    counts={resourcesButtonCounts}
-                />
-              </ConnectionsPanelSection>
+              {showConnectionSummary ?
+                  <ConnectionsPanelSection title="Related Texts">
+                      <ConnectionsSummary
+                        srefs={this.props.srefs}
+                        showBooks={false}
+                        multiPanel={this.props.multiPanel}
+                        filter={this.props.filter}
+                        nodeRef={this.props.nodeRef}
+                        contentLang={this.props.contentLang}
+                        setFilter={this.props.setFilter}
+                        setConnectionsMode={this.props.setConnectionsMode}
+                        setConnectionsCategory={this.props.setConnectionsCategory}
+                        collapsed={this.state.connectionSummaryCollapsed}
+                        toggleTopLevelCollapsed={this.toggleTopLevelCollapsed}
+                      />
+                  </ConnectionsPanelSection>
+                  :
+                  null
+              }
+              {showResourceButtons ?
+                  <ConnectionsPanelSection title={"Resources"}>
+                    <ResourcesList
+                        setConnectionsMode={this.props.setConnectionsMode}
+                        counts={resourcesButtonCounts}
+                    />
+                  </ConnectionsPanelSection>
+                  :
+                  null
+              }
               <ConnectionsPanelSection title={"Tools"}>
                 <ToolsList
                     setConnectionsMode={this.props.setConnectionsMode}
