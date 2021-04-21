@@ -676,10 +676,10 @@ const ResourcesList = ({setConnectionsMode, counts}) => {
         <div className="resourcesList">
             <ToolsButton en="Translations" he="תרגומים" image="translation.svg" count={counts["translations"]} onClick={() => setConnectionsMode("Translations")} />
             <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} onClick={() => setConnectionsMode("Sheets")} />
-            <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]}  displayCriteria={counts["topics"] && counts["topics"] > 0} onClick={() => setConnectionsMode("Topics")} />
-            <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} displayCriteria={counts["webpages"] && counts["webpages"] > 0} onClick={() => setConnectionsMode("WebPages")} />
-            <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]} displayCriteria={counts["manuscripts"] && counts["manuscripts"] > 0} onClick={() => setConnectionsMode("manuscripts")}/>
-            <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" count={counts["audio"]} displayCriteria={counts["audio"] && counts["audio"] > 0} onClick={() => setConnectionsMode("Torah Readings")} />
+            <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]}  onClick={() => setConnectionsMode("Topics")} />
+            <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} onClick={() => setConnectionsMode("WebPages")} />
+            <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]}  onClick={() => setConnectionsMode("manuscripts")}/>
+            <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" count={counts["audio"]} onClick={() => setConnectionsMode("Torah Readings")} />
         </div>
     );
 }
@@ -1071,12 +1071,11 @@ AdvancedToolsList.propTypes = {
 };
 
 
-const ToolsButton = ({en, he, icon, image, count, onClick, control="interface", typeface="system", displayCriteria = true}) => {
+const ToolsButton = ({en, he, icon, image, count=null, onClick, control="interface", typeface="system"}) => {
     const clickHandler = (e) => {
         e.preventDefault();
         onClick();
     }
-
     let iconElem = null;
     if (icon) {
       let iconName = "fa-" + icon;
@@ -1090,7 +1089,7 @@ const ToolsButton = ({en, he, icon, image, count, onClick, control="interface", 
     const nameClass = en.camelize();
     const wrapperClasses = classNames({toolsButton: 1,[nameClass]:1, [control+"Control"]: 1, [typeface+"Typeface"]: 1, noselect: 1})
     return (
-      displayCriteria ?
+      count == null || count > 0 ?
       <a href={url} className={wrapperClasses} data-name={en} onClick={clickHandler}>
         {iconElem}
         <span className="toolsButtonText">
