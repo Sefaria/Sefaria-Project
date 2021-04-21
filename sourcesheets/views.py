@@ -34,10 +34,12 @@ from sefaria.utils.util import strip_tags
 
 from reader.views import render_template, catchall
 from sefaria.sheets import clean_source, bleach_text
+from bs4 import BeautifulSoup
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
+
 
 from sefaria.gauth.decorators import gauth_required
 
@@ -767,6 +769,15 @@ def add_source_to_sheet_api(request, sheet_id):
         can further specify the origin or content of text for that ref.
 
     """
+    def remove_footnotes(txt):
+        soup = BeautifulSoup(txt, parser='lxml')
+        for el in soup.find_all("i", {"class": "footnote"}):
+            if el.previousSibling.name == "sup":
+                el.previousSibling.decompose()
+            el.decompose()
+        return bleach.clean(str(soup), tags=Version.ALLOWED_TAGS, attributes=Version.ALLOWED_ATTRS)
+
+
     # Internal func that does the same thing for each language to get text for the source
     def get_correct_text_from_source_obj(source_obj, ref_obj, lang):
 
@@ -795,7 +806,9 @@ def add_source_to_sheet_api(request, sheet_id):
         ref = Ref(source["ref"])
         source["heRef"] = ref.he_normal()
         text["en"] = get_correct_text_from_source_obj(source, ref, "en")
+        text["en"] = remove_footnotes(text["en"])
         text["he"] = get_correct_text_from_source_obj(source, ref, "he")
+        text["he"] = remove_footnotes(text["he"])
         source["text"] = text
 
     note = request.POST.get("note", None)

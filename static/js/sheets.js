@@ -2343,6 +2343,17 @@ function placed_segment_mapper(lang, segmented, includeNumbers, s) {
     return str;
 }
 
+function removeFootnotes(str) {
+	str = $(str);
+	str.find( "i[class='footnote']" ).each(function( index ) {
+		if ($(this).prev().is("sup")) {
+			$(this).prev().remove();
+		}
+  		$(this).remove();
+	});
+	return str;
+}
+
 
 function loadSource(data, $target, optionStr) {
 
@@ -2372,6 +2383,9 @@ function loadSource(data, $target, optionStr) {
     var heStr = segments.map(placed_segment_mapper.bind(this, "he", segmented, includeNumbers))
         .filter(Boolean)
         .join("");
+
+    heStr = removeFootnotes(heStr);
+    enStr = removeFootnotes(enStr);
 
 
 	enStr = enStr || "...";
