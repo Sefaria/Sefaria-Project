@@ -986,11 +986,80 @@ Sefaria = extend(Sefaria, {
     return Object.values(dedupedLinks);
   },
   _linkSummaries: {},
-  linkSummary: function(ref, excludedSheet, categoryOrderOverrides = null) {
+  linkSummary: function(ref, excludedSheet) {
     // Returns an ordered array summarizing the link counts by category and text
     // Takes either a single string `ref` or an array of refs strings.
     // If `excludedSheet` is present, exclude links to that sheet ID.
+    const categoryOrderOverrides = {
+        "Tanakh": [
+            "Talmud",
+            "Midrash",
+            "Halakhah",
+        ],
+        "Mishnah": [
+            "Tanakh",
+            "Mishnah",
+            "Talmud",
+        ],
+        "Talmud": [
+            "Tanakh",
+            "Talmud",
+            "Halakhah",
+        ],
+        "Midrash": [
+            "Tanakh",
+            "Talmud",
+            "Midrash",
+        ],
+        "Halakhah": [
+            "Tanakh",
+            "Talmud",
+            "Halakhah",
+        ],
+        "Kabbalah": [
+            "Tanakh",
+            "Talmud",
+            "Kabbalah"
+        ],
+        "Liturgy": [
+            "Tanakh",
+            "Talmud",
+            "Liturgy",
+        ],
+        "Jewish Thought": [
+            "Tanakh",
+            "Talmud",
+            "Jewish Thought"
+        ],
+        "Tosefta": [
+            "Tanakh",
+            "Mishnah",
+            "Talmud",
+        ],
+        "Chasidut": [
+            "Tanakh",
+            "Talmud",
+            "Midrash",
+        ],
+        "Musar": [
+            "Tanakh",
+            "Talmud",
+            "Musar",
+        ],
+        "Responsa": [
+            "Tanakh",
+            "Talmud",
+            "Halakhah",
+        ],
+        "Second Temple": [
 
+        ],
+        "Reference": [
+
+        ],
+    };
+    const oref          = (typeof ref == "string") ? Sefaria.ref(ref) : Sefaria.ref(ref[0]);
+    const categoryOverridesForRef = (oref && oref.hasOwnProperty("primary_category")) ?  ((categoryOrderOverrides.hasOwnProperty(oref.primary_category)) ? categoryOrderOverrides[oref.primary_category] : null) : null;
     let links;
     if (!this.linksLoaded(ref)) { return null; }
     const normRef = Sefaria.humanRef(ref);
@@ -1070,8 +1139,8 @@ Sefaria = extend(Sefaria, {
     const categoryOrder = Sefaria.toc.map(function(cat) { return cat.category; });
     categoryOrder.splice(0, 0, "Commentary"); // Always show Commentary First
     categoryOrder.splice(2, 0, "Targum");     // Show Targum after Tanakh (Or Tanakh's original location)
-    if (categoryOrderOverrides && categoryOrderOverrides.length >1){ //if we have been passed the "top connection categories" for this ref's categroy, preference them
-        categoryOrder.splice(1, 0, ...categoryOrderOverrides);
+    if (categoryOverridesForRef && categoryOverridesForRef.length >1){ //if we have been passed the "top connection categories" for this ref's categroy, preference them
+        categoryOrder.splice(1, 0, ...categoryOverridesForRef);
     }
     summaryList.sort(function(a, b) {
       let orderA = categoryOrder.indexOf(a.category);

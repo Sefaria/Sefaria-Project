@@ -724,82 +724,13 @@ class ConnectionsSummary extends Component {
   // If `showBooks`, show specific text counts beneath each category.
 
   render() {
-    const categoryOrderOverrides = {
-        "Tanakh": [
-            "Talmud",
-            "Midrash",
-            "Halakhah",
-        ],
-        "Mishnah": [
-            "Tanakh",
-            "Mishnah",
-            "Talmud",
-        ],
-        "Talmud": [
-            "Tanakh",
-            "Talmud",
-            "Halakhah",
-        ],
-        "Midrash": [
-            "Tanakh",
-            "Talmud",
-            "Midrash",
-        ],
-        "Halakhah": [
-            "Tanakh",
-            "Talmud",
-            "Halakhah",
-        ],
-        "Kabbalah": [
-            "Tanakh",
-            "Talmud",
-            "Kabbalah"
-        ],
-        "Liturgy": [
-            "Tanakh",
-            "Talmud",
-            "Liturgy",
-        ],
-        "Jewish Thought": [
-            "Tanakh",
-            "Talmud",
-            "Jewish Thought"
-        ],
-        "Tosefta": [
-            "Tanakh",
-            "Mishnah",
-            "Talmud",
-        ],
-        "Chasidut": [
-            "Tanakh",
-            "Talmud",
-            "Midrash",
-        ],
-        "Musar": [
-            "Tanakh",
-            "Talmud",
-            "Musar",
-        ],
-        "Responsa": [
-            "Tanakh",
-            "Talmud",
-            "Halakhah",
-        ],
-        "Second Temple": [
-
-        ],
-        "Reference": [
-
-        ],
-    }
     const collapsedTopLevelLimit = 4;
     const refs          = this.props.srefs;
     const excludedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
     const oref          = Sefaria.ref(refs[0]);
     const isTopLevel    = !this.props.category;
     const baseCat       = oref ? oref["categories"][0] : null;
-    const categoryOverridesForRef = (oref && oref.hasOwnProperty("primary_category")) ?  ((categoryOrderOverrides.hasOwnProperty(oref.primary_category)) ? categoryOrderOverrides[oref.primary_category] : null) : null;
-    let summary       = Sefaria.linkSummary(refs, excludedSheet, categoryOverridesForRef);
+    let summary       = Sefaria.linkSummary(refs, excludedSheet);
 
     if (!summary) { return null; }
 
