@@ -2169,8 +2169,8 @@ body.interface-hebrew #visualGardenPage .filter-title .reset {
   text-transform: uppercase;
   color: #000000;
 }
-#mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateTitle span{
-  display: inline-block;
+#mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateTitle .mobileUpdateTitleSection{
+  display: block;
 }
 #mobilePage #mobileUpdate .mobileUpdateText .mobileUpdateDescription{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
