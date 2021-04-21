@@ -1060,8 +1060,8 @@ Sefaria = extend(Sefaria, {
     };
     const oref          = (typeof ref == "string") ? Sefaria.ref(ref) : Sefaria.ref(ref[0]);
     const categoryOverridesForRef = (oref && oref.hasOwnProperty("primary_category")) ?  ((categoryOrderOverrides.hasOwnProperty(oref.primary_category)) ? categoryOrderOverrides[oref.primary_category] : null) : null;
-    let links;
-    if (!this.linksLoaded(ref)) { return null; }
+    let links = [];
+    if (!this.linksLoaded(ref)) { return []; }
     const normRef = Sefaria.humanRef(ref);
     const cacheKey = normRef + "/" + excludedSheet;
     if (cacheKey in this._linkSummaries) { return this._linkSummaries[cacheKey]; }
