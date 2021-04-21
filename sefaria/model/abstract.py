@@ -4,7 +4,6 @@
 abstract.py - abstract classes for Sefaria models
 """
 import collections
-import logging
 import structlog
 import copy
 import bleach
@@ -18,9 +17,7 @@ from bson.objectid import ObjectId
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
-logging.basicConfig()
 logger = structlog.get_logger(__name__)
-logger.setLevel(logging.WARNING)
 
 
 class AbstractMongoRecord(object):

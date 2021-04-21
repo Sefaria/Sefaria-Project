@@ -66,25 +66,25 @@ logger = structlog.get_logger(__name__)
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
-logger.warning("Initializing library objects.")
-logger.warning("Initializing TOC Tree")
+logger.info("Initializing library objects.")
+logger.info("Initializing TOC Tree")
 library.get_toc_tree()
 
 
 """ """
-logger.warning("Initializing Full Auto Completer")
+logger.info("Initializing Full Auto Completer")
 library.build_full_auto_completer()
 
-logger.warning("Initializing Ref Auto Completer")
+logger.info("Initializing Ref Auto Completer")
 library.build_ref_auto_completer()
 
-logger.warning("Initializing Lexicon Auto Completers")
+logger.info("Initializing Lexicon Auto Completers")
 library.build_lexicon_auto_completers()
 
-logger.warning("Initializing Cross Lexicon Auto Completer")
+logger.info("Initializing Cross Lexicon Auto Completer")
 library.build_cross_lexicon_auto_completer()
 
-logger.warning("Initializing Shared Cache")
+logger.info("Initializing Shared Cache")
 library.init_shared_cache()
 """ """
 
