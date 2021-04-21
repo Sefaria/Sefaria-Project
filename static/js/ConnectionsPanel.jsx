@@ -676,8 +676,8 @@ const ResourcesList = ({setConnectionsMode, counts}) => {
         <div className="resourcesList">
             <ToolsButton en="Translations" he="תרגומים" image="translation.svg" count={counts["translations"]} onClick={() => setConnectionsMode("Translations")} />
             <ToolsButton en="Sheets" he="דפי מקורות" image="sheet.svg" count={counts["sheets"]} onClick={() => setConnectionsMode("Sheets")} />
-            <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]}  onClick={() => setConnectionsMode("Topics")} />
             <ToolsButton en="Web Pages" he="דפי אינטרנט" image="webpages.svg" count={counts["webpages"]} onClick={() => setConnectionsMode("WebPages")} />
+            <ToolsButton en="Topics" he="נושאים" image="hashtag-icon.svg" count={counts["topics"]}  onClick={() => setConnectionsMode("Topics")} />
             <ToolsButton en="Manuscripts" he="כתבי יד" image="manuscripts.svg" count={counts["manuscripts"]}  onClick={() => setConnectionsMode("manuscripts")}/>
             <ToolsButton en="Torah Readings" he="קריאה בתורה" image="torahreadings.svg" count={counts["audio"]} onClick={() => setConnectionsMode("Torah Readings")} />
         </div>
