@@ -3760,7 +3760,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   direction: ltr;
 }
 .interface-english .readerPanel.hebrew .textRange,
-/*.interface-english .readerPanel.hebrew .categoryFilterGroup,*/
+.interface-english .readerPanel.hebrew .categoryFilterGroup,
+.interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.more,
+.interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.seeLess,
 .interface-english .readerPanel.hebrew .tocContent{
   direction: rtl;
 }
