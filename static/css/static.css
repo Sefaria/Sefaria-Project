@@ -1371,7 +1371,8 @@ p.registration-links a:hover{
 #jobsPage li {
   margin: 14px 0;
 }
-#jobsPage .jobApply{
+#jobsPage .apply-buttons{
+  display: block;
   text-align: center;
 }
 #jobsPage h4.subheader{
@@ -1380,7 +1381,7 @@ p.registration-links a:hover{
 }
 #jobsPage .job{
   scroll-margin-top: 5em;
-  margin-top: 50px;
+  margin-top: 90px;
   border-bottom: 4px solid #212E50;
   /*border-image: linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%);
   -webkit-border-image: -webkit-linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%);
