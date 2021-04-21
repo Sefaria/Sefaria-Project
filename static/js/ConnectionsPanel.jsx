@@ -369,41 +369,41 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Sheets") {
       var connectedSheet = this.props.nodeRef ? this.props.nodeRef.split(".")[0] : null;
       content = (<div>
-                  <AddToSourceSheetBox
-                    srefs={this.props.srefs}
-                    currVersions={this.props.currVersions}
-                    contentLanguage={this.props.masterPanelLanguage}
-                    selectedWords={this.props.selectedWords}
-                    nodeRef = {this.props.nodeRef}
-                    fullPanel={this.props.fullPanel}
-                    toggleSignUpModal = {this.props.toggleSignUpModal}
-                    setConnectionsMode={this.props.setConnectionsMode}/>
                   { this.props.srefs[0].indexOf("Sheet") === -1 ?
-                  <MySheetsList
-                    srefs={this.props.srefs}
-                    connectedSheet = {connectedSheet}
-                    fullPanel={this.props.fullPanel}
-                    handleSheetClick={this.props.handleSheetClick}
-                  /> : null }
-
+                      <MySheetsList
+                        srefs={this.props.srefs}
+                        connectedSheet = {connectedSheet}
+                        fullPanel={this.props.fullPanel}
+                        handleSheetClick={this.props.handleSheetClick}
+                      />
+                      : null
+                  }
                   { this.props.srefs[0].indexOf("Sheet") === -1 ?
-                  <PublicSheetsList
-                    srefs={this.props.srefs}
-                    connectedSheet = {connectedSheet}
-                    fullPanel={this.props.fullPanel}
-                    handleSheetClick={this.props.handleSheetClick}
-                  /> : null }
-
+                      <PublicSheetsList
+                        srefs={this.props.srefs}
+                        connectedSheet = {connectedSheet}
+                        fullPanel={this.props.fullPanel}
+                        handleSheetClick={this.props.handleSheetClick}
+                      /> : null
+                  }
                 </div>);
-    } else if (this.props.mode == "Add Connection To Sheet"){
-        let refForSheet = (this.props.connectionData && "connectionRefs" in this.props.connectionData) ? this.props.connectionData["connectionRefs"] : this.props.srefs;
-        let versionsForSheet = (this.props.connectionData && "versions" in this.props.connectionData) ? this.props.connectionData["versions"] : {"en":null,"he":null};
+    } else if (this.props.mode == "Add To Sheet"){
+        let refForSheet, versionsForSheet, selectedWordsForSheet;
+        if (this.props.connectionData && this.props.connectionData.hasOwnProperty("addSource") && this.props.connectionData["addSource"] == 'connectionsPanel'){
+            refForSheet = this.props.connectionData.hasOwnProperty("connectionRefs") ? this.props.connectionData["connectionRefs"] : this.props.srefs;
+            versionsForSheet = this.props.connectionData.hasOwnProperty("versions") ? this.props.connectionData["versions"] : {"en":null,"he":null};
+            selectedWordsForSheet = null;
+        }else{
+            refForSheet = this.props.srefs;
+            versionsForSheet = this.props.currVersions;
+            selectedWordsForSheet = this.props.selectedWords;
+        }
         content = (<div>
                   <AddToSourceSheetBox
                     srefs={refForSheet}
                     currVersions={versionsForSheet} //sidebar doesn't actually do versions
                     contentLanguage={this.props.masterPanelLanguage}
-                    selectedWords={null}
+                    selectedWords={selectedWordsForSheet}
                     nodeRef = {this.props.nodeRef}
                     fullPanel={this.props.fullPanel}
                     toggleSignUpModal = {this.props.toggleSignUpModal}
@@ -692,9 +692,10 @@ const ToolsList = ({setConnectionsMode, toggleSignUpModal, openComparePanel, cou
   // A list of Resources in addition to connection
     return (
         <div className="resourcesList">
+              <ToolsButton en="Add to Sheet" he="הוספה לדף מקורות" image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Add To Sheet")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" onClick={() => setConnectionsMode("Lexicon")} />
               {openComparePanel ? <ToolsButton en="Compare Text" he="טקסט להשוואה" image="compare-panel.svg" onClick={openComparePanel} /> : null }
-              <ToolsButton en="Notes" he="הערות" image="notes.svg" count={counts["notes"]} onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Notes")} />
+              <ToolsButton en="Notes" he="הערות" image="notes.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Notes")} />
               <ToolsButton en="Chavruta" he="חברותא" image="chavruta.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Chavruta")} />
               <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
               <ToolsButton en="Feedback" he="משוב" image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} />

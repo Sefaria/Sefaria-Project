@@ -4833,6 +4833,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .sheetList {
   padding-top: 40px;
 }
+.connectionsPanel.textList .sheetList {
+  padding-top: 0px;
+}
 .textList .sheetList + .sheetList {
   border-top: 1px solid #E6E5E6;
 }
