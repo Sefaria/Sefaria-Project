@@ -775,7 +775,7 @@ def add_source_to_sheet_api(request, sheet_id):
             if el.previousSibling.name == "sup":
                 el.previousSibling.decompose()
             el.decompose()
-        return bleach.clean(str(soup), tags=Version.ALLOWED_TAGS, attributes=Version.ALLOWED_ATTRS)
+        return bleach.clean(str(soup), tags=Version.ALLOWED_TAGS, attributes=Version.ALLOWED_ATTRS, strip=True)
 
 
     # Internal func that does the same thing for each language to get text for the source
