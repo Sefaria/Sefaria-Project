@@ -99,7 +99,7 @@ const Strings = {
     "List your sheet on Sefaria for others to discover.": ".רישום דף המקורות שלך בספריא באופן שמשתמשים אחרים יוכלו למצוא אותו",
     "Summary": "תקציר דף המקורות",
     "Write a short description of your sheet..." : "תיאור קצר של דף המקורות שלך...",
-    "Add a topic...": "...הוספת נושא",
+    "Add a topic...": "הוספת נושא",
     "Publish": "פרסום דף המקורות",
     "Unpublish": "ביטול פרסום",
     "Please add a description and topics to publish your sheet.": "יש להוסיף תיאור ונושאים כדי לפרסם את הדף",

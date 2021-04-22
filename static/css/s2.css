@@ -6368,7 +6368,7 @@ a .button:hover {
 .publishBox .react-tags__selected-tag:after {
   content: '\2715';
   color: #AAA;
-  margin-left: 8px;
+  margin-inline-start: 8px;
   font-size: 10px;
 }
 
@@ -6406,7 +6406,7 @@ a .button:hover {
 
 .publishBox .react-tags__suggestions ul {
   position: absolute;
-  left:0;
+  inset-inline-start: 0;  /* Note reduntant css rules below `body.interface-[hebrew|english]  .publishBox .react-tags__suggestions ul` */
   top: 100%;
   margin: 4px -1px;
   padding: 0;
@@ -6415,6 +6415,18 @@ a .button:hover {
   border: 1px solid #ccc;
   border-radius: 6px;
   min-width: 300px;
+}
+
+/* Reduntant given above `inset-inline-start` rule, but not standard on all browsers yet
+RMN: 2021-04-22 */
+body.interface-hebrew  .publishBox .react-tags__suggestions ul {
+  right: 0;
+}
+
+/* Reduntant given above `inset-inline-start` rule, but not standard on all browsers yet
+RMN: 2021-04-22 */
+body.interface-english .publishBox .react-tags__suggestions ul {
+  left: 0;
 }
 
 .publishBox .react-tags__suggestions li {

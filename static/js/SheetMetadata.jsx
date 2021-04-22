@@ -457,7 +457,7 @@ class SheetMetadata extends Component {
 
 
                       {this.state.published ?
-                        <p><InterfaceText>Your sheet is</InterfaceText> <strong><InterfaceText>published</InterfaceText></strong><InterfaceText>on Sefaria and visible to others through search and topics.</InterfaceText></p> :
+                        <p><InterfaceText>Your sheet is</InterfaceText> <strong><InterfaceText>published</InterfaceText></strong> <InterfaceText>on Sefaria and visible to others through search and topics.</InterfaceText></p> :
                         <p><InterfaceText>List your sheet on Sefaria for others to discover.</InterfaceText></p>
                       }
 
