@@ -149,6 +149,8 @@ The recommended dump (which is of a manageable size) is available [here](https:/
 
 A complete dump is also available [here](https://storage.googleapis.com/sefaria-mongo-backup/dump.tar.gz). The complete dump includes the `history` collections which contains a complete revision history of every text our library. For many applications this data is not relevant. We recommend using the smaller dump unless you're specifically interested in texts revision history within Sefaria.
 
+From MongoDB version 4.4, mongorestore comes separately from the MongoDB server, you'll also need to download the [Database Tools](https://www.mongodb.com/try/download/database-tools?tck=docs_databasetools)
+
 Once you've download and unzipped this content, from the parent directory which contains `dump` run:
 
     mongorestore --drop
