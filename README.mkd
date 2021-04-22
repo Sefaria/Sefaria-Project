@@ -84,7 +84,7 @@ Use instructions [here](http://www.tylerbutler.com/2012/05/how-to-install-python
 
 If you are not using virtualenv, you may have to run it with sudo: `sudo pip install -r requirements.txt`
 
-If you see an error about a missing 'python.h' file, you'll need to install the Python development libraries. 
+If you see an error about a missing 'Python.h' file, you'll need to install the Python development libraries. 
 
 ###### On Debian systems: 
 
