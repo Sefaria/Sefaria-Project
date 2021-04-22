@@ -2344,6 +2344,7 @@ function placed_segment_mapper(lang, segmented, includeNumbers, s) {
 }
 
 function removeFootnotes(str) {
+	//removes all i tags that are of class "footnote" as well as the preceding "sup" tag
 	str = $(str);
 	str.find( "i[class='footnote']" ).each(function( index ) {
 		if ($(this).prev().is("sup")) {

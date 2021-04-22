@@ -770,6 +770,7 @@ def add_source_to_sheet_api(request, sheet_id):
 
     """
     def remove_footnotes(txt):
+        #removes all i tags that are of class "footnote" as well as the preceding "sup" tag
         soup = BeautifulSoup(txt, parser='lxml')
         for el in soup.find_all("i", {"class": "footnote"}):
             if el.previousSibling.name == "sup":
