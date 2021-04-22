@@ -4833,7 +4833,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .sheetList {
   padding-top: 40px;
 }
-.connectionsPanel.textList .sheetList {
+.textList .sheetList:first-of-type {
   padding-top: 0px;
 }
 .textList .sheetList + .sheetList {
