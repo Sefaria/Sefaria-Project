@@ -451,12 +451,12 @@ Sefaria = extend(Sefaria, {
   _translateVersions: {},
   versions: function(ref, cb) {
     // Returns a list of available text versions for `ref`.
-    var versions = ref in this._versions ? this._versions[ref] : null;
+    let versions = ref in this._versions ? this._versions[ref] : null;
     if (versions) {
       if (cb) {cb(versions)}
       return versions
     }
-    var url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
+    const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
     this._api(url, function(data) {
       for (let v of data) {
         Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(v.versionTitle, v.language)] = {
