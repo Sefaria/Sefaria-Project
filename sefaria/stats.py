@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from collections import defaultdict
 from random import randrange
@@ -268,6 +269,20 @@ def total_sheet_views_by_query(query):
 			} 
 		} ] )
 	return list(result)[0]["total"]
+
+
+def most_popular_refs_in_sheets(pattern, public_only=True):
+	counts = defaultdict(int)
+
+	sheets = db.sheets.find({"includedRefs": {"$regex": pattern}})
+	for sheet in sheets:
+		for ref in sheet["includedRefs"]:
+			if re.match(pattern, ref):
+				counts[ref] += 1
+
+	top = sorted(iter(counts.items()), key=lambda x: -x[1])[:10]
+
+	print(top)
 
 
 def account_creation_stats():

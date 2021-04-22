@@ -1,10 +1,9 @@
 # An example of settings needed in a local_settings.py file.
 # copy this file to sefaria/local_settings.py and provide local info to run.
-import os.path
-import structlog
 from datetime import timedelta
-relative_to_abs_path = lambda *x: os.path.join(os.path.dirname(
-                               os.path.realpath(__file__)), *x)
+import structlog
+import sefaria.system.logging as sefaria_logging
+
 
 # These are things you need to change!
 
@@ -278,12 +277,12 @@ structlog.configure(
         structlog.stdlib.filter_by_level,
         structlog.processors.TimeStamper(fmt="iso"),
         structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
+        sefaria_logging.add_severity,
         structlog.stdlib.PositionalArgumentsFormatter(),
         structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
+        sefaria_logging.log_exception_info,
         structlog.processors.UnicodeDecoder(),
-        structlog.processors.ExceptionPrettyPrinter(),
+        sefaria_logging.decompose_request_info,
         structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
     ],
     context_class=structlog.threadlocal.wrap_dict(dict),
