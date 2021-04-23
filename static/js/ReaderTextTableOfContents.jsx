@@ -13,7 +13,7 @@ import React  from 'react';
 import ReactDOM  from 'react-dom';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
-import { NavSidebar } from './NavSidebar';
+import { NavSidebar, Modules } from './NavSidebar';
 import DictionarySearch  from './DictionarySearch';
 import VersionBlock  from './VersionBlock';
 import ExtendedNotes from './ExtendedNotes';
@@ -334,7 +334,7 @@ class ReaderTextTableOfContents extends Component {
 
     const sidebarModules = !this.state.indexDetails ? [] :
       [
-        {type: "AboutText", props: {index: this.state.indexDetails}},
+        this.props.multiPanel ? {type: "AboutText", props: {index: this.state.indexDetails}} : {type: null},
         {type: "RelatedTopics", props: { topics: this.state.indexDetails.relatedTopics}},
       ];
 
@@ -348,7 +348,7 @@ class ReaderTextTableOfContents extends Component {
       readerNavMenu:1,
       bookPage: this.isBookToc(),
       narrowPanel: this.props.narrowPanel,
-      noLangToggleInHebrew: this.props.interfaceLang == 'hebrew'});
+      noLangToggleInHebrew: Sefaria.interfaceLang == 'hebrew'});
 
     return (
       <div className={classes}>
@@ -366,7 +366,7 @@ class ReaderTextTableOfContents extends Component {
                 </div>
               </div>
               <div className="rightButtons">
-                {this.props.interfaceLang !== "hebrew" ?
+                {Sefaria.interfaceLang !== "hebrew" ?
                   <ReaderNavigationMenuDisplaySettingsButton onClick={this.props.openDisplaySettings} />
                   : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />}
               </div>
@@ -402,11 +402,15 @@ class ReaderTextTableOfContents extends Component {
               <div>
                 {readButton}
 
+                {this.props.multiPanel ? null :
+                <div className="about">
+                  <Modules type={"AboutText"} props={{index: this.state.indexDetails, hideTitle: true}} />
+                </div>} 
+
                 {isDictionary ? 
                 <DictionarySearch
                   lexiconName={this.state.indexDetails.lexiconName}
                   title={this.props.title}
-                  interfaceLang={this.props.interfaceLang}
                   showBaseText={this.props.showBaseText}
                   contextSelector=".readerTextTableOfContents"
                   currVersions={this.props.currVersions}/> : null }
@@ -448,7 +452,6 @@ ReaderTextTableOfContents.propTypes = {
   selectVersion:    PropTypes.func,
   viewExtendedNotes: PropTypes.func,
   backFromExtendedNotes: PropTypes.func,
-  interfaceLang:    PropTypes.string,
   extendedNotes:    PropTypes.string,
   extendedNotesHebrew: PropTypes.string
 };

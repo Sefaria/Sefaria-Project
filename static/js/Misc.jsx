@@ -1025,7 +1025,7 @@ class ReaderNavigationMenuSearchButton extends Component {
 
 class ReaderNavigationMenuMenuButton extends Component {
   render() {
-    var isheb = this.props.interfaceLang == "hebrew";
+    var isheb = Sefaria.interfaceLang == "hebrew";
     var icon = this.props.compare ? (isheb ?
       <i className="fa fa-chevron-right"></i> : <i className="fa fa-chevron-left"></i>) :
         (<i className="fa fa-bars"></i>);
@@ -1035,7 +1035,6 @@ class ReaderNavigationMenuMenuButton extends Component {
 ReaderNavigationMenuMenuButton.propTypes = {
   onClick: PropTypes.func,
   compare: PropTypes.bool,
-  interfaceLang: PropTypes.string
 };
 
 

@@ -19,9 +19,6 @@ $(function() {
     // Rendering a full ReaderApp experience
     Sefaria.unpackDataFromProps(DJANGO_VARS.props);
     component = React.createElement(SefariaReact.ReaderApp, DJANGO_VARS.props);
-    
-    // TEMP flag allow different layout option
-    Sefaria._showDescriptionAtTop = "top" in Sefaria.util.getUrlVars();
 
     renderFunc(component, container);
 

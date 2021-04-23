@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
-import { NavSidebar }from './NavSidebar';
+import { NavSidebar, Modules }from './NavSidebar';
 import Footer  from './Footer';
 import Component from 'react-class';
 
@@ -26,34 +26,41 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
   const dailyListings   = makeListings(dailyCalendars);
   const weeklyListings  = makeListings(weeklyCalendars);
 
+
+  const about = multiPanel ? null :
+    <Modules type={"AboutStudySchedules"} />
+
   const sidebarModules = [
-    {type: "AboutStudySchedules"},
+    multiPanel ? {type: "AboutStudySchedules"} : {type: null},
     {type: "StayConnected"},
     {type: "SupportSefaria"},
   ];
 
-  return(<div className="readerNavMenu" key="0">
-          <div className="content">
-            <div className="sidebarLayout">
-              <div className="contentInner">
-                <h2 className="styledH1"><InterfaceText>Weekly Torah Portion</InterfaceText></h2>
-                <div className="readerNavCategories">
-                  <ResponsiveNBox content={parashaListings} initialWidth={initialWidth} />
-                </div>
-                <h2 className="styledH1"><InterfaceText>Daily Study</InterfaceText></h2>
-                <div className="readerNavCategories">
-                  <ResponsiveNBox content={dailyListings} initialWidth={initialWidth} />
-                </div>
-                <h2 className="styledH1"><InterfaceText>Weekly Study</InterfaceText></h2>
-                <div className="readerNavCategories">
-                  <ResponsiveNBox content={weeklyListings} initialWidth={initialWidth} />
-                </div>
-              </div>
-              <NavSidebar modules={sidebarModules} />
+  return (
+    <div className="readerNavMenu" key="0">
+      <div className="content">
+        <div className="sidebarLayout">
+          <div className="contentInner">
+            {about}
+            <h2 className="styledH1"><InterfaceText>Weekly Torah Portion</InterfaceText></h2>
+            <div className="readerNavCategories">
+              <ResponsiveNBox content={parashaListings} initialWidth={initialWidth} />
             </div>
-            <Footer />
+            <h2 className="styledH1"><InterfaceText>Daily Study</InterfaceText></h2>
+            <div className="readerNavCategories">
+              <ResponsiveNBox content={dailyListings} initialWidth={initialWidth} />
+            </div>
+            <h2 className="styledH1"><InterfaceText>Weekly Study</InterfaceText></h2>
+            <div className="readerNavCategories">
+              <ResponsiveNBox content={weeklyListings} initialWidth={initialWidth} />
+            </div>
           </div>
-        </div>);
+          <NavSidebar modules={sidebarModules} />
+        </div>
+        <Footer />
+      </div>
+    </div>
+  );
 };
 
 

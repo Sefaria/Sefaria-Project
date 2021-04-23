@@ -108,9 +108,10 @@ const Resources = () => (
 );
 
 
-const TheJewishLibrary = () => (
+const TheJewishLibrary = ({hideTitle}) => (
   <Module>
-    <ModuleTitle>The Jewish Library</ModuleTitle>
+    {!hideTitle ?
+    <ModuleTitle>The Jewish Library</ModuleTitle> : null}
     <InterfaceText>The tradition of Torah texts is a vast, interconnected network that forms a conversation across space and time. The five books of the Torah form its foundation, and each generation of later texts functions as a commentary on those that came before it.</InterfaceText>
   </Module>
 );
@@ -169,7 +170,7 @@ const AboutTextCategory = ({cats}) => {
 };
 
 
-const AboutText = ({index}) => {
+const AboutText = ({index, hideTitle}) => {
   const lang = Sefaria.interfaceLang === "hebrew" ? "he" : "en"
 
   let composed = [index.compPlaceString?.[lang], index.compDateString?.[lang]].filter(x=>!!x).join(", ");
@@ -190,7 +191,8 @@ const AboutText = ({index}) => {
 
   return (
     <Module>
-      <h3><InterfaceText>About this Text</InterfaceText></h3>
+      {hideTitle ? null :
+      <h3><InterfaceText>About this Text</InterfaceText></h3>}
       { composed || authors.length ?
       <div className="aboutTextMetadata">
         
@@ -382,9 +384,10 @@ const Visualizations = ({categories}) => {
 };
 
 
-const AboutTopics = () => (
+const AboutTopics = ({hideTitle}) => (
   <Module>
-    <ModuleTitle>About Topics</ModuleTitle>
+    {hideTitle ? null :
+    <ModuleTitle>About Topics</ModuleTitle> }
     <InterfaceText>Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.</InterfaceText>
   </Module>
 );
@@ -495,16 +498,18 @@ const AboutStudySchedules = () => (
 );
 
 
-const AboutCollections = () => (
+const AboutCollections = ({hideTitle}) => (
   <Module>
-    <ModuleTitle h1={true}>About Collections</ModuleTitle>
+    {hideTitle ? null :
+    <ModuleTitle h1={true}>About Collections</ModuleTitle>}
     <InterfaceText>Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.</InterfaceText>
+    {hideTitle ? null :
     <div>
       <a className="button small" href="/collections/new">
         <img src="/static/icons/collection.svg" alt="create a collection icon" />
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
-    </div>
+    </div>}
   </Module>
 );
 
@@ -534,5 +539,5 @@ const IconLink = ({text, url, icon}) => (
 
 export {
   NavSidebar,
-  JoinTheConversation
+  Modules,
 };

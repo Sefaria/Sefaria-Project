@@ -12,7 +12,7 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
-import { NavSidebar } from './NavSidebar';
+import { NavSidebar, Modules } from './NavSidebar';
 import ReaderNavigationCategoryMenu  from './ReaderNavigationCategoryMenu';
 import Footer  from './Footer';
 import MobileHeader from './MobileHeader';
@@ -21,7 +21,7 @@ import {TopicCategory} from './TopicPage';
 // The Navigation menu for browsing and searching texts
 const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCategories, setNavTopic, 
         setTopic, onClose, openNav, openSearch, toggleLanguage, openMenu, handleClick, openDisplaySettings,
-        hideHeader, hideNavHeader, multiPanel, initialWidth, home, compare, interfaceLang}) => {
+        hideHeader, hideNavHeader, multiPanel, initialWidth, home, compare}) => {
 
   const navHome = () => {
     setCategories([]);
@@ -43,9 +43,9 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
           navHome={navHome}
           compare={compare}
           hideNavHeader={hideNavHeader}
+          multiPanel={multiPanel}
           initialWidth={initialWidth}
-          contentLang={settings.language}
-          interfaceLang={interfaceLang} />
+          contentLang={settings.language} />
       </div>
     );
   }
@@ -72,7 +72,6 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
     <MobileHeader
       mode={home ? 'home' : 'mainTOC'}
       navHome={navHome}
-      interfaceLang={interfaceLang}
       openDisplaySettings={openDisplaySettings}
       onClose={onClose}
       compare={compare}
@@ -84,10 +83,13 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
       <h1>
         <InterfaceText>Browse the Library</InterfaceText>
       </h1>
-      { multiPanel && interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
-        <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
+      
+      { multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
+      <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
     </div>
 
+  const about = compare || multiPanel ? null :
+    <Modules type={"TheJewishLibrary"} props={{hideTitle: true}}/>;
 
   const dedication = Sefaria._siteSettings.TORAH_SPECIFIC && !compare ? <Dedication /> : null;
 
@@ -96,7 +98,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
     : null;
 
   const sidebarModules = [
-    {type: "TheJewishLibrary"},
+    multiPanel ? {type: "TheJewishLibrary"} : {type: null},
     {type: "StudySchedules"},
     {type: "SponsorADay"},
     {type: "GetTheApp"},
@@ -111,6 +113,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
             <div className="sidebarLayout">
               <div className="contentInner">
                 { title }
+                { about }
                 { dedication }
                 { libraryMessage }
                 { categoryListings }
@@ -137,7 +140,6 @@ ReaderNavigationMenu.propTypes = {
   multiPanel:          PropTypes.bool,
   home:                PropTypes.bool,
   compare:             PropTypes.bool,
-  interfaceLang:       PropTypes.string,
 };
 
 

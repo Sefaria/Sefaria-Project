@@ -15,9 +15,9 @@ import MobileHeader from './MobileHeader';
 
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
-const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
-            toggleLanguage, openDisplaySettings, navHome, initialWidth, compare, hideNavHeader,
-            contentLang, interfaceLang}) => {
+const ReaderNavigationCategoryMenu = ({category, categories, setCategories, toggleLanguage,
+        openDisplaySettings, navHome, multiPanel, initialWidth, compare, hideNavHeader,
+        contentLang}) => {
 
     // Show Talmud with Toggles
     const cats  = categories[0] === "Talmud" && categories.length === 1 ?
@@ -44,8 +44,8 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
 
     const catContents    = Sefaria.tocItemsByCategories(cats);
     const nestLevel      = category === "Commentary" ? 1 : 0;
-    const aboutModule = Sefaria._showDescriptionAtTop ? [] : [
-      {type: "AboutTextCategory", props: {cats: aboutCats}},
+    const aboutModule   = [
+      multiPanel ? {type: "AboutTextCategory", props: {cats: aboutCats}} : {type: null},
     ];
 
     const sidebarModules = aboutModule.concat(getSidebarModules(cats));
@@ -58,7 +58,6 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
               <MobileHeader
                 mode={'innerTOC'}
                 hideNavHeader={hideNavHeader}
-                interfaceLang={interfaceLang}
                 category={cats[0]}
                 openDisplaySettings={openDisplaySettings}
                 navHome={navHome}
@@ -74,9 +73,9 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
                         <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
                       </h1>
                       {talmudToggle}
-                      {interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
+                      {Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
                     </div>
-                    {Sefaria._showDescriptionAtTop ? 
+                    {!multiPanel ? 
                     <div className="categoryDescription top">
                       <ContentText text={{en: tocObject.enDesc, he: tocObject.heDesc}} defaultToInterfaceOnBilingual={true} />
                     </div> : null}
@@ -106,7 +105,6 @@ ReaderNavigationCategoryMenu.propTypes = {
   compare:             PropTypes.bool,
   hideNavHeader:       PropTypes.bool,
   contentLang:         PropTypes.string,
-  interfaceLang:       PropTypes.string,
 };
 
 

@@ -1161,11 +1161,15 @@ input.noselect {
 .navTitle.tight {
   margin-bottom: 15px;
 }
-.readerNavMenu .navTitle h1 {
+.readerNavMenu .navTitle h1,
+.singlePanel .readerNavMenu .navTitle h1 {
   margin-bottom: 0;
 }
 .navTitle + .dedication {
   margin-bottom: 20px;
+}
+.navSidebarModule + .dedication {
+  margin-top: -30px;
 }
 .navTitle .languageToggle {
   text-align: center;
@@ -1237,6 +1241,13 @@ input.noselect {
 }
 .singlePanel .navSidebarModule {
   padding: 0 15px;
+}
+.singlePanel .contentInner .navSidebarModule {
+  padding: 0;
+}
+.singlePanel .contentInner .navSidebarModule h1 {
+  border: none;
+  padding: 0;
 }
 .readerPanel .navSidebarModule h3,
 .readerPanel .navSidebarModule h1 {
@@ -1493,6 +1504,10 @@ input.noselect {
   margin: 0 0 40px 0;
   height: auto;
   text-transform: none;
+}
+.singlePanel .readerNavMenu h1,
+.singlePanel .readerNavMenu h2.styledH1 {
+  margin-bottom: 15px;
 }
 .readerNavMenu h1 img {
   margin-inline-end: 9px;
@@ -1950,6 +1965,19 @@ a.navBlockTitle {
   border-bottom: none;
   margin-bottom: 0px;
 }
+.homepage .about {
+  padding-top: 25px;
+  margin-top: -25px;
+  background-color: #FAFAFB;
+}
+.homepage .about .navSidebarModule h1 {
+  border-bottom: 1px solid #CCC;
+  padding-bottom: 10px;
+  margin-bottom: 25px;
+}
+.homepage .about .button {
+  margin: 20px 0;
+}
 .readerPanel .homepage .mainColumn h2 {
   text-transform: none;
   font-size: 30px;
@@ -2122,7 +2150,6 @@ a.navBlockTitle {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .readerNavCategoryMenu .categoryDescription.top {
-  color: black;
   margin-top: -26px;
   margin-bottom: 40px;
 }
@@ -2340,6 +2367,9 @@ a.navBlockTitle {
 }
 .bookPage .readButton {
   margin: 6px 0px 12px;
+}
+.bookPage .about {
+  margin-top: 10px;
 }
 .readerTextTableOfContents .sheetMeta {
   font-size: 14px;
@@ -2928,23 +2958,19 @@ a.navBlockTitle {
     border-color: #212E50;
     background-color: #212E50;
 }
-
 .modTools .workflowy-tool{
   width: 60%;
   margin: auto;
 }
-
 .modTools .workflowy-tool .dlSectionTitle{
   width: unset;
 }
-
 .modTools .workflowy-tool .versionDownloadButton{
   color: black;
 }
 .modTools .workflowy-tool .versionDownloadButton:hover{
   background-color: #999;
 }
-
 .modTools .workflowy-tool textarea {
   width: 100%;
   min-height: 30rem;
@@ -2952,12 +2978,10 @@ a.navBlockTitle {
   font-size: 0.8rem;
   line-height: 1.2;
 }
-
 .modTools .workflowy-tool .workflowy-tool-form{
   display: flex;
   flex-flow: column;
 }
-
 .dictionarySearchBox {
   display: flex;
   justify-content: flex-start;
@@ -3042,6 +3066,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 15px 5px;
   -webkit-touch-callout: none; /* iOS Safari */
   user-select: none;
+}
+@media (max-width: 540px) {
+  .searchTopMatter .search-dropdown-button,
+  .searchTopMatter .dropdown-button {
+  font-size: 14px;
+  }
 }
 .searchTopMatter .search-dropdown-button.active {
   color: #000;
@@ -4665,7 +4695,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .gridBox .gridBoxItem {
   flex: 1;
-  overflow: hidden;
+  
    /* HACK: overflow hidden will hide any box shadow beneath (b/c overflow cuts off at padding-box) can get around this by increasing padding-box and decreasing margin-box. see here https://stackoverflow.com/questions/33949013/css-overflow-hidden-cuts-shadow*/
   display: flex;
   flex-direction: column;
@@ -7254,6 +7284,9 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   padding: 18px 40px 70px 40px;
   text-align: left;
   color: #999;
+}
+.singlePanel #footer {
+  padding: 18px 15px 70px 15px;
 }
 #footer a {
   display: block;

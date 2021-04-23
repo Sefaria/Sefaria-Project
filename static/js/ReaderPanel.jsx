@@ -747,7 +747,6 @@ class ReaderPanel extends Component {
       menu = (<ReaderNavigationMenu
                     key={this.state.navigationCategories ? this.state.navigationCategories.join("-") : this.state.navigationTopicCategory ? this.state.navigationTopicCategory: "navHome"}
                     compare={this.state.compare}
-                    interfaceLang={this.props.interfaceLang}
                     multiPanel={this.props.multiPanel}
                     categories={this.state.navigationCategories || []}
                     topic={this.state.navigationTopicCategory || ""}
@@ -788,7 +787,7 @@ class ReaderPanel extends Component {
     else if (this.state.menuOpen === "text toc") {
       menu = (<ReaderTextTableOfContents
                     mode={this.state.menuOpen}
-                    interfaceLang={this.props.interfaceLang}
+                    multiPanel={this.props.multiPanel}
                     close={this.closeMenus}
                     title={this.currentBook()}
                     currVersions={this.state.currVersions}
@@ -806,7 +805,7 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "book toc") {
       menu = (<ReaderTextTableOfContents
                     mode={this.state.menuOpen}
-                    interfaceLang={this.props.interfaceLang}
+                    multiPanel={this.props.multiPanel}
                     closePanel={this.props.closePanel}
                     close={this.closeMenus}
                     title={this.state.bookRef}
@@ -912,14 +911,8 @@ class ReaderPanel extends Component {
         menu = (
           <TopicsPage
             key={"TopicsPage"}
-            interfaceLang={this.props.interfaceLang}
-            setNavTopic={this.setNavigationTopic}
-            onClose={this.onClose}
-            openSearch={this.openSearch}
-            openMenu={this.openMenu}
-            openNav={this.openMenu.bind(null, "navigation")}
-            openDisplaySettings={this.openDisplaySettings}
-            hideNavHeader={this.props.hideNavHeader}
+            multiPanel={this.props.multiPanel}
+            initialWidth={this.state.width}
           />
         );
       }
@@ -971,7 +964,6 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "home") {
       menu = (
         <HomeFeed
-          interfaceLang={this.props.interfaceLang}
           toggleSignUpModal={this.props.toggleSignUpModal}
           initialWidth={this.state.width} />
       );

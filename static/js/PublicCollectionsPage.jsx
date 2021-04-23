@@ -4,14 +4,14 @@ import classNames  from 'classnames';
 import Footer  from './Footer';
 import Sefaria  from './sefaria/sefaria';
 import Component from 'react-class';
-import { NavSidebar } from './NavSidebar';
+import { NavSidebar, Modules } from './NavSidebar';
 import {
   InterfaceText,
   LoadingMessage,
   ResponsiveNBox
 } from './Misc';
 
-const PublicCollectionsPage = ({multiPanel, navHome, initialWidth}) => {
+const PublicCollectionsPage = ({multiPanel, initialWidth}) => {
   const [collectionsList, setCollectionsList] = useState(Sefaria.getCollectionsListFromCache());
   
   const sortCollectionList = d => {
@@ -35,7 +35,7 @@ const PublicCollectionsPage = ({multiPanel, navHome, initialWidth}) => {
   });
 
   const sidebarModules = [
-    {type: "AboutCollections"},
+    multiPanel ? {type: "AboutCollections"} : {type: null},
     {type: "StayConnected"},
   ];
 
@@ -47,6 +47,9 @@ const PublicCollectionsPage = ({multiPanel, navHome, initialWidth}) => {
             <h1>
               <InterfaceText>Collections</InterfaceText>
             </h1>
+
+            {multiPanel ? null :
+            <Modules type={"AboutCollections"} props={{hideTitle: true}} /> }
 
             <div className="collectionsList">
               { !!collectionsList ?

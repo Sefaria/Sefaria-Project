@@ -165,13 +165,13 @@ class DictionarySearch extends Component {
       if(document.getElementById('keyboardInputMaster')) { // if keyboard is open, ignore.
         return; //this prevents the icon from flashing on every key stroke.
       }
-      if(this.props.interfaceLang === 'english'){
+      if(Sefaria.interfaceLang === 'english'){
           var opacity = show ? 0.4 : 0;
           $(ReactDOM.findDOMNode(this)).find(".keyboardInputInitiator").css({"opacity": opacity});
       }
   }
   render() {
-    var inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang == 'english'});
+    var inputClasses = classNames({search: 1, keyboardInput: Sefaria.interfaceLang == 'english'});
 
     return (<div className = "searchBox dictionarySearchBox ui-front">
       <span className="dictionarySearchButton" onClick={this.handleSearchButtonClick}><i className="fa fa-search"></i></span>
@@ -186,15 +186,14 @@ class DictionarySearch extends Component {
     </div>);
   }
 }
-
 DictionarySearch.propTypes = {
   lexiconName:      PropTypes.string,    // req. for redirect to text - e.g. TOC case.
   title:            PropTypes.string,    // req. for redirect to text - e.g. TOC case.
-  interfaceLang:    PropTypes.string.isRequired,
   showBaseText:     PropTypes.func,      // req. for redirect to text - e.g. TOC case.
   showWordList:     PropTypes.func,      // req. for sidebar case
   currVersions:     PropTypes.object,    // req. for redirect to text - e.g. TOC case.
   contextSelector:  PropTypes.string.isRequired // CSS Selector for uniquely identifiable context that this is in.
 };
+
 
 export default DictionarySearch;

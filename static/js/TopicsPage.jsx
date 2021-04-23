@@ -8,20 +8,12 @@ import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
 import $  from './sefaria/sefariaJquery';
-import { NavSidebar } from './NavSidebar';
+import { NavSidebar, Modules } from './NavSidebar';
 import Footer  from './Footer';
 import Component from 'react-class';
 
 // The root topics page listing topic categories to browse
-const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySettings,
-        hideHeader, hideNavHeader, interfaceLang}) => {
-
-  const initialWidth = hideNavHeader ? 1000 : 500; // Assume we're in a small panel if we're hiding the nav header
-
-  const navHome = () => {
-    setNavTopic("", null);
-    openNav();
-  };
+const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
 
   let categoryListings = Sefaria.topic_toc.map(cat => {
     const openCat = e => {e.preventDefault(); setNavTopic(cat.slug, {en: cat.en, he: cat.he})};
@@ -42,8 +34,11 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
     </div>
   );
 
+  const about = multiPanel ? null :
+    <Modules type={"AboutTopics"} props={{hideTitle: true}} />;
+
   const sidebarModules = [
-    {type: "AboutTopics"},
+    multiPanel ? {type: "AboutTopics"} : {type: null},
     {type: "TrendingTopics"},
     {type: "JoinTheConversation"},
     {type: "GetTheApp"},
@@ -56,6 +51,7 @@ const TopicsPage = ({setNavTopic, onClose, openNav, openSearch, openDisplaySetti
         <div className="sidebarLayout">
           <div className="contentInner">
             <h1><InterfaceText>Explore by Topic</InterfaceText></h1>
+            { about }
             { categoryListings }
           </div>
           <NavSidebar modules={sidebarModules} />

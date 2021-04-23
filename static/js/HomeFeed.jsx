@@ -5,7 +5,7 @@ import Sefaria from './sefaria/sefaria';
 import PropTypes from 'prop-types';
 import classNames  from 'classnames';
 import {Story} from './Story';
-import { NavSidebar, JoinTheConversation } from './NavSidebar';
+import { NavSidebar, Modules } from './NavSidebar';
 import Footer from'./Footer';
 import { usePaginatedScroll } from './Hooks';
 import {
@@ -18,10 +18,10 @@ import {
 } from './Misc';
 
 
-const HomeFeed = ({toggleSignUpModal, onlySharedStories, initialWidth}) => {
+const HomeFeed = ({multiPanel, toggleSignUpModal, initialWidth}) => {
 
   const sidebarModules = [
-    {type: "AboutSefaria"},
+    multiPanel ? {type: "AboutSefaria"} : {type: null},
     {type: "Resources"},
     {type: "GetTheApp"},
     {type: "StayConnected"},
@@ -31,6 +31,10 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories, initialWidth}) => {
   return (
     <div className="readerNavMenu homepage" key="0">
       <div className="content">
+        {multiPanel ? null :
+        <div className="about">
+          <Modules type="AboutSefaria" />
+        </div>}
         <div className="sidebarLayout">
           <div className="contentInner mainColumn">
             <h2><InterfaceText>The Torah Portion</InterfaceText></h2>
@@ -71,7 +75,7 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories, initialWidth}) => {
             </div>
             : null }
             
-            <RecenltyPublished />
+            <RecenltyPublished multiPanel={multiPanel} />
 
           </div>
           <NavSidebar modules={sidebarModules} />
@@ -83,7 +87,6 @@ const HomeFeed = ({toggleSignUpModal, onlySharedStories, initialWidth}) => {
 }
 HomeFeed.propTypes = {
   toggleSignUpModal:  PropTypes.func.isRequired,
-  onlySharedStories:  PropTypes.bool,
 };
 
 
@@ -178,7 +181,7 @@ const AboutDiscover = ({discoverContent}) => {
 };
 
 
-const RecenltyPublished = () => {
+const RecenltyPublished = ({multiPanel}) => {
   const pageSize = 12;
   const [nSheetsLoaded, setNSheetsLoded] = useState(pageSize);
   // Start with recent sheets in the cache, if any
@@ -199,7 +202,7 @@ const RecenltyPublished = () => {
   const recentSheetsContent = !recentSheets ? [<LoadingMessage />] :
                                 recentSheets.map(s => <FeaturedSheet {...s} />);
   if (recentSheets) {
-    recentSheetsContent.splice(2, 0, <JoinTheConversation wide={true} />);
+    recentSheetsContent.splice(2, 0, <Modules type={"JoinTheConversation"} props={{wide:multiPanel}} />);
     recentSheetsContent.push(
       <a className="button small white" onClick={loadMore}>
         <InterfaceText>Load More</InterfaceText>
