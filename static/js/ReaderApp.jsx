@@ -1420,8 +1420,9 @@ class ReaderApp extends Component {
     var state = {panels: this.state.panels};
     if (state.panels.length == 0) {
       this.showLibrary();
+    } else {
+      this.setState(state);
     }
-    this.setState(state);
   }
   convertToTextList(n) {
     var base = this.state.panels[n-1];
