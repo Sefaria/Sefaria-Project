@@ -8,6 +8,8 @@ from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from sefaria.model.topic import TopicLinkHelper
 from sefaria.system.database import db
+from sefaria.system.cache import django_cache
+
 import structlog
 
 logger = structlog.get_logger(__name__)
@@ -244,6 +246,7 @@ def get_topics_for_ref(tref, annotate=False):
     return serialized
 
 
+@django_cache(timeout=6 * 60 * 60)
 def get_topics_for_book(title, annotate=False):
     all_topics = get_topics_for_ref(title, annotate=annotate)
 
