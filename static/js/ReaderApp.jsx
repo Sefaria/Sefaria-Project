@@ -1503,6 +1503,9 @@ class ReaderApp extends Component {
   openCollection(slug) {
     this.setSinglePanelState({menuOpen: "collection",  collectionSlug: slug});
   }
+  toggleMobileNavMenu() {
+    this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});
+  }
   getHistoryObject(panel, hasSidebar) {
     // get rave to send to /api/profile/user_history
     let ref, sheet_owner, sheet_title;
@@ -1648,15 +1651,20 @@ class ReaderApp extends Component {
     // Header should not show box-shadow over panels that have color line
     const hasColorLine = ["sheets", "sheets meta"];
     const headerHasBoxShadow = !!this.state.panels[0] && hasColorLine.indexOf(this.state.panels[0].menuOpen) === -1;
-    const header = !this.props.multiPanel && this.state.panels.length && !this.state.panels[0].menuOpen ? null :
-                  <Header
-                    multiPanel={this.props.multiPanel}
-                    onRefClick={this.handleNavigationClick}
-                    showSearch={this.showSearch}
-                    openURL={this.openURL}
-                    headerMode={this.props.headerMode}
-                    openTopic={this.openTopic}
-                    hasBoxShadow={headerHasBoxShadow} />;
+    const hideHeader = !this.props.multiPanel && this.state.panels.length && !this.state.panels[0].menuOpen;
+    const header = (
+      <Header
+        multiPanel={this.props.multiPanel}
+        onRefClick={this.handleNavigationClick}
+        showSearch={this.showSearch}
+        openURL={this.openURL}
+        headerMode={this.props.headerMode}
+        openTopic={this.openTopic}
+        hidden={hideHeader}
+        mobileNavMenuOpen={this.state.mobileNavMenuOpen}
+        onMobileMenuButtonClick={this.toggleMobileNavMenu}
+        hasBoxShadow={headerHasBoxShadow} />
+    );
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
                                   .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
@@ -1747,6 +1755,7 @@ class ReaderApp extends Component {
                       translateISOLanguageCode={this.translateISOLanguageCode}
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}
+                      openMobileNavMenu={this.toggleMobileNavMenu}
                       toggleSignUpModal={this.toggleSignUpModal}
                       getHistoryObject={this.getHistoryObject}
                       clearSelectedWords={clearSelectedWords}

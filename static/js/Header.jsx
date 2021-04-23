@@ -34,6 +34,9 @@ class Header extends Component {
     this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});
   }
   render() {
+    if (this.props.hidden && !this.props.mobileNavMenuOpen) {
+      return null;
+    }
     const headerContent = (
       <>
         <div className="headerNavSection">
@@ -63,7 +66,7 @@ class Header extends Component {
     const mobileHeaderContent = (
       <>
         <div>
-          <button onClick={this.toggleMobileNavMenu} aria-label={Sefaria._("Menu")} className="library">
+          <button onClick={this.props.onMobileMenuButtonClick} aria-label={Sefaria._("Menu")} className="library">
             <i className="fa fa-bars"></i>
           </button>
         </div>
@@ -93,12 +96,12 @@ class Header extends Component {
 
         {this.props.multiPanel ? null :
         <MobileNavMenu
-          visible={this.state.mobileNavMenuOpen}
+          visible={this.props.mobileNavMenuOpen}
           onRefClick={this.props.onRefClick}
           showSearch={this.props.showSearch}
           openTopic={this.props.openTopic}
           openURL={this.props.openURL}
-          close={this.toggleMobileNavMenu} />
+          close={this.props.onMobileMenuButtonClick} />
         }
         <GlobalWarningMessage />
       </div>

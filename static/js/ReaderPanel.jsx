@@ -1066,6 +1066,7 @@ class ReaderPanel extends Component {
           connectionsMode={this.state.filter.length && this.state.connectionsMode === "Connections" ? "Connection Text" : this.state.connectionsMode}
           connectionsCategory={this.state.connectionsCategory}
           closePanel={this.props.closePanel}
+          openMobileNavMenu={this.props.openMobileNavMenu}
           toggleLanguage={this.toggleLanguage}
           interfaceLang={this.props.interfaceLang}
           toggleSignUpModal={this.props.toggleSignUpModal}
@@ -1255,7 +1256,7 @@ class ReaderControls extends Component {
     let leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons">
           {this.props.multiPanel ? (<ReaderNavigationMenuCloseButton onClick={this.props.closePanel} />) : null}
-          {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMenu.bind(null, "navigation")}/>)}
+          {this.props.multiPanel ? null : (<ReaderNavigationMenuMenuButton onClick={this.props.openMobileNavMenu}/>)}
           <SaveButton placeholder={true}/>
         </div>);
 
@@ -1294,6 +1295,7 @@ ReaderControls.propTypes = {
   setConnectionsCategory:  PropTypes.func.isRequired,
   openMenu:                PropTypes.func.isRequired,
   openDisplaySettings:     PropTypes.func.isRequired,
+  openMobileNavMenu:       PropTypes.func.isRequired,
   closeMenus:              PropTypes.func.isRequired,
   currentMode:             PropTypes.func.isRequired,
   currentCategory:         PropTypes.func.isRequired,
