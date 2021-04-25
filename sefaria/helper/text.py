@@ -581,7 +581,7 @@ class WorkflowyParser(object):
         schema_root = self.build_index_schema(self.outline)
         self.parsed_schema = schema_root
         schema_root.validate()
-        idx = self.create_index_from_schema(categories)
+        idx = self.create_index_from_schema()
         if self._c_index:
             idx_obj = Index(idx).save()
             res = "Index record [{}] created.".format(self.parsed_schema.primary_title())
