@@ -576,11 +576,10 @@ class WorkflowyParser(object):
         # tree = tree.getroot()[1][0]
         # for element in tree.iter('outline'):
         #     print parse_titles(element)["enPrim"]
-        categories = self.extract_categories_from_title()
+        self.categories = self.extract_categories_from_title()
         self.version_info = {'info': self.extract_version_info(), 'text': []}
-        schema_root = self.build_index_schema(self.outline)
-        self.parsed_schema = schema_root
-        schema_root.validate()
+        self.parsed_schema = self.build_index_schema(self.outline)
+        self.parsed_schema.validate()
         idx = self.create_index_from_schema()
         if self._c_index:
             idx_obj = Index(idx).save()
