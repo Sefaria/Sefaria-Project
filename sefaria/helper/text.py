@@ -6,6 +6,7 @@ from sefaria.system.database import db
 from sefaria.datatype.jagged_array import JaggedTextArray
 from diff_match_patch import diff_match_patch
 from functools import reduce
+from sefaria.system.exceptions import InputError
 
 import regex as re
 import pprint
@@ -564,6 +565,7 @@ class WorkflowyParser(object):
                                            re.UNICODE)
         self.parsed_schema = None
         self.version_info = None
+        self.categories = None
         if delims:
             delims = delims.split()
             self.title_lang_delim = delims[0] if len(delims) >= 1 else self.title_lang_delim
@@ -678,7 +680,7 @@ class WorkflowyParser(object):
             categories = [s.strip() for s in category_str.group(1).split(",")]
             self.outline.set('text', re.sub(category_pattern, "", title))
             return categories
-        return None
+        raise InputError("Categories must be supplied on the Workflowy outline according to specifications")
 
     def parse_implied_depth(self, element):
         ja_depth_pattern = r"\[(\d)\]$"
@@ -719,12 +721,10 @@ class WorkflowyParser(object):
                           }
         return vinfo_dict
 
-    def create_index_from_schema(self, categories=None):
-        if not categories:
-            categories = ["Other"]
+    def create_index_from_schema(self):
         return {
             "title": self.parsed_schema.primary_title(),
-            "categories": categories,
+            "categories": self.categories,
             "schema": self.parsed_schema.serialize()
         }
 
