@@ -8,7 +8,7 @@ import {
   Note,
   FeedbackBox,
   ProfilePic,
-  ToolTipped, IntText,
+  ToolTipped, InterfaceText,
 } from './Misc';
 
 import {
@@ -325,9 +325,6 @@ class ConnectionsPanel extends Component {
                     setConnectionsMode={this.props.setConnectionsMode}
                     onTextClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
-                    onNavigationClick={this.props.onNavigationClick}
-                    onCompareClick={this.props.onCompareClick}
-                    onOpenConnectionsClick={this.props.onOpenConnectionsClick}
                     handleSheetClick={this.props.handleSheetClick}
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
@@ -619,9 +616,6 @@ ConnectionsPanel.propTypes = {
   canEditText:             PropTypes.bool,
   onTextClick:             PropTypes.func,
   onCitationClick:         PropTypes.func,
-  onNavigationClick:       PropTypes.func,
-  onCompareClick:          PropTypes.func,
-  onOpenConnectionsClick:  PropTypes.func,
   openNav:                 PropTypes.func,
   openDisplaySettings:     PropTypes.func,
   closePanel:              PropTypes.func,
@@ -1026,24 +1020,22 @@ class ToolsButton extends Component {
     this.props.onClick();
   }
   render() {
-    var icon = null;
+    let icon = null;
     if (this.props.icon) {
-      var iconName = "fa-" + this.props.icon;
-      var classes = {fa: 1, toolsButtonIcon: 1};
+      let iconName = "fa-" + this.props.icon;
+      let classes = {fa: 1, toolsButtonIcon: 1};
       classes[iconName] = 1;
       icon = (<i className={classNames(classes)} />)
     } else if (this.props.image) {
       icon = (<img src={"/static/img/" + this.props.image} className="toolsButtonIcon" alt="" />);
     }
-
-    var count = this.props.count ? (<span className="connectionsCount">({this.props.count})</span>) : null;
-    var url = Sefaria.util.replaceUrlParam("with", this.props.en);
+    const url = Sefaria.util.replaceUrlParam("with", this.props.en);
     return (
       <a href={url} className="toolsButton sans noselect" data-name={this.props.en} onClick={this.onClick}>
         {icon}
         <span className="toolsButtonText">
-          <span className="int-en noselect">{this.props.en} {count}</span>
-          <span className="int-he noselect">{this.props.he} {count}</span>
+            <InterfaceText text={{en: this.props.en , he: this.props.he }} />
+            {this.props.count ? (<span className="connectionsCount">({this.props.count})</span>) : null}
         </span>
       </a>)
   }
@@ -1423,16 +1415,16 @@ function ManuscriptImage(props) {
         : <p className={"english manuscriptCaption"}>{manuscript.manuscript.title}</p>
     }
       <div className="meta">
-        <IntText>Location: </IntText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br/>
+        <InterfaceText>Location: </InterfaceText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br/>
         {
           manuscript.manuscript[description]
             ? <span>
-                <IntText en={'Courtesy of: '} he={'הודות ל'} />
+                <InterfaceText text={{en:'Courtesy of: ', he:'הודות ל'}} />
                 <span className={cls}>{manuscript.manuscript[description]}<br/></span>
               </span>
             : ''
         }
-        <IntText en={'Source: '} he={'מקור: '}/>
+        <InterfaceText text={{en:'Source: ', he:'מקור: '}}/>
         <a href={manuscript.manuscript['source']} target="_blank">{manuscript.manuscript['source'].replace("https://", "")}</a>
       </div>
 

@@ -61,30 +61,30 @@ from sefaria.system.database import db
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
-logger.warning("Initializing library objects.")
-logger.warning("Initializing TOC Tree")
+logger.info("Initializing library objects.")
+logger.info("Initializing TOC Tree")
 library.get_toc_tree()
 
 
 """ """
-logger.warning("Initializing Full Auto Completer")
+logger.info("Initializing Full Auto Completer")
 library.build_full_auto_completer()
 
-logger.warning("Initializing Ref Auto Completer")
+logger.info("Initializing Ref Auto Completer")
 library.build_ref_auto_completer()
 
-logger.warning("Initializing Lexicon Auto Completers")
+logger.info("Initializing Lexicon Auto Completers")
 library.build_lexicon_auto_completers()
 
-logger.warning("Initializing Cross Lexicon Auto Completer")
+logger.info("Initializing Cross Lexicon Auto Completer")
 library.build_cross_lexicon_auto_completer()
 
-logger.warning("Initializing Shared Cache")
+logger.info("Initializing Shared Cache")
 library.init_shared_cache()
 """ """
 
@@ -179,13 +179,13 @@ def base_props(request):
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
-            "_uses_new_editor": request.COOKIES.get("new_editor", False),
+            "_uses_new_editor": getattr(profile, "uses_new_editor", False),
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
             "full_name": profile.full_name,
             "profile_pic_url": profile.profile_pic_url,
-            "is_history_enabled": getattr(profile.settings,"reading_history", True),
+            "is_history_enabled": profile.settings.get("reading_history", True),
             "following": profile.followees.uids,
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
@@ -745,16 +745,17 @@ def search(request):
 
 @login_required
 def enable_new_editor(request):
-    resp = home(request)
-    resp.set_cookie("new_editor", "yup", 60 * 60 * 24 * 365)
-    return resp
-
+    profile = UserProfile(id=request.user.id)
+    profile.update({"uses_new_editor": True, "show_editor_toggle": True})
+    profile.save()
+    return redirect(f"/profile/{profile.slug}")
 
 @login_required
 def disable_new_editor(request):
-    resp = home(request)
-    resp.delete_cookie("new_editor")
-    return resp
+    profile = UserProfile(id=request.user.id)
+    profile.update({"uses_new_editor": False})
+    profile.save()
+    return redirect(f"/profile/{profile.slug}")
 
 
 def public_collections(request):
@@ -906,7 +907,7 @@ def saved(request):
 def user_history(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
-        uhistory =  profile.get_user_history(secondary=False, serialized=True) if profile.settings["reading_history"] else []
+        uhistory =  profile.get_user_history(secondary=False, serialized=True) if profile.settings.get("reading_history", True) else []
     else:
         uhistory = _get_anonymous_user_history(request)
     props = {"userHistory": uhistory}
@@ -1200,22 +1201,46 @@ def interface_language_redirect(request, language):
     return response
 
 
-#todo: is this used elsewhere? move it?
-def count_and_index(c_oref, c_lang, vtitle, to_count=1):
-    # count available segments of text
-    if to_count:
-        library.recount_index_in_toc(c_oref.index)
-        if MULTISERVER_ENABLED:
-            server_coordinator.publish_event("library", "recount_index_in_toc", [c_oref.index.title])
+@catch_error_as_json
+@csrf_exempt
+def modify_bulk_text_api(request, title):
+    title = title.replace('_', ' ')
+    if request.method == "POST":
+        skip_links = request.GET.get("skip_links", False)
+        count_after = int(request.GET.get("count_after", 0))
+        j = request.POST.get("json")
+        if not j:
+            return jsonResponse({"error": "Missing 'json' parameter in post data."})
+        t = json.loads(j)
+        versionTitle = t['versionTitle']
+        language = t['language']
+        versionSource = t.get("versionSource", None)
+        version = Version().load({"title": title, "versionTitle": versionTitle, "language": language})
+        if version is None:
+            return jsonResponse({"error": f"Version does not exist. Title: {title}, VTitle: {versionTitle}, Language: {language}"})
 
-    from sefaria.settings import SEARCH_INDEX_ON_SAVE
-    if SEARCH_INDEX_ON_SAVE:
-        IndexQueue({
-            "ref": c_oref.normal(),
-            "lang": c_lang,
-            "version": vtitle,
-            "type": "ref",
-        }).save()
+        def modify(uid):
+            error_map = tracker.modify_bulk_text(uid, version, t['text_map'], vsource=versionSource, skip_links=skip_links, count_after=count_after)
+            response = {"status": "ok"}
+            if len(error_map) > 0:
+                response["status"] = "some refs failed"
+                response["ref_error_map"] = error_map
+            return response
+
+        if not request.user.is_authenticated:
+            key = request.POST.get("apikey")
+            if not key:
+                return jsonResponse({"error": "You must be logged in or use an API key to save texts."})
+            apikey = db.apikeys.find_one({"key": key})
+            if not apikey:
+                return jsonResponse({"error": "Unrecognized API key."})
+            return jsonResponse(modify(apikey['uid']))
+        else:
+            @csrf_protect
+            def protected_post(request):
+                return jsonResponse(modify(request.user.id))
+            return protected_post(request)
+    return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
 @catch_error_as_json
@@ -1320,6 +1345,8 @@ def texts_api(request, tref):
 
         oref = oref.default_child_ref()  # Make sure we're on the textual child
         skip_links = request.GET.get("skip_links", False)
+        count_after = int(request.GET.get("count_after", 0))
+
         if not request.user.is_authenticated:
             key = request.POST.get("apikey")
             if not key:
@@ -1328,17 +1355,13 @@ def texts_api(request, tref):
             if not apikey:
                 return jsonResponse({"error": "Unrecognized API key."})
             t = json.loads(j)
-            chunk = tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API", skip_links=skip_links)
-            count_after = int(request.GET.get("count_after", 0))
-            count_and_index(oref, chunk.lang, chunk.vtitle, count_after)
+            tracker.modify_text(apikey["uid"], oref, t["versionTitle"], t["language"], t["text"], t["versionSource"], method="API", skip_links=skip_links, count_after=count_after)
             return jsonResponse({"status": "ok"})
         else:
             @csrf_protect
             def protected_post(request):
                 t = json.loads(j)
-                chunk = tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t.get("versionSource", None), skip_links=skip_links)
-                count_after = int(request.GET.get("count_after", 1))
-                count_and_index(oref, chunk.lang, chunk.vtitle, count_after)
+                tracker.modify_text(request.user.id, oref, t["versionTitle"], t["language"], t["text"], t.get("versionSource", None), skip_links=skip_links, count_after=count_after)
                 return jsonResponse({"status": "ok"})
             return protected_post(request)
 
@@ -2130,6 +2153,8 @@ def flag_text_api(request, title, lang, version):
 
     `language` attributes are not handled.
     """
+    _attributes_to_save = Version.optional_attrs + ["versionSource"]
+
     if not request.user.is_authenticated:
         key = request.POST.get("apikey")
         if not key:
@@ -2147,7 +2172,7 @@ def flag_text_api(request, title, lang, version):
         vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
         if flags.get("newVersionTitle"):
             vobj.versionTitle = flags.get("newVersionTitle")
-        for flag in vobj.optional_attrs:
+        for flag in _attributes_to_save:
             if flag in flags:
                 setattr(vobj, flag, flags[flag])
         vobj.save()
@@ -2161,7 +2186,7 @@ def flag_text_api(request, title, lang, version):
             vobj = Version().load({"title": title, "language": lang, "versionTitle": version})
             if flags.get("newVersionTitle"):
                 vobj.versionTitle = flags.get("newVersionTitle")
-            for flag in vobj.optional_attrs:
+            for flag in _attributes_to_save:
                 if flag in flags:
                     setattr(vobj, flag, flags[flag])
             vobj.save()
@@ -3511,7 +3536,7 @@ def profile_get_user_history(request):
         else:
             saved, secondary, last_place, oref = get_url_params_user_history(request)
             user = UserProfile(id=request.user.id)
-            if not user.settings["reading_history"] and not saved:
+            if "reading_history" in user.settings and not user.settings["reading_history"] and not saved:
                 return jsonResponse([])
             return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place))
     return jsonResponse({"error": "Unsupported HTTP method."})
@@ -4187,7 +4212,7 @@ def application_health_api_nonlibrary(request):
 
 def rollout_health_api(request):
     """
-    Defines the /healthz-rollout API endpoint which responds with 
+    Defines the /healthz-rollout API endpoint which responds with
         200 if the services Django depends on, Redis, Multiverver, and NodeJs
             are available.
         500 if any of the aforementioned services are not available
@@ -4200,7 +4225,7 @@ def rollout_health_api(request):
     }
     """
     def isRedisReachable():
-        try: 
+        try:
             redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
             return redis_client.ping() == True
         except:

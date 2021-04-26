@@ -773,29 +773,21 @@ const withSefariaSheet = editor => {
         const atStartOfDoc = Point.equals(editor.selection.focus, Editor.start(editor, [0,0]))
         if (atStartOfDoc) {return}
 
-        //if just before sheetSource, select it instead of delete
+        //if selected element is sheet source, delete it as normal
         if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
             deleteBackward()
             return
         }
 
         else {
-            // dance to get in correct spot so delete forward works below
+            // if deleting backwards would run into a sheet source, select it instead of delete it
             Transforms.move(editor, { reverse: true })
             if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
-               return
+              return
             }
             else {
-                //when spacer is deleted it moves you to sheetItem above, we need to add a space back in
-                if (getClosestSheetElement(editor, editor.selection.focus.path, "spacer")) {
-                    Editor.deleteForward(editor)
-                    Transforms.move(editor)
-                }
-
-                else {
-                    Editor.deleteForward(editor)
-                }
-                return;
+              Editor.deleteForward(editor)
+              return;
             }
         }
 
@@ -821,11 +813,9 @@ const withSefariaSheet = editor => {
             }
 
         getRefInText(editor).then(query =>{
-
             if(query["is_segment"] || query["is_section"]) {
               return
             }
-
             Transforms.insertNodes(editor,{type: 'spacer', children: [{text: ""}]});
             checkAndFixDuplicateSheetNodeNumbers(editor)
             return;
@@ -1136,7 +1126,7 @@ const insertSource = (editor, ref, path) => {
         const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
         const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
 
-        const fragment = {
+        const fragment = [{
                 type: "SheetSource",
                 node: editor.children[0].nextNode,
                 ref: text.ref,
@@ -1147,7 +1137,8 @@ const insertSource = (editor, ref, path) => {
                 children: [
                     {text: ""},
                 ]
-        };
+        }, {type: 'spacer', children: [{text: ""}]}
+        ];
         Transforms.setNodes(editor, { loading: false }, { at: path });
         addItemToSheet(editor, fragment, path ? path : "bottom");
         checkAndFixDuplicateSheetNodeNumbers(editor)

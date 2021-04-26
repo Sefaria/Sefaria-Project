@@ -3,10 +3,8 @@ import time
 
 from sefaria.settings import MULTISERVER_REDIS_EVENT_CHANNEL, MULTISERVER_REDIS_CONFIRM_CHANNEL
 
-import logging
-logging.basicConfig()
-logger = logging.getLogger("multiserver")
-logger.setLevel(logging.INFO)
+import structlog
+logger = structlog.get_logger(__name__)
 
 from .messaging import MessagingNode
 from sefaria.system.varnish.thin_wrapper import invalidate_title

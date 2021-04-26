@@ -13,11 +13,12 @@ import pymongo
 # To allow these files to be run directly from command line (w/o Django shell)
 os.environ['DJANGO_SETTINGS_MODULE'] = "settings"
 
+import structlog
 import logging
 from logging import NullHandler
 from collections import defaultdict
 import time as pytime
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 from elasticsearch import Elasticsearch
 from elasticsearch.client import IndicesClient
@@ -38,7 +39,7 @@ import sefaria.model.queue as qu
 es_client = Elasticsearch(SEARCH_ADMIN)
 index_client = IndicesClient(es_client)
 
-tracer = logging.getLogger('elasticsearch')
+tracer = structlog.get_logger(__name__)
 tracer.setLevel(logging.CRITICAL)
 #tracer.addHandler(logging.FileHandler('/tmp/es_trace.log'))
 tracer.addHandler(NullHandler())
@@ -793,16 +794,6 @@ def index_all_of_type(type, skip=0, debug=False):
         print("Successfully deleted alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current']))
     except NotFoundError:
         print("Failed to delete alias {} for index {}".format(index_names_dict['alias'], index_names_dict['current']))
-
-
-    #TEMPORARY FOR TOC MIGRATION
-    if type == 'text':
-        try:
-            #index_client.put_settings(index=index_names_dict['current'], body={"index": { "blocks": { "read_only_allow_delete": False }}})
-            index_client.delete_alias(index='text-toc-migration', name=index_names_dict['alias'])
-            print("Successfully deleted alias {} for index {}".format(index_names_dict['alias'], 'text-toc-migration'))
-        except NotFoundError:
-            print("Failed to delete alias {} for index {}".format(index_names_dict['alias'], 'text-toc-migration'))
 
     clear_index(index_names_dict['alias']) # make sure there are no indexes with the alias_name
 

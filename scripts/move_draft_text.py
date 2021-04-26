@@ -209,7 +209,7 @@ if __name__ == '__main__':
         if args.versionlist != 'all':
             version_arr = []
             for versionstr in args.versionlist.split("|"):
-                lang_vtitle = versionstr.split(":")
+                lang_vtitle = versionstr.split(":", 1)
                 version_arr.append({'language': lang_vtitle[0], "versionTitle": lang_vtitle[1]})
             args.versionlist = version_arr
     copier = ServerTextCopier(args.destination_server, args.apikey, args.title, args.noindex, args.versionlist, args.links)
