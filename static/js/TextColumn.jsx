@@ -54,7 +54,7 @@ class TextColumn extends Component {
     } else if (this.state.showScrollPlaceholders && !prevState.showScrollPlaceholders) {
       // After scroll placeholders are first rendered, scroll down so top placeholder 
       // is out of view and scrolling up is possible.
-       console.log("scrolling for ScrollPlaceholders first render")
+      // console.log("scrolling for ScrollPlaceholders first render")
       this.setInitialScrollPosition();
 
     } else if (this.props.srefs.length == 1 && 
@@ -93,8 +93,8 @@ class TextColumn extends Component {
     const selection = window.getSelection();
     if (selection.type === "Range") {
       //console.log("handling range");
-      const $start    = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
-      const $end      = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
+      const $start  = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
+      const $end    = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
       let $segments = this.$container.find(".segment");
       let start     = $segments.index($start);
       let end       = $segments.index($end);
@@ -120,25 +120,29 @@ class TextColumn extends Component {
     }
   }
   handleTextLoad(ref) {
-    // TextRanges in the column may be initial rendered in "loading" state with out data.
+    // TextRanges in the column may be initial rendered in "loading" state without data.
     // When the data loads we may need to change scroll position or render addition ranges.
     // console.log("handle text load: ", ref);
+
+    if (this.$container.find(".basetext.loading").length) {
+      // Don't mess with scroll positions until all sections of text have loaded,
+      // prevent race conditions when mutliple section may load out of order.
+      return;
+    }
 
     if (!this.initialScrollTopSet) {
       this.setInitialScrollPosition();
       this.initialScrollTopSet = true;
     }
 
-    if (ref == this.props.srefs.slice(-1)[0]) {
-      // When content loads check if we already need to load another section below, which
-      // occurs when the loaded section is very short and whitespace is already visible below it.
-      // Only check down, a text load should never trigger an infinite scroll up
-      // console.log("Checking infinite scroll down");
-      this.adjustInfiniteScroll(true);
-    }
+    // When content loads check if we already need to load another section below, which
+    // occurs when the loaded section is very short and whitespace is already visible below it.
+    // Only check down, a text load should never trigger an infinite scroll up
+    // console.log("Checking infinite scroll down");
+    this.adjustInfiniteScroll(true);
 
     if (this.loadingContentAtTop) {
-      // If the text that was just loaded was t the top of the page, restore the scroll 
+      // If the text that was just loaded was at the top of the page, restore the scroll 
       // position to keep what the user was looking at in place. 
       this.restoreScrollPositionAfterTopLoad();
     }
