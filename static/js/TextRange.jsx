@@ -540,9 +540,7 @@ class TextSegment extends Component {
       const style = {opacity: linkScore};
       linkCountElement = this.props.showLinkCount ? (
           <div className="linkCount sans" title={linkCount + " Connections Available"}>
-             <span className="linkCountDot" style={style}>
-               <ContentText text={{"en": "", "he": ""}} />
-             </span>
+             <span className="linkCountDot" style={style}></span>
           </div>
       ) : null;
     } else {
