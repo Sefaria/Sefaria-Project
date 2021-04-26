@@ -4314,18 +4314,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 100%;
   box-sizing: border-box;
 }
-.textList .texts,
-.textList .fullFilterView {
+.textList .texts {
   height: 100%;
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
-}
-.textList .fullFilterView .contentInner {
-  max-width: 700px;
-  margin: 0 auto;
 }
 .textList .texts .contentInner {
   max-width: 660px;
@@ -4552,58 +4547,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .bilingual .textFilter .he,
 .bilingual .categoryFilter .he {
   display: none;
-}
-.fullFilterView {
-  border-top: 1px solid #ddd;
-  background-color: #FBFBFA;
-  padding: 40px 20px;
-}
-.sepia .fullFilterView {
-  background-color: #F3F3F1;
-}
-.dark .fullFilterView {
-  background-color: #2D2D2B;
-  border-color: #444;
-}
-.fullFilterView td {
-  background-color: white;
-  border: 2px solid #FBFBFA;
-}
-.fullFilterView td.empty {
-  background-color: transparent;
-}
-.dark .fullFilterView td {
-  background-color: #333331;
-  border-color: #2d2d2b;
-  color: white;
-}
-.fullFilterView .categoryFilter {
-  background-color: white;
-  margin-bottom: 1px;
-}
-.fullFilterView .categoryFilter.notClickable {
-  color: #999;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  background-color: transparent;
-  padding: 12px 12px 28px;
-  cursor: auto;
-}
-.dark .fullFilterView .categoryFilter {
-  background-color: #333;
-}
-.fullFilterView .categoryFilterGroup {
-  margin-bottom: 30px;
-}
-.showSelectedFilters {
-  background-color: #222F4F;
-  color: white;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  text-transform: uppercase;
-  text-align: center;
-  padding: 8px;
-  cursor: pointer;
-  border-radius: 3px;
-  margin: 16px 0;
 }
 .textList .textListTop > .loadingMessage,
 .textList .texts .contentInner > .loadingMessage {
