@@ -3785,6 +3785,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .parashahHeader.aliyah span {
   text-transform: uppercase;
+  font-size: 18px;
 }
 .title + .text span:first-child .parashahHeader {
   margin-top: -5px;

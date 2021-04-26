@@ -54,10 +54,12 @@ class TextColumn extends Component {
     } else if (this.state.showScrollPlaceholders && !prevState.showScrollPlaceholders) {
       // After scroll placeholders are first rendered, scroll down so top placeholder 
       // is out of view and scrolling up is possible.
-      // console.log("scrolling for ScrollPlaceholders first render")
+       console.log("scrolling for ScrollPlaceholders first render")
       this.setInitialScrollPosition();
 
-    } else if (this.props.srefs.length == 1 && Sefaria.util.inArray(this.props.srefs[0], prevProps.srefs) == -1) {
+    } else if (this.props.srefs.length == 1 && 
+        Sefaria.util.inArray(this.props.srefs[0], prevProps.srefs) == -1 && 
+        !prevProps.srefs.some(r => Sefaria.refContains(this.props.srefs[0], r))) {
       // If we are switching to a single ref not in the current TextColumn, 
       // treat it as a fresh open.
       // console.log("setting initialScroll for brand new ref")
@@ -152,7 +154,7 @@ class TextColumn extends Component {
       this.scrollToHighlighted();
 
     } else {
-      // When a test is first loaded, scroll it down a small amount so that it is
+      // When a text is first loaded, scroll it down a small amount so that it is
       // possible to scroll up and trigginer infinites scroll up. This also hides 
       // "Loading..." div which sit above the text.
       const top = this.scrollPlaceholderHeight;
