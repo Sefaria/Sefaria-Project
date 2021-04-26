@@ -3323,7 +3323,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls .readerControlsInner {
   position: relative;
-  width: 700px;
+  width: 760px;
   margin: 0 auto;
   padding: 0 30px;
   display: flex;
@@ -3710,7 +3710,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: justify;
   background-color: inherit;
   margin: 0 auto;
-  max-width: 700px;
+  max-width: 760px;
   position: relative;
   padding: 0 30px;
 }
@@ -7343,7 +7343,7 @@ span.purim-emoji img{
   text-align: justify;
   background-color: inherit;
   margin: 0 auto;
-  max-width: 700px;
+  max-width: 760px;
   position: relative;
   padding: 0 30px;
 }
@@ -8678,7 +8678,7 @@ body .homeFeedWrapper .content {
 }
 .storyFeedInner,
 .interface-hebrew .storyFeedInner {
-  max-width: 700px;
+  max-width: 760px;
   margin: 0 auto;
   padding-top: 60px;
 }
