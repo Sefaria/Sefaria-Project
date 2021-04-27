@@ -6518,17 +6518,23 @@ a .button:hover {
 .sheetMetaDataBox .title {
   display: block;
 }
-.sheetMetaDataBox .title br {
-    display: none
+.sheetMetaDataBox .title br { /* hide the line breaks that are stripped before saving */
+    display: none;
 }
+.sheetMetaDataBox .title * {  /* chrome adds <div> tags to contenteditables and we want those inline as well  */
+  display: inline;
+}
+
 .sheetMetaDataBox .title:empty:before {
   content: "Untitled";
   color: #999;
   position: relative;
   pointer-events: none;
+  width: auto;
 }
 .sheetMetaDataBox .title:focus:before {
-  content: "";
+  content: "\200B"; /* zero-width space required so that chrome doesn't cause change in size of box on focus/blur */
+  width: 0;
 }
 .editorSidebarToggle {
   position: fixed;

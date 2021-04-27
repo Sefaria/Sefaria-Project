@@ -210,7 +210,7 @@ class JaggedArray(object):
                 return False
         return True
 
-    def is_empty(self, _cur=None):
+    def is_empty(self, _cur=None) -> bool:
         if _cur is None:
             return self.is_empty(_cur=self._store)
         if isinstance(_cur, list):
@@ -235,12 +235,12 @@ class JaggedArray(object):
     def non_empty_sections(self):
         return [s for s in self.sections() if not self.subarray(s).is_empty()]
 
-    def element_count(self):
+    def element_count(self) -> int:
         if self.e_count is None:
             self.e_count = self._ecnt(self._store)
         return self.e_count if self.e_count else 0
 
-    def _ecnt(self, jta):
+    def _ecnt(self, jta) -> int:
         if isinstance(jta, list):
             return sum([self._ecnt(i) for i in jta])
         else:
@@ -332,7 +332,7 @@ class JaggedArray(object):
             self._depth = self.depth()
         return self._depth
 
-    def depth(self, _cur=None, deep=False):
+    def depth(self, _cur=None, deep=False) -> int:
         """
         returns 1 for [n], 2 for [[n],[p]], etc.
         Special case returns zero for an empty array []
@@ -617,16 +617,16 @@ class JaggedTextArray(JaggedArray):
         self.w_count = None
         self.c_count = None
 
-    def verse_count(self):
+    def verse_count(self) -> int:
         return self.element_count()
 
-    def word_count(self):
+    def word_count(self) -> int:
         """ return word count in this JTA """
         if self.w_count is None:
             self.w_count = self._wcnt(self._store)
         return self.w_count if self.w_count else 0
 
-    def _wcnt(self, jta):
+    def _wcnt(self, jta) -> int:
         """ Returns the number of words in an undecorated jagged array """
         if isinstance(jta, str):
             return len(re.split(r"[\s\u05be]+", jta.strip()))
@@ -635,13 +635,13 @@ class JaggedTextArray(JaggedArray):
         else:
             return 0
 
-    def char_count(self):
+    def char_count(self) -> int:
         """ return character count in this JTA """
         if self.c_count is None:
             self.c_count = self._ccnt(self._store)
         return self.c_count if self.c_count else 0
 
-    def _ccnt(self, jta):
+    def _ccnt(self, jta) -> int:
         """ Returns the number of characters in an undecorated jagged array """
         if isinstance(jta, str):
             return len(jta)
@@ -705,7 +705,7 @@ class JaggedTextArray(JaggedArray):
                 _cur = _cur[0:final_index + 1]
             return _cur
 
-    def overlaps(self, other=None, _self_cur=None, _other_cur=None):
+    def overlaps(self, other=None, _self_cur=None, _other_cur=None) -> bool:
         """
         Returns True if self and other contain one or more positions where both are non empty.
         Runs recursively.

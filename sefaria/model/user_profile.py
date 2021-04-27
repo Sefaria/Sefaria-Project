@@ -27,7 +27,6 @@ from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
-from sefaria.settings import PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
 
 import structlog
 logger = structlog.get_logger(__name__)

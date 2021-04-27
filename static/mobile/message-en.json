@@ -1,1 +1,12 @@
-null
+{
+	"title": "Sefaria Community,",
+	"text": [
+        "In honor of Shavuot, we are counting towards the goal of recruiting 180 new Sefaria Sustainers. Through recurring monthly donations, our current Sustainers (800+) cover a significant portion of what Sefaria needs to raise each year!",
+        "If you sign up today, you can keep Jewish texts free and growing on Sefaria all year round! A recurring gift of $15, $10, or even $5 can make a real difference.",
+        "The future of Torah is in your hands. Can we count on you?"
+    ],
+	"buttonLink": "https://sefaria.nationbuilder.com/sustainers_e",
+	"buttonText": "Become a Sustainer",
+	"name": "shavuot-2021-2",
+	"schemaVersion": 1
+}

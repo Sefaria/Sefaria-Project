@@ -30,7 +30,7 @@
     "watch-explore": "webpack --config ./node/webpack.explore.js --progress -w --stdin",
     "watch-sefaria": "webpack --config ./node/webpack.sefaria.js --progress -w --stdin",
     "watch-timeline": "webpack --config ./node/webpack.timeline.js --progress -w --stdin",
-    "setup": "npm install -g nodemon; npm install -g babel-cli; npm install -g forever",
+    "setup": "npm install -g nodemon babel-cli forever",
     "b": "npm run build",
     "w": "npm run watch-client-server",
     "wc": "npm run watch-client",
