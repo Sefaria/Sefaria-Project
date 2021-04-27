@@ -56,7 +56,7 @@ const HomeFeed = ({multiPanel, toggleSignUpModal, initialWidth}) => {
             {Sefaria.homepage.discover ?
             <div>
               <h2>
-                <InterfaceText>Discover</InterfaceText>&nbsp;
+                <InterfaceText>Discover </InterfaceText>&nbsp;
                 <InterfaceText text={Sefaria.homepage.discover.about.category} />
               </h2>
               <ResponsiveNBox content={[

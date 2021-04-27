@@ -964,6 +964,7 @@ class ReaderPanel extends Component {
     } else if (this.state.menuOpen === "home") {
       menu = (
         <HomeFeed
+          multiPanel={this.props.multiPanel}
           toggleSignUpModal={this.props.toggleSignUpModal}
           initialWidth={this.state.width} />
       );
