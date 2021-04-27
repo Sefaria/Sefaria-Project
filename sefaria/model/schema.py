@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import copy
+from typing import List
 
 import structlog
 from functools import reduce
@@ -2029,7 +2030,7 @@ class AddressTalmud(AddressType):
             return ref._get_normal(lang)
 
     @classmethod
-    def parse_range_end(cls, ref, parts:list[str], base):
+    def parse_range_end(cls, ref, parts:List[str], base):
         """
         :param ref: Ref object (example: Zohar 1:2-3)
         :param parts: list of text of Ref; if Ref is a range, list will be of length 2; otherwise, length 1;

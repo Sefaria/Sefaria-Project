@@ -6,7 +6,8 @@ text.py
 import time
 import structlog
 from functools import reduce
-from typing import Optional, Union
+from typing import Optional, Union, List, Dict
+
 logger = structlog.get_logger(__name__)
 
 import sys
@@ -4203,10 +4204,10 @@ class Ref(object, metaclass=RefCacheType):
 
         return normal
 
-    def normal_sections(self, lang="en") -> list[str]:
+    def normal_sections(self, lang="en") -> List[str]:
         return [self.index_node.address_class(i).toStr(lang, self.sections[i]) for i in range(len(self.sections))]
 
-    def normal_toSections(self, lang="en") -> list[str]:
+    def normal_toSections(self, lang="en") -> List[str]:
         return [self.index_node.address_class(i).toStr(lang, self.toSections[i]) for i in range(len(self.toSections))]
 
     def normal_section(self, section_index:int, lang="en", **kwargs) -> str:
@@ -4439,7 +4440,7 @@ class Library(object):
 
 
     """
-    _index_title_maps: dict[str, dict[str, list[str]]]
+    _index_title_maps: Dict[str, Dict[str, List[str]]]
 
     def __init__(self):
         #Timestamp when library last stored shared cache items (toc, terms, etc)
