@@ -1831,9 +1831,9 @@ class TextChunk(AbstractTextRecord, metaclass=TextFamilyDelegator):
         text_list = [x for x in self.ja().flatten_to_array() if len(x) > 0]
         if len(text_list) != len(ref_list):
             if strict:
-                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(ind_list)))
+                raise ValueError("The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={}".format(len(ref_list),len(text_list)))
             else:
-                print("Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(ind_list),str(self._oref)))
+                print("Warning: The number of refs doesn't match the number of starting words. len(refs)={} len(inds)={} {}".format(len(ref_list),len(text_list),str(self._oref)))
 
         matches = []
         for r, t in zip(ref_list, text_list):
@@ -3741,7 +3741,7 @@ class Ref(object, metaclass=RefCacheType):
         E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
         """
         #todo: move over to the regex methods of the index nodes
-        patterns = []
+        patterns: list[str] = []
 
         if self.is_range():
             if self.is_spanning():
@@ -3841,7 +3841,7 @@ class Ref(object, metaclass=RefCacheType):
 
         return True
 
-    def overlaps(self, other):
+    def overlaps(self, other) -> bool:
         """
         Does this Ref overlap ``other`` Ref?
 
@@ -3988,7 +3988,7 @@ class Ref(object, metaclass=RefCacheType):
                     break
         return ret
 
-    def order_id(self):
+    def order_id(self) -> str:
         """
         Returns a unique id for this reference that establishes an ordering of references across the whole catalog.
         This id will change as the ordering of the categories changes, and may begin to overlap with other numbers because of those changes.
@@ -4175,7 +4175,7 @@ class Ref(object, metaclass=RefCacheType):
     def he_book(self):
         return self.index_node.full_title("he")
 
-    def _get_normal(self, lang):
+    def _get_normal(self, lang) -> str:
         normal = self.index_node.full_title(lang)
         if not normal:
             if lang != "en":
@@ -4203,13 +4203,13 @@ class Ref(object, metaclass=RefCacheType):
 
         return normal
 
-    def normal_sections(self, lang="en"):
+    def normal_sections(self, lang="en") -> list[str]:
         return [self.index_node.address_class(i).toStr(lang, self.sections[i]) for i in range(len(self.sections))]
 
-    def normal_toSections(self, lang="en"):
+    def normal_toSections(self, lang="en") -> list[str]:
         return [self.index_node.address_class(i).toStr(lang, self.toSections[i]) for i in range(len(self.toSections))]
 
-    def normal_section(self, section_index, lang="en", **kwargs):
+    def normal_section(self, section_index:int, lang="en", **kwargs) -> str:
         """
         Return the display form of the section value at depth `section_index`
         Does not support ranges
@@ -4224,7 +4224,7 @@ class Ref(object, metaclass=RefCacheType):
         assert len(self.sections) > section_index
         return self.index_node.address_class(section_index).toStr(lang, self.sections[section_index], **kwargs)
 
-    def normal_last_section(self, lang="en", **kwargs):
+    def normal_last_section(self, lang="en", **kwargs) -> str:
         """
         Return the display form of the last section
         Does not support ranges
@@ -4239,7 +4239,7 @@ class Ref(object, metaclass=RefCacheType):
             return ""
         return self.normal_section(length - 1, lang, **kwargs)
 
-    def he_normal(self):
+    def he_normal(self) -> str:
         """
         :return string: Normal Hebrew string form
         """
@@ -4249,7 +4249,7 @@ class Ref(object, metaclass=RefCacheType):
         '''
         return self.normal('he')
 
-    def uid(self):
+    def uid(self) -> str:
         """
         To handle the fact that default nodes have the same name as their parents
         :return:
@@ -4439,6 +4439,7 @@ class Library(object):
 
 
     """
+    _index_title_maps: dict[str, dict[str, list[str]]]
 
     def __init__(self):
         #Timestamp when library last stored shared cache items (toc, terms, etc)
