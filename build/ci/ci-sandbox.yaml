@@ -167,7 +167,7 @@ steps:
 
   # Manage the ingress
   # 1. Add the sandbox name to v2/sandboxes/sandboxes.txt
-  # 2. Create and apply ingress objecte with all routes
+  # 2. Create and apply ingress object with all routes
 
   # Get all sandbox names, so that we can reconfigure the sandbox ingress
   # Requires kubectl
