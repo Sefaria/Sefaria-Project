@@ -1,5 +1,6 @@
 import {
   CategoryAttribution,
+  CategoryColorLine,
   ResponsiveNBox,
   LanguageToggleButton,
   InterfaceText,
@@ -18,79 +19,82 @@ import InPanelHeader from './InPanelHeader';
 const ReaderNavigationCategoryMenu = ({category, categories, setCategories, toggleLanguage,
   openDisplaySettings, navHome, multiPanel, initialWidth, compare, contentLang}) => {
 
-    // Show Talmud with Toggles
-    const cats  = categories[0] === "Talmud" && categories.length === 1 ?
-                        ["Talmud", "Bavli"] : categories;
-    const aboutCats = categories[0] === "Talmud" && categories.length === 2 ?
-                        ["Talmud"] : categories;
-    let catTitle = '', heCatTitle = '';
+  // Show Talmud with Toggles
+  const cats  = categories[0] === "Talmud" && categories.length === 1 ?
+                      ["Talmud", "Bavli"] : categories;
+  const aboutCats = categories[0] === "Talmud" && categories.length === 2 ?
+                      ["Talmud"] : categories;
+  let catTitle = '', heCatTitle = '';
 
-    if (cats[0] === "Talmud" && cats.length === 2) {
-      catTitle   = cats[0];
-      heCatTitle = Sefaria.hebrewTerm(cats[0]);
+  if (cats[0] === "Talmud" && cats.length === 2) {
+    catTitle   = cats[0];
+    heCatTitle = Sefaria.hebrewTerm(cats[0]);
+  } else {
+    if (category === "Commentary") {
+      const onCat = cats.slice(-2)[0];
+      catTitle   = onCat + " Commentary";
+      heCatTitle = Sefaria.hebrewTerm(onCat) + " " + Sefaria.hebrewTerm("Commentary");  // HEBREW NEEDED
     } else {
-      if (category === "Commentary") {
-        const onCat = cats.slice(-2)[0];
-        catTitle   = onCat + " Commentary";
-        heCatTitle = Sefaria.hebrewTerm(onCat) + " " + Sefaria.hebrewTerm("Commentary");  // HEBREW NEEDED
-      } else {
-        catTitle   = category;
-        heCatTitle = Sefaria.hebrewTerm(category);
-      }
+      catTitle   = category;
+      heCatTitle = Sefaria.hebrewTerm(category);
     }
+  }
 
-    const tocObject = Sefaria.tocObjectByCategories(cats);
+  const tocObject = Sefaria.tocObjectByCategories(cats);
 
-    const catContents    = Sefaria.tocItemsByCategories(cats);
-    const nestLevel      = category === "Commentary" ? 1 : 0;
-    const aboutModule   = [
-      multiPanel ? {type: "AboutTextCategory", props: {cats: aboutCats}} : {type: null},
-    ];
+  const catContents    = Sefaria.tocItemsByCategories(cats);
+  const nestLevel      = category === "Commentary" ? 1 : 0;
+  const aboutModule   = [
+    multiPanel ? {type: "AboutTextCategory", props: {cats: aboutCats}} : {type: null},
+  ];
 
-    const sidebarModules = aboutModule.concat(getSidebarModules(cats));
+  const sidebarModules = aboutModule.concat(getSidebarModules(cats));
 
-    const talmudToggle   = <TalmudToggle categories={cats} setCategories={setCategories} />
-    const footer         = compare ? null : <Footer />;
-    const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noLangToggleInHebrew: 1, compare: compare});
-    return (<div className={navMenuClasses}>
-              { compare ? 
-              <InPanelHeader
-                mode={'innerTOC'}
-                category={cats[0]}
-                openDisplaySettings={openDisplaySettings}
-                navHome={navHome}
-                compare={compare}
-                catTitle={catTitle}
-                heCatTitle={heCatTitle} /> : null}
-              
-              <div className="content">
-                <div className="sidebarLayout">
-                  <div className="contentInner followsContentLang">
-                    <div className="navTitle">
-                      <h1>
-                        <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
-                      </h1>
-                      {talmudToggle}
-                      {Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
-                    </div>
-                    {!multiPanel ? 
-                    <div className="categoryDescription top">
-                      <ContentText text={{en: tocObject.enDesc, he: tocObject.heDesc}} defaultToInterfaceOnBilingual={true} />
-                    </div> : null}
-                    <CategoryAttribution categories={cats} asEdition={true} />
-                    <ReaderNavigationCategoryMenuContents
-                      contents={catContents}
-                      categories={cats}
-                      initialWidth={initialWidth}
-                      category={category}
-                      contentLang={contentLang}
-                      nestLevel={nestLevel} />
-                  </div>
-                  <NavSidebar modules={sidebarModules} />
-                </div>
-                {footer}
-              </div>
-            </div>);
+  const talmudToggle   = <TalmudToggle categories={cats} setCategories={setCategories} />
+  const footer         = compare ? null : <Footer />;
+  const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noLangToggleInHebrew: 1, compare: compare});
+  return (
+    <div className={navMenuClasses}>
+      <CategoryColorLine category={category} />
+      { compare ? 
+      <InPanelHeader
+        mode={'innerTOC'}
+        category={cats[0]}
+        openDisplaySettings={openDisplaySettings}
+        navHome={navHome}
+        compare={compare}
+        catTitle={catTitle}
+        heCatTitle={heCatTitle} /> : null}
+      
+      <div className="content">
+        <div className="sidebarLayout">
+          <div className="contentInner followsContentLang">
+            <div className="navTitle">
+              <h1>
+                <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
+              </h1>
+              {talmudToggle}
+              {Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
+            </div>
+            {!multiPanel ? 
+            <div className="categoryDescription top">
+              <ContentText text={{en: tocObject.enDesc, he: tocObject.heDesc}} defaultToInterfaceOnBilingual={true} />
+            </div> : null}
+            <CategoryAttribution categories={cats} asEdition={true} />
+            <ReaderNavigationCategoryMenuContents
+              contents={catContents}
+              categories={cats}
+              initialWidth={initialWidth}
+              category={category}
+              contentLang={contentLang}
+              nestLevel={nestLevel} />
+          </div>
+          <NavSidebar modules={sidebarModules} />
+        </div>
+        {footer}
+      </div>
+    </div>
+  );
 };
 ReaderNavigationCategoryMenu.propTypes = {
   category:            PropTypes.string.isRequired,
@@ -148,29 +152,31 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
       } else {
         const hasDesc  = item.enShortDesc || item.heShortDesc;
         const longDesc = hasDesc.split(" ").length > 5; 
-        content.push((<div className='category' key={"cat." + nestLevel + "." + item.category}>
-                        <h2>
-                          <span className='en'>{item.category}</span>
-                          <span className='he'>{item.heCategory}</span>
-                          {hasDesc && !longDesc ? 
-                          <span className="categoryDescription">
-                            <span className='en'> ({item.enShortDesc})</span>
-                            <span className='he'> ({item.heShortDesc})</span>
-                          </span> : null }
-                        </h2>
-                        {hasDesc && longDesc ? 
-                        <div className="categoryDescription">
-                          <span className='en'>{item.enShortDesc}</span>
-                          <span className='he'>{item.heShortDesc}</span>
-                        </div> : null }
-                        <ReaderNavigationCategoryMenuContents
-                          contents      = {item.contents}
-                          categories    = {newCats}
-                          initialWidth  = {initialWidth}
-                          nestLevel     = {nestLevel + 1}
-                          category      = {item.category}
-                          contentLang   = {contentLang} />
-                      </div>));
+        content.push(
+          <div className='category' key={"cat." + nestLevel + "." + item.category}>
+            <h2>
+              <span className='en'>{item.category}</span>
+              <span className='he'>{item.heCategory}</span>
+              {hasDesc && !longDesc ? 
+              <span className="categoryDescription">
+                <span className='en'> ({item.enShortDesc})</span>
+                <span className='he'> ({item.heShortDesc})</span>
+              </span> : null }
+            </h2>
+            {hasDesc && longDesc ? 
+            <div className="categoryDescription">
+              <span className='en'>{item.enShortDesc}</span>
+              <span className='he'>{item.heShortDesc}</span>
+            </div> : null }
+            <ReaderNavigationCategoryMenuContents
+              contents      = {item.contents}
+              categories    = {newCats}
+              initialWidth  = {initialWidth}
+              nestLevel     = {nestLevel + 1}
+              category      = {item.category}
+              contentLang   = {contentLang} />
+          </div>
+        );
       }
 
     // Add a Collection

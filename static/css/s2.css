@@ -1168,6 +1168,9 @@ input.noselect {
 .singlePanel .readerNavMenu .content {
   padding: 85px 0 0 0;
 }
+.singlePanel .readerNavMenu .categoryColorLine {
+  top: 60px;
+}
 .readerNavMenu.compare .content,
 .readerNavCategoryMenu.compare .content {
   padding: 30px 10px;
