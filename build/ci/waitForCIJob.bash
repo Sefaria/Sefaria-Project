@@ -14,7 +14,7 @@ do
     exit 0
   fi
 
-  if [[ $(kubectl get job -l ci-run=$GITHUB_RUN_ID,test-name=${TEST_NAME:-pytest} -o json | jq -r '.items[0].status.failed') > 1 ]];
+  if [[ $(kubectl get job -l ci-run=$GITHUB_RUN_ID,test-name=${TEST_NAME:-pytest} -o json | jq -r '.items[0].status.failed') != 2 ]];
   then
     echo "Job failed"
     exit 1
