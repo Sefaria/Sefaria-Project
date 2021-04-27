@@ -3742,7 +3742,7 @@ class Ref(object, metaclass=RefCacheType):
         E.g., "Genesis 1" yields an RE that match "Genesis 1" and "Genesis 1:3"
         """
         #todo: move over to the regex methods of the index nodes
-        patterns: list[str] = []
+        patterns: List[str] = []
 
         if self.is_range():
             if self.is_spanning():
