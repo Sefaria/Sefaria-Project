@@ -1888,8 +1888,8 @@ const ResponsiveNBox = ({content, initialWidth}) => {
 
   const threshold2 = 500; //above threshold2, there will be 2 columns
   const threshold3 = 1500; //above threshold3, there will be 3 columns
-  const n = (width >= threshold3) ? 3 :
-    (width >= threshold2) ? 2 : 1;
+  const n = (width > threshold3) ? 3 :
+    (width > threshold2) ? 2 : 1;
 
   return (
     <div className="responsiveNBox" ref={ref}>

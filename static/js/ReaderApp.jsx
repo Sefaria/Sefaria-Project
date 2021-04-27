@@ -1786,16 +1786,18 @@ class ReaderApp extends Component {
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
     classDict[interfaceLangClass] = true;
     var classes = classNames(classDict);
-    return (<div id="readerAppWrap">
-              {interruptingMessage}
-              <div className={classes} onClick={this.handleInAppLinkClick}>
-                {header}
-                {panels}
-                {sefariaModal}
-                {homepagePreviewControls}
-                <CookiesNotification />
-              </div>
-            </div>);
+    return (
+      <div id="readerAppWrap">
+        {interruptingMessage}
+        <div className={classes} onClick={this.handleInAppLinkClick}>
+          {header}
+          {panels}
+          {sefariaModal}
+          {homepagePreviewControls}
+          <CookiesNotification />
+        </div>
+      </div>
+    );
   }
 }
 ReaderApp.propTypes = {
