@@ -360,10 +360,10 @@ class SheetSource extends Component {
       var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
       var style = {opacity: linkScore};
 
-      linkCountElement = (<div className="linkCount sans" title={linkCount + " Connections Available"}>
-                                                    <span className="en"><span className="linkCountDot" style={style}></span></span>
-                                                    <span className="he"><span className="linkCountDot" style={style}></span></span>
-                                                  </div>);
+      linkCountElement = (<div className="linkCount sans"  title={linkCount + " Connections Available"}>
+          <span className="linkCountDot" style={style}></span>
+        </div>);
+
       var containerClasses = classNames("sheetItem",
           "segment",
           this.props.highlighted ? "highlight" : null,

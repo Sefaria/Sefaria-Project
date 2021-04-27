@@ -203,6 +203,10 @@ USE_VARNISH_ESI = False
 # Prevent modification of Index records
 DISABLE_INDEX_SAVE = False
 
+# Turns off search autocomplete suggestions, which are reinitialized on every server reload
+# which can be annoying for local development. 
+DISABLE_AUTOCOMPLETER = False
+
 # Caching with Cloudflare
 CLOUDFLARE_ZONE = ""
 CLOUDFLARE_EMAIL = ""
