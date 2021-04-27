@@ -48,7 +48,7 @@ class Header extends Component {
           <a className="home" href="/" >{logo}</a> : null }
           <a href="/texts" className="library"><InterfaceText>Texts</InterfaceText></a>
           <a href="/topics" className="library"><InterfaceText>Topics</InterfaceText></a>
-          <a  href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank" className="library"><InterfaceText>Donate</InterfaceText></a>
+          <a href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank" className="library"><InterfaceText>Donate</InterfaceText></a>
         </div>
 
         <div className="headerLinksSection">
@@ -375,7 +375,7 @@ SearchBar.propTypes = {
 };
 
 
-const LoggedOutButtons = ({mobile}) => {
+const LoggedOutButtons = ({mobile, loginOnly}) => {
   const [isClient, setIsClient] = useState(false);
   const [next, setNext] = useState("/");
   const [loginLink, setLoginLink] = useState("/login?next=/");
@@ -394,13 +394,14 @@ const LoggedOutButtons = ({mobile}) => {
   return (
     <div className={classes}>
       <a className="login loginLink" href={loginLink} key={`login${isClient}`}>
-         {mobile ? <img src="/static/img/profile.svg" /> : null }
+         {mobile ? <img src="/static/icons/login.svg" /> : null }
          <InterfaceText>Log in</InterfaceText>
        </a>
+      {loginOnly ? null :
       <a className="login signupLink" href={registerLink} key={`register${isClient}`}>
-         {mobile ? <img src="/static/img/profile.svg" /> : null }
-         <InterfaceText>Sign up</InterfaceText>
-      </a>
+         {mobile ? <img src="/static/icons/register.svg" /> : null }
+         <InterfaceText>Sign up</InterfaceText> 
+      </a> }
     </div>
   );
 }
@@ -484,24 +485,61 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
             <img src="/static/icons/notification.svg" />
             <InterfaceText>Notifications</InterfaceText>
           </a>
-        </>
-        :
-        <LoggedOutButtons mobile={true} />
-        }
+        </> : null }
+        
         <a href="/about">
           <img src="/static/icons/info.svg" />
           <InterfaceText>About Sefaria</InterfaceText>
         </a>
+
+        <MobileInterfaceLanguageToggle />
+        
+        <a href="/help">
+          <img src="/static/icons/help.svg" />
+          <InterfaceText>Get Help</InterfaceText>
+        </a>
+        
         {Sefaria._uid ?
         <a href="/logout" className="logout">
           <img src="/static/icons/logout.svg" />
           <InterfaceText>Logout</InterfaceText>
         </a>
-        : null }
-      </div>
+        :
+        <LoggedOutButtons mobile={true} loginOnly={true}/> }
 
+      </div>
+      <a href="https://sefaria.nationbuilder.com/supportsefaria" className="blue">
+        <img src="/static/img/heart.png" alt="donation icon" />
+        <InterfaceText>Donate</InterfaceText>
+      </a>
     </div>
   );
 };
+
+
+const MobileInterfaceLanguageToggle = () => {
+  const currentURL = encodeURIComponent(Sefaria.util.currentPath());
+  
+  const links = Sefaria.interfaceLang == "hebrew" ? 
+    <>
+      <a href={"/interface/hebrew?next=" + currentURL} className="int-he">תירבע</a>
+      <span className="separator">•</span>
+      <a href={"/interface/english?next=" + currentURL} className="int-en inactive">English</a>
+    </>
+    :
+    <>
+      <a href={"/interface/english?next=" + currentURL} className="int-en">English</a>
+      <span className="separator">•</span>
+      <a href={"/interface/hebrew?next=" + currentURL} className="int-he inactive">תירבע</a>
+    </>;
+
+  return (
+    <div className="mobileInterfaceLanguageToggle">
+      <img src="/static/icons/globe-wire.svg" />
+      {links}
+    </div>
+  );
+};
+
 
 export default Header;

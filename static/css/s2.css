@@ -297,6 +297,9 @@ body.hasBannerMessage #s2.headerOnly {
 input.noselect {
   -webkit-user-select: auto; /* Safari/Opera -- required for Safari to allow inputs to be accessible. See http://caniuse.com/#feat=user-select-none "Known Issues" for details  TODO Check back to see if bug is fixed in future version */
 }
+.interface-hebrew {
+  direction: rtl;
+}
 .interface-hebrew .int-en,
 .interface-english .int-he {
   display: none;
@@ -343,7 +346,7 @@ input.noselect {
 .headerOnly .headerInner, .headerInner.boxShadow {
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.interface-hebrew .headerInner {
+.interface-hebrew .header {
   direction: rtl;
 }
 .headerInner .headerNavSection {
@@ -426,6 +429,7 @@ input.noselect {
   background-color: white;
   left: 0;
   z-index: 1000;
+  overflow-y: scroll;
 }
 .mobileNavMenu.closed {
   display: none;
@@ -443,24 +447,37 @@ input.noselect {
 .header.mobile .ui-autocomplete {
   width: 100%;
 }
-.mobileNavMenu a {
+.mobileNavMenu a,
+.mobileInterfaceLanguageToggle {
   display: block;
   color: #666;
   font-size: 16px;
   padding: 15px;
   border-bottom: 1px solid #EDEDEC;
 }
-.mobileNavMenu a > img {
+.mobileNavMenu a > img,
+.mobileInterfaceLanguageToggle img {
   margin-inline-end: 15px;
   width: 16px;
   opacity: 0.6;
   position: relative;
   top: 3px;
 }
+.mobileNavMenu a.blue {
+  background-color: #18345D;
+  color: white;
+}
+.mobileNavMenu a.blue img {
+  filter: invert(1);
+  opacity: 1;
+}
 .mobileNavMenu .mobileAccountLinks {
   background-color: #FBFBFA;
   border-top: 1px solid #CCC;
   border-bottom: 1px solid #CCC;
+}
+.mobileNavMenu .mobileAccountLinks img {
+  opacity: 1;
 }
 .mobileNavMenu .mobileAccountLinks .login {
   display: block;
@@ -474,6 +491,22 @@ input.noselect {
 }
 .mobileNavMenu .mobileAccountLinks .accountLinks {
   display: block;
+}
+.header .mobileInterfaceLanguageToggle .int-en,
+.header .mobileInterfaceLanguageToggle .int-he {
+  display: inline;
+}
+.mobileInterfaceLanguageToggle a {
+  display: inline;
+  padding: 0;
+  border: none;
+}
+.mobileInterfaceLanguageToggle .separator {
+  margin: 0 7px;
+  font-size: 13px;
+}
+.mobileInterfaceLanguageToggle .inactive {
+  color: #999;
 }
 .mobileNavMenu .logout {
   color: #999;
@@ -961,7 +994,6 @@ input.noselect {
   position: absolute;
   height: 100%;
   width: 100%;
-  direction:ltr;
 }
 .readerPanelBox + .readerPanelBox {
   border-left: 1px solid #eee;
