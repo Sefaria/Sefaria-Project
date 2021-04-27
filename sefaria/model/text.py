@@ -4837,7 +4837,7 @@ class Library(object):
 
         self.rebuild_toc(skip_toc_tree=True)
 
-    def get_index(self, bookname):
+    def get_index(self, bookname:str) -> Index:
         """
         Factory - returns a :class:`Index` object that has the given bookname
 

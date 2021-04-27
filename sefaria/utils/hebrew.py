@@ -418,7 +418,7 @@ def strip_nikkud(rawString):
 any_hebrew = regex.compile("\p{Hebrew}")
 any_english = regex.compile("[a-zA-Z]")
 
-def is_hebrew(s, heb_only=False):
+def is_hebrew(s:str, heb_only=False) -> bool:
 	if not heb_only and any_hebrew.search(s):
 		return True
 	elif heb_only and any_hebrew.search(s) and not any_english.search(s):
@@ -426,7 +426,7 @@ def is_hebrew(s, heb_only=False):
 	return False
 
 
-def strip_cantillation(text, strip_vowels=False):
+def strip_cantillation(text: str, strip_vowels=False) -> str:
 	if strip_vowels:
 		strip_regex = re.compile(r"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
 	else:
@@ -434,7 +434,7 @@ def strip_cantillation(text, strip_vowels=False):
 	return strip_regex.sub('', text)
 
 
-def has_cantillation(text, detect_vowels=False):
+def has_cantillation(text: str, detect_vowels=False) -> bool:
 	if detect_vowels:
 		rgx = re.compile(r"[\u0591-\u05bd\u05bf-\u05c5\u05c7]", re.UNICODE)
 	else:
@@ -442,7 +442,7 @@ def has_cantillation(text, detect_vowels=False):
 	return bool(rgx.search(text))
 
 
-def gematria(string):
+def gematria(string: str) -> int:
 	"""Returns the gematria of `str`, ignore any characters in string that have now gematria (like spaces)"""
 	total = 0
 	for letter in string:
@@ -453,7 +453,7 @@ def gematria(string):
 	return total
 
 
-def hebrew_plural(s):
+def hebrew_plural(s: str) -> str:
 	"""
 	Hebrew friendly plurals
 	"""
@@ -484,7 +484,7 @@ def hebrew_plural(s):
 	return known[s] if s in known else str(s) + "s"
 
 
-def hebrew_term(s):
+def hebrew_term(s: str) -> str:
 	from sefaria.model import library
 	from sefaria.system.exceptions import BookNameError
 
