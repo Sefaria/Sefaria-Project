@@ -15,6 +15,74 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+@font-face {
+  /* Mixed Hebrew - English content text */
+  font-family: 'HebrewInEnglish Text Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
+  unicode-range: U+0590-05FF, U+25CC;
+}
+@font-face {
+  /* Mixed Hebrew - English system text */
+  font-family: 'HebrewInEnglish System Font';
+  src: local('Heebo'), local('Roboto');
+  unicode-range: U+0590-05FF;
+}
+:root {
+  /* font stacks */
+  --en-sans-serif-font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --en-serif-font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  --he-sans-serif-font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --he-serif-font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+
+  --sefaria-base-serif-h1-font-size: 48px;
+  --sefaria-base-serif-h2-font-size: 30px;
+  --sefaria-base-serif-h3-font-size: 24px;
+  --sefaria-base-serif-body-font-size: 18px;
+  --sefaria-hebrew-serif-multiplier: 1.22;
+
+  --sefaria-base-sans-serif-h1-font-size: 40px;
+  --sefaria-base-sans-serif-h2-font-size: 30px;
+  --sefaria-base-sans-serif-h3-font-size: 22px;
+  --sefaria-base-sans-serif-body-font-size: 16px;
+  --sefaria-base-sans-serif-small-font-size: 14px;
+
+
+  /* colors */
+  --sefaria-blue: #18345D;
+  --sefaria-highlight-blue: #DDEEFF;
+  --sefaria-highlight-blue-light: #F0F7FF;
+  --sefaria-black: #000;
+  --sefaria-dark-grey: #666666;
+  --sefaria-medium-grey: #999999;
+  --sefaria-light-grey: #CCCCCC;
+  --sefaria-lighter-grey: #EDEDEC;
+  --sefaria-kightest-grey: #FBFBFA;
+  --sefaria-white: #fff;
+  --sefaria-commentary-blue: #4B71B7;
+  --sefaria-tanakh-teal: #004E5F;
+  --sefaria-mishnah-blue: #5A99B7;
+  --sefaria-talmud-gold: #CCB479;
+  --sefaria-midrash-green: #5D956F;
+  --sefaria-halakhah-red: #802F3E;
+  --sefaria-kabbalah-purple: #594176;
+  --sefaria-liturgy-rose: #AB4E66;
+  --sefaria-philosophy-purple: #7F85A9;
+  --sefaria-taanitic-green: #00827F;
+  --sefaria-chasidut-green: #97B386;
+  --sefaria-mussar-purple: #7C416F;
+  --sefaria-responsa-red: #CB6158;
+  --sefaria-apocrypha-pink: #C6A7B4;
+  --sefaria-modern-works-blue: #B8D4D3;
+  --sefaria-grammar-green: #B2B272;
+  --sefaria-reference-orange: #D4896C;
+  --sefaria-miscelaneous-brown: #7D6D5D;
+  --sefaria-miscelaneous-blue: #B1C8DD;
+  --sefaria-miscelaneous-green: #3B5849;
+
+}
+
+
+
 a{
   color: inherit;
 }
@@ -159,19 +227,6 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   font-style: italic;
 }
 /* end Style Guide */
-
-@font-face {
-  /* Mixed Hebrew - English content text */
-  font-family: 'HebrewInEnglish Text Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
-  unicode-range: U+0590-05FF, U+25CC;
-}
-@font-face {
-  /* Mixed Hebrew - English system text */
-  font-family: 'HebrewInEnglish System Font';
-  src: local('Heebo'), local('Roboto');
-  unicode-range: U+0590-05FF;
-}
 .sans,
 .sans .en,
 #s2 .sans .en,
