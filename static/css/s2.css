@@ -493,9 +493,12 @@ input.noselect {
 }
 .header .home img {
   vertical-align: middle;
-  width: 92px;
   height: 25px;
   margin-top: -7px;
+  width: 92px;
+}
+.interface-hebrew .header .home img {
+  width: 77px;
 }
 .header .accountLinks {
   display: flex;

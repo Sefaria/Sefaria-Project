@@ -37,10 +37,15 @@ class Header extends Component {
     if (this.props.hidden && !this.props.mobileNavMenuOpen) {
       return null;
     }
+    const logo = Sefaria.interfaceLang == "hebrew" ?
+      <img src="/static/img/logo-hebrew.png" alt="Sefaria Logo"/> :
+      <img src="/static/img/logo.cg" alt="Sefaria Logo"/>;
+
     const headerContent = (
       <>
         <div className="headerNavSection">
-          { Sefaria._siteSettings.TORAH_SPECIFIC ? <a className="home" href="/" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> : null }
+          { Sefaria._siteSettings.TORAH_SPECIFIC ? 
+          <a className="home" href="/" >{logo}</a> : null }
           <a href="/texts" className="library"><InterfaceText>Texts</InterfaceText></a>
           <a href="/topics" className="library"><InterfaceText>Topics</InterfaceText></a>
           <a  href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank" className="library"><InterfaceText>Donate</InterfaceText></a>
@@ -73,9 +78,7 @@ class Header extends Component {
         
         <div className="mobileHeaderCenter">
           { Sefaria._siteSettings.TORAH_SPECIFIC ? 
-          <a className="home" href="/" >
-            <img src="/static/img/logo.svg" alt="Sefaria Logo"/>
-          </a> : null }
+          <a className="home" href="/" >{logo}</a> : null }
         </div>
         
         <div></div>
