@@ -1168,8 +1168,8 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
 
   return (
       <ToolTipped {...{ altText, classes, style, onClick }}>
-        { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
-          <img src="/static/img/star.png" alt={altText}/> }
+        { selected ? <img src="/static/icons/bookmark-filled.svg" alt={altText}/> :
+          <img src="/static/icons/bookmark.svg" alt={altText}/> }
       </ToolTipped>
     );
 }
