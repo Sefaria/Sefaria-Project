@@ -84,7 +84,7 @@ class ReaderApp extends Component {
       panel.settings = extend(Sefaria.util.clone(defaultPanelSettings), (panel.settings || {}));
 
       if (panel.mode.endsWith("AndConnections")) {
-        panel.highlightedRefs = initialPanel.refs;
+        panel.highlightedRefs = panel.refs;
       }
       return panel;  
     }).map(panel => this.makePanelState(panel));
@@ -1672,7 +1672,6 @@ class ReaderApp extends Component {
     for (var i = 0; i < panelStates.length; i++) {
       var panel                    = this.clonePanel(panelStates[i]);
       if (!("settings" in panel )) { debugger; }
-      const hideNavHeader                = !!(this.props.multiPanel && panel.menuOpen);
       var offset                         = widths.reduce(function(prev, curr, index, arr) { return index < i ? prev+curr : prev}, 0);
       var width                          = widths[i];
       var style                          = (this.state.layoutOrientation=="ltr")?{width: width + unit, left: offset + unit}:{width: width + unit, right: offset + unit};
@@ -1746,7 +1745,6 @@ class ReaderApp extends Component {
                       closePanel={closePanel}
                       panelsOpen={panelStates.length}
                       allOpenRefs={allOpenRefs}
-                      hideNavHeader={hideNavHeader}
                       hasSidebar={this.doesPanelHaveSidebar(i)}
                       masterPanelLanguage={panel.mode === "Connections" ? panelStates[i-1].settings.language : panel.settings.language}
                       layoutWidth={width}

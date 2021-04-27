@@ -10,20 +10,9 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 
 
-const MobileHeader = ({
-  mode, hideNavHeader, category, openDisplaySettings, navHome,
-  compare, catTitle, heCatTitle, onClose, openSearch,
+const InPanelHeader = ({
+  mode, category, openDisplaySettings, navHome, compare, catTitle, heCatTitle, onClose, openSearch,
 }) => {
-  if (mode === 'home') {
-    return (<div className="readerNavTop search">
-      <CategoryColorLine category="Other" />
-      <ReaderNavigationMenuSearchButton onClick={navHome} />
-      <div className='sefariaLogo'><img src="/static/img/logo.svg" alt="Sefaria Logo" /></div>
-      {Sefaria.interfaceLang !== "hebrew" ?
-        <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} />
-        : <ReaderNavigationMenuDisplaySettingsButton placeholder={true} /> }
-    </div>);
-  }
   if (mode === 'mainTOC') {
     const [query, setQuery] = React.useState("");
     const handleSearchKeyUp = event => {if (event.keyCode === 13 && query) { openSearch(query);}};
@@ -44,27 +33,30 @@ const MobileHeader = ({
             />
           </div>
         </div>
-        {Sefaria.interfaceLang !== "hebrew" ? <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} /> : null}
+        {Sefaria.interfaceLang !== "hebrew" ? 
+        <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} />
+        : null}
       </div>
     );
   }
+
   if (mode === 'innerTOC') {
     return (
-      <div className={classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: hideNavHeader})}>
+      <div className={classNames({readerNavTop: 1, searchOnly: 1})}>
         <CategoryColorLine category={category} />
-        {hideNavHeader ? null : (<ReaderNavigationMenuMenuButton onClick={navHome} compare={compare} />)}
-        {hideNavHeader ? null : (<h2 className="readerNavTopCategory">
+        <ReaderNavigationMenuMenuButton onClick={navHome} compare={compare} /> 
+        <h2 className="readerNavTopCategory">
           <span className="en">{catTitle}</span>
           <span className="he">{heCatTitle}</span>
-        </h2>)}
-        {hideNavHeader ? null :
-          ((Sefaria.interfaceLang === "hebrew" || !openDisplaySettings) ?
-            <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />
-            : <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} />)}
+        </h2>
+        
+        {(Sefaria.interfaceLang === "hebrew" || !openDisplaySettings) ?
+        <ReaderNavigationMenuDisplaySettingsButton placeholder={true} />
+        : <ReaderNavigationMenuDisplaySettingsButton onClick={openDisplaySettings} />}
       </div>
     );
   }
 }
 
 
-export default MobileHeader;
+export default InPanelHeader;

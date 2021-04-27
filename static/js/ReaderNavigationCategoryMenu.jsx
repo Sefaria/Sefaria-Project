@@ -11,13 +11,12 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import { NavSidebar } from './NavSidebar';
 import Footer  from './Footer';
-import MobileHeader from './MobileHeader';
+import InPanelHeader from './InPanelHeader';
 
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const ReaderNavigationCategoryMenu = ({category, categories, setCategories, toggleLanguage,
-        openDisplaySettings, navHome, multiPanel, initialWidth, compare, hideNavHeader,
-        contentLang}) => {
+  openDisplaySettings, navHome, multiPanel, initialWidth, compare, contentLang}) => {
 
     // Show Talmud with Toggles
     const cats  = categories[0] === "Talmud" && categories.length === 1 ?
@@ -55,9 +54,8 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
     const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noLangToggleInHebrew: 1, compare: compare});
     return (<div className={navMenuClasses}>
               { compare ? 
-              <MobileHeader
+              <InPanelHeader
                 mode={'innerTOC'}
-                hideNavHeader={hideNavHeader}
                 category={cats[0]}
                 openDisplaySettings={openDisplaySettings}
                 navHome={navHome}
@@ -103,7 +101,6 @@ ReaderNavigationCategoryMenu.propTypes = {
   navHome:             PropTypes.func.isRequired,
   initialWidth:        PropTypes.number,
   compare:             PropTypes.bool,
-  hideNavHeader:       PropTypes.bool,
   contentLang:         PropTypes.string,
 };
 

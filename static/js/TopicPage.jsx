@@ -112,7 +112,7 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
 
 
 const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang, 
-  compare, hideNavHeader, initialWidth, openDisplaySettings, openSearch, onClose}) => {
+  compare, initialWidth, openDisplaySettings, openSearch, onClose}) => {
     
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
@@ -212,7 +212,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang,
 
 
 const TopicHeader = ({
-  topic, topicData, multiPanel, interfaceLang, isCat, setNavTopic, hideNavHeader,
+  topic, topicData, multiPanel, interfaceLang, isCat, setNavTopic,
   onClose, openDisplaySettings, openSearch
 }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
@@ -253,7 +253,7 @@ const TopicHeader = ({
 
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel,
-  hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings,
+  showBaseText, navHome, toggleSignUpModal, openDisplaySettings,
   updateTopicsTab, onClose, openSearch
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, textRefs: false, sheetRefs: false, isLoading: true};
@@ -444,7 +444,6 @@ TopicPage.propTypes = {
   updateTopicsTab:     PropTypes.func.isRequired,
   interfaceLang:       PropTypes.string,
   multiPanel:          PropTypes.bool,
-  hideNavHeader:       PropTypes.bool,
   showBaseText:        PropTypes.func,
   navHome:             PropTypes.func,
   openDisplaySettings: PropTypes.func,

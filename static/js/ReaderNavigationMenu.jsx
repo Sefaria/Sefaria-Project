@@ -15,13 +15,13 @@ import $  from './sefaria/sefariaJquery';
 import { NavSidebar, Modules } from './NavSidebar';
 import ReaderNavigationCategoryMenu  from './ReaderNavigationCategoryMenu';
 import Footer  from './Footer';
-import MobileHeader from './MobileHeader';
+import InPanelHeader from './InPanelHeader';
 import {TopicCategory} from './TopicPage';
 
 // The Navigation menu for browsing and searching texts
 const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCategories, setNavTopic, 
-        setTopic, onClose, openNav, openSearch, toggleLanguage, openMenu, handleClick, openDisplaySettings,
-        hideHeader, hideNavHeader, multiPanel, initialWidth, home, compare}) => {
+  setTopic, onClose, openNav, openSearch, toggleLanguage, openMenu, handleClick, openDisplaySettings,
+  hideHeader, multiPanel, initialWidth, compare}) => {
 
   const navHome = () => {
     setCategories([]);
@@ -42,7 +42,6 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
           openDisplaySettings={openDisplaySettings}
           navHome={navHome}
           compare={compare}
-          hideNavHeader={hideNavHeader}
           multiPanel={multiPanel}
           initialWidth={initialWidth}
           contentLang={settings.language} />
@@ -69,8 +68,8 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
     </div>);
 
   const topContent = compare ? 
-    <MobileHeader
-      mode={home ? 'home' : 'mainTOC'}
+    <InPanelHeader
+      mode={'mainTOC'}
       navHome={navHome}
       openDisplaySettings={openDisplaySettings}
       onClose={onClose}
@@ -105,7 +104,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   ];
 
   const footer = compare ? null : <Footer />;
-  const classes = classNames({readerNavMenu:1, compare: compare, home: home, noLangToggleInHebrew: 1 });
+  const classes = classNames({readerNavMenu:1, compare: compare, noLangToggleInHebrew: 1 });
 
   return(<div className={classes} onClick={handleClick} key="0">
           {topContent}
@@ -135,10 +134,8 @@ ReaderNavigationMenu.propTypes = {
   handleClick:         PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func,
   toggleLanguage:      PropTypes.func,
-  hideNavHeader:       PropTypes.bool,
   hideHeader:          PropTypes.bool,
   multiPanel:          PropTypes.bool,
-  home:                PropTypes.bool,
   compare:             PropTypes.bool,
 };
 

@@ -763,7 +763,6 @@ class ReaderPanel extends Component {
                     openMenu={this.openMenu}
                     openDisplaySettings={this.openDisplaySettings}
                     initialWidth={this.state.width}
-                    hideNavHeader={this.props.hideNavHeader}
                     toggleSignUpModal={this.props.toggleSignUpModal}
                   />);
 
@@ -857,7 +856,6 @@ class ReaderPanel extends Component {
                     openDisplaySettings={this.openDisplaySettings}
                     toggleLanguage={this.toggleLanguage}
                     close={this.state.compare ? this.props.closePanel : this.closePanelSearch}
-                    hideNavHeader={this.props.hideNavHeader}
                     onQueryChange={this.props.onQueryChange}
                     updateTab={this.props.updateSearchTab}
                     updateAppliedFilter={this.props.updateSearchFilter}
@@ -878,7 +876,6 @@ class ReaderPanel extends Component {
             interfaceLang={this.props.interfaceLang}
             compare={this.state.compare}
             initialWidth={this.state.width}
-            hideNavHeader={this.props.hideNavHeader}
             openDisplaySettings={this.openDisplaySettings}
             openSearch={this.openSearch}
             onClose={this.onClose}
@@ -899,7 +896,6 @@ class ReaderPanel extends Component {
             close={this.closeMenus}
             onClose={this.onClose}
             multiPanel={this.props.multiPanel}
-            hideNavHeader={this.props.hideNavHeader}
             navHome={this.openMenu.bind(null, "navigation")}
             openDisplaySettings={this.openDisplaySettings}
             toggleSignUpModal={this.props.toggleSignUpModal}
@@ -925,7 +921,6 @@ class ReaderPanel extends Component {
                 openNav={this.openMenu.bind(null, "navigation")}
                 close={this.closeMenus}
                 multiPanel={this.props.multiPanel}
-                hideNavHeader={this.props.hideNavHeader}
                 toggleLanguage={this.toggleLanguage}
                 navHome={this.openMenu.bind(null, "navigation")}
                 openDisplaySettings={this.openDisplaySettings}
@@ -948,7 +943,6 @@ class ReaderPanel extends Component {
                 toggleLanguage={this.toggleLanguage}
                 toggleSignUpModal={this.props.toggleSignUpModal}
                 updateCollectionName={this.updateCollectionName}
-                hideNavHeader={this.props.hideNavHeader}
                 navHome={this.openMenu.bind(null, "navigation")}
                 multiPanel={this.props.multiPanel}
                 initialWidth={this.state.width}
@@ -1005,7 +999,6 @@ class ReaderPanel extends Component {
           toggleLanguage={this.toggleLanguage}
           handleClick={this.handleNavigationClick}
           compare={this.state.compare}
-          hideNavHeader={this.props.hideNavHeader}
           interfaceLang={this.props.interfaceLang} />
       );
 
@@ -1036,8 +1029,7 @@ class ReaderPanel extends Component {
     let style = {"fontSize": this.state.settings.fontSize + "%"};
     let hideReaderControls = (
         this.state.mode === "TextAndConnections" ||
-        this.state.menuOpen ||
-        this.props.hideNavHeader
+        this.state.menuOpen
     );
 
     return (
@@ -1129,7 +1121,6 @@ ReaderPanel.propTypes = {
   openComparePanel:            PropTypes.func,
   setUnreadNotificationsCount: PropTypes.func,
   highlightedRefs:             PropTypes.array,
-  hideNavHeader:               PropTypes.bool,
   multiPanel:                  PropTypes.bool,
   masterPanelLanguage:         PropTypes.string,
   panelsOpen:                  PropTypes.number,

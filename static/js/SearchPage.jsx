@@ -12,7 +12,7 @@ import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Footer  from './Footer';
-import MobileHeader from './MobileHeader';
+import InPanelHeader from './InPanelHeader';
 import SearchResultList  from './SearchResultList';
 import Component from 'react-class';
 
@@ -29,7 +29,7 @@ class SearchPage extends Component {
         var isQueryHebrew  = Sefaria.hebrew.isHebrew(this.props.query);
         return (<div className={classes} key={this.props.query}>
                   {this.props.compare ?
-                  <MobileHeader
+                  <InPanelHeader
                     mode={'mainTOC'}
                     interfaceLang={this.props.interfaceLang}
                     showDisplaySettings={false}
@@ -81,7 +81,6 @@ SearchPage.propTypes = {
     updateAppliedOptionField: PropTypes.func,
     updateAppliedOptionSort:  PropTypes.func,
     registerAvailableFilters: PropTypes.func,
-    hideNavHeader:            PropTypes.bool,
 };
 
 

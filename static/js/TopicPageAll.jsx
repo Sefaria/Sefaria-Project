@@ -71,18 +71,15 @@ class TopicPageAll extends Component {
       else         { return (0 + (!!b.primaryTitle.en)) - (0 + (!!a.primaryTitle.en)); }
     }).map(this.renderButton) : null;
     const classStr = classNames({topicsPanel: 1, readerNavMenu: 1});
-    const navTopClasses  = classNames({readerNavTop: 1, searchOnly: 1, colorLineOnly: this.props.hideNavHeader});
     const inputClasses = classNames({topicFilterInput: 1, contentText: 1, en: !isHeInt, he: isHeInt});
     return (
       <div className={classStr}>
         <div className="content" onScroll={this.onScroll}>
           <div className="contentInner">
-            {this.props.hideNavHeader ?
-              <h1>
-                <span className="int-en">Topics</span>
-                <span className="int-he">נושאים</span>
-              </h1>
-              : null }
+            <h1>
+              <span className="int-en">Topics</span>
+              <span className="int-he">נושאים</span>
+            </h1>
 
             <div className="topicFilterBox">
               <i className="topicFilterIcon fa fa-search"></i>
@@ -122,7 +119,6 @@ TopicPageAll.propTypes = {
   interfaceLang:       PropTypes.string,
   width:               PropTypes.number,
   mutliPanel:          PropTypes.bool,
-  hideNavHeader:       PropTypes.bool,
   navHome:             PropTypes.func,
   toggleLanguage:      PropTypes.func,
   openDisplaySettings: PropTypes.func,
