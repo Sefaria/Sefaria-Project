@@ -250,7 +250,9 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                             }
                     com_sections = [i - 1 for i in com_oref.sections]
                     com_toSections = [i - 1 for i in com_oref.toSections]
-                    for lang, (attr, versionAttr, licenseAttr, vtitleInHeAttr) in (("he", ("he","heVersionTitle","heLicense","heVersionTitleInHebrew")), ("en", ("text", "versionTitle","license","versionTitleInHebrew"))):
+                    for lang, (attr, versionAttr, licenseAttr, vtitleInHeAttr) in (
+                            ("he", ("he","heVersionTitle","heLicense","heVersionTitleInHebrew")),
+                            ("en", ("text", "versionTitle","license","versionTitleInHebrew"))):
                         temp_nref_data = texts[top_nref][lang]
                         res = temp_nref_data['ja'].subarray(com_sections[1:], com_toSections[1:]).array()
                         if attr not in com:
@@ -258,6 +260,8 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                         else:
                             if isinstance(com[attr], str):
                                 com[attr] = [com[attr]]
+                            if isinstance(res, str):
+                                res = [res]
                             com[attr] += res
                         temp_version = temp_nref_data['version']
                         if isinstance(temp_version, str) or temp_version is None:
