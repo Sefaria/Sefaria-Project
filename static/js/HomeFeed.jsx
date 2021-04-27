@@ -38,10 +38,16 @@ const HomeFeed = ({multiPanel, toggleSignUpModal, initialWidth}) => {
         <div className="sidebarLayout">
           <div className="contentInner mainColumn">
             <h2><InterfaceText>The Torah Portion</InterfaceText></h2>
+            
+            {Sefaria.homepage.parashah.sheet ?
             <ResponsiveNBox content={[
               <AboutParashah parashahTopic={Sefaria.homepage.parashah.topic} />,
               <FeaturedSheet {...Sefaria.homepage.parashah.sheet} />
             ]} initialWidth={initialWidth} />
+            :
+            <NBox content={[
+              <AboutParashah parashahTopic={Sefaria.homepage.parashah.topic} />
+            ]} n={1} /> }
             
             {Sefaria.homepage.calendar ?
             <div>

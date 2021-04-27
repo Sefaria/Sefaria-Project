@@ -92,16 +92,16 @@ def get_parashah_item(data, date=None, diaspora=True, interface_lang="english"):
     if day_data["Date"] == date and day_data["Parashah"] == parashah_name:
       todays_data = day_data
       break
-  if not todays_data:
+  if not todays_data or not todays_data["Sheet URL"]:
     # Couldn't find a matching row in the data, fall back to something random
-    sheet = get_featured_sheet_from_topic(parashah_topic.slug)
+    # sheet = get_featured_sheet_from_topic(parashah_topic.slug)
+    sheet = None
   else:
     sheet = sheet_with_customization(todays_data)
-
-  sheet["heading"] = {
-    "en": "On " + parashah_name,
-    "he": "על " + hebrew_parasha_name(parashah_name)
-  }
+    sheet["heading"] = {
+      "en": "On " + parashah_name,
+      "he": "על " + hebrew_parasha_name(parashah_name)
+    }
 
   return {
     "topic": parashah_topic.contents(),
