@@ -38,7 +38,6 @@ const HomeFeed = ({multiPanel, toggleSignUpModal, initialWidth}) => {
         <div className="sidebarLayout">
           <div className="contentInner mainColumn">
             <h2><InterfaceText>The Torah Portion</InterfaceText></h2>
-            
             {Sefaria.homepage.parashah.sheet ?
             <ResponsiveNBox content={[
               <AboutParashah parashahTopic={Sefaria.homepage.parashah.topic} />,
@@ -52,10 +51,15 @@ const HomeFeed = ({multiPanel, toggleSignUpModal, initialWidth}) => {
             {Sefaria.homepage.calendar ?
             <div>
               <h2><InterfaceText>The Jewish Calendar</InterfaceText></h2>
+              {Sefaria.homepage.calendar.sheet ?
               <ResponsiveNBox content={[
                 <AboutHoliday {...Sefaria.homepage.calendar.topic} />,
                 <FeaturedSheet {...Sefaria.homepage.calendar.sheet} />
               ]} initialWidth={initialWidth} />
+              :
+              <NBox content={[
+                <AboutHoliday {...Sefaria.homepage.calendar.topic} />
+              ]} n={1} /> }
             </div>
             : null }
 

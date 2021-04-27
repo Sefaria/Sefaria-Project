@@ -119,11 +119,14 @@ def get_calendar_item(data, date):
   if len(todays_data["Custom About Title"]):
     topic["primaryTitle"] = {"en": todays_data["Custom About Title"], "he": todays_data["Custom About Title"]}
 
-  sheet = sheet_with_customization(todays_data)
-  sheet["heading"] = {
-    "en": "On " + topic["primaryTitle"]["en"],
-    "he": "על " + topic["primaryTitle"]["he"],
-  }
+  if todays_data["Sheet URL"]:
+    sheet = sheet_with_customization(todays_data)
+    sheet["heading"] = {
+      "en": "On " + topic["primaryTitle"]["en"],
+      "he": "על " + topic["primaryTitle"]["he"],
+    }
+  else:
+    sheet = None
 
   return {
     "topic": topic,

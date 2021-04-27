@@ -25,7 +25,7 @@ const Strings = {
     "Donate": "תרומות",
     "The Torah Portion": "פרשת השבוע",
     "The Jewish Calendar": "לוח השנה העברי",
-    "Discover ": "גלו את התלמוד",
+    "Discover ": "גלו את ה",
     "Readings": "קריאות",
     "Recently Published": "פורסמו לאחרונה",
     "Load More": "להמשך קריאה",
