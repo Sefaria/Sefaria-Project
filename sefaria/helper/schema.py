@@ -353,7 +353,7 @@ def change_node_title(snode, old_title, lang, new_title):
         return string.replace(old_title, new_title)
 
     def needs_rewrite(string, *args):
-        return string.find(old_title) >= 0 and snode.index.title == Ref(string).index.title
+        return string.find(old_title) >= 0 and snode.index.title in string
 
     if old_title == snode.primary_title(lang=lang):
         snode.add_title(new_title, lang, replace_primary=True, primary=True)
