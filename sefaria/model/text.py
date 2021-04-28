@@ -893,7 +893,10 @@ class AbstractSchemaContent(object):
             return reduce(lambda a, i: a[i], indx_list, ja)
         else:
             if value is not None:
-                ja[:] = value
+                if isinstance(value, list):
+                    ja[:] = value
+                else:
+                    reduce(lambda d, k: d[k], key_list[:-1], self.get_content())[key_list[-1]] = value
             return ja
 
 
