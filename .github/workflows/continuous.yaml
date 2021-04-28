@@ -524,7 +524,10 @@ jobs:
 
       - name: Get Logs From Cluster
         run: kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest | tee /home/runner/pytestResultsPod.txt
-      
+
+      - name: Get Success or Failure
+        run: "LASTLINE=`kubectl logs --tail=1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest`; STAT=${LASTLINE: -1}; exit $STAT"
+
       - name: Authenticate GHA Runner to GCP
         uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
