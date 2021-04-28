@@ -21,32 +21,24 @@ var palette = {
   }
 };
 palette.categoryColors = {
-  "Commentary":         "var(--sefaria-commentary-blue)",
-  "Tanakh" :            "var(--sefaria-tanakh-teal)",
-  "Midrash":            "var(--sefaria-midrash-green)",
-  "Mishnah":            "var(--sefaria-mishnah-blue)",
-  "Talmud":             "var(--sefaria-talmud-gold)",
-  "Halakhah":           "var(--sefaria-halakhah-red)",
-  "Kabbalah":           "var(--sefaria-kabbalah-purple)",
-  "Philosophy":         "var(--sefaria-philosophy-purple)",  // to delete
-  "Jewish Thought":     "var(--sefaria-philosophy-purple)",
-  "Liturgy":            "var(--sefaria-liturgy-rose)",
-  "Tanaitic":           "var(--sefaria-taanitic-green)",    // to delete
-  "Tosefta":            "var(--sefaria-taanitic-green)",
-  "Parshanut":          palette.colors.paleblue,
-  "Chasidut":           "var(--sefaria-chasidut-green)",
-  "Musar":              "var(--sefaria-mussar-purple)",
-  "Responsa":           "var(--sefaria-responsa-red)",
-  "Apocrypha":          "var(--sefaria-apocrypha-pink)",   // to delete
-  "Second Temple":      "var(--sefaria-apocrypha-pink)",   // to delete
-  "Other":              palette.colors.darkblue,    // to delete
-  "Quoting Commentary": "var(--sefaria-responsa-red)",
-  "Sheets":             palette.colors.darkblue,
-  "Community":          palette.colors.raspberry,
-  "Targum":             "var(--sefaria-philosophy-purple)",
-  "Modern Works":       "var(--sefaria-modern-works-blue)",    // to delete
-  "Modern Commentary":  "var(--sefaria-modern-works-blue)",
-  "Reference":          "var(--sefaria-reference-orange)",
+  "Commentary":         "var(--commentary-blue)",
+  "Tanakh" :            "var(--tanakh-teal)",
+  "Midrash":            "var(--midrash-green)",
+  "Mishnah":            "var(--mishnah-blue)",
+  "Talmud":             "var(--talmud-gold)",
+  "Halakhah":           "var(--halakhah-red)",
+  "Kabbalah":           "var(--kabbalah-purple)",
+  "Jewish Thought":     "var(--philosophy-purple)",
+  "Liturgy":            "var(--liturgy-rose)",
+  "Tosefta":            "var(--taanitic-green)",
+  "Chasidut":           "var(--chasidut-green)",
+  "Musar":              "var(--mussar-purple)",
+  "Responsa":           "var(--responsa-red)",
+  "Quoting Commentary": "var(--responsa-red)",
+  "Sheets":             "var(--sefaria-blue)",
+  "Targum":             "var(--philosophy-purple)",
+  "Modern Commentary":  "var(--modern-works-blue)",
+  "Reference":          "var(--reference-orange)",
   "Static":             "linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%)"
 };
 palette.categoryColor = function(cat) {

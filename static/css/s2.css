@@ -29,55 +29,49 @@ body:not(.user-is-tabbing) *:focus {
 }
 :root {
   /* font stacks */
-  --en-sans-serif-font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  --en-serif-font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  --he-sans-serif-font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  --he-serif-font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  --sans-serif-font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --serif-font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 
-  --sefaria-base-serif-h1-font-size: 48px;
-  --sefaria-base-serif-h2-font-size: 30px;
-  --sefaria-base-serif-h3-font-size: 24px;
-  --sefaria-base-serif-body-font-size: 18px;
-  --sefaria-hebrew-serif-multiplier: 1.22;
+  --serif-h1-font-size: 48px;
+  --serif-h2-font-size: 30px;
+  --serif-h3-font-size: 24px;
+  --serif-body-font-size: 18px;
 
-  --sefaria-base-sans-serif-h1-font-size: 40px;
-  --sefaria-base-sans-serif-h2-font-size: 30px;
-  --sefaria-base-sans-serif-h3-font-size: 22px;
-  --sefaria-base-sans-serif-body-font-size: 16px;
-  --sefaria-base-sans-serif-small-font-size: 14px;
-
+  --sans-serif-h1-font-size: 40px;
+  --sans-serif-h2-font-size: 30px;
+  --sans-serif-h3-font-size: 22px;
+  --sans-serif-body-font-size: 16px;
+  --sans-serif-small-font-size: 14px;
 
   /* colors */
   --sefaria-blue: #18345D;
-  --sefaria-highlight-blue: #DDEEFF;
-  --sefaria-highlight-blue-light: #F0F7FF;
-  --sefaria-black: #000;
-  --sefaria-dark-grey: #666666;
-  --sefaria-medium-grey: #999999;
-  --sefaria-light-grey: #CCCCCC;
-  --sefaria-lighter-grey: #EDEDEC;
-  --sefaria-kightest-grey: #FBFBFA;
-  --sefaria-white: #fff;
-  --sefaria-commentary-blue: #4B71B7;
-  --sefaria-tanakh-teal: #004E5F;
-  --sefaria-mishnah-blue: #5A99B7;
-  --sefaria-talmud-gold: #CCB479;
-  --sefaria-midrash-green: #5D956F;
-  --sefaria-halakhah-red: #802F3E;
-  --sefaria-kabbalah-purple: #594176;
-  --sefaria-liturgy-rose: #AB4E66;
-  --sefaria-philosophy-purple: #7F85A9;
-  --sefaria-taanitic-green: #00827F;
-  --sefaria-chasidut-green: #97B386;
-  --sefaria-mussar-purple: #7C416F;
-  --sefaria-responsa-red: #CB6158;
-  --sefaria-apocrypha-pink: #C6A7B4;
-  --sefaria-modern-works-blue: #B8D4D3;
-  --sefaria-grammar-green: #B2B272;
-  --sefaria-reference-orange: #D4896C;
-  --sefaria-miscelaneous-brown: #7D6D5D;
-  --sefaria-miscelaneous-blue: #B1C8DD;
-  --sefaria-miscelaneous-green: #3B5849;
+  --highlight-blue: #DDEEFF;
+  --highlight-blue-light: #F0F7FF;
+  --dark-grey: #666666;
+  --medium-grey: #999999;
+  --light-grey: #CCCCCC;
+  --lighter-grey: #EDEDEC;
+  --lightest-grey: #FBFBFA;
+  --commentary-blue: #4B71B7;
+  --tanakh-teal: #004E5F;
+  --mishnah-blue: #5A99B7;
+  --talmud-gold: #CCB479;
+  --midrash-green: #5D956F;
+  --halakhah-red: #802F3E;
+  --kabbalah-purple: #594176;
+  --liturgy-rose: #AB4E66;
+  --philosophy-purple: #7F85A9;
+  --taanitic-green: #00827F;
+  --chasidut-green: #97B386;
+  --mussar-purple: #7C416F;
+  --responsa-red: #CB6158;
+  --apocrypha-pink: #C6A7B4;
+  --modern-works-blue: #B8D4D3;
+  --grammar-green: #B2B272;
+  --reference-orange: #D4896C;
+  --miscelaneous-brown: #7D6D5D;
+  --miscelaneous-blue: #B1C8DD;
+  --miscelaneous-green: #3B5849;
 
 }
 
@@ -86,6 +80,37 @@ body:not(.user-is-tabbing) *:focus {
 a{
   color: inherit;
 }
+
+.serif {
+  --font-family: var(--serif-font-family);
+  --hebrew-multiplier: 1.22;
+}
+.sans-serif {
+  --font-family: var(--sans-serif-font-family);
+}
+
+
+h1 {
+  font-family: var(--font-family);
+  font-weight: normal;
+  font-size: calc(var(--serif-h1-font-size) * var(--hebrew-multiplier, 1))
+}
+h2 {
+  font-family: var(--font-family);
+  font-weight: normal;
+  font-size: calc(var(--serif-h2-font-size) * var(--hebrew-multiplier, 1))
+}
+h3 {
+  font-family: var(--font-family);
+  font-weight: normal;
+  font-size: calc(var(--serif-h2-font-size) * var(--hebrew-multiplier, 1))
+}
+p {
+  font-family: var(--font-family);
+  font-size: calc(var(--serif-body-font-size) * var(--hebrew-multiplier, 1))
+}
+
+
 /*
 Style Guide Font Hierarchy
 https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
