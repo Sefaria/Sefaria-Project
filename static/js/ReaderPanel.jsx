@@ -1248,31 +1248,31 @@ class ReaderControls extends Component {
             interfaceLang={this.props.interfaceLang}/>
         </div>) :
       (<div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheet? this.openSheetMeta : this.openTextToc}>
-        <header className={"readerTextTocBox" + (this.props.sheet ? " sheetBox":"")} role="heading" aria-level="1" aria-live="polite">
-          <h1>
+        <div className={"readerTextTocBox" + (this.props.sheet ? " sheetBox":"")} role="heading" aria-level="1" aria-live="polite">
+          <div>
             <a href={url} aria-label={"Show table of contents for " + this.props.currentRef} >
             { title ? (<i className="fa fa-angle-down invisible"></i>) : null }
             { this.props.sheet? <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
             { this.props.sheet?
                 <div style={{"direction": Sefaria.hebrew.isHebrew(title) ? "rtl" :"ltr"}}><span>{title}</span></div>
                 :
-                <div>
+                <h1>
                   <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
                   <span className="sectionString">
                     <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
                   </span>
-                </div>
+                </h1>
             }
             { title ? (<i className="fa fa-angle-down"></i>) : null }
             { showVersion ? (<span className="readerTextVersion"><span className="en">{versionTitle}</span></span>) : null}
           </a>
-          </h1>
+          </div>
           <div onClick={this.stopPropagation}>
             {
               categoryAttribution ? <CategoryAttribution categories={oref.categories} linked={false} /> : null
             }
           </div>
-        </header>
+        </div>
       </div>);
 
     let leftControls = hideHeader || connectionsHeader ? null :
@@ -1294,13 +1294,13 @@ class ReaderControls extends Component {
 
     const classes = classNames({readerControls: 1, connectionsHeader: mode == "Connections", fullPanel: this.props.multiPanel, sheetReaderControls: !!this.props.sheet});
     let readerControls = hideHeader ? null :
-        (<div className={classes}>
+        (<header className={classes}>
           <div className="readerControlsInner">
             {leftControls}
             {centerContent}
             {rightControls}
           </div>
-        </div>);
+        </header>);
     return (
       <div>
         {connectionsHeader ? null : <CategoryColorLine category={this.props.currentCategory()} />}
