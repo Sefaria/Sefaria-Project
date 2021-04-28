@@ -27,10 +27,9 @@ from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
-from sefaria.settings import PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class UserHistory(abst.AbstractMongoRecord):
@@ -366,9 +365,12 @@ class UserProfile(object):
         # Google API token
         self.gauth_token = None
 
+        # new editor
+        self.show_editor_toggle = False
+        self.uses_new_editor = False
+
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
-        profile = self.migrateFromOldRecents(profile)
         if profile:
             self.update(profile, ignore_flags_on_init=True)
         elif self.exists():
@@ -398,7 +400,7 @@ class UserProfile(object):
             if self.first_name != obj["first_name"] or self.last_name != obj["last_name"]:
                 self._name_updated = True
 
-        if self.settings["reading_history"]:
+        if "reading_history" in self.settings and self.settings["reading_history"] == True:
             if "settings" in obj and "reading_history" in obj["settings"] and obj["settings"]["reading_history"] == False:
                 self._process_remove_history = True
 
@@ -435,22 +437,6 @@ class UserProfile(object):
             except AttributeError:
                 return None
         return [_f for _f in [xformer(r) for r in recents] if _f]
-
-    def migrateFromOldRecents(self, profile):
-        """
-        migrate from recentlyViewed which is a flat list and only saves one item per book to readingHistory, which is a dict and saves all reading history
-        """
-        if profile is None:
-            profile = {}  # for testing, user doesn't need to exist
-        if "recentlyViewed" in profile:
-            user_history = self.transformOldRecents(self.id, profile['recentlyViewed'])
-            for temp_uh in user_history:
-                uh = UserHistory(temp_uh)
-                uh.save()
-            profile.pop('recentlyViewed', None)
-            db.profiles.find_one_and_update({"id": self.id}, {"$unset": {"recentlyViewed": True}})
-            self.save()
-        return profile
 
     def update(self, obj, ignore_flags_on_init=False):
         """
@@ -651,7 +637,8 @@ class UserProfile(object):
             "profile_pic_url":       self.profile_pic_url,
             "profile_pic_url_small": self.profile_pic_url_small,
             "gauth_token":           self.gauth_token,
-
+            "show_editor_toggle":    self.show_editor_toggle,
+            "uses_new_editor":       self.uses_new_editor,
         }
 
     def to_api_dict(self, basic=False):

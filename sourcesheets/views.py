@@ -7,8 +7,8 @@ from elasticsearch.exceptions import AuthorizationException
 from datetime import datetime, timedelta
 from io import StringIO, BytesIO
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 from django.template.loader import render_to_string
 from django.shortcuts import render, redirect
@@ -56,8 +56,8 @@ def annotate_user_links(sources):
 @login_required
 @ensure_csrf_cookie
 def new_sheet(request):
-
-	if request.COOKIES.get("new_editor", None):
+	profile = UserProfile(id=request.user.id)
+	if getattr(profile, "uses_new_editor", False):
 		sheet = {
 				'status': 'unlisted',
 				'title': '',
@@ -233,7 +233,6 @@ def view_sheet(request, sheet_id, editorMode = False):
         "title": sheet["title"],
         "author": author,
         "is_owner": request.user.id == sheet["owner"],
-        "is_public": sheet["status"] == "public",
         "sheet_collections": sheet_collections,
         "displayed_collection":  displayed_collection,
         "like_count": like_count,
@@ -479,16 +478,16 @@ def collections_inclusion_api(request, slug, action, sheet_id):
     if not collection.is_member(request.user.id):
         return jsonResponse({"error": "Only members of this collection my change its contents."})
     sheet_id = int(sheet_id)
-    sheet = Sheet().load({"id": sheet_id})
+    sheet = db.sheets.find_one({"id": sheet_id})
     if not sheet:
         return jsonResponse({"error": "No sheet with id {}.".format(sheet_id)})
 
     if action == "remove":
         if sheet_id in collection.sheets:
             collection.sheets.remove(sheet_id)
-            if request.user.id == sheet.owner and getattr(sheet, "displayedCollection", None) == collection.slug:
-                sheet.displayedCollection = None
-                sheet.save()
+            if request.user.id == sheet["owner"] and sheet.get("displayedCollection", None) == collection.slug:
+                sheet["displayedCollection"] = None
+                db.sheets.find_one_and_replace({"id": sheet["id"]}, sheet)
         else:
             return jsonResponse({"error": "Sheet with id {} is not in this collection.".format(sheet_id)})
     if action == "add":
@@ -496,9 +495,9 @@ def collections_inclusion_api(request, slug, action, sheet_id):
             collection.sheets.append(sheet_id)
             # If a sheet's owner adds it to a collection, and the sheet is not highlighted
             # in another collection, set it to highlight this collection.
-            if request.user.id == sheet.owner and not bool(getattr(sheet, "displayedCollection", None)):
-                sheet.displayedCollection = collection.slug
-                sheet.save()
+            if request.user.id == sheet["owner"] and not sheet.get("displayedCollection", None):
+                sheet["displayedCollection"] = collection.slug
+                db.sheets.find_one_and_replace({"id": sheet["id"]}, sheet)
 
     collection.save()
     is_member = request.user.is_authenticated and collection.is_member(request.user.id)
@@ -1070,7 +1069,7 @@ def export_to_drive(request, credential, sheet_id):
     Export a sheet to Google Drive.
     """
     # Using credentials in google-api-python-client.
-    service = build('drive', 'v3', credentials=credential)
+    service = build('drive', 'v3', credentials=credential, cache_discovery=False)
 
     sheet = get_sheet(sheet_id)
     if 'error' in sheet:

@@ -1,0 +1,155 @@
+{% load static %}
+
+<html>
+<head>
+  <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
+  <style>
+
+
+    table {
+      width: 1200px;
+      padding: 40px;
+    }
+
+    td {
+      width: 25%;
+      border-bottom: 1px solid black;
+      vertical-align: middle;
+      text-align: center;
+    }
+
+    .square {
+      width: 50px;
+      height: 50px;
+      margin: 2px;
+      display: inline-block;
+    }
+
+    .line {
+      width: 100px;
+      height: 4px;
+      margin: 10px;
+      display: inline-block;
+    }
+
+
+    .systemColors {
+      margin: 40px;
+    }
+    .systemColors .square:nth-of-type(1) {
+      background-color: var(--sefaria-blue)
+    }
+    .systemColors .square:nth-of-type(2) {
+      background-color: var(--highlight-blue)
+    }
+    .systemColors .square:nth-of-type(3) {
+      background-color: var(--highlight-blue-light)
+    }
+    .systemColors .square:nth-of-type(4) {
+      background-color: black;
+    }
+    .systemColors .square:nth-of-type(5) {
+      background-color: var(--dark-grey)
+    }
+    .systemColors .square:nth-of-type(6) {
+      background-color: var(--medium-grey)
+    }
+    .systemColors .square:nth-of-type(7) {
+      background-color: var(--light-grey)
+    }
+    .systemColors .square:nth-of-type(8) {
+      background-color: var(--lighter-grey)
+    }
+    .systemColors .square:nth-of-type(9) {
+      background-color: var(--lightest-grey)
+    }
+    .systemColors .square:nth-of-type(10) {
+      background-color: white;
+    }
+
+    .contentColors {
+      margin: 40px;
+    }
+
+    .contentColors .line:nth-of-type(1) {background-color: var(--commentary-blue)}
+    .contentColors .line:nth-of-type(2) {background-color: var(--tanakh-teal)}
+    .contentColors .line:nth-of-type(3) {background-color: var(--mishnah-blue)}
+    .contentColors .line:nth-of-type(4) {background-color: var(--talmud-gold)}
+    .contentColors .line:nth-of-type(5) {background-color: var(--midrash-green)}
+    .contentColors .line:nth-of-type(6) {background-color: var(--halakhah-red)}
+    .contentColors .line:nth-of-type(7) {background-color: var(--kabbalah-purple)}
+    .contentColors .line:nth-of-type(8) {background-color: var(--liturgy-rose)}
+    .contentColors .line:nth-of-type(9) {background-color: var(--philosophy-purple)}
+    .contentColors .line:nth-of-type(10) {background-color: var(--taanitic-green)}
+    .contentColors .line:nth-of-type(11) {background-color: var(--chasidut-green)}
+    .contentColors .line:nth-of-type(12) {background-color: var(--mussar-purple)}
+    .contentColors .line:nth-of-type(13) {background-color: var(--responsa-red)}
+    .contentColors .line:nth-of-type(14) {background-color: var(--apocrypha-pink)}
+    .contentColors .line:nth-of-type(15) {background-color: var(--modern-works-blue)}
+    .contentColors .line:nth-of-type(16) {background-color: var(--grammar-green)}
+    .contentColors .line:nth-of-type(17) {background-color: var(--reference-orange)}
+    .contentColors .line:nth-of-type(18) {background-color: var(--miscelaneous-brown)}
+    .contentColors .line:nth-of-type(19) {background-color: var(--miscelaneous-blue)}
+    .contentColors .line:nth-of-type(20) {background-color: var(--miscelaneous-green)}
+
+
+  </style>
+</head>
+<body>
+        <h2>Typography</h2>
+        <table class="serif">
+          <tr><td>Serif H1</td><td><h1>Tanakh</h1></td><td><h1>תנ"ך</h1></td><td><textarea readonly><div class="serif"><h1>Tanakh</h1><h1>תנ"ך</h1></div></textarea></td></tr>
+          <tr><td>Serif H2</td><td><h2>Tanakh</h2></td><td><h2>תנ"ך</h2></td><td><textarea readonly><div class="serif"><h2>Tanakh</h2><h2>תנ"ך</h2></div></textarea></td></tr>
+          <tr><td>Serif H3</td><td><h3>Tanakh</h3></td><td><h3>תנ"ך</h3></td><td><textarea readonly><div class="serif"><h3>Tanakh</h3><h3>תנ"ך</h3></div></textarea></td></tr>
+          <tr><td>Serif Body</td><td><p>Tanakh</p></td><td><p>תנ"ך</p></td><td><textarea readonly><div class="serif"><p>Tanakh</p><p>תנ"ך</p></div></textarea></td></tr>
+        </table>
+
+        <table class="sans-serif">
+          <tr><td>Sans Serif H1</td><td><h1>Tanakh</h1></td><td><h1>תנ"ך</h1></td><td><textarea readonly><div class="sans-serif"><h1>Tanakh</h1><h1>תנ"ך</h1></div></textarea></td></tr>
+          <tr><td>Sans Serif H2</td><td><h2>Tanakh</h2></td><td><h2>תנ"ך</h2></td><td><textarea readonly><div class="sans-serif"><h2>Tanakh</h2><h2>תנ"ך</h2></div></textarea></td></tr>
+          <tr><td>Sans Serif H3</td><td><h3>Tanakh</h3></td><td><h3>תנ"ך</h3></td><td><textarea readonly><div class="sans-serif"><h3>Tanakh</h3><h3>תנ"ך</h3></div></textarea></td></tr>
+          <tr><td>Sans Serif Body</td><td><p>Tanakh</p></td><td><p>תנ"ך</p></td><td><textarea readonly><div class="sans-serif"><p>Tanakh</p><p>תנ"ך</p></div></textarea></td></tr>
+          <tr><td>Sans Serif Body</td><td><small>Tanakh</small></td><td><small>תנ"ך</small></td><td><textarea readonly><div class="sans-serif"><small>Tanakh</small><small>תנ"ך</small></div></textarea></td></tr>
+        </table>
+
+        <h2>System Colors</h2>
+
+        <div class="systemColors">
+          <div class="square"></div>
+          <div class="square"></div>
+          <div class="square"></div>
+          <div class="square"></div>
+          <div class="square"></div>
+          <div class="square"></div>
+          <div class="square"></div>
+          <div class="square"></div>
+          <div class="square"></div>
+          <div class="square"></div>
+        </div>
+
+        <h2>Content Colors</h2>
+          <div class="contentColors">
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+            <div class="line"></div>
+          </div>
+
+</body>
+</html>

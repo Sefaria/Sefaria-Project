@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 import re
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 from sefaria.model import *
 from sefaria.datatype.jagged_array import JaggedTextArray
@@ -85,14 +85,6 @@ def format_link_object_for_client(link, with_text, ref, pos=None):
     if com["type"] != "commentary" and com["category"] == "Commentary":
             com["category"] = "Quoting Commentary"
 
-    if com["category"] == "Modern Works" and getattr(linkRef.index, "dependence", None) == "Commentary":
-        # print "Transforming " + linkRef.normal()
-        com["category"] = "Modern Commentary"
-        com["collectiveTitle"] = {
-            'en': getattr(linkRef.index, 'collective_title', linkRef.index.title),
-            'he': hebrew_term(getattr(linkRef.index, 'collective_title', linkRef.index.get_title("he")))
-        }
-
     if linkRef.index_node.primary_title("he"):
         com["heTitle"] = linkRef.index_node.primary_title("he")
 
@@ -146,7 +138,7 @@ def format_note_object_for_client(note):
 
 
 def format_sheet_as_link(sheet):
-    sheet["category"]        = "Commentary" if "Commentary" in sheet["collectionTOC"]["categories"] else sheet["collectionTOC"]["categories"][0]
+    sheet["category"]        = sheet["collectionTOC"].get("dependence", sheet["collectionTOC"]["categories"][0])
     sheet["collectiveTitle"] = sheet["collectionTOC"]["collectiveTitle"] if "collectiveTitle" in sheet["collectionTOC"] else {"en": sheet["collectionTOC"]["title"], "he": sheet["collectionTOC"]["heTitle"]}
     sheet["index_title"]     = sheet["collectiveTitle"]["en"]
     sheet["sourceRef"]       = sheet["title"]

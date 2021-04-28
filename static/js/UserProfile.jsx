@@ -7,9 +7,9 @@ import {
   ProfileListing,
   ProfilePic,
   FollowButton,
-  IntText,
+  InterfaceText,
 } from './Misc';
-import React  from 'react';
+import React, {useState}  from 'react';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import { CollectionListing } from './PublicCollectionsPage';
@@ -23,7 +23,7 @@ class UserProfile extends Component {
     this.state = this.getPrivateTabState(props);
   }
   componentDidUpdate(prevProps) {
-    if (!!this.props.profile && (!prevProps || prevProps.profile.id !== this.props.profile.id) 
+    if (!!this.props.profile && (!prevProps || prevProps.profile.id !== this.props.profile.id)
         || this.props.tab !== prevProps.tab) {
       this.setState(this.getPrivateTabState(this.props));
     }
@@ -88,19 +88,19 @@ class UserProfile extends Component {
      return (
         <div className="emptyList">
           <div className="emptyListText">
-            <IntText>{this.props.profile.full_name}</IntText>
-            <IntText> hasn't shared any collections yet.</IntText>
+            <InterfaceText>{this.props.profile.full_name}</InterfaceText>
+            <InterfaceText> hasn't shared any collections yet.</InterfaceText>
           </div>
         </div>);
     }
     return (
       <div className="emptyList">
         <div className="emptyListText">
-          <IntText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</IntText>
+          <InterfaceText>You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.</InterfaceText>
         </div>
         <a href="/collections/new" className="resourcesLink">
           <img src="/static/icons/collection.svg" alt="Collection icon" />
-            <IntText>Create a New Collection</IntText>
+            <InterfaceText>Create a New Collection</InterfaceText>
         </a>
       </div>);
   }
@@ -115,7 +115,7 @@ class UserProfile extends Component {
       <div className="sheet-header">
         <a href="/collections/new" className="resourcesLink">
           <img src="/static/icons/collection.svg" alt="Collection icon" />
-            <IntText>Create a New Collection</IntText>
+            <InterfaceText>Create a New Collection</InterfaceText>
         </a>
       </div>
     );
@@ -192,8 +192,8 @@ class UserProfile extends Component {
       return (
         <div className="emptyList">
           <div className="emptyListText">
-            <IntText>{this.props.profile.full_name}</IntText>
-            <IntText> hasn't shared any sheets yet.</IntText>
+            <InterfaceText>{this.props.profile.full_name}</InterfaceText>
+            <InterfaceText> hasn't shared any sheets yet.</InterfaceText>
           </div>
         </div>
       );
@@ -339,7 +339,7 @@ class UserProfile extends Component {
     if (!Sefaria._uid) { this.props.toggleSignUpModal(); return; }
     this._messageModalRef.makeVisible();
   }
-  follow() { 
+  follow() {
     Sefaria.followAPI(this.props.profile.id);
   }
   openFollowers(e) {
@@ -350,6 +350,7 @@ class UserProfile extends Component {
     e.preventDefault();
     this.props.setProfileTab("following");
   }
+
   render() {
     return (
       <div key={this.props.profile.id} className="profile-page readerNavMenu noHeader">
@@ -360,6 +361,7 @@ class UserProfile extends Component {
             showDisplaySettings={false}/>
         }
         <div className="content hasFooter noOverflowX">
+          {this.props.profile.show_editor_toggle ?  <EditorToggleHeader usesneweditor={this.props.profile.uses_new_editor} /> : null}
           <div className="contentInner">
             { !this.props.profile.id ? <LoadingMessage /> :
               <div>
@@ -463,6 +465,123 @@ class UserProfile extends Component {
 UserProfile.propTypes = {
   profile: PropTypes.object.isRequired,
 };
+
+
+const EditorToggleHeader = ({usesneweditor}) => {
+ const [feedbackHeaderState, setFeedbackHeaderState] = useState("hidden")
+
+ const text = <InterfaceText>{usesneweditor ? "You are currently testing the new document editor" : "You are currently using the old document editor"}</InterfaceText>;
+ const buttonText = <InterfaceText>{usesneweditor ? "Go back to old version" : "Try the new version"}</InterfaceText>;
+
+
+
+ const sendFeedback = () => {
+
+   const feedback = {
+       type: "new_editor",
+       email: null,
+       msg: $("#feedbackText").val(),
+       url: "",
+       uid: Sefaria._uid || null
+   };
+   if (!feedback.msg) {
+     setFeedbackHeaderState("thanks")
+     return;
+   }
+   var postData = {json: JSON.stringify(feedback)};
+   var url = "/api/send_feedback";
+
+   $.post(url, postData, function (data) {
+       if (data.error) {
+           alert(data.error);
+       } else {
+           console.log(data);
+           $("#feedbackText").val("");
+           Sefaria.track.event("New Editor", "Send Feedback", null);
+           setFeedbackHeaderState("thanks")
+
+       }
+   }.bind(this)).fail(function (xhr, textStatus, errorThrown) {
+       alert(Sefaria._("Unfortunately, there was an error sending this feedback. Please try again or try reloading this page."));
+   });
+ }
+
+
+
+ const disableOverlayContent = (
+   <div>
+      <h2><InterfaceText>Request for Feedback</InterfaceText></h2>
+      <p><InterfaceText>Thank you for trying the new document editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.</InterfaceText></p>
+      <p><InterfaceText>Did you encounter any issues while using the new editor? For example:</InterfaceText></p>
+      <ul>
+        <li><InterfaceText>Technical problems</InterfaceText></li>
+        <li><InterfaceText>Difficulties using the editor</InterfaceText></li>
+        <li><InterfaceText>Missing features </InterfaceText></li>
+      </ul>
+
+      <p>
+        <textarea className="feedbackText" placeholder={Sefaria._("Tell us about it...")} id="feedbackText"></textarea>
+      </p>
+      <p>
+        <a href="#" className="button" role="button" onClick={()=>sendFeedback()}>
+            <InterfaceText>Submit Feedback</InterfaceText>
+        </a>
+      </p>
+
+   </div>
+ )
+ const enableOverlayContent = (
+   <div>
+      <h2><InterfaceText>Thanks for Trying the New Editor!</InterfaceText></h2>
+      <p><InterfaceText>Go to your profile to create a new sheet, or edit an existing sheet, to try out the new experience. After you’ve had a chance to try it out, we would love to hear your feedback. You can reach us at</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></p>
+      <div className="buttonContainer"><a href="/enable_new_editor" onClick={()=>toggleFeedbackOverlayState()} className="button" role="button"><InterfaceText>Back to Profile</InterfaceText></a></div>
+   </div>
+ )
+ const thankYouContent = (
+   <div>
+      <h2><InterfaceText>Thank you!</InterfaceText></h2>
+      <p><InterfaceText>Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</p>
+      <div className="buttonContainer"><a href="/disable_new_editor" className="button" role="button"><InterfaceText>Back to Profile</InterfaceText></a></div>
+   </div>
+ )
+
+ let overlayContent;
+ switch (feedbackHeaderState) {
+   case "disableOverlay":
+     overlayContent = disableOverlayContent;
+     break;
+   case "enableOverlay":
+     overlayContent = enableOverlayContent;
+     break;
+   case "thanks":
+     overlayContent = thankYouContent;
+     break;
+ }
+
+
+
+
+ const toggleFeedbackOverlayState = () => {
+   if (usesneweditor) {
+     setFeedbackHeaderState("disableOverlay")
+   }
+   else {
+     setFeedbackHeaderState("enableOverlay")
+   }
+ }
+ const buttonLink = (usesneweditor ? "/disable_new_editor" : "");
+
+
+ return (
+   <>
+   <div className="editorToggleHeader">{text}
+     <a href="#" onClick={()=>toggleFeedbackOverlayState()} className="button white" role="button">{buttonText}</a>
+   </div>
+   {feedbackHeaderState != "hidden" ? <div className="feedbackOverlay">{overlayContent}</div> : null}
+   </>
+ )
+}
+
 
 const ProfileSummary = ({ profile:p, message, follow, openFollowers, openFollowing, toggleSignUpModal }) => {
   // collect info about this profile in `infoList`

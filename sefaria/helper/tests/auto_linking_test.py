@@ -9,10 +9,10 @@ from sefaria.helper.schema import convert_simple_index_to_complex, insert_first_
 class Test_AutoLinker(object):
     link_set_lambda = lambda x: LinkSet({"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"})
     rashi_on_genesis_links = link_set_lambda("Rashi on Genesis")
-    kos_eliyahu_links = link_set_lambda("Kos Shel Eliyahu on Pesach Haggadah")
+    kos_eliyahu_links = link_set_lambda("Kos Eliyahu on Pesach Haggadah")
     desired_link_counts = {
         'Rashi on Genesis': rashi_on_genesis_links.count(),
-        'Kos Shel Eliyahu on Pesach Haggadah': kos_eliyahu_links.count(),
+        'Kos Eliyahu on Pesach Haggadah': kos_eliyahu_links.count(),
     }
 
     @classmethod
@@ -52,7 +52,7 @@ class Test_AutoLinker(object):
             'dependence': "Commentary",
             "base_text_titles": ["Genesis"],
             "base_text_mapping": "many_to_one_default_only",
-            'categories': ['Tanakh', "Commentary"],
+            'categories': ['Tanakh', "Rishonim on Tanakh"],
         })
         index.save()
 
@@ -153,7 +153,7 @@ class Test_AutoLinker(object):
             'dependence': 'Commentary',
             'base_text_titles': ['Genesis'],
             'base_text_mapping': 'one_to_one_default_only',
-            'categories': ['Tanakh', 'Commentary'],
+            'categories': ['Tanakh', 'Rishonim on Tanakh'],
         })
         index.save()
 
@@ -231,6 +231,16 @@ class Test_AutoLinker(object):
         link_set_lambda = lambda x: LinkSet({"refs": {"$regex": Ref(x).regex()}, "auto": True, "generated_by": "add_commentary_links"})
         cls.desired_link_counts["Many to One on Genesis"] = link_set_lambda("Many to One on Genesis").count()
         cls.desired_link_counts["One to One on Genesis"] = link_set_lambda("One to One on Genesis").count()
+
+        title = 'Kos Eliyahu on Pesach Haggadah'
+        i = library.get_index(title)
+        Version({
+            "chapter": i.nodes.create_skeleton(),
+            "versionTitle": "test",
+            "versionSource": "blabla",
+            "language": "he",
+            "title": i.title
+        }).save()
         #print 'End of test setup'
 
     @classmethod
@@ -248,6 +258,7 @@ class Test_AutoLinker(object):
         i.delete()
         i = Index().load({"title": "One to One on Genesis"})
         i.delete()
+        v = Version().load({"title": 'Kos Eliyahu on Pesach Haggadah', "versionTitle": "test", "language": "he"})
 
     def test_rebuild_commentary_links(self):
         #test simple adding links
@@ -259,7 +270,7 @@ class Test_AutoLinker(object):
         assert len(found) == desired_link_count
 
     def test_rebuild_commentary_links_complex(self):
-        title = 'Kos Shel Eliyahu on Pesach Haggadah'
+        title = 'Kos Eliyahu on Pesach Haggadah'
         rf = Ref(title)
         linker = rf.autolinker(user=1)
         desired_link_count = self.desired_link_counts[title]
@@ -333,7 +344,7 @@ class Test_AutoLinker(object):
 
     def test_refresh_commentary_links_complex(self):
         #test that there are the same number of links before and after
-        title = 'Kos Shel Eliyahu on Pesach Haggadah'
+        title = 'Kos Eliyahu on Pesach Haggadah'
         rf = Ref(title)
         regex = rf.regex()
         desired_link_count = self.desired_link_counts[title]
@@ -468,8 +479,8 @@ class Test_AutoLinker(object):
         assert link_count == desired_link_count
 
     def test_refresh_links_with_text_save_complex(self):
-        title = 'Kos Shel Eliyahu on Pesach Haggadah'
-        section_tref = 'Kos Shel Eliyahu on Pesach Haggadah, Kadesh 1'
+        title = 'Kos Eliyahu on Pesach Haggadah'
+        section_tref = 'Kos Eliyahu on Pesach Haggadah, Kadesh 1'
         stext = ["thlerkawje alkejal ekjlkej", "eaflkje arheahrlka jhklajdhkl ADJHKL"]
         lang = 'he'
         vtitle = "test"
@@ -486,6 +497,38 @@ class Test_AutoLinker(object):
         chunk = TextChunk(oref, lang, vtitle)
         chunk.text = chunk.text[:-2]
         tracker.modify_text(1, oref, vtitle, lang, chunk.text)
+        link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
+        assert link_count == desired_link_count
+
+    def test_bulk_refresh_links_with_text_save_complex(self):
+        title = 'Kos Eliyahu on Pesach Haggadah'
+        section_tref = 'Kos Eliyahu on Pesach Haggadah, Kadesh 1'
+        lang = 'he'
+        vtitle = "test"
+        rf = Ref(title)
+        regex = rf.regex()
+        version = Version().load({"title": title, "versionTitle": vtitle, "language": lang})
+        text_map = {
+            f"{section_tref}:1": "more text",
+            f"{section_tref}:2": "even more text",
+            f"{section_tref}:3": "blah text",
+            f"{section_tref}:5": "skip one!"
+        }
+        # original count
+        desired_link_count = self.desired_link_counts[title]
+        # add some text
+        tracker.modify_bulk_text(1, version, text_map)
+        link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
+        assert link_count == (desired_link_count+4)
+        for tref, mod_text in text_map.items():
+            seg_index = int(tref.split(':')[-1])-1
+            version.chapter["Kadesh"][0][seg_index] = mod_text
+        assert version.chapter["Kadesh"][0][3] == ""  # 4th element should have been padded
+
+        # now delete
+        for k in text_map.keys():
+            text_map[k] = ''  # set all values to empty string. which should trigger trim_ending_whitespace to delete them
+        tracker.modify_bulk_text(1, version, text_map)
         link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         assert link_count == desired_link_count
 

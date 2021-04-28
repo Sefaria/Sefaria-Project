@@ -30,7 +30,7 @@ jobs:
       - selenium-pageloadsuite-local
       - selenium-pageloadsuite-sauce
       - selenium-readersuite-local
-      # - pytest-cluster
+      - pytest-job
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -66,7 +66,7 @@ jobs:
       - run: ls
       - run: pwd
       - name: Run Jest Tests
-        run: npm run jest-travis
+        run: npm run jest-gha
       - name: Handle Jest Test Results # later, upload
         run: cat /home/runner/jestResults.json
         if: ${{ always() }}
@@ -144,7 +144,7 @@ jobs:
     runs-on: ubuntu-latest
     services: 
       selenium:
-        image: selenium/standalone-firefox:3.141.59
+        image: selenium/standalone-firefox:3.141.59-zirconium
         ports: [ "4444:4444" ]
         volumes: ["/dev/shm:/dev/shm"]
     steps:
@@ -200,7 +200,8 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_local_sel.py --parallel --tests PageloadSuite | tee /home/runner/selenium-pageloadsuite-local.txt
+        run: python3 ./reader/browsertest/run_local_sel.py --parallel --tests PageloadSuite | tee /home/runner/selenium-pageloadsuite-local.txt #  ; echo $?
+        shell: bash
         env:
           CI_RUN: "true"
           CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
@@ -232,7 +233,7 @@ jobs:
     runs-on: ubuntu-latest
     services: 
       selenium:
-        image: selenium/standalone-firefox:3.141.59
+        image: selenium/standalone-firefox:3.141.59-zirconium
         ports: [ "4444:4444" ]
         volumes: ["/dev/shm:/dev/shm"]
     steps:
@@ -288,7 +289,8 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_local_sel.py --parallel --tests ReaderSuite | tee /home/runner/selenium-readersuite-local.txt
+        run: python3 ./reader/browsertest/run_local_sel.py --parallel --tests ReaderSuite | tee /home/runner/selenium-readersuite-local.txt #  ; echo $?
+        shell: bash
         env:
           CI_RUN: "true"
           CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
@@ -320,7 +322,7 @@ jobs:
     runs-on: ubuntu-latest
     services: 
       selenium:
-        image: selenium/standalone-firefox:3.141.59
+        image: selenium/standalone-firefox:3.141.59-zirconium
         ports: [ "4444:4444" ]
         volumes: ["/dev/shm:/dev/shm"]
     steps:
@@ -376,7 +378,8 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_local_sel.py --parallel | tee /home/runner/selenium-allsuites-local.txt
+        run: python3 ./reader/browsertest/run_local_sel.py --parallel | tee /home/runner/selenium-allsuites-local.txt #  ; echo $?
+        shell: bash
         env:
           CI_RUN: "true"
           CI_URL: https://${{env.GITHUB_SHA_SHORT}}.cauldron.sefaria.org
@@ -405,9 +408,7 @@ jobs:
     name: "Selenium: PageLoad Suite on Sauce Labs Firefox"
     needs: sandbox-ready
     runs-on: ubuntu-latest
-
     steps:
-
       # BEGIN SETUP
       - name: Checkout Code
         uses: actions/checkout@v2
@@ -459,7 +460,8 @@ jobs:
         run: pip3 install -r ./requirements.txt
 
       - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_tests_on_github.py --tests PageloadSuite | tee /home/runner/selenium-pageloadsuite-sauce.txt
+        run: python3 ./reader/browsertest/run_tests_on_github.py --tests PageloadSuite | tee /home/runner/selenium-pageloadsuite-sauce.txt #  ; echo $?
+        shell: bash
         env:
           SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
           SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
@@ -485,61 +487,9 @@ jobs:
         run: gsutil cp /home/runner/selenium-pageloadsuite-sauce.txt gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/selenium-pageloadsuite-sauce.txt
         if: ${{ always() }}
 
-  # pytest-cluster:
-  #   name: "Run PyTests on the cluster"
-  #   needs: sandbox-ready
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     # Set Up Connection to Dev Mongo
-  #     # 1. Auth to cluster
-  #     # 2. Open encrypted connection
-  #     - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-  #       with:
-  #         service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
-  #         project_id: ${{ secrets.DEV_PROJECT }}
-
-  #     - name: Set Up Python 3
-  #       uses: actions/setup-python@v1
-  #       with: 
-  #         python-version: '3.7'  
-
-  #     - name: Install jq
-  #       run: pip3 install jq
-
-  #     - name: Define GITHUB_SHA_SHORT
-  #       run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
-
-  #     - name: Authenticate GHA Runner To Target Cluster
-  #       run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
-
-  #     - name: Get Container Name
-  #       run: echo "PYTEST_POD_NAME=$(kubectl get pods --selector=app=web-${{env.GITHUB_SHA_SHORT}} -o json | jq -r '.items[0].metadata.name')" >> $GITHUB_ENV
-      
-  #     - name: Run PyTest
-  #       run: kubectl exec ${{env.PYTEST_POD_NAME}} -- bash -c 'CI_RUN=true; pytest -v -m "not deep and not failing"' | tee /home/runner/pytestResults.txt
-
-  #     - name: Handle PyTest output
-  #       run: cat /home/runner/pytestResults.txt # later, upload
-  #       if: ${{ always() }}
-
-  #     - name: Authenticate GHA Runner to GCP
-  #       uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-  #       with:
-  #         service_account_key: ${{ secrets.GCS_BUILD_UPLOAD_KEY }}
-  #         project_id: ${{ secrets.BUILD_UPLOAD_PROJECT }}
-  #       if: ${{ always() }}
-
-  #     - name: Define BUILD_RESULT_SUBDIR
-  #       run: echo "BUILD_RESULT_SUBDIR=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-  #       if: ${{ always() }}
-
-  #     - name: Upload Build Results
-  #       run: gsutil cp /home/runner/pytestResults.txt gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/pytestResults.txt
-  #       if: ${{ always() }}
-
-  start-test-pod:
-    name: "Start Standalone Testing pod"
-    needs: 
+  pytest-job:
+    name: Run PyTest Job
+    needs:
       - sandbox-ready
     runs-on: ubuntu-latest
     steps:
@@ -557,81 +507,24 @@ jobs:
         run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
       - name: Define GITHUB_SHA_SHORT
         run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
-      - name: Start Pod
-        run: envsubst '${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
+      - name: Start Job
+        run: envsubst '${GITHUB_RUN_ID},${DEPLOY_ENV},${WEB_IMAGE_NAME},${WEB_IMAGE_TAG},${TIMESTAMP}' < ./build/ci/pyTestPod.yaml | kubectl apply -f -
         env:
+          # dependent on GITHUB_RUN_ID, which is implicitly passed in
           DEPLOY_ENV: ${{env.GITHUB_SHA_SHORT}}
           WEB_IMAGE_NAME: gcr.io/${{secrets.DEV_PROJECT}}/sefaria-web-dev
           WEB_IMAGE_TAG: ${{env.GITHUB_SHA_SHORT}}
-          TIMESTAMP: ${{env.GITHUB_SHA_SHORT}} # temp
 
-  delete-test-pod:
-    name: "Delete Standalone Testing Pod"
-    if: ${{ always() }}
-    needs: 
-      - pytest-dedicated-pod
-      # - djangotests-dedicated-pod
-    runs-on: ubuntu-latest
-    steps:
-      # Set Up Connection to Dev Mongo
-      # 1. Auth to cluster
-      # 2. Open encrypted connection
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-        with:
-          service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
-          project_id: ${{ secrets.DEV_PROJECT }}
-
-      - name: Authenticate GHA Runner To Target Cluster
-        run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
-
-      - name: Define GITHUB_SHA_SHORT
-        run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
-
-      - name: Delete Pod
-        run: kubectl delete pods --selector=ci-pod-test-name=${{env.GITHUB_SHA_SHORT}}
-
-  pytest-dedicated-pod:
-    name: "Run PyTest Suite on dedicated pod"
-    needs:
-      - start-test-pod
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      # Set Up Connection to Dev Mongo
-      # 1. Auth to cluster
-      # 2. Open encrypted connection
-      - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
-        with:
-          service_account_key: ${{ secrets.DEV_CLOUDBUILD_SA_KEY }}
-          project_id: ${{ secrets.DEV_PROJECT }}
-
-      - name: Set Up Python 3
-        uses: actions/setup-python@v1
-        with: 
-          python-version: '3.7'  
-
-      - name: Install jq
-        run: pip3 install jq
-
-      - name: Define GITHUB_SHA_SHORT
-        run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
-
-      - name: Authenticate GHA Runner To Target Cluster
-        run: gcloud container clusters get-credentials ${{secrets.DEV_GKE_CLUSTER}} --zone ${{secrets.DEV_GKE_REGION}} --project ${{secrets.DEV_GCP_PROJECT}}
-
-      - name: Get Pod Name
-        run: echo "PYTEST_POD_NAME=$(kubectl get pods --selector=ci-pod-test-name=${{env.GITHUB_SHA_SHORT}} -o json | jq -r '.items[0].metadata.name')" >> $GITHUB_ENV
-      
-      - name: Wait For Pod To Be Ready
-        run: ./build/ci/waitForPod.bash
+      - name: Wait For Job To Finish
+        run: ./build/ci/waitForCIJob.bash
+        timeout-minutes: 20
         env: 
-          POD_NAME: ${{env.PYTEST_POD_NAME}}
-          WAIT_DURATION: "900"
+          # dependent on GITHUB_RUN_ID, which is implicitly passed in
+          TEST_NAME: pytest
 
-      - name: Run PyTest
-        run: kubectl exec ${{env.PYTEST_POD_NAME}} -- bash -c 'CI_RUN=true; pip3 install pytest-django; pytest -v -m "not deep and not failing"' ./sefaria | tee /home/runner/pytestResultsPod.txt
-
+      - name: Get Logs From Cluster
+        run: kubectl logs --tail=-1 -l ci-run=$GITHUB_RUN_ID,test-name=pytest | tee /home/runner/pytestResultsPod.txt
+      
       - name: Authenticate GHA Runner to GCP
         uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
@@ -655,7 +548,7 @@ jobs:
       - selenium-pageloadsuite-local
       - selenium-pageloadsuite-sauce
       - selenium-readersuite-local
-      #- pytest-cluster
+      - pytest-job
     runs-on: ubuntu-latest
     steps: 
       - name: Checkout
@@ -693,6 +586,11 @@ jobs:
       - name: Define BUILD_RESULT_SUBDIR
         run: echo "BUILD_RESULT_SUBDIR=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
         if: ${{ always() }}
+
+      - name: Populate report.html template
+        if: ${{ always() }}
+        run: envsubst '${GITHUB_REPOSITORY},${GITHUB_SHA}' < ./build/ci/report.html.tmpl > ./build/ci/report.html
+        shell: bash
 
       - name: Upload Build Results
         run: gsutil cp ./build/ci/report.html gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/report.html

@@ -3,7 +3,7 @@ import PropTypes  from 'prop-types';
 import Component from 'react-class';
 import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
-import { IntText } from './Misc';
+import { InterfaceText } from './Misc';
 
 
 class EditCollectionPage extends Component {
@@ -132,42 +132,42 @@ class EditCollectionPage extends Component {
         <div className="headerWithButtons">
           <div className="start"></div>
           <h1>
-            <IntText>{title}</IntText>
+            <InterfaceText>{title}</InterfaceText>
           </h1>
           <div className="end">
               <a className="button small transparent control-elem" href={this.props.initialData ? "/collections/" + this.state.slug : "/my/profile"}>
-                  <IntText>Cancel</IntText>
+                  <InterfaceText>Cancel</InterfaceText>
               </a>
               <div id="saveCollection" className="button small blue control-elem" onClick={this.save}>
-                  <IntText>Save</IntText>
+                  <InterfaceText>Save</InterfaceText>
               </div>
           </div>
         </div>
 
         <div className="field halfWidth">
           <label>
-            <IntText>Collection Name</IntText>
+            <InterfaceText>Collection Name</InterfaceText>
           </label>
           <input id="collectionName" value={this.state.name||""} onChange={this.handleInputChange}/>
         </div>
 
         <div className="field halfWidth">
           <label>
-            <IntText>Website</IntText>
+            <InterfaceText>Website</InterfaceText>
           </label>
           <input id="collectionWebsite" value={this.state.websiteUrl||""} onChange={this.handleInputChange}/>
         </div>
 
         <div className="field">
           <label>
-            <IntText>Description</IntText>
+            <InterfaceText>Description</InterfaceText>
           </label>
           <textarea id="collectionDescription" onChange={this.handleInputChange} value={this.state.description||""}></textarea>
         </div>
 
         <div className="field">
           <label>
-            <IntText>Collection Image</IntText>
+            <InterfaceText>Collection Image</InterfaceText>
           </label>
           {this.state.imageUrl
             ? <img className="collectionImage" src={this.state.imageUrl} alt="Collection Image" />
@@ -179,7 +179,7 @@ class EditCollectionPage extends Component {
              className="button white"
              onChange={this.handleImageChange} />
           <div className="helperText">
-            <IntText>Recommended size: 350px x 350px or larger</IntText>
+            <InterfaceText>Recommended size: 350px x 350px or larger</InterfaceText>
           </div>
         </div>
 
@@ -187,7 +187,7 @@ class EditCollectionPage extends Component {
         {this.state.headerUrl ? 
         <div className="field">
           <label>
-            <IntText>Default Sheet Header</IntText>
+            <InterfaceText>Default Sheet Header</InterfaceText>
           </label>
           {this.state.headerUrl
             ? <div className="collectionHeaderBox">
@@ -202,14 +202,16 @@ class EditCollectionPage extends Component {
              className="button white"
              onChange={this.handleImageChange} />
           <div className="helperText">
-            <IntText>Recommended size: 1000px width to fill sheet, smaller images align right</IntText>
+            <InterfaceText>Recommended size: 1000px width to fill sheet, smaller images align right</InterfaceText>
           </div>
         </div>
         : null }
 
+        {/* Only show publish option on existing collections, since new collections are empty */}
+        {this.props.initialData ?
         <div className="field">
           <label>
-              <IntText>List on Sefaria</IntText>
+              <InterfaceText>List on Sefaria</InterfaceText>
           </label>
           {this.state.moderationStatus !== "nolist" ?
           <div className="onoffswitch">
@@ -224,7 +226,7 @@ class EditCollectionPage extends Component {
                 <span className="onoffswitch-switch"></span>
             </label>
             <div className="helperText">
-              <IntText>Your collection will appear on the public collections page where others can find it.</IntText>
+              <InterfaceText>Your collection will appear on the public collections page where others can find it.</InterfaceText>
             </div>
           </div>
           : <div>
@@ -232,12 +234,13 @@ class EditCollectionPage extends Component {
               <span className="int-he">האסופה שלך הוגדרה כציבורית, אך המנהלים שלנו הגיעו למסקנה שהיא אינה רלוונטית לכלל משתמשי ספריא. לשאלות יש ליצור עימנו קשר בכתובת <a href="mailto:hello@sefari.org">hello@sefaria.org</a>.</span>
           </div> }
         </div>
+        : null }
 
         {this.props.initialData ?
-          <div className="deleteCollection" onClick={this.delete}>
-            <IntText>Delete Collection</IntText>
-          </div>
-          : null}
+        <div className="deleteCollection" onClick={this.delete}>
+          <InterfaceText>Delete Collection</InterfaceText>
+        </div>
+        : null}
 
       </div>);
   }

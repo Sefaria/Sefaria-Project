@@ -8,8 +8,8 @@ from . import abstract as abst
 from . import text
 from sefaria.system.database import db
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class WebPage(abst.AbstractMongoRecord):
@@ -84,6 +84,11 @@ class WebPage(abst.AbstractMongoRecord):
         because it matches a title/url we want to exclude or has no refs"""
         if len(self.refs) == 0:
             return True
+        if len(self.url.encode('utf-8')) > 1000:
+            # url field is indexed. Mongo doesn't allow indexing a field over 1000 bytes
+            from sefaria.system.database import db
+            db.webpages_long_urls.insert_one(self.contents())
+            return True
         url_regex = WebPage.excluded_pages_url_regex()
         title_regex = WebPage.excluded_pages_title_regex()
         return bool(re.search(url_regex, self.url) or re.search(title_regex, self.title))
@@ -113,7 +118,7 @@ class WebPage(abst.AbstractMongoRecord):
             r"truah\.org\/\?s=",
             r"truah\.org\/(holiday|page|resource-types)\/",
             r"clevelandjewishnews\.com$",
-            r"clevelandjewishnews\.cpm\/news\/",
+            r"clevelandjewishnews\.com\/news\/",
             r"ots\.org\.il\/news\/",
             r"ots\.org\.il\/.+\/page\/\d+\/",
             r"ots\.org\.il\/tag\/.+",
@@ -140,6 +145,23 @@ class WebPage(abst.AbstractMongoRecord):
             r"reconstructingjudaism\.org\/search\/",
             r"askhalacha\.com\/?$",
             r"askhalacha\.com\/qas\/?$",
+            r"yeshiva\.co\/?$",
+            r"yeshiva\.co\/404\/404.asp",
+            r"yeshiva\.co\/(ask|midrash)\/?$",
+            r"yeshiva\.co\/(calendar|tags|dedication|errorpage)\/?",  # it seems anything under calendar is not an article
+            r"yeshiva\.co\/midrash\/(category|rabbi)\/?",
+            r"mayim\.org\.il\/?$",
+            r"kabbalahoftime\.com\/?$",
+            r"kabbalahoftime\.com\/\d{4}\/?$",  # page that aggregates all articles for the year
+            r"kabbalahoftime\.com\/\d{4}\/\d{2}\/?$",  # page that aggregates all articles for the month
+            r"jewishcontemplatives\.blogspot\.com\/?$",
+            r"orayta\.org\/orayta-torah\/orayta-byte-parsha-newsletter",
+            r"jewishencyclopedia\.com\/(directory|contribs|search)",
+            r"orhalev\.org\/blogs\/parasha-and-practice\/?$",
+            r"orhalev\.org\/blogs\/tag\/",
+            r"talmudology\.com\/?$",
+            r"talmudology\.com\/[^\/]+$",  # seems everything at the top level is not an article
+            r"sephardi\.co\.uk\/(category|community|tag|test)\/",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -205,15 +227,15 @@ class WebPage(abst.AbstractMongoRecord):
         title = str(self.title)
         title = title.replace("&amp;", "&")
         brands = [self.site_name] + self._site_data.get("title_branding", [])
-        separators = ["-", "|", "—", "»", "•"]
-        for separator in separators:
+        separators = [("-", ' '), ("|", ' '), ("—", ' '), ("»", ' '), ("•", ' '), (":", '')]
+        for separator, padding in separators:
             for brand in brands:
                 if self._site_data.get("initial_title_branding", False):
-                    brand_str = "{} {} ".format(brand, separator)
+                    brand_str = f"{brand}{padding}{separator} "
                     if title.startswith(brand_str):
                         title = title[len(brand_str):]
                 else:
-                    brand_str = " {} {}".format(separator, brand)
+                    brand_str = f" {separator}{padding}{brand}"
                     if title.endswith(brand_str):
                         title = title[:-len(brand_str)]
 
@@ -765,4 +787,57 @@ sites_data = [
         "name": "AskHalacha",
         "domains": ["askhalacha.com"],
     },
+    {
+        "name": "Yeshiva.co",
+        "domains": ["yeshiva.co"],
+        "title_branding": ["Ask the rabbi | Q&A | yeshiva.co", "Beit Midrash | Torah Lessons | yeshiva.co", "yeshiva.co"],
+    },
+    {
+        "name": "מחלקי המים",
+        "domains": ["mayim.org.il"],
+    },
+    {
+        "name": "The Kabbalah of Time",
+        "domains": ["kabbalahoftime.com"],
+        "initial_title_branding": True,
+    },
+    {
+        "name": "Jewish Contemplatives",
+        "domains": ["jewishcontemplatives.blogspot.com"],
+        "initial_title_branding": True,
+    },
+    {
+        "name": "Orayta",
+        "domains": ["orayta.org"],
+        "normalization_rules": ["use https", "remove www"],
+    },
+    {
+        "name": "Rabbi Efrem Goldberg",
+        "domains": ["rabbiefremgoldberg.org"],
+        "normalization_rules": ["use https", "remove www", "remove url params"],
+    },
+    {
+        "name": "Jewish Encyclopedia",
+        "domains": ["jewishencyclopedia.com"],
+        "title_branding": ["JewishEncyclopedia.com"],
+        "normalization_rules": ["remove url params", "use https", "remove www"]
+    },
+    {
+        "name": "Wilderness Torah",
+        "domains": ["wildernesstorah.org"],
+    },
+    {
+        "name": "Or HaLev",
+        "domains": ["orhalev.org"],
+        "normalization_rules": ["use https", "remove www"]
+    },
+    {
+        "name": "Talmudology",
+        "domains": ["talmudology.com"],
+        "normalization_rules": ["use https", "remove www"],
+    },
+    {
+        "name": "S and P Sephardi Community",
+        "domains": ["sephardi.org.uk"],
+    }
 ]

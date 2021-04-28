@@ -6,8 +6,8 @@
 from . import abstract as abst
 from . import schema
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 """ This data, from Joshua Parker - http://www.joshua-parker.net/sages/

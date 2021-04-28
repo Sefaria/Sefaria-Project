@@ -1,0 +1,456 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% trans "The Sefaria Team" %}{% endblock %}
+
+{% block description %}{% trans "Sefaria's team is working to create the Jewish future." %}{% endblock %}
+
+{% block content %}
+    <main id="teamPage" class="container static">
+        <div class="inner">
+            <header>
+                <h1>
+                    <span class="int-en">Team</span>
+                </h1>
+            </header>
+            <div class="row static-text">
+                <section class="main-text team-members">
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/daniel.png' %}" alt="Headshot of Daniel Septimus">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Daniel Septimus</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Chief Executive Officer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/brett.png' %}" alt="Headshot of Brett Lockspeiser">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Brett Lockspeiser</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Chief Technology Officer and Co-Founder </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/annie.png' %}" alt="Headshot of Annie Lumerman">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Annie Lumerman</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Chief Operating Officer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/lev.png' %}" alt="Headshot of Lev Israel">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Lev Israel</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Chief Data Officer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/sara.png' %}" alt="Headshot of Sara Wolkenfeld">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Sara Wolkenfeld</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Chief Learning Officer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/Lizi.jpg' %}" alt="Headshot of Lizi Martin">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Lizi Martin</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Israel Director</span>
+                            </div>
+                        </div>
+                    </div>
+                    <!--
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/gabriel.png' %}" alt="Headshot of Gabriel Winer">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Gabriel Winer</span>
+
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Director of Product</span>
+                            </div>
+                        </div>
+                    </div>
+                    -->
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/loren.png' %}" alt="Headshot of Loren Berman">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Loren Berman</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Outreach & Engagement Associate</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/rachel.png' %}" alt="Headshot of Rachel Buckman">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Rachel Buckman</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Sr. Education Associate</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/ephraim.png' %}" alt="Headshot of Ephraim Damboritz">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Ephraim Damboritz</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Sr. Managing Engineer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/lizzie.png' %}" alt="Headshot of Lizzie Frankel">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Lizzie Frankel</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Communications and Marketing Associate</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/yishai.png' %}" alt="Headshot of Yishai Glasner">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Yishai Glasner</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Jr. Content Engineer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/hannah.png' %}" alt="Headshot of Hannah Goldberger">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Hannah Goldberger</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Development Manager</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/tali.jpg' %}" alt="Headshot of Tali Herenstein">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Tali Herenstein</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Chief of Staff</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/steve.png' %}" alt="Headshot of Steve Kaplan">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Steve Kaplan</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Content Engineer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/yoni.png' %}" alt="Headshot of Jonathan Mosenkis">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Jonathan Mosenkis</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Sr. Content Engineer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/russel.png' %}" alt="Headshot of Russel Neiss">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Russel Neiss</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Sr. Product Engineer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/rebecca.png' %}" alt="Headshot of Rebecca Remisn">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Rebecca Remis</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Finance & Operations Manager</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/shanee.png' %}" alt="Headshot of Shanee Rosen">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Shanee Rosen</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Content Engineer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/noah.png' %}" alt="Headshot of Noah Santacruz">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Noah Santacruz</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Sr. Research Engineer</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/chava.jpg' %}" alt="Headshot of Chava Tzemach">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Chava Tzemach</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Sr. Communications and Marketing Manager</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/shmuel.png' %}" alt="Headshot of Shmuel Weissman">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Shmuel Weissman</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Manager of Text Acquisition and Text Quality</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember">
+                        <div class="teamMemberImage">
+                            <img src="{% static 'img/headshots/hedva.png' %}" alt="Headshot of Hedva Yechieli">
+                        </div>
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Hedva Yechieli</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Education Coordinator Israel</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamMember placeholder"></div>
+                    <div class="teamMember placeholder"></div>
+                </section>
+                <header>
+                    <h2>
+                        <span class="int-en">BOARD OF DIRECTORS</span>
+                    </h2>
+                </header>
+                <section class="main-text board-members">
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Joshua Foer</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Chairman and Co-Founder</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Brett Lockspeiser</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en">Co-Founder</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Mo Koyfman</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Elana Stein Hain</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Felicia Herman</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Jonathan Koschitzky</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Joshua Kushner</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Raanan Agus</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Rona Sheramy</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Michael Englander</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember">
+                        <div class="teamMemberDetails">
+                            <div class="teamName sans">
+                                <span class="int-en">Ruth Calderon</span>
+                            </div>
+                            <div class="teamTitle">
+                                <span class="int-en"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="teamBoardMember placeholder"></div>
+                </section>
+
+
+                <section id="teamContact">
+                    <div>
+                        <span class="int-en">For general inquiries, please write to <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</span>
+                    </div>
+                    <div>
+                        <span class="int-en">If you are interested in supporting Sefaria, please write to <a href="mailto:donate@sefaria.org">donate@sefaria.org</a>.</span>
+                    </div>
+                </section>
+                
+            </div>
+        </div>
+    </main>
+
+{% endblock %}

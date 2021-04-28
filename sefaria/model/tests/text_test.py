@@ -167,7 +167,7 @@ def test_invalid_index_save_no_hebrew_collective_title():
     d = {
          "categories" : [
             "Mishnah",
-            "Commentary",
+            "Rishonim on Mishnah",
             "Bartenura"
         ],
         "collective_title": 'Gargamel',
@@ -402,11 +402,11 @@ def test_index_update():
         "heTitle": "כבכב",
         "titleVariants": [ti],
         "sectionNames": ["Chapter", "Paragraph"],
-        "categories": ["Philosophy"]
+        "categories": ["Jewish Thought"]
     })
     i = model.Index().load({"title": ti})
     assert "Musar" not in i.categories
-    assert "Philosophy" in i.categories
+    assert "Jewish Thought" in i.categories
     assert i.nodes.lengths == [50, 501]
 
     model.IndexSet({"title": ti}).delete()
@@ -541,5 +541,159 @@ def test_version_walk_thru_contents():
         vs = ind.versionSet()
         for v in vs:
             v.walk_thru_contents(action)
+
+
+class TestModifyVersion:
+    simpleIndexTitle = "Test ModifyVersion Simple"
+    complexIndexTitle = "Test ModifyVersion Complex"
+    vtitle = "Version TEST"
+    vlang = "he"
+
+    @classmethod
+    def setup_class(cls):
+        cls.simpleIndex = model.Index({
+            "title": cls.simpleIndexTitle,
+            "heTitle": "בלה1",
+            "titleVariants": [cls.simpleIndexTitle],
+            "sectionNames": ["Chapter", "Paragraph"],
+            "categories": ["Musar"],
+            "lengths": [50, 501]
+        }).save()
+        cls.simpleVersion = model.Version(
+            {
+                "chapter": cls.simpleIndex.nodes.create_skeleton(),
+                "versionTitle": "Version 1 TEST",
+                "versionSource": "blabla",
+                "language": "he",
+                "title": cls.simpleIndexTitle
+            }
+        )
+        cls.simpleVersion.chapter = [['1'], ['2'], ["original text", "2nd"]]
+        cls.simpleVersion.save()
+        cls.complexIndex = model.Index({
+            "title": cls.complexIndexTitle,
+            "heTitle": "2בלה",
+            "titleVariants": [cls.complexIndexTitle],
+            "schema": {
+                "nodes": [
+                    {
+                        "nodes": [
+                            {
+                                "nodeType": "JaggedArrayNode",
+                                "depth": 2,
+                                "sectionNames": ["Chapter", "Paragraph"],
+                                "addressTypes": ["Integer", "Integer"],
+                                "titles": [{"text": "Node 2", "lang": "en", "primary": True}, {"text": "Node 2 he", "lang": "he", "primary": True}],
+                                "key": "Node 2"
+                            }
+                        ],
+                        "titles": [{"text": "Node 1", "lang": "en", "primary": True}, {"text": "Node 1 he", "lang": "he", "primary": True}],
+                        "key": "Node 1"
+                    },
+                    {
+                        "nodeType": "JaggedArrayNode",
+                        "depth": 1,
+                        "sectionNames": ["Paragraph"],
+                        "addressTypes": ["Integer"],
+                        "titles": [{"text": "Node 3", "lang": "en", "primary": True}, {"text": "Node 3 he", "lang": "he", "primary": True}],
+                        "key": "Node 3"
+                    }
+                ],
+                "titles": [{"text": cls.complexIndexTitle, "lang": "en", "primary": True},
+                           {"text": cls.complexIndexTitle + "he", "lang": "he", "primary": True}],
+                "key": cls.complexIndexTitle
+            },
+            "categories": ["Musar"]
+        }).save()
+        cls.complexVersion = model.Version(
+                    {
+                        "chapter": cls.complexIndex.nodes.create_skeleton(),
+                        "versionTitle": "Version 2 TEST",
+                        "versionSource": "blabla",
+                        "language": "en",
+                        "title": cls.complexIndexTitle
+                    }
+        )
+        cls.complexVersion.chapter = {"Node 1": {"Node 2": [['yo'],['', 'blah'],["original text", "2nd"]]}, "Node 3": ['1', '2', '3', '4']}
+        cls.complexVersion.save()
+
+    @classmethod
+    def teardown_class(cls):
+        cls.simpleIndex.delete()
+        cls.complexIndex.delete()
+        cls.simpleVersion.delete()
+        cls.complexVersion.delete()
+
+    def test_sub_content_with_ref(self):
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 3:2"), "new text")
+        assert self.simpleVersion.chapter[2][1] == "new text"
+
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3:2"), "new text")
+        assert self.complexVersion.chapter["Node 1"]["Node 2"][2][1] == "new text"
+
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3"), ["blah", "blarg"])
+        assert self.complexVersion.chapter["Node 1"]["Node 2"][2] == ["blah", "blarg"]
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2 3"), ["original text", "2nd"])  # set back to original content for other tests
+
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2"), [["blah", "blarg"], ['more content']])
+        assert self.complexVersion.chapter["Node 1"]["Node 2"] == [["blah", "blarg"], ['more content']]
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}, Node 1, Node 2"), [['yo'],['', 'blah'],["original text", "2nd"]])  # set back to original content for other tests
+
+    def test_sub_content_with_ref_padding(self):
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 3:5"), "new text")
+        assert self.simpleVersion.chapter[2][2] == ""
+        assert self.simpleVersion.chapter[2][3] == ""
+        assert self.simpleVersion.chapter[2][4] == "new text"
+
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle} 5:1"), "new text2")
+        assert self.simpleVersion.chapter[3] == []
+        assert self.simpleVersion.chapter[4][0] == "new text2"
+
+        # reset
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle}"), [['1'], ['2'], ["original text", "2nd"]])
+
+    def test_get_top_level_jas_text_chunk(self):
+        tc = model.Ref(self.simpleIndexTitle).text('he')
+        jas, parent_key_list = tc.get_top_level_jas()
+        assert len(jas) == 1 == len(parent_key_list)
+        assert jas[0][1][0] == '2'
+        assert parent_key_list[0][0] is None
+        assert parent_key_list[0][1] is None
+
+    def test_get_top_level_jas_version_simple(self):
+        jas, parent_key_list = self.simpleVersion.get_top_level_jas()
+        assert len(jas) == 1 == len(parent_key_list)
+        assert jas[0][1][0] == '2'
+        assert parent_key_list[0][0] is None
+        assert parent_key_list[0][1] is None
+
+    def test_get_top_level_jas_version_complex(self):
+        jas, parent_key_list = self.complexVersion.get_top_level_jas()
+        assert len(jas) == 2 == len(parent_key_list)
+        assert jas[0][1][1] == 'blah'
+        assert jas[1][3] == '4'
+        for ja, (parent, key) in zip(jas, parent_key_list):
+            assert parent[key] == ja
+
+    def test_trim_ending_whitespace_text_chunk(self):
+        tc = model.Ref(self.simpleIndexTitle).text('he')
+        original_len = len(tc.text[0])
+        tc.text[0] += ['', '', '   ', None]
+        tc._trim_ending_whitespace()
+        assert len(tc.text[0]) == original_len
+
+    def test_trim_ending_whitespace_version_simple(self):
+        original_len = len(self.simpleVersion.chapter[0])
+        self.simpleVersion.chapter[0] += ['', '', '   ', None]
+        self.simpleVersion._trim_ending_whitespace()
+        assert len(self.simpleVersion.chapter[0]) == original_len
+
+    def test_trim_ending_whitespace_version_complex(self):
+        node = self.complexVersion.chapter['Node 1']['Node 2']
+        original_len = len(node[0])
+        node[0] += ['', '', '   ', None]
+        self.complexVersion._trim_ending_whitespace()
+        assert (len(self.complexVersion.chapter['Node 1']['Node 2'][0]) == original_len)
+
 
 

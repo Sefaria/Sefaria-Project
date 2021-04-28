@@ -54,19 +54,25 @@ class Collection(abst.AbstractMongoRecord):
                                 # `collectiveTitle` - optional dictionary with `en`, `he`, overiding title display in TOC/Sidebar.
                                 # `desscription` - string
                                 # `heDescription` - string
+                                # `dependence` - string - "Commentary" or "Targum"
                                 # These fields will override `name` and `description` for display
     ]
 
     def _normalize(self):
+        if not getattr(self, "slug", None):
+            self.assign_slug()
+
         defaults = (("members", []), ("sheets", []))
         for default in defaults:
             if not hasattr(self, default[0]):
                 setattr(self, default[0], default[1])
 
+        self.lastModified = datetime.now()
+
         website = getattr(self, "websiteUrl", False)
         if website and not website.startswith("https://"):
             if website.startswith("http://"):
-                # Only allow HTTPS. If you site doens't support it, deal with it!
+                # Only allow HTTPS. If you site doesn't support it, deal with it!
                 self.websiteUrl = website.replace("http://", "https://")
             else:
                 self.websiteUrl = "https://" + website
@@ -87,11 +93,6 @@ class Collection(abst.AbstractMongoRecord):
         return True
 
     def _pre_save(self):
-        self.lastModified = datetime.now()
-
-        if not getattr(self, "slug", None):
-            self.assign_slug()
-
         old_status, new_status = self.pkeys_orig_values.get("listed", None), getattr(self, "listed", None)
         if new_status and not old_status:
             # Collection is being published, assign a new slug, but save the old one for link stability

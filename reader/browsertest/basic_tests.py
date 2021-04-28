@@ -12,7 +12,7 @@ from sefaria.utils.hebrew import strip_cantillation, strip_nikkud
 from selenium.common.exceptions import WebDriverException
 
 import time  # import stand library below name collision in sefaria.model
-
+import urllib.parse
 
 TEMPER = 30
 
@@ -164,14 +164,36 @@ class PagesLoad(AtomicTest):
     def body(self):
         self.load_toc()
         self.click_toc_category("Midrash").click_toc_text("Ein Yaakov")
+        self.load_ref("Psalms.104")
+        print("Done loading Psalms 104")
         self.load_ref("Job.3")
+        print("Done loading Job 3")
         self.load_topics()
+        print("Done loading topics")
         self.load_gardens()
+        print("Done loading gardens")
         self.load_home()
+        print("Done loading home")
         self.load_people()
-        #logged in stuff
+        print("Done loading people ")
+
+class PagesLoadLoggedIn(AtomicTest):
+    suite_class = PageloadSuite
+    every_build = True
+
+    def body(self):
+        self.load_toc()
         self.login_user()
         self.load_my_profile()
+        # self.load_notifications()
+        print("Done loading user")
+        # self.load_notifications()
+        self.nav_to_account() # load_account might be superceded by load_my_profile or nav_to_account
+        print("Done loading account")
+        self.load_private_sheets()
+        print("Done loading private sheets")
+        ## self.load_private_groups() # fails -- /my/groups no longer exists
+        print("Done loading private groups")
         self.load_notifications()
 
 
@@ -480,11 +502,12 @@ class LinkExplorer(AtomicTest):
     suite_class = PageloadSuite
     every_build = False
     def body(self):
-        self.driver.get(self.base_url + "/explore")
+        self.driver.get(urllib.parse.urljoin(self.base_url,"/explore"))
         #todo ^ add a wait there that is connected to content
 
         if 'safari' in self.driver.name or "Safari" in self.driver.name:
             time.sleep(1)  # Might fail on Safari without this sleep
+
         assert self.get_object_by_id('Genesis').is_displayed()
         assert self.get_object_by_id('Exodus').is_displayed()
         assert self.get_object_by_id('Leviticus').is_displayed()

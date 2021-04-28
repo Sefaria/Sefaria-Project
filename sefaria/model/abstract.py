@@ -4,7 +4,7 @@
 abstract.py - abstract classes for Sefaria models
 """
 import collections
-import logging
+import structlog
 import copy
 import bleach
 import re
@@ -17,9 +17,7 @@ from bson.objectid import ObjectId
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 
-logging.basicConfig()
-logger = logging.getLogger("abstract")
-logger.setLevel(logging.WARNING)
+logger = structlog.get_logger(__name__)
 
 
 class AbstractMongoRecord(object):
@@ -106,7 +104,7 @@ class AbstractMongoRecord(object):
         """
         Save the object to the Mongo data store.
         On completion, will emit a 'save' notification.  If a tracked attribute has changed, will emit an 'attributeChange' notification.
-        if override_dependencies is set to True, no notifcations will be emitted.
+        if override_dependencies is set to True, no notifications will be emitted.
         :return: the object
         """
         is_new_obj = self.is_new()
@@ -152,7 +150,14 @@ class AbstractMongoRecord(object):
         """
         return True
 
-    def delete(self, force=False):
+    def delete(self, force=False, override_dependencies=False):
+        """
+        Just before the delete is executed, will emit a 'delete' notification.
+
+        :param force: delete object, even if it fails a `can_delete()` check
+        :param override_dependencies: if override_dependencies is set to True, no notifications will be emitted.
+        :return:
+        """
         if not self.can_delete():
             if force:
                 logger.error("Forcing delete of {}.".format(str(self)))
@@ -163,7 +168,8 @@ class AbstractMongoRecord(object):
         if self.is_new():
             raise InputError("Can not delete {} that doesn't exist in database.".format(type(self).__name__))
 
-        notify(self, "delete")
+        if not override_dependencies:
+            notify(self, "delete")
         getattr(db, self.collection).delete_one({"_id": self._id})
 
     def delete_by_query(self, query, force=False):

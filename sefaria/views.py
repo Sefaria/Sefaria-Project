@@ -38,7 +38,7 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, RTC_SERVER
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet
 from sefaria.export import export_all as start_export_all
@@ -62,8 +62,8 @@ from reader.views import render_template
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_index, invalidate_title, invalidate_ref, invalidate_counts, invalidate_all
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 def process_register_form(request, auth_method='session'):
@@ -558,15 +558,6 @@ def rebuild_auto_completer(request):
     return HttpResponseRedirect("/?m=auto-completer-Rebuilt")
 
 
-'''
-# No usages found
-@staff_member_required
-def rebuild_counts_and_toc(request):
-    model.refresh_all_states()
-    return HttpResponseRedirect("/?m=Counts-&-TOC-Rebuilt")
-'''
-
-
 @staff_member_required
 def reset_varnish(request, tref):
     if USE_VARNISH:
@@ -638,13 +629,13 @@ def cache_stats(request):
     from sefaria.model.user_profile import public_user_data_cache
     # from sefaria.sheets import last_updated
     resp = {
-        'ref_cache_size': model.Ref.cache_size(),
+        'ref_cache_size': f'{model.Ref.cache_size():,}',
         # 'ref_cache_bytes': model.Ref.cache_size_bytes(), # This pretty expensive, not sure if it should run on prod.
-        'public_user_data_size': len(public_user_data_cache),
-        'public_user_data_bytes': get_size(public_user_data_cache),
+        'public_user_data_size': f'{len(public_user_data_cache):,}',
+        'public_user_data_bytes': f'{get_size(public_user_data_cache):,}',
         # 'sheets_last_updated_size': len(last_updated),
         # 'sheets_last_updated_bytes': get_size(last_updated),
-        'memory usage': resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        'memory usage': f'{resource.getrusage(resource.RUSAGE_SELF).ru_maxrss:,}'
     }
     return jsonResponse(resp)
 
@@ -680,6 +671,16 @@ def cause_error(request):
     erorr = error
     return jsonResponse(resp)
 
+@staff_member_required
+def account_stats(request):
+    from django.contrib.auth.models import User
+    from sefaria.stats import account_creation_stats
+
+    html = account_creation_stats()
+    html += "\n\nTotal Accounts: {}".format(User.objects.count())
+
+    return HttpResponse("<pre>" + html + "<pre>")
+
 
 @staff_member_required
 def sheet_stats(request):
@@ -690,7 +691,21 @@ def sheet_stats(request):
     html += "Public Sheets: %d\n" % db.sheets.find({"status": "public"}).count()
 
 
-    html += "\nUnique Source Sheet creators per month:\n\n"
+    html += "\n\nYearly Totals Sheets / Public Sheets / Sheet Creators:\n\n"
+    start = datetime.today().replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+    years = 4
+    for i in range(years):
+        end      = start
+        start    = end - relativedelta(years=1)
+        query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}}
+        cursor   = db.sheets.find(query)
+        total    = cursor.count()
+        creators = len(cursor.distinct("owner"))
+        query    = {"dateCreated": {"$gt": start.isoformat(), "$lt": end.isoformat()}, "status": "public"}
+        ptotal   = db.sheets.find(query).count()
+        html += "{}: {} / {} / {}\n".format(start.strftime("%Y"), total, ptotal, creators)
+
+    html += "\n\nUnique Source Sheet creators per month:\n\n"
     start = datetime.today().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     months = 30
     for i in range(months):
@@ -822,7 +837,7 @@ def core_link_stats(request):
 def run_tests(request):
     # This was never fully developed, methinks
     from subprocess import call
-    from .local_settings import DEBUG
+    from .settings import DEBUG
     if not DEBUG:
         return
     call(["/var/bin/run_tests.sh"])

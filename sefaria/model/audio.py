@@ -9,8 +9,8 @@ from . import text
 from sefaria.system.database import db
 from sefaria.model.text import Ref
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class Audio(abst.AbstractMongoRecord):

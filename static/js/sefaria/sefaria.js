@@ -1,6 +1,7 @@
 var extend     = require('extend'),
     param      = require('querystring').stringify;
 import Search from './search';
+import Strings from './strings';
 import palette from './palette';
 import Track from './track';
 import Hebrew from './hebrew';
@@ -468,10 +469,6 @@ Sefaria = extend(Sefaria, {
     });
     return versions;
   },
-  versionLanguage: function(translateVersionKey) {
-    // given a versionTitle, return the language of the version
-    return Sefaria._translateVersions[translateVersionKey]
-  },
   getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
   deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
   _textUrl: function(ref, settings) {
@@ -696,19 +693,57 @@ Sefaria = extend(Sefaria, {
         store: this._shape
     });
   },
-  _cacheIndexFromToc: function(toc) {
-    // Unpacks contents of Sefaria.toc into index cache.
-    for (var i = 0; i < toc.length; i++) {
-      if ("category" in toc[i]) {
-        Sefaria._translateTerms[toc[i].category] = {"en": toc[i].category, "he": toc[i].heCategory};
-        if (toc[i].contents) {
-            Sefaria._cacheIndexFromToc(toc[i].contents)
-        }
+  _tocOrderLookup: {},
+  _cacheFromToc: function(tocBranch, parentsPath = "", parentsOrders = [], rewrittenFrom = "", rewrittenTo = "") {
+    // Cache:
+    // - Index Data
+    // - Search TOC order
+    for (let i = 0; i < tocBranch.length; i++) {
+      let thisOrder = parentsOrders.concat([i]) ;
+      let thisPath =  (parentsPath ? parentsPath + "/" : "") + ("category" in tocBranch[i] ? tocBranch[i].category : tocBranch[i].title);
+
+      if (tocBranch[i].searchRoot) {
+          rewrittenFrom = thisPath;
+          rewrittenTo = tocBranch[i].searchRoot + "/" + tocBranch[i].category;
+          thisOrder = [100].concat(thisOrder);
+          Sefaria._tocOrderLookup[rewrittenTo] = thisOrder;
+      } else if (rewrittenFrom) {
+          const new_path = thisPath.replace(RegExp("^" + rewrittenFrom), rewrittenTo);
+          Sefaria._tocOrderLookup[new_path] = thisOrder;
       } else {
-        Sefaria.index(toc[i].title, toc[i]);
+          Sefaria._tocOrderLookup[thisPath] = thisOrder;
+      }
+
+      if ("category" in tocBranch[i]) {
+          Sefaria._translateTerms[tocBranch[i].category] = {"en": tocBranch[i].category, "he": tocBranch[i].heCategory};
+          if (tocBranch[i].contents) {
+              Sefaria._cacheFromToc(tocBranch[i].contents, thisPath, thisOrder, rewrittenFrom,  rewrittenTo)
+          }
+      } else {
+          Sefaria.index(tocBranch[i].title, tocBranch[i]);
       }
     }
   },
+  compareSearchCatPaths: function(a,b) {
+      // Given two paths, sort according to the cached numeric arrays of their locations in the toc
+      const aPath = Sefaria._tocOrderLookup[a];
+      const bPath = Sefaria._tocOrderLookup[b];
+
+      if (!(Array.isArray(aPath) && Array.isArray(bPath))) {
+          console.log(`Failed to compare paths: ${a} and ${b}`);
+          return 0;
+      }
+
+      // Favor the earliest lesser number
+      for (let i = 0; i < Math.min(aPath.length, bPath.length); i++) {
+          if (aPath[i] === bPath[i]) { continue; }
+          return aPath[i] < bPath[i] ? -1 : 1;
+      }
+
+      // Otherwise, favor the one higher in the toc
+      return aPath.length < bPath.length ? -1 : 1;
+  },
+
   _indexDetails: {},
   getIndexDetails: function(title) {
     return this._cachedApiPromise({
@@ -788,7 +823,7 @@ Sefaria = extend(Sefaria, {
     let queryString = Object.keys(params).map(key => key + '=' + params[key]).join('&');
     queryString = (queryString ? "?" + queryString : "");
     return this._cachedApiPromise({
-        url:   this.apiHost + "/api/name/" + trimmed_name + queryString,
+        url:   this.apiHost + "/api/name/" + encodeURIComponent(trimmed_name) + queryString,
         key:   trimmed_name + queryString,
         store: this._lookups
     });
@@ -1048,11 +1083,17 @@ Sefaria = extend(Sefaria, {
   linkSummaryBookSort: function(category, a, b, byHebrew) {
     // Sorter for links in a link summary, included a hard coded list of top spots by category
     // First sort by predefined "top"
-    const topByCategory = {
+    const hebrewTopByCategory = {
       "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
-      "Talmud": ["Rashi", "Tosafot"]
+      "Talmud": ["Rashi", "Tosafot"],
+      "Mishnah": ["Bartenura", "Rambam", "Ikar Tosafot Yom Tov", "Yachin", "Boaz"]
     };
-    const top = topByCategory[category] || [];
+    const englishTopByCategory = {
+      "Tanakh": ["Rashi", "Ibn Ezra", "Ramban", "Sforno"],
+      "Talmud": ["Rashi", "Tosafot"],
+      "Mishnah": ["Bartenura", "English Explanation of Mishnah", "Rambam", "Ikar Tosafot Yom Tov", "Yachin", "Boaz"]
+    };
+    const top = (byHebrew ? hebrewTopByCategory[category] : englishTopByCategory[category]) || [];
     let aTop = top.indexOf(a.book);
     let bTop = top.indexOf(b.book);
     if (aTop !== -1 || bTop !== -1) {
@@ -1335,6 +1376,17 @@ _media: {},
        this.relatedApi(ref, callback);
     }
   },
+  _manuscripts: {},
+  manuscriptsByRef: function(refs) {
+    refs = typeof refs === "string" ? Sefaria.splitRangingRef(refs) : refs.slice();
+    let manuscriptPages = [];
+    refs.forEach(r => {
+      if (this._manuscripts[r]) {
+        manuscriptPages = manuscriptPages.concat(this._manuscripts[r]);
+      }
+    })
+    return manuscriptPages
+  },
   relatedApi: function(ref, callback) {
     var url = Sefaria.apiHost + "/api/related/" + Sefaria.normRef(ref) + "?with_sheet_links=1";
     return this._api(url, data => {
@@ -1350,7 +1402,8 @@ _media: {},
           sheets: this.sheets._saveSheetsByRefData(ref, data.sheets),
           webpages: this._saveItemsByRef(data.webpages, this._webpages),
           topics: this._saveTopicByRef(ref, data.topics || []),
-		  media: this._saveItemsByRef(data.media, this._media),
+		      media: this._saveItemsByRef(data.media, this._media),
+          manuscripts: this._saveItemsByRef(data.manuscripts, this._manuscripts)
       };
 
        // Build split related data from individual split data arrays
@@ -1590,11 +1643,11 @@ _media: {},
   },
   tocItemsByCategories: function(cats) {
     // Returns the TOC items that correspond to the list of categories 'cats'
-    var list = Sefaria.util.clone(Sefaria.toc);
-    for (var i = 0; i < cats.length; i++) {
-      var found = false;
-      for (var k = 0; k < list.length; k++) {
-        if (list[k].category == cats[i]) {
+    let list = Sefaria.util.clone(Sefaria.toc);
+    for (let i = 0; i < cats.length; i++) {
+      let found = false;
+      for (let k = 0; k < list.length; k++) {
+        if (list[k].category === cats[i]) {
           list = Sefaria.util.clone(list[k].contents);
           found = true;
           break;
@@ -1875,13 +1928,13 @@ _media: {},
     _loadSheetByID: {},
     loadSheetByID: function(id, callback, reset) {
       if (reset) {
-        this._loadSheetByID[id] = null;
+        delete this._loadSheetByID[id];
       }
-      var sheet = this._loadSheetByID[id];
+      const sheet = this._loadSheetByID[id];
       if (sheet) {
         if (callback) { callback(sheet); }
       } else {
-        var url = "/api/sheets/" + id +"?more_data=1";
+        const url = "/api/sheets/" + id +"?more_data=1";
          $.getJSON(url, data => {
             if ("error" in data) {
                 console.log(data["error"])
@@ -2185,7 +2238,7 @@ _media: {},
   },
   hebrewTerm: function(name) {
     // Returns a string translating `name` into Hebrew.
-    var categories = {
+    const categories = {
       "Quoting Commentary":   "פרשנות מצטטת",
       "Modern Commentary":    "פרשנות מודרנית",
       "Sheets":               "דפי מקורות",
@@ -2206,332 +2259,10 @@ _media: {},
         return name;
     }
   },
-    //this is here for now, we might want to move it somewhere else.
-  _i18nInterfaceStrings: {
-      "Sefaria": "ספריא",
-      "Topics":"נושאים",
-      "Sefaria Notifcations": "הודעות בספריא",
-      "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספרייה חיה של טקסטים יהודיים",
-      "Recently Viewed" : "נצפו לאחרונה",
-      "The Sefaria Library": "תוכן העניינים של ספריא",
-      "Sefaria Search": "חיפוש בספריא",
-      "Sefaria Account": "חשבון בספריא",
-      "New Additions to the Sefaria Library": "חידושים בארון הספרים של ספריא",
-      "My Notes on Sefaria": "ההערות שלי בספריא",
-      "Texts & Source Sheets from Torah, Talmud and Sefaria's library of Jewish sources.": "טקסטים ודפי מקורות מן התורה, התלמוד וספריית המקורות של ספריא.",
-      "Moderator Tools": "כלי מנהלים",
-      " with " : " עם ",
-      "Connections" : "קשרים",
-      " & ": " | ",
-      "My Source Sheets" : "דפי המקורות שלי",
-      "Public Source Sheets":"דפי מקורות פומביים",
-
-      // Sheets
-      "Source Sheets": "דפי מקורות",
-      "Start a New Source Sheet": "התחלת דף מקורות חדש",
-      "Untitled Source Sheet" : "דף מקורות ללא שם",
-      "New Source Sheet" : "דף מקורות חדש",
-      "Name New Sheet" : "כותרת לדף חדש",
-      "Copy" : "העתקה",
-      "Edit": "עריכה",
-      "View in Editor": "לתצוגת עריכה",
-      "Copied" : "הועתק",
-      "Copying..." : "מעתיק...",
-      "Delete": "מחיקה",
-      "Sorry, there was a problem saving your note.": "סליחה, ארעה שגיאה בזמן השמירה",
-      "Unfortunately, there was an error saving this note. Please try again or try reloading this page.": "ארעה שגיאה בזמן השמירה. אנא נסו שוב או טענו את הדף מחדש",
-      "Are you sure you want to delete this note?": "האם אתם בטוחים שברצונכם למחוק?",
-      "Something went wrong (that's all I know).":"משהו השתבש. סליחה",
-      "Write a note...":"כתבו הערות כאן...",
-      "Aa": "א",
-      "Decrease font size": "הקטן גופן",
-      "Increase font size": "הגדל גופן",
-      "this comment":"הערה זו",
-      "this source":"מקור זה",
-      "was added to": "נוסף ל-",
-      "View sheet": "מעבר ל-דף המקורות",
-      "Please select a source sheet.": "אנא בחרו דף מקורות.",
-      "New Source Sheet Name:" : "כותרת דף מקורות חדש:",
-      "Source Sheet by" : "דף מקורות מאת",
-      "Created with": 'נוצר עבורך ע"י',
-      " hasn't shared any sheets yet.": " טרם שיתפ/ה דפי מקורות כלשהם",
-      "Loading..." : "טוען...",
-      "Saving..." : "שומר...",
-      "Your Source Sheet has unsaved changes. Before leaving the page, click Save to keep your work.":
-      "קיימים שינויים בלתי שמורים בדף המקורות. השתמשו בכפתור השמירה לפני עזיבת הדף.",
-      "Your Source Sheet has unsaved changes. Please wait for the autosave to finish.":
-      "קיימים שינויים בלתי שמורים בדף המקורות. אנא חכו שפעולת השמירה האוטומטית תסתיים.",
-      "Are you sure you want to delete this sheet? There is no way to undo this action.":
-      "מחיקת דף מקורות היא פעולה בלתי הפיכה. האם אתם בטוחים?",
-      "Unfortunately an error has occurred. If you've recently edited text on this page, you may want to copy your recent work out of this page and click reload to ensure your work is properly saved.":
-      "לצערנו ארעה שגיאה. אם ערכתם לאחרונה את הדף הנוכחי, ייתכן ותרצו להעתיק את השינויים למקור חיצוני ואז לטעון מחדש את הדף כדי לוודא שהשינויים נשמרו.",
-      "Are you sure you want to remove this?": "בטוח שברצונך למחוק?",
-      "Would you like to save this sheet? You only need to save once, after that changes are saved automatically.": "רוצה לשמור את הדף הזה? כל שעליך לעשות הוא לשמור פעם אחת – לאחר מכן השינויים יישמרו באופן אוטומטי.",
-      "Like": "אהבתי",
-      "Unlike": "ביטול סימון אהבתי",
-      "No one has liked this sheet yet. Will you be the first?":
-      "אף אחד עדיין לא אהב את דף המקורות הזה. תרצו להיות ראשונים?",
-      "1 Person Likes This Sheet": "אדם אחד אהב את דף המקורות",
-      " People Like This Sheet": " אנשים אהבו את דף המקורות",
-      "Tags Saved": "תוית נשמרה",
-      "Assignments allow you to create a template that your students can fill out on their own.":
-      "מטלות מאפשרות ליצור דף בסיס שתלמידים יכולים להשתמש בו כדי למלא וליצור את העבודה שלהם.",
-      "Students can complete their assignment at this link:":
-      "תלמידים יכולים לבצע את המטלה שלהם בקישור הבא:",
-      "Reset text of Hebrew, English or both?": "האם לאפס את התוכן של המקור בעברית, אנגלית או הכל?",
-      "Any edits you have made to this source will be lost": "כל השינויים שנעשו במקור זה יאבדו",
-      "Looking up Connections..." : "מחפש קישורים...",
-      "No connections known for this source.": "למקור הזה אין קשרים ידועים",
-      "Edit Source title" : "עריכת כותרת",
-      "Add Source Below" : "הוספת מקור מתחת",
-      "Add Comment": "הוספת תגובה",
-      "Add All Connections": "הוספת כל המקורות הקשורים",
-      "Reset Source Text": "איפוס טקסט מקור",
-      "Copy to Sheet" : "העתקה לדף מקורות",
-      "Change Source Layout/Language": "שינוי שפת/עימוד מקור",
-      "Move Source Up": "הזזת מקור מעלה",
-      "Move Source Down": "הזזת מקור מטה",
-      "Outdent Source": "הזחת מקור החוצה",
-      "Indent Source": "הזחת מקור פנימה",
-      "Remove": "הסרת מקור",
-      "Create New" : "יצירת חדש",
-      "Close" : "סגירה",
-      "by": "", // by line on sheets in reader, intentionally left blank
-
-      // Reader Panel
-      "Search" : "חיפוש",
-      "Search Dictionary": "חפש במילון",
-      "Search for": "חיפוש",
-      "Search for:": "חיפוש:",
-      "Views": "צפיות",
-      "Search for Texts or Keywords Here": "חיפוש טקסט או מילות מפתח",
-      "Versions": "מהדורות",
-      "Version Open": "מהדורה פתוחה",
-      "About": "אודות",
-      "Current Version": "מהדורה נוכחית",
-      "Current Translation": "תרגום נוכחי",
-      "Select Version": "בחירת מהדורה",
-      "Select Translation": "בחירת תרגום",
-      "Merged from": "נוצר ממיזוג",
-      "Source" : "מקור",
-      "Digitization" : "דיגיטציה",
-      "License" : "רשיון",
-      "Revision History" : "היסטורית עריכה",
-      "Buy in Print" : "לרכישה בדפוס",
-      "Buy Now" : "רכישה",
-      "Read More": "קרא עוד",
-      "Web Pages": "דפי אינטרנט",
-      "Members": "חברים",
-      "Send": "שלח",
-      "Cancel": "בטל",
-      "Send a message to ": "שלח הודעה ל-",
-      "Following": "נעקבים",
-      "Followers": "עוקבים",
-      "following": "נעקבים",
-      "followers": "עוקבים",
-      "Recent": "תאריך",
-      "Unlisted": "חסוי",
-      "History": "היסטוריה",
-      "Digitized by Sefaria": 'הונגש ועובד לצורה דיגיטלית על ידי ספריא',
-      "Public Domain": "בנחלת הכלל",
-      "Copyright: JPS, 1985": "זכויות שמורות ל-JPS, 1985",
-
-      // Collections
-      // Edit collection page
-      "Collections": "אסופות",
-      "Sefaria Collections": "אסופות של ספריא",
-      "Edit Collection": "עריכת אסופה",
-      "Create a Collection": "יצירת אסופה",
-      "Create a New Collection": "יצירת אסופה חדשה",
-      "Collection Name": "שם האסופה",
-      "Website": "כתובת אתר",
-      "Description": "תיאור",
-      "Collection Image": "תמונת האסופה",
-      "Upload Image": "העלאת תמונה",
-      "Recommended size: 350px x 350px or larger": 'גודל מומלץ: לפחות 350 פיקסל ע"ג 350 פיקסל',
-      "Default Sheet Header": "כותרת עמוד ראשונית",
-      "Recommended size: 1000px width to fill sheet, smaller images align right": "גודל מומלץ: 1000 פיקסל כדי למלא את חלל הדף. גודל קטן יותר יתיישר לימין",
-      "List on Sefaria": "הצג לכלל משתמשי ספריא",
-      "Your collection will appear on the public collections page where others can find it.": "האסופה שלך תופיע בדף האסופות הציבוריות ותהיה זמינה לעיון של משתמשות ומשתמשים אחרים.",
-      "Delete Collection": "מחיקת אסופה",
-      "Are you sure you want to delete this collection? This cannot be undone.": "האם ברצונך למחוק את האסופה הזו? אין אפשרות לבטל את הפעולה אחר כך.",
-      "You have unsaved changes to your collection.": "האסופה שלך כוללת שינויים שלא נשמרו.",
-      "Images must be smaller than ": "תמונות חייבות להיות קטנות מ",
-      "Unfortunately an error occurred uploading your file.": "אירעה שגיאה בהעלאת הקובץ שלך.",
-      "Unfortunately an error occurred saving your collection.": "אירעה שגיאה בשמירת האסופה שלך.",
-      "Unfortunately an error occurred deleting your collection.": "אירעה שגיאה במחיקת האסופה שלך.",
-      // Collection Page
-      "Owner": "מנהל/ת",
-      "Editor": "עורך/ה",
-      "Editors": "עורכים",
-      "There are no sheets in this collection yet.": "לאסופה זו טרם נוספו דפי מקורות.",
-      "You can add sheets to this collection on your profile.": "באפשרותך להוסיף דפי מקורות לאסופה הזאת דרך הפרופיל האישי שלך.",
-      "Open Profile": "לפרופיל האישי",
-      "Pinned Sheet - click to unpin": "דף מקורות נעוץ - לחצו להסרה",
-      "Pinned Sheet" : "דף מקורות נעוץ",
-      "Pin Sheet" : "נעיצת דף מקורות",
-      "can invite & edit settings": "יכולים לשלוח הזמנות ולערוך את ההגדרות",
-      "can add & remove sheets": "יכולים להוסיף ולערוך דפים",
-      "Leave Collection": "עזיבת האסופה",
-      "Invite": "שליחת הזמנה",
-      "Inviting...": "שולח...",
-      "Invitation Sent": "נשלח",
-      "Invited": "הוזמן",
-      "Resend Invitation": "שליחת הזמנה חוזרת",
-      "Invitation Resent": "ההזמנה החוזרת נשלחה",
-      "There was an error sending your invitation.": "אירעה שגיאה בשליחת ההזמנה שלך.",
-      "Remove": "הסרה",
-      "Are you sure you want to change your collection role? You won't be able to undo this action unless another owner restores your permissions.": "האם ברצונך לשנות את ההרשאה שלך באסופה? פעולה זו היא בלתי הפיכה, ולאחריה רק מנהלים אחרים של האסופה יוכל לשחזר את ההרשאות שלך.",
-      "Are you sure you want to leave this collection?": "האם ברצונך לעזוב את האסופה?",
-      "Are you sure you want to remove this person from this collection?": "האם ברצונך להסיר משתמש זה מן האסופה?",
-      "Are you sure you want to remove this invitation?": "האם ברצונך למחוק הזמנה זו?",
-      "There was an error pinning your sheet.": "אירעה שגיאה בצירוף דף המקורות.",
-      // Public Collections Page
-      "There are no public collections yet.": "טרם נוצרו אסופות ציבוריות",
-      // Collects in Profile
-      "You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.": "באפשרותך ליצור אסופות כדי לארגן את דפי המקורות שלך או דפי מקורות פתוחים לשימוש שאהבת. את האסופות אפשר לשתף באופן פרטי או לפרסם באופן ציבורי באתר ספריא.",
-      " hasn't shared any collections yet.": " טרם שיתפ/ה אסופות כלשהם",
-      "Create new collection": "יצירת אסופה חדשה",
-      "Create": "יצירה",
-      "Done": "סיום",
-      "Add to Collection": "צירוף לאסופה",
-
-      //languages
-      "English": "אנגלית",
-      "Hebrew": "עברית",
-      "Yiddish": "יידיש",
-      "Finnish": "פינית",
-      "Portuguese": "פורטוגזית",
-      "Spanish": "ספרדית",
-      "French": "צרפתית",
-      "German": "גרמנית",
-      "Arabic": "ערבית",
-      "Italian": "איטלקית",
-      "Polish": "פולנית",
-      "Russian": "רוסית",
-      "Esparanto": "אספרנטו",
-      "Persian": "פרסי",
-
-      "On": "הצג",
-      "Off": "הסתר",
-      "Show Parasha Aliyot": "עליות לתורה מוצגות",
-      "Hide Parasha Aliyot": "עליות לתורה מוסתרות",
-      "Language": "שפה",
-      "Layout": "עימוד",
-      "Bilingual Layout" : "עימוד דו לשוני",
-      "Color": "צבע",
-      "Font Size" : "גודל גופן",
-      "Aliyot" : "עליות לתורה",
-      "Taamim and Nikkud" : "טעמים וניקוד",
-      "Show Vowels and Cantillation": "הצג טקסט עם טעמי מקרא וניקוד",
-      "Vocalization": "טעמים וניקוד",
-      "Vowels": "ניקוד",
-      "Show only vowel points": "הצג טקסט עם ניקוד",
-      "Show only consonantal text": "הצג טקסט עיצורי בלבד",
-      "Email Address" : 'כתובת דוא"ל',
-      "Describe the issue..." : "טקסט המשוב",
-      "Report an issue with the text" : "דיווח על בעיה בטקסט",
-      "Request translation" : "בקשה לתרגום",
-      "Report a bug" : "דיווח על תקלה באתר",
-      "Get help" : "עזרה",
-      "Request a feature": "בקשה להוספת אפשרות באתר",
-      "Give thanks": "תודה",
-      "Other": "אחר",
-      "Please select a feedback type": "אנא בחרו סוג משוב",
-      "Unfortunately, there was an error sending this feedback. Please try again or try reloading this page.": "לצערנו ארעה שגיאה בשליחת המשוב. אנא נסו שוב או רעננו את הדף הנוכחי",
-      "Tell us what you think..." : "ספרו לנו מה אתם חושבים...",
-      "Select Type" : "סוג משוב",
-      "Added by" : "נוסף בידי",
-      "Love Learning?": "אוהבים ללמוד?",
-      "Sign up to get more from Sefaria" : "הרשמו כדי לקבל יותר מספריא",
-      "Make source sheets": "הכינו דפי מקורות",
-      "Take notes": "שמרו הערות",
-      "Save texts": "שמרו טקסטים לקריאה חוזרת",
-      "Follow your favorite authors": "עקבו אחר הסופרים האהובים עליכם",
-      "Stay in the know": "השארו מעודכנים",
-      "Sign Up": "הרשמו לספריא",
-      "Already have an account?": "כבר יש לכם חשבון?",
-      "Sign\u00A0in": "התחברו",
-      "Save": "שמירה",
-      "Remove": "הסרה",
-      "Email was successfully changed!": 'כתובת הדוא"ל שונתה בהצלחה!',
-      "Settings Saved": "הגדרות נשמרו",
-      "Turning this feature off will permanently delete your reading history." : "כיבוי אפשרות זו תמחק לצמיתות את היסטורית הקריאה שלך.",
-      "Filter": "סינון",
-      "Relevance": 'רלוונטיות',
-      "Chronological": 'כרונולוגי',
-      "Newest": "הכי חדש",
-      "This source is connected to ": "מקור הזה קשור ל-",
-      "This topic is connected to ": "נושא הזה קשור ל-",
-      "by": "על ידי",
-      "based on": "ע“פ",
-      "research of Dr. Michael Sperling": "המחקר של ד\"ר מיכאל ספרלינג",
-      "Read the Portion": "קראו את הפרשה",
-      "My Notes": "הרשומות שלי",
-      "Updates": "טקסטים חדשים",
-
-      //user stats
-      "Torah Tracker" : "לימוד במספרים",
-      "Year to Date": "בשנה הנוכחית",
-      "All Time": "כל הזמן",
-      "Texts Read" : "ספרים שנקראו",
-      "Sheets Read" : "דפי מקורות שנקראו",
-      "Sheets Created" : "דפי מקורות שנוצרו",
-      "Average Sefaria User" : "משתמש ממוצע בספריא",
-      "Etc": "שאר",
-
-      // Chavruta
-      "Learn with a Chavruta": "ללמוד עם חברותא",
-      "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הזה:",
-      "Start Call": "התחלת שיחה",
-
-      // Subscribe & Register
-      "Please enter a valid email address.": 'כתובת הדוא"ל שהוזנה אינה תקינה.',
-      "Subscribed! Welcome to our list.": "הרשמה בוצעה בהצלחה!",
-      "Sorry, there was an error.": "סליחה, ארעה שגיאה",
-
-      // Footer
-      "Connect": "צרו קשר",
-      "Site Language": "שפת האתר",
-
-      //Profile
-      " at ": " ב-",
-      "on Sefaria": " בספריא",
-  },
-  _i18nInterfaceStringsWithContext: {
-      "AddConnectionBox": {
-        "Select Type": "בחר סוג קישור",
-        "None": "ללא",
-        "Commentary": "פירוש",
-        "Quotation": "ציטוט",
-        "Midrash": "מדרש",
-        "Ein Mishpat / Ner Mitsvah": "עין משפט / נר מצווה",
-        'Mesorat HaShas': 'מסורת הש"ס',
-        "Reference": "עיון",
-        "Related Passage": "קשר אחר",
-      },
-  },
-  _getStringCaseInsensitive: function (store, inputStr){
-     return inputStr in store ? store[inputStr] : inputStr.toLowerCase() in store ? store[inputStr.toLowerCase()] : null;
-  },
-  _v: function(inputVar){
-    if(Sefaria.interfaceLang != "english"){
-        return Sefaria.hebrewTerm(inputVar);
-    }else{
-        return inputVar;
-	}
-  },
   _r: function (inputRef) {
     const oref = Sefaria.getRefFromCache(inputRef);
     if (!oref) { return inputRef; }
     return Sefaria.interfaceLang != "english" ? oref.heRef : oref.ref;
-  },
-  _va: function(inputVarArr){
-    if(Sefaria.interfaceLang != "english"){
-        return inputVarArr.map(Sefaria.hebrewTerm);
-    }else{
-        return inputVarArr;
-	}
   },
   _: function(inputStr, context=null){
     if (!inputStr.toLowerCase) debugger;
@@ -2557,6 +2288,9 @@ _media: {},
     } else {
       return inputStr;
     }
+  },
+  _getStringCaseInsensitive: function (store, inputStr){
+     return inputStr in store ? store[inputStr] : inputStr.toLowerCase() in store ? store[inputStr.toLowerCase()] : null;
   },
   _cacheSiteInterfaceStrings: function() {
     // Ensure that names set in Site Settings are available for translation in JS.
@@ -2710,6 +2444,7 @@ Sefaria.unpackDataFromProps = function(props) {
   const dataPassedAsProps = [
       "_uid",
       "_email",
+      "_uses_new_editor",
       "slug",
       "is_moderator",
       "is_editor",
@@ -2753,17 +2488,17 @@ Sefaria.loadServerData = function(data){
 
 Sefaria.util    = Util;
 Sefaria.hebrew  = Hebrew;
-Sefaria.palette = palette;
 Sefaria.track   = Track;
+Sefaria.palette = palette;
 
 Sefaria.palette.indexColor = function(title) {
       return title && Sefaria.index(title) ?
       Sefaria.palette.categoryColor(Sefaria.index(title).categories[0]):
       Sefaria.palette.categoryColor("Other");
 };
-
 Sefaria.palette.refColor = ref => Sefaria.palette.indexColor(Sefaria.parseRef(ref).index);
 
+Sefaria = extend(Sefaria, Strings);
 
 Sefaria.setup = function(data) {
     Sefaria.loadServerData(data);
@@ -2774,7 +2509,7 @@ Sefaria.setup = function(data) {
     Sefaria._analytics_uid = Sefaria._uid;
     Sefaria._makeBooksDict();
     Sefaria.virtualBooksDict = {"Jastrow": 1, "Klein Dictionary": 1, "Jastrow Unabbreviated": 1};  //Todo: Wire this up to the server
-    Sefaria._cacheIndexFromToc(Sefaria.toc);
+    Sefaria._cacheFromToc(Sefaria.toc);
     Sefaria._cacheHebrewTerms(Sefaria.terms);
     Sefaria._cacheSiteInterfaceStrings();
     Sefaria.track.setUserData(!!Sefaria._uid, Sefaria._analytics_uid);

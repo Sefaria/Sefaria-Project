@@ -12,8 +12,8 @@ jagged_array.py: a sparse array of arrays
 import re
 from functools import reduce
 from itertools import zip_longest
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 
 class JaggedArray(object):
@@ -500,7 +500,7 @@ class JaggedArray(object):
         return sa[indx_list[-1]]
 
     # warning, writes!
-    def set_element(self, indx_list, value, pad = None):
+    def set_element(self, indx_list, value, pad=None):
         '''
         Set element at position specified by indx_list to value.
         If JA is not big enough, pad with [] at higher levels, and value of pad variable at last level.

@@ -604,14 +604,20 @@ def cascade(ref_identifier, rewriter=lambda x: x, needs_rewrite=lambda x: True, 
         def rewrite_source(source):
             requires_save = False
             if "ref" in source:
+                original_tref = source["ref"]
                 try:
-                    ref = Ref(source["ref"])
-                except (InputError, ValueError):
-                    print("Error: In clean_sheets.rewrite_source: failed to instantiate Ref {}".format(source["ref"]))
-                else:
-                    if needs_rewrite(source['ref']):
-                        requires_save = True
+                    rewrite = needs_rewrite(source["ref"])
+                except (InputError, ValueError) as e:
+                    print('needs_rewrite method threw exception:', source["ref"], e)
+                    rewrite = False
+                if rewrite:
+                    requires_save = True
+                    try:
                         source["ref"] = rewriter(source['ref'])
+                    except (InputError, ValueError) as e:
+                        print('rewriter threw exception:', source["ref"], e)
+                    if source["ref"] != original_tref and not Ref.is_ref(source["ref"]):
+                        print('rewiter created an invalid Ref:', source["ref"])
             if "subsources" in source:
                 for subsource in source["subsources"]:
                     requires_save = rewrite_source(subsource) or requires_save
@@ -880,7 +886,7 @@ def migrate_versions_of_text(versions, mappings, orig_title, new_title, base_ind
                     "title": new_version_title
                 }
             )
-        for attr in ['status', 'license', 'licenseVetted', 'method', 'versionNotes', 'priority', "digitizedBySefaria", "heversionSource"]:
+        for attr in ['status', 'license', 'method', 'versionNotes', 'priority', "digitizedBySefaria", "heversionSource"]:
             value = getattr(version, attr, None)
             if value:
                 setattr(new_version, attr, value)
@@ -956,3 +962,12 @@ def toc_plaintext():
     text = "".join([text_node(node, 0) for node in toc])
 
     print(text)
+
+
+def change_term_hebrew(en_primary, new_he):
+    t = Term().load({"name": en_primary})
+    assert t
+    old_primary = t.get_primary_title("he")
+    t.add_title(new_he, "he", True, True)
+    t.remove_title(old_primary, "he")
+    t.save()

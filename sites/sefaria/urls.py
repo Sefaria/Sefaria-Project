@@ -7,11 +7,8 @@ from sefaria.settings import STATIC_URL
 
 
 static_pages = [
-    "about",
-    "donate",
     "strategy",
     "supporters",
-    "team",
     "help",
     "connect",
     "visualizations",
@@ -43,6 +40,14 @@ static_pages = [
     "remote-learning",
     "sheets",
     "powered-by-sefaria-contest-2020",
+    "ramban-sponsorships",
+    "design-system"
+]
+
+static_pages_by_lang = [
+    "about",
+    "donate",
+    "team",
 ]
 
 
@@ -56,7 +61,9 @@ site_urlpatterns = [
     url(r'^apple-app-site-association/?$', reader_views.apple_app_site_association),
     url(r'^\.well-known/apple-app-site-association/?$', reader_views.apple_app_site_association),
     url(r'^(%s)/?$' % "|".join(static_pages), reader_views.serve_static),
+    url(r'^(%s)/?$' % "|".join(static_pages_by_lang), reader_views.serve_static_by_lang),
     url(r'^healthz/?$', reader_views.application_health_api),
+    url(r'^healthz-rollout/?$', reader_views.rollout_health_api),
 ]
 
 
@@ -71,7 +78,7 @@ site_urlpatterns += [
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
     url(r'^[nN]echama/?', lambda x: HttpResponseRedirect("/collections/גיליונות-נחמה")),
-    url(r'^contest?', lambda x: HttpResponseRedirect("/powered-by-sefaria-contest-2020")),    
+    url(r'^contest?', lambda x: HttpResponseRedirect("/powered-by-sefaria-contest-2020")),
 ]
 
 
@@ -80,5 +87,5 @@ site_urlpatterns +=[
     url(r'^workshop/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_SummerMeeting_2016.pdf')),
     url(r'^ideasforteaching/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Teacher_Generated_Ideas_for_Your_Classroom.pdf')),
     url(r'^strategicplan/?$',lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria_Strategic_Plan.pdf')),
-    url(r'^annualreport/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Annual_Report_71420.pdf')),
+    url(r'^annualreport/?$', lambda x: HttpResponseRedirect(STATIC_URL + 'files/Sefaria 2020 Annual Report.pdf')),
 ]

@@ -6,8 +6,8 @@ from django.http import HttpRequest
 from sefaria import settings
 from django.core.cache import DEFAULT_CACHE_ALIAS
 
-import logging
-logger = logging.getLogger(__name__)
+import structlog
+logger = structlog.get_logger(__name__)
 
 if not hasattr(sys, '_doc_build'):
     from django.core.cache import cache

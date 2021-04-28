@@ -8,7 +8,7 @@ import {
   Note,
   FeedbackBox,
   ProfilePic,
-  ToolTipped,
+  ToolTipped, InterfaceText,
 } from './Misc';
 
 import {
@@ -294,6 +294,7 @@ class ConnectionsPanel extends Component {
                     webpagesCount={Sefaria.webPagesByRef(this.props.srefs).length}
 					          audioCount={Sefaria.mediaByRef(this.props.srefs).length}
                     topicsCount={Sefaria.topicsByRefCount(this.props.srefs)}
+                    manuscriptsCount={Sefaria.manuscriptsByRef(this.props.srefs).length}
                   />
                   </div>);
 
@@ -324,9 +325,6 @@ class ConnectionsPanel extends Component {
                     setConnectionsMode={this.props.setConnectionsMode}
                     onTextClick={this.props.onTextClick}
                     onCitationClick={this.props.onCitationClick}
-                    onNavigationClick={this.props.onNavigationClick}
-                    onCompareClick={this.props.onCompareClick}
-                    onOpenConnectionsClick={this.props.onOpenConnectionsClick}
                     handleSheetClick={this.props.handleSheetClick}
                     openNav={this.props.openNav}
                     openDisplaySettings={this.props.openDisplaySettings}
@@ -420,10 +418,11 @@ class ConnectionsPanel extends Component {
 
     } else if (this.props.mode == "Add Connection To Sheet"){
         let refForSheet = (this.props.connectionData && "connectionRefs" in this.props.connectionData) ? this.props.connectionData["connectionRefs"] : this.props.srefs;
+        let versionsForSheet = (this.props.connectionData && "versions" in this.props.connectionData) ? this.props.connectionData["versions"] : {"en":null,"he":null};
         content = (<div>
                   <AddToSourceSheetBox
                     srefs={refForSheet}
-                    currVersions={{"en":null,"he":null}} //sidebar doesn't actually do versions
+                    currVersions={versionsForSheet} //sidebar doesn't actually do versions
                     contentLanguage={this.props.masterPanelLanguage}
                     selectedWords={null}
                     nodeRef = {this.props.nodeRef}
@@ -448,7 +447,7 @@ class ConnectionsPanel extends Component {
                     </a>
                     <MyNotes
                       srefs={this.props.srefs}
-                      editNote={this.props.editNote} /> 
+                      editNote={this.props.editNote} />
                   </div> : null }
                 </div>);
 
@@ -564,9 +563,15 @@ class ConnectionsPanel extends Component {
       content = (<ExtendedNotes
                   currVersions={this.props.currVersions}
                   title={this.props.title}/>);
+    } else if (this.props.mode === "manuscripts") {
+      content = (<ManuscriptImageList
+        manuscriptList={Sefaria.manuscriptsByRef(this.props.srefs)}
+        interfaceLang={this.props.interfaceLang}
+        contentLang={this.props.contentLang}
+      />);
     }
 
-    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics"].indexOf(this.props.mode) != -1;
+    var marginless = ["Resources", "ConnectionsList", "Tools", "Share", "WebPages", "Topics", "manuscripts"].indexOf(this.props.mode) != -1;
     var classes = classNames({connectionsPanel: 1, textList: 1, marginless: marginless, fullPanel: this.props.fullPanel, singlePanel: !this.props.fullPanel});
     return (
       <div className={classes} key={this.props.mode}>
@@ -611,9 +616,6 @@ ConnectionsPanel.propTypes = {
   canEditText:             PropTypes.bool,
   onTextClick:             PropTypes.func,
   onCitationClick:         PropTypes.func,
-  onNavigationClick:       PropTypes.func,
-  onCompareClick:          PropTypes.func,
-  onOpenConnectionsClick:  PropTypes.func,
   openNav:                 PropTypes.func,
   openDisplaySettings:     PropTypes.func,
   closePanel:              PropTypes.func,
@@ -648,6 +650,11 @@ class ResourcesList extends Component {
               <ToolsButton en="Translations" he="תרגומים" image="translation.svg" onClick={() => this.props.setConnectionsMode("Translations")} />
               <ToolsButton en="Notes" he="הערות" image="tools-write-note.svg" count={this.props.notesCount} onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Notes")} />
               <ToolsButton en="Dictionaries" he="מילונים" image="book-2.svg" onClick={() => this.props.setConnectionsMode("Lexicon")} />
+              {
+                this.props.manuscriptsCount ?
+                  <ToolsButton en={"Manuscripts"} he={"כתבי יד"} image={"manuscript-icon.png"} count={this.props.manuscriptsCount} onClick={() => this.props.setConnectionsMode("manuscripts")}/>
+                  : null
+              }
               {this.props.audioCount && this.props.audioCount > 0 ? <ToolsButton en="Torah Readings" he="קריאה בתורה" image="audio.svg" onClick={() => this.props.setConnectionsMode("Torah Readings")} /> : null }
               <ToolsButton en="Chavruta" he="חברותא" image="video.svg" onClick={() => !Sefaria._uid ? this.props.toggleSignUpModal() : this.props.setConnectionsMode("Chavruta")} />
               <ToolsButton en="Share" he="שתף" image="tools-share.svg" onClick={() => this.props.setConnectionsMode("Share")} />
@@ -1013,24 +1020,22 @@ class ToolsButton extends Component {
     this.props.onClick();
   }
   render() {
-    var icon = null;
+    let icon = null;
     if (this.props.icon) {
-      var iconName = "fa-" + this.props.icon;
-      var classes = {fa: 1, toolsButtonIcon: 1};
+      let iconName = "fa-" + this.props.icon;
+      let classes = {fa: 1, toolsButtonIcon: 1};
       classes[iconName] = 1;
       icon = (<i className={classNames(classes)} />)
     } else if (this.props.image) {
       icon = (<img src={"/static/img/" + this.props.image} className="toolsButtonIcon" alt="" />);
     }
-
-    var count = this.props.count ? (<span className="connectionsCount">({this.props.count})</span>) : null;
-    var url = Sefaria.util.replaceUrlParam("with", this.props.en);
+    const url = Sefaria.util.replaceUrlParam("with", this.props.en);
     return (
       <a href={url} className="toolsButton sans noselect" data-name={this.props.en} onClick={this.onClick}>
         {icon}
         <span className="toolsButtonText">
-          <span className="int-en noselect">{this.props.en} {count}</span>
-          <span className="int-he noselect">{this.props.he} {count}</span>
+            <InterfaceText text={{en: this.props.en , he: this.props.he }} />
+            {this.props.count ? (<span className="connectionsCount">({this.props.count})</span>) : null}
         </span>
       </a>)
   }
@@ -1385,6 +1390,59 @@ AddConnectionBox.propTypes = {
   onSave:   PropTypes.func.isRequired,
   onCancel: PropTypes.func.isRequired
 }
+
+function ManuscriptImageList(props) {
+  const content = props.manuscriptList.map(x => <ManuscriptImage
+    manuscript={x}
+    interfaceLang={props.interfaceLang}
+    contentLang={props.contentLang}
+    key={`${x['manuscript_slug']}-${x['page_id']}`}
+  /> );
+  return <div className={"manuscriptList"}>{content}</div>
+}
+
+function ManuscriptImage(props) {
+  let manuscript = props.manuscript;
+  const [cls, description] = props.interfaceLang === 'hebrew'
+    ? ['int-he', 'he_description']  : ['int-en', 'description'];
+  return <div className={"manuscript"} >
+    <a href={manuscript['image_url']} target="_blank">
+      <img className={"manuscriptImage"} src={manuscript["thumbnail_url"]} alt={"Ancient Manuscript"}/>
+    </a>
+    {
+      (props.interfaceLang === 'hebrew')
+        ? <p className={"hebrew manuscriptCaptionHe"}>{manuscript.manuscript.he_title}</p>
+        : <p className={"english manuscriptCaption"}>{manuscript.manuscript.title}</p>
+    }
+      <div className="meta">
+        <InterfaceText>Location: </InterfaceText><span>{manuscript['page_id'].replace(/_/g, ' ')}</span><br/>
+        {
+          manuscript.manuscript[description]
+            ? <span>
+                <InterfaceText text={{en:'Courtesy of: ', he:'הודות ל'}} />
+                <span className={cls}>{manuscript.manuscript[description]}<br/></span>
+              </span>
+            : ''
+        }
+        <InterfaceText text={{en:'Source: ', he:'מקור: '}}/>
+        <a href={manuscript.manuscript['source']} target="_blank">{manuscript.manuscript['source'].replace("https://", "")}</a>
+      </div>
+
+
+  </div>
+}
+
+ManuscriptImage.propTypes = {
+  manuscript: PropTypes.object.isRequired,
+  interfaceLang: PropTypes.string.isRequired,
+  contentLang: PropTypes.string.isRequired,
+};
+
+ManuscriptImageList.propTypes = {
+  manuscriptList: PropTypes.array.isRequired,
+  interfaceLang: PropTypes.string.isRequired,
+  contentLang: PropTypes.string.isRequired,
+};
 
 export {
   ConnectionsPanel,
