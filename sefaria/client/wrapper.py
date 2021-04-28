@@ -254,15 +254,17 @@ def get_links(tref, with_text=True, with_sheet_links=False):
                             ("he", ("he","heVersionTitle","heLicense","heVersionTitleInHebrew")),
                             ("en", ("text", "versionTitle","license","versionTitleInHebrew"))):
                         temp_nref_data = texts[top_nref][lang]
+                        # Because of how the jagged arrays work, res may be either a single line or a list of lines
                         res = temp_nref_data['ja'].subarray(com_sections[1:], com_toSections[1:]).array()
-                        if attr not in com:
-                            com[attr] = res
-                        else:
+                        if attr not in com: # If this is the first com_oref, and so the object doesn't contain any data in this field,
+                            com[attr] = res  # Set the text directly in the object
+                        else:  # This is not the first oref (this was a spanning ref, e.g. "Ketubot 110b:25-111a:1".
+                            # We'll want to connect the texts from all pages together. As mentioned, each can be either a string or a list.
                             if isinstance(com[attr], str):
                                 com[attr] = [com[attr]]
                             if isinstance(res, str):
                                 res = [res]
-                            com[attr] += res
+                            com[attr] += res  # Once they're both definitely lists, merge the lists together.
                         temp_version = temp_nref_data['version']
                         if isinstance(temp_version, str) or temp_version is None:
                             com[versionAttr] = temp_version
