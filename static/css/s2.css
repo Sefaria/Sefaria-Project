@@ -15,6 +15,74 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+@font-face {
+  /* Mixed Hebrew - English content text */
+  font-family: 'HebrewInEnglish Text Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
+  unicode-range: U+0590-05FF, U+25CC;
+}
+@font-face {
+  /* Mixed Hebrew - English system text */
+  font-family: 'HebrewInEnglish System Font';
+  src: local('Heebo'), local('Roboto');
+  unicode-range: U+0590-05FF;
+}
+:root {
+  /* font stacks */
+  --en-sans-serif-font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --en-serif-font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  --he-sans-serif-font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --he-serif-font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+
+  --sefaria-base-serif-h1-font-size: 48px;
+  --sefaria-base-serif-h2-font-size: 30px;
+  --sefaria-base-serif-h3-font-size: 24px;
+  --sefaria-base-serif-body-font-size: 18px;
+  --sefaria-hebrew-serif-multiplier: 1.22;
+
+  --sefaria-base-sans-serif-h1-font-size: 40px;
+  --sefaria-base-sans-serif-h2-font-size: 30px;
+  --sefaria-base-sans-serif-h3-font-size: 22px;
+  --sefaria-base-sans-serif-body-font-size: 16px;
+  --sefaria-base-sans-serif-small-font-size: 14px;
+
+
+  /* colors */
+  --sefaria-blue: #18345D;
+  --sefaria-highlight-blue: #DDEEFF;
+  --sefaria-highlight-blue-light: #F0F7FF;
+  --sefaria-black: #000;
+  --sefaria-dark-grey: #666666;
+  --sefaria-medium-grey: #999999;
+  --sefaria-light-grey: #CCCCCC;
+  --sefaria-lighter-grey: #EDEDEC;
+  --sefaria-kightest-grey: #FBFBFA;
+  --sefaria-white: #fff;
+  --sefaria-commentary-blue: #4B71B7;
+  --sefaria-tanakh-teal: #004E5F;
+  --sefaria-mishnah-blue: #5A99B7;
+  --sefaria-talmud-gold: #CCB479;
+  --sefaria-midrash-green: #5D956F;
+  --sefaria-halakhah-red: #802F3E;
+  --sefaria-kabbalah-purple: #594176;
+  --sefaria-liturgy-rose: #AB4E66;
+  --sefaria-philosophy-purple: #7F85A9;
+  --sefaria-taanitic-green: #00827F;
+  --sefaria-chasidut-green: #97B386;
+  --sefaria-mussar-purple: #7C416F;
+  --sefaria-responsa-red: #CB6158;
+  --sefaria-apocrypha-pink: #C6A7B4;
+  --sefaria-modern-works-blue: #B8D4D3;
+  --sefaria-grammar-green: #B2B272;
+  --sefaria-reference-orange: #D4896C;
+  --sefaria-miscelaneous-brown: #7D6D5D;
+  --sefaria-miscelaneous-blue: #B1C8DD;
+  --sefaria-miscelaneous-green: #3B5849;
+
+}
+
+
+
 a{
   color: inherit;
 }
@@ -159,19 +227,6 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   font-style: italic;
 }
 /* end Style Guide */
-
-@font-face {
-  /* Mixed Hebrew - English content text */
-  font-family: 'HebrewInEnglish Text Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
-  unicode-range: U+0590-05FF, U+25CC;
-}
-@font-face {
-  /* Mixed Hebrew - English system text */
-  font-family: 'HebrewInEnglish System Font';
-  src: local('Heebo'), local('Roboto');
-  unicode-range: U+0590-05FF;
-}
 .sans,
 .sans .en,
 #s2 .sans .en,
@@ -3693,7 +3748,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .readerControls .readerControlsInner {
   position: relative;
-  width: 700px;
+  width: 760px;
   margin: 0 auto;
   padding: 0 30px;
   display: flex;
@@ -4075,12 +4130,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textRange.basetext {
   width: 100%;
   box-sizing: border-box;
-  font-size: 1.8em;
+  font-size: 2.2em;
   line-height: 1.6;
   text-align: justify;
   background-color: inherit;
   margin: 0 auto;
-  max-width: 700px;
+  max-width: 760px;
   position: relative;
   padding: 0 30px;
 }
@@ -4101,6 +4156,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   justify-content: center;
   font-weight: lighter;
   letter-spacing: 1px;
+  font-size: 24px;
 }
 
 .sheetContent .customSourceTitle {
@@ -4149,11 +4205,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   color: #000;
   margin: 32px 0;
-  font-size: 18px;
+  font-size: 24px;
   letter-spacing: 1px;
 }
 .parashahHeader.aliyah span {
   text-transform: uppercase;
+  font-size: 18px;
 }
 .title + .text span:first-child .parashahHeader {
   margin-top: -5px;
@@ -4676,18 +4733,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 100%;
   box-sizing: border-box;
 }
-.textList .texts,
-.textList .fullFilterView {
+.textList .texts {
   height: 100%;
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
   overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
-}
-.textList .fullFilterView .contentInner {
-  max-width: 700px;
-  margin: 0 auto;
 }
 .textList .texts .contentInner {
   max-width: 660px;
@@ -4915,58 +4967,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .bilingual .textFilter .he,
 .bilingual .categoryFilter .he {
   display: none;
-}
-.fullFilterView {
-  border-top: 1px solid #ddd;
-  background-color: #FBFBFA;
-  padding: 40px 20px;
-}
-.sepia .fullFilterView {
-  background-color: #F3F3F1;
-}
-.dark .fullFilterView {
-  background-color: #2D2D2B;
-  border-color: #444;
-}
-.fullFilterView td {
-  background-color: white;
-  border: 2px solid #FBFBFA;
-}
-.fullFilterView td.empty {
-  background-color: transparent;
-}
-.dark .fullFilterView td {
-  background-color: #333331;
-  border-color: #2d2d2b;
-  color: white;
-}
-.fullFilterView .categoryFilter {
-  background-color: white;
-  margin-bottom: 1px;
-}
-.fullFilterView .categoryFilter.notClickable {
-  color: #999;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  background-color: transparent;
-  padding: 12px 12px 28px;
-  cursor: auto;
-}
-.dark .fullFilterView .categoryFilter {
-  background-color: #333;
-}
-.fullFilterView .categoryFilterGroup {
-  margin-bottom: 30px;
-}
-.showSelectedFilters {
-  background-color: #222F4F;
-  color: white;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  text-transform: uppercase;
-  text-align: center;
-  padding: 8px;
-  cursor: pointer;
-  border-radius: 3px;
-  margin: 16px 0;
 }
 .textList .textListTop > .loadingMessage,
 .textList .texts .contentInner > .loadingMessage {
@@ -7680,12 +7680,12 @@ span.purim-emoji img{
 .sheetContent {
   width: 100%;
   box-sizing: border-box;
-  font-size: 1.8em;
+  font-size: 2.2em;
   line-height: 1.6;
   text-align: justify;
   background-color: inherit;
   margin: 0 auto;
-  max-width: 700px;
+  max-width: 760px;
   position: relative;
   padding: 0 30px;
 }
@@ -9019,7 +9019,7 @@ body .homeFeedWrapper .content {
 }
 .storyFeedInner,
 .interface-hebrew .storyFeedInner {
-  width: 700px;
+  max-width: 760px;
   margin: 0 auto;
   padding-top: 60px;
   max-width: 100%;

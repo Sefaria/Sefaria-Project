@@ -117,7 +117,7 @@ class TextRange extends Component {
     } else if (this.props.basetext && data.spanning) {
       // Replace ReaderPanel contents with split refs if ref is spanning
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
-      //console.log("Re-rewriting spanning ref")
+      // console.log("Re-rewriting spanning ref")
       this.props.showBaseText(data.spanningRefs, true, this.props.version, this.props.versionLanguage);
       return;
     }
@@ -540,9 +540,7 @@ class TextSegment extends Component {
       const style = {opacity: linkScore};
       linkCountElement = this.props.showLinkCount ? (
           <div className="linkCount sans" title={linkCount + " Connections Available"}>
-             <span className="linkCountDot" style={style}>
-               <ContentText text={{"en": "", "he": ""}} />
-             </span>
+             <span className="linkCountDot" style={style}></span>
           </div>
       ) : null;
     } else {

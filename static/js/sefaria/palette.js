@@ -21,32 +21,32 @@ var palette = {
   }
 };
 palette.categoryColors = {
-  "Commentary":         palette.colors.blue,
-  "Tanakh" :            palette.colors.darkteal,
-  "Midrash":            palette.colors.green,
-  "Mishnah":            palette.colors.lightblue,
-  "Talmud":             palette.colors.yellow,
-  "Halakhah":           palette.colors.red,
-  "Kabbalah":           palette.colors.purple,
-  "Philosophy":         palette.colors.lavender,  // to delete
-  "Jewish Thought":     palette.colors.lavender,
-  "Liturgy":            palette.colors.darkpink,
-  "Tanaitic":           palette.colors.teal,    // to delete
-  "Tosefta":            palette.colors.teal,
+  "Commentary":         "var(--sefaria-commentary-blue)",
+  "Tanakh" :            "var(--sefaria-tanakh-teal)",
+  "Midrash":            "var(--sefaria-midrash-green)",
+  "Mishnah":            "var(--sefaria-mishnah-blue)",
+  "Talmud":             "var(--sefaria-talmud-gold)",
+  "Halakhah":           "var(--sefaria-halakhah-red)",
+  "Kabbalah":           "var(--sefaria-kabbalah-purple)",
+  "Philosophy":         "var(--sefaria-philosophy-purple)",  // to delete
+  "Jewish Thought":     "var(--sefaria-philosophy-purple)",
+  "Liturgy":            "var(--sefaria-liturgy-rose)",
+  "Tanaitic":           "var(--sefaria-taanitic-green)",    // to delete
+  "Tosefta":            "var(--sefaria-taanitic-green)",
   "Parshanut":          palette.colors.paleblue,
-  "Chasidut":           palette.colors.lightgreen,
-  "Musar":              palette.colors.raspberry,
-  "Responsa":           palette.colors.orange,
-  "Apocrypha":          palette.colors.lightpink,   // to delete
-  "Second Temple":      palette.colors.lightpink,   // to delete
+  "Chasidut":           "var(--sefaria-chasidut-green)",
+  "Musar":              "var(--sefaria-mussar-purple)",
+  "Responsa":           "var(--sefaria-responsa-red)",
+  "Apocrypha":          "var(--sefaria-apocrypha-pink)",   // to delete
+  "Second Temple":      "var(--sefaria-apocrypha-pink)",   // to delete
   "Other":              palette.colors.darkblue,    // to delete
-  "Quoting Commentary": palette.colors.orange,
+  "Quoting Commentary": "var(--sefaria-responsa-red)",
   "Sheets":             palette.colors.darkblue,
   "Community":          palette.colors.raspberry,
-  "Targum":             palette.colors.lavender,
-  "Modern Works":       palette.colors.lightbg,    // to delete
-  "Modern Commentary":  palette.colors.lightbg,
-  "Reference":          palette.colors.tan,
+  "Targum":             "var(--sefaria-philosophy-purple)",
+  "Modern Works":       "var(--sefaria-modern-works-blue)",    // to delete
+  "Modern Commentary":  "var(--sefaria-modern-works-blue)",
+  "Reference":          "var(--sefaria-reference-orange)",
   "Static":             "linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%)"
 };
 palette.categoryColor = function(cat) {
