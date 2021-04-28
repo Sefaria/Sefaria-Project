@@ -1233,6 +1233,12 @@ input.noselect {
 .singlePanel .readerNavMenu .categoryColorLine {
   top: 60px;
 }
+.singlePanel .readerNavMenu.readerTextTableOfContents:not(.bookPage) .content {
+  padding-top: 25px;
+}
+.singlePanel .readerNavMenu.readerTextTableOfContents:not(.bookPage) .categoryColorLine {
+  top: 0;
+}
 .readerNavMenu.compare .content,
 .readerNavCategoryMenu.compare .content {
   padding: 30px 10px;

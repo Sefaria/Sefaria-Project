@@ -1658,8 +1658,8 @@ class ReaderApp extends Component {
     }
     // Header should not show box-shadow over panels that have color line
     const hasColorLine = ["sheets", "sheets meta"];
-    const headerHasBoxShadow = !!this.state.panels[0] && hasColorLine.indexOf(this.state.panels[0].menuOpen) === -1;
-    const hideHeader = !this.props.multiPanel && this.state.panels.length && !this.state.panels[0].menuOpen;
+    const headerHasBoxShadow = hasColorLine.indexOf(this.state.panels[0].menuOpen) === -1;
+    const hideHeader = !this.props.multiPanel && (!this.state.panels[0].menuOpen || this.state.panels[0].menuOpen === "text toc");
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
