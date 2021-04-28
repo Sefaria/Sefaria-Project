@@ -2,8 +2,8 @@
 import json
 import httplib2
 from urllib3.exceptions import NewConnectionError
+from urllib.parse import unquote
 from elasticsearch.exceptions import AuthorizationException
-
 from datetime import datetime, timedelta
 from io import StringIO, BytesIO
 
@@ -381,7 +381,7 @@ def delete_sheet_api(request, sheet_id):
 @csrf_exempt
 def collections_api(request, slug=None):
     if request.method == "GET":
-        return collections_get_api(request, slug)
+        return collections_get_api(request, unquote(slug))
     else:
         if not request.user.is_authenticated and request.method == "POST":
             key = request.POST.get("apikey")
