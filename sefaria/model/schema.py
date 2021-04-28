@@ -675,7 +675,10 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
             error += ', child of "{}"'.format(self.parent.full_title("en")) if self.parent else ""
             raise IndexSchemaError(error)
         if baselist:
-            node_title_list = [baseName + sep + title for baseName in baselist for sep in self.title_separators for title in this_node_titles]
+            if self.is_default():
+                node_title_list = baselist  # doesn't add any titles of its own
+            else:
+                node_title_list = [baseName + sep + title for baseName in baselist for sep in self.title_separators for title in this_node_titles]
         else:
             node_title_list = this_node_titles
 
@@ -685,8 +688,7 @@ class TitledTreeNode(TreeNode, AbstractTitledOrTermedObject):
         for child in self.children:
             if child.default:
                 thisnode = child
-            else:
-                title_dict.update(child.title_dict(lang, node_title_list))
+            title_dict.update(child.title_dict(lang, node_title_list))
 
         for title in node_title_list:
             title_dict[title] = thisnode
