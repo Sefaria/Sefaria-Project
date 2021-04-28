@@ -977,9 +977,6 @@ class Test_Order_Id(object):
         assert first.ref().order_id() < second.ref().order_id()
         assert second.ref().order_id() < third.ref().order_id()
 
-def test_derech_hashem():
-    r = Ref("Derech Hashem 1, On Blessings 1")
-    assert True
 '''
 class Test_ref_manipulations():
 
