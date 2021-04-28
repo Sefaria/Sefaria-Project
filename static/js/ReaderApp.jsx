@@ -320,6 +320,8 @@ class ReaderApp extends Component {
           p.textSearchState = p.textSearchState && new SearchState(p.textSearchState);
           p.sheetSearchState = p.sheetSearchState && new SearchState(p.sheetSearchState);
         }
+      } else {
+        state.panels = [];
       }
 
       if (!h && state.panels) {
