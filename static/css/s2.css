@@ -2595,6 +2595,7 @@ a.readerNavCategory {
   line-height: 22px;
   color: #666666;
   margin: 10px 0;
+  text-align: start;
 }
 .versionBlock .versionEditIcon {
   margin: 0 7px;
