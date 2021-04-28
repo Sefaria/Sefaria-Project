@@ -729,6 +729,13 @@ input.noselect {
 .header .headerInner.mobile div {
   flex: 1;
 }
+.header .headerInner.mobile .mobileHeaderLanguageToggle {
+  text-align: end;
+}
+.mobileHeaderLanguageToggle.hebrew .en,
+.mobileHeaderLanguageToggle.english .he {
+  display: none;
+}
 .header.mobile .searchLine {
   padding: 15px;
 }
@@ -1209,10 +1216,11 @@ input.noselect {
 .navSidebarModule + .dedication {
   margin-top: -30px;
 }
-.navTitle .languageToggle {
+.navTitle .languageToggle,
+.header .languageToggle {
   text-align: center;
   color: #ccc;
-  display: block;
+  display: inline-block;
   width: 32px;
   height: 32px;
   border: 1px solid #ccc;

@@ -453,19 +453,19 @@ class ReaderPanel extends Component {
   }
   setTopic(navigationTopic, topicTitle) {
     this.conditionalSetState({
-        menuOpen: "topics",
-        navigationTopicCategory: null,
-        navigationTopic,
-        topicTitle
+      menuOpen: "topics",
+      navigationTopicCategory: null,
+      navigationTopic,
+      topicTitle
     });
   }
   toggleLanguage() {
-    if (this.state.settings.language == "hebrew") {
-        this.setOption("language", "english");
-        if (Sefaria.site) { Sefaria.track.event("Reader", "Change Language", "english");}
+    if (this.state.settings.language === "hebrew") {
+      this.setOption("language", "english");
+      if (Sefaria.site) { Sefaria.track.event("Reader", "Change Language", "english");}
     } else {
-        this.setOption("language", "hebrew");
-        if (Sefaria.site) { Sefaria.track.event("Reader", "Change Language", "hebrew");}
+      this.setOption("language", "hebrew");
+      if (Sefaria.site) { Sefaria.track.event("Reader", "Change Language", "hebrew");}
     }
   }
   openSearch(query) {
@@ -494,10 +494,6 @@ class ReaderPanel extends Component {
     let state = {settings: this.state.settings};
     if (option !== "fontSize") { state.displaySettingsOpen = false; }
     if (option === "language") {
-      /*let adjustedValue = this.getContentLanguageOverride(value, this.state.mode, this.state.menuOpen);
-      state['contentLangSettings'] = {
-        "language": adjustedValue
-      }*/
       $.cookie("contentLang", value, {path: "/"});
       this.replaceHistory = true;
       this.props.setDefaultOption && this.props.setDefaultOption(option, value);
@@ -1200,7 +1196,7 @@ class ReaderControls extends Component {
 
     const mode              = this.props.currentMode();
     const hideHeader        = !this.props.multiPanel && mode === "Connections";
-    var connectionsHeader = this.props.multiPanel && mode === "Connections";
+    const connectionsHeader = this.props.multiPanel && mode === "Connections";
     const showVersion = this.props.currVersions.en && (this.props.settings.language === "english" || this.props.settings.language === "bilingual");
     const versionTitle = this.props.currVersions.en ? this.props.currVersions.en.replace(/_/g," ") : "";
     const url = this.props.sheet ? "/sheets/" + this.props.sheet.id : oref ? "/" + Sefaria.normRef(oref.book) : Sefaria.normRef(this.props.currentRef);

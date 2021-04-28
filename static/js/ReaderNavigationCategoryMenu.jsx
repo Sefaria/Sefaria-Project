@@ -74,7 +74,8 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
                 <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
               </h1>
               {talmudToggle}
-              {Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
+              {multiPanel && Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? 
+              <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
             </div>
             {!multiPanel ? 
             <div className="categoryDescription top">

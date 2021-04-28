@@ -11,6 +11,7 @@ import {
   ProfilePic,
   InterfaceLanguageMenu,
   InterfaceText,
+  LanguageToggleButton,
 } from './Misc';
 
 
@@ -81,7 +82,11 @@ class Header extends Component {
           <a className="home" href="/" >{logo}</a> : null }
         </div>
         
-        <div></div>
+        {this.props.hasLanguageToggle ?
+        <div className={this.props.firstPanelLanguage + " mobileHeaderLanguageToggle"}>
+          <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} />
+        </div> :
+        <div></div>}
       </>
     );
 

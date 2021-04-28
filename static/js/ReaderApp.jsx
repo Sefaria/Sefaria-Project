@@ -1506,6 +1506,14 @@ class ReaderApp extends Component {
   toggleMobileNavMenu() {
     this.setState({mobileNavMenuOpen: !this.state.mobileNavMenuOpen});
   }
+  toggleLanguageInFirstPanel() {
+    if (this.state.panels[0].settings.language === "hebrew") {
+      this.state.panels[0].settings.language = "english";
+    } else {
+      this.state.panels[0].settings.language = "hebrew";
+    }
+    this.setState({panels: this.state.panels});
+  }
   getHistoryObject(panel, hasSidebar) {
     // get rave to send to /api/profile/user_history
     let ref, sheet_owner, sheet_title;
@@ -1663,6 +1671,9 @@ class ReaderApp extends Component {
         hidden={hideHeader}
         mobileNavMenuOpen={this.state.mobileNavMenuOpen}
         onMobileMenuButtonClick={this.toggleMobileNavMenu}
+        hasLanguageToggle={!this.props.multiPanel && Sefaria.interfaceLang !== "hebrew" && this.state.panels[0].menuOpen === "navigation"}
+        toggleLanguage={this.toggleLanguageInFirstPanel}
+        firstPanelLanguage={this.state.panels[0].settings.language}
         hasBoxShadow={headerHasBoxShadow} />
     );
     var panels = [];
