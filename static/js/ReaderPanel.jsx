@@ -903,6 +903,7 @@ class ReaderPanel extends Component {
         menu = (
           <TopicsPage
             key={"TopicsPage"}
+            setNavTopic={this.setNavigationTopic}
             multiPanel={this.props.multiPanel}
             initialWidth={this.state.width}
           />
@@ -910,40 +911,45 @@ class ReaderPanel extends Component {
       }
 
     } else if (this.state.menuOpen === "topicsAZ") {
-      menu = (<TopicPageAll
-                interfaceLang={this.props.interfaceLang}
-                width={this.state.width}
-                setTopic={this.setTopic}
-                openNav={this.openMenu.bind(null, "navigation")}
-                close={this.closeMenus}
-                multiPanel={this.props.multiPanel}
-                toggleLanguage={this.toggleLanguage}
-                navHome={this.openMenu.bind(null, "navigation")}
-                openDisplaySettings={this.openDisplaySettings}
-                key={"TopicPageAll"}
-              />);
+      menu = (
+        <TopicPageAll
+          interfaceLang={this.props.interfaceLang}
+          width={this.state.width}
+          setTopic={this.setTopic}
+          openNav={this.openMenu.bind(null, "navigation")}
+          close={this.closeMenus}
+          multiPanel={this.props.multiPanel}
+          toggleLanguage={this.toggleLanguage}
+          navHome={this.openMenu.bind(null, "navigation")}
+          openDisplaySettings={this.openDisplaySettings}
+          key={"TopicPageAll"} />
+      );
       
     } else if (this.state.menuOpen === "notifications") {
-      menu = (<NotificationsPanel
-                    setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
-                    interfaceLang={this.props.interfaceLang} />);
+      menu = (
+        <NotificationsPanel
+          setUnreadNotificationsCount={this.props.setUnreadNotificationsCount}
+          interfaceLang={this.props.interfaceLang} />
+      );
 
     } else if (this.state.menuOpen === "collection") {
-      menu = (<CollectionPage
-                name={this.state.collectionName}
-                slug={this.state.collectionSlug}
-                tag={this.state.collectionTag}
-                setCollectionTag={this.setCollectionTag}
-                width={this.state.width}
-                searchInCollection={this.props.searchInCollection}
-                toggleLanguage={this.toggleLanguage}
-                toggleSignUpModal={this.props.toggleSignUpModal}
-                updateCollectionName={this.updateCollectionName}
-                navHome={this.openMenu.bind(null, "navigation")}
-                multiPanel={this.props.multiPanel}
-                initialWidth={this.state.width}
-                interfaceLang={this.props.interfaceLang} />);
-
+      menu = (
+        <CollectionPage
+          name={this.state.collectionName}
+          slug={this.state.collectionSlug}
+          tag={this.state.collectionTag}
+          setCollectionTag={this.setCollectionTag}
+          width={this.state.width}
+          searchInCollection={this.props.searchInCollection}
+          toggleLanguage={this.toggleLanguage}
+          toggleSignUpModal={this.props.toggleSignUpModal}
+          updateCollectionName={this.updateCollectionName}
+          navHome={this.openMenu.bind(null, "navigation")}
+          multiPanel={this.props.multiPanel}
+          initialWidth={this.state.width}
+          interfaceLang={this.props.interfaceLang} />
+      );
+      
     } else if (this.state.menuOpen === "collectionsPublic") {
       menu = (
         <PublicCollectionsPage
