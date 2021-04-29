@@ -205,7 +205,7 @@ class AbstractTest(object):
         It tries a few differnt things to get out of the current state, back to a dependable base toc.
         :return:
         """
-        if self.driver.current_url == urllib.parse.urljoin(self.base_url, "/texts") or self.driver.current_url.startswith(urllib.parse.urljoin(self.base_url,"/texts?")):
+        if self.driver.current_url == urllib.parse.urljoin(self.base_url, "/texts") or self.driver.current_url.startswith(urllib.parse.urljoin(self.base_url,"/texts") + "?"):
             return self
 
         # If text options are open, close them
@@ -624,6 +624,14 @@ class AbstractTest(object):
         selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') .segmentText > span.he'
         return self.get_nth_section(selector)
 
+    def has_hebrew_text(self):
+        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text .segmentText > span.he'
+        return len(self.driver.find_elements_by_css_selector(selector)) > 0
+
+    def has_english_text(self):
+        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text .segmentText > span.en'
+        return len(self.driver.find_elements_by_css_selector(selector)) > 0
+
     def get_content_layout_direction(self):
         panel = self.get_content_panel()
         panel_class = panel.get_attribute('class')
@@ -887,17 +895,14 @@ class AbstractTest(object):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         url = urllib.parse.urljoin(self.base_url, ref.url())
-        print(self.driver.current_url)
 
         if filter is not None:
             url += "&with={}".format(filter)
         if lang is not None:
             url += "&lang={}".format(lang)
 
-        print(self.driver.current_url)
-        
         self.driver.get(url.replace("&", "?", 1))
-        print(self.driver.current_url)
+
         if filter == "all":
             WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
         elif filter is not None:
@@ -906,7 +911,7 @@ class AbstractTest(object):
         else:
             WebDriverWait(self.driver, TEMPER).until(
                 element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
-            WebDriverWait(self.driver, TEMPER).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
+            WebDriverWait(self.driver, TEMPER * 2).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
         self.set_modal_cookie()
         return self
 
@@ -965,7 +970,7 @@ class AbstractTest(object):
         self._perform_segment_click(ref)
         # Todo: put a data-* attribute on .filterSet, for the multi-panel case
         # Note below will fail if there are no connections
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
+        WebDriverWait(self.driver, TEMPER * 2).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
         return self
 
     def click_segment_to_close_commentary(self, ref):
@@ -1120,7 +1125,7 @@ class AbstractTest(object):
         return self
 
     def load_topic_page(self, slug):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/topics/", slug))
+        self.driver.get(urllib.parse.urljoin(self.base_url, "/topics/" + slug))
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".storyTitle")))
         return self
 

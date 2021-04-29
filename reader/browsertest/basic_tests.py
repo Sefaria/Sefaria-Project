@@ -244,53 +244,60 @@ class ChangeTextLanguage(AtomicTest):
         assert 'hebrew' in self.get_content_language()
         assert 'english' not in self.get_content_language()
         assert 'bilingual' not in self.get_content_language()
-        assert sgmnt_heb.is_displayed() == True
-        assert sgmnt_eng.is_displayed() == False
+        assert self.has_hebrew_text() == True
+        assert self.has_english_text() == False
         self.toggle_on_text_settings()
         self.toggle_language_english()
         assert 'hebrew' not in self.get_content_language()
         assert 'english' in self.get_content_language()
         assert 'bilingual' not in self.get_content_language()
-        assert sgmnt_heb.is_displayed() == False
-        assert sgmnt_eng.is_displayed() == True
+        assert self.has_hebrew_text() == False
+        assert self.has_english_text() == True
         self.toggle_on_text_settings()
         self.toggle_language_bilingual()
         assert 'hebrew' not in self.get_content_language()
         assert 'english' not in self.get_content_language()
         assert 'bilingual' in self.get_content_language()
-        assert sgmnt_heb.is_displayed() == True
-        assert sgmnt_eng.is_displayed() == True
+        assert self.has_hebrew_text() == True
+        assert self.has_english_text() == True
         self.get_content_language()
 
 
-class TextSettings(AtomicTest):
+class FontSizeTest(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
 
     def body(self):
-        larger = 21.6
-        smaller = 18.7826
-        just_text = 'בראשית ברא אלהים את השמים ואת הארץ'
-        text_with_vowels = 'בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃'
-        text_with_cantillation = 'בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
-        self.load_ref("Genesis 1")
-        # 1] Language: heb/eng/bilingual
+        self.load_ref("Job 12")
         self.toggle_on_text_settings()
-        self.toggle_language_english()
-        assert not self.get_nth_section_hebrew(1).is_displayed()
-        assert self.get_nth_section_english(1).is_displayed()
+        font_size_original = self.get_font_size()
+        self.toggle_fontSize_smaller()
+        font_size_smaller = self.get_font_size()
 
-        self.toggle_on_text_settings()
-        self.toggle_language_hebrew()
-        assert self.get_nth_section_hebrew(1).is_displayed()
-        assert not self.get_nth_section_english(1).is_displayed()
+        # self.toggle_text_settings()
+        self.toggle_fontSize_larger()
+        font_size_larger = self.get_font_size()
+        assert font_size_larger > font_size_smaller
 
-        self.toggle_on_text_settings()
-        self.toggle_language_bilingual()
-        assert self.get_nth_section_hebrew(1).is_displayed()
-        assert self.get_nth_section_english(1).is_displayed()
+'''
+class AliyotTest(AtomicTest):
+    # 4] Aliyot: on off
+        # todo: Set up scroll_to_segment then enable this
+        # self.toggle_aliyotTorah_aliyotOn()
+        # self.scroll_to_segment(Ref("Genesis 2:4"))
+        # assert self.is_aliyot_displayed()
 
-        # 2] Layout: left/right/stacked
+        # self.toggle_on_text_settings()
+        # self.toggle_aliyotTorah_aliyotOff()
+        # self.scroll_reader_panel_to_bottom()
+        # assert not self.is_aliyot_displayed()
+'''
+
+class LayoutSettings(AtomicTest):
+    # 2] Layout: left/right/stacked
+
+    def body(self):
+        self.load_ref("Job 12")
         if not self.single_panel:
             self.toggle_on_text_settings()
             self.toggle_bilingual_layout_heLeft()
@@ -304,30 +311,18 @@ class TextSettings(AtomicTest):
             self.toggle_bilingual_layout_stacked()
             assert self.get_content_layout_direction() == 'stacked'
 
-        # 3] Font size: small/large
+
+class TextVocalizationSettings(AtomicTest):
+    suite_class = PageloadSuite
+    every_build = True
+
+    def body(self):
+        just_text = 'בראשית ברא אלהים את השמים ואת הארץ'
+        text_with_vowels = 'בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃'
+        text_with_cantillation = 'בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
+        self.load_ref("Genesis 1")
+
         self.toggle_on_text_settings()
-        font_size_original = self.get_font_size()
-        self.toggle_fontSize_smaller()
-        font_size_smaller = self.get_font_size()
-
-        # self.toggle_text_settings()
-        self.toggle_fontSize_larger()
-        font_size_larger = self.get_font_size()
-        assert font_size_larger > font_size_smaller
-
-        # 4] Aliyot: on off
-        # todo: Set up scroll_to_segment then enable this
-        # self.toggle_aliyotTorah_aliyotOn()
-        # self.scroll_to_segment(Ref("Genesis 2:4"))
-        # assert self.is_aliyot_displayed()
-
-        # self.toggle_on_text_settings()
-        # self.toggle_aliyotTorah_aliyotOff()
-        # self.scroll_reader_panel_to_bottom()
-        # assert not self.is_aliyot_displayed()
-
-        # 5] Vocalization: vowels and cantillation
-        # self.toggle_on_text_settings()
         self.toggle_vowels_partial()
         assert self.get_nth_section_hebrew(1).text.strip() == text_with_vowels, "'{}' does not equal '{}'".format(self.get_nth_section_hebrew(1).text.strip(), text_with_vowels)
 
