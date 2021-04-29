@@ -1097,7 +1097,7 @@ def edit_text(request, ref=None, lang=None, version=None):
                 text["edit_lang"] = lang if lang is not None else request.contentLang
                 text["edit_version"] = version
                 initJSON = json.dumps(text)
-        except:
+        except Exception as e:
             index = library.get_index(ref)
             if index:
                 ref = None

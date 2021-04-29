@@ -30,6 +30,7 @@ class ReaderSuite(TestSuite):
         #    pass
         self.load_toc(my_temper=60)
         #self.driver.delete_all_cookies()
+        self.close_modal_popup()
         self.click_accept_cookies()
         #self.set_cookies_cookie()
         
@@ -50,6 +51,7 @@ class PageloadSuite(TestSuite):
         #    pass
         self.load_toc(my_temper=60)
         #self.driver.delete_all_cookies()
+        self.close_modal_popup()
         self.click_accept_cookies()
         #self.set_cookies_cookie()
         
@@ -89,6 +91,7 @@ class DeleteContentInEditor(AtomicTest):
     suite_class = EditorSuite
     every_build = False
     single_panel = False  # No source sheets on mobile
+
     def body(self):
         self.delete_sheet_content("back")
         self.delete_sheet_content("forward")
@@ -208,14 +211,14 @@ class InTextSectionHeaders(AtomicTest):
         self.click_source_title()
         self.click_masechet_and_chapter('2','3')
         section = self.get_section_txt('1')
-        assert 'רבי זירא הוה משתמיט' in strip_nikkud(section)
+        assert 'רבי זירא הוה' in strip_nikkud(section)
 
         self.load_toc()
-        self.click_toc_category("Midrash").click_toc_text("Seder Olam Rabbah")
+        self.click_toc_category("Midrash").click_toc_text("Midrash Mishlei")
         self.click_source_title()
         self.click_chapter('4')
         section = self.get_section_txt('1')
-        assert 'פרק ד ' == section
+        assert 'מכל משמר נצור ליבך' in section
 
 
 class ChangeTextLanguage(AtomicTest):
@@ -446,6 +449,8 @@ class SideBarEntries(AtomicTest):
         self.click_resources_on_sidebar()
 
         self.click_sidebar_button("Tools")
+        self.click_resources_on_sidebar()
+
         self.click_sidebar_button("Share")
         '''
         Buggy.  Doesn't work on Safari. Mobile?
@@ -890,6 +895,8 @@ class SaveNewSourceSheet(AtomicTest):
         self.login_user()
         self.nav_to_sheets()
 
+        time.sleep(2)   #  If we enter text before the js is ready, we don't get a dropdown menu.
+
         textBox = self.driver.find_element_by_css_selector("#inlineAdd")
 
         textBox.send_keys("Genesis")
@@ -968,7 +975,6 @@ class EditorPagesLoad(AtomicTest):
         self.load_toc()
         #logged in stuff
         self.login_user()
-        self.load_translate("Shabbat 43b")
         # self.load_edit("Genesis 1", "en", "Sefaria Community Translation") -- need debugging, threw a 500 on travis, works local
         self.load_add("Mishnah Peah 4")
 
