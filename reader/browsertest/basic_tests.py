@@ -168,17 +168,11 @@ class PagesLoad(AtomicTest):
         self.load_toc()
         self.click_toc_category("Midrash").click_toc_text("Ein Yaakov")
         self.load_ref("Psalms.104")
-        print("Done loading Psalms 104")
         self.load_ref("Job.3")
-        print("Done loading Job 3")
         self.load_topics()
-        print("Done loading topics")
         self.load_gardens()
-        print("Done loading gardens")
         self.load_home()
-        print("Done loading home")
         self.load_people()
-        print("Done loading people ")
 
 class PagesLoadLoggedIn(AtomicTest):
     suite_class = PageloadSuite
@@ -189,14 +183,9 @@ class PagesLoadLoggedIn(AtomicTest):
         self.login_user()
         self.load_my_profile()
         # self.load_notifications()
-        print("Done loading user")
-        # self.load_notifications()
         self.nav_to_account() # load_account might be superceded by load_my_profile or nav_to_account
-        print("Done loading account")
         self.load_private_sheets()
-        print("Done loading private sheets")
         ## self.load_private_groups() # fails -- /my/groups no longer exists
-        print("Done loading private groups")
         self.load_notifications()
 
 
