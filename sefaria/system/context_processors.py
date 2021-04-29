@@ -136,11 +136,14 @@ def header_html(request):
 
         LOGGED_OUT_HEADER = "" if "appLoading" in LOGGED_OUT_HEADER else LOGGED_OUT_HEADER
         LOGGED_IN_HEADER = "" if "appLoading" in LOGGED_IN_HEADER else LOGGED_IN_HEADER
+        MOBILE_HEADER = "" if "appLoading" in MOBILE_HEADER else MOBILE_HEADER
         HEADER['logged_out'][lang] = LOGGED_OUT_HEADER
         HEADER['logged_in'][lang] = LOGGED_IN_HEADER
+        HEADER['mobile'][lang] = MOBILE_HEADER
     else:
         LOGGED_OUT_HEADER = ""
         LOGGED_IN_HEADER = ""
+        MOBILE_HEADER = ""
     return {
         "logged_in_header": LOGGED_IN_HEADER,
         "logged_out_header": LOGGED_OUT_HEADER,

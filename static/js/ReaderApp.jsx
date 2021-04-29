@@ -1657,9 +1657,11 @@ class ReaderApp extends Component {
       widths = panelStates.map( panel => evenWidth );
     }
     // Header should not show box-shadow over panels that have color line
+    const menuOpen = this.state.panels?.[0]?.menuOpen;
     const hasColorLine = ["sheets", "sheets meta"];
-    const headerHasBoxShadow = hasColorLine.indexOf(this.state.panels[0].menuOpen) === -1;
-    const hideHeader = !this.props.multiPanel && (!this.state.panels[0].menuOpen || this.state.panels[0].menuOpen === "text toc");
+    const headerHasBoxShadow = hasColorLine.indexOf(menuOpen) === -1;
+    // Header is hidden on certain mobile panels, but still rendered so the mobileNavMenu can be opened
+    const hideHeader = !this.props.multiPanel && !this.state.headerMode && (!menuOpen || menuOpen === "text toc");
     const header = (
       <Header
         multiPanel={this.props.multiPanel}
@@ -1671,9 +1673,9 @@ class ReaderApp extends Component {
         hidden={hideHeader}
         mobileNavMenuOpen={this.state.mobileNavMenuOpen}
         onMobileMenuButtonClick={this.toggleMobileNavMenu}
-        hasLanguageToggle={!this.props.multiPanel && Sefaria.interfaceLang !== "hebrew" && this.state.panels[0].menuOpen === "navigation"}
+        hasLanguageToggle={!this.props.multiPanel && Sefaria.interfaceLang !== "hebrew" && this.state.panels?.[0]?.menuOpen === "navigation"}
         toggleLanguage={this.toggleLanguageInFirstPanel}
-        firstPanelLanguage={this.state.panels[0].settings.language}
+        firstPanelLanguage={this.state.panels?.[0]?.settings?.language}
         hasBoxShadow={headerHasBoxShadow} />
     );
     var panels = [];
