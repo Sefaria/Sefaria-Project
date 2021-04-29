@@ -23,6 +23,7 @@ class TextColumn extends Component {
     this.scrollPlaceholderHeight = 90;
     this.scrollPlaceholderMargin = 30;
     this.highlightThreshhold = props.multiPanel ? 140 : 70;
+    this.windowMiddle        = $(window).outerHeight() / (props.mode === "TextAndConnections" ? 4 : 2);
     return;
   }  
   componentDidMount() {
@@ -30,7 +31,6 @@ class TextColumn extends Component {
     this.node                = ReactDOM.findDOMNode(this)
     this.$container          = $(this.node);
     this.initialScrollTopSet = false;
-    this.windowMiddle        = $(window).outerHeight() / 2;
 
     // Set on mount, so placeholders aren't rendered server side to prevent intial layout shift
     this.setState({showScrollPlaceholders: true});
@@ -283,7 +283,7 @@ class TextColumn extends Component {
   }
   adjustHighlightedAndVisible() {
     //console.log("adjustHighlightedAndVisible");
-    // Adjust which ref is current consider visible for header and URL,
+    // Adjust which ref is currently consider visible for header and URL,
     // and while the TextList is open, update which segment should be highlighted.
     // Keeping the highlightedRefs value in the panel ensures it will return
     // to the right location after closing other panels.

@@ -320,6 +320,8 @@ class ReaderApp extends Component {
           p.textSearchState = p.textSearchState && new SearchState(p.textSearchState);
           p.sheetSearchState = p.sheetSearchState && new SearchState(p.sheetSearchState);
         }
+      } else {
+        state.panels = [];
       }
 
       if (!h && state.panels) {
@@ -1020,9 +1022,10 @@ class ReaderApp extends Component {
       this.closePanel(n+1);
     }
   }
-  handleCitationClick(n, citationRef, textRef) {
+  handleCitationClick(n, citationRef, textRef, replace) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
-    if (this.state.panels.length > n+1  && this.state.panels[n+1].mode === "Connections") {
+    // If `replace`, replace a following panel with this citation, otherwise open a new panel after.
+    if (this.state.panels.length > n+1  && (replace || this.state.panels[n+1].mode === "Connections")) {
       this.closePanel(n+1);
     }
     this.setTextListHighlight(n, [textRef]);
@@ -1066,18 +1069,28 @@ class ReaderApp extends Component {
     if (el.target && el.target !== '_self') {
       return;
     }
-    const path = el.getAttribute('href');
-    if (!path) {
+    const href = el.getAttribute('href');
+    if (!href) {
       return;
     }
 
-    const handled = this.openURL(path);
+    const handled = this.openURL(href);
     if (handled) {
       e.preventDefault();
     }
   }
-  openURL(path) {
-    // Attempts to open `path` in app, return true if successful.
+  openURL(href) {
+    // Attempts to open `href` in app, return true if successful.
+    let path = href;
+    try {
+      const url = new URL(href);
+      // Allow absolute URLs pointing to Sefaria. TODO generalize to any domain of current deploy.
+      if (url.hostname.indexOf("sefaria.org") === -1) {
+        return false;
+      }
+      path = url.pathname;
+    } catch { }
+
     // TODO: Handle links with URL params
     if (path.indexOf("?") !== -1) {
       return false;
@@ -1103,16 +1116,16 @@ class ReaderApp extends Component {
     } else if (path == "/torahtracker") {
       this.showUserStats();
 
-    } else if (path.match(/\/sheets\/\d+/)) {
+    } else if (path.match(/^\/sheets\/\d+/)) {
       this.openPanel("Sheet " + path.slice(8));
 
-    } else if (path.match(/\/topics\/[^\/]+/)) {
+    } else if (path.match(/^\/topics\/[^\/]+/)) {
       this.openTopic(path.slice(8));
 
-    } else if (path.match(/\/profile\/.+/)) {
+    } else if (path.match(/^\/profile\/.+/)) {
       this.openProfile(path.slice(9));
 
-    } else if (path.match(/\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
+    } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
       this.openCollection(path.slice(13));
 
     } else if (Sefaria.isRef(path.slice(1))) {
@@ -1427,7 +1440,7 @@ class ReaderApp extends Component {
       const [sheetId, sheetNode] = parsedRef.sections;
       // a bit messy to put async func here. Ideally `sheet` would not be stored in props
       const sheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(sheetId, sheet => resolve(sheet))));
-      panel = this.makePanelState({mode: 'Sheet', sheet});
+      panel = this.makePanelState({mode: 'Sheet', sheet, highlightedNodes: sheetNode});
     } else {  // Text
       if (ref.constructor === Array) {
         // When called with an array, set highlight for the whole spanning range of the array

@@ -233,12 +233,9 @@ class ReaderPanel extends Component {
       }
     }
   }
-  handleSheetCitationClick(ref) {
-    this.props.onCitationClick(ref);
-  }
-  handleCitationClick(citationRef, textRef) {
+  handleCitationClick(citationRef, textRef, replace) {
     if (this.props.multiPanel) {
-      this.props.onCitationClick(citationRef, textRef);
+      this.props.onCitationClick(citationRef, textRef, replace);
     } else {
       this.showBaseText(citationRef);
     }
@@ -303,6 +300,11 @@ class ReaderPanel extends Component {
       let splitArray = refs.map(ref => Sefaria.splitRangingRef(ref));
       highlightedRefs = [].concat.apply([], splitArray);
     } else {
+      const oRef = Sefaria.parseRef(ref);
+      if (oRef.book === "Sheet") {
+        this.openSheet(ref);
+        return;
+      }
       refs = [ref];
       currentlyVisibleRef = ref;
       highlightedRefs = [];
@@ -321,6 +323,7 @@ class ReaderPanel extends Component {
       recentFilters: [],
       menuOpen: null,
       compare: false,
+      sheet: null,
       connectionsMode: "Resources",
       settings: this.state.settings
     });
@@ -636,18 +639,18 @@ class ReaderPanel extends Component {
   render() {
     if (this.state.error) {
       return (
-          <div className="readerContent">
-            <div className="readerError">
-              <span className="int-en">Something went wrong! Please use the back button or the menus above to get back on track.</span>
-              <span className="int-he">ארעה תקלה במערכת. אנא חזרו לתפריט הראשי או אחורנית על ידי שימוש בכפתורי התפריט או החזור.</span>
-              <div className="readerErrorText">
-                <span className="int-en">Error Message: </span>
-                <span className="int-he">שגיאה:</span>
-                {this.state.error}
-              </div>
+        <div className="readerContent">
+          <div className="readerError">
+            <span className="int-en">Something went wrong! Please use the back button or the menus above to get back on track.</span>
+            <span className="int-he">ארעה תקלה במערכת. אנא חזרו לתפריט הראשי או אחורנית על ידי שימוש בכפתורי התפריט או החזור.</span>
+            <div className="readerErrorText">
+              <span className="int-en">Error Message: </span>
+              <span className="int-he">שגיאה:</span>
+              {this.state.error}
             </div>
           </div>
-        );
+        </div>
+      );
     }
 
     let items = [];
@@ -660,25 +663,27 @@ class ReaderPanel extends Component {
         delete newSheet.editor
         this.conditionalSetState({ sheet: newSheet});
       }
-        items.push(<Sheet
+      items.push(
+        <Sheet
           panelPosition ={this.props.panelPosition}
           id={this.state.sheet.id}
           key={"sheet-"+this.state.sheet.id}
           highlightedNodes={this.state.highlightedNodes}
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
-          onRefClick={this.handleSheetCitationClick}
+          onRefClick={this.handleCitationClick}
           hasSidebar={this.props.hasSidebar}
           setSelectedWords={this.setSelectedWords}
           contentLang={this.state.settings.language}
-          interfaceLang={this.props.interfaceLang}
           onSegmentClick={this.handleSheetSegmentClick}
-      />);
+        />
+      );
     }
     if (this.state.mode === "Text" || this.state.mode === "TextAndConnections") {
       const oref  = Sefaria.parseRef(this.state.refs[0]);
       const index = oref && oref.index ? Sefaria.index(oref.index) : null;
       const [textColumnBookTitle, heTextColumnBookTitle] = index ? [index.title, index.heTitle] : [null, null];
-      items.push(<TextColumn
+      items.push(
+        <TextColumn
           panelPosition ={this.props.panelPosition}
           srefs={this.state.refs.slice()}
           currVersions={this.state.currVersions}
@@ -709,7 +714,8 @@ class ReaderPanel extends Component {
           filter={this.state.filter}
           textHighlights={this.state.textHighlights}
           unsetTextHighlight={this.props.unsetTextHighlight}
-          key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />);
+          key={`${textColumnBookTitle ? textColumnBookTitle : "empty"}-TextColumn`} />
+      );
     }
 
     if (this.state.mode === "Connections" || this.state.mode === "TextAndConnections" || this.state.mode === "SheetAndConnections") {

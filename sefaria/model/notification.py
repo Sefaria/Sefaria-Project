@@ -354,6 +354,12 @@ class NotificationSet(abst.AbstractMongoSet):
         return "".join(html)
 
 
-
-
+def process_sheet_deletion_in_notifications(sheet_id):
+    """
+    When a sheet is deleted remove it from any collections.
+    Note: this function is not tied through dependencies.py (since Sheet mongo model isn't generlly used),
+    but is called directly from sheet deletion view in sourcesheets/views.py. 
+    """
+    ns = NotificationSet({"content.sheet_id": sheet_id})
+    ns.delete()
 
