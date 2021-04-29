@@ -386,6 +386,7 @@ input.noselect {
   display: none;
 }
 .interface-hebrew #panelWrapBox,
+.readerApp.interface-hebrew .readerPanel
 {
   direction: rtl;
 }
