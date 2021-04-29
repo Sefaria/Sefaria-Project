@@ -301,7 +301,7 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.segment')))
 
     def click_source_title(self):
-        title_selector = 'div.readerTextToc > div > a'
+        title_selector = 'div.readerTextToc h1 > a'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, title_selector))
         )
@@ -309,7 +309,7 @@ class AbstractTest(object):
         ttl.click()
 
     def click_chapter(self, cptr):
-        chapter_selector = 'div.content div.tocLevel div div div a:nth-child('+ cptr + ')'
+        chapter_selector = 'div.content div.tocLevel a.sectionLink:nth-child('+ cptr + ')'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, chapter_selector))
         )
@@ -376,9 +376,13 @@ class AbstractTest(object):
     def click_sidebar_button(self, name):
         self.click_object_by_css_selector('a.toolsButton[data-name="{}"]'.format(name))
 
-    def close_join_sefaria_popup(self):
-        self.driver.find_element_by_css_selector('#interruptingMessage #interruptingMessageClose')
-        self.click_object_by_css_selector('#interruptingMessage #interruptingMessageClose')
+    def close_modal_popup(self):
+        time.sleep(3)
+        try:
+            self.driver.find_element_by_css_selector('#interruptingMessage #interruptingMessageClose')
+            self.click_object_by_css_selector('#interruptingMessage #interruptingMessageClose')
+        except NoSuchElementException:
+            pass
 
     def close_popup_with_accept(self):
         try:
@@ -613,11 +617,11 @@ class AbstractTest(object):
         self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.all')
 
     def get_nth_section_english(self, n):
-        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') > div.segment > p.en'
+        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') .segmentText > span.en'
         return self.get_nth_section(selector)
 
     def get_nth_section_hebrew(self, n):
-        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') > div.segment > p.he'
+        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') .segmentText > span.he'
         return self.get_nth_section(selector)
 
     def get_content_layout_direction(self):
@@ -783,7 +787,7 @@ class AbstractTest(object):
         return new_url
 
     def get_section_txt(self, vrs):
-        verse_selector = '#panel-0 div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + vrs + ') > div > p.he'
+        verse_selector = '#panel-0 div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + vrs + ') > div p.segmentText > span.he'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, verse_selector))
         )
@@ -793,8 +797,8 @@ class AbstractTest(object):
 
     def click_masechet_and_chapter(self, masechet, cptr):
         #The Masechtot and Chapters 1 based index
-        masechet_selector = 'div.content div div:nth-child(3) div div.tocContent div.tocLevel div:nth-child(' + masechet + ') span span.en i'
-        chapter_selector = 'div.content div div:nth-child(3) div div.tocContent div.tocLevel div:nth-child(' + masechet + ') div a:nth-child(' + cptr + ')'
+        masechet_selector = 'div.tocContent div.tocLevel div:nth-child(' + masechet + ') span span.en'
+        chapter_selector = 'div.tocContent div.tocLevel div:nth-child(' + masechet + ') div a:nth-child(' + cptr + ')'
 
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, masechet_selector))
@@ -1171,18 +1175,6 @@ class AbstractTest(object):
         return self
 
     # Editing
-    def load_translate(self, ref):
-        if isinstance(ref, str):
-            ref = Ref(ref)
-        assert isinstance(ref, Ref)
-        url = urllib.parse.urljoin(self.base_url, "/translate/")
-        url = urllib.parse.urljoin(url, ref.url())
-        print(url)
-        self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
-        # WebDriverWait(driver, 15).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
-        return self
-
     def load_edit(self, ref, lang, version):
         if isinstance(ref, str):
             ref = Ref(ref)
