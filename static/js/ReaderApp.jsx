@@ -1022,9 +1022,10 @@ class ReaderApp extends Component {
       this.closePanel(n+1);
     }
   }
-  handleCitationClick(n, citationRef, textRef) {
+  handleCitationClick(n, citationRef, textRef, replace) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
-    if (this.state.panels.length > n+1  && this.state.panels[n+1].mode === "Connections") {
+    // If `replace`, replace a following panel with this citation, otherwise open a new panel after.
+    if (this.state.panels.length > n+1  && (replace || this.state.panels[n+1].mode === "Connections")) {
       this.closePanel(n+1);
     }
     this.setTextListHighlight(n, [textRef]);
@@ -1439,7 +1440,7 @@ class ReaderApp extends Component {
       const [sheetId, sheetNode] = parsedRef.sections;
       // a bit messy to put async func here. Ideally `sheet` would not be stored in props
       const sheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(sheetId, sheet => resolve(sheet))));
-      panel = this.makePanelState({mode: 'Sheet', sheet});
+      panel = this.makePanelState({mode: 'Sheet', sheet, highlightedNodes: sheetNode});
     } else {  // Text
       if (ref.constructor === Array) {
         // When called with an array, set highlight for the whole spanning range of the array

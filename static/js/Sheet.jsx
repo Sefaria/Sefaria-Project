@@ -26,7 +26,6 @@ class Sheet extends Component {
     this.$container = $(ReactDOM.findDOMNode(this));
     this.setPaddingForScrollbar();
     this.ensureData();
-
   }
   getSheetFromCache() {
     return Sefaria.sheets.loadSheetByID(this.props.id);
@@ -60,32 +59,34 @@ class Sheet extends Component {
     var width = Sefaria.util.getScrollbarWidth();
     this.$container.css({paddingRight: 0, paddingLeft: width});
   }
-  handleClick(ref, e) {
-    e.preventDefault();
-    e.stopPropagation();
-    this.props.onRefClick(ref);
+  handleLinkClick(e) {
+    if (e.target.tagName.toLowerCase() === 'a') {
+      e.preventDefault();
+      e.stopPropagation();
+      const href = event.target.href;
+      let path = href;
+      try {
+        const url = new URL(href);
+        // Allow absolute URLs pointing to Sefaria. TODO generalize to any domain of current deployment.
+        if (url.hostname.indexOf("sefaria.org") === -1) {
+          path = null;
+        }
+        path = url.pathname;
+      } catch { }
+
+      let match;
+      if (path && Sefaria.isRef(path.slice(1))) {
+        this.props.onRefClick(Sefaria.humanRef(path.slice(1)), [], true)
+
+      } else if (path && (match = path.match(/^\/sheets\/(\d+(\.\d+)?)/))) {
+        const sheetId = match[1];
+        this.props.onRefClick("Sheet " + sheetId, [], true);
+      
+      } else {
+        window.open(e.target.href, "_blank");        
+      }
+    }    
   }
-
-  sheetSourceClick(source, event) {
-    if ($(event.target).hasClass("refLink") && $(event.target).attr("data-ref")) {
-      event.preventDefault();
-      let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
-      this.handleClick(ref, event);
-      event.stopPropagation();
-      Sefaria.track.event("Reader", "Citation Link Click", ref);
-    }
-
-    if(event.target.tagName.toLowerCase() === 'a') {
-      window.open(event.target.href, "_blank");
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    else {
-      this.props.onSegmentClick(source);
-    }
-  }
-
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
@@ -95,44 +96,44 @@ class Sheet extends Component {
     }
     else {
       content = (
-          <SheetContent
-            sources={sheet.sources}
-            title={sheet.title}
-            onRefClick={this.props.onRefClick}
-            onSegmentClick={this.props.onSegmentClick}
-            highlightedNodes={this.props.highlightedNodes}
-            highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-            authorStatement={sheet.ownerName}
-            authorUrl={sheet.ownerProfileUrl}
-            authorImage={sheet.ownerImageUrl}
-            collectionName={sheet.collectionName}
-            collectionSlug={sheet.displayedCollection}
-            collectionImage={sheet.collectionImage}
-            editable={Sefaria._uid == sheet.owner}
-            sheetSourceClick={this.sheetSourceClick}
-            hasSidebar={this.props.hasSidebar}
-            setSelectedWords={this.props.setSelectedWords}
-            sheetNumbered={sheet.options.numbered}
-            hideImages={!!sheet.hideImages}
-            sheetID={sheet.id}
-          />
-      )
+        <SheetContent
+          sources={sheet.sources}
+          title={sheet.title}
+          onRefClick={this.props.onRefClick}
+          onSegmentClick={this.props.onSegmentClick}
+          highlightedNodes={this.props.highlightedNodes}
+          highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+          authorStatement={sheet.ownerName}
+          authorUrl={sheet.ownerProfileUrl}
+          authorImage={sheet.ownerImageUrl}
+          collectionName={sheet.collectionName}
+          collectionSlug={sheet.displayedCollection}
+          collectionImage={sheet.collectionImage}
+          editable={Sefaria._uid == sheet.owner}
+          sheetSourceClick={this.props.onSegmentClick}
+          hasSidebar={this.props.hasSidebar}
+          setSelectedWords={this.props.setSelectedWords}
+          sheetNumbered={sheet.options.numbered}
+          hideImages={!!sheet.hideImages}
+          sheetID={sheet.id}
+        />
+      );
     }
     return (
-        <div className={classes}>
-          { sheet && Sefaria._uid == sheet.owner && Sefaria._uses_new_editor ?
-            <div className="sheetContent">
-              <SefariaEditor
-                  data={sheet}
-                  hasSidebar={this.props.hasSidebar}
-                  sheetSourceClick={this.props.onSegmentClick}
-                  highlightedNodes={this.props.highlightedNodes}
-                  highlightedRefsInSheet={this.props.highlightedRefsInSheet}
-              />
-            </div>
-            : content}
+      <div className={classes} onClick={this.handleLinkClick}>
+        { sheet && Sefaria._uid == sheet.owner && Sefaria._uses_new_editor ?
+        <div className="sheetContent">
+          <SefariaEditor
+            data={sheet}
+            hasSidebar={this.props.hasSidebar}
+            sheetSourceClick={this.props.onSegmentClick}
+            highlightedNodes={this.props.highlightedNodes}
+            highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+          />
         </div>
-    )
+        : content }
+      </div>
+    );
   }
 }
 
@@ -160,7 +161,6 @@ class SheetContent extends Component {
     this.debouncedAdjustHighlightedAndVisible();
   }
   handleTextSelection() {
-    console.log('here!')
     const selectedWords = Sefaria.util.getNormalizedSelectionString(); //this gets around the above issue
     if (selectedWords !== this.props.selectedWords) {
       //console.log("setting selecting words")
@@ -239,13 +239,12 @@ class SheetContent extends Component {
             source={source}
             sourceNum={i + 1}
             linkCount={Sefaria.linkCount(source.ref)}
-            handleClick={this.props.handleClick}
             cleanHTML={this.cleanHTML}
             sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
             highlighted={highlighted}
             sheetNumbered={this.props.sheetNumbered}
           />
-        )
+        );
       }
 
       else if ("comment" in source) {
@@ -254,13 +253,12 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
-            handleClick={this.props.handleClick}
             cleanHTML={this.cleanHTML}
             sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
             highlightedNodes={this.props.highlightedNodes}
             sheetNumbered={this.props.sheetNumbered}
           />
-        )
+        );
       }
 
       else if ("outsideText" in source) {
@@ -269,13 +267,12 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
-            handleClick={this.props.handleClick}
             cleanHTML={this.cleanHTML}
             sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
             highlightedNodes={this.props.highlightedNodes}
             sheetNumbered={this.props.sheetNumbered}
          />
-        )
+        );
       }
 
       else if ("outsideBiText" in source) {
@@ -284,13 +281,12 @@ class SheetContent extends Component {
             key={i}
             sourceNum={i + 1}
             source={source}
-            handleClick={this.props.handleClick}
             cleanHTML={this.cleanHTML}
             sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
             highlightedNodes={this.props.highlightedNodes}
             sheetNumbered={this.props.sheetNumbered}
           />
-        )
+        );
       }
 
       else if ("media" in source) {
@@ -298,7 +294,6 @@ class SheetContent extends Component {
           <SheetMedia
             key={i}
             sourceNum={i + 1}
-            handleClick={this.props.handleClick}
             cleanHTML={this.cleanHTML}
             source={source}
             sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
@@ -306,7 +301,7 @@ class SheetContent extends Component {
             sheetNumbered={this.props.sheetNumbered}
             hideImages={this.props.hideImages}
           />
-        )
+        );
       }
 
     }, this) : null;
@@ -314,29 +309,29 @@ class SheetContent extends Component {
     return (
       <div className="sheetContent">
         <SheetMetaDataBox>
-            <SheetTitle title={this.props.title} />
-            <SheetAuthorStatement
-                authorUrl={this.props.authorUrl}
-                authorStatement={this.props.authorStatement}
-            >
-              <ProfilePic
-                url={this.props.authorImage}
-                len={30}
-                name={this.props.authorStatement}
-                outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
-              />
-              <span>by <a href={this.props.authorUrl}>{this.props.authorStatement}</a></span>
-            </SheetAuthorStatement>
-            <CollectionStatement
-                name={this.props.collectionName}
-                slug={this.props.collectionSlug}
-                image={this.props.collectionImage}
+          <SheetTitle title={this.props.title} />
+          <SheetAuthorStatement
+            authorUrl={this.props.authorUrl}
+            authorStatement={this.props.authorStatement} >
+            <ProfilePic
+              url={this.props.authorImage}
+              len={30}
+              name={this.props.authorStatement}
+              outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
             />
+            <span>by <a href={this.props.authorUrl}>{this.props.authorStatement}</a></span>
+          </SheetAuthorStatement>
+          <CollectionStatement
+              name={this.props.collectionName}
+              slug={this.props.collectionSlug}
+              image={this.props.collectionImage}
+          />
         </SheetMetaDataBox>
 
         <div className="text">
             <div className="textInner" onMouseUp={this.handleTextSelection}>{sources}</div>
         </div>
+
         <div id="printFooter" style={{display:"none"}}>
           <span className="int-en">Created with <img src="/static/img/logo.svg" /></span>
           <span className="int-he">{Sefaria._("Created with")} <img src="/static/img/logo.svg" /></span>
@@ -347,176 +342,191 @@ class SheetContent extends Component {
 }
 
 
-class SheetItem extends Component {
-
-}
-
-
 class SheetSource extends Component {
   render() {
     var linkCountElement;
-      var linkCount = this.props.linkCount;
-      var minOpacity = 20, maxOpacity = 70;
-      var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
-      var style = {opacity: linkScore};
+    var linkCount = this.props.linkCount;
+    var minOpacity = 20, maxOpacity = 70;
+    var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
+    var style = {opacity: linkScore};
 
-      linkCountElement = (<div className="linkCount sans"  title={linkCount + " Connections Available"}>
-          <span className="linkCountDot" style={style}></span>
-        </div>);
+    linkCountElement = (<div className="linkCount sans"  title={linkCount + " Connections Available"}>
+        <span className="linkCountDot" style={style}></span>
+      </div>);
 
-      var containerClasses = classNames("sheetItem",
-          "segment",
-          this.props.highlighted ? "highlight" : null,
-          (this.props.source.text && this.props.source.text.en && this.props.source.text.en.stripHtml() == "...") || (this.props.source.text && (!this.props.source.text.en || !this.props.source.text.en.stripHtml())) ? "heOnly" : null,
-          (this.props.source.text && this.props.source.text.he && this.props.source.text.he.stripHtml() == "...") || (this.props.source.text && (!this.props.source.text.he || !this.props.source.text.he.stripHtml())) ? "enOnly" : null,
-          this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null
-      );
+    const containerClasses = classNames("sheetItem",
+      "segment",
+      this.props.highlighted ? "highlight" : null,
+      (this.props.source.text && this.props.source.text.en && this.props.source.text.en.stripHtml() == "...") || (this.props.source.text && (!this.props.source.text.en || !this.props.source.text.en.stripHtml())) ? "heOnly" : null,
+      (this.props.source.text && this.props.source.text.he && this.props.source.text.he.stripHtml() == "...") || (this.props.source.text && (!this.props.source.text.he || !this.props.source.text.he.stripHtml())) ? "enOnly" : null,
+      this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null
+    );
 
-       const sectionClasses= classNames("SheetSource",
-            this.props.highlighted ? "highlight" : null,
-            this.props.source.options ? this.props.source.options.indented : null,
-          )
+    const sectionClasses= classNames("SheetSource",
+      this.props.highlighted ? "highlight" : null,
+      this.props.source.options ? this.props.source.options.indented : null,
+    );
 
     return (
+      <section className={sectionClasses} style={{"borderColor": Sefaria.palette.refColor(this.props.source.ref)}}>
+        <div className={containerClasses} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+          {this.props.source.title ? 
+          <div className="customSourceTitle" role="heading" aria-level="3">
+            <div className="titleBox">{this.props.source.title.stripHtml()}</div>
+          </div> : null}
 
-        <section className={sectionClasses} style={{"borderColor": Sefaria.palette.refColor(this.props.source.ref)}}>
-      <div className={containerClasses} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
-          {this.props.source.title ? <div className="customSourceTitle" role="heading" aria-level="3"><div className="titleBox">{this.props.source.title.stripHtml()}</div></div> : null}
-
-
-            <div className="segmentNumber sheetSegmentNumber sans">
-              <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
-              <span className="he"> <span
-                className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
-            </div>
-
+          <div className="segmentNumber sheetSegmentNumber sans">
+            <span className="en">
+              <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
+            </span>
+            <span className="he">
+              <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span>
+            </span>
+          </div>
 
           {linkCountElement}
 
-        {this.props.source.text && this.props.source.text.he && this.props.source.text.he != "" ?
-            <div className="he">{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
-            <div className="ref">{this.props.source.options && this.props.source.options.PrependRefWithHe ? this.props.source.options.PrependRefWithHe : null}<a href={"/" + this.props.source.ref} onClick={(e) => {
-              this.props.handleClick(this.props.source.ref, e)
-            } }>{this.props.source.heRef}</a></div>
+          {this.props.source.text && this.props.source.text.he && this.props.source.text.he != "" ?
+          <div className="he">
+            {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="ref">
+              {this.props.source.options && this.props.source.options.PrependRefWithHe ? this.props.source.options.PrependRefWithHe : null}
+              <a href={"/" + Sefaria.normRef(this.props.source.ref)}>{this.props.source.heRef}</a>
+            </div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (Sefaria.util.cleanHTML(this.props.source.text.he))} }></div>
           </div> : null }
 
-
-        {this.props.source.text && this.props.source.text.en && this.props.source.text.en != "" ?
-          <div className="en">{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
-            <div className="ref">{this.props.source.options && this.props.source.options.PrependRefWithEn ? this.props.source.options.PrependRefWithEn : null}<a href={"/" + this.props.source.ref} onClick={(e) => {
-              this.props.handleClick(this.props.source.ref, e)
-            } }>{this.props.source.ref}</a></div>
+          {this.props.source.text && this.props.source.text.en && this.props.source.text.en != "" ?
+          <div className="en">
+            {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+            <div className="ref">
+              {this.props.source.options && this.props.source.options.PrependRefWithEn ? this.props.source.options.PrependRefWithEn : null}
+              <a href={"/" + Sefaria.normRef(this.props.source.ref)}>{this.props.source.ref}</a>
+            </div>
             <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: (Sefaria.util.cleanHTML(this.props.source.text.en))} }></div>
           </div> : null }
 
-        <div className="clearFix"></div>
+          <div className="clearFix"></div>
 
-        {this.props.source.addedBy ?
-            <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
-            : null
-        }
+          {this.props.source.addedBy ?
+          <div className="addedBy">
+            <small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
+          </div>
+          : null }
 
-      </div>
-        </section>
-    )
+        </div>
+      </section>
+    );
   }
 }
 
 
 class SheetComment extends Component {
   render() {
-      var lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
-      var containerClasses = classNames("sheetItem",
-          "segment",
-          lang == "he" ? "heOnly" : "enOnly",
-          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
-          this.props.source.options ? this.props.source.options.indented : null
-      );
+    const lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
+    const containerClasses = classNames("sheetItem",
+        "segment",
+        lang == "he" ? "heOnly" : "enOnly",
+        this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+        this.props.source.options ? this.props.source.options.indented : null
+    );
 
     return (
-        <section className="SheetComment">
-      <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
-            <div className="segmentNumber sheetSegmentNumber sans">
-              <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
-              <span className="he"> <span
-                className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
-            </div>
-        <div className={lang}>
-            <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.comment)} }></div>
+      <section className="SheetComment">
+        <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+          <div className="segmentNumber sheetSegmentNumber sans">
+            <span className="en">
+              <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
+            </span>
+            <span className="he">
+              <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span>
+            </span>
+          </div>
+          
+          <div className={lang}>
+              <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.comment)} }></div>
+          </div>
+
+          <div className="clearFix"></div>
+          {this.props.source.addedBy ?
+          <div className="addedBy">
+            <small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
+          </div>
+          : null }
+
         </div>
-        <div className="clearFix"></div>
-            {this.props.source.addedBy ?
-                <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
-                : null
-            }
-      </div>
-        </section>
-    )
+      </section>
+    );
   }
 }
 
 
 class SheetOutsideText extends Component {
   render() {
-    var lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
-
-      var containerClasses = classNames("sheetItem",
-          "segment",
-          lang == "he" ? "heOnly" : "enOnly",
-          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
-          this.props.source.options ? this.props.source.options.indented : null
-      )
-
+    const lang = Sefaria.hebrew.isHebrew(this.props.source.outsideText.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
+    const containerClasses = classNames("sheetItem",
+        "segment",
+        lang == "he" ? "heOnly" : "enOnly",
+        this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+        this.props.source.options ? this.props.source.options.indented : null
+    );
 
     return (
-                <section className="SheetOutsideText">
-      <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
-            <div className="segmentNumber sheetSegmentNumber sans">
-              <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
-              <span className="he"> <span
-                className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>
-            </div>
-        <div className={lang}>{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
-            <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.outsideText)} }></div>
-        </div>
-        <div className="clearFix"></div>
-        {this.props.source.addedBy ?
-            <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
-            : null
-        }
+      <section className="SheetOutsideText">
+        <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+          <div className="segmentNumber sheetSegmentNumber sans">
+            <span className="en">
+              <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
+            </span>
+            <span className="he">
+              <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span>
+            </span>
+          </div>
 
-      </div>
-                </section>
-    )
+          <div className={lang}>{this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
+              <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.outsideText)} }></div>
+          </div>
+
+          <div className="clearFix"></div>
+
+          {this.props.source.addedBy ?
+          <div className="addedBy">
+            <small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
+          </div>
+          : null }
+
+        </div>
+      </section>
+    );
   }
 }
 
 
 class SheetOutsideBiText extends Component {
   render() {
-      var containerClasses = classNames("sheetItem",
-          "segment",
-          (this.props.source.outsideBiText.en && this.props.source.outsideBiText.en.stripHtml() == "...") || (!this.props.source.outsideBiText.en.stripHtml()) ? "heOnly" : null,
-          (this.props.source.outsideBiText.he && this.props.source.outsideBiText.he.stripHtml() == "...") || (!this.props.source.outsideBiText.he.stripHtml()) ? "enOnly" : null,
-          this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
-      )
+    const containerClasses = classNames("sheetItem",
+      "segment",
+      (this.props.source.outsideBiText.en && this.props.source.outsideBiText.en.stripHtml() == "...") || (!this.props.source.outsideBiText.en.stripHtml()) ? "heOnly" : null,
+      (this.props.source.outsideBiText.he && this.props.source.outsideBiText.he.stripHtml() == "...") || (!this.props.source.outsideBiText.he.stripHtml()) ? "enOnly" : null,
+      this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+    );
 
-      const sectionClasses= classNames("SheetOutsideBiText",
-           this.props.source.options ? this.props.source.options.indented : null,
-         )
+    const sectionClasses= classNames("SheetOutsideBiText",
+      this.props.source.options ? this.props.source.options.indented : null,
+    );
 
     return (
       <section className={sectionClasses}>
-      <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
-            <div className="segmentNumber sheetSegmentNumber sans">
-              <span className="en">
-                  <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
-              </span>
-              <span className="he">
-                  <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span>
-              </span>
-            </div>
+        <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+          <div className="segmentNumber sheetSegmentNumber sans">
+            <span className="en">
+                <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
+            </span>
+            <span className="he">
+                <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span>
+            </span>
+          </div>
+
           <div className="he">
             {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
             <div className="sourceContentText outsideBiText" dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.outsideBiText.he)} }></div>
@@ -525,15 +535,18 @@ class SheetOutsideBiText extends Component {
             {this.props.source.options && this.props.source.options.sourcePrefix && this.props.source.options.sourcePrefix != "" ? <sup className="sourcePrefix">{this.props.source.options.sourcePrefix}</sup> : null }
             <div className="sourceContentText outsideBiText" dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.outsideBiText.en)} }></div>
           </div>
-        <div className="clearFix"></div>
-        {this.props.source.addedBy ?
-            <div className="addedBy"><small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small></div>
-            : null
-        }
 
-      </div>
-            </section>
-    )
+          <div className="clearFix"></div>
+
+          {this.props.source.addedBy ?
+          <div className="addedBy">
+            <small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
+          </div>
+          : null }
+
+        </div>
+      </section>
+    );
   }
 }
 
