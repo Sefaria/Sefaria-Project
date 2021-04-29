@@ -28,6 +28,7 @@ from sefaria.client.util import jsonResponse, HttpResponse
 from sefaria.model import *
 from sefaria.sheets import *
 from sefaria.model.user_profile import *
+from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.model.collection import Collection, CollectionSet, process_sheet_deletion_in_collections
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
@@ -365,6 +366,7 @@ def delete_sheet_api(request, sheet_id):
 
     db.sheets.remove({"id": id})
     process_sheet_deletion_in_collections(id)
+    process_sheet_deletion_in_notifications(id)
 
     try:
         es_index_name = search.get_new_and_current_index_names("sheet")['current']
