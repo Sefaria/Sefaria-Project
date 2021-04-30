@@ -1141,6 +1141,7 @@ InterfaceLanguageMenu.propTypes = {
 
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
+  if (!historyObject) { placeholder = true; }
   const isSelected = () => !!Sefaria.getSavedItem(historyObject);
   const [selected, setSelected] = useState(placeholder || isSelected());
   useEffect(() => {
@@ -1168,11 +1169,11 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   }
 
   return (
-      <ToolTipped {...{ altText, classes, style, onClick }}>
-        { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
-          <img src="/static/img/star.png" alt={altText}/> }
-      </ToolTipped>
-    );
+    <ToolTipped {...{ altText, classes, style, onClick }}>
+      { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
+        <img src="/static/img/star.png" alt={altText}/> }
+    </ToolTipped>
+  );
 }
 SaveButton.propTypes = {
   historyObject: PropTypes.shape({

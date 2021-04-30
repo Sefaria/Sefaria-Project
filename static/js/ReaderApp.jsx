@@ -58,7 +58,6 @@ class ReaderApp extends Component {
         panels[0] = {
           highlightedNodes: initialPanel.highlightedNodes,
           sheetID: initialPanel.sheetID,
-          sheet: initialPanel.sheet,
           refs: props.initialRefs,
           mode: mode,
           filter: props.initialFilter,
@@ -541,9 +540,10 @@ class ReaderApp extends Component {
             hist.mode = "book toc";
             break;
           case "sheet meta":
-            var sheetTitle = state.sheet.title.stripHtml();
+            const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
+            const sheetTitle = sheet? sheet.title.stripHtml() : "";
             hist.title = Sefaria._(siteName + " Source Sheets")+": " + sheetTitle;
-            hist.url = i == 0 ? "sheets/"+ state.sheet.id : "sheet&s="+ state.sheet.id;
+            hist.url = i == 0 ? "sheets/"+ state.sheetID : "sheet&s="+ state.sheetID;
             hist.mode = "sheet meta";
             break;
           case "extended notes":
@@ -700,24 +700,27 @@ class ReaderApp extends Component {
         hist.mode   = "Header"
 
       } else if (state.mode === "Sheet") {
-        hist.title = state.sheet.title.stripHtml();
-        var sheetURLSlug = state.highlightedNodes ? state.sheet.id + "." + state.highlightedNodes : state.sheet.id;
-        var filter    = state.filter.length ? state.filter :
+        const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
+        hist.title = sheet ? sheet.title.stripHtml() : "";
+        const sheetURLSlug = state.highlightedNodes ? state.sheetID + "." + state.highlightedNodes : state.sheetID;
+        const filter    = state.filter.length ? state.filter :
                           (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
-        hist.url = i == 0 ? "sheets/"+ sheetURLSlug : "sheet&s="+ sheetURLSlug;
+        hist.url = i == 0 ? "sheets/" + sheetURLSlug : "sheet&s=" + sheetURLSlug;
         hist.mode     = "Sheet"
 
       } else if (state.mode === "SheetAndConnections") {
-        var filter    = state.filter.length ? state.filter :
+        const filter    = state.filter.length ? state.filter :
                           (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
-        hist.title    = state.sheet.title.stripHtml()  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
-        hist.url = i == 0 ? "sheets/"+state.sheet.id : "sheet&s="+ state.sheet.id + "?with=" + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
-        hist.mode     = "SheetAndConnections";
+        const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
+        const title = sheet ? state.sheet.title.stripHtml() : "";
+        hist.title  = title + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        hist.url    = i == 0 ? "sheets/" + state.sheet.id : "sheet&s=" + state.sheet.id + "?with=" + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        hist.mode   = "SheetAndConnections";
       }
 
       if (state.mode !== "Header") {
@@ -882,7 +885,7 @@ class ReaderApp extends Component {
       navigationTopicCategory: state.navigationTopicCategory || "",
       showMoreTexts:           state.showMoreTexts           || Sefaria.toc.length < 9,
       showMoreTopics:          state.showMoreTopics          || false,
-      sheet:                   state.sheet                   || null,
+      sheetID:                 state.sheetID                 || null,
       sheetNodes:              state.sheetNodes              || null,
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
@@ -1007,7 +1010,7 @@ class ReaderApp extends Component {
       this.setTextListHighlight(n, refs);
     }
 
-    var nodeRef = sheetNode ? this.state.panels[n].sheet.id + "." + sheetNode : null;
+    var nodeRef = sheetNode ? this.state.panels[n].sheetID + "." + sheetNode : null;
 
     if (this.currentlyConnecting()) { return }
 
@@ -1028,7 +1031,9 @@ class ReaderApp extends Component {
     if (this.state.panels.length > n+1  && (replace || this.state.panels[n+1].mode === "Connections")) {
       this.closePanel(n+1);
     }
-    this.setTextListHighlight(n, [textRef]);
+    if (textRef) { 
+      this.setTextListHighlight(n, textRef);
+    }
     this.openPanelAt(n, citationRef);
   }
   openNamedEntityInNewPanel(n, textRef, namedEntityState) {
@@ -1301,10 +1306,7 @@ class ReaderApp extends Component {
         return true;
       }
     } else if (nextPanel.mode === 'Sheet') {
-      if (!prevPanel.sheet && !!nextPanel.sheet) { return true; }
-      if (!nextPanel.sheet && !!prevPanel.sheet) { return true; }
-      if (!prevPanel.sheet && !nextPanel.sheet) { return false; }
-      if (prevPanel.sheet.id !== nextPanel.sheet.id) { return true; }
+      if (prevPanel.sheetID !== nextPanel.sheetID) { return true; }
       return prevPanel.highlightedNodes !== nextPanel.highlightedNodes
     } else {
       return true;
@@ -1427,9 +1429,8 @@ class ReaderApp extends Component {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
-  async openPanelAt(n, ref, currVersions, options) {
+  openPanelAt(n, ref, currVersions, options) {
     // Open a new panel after `n` with the new ref
-
     // If book level, Open book toc
     const parsedRef = Sefaria.parseRef(ref);
     var index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
@@ -1437,10 +1438,13 @@ class ReaderApp extends Component {
     if (index) {
       panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
     } else if (parsedRef.book === "Sheet") {
-      const [sheetId, sheetNode] = parsedRef.sections;
-      // a bit messy to put async func here. Ideally `sheet` would not be stored in props
-      const sheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(sheetId, sheet => resolve(sheet))));
-      panel = this.makePanelState({mode: 'Sheet', sheet, highlightedNodes: sheetNode});
+      const [sheetID, sheetNode] = parsedRef.sections;
+      panel = this.makePanelState({
+        mode: 'Sheet',
+        sheetID: parseInt(sheetID),
+        highlightedNodes: parseInt(sheetNode),
+        refs: null
+      });
     } else {  // Text
       if (ref.constructor === Array) {
         // When called with an array, set highlight for the whole spanning range of the array
@@ -1454,7 +1458,13 @@ class ReaderApp extends Component {
         var highlightedRefs = [];
       }
       //console.log("Higlighted refs:", highlightedRefs)
-      panel = this.makePanelState({refs, currVersions, highlightedRefs, currentlyVisibleRef, mode: "Text", ...options });
+      panel = this.makePanelState({
+        refs,
+        currVersions,
+        highlightedRefs,
+        currentlyVisibleRef, mode: "Text",
+        ...options
+      });
     }
 
     var newPanels = this.state.panels.slice();
@@ -1466,13 +1476,9 @@ class ReaderApp extends Component {
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
-  async replacePanel(n, ref, currVersions, options) {
-    
+  replacePanel(n, ref, currVersions, options) {
     // Opens a text in in place of the panel currently open at `n`.
-
-    // This ugly little dance is courtesy of `sheet` data needing to be in state before we can
-    // render the panel, because getHistoryItem() needs it, hence needing the API call to return first
-    await this.openPanelAt(n, ref, currVersions, options);
+    this.openPanelAt(n, ref, currVersions, options);
     this.replaceHistory = true;
     this.closePanel(n);
   }
@@ -1628,9 +1634,11 @@ class ReaderApp extends Component {
     var base = this.state.panels[n-1];
     this.closePanel(n);
     if (base.mode == "Sheet") {
-      for(var i in base.sheet.sources){
-        if (base.sheet.sources[i].node == base.highlightedNodes) {
-          this.openTextListAt(n, [base.sheet.sources[i].ref]);
+      const sheet = Sefaria.sheets.loadSheetByID(base.sheetID);
+      if (!sheet) { return; }
+      for(var i in sheet.sources){
+        if (sheet.sources[i].node == base.highlightedNodes) {
+          this.openTextListAt(n, [sheet.sources[i].ref]);
         }
       }
     }
@@ -1724,9 +1732,11 @@ class ReaderApp extends Component {
     // get rave to send to /api/profile/user_history
     let ref, sheet_owner, sheet_title;
     if (panel.mode === 'Sheet' || panel.mode === "SheetAndConnections") {
-      ref = `Sheet ${panel.sheet.id}${panel.highlightedNodes ? `:${panel.highlightedNodes}`: ''}`;
-      sheet_owner = panel.sheet.ownerName;
-      sheet_title = panel.sheet.title;
+      const sheet = Sefaria.sheets.loadSheetByID(panel.sheetID);
+      if (!sheet) { return null; }
+      ref = `Sheet ${sheet.id}${panel.highlightedNodes ? `:${panel.highlightedNodes}`: ''}`;
+      sheet_owner = sheet.ownerName;
+      sheet_title = sheet.title;
     } else {
       ref = (hasSidebar && panel.highlightedRefs && panel.highlightedRefs.length) ? Sefaria.normRef(panel.highlightedRefs) : (panel.currentlyVisibleRef || panel.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
     }
@@ -1748,7 +1758,7 @@ class ReaderApp extends Component {
     //openingSidebar is true when you call `saveLastPlace` at the time you're opening the sidebar. In this case, `doesPanelHaveSidebar` will be false
     const hasSidebar = this.doesPanelHaveSidebar(n) || openingSidebar;
     // if panel is sheet, panel.refs isn't set
-    if ((!panel.refs.length && panel.mode !== 'Sheet') || panel.mode === 'Connections') { return; }
+    if ((panel.mode !== 'Sheet' && !panel.refs.length ) || panel.mode === 'Connections') { return; }
     Sefaria.saveUserHistory(this.getHistoryObject(panel, hasSidebar));
   }
   currentlyConnecting() {

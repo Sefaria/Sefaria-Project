@@ -1758,8 +1758,9 @@ _media: {},
   },
   saveUserHistory: function(history_item) {
     // history_item contains:
-    // - ref, book, versions. optionally: secondary, he_ref, language
-    if(!Sefaria.is_history_enabled){
+    // `ref`, `book`, `versions`, `sheet_title`, `sheet_owner`` 
+    // optionally: `secondary`, `he_ref`, `language`
+    if(!Sefaria.is_history_enabled || !history_item) {
         return;
     }
     const history_item_array = Array.isArray(history_item) ? history_item : [history_item];
@@ -1933,14 +1934,15 @@ _media: {},
       const sheet = this._loadSheetByID[id];
       if (sheet) {
         if (callback) { callback(sheet); }
-      } else {
+      } else if (callback) {
         const url = "/api/sheets/" + id +"?more_data=1";
          $.getJSON(url, data => {
             if ("error" in data) {
                 console.log(data["error"])
             }
             this._loadSheetByID[id] = data;
-            if (callback) { callback(data); }
+            callback(data);
+            callback(data);
           });
         }
       return sheet;
@@ -2183,7 +2185,7 @@ _media: {},
       return sheets.length;
     },
     extractIdFromSheetRef: function (ref) {
-        return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1])
+      return typeof ref === "string" ? parseInt(ref.split(" ")[1]) : parseInt(ref[0].split(" ")[1]);
     }
   },
   _collections: {},

@@ -34,6 +34,7 @@ class Sheet extends Component {
     Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad);
   }
   onDataLoad(data) {
+    this.props.openSheet("Sheet " + data.id, true); // Replace state now that data is loaded so History can include sheet title
     this.forceUpdate();
     this.preloadConnections();
   }
@@ -80,7 +81,7 @@ class Sheet extends Component {
 
       } else if (path && (match = path.match(/^\/sheets\/(\d+(\.\d+)?)/))) {
         const sheetId = match[1];
-        this.props.onRefClick("Sheet " + sheetId, [], true);
+        this.props.onRefClick("Sheet " + sheetId, null, true);
       
       } else {
         window.open(e.target.href, "_blank");        
@@ -120,7 +121,7 @@ class Sheet extends Component {
       );
     }
     return (
-      <div className={classes} onClick={this.handleLinkClick}>
+      <div className={classes}>
         { sheet && Sefaria._uid == sheet.owner && Sefaria._uses_new_editor ?
         <div className="sheetContent">
           <SefariaEditor
@@ -131,7 +132,7 @@ class Sheet extends Component {
             highlightedRefsInSheet={this.props.highlightedRefsInSheet}
           />
         </div>
-        : content }
+        : <div onClick={this.handleLinkClick}>{content}</div> }
       </div>
     );
   }
