@@ -675,6 +675,7 @@ class ReaderPanel extends Component {
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
           onRefClick={this.handleCitationClick}
           openSheet={this.openSheet}
+          openURL={this.props.openURL}
           hasSidebar={this.props.hasSidebar}
           setSelectedWords={this.setSelectedWords}
           contentLang={this.state.settings.language}

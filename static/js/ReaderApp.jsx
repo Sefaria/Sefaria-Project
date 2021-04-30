@@ -1984,6 +1984,7 @@ class ReaderApp extends Component {
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       getLicenseMap={this.getLicenseMap}
                       translateISOLanguageCode={this.translateISOLanguageCode}
+                      openURL={this.openURL}
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}
                       toggleSignUpModal={this.toggleSignUpModal}

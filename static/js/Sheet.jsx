@@ -60,34 +60,6 @@ class Sheet extends Component {
     var width = Sefaria.util.getScrollbarWidth();
     this.$container.css({paddingRight: 0, paddingLeft: width});
   }
-  handleLinkClick(e) {
-    if (e.target.tagName.toLowerCase() === 'a') {
-      e.preventDefault();
-      e.stopPropagation();
-      const href = event.target.href;
-      let path = href;
-      try {
-        const url = new URL(href);
-        // Allow absolute URLs pointing to Sefaria. TODO generalize to any domain of current deployment.
-        if (url.hostname.indexOf("sefaria.org") === -1) {
-          path = null;
-        }
-        path = url.pathname;
-      } catch { }
-
-      let match;
-      if (path && Sefaria.isRef(path.slice(1))) {
-        this.props.onRefClick(Sefaria.humanRef(path.slice(1)), [], true)
-
-      } else if (path && (match = path.match(/^\/sheets\/(\d+(\.\d+)?)/))) {
-        const sheetId = match[1];
-        this.props.onRefClick("Sheet " + sheetId, null, true);
-      
-      } else {
-        window.open(e.target.href, "_blank");        
-      }
-    }    
-  }
   render() {
     const sheet = this.getSheetFromCache();
     const classes = classNames({sheetsInPanel: 1});
@@ -101,7 +73,8 @@ class Sheet extends Component {
           sources={sheet.sources}
           title={sheet.title}
           onRefClick={this.props.onRefClick}
-          onSegmentClick={this.props.onSegmentClick}
+          sheetSourceClick={this.props.onSegmentClick}
+          openURL={this.props.openURL}
           highlightedNodes={this.props.highlightedNodes}
           highlightedRefsInSheet={this.props.highlightedRefsInSheet}
           authorStatement={sheet.ownerName}
@@ -111,7 +84,6 @@ class Sheet extends Component {
           collectionSlug={sheet.displayedCollection}
           collectionImage={sheet.collectionImage}
           editable={Sefaria._uid == sheet.owner}
-          sheetSourceClick={this.props.onSegmentClick}
           hasSidebar={this.props.hasSidebar}
           setSelectedWords={this.props.setSelectedWords}
           sheetNumbered={sheet.options.numbered}
@@ -132,7 +104,10 @@ class Sheet extends Component {
             highlightedRefsInSheet={this.props.highlightedRefsInSheet}
           />
         </div>
-        : <div onClick={this.handleLinkClick}>{content}</div> }
+        : 
+        <div onClick={this.handleLinkClick}>
+          {content}
+        </div> }
       </div>
     );
   }
@@ -225,6 +200,37 @@ class SheetContent extends Component {
       }
     }
   }
+  handleLinkClick(e) {
+    if (e.target.tagName.toLowerCase() === 'a') {
+      e.preventDefault();
+      e.stopPropagation();
+      const href = event.target.href;
+      let path = href;
+      try {
+        const url = new URL(href);
+        // Allow absolute URLs pointing to Sefaria. TODO generalize to any domain of current deployment.
+        if (url.hostname.indexOf("sefaria.org") === -1) {
+          path = null;
+        }
+        path = url.pathname;
+      } catch { }
+
+      let match;
+      if (path && Sefaria.isRef(path.slice(1))) {
+        this.props.onRefClick(Sefaria.humanRef(path.slice(1)), [], true)
+
+      } else if (path && (match = path.match(/^\/sheets\/(\d+(\.\d+)?)/))) {
+        const sheetId = match[1];
+        this.props.onRefClick("Sheet " + sheetId, null, true);
+      
+      } else {
+        const opened = this.props.openURL(path);
+        if (!opened) {
+          window.open(e.target.href, "_blank");
+        }
+      }
+    }    
+  }
   render() {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
       const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
@@ -311,6 +317,7 @@ class SheetContent extends Component {
       <div className="sheetContent">
         <SheetMetaDataBox>
           <SheetTitle title={this.props.title} />
+          
           <SheetAuthorStatement
             authorUrl={this.props.authorUrl}
             authorStatement={this.props.authorStatement} >
@@ -322,15 +329,19 @@ class SheetContent extends Component {
             />
             <span>by <a href={this.props.authorUrl}>{this.props.authorStatement}</a></span>
           </SheetAuthorStatement>
+          
           <CollectionStatement
-              name={this.props.collectionName}
-              slug={this.props.collectionSlug}
-              image={this.props.collectionImage}
+            name={this.props.collectionName}
+            slug={this.props.collectionSlug}
+            image={this.props.collectionImage}
           />
+        
         </SheetMetaDataBox>
 
         <div className="text">
-            <div className="textInner" onMouseUp={this.handleTextSelection}>{sources}</div>
+          <div className="textInner" onMouseUp={this.handleTextSelection} onClick={this.handleLinkClick}>
+            {sources}
+          </div>
         </div>
 
         <div id="printFooter" style={{display:"none"}}>
