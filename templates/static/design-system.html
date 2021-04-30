@@ -5,6 +5,9 @@
   <link rel="stylesheet" href="{%  static 'css/s2.css' %}">
   <style>
 
+    body {
+      padding: 30px;
+    }
 
     table {
       width: 1200px;
@@ -98,10 +101,10 @@
 <body>
         <h2>Typography</h2>
         <table class="serif">
-          <tr><td>Serif H1</td><td><h1>Tanakh</h1></td><td><h1>תנ"ך</h1></td><td><textarea readonly><div class="serif"><h1>Tanakh</h1><h1>תנ"ך</h1></div></textarea></td></tr>
-          <tr><td>Serif H2</td><td><h2>Tanakh</h2></td><td><h2>תנ"ך</h2></td><td><textarea readonly><div class="serif"><h2>Tanakh</h2><h2>תנ"ך</h2></div></textarea></td></tr>
-          <tr><td>Serif H3</td><td><h3>Tanakh</h3></td><td><h3>תנ"ך</h3></td><td><textarea readonly><div class="serif"><h3>Tanakh</h3><h3>תנ"ך</h3></div></textarea></td></tr>
-          <tr><td>Serif Body</td><td><p>Tanakh</p></td><td><p>תנ"ך</p></td><td><textarea readonly><div class="serif"><p>Tanakh</p><p>תנ"ך</p></div></textarea></td></tr>
+          <tr><td>Serif H1</td><td><h1>Tanakh</h1></td><td><h1 class="hebrew">תנ"ך</h1></td><td><textarea readonly><div class="serif"><h1>Tanakh</h1><h1 class="hebrew">תנ"ך</h1></div></textarea></td></tr>
+          <tr><td>Serif H2</td><td><h2>Tanakh</h2></td><td><h2 class="hebrew">תנ"ך</h2></td><td><textarea readonly><div class="serif"><h2>Tanakh</h2><h2 class="hebrew">תנ"ך</h2></div></textarea></td></tr>
+          <tr><td>Serif H3</td><td><h3>Tanakh</h3></td><td><h3 class="hebrew">תנ"ך</h3></td><td><textarea readonly><div class="serif"><h3>Tanakh</h3><h3 class="hebrew">תנ"ך</h3></div></textarea></td></tr>
+          <tr><td>Serif Body</td><td><p>Tanakh</p></td><td><p class="hebrew">תנ"ך</p></td><td><textarea readonly><div class="serif"><p>Tanakh</p><p class="hebrew">תנ"ך</p></div></textarea></td></tr>
         </table>
 
         <table class="sans-serif">
@@ -111,6 +114,20 @@
           <tr><td>Sans Serif Body</td><td><p>Tanakh</p></td><td><p>תנ"ך</p></td><td><textarea readonly><div class="sans-serif"><p>Tanakh</p><p>תנ"ך</p></div></textarea></td></tr>
           <tr><td>Sans Serif Body</td><td><small>Tanakh</small></td><td><small>תנ"ך</small></td><td><textarea readonly><div class="sans-serif"><small>Tanakh</small><small>תנ"ך</small></div></textarea></td></tr>
         </table>
+
+        <h2>Selectors</h2>
+
+        <h6>Standard Buttons</h6>
+        <div class="btn" role="button">&nbsp</div>
+        <div class="btn white" role="button">&nbsp</div>
+
+        <h6>Small Buttons</h6>
+        <div class="btn-sm" role="button">&nbsp</div>
+        <div class="btn-sm white" role="button">&nbsp</div>
+
+        <h6>Xtra Small Buttons</h6>
+        <div class="btn-xs" role="button">&nbsp</div>
+        <div class="btn-xs white" role="button">&nbsp</div>
 
         <h2>System Colors</h2>
 
