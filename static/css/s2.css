@@ -83,12 +83,15 @@ a{
 
 .serif {
   --font-family: var(--serif-font-family);
-  --hebrew-multiplier: 1.22;
+  font-size: 1em;
 }
 .sans-serif {
   --font-family: var(--sans-serif-font-family);
 }
 
+.serif .hebrew {
+  --hebrew-multiplier: 1.22;
+}
 
 h1 {
   font-family: var(--font-family);
@@ -110,6 +113,45 @@ body {
   font-size: calc(var(--serif-body-font-size) * var(--hebrew-multiplier, 1))
 }
 
+.btn, .btn-sm, .btn-xs {
+  display: inline-block;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  flex-direction: column;
+  margin: 10px 20px;
+  background-color: var(--sefaria-blue);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  font-family: ; var(--sans-serif-font-family)
+  box-sizing: border-box;
+  line-height: 19px;
+  text-align: center;
+}
+
+.btn.white, .btn-sm.white, .btn-xs.white {
+  background-color: white;
+  color: #333;
+}
+
+.btn {
+  width: 300px;
+  height: 50px;
+}
+
+.btn-sm {
+  width: 150px;
+  height: 40px;
+}
+
+.btn-xs {
+  width: 75px;
+  height: 30px;
+}
 
 /*
 Style Guide Font Hierarchy
@@ -3813,6 +3855,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   justify-content: center;
   font-weight: lighter;
   letter-spacing: 1px;
+}
+.textRange.basetext .title, {
   font-size: 24px;
 }
 
