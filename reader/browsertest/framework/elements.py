@@ -1388,8 +1388,7 @@ class AtomicTest(AbstractTest):
             if isinstance(e, ElementClickInterceptedException):
                 if self.close_modal_popup():
                     self.carp("{} - Closed modal. Restarting\n".format(self.name()))
-                    self.body()
-                    return
+                    return self.body()
             print(e)
             err = traceback.format_exc()
             result = SingleTestResult(self.__class__, self.cap, False, err)
