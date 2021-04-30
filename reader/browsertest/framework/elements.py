@@ -24,7 +24,7 @@ from selenium.webdriver.support.expected_conditions import title_contains, prese
         element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, \
     text_to_be_present_in_element, _find_element, StaleElementReferenceException, visibility_of_any_elements_located
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, WebDriverException
+from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, WebDriverException, ElementClickInterceptedException
 # http://selenium-python.readthedocs.io/waits.html
 # http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.support.expected_conditions
 
@@ -377,12 +377,16 @@ class AbstractTest(object):
         self.click_object_by_css_selector('a.toolsButton[data-name="{}"]'.format(name))
 
     def close_modal_popup(self):
+        """
+        :return: Boolean - did we manage to close the popup?
+        """
         time.sleep(3)
         try:
             self.driver.find_element_by_css_selector('#interruptingMessage #interruptingMessageClose')
             self.click_object_by_css_selector('#interruptingMessage #interruptingMessageClose')
+            return True
         except NoSuchElementException:
-            pass
+            return False
 
     def close_popup_with_accept(self):
         try:
@@ -1381,6 +1385,11 @@ class AtomicTest(AbstractTest):
             self.body()
             self.driver.execute_script('"**** Exit {} ****"'.format(self.name()))
         except Exception as e:
+            if isinstance(e, ElementClickInterceptedException):
+                if self.close_modal_popup():
+                    self.carp("{} - Closed modal. Restarting\n".format(self.name()))
+                    self.body()
+                    return
             print(e)
             err = traceback.format_exc()
             result = SingleTestResult(self.__class__, self.cap, False, err)
