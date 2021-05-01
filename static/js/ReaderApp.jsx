@@ -56,7 +56,7 @@ class ReaderApp extends Component {
         var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
 
         panels[0] = {
-          highlightedNodes: initialPanel.highlightedNodes,
+          highlightedNode: initialPanel.highlightedNode,
           sheetID: initialPanel.sheetID,
           refs: props.initialRefs,
           mode: mode,
@@ -702,7 +702,7 @@ class ReaderApp extends Component {
       } else if (state.mode === "Sheet") {
         const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
         hist.title = sheet ? sheet.title.stripHtml() : "";
-        const sheetURLSlug = state.highlightedNodes ? state.sheetID + "." + state.highlightedNodes : state.sheetID;
+        const sheetURLSlug = state.highlightedNode ? state.sheetID + "." + state.highlightedNode : state.sheetID;
         const filter    = state.filter.length ? state.filter :
                           (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
@@ -876,7 +876,7 @@ class ReaderApp extends Component {
       connectionsMode:         state.connectionsMode         || "Resources",
       currVersions:            state.currVersions            || {en:null,he:null},
       highlightedRefs:         state.highlightedRefs         || [],
-      highlightedNodes:        state.highlightedNodes        || null,
+      highlightedNode:         state.highlightedNode         || null,
       currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
       recentFilters:           state.recentFilters           || state.filter || [],
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
@@ -1307,7 +1307,7 @@ class ReaderApp extends Component {
       }
     } else if (nextPanel.mode === 'Sheet') {
       if (prevPanel.sheetID !== nextPanel.sheetID) { return true; }
-      return prevPanel.highlightedNodes !== nextPanel.highlightedNodes
+      return prevPanel.highlightedNode !== nextPanel.highlightedNode
     } else {
       return true;
     }
@@ -1442,7 +1442,7 @@ class ReaderApp extends Component {
       panel = this.makePanelState({
         mode: 'Sheet',
         sheetID: parseInt(sheetID),
-        highlightedNodes: parseInt(sheetNode),
+        highlightedNode: parseInt(sheetNode),
         refs: null
       });
     } else {  // Text
@@ -1544,7 +1544,7 @@ class ReaderApp extends Component {
   setSheetHighlight(n, node) {
     // Set the sheetListHighlight for panel `n` to `node`
     node = typeof node === "string" ? [node] : node;
-    this.state.panels[n].highlightedNodes = node;
+    this.state.panels[n].highlightedNode = node;
     this.setState({panels: this.state.panels});
     }
   setConnectionsFilter(n, filter, updateRecent) {
@@ -1637,7 +1637,7 @@ class ReaderApp extends Component {
       const sheet = Sefaria.sheets.loadSheetByID(base.sheetID);
       if (!sheet) { return; }
       for(var i in sheet.sources){
-        if (sheet.sources[i].node == base.highlightedNodes) {
+        if (sheet.sources[i].node == base.highlightedNode) {
           this.openTextListAt(n, [sheet.sources[i].ref]);
         }
       }
@@ -1734,7 +1734,7 @@ class ReaderApp extends Component {
     if (panel.mode === 'Sheet' || panel.mode === "SheetAndConnections") {
       const sheet = Sefaria.sheets.loadSheetByID(panel.sheetID);
       if (!sheet) { return null; }
-      ref = `Sheet ${sheet.id}${panel.highlightedNodes ? `:${panel.highlightedNodes}`: ''}`;
+      ref = `Sheet ${sheet.id}${panel.highlightedNode ? `:${panel.highlightedNode}`: ''}`;
       sheet_owner = sheet.ownerName;
       sheet_title = sheet.title;
     } else {

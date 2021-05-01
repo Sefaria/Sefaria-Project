@@ -75,7 +75,7 @@ class Sheet extends Component {
           onRefClick={this.props.onRefClick}
           sheetSourceClick={this.props.onSegmentClick}
           openURL={this.props.openURL}
-          highlightedNodes={this.props.highlightedNodes}
+          highlightedNode={this.props.highlightedNode}
           highlightedRefsInSheet={this.props.highlightedRefsInSheet}
           authorStatement={sheet.ownerName}
           authorUrl={sheet.ownerProfileUrl}
@@ -100,14 +100,12 @@ class Sheet extends Component {
             data={sheet}
             hasSidebar={this.props.hasSidebar}
             sheetSourceClick={this.props.onSegmentClick}
-            highlightedNodes={this.props.highlightedNodes}
+            highlightedNode={this.props.highlightedNode}
             highlightedRefsInSheet={this.props.highlightedRefsInSheet}
           />
         </div>
         : 
-        <div onClick={this.handleLinkClick}>
-          {content}
-        </div> }
+        content }
       </div>
     );
   }
@@ -116,11 +114,12 @@ class Sheet extends Component {
 
 class SheetContent extends Component {
   componentDidMount() {
-      this.$container          = $(ReactDOM.findDOMNode(this).parentNode);
-      this._isMounted          = true;
+      this.$container = $(ReactDOM.findDOMNode(this).parentNode);
+      this._isMounted = true;
       var node = ReactDOM.findDOMNode(this).parentNode;
       node.addEventListener("scroll", this.handleScroll);
       this.windowMiddle = $(window).outerHeight() / 2;
+      this.highLightThreshhold = this.props.multiPanel ? 200 : 70; // distance from the top of screen that we want highlighted segments to appear below.
       this.debouncedAdjustHighlightedAndVisible = Sefaria.util.debounce(this.adjustHighlightedAndVisible, 100);
       this.scrollToHighlighted();
   }
@@ -143,10 +142,6 @@ class SheetContent extends Component {
       this.props.setSelectedWords(selectedWords);
     }
   }
-  getHighlightThreshhold() {
-    // Returns the distance from the top of screen that we want highlighted segments to appear below.
-    return this.props.multiPanel ? 200 : 70;
-  }
   adjustHighlightedAndVisible() {
     //console.log("adjustHighlightedAndVisible");
     // Adjust which ref is current consider visible for header and URL,
@@ -161,7 +156,7 @@ class SheetContent extends Component {
       $segment = $(".segment:focus").eq(0);
     } else {
       var $container = this.$container;
-      var topThreshhold = this.getHighlightThreshhold();
+      var topThreshhold = this.highlightThreshhold;
       $container.find("section .segment").each(function(i, segment) {
         var top = $(segment).offset().top - $container.offset().top;
         var bottom = $(segment).outerHeight() + top;
@@ -176,22 +171,21 @@ class SheetContent extends Component {
     // don't move around highlighted segment when scrolling a single panel,
     var shouldHighlight = this.props.hasSidebar || this.props.mode === "SheetAndConnections";
     if (shouldHighlight) {
-      const ref = $segment.attr("data-ref");
-      if (!(this.props.highlightedNodes == ref)) {
+      const node = parseInt($segment.attr("data-node"));
+      if (!(this.props.highlightedNode === node)) {
         $segment.click()
       }
     }
   }
   scrollToHighlighted() {
     if (!this._isMounted) { return; }
-    //console.log("scroll to highlighted - animation frame");
     var $container   = this.$container;
     var $readerPanel = $container.closest(".readerPanel");
     var $highlighted = $container.find(".segment.highlight").first();
     if ($highlighted.length) {
       this.scrolledToHighlight = true;
       this.justScrolled = true;
-      var offset = this.getHighlightThreshhold();
+      var offset = this.highlightThreshhold;
       var top = $highlighted.position().top - offset;
 
       $container[0].scrollTop = top;
@@ -235,8 +229,8 @@ class SheetContent extends Component {
     var sources = this.props.sources.length ? this.props.sources.map(function(source, i) {
       const highlightedRef = this.props.highlightedRefsInSheet ? Sefaria.normRefList(this.props.highlightedRefsInSheet) : null;
       if ("ref" in source) {
-        const highlighted = this.props.highlightedNodes ?
-            this.props.highlightedNodes == source.node :
+        const highlighted = this.props.highlightedNode ?
+            this.props.highlightedNode == source.node :
               highlightedRef ?
               Sefaria.refContains(source.ref, highlightedRef) :
                 false;
@@ -262,7 +256,7 @@ class SheetContent extends Component {
             source={source}
             cleanHTML={this.cleanHTML}
             sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
-            highlightedNodes={this.props.highlightedNodes}
+            highlightedNode={this.props.highlightedNode}
             sheetNumbered={this.props.sheetNumbered}
           />
         );
@@ -276,7 +270,7 @@ class SheetContent extends Component {
             source={source}
             cleanHTML={this.cleanHTML}
             sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
-            highlightedNodes={this.props.highlightedNodes}
+            highlightedNode={this.props.highlightedNode}
             sheetNumbered={this.props.sheetNumbered}
          />
         );
@@ -290,7 +284,7 @@ class SheetContent extends Component {
             source={source}
             cleanHTML={this.cleanHTML}
             sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
-            highlightedNodes={this.props.highlightedNodes}
+            highlightedNode={this.props.highlightedNode}
             sheetNumbered={this.props.sheetNumbered}
           />
         );
@@ -304,7 +298,7 @@ class SheetContent extends Component {
             cleanHTML={this.cleanHTML}
             source={source}
             sheetSourceClick={this.props.sheetSourceClick.bind(this, source)}
-            highlightedNodes={this.props.highlightedNodes}
+            highlightedNode={this.props.highlightedNode}
             sheetNumbered={this.props.sheetNumbered}
             hideImages={this.props.hideImages}
           />
@@ -362,11 +356,20 @@ class SheetSource extends Component {
     var linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
     var style = {opacity: linkScore};
 
-    linkCountElement = (<div className="linkCount sans"  title={linkCount + " Connections Available"}>
+    linkCountElement = (
+      <div className="linkCount sans"  title={linkCount + " Connections Available"}>
         <span className="linkCountDot" style={style}></span>
-      </div>);
+      </div>
+    );
 
-    const containerClasses = classNames("sheetItem",
+    const sectionClasses= classNames(
+      "SheetSource",
+      this.props.highlighted ? "highlight" : null,
+      this.props.source.options ? this.props.source.options.indented : null,
+    );
+
+    const containerClasses = classNames(
+      "sheetItem",
       "segment",
       this.props.highlighted ? "highlight" : null,
       (this.props.source.text && this.props.source.text.en && this.props.source.text.en.stripHtml() == "...") || (this.props.source.text && (!this.props.source.text.en || !this.props.source.text.en.stripHtml())) ? "heOnly" : null,
@@ -374,14 +377,16 @@ class SheetSource extends Component {
       this.props.source.options && this.props.source.options.refDisplayPosition ? "ref-display-"+ this.props.source.options.refDisplayPosition : null
     );
 
-    const sectionClasses= classNames("SheetSource",
-      this.props.highlighted ? "highlight" : null,
-      this.props.source.options ? this.props.source.options.indented : null,
-    );
-
     return (
       <section className={sectionClasses} style={{"borderColor": Sefaria.palette.refColor(this.props.source.ref)}}>
-        <div className={containerClasses} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} 
+          onClick={this.props.sheetSourceClick}
+          data-node={this.props.source.node}
+          aria-label={"Click to see " + this.props.linkCount +  " connections to this source"}
+          tabIndex="0"
+          onKeyPress={function(e) {
+            e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)
+          } >
           {this.props.source.title ? 
           <div className="customSourceTitle" role="heading" aria-level="3">
             <div className="titleBox">{this.props.source.title.stripHtml()}</div>
@@ -389,10 +394,14 @@ class SheetSource extends Component {
 
           <div className="segmentNumber sheetSegmentNumber sans">
             <span className="en">
-              <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
+              <span className="segmentNumberInner">
+                {this.props.sheetNumbered == 0 ? null : this.props.sourceNum}
+              </span>
             </span>
             <span className="he">
-              <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span>
+              <span className="segmentNumberInner">
+                {this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}
+              </span>
             </span>
           </div>
 
@@ -436,16 +445,17 @@ class SheetSource extends Component {
 class SheetComment extends Component {
   render() {
     const lang = Sefaria.hebrew.isHebrew(this.props.source.comment.stripHtml().replace(/\s+/g, ' ')) ? "he" : "en";
-    const containerClasses = classNames("sheetItem",
-        "segment",
-        lang == "he" ? "heOnly" : "enOnly",
-        this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
-        this.props.source.options ? this.props.source.options.indented : null
+    const containerClasses = classNames(
+      "sheetItem",
+      "segment",
+      lang == "he" ? "heOnly" : "enOnly",
+      this.props.highlightedNode == this.props.source.node ? "highlight" : null,
+      this.props.source.options ? this.props.source.options.indented : null
     );
 
     return (
       <section className="SheetComment">
-        <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
           <div className="segmentNumber sheetSegmentNumber sans">
             <span className="en">
               <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
@@ -456,13 +466,17 @@ class SheetComment extends Component {
           </div>
           
           <div className={lang}>
-              <div className="sourceContentText" dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.comment)} }></div>
+              <div 
+                className="sourceContentText"
+                dangerouslySetInnerHTML={{__html: Sefaria.util.cleanHTML(this.props.source.comment)}}></div>
           </div>
 
           <div className="clearFix"></div>
           {this.props.source.addedBy ?
           <div className="addedBy">
-            <small><em>{Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span></em></small>
+            <small><em>
+              {Sefaria._("Added by")}: <span dangerouslySetInnerHTML={ {__html: Sefaria.util.cleanHTML(this.props.source.userLink)} }></span>
+            </em></small>
           </div>
           : null }
 
@@ -479,13 +493,13 @@ class SheetOutsideText extends Component {
     const containerClasses = classNames("sheetItem",
         "segment",
         lang == "he" ? "heOnly" : "enOnly",
-        this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+        this.props.highlightedNode == this.props.source.node ? "highlight" : null,
         this.props.source.options ? this.props.source.options.indented : null
     );
 
     return (
       <section className="SheetOutsideText">
-        <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
           <div className="segmentNumber sheetSegmentNumber sans">
             <span className="en">
               <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
@@ -516,11 +530,12 @@ class SheetOutsideText extends Component {
 
 class SheetOutsideBiText extends Component {
   render() {
-    const containerClasses = classNames("sheetItem",
+    const containerClasses = classNames(
+      "sheetItem",
       "segment",
       (this.props.source.outsideBiText.en && this.props.source.outsideBiText.en.stripHtml() == "...") || (!this.props.source.outsideBiText.en.stripHtml()) ? "heOnly" : null,
       (this.props.source.outsideBiText.he && this.props.source.outsideBiText.he.stripHtml() == "...") || (!this.props.source.outsideBiText.he.stripHtml()) ? "enOnly" : null,
-      this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
+      this.props.highlightedNode == this.props.source.node ? "highlight" : null,
     );
 
     const sectionClasses= classNames("SheetOutsideBiText",
@@ -529,7 +544,7 @@ class SheetOutsideBiText extends Component {
 
     return (
       <section className={sectionClasses}>
-        <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
           <div className="segmentNumber sheetSegmentNumber sans">
             <span className="en">
                 <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
@@ -609,14 +624,15 @@ class SheetMedia extends Component {
   }
   render() {
     if (this.props.hideImages && this.isImage()) { return null; }
-    var containerClasses = classNames("sheetItem",
-        "segment",
-        this.props.highlightedNodes == this.props.source.node ? "highlight" : null,
-        this.props.source.options ? this.props.source.options.indented : null
+    var containerClasses = classNames(
+      "sheetItem",
+      "segment",
+      this.props.highlightedNode == this.props.source.node ? "highlight" : null,
+      this.props.source.options ? this.props.source.options.indented : null
     );
     return (
       <section className="SheetMedia">
-        <div className={containerClasses} data-ref={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
+        <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
           <div className="segmentNumber sheetSegmentNumber sans">
             <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
             <span className="he"> <span

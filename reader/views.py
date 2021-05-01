@@ -417,7 +417,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         "sheetID": sheet_id,
         "mode": "Sheet",
         "sheet": sheet,
-        "highlightedNodes": highlighted_node
+        "highlightedNode": highlighted_node
     }
 
     ref = None

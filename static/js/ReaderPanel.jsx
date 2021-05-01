@@ -208,7 +208,7 @@ class ReaderPanel extends Component {
     }
   }
   handleSheetSegmentClick(source) {
-    this.conditionalSetState({highlightedNodes: source.node});
+    this.conditionalSetState({highlightedNode: source.node});
     const sheetRef = "Sheet " + this.state.sheetID + ":" + source.node;
     if (this.state.mode ==="SheetAndConnections") {
       this.closeSheetConnectionsInPanel();
@@ -217,12 +217,11 @@ class ReaderPanel extends Component {
       if (this.props.multiPanel) {
         if (source.ref) {
           this.props.onSegmentClick(Sefaria.splitRangingRef(source.ref), source.node);
-        }
-        else {
+        } else {
           this.props.onSegmentClick(sheetRef, source.node)
         }
       } else {
-          this.openSheetConnectionsInPanel(source.ref || sheetRef, source.node);
+        this.openSheetConnectionsInPanel(source.ref || sheetRef, source.node);
       }
     }
   }
@@ -260,20 +259,19 @@ class ReaderPanel extends Component {
   }
   openSheetConnectionsInPanel(ref, node) {
     let refs = typeof ref == "string" ? [ref] : ref;
-    let nodes = typeof node == "string" ? [node] : node;
     this.replaceHistory = this.state.mode === "SheetAndConnections"; // Don't push history for change in Connections focus
-    this.conditionalSetState({highlightedNodes: nodes, highlightedRefs: refs, mode: "SheetAndConnections" }, this.replaceHistory);
+    this.conditionalSetState({highlightedNode: node, highlightedRefs: refs, mode: "SheetAndConnections" }, this.replaceHistory);
   }
   closeSheetConnectionsInPanel() {
     // Return to the original text in the ReaderPanel contents
-    this.conditionalSetState({highlightedNodes: [], highlightedRefs: [], mode: "Sheet"});
+    this.conditionalSetState({highlightedNode: [], highlightedRefs: [], mode: "Sheet"});
   }
-  handleSheetClick(e, sheet, highlightedNodes, highlightedRefsInSheet) {
+  handleSheetClick(e, sheet, highlightedNode, highlightedRefsInSheet) {
     e.preventDefault();
     this.conditionalSetState({ 
       mode: "Sheet", 
       sheetID: sheet.id,
-      highlightedNodes, 
+      highlightedNode, 
       highlightedRefsInSheet
     });
   }
@@ -338,7 +336,7 @@ class ReaderPanel extends Component {
     this.conditionalSetState({
       mode: 'Sheet',
       sheetID,
-      highlightedNodes: sheetNode,
+      highlightedNode: sheetNode,
       menuOpen: null
     });
   }
@@ -671,7 +669,7 @@ class ReaderPanel extends Component {
           panelPosition ={this.props.panelPosition}
           id={this.state.sheetID}
           key={"sheet-"+this.state.sheetID}
-          highlightedNodes={this.state.highlightedNodes}
+          highlightedNode={this.state.highlightedNode}
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
           onRefClick={this.handleCitationClick}
           openSheet={this.openSheet}
