@@ -845,5 +845,9 @@ sites_data = [
         "name": "זיכרון בספר",
         "domains": ["mevoot.michlala.edu"],
         "normalization_rules": ["use https", "remove www", "remove all params after id"]
+    },
+    {
+        "name": "Evolve",
+        "domains": ["evolve.reconstructingjudaism.org"],
     }
 ]
