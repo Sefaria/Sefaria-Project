@@ -19,10 +19,13 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
 
     // Show Talmud with Toggles
     const cats  = categories[0] === "Talmud" && categories.length === 1 ?
-                        ["Talmud", "Bavli"] : categories;
+                        ["Talmud", "Bavli"]
+                        : (categories[0] === "Tosefta" && categories.length === 1) ?
+                        ["Tosefta", "Vilna Edition"]
+                        : categories;
     let catTitle = '', heCatTitle = '';
 
-    if (cats[0] === "Talmud" && cats.length === 2) {
+    if ((cats[0] === "Talmud" || cats[0] === "Tosefta") && cats.length === 2) {
       catTitle   = (cats.length > 1) ? cats[0] +  " " + cats[1] : cats[0];
       heCatTitle = (cats.length > 1) ? Sefaria.hebrewTerm(cats[0]) + " " + Sefaria.hebrewTerm(cats[1]): Sefaria.hebrewTerm(cats[0]);
     } else {
@@ -62,6 +65,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories,
                       <span className="he">{heCatTitle}</span>
                     </h1>) : null}
                   <TalmudToggle categories={cats} setCategories={setCategories} />
+                  <ToseftaToggle categories={cats} setCategories={setCategories} />
                   <CategoryAttribution categories={cats} />
                   <ReaderNavigationCategoryMenuContents
                     contents={catContents}
@@ -255,6 +259,30 @@ const TalmudToggle = ({categories, setCategories}) => {
                 <span className={yClasses} onClick={setYerushalmi}>
                   <span className="en">Yerushalmi</span>
                   <span className="he">ירושלמי</span>
+                </span>
+    </div>);
+};
+
+
+const ToseftaToggle = ({categories, setCategories}) => {
+    if ( categories.length !== 2 || categories[0] !== "Tosefta") {
+        return null;
+    }
+
+    const setVilna = () => { setCategories(["Tosefta", "Vilna Edition"]); };
+    const setLieberman = () => { setCategories(["Tosefta", "Lieberman Edition"]); };
+    const vClasses = classNames({navToggle: 1, active: categories[1] === "Vilna Edition"});
+    const lClasses = classNames({navToggle: 1, active: categories[1] === "Lieberman Edition", second: 1});
+
+    return (<div className="navToggles">
+                <span className={vClasses} onClick={setVilna}>
+                  <span className="en">Vilna Edition</span>
+                  <span className="he">דפוס וילנא</span>
+                </span>
+                <span className="navTogglesDivider">|</span>
+                <span className={lClasses} onClick={setLieberman}>
+                  <span className="en">Lieberman Edition</span>
+                  <span className="he">מהדורת ליברמן</span>
                 </span>
     </div>);
 };
