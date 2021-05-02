@@ -1740,7 +1740,7 @@ class Trial(object):
             command_executor = os.getenv("LOCAL_SELENIUM_URL")
             driver = webdriver.Remote(
                 command_executor=command_executor,
-                desired_capabilities=cap 
+                desired_capabilities=cap
             )
         else:
             raise Exception("Unrecognized platform: {}".format(self.platform))
