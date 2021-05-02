@@ -300,8 +300,8 @@ const getRenderedTextTitleString = (title, heTitle, categories) => {
     }
 
     const replaceTitles = {
-        "en": ['Jerusalem Talmud'].concat(categories),
-        "he": ['תלמוד ירושלמי'].concat(categories.map(Sefaria.hebrewTerm))
+        "en": ['Jerusalem Talmud', 'Tosefta Kifshutah'].concat(categories),
+        "he": ['תלמוד ירושלמי', 'תוספתא כפשוטה'].concat(categories.map(Sefaria.hebrewTerm))
     };
     const replaceOther = {
         "en" : [", ", "; ", " on ", " to ", " of "],
