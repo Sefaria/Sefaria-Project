@@ -323,7 +323,7 @@ jobs:
     runs-on: ubuntu-latest
     services: 
       selenium:
-        image: selenium/standalone-firefox:88.0
+        image: selenium/standalone-chrome:90.0
         ports: [ "4444:4444" ]
         volumes: ["/dev/shm:/dev/shm"]
     steps:
