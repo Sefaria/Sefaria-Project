@@ -1300,7 +1300,7 @@ class ReaderControls extends Component {
             <CategoryAttribution categories={oref.categories} linked={false} /> : null }
           </div>
         </div>
-      </div>);
+      </div>;
 
     let leftControls = hideHeader || connectionsHeader ? null :
       (<div className="leftButtons">
