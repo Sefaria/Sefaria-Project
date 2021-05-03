@@ -3438,7 +3438,7 @@ class Ref(object, metaclass=RefCacheType):
         d["toSections"] += subsections
         return Ref(_obj=d)
 
-    def subrefs(self, length):
+    def subrefs(self, length: int):
         """
         Return a list of :class:`Ref` objects one level deeper than this :class:`Ref`, from 1 to `length`.
 
@@ -3875,7 +3875,7 @@ class Ref(object, metaclass=RefCacheType):
 
         return True
 
-    def precedes(self, other):
+    def precedes(self, other) -> bool:
         """
         Does this Ref completely precede ``other`` Ref?
 
@@ -3908,7 +3908,7 @@ class Ref(object, metaclass=RefCacheType):
 
         return False
 
-    def follows(self, other):
+    def follows(self, other) -> bool:
         """
         Does this Ref completely follow ``other`` Ref?
 
@@ -4256,7 +4256,7 @@ class Ref(object, metaclass=RefCacheType):
         """
         return self.normal() + ("<d>" if self.index_node.is_default() else "")
 
-    def normal(self, lang='en'):
+    def normal(self, lang='en') -> str:
         """
         :return string: Normal English or Hebrew string form
         """
