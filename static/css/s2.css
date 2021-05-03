@@ -89,24 +89,27 @@ a{
   --font-family: var(--sans-serif-font-family);
 }
 
-.serif .hebrew {
+.serif .he, .serif .int-he,
+.serif.he, .serif.int-he,
+.serif:lang(he) {
   --hebrew-multiplier: 1.22;
 }
 
-h1 {
+/* root hack to prevent he: 122% from overwriting styles of .serif.he -- RMN 4/3//21 */
+:root h1 {
   font-family: var(--font-family);
   font-weight: normal;
   font-size: calc(var(--serif-h1-font-size) * var(--hebrew-multiplier, 1))
 }
-h2 {
+:root h2 {
   font-family: var(--font-family);
   font-weight: normal;
   font-size: calc(var(--serif-h2-font-size) * var(--hebrew-multiplier, 1))
 }
-h3 {
+:root h3 {
   font-family: var(--font-family);
   font-weight: normal;
-  font-size: calc(var(--serif-h2-font-size) * var(--hebrew-multiplier, 1))
+  font-size: calc(var(--serif-h3-font-size) * var(--hebrew-multiplier, 1))
 }
 body {
   font-family: var(--font-family);
