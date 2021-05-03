@@ -8195,6 +8195,10 @@ section.SheetSource .SheetOutsideBiText {
   position: absolute;
   left: 0;
 }
+.interface-hebrew .editorToggleHeader {
+  direction: rtl;
+}
+
 .editorToggleHeader .button {
   padding: 5px 8px;
   margin-inline-start: 15px;
