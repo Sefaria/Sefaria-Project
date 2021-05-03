@@ -7998,6 +7998,10 @@ section.SheetSource .SheetOutsideBiText {
 
 }
 
+.feedbackOverlay .buttonContainer {
+  margin-top: 50px;
+}
+
 .feedbackOverlay h2 {
   font-size: 30px;
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -8026,10 +8030,20 @@ section.SheetSource .SheetOutsideBiText {
   font-weight: normal;
   font-style: normal;
   margin-top: 10px;
+  height: 120px;
+}
+
+.feedbackOverlay textarea::placeholder {
+  font-size: 16px;
+  font-style: normal;
 }
 
 .feedbackOverlay a {
   color: #4871bf;
+}
+
+.feedbackOverlay .button {
+  margin: 0;
 }
 
 .sheetList .sheet {
