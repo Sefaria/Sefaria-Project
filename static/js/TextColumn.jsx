@@ -23,7 +23,6 @@ class TextColumn extends Component {
     this.scrollPlaceholderHeight = 90;
     this.scrollPlaceholderMargin = 30;
     this.highlightThreshhold = props.multiPanel ? 140 : 70;
-    this.windowMiddle        = $(window).outerHeight() / (props.mode === "TextAndConnections" ? 4 : 2);
     return;
   }  
   componentDidMount() {
@@ -31,6 +30,7 @@ class TextColumn extends Component {
     this.node                = ReactDOM.findDOMNode(this)
     this.$container          = $(this.node);
     this.initialScrollTopSet = false;
+    this.windowMiddle        = $(window).outerHeight() / (this.props.mode === "TextAndConnections" ? 4 : 2);
 
     // Set on mount, so placeholders aren't rendered server side to prevent intial layout shift
     this.setState({showScrollPlaceholders: true});
