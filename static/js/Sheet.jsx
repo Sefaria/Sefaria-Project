@@ -34,7 +34,8 @@ class Sheet extends Component {
     Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad);
   }
   onDataLoad(data) {
-    this.props.openSheet("Sheet " + data.id, true); // Replace state now that data is loaded so History can include sheet title
+    const sheetRef = "Sheet " + data.id + (this.props.highlightedNode ? "." + this.props.highlightedNode : "");
+    this.props.openSheet(sheetRef, true); // Replace state now that data is loaded so History can include sheet title
     this.forceUpdate();
     this.preloadConnections();
   }
@@ -77,6 +78,7 @@ class Sheet extends Component {
           openURL={this.props.openURL}
           highlightedNode={this.props.highlightedNode}
           highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+          scrollToHighlighted={this.props.scrollToHighlighted}
           authorStatement={sheet.ownerName}
           authorUrl={sheet.ownerProfileUrl}
           authorImage={sheet.ownerImageUrl}
@@ -119,7 +121,7 @@ class SheetContent extends Component {
       var node = ReactDOM.findDOMNode(this).parentNode;
       node.addEventListener("scroll", this.handleScroll);
       this.windowMiddle = $(window).outerHeight() / 2;
-      this.highLightThreshhold = this.props.multiPanel ? 200 : 70; // distance from the top of screen that we want highlighted segments to appear below.
+      this.highlightThreshhold = this.props.multiPanel ? 200 : 70; // distance from the top of screen that we want highlighted segments to appear below.
       this.debouncedAdjustHighlightedAndVisible = Sefaria.util.debounce(this.adjustHighlightedAndVisible, 100);
       this.scrollToHighlighted();
   }
@@ -127,6 +129,12 @@ class SheetContent extends Component {
     this._isMounted = false;
     var node = ReactDOM.findDOMNode(this).parentNode;
     node.removeEventListener("scroll", this.handleScroll);
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.highlightedNode !== this.props.highlightedNode &&
+      this.props.scrollToHighlighted) {
+      this.scrollToHighlighted();
+    }
   }
   handleScroll(event) {
     if (this.justScrolled) {

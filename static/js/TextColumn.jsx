@@ -70,6 +70,12 @@ class TextColumn extends Component {
       // console.log("restore scroll by percentage for layout Width Change")
       this.restoreScrollPositionByPercentage();
     
+    } else if (prevProps.srefs.length === this.props.srefs.length &&
+      !prevProps.srefs.compare(this.props.srefs)) {
+      // When the highlighted segment has changed, scroll to it.
+      // refs length should be equal so as not to scroll when infinite scroll changes refs
+      this.scrollToHighlighted();
+
     } else if ((this.props.settings.language !== prevProps.settings.language) ||
         (prevProps.currVersions.en !== this.props.currVersions.en) ||
         (prevProps.currVersions.he !== this.props.currVersions.he)) {
