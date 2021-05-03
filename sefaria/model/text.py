@@ -896,8 +896,13 @@ class AbstractSchemaContent(object):
                 if isinstance(value, list):  # we assume if value is a list, you want to modify the entire contents of the jagged array node
                     node[:] = value
                 else:  # this change is to a schema node that's not a leaf. need to explicitly set contents on the parent so this change affects `self` 
-                    node_parent = reduce(lambda d, k: d[k], key_list[:-1], self.get_content())
-                    node_parent[key_list[-1]] = value
+                    if len(key_list) == 0:
+                        setattr(self, self.content_attr, value)
+                    elif len(key_list) == 1:
+                        self.get_content()[key_list[0]] = value
+                    else:
+                        node_parent = reduce(lambda d, k: d[k], key_list[:-1], self.get_content())
+                        node_parent[key_list[-1]] = value
             return node
 
 
