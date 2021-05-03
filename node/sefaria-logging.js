@@ -1,5 +1,6 @@
 const expressWinston = require('express-winston');
 const winston = require('winston');
+const { format } = winston;
 
 
 const severity_format = winston.format(info => {
@@ -21,11 +22,11 @@ const sefariaMeta = (req, res) => {
       if (req) {
         meta.httpRequest = httpRequest;
         httpRequest.requestMethod = req.method;
-        httpRequest.requestUrl = req?.input_props?.initialPath ? req.input_props.initialPath : `${req.protocol}://${req.get('host')}${req.originalUrl}`;
+        httpRequest.requestUrl = req?.inputProps?.initialPath ? req.inputProps.initialPath : `${req.protocol}://${req.get('host')}${req.originalUrl}`;
         httpRequest.requestSize = req.socket.bytesRead;
-        if (req.input_props) {
-            meta.initialRefs = req.input_props.initialRefs;
-            meta.initialMenu = req.input_props.initialMenu;
+        if (req.inputProps) {
+            meta.initialRefs = req.inputProps.initialRefs;
+            meta.initialMenu = req.inputProps.initialMenu;
         }
       }
 
@@ -42,10 +43,12 @@ const sefariaMeta = (req, res) => {
     };
 
 const logger = winston.createLogger({
+    level: 'info',
     transports: [
         new winston.transports.Console({}),
     ],
     format: winston.format.combine(
+        format.errors({ stack: true }),
         severity_format(),
         winston.format.json(),
     )
@@ -60,7 +63,11 @@ const expressLogger = expressWinston.logger({
     metaField: null, //this causes the metadata to be stored at the root of the log entry
     responseField: null, // this prevents the response from being included in the metadata (including body and status code)
     requestField: null,
-    msg: (req, res) => (req && req.input_props && req.input_props.initialPath) ? `${req.method} ${req.input_props.initialPath} ${res.statusCode}` : `${req.method} ${req.originalUrl} ${res.statusCode}` ,
+    msg: (req, res) => req?.inputProps?.headerMode
+        ? `${req.method} Logged-${req.inputProps._uid?"In":"Out"} Header ${res.statusCode}`
+        : (req?.inputProps?.initialPath)
+        ? `${req.method} ${req.inputProps.initialPath} ${res.statusCode}`
+        : `${req.method} ${req.originalUrl} ${res.statusCode}`,
 
     // requestWhitelist: ['headers', 'query'],  //these are not included in the standard StackDriver httpRequest
     // responseWhitelist: ['body'], // this populates the `res.body` so we can get the response size (not required)

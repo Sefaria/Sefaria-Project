@@ -51,9 +51,9 @@ const loadSharedData = async function({ last_cached_to_compare = null, startup =
       if(startup || last_cached_to_compare == null || await needsUpdating(key, last_cached_to_compare)){
         //console.log("Fetching: " + key + "|" + value )
         redisCalls.push(getAsync(value).then(resp => {
-          if(!resp){
+          if(!resp) {
             throw new Error(`Error with ${key}: ${value} not found in cache`);
-          }else{
+          } else {
             sharedCacheData[key] = JSON.parse(resp);
           }
         }).catch(error => {
@@ -61,13 +61,13 @@ const loadSharedData = async function({ last_cached_to_compare = null, startup =
         }));
       }
     }
-    try{
+    try {
       await Promise.all(redisCalls);
       if(cacheTimestampNeedsUpdating("last_cached", last_cached_to_compare)){
         sharedCacheData["last_cached"] = last_cached_to_compare;
       }
       return Promise.resolve();
-    }catch(e) {
+    } catch(e) {
       console.error(e.message);
       return Promise.reject(e); //Is this the correct way??
     }
@@ -85,9 +85,9 @@ const renderReaderApp = function(props, data, timer) {
   // Returns HTML of ReaderApp component given `props` and `data`
   SefariaReact.sefariaSetup(data); //Do we really need to do Sefaria.setup every request?
   SefariaReact.unpackDataFromProps(props);
-  timer.ms_to_set_data = timer.elapsed();
+  timer.msToSetData = timer.elapsed();
   const html  = ReactDOMServer.renderToString(ReaderApp(props));
-  timer.ms_to_render = timer.elapsed();
+  timer.msToRender = timer.elapsed();
   return html;
 };
 const router = express.Router();
@@ -96,37 +96,33 @@ router.get('/error', function(req, res, next) {
   return next(new Error("This is an error and it should be logged to the console"));
 });
 
-router.post('/ReaderApp/:cachekey', function(req, res) {
+router.post('/ReaderApp/:cachekey', function(req, res, next) {
   // timing stored on locals so that it gets returned with the result to be logged
   const timer = res.locals.timing = {
     start: new Date(),
     elapsed: function() { return (new Date() - this.start); }
   };
-  const props = JSON.parse(req.body.propsJSON);
-  req.input_props = {               // For logging
-    initialRefs: props.initialRefs,
-    initialMenu: props.initialMenu,
-    initialPath: props.initialPath,
-  };
+
+  const props = req.inputProps = JSON.parse(req.body.propsJSON);
 
   let request_last_cached = props["last_cached"];
   logger.debug("Begin processing request: ", props);
   logger.debug("Last cached time from server: " + request_last_cached + " " + new Date(request_last_cached*1000).toUTCString());
   logger.debug("last cached time stored: " + sharedCacheData["last_cached"] + " " + new Date(sharedCacheData["last_cached"]*1000).toUTCString());
   // var cacheKey = req.params.cachekey
-  timer.ms_to_props = timer.elapsed();
-  loadSharedData({last_cached_to_compare: request_last_cached}).then(response => {
+  timer.msToProps = timer.elapsed();
+  loadSharedData({last_cached_to_compare: request_last_cached}).then(_ => {
     try {
-      timer.ms_to_validate_cache = timer.elapsed();
+      timer.msToValidateCache = timer.elapsed();
 
       const resphtml = renderReaderApp(props, sharedCacheData, timer);
 
-      timer.ms_to_complete = timer.elapsed();
+      timer.msToComplete = timer.elapsed();
       delete res.locals.timing.elapsed;  // no need to pass this around
 
       res.end(resphtml);
-    } catch (render_e){
-      logger.error(render_e);
+    } catch (render_e) {
+      next(render_e); // Pass the error along for handling
     }
   }).catch(error => {
     res.status(500).end('Data required for render is missing:  ' + error.message);
