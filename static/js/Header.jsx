@@ -15,6 +15,60 @@ import ReaderPanel from './ReaderPanel';
 import Component from 'react-class';
 
 
+const ProfilePicMenu = ({currentLang, len, url, name, key}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const wrapperRef = useRef(null);
+
+  const handleHideDropdown = (event) => {
+    if (event.key === 'Escape') {
+      setIsOpen(false);
+    }
+  };
+  const handleMouseOver = (e) => {
+      e.stopPropagation();
+      setIsOpen(true);
+  };
+  const handleMouseOut = () => {
+      setIsOpen(false);
+  };
+  useEffect(() => {
+      document.addEventListener('keydown', handleHideDropdown, true);
+      document.addEventListener('mouseover', handleMouseOver, true);
+      document.addEventListener('mouseout', handleMouseOut, true);
+      return () => {
+          document.removeEventListener('keydown', handleHideDropdown, true);
+          document.removeEventListener('mouseover', handleMouseOver, true);
+          document.removeEventListener('mouseout', handleMouseOut, true);
+      };
+  }, []);
+  return (
+      <div className="interfaceLinks">
+     <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
+          <div className="interfaceLinks-header">{name}</div>
+         <div><a className="interfaceLinks-header" href="/my/profile">
+             <span className="int-en">Profile</span>
+            <span className="int-he">שפת האתר</span></a></div>
+         <div><a className="interfaceLinks-header" href="/settings/account">
+           <span className="int-en">Account Settings</span>
+            <span className="int-he">שפת האתר</span>
+         </a></div>
+         <div className="interfaceLinks-header">
+           <a href="/interface/english">English</a> | <a href="/interface/hebrew">Hebrew</a>
+         </div>
+         <div><a className="interfaceLinks-header" href="collections/sefaria-faqs">
+            <span className="int-en">Get Help</span>
+            <span className="int-he">שפת האתר</span>
+         </a></div>
+         <div><a className="interfaceLinks-header" href="/logout">
+            <span className="int-en">Logout</span>
+            <span className="int-he">שפת האתר</span>
+         </a></div>
+        <ProfilePic len={len} url={url} name={name} key={key}/>
+        </div>
+      </div>
+  )
+}
+
 class Header extends Component {
   constructor(props) {
     super(props);
@@ -408,7 +462,7 @@ function LoggedInButtons({headerMode}){
       <div className="accountLinks">
           <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>{Sefaria.notificationCount}</a>
           <a href="/my/profile" className="my-profile">
-            <ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
+            <ProfilePicMenu currentLang={Sefaria.interfaceLang} len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
           </a>
        </div>
   );
