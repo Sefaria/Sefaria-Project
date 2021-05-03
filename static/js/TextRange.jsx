@@ -220,8 +220,8 @@ class TextRange extends Component {
       // Takes an array of jQuery elements that all currently appear at the same top position
       if ($elems.length == 1) { return; }
       if ($elems.length == 2) {
-        const adjust1 = $elems[0].find(selector).find(".segmentNumberInner").width();
-        const adjust2 = $elems[1].find(selector).find(".segmentNumberInner").width();
+        const adjust1 = $elems[0].find(".segmentNumberInner").width();
+        const adjust2 = $elems[1].find(".segmentNumberInner").width();
         $elems[0].css(side, "-=" + adjust1);
         $elems[1].css(side, "+=" + adjust2);
       }
