@@ -149,7 +149,7 @@ class AddToSourceSheetBox extends Component {
       "he" : Sefaria.joinRefList(this.props.srefs, "he"),
     } : null;
     if(this.props.nodeRef){ //this whole if clause is ust to make sure that when a sheet is in the main panel, a human readable citation regarding the sheet is shown in the sheet box.
-      const sheetID = this.props.nodeRef.split(".")[0];
+      const sheetID = parseInt(this.props.nodeRef.split(".")[0]);
       const nodeID = this.props.nodeRef.split(".")[1];
       const sheet = Sefaria.sheets.loadSheetByID(sheetID);
       const sheetTitle = sanitizeHtml(sheet.title, {

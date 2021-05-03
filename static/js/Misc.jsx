@@ -101,17 +101,17 @@ const ContentText = ({text, html, overrideLanguage, defaultToInterfaceOnBilingua
   /**
    * Renders cotnet language throughout the site (content that comes from the database and is not interface language)
    * Gets the active content language from Context and renders only the appropriate child(ren) for given language
-   * text {{text: object}} a dictionary {en: "some text", he: "some transalted text"} to use for each language
-   * html {{html: object}} a dictionary {en: "some html", he: "some transalted html"} to use for each language in the case where it needs to be dangerously set html
+   * text {{text: object}} a dictionary {en: "some text", he: "some translated text"} to use for each language
+   * html {{html: object}} a dictionary {en: "some html", he: "some translated html"} to use for each language in the case where it needs to be dangerously set html
    * overrideLanguage a string with the language name (full not 2 letter) to force to render to overriding what the content language context says. Can be useful if calling object determines one langugae is missing in a dynamic way
-   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingunal mode, and default them to what the interface language is
+   * defaultToInterfaceOnBilingual use if you want components not to render all languages in bilingual mode, and default them to what the interface language is
    */
   const [contentVariable, isDangerouslySetInnerHTML]  = html ? [html, true] : [text, false];
   const contentLanguage = useContext(ContentLanguageContext);
-  const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language == "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
+  const languageToFilter = (defaultToInterfaceOnBilingual && contentLanguage.language === "bilingual") ? Sefaria.interfaceLang : (overrideLanguage ? overrideLanguage : contentLanguage.language);
   const langShort = languageToFilter.slice(0,2);
   let renderedItems = Object.entries(contentVariable).filter(([lang, _])=>{
-    return (languageToFilter == "bilingual") ? true : ((lang ==  langShort) ? true : false  );
+    return (languageToFilter === "bilingual") ? true : ((lang === langShort) ? true : false);
   });
   return renderedItems.map( x =>
       isDangerouslySetInnerHTML ?
@@ -1141,6 +1141,7 @@ InterfaceLanguageMenu.propTypes = {
 
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
+  if (!historyObject) { placeholder = true; }
   const isSelected = () => !!Sefaria.getSavedItem(historyObject);
   const [selected, setSelected] = useState(placeholder || isSelected());
   useEffect(() => {
@@ -1168,11 +1169,11 @@ function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {
   }
 
   return (
-      <ToolTipped {...{ altText, classes, style, onClick }}>
-        { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
-          <img src="/static/img/star.png" alt={altText}/> }
-      </ToolTipped>
-    );
+    <ToolTipped {...{ altText, classes, style, onClick }}>
+      { selected ? <img src="/static/img/filled-star.png" alt={altText}/> :
+        <img src="/static/img/star.png" alt={altText}/> }
+    </ToolTipped>
+  );
 }
 SaveButton.propTypes = {
   historyObject: PropTypes.shape({

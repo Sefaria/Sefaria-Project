@@ -84,6 +84,6 @@ SAUCE_EXTENDED_CAPS = [  # Needs Review!
 SAUCE_CAPS = SAUCE_CORE_CAPS + SAUCE_EXTENDED_CAPS
 
 LOCAL_SELENIUM_CAPS = [
-    {'browserName': "firefox", 'platform': 'Linux', 'version': "latest", "screenResolution": "1920x1440",
-     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x13', "extendedDebugging": True},
+    {'browserName': "chrome", 'platform': 'Linux', 'version': "latest", "screenResolution": "1920x1440",
+     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/Lnx', "extendedDebugging": True},
 ]

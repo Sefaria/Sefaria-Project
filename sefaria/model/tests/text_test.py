@@ -5,7 +5,7 @@ import pytest
 
 import sefaria.model as model
 from sefaria.system.exceptions import InputError
-
+from sefaria.system.testing import test_uid
 
 def teardown_module(module):
     titles = ['Test Commentator Name',
@@ -544,8 +544,8 @@ def test_version_walk_thru_contents():
 
 
 class TestModifyVersion:
-    simpleIndexTitle = "Test ModifyVersion Simple"
-    complexIndexTitle = "Test ModifyVersion Complex"
+    simpleIndexTitle = "Test ModifyVersion Simple " + test_uid
+    complexIndexTitle = "Test ModifyVersion Complex " + test_uid
     vtitle = "Version TEST"
     vlang = "he"
 

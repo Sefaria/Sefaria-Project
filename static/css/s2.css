@@ -15,9 +15,144 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+@font-face {
+  /* Mixed Hebrew - English content text */
+  font-family: 'HebrewInEnglish Text Font';
+  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
+  unicode-range: U+0590-05FF, U+25CC;
+}
+@font-face {
+  /* Mixed Hebrew - English system text */
+  font-family: 'HebrewInEnglish System Font';
+  src: local('Heebo'), local('Roboto');
+  unicode-range: U+0590-05FF;
+}
+:root {
+  /* font stacks */
+  --sans-serif-font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --serif-font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+
+  --serif-h1-font-size: 48px;
+  --serif-h2-font-size: 30px;
+  --serif-h3-font-size: 24px;
+  --serif-body-font-size: 18px;
+
+  --sans-serif-h1-font-size: 40px;
+  --sans-serif-h2-font-size: 30px;
+  --sans-serif-h3-font-size: 22px;
+  --sans-serif-body-font-size: 16px;
+  --sans-serif-small-font-size: 14px;
+
+  /* colors */
+  --sefaria-blue: #18345D;
+  --highlight-blue: #DDEEFF;
+  --highlight-blue-light: #F0F7FF;
+  --dark-grey: #666666;
+  --medium-grey: #999999;
+  --light-grey: #CCCCCC;
+  --lighter-grey: #EDEDEC;
+  --lightest-grey: #FBFBFA;
+  --commentary-blue: #4B71B7;
+  --tanakh-teal: #004E5F;
+  --mishnah-blue: #5A99B7;
+  --talmud-gold: #CCB479;
+  --midrash-green: #5D956F;
+  --halakhah-red: #802F3E;
+  --kabbalah-purple: #594176;
+  --liturgy-rose: #AB4E66;
+  --philosophy-purple: #7F85A9;
+  --taanitic-green: #00827F;
+  --chasidut-green: #97B386;
+  --mussar-purple: #7C416F;
+  --responsa-red: #CB6158;
+  --apocrypha-pink: #C6A7B4;
+  --modern-works-blue: #B8D4D3;
+  --grammar-green: #B2B272;
+  --reference-orange: #D4896C;
+  --miscelaneous-brown: #7D6D5D;
+  --miscelaneous-blue: #B1C8DD;
+  --miscelaneous-green: #3B5849;
+
+}
+
+
+
 a{
   color: inherit;
 }
+
+.serif {
+  --font-family: var(--serif-font-family);
+  font-size: 1em;
+}
+.sans-serif {
+  --font-family: var(--sans-serif-font-family);
+}
+
+.serif .hebrew {
+  --hebrew-multiplier: 1.22;
+}
+
+h1 {
+  font-family: var(--font-family);
+  font-weight: normal;
+  font-size: calc(var(--serif-h1-font-size) * var(--hebrew-multiplier, 1))
+}
+h2 {
+  font-family: var(--font-family);
+  font-weight: normal;
+  font-size: calc(var(--serif-h2-font-size) * var(--hebrew-multiplier, 1))
+}
+h3 {
+  font-family: var(--font-family);
+  font-weight: normal;
+  font-size: calc(var(--serif-h2-font-size) * var(--hebrew-multiplier, 1))
+}
+body {
+  font-family: var(--font-family);
+  font-size: calc(var(--serif-body-font-size) * var(--hebrew-multiplier, 1))
+}
+
+.btn, .btn-sm, .btn-xs {
+  display: inline-block;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  flex-direction: column;
+  margin: 10px 20px;
+  background-color: var(--sefaria-blue);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  border-radius: 7px;
+  cursor: pointer;
+  font-size: 16px;
+  letter-spacing: 0.1em;
+  font-family: ; var(--sans-serif-font-family)
+  box-sizing: border-box;
+  line-height: 19px;
+  text-align: center;
+}
+
+.btn.white, .btn-sm.white, .btn-xs.white {
+  background-color: white;
+  color: #333;
+}
+
+.btn {
+  width: 300px;
+  height: 50px;
+}
+
+.btn-sm {
+  width: 150px;
+  height: 40px;
+}
+
+.btn-xs {
+  width: 75px;
+  height: 30px;
+}
+
 /*
 Style Guide Font Hierarchy
 https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
@@ -159,19 +294,6 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   font-style: italic;
 }
 /* end Style Guide */
-
-@font-face {
-  /* Mixed Hebrew - English content text */
-  font-family: 'HebrewInEnglish Text Font';
-  src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
-  unicode-range: U+0590-05FF, U+25CC;
-}
-@font-face {
-  /* Mixed Hebrew - English system text */
-  font-family: 'HebrewInEnglish System Font';
-  src: local('Heebo'), local('Roboto');
-  unicode-range: U+0590-05FF;
-}
 .sans,
 .sans .en,
 #s2 .sans .en,
@@ -306,6 +428,7 @@ input.noselect {
   display: none;
 }
 .interface-hebrew #panelWrapBox,
+.readerApp.interface-hebrew .readerPanel
 {
   direction: rtl;
 }
@@ -2515,6 +2638,7 @@ a.readerNavCategory {
   line-height: 22px;
   color: #666666;
   margin: 10px 0;
+  text-align: start;
 }
 .versionBlock .versionEditIcon {
   margin: 0 7px;
@@ -3731,6 +3855,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   justify-content: center;
   font-weight: lighter;
   letter-spacing: 1px;
+}
+.textRange.basetext .title, {
   font-size: 24px;
 }
 
@@ -7321,7 +7447,6 @@ span.purim-emoji img{
   border-bottom: 2px solid #E6E5E6;
   border-top: none;
 }
-
 .sheetContent table th:first-of-type,
 .sheetContent table tr td:first-of-type {
   padding-left: 0;
@@ -7368,7 +7493,7 @@ span.purim-emoji img{
   margin-bottom: 0;
   margin-top: 40px;
 }
-.sheetsInPanel p {
+.sheetContent p {
   margin: 0 0 1em 0;
 }
 .segmentNumber.sheetSegmentNumber {
@@ -7430,7 +7555,6 @@ span.purim-emoji img{
   overflow-wrap: break-word;
   word-wrap: break-word;
 }
-
 .readerPanel.hebrew .sheetContent .sheetItem.segment .sourceContentText.outsideBiText.en {
   display: none;
 }
@@ -7456,11 +7580,9 @@ span.purim-emoji img{
 .sheetContent .editorContent .sheetItem.segment .sourceContentText p {
   margin-bottom: 0;
 }
-
 .sheetContent .editorContent .sheetItem.noPointer {
   pointer-events: none;
 }
-
 .sheetContent .sheetItem.segment .addedBy {
   margin-top: -20px;
 }
@@ -7631,14 +7753,12 @@ section.SheetSource .en,
 section.SheetOutsideBiText .en {
   background-color: #FBFBFA;
 }
-
 section.SheetSource,
 section.SheetOutsideBiText {
   border-inline-start: 4px solid;
   box-shadow: 0px 1px 6px rgba(0, 0, 0, 0.25);
   margin-bottom: 30px;
 }
-
 .readerPanel.hebrew section.SheetSource .sheetItem > .he,
 .readerPanel.english section.SheetSource .sheetItem > .en,
 .readerPanel.hebrew section.SheetOutsideBiText .sheetItem > .he,
@@ -7651,7 +7771,6 @@ section.SheetOutsideBiText {
 .readerPanel.english section.SheetOutsideBiText .sheetItem > .he  {
   display: none;
 }
-
 .interface-english section.SheetSource .sheetItem > .he,
 .interface-english section.SheetSource .sheetItem > .en,
 .interface-english section.SheetOutsideBiText .sheetItem > .he,
@@ -7664,30 +7783,24 @@ section.SheetOutsideBiText {
 .interface-hebrew section.SheetOutsideBiText .sheetItem > .en {
   padding: 15px 16px 15px 20px;
 }
-
 .readerPanel.bilingual.stacked .sheetContent section.SheetSource .segment.highlight .he,
 .readerPanel.bilingual.stacked .sheetContent section.SheetOutsideBiText .segment.highlight .he {
   padding-bottom: 15px;
 }
-
-
 section.SheetSource.highlight,
 section.SheetOutsideBiText.highlight {
   background-color: #E9E9E7;
 }
-
 section.SheetSource .segmentNumber,
 section.SheetSource .SheetOutsideBiText {
   display: none;
 }
-
 .sheetContent section.SheetSource.highlight .sheetItem.segment.highlight .sourceContentText,
 .sheetContent section.SheetSource .sheetItem.segment .sourceContentText,
 .sheetContent section.SheetOutsideBiText.highlight .sheetItem.segment.highlight .sourceContentText,
 .sheetContent section.SheetOutsideBiText .sheetItem.segment .sourceContentText {
   margin: 0;
 }
-
 .sheetItem .SheetSource,
 .sheetItem .SheetOutsideBiText {
   border-inline-start: 4px solid;
@@ -7703,7 +7816,6 @@ section.SheetSource .SheetOutsideBiText {
   margin-top: 12px;
   margin-bottom: 12px;
   margin-inline-end: -2px;
-
 }
 .sheetItem .SheetSource .he,
 .sheetItem .SheetSource .en,
@@ -7743,16 +7855,14 @@ section.SheetSource .SheetOutsideBiText {
 }
 .sheetItem .SheetSource:after,
 .sheetItem .SheetOutsideBiText:after {
-    content: " ";
-    display: block;
-    clear: both;
-    height: 15px;
-    background-color: #FBFBFA;
-
+  content: " ";
+  display: block;
+  clear: both;
+  height: 15px;
+  background-color: #FBFBFA;
 }
-
 .sheetItem .SheetMedia {
-    margin-bottom: 14px;
+  margin-bottom: 14px;
 }
 .feedbackBox p {
   font-size: 16px;

@@ -31,7 +31,7 @@ from sefaria.model.collection import CollectionSet
 from sefaria.system.database import db
 from sefaria.system.exceptions import InputError
 from sefaria.utils.util import strip_tags
-from .settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, SEARCH_INDEX_NAME_MERGED, STATICFILES_DIRS
+from .settings import SEARCH_ADMIN, SEARCH_INDEX_NAME_TEXT, SEARCH_INDEX_NAME_SHEET, STATICFILES_DIRS
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.utils.hebrew import strip_cantillation
 import sefaria.model.queue as qu

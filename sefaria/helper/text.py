@@ -544,6 +544,31 @@ def dual_text_diff(seg1, seg2, edit_cb=None, css_classes=False):
     return side_by_side_diff(diff), side_by_side_diff(diff, False)
 
 
+def word_frequency_for_text(title, lang="en"):
+    """
+    Returns an ordered list of word/count tuples for occurences of words inside the 
+    text `title`.
+    """
+    import string
+    from collections import defaultdict
+    from sefaria.export import make_text, prepare_merged_text_for_export
+    from sefaria.utils.util import strip_tags 
+    text = make_text(prepare_merged_text_for_export(title, lang=lang))
+
+    text = strip_tags(text)
+    text = text.lower()
+    text = re.sub(r'[^a-z ]', " ", text)
+    text = re.sub(r' +', " ", text)
+    text = text.translate(str.maketrans(dict.fromkeys(string.punctuation)))
+
+    count = defaultdict(int)
+    words = text.split(" ")
+    for word in words:
+        count[word] += 1
+
+    counts = sorted(iter(count.items()), key=lambda x: -x[1])
+
+    return counts
 
 
 class WorkflowyParser(object):

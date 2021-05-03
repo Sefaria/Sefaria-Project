@@ -300,7 +300,7 @@ CACHES = {
 GLOBAL_INTERRUPTING_MESSAGE = {
     "name":       "shavuot-2021",
     "style":      "modal", # "modal" or "banner"
-    "repetition": 1,
+    "repetition": 3,
     "condition":  {
         "returning_only": False,
         "english_only": False,
