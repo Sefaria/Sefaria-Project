@@ -66,7 +66,6 @@ def user_only(view):
 
 def global_settings(request):
     return {
-        "SEARCH_URL":             SEARCH_HOST,
         "SEARCH_INDEX_NAME_TEXT": SEARCH_INDEX_NAME_TEXT,
         "SEARCH_INDEX_NAME_SHEET":SEARCH_INDEX_NAME_SHEET,
         "GOOGLE_TAG_MANAGER_CODE":GOOGLE_TAG_MANAGER_CODE,

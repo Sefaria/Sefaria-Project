@@ -53,6 +53,7 @@ const Strings = {
     "Source Sheets": "דפי מקורות",
     "Start a New Source Sheet": "התחלת דף מקורות חדש",
     "Untitled Source Sheet" : "דף מקורות ללא שם",
+    "Untitled": "ללא שם",
     "New Source Sheet" : "דף מקורות חדש",
     "Name New Sheet" : "כותרת לדף חדש",
     "Copy" : "העתקה",

@@ -383,7 +383,7 @@ def process_collection_delete_in_sheets(collection, **kwargs):
 
 def process_sheet_deletion_in_collections(sheet_id):
     """
-    When a sheet is delete remove it from any collections.
+    When a sheet is deleted remove it from any collections.
     Note: this function is not tied through dependencies.py (since Sheet mongo model isn't generlly used),
     but is called directly from sheet deletion view in sourcesheets/views.py. 
     """

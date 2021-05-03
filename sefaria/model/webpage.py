@@ -65,6 +65,7 @@ class WebPage(abst.AbstractMongoRecord):
             "remove www": lambda url: re.sub(r"^(https?://)www\.", r"\1", url),
             "remove mediawiki params": lambda url: re.sub(r"&amp;.+", "", url),
             "remove sort param": lambda url: re.sub(r"\?sort=.+", "", url),
+            "remove all params after id": lambda url: re.sub(r"(\?id=\d+).+$", r"\1", url)
         }
         global_rules = ["remove hash", "remove utm params", "remove fbclid param"]
         domain = WebPage.domain_for_url(url)
@@ -839,5 +840,10 @@ sites_data = [
     {
         "name": "S and P Sephardi Community",
         "domains": ["sephardi.org.uk"],
+    },
+    {
+        "name": "זיכרון בספר",
+        "domains": ["mevoot.michlala.edu"],
+        "normalization_rules": ["use https", "remove www", "remove all params after id"]
     }
 ]

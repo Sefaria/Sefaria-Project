@@ -888,16 +888,20 @@ class AbstractSchemaContent(object):
             key_list = []
         if not indx_list:
             indx_list = []
-        ja = reduce(lambda d, k: d[k], key_list, self.get_content())
-        if indx_list:
+        node = reduce(lambda d, k: d[k], key_list, self.get_content())
+        if indx_list:  # accessing/setting index with jagged array node
             if value is not None:
                 # NOTE: JaggedArrays modify their store in place, so this change will affect `self`
-                JaggedArray(ja).set_element(indx_list, value, '')
-            return reduce(lambda a, i: a[i], indx_list, ja)
-        else:
+                JaggedArray(node).set_element(indx_list, value, '')
+            return reduce(lambda a, i: a[i], indx_list, node)
+        else: # accessing/setting index in schema nodes
             if value is not None:
-                ja[:] = value
-            return ja
+                if isinstance(value, list):  # we assume if value is a list, you want to modify the entire contents of the jagged array node
+                    node[:] = value
+                else:  # this change is to a schema node that's not a leaf. need to explicitly set contents on the parent so this change affects `self` 
+                    node_parent = reduce(lambda d, k: d[k], key_list[:-1], self.get_content())
+                    node_parent[key_list[-1]] = value
+            return node
 
 
 class AbstractTextRecord(object):
