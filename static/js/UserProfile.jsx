@@ -470,7 +470,7 @@ UserProfile.propTypes = {
 const EditorToggleHeader = ({usesneweditor}) => {
  const [feedbackHeaderState, setFeedbackHeaderState] = useState("hidden")
 
- const text = <InterfaceText>{usesneweditor ? "You are currently testing the new document editor." : "You are currently using the old document editor."}</InterfaceText>;
+ const text = <InterfaceText>{usesneweditor ? "You are currently testing the new Sefaria editor." : "You are currently using the old Sefaria editor."}</InterfaceText>;
  const buttonText = <InterfaceText>{usesneweditor ? "Go back to old version" : "Try the new version"}</InterfaceText>;
 
 
@@ -511,7 +511,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
  const disableOverlayContent = (
    <div>
       <h2><InterfaceText>Request for Feedback</InterfaceText></h2>
-      <p><InterfaceText>Thank you for trying the new document editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.</InterfaceText></p>
+      <p><InterfaceText>Thank you for trying the new Sefaria editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.</InterfaceText></p>
       <p><InterfaceText>Did you encounter any issues while using the new editor? For example:</InterfaceText></p>
       <ul>
         <li><InterfaceText>Technical problems</InterfaceText></li>

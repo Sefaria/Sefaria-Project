@@ -7995,7 +7995,10 @@ section.SheetSource .SheetOutsideBiText {
   left: 0;
   padding: 120px 60px;
   box-sizing: border-box;
+}
 
+.interface-hebrew .feedbackOverlay {
+  direction: rtl;
 }
 
 .feedbackOverlay .buttonContainer {
@@ -8021,7 +8024,8 @@ section.SheetSource .SheetOutsideBiText {
 
 .feedbackOverlay textarea {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-  color: #666;
+  font-size: 18px;
+  color: #000;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
   border: none;
@@ -8036,6 +8040,7 @@ section.SheetSource .SheetOutsideBiText {
 .feedbackOverlay textarea::placeholder {
   font-size: 16px;
   font-style: normal;
+  color: #666;
 }
 
 .feedbackOverlay a {
@@ -8044,6 +8049,10 @@ section.SheetSource .SheetOutsideBiText {
 
 .feedbackOverlay .button {
   margin: 0;
+}
+
+.feedbackOverlay a.button  {
+  color: white;
 }
 
 .sheetList .sheet {
