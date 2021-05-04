@@ -323,7 +323,7 @@ jobs:
     runs-on: ubuntu-latest
     services: 
       selenium:
-        image: selenium/standalone-chrome:90.0
+        image: selenium/standalone-chrome:3.141.59
         ports: [ "4444:4444" ]
         volumes: ["/dev/shm:/dev/shm"]
     steps:
@@ -369,7 +369,6 @@ jobs:
         # if it is NOT available, it will fail with a '7' exit code
         # run: curl localhost:5432; if [ $? -eq "52" ]; then exit 0; else exit 1; fi
         run: exitCode=$(curl localhost:5432; echo $?); if [ $exitCode -eq 52 ]; then exit 0; else exit 1; fi
-
 
       - name: Define GITHUB_SHA_SHORT
         run: echo "GITHUB_SHA_SHORT=${GITHUB_SHA:0:6}" >> $GITHUB_ENV
@@ -518,7 +517,7 @@ jobs:
 
       - name: Wait For Job To Finish
         run: ./build/ci/waitForCIJob.bash
-        timeout-minutes: 20
+        timeout-minutes: 30
         env: 
           # dependent on GITHUB_RUN_ID, which is implicitly passed in
           TEST_NAME: pytest
