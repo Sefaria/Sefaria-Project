@@ -105,7 +105,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
               </a>
             );
   });
-  const more = (<a href="#" className="readerNavCategory readerNavMore" onClick={enableShowMoreTexts}>
+  const more = (<a href="#" className="readerNavCategory readerNavMore sans-serif" onClick={enableShowMoreTexts}>
                   <span className="int-en">More<img src="/static/img/arrow-right.png" alt="" /></span>
                   <span className="int-he">עוד<img src="/static/img/arrow-left.png" alt="" /></span>
               </a>);
@@ -214,14 +214,14 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
           <span className='he'>{t.he}</span>
       </a>
   });
-  const moreTopics = (<a href="#" className="blockLink readerNavMore" onClick={enableShowMoreTopics}>
+  const moreTopics = (<a href="#" className="blockLink readerNavMore sans-serif" onClick={enableShowMoreTopics}>
                   <span className="int-en">More<img src="/static/img/arrow-right.png" alt="" /></span>
                   <span className="int-he">עוד<img src="/static/img/arrow-left.png" alt="" /></span>
               </a>);
   const azButton = (
     <a href={"/topics"}
        onClick={openMenu.bind(null, "topics")}
-       className="blockLink readerNavMore"
+       className="blockLink readerNavMore sans-serif"
     >
         <span className='en'>All Topics</span>
         <span className='he'>כל הנושאים</span>
@@ -231,7 +231,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   const topicsBlock = (<div className="readerTocTopics"><TwoOrThreeBox content={topicBlocks} width={width} /></div>);
 
 
-  const title = (<h1>
+  const title = (<h1 className="sans-serif-in-hebrew">
                 { multiPanel && interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
                  <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
                 <span className="int-en">{Sefaria._siteSettings.LIBRARY_NAME.en}</span>
@@ -291,7 +291,7 @@ ReaderNavigationMenu.propTypes = {
 
 
 const TocLink = ({en, he, img, alt, href, resourcesLink, classes, onClick}) =>
-    <a className={(resourcesLink?"resourcesLink ":"") + (classes||"")} href={href} onClick={onClick}>
+    <a className={"sans-serif " + (resourcesLink ? "resourcesLink " : "") + (classes || "")} href={href} onClick={onClick}>
         {img?<img src={img} alt={alt} />:""}
         <span className="int-en">{en}</span>
         <span className="int-he">{he}</span>

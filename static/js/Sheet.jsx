@@ -365,7 +365,7 @@ class SheetSource extends Component {
     var style = {opacity: linkScore};
 
     linkCountElement = (
-      <div className="linkCount sans"  title={linkCount + " Connections Available"}>
+      <div className="linkCount sans-serif"  title={linkCount + " Connections Available"}>
         <span className="linkCountDot" style={style}></span>
       </div>
     );
@@ -400,7 +400,7 @@ class SheetSource extends Component {
             <div className="titleBox">{this.props.source.title.stripHtml()}</div>
           </div> : null}
 
-          <div className="segmentNumber sheetSegmentNumber sans">
+          <div className="segmentNumber sheetSegmentNumber sans-serif">
             <span className="en">
               <span className="segmentNumberInner">
                 {this.props.sheetNumbered == 0 ? null : this.props.sourceNum}
@@ -464,7 +464,7 @@ class SheetComment extends Component {
     return (
       <section className="SheetComment">
         <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
-          <div className="segmentNumber sheetSegmentNumber sans">
+          <div className="segmentNumber sheetSegmentNumber sans-serif">
             <span className="en">
               <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
             </span>
@@ -508,7 +508,7 @@ class SheetOutsideText extends Component {
     return (
       <section className="SheetOutsideText">
         <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
-          <div className="segmentNumber sheetSegmentNumber sans">
+          <div className="segmentNumber sheetSegmentNumber sans-serif">
             <span className="en">
               <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
             </span>
@@ -553,7 +553,7 @@ class SheetOutsideBiText extends Component {
     return (
       <section className={sectionClasses}>
         <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
-          <div className="segmentNumber sheetSegmentNumber sans">
+          <div className="segmentNumber sheetSegmentNumber sans-serif">
             <span className="en">
                 <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
             </span>
@@ -641,7 +641,7 @@ class SheetMedia extends Component {
     return (
       <section className="SheetMedia">
         <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
-          <div className="segmentNumber sheetSegmentNumber sans">
+          <div className="segmentNumber sheetSegmentNumber sans-serif">
             <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
             <span className="he"> <span
               className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>

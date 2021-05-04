@@ -1044,7 +1044,7 @@ class ReaderPanel extends Component {
       );
     }
 
-    let classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};
+    let classes  = {readerPanel: 1, serif: 1, narrowColumn: this.state.width < 730};
     classes[contextContentLang.language] = 1
     classes[this.currentLayout()]        = 1;
     classes[this.state.settings.color]   = 1;

@@ -362,13 +362,13 @@ class TextRange extends Component {
       if (heDisplayValue === undefined) {
         heDisplayValue = enDisplayValue;
       }
-      sidebarNum = <div className="numberLabel sans itag">
+      sidebarNum = <div className="numberLabel sans-serif itag">
         <span className="numberLabelInner">
           <ContentText text={{en:enDisplayValue, he:heDisplayValue}} defaultToInterfaceOnBilingual={true}/>
         </span>
       </div>;
     } else if (showNumberLabel && this.props.numberLabel) {
-      sidebarNum = <div className="numberLabel sans">
+      sidebarNum = <div className="numberLabel sans-serif">
         <span className="numberLabelInner">
           <ContentText text={{en:this.props.numberLabel, he:Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}} defaultToInterfaceOnBilingual={true} />
         </span>
@@ -539,7 +539,7 @@ class TextSegment extends Component {
       const linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
       const style = {opacity: linkScore};
       linkCountElement = this.props.showLinkCount ? (
-          <div className="linkCount sans" title={linkCount + " Connections Available"}>
+          <div className="linkCount sans-serif" title={linkCount + " Connections Available"}>
              <span className="linkCountDot" style={style}></span>
           </div>
       ) : null;
@@ -547,7 +547,7 @@ class TextSegment extends Component {
       linkCountElement = "";
     }
     let segmentNumber = this.props.segmentNumber ? (
-        <div className="segmentNumber sans">
+        <div className="segmentNumber sans-serif">
           <span className="segmentNumberInner">
              <ContentText
                  text={{"en": this.props.segmentNumber, "he": Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}}
