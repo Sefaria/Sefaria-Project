@@ -71,32 +71,33 @@ a {
   --reference-orange: #D4896C;
 }
 /* Font Family */
-.en,
-.serif,
-.serif .en,
-.serif .int-en {
-  font-family: var(--english-serif-font-family);
+.serif {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
 }
-.int-en,
-.sans-serif,
-.sans-serif .en,
-.sans-serif .int-en {
-  font-family: var(--english-sans-serif-font-family);
+.sans-serif {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
 }
-.he,
+.sans-serif-in-hebrew {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+}
+.en, .int-en {
+  font-family: var(--english-font);
+}
+.he, .int-he {
+  font-family: var(--hebrew-font);
+}
+/* Font Size */
 .serif .he,
 .serif .int-he {
   --hebrew-multiplier: 1.22;
-  font-family: var(--hebrew-serif-font-family);
 }
-.int-he,
 .sans-serif .he,
-.sans-serif .int-he,
-.sans-serif-in-hebrew .he,
-.sans-serif-in-hebrew .int-he {
-  font-family: var(--hebrew-sans-serif-font-family);
+.sans-serif .int-he {
+  --hebrew-multiplier: 1;
 }
-/* Font Size */
 /* we should be able to remove this, but without it reader basetext is missized -- BLL 5/4/21 */
 .he {
   font-size: 122%;
