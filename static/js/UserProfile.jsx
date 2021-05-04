@@ -470,7 +470,7 @@ UserProfile.propTypes = {
 const EditorToggleHeader = ({usesneweditor}) => {
  const [feedbackHeaderState, setFeedbackHeaderState] = useState("hidden")
 
- const text = <InterfaceText>{usesneweditor ? "You are currently testing the new document editor" : "You are currently using the old document editor"}</InterfaceText>;
+ const text = <InterfaceText>{usesneweditor ? "You are currently testing the new document editor." : "You are currently using the old document editor."}</InterfaceText>;
  const buttonText = <InterfaceText>{usesneweditor ? "Go back to old version" : "Try the new version"}</InterfaceText>;
 
  const sendFeedback = () => {

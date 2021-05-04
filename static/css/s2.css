@@ -7929,16 +7929,24 @@ section.SheetSource .SheetOutsideBiText {
   height: 60px;
   font-size: 16px;
   margin-top: -80px;
+  margin-left: -12px;
+  margin-bottom: 80px;
+  padding-right: 12px;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: absolute;
+  position: relative;
   left: 0;
+}
+.interface-hebrew .editorToggleHeader {
+  direction: rtl;
 }
 .editorToggleHeader .button {
   padding: 5px 8px;
   margin-inline-start: 15px;
   margin-top: 5px;
+  height: 30px;
+  letter-spacing: 0;
 }
 .feedbackOverlay {
   position: fixed;
@@ -7951,6 +7959,10 @@ section.SheetSource .SheetOutsideBiText {
   padding: 120px 60px;
   box-sizing: border-box;
 
+}
+
+.feedbackOverlay .buttonContainer {
+  margin-top: 50px;
 }
 
 .feedbackOverlay h2 {
@@ -7981,8 +7993,21 @@ section.SheetSource .SheetOutsideBiText {
   font-weight: normal;
   font-style: normal;
   margin-top: 10px;
+  height: 120px;
 }
 
+.feedbackOverlay textarea::placeholder {
+  font-size: 16px;
+  font-style: normal;
+}
+
+.feedbackOverlay a {
+  color: #4871bf;
+}
+
+.feedbackOverlay .button {
+  margin: 0;
+}
 
 .sheetList .sheet {
   border-bottom: none;
