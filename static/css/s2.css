@@ -73,7 +73,7 @@ a {
 /* Font Family */
 body, .sans-serif {
   --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .serif {
   --english-font: var(--english-serif-font-family);
@@ -81,7 +81,7 @@ body, .sans-serif {
 }
 .sans-serif-in-hebrew {
   --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .en, .int-en {
   font-family: var(--english-font);
