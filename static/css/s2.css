@@ -1312,7 +1312,11 @@ input.noselect {
   .sidebarLayout {
     flex-direction: column;
   }
-} 
+}
+.sidebarLayout h1 {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+}
 .interface-hebrew .sidebarLayout {
   direction: rtl;
 }
@@ -2013,6 +2017,8 @@ a.navBlockTitle {
   line-height: 18px;
   color: #666;
   margin-inline-end: 20px;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .interface-english .navBlockDescription.clamped .int-en,
 .interface-hebrew .navBlockDescription.clamped .int-he {
@@ -8995,7 +9001,7 @@ body .homeFeedWrapper .content {
 }
 .storyFeedInner,
 .interface-hebrew .storyFeedInner {
-  max-width: 760px;
+  width: 760px;
   margin: 0 auto;
   padding-top: 60px;
   max-width: 100%;
