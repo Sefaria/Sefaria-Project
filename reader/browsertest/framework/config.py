@@ -52,7 +52,7 @@ SAUCE_CORE_CAPS = [
     #{'browserName': "MicrosoftEdge", 'platform': "Windows 10", 'version': "latest",
     #    'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Edg/w10'},
 
-    {'deviceName': "Samsung Galaxy S9 WQHD GoogleAPI Emulator", 'platformName': 'Android', 'platformVersion': '9.0',
+    {'deviceName': "Android GoogleAPI Emulator", 'platformName': 'Android', 'platformVersion': '11.0',
      'browserName': 'Chrome', 'appiumVersion': '1.20.2', 'deviceOrientation': "portrait",
      'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/9.0'},
 
