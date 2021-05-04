@@ -545,7 +545,7 @@ class TabView extends Component {
     return (
       <div className="tab-view">
         <div className="tab-list sans-serif">
-          <InterfaceText>{this.props.tabs.map(this.renderTab)}</InterfaceText>
+          {this.props.tabs.map(this.renderTab)}
         </div>
         { React.Children.toArray(this.props.children)[currTabIndex] }
       </div>
@@ -557,7 +557,7 @@ TabView.propTypes = {
   renderTab: PropTypes.func.isRequired,
   currTabIndex: PropTypes.number,  // optional. If passed, TabView will be controlled from outside
   setTab: PropTypes.func,          // optional. If passed, TabView will be controlled from outside
-  onClickArray: PropTypes.object,    // optional. If passed, TabView will be controlled from outside
+  onClickArray: PropTypes.object,  // optional. If passed, TabView will be controlled from outside
 };
 
 

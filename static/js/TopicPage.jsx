@@ -349,7 +349,7 @@ const TopicPage = ({
                           tabs={tabs}
                           renderTab={t => (
                             <div className={classNames({tab: 1, noselect: 1, filter: t.justifyright, open: t.justifyright && showFilterHeader})}>
-                              {t.text}
+                              <InterfaceText>{t.text}</InterfaceText>
                               { t.icon ? <img src={t.icon} alt={`${t.text} icon`} /> : null }
                             </div>
                           )}
