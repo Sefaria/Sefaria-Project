@@ -88,7 +88,6 @@ const Strings = {
     "Indent Source": "הזחת מקור פנימה",
     "Create New" : "יצירת חדש",
     "Close" : "סגירה",
-    "by": "", // by line on sheets in reader, intentionally left blank
 
     // Reader Panel
     "Search" : "חיפוש",
@@ -243,7 +242,7 @@ const Strings = {
     "Stay in the know": "השארו מעודכנים",
     "Sign Up": "הרשמו לספריא",
     "Already have an account?": "כבר יש לכם חשבון?",
-    "Sign\u00A0in": "התחברו",
+    "Sign in": "התחברו",
     "Save": "שמירה",
     "Remove": "הסרה",
     "Email was successfully changed!": 'כתובת הדוא"ל שונתה בהצלחה!',
@@ -329,6 +328,9 @@ const Strings = {
       "Reference": "עיון",
       "Related Passage": "קשר אחר",
     },
+    "SheetAuthorStatement": {
+      "by ": "", // by line on sheets in reader, intentionally left blank
+    }
   },
 };
 

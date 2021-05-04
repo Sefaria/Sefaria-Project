@@ -2271,11 +2271,11 @@ _media: {},
     if(Sefaria.interfaceLang != "english"){
         let translatedString = null;
         if (context && context in Sefaria._i18nInterfaceStringsWithContext){
-            let translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
-            if (translatedString) return translatedString;
+          let translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStringsWithContext[context], inputStr);
+          if (typeof translatedString !== "undefined") return translatedString;
         }
-        if(translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)){
-            return translatedString;
+        if (translatedString = Sefaria._getStringCaseInsensitive(Sefaria._i18nInterfaceStrings, inputStr)) {
+          return translatedString;
         }
         if ((translatedString = Sefaria.hebrewTerm(inputStr)) != inputStr) {
           return translatedString;
