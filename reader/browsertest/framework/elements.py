@@ -301,7 +301,7 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.segment')))
 
     def click_source_title(self):
-        title_selector = 'div.readerTextToc h1 > a'
+        title_selector = 'div.readerTextToc a'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, title_selector))
         )
