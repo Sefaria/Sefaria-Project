@@ -71,12 +71,12 @@ a {
   --reference-orange: #D4896C;
 }
 /* Font Family */
-.serif {
-  --english-font: var(--english-serif-font-family);
+body, .sans-serif {
+  --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-serif-font-family);
 }
-.sans-serif {
-  --english-font: var(--english-sans-serif-font-family);
+.serif {
+  --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-serif-font-family);
 }
 .sans-serif-in-hebrew {
