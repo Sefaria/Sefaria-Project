@@ -130,6 +130,8 @@ class AbstractTest(object):
         ]
 
         js_console = self.driver.get_log("browser")
+        # This is cranky on many webdrivers.  It appears to only work on Chrome.
+        # See e.g. https://github.com/mozilla/geckodriver/issues/330
 
         for msg in js_console:
             if any(error in msg["message"] for error in error_strings):
@@ -1180,7 +1182,7 @@ class AbstractTest(object):
         """
         self.driver.get(urllib.parse.urljoin(self.base_url, url))
         WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, test_selector)))
-        self.catch_js_error()
+        # self.catch_js_error()
         return self
 
     # Editing
