@@ -185,7 +185,7 @@ const AboutText = ({index, hideTitle}) => {
   authors = authors.filter((x) => !!x[lang]).map(a => <a href={"/person/" + a.en} key={a.en}><InterfaceText>{a[lang]}</InterfaceText></a>);
   authors = [].concat(...authors.map(x => [<span>, </span>, x])).slice(1); // Like a join for an array of React elements
 
-  const description = lang === "he" ? index.heDesc : index.enDesc;
+  const description = lang === "he" ? (index.heDesc || index.heShortDesc) : (index.enDesc || index.enShortDesc);
 
   if (!authors.length && !composed && !description) { return null; }
 
