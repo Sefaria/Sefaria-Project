@@ -38,7 +38,7 @@ import sefaria.model as model
 import sefaria.system.cache as scache
 from sefaria.client.util import jsonResponse, subscribe_to_list, send_email
 from sefaria.forms import SefariaNewUserForm, SefariaNewUserFormAPI
-from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE, RTC_SERVER
+from sefaria.settings import MAINTENANCE_MESSAGE, USE_VARNISH, MULTISERVER_ENABLED, relative_to_abs_path, RTC_SERVER
 from sefaria.model.user_profile import UserProfile, user_link
 from sefaria.model.collection import CollectionSet
 from sefaria.export import export_all as start_export_all

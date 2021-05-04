@@ -3,6 +3,11 @@ from sefaria.system.exceptions import BookNameError
 
 
 def move_index_into(index, cat):
+    """
+    :param index: (String)  The primary name of the Index to move.
+    :param cat:  (model.Category or List) Category to move into - either a Category object, or a List with the path leading to the Category
+    :return: None
+    """
     if not isinstance(index, Index):
         try:
             index = library.get_index(index)
@@ -20,10 +25,11 @@ def move_index_into(index, cat):
 def rename_category(cat, en, he=None):
     """
 
-    :param cat:
-    :param en:
-    :param he:
-    :return:
+    :param cat: (model.Category or List) Either a Category object or a list of category keys defining a category
+    :param en:  (String)    The new English name of the category.  If `en`` is a key for a Term, the Term will be used.
+    Otherwise, the `he` is required, and the two will be used to create a new Term.
+    :param he:  (String, optional)
+    :return: model.Category - the newly renamed Category
     """
     if not isinstance(cat, Category):
         cat = Category().load({"path": cat})
@@ -73,15 +79,16 @@ def rename_category(cat, en, he=None):
 
 def move_category_into(cat, parent):
     """
-    c = Category().load({'path': ["Tanaitic", "Minor Tractates"]})
-    p = Category().load({"path": ["Talmud", "Bavli"]})
-    move_category_into(c, p)
+    Move category `cat` to be a child of `parent`.  If `parent` is None, move `cat` to root.
 
-    if parent is None, move to root.
-
-    :param cat:
-    :param parent:
+    :param cat: (model.Category or List) either a Category object, or a list of keys for the path of a category
+    :param parent: (model.Category or List) either a Category object, or a list of keys for the path of a category
     :return:
+
+    >>> c = Category().load({'path': ["Tanaitic", "Minor Tractates"]})
+    >>> p = Category().load({"path": ["Talmud", "Bavli"]})
+    >>> move_category_into(c, p)
+
     """
     if not isinstance(cat, Category):
         cat = Category().load({"path": cat})
@@ -117,6 +124,17 @@ def move_category_into(cat, parent):
 
 
 def create_category(path, en=None, he=None, searchRoot=None):
+    """
+    Will create a new category at the location in the TOC indicated by `path`.
+    If there is a term for `path[-1]`, then that term will be used for this category.
+    Otherwise, a new Term will be created with titles `en` and `he`.
+
+    :param path: (List) the full path of the category to create
+    :param en: (String, optional)
+    :param he: (String, optional)
+    :param searchRoot: (String, optional) If this is present, then in the context of search filters, this category will appear under `searchRoot`.
+    :return: (model.Category) the new category object
+    """
     c = Category()
     if not Term().load({"name": path[-1]}):
         if en is None or he is None:
