@@ -22,7 +22,7 @@ CategoryLink.propTypes = {
 };
 
 function HomeFeedSidebar() {
-    return (<div className="sideColumn">
+    return (<div className="sideColumn sans-serif">
             <div id="homeLearn" className="section">
                 <div className="sectionInner">
                     <div className="textBox">
@@ -35,7 +35,7 @@ function HomeFeedSidebar() {
                             <span className="int-he">עיינו בפרשנים, קישורים ותרגומים בספריה הדיגטלית של ספריא.</span>
                         </div>
                     </div>
-                    <div className="imageBox">
+                    <div className="imageBox serif">
                         <CategoryLink category={"Tanakh"} />
                         <CategoryLink category={"Mishnah"} />
                         <CategoryLink category={"Talmud"} />

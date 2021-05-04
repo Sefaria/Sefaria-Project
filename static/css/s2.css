@@ -16,21 +16,30 @@ body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
 @font-face {
-  /* Mixed Hebrew - English content text */
-  font-family: 'HebrewInEnglish Text Font';
+  /*Mixed Hebrew - English content text*/
+  font-family: 'HebrewInEnglish Serif Font';
   src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
   unicode-range: U+0590-05FF, U+25CC;
 }
+/*
+This doesn't actually work to refer to Heebo or Roboto which are themselves defined with @font-face
 @font-face {
-  /* Mixed Hebrew - English system text */
-  font-family: 'HebrewInEnglish System Font';
+   Mixed Hebrew - English system text 
+  font-family: 'HebrewInEnglish Sans Font';
   src: local('Heebo'), local('Roboto');
   unicode-range: U+0590-05FF;
 }
+*/
 :root {
   /* font stacks */
-  --sans-serif-font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  --serif-font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  --sans-serif-font-family: "HebrewInEnglish Sans Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --serif-font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+
+  --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;; 
+  --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
+
+  --english-serif-font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  --hebrew-serif-font-family: "Taamey Frank", "Times New Roman", serif;;
 
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
@@ -69,53 +78,67 @@ body:not(.user-is-tabbing) *:focus {
   --modern-works-blue: #B8D4D3;
   --grammar-green: #B2B272;
   --reference-orange: #D4896C;
-  --miscelaneous-brown: #7D6D5D;
-  --miscelaneous-blue: #B1C8DD;
-  --miscelaneous-green: #3B5849;
-
 }
-
-
-
-a{
+a {
   color: inherit;
 }
-
 .serif {
-  --font-family: var(--serif-font-family);
   font-size: 1em;
 }
-.sans-serif {
-  --font-family: var(--sans-serif-font-family);
+.en,
+.serif,
+.serif .en,
+.serif .int-en {
+  font-family: var(--english-serif-font-family);
 }
-
-.serif .he, .serif .int-he,
-.serif.he, .serif.int-he,
-.serif:lang(he) {
+.int-en,
+.san-serif,
+.sans-serif .en,
+.sans-serif .int-en {
+  font-family: var(--english-sans-serif-font-family);
+}
+.he,
+.serif .he,
+.serif .int-he {
   --hebrew-multiplier: 1.22;
+  font-family: var(--hebrew-serif-font-family);
 }
-
+.int-he,
+.sans-serif .he,
+.sans-serif .int-he,
+.sans-serif-in-hebrew .he,
+.sans-serif-in-hebrew .int-he {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
 /* root hack to prevent he: 122% from overwriting styles of .serif.he -- RMN 4/3//21 */
 :root h1 {
-  font-family: var(--font-family);
   font-weight: normal;
   font-size: calc(var(--serif-h1-font-size) * var(--hebrew-multiplier, 1))
 }
 :root h2 {
-  font-family: var(--font-family);
   font-weight: normal;
   font-size: calc(var(--serif-h2-font-size) * var(--hebrew-multiplier, 1))
 }
 :root h3 {
-  font-family: var(--font-family);
   font-weight: normal;
   font-size: calc(var(--serif-h3-font-size) * var(--hebrew-multiplier, 1))
 }
 body {
-  font-family: var(--font-family);
+  font-family: var(--sans-serif-font-family);
   font-size: calc(var(--serif-body-font-size) * var(--hebrew-multiplier, 1))
 }
-
+.int-he {
+  direction: rtl;
+}
+.int-he.enInHe {
+  direction: ltr;
+}
+.enInHe {
+  unicode-bidi: isolate;
+}
+.int-en.heInEn {
+  direction: rtl;
+}
 .btn, .btn-sm, .btn-xs {
   display: inline-block;
   color: white;
@@ -130,58 +153,31 @@ body {
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 0.1em;
-  font-family: ; var(--sans-serif-font-family)
+  font-family: var(--sans-serif-font-family);
   box-sizing: border-box;
   line-height: 19px;
   text-align: center;
 }
-
 .btn.white, .btn-sm.white, .btn-xs.white {
   background-color: white;
   color: #333;
 }
-
 .btn {
   width: 300px;
   height: 50px;
 }
-
 .btn-sm {
   width: 150px;
   height: 40px;
 }
-
 .btn-xs {
   width: 75px;
   height: 30px;
 }
-
 /*
 Style Guide Font Hierarchy
 https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
-
-font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-
-font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-
 */
-.int-he {
-  font-family: "Heebo", sans-serif;
-  direction: rtl;
-}
-.int-he.enInHe {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  direction: ltr;
-}
-.int-en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.int-en.heInEn {
-  font-family: "Heebo", sans-serif;
-  direction: rtl;
-}
 .featureTitle .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 50px;
@@ -197,9 +193,6 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
 }
 .readerPanel.hebrew .he .enInHe {
   font-size: 83%;
-}
-.enInHe{
-  unicode-bidi: isolate;
 }
 .chapterText .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -297,17 +290,6 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   font-style: italic;
 }
 /* end Style Guide */
-.sans,
-.sans .en,
-#s2 .sans .en,
-.sans .int-en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.sans .he,
-#s2 .sans .he,
-.sans .int-he {
-  font-family: "Heebo", sans-serif;
-}
 #s2 {
   position: fixed;
   top: 0;
@@ -430,9 +412,7 @@ input.noselect {
 .interface-english .int-he {
   display: none;
 }
-.interface-hebrew #panelWrapBox,
-.readerApp.interface-hebrew .readerPanel
-{
+.interface-hebrew #panelWrapBox {
   direction: rtl;
 }
 .interface-english #panelWrapBox,
@@ -533,7 +513,6 @@ input.noselect {
   box-shadow: none;
   color: black;
   font-size:  18px;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   margin: 0;
   width: 100px;
 }
@@ -541,7 +520,6 @@ input.noselect {
   width: 160px;
 }
 .header .search.hebrewSearch {
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
 }
 .ui-autocomplete .ui-menu-item.search-override {
@@ -599,13 +577,13 @@ input.noselect {
   margin-top: 2px;
   color: #666;
 }
-.header .accountLinks.anon a:last-child{
+.header .accountLinks.anon a:last-child {
   background: #FFFFFF;
   border: 1px solid #EDEDEC;
   box-sizing: border-box;
   border-radius: 6px;
 }
-.header .interfaceLinks{
+.header .interfaceLinks {
   display: block;
   align-items: center;
   margin-top: 2px;
@@ -616,7 +594,7 @@ input.noselect {
   -moz-margin-start: 20px;
   margin-inline-start: 20px;
 }
-.header .interfaceLinks img{
+.header .interfaceLinks img {
   height: 18px;
   width: 18px;
   vertical-align: middle;
@@ -624,7 +602,7 @@ input.noselect {
   -moz-margin-end: 5px;
   margin-inline-end: 5px;
 }
-.header .interfaceLinks a.interfaceLinks-button::after{
+.header .interfaceLinks a.interfaceLinks-button::after {
   display: inline-block;
   background-image: url("/static/icons/chevron-down.svg");
   height: 10px;
@@ -632,7 +610,7 @@ input.noselect {
   vertical-align: middle;
   content: "";
 }
-.header .interfaceLinks .interfaceLinks-menu{
+.header .interfaceLinks .interfaceLinks-menu {
   top: 35px;
   position: absolute;
   z-index: 1;
@@ -643,16 +621,16 @@ input.noselect {
   border-radius: 6px;
   display: none;
 }
-.header .interfaceLinks .interfaceLinks-menu.open{
+.header .interfaceLinks .interfaceLinks-menu.open {
   display: block;
 }
-.interface-english .header .interfaceLinks .interfaceLinks-menu{
+.interface-english .header .interfaceLinks .interfaceLinks-menu {
   right: 0px;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu{
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
   left: 0px;
 }
-.header .interfaceLinks .interfaceLinks-header{
+.header .interfaceLinks .interfaceLinks-header {
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -661,18 +639,12 @@ input.noselect {
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
-.interface-english .header .interfaceLinks .interfaceLinks-header{
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-}
-.interface-hebrew .header .interfaceLinks .interfaceLinks-header{
-  font-family: "Heebo", sans-serif;
-}
-.interfaceLinks-options{
+.interfaceLinks-options {
   display: flex;
   flex-direction: column;
   padding: 4px 0;
 }
-.header .interfaceLinks .interfaceLinks-option{
+.header .interfaceLinks .interfaceLinks-option {
   display: flex;
   text-decoration: none;
   font-style: normal;
@@ -681,10 +653,9 @@ input.noselect {
   line-height: 23px;
   text-align: right;
   color: #666666;
-  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   padding: 5px;
 }
-.header .interfaceLinks .interfaceLinks-option::before{
+.header .interfaceLinks .interfaceLinks-option::before {
   content: "";
   font-family:FontAwesome;
   color: #999;
@@ -693,10 +664,10 @@ input.noselect {
   font-style: normal;
   padding: 0 15px;
 }
-.header .interfaceLinks .interfaceLinks-option.active{
+.header .interfaceLinks .interfaceLinks-option.active {
   order: -1;
 }
-.header .interfaceLinks .interfaceLinks-option.active::before{
+.header .interfaceLinks .interfaceLinks-option.active::before {
   content: "\f00c";
   padding: 0 8px;
 }
@@ -730,7 +701,6 @@ input.noselect {
 }
 .header .notifications {
   display: inline-block;
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   line-height: 24px;
   height: 24px;
   width: 24px;
@@ -748,43 +718,6 @@ input.noselect {
   display: inline-block;
   line-height: 1;
   padding: 8px 15px;
-}
-.header .login .en {
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-}
-.header .login .he {
-  font-family: "Heebo", sans-serif;
-}
-.header .testWarning {
-  display: inline-block;
-  color: white;
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-  background-color: #EFB4B6;
-  border-radius: 12px;
-  font-size: 14px;
-  line-height: 1;
-  padding: 6px 16px;
-  vertical-align: middle;
-  height: 14px;
-  max-width: 100%;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  cursor: pointer;
-  margin-right: 15px;
-}
-.header .testWarning:hover {
-  text-decoration: underline;
-}
-.header .he {
-  /* temp, until we support hebrew header */
-  display: none;
-}
-.testMessageBox {
-  position: fixed;
-  width: 100%;
-  height: 100%;
-  z-index: 5000;
 }
 .overlay {
   width: 100%;
@@ -939,27 +872,6 @@ input.noselect {
 .interface-hebrew #interruptingMessage h1{
   font-style: normal;
 }
-.testMessage {
-  position: fixed;
-  z-index: 5001;
-  width: 450px;
-  height: 180px;
-  margin-top: -90px;
-  margin-left: -225px;
-  left: 50%;
-  top: 50%;
-  background-color: #FBFBFA;
-  padding: 32px 20px;
-  box-sizing: border-box;
-  text-align: center;
-}
-.testMessage .title {
-  font-size: 18px;
-  line-height: 1.4;
-}
-.testMessage .button {
-  margin-top: 20px;
-}
 .header .my-profile img {
   height: 24px;
   width: 24px;
@@ -1004,7 +916,7 @@ input.noselect {
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   z-index: 1000000 !important;
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .header > .ui-autocomplete {
   z-index: 1000 !important;
@@ -1083,7 +995,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  /* font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif; */
 }
 .readerContent {
   width: 100%;
@@ -1782,7 +1694,6 @@ input.resourcesLink {
 .readerNavCategory {
   background-color: white;
   text-transform: uppercase;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   text-align: center;
   font-size: 18px;
   padding: 16px 10px 17px;
@@ -2544,7 +2455,7 @@ a.readerNavCategory {
   /*unicode-bidi: plaintext;*/
 }
 .versionBlock .versionTitle a{
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .versionBlock .versionTitle .versionEditIcon{
   display: none;
@@ -2562,7 +2473,7 @@ a.readerNavCategory {
   color: #999;
 }
 .versionBlock .versionNotes a {
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
   font-size: 18px;
@@ -2571,7 +2482,7 @@ a.readerNavCategory {
   text-decoration: underline;
 }
 .versionBlock .versionNotes span{
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .versionBlock .versionDetails {
   display: inline-block;
@@ -2634,7 +2545,7 @@ a.readerNavCategory {
   text-decoration: underline;
 }
 .versionBlock .versionNotes {
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
   font-size: 18px;
@@ -2707,32 +2618,31 @@ a.readerNavCategory {
 
 .modTools .dlVersionSelect,
 .readerTextTableOfContents .content .dlVersionSelect {
-    width: 60%;
-    margin: 10px auto;
-    background-color: white;
-    font-size: 14px;
-    height: 3em;
-    border-color: #ccc;
-    border-radius: 3px;
-    color: #333;
-    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  width: 60%;
+  margin: 10px auto;
+  background-color: white;
+  font-size: 14px;
+  height: 3em;
+  border-color: #ccc;
+  border-radius: 3px;
+  color: #333;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .modTools .dlVersionSelect option,
 .readerTextTableOfContents .content .dlVersionSelect option{
   unicode-bidi: plaintext;
 }
-
 .modTools .versionDownloadButton,
 .readerTextTableOfContents .content .versionDownloadButton {
-    width: 60%;
-    margin: 10px auto;
-    background-color: white;
-    font-size: 14px;
-    height: 3em;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    color: #ccc;
-    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  width: 60%;
+  margin: 10px auto;
+  background-color: white;
+  font-size: 14px;
+  height: 3em;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  color: #ccc;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .modTools .versionDownloadButton .downloadButtonInner,
 .readerTextTableOfContents .content .versionDownloadButton .downloadButtonInner {
@@ -2755,18 +2665,15 @@ a.readerNavCategory {
   width: 60%;
   margin: auto;
 }
-
 .modTools .workflowy-tool .dlSectionTitle{
   width: unset;
 }
-
 .modTools .workflowy-tool .versionDownloadButton{
   color: black;
 }
 .modTools .workflowy-tool .versionDownloadButton:hover{
   background-color: #999;
 }
-
 .modTools .workflowy-tool textarea {
   width: 100%;
   min-height: 30rem;
@@ -2774,12 +2681,10 @@ a.readerNavCategory {
   font-size: 0.8rem;
   line-height: 1.2;
 }
-
 .modTools .workflowy-tool .workflowy-tool-form{
   display: flex;
   flex-flow: column;
 }
-
 .dictionarySearchBox {
   display: flex;
   justify-content: flex-start;
@@ -3650,6 +3555,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   vertical-align: middle;
   max-width: 100%;
 }
+.readerControls .readerTextToc .readerTextTocBox a h1,
 .readerControls .readerTextToc .readerTextTocBox a span,
 .readerControls .readerTextToc .readerTextTocBox a div {
   white-space: nowrap;
@@ -4579,7 +4485,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-bottom-color: var(--category-color);
 }
 .recentFilterSet.filterSet .textFilter, .recentFilterSet.filterSet .textFilter span{
-  font-family: "HebrewInEnglish Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .hebrew .textList .recentFilterSet.filterSet {
   direction: rtl;
@@ -5078,7 +4984,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 23px;
   left: 830px;
   top: 367px;
-
   font-family: "Roboto", "sans-serif";
   font-style: normal;
   font-weight: normal;
@@ -5387,7 +5292,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: start;
 }
 .confirmAddToSheet.addToSourceSheetBox .message span{
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-style: normal;
   font-weight: normal;
   font-size: 18px;
@@ -6990,6 +6895,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   background: #FBFBFA;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
+  text-align: start;
 }
 .addToSourceSheetBox .selectedRef span{
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -7900,7 +7806,6 @@ section.SheetSource .SheetOutsideBiText {
 }
 .tab-view .tab-list .tab {
   font-size: 16px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: black;
   text-align: center;
   padding: 10px 0;
@@ -8024,16 +7929,24 @@ section.SheetSource .SheetOutsideBiText {
   height: 60px;
   font-size: 16px;
   margin-top: -80px;
+  margin-left: -12px;
+  margin-bottom: 80px;
+  padding-right: 12px;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: absolute;
+  position: relative;
   left: 0;
+}
+.interface-hebrew .editorToggleHeader {
+  direction: rtl;
 }
 .editorToggleHeader .button {
   padding: 5px 8px;
   margin-inline-start: 15px;
   margin-top: 5px;
+  height: 30px;
+  letter-spacing: 0;
 }
 .feedbackOverlay {
   position: fixed;
@@ -8046,6 +7959,10 @@ section.SheetSource .SheetOutsideBiText {
   padding: 120px 60px;
   box-sizing: border-box;
 
+}
+
+.feedbackOverlay .buttonContainer {
+  margin-top: 50px;
 }
 
 .feedbackOverlay h2 {
@@ -8076,8 +7993,21 @@ section.SheetSource .SheetOutsideBiText {
   font-weight: normal;
   font-style: normal;
   margin-top: 10px;
+  height: 120px;
 }
 
+.feedbackOverlay textarea::placeholder {
+  font-size: 16px;
+  font-style: normal;
+}
+
+.feedbackOverlay a {
+  color: #4871bf;
+}
+
+.feedbackOverlay .button {
+  margin: 0;
+}
 
 .sheetList .sheet {
   border-bottom: none;
@@ -8300,7 +8230,6 @@ section.SheetSource .SheetOutsideBiText {
 }
 .profile-page .profile-summary .follow {
   color: #999;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   letter-spacing: 1px;
 }
@@ -8334,7 +8263,6 @@ section.SheetSource .SheetOutsideBiText {
   color: #000;
   padding-bottom: 10px;
   border-bottom: 1px solid #E2E2E1;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .profile-page .follow-header .follow-count {
   color: #999;

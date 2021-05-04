@@ -34,7 +34,8 @@ class Sheet extends Component {
     Sefaria.sheets.loadSheetByID(this.props.id, this.onDataLoad);
   }
   onDataLoad(data) {
-    this.props.openSheet("Sheet " + data.id, true); // Replace state now that data is loaded so History can include sheet title
+    const sheetRef = "Sheet " + data.id + (this.props.highlightedNode ? "." + this.props.highlightedNode : "");
+    this.props.openSheet(sheetRef, true); // Replace state now that data is loaded so History can include sheet title
     this.forceUpdate();
     this.preloadConnections();
   }
@@ -77,6 +78,7 @@ class Sheet extends Component {
           openURL={this.props.openURL}
           highlightedNode={this.props.highlightedNode}
           highlightedRefsInSheet={this.props.highlightedRefsInSheet}
+          scrollToHighlighted={this.props.scrollToHighlighted}
           authorStatement={sheet.ownerName}
           authorUrl={sheet.ownerProfileUrl}
           authorImage={sheet.ownerImageUrl}
@@ -119,7 +121,7 @@ class SheetContent extends Component {
       var node = ReactDOM.findDOMNode(this).parentNode;
       node.addEventListener("scroll", this.handleScroll);
       this.windowMiddle = $(window).outerHeight() / 2;
-      this.highLightThreshhold = this.props.multiPanel ? 200 : 70; // distance from the top of screen that we want highlighted segments to appear below.
+      this.highlightThreshhold = this.props.multiPanel ? 200 : 70; // distance from the top of screen that we want highlighted segments to appear below.
       this.debouncedAdjustHighlightedAndVisible = Sefaria.util.debounce(this.adjustHighlightedAndVisible, 100);
       this.scrollToHighlighted();
   }
@@ -127,6 +129,12 @@ class SheetContent extends Component {
     this._isMounted = false;
     var node = ReactDOM.findDOMNode(this).parentNode;
     node.removeEventListener("scroll", this.handleScroll);
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.highlightedNode !== this.props.highlightedNode &&
+      this.props.scrollToHighlighted) {
+      this.scrollToHighlighted();
+    }
   }
   handleScroll(event) {
     if (this.justScrolled) {
@@ -357,7 +365,7 @@ class SheetSource extends Component {
     var style = {opacity: linkScore};
 
     linkCountElement = (
-      <div className="linkCount sans"  title={linkCount + " Connections Available"}>
+      <div className="linkCount sans-serif"  title={linkCount + " Connections Available"}>
         <span className="linkCountDot" style={style}></span>
       </div>
     );
@@ -392,7 +400,7 @@ class SheetSource extends Component {
             <div className="titleBox">{this.props.source.title.stripHtml()}</div>
           </div> : null}
 
-          <div className="segmentNumber sheetSegmentNumber sans">
+          <div className="segmentNumber sheetSegmentNumber sans-serif">
             <span className="en">
               <span className="segmentNumberInner">
                 {this.props.sheetNumbered == 0 ? null : this.props.sourceNum}
@@ -456,7 +464,7 @@ class SheetComment extends Component {
     return (
       <section className="SheetComment">
         <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
-          <div className="segmentNumber sheetSegmentNumber sans">
+          <div className="segmentNumber sheetSegmentNumber sans-serif">
             <span className="en">
               <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
             </span>
@@ -500,7 +508,7 @@ class SheetOutsideText extends Component {
     return (
       <section className="SheetOutsideText">
         <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
-          <div className="segmentNumber sheetSegmentNumber sans">
+          <div className="segmentNumber sheetSegmentNumber sans-serif">
             <span className="en">
               <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
             </span>
@@ -545,7 +553,7 @@ class SheetOutsideBiText extends Component {
     return (
       <section className={sectionClasses}>
         <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to see " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
-          <div className="segmentNumber sheetSegmentNumber sans">
+          <div className="segmentNumber sheetSegmentNumber sans-serif">
             <span className="en">
                 <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span>
             </span>
@@ -633,7 +641,7 @@ class SheetMedia extends Component {
     return (
       <section className="SheetMedia">
         <div className={containerClasses} data-node={this.props.source.node} onClick={this.props.sheetSourceClick} aria-label={"Click to  " + this.props.linkCount +  " connections to this source"} tabIndex="0" onKeyPress={function(e) {e.charCode == 13 ? this.props.sheetSourceClick(e):null}.bind(this)} >
-          <div className="segmentNumber sheetSegmentNumber sans">
+          <div className="segmentNumber sheetSegmentNumber sans-serif">
             <span className="en"> <span className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : this.props.sourceNum}</span> </span>
             <span className="he"> <span
               className="segmentNumberInner">{this.props.sheetNumbered == 0 ? null : Sefaria.hebrew.encodeHebrewNumeral(this.props.sourceNum)}</span> </span>

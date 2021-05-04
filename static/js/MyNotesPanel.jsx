@@ -126,11 +126,11 @@ class NoteListing extends Component {
     var url  = "/" + Sefaria.normRef(data.ref) + "?with=Notes";
 
     return (<div className="noteListing">
-              <div className="addToSheetButton sans he" onClick={this.showSheetModal}>
+              <div className="addToSheetButton sans-serif he" onClick={this.showSheetModal}>
                 <span className="int-en">Add to Sheet</span>
                 <span className="int-he">הוסף לדף מקורות</span>
               </div>
-              <div className="addToSheetButton sans en" onClick={this.showSheetModal}>
+              <div className="addToSheetButton sans-serif en" onClick={this.showSheetModal}>
                 <span className="int-en">Add to Sheet</span>
                 <span className="int-he">הוסף לדף מקורות</span>
               </div>

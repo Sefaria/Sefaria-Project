@@ -173,7 +173,7 @@ class AddToSourceSheetBox extends Component {
     if (this.state.showConfirm) {
       return (<ConfirmAddToSheet sheet={this.state.selectedSheet} srefs={this.props.srefs} nodeRef={this.props.nodeRef}/>);
     } else if (this.state.showLogin) {
-      return (<div className="addToSourceSheetBox sans">
+      return (<div className="addToSourceSheetBox sans-serif">
                 <LoginPrompt />
               </div>);
     }
@@ -189,7 +189,7 @@ class AddToSourceSheetBox extends Component {
     // Uses
     return (
       <div className="addToSourceSheetBox noselect">
-        <div className="addToSourceSheetBoxTitle">
+        <div className="addToSourceSheetBoxTitle sans-serif">
           <span className="int-en">Selected Citation</span>
           <span className="int-he">מקור להוספה</span>
         </div>
@@ -197,7 +197,7 @@ class AddToSourceSheetBox extends Component {
           <span className="en">{titleRef["en"]}</span>
           <span className="he">{titleRef["he"]}</span>
         </div>
-        <div className="addToSourceSheetBoxTitle">
+        <div className="addToSourceSheetBoxTitle sans-serif">
           <span className="int-en">Add to</span>
           <span className="int-he">יעד להוספה</span>
         </div>

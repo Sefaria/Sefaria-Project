@@ -79,10 +79,10 @@ const InterfaceText = ({text, html, children, context}) => {
     }
   }
   return (
-      isDangerouslySetInnerHTML ?
-          <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
-          :
-          <span className={elemclasses}>{textResponse}</span>
+    isDangerouslySetInnerHTML ?
+      <span className={elemclasses} dangerouslySetInnerHTML={{__html: textResponse}}/>
+      :
+      <span className={elemclasses}>{textResponse}</span>
   );
 };
 InterfaceText.propTypes = {
@@ -543,9 +543,9 @@ class TabView extends Component {
   render() {
     const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
     return (
-      <div className="tab-view">
+      <div className="tab-view sans-serif">
         <div className="tab-list">
-          {this.props.tabs.map(this.renderTab)}
+          <InterfaceText>{this.props.tabs.map(this.renderTab)}</InterfaceText>
         </div>
         { React.Children.toArray(this.props.children)[currTabIndex] }
       </div>
@@ -602,7 +602,7 @@ DropdownOptionList.propTypes = {
 class DropdownButton extends Component {
   render() {
     const { isOpen, toggle, enText, heText } = this.props;
-    const filterTextClasses = classNames({ "dropdown-button": 1, active: isOpen });
+    const filterTextClasses = classNames({ "dropdown-button": 1, "sans-serif": 1, active: isOpen });
     return (
       <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyPress={(e) => {e.charCode == 13 ? toggle(e):null}}>
         <span className="int-en">{enText}</span>
@@ -684,15 +684,16 @@ class GlobalWarningMessage extends Component {
 }
 
 
-const ReaderNavigationMenuSection = ({title, heTitle, content, enableAnchor}) => (!content) ? null :
-      <div className="readerNavSection" id={enableAnchor ? "navigation-" + title.toLowerCase() : ""}>
-        {title ? (<h2>
-          <span className="int-en">{title}</span>
-          <span className="int-he">{heTitle}</span>
-        </h2>) : null }
-        {content}
-      </div>;
-
+const ReaderNavigationMenuSection = ({title, heTitle, content, enableAnchor}) => (
+  (!content) ? null :
+  <div className="readerNavSection" id={enableAnchor ? "navigation-" + title.toLowerCase() : ""}>
+    {title ? (
+    <h2 className="sans-serif">
+      <InterfaceText text={{en: title, he: heTitle}} />
+    </h2>) : null }
+    {content}
+  </div>
+);
 ReaderNavigationMenuSection.propTypes = {
   title:   PropTypes.string,
   heTitle: PropTypes.string,
@@ -758,9 +759,8 @@ class TextBlockLink extends Component {
           <div className="sideColorRight">
             { saved ? <SaveButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
             { !saved && timeStamp ?
-              <span>
-                <span className="int-en">{ Sefaria.util.naturalTime(timeStamp) }</span>
-                <span className="int-he">&rlm;{ Sefaria.util.naturalTime(timeStamp) }</span>
+              <span className="sans-serif">
+                <InterfaceText>{ Sefaria.util.naturalTime(timeStamp) }</InterfaceText>
               </span>: null
             }
           </div>
@@ -1127,14 +1127,13 @@ function InterfaceLanguageMenu({currentLang}){
             <span className="int-he">שפת האתר</span>
           </div>
           <div className="interfaceLinks-options">
-            <a className={`interfaceLinks-option int-bi ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
-            <a className={`interfaceLinks-option int-bi ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+            <a className={`interfaceLinks-option int-bi int-he ${(currentLang == 'hebrew') ? 'active':''}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
+            <a className={`interfaceLinks-option int-bi int-en ${(currentLang == 'english') ? 'active' : ''}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
           </div>
         </div>
       </div>
   );
 }
-
 InterfaceLanguageMenu.propTypes = {
   currentLang: PropTypes.string
 }
@@ -1204,13 +1203,13 @@ class FollowButton extends Component {
       hovering: false
     }
   }
-  _post_follow() {
+  _postFollow() {
     $.post("/api/follow/" + this.props.uid, {}, data => {
       Sefaria.following.push(this.props.uid);  // keep local following list up-to-date
       Sefaria.track.event("Following", "New Follow", this.props.uid);
     });
   }
-  _post_unfollow() {
+  _postUnfollow() {
     $.post("/api/unfollow/" + this.props.uid, {}, data => {
       Sefaria.following = Sefaria.following.filter(i => i !== this.props.uid);  // keep local following list up-to-date
       Sefaria.track.event("Following", "Unfollow", this.props.uid);
@@ -1229,10 +1228,10 @@ class FollowButton extends Component {
         return;
     }
     if (this.state.following) {
-      this._post_unfollow();
+      this._postUnfollow();
       this.setState({following: false});
     } else {
-      this._post_follow();
+      this._postFollow();
       this.setState({following: true, hovering: false});  // hovering:false keeps the "unfollow" from flashing.
     }
   }
@@ -1262,6 +1261,7 @@ FollowButton.propTypes = {
   large: PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 };
+
 
 const SinglePanelNavHeader = (props) =>
       <div className="readerNavTop searchOnly">
@@ -1381,8 +1381,8 @@ const SheetListing = ({
   const title = sheet.title ? sheet.title.stripHtmlConvertLineBreaks() : "Untitled Source Sheet";
 
   const viewsIcon = sheet.public ?
-    <div className="sheetViews sans"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
-    : <div className="sheetViews sans"><i className="fa fa-lock" title="Private"></i></div>;
+    <div className="sheetViews sans-serif"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
+    : <div className="sheetViews sans-serif"><i className="fa fa-lock" title="Private"></i></div>;
 
   const sheetInfo = hideAuthor ? null :
       <div className="sheetInfo">
@@ -1894,7 +1894,7 @@ class Dropdown extends Component {
   }
   render() {
     return (
-        <div className="dropdown sans">
+        <div className="dropdown sans-serif">
           <div className="dropdownMain noselect" onClick={this.toggle}>
             <i className="dropdownOpenButton noselect fa fa-caret-down"></i>
             {this.state.selected ? this.state.selected.label : this.props.placeholder }
@@ -1938,25 +1938,6 @@ LoadingMessage.propTypes = {
   message:   PropTypes.string,
   heMessage: PropTypes.string,
   className: PropTypes.string
-};
-
-
-class TestMessage extends Component {
-  // Modal explaining development status with links to send feedback or go back to the old site
-  render() {
-    return (
-      <div className="testMessageBox">
-        <div className="overlay" onClick={this.props.hide} ></div>
-        <div className="testMessage">
-          <div className="title">The new Sefaria is still in development.<br />Thank you for helping us test and improve it.</div>
-          <a href="mailto:hello@sefaria.org" target="_blank" className="button">Send Feedback</a>
-          <div className="button" onClick={null} >Return to Old Sefaria</div>
-        </div>
-      </div>);
-  }
-}
-TestMessage.propTypes = {
-  hide:   PropTypes.func
 };
 
 
@@ -2291,7 +2272,6 @@ export {
   SheetTopicLink,
   TabView,
   TextBlockLink,
-  TestMessage,
   ToggleSet,
   ToolTipped,
   TwoOrThreeBox,

@@ -671,13 +671,14 @@ class ReaderPanel extends Component {
           key={"sheet-"+this.state.sheetID}
           highlightedNode={this.state.highlightedNode}
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
+          scrollToHighlighted={this.state.scrollToHighlighted}
           onRefClick={this.handleCitationClick}
+          onSegmentClick={this.handleSheetSegmentClick}
           openSheet={this.openSheet}
           openURL={this.props.openURL}
           hasSidebar={this.props.hasSidebar}
           setSelectedWords={this.setSelectedWords}
           contentLang={this.state.settings.language}
-          onSegmentClick={this.handleSheetSegmentClick}
         />
       );
     }
@@ -1043,7 +1044,7 @@ class ReaderPanel extends Component {
       );
     }
 
-    let classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};
+    let classes  = {readerPanel: 1, serif: 1, narrowColumn: this.state.width < 730};
     classes[contextContentLang.language] = 1
     classes[this.currentLayout()]        = 1;
     classes[this.state.settings.color]   = 1;
