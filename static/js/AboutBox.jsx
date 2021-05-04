@@ -112,16 +112,17 @@ class AboutBox extends Component {
         dateTextEn = `(${Math.abs(d.pubDate)} ${d.pubDate < 0 ? "BCE" : "CE"})`;
         dateTextHe = `(${Math.abs(d.pubDate)} ${d.pubDate < 0 ? 'לפנה"ס בקירוב' : 'לספירה בקירוב'})`;
       }
+      const bookPageUrl = "/" + Sefaria.normRef(d.title);
       detailSection = (
         <div className="detailsSection">
           <h2 className="aboutHeader">
             <span className="int-en">About This Text</span>
             <span className="int-he">אודות ספר זה</span>
           </h2>
-          <div className="aboutTitle">
+          <a href={bookPageUrl} className="aboutTitle">
             <span className="en">{d.title}</span>
             <span className="he">{d.heTitle}</span>
-          </div>
+          </a>
           { authorsEn && authorsEn.length ?
             <div className="aboutSubtitle">
               <span className="en">Author: {authorsEn}</span>
