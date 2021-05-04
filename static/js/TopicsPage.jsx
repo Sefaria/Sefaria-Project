@@ -50,7 +50,7 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
-            <h1><InterfaceText>Explore by Topic</InterfaceText></h1>
+            <h1 className="sans-serif"><InterfaceText>Explore by Topic</InterfaceText></h1>
             { about }
             { categoryListings }
           </div>

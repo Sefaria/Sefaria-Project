@@ -652,6 +652,29 @@ class TestModifyVersion:
         # reset
         self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle}"), [['1'], ['2'], ["original text", "2nd"]])
 
+    def test_sub_content_simple_setter(self):
+        self.simpleVersion.sub_content(self.simpleIndex.nodes.version_address(), value=[[], [], []])
+        for i in range(3):
+            assert self.simpleVersion.chapter[i] == []
+
+        self.simpleVersion.sub_content(self.simpleIndex.nodes.version_address(), [1], value=['yo1', 'yo2', 'yo3'])
+        assert self.simpleVersion.chapter[1] == ['yo1', 'yo2', 'yo3']
+
+        self.simpleVersion.sub_content(self.simpleIndex.nodes.version_address(), [0, 1], value='yo')
+        assert self.simpleVersion.chapter[0][1] == 'yo'
+
+        # reset
+        self.simpleVersion.sub_content_with_ref(model.Ref(f"{self.simpleIndexTitle}"), [['1'], ['2'], ["original text", "2nd"]])
+
+    def test_sub_content_complex_setter(self):
+        self.complexVersion.sub_content([], value={"Node 1": {"Node 2": [['wadup']], "Node 3": []}})
+        assert self.complexVersion.chapter['Node 1']['Node 2'] == [['wadup']]
+
+        self.complexVersion.sub_content(["Node 1"], value={"Node 2": [['yoyoyo']]})
+        assert self.complexVersion.chapter['Node 1']['Node 2'] == [['yoyoyo']]
+
+        self.complexVersion.sub_content_with_ref(model.Ref(f"{self.complexIndexTitle}"), {"Node 1": {"Node 2": [['yo'],['', 'blah'],["original text", "2nd"]]}, "Node 3": ['1', '2', '3', '4']})
+
     def test_get_top_level_jas_text_chunk(self):
         tc = model.Ref(self.simpleIndexTitle).text('he')
         jas, parent_key_list = tc.get_top_level_jas()

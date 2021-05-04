@@ -29,7 +29,7 @@ const HomeFeed = ({multiPanel, toggleSignUpModal, initialWidth}) => {
   ];
 
   return (
-    <div className="readerNavMenu homepage" key="0">
+    <div className="readerNavMenu homepage sans-serif" key="0">
       <div className="content">
         {multiPanel ? null :
         <div className="about">
@@ -109,7 +109,7 @@ const AboutParashah = ({parashahTopic}) => {
   const style = {"borderColor": Sefaria.palette.categoryColor("Tanakh")};
   return (
     <div className="navBlock withColorLine" style={style}>
-      <a href={`/topics/${slug}`} className="navBlockTitle">
+      <a href={`/topics/${slug}`} className="navBlockTitle serif">
         <InterfaceText text={title} />
       </a>       
       <div className="navBlockDescription">
@@ -121,7 +121,7 @@ const AboutParashah = ({parashahTopic}) => {
         </div>
         <div className="calendarRef">
           <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
-          <a href={`/${ref.url}`} className="">
+          <a href={`/${ref.url}`} className="serif">
             <InterfaceText text={ref} />
           </a> 
         </div>
@@ -151,7 +151,7 @@ const AboutHoliday = ({primaryTitle, description, slug, date, readings}) => {
         {readings.map(ref => (
           <div className="calendarRef" key={ref.url}>
             <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
-            <a href={`/${ref.url}`} className="">
+            <a href={`/${ref.url}`} className="serif">
               <InterfaceText text={ref} />
            </a> 
           </div>)
@@ -309,7 +309,7 @@ CategoryLink.propTypes = {
 
 
 function HomeFeedSidebar() {
-    return (<div className="sideColumn">
+    return (<div className="sideColumn sans-serif">
             <div id="homeLearn" className="section">
                 <div className="sectionInner">
                     <div className="textBox">
@@ -322,7 +322,7 @@ function HomeFeedSidebar() {
                             <span className="int-he">עיינו בפרשנים, קישורים ותרגומים בספריה הדיגטלית של ספריא.</span>
                         </div>
                     </div>
-                    <div className="imageBox">
+                    <div className="imageBox serif">
                         <CategoryLink category={"Tanakh"} />
                         <CategoryLink category={"Mishnah"} />
                         <CategoryLink category={"Talmud"} />

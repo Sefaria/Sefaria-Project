@@ -114,7 +114,8 @@ class ReaderApp extends Component {
       connectionsMode:         state.connectionsMode         || "Resources",
       currVersions:            state.currVersions            || {en:null,he:null},
       highlightedRefs:         state.highlightedRefs         || [],
-      highlightedNodes:        state.highlightedNodes        || null,
+      highlightedNode:         state.highlightedNode         || null,
+      scrollToHighlighted:     state.scrollToHighlighted     || false,
       currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
       recentFilters:           state.recentFilters           || state.filter || [],
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
@@ -599,9 +600,9 @@ class ReaderApp extends Component {
           hist.versionFilter = state.versionFilter[0];
         }
         const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
-        const title = sheet ? state.sheet.title.stripHtml() : "";
+        const title = sheet ? sheet.title.stripHtml() : "";
         hist.title  = title + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
-        hist.url    = i == 0 ? "sheets/" + state.sheet.id : "sheet&s=" + state.sheet.id + "?with=" + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        hist.url    = i == 0 ? "sheets/" + state.sheetID : "sheet&s=" + state.sheetID + "?with=" + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
         hist.mode   = "SheetAndConnections";
       }
 
@@ -641,7 +642,8 @@ class ReaderApp extends Component {
     }
     hist = {state: {panels: states}, url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
-      if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") || (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections")) {
+      if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") || 
+        (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections")) {
         if (i == 1) {
           var sheetAndCommentary = histories[i-1].mode === "Sheet" ? true : false;
           // short form for two panels text+commentary - e.g., /Genesis.1?with=Rashi
@@ -861,13 +863,14 @@ class ReaderApp extends Component {
   handleCitationClick(n, citationRef, textRef, replace) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
     // If `replace`, replace a following panel with this citation, otherwise open a new panel after.
-    if (this.state.panels.length > n+1  && (replace || this.state.panels[n+1].mode === "Connections")) {
+    if (this.state.panels.length > n+1  && 
+      (replace || this.state.panels[n+1].mode === "Connections")) {
       this.closePanel(n+1);
     }
     if (textRef) { 
       this.setTextListHighlight(n, textRef);
     }
-    this.openPanelAt(n, citationRef);
+    this.openPanelAt(n, citationRef, null, {scrollToHighlighted: !!replace});
   }
   openNamedEntityInNewPanel(n, textRef, namedEntityState) {
     //this.setTextListHighlight(n, [textRef]);
@@ -1257,7 +1260,8 @@ class ReaderApp extends Component {
         mode: 'Sheet',
         sheetID: parseInt(sheetID),
         highlightedNode: parseInt(sheetNode),
-        refs: null
+        refs: null,
+        ...options
       });
     } else {  // Text
       if (ref.constructor === Array) {
@@ -1358,6 +1362,7 @@ class ReaderApp extends Component {
     // Set the sheetListHighlight for panel `n` to `node`
     node = typeof node === "string" ? [node] : node;
     this.state.panels[n].highlightedNode = node;
+    this.state.panels[n].scrollToHighlighted = false;
     this.setState({panels: this.state.panels});
     }
   setConnectionsFilter(n, filter, updateRecent) {

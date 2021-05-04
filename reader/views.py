@@ -4211,7 +4211,7 @@ def apple_app_site_association(request):
 def application_health_api(request):
     """
     Defines the /healthz API endpoint which responds with
-        200 if the appliation is ready for requests,
+        200 if the application is ready for requests,
         500 if the application is not ready for requests
     """
     if library.is_initialized():
@@ -4227,7 +4227,7 @@ def application_health_api_nonlibrary(request):
 def rollout_health_api(request):
     """
     Defines the /healthz-rollout API endpoint which responds with
-        200 if the services Django depends on, Redis, Multiverver, and NodeJs
+        200 if the services Django depends on, Redis, Multiserver, and NodeJs
             are available.
         500 if any of the aforementioned services are not available
 

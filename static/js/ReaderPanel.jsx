@@ -254,10 +254,10 @@ class ReaderPanel extends Component {
   }
   handleSheetClick(e, sheet, highlightedNode, highlightedRefsInSheet) {
     e.preventDefault();
-    this.conditionalSetState({ 
-      mode: "Sheet", 
+    this.conditionalSetState({
+      mode: "Sheet",
       sheetID: sheet.id,
-      highlightedNode, 
+      highlightedNode,
       highlightedRefsInSheet
     });
   }
@@ -638,13 +638,14 @@ class ReaderPanel extends Component {
           key={"sheet-"+this.state.sheetID}
           highlightedNode={this.state.highlightedNode}
           highlightedRefsInSheet={this.state.highlightedRefsInSheet}
+          scrollToHighlighted={this.state.scrollToHighlighted}
           onRefClick={this.handleCitationClick}
+          onSegmentClick={this.handleSheetSegmentClick}
           openSheet={this.openSheet}
           openURL={this.props.openURL}
           hasSidebar={this.props.hasSidebar}
           setSelectedWords={this.setSelectedWords}
           contentLang={this.state.settings.language}
-          onSegmentClick={this.handleSheetSegmentClick}
         />
       );
     }
@@ -1035,7 +1036,7 @@ class ReaderPanel extends Component {
       );
     }
 
-    let classes  = {readerPanel: 1, narrowColumn: this.state.width < 730};
+    let classes  = {readerPanel: 1, serif: 1, narrowColumn: this.state.width < 730};
     classes[contextContentLang.language] = 1
     classes[this.currentLayout()]        = 1;
     classes[this.state.settings.color]   = 1;
@@ -1092,7 +1093,7 @@ class ReaderPanel extends Component {
 
           {menu}
 
-          {this.state.displaySettingsOpen ? 
+          {this.state.displaySettingsOpen ?
           <ReaderDisplayOptionsMenu
             settings={this.state.settings}
             multiPanel={this.props.multiPanel}
@@ -1243,26 +1244,26 @@ class ReaderControls extends Component {
       </div>
       :
       <div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheetID ? this.openSheetMeta : this.openTextToc}>
-        <header className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
-          <h1>
+        <div className={"readerTextTocBox" + (this.props.sheetID ? " sheetBox" : "")} role="heading" aria-level="1" aria-live="polite">
+          <div>
             <a href={url} aria-label={"Show table of contents for " + title} >
-              { title ? 
+              { title ?
               <i className="fa fa-angle-down invisible"></i> : null }
-              
-              { this.props.sheetID ? 
+
+              { this.props.sheetID ?
               <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
-              
+
               { this.props.sheetID ?
               <div style={{"direction": Sefaria.hebrew.isHebrew(title) ? "rtl" :"ltr"}}>
                 <span>{title}</span>
               </div>
               :
-              <div>
+              <h1>
                 <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />
                 <span className="sectionString">
                   <ContentText text={{en: sectionString, he: heSectionString }} defaultToInterfaceOnBilingual={true} />
                 </span>
-              </div>
+              </h1>
               }
               { title ? (<i className="fa fa-angle-down"></i>) : null }
               { showVersion ?
@@ -1270,12 +1271,12 @@ class ReaderControls extends Component {
                 <span className="en">{versionTitle}</span>
               </span> : null}
             </a>
-          </h1>
+          </div>
           <div onClick={this.stopPropagation}>
-            {categoryAttribution ? 
+            {categoryAttribution ?
             <CategoryAttribution categories={oref.categories} linked={false} /> : null }
           </div>
-        </header>
+        </div>
       </div>;
 
     let leftControls = hideHeader || connectionsHeader ? null :
@@ -1303,13 +1304,13 @@ class ReaderControls extends Component {
     });
 
     let readerControls = hideHeader ? null :
-        (<div className={classes}>
+        (<header className={classes}>
           <div className="readerControlsInner">
             {leftControls}
             {centerContent}
             {rightControls}
           </div>
-        </div>);
+        </header>);
     return (
       <div>
         {connectionsHeader ? null : <CategoryColorLine category={this.props.currentCategory()} />}

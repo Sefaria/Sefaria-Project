@@ -271,7 +271,7 @@ class ConnectionsPanel extends Component {
     } else if (this.props.mode === "Resources") {
       content = (<div>
                   { this.state.flashMessage ?
-                    <div className="flashMessage sans">{this.state.flashMessage}</div>
+                    <div className="flashMessage sans-serif">{this.state.flashMessage}</div>
                     : null }
                   <ToolsButton en="About" he="אודות" image="book-64.png" onClick={() => this.props.setConnectionsMode("About")} />
                   <ConnectionsSummary
@@ -951,7 +951,7 @@ class WebPagesList extends Component {
     }
 
     const linkerMessage = Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <div className="webpagesLinkerMessage sans">
+              <div className="webpagesLinkerMessage sans-serif">
                 <span className="int-en">Sites that are listed here use the <a href="/linker">Sefaria Linker</a>.</span>
                 <span className="int-he">אתרים המפורטים כאן משתמשים <a href="/linker">במרשתת ההפניות</a>.</span>
               </div> : null;
@@ -1031,7 +1031,7 @@ class ToolsButton extends Component {
     }
     const url = Sefaria.util.replaceUrlParam("with", this.props.en);
     return (
-      <a href={url} className="toolsButton sans noselect" data-name={this.props.en} onClick={this.onClick}>
+      <a href={url} className="toolsButton sans-serif noselect" data-name={this.props.en} onClick={this.onClick}>
         {icon}
         <span className="toolsButtonText">
             <InterfaceText text={{en: this.props.en , he: this.props.he }} />

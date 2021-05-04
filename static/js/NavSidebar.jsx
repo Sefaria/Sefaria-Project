@@ -9,7 +9,7 @@ import {NewsletterSignUpForm} from './Misc'
 
 
 const NavSidebar = ({modules}) => {
-  return <div className="navSidebar">
+  return <div className="navSidebar sans-serif">
     {modules.map((m, i) => 
       <Modules 
         type={m.type} 
@@ -121,7 +121,7 @@ const PopularTexts = ({texts}) => (
   <Module>
     <ModuleTitle>Popular Texts</ModuleTitle>
     {texts.map(text => 
-      <div className="navSidebarLink ref" key={text}>
+      <div className="navSidebarLink ref serif" key={text}>
         <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
         <a href={"/" + Sefaria.normRef(text)}><InterfaceText>{text}</InterfaceText></a>
       </div>
@@ -225,7 +225,7 @@ const AboutText = ({index, hideTitle}) => {
 const ParashahLink = () => {
   const parashah = Sefaria.calendars.filter(c => c.title.en === "Parashat Hashavua")[0];
   return (
-    <div className="navSidebarLink ref">
+    <div className="navSidebarLink ref serif">
       <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
       <a href={"/" + parashah.url}><InterfaceText>{parashah.ref}</InterfaceText></a>
     </div>
@@ -244,7 +244,7 @@ const HaftarotLinks = () => {
   return (
     <>
       {haftarot.map(h => 
-      <div className="navSidebarLink ref" key={h.url}>
+      <div className="navSidebarLink ref serif" key={h.url}>
         <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
         <a href={"/" + h.url}><InterfaceText>{h.ref}</InterfaceText></a>
       </div>)}
@@ -256,7 +256,7 @@ const HaftarotLinks = () => {
 const DafLink = () => {
   const daf = Sefaria.calendars.filter(c => c.title.en === "Daf Yomi")[0];
   return (
-    <div className="navSidebarLink ref">
+    <div className="navSidebarLink ref serif">
       <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
       <a href={"/" + daf.url}>
         <InterfaceText text={{en: daf.displayValue.en, he: daf.displayValue.he}} />
@@ -397,7 +397,7 @@ const TrendingTopics = () => (
   <Module>
     <ModuleTitle>Trending Topics</ModuleTitle>
     {Sefaria.trendingTopics.map((topic, i) => 
-      <div className="navSidebarLink ref" key={i}>
+      <div className="navSidebarLink ref serif" key={i}>
         <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.en, he: topic.he}}/></a>
       </div>
     )}
@@ -414,7 +414,7 @@ const RelatedTopics = ({topics}) => {
     <Module>
       <ModuleTitle>Related Topics</ModuleTitle>
       {shownTopics.map((topic, i) => 
-        <div className="navSidebarLink ref" key={i}>
+        <div className="navSidebarLink ref serif" key={i}>
           <a href={"/topics/" + topic.slug}><InterfaceText text={{en: topic.title.en, he: topic.title.he}}/></a>
         </div>
       )}

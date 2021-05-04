@@ -15,22 +15,22 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+a {
+  color: inherit;
+}
 @font-face {
-  /* Mixed Hebrew - English content text */
-  font-family: 'HebrewInEnglish Text Font';
+  /*Mixed Hebrew - English content text*/
+  font-family: 'HebrewInEnglish Serif Font';
   src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
   unicode-range: U+0590-05FF, U+25CC;
 }
-@font-face {
-  /* Mixed Hebrew - English system text */
-  font-family: 'HebrewInEnglish System Font';
-  src: local('Heebo'), local('Roboto');
-  unicode-range: U+0590-05FF;
-}
 :root {
   /* font stacks */
-  --sans-serif-font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  --serif-font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
+
+  --english-serif-font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  --hebrew-serif-font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
@@ -69,50 +69,67 @@ body:not(.user-is-tabbing) *:focus {
   --modern-works-blue: #B8D4D3;
   --grammar-green: #B2B272;
   --reference-orange: #D4896C;
-  --miscelaneous-brown: #7D6D5D;
-  --miscelaneous-blue: #B1C8DD;
-  --miscelaneous-green: #3B5849;
-
 }
-
-
-
-a{
-  color: inherit;
+/* Font Family */
+.en,
+.serif,
+.serif .en,
+.serif .int-en {
+  font-family: var(--english-serif-font-family);
 }
-
-.serif {
-  --font-family: var(--serif-font-family);
-  font-size: 1em;
+.int-en,
+.sans-serif,
+.sans-serif .en,
+.sans-serif .int-en {
+  font-family: var(--english-sans-serif-font-family);
 }
-.sans-serif {
-  --font-family: var(--sans-serif-font-family);
-}
-
-.serif .hebrew {
+.he,
+.serif .he,
+.serif .int-he {
   --hebrew-multiplier: 1.22;
+  font-family: var(--hebrew-serif-font-family);
 }
-
-h1 {
-  font-family: var(--font-family);
+.int-he,
+.sans-serif .he,
+.sans-serif .int-he,
+.sans-serif-in-hebrew .he,
+.sans-serif-in-hebrew .int-he {
+  font-family: var(--hebrew-sans-serif-font-family);
+}
+/* Font Size */
+/* we should be able to remove this, but without it reader basetext is missized -- BLL 5/4/21 */
+.he {
+  font-size: 122%;
+}
+/* root hack to prevent he: 122% from overwriting styles of .serif.he -- RMN 5/3//21 */
+:root h1 {
   font-weight: normal;
   font-size: calc(var(--serif-h1-font-size) * var(--hebrew-multiplier, 1))
 }
-h2 {
-  font-family: var(--font-family);
+:root h2 {
   font-weight: normal;
   font-size: calc(var(--serif-h2-font-size) * var(--hebrew-multiplier, 1))
 }
-h3 {
-  font-family: var(--font-family);
+:root h3 {
   font-weight: normal;
-  font-size: calc(var(--serif-h2-font-size) * var(--hebrew-multiplier, 1))
+  font-size: calc(var(--serif-h3-font-size) * var(--hebrew-multiplier, 1))
 }
 body {
-  font-family: var(--font-family);
+  font-family: var(--sans-serif-font-family);
   font-size: calc(var(--serif-body-font-size) * var(--hebrew-multiplier, 1))
 }
-
+.int-he {
+  direction: rtl;
+}
+.int-he.enInHe {
+  direction: ltr;
+}
+.enInHe {
+  unicode-bidi: isolate;
+}
+.int-en.heInEn {
+  direction: rtl;
+}
 .btn, .btn-sm, .btn-xs {
   display: inline-block;
   color: white;
@@ -127,58 +144,31 @@ body {
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 0.1em;
-  font-family: ; var(--sans-serif-font-family)
+  font-family: var(--sans-serif-font-family);
   box-sizing: border-box;
   line-height: 19px;
   text-align: center;
 }
-
 .btn.white, .btn-sm.white, .btn-xs.white {
   background-color: white;
   color: #333;
 }
-
 .btn {
   width: 300px;
   height: 50px;
 }
-
 .btn-sm {
   width: 150px;
   height: 40px;
 }
-
 .btn-xs {
   width: 75px;
   height: 30px;
 }
-
 /*
 Style Guide Font Hierarchy
 https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
-
-font-family: "HebrewInEnglish System Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-
-font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-
 */
-.int-he {
-  font-family: "Heebo", sans-serif;
-  direction: rtl;
-}
-.int-he.enInHe {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  direction: ltr;
-}
-.int-en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.int-en.heInEn {
-  font-family: "Heebo", sans-serif;
-  direction: rtl;
-}
 .featureTitle .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 50px;
@@ -194,9 +184,6 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
 }
 .readerPanel.hebrew .he .enInHe {
   font-size: 83%;
-}
-.enInHe{
-  unicode-bidi: isolate;
 }
 .chapterText .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -294,17 +281,6 @@ font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Tim
   font-style: italic;
 }
 /* end Style Guide */
-.sans,
-.sans .en,
-#s2 .sans .en,
-.sans .int-en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.sans .he,
-#s2 .sans .he,
-.sans .int-he {
-  font-family: "Heebo", sans-serif;
-}
 #s2 {
   position: fixed;
   top: 0;
@@ -426,9 +402,7 @@ input.noselect {
 .interface-english .int-he {
   display: none;
 }
-.interface-hebrew #panelWrapBox,
-.readerApp.interface-hebrew .readerPanel
-{
+.interface-hebrew #panelWrapBox {
   direction: rtl;
 }
 .interface-english #panelWrapBox,
@@ -532,7 +506,6 @@ input.noselect {
   box-shadow: none;
   color: black;
   font-size:  18px;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   margin: 0;
   width: 100px;
 }
@@ -540,7 +513,6 @@ input.noselect {
   width: 200px;
 }
 .header .search.hebrewSearch {
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
 }
 .mobileNavMenu {
@@ -695,7 +667,7 @@ input.noselect {
   -moz-margin-end: 5px;
   margin-inline-end: 5px;
 }
-.header .interfaceLinks a.interfaceLinks-button::after{
+.header .interfaceLinks a.interfaceLinks-button::after {
   display: inline-block;
   background-image: url("/static/icons/chevron-down.svg");
   height: 10px;
@@ -703,7 +675,7 @@ input.noselect {
   vertical-align: middle;
   content: "";
 }
-.header .interfaceLinks .interfaceLinks-menu{
+.header .interfaceLinks .interfaceLinks-menu {
   top: 35px;
   position: absolute;
   z-index: 1;
@@ -714,16 +686,16 @@ input.noselect {
   border-radius: 6px;
   display: none;
 }
-.header .interfaceLinks .interfaceLinks-menu.open{
+.header .interfaceLinks .interfaceLinks-menu.open {
   display: block;
 }
-.interface-english .header .interfaceLinks .interfaceLinks-menu{
+.interface-english .header .interfaceLinks .interfaceLinks-menu {
   right: 0px;
 }
-.interface-hebrew .header .interfaceLinks .interfaceLinks-menu{
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
   left: 0px;
 }
-.header .interfaceLinks .interfaceLinks-header{
+.header .interfaceLinks .interfaceLinks-header {
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -732,18 +704,12 @@ input.noselect {
   padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
-.interface-english .header .interfaceLinks .interfaceLinks-header{
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-}
-.interface-hebrew .header .interfaceLinks .interfaceLinks-header{
-  font-family: "Heebo", sans-serif;
-}
-.interfaceLinks-options{
+.interfaceLinks-options {
   display: flex;
   flex-direction: column;
   padding: 4px 0;
 }
-.header .interfaceLinks .interfaceLinks-option{
+.header .interfaceLinks .interfaceLinks-option {
   display: flex;
   text-decoration: none;
   font-style: normal;
@@ -752,22 +718,21 @@ input.noselect {
   line-height: 23px;
   text-align: right;
   color: #666666;
-  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   padding: 5px;
 }
-.header .interfaceLinks .interfaceLinks-option::before{
+.header .interfaceLinks .interfaceLinks-option::before {
   content: "";
-  font-family:FontAwesome;
+  font-family: FontAwesome;
   color: #999;
   font-weight: normal;
   font-size: 13px;
   font-style: normal;
   padding: 0 15px;
 }
-.header .interfaceLinks .interfaceLinks-option.active{
+.header .interfaceLinks .interfaceLinks-option.active {
   order: -1;
 }
-.header .interfaceLinks .interfaceLinks-option.active::before{
+.header .interfaceLinks .interfaceLinks-option.active::before {
   content: "\f00c";
   padding: 0 8px;
 }
@@ -815,33 +780,6 @@ input.noselect {
   display: inline-block;
   line-height: 1;
   padding: 8px 15px;
-}
-.header .login .en {
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-}
-.header .login .he {
-  font-family: "Heebo", sans-serif;
-}
-.header .testWarning {
-  display: inline-block;
-  color: white;
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-  background-color: #EFB4B6;
-  border-radius: 12px;
-  font-size: 14px;
-  line-height: 1;
-  padding: 6px 16px;
-  vertical-align: middle;
-  height: 14px;
-  max-width: 100%;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  cursor: pointer;
-  margin-right: 15px;
-}
-.header .testWarning:hover {
-  text-decoration: underline;
 }
 .header .headerInner.mobile {
   padding: 0 15px;
@@ -929,7 +867,6 @@ input.noselect {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   font-size: 16px;
   line-height: 1.5;
 }
@@ -941,7 +878,6 @@ input.noselect {
 }
 .sefariaModalContent h2 {
   font-weight: normal;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 30px;
   margin-bottom: 0px;
 }
@@ -961,7 +897,6 @@ input.noselect {
   align-items: center;
   text-align: start;
   padding: 10px 0;
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   font-size: 18px;
   line-height: 1.5;
   font-weight: normal;
@@ -1059,7 +994,7 @@ input.noselect {
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   z-index: 1000000 !important;
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: var(--english-serif-font-family);
 }
 .header > .ui-autocomplete {
   z-index: 1000 !important;
@@ -1110,7 +1045,6 @@ input.noselect {
   background-color: #EFB4B6;
   padding: 14px 20px;
   box-sizing: border-box;
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
 #globalWarningMessage .close {
  float: right;
@@ -1137,7 +1071,6 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .readerContent {
   width: 100%;
@@ -1168,13 +1101,9 @@ input.noselect {
 .sheetsInPanel .loadingMessage {
   margin: 30px 0;
   color: #999;
-  text-align: center;
-  font-weight: lighter;
+  font-size: 16px;
   font-style: normal;
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  /*border-bottom: 4px solid #E6E5E6;*/
+  text-align: center;
   padding: 0 6px 4px;
 }
 .textColumn .loadingMessage.base.prev {
@@ -1187,14 +1116,10 @@ input.noselect {
 .textColumn .textRange.loading + .textRange.loading {
   display: none;
 }
-.he {
-  font-size: 122%;
-}
 .int-he .int-he {
   font-size: inherit;
 }
 .readerPanel .he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   direction: rtl;
   text-align: right;
 }
@@ -1463,12 +1388,6 @@ input.noselect {
 }
 .navSidebarLink.ref {
   font-size: 18px;
-}
-.navSidebarLink.ref .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-.navSidebarLink.ref .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .navSidebar .linkList {
   margin-top: 20px;
@@ -2088,17 +2007,11 @@ a.navBlockTitle {
   color: #000;
   margin-inline-end: 20px;
 }
-.navBlockTitle .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
 .navBlockDescription {
   font-size: 14px;
   line-height: 18px;
   color: #666;
   margin-inline-end: 20px;
-}
-.navBlockDescription .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .interface-english .navBlockDescription.clamped .int-en,
 .interface-hebrew .navBlockDescription.clamped .int-he {
@@ -2123,9 +2036,6 @@ a.navBlockTitle {
   color: #666;
   font-size: 18px;
   padding-top: 17px;
-}
-.featuredSheetHeading .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .featuredSheet .navBlockDescription {
   margin-bottom: 12px;
@@ -2160,14 +2070,17 @@ a.navBlockTitle {
   margin-top: 0;
   margin-bottom: 14px;
 }
-.readerPanel .homepage .mainColumn h2 .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+.homepage .mainColumn h2 .int-en {
+  font-family: var(--english-serif-font-family);
 }
 .homepage .navBlock {
   border-top: 1px solid #CCC;
 }
 .homepage .navBlock.withColorLine {
   border-top: 4px solid transparent;
+}
+.homepage .navBlockTitle .int-en {
+  font-family: var(--english-serif-font-family);
 }
 .homepage .gridBox {
   margin-bottom: 30px;
@@ -2182,12 +2095,6 @@ a.navBlockTitle {
 }
 .homepage .readingLinks a {
   font-size: 18px;
-}
-.homepage .readingLinks a .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-.homepage .readingLinks a .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .homepage .calendarDate {
   font-size: 14px;
@@ -2507,7 +2414,6 @@ a.navBlockTitle {
 .sheetContent .sheetMetaDataBox .collectionStatement {
   font-size: 17px;
   color: #999;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 6px;
   letter-spacing: 1px;
 }
@@ -2536,8 +2442,10 @@ a.navBlockTitle {
   margin-inline-end: 10px;
   float:none;
 }
-.authorStatement span p
- {
+.authorStatement .profile-pic {
+  margin-inline-end: 10px;
+}
+.authorStatement span p {
   display: inline-block;
 }
 .bookPage .readButton {
@@ -2928,7 +2836,7 @@ a.navBlockTitle {
   /*unicode-bidi: plaintext;*/
 }
 .versionBlock .versionTitle a{
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .versionBlock .versionTitle .versionEditIcon{
   display: none;
@@ -2946,7 +2854,7 @@ a.navBlockTitle {
   color: #999;
 }
 .versionBlock .versionNotes a {
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
   font-size: 18px;
@@ -2955,7 +2863,7 @@ a.navBlockTitle {
   text-decoration: underline;
 }
 .versionBlock .versionNotes span{
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .versionBlock .versionDetails {
   display: inline-block;
@@ -3018,7 +2926,7 @@ a.navBlockTitle {
   text-decoration: underline;
 }
 .versionBlock .versionNotes {
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: normal;
   font-weight: normal;
   font-size: 18px;
@@ -3091,32 +2999,31 @@ a.navBlockTitle {
 
 .modTools .dlVersionSelect,
 .readerTextTableOfContents .content .dlVersionSelect {
-    width: 60%;
-    margin: 10px auto;
-    background-color: white;
-    font-size: 14px;
-    height: 3em;
-    border-color: #ccc;
-    border-radius: 3px;
-    color: #333;
-    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  width: 60%;
+  margin: 10px auto;
+  background-color: white;
+  font-size: 14px;
+  height: 3em;
+  border-color: #ccc;
+  border-radius: 3px;
+  color: #333;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .modTools .dlVersionSelect option,
 .readerTextTableOfContents .content .dlVersionSelect option{
   unicode-bidi: plaintext;
 }
-
 .modTools .versionDownloadButton,
 .readerTextTableOfContents .content .versionDownloadButton {
-    width: 60%;
-    margin: 10px auto;
-    background-color: white;
-    font-size: 14px;
-    height: 3em;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    color: #ccc;
-    font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  width: 60%;
+  margin: 10px auto;
+  background-color: white;
+  font-size: 14px;
+  height: 3em;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  color: #ccc;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .modTools .versionDownloadButton .downloadButtonInner,
 .readerTextTableOfContents .content .versionDownloadButton .downloadButtonInner {
@@ -4023,6 +3930,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   vertical-align: middle;
   max-width: 100%;
 }
+.readerControls .readerTextToc .readerTextTocBox a h1,
 .readerControls .readerTextToc .readerTextTocBox a span,
 .readerControls .readerTextToc .readerTextTocBox a div {
   white-space: nowrap;
@@ -4235,12 +4143,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textRange.basetext .title, {
   font-size: 24px;
 }
-
 .sheetContent .customSourceTitle {
   padding-top: 14px;
 }
-
-
 .dark .textRange.basetext .title, .dark .sheetContent .title {
   color: #ccc;
 }
@@ -4945,7 +4850,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   border-bottom-color: var(--category-color);
 }
 .recentFilterSet.filterSet .textFilter, .recentFilterSet.filterSet .textFilter span{
-  font-family: "HebrewInEnglish Text Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, serif;
 }
 .hebrew .textList .recentFilterSet.filterSet {
   direction: rtl;
@@ -5443,7 +5348,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 23px;
   left: 830px;
   top: 367px;
-
   font-family: "Roboto", "sans-serif";
   font-style: normal;
   font-weight: normal;
@@ -5752,7 +5656,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: start;
 }
 .confirmAddToSheet.addToSourceSheetBox .message span{
-  font-family: 'HebrewInEnglish Text Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-style: normal;
   font-weight: normal;
   font-size: 18px;
@@ -6647,7 +6551,6 @@ a .button:hover {
 .sheetMetaDataBox .title * {  /* chrome adds <div> tags to contenteditables and we want those inline as well  */
   display: inline;
 }
-
 .sheetMetaDataBox .title:empty:before {
   content: "Untitled";
   color: #999;
@@ -6658,6 +6561,9 @@ a .button:hover {
 .sheetMetaDataBox .title:focus:before {
   content: "\200B"; /* zero-width space required so that chrome doesn't cause change in size of box on focus/blur */
   width: 0;
+}
+.interface-hebrew .sheetMetaDataBox .authorStatement {
+  direction: rtl;
 }
 .editorSidebarToggle {
   position: fixed;
@@ -7336,6 +7242,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   background: #FBFBFA;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
+  text-align: start;
 }
 .addToSourceSheetBox .selectedRef span{
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
@@ -8245,7 +8152,6 @@ section.SheetSource .SheetOutsideBiText {
 }
 .tab-view .tab-list .tab {
   font-size: 16px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: black;
   text-align: center;
   padding: 10px 0;
@@ -8369,16 +8275,24 @@ section.SheetSource .SheetOutsideBiText {
   height: 60px;
   font-size: 16px;
   margin-top: -80px;
+  margin-left: -12px;
+  margin-bottom: 80px;
+  padding-right: 12px;
   display: flex;
   justify-content: center;
   align-items: center;
-  position: absolute;
+  position: relative;
   left: 0;
+}
+.interface-hebrew .editorToggleHeader {
+  direction: rtl;
 }
 .editorToggleHeader .button {
   padding: 5px 8px;
   margin-inline-start: 15px;
   margin-top: 5px;
+  height: 30px;
+  letter-spacing: 0;
 }
 .feedbackOverlay {
   position: fixed;
@@ -8391,6 +8305,10 @@ section.SheetSource .SheetOutsideBiText {
   padding: 120px 60px;
   box-sizing: border-box;
 
+}
+
+.feedbackOverlay .buttonContainer {
+  margin-top: 50px;
 }
 
 .feedbackOverlay h2 {
@@ -8421,8 +8339,21 @@ section.SheetSource .SheetOutsideBiText {
   font-weight: normal;
   font-style: normal;
   margin-top: 10px;
+  height: 120px;
 }
 
+.feedbackOverlay textarea::placeholder {
+  font-size: 16px;
+  font-style: normal;
+}
+
+.feedbackOverlay a {
+  color: #4871bf;
+}
+
+.feedbackOverlay .button {
+  margin: 0;
+}
 
 .sheetList .sheet {
   border-bottom: none;
@@ -8645,7 +8576,6 @@ section.SheetSource .SheetOutsideBiText {
 }
 .profile-page .profile-summary .follow {
   color: #999;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-size: 13px;
   letter-spacing: 1px;
 }
@@ -8678,8 +8608,6 @@ section.SheetSource .SheetOutsideBiText {
   font-size: 20px;
   color: #000;
   padding-bottom: 10px;
-  border-bottom: 1px solid #E2E2E1;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .profile-page .follow-header .follow-count {
   color: #999;
@@ -8782,20 +8710,6 @@ section.SheetSource .SheetOutsideBiText {
   width: 140px;
   z-index: 1;
 }
-/*Tooltip arrow
-.tooltip-toggle::after {
-  position: absolute;
-  top: 37px;
-  left: 30px;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-bottom: 5px solid #2b222a;
-  content: " ";
-  font-size: 0;
-  line-height: 0;
-  margin-left: -5px;
-  width: 0;
-}*/
 /*Triggering the transition*/
 .tooltip-toggle:hover::before, .tooltip-toggle:hover::after {
   opacity: 1;

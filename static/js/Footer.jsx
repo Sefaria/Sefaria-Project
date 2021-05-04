@@ -38,7 +38,7 @@ class Footer extends Component {
     const blgURL = Sefaria.interfaceLang == "hebrew" ? "https://blog.sefaria.org.il/" : "https://blog.sefaria.org/";
     let next = this.state.isClient ? (encodeURIComponent(Sefaria.util.currentPath())) : "/" ; //try to make sure that a server render of this does not get some weird data in the url that then gets cached
     return (
-      <footer id="footer" className="static sans">
+      <footer id="footer" className="static sans-serif">
         <div id="footerInner">
             <Section en="About" he="על אודות">
                 <Link href="/about" en="What is Sefaria?" he="מהי ספריא" />

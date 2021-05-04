@@ -265,6 +265,7 @@ class SearchBar extends Component {
       return;
     }
     this.props.showSearch(query);
+
     $(ReactDOM.findDOMNode(this)).find("input.search").sefariaAutocomplete("close");
     this.props.onNavigate && this.props.onNavigate();
   }

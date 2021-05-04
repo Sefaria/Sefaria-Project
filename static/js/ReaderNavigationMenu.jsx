@@ -78,7 +78,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
     /> : null;
 
   const title = compare ? null : 
-    <div className="navTitle tight">
+    <div className="navTitle tight sans-serif">
       <h1>
         <InterfaceText>Browse the Library</InterfaceText>
       </h1>
@@ -188,7 +188,6 @@ export default ReaderNavigationMenu;
 
 /*
 
-
   const TocLink = ({en, he, img, alt, href, resourcesLink, classes, onClick}) =>
     <a className={(resourcesLink?"resourcesLink ":"") + (classes||"")} href={href} onClick={onClick}>
         {img?<img src={img} alt={alt} />:""}
@@ -289,14 +288,14 @@ export default ReaderNavigationMenu;
           <span className='he'>{t.he}</span>
       </a>
   });
-  const moreTopics = (<a href="#" className="blockLink readerNavMore" onClick={enableShowMoreTopics}>
+  const moreTopics = (<a href="#" className="blockLink readerNavMore sans-serif" onClick={enableShowMoreTopics}>
                   <span className="int-en">More<img src="/static/img/arrow-right.png" alt="" /></span>
                   <span className="int-he">עוד<img src="/static/img/arrow-left.png" alt="" /></span>
               </a>);
   const azButton = (
     <a href={"/topics"}
        onClick={openMenu.bind(null, "topics")}
-       className="blockLink readerNavMore"
+       className="blockLink readerNavMore sans-serif"
     >
         <span className='en'>All Topics</span>
         <span className='he'>כל הנושאים</span>

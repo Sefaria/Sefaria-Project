@@ -301,7 +301,7 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.segment')))
 
     def click_source_title(self):
-        title_selector = 'div.readerTextToc h1 > a'
+        title_selector = 'div.readerTextToc a'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, title_selector))
         )
@@ -1731,7 +1731,7 @@ class Trial(object):
             command_executor = os.getenv("LOCAL_SELENIUM_URL")
             driver = webdriver.Remote(
                 command_executor=command_executor,
-                desired_capabilities=cap 
+                desired_capabilities=cap
             )
         else:
             raise Exception("Unrecognized platform: {}".format(self.platform))

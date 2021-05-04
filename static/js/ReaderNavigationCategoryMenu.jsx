@@ -21,19 +21,23 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
 
   // Show Talmud with Toggles
   const cats  = categories[0] === "Talmud" && categories.length === 1 ?
-                      ["Talmud", "Bavli"] : categories;
+                      ["Talmud", "Bavli"]
+                      : (categories[0] === "Tosefta" && categories.length === 1) ?
+                      ["Tosefta", "Vilna Edition"]
+                      : categories;
   const aboutCats = categories[0] === "Talmud" && categories.length === 2 ?
                       ["Talmud"] : categories;
+  
   let catTitle = '', heCatTitle = '';
 
-  if (cats[0] === "Talmud" && cats.length === 2) {
-    catTitle   = cats[0];
-    heCatTitle = Sefaria.hebrewTerm(cats[0]);
+  if ((cats[0] === "Talmud" || cats[0] === "Tosefta") && cats.length === 2) {
+    catTitle   = (cats.length > 1) ? cats[0] +  " " + cats[1] : cats[0];
+    heCatTitle = (cats.length > 1) ? Sefaria.hebrewTerm(cats[0]) + " " + Sefaria.hebrewTerm(cats[1]) : Sefaria.hebrewTerm(cats[0]);
   } else {
     if (category === "Commentary") {
       const onCat = cats.slice(-2)[0];
       catTitle   = onCat + " Commentary";
-      heCatTitle = Sefaria.hebrewTerm(onCat) + " " + Sefaria.hebrewTerm("Commentary");  // HEBREW NEEDED
+      heCatTitle = Sefaria.hebrewTerm(onCat) + " " + Sefaria.hebrewTerm("Commentary");
     } else {
       catTitle   = category;
       heCatTitle = Sefaria.hebrewTerm(category);
@@ -50,7 +54,8 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
 
   const sidebarModules = aboutModule.concat(getSidebarModules(cats));
 
-  const talmudToggle   = <TalmudToggle categories={cats} setCategories={setCategories} />
+  const categoryToggle = <TalmudToggle categories={cats} setCategories={setCategories} /> || 
+                          <ToseftaToggle categories={cats} setCategories={setCategories} />;
   const footer         = compare ? null : <Footer />;
   const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noLangToggleInHebrew: 1, compare: compare});
   return (
@@ -73,7 +78,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
               <h1>
                 <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
               </h1>
-              {talmudToggle}
+              {categoryToggle}
               {multiPanel && Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? 
               <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
             </div>
@@ -262,19 +267,19 @@ const MenuItem = ({href, dref, nestLevel, title, heTitle, cats, incomplete, enDe
 
 
 const TextMenuItem = ({item, categories, showInHebrew, nestLevel}) => {
-        const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, categories);
-        return (
-            <MenuItem
-                href        = {"/" + Sefaria.normRef(item.title)}
-                incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
-                dref        = {item.title}
-                nestLevel   = {nestLevel}
-                title       = {title}
-                heTitle     = {heTitle}
-                enDesc      = {item.enShortDesc}
-                heDesc      = {item.heShortDesc}
-            />
-        );
+  const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, categories);
+  return (
+    <MenuItem
+      href        = {"/" + Sefaria.normRef(item.title)}
+      incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
+      dref        = {item.title}
+      nestLevel   = {nestLevel}
+      title       = {title}
+      heTitle     = {heTitle}
+      enDesc      = {item.enShortDesc}
+      heDesc      = {item.heShortDesc}
+    />
+  );
 };
 
 
@@ -301,6 +306,30 @@ const TalmudToggle = ({categories, setCategories}) => {
 };
 
 
+const ToseftaToggle = ({categories, setCategories}) => {
+    if ( categories.length !== 2 || categories[0] !== "Tosefta") {
+        return null;
+    }
+
+    const setVilna = () => { setCategories(["Tosefta", "Vilna Edition"]); };
+    const setLieberman = () => { setCategories(["Tosefta", "Lieberman Edition"]); };
+    const vClasses = classNames({navToggle: 1, active: categories[1] === "Vilna Edition"});
+    const lClasses = classNames({navToggle: 1, active: categories[1] === "Lieberman Edition", second: 1});
+
+    return (<div className="navToggles">
+                <span className={vClasses} onClick={setVilna}>
+                  <span className="en">Vilna Edition</span>
+                  <span className="he">דפוס וילנא</span>
+                </span>
+                <span className="navTogglesDivider">|</span>
+                <span className={lClasses} onClick={setLieberman}>
+                  <span className="en">Lieberman Edition</span>
+                  <span className="he">מהדורת ליברמן</span>
+                </span>
+    </div>);
+};
+
+
 const getRenderedTextTitleString = (title, heTitle, categories) => {
 
     if (title === "Pesach Haggadah") {
@@ -313,8 +342,8 @@ const getRenderedTextTitleString = (title, heTitle, categories) => {
     }
 
     const replaceTitles = {
-        "en": ['Jerusalem Talmud'].concat(categories),
-        "he": ['תלמוד ירושלמי'].concat(categories.map(Sefaria.hebrewTerm))
+        "en": ['Jerusalem Talmud', 'Tosefta Kifshutah'].concat(categories),
+        "he": ['תלמוד ירושלמי', 'תוספתא כפשוטה'].concat(categories.map(Sefaria.hebrewTerm))
     };
     const replaceOther = {
         "en" : [", ", "; ", " on ", " to ", " of "],

@@ -65,7 +65,7 @@ const UserHistoryPanel = ({menuOpen, handleClick, toggleLanguage, openDisplaySet
   ];
 
   const title = (
-    <span>
+    <span className="sans-serif">
       <a href="/texts/saved" className={"navTitleTab" + (menuOpen === "saved" ? " current" : "")}>
         <img src="/static/icons/bookmark.svg" />
         <InterfaceText>Saved</InterfaceText>
@@ -85,7 +85,7 @@ const UserHistoryPanel = ({menuOpen, handleClick, toggleLanguage, openDisplaySet
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
-            <div className="navTitle">
+            <div className="navTitle sans-serif-in-hebrew">
               <h1>{ title }</h1>
               {Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null}

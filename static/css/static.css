@@ -17,7 +17,6 @@
 .static {
   font-size: 16px;
   background-color: #FBFBFA;
-  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .static .inner {
   width: 90%;
@@ -28,47 +27,11 @@
 #register.static .inner {
   width: 302px;
 }
-.static .int-he {
-  font-family: "Heebo", "Helvetica Neue", Helvetica, Ariel, sans-serif;
-}
-.static .control-elem, .static .control-elem .int-en{
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static .control-elem .int-he {
-  font-family: "Heebo", sans-serif;
-}
-.static .control-elem .int-bi {
-  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
-}
-.static .sans .int-en, .static.sans .int-en, .static .sans {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.static .sans .int-he, .static.sans .int-he  {
-  font-family: "Heebo", sans-serif;
-}
 .interface-english .static .int-he, .interface-english .static .he {
   display: none;
 }
 .interface-hebrew .static .int-en, .interface-hebrew .static .en {
   display: none;
-}
-.static h2,
-.static h3,
-.static h4,
-.static h2 .int-en,
-.static h3 .int-en,
-.static h4 .int-en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.interface-hebrew h1,
-.interface-hebrew h2,
-.interface-hebrew h3,
-.interface-hebrew h4,
-.static h1 .int-he,
-.static h2 .int-he,
-.static h3 .int-he,
-.static h4 .int-he {
-  font-family: "Heebo", sans-serif;
 }
 .static h1 {
   position: relative;
@@ -78,9 +41,6 @@
   font-size: 30px;
   margin: 0 0 60px 0;
   height: auto;
-}
-.static h1 .int-en {
-  font-family: "adobe-garamond-pro", Georgia, serif;
 }
 .static h2 {
   font-weight: lighter;
