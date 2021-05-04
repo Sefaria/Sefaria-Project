@@ -67,14 +67,14 @@ const InterfaceText = ({text, html, children, context}) => {
     textResponse = isHebrew ? (he || en) : (en || he);
     let fallbackCls = (isHebrew && !he) ? "enInHe" : ((!isHebrew && !en) ? "heInEn" : "" );
     elemclasses += fallbackCls;
-  }else{ // Also handle composition with children
+  } else { // Also handle composition with children
     const chlCount = React.Children.count(children);
     if (chlCount == 1) { // Same as passing in a `en` key but with children syntax
       textResponse = Sefaria._(children, context);
-    }else if (chlCount <= Object.keys(AvailableLanguages()).length){ // When multiple languages are passed in via children
+    } else if (chlCount <= Object.keys(AvailableLanguages()).length){ // When multiple languages are passed in via children
       let newChildren = __filterChildrenByLanguage(children, Sefaria.interfaceLang);
       textResponse = newChildren[0]; //assumes one language element per InterfaceText, may be too naive
-    }else{
+    } else {
       console.log("Error too many children")
     }
   }
@@ -543,8 +543,8 @@ class TabView extends Component {
   render() {
     const { currTabIndex } = typeof this.props.currTabIndex == 'undefined' ? this.state : this.props;
     return (
-      <div className="tab-view sans-serif">
-        <div className="tab-list">
+      <div className="tab-view">
+        <div className="tab-list sans-serif">
           <InterfaceText>{this.props.tabs.map(this.renderTab)}</InterfaceText>
         </div>
         { React.Children.toArray(this.props.children)[currTabIndex] }
@@ -602,7 +602,7 @@ DropdownOptionList.propTypes = {
 class DropdownButton extends Component {
   render() {
     const { isOpen, toggle, enText, heText } = this.props;
-    const filterTextClasses = classNames({ "dropdown-button": 1, "sans-serif": 1, active: isOpen });
+    const filterTextClasses = classNames({ "dropdown-button": 1, active: isOpen });
     return (
       <div className={ filterTextClasses } tabIndex="0" onClick={toggle} onKeyPress={(e) => {e.charCode == 13 ? toggle(e):null}}>
         <span className="int-en">{enText}</span>
@@ -635,7 +635,7 @@ class DropdownModal extends Component {
   }
   render() {
     return (
-      <div className={classNames({"dropdown-modal": 1, "position-unset": this.props.positionUnset})}>
+      <div className={classNames({"dropdown-modal": 1, "position-unset": this.props.positionUnset, "sans-serif": 1})}>
         { this.props.children }
       </div>
     );
@@ -1052,7 +1052,7 @@ class ReaderNavigationMenuCloseButton extends Component {
     } else {
       var icon = "×";
     }
-    var classes = classNames({readerNavMenuCloseButton: 1, circledX: this.props.icon === "circledX"});
+    var classes = classNames({readerNavMenuCloseButton: 1, serif: 1, circledX: this.props.icon === "circledX"});
     var url = this.props.url || "";
     return (<a href={url} className={classes} onClick={this.onClick}>{icon}</a>);
   }
@@ -1291,7 +1291,7 @@ class ProfileListing extends Component {
   render() {
     const { url, image, name, uid, is_followed, toggleSignUpModal, smallfonts, organization } = this.props;
     return (
-      <div className="authorByLine">
+      <div className="authorByLine sans-serif">
         <div className="authorByLineImage">
           <a href={url}>
             <ProfilePic
@@ -1650,14 +1650,14 @@ LoginPrompt.propTypes = {
 class SignUpModal extends Component {
   render() {
     const innerContent = [
-      ["star-white.png", Sefaria._("Save texts")],
-      ["sheet-white.png", Sefaria._("Make source sheets")],
-      ["note-white.png", Sefaria._("Take notes")],
-      ["email-white.png", Sefaria._("Stay in the know")],
+      ["star-white.png", "Save texts"],
+      ["sheet-white.png", "Make source sheets"],
+      ["note-white.png", "Take notes"],
+      ["email-white.png", "Stay in the know"],
     ].map(x => (
       <div key={x[0]}>
         <img src={`/static/img/${x[0]}`} alt={x[1]} />
-        { x[1] }
+        <InterfaceText>{ x[1] }</InterfaceText>
       </div>
     ));
     const nextParam = "?next=" + encodeURIComponent(Sefaria.util.currentPath());
@@ -1668,21 +1668,21 @@ class SignUpModal extends Component {
         <div id="interruptingMessage" className="sefariaModalContentBox">
           <div id="interruptingMessageClose" className="sefariaModalClose" onClick={this.props.onClose}>×</div>
           <div className="sefariaModalContent">
-            <h2>
-              {Sefaria._("Love Learning?")}
+            <h2 className="serif sans-serif-in-hebrew">
+              <InterfaceText>Love Learning?</InterfaceText>
             </h2>
             <h3>
-              {Sefaria._("Sign up to get more from Sefaria")}
+              <InterfaceText>Sign up to get more from Sefaria</InterfaceText>
             </h3>
             <div className="sefariaModalInnerContent">
               { innerContent }
             </div>
             <a className="button white control-elem" href={"/register" + nextParam}>
-              { Sefaria._("Sign Up")}
+              <InterfaceText>Sign Up</InterfaceText>
             </a>
             <div className="sefariaModalBottomContent">
-              { Sefaria._("Already have an account?") + " "}
-              <a href={"/login" + nextParam}>{ Sefaria._("Sign\u00A0in")}</a>
+              <InterfaceText>Already have an account?</InterfaceText>&nbsp;
+              <a href={"/login" + nextParam}><InterfaceText>Sign in</InterfaceText></a>
             </div>
           </div>
         </div>
@@ -2173,31 +2173,31 @@ class CookiesNotification extends Component {
 
 
 const SheetTitle = (props) => (
-        <span className="title"
-             role="heading"
-             aria-level="1"
-             contentEditable={props.editable}
-             suppressContentEditableWarning={true}
-             onBlur={props.editable ? props.blurCallback : null}
-             style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml()) ? "rtl" :"ltr"}}
-        >
-            {props.title ? props.title.stripHtmlConvertLineBreaks() : ""}
-        </span>
-    )
+  <span className="title"
+    role="heading"
+    aria-level="1"
+    contentEditable={props.editable}
+    suppressContentEditableWarning={true}
+    onBlur={props.editable ? props.blurCallback : null}
+    style={{"direction": Sefaria.hebrew.isHebrew(props.title.stripHtml()) ? "rtl" :"ltr"}}
+  >
+  {props.title ? props.title.stripHtmlConvertLineBreaks() : ""}
+  </span>
+);
 SheetTitle.propTypes = {
-    title:          PropTypes.string,
+  title: PropTypes.string,
 };
 
 
 const SheetAuthorStatement = (props) => (
-    <div className="authorStatement" contentEditable={false} style={{ userSelect: 'none' }}>
-          {props.children}
-    </div>
-)
+  <div className="authorStatement sans-serif" contentEditable={false} style={{ userSelect: 'none' }}>
+    {props.children}
+  </div>
+);
 SheetAuthorStatement.propTypes = {
-    authorImage:      PropTypes.string,
-    authorStatement:  PropTypes.string,
-    authorUrl:        PropTypes.string,
+  authorImage:      PropTypes.string,
+  authorStatement:  PropTypes.string,
+  authorUrl:        PropTypes.string,
 };
 
 

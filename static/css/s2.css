@@ -15,31 +15,22 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
+a {
+  color: inherit;
+}
 @font-face {
   /*Mixed Hebrew - English content text*/
   font-family: 'HebrewInEnglish Serif Font';
   src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
   unicode-range: U+0590-05FF, U+25CC;
 }
-/*
-This doesn't actually work to refer to Heebo or Roboto which are themselves defined with @font-face
-@font-face {
-   Mixed Hebrew - English system text 
-  font-family: 'HebrewInEnglish Sans Font';
-  src: local('Heebo'), local('Roboto');
-  unicode-range: U+0590-05FF;
-}
-*/
 :root {
   /* font stacks */
-  --sans-serif-font-family: "HebrewInEnglish Sans Font", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-  --serif-font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-
-  --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;; 
+  --english-sans-serif-font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   --hebrew-sans-serif-font-family: "Heebo", "Roboto", sans-serif;
 
   --english-serif-font-family: "HebrewInEnglish Serif Font", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-  --hebrew-serif-font-family: "Taamey Frank", "Times New Roman", serif;;
+  --hebrew-serif-font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", "Times New Roman", serif;
 
   --serif-h1-font-size: 48px;
   --serif-h2-font-size: 30px;
@@ -79,12 +70,7 @@ This doesn't actually work to refer to Heebo or Roboto which are themselves defi
   --grammar-green: #B2B272;
   --reference-orange: #D4896C;
 }
-a {
-  color: inherit;
-}
-.serif {
-  font-size: 1em;
-}
+/* Font Family */
 .en,
 .serif,
 .serif .en,
@@ -92,7 +78,7 @@ a {
   font-family: var(--english-serif-font-family);
 }
 .int-en,
-.san-serif,
+.sans-serif,
 .sans-serif .en,
 .sans-serif .int-en {
   font-family: var(--english-sans-serif-font-family);
@@ -110,7 +96,12 @@ a {
 .sans-serif-in-hebrew .int-he {
   font-family: var(--hebrew-sans-serif-font-family);
 }
-/* root hack to prevent he: 122% from overwriting styles of .serif.he -- RMN 4/3//21 */
+/* Font Size */
+/* we should be able to remove this, but without it reader basetext is missized -- BLL 5/4/21 */
+.he {
+  font-size: 122%;
+}
+/* root hack to prevent he: 122% from overwriting styles of .serif.he -- RMN 5/3//21 */
 :root h1 {
   font-weight: normal;
   font-size: calc(var(--serif-h1-font-size) * var(--hebrew-multiplier, 1))
@@ -453,30 +444,29 @@ input.noselect {
 .headerOnly .headerInner, .headerInner.boxShadow {
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
-.interface-hebrew .headerInner{
+.interface-hebrew .headerInner {
   direction: rtl;
 }
-
-.headerInner .headerNavSection{
+.headerInner .headerNavSection {
   display: flex;
   justify-content: flex-start;
 }
-.headerInner .headerHomeSection{
+.headerInner .headerHomeSection {
   position: absolute;
   top: 17px;
   left: 50%;
   margin-left: -46px;
 }
-.headerInner .headerLinksSection{
+.headerInner .headerLinksSection {
   display: flex;
   justify-content: flex-end;
   min-width: 40%;
   align-items: center;
 }
-.header .header-nav{
+.header .header-nav {
   margin-top: 1px;
 }
-.header .header-links{
+.header .header-links {
   margin-top: 1px;
 }
 .header .library, .header .home, .header .my-profile, .header .notifications, .header .readerNavMenuSearchButton {
@@ -657,7 +647,7 @@ input.noselect {
 }
 .header .interfaceLinks .interfaceLinks-option::before {
   content: "";
-  font-family:FontAwesome;
+  font-family: FontAwesome;
   color: #999;
   font-weight: normal;
   font-size: 13px;
@@ -786,7 +776,6 @@ input.noselect {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   font-size: 16px;
   line-height: 1.5;
 }
@@ -798,7 +787,6 @@ input.noselect {
 }
 .sefariaModalContent h2 {
   font-weight: normal;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 30px;
   margin-bottom: 0px;
 }
@@ -818,7 +806,6 @@ input.noselect {
   align-items: center;
   text-align: start;
   padding: 10px 0;
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
   font-size: 18px;
   line-height: 1.5;
   font-weight: normal;
@@ -916,7 +903,7 @@ input.noselect {
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   z-index: 1000000 !important;
-  font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-family: var(--english-serif-font-family);
 }
 .header > .ui-autocomplete {
   z-index: 1000 !important;
@@ -967,7 +954,6 @@ input.noselect {
   background-color: #EFB4B6;
   padding: 14px 20px;
   box-sizing: border-box;
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
 #globalWarningMessage .close {
  float: right;
@@ -995,7 +981,6 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  /* font-family: 'HebrewInEnglish Serif Font', "adobe-garamond-pro", "Crimson Text", Georgia, serif; */
 }
 .readerContent {
   width: 100%;
@@ -1026,13 +1011,9 @@ input.noselect {
 .sheetsInPanel .loadingMessage {
   margin: 30px 0;
   color: #999;
-  text-align: center;
-  font-weight: lighter;
+  font-size: 16px;
   font-style: normal;
-  font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  /*border-bottom: 4px solid #E6E5E6;*/
+  text-align: center;
   padding: 0 6px 4px;
 }
 .textColumn .loadingMessage.base.prev {
@@ -1045,14 +1026,10 @@ input.noselect {
 .textColumn .textRange.loading + .textRange.loading {
   display: none;
 }
-.he {
-  font-size: 122%;
-}
 .int-he .int-he {
   font-size: inherit;
 }
 .readerPanel .he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   direction: rtl;
   text-align: right;
 }
@@ -2032,7 +2009,6 @@ a.readerNavCategory {
 .sheetContent .sheetMetaDataBox .collectionStatement {
   font-size: 17px;
   color: #999;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 6px;
   letter-spacing: 1px;
 }
@@ -2058,15 +2034,13 @@ a.readerNavCategory {
   height: 30px;
   display: inline-block;
   vertical-align: middle;
-  margin-right: 10px;
+  margin-inline-end: 10px;
   float:none;
 }
-.interface-hebrew .imageBox {
-  margin-right: 0;
-  margin-left: 10px;
+.authorStatement .profile-pic {
+  margin-inline-end: 10px;
 }
-.authorStatement span p
- {
+.authorStatement span p {
   display: inline-block;
 }
 .readerTextTableOfContents .sheetMeta {
@@ -3768,12 +3742,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textRange.basetext .title, {
   font-size: 24px;
 }
-
 .sheetContent .customSourceTitle {
   padding-top: 14px;
 }
-
-
 .dark .textRange.basetext .title, .dark .sheetContent .title {
   color: #ccc;
 }
@@ -6204,7 +6175,6 @@ a .button:hover {
 .sheetMetaDataBox .title * {  /* chrome adds <div> tags to contenteditables and we want those inline as well  */
   display: inline;
 }
-
 .sheetMetaDataBox .title:empty:before {
   content: "Untitled";
   color: #999;
@@ -6216,7 +6186,9 @@ a .button:hover {
   content: "\200B"; /* zero-width space required so that chrome doesn't cause change in size of box on focus/blur */
   width: 0;
 }
-
+.interface-hebrew .sheetMetaDataBox .authorStatement {
+  direction: rtl;
+}
 .editorSidebarToggle {
   position: fixed;
   right: 30px;
@@ -6228,15 +6200,12 @@ a .button:hover {
   cursor: pointer;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
 }
-
 .editorSidebarToggle:active {
   box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.25);
 }
-
 .editorSidebarToggle::after {
   content: url("/static/img/3vdots.svg");
 }
-
 .collectionListingImage {
   height: 100%;
   width: 100%;
@@ -8262,7 +8231,6 @@ section.SheetSource .SheetOutsideBiText {
   font-size: 20px;
   color: #000;
   padding-bottom: 10px;
-  border-bottom: 1px solid #E2E2E1;
 }
 .profile-page .follow-header .follow-count {
   color: #999;
@@ -8365,20 +8333,6 @@ section.SheetSource .SheetOutsideBiText {
   width: 140px;
   z-index: 1;
 }
-/*Tooltip arrow
-.tooltip-toggle::after {
-  position: absolute;
-  top: 37px;
-  left: 30px;
-  border-left: 5px solid transparent;
-  border-right: 5px solid transparent;
-  border-bottom: 5px solid #2b222a;
-  content: " ";
-  font-size: 0;
-  line-height: 0;
-  margin-left: -5px;
-  width: 0;
-}*/
 /*Triggering the transition*/
 .tooltip-toggle:hover::before, .tooltip-toggle:hover::after {
   opacity: 1;

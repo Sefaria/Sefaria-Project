@@ -8,6 +8,7 @@ import $  from './sefaria/sefariaJquery';
 import Sefaria  from './sefaria/sefaria';
 import SefariaEditor from './Editor';
 import {
+  InterfaceText,
   LoadingMessage,
   ReaderMessage,
   SheetMetaDataBox,
@@ -327,9 +328,11 @@ class SheetContent extends Component {
               url={this.props.authorImage}
               len={30}
               name={this.props.authorStatement}
-              outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle", marginRight: "10px"}}
+              outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle"}}
             />
-            <span>by <a href={this.props.authorUrl}>{this.props.authorStatement}</a></span>
+            <span><InterfaceText context="SheetAuthorStatement">by </InterfaceText> 
+              <a href={this.props.authorUrl}>{this.props.authorStatement}</a>
+            </span>
           </SheetAuthorStatement>
           
           <CollectionStatement
