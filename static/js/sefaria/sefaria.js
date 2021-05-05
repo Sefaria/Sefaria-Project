@@ -523,7 +523,6 @@ Sefaria = extend(Sefaria, {
 
   },
   _saveText: function(data, settings) {
-      debugger;
     if (Array.isArray(data)) {
       data.map(d => this._saveText(d, settings));
       return;
