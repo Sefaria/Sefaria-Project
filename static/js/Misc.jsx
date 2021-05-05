@@ -858,7 +858,7 @@ SimpleContentBlock.propTypes = {
 const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick}) => (
         <div className={classes} onClick={onClick}>
             <a href={url} className={aclasses}>
-              <InterfaceText text={{en:en, he:he}}/>
+              <InterfaceText text={{en, he}}/>
             </a>
             {children}
         </div>
@@ -1363,6 +1363,13 @@ const SheetListing = ({
     <div className="sheetViews sans-serif"><i className="fa fa-eye" title={sheet.views + " views"}></i> {sheet.views}</div>
     : <div className="sheetViews sans-serif"><i className="fa fa-lock" title="Private"></i></div>;
 
+  const views = (
+    <>
+      <InterfaceText>{String(sheet.views)}</InterfaceText>&nbsp;
+      <InterfaceText>Views</InterfaceText>
+    </>
+  );
+
   const sheetInfo = hideAuthor ? null :
       <div className="sheetInfo">
         <div className="sheetUser">
@@ -1415,7 +1422,7 @@ const SheetListing = ({
   const underInfo = infoUnderneath ? [
       sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
       showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
-      `${sheet.views} ${Sefaria._('Views')}`,
+      views,
       created,
       collections.length ? collections : undefined,
       sheet.topics.length ? topics : undefined,
@@ -1427,7 +1434,6 @@ const SheetListing = ({
                     pinned ? Sefaria._("Pinned Sheet") : Sefaria._("Pin Sheet");
   const pinButton = <img src="/static/img/pin.svg" className={pinButtonClasses} title={pinMessage} onClick={pinnable ? pinSheet : null} />
 
-
   return (
     <div className="sheet" key={sheet.sheetUrl}>
       <div className="sheetLeft">
@@ -1436,7 +1442,7 @@ const SheetListing = ({
           <img src="/static/img/sheet.svg" className="sheetIcon"/>
           <span className="sheetTitleText">{title}</span>
         </a>
-        <div className="sheetTags">
+        <div className="sheetTags sans-serif">
           {
             underInfo.map((item, i) => (
               <span key={i}>
@@ -1947,7 +1953,7 @@ class LoadingMessage extends Component {
   render() {
     var message = this.props.message || "Loading...";
     var heMessage = this.props.heMessage || "טוען מידע...";
-    var classes = "loadingMessage " + (this.props.className || "");
+    var classes = "loadingMessage sans-serif " + (this.props.className || "");
     return (<div className={classes}>
               <InterfaceText>
                 <EnglishText>{message}</EnglishText>

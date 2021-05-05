@@ -218,6 +218,10 @@ const Strings = {
     "Done": "סיום",
     "Add to Collection": "צירוף לאסופה",
 
+    // Topics
+    "More": "עוד",
+    "Less": "פחות",
+
     // All Topics
     "Reset": "לאתחל",
     "Search Topics": "חפש נושאים",

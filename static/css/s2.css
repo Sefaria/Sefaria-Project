@@ -19,7 +19,7 @@ a, a:hover {
   color: inherit;
 }
 @font-face {
-  /*Mixed Hebrew - English content text*/
+  /*Mixed Hebrew - English serif text*/
   font-family: 'HebrewInEnglish Serif Font';
   src: url('/static/fonts/Taamey-Frank/TaameyFrankCLM-Medium.ttf'), local(Georgia), local(serif);
   unicode-range: U+0590-05FF, U+25CC;
@@ -116,7 +116,7 @@ body, .sans-serif {
   font-size: calc(var(--serif-h3-font-size) * var(--hebrew-multiplier, 1))
 }
 body {
-  font-family: var(--sans-serif-font-family);
+  font-family: var(--english-sans-serif-font-family);
   font-size: calc(var(--serif-body-font-size) * var(--hebrew-multiplier, 1))
 }
 .int-he {
@@ -145,10 +145,11 @@ body {
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 0.1em;
-  font-family: var(--sans-serif-font-family);
   box-sizing: border-box;
   line-height: 19px;
   text-align: center;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .btn.white, .btn-sm.white, .btn-xs.white {
   background-color: white;
@@ -167,8 +168,7 @@ body {
   height: 30px;
 }
 /*
-Style Guide Font Hierarchy
-https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_with_markup.pdf
+Legacy Style Guide Font Hierarchy -- the below should be refactored away in favor of the above
 */
 .featureTitle .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -281,7 +281,7 @@ https://github.com/Sefaria/Sefaria-Project/blob/master/static/files/styleguide_w
 .italics {
   font-style: italic;
 }
-/* end Style Guide */
+/* end Legacy Style Guide */
 #s2 {
   position: fixed;
   top: 0;
@@ -1072,6 +1072,7 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
+  font-family: var(--english-serif-font-family);
 }
 .readerContent {
   width: 100%;
@@ -1164,8 +1165,8 @@ input.noselect {
   display: inline;
   text-align: right;
 }
-.readerPanel .recentPanel .sheetLink.recentItem .he{
-  font-family: "adobe-garamond-pro", "Taamey Frank", "Crimson Text", Georgia, serif;
+.readerPanel .recentPanel .sheetLink.recentItem {
+  font-family: var(--english-serif-font-family);
 }
 .readerPanel.hebrew .en {
   display: none;
@@ -1521,8 +1522,6 @@ input.noselect {
 .readerNavTop .readerNavTopCategory .he {
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
-.readerNavTop.search {
-}
 .readerNavMenu .readerSearch {
   margin: 0;
   width: 60%;
@@ -1560,8 +1559,6 @@ input.noselect {
 }
 .readerNavMenuCloseButton:hover {
   text-decoration: none;
-}
-.readerNavTop .readerNavMenuSearchButton {
 }
 .readerNavTop .readerNavMenuCloseButton .fa {
   font-size: 20px;
@@ -1697,11 +1694,9 @@ input.noselect {
   height: unset;
   line-height: unset;
 }
-.topicPanel h2 .int-en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.topicPanel h2 .int-he {
-  font-family: "Heebo", sans-serif;
+.topicPanel h2 {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 .topicPanel .mainColumn .story {
     padding: 0 0 20px 0;
@@ -5078,9 +5073,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-align: left;
 }
-/*.interface-hebrew .textList .sheet .sheetTags {
-  text-align: right;
-}*/
 .textList .sheet .sheetTag {
   color: inherit;
   display: inline-block;
@@ -6731,6 +6723,9 @@ a .button:hover {
 .collectionSheetInnerContent {
   flex: 1;
 }
+.sheet .sheetTitleText {
+  font-family: var(--english-serif-font-family);
+}
 .sheetListingPinButton {
   display: none;
   opacity: 0.3;
@@ -6919,7 +6914,6 @@ a .button:hover {
   cursor: pointer;
   text-decoration: underline;
 }
-
 .topicPanel .sourceList {
   min-height: 500px;
 }
@@ -8751,7 +8745,7 @@ section.SheetSource .SheetOutsideBiText {
   background: #fff;
   border: 1px solid #ccc;
   border-radius: 4px;
-  margin-left: 15px;
+  margin-inline-start: 15px;
   display: none;
   letter-spacing: normal;
 }

@@ -589,11 +589,10 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
           </div>
           {
             links.filter(l=>l.shouldDisplay !== false).length > 10 ?
-              (<div className="sideColumnMore" onClick={() => {
+              (<div className="sideColumnMore sans-serif" onClick={() => {
                 setShowMoreMap({...showMoreMap, [title.en]: !showMoreMap[title.en]});
               }}>
-                <span className='int-en'>{ showMoreMap[title.en] ? "Less" : "More" }</span>
-                <span className='int-he'>{ showMoreMap[title.en] ? "פחות" : "עוד" }</span>
+                <InterfaceText>{ showMoreMap[title.en] ? "Less" : "More" }</InterfaceText>
               </div>)
             : null
           }
@@ -639,6 +638,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
     </div>
   </div>
 );
+
 
 export {
   TopicPage,

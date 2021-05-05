@@ -351,6 +351,7 @@ class SearchBar extends Component {
   render() {
     const inputClasses = classNames({
       search: 1,
+      serif: 1,
       keyboardInput: Sefaria.interfaceLang === "english",
       hebrewSearch: Sefaria.interfaceLang === "hebrew"
     });

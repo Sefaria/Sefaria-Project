@@ -31,11 +31,11 @@ class UserProfile extends Component {
     const showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
     const showBio = !!props.profile.bio;
     const tabs = [
-      { name: "sheets", text: Sefaria._("Sheets"), icon: "/static/img/sheet.svg" },
-      { name: "collections", text: Sefaria._("Collections"), icon: "/static/icons/collection.svg" },
-      { name: "followers", text: Sefaria._("Followers"), invisible: true },
-      { name: "following", text: Sefaria._("Following"), invisible: true },
-      { name: "torah-tracker", text: Sefaria._("Torah Tracker"), invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
+      { name: "sheets", text: "Sheets", icon: "/static/img/sheet.svg" },
+      { name: "collections", text: "Collections", icon: "/static/icons/collection.svg" },
+      { name: "followers", text: "Followers", invisible: true },
+      { name: "following", text: "Following", invisible: true },
+      { name: "torah-tracker", text: "Torah Tracker", invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
       tabs.splice(2, 0, { name: "notes", text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
@@ -317,7 +317,7 @@ class UserProfile extends Component {
           <div className="tab">
             <a href={tab.href}>
               <img src={tab.icon} alt={`${tab.text} icon`}/>
-              {tab.text}
+              <InterfaceText>{tab.text}</InterfaceText>
             </a>
           </div>
       );
@@ -325,7 +325,7 @@ class UserProfile extends Component {
     return (
       <div className="tab">
         <img src={tab.icon} alt={`${tab.text} icon`} />
-        {tab.text}
+        <InterfaceText>{tab.text}</InterfaceText>
       </div>
     );
   }
