@@ -2464,7 +2464,7 @@ Sefaria.unpackDataFromProps = function(props) {
       }
       // versions and bookRef are located in different places, depending on if you're in book TOC or reader
       const panelVersions = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
-      const panelBook     = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
+      const panelBook     = !!panel.bookRef ? panel.bookRef : !!panel.text ? panel.text.ref : null;
       if (panelVersions && panelBook) {
         Sefaria._versions[panelBook] = panelVersions;
         for (let i = 0; i < panelVersions.length; i++) {
