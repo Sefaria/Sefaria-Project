@@ -68,9 +68,8 @@ jobs:
       - name: Run Jest Tests
         run: npm run jest-gha
       - name: Handle Jest Test Results # later, upload
-        run: cat /home/runner/jestResults.json
+        run: cat /home/runner/jestResults.json; STATUS=`jq ".numFailedTestSuites" /tmp/jestResults.json`; exit $STATUS
         if: ${{ always() }}
-      
 
       - name: Authenticate GHA Runner to GCP
         uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
