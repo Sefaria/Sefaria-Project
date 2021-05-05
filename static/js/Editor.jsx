@@ -530,7 +530,7 @@ const Element = props => {
         sheetItem: 1,
         empty: !(Node.string(element)),
         noPointer: element.type != ("SheetSource" || "SheetOutsideBiText"),
-        highlight: useSlate().highlightedNode == element.node
+        highlight: (useSlate().highlightedNode == element.node)
     }
 
     switch (element.type) {
@@ -1454,6 +1454,13 @@ const SefariaEditor = (props) => {
         },
         [currentDocument[0].children[0]] // Only re-call effect if value or delay changes
     );
+
+  useEffect(() => {
+    if(!props.hasSidebar) {
+      editor.highlightedNode = null;
+    }
+  }, [props.hasSidebar])
+
 
   useEffect(() => {
       let scrollTimeOutId = null;
