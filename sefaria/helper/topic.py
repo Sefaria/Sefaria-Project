@@ -137,8 +137,10 @@ def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
     return link
 
 
-def get_all_topics(limit=1000):
-    return TopicSet({}, limit=limit, sort=[('numSources', -1)]).array()
+@django_cache(timeout=24 * 60 * 60)
+def get_all_topics(limit=1000, displayableOnly=True):
+    query = {"shouldDisplay": True, "numSources": {"$gt": 0}} if displayableOnly else {}
+    return TopicSet(query, limit=limit, sort=[('numSources', -1)]).array()
 
 
 def get_topic_by_parasha(parasha:str) -> Topic:
@@ -246,7 +248,7 @@ def get_topics_for_ref(tref, annotate=False):
     return serialized
 
 
-@django_cache(timeout=6 * 60 * 60)
+@django_cache(timeout=24 * 60 * 60)
 def get_topics_for_book(title, annotate=False):
     all_topics = get_topics_for_ref(title, annotate=annotate)
 

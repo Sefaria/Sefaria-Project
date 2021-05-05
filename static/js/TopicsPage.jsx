@@ -28,6 +28,17 @@ const TopicsPage = ({setNavTopic, multiPanel, initialWidth}) => {
       </div>
     );
   });
+  const letter = Sefaria.interfaceLang === "hebrew" ? "א" : "a";
+  categoryListings.push(
+    <div className="navBlock">
+      <a href={"/topics/all/" + letter} className="navBlockTitle">
+        <InterfaceText>All Topics A-Z</InterfaceText>
+      </a>
+      <div className="navBlockDescription">
+        <InterfaceText>Browse or search our complete list of topics.</InterfaceText>
+      </div>
+    </div>
+  );
   categoryListings = (
     <div className="readerNavCategories">
       <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />

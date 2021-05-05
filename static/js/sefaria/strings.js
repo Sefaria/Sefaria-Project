@@ -218,6 +218,10 @@ const Strings = {
     "Done": "סיום",
     "Add to Collection": "צירוף לאסופה",
 
+    // All Topics
+    "Reset": "לאתחל",
+    "Search Topics": "חפש נושאים",
+
     //languages
     "English": "אנגלית",
     "Hebrew": "עברית",
@@ -337,7 +341,6 @@ const Strings = {
     "You are currently using the old document editor.": "כעת הינך עושה שימוש בגרסה הישנה של עורך המסמכים",
     "Try the new version": "להתנסוּת בגרסה החדשה",
     "Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at": "אנחנו מעריכים מאוד את המשוב שלך. כעת באפשרותך לחזור לערוך את הדפים שלך באמצעות עורך המסמכים הישן. לשאלות או למשוב נוסף אפשר לפנות אלינו בדוא\"ל:",
-
 
     //TextTableofContents
     "Download": "הורדה",

@@ -687,8 +687,22 @@ def topics_category_page(request, topicCategory):
         }
     }
     return render_template(request, 'base.html', props, {
-        "title":            "",
-        "desc":             "",
+        "title": "",
+        "desc":  "",
+    })
+
+
+def all_topics_page(request, letter):
+    """
+    Page listing all topics alphabetically.
+    """
+    props={
+        "initialMenu": "allTopics",
+        "initialNavigationTopicLetter": letter,
+    }
+    return render_template(request, 'base.html', props, {
+        "title": "",
+        "desc":  "",
     })
 
 

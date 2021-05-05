@@ -59,6 +59,7 @@ class ReaderApp extends Component {
         navigationTopicCategory: props.initialNavigationTopicCategory,
         navigationTopic:         props.initialTopic,
         navigationTopicTitle:    props.initialNavigationTopicTitle,
+        navigationTopicLetter:   props.initialNavigationTopicLetter,
         topicTitle:              props.initialTopicTitle,
         profile:                 props.initialProfile,
         profileTab:              props.initialProfileTab,
@@ -127,6 +128,7 @@ class ReaderApp extends Component {
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
       navigationTopicTitle:    state.navigationTopicTitle    || null,
+      navigationTopicLetter:   state.navigationTopicLetter   || null,
       topicTitle:              state.topicTitle              || null,
       collectionName:          state.collectionName          || null,
       collectionSlug:          state.collectionSlug          || null,
@@ -470,6 +472,11 @@ class ReaderApp extends Component {
               hist.title = Sefaria._("Topics | " + siteName);
               hist.mode  = "topics";
             }
+            break;
+          case "allTopics":
+              hist.url   = "topics/all/" + state.navigationTopicLetter;
+              hist.title = Sefaria._("All Topics") + " - " + state.navigationTopicLetter + " | " + Sefaria._(siteName);
+              hist.mode  = "topics";
             break;
           case "account":
             hist.title = Sefaria._(siteName + " Account");
@@ -971,6 +978,9 @@ class ReaderApp extends Component {
 
     } else if (path == "/topics") {
       this.showTopics();
+
+    } else if (path.match(/^\/topics\/all\/[^\/]/)) {
+      this.openAllTopics(path.slice(12));
 
     } else if (path.match(/^\/topics\/[^\/]+/)) {
       this.openTopic(path.slice(8));
@@ -1521,6 +1531,9 @@ class ReaderApp extends Component {
     Sefaria.getTopic(slug).then(topic => {
       this.setSinglePanelState({ menuOpen: "topics", navigationTopic: slug, topicTitle: topic.primaryTitle });
     });
+  }
+  openAllTopics(letter) {
+    this.setSinglePanelState({menuOpen: "allTopics", navigationTopicLetter: letter});
   }
   openProfile(slug) {
     Sefaria.profileAPI(slug).then(profile => {

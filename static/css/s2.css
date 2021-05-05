@@ -15,7 +15,7 @@ body.dark {
 body:not(.user-is-tabbing) *:focus {
   outline: none;
 }
-a {
+a, a:hover {
   color: inherit;
 }
 @font-face {
@@ -6261,23 +6261,19 @@ a .button:hover {
   color: #18345D;
 }
 ::placeholder {
-   font-style: italic;
    font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
    color: #666;
 }
 :-ms-input-placeholder {
-   font-style: italic;
    font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
    color: #666;
 }
 .interface-hebrew ::placeholder {
-  font-style: normal;
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 18px;
   color: #666;
 }
 .interface-hebrew :-ms-input-placeholder {
-  font-style: normal;
   font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 18px;
   color: #666;
@@ -6858,49 +6854,51 @@ a .button:hover {
   font-size: 20px;
   margin: 0 3px;
 }
-.topicsPanel .loadingMessage {
-  text-align: center;
-}
-.topicsPanel .topicFilterBox {
+.topicFilterBox {
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #ccc;
-  margin-bottom: 50px
+  margin-bottom: 25px;
+  background-color: var(--lighter-grey);
+  border-radius: 100px;
+  padding: 0 10px;
+  margin-top: -15px;
+  width: 285px;
+  max-width: 100%;
 }
-.topicsPanel .topicFilterIcon {
-  font-size: 22px;
+.topicFilterBox .searchIcon {
+  height: 18px;
+  width: 18px;
   opacity: 0.4;
 }
-.topicsPanel .topicFilterInput {
-  padding: 12px 10px;
+.topicFilterInput {
+  padding: 0px 10px;
+  line-height: 30px;
   flex: 1;
   box-sizing: border-box;
   border: none;
   background: transparent;
-  font-size: 24px;
+  font-size: 18px;
 }
-.topicsPanel .topicsFilterReset {
-  color: #999;
+.topicsFilterReset {
   cursor: pointer;
+  color: var(--medium-grey);
 }
-.topicsPanel .topicsFilterResetIcon {
+.topicsFilterResetIcon {
   height: 16px;
   width: 16px;
   opacity: 0.4;
-  margin-left: 8px;
-  vertical-align: middle;
+  margin-inline-start: 8px;
+  vertical-align: -2px;
 }
-.topicsPanel .topicList {
+.alphabeticalTopicsNav {
+  color: var(--dark-grey);
+  margin-bottom: 25px;
+}
+.alphabeticalTopicsNav a + a {
+  margin-inline-start: 10px;
+}
+.allTopicsList {
   min-height: 500px;
-}
-.topicsPanel .content .topicList .navButton .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Taamey Frank";
-}
-.topicsPanel .content .topicList .navButton .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
-}
-.topicsPanel .trendingTopics {
-  margin-bottom: 40px;
 }
 .topicPanel .topicLabel {
   text-transform: uppercase;
@@ -6911,7 +6909,6 @@ a .button:hover {
 .topicPanel .topicLabel a {
   color: #8E8E8E;
 }
-
 .topicPanel .sideColumnMore {
   cursor: pointer;
   font-size: 16px;

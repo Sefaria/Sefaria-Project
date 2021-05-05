@@ -923,11 +923,12 @@ class ReaderPanel extends Component {
         );
       }
 
-    } else if (this.state.menuOpen === "topicsAZ") {
+    } else if (this.state.menuOpen === "allTopics") {
       menu = (
         <TopicPageAll
           interfaceLang={this.props.interfaceLang}
-          width={this.state.width}
+          topicLetter={this.state.navigationTopicLetter}
+          intiialWidth={this.state.width}
           setTopic={this.setTopic}
           openNav={this.openMenu.bind(null, "navigation")}
           close={this.closeMenus}

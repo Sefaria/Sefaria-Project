@@ -1846,7 +1846,13 @@ _media: {},
     // Returns promise for all topics list.
     if (this._topicList) { return Promise.resolve(this._topicList); }
     return this._ApiPromise(Sefaria.apiHost + "/api/topics?limit=0")
-        .then(d => { this._topicList = d; return d; });
+        .then(d => { 
+          for (let topic of d) {
+            topic.normTitles = topic.titles.map(title => title.text.toLowerCase());
+          }
+          this._topicList = d; 
+          return d;
+        });
   },
   _tableOfContentsDedications: {},
   _stories: {
