@@ -4911,7 +4911,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .manuscript .meta .int-he {
   font-family: "Heebo", "sans-serif";
 }
-
 .webpageList.empty .loadingMessage {
   margin-top: 0px;
 }
@@ -6536,7 +6535,6 @@ a .button:hover {
 .topicPanel .topicLabel a {
   color: #8E8E8E;
 }
-
 .topicPanel .sideColumnMore {
   cursor: pointer;
   font-size: 16px;
@@ -6547,7 +6545,6 @@ a .button:hover {
   cursor: pointer;
   text-decoration: underline;
 }
-
 .topicPanel .sourceList {
   min-height: 500px;
 }
