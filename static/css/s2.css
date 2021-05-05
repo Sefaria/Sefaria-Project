@@ -2183,28 +2183,8 @@ a.navBlockTitle {
   position: relative;
   top: 2px;
 }
-.readerNavMenu .siteLinks {
-  margin: 20px 0 50px;
-  text-align: center;
-}
-.readerNavMenu .siteLinks .siteLink {
-  color: #999;
-  text-transform: uppercase;
-  display: inline-block;
-  margin: 0 8px;
-  font-size: 12px;
-}
 .uppercase {
   text-transform: uppercase;
-}
-.readerNavMenu .siteLinks .siteLink .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.readerNavMenu .siteLinks .siteLink .he {
-  font-family: "Heebo", sans-serif;
-}
-.readerNavMenu .siteLink .fa {
-  margin: 0 4px;
 }
 .readerNavMenu .divider {
   color: #ccc;
@@ -2219,19 +2199,13 @@ a.navBlockTitle {
   color: #000;
   text-transform: uppercase;
   font-size: 30px;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
 }
 .readerNavCategoryMenu h2 {
   font-size: 18px;
   color: #666;
   margin: 0 0 10px;
-}
-.readerNavCategoryMenu h2 .en,
-.readerNavCategoryMenu h2 .categoryDescription .en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-.readerNavCategoryMenu h2 .he,
-.readerNavCategoryMenu h2 .categoryDescription .he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
 }
 .readerNavCategoryMenu .categoryDescription.top {
   margin-top: -26px;
@@ -2247,12 +2221,6 @@ a.navBlockTitle {
   margin-bottom: 16px;
   font-size: 14px;
   color: #666;
-}
-.readerNavCategoryMenu .categoryDescription .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.readerNavCategoryMenu .categoryDescription .he {
-  font-family: "Heebo", sans-serif;
 }
 .readerNavCategoryMenu .content .category,
 .readerNavCategoryMenu .content .gridBox {
