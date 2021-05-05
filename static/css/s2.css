@@ -558,6 +558,24 @@ input.noselect {
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   padding: 5px;
 }
+.header .interfaceLinks .interfaceLinks-option.link {
+  font-size: 12px;
+  text-decoration: none;
+  text-decoration-color: #666666;
+}
+div.interfaceLinks-option.link a:hover {
+  text-decoration: none;
+  color: #666666;
+}
+
+.header .interfaceLinks .interfaceLinks-option.linkWithBottom {
+  padding: 12px;
+  font-size: 12px;
+  border-bottom: 1px solid #CCCCCC;
+  text-decoration: none;
+  text-decoration-color: #666666;
+}
+
 .header .interfaceLinks .interfaceLinks-option::before{
   content: "";
   font-family:FontAwesome;

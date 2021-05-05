@@ -66,8 +66,7 @@ class Footer extends Component {
         <div id="footerInner">
             <Section en="About" he="על אודות">
                 <Link href="/about" en="What is Sefaria?" he="מהי ספריא" />
-                <Link href="/help" en="Help" he="עזרה" />
-                <Link href="/faq" en="FAQ" he="שאלות נפוצות" />
+                <Link href="/faq" en="Help" he="עזרה" />
                 <Link href="/team" en="Team" he="צוות" />
                 <Link href="/testimonials" en="Testimonials" he="חוות דעת" />
                 <Link href="/metrics" en="Metrics" he="מדדים" />

@@ -29,20 +29,26 @@ const ProfilePicMenu = ({currentLang, len, url, name, key}) => {
       var profile_pic_y = profile_pic_rect.top;
       var profile_pic_width = profile_pic_rect.width;
       var profile_pic_height = profile_pic_rect.height;
-      console.log("current");
-      console.log(curr_x);
-      console.log(curr_y);
-      console.log("profile");
-      console.log(profile_pic_x);
-      console.log(profile_pic_y);
-      var inside_menu = profile_pic_x - 20 <= curr_x && curr_x <= profile_pic_x + 150 && profile_pic_y - 20 <= curr_y && curr_y <= profile_pic_y + 400;
-      var inside_profile_pic = curr_x >= profile_pic_x - 20 && curr_x <= profile_pic_x+profile_pic_width && curr_y >= profile_pic_y - 20 && curr_y <= profile_pic_y+profile_pic_height;
+      var inside_profile_pic = curr_x >= profile_pic_x - 20 && curr_x <= profile_pic_x + profile_pic_width && curr_y >= profile_pic_y - 20 && curr_y <= profile_pic_y + profile_pic_height;
+
       if (inside_profile_pic) {
           setIsOpen(true);
       }
-      else if (!inside_menu)
+      else
       {
-          setIsOpen(false);
+          if (currentLang == "hebrew") {
+              var min_x = profile_pic_x - 50;
+              var max_x = profile_pic_x + 200;
+
+          } else {
+              var min_x = profile_pic_x - 200;
+              var max_x = profile_pic_x + 50;
+          }
+          var within_y_dist = profile_pic_y - 20 <= curr_y && curr_y <= profile_pic_y + 450; //distance of menu to profile pic
+          var inside_menu = within_y_dist && min_x <= curr_x && curr_x <= max_x;
+          if (!inside_menu) {
+              setIsOpen(false);
+          }
       }
   };
   useEffect(() => {
@@ -57,25 +63,23 @@ const ProfilePicMenu = ({currentLang, len, url, name, key}) => {
 
      <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
           <div className="interfaceLinks-header">{name}</div>
-         <div><a className="interfaceLinks-options" href="/my/profile">
+         <div><a className="interfaceLinks-option link" href="/my/profile">
              <span className="int-en">Profile</span>
             <span className="int-he">פרופיל</span></a></div>
-         <hr/>
-         <div><a className="interfaceLinks-options" href="/settings/account">
+         <div><a className="interfaceLinks-option link" href="/settings/account">
            <span className="int-en">Account Settings</span>
             <span className="int-he">הגדרות</span>
          </a></div>
-         <div className="interfaceLinks-options">
-           <a href="/interface/english">English</a> | <a href="/interface/hebrew">עברית</a>
-         </div>
-         <div><a className="interfaceLinks-options" href="collections/sefaria-faqs">
-            <span className="int-en">Get Help</span>
+         <div className="interfaceLinks-option link">
+         <a href="/interface/english">English</a>  |  <a href="/interface/hebrew">עברית</a>
+       </div>
+         <div><a className="interfaceLinks-option linkWithBorder" href="collections/sefaria-faqs">
+            <span className="int-en">Help</span>
             <span className="int-he">עזרה</span>
          </a></div>
-     <hr/>
-         <div><a className="interfaceLinks-options" href="/logout">
+         <div><a className="interfaceLinks-option link" href="/logout">
             <span className="int-en">Logout</span>
-            <span className="int-he">שפת האתר</span>
+            <span className="int-he">ניתוק</span>
          </a></div>
         </div>
       </div>
