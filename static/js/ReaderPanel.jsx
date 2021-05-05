@@ -1278,9 +1278,9 @@ class ReaderControls extends Component {
               <img src={"/static/img/sheet.svg"} className="sheetTocIcon" alt="" /> : null}
 
               { this.props.sheetID ?
-              <div style={{"direction": Sefaria.hebrew.isHebrew(title) ? "rtl" :"ltr"}}>
-                <span>{title}</span>
-              </div>
+              <h1 style={{direction: Sefaria.hebrew.isHebrew(title) ? "rtl" : "ltr"}}>
+                {title}
+              </h1>
               :
               <h1>
                 <ContentText text={{en: title, he: heTitle}} defaultToInterfaceOnBilingual={true} />

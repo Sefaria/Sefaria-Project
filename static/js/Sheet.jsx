@@ -330,9 +330,10 @@ class SheetContent extends Component {
               name={this.props.authorStatement}
               outerStyle={{width: "30px", height: "30px", display: "inline-block", verticalAlign: "middle"}}
             />
-            <span><InterfaceText context="SheetAuthorStatement">by </InterfaceText> 
-              <a href={this.props.authorUrl}>{this.props.authorStatement}</a>
-            </span>
+            <InterfaceText context="SheetAuthorStatement">by </InterfaceText> 
+            <a href={this.props.authorUrl}>
+              <InterfaceText>{this.props.authorStatement}</InterfaceText>
+            </a>
           </SheetAuthorStatement>
           
           <CollectionStatement
