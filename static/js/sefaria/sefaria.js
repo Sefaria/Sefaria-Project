@@ -458,16 +458,19 @@ Sefaria = extend(Sefaria, {
     }
     const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
     this._api(url, function(data) {
-      for (let v of data) {
+      this._saveVersions(data)
+      if (cb) { cb(data); }
+    });
+    return versions;
+  },
+  _saveVersions: function(ref, versions){
+      for (let v of versions) {
         Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(v.versionTitle, v.language)] = {
           en: v.versionTitle,
           he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
         };
       }
-      if (cb) { cb(data); }
-      Sefaria._versions[ref] = data;
-    });
-    return versions;
+      Sefaria._versions[ref] = versions;
   },
   getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
   deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
@@ -523,6 +526,7 @@ Sefaria = extend(Sefaria, {
 
   },
   _saveText: function(data, settings) {
+      debugger;
     if (Array.isArray(data)) {
       data.map(d => this._saveText(d, settings));
       return;
