@@ -523,6 +523,7 @@ Sefaria = extend(Sefaria, {
 
   },
   _saveText: function(data, settings) {
+      debugger;
     if (Array.isArray(data)) {
       data.map(d => this._saveText(d, settings));
       return;
@@ -2449,11 +2450,11 @@ _media: {},
 
 Sefaria.unpackDataFromProps = function(props) {
   // Populate local cache with various data passed as a rider on props.
-  var initialPanels = props.initialPanels || [];
-  for (var i = 0; i < initialPanels.length; i++) {
-      var panel = initialPanels[i];
+  const initialPanels = props.initialPanels || [];
+  for (let i = 0; i < initialPanels.length; i++) {
+      let panel = initialPanels[i];
       if (panel.text) {
-        var settings = {context: 1, enVersion: panel.enVersion, heVersion: panel.heVersion};
+        let settings = {context: 1, enVersion: panel.enVersion, heVersion: panel.heVersion};
         Sefaria._saveText(panel.text, settings);
       }
       if (panel.indexDetails) {
