@@ -531,13 +531,13 @@ Sefaria = extend(Sefaria, {
       return;
     }
     settings         = settings || {};
-    var key          = this._textKey(data.ref, settings);
+    const key          = this._textKey(data.ref, settings);
     this._texts[key] = data;
     //console.log("Saving", key);
-    var refkey           = this._refKey(data.ref, settings);
+    const refkey           = this._refKey(data.ref, settings);
     this._refmap[refkey] = key;
 
-    var isSectionLevel = (data.sections.length !== data.sectionNames.length);
+    const isSectionLevel = (data.sections.length !== data.sectionNames.length);
     if (isSectionLevel && !data.isSpanning) {
       // Save data in buckets for each segment
       this._splitTextSection(data, settings);
@@ -545,7 +545,7 @@ Sefaria = extend(Sefaria, {
 
     if (settings.context) {
       // Save a copy of the data at section level with & without context flag
-      var newData         = Sefaria.util.clone(data);
+      let newData         = Sefaria.util.clone(data);
       newData.ref         = data.sectionRef;
       newData.heRef       = data.heSectionRef;
       if (!isSectionLevel) {
