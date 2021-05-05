@@ -7604,7 +7604,7 @@ span.purim-emoji img{
 }
 .sheetContent .sheetItem .SheetSource.segment,
 .sheetContent .sheetItem .SheetOutsideBiText.segment {
-  margin-top: 14px
+  margin-top: 14px;
 }
 .sheetContent .text.loading {
   cursor: wait;
