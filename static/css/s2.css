@@ -6240,6 +6240,7 @@ a .button:hover {
 
 .editorSidebarToggle {
   position: fixed;
+  top: 150px;
   right: 30px;
   height: 30px;
   width: 30px;

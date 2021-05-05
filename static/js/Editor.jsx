@@ -491,7 +491,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
 
   return (
-    <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>>
+    <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
     <div {...attributes} contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
           {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div> : null }
