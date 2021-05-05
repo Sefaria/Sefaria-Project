@@ -295,11 +295,11 @@ const TalmudToggle = ({categories, setCategories}) => {
 
     return (<div className="navToggles">
                 <span className={bClasses} onClick={setBavli}>
-                  <span className="en">Bavli</span>
+                  <span className="en">Babylonian</span>
                   <span className="he">בבלי</span>
                 </span>
                 <span className={yClasses} onClick={setYerushalmi}>
-                  <span className="en">Yerushalmi</span>
+                  <span className="en">Jerusalem</span>
                   <span className="he">ירושלמי</span>
                 </span>
     </div>);
