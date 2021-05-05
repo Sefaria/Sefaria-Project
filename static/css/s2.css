@@ -479,6 +479,16 @@ input.noselect {
   box-sizing: border-box;
   border-radius: 6px;
 }
+
+.header .help {
+  margin-top: 10px;
+}
+.header .int-en .help {
+  margin-left: 20px;
+}
+.header .int-he .help {
+  margin-right: 20px;
+}
 .header .interfaceLinks{
   display: block;
   align-items: center;

@@ -14,75 +14,69 @@ import Sefaria  from './sefaria/sefaria';
 import ReaderPanel from './ReaderPanel';
 import Component from 'react-class';
 
-
+const Help = () => (
+    //hard-coding /help re-direct, also re-directs exist in sites/sefaria/urls.py
+    <div>
+      <span className="int-en">
+        <a href="/collections/sefaria-faqs">
+        <img className="help" src="/static/img/help.svg" alt="Help" />
+        </a>
+      </span>
+      <span className="int-he">
+        <a href="/collections/%D7%A9%D7%90%D7%9C%D7%95%D7%AA-%D7%A0%D7%A4%D7%95%D7%A6%D7%95%D7%AA-%D7%91%D7%A1%D7%A4%D7%A8%D7%99%D7%90">
+        <img className="help" src="/static/img/help.svg" alt="עזרה" />
+        </a>
+      </span>
+    </div>
+)
 const ProfilePicMenu = ({currentLang, len, url, name, key}) => {
   const [isOpen, setIsOpen] = useState(false);
-
+  const timerID = useRef(null);
   const handleMouseEnter = () => {
-      setIsOpen(true);
+    timerID.current = setTimeout(function(){
+      setIsOpen(false);
+    }, 1000);
+    setIsOpen(true);
   };
-  const handleMouseMove = (event) => {
-      var curr_x = (window.Event) ? event.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
-      var curr_y = (window.Event) ? event.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
-      var profile_pic_rect = document.getElementsByClassName("profile-pic")[0].getBoundingClientRect();
-      var profile_pic_x = profile_pic_rect.left;
-      var profile_pic_y = profile_pic_rect.top;
-      var profile_pic_width = profile_pic_rect.width;
-      var profile_pic_height = profile_pic_rect.height;
-      var inside_profile_pic = curr_x >= profile_pic_x - 20 && curr_x <= profile_pic_x + profile_pic_width && curr_y >= profile_pic_y - 20 && curr_y <= profile_pic_y + profile_pic_height;
-
-      if (inside_profile_pic) {
-          setIsOpen(true);
-      }
-      else
-      {
-          if (currentLang == "hebrew") {
-              var min_x = profile_pic_x - 50;
-              var max_x = profile_pic_x + 200;
-
-          } else {
-              var min_x = profile_pic_x - 200;
-              var max_x = profile_pic_x + 50;
-          }
-          var within_y_dist = profile_pic_y - 20 <= curr_y && curr_y <= profile_pic_y + 450; //distance of menu to profile pic
-          var inside_menu = within_y_dist && min_x <= curr_x && curr_x <= max_x;
-          if (!inside_menu) {
-              setIsOpen(false);
-          }
-      }
+  const clearTimer = () => {
+    clearTimeout(timerID.current);
+  }
+  const handleMouseLeave = () => {
+    setTimeout(function(){
+      setIsOpen(false);
+    }, 500);
   };
-  useEffect(() => {
-      document.addEventListener('mousemove', handleMouseMove);
-      return () => {
-          document.removeEventListener('mouseleave', handleMouseMove);
-      };
-  }, []);
   return (
-        <div className="interfaceLinks" onMouseEnter={handleMouseEnter}>
-            <ProfilePic len={len} url={url} name={name} key={key}/>
+    <div className="interfaceLinks">
+      <div onMouseEnter={handleMouseEnter}>
+        <ProfilePic len={len} url={url} name={name} key={key}/>
+      </div>
 
-     <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
+      <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
+        <div onMouseEnter={clearTimer} onMouseLeave={handleMouseLeave}>
           <div className="interfaceLinks-header">{name}</div>
-         <div><a className="interfaceLinks-option link" href="/my/profile">
-             <span className="int-en">Profile</span>
-            <span className="int-he">פרופיל</span></a></div>
-         <div><a className="interfaceLinks-option link" href="/settings/account">
-           <span className="int-en">Account Settings</span>
+          <div><a className="interfaceLinks-option link" href="/my/profile">
+            <span className="int-en">Profile</span>
+            <span className="int-he">פרופיל</span>
+          </a></div>
+          <div><a className="interfaceLinks-option link" href="/settings/account">
+            <span className="int-en">Account Settings</span>
             <span className="int-he">הגדרות</span>
-         </a></div>
-         <div className="interfaceLinks-option link">
-         <a href="/interface/english">English</a>  |  <a href="/interface/hebrew">עברית</a>
-       </div>
-         <div><a className="interfaceLinks-option linkWithBorder" href="collections/sefaria-faqs">
+          </a></div>
+          <div className="interfaceLinks-option link">
+            <a href="/interface/english">English</a>  |  <a href="/interface/hebrew">עברית</a>
+          </div>
+          <div><a className="interfaceLinks-option linkWithBorder" href="collections/sefaria-faqs">
             <span className="int-en">Help</span>
             <span className="int-he">עזרה</span>
-         </a></div>
-         <div><a className="interfaceLinks-option link" href="/logout">
+          </a></div>
+          <div><a className="interfaceLinks-option link" href="/logout">
             <span className="int-en">Logout</span>
             <span className="int-he">ניתוק</span>
-         </a></div>
+          </a></div>
         </div>
       </div>
+    </div>
   )
 }
 
@@ -400,6 +394,7 @@ class Header extends Component {
                       :
                       <LoggedOutButtons headerMode={this.props.headerMode}/>
                   }
+                  { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <Help/>: null}
                   { !Sefaria._uid && Sefaria._siteSettings.TORAH_SPECIFIC ? <InterfaceLanguageMenu currentLang={Sefaria.interfaceLang} /> : null}
                 </div>
               </div>
