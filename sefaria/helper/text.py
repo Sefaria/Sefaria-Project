@@ -17,7 +17,6 @@ except ImportError:
 from sefaria.model import *
 from sefaria.utils.hebrew import is_hebrew
 
-
 def add_spelling(category, old, new, lang="en"):
     """
     For a given category, on every index in that title that matches 'old' create a new title with 'new' replacing 'old'
