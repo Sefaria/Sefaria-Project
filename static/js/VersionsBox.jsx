@@ -218,4 +218,5 @@ VersionsTextList.propTypes = {
   onCitationClick: PropTypes.func.isRequired,
 };
 
+
 export default VersionsBox;
