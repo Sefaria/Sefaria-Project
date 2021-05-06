@@ -27,7 +27,6 @@ from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
-from sefaria.settings import PARTNER_GROUP_EMAIL_PATTERN_LOOKUP_FILE
 
 import structlog
 logger = structlog.get_logger(__name__)
@@ -366,6 +365,10 @@ class UserProfile(object):
         # Google API token
         self.gauth_token = None
 
+        # new editor
+        self.show_editor_toggle = False
+        self.uses_new_editor = False
+
         # Update with saved profile doc in MongoDB
         profile = db.profiles.find_one({"id": id})
         if profile:
@@ -634,7 +637,8 @@ class UserProfile(object):
             "profile_pic_url":       self.profile_pic_url,
             "profile_pic_url_small": self.profile_pic_url_small,
             "gauth_token":           self.gauth_token,
-
+            "show_editor_toggle":    self.show_editor_toggle,
+            "uses_new_editor":       self.uses_new_editor,
         }
 
     def to_api_dict(self, basic=False):

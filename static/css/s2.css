@@ -5455,7 +5455,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 16px;
   line-height: 19px;
 }
-.connectionsPanel .chavruta .buttonContainer {
+.connectionsPanel .chavruta .buttonContainer,
+.feedbackOverlay .buttonContainer {
   width: 100%;
   margin-top: 15px;
   text-align: center;
@@ -6222,21 +6223,28 @@ a .button:hover {
 .sheetMetaDataBox .title {
   display: block;
 }
-.sheetMetaDataBox .title br {
-    display: none
+.sheetMetaDataBox .title br { /* hide the line breaks that are stripped before saving */
+    display: none;
 }
+.sheetMetaDataBox .title * {  /* chrome adds <div> tags to contenteditables and we want those inline as well  */
+  display: inline;
+}
+
 .sheetMetaDataBox .title:empty:before {
   content: "Untitled";
   color: #999;
   position: relative;
   pointer-events: none;
+  width: auto;
 }
 .sheetMetaDataBox .title:focus:before {
-  content: "";
+  content: "\200B"; /* zero-width space required so that chrome doesn't cause change in size of box on focus/blur */
+  width: 0;
 }
 
 .editorSidebarToggle {
   position: fixed;
+  top: 150px;
   right: 30px;
   height: 30px;
   width: 30px;
@@ -7601,7 +7609,7 @@ span.purim-emoji img{
 }
 .sheetContent .sheetItem .SheetSource.segment,
 .sheetContent .sheetItem .SheetOutsideBiText.segment {
-  margin-top: 14px
+  margin-top: 14px;
 }
 .sheetContent .text.loading {
   cursor: wait;
@@ -7956,6 +7964,102 @@ section.SheetSource .SheetOutsideBiText {
 .profile-page .social-icon:hover img {
   opacity: 0.6;
 }
+.editorToggleHeader {
+  width: 100%;
+  background-color: #18345D;
+  color: white;
+  height: 60px;
+  font-size: 16px;
+  margin-top: -80px;
+  margin-left: -12px;
+  margin-bottom: 80px;
+  padding-right: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  left: 0;
+}
+.interface-hebrew .editorToggleHeader {
+  direction: rtl;
+}
+.editorToggleHeader .button {
+  padding: 5px 8px;
+  margin-inline-start: 15px;
+  margin-top: 5px;
+  height: 30px;
+  letter-spacing: 0;
+}
+.feedbackOverlay {
+  position: fixed;
+  width: 100%;
+  height:100%;
+  background-color: #FBFBFA;
+  z-index: 1001;
+  top: 0;
+  left: 0;
+  padding: 120px 60px;
+  box-sizing: border-box;
+}
+
+.interface-hebrew .feedbackOverlay {
+  direction: rtl;
+}
+
+.feedbackOverlay .buttonContainer {
+  margin-top: 50px;
+}
+
+.feedbackOverlay h2 {
+  font-size: 30px;
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  margin: 0 auto 50px auto;
+  color: black;
+  text-transform: none;
+  max-width: 600px;
+}
+
+.feedbackOverlay p, .feedbackOverlay ul  {
+  font-size: 16px;
+  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  color: black;
+  max-width: 600px;
+  margin: 10px auto;
+}
+
+.feedbackOverlay textarea {
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+  font-size: 18px;
+  color: #000;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 6px;
+  border: none;
+  width: 100%;
+  padding: 12px;
+  font-weight: normal;
+  font-style: normal;
+  margin-top: 10px;
+  height: 120px;
+}
+
+.feedbackOverlay textarea::placeholder {
+  font-size: 16px;
+  font-style: normal;
+  color: #666;
+}
+
+.feedbackOverlay a {
+  color: #4871bf;
+}
+
+.feedbackOverlay .button {
+  margin: 0;
+}
+
+.feedbackOverlay a.button  {
+  color: white;
+}
+
 .sheetList .sheet {
   border-bottom: none;
 }
