@@ -38,7 +38,7 @@ steps:
   #####################
 
   # emits a file to v2/sandboxes/_sandboxes.txt
-  - name: gcr.io/${PROJECT_ID}/cloudbuild-getsandboxnames:v0.2
+  - name: gcr.io/${PROJECT_ID}/cloudbuild-getsandboxnames:v0.3
     id: get_sandbox_names
     dir: k8s-admin/v2/sandboxes/ingresses
     env:
