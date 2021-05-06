@@ -92,7 +92,7 @@ steps:
   
   # Copy localsettings into file
   # Later, combined this with the script above
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.5.4"
     dir: k8s-admin/v2
     id: copy_localsettings_file
     entrypoint: cp
@@ -112,7 +112,7 @@ steps:
     
   # Copy robots.txt into file
   # Later, combined this with the script above
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.5.4"
     dir: k8s-admin/v2
     id: copy_robots_file
     entrypoint: cp
@@ -120,7 +120,7 @@ steps:
     wait_for:
       - generate_robots_file
 
-  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
     id: deploy_sandbox
     dir: k8s-admin/v2
     args: ["upgrade", "-i", "sefaria-${_ENV_NAME}", "./charts/sefaria", "--namespace", "${_GKE_NAMESPACE}", "--set-string", "releaseImageTag=$SHORT_SHA", "-f", "app_settings/helm/_envValues.yaml", "-f", "app_settings/helm/_resourceValues.yaml", "--debug"]

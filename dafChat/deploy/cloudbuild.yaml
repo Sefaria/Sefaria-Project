@@ -45,7 +45,7 @@ steps:
     wait_for: [ "-" ]
 
   # Idempotently install/upgrade the Helm Release
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.0.2"
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.5.4"
     id: install_chart
     args: ["upgrade", "-i", "dafchat-${_ENV_NAME}", "./deploy/dafchat", "--namespace", "${_GKE_NAMESPACE}", "-f", "./deploy/dafchat/valuesGeneration/_generatedHelmValues.yaml", "--debug" ]
     env:

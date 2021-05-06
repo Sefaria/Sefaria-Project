@@ -119,7 +119,7 @@ steps:
   
   # Copy localsettings into file
   # Later, combined this with the script above
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.5.4"
     dir: k8s-admin/v2
     id: copy_localsettings_file
     entrypoint: cp
@@ -138,7 +138,7 @@ steps:
     
   # Copy robots.txt into file
   # Later, combined this with the script above
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.5.4"
     dir: k8s-admin/v2
     id: copy_robots_file
     entrypoint: cp
@@ -146,7 +146,7 @@ steps:
     wait_for:
       - generate_robots_file
 
-  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
     id: deploy_sandbox
     dir: k8s-admin/v2
     args: ["upgrade", "-i", "sandbox-${_ENV_NAME}", "./charts/sefaria", "--namespace", "${_GKE_NAMESPACE}", "--set-string", "releaseImageTag=gha-${_ENV_NAME},deployEnv=${_ENV_NAME}", "-f", "app_settings/helm/_envValues.yaml", "-f", "app_settings/helm/_resourceValues.yaml", "--debug"]
@@ -193,7 +193,7 @@ steps:
       - 'SANDBOX=${_ENV_NAME}'
     wait_for: [ "get_sandbox_names" ]
 
-  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
     id: deploy_ingress
     dir: k8s-admin/v2
     args: ["upgrade", "-i", "wildcard-sandbox-ingress", "./charts/wildcard-sandbox-ingress", "--namespace", "${_GKE_NAMESPACE}", "-f", "sandboxes/ingresses/_ingressValues.yaml", "--debug"]
