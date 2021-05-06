@@ -548,9 +548,19 @@ input.noselect {
 .interface-english .header .interfaceLinks .interfaceLinks-header{
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
+.interface-english .header .interfaceLinks .interfaceLinks-header.profile-menu {
+  padding-left: 2px;
+  font-weight: bold;
+
+}
 .interface-hebrew .header .interfaceLinks .interfaceLinks-header{
   font-family: "Heebo", sans-serif;
 }
+.interface-hebrew .header .interfaceLinks .interfaceLinks-header.profile-menu {
+  padding-right: 2px;
+  font-weight: bold;
+}
+
 .interfaceLinks-options{
   display: flex;
   flex-direction: column;
@@ -568,23 +578,38 @@ input.noselect {
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   padding: 5px;
 }
-.header .interfaceLinks .interfaceLinks-option.link {
-  font-size: 12px;
+.header .interfaceLinks .interfaceLinks-row {
+  display: flex;
   text-decoration: none;
+  font-style: normal;
+  font-weight: normal;
+  line-height: 23px;
+  text-align: right;
+  color: #666666;
+  font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
+  padding: 5px;
+  font-size: 12px;
   text-decoration-color: #666666;
 }
-div.interfaceLinks-option.link a:hover {
+div.interfaceLinks-row a:hover {
   text-decoration: none;
   color: #666666;
 }
 
-.header .interfaceLinks .interfaceLinks-option.linkWithBottom {
-  padding: 12px;
+.header .interfaceLinks .interfaceLinks-row.bottom {
   font-size: 12px;
   border-bottom: 1px solid #CCCCCC;
-  text-decoration: none;
   text-decoration-color: #666666;
 }
+
+.interface-hebrew .header .interfaceLinks .interfaceLinks-row {
+  padding-right: 2px;
+}
+
+.interface-english .header .interfaceLinks .interfaceLinks-row {
+  padding-left: 2px;
+}
+
 
 .header .interfaceLinks .interfaceLinks-option::before{
   content: "";
