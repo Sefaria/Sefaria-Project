@@ -2459,6 +2459,10 @@ Sefaria.unpackDataFromProps = function(props) {
       if (panel.text) {
         let settings = {context: 1, enVersion: panel.enVersion, heVersion: panel.heVersion};
         Sefaria._saveText(panel.text, settings);
+        Sefaria._saveVersions(panel.text.ref, panel.text.versions);
+      }
+      if(panel.bookRef){
+        Sefaria._saveVersions(panel.bookRef, panel.versions);
       }
       if (panel.indexDetails) {
         Sefaria._indexDetails[panel.bookRef] = panel.indexDetails;
@@ -2469,16 +2473,6 @@ Sefaria.unpackDataFromProps = function(props) {
       // versions and bookRef are located in different places, depending on if you're in book TOC or reader
       const panelVersions = !!panel.versions ? panel.versions : !!panel.text ? panel.text.versions : null;
       const panelBook     = !!panel.bookRef ? panel.bookRef : !!panel.text ? panel.text.ref : null;
-      if (panelVersions && panelBook) {
-        Sefaria._versions[panelBook] = panelVersions;
-        for (let i = 0; i < panelVersions.length; i++) {
-          const v = panelVersions[i];
-          Sefaria._translateVersions[Sefaria.getTranslateVersionsKey(v.versionTitle, v.language)] = {
-            en: v.versionTitle,
-            he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
-          };
-        }
-      }
   }
   if (props.userSheets) {
     Sefaria.sheets._userSheets[Sefaria._uid + "date"] = props.userSheets;
