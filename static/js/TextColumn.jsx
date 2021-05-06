@@ -30,7 +30,7 @@ class TextColumn extends Component {
     this.node                = ReactDOM.findDOMNode(this)
     this.$container          = $(this.node);
     this.initialScrollTopSet = false;
-    this.windowMiddle        = $(window).outerHeight() / 2;
+    this.windowMiddle        = $(window).outerHeight() / (this.props.mode === "TextAndConnections" ? 4 : 2);
 
     // Set on mount, so placeholders aren't rendered server side to prevent intial layout shift
     this.setState({showScrollPlaceholders: true});
@@ -57,7 +57,9 @@ class TextColumn extends Component {
       // console.log("scrolling for ScrollPlaceholders first render")
       this.setInitialScrollPosition();
 
-    } else if (this.props.srefs.length == 1 && Sefaria.util.inArray(this.props.srefs[0], prevProps.srefs) == -1) {
+    } else if (this.props.srefs.length == 1 && 
+        Sefaria.util.inArray(this.props.srefs[0], prevProps.srefs) == -1 && 
+        !prevProps.srefs.some(r => Sefaria.refContains(this.props.srefs[0], r))) {
       // If we are switching to a single ref not in the current TextColumn, 
       // treat it as a fresh open.
       // console.log("setting initialScroll for brand new ref")
@@ -68,6 +70,12 @@ class TextColumn extends Component {
       // console.log("restore scroll by percentage for layout Width Change")
       this.restoreScrollPositionByPercentage();
     
+    } else if (prevProps.srefs.length === this.props.srefs.length &&
+      !prevProps.srefs.compare(this.props.srefs)) {
+      // When the highlighted segment has changed, scroll to it.
+      // refs length should be equal so as not to scroll when infinite scroll changes refs
+      this.scrollToHighlighted();
+
     } else if ((this.props.settings.language !== prevProps.settings.language) ||
         (prevProps.currVersions.en !== this.props.currVersions.en) ||
         (prevProps.currVersions.he !== this.props.currVersions.he)) {
@@ -91,8 +99,8 @@ class TextColumn extends Component {
     const selection = window.getSelection();
     if (selection.type === "Range") {
       //console.log("handling range");
-      const $start    = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
-      const $end      = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
+      const $start  = $(Sefaria.util.getSelectionBoundaryElement(true)).closest(".segment");
+      const $end    = $(Sefaria.util.getSelectionBoundaryElement(false)).closest(".segment");
       let $segments = this.$container.find(".segment");
       let start     = $segments.index($start);
       let end       = $segments.index($end);
@@ -118,25 +126,28 @@ class TextColumn extends Component {
     }
   }
   handleTextLoad(ref) {
-    // TextRanges in the column may be initial rendered in "loading" state with out data.
+    // TextRanges in the column may be initial rendered in "loading" state without data.
     // When the data loads we may need to change scroll position or render addition ranges.
     // console.log("handle text load: ", ref);
+    if (this.$container.find(".basetext.loading").length) {
+      // Don't mess with scroll positions until all sections of text have loaded,
+      // prevent race conditions when mutliple section may load out of order.
+      return;
+    }
 
     if (!this.initialScrollTopSet) {
       this.setInitialScrollPosition();
       this.initialScrollTopSet = true;
     }
 
-    if (ref == this.props.srefs.slice(-1)[0]) {
-      // When content loads check if we already need to load another section below, which
-      // occurs when the loaded section is very short and whitespace is already visible below it.
-      // Only check down, a text load should never trigger an infinite scroll up
-      // console.log("Checking infinite scroll down");
-      this.adjustInfiniteScroll(true);
-    }
+    // When content loads check if we already need to load another section below, which
+    // occurs when the loaded section is very short and whitespace is already visible below it.
+    // Only check down, a text load should never trigger an infinite scroll up
+    // console.log("Checking infinite scroll down");
+    this.adjustInfiniteScroll(true);
 
     if (this.loadingContentAtTop) {
-      // If the text that was just loaded was t the top of the page, restore the scroll 
+      // If the text that was just loaded was at the top of the page, restore the scroll 
       // position to keep what the user was looking at in place. 
       this.restoreScrollPositionAfterTopLoad();
     }
@@ -152,7 +163,7 @@ class TextColumn extends Component {
       this.scrollToHighlighted();
 
     } else {
-      // When a test is first loaded, scroll it down a small amount so that it is
+      // When a text is first loaded, scroll it down a small amount so that it is
       // possible to scroll up and trigginer infinites scroll up. This also hides 
       // "Loading..." div which sit above the text.
       const top = this.scrollPlaceholderHeight;
@@ -277,7 +288,7 @@ class TextColumn extends Component {
   }
   adjustHighlightedAndVisible() {
     //console.log("adjustHighlightedAndVisible");
-    // Adjust which ref is current consider visible for header and URL,
+    // Adjust which ref is currently consider visible for header and URL,
     // and while the TextList is open, update which segment should be highlighted.
     // Keeping the highlightedRefs value in the panel ensures it will return
     // to the right location after closing other panels.

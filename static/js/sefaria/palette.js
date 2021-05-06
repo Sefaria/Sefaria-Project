@@ -21,32 +21,24 @@ var palette = {
   }
 };
 palette.categoryColors = {
-  "Commentary":         palette.colors.blue,
-  "Tanakh" :            palette.colors.darkteal,
-  "Midrash":            palette.colors.green,
-  "Mishnah":            palette.colors.lightblue,
-  "Talmud":             palette.colors.yellow,
-  "Halakhah":           palette.colors.red,
-  "Kabbalah":           palette.colors.purple,
-  "Philosophy":         palette.colors.lavender,  // to delete
-  "Jewish Thought":     palette.colors.lavender,
-  "Liturgy":            palette.colors.darkpink,
-  "Tanaitic":           palette.colors.teal,    // to delete
-  "Tosefta":            palette.colors.teal,
-  "Parshanut":          palette.colors.paleblue,
-  "Chasidut":           palette.colors.lightgreen,
-  "Musar":              palette.colors.raspberry,
-  "Responsa":           palette.colors.orange,
-  "Apocrypha":          palette.colors.lightpink,   // to delete
-  "Second Temple":      palette.colors.lightpink,   // to delete
-  "Other":              palette.colors.darkblue,    // to delete
-  "Quoting Commentary": palette.colors.orange,
-  "Sheets":             palette.colors.darkblue,
-  "Community":          palette.colors.raspberry,
-  "Targum":             palette.colors.lavender,
-  "Modern Works":       palette.colors.lightbg,    // to delete
-  "Modern Commentary":  palette.colors.lightbg,
-  "Reference":          palette.colors.tan,
+  "Commentary":         "var(--commentary-blue)",
+  "Tanakh" :            "var(--tanakh-teal)",
+  "Midrash":            "var(--midrash-green)",
+  "Mishnah":            "var(--mishnah-blue)",
+  "Talmud":             "var(--talmud-gold)",
+  "Halakhah":           "var(--halakhah-red)",
+  "Kabbalah":           "var(--kabbalah-purple)",
+  "Jewish Thought":     "var(--philosophy-purple)",
+  "Liturgy":            "var(--liturgy-rose)",
+  "Tosefta":            "var(--taanitic-green)",
+  "Chasidut":           "var(--chasidut-green)",
+  "Musar":              "var(--mussar-purple)",
+  "Responsa":           "var(--responsa-red)",
+  "Quoting Commentary": "var(--responsa-red)",
+  "Sheets":             "var(--sefaria-blue)",
+  "Targum":             "var(--philosophy-purple)",
+  "Modern Commentary":  "var(--modern-works-blue)",
+  "Reference":          "var(--reference-orange)",
   "Static":             "linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%)"
 };
 palette.categoryColor = function(cat) {

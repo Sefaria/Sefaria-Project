@@ -2,8 +2,8 @@
 import json
 import httplib2
 from urllib3.exceptions import NewConnectionError
+from urllib.parse import unquote
 from elasticsearch.exceptions import AuthorizationException
-
 from datetime import datetime, timedelta
 from io import StringIO, BytesIO
 
@@ -28,16 +28,19 @@ from sefaria.client.util import jsonResponse, HttpResponse
 from sefaria.model import *
 from sefaria.sheets import *
 from sefaria.model.user_profile import *
+from sefaria.model.notification import process_sheet_deletion_in_notifications
 from sefaria.model.collection import Collection, CollectionSet, process_sheet_deletion_in_collections
 from sefaria.system.decorators import catch_error_as_json
 from sefaria.utils.util import strip_tags
 
 from reader.views import render_template, catchall
 from sefaria.sheets import clean_source, bleach_text
+from bs4 import BeautifulSoup
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
+
 
 from sefaria.gauth.decorators import gauth_required
 
@@ -365,6 +368,7 @@ def delete_sheet_api(request, sheet_id):
 
     db.sheets.remove({"id": id})
     process_sheet_deletion_in_collections(id)
+    process_sheet_deletion_in_notifications(id)
 
     try:
         es_index_name = search.get_new_and_current_index_names("sheet")['current']
@@ -381,7 +385,7 @@ def delete_sheet_api(request, sheet_id):
 @csrf_exempt
 def collections_api(request, slug=None):
     if request.method == "GET":
-        return collections_get_api(request, slug)
+        return collections_get_api(request, unquote(slug))
     else:
         if not request.user.is_authenticated and request.method == "POST":
             key = request.POST.get("apikey")
@@ -767,6 +771,16 @@ def add_source_to_sheet_api(request, sheet_id):
         can further specify the origin or content of text for that ref.
 
     """
+    def remove_footnotes(txt):
+        #removes all i tags that are of class "footnote" as well as the preceding "sup" tag
+        soup = BeautifulSoup(txt, parser='lxml')
+        for el in soup.find_all("i", {"class": "footnote"}):
+            if el.previousSibling.name == "sup":
+                el.previousSibling.decompose()
+            el.decompose()
+        return bleach.clean(str(soup), tags=Version.ALLOWED_TAGS, attributes=Version.ALLOWED_ATTRS, strip=True)
+
+
     # Internal func that does the same thing for each language to get text for the source
     def get_correct_text_from_source_obj(source_obj, ref_obj, lang):
 
@@ -795,7 +809,9 @@ def add_source_to_sheet_api(request, sheet_id):
         ref = Ref(source["ref"])
         source["heRef"] = ref.he_normal()
         text["en"] = get_correct_text_from_source_obj(source, ref, "en")
+        text["en"] = remove_footnotes(text["en"])
         text["he"] = get_correct_text_from_source_obj(source, ref, "he")
+        text["he"] = remove_footnotes(text["he"])
         source["text"] = text
 
     note = request.POST.get("note", None)
