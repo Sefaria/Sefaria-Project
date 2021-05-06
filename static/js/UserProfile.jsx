@@ -505,7 +505,7 @@ const EditorToggleHeader = ({usesneweditor}) => {
  }
 
  const disableOverlayContent = (
-   <div>
+   <div class="sans-serif-in-hebrew">
       <h2><InterfaceText>Request for Feedback</InterfaceText></h2>
       <p><InterfaceText>Thank you for trying the new Sefaria editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.</InterfaceText></p>
       <p><InterfaceText>Did you encounter any issues while using the new editor? For example:</InterfaceText></p>
@@ -527,14 +527,14 @@ const EditorToggleHeader = ({usesneweditor}) => {
    </div>
  )
  const enableOverlayContent = (
-   <div>
+   <div class="sans-serif-in-hebrew">
       <h2><InterfaceText>Thanks for Trying the New Editor!</InterfaceText></h2>
       <p><InterfaceText>Go to your profile to create a new sheet, or edit an existing sheet, to try out the new experience. After you’ve had a chance to try it out, we would love to hear your feedback. You can reach us at</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a></p>
       <div className="buttonContainer"><a href="/enable_new_editor" onClick={()=>toggleFeedbackOverlayState()} className="button" role="button"><InterfaceText>Back to Profile</InterfaceText></a></div>
    </div>
  )
  const thankYouContent = (
-   <div>
+   <div class="sans-serif-in-hebrew">
       <h2><InterfaceText>Thank you!</InterfaceText></h2>
       <p><InterfaceText>Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at</InterfaceText> <a href="mailto:hello@sefaria.org">hello@sefaria.org</a>.</p>
       <div className="buttonContainer"><a href="/disable_new_editor" className="button" role="button"><InterfaceText>Back to Profile</InterfaceText></a></div>

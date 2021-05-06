@@ -5274,6 +5274,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   margin-bottom: 10px
 }
+
+
 .connectionsPanel .noteSharingToggle {
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -7927,7 +7929,6 @@ section.SheetSource .SheetOutsideBiText {
 }
 
 .feedbackOverlay textarea {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
   color: #000;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
@@ -7939,6 +7940,10 @@ section.SheetSource .SheetOutsideBiText {
   font-style: normal;
   margin-top: 10px;
   height: 120px;
+}
+
+.interface-hebrew textarea, .interface-hebrew textarea::placeholder {
+  font-family: var(--hebrew-sans-serif-font-family);
 }
 
 .feedbackOverlay textarea::placeholder {
@@ -8164,6 +8169,11 @@ section.SheetSource .SheetOutsideBiText {
   .profile-page .profile-pic:hover .profile-pic-hover-button.profile-pic-button-visible {
     display: none !important;  /* dont allow profile pic upload on mobile b/c causes black image on iOS */
   }
+  .profile-page .editorToggleHeader {
+    display: none !important;
+  }
+
+
   .profile-page .profile-summary .profile-img {
     width: 87px !important;
     height: 87px !important;
@@ -8177,6 +8187,8 @@ section.SheetSource .SheetOutsideBiText {
   .profile-page .profile-summary .profile-actions {
     flex-wrap: wrap;
   }
+
+
 }
 .profile-page .profile-summary .follow {
   color: #999;
@@ -8194,6 +8206,7 @@ section.SheetSource .SheetOutsideBiText {
 .profile-page .resourcesLink.faded {
   color: #666;
 }
+
 .resourcesLink.blue {
   color: white;
   background-color: #18345d;
