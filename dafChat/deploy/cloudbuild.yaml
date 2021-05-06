@@ -51,7 +51,7 @@ steps:
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECTL_VERSION=1.16'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
       - coturn_container

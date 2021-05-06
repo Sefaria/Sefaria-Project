@@ -380,7 +380,7 @@ class AbstractTest(object):
 
     def close_modal_popup(self):
         """
-        :return: Boolean - did we manage to close the popup? 
+        :return: Boolean - did we manage to close the popup?
         """
         time.sleep(3)
         try:
