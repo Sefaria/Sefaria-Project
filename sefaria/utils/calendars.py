@@ -118,7 +118,7 @@ def arukh_hashulchan(datetime_obj):
         "displayValue": {"en": display_en, "he": display_he},
         "url": rf.url(),
         "ref": rf.normal(),
-        "order": 7,
+        "order": 10,
         "category": rf.index.get_primary_category()
     })
     return items
@@ -144,6 +144,27 @@ def daily_rambam_three(datetime_obj):
         })
     return rambam_items
 
+
+@graceful_exception(logger=logger, return_value=[])
+def tanakh_yomi(datetime_obj):
+    tanakh_items = []
+    datetime_obj = datetime.datetime(datetime_obj.year, datetime_obj.month, datetime_obj.day)
+    database_obj = db.tanakh_yomi.find_one({"date": {"$eq": datetime_obj}})
+    if not database_obj:
+        return []
+    for rf in database_obj["refs"]:
+        rf = model.Ref(rf)
+        display_en = rf.normal()
+        display_he = rf.he_normal()
+        tanakh_items.append({
+            "title": {"en": "Tanakh Yomi", "he": 'תנ"ך יומי'},
+            "displayValue": {"en": display_en, "he": display_he},
+            "url": rf.url(),
+            "ref": rf.normal(),
+            "order": 11
+            "category": rf.index.get_primary_category()
+        })
+    return tanakh_items
 
 @graceful_exception(logger=logger, return_value=[])
 def daf_weekly(datetime_obj):
@@ -303,6 +324,7 @@ def get_all_calendar_items(datetime_obj, diaspora=True, custom="sephardi"):
     cal_items += daf_weekly(datetime_obj)
     cal_items += halakhah_yomit(datetime_obj)
     cal_items += arukh_hashulchan(datetime_obj)
+    cal_items += tanakh_yomi(datetime_obj)
     cal_items = [item for item in cal_items if item]
     return cal_items
 
