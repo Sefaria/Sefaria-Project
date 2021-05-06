@@ -92,16 +92,6 @@ body, .sans-serif {
 .he, .int-he {
   font-family: var(--hebrew-font);
 }
-/* Font Size */
-.serif .he,
-.serif .int-he {
-  --hebrew-multiplier: 1.22;
-}
-.sans-serif .he,
-.sans-serif .int-he {
-  --hebrew-multiplier: 1;
-}
-/* we should be able to remove this, but without it reader basetext is missized -- BLL 5/4/21 */
 .he {
   font-size: 122%;
 }
