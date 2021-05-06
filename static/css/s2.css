@@ -92,44 +92,8 @@ body, .sans-serif {
 .he, .int-he {
   font-family: var(--hebrew-font);
 }
-/* Font Size */
-.serif .he,
-.serif .int-he {
-  --hebrew-multiplier: 1.22;
-}
-.sans-serif .he,
-.sans-serif .int-he {
-  --hebrew-multiplier: 1;
-}
-/* we should be able to remove this, but without it reader basetext is missized -- BLL 5/4/21 */
 .he {
   font-size: 122%;
-}
-/* root hack to prevent he: 122% from overwriting styles of .serif.he -- RMN 5/3//21 */
-:root h1 {
-  font-weight: normal;
-  --serif-size: var(--is-serif) calc(var(--serif-h1-font-size) * var(--hebrew-multiplier, 1));
-  font-size: var(--serif-size, var(--sans-serif-h1-font-size));
-}
-:root h2 {
-  font-weight: normal;
-  --serif-size: var(--is-serif) calc(var(--serif-h2-font-size) * var(--hebrew-multiplier, 1));
-  font-size: var(--serif-size, var(--sans-serif-h2-font-size));
-}
-:root h3 {
-  font-weight: normal;
-  --serif-size: var(--is-serif) calc(var(--serif-h3-font-size) * var(--hebrew-multiplier, 1));
-  font-size: var(--serif-size, var(--sans-serif-h3-font-size));
-}
-body {
-  font-weight: normal;
-  --serif-size: var(--is-serif) calc(var(--serif-body-font-size) * var(--hebrew-multiplier, 1));
-  font-size: var(--serif-size, var(--sans-serif-body-font-size));
-}
-small {
-  font-weight: normal;
-  --serif-size: var(--is-serif) calc(var(--serif-small-font-size) * var(--hebrew-multiplier, 1));
-  font-size: var(--serif-size, var(--sans-serif-small-font-size));  
 }
 .int-he {
   direction: rtl;
