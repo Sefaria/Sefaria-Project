@@ -96,7 +96,7 @@ class UserHistoryPanel extends Component {
         <div className={contentClasses}>
           <div className="contentInner">
             {this.props.hideNavHeader ?
-              <h1>
+              <h1 className="sans-serif-in-hebrew">
               {this.props.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
               <LanguageToggleButton toggleLanguage={this.props.toggleLanguage} /> : null}
               <InterfaceText>{ title }</InterfaceText>
@@ -120,5 +120,6 @@ UserHistoryPanel.propTypes = {
   interfaceLang:       PropTypes.string,
   menuOpen:            PropTypes.string.isRequired,
 };
+
 
 export default UserHistoryPanel;

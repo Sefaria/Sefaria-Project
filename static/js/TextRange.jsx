@@ -117,7 +117,7 @@ class TextRange extends Component {
     } else if (this.props.basetext && data.spanning) {
       // Replace ReaderPanel contents with split refs if ref is spanning
       // Pass parameter to showBaseText to replaceHistory - normalization should't add a step to history
-      //console.log("Re-rewriting spanning ref")
+      // console.log("Re-rewriting spanning ref")
       this.props.showBaseText(data.spanningRefs, true, this.props.version, this.props.versionLanguage);
       return;
     }
@@ -220,8 +220,8 @@ class TextRange extends Component {
       // Takes an array of jQuery elements that all currently appear at the same top position
       if ($elems.length == 1) { return; }
       if ($elems.length == 2) {
-        const adjust1 = $elems[0].find(selector).find(".segmentNumberInner").width();
-        const adjust2 = $elems[1].find(selector).find(".segmentNumberInner").width();
+        const adjust1 = $elems[0].find(".segmentNumberInner").width();
+        const adjust2 = $elems[1].find(".segmentNumberInner").width();
         $elems[0].css(side, "-=" + adjust1);
         $elems[1].css(side, "+=" + adjust2);
       }
@@ -362,13 +362,13 @@ class TextRange extends Component {
       if (heDisplayValue === undefined) {
         heDisplayValue = enDisplayValue;
       }
-      sidebarNum = <div className="numberLabel sans itag">
+      sidebarNum = <div className="numberLabel sans-serif itag">
         <span className="numberLabelInner">
           <ContentText text={{en:enDisplayValue, he:heDisplayValue}} defaultToInterfaceOnBilingual={true}/>
         </span>
       </div>;
     } else if (showNumberLabel && this.props.numberLabel) {
-      sidebarNum = <div className="numberLabel sans">
+      sidebarNum = <div className="numberLabel sans-serif">
         <span className="numberLabelInner">
           <ContentText text={{en:this.props.numberLabel, he:Sefaria.hebrew.encodeHebrewNumeral(this.props.numberLabel)}} defaultToInterfaceOnBilingual={true} />
         </span>
@@ -539,17 +539,15 @@ class TextSegment extends Component {
       const linkScore = linkCount ? Math.min(linkCount + minOpacity, maxOpacity) / 100.0 : 0;
       const style = {opacity: linkScore};
       linkCountElement = this.props.showLinkCount ? (
-          <div className="linkCount sans" title={linkCount + " Connections Available"}>
-             <span className="linkCountDot" style={style}>
-               <ContentText text={{"en": "", "he": ""}} />
-             </span>
+          <div className="linkCount sans-serif" title={linkCount + " Connections Available"}>
+             <span className="linkCountDot" style={style}></span>
           </div>
       ) : null;
     } else {
       linkCountElement = "";
     }
     let segmentNumber = this.props.segmentNumber ? (
-        <div className="segmentNumber sans">
+        <div className="segmentNumber sans-serif">
           <span className="segmentNumberInner">
              <ContentText
                  text={{"en": this.props.segmentNumber, "he": Sefaria.hebrew.encodeHebrewNumeral(this.props.segmentNumber)}}

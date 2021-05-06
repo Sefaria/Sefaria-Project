@@ -11,6 +11,7 @@ from .framework import Trial
 from . import basic_tests
 
 
+
 def _get_appium_webdriver(caps):
     wd = appiumWebdriver.Remote('http://0.0.0.0:4723/wd/hub', caps)
     wd.implicitly_wait(3)
@@ -35,6 +36,7 @@ def get_chrome_mobile_webdriver():
     chrome_options.add_experimental_option("mobileEmulation", mobile_emulation)
     driver = webdriver.Chrome(chrome_options=chrome_options)
     return driver
+
 
 
 if __name__ == '__main__':

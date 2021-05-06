@@ -119,7 +119,7 @@ steps:
   
   # Copy localsettings into file
   # Later, combined this with the script above
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.5.4"
     dir: k8s-admin/v2
     id: copy_localsettings_file
     entrypoint: cp
@@ -138,7 +138,7 @@ steps:
     
   # Copy robots.txt into file
   # Later, combined this with the script above
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.5.4"
     dir: k8s-admin/v2
     id: copy_robots_file
     entrypoint: cp
@@ -146,14 +146,14 @@ steps:
     wait_for:
       - generate_robots_file
 
-  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
     id: deploy_sandbox
     dir: k8s-admin/v2
     args: ["upgrade", "-i", "sandbox-${_ENV_NAME}", "./charts/sefaria", "--namespace", "${_GKE_NAMESPACE}", "--set-string", "releaseImageTag=gha-${_ENV_NAME},deployEnv=${_ENV_NAME}", "-f", "app_settings/helm/_envValues.yaml", "-f", "app_settings/helm/_resourceValues.yaml", "--debug"]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.15'
+      - 'KUBECTL_VERSION=1.16'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
       # - mongo_restore
@@ -167,18 +167,18 @@ steps:
 
   # Manage the ingress
   # 1. Add the sandbox name to v2/sandboxes/sandboxes.txt
-  # 2. Create and apply ingress objecte with all routes
+  # 2. Create and apply ingress object with all routes
 
   # Get all sandbox names, so that we can reconfigure the sandbox ingress
   # Requires kubectl
   # emits a file to v2/sandboxes/_sandboxes.txt
-  - name: gcr.io/${PROJECT_ID}/cloudbuild-getsandboxnames:v0.2
+  - name: gcr.io/${PROJECT_ID}/cloudbuild-getsandboxnames:v0.3
     id: get_sandbox_names
     dir: k8s-admin/v2/sandboxes/ingresses
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECTL_VERSION=1.16'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for: [ "deploy_sandbox" ]
 
@@ -193,14 +193,14 @@ steps:
       - 'SANDBOX=${_ENV_NAME}'
     wait_for: [ "get_sandbox_names" ]
 
-  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
     id: deploy_ingress
     dir: k8s-admin/v2
     args: ["upgrade", "-i", "wildcard-sandbox-ingress", "./charts/wildcard-sandbox-ingress", "--namespace", "${_GKE_NAMESPACE}", "-f", "sandboxes/ingresses/_ingressValues.yaml", "--debug"]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECTL_VERSION=1.16'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
       - generate_ingress_values_file

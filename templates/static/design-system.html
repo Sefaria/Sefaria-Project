@@ -1,0 +1,251 @@
+{% extends "base.html" %}
+{% load static %}
+
+<html>
+<head>
+{% block head %}
+<style>
+#content {
+  background-color: white;
+  padding: 100px;
+}
+table {
+  width: 100%;
+  margin-bottom: 50px;
+}
+td {
+  vertical-align: middle;
+  text-align: left;
+}
+td:nth-of-type(1) {
+  width: 15%;
+  color: var(--medium-grey);
+  --english-font: var(--english-sans-serif-font-family);
+}
+td:nth-of-type(2),
+td:nth-of-type(3) {
+  width: 15%;
+}
+td:nth-of-type(4) {
+  width: 50%;
+}
+td * {
+  display: block;
+}
+.he {
+  text-align: right;
+}
+h1, h2, h3, p {
+  margin: 10px 0;
+}
+textarea {
+  width: 450px;
+  margin-left: 80px;
+  padding: 10px;
+}
+.square {
+  width: 50px;
+  height: 50px;
+  margin: 2px;
+  display: inline-block;
+}
+.line {
+  width: 100px;
+  height: 4px;
+  margin: 10px;
+  display: inline-block;
+}
+.systemColors {
+  margin: 40px;
+}
+.systemColors .square:nth-of-type(1) {
+  background-color: var(--sefaria-blue)
+}
+.systemColors .square:nth-of-type(2) {
+  background-color: var(--highlight-blue)
+}
+.systemColors .square:nth-of-type(3) {
+  background-color: var(--highlight-blue-light)
+}
+.systemColors .square:nth-of-type(4) {
+  background-color: black;
+}
+.systemColors .square:nth-of-type(5) {
+  background-color: var(--dark-grey)
+}
+.systemColors .square:nth-of-type(6) {
+  background-color: var(--medium-grey)
+}
+.systemColors .square:nth-of-type(7) {
+  background-color: var(--light-grey)
+}
+.systemColors .square:nth-of-type(8) {
+  background-color: var(--lighter-grey)
+}
+.systemColors .square:nth-of-type(9) {
+  background-color: var(--lightest-grey)
+}
+.systemColors .square:nth-of-type(10) {
+  background-color: white;
+}
+.contentColors {
+  margin: 40px;
+}
+.contentColors .line:nth-of-type(1) {background-color: var(--commentary-blue)}
+.contentColors .line:nth-of-type(2) {background-color: var(--tanakh-teal)}
+.contentColors .line:nth-of-type(3) {background-color: var(--mishnah-blue)}
+.contentColors .line:nth-of-type(4) {background-color: var(--talmud-gold)}
+.contentColors .line:nth-of-type(5) {background-color: var(--midrash-green)}
+.contentColors .line:nth-of-type(6) {background-color: var(--halakhah-red)}
+.contentColors .line:nth-of-type(7) {background-color: var(--kabbalah-purple)}
+.contentColors .line:nth-of-type(8) {background-color: var(--liturgy-rose)}
+.contentColors .line:nth-of-type(9) {background-color: var(--philosophy-purple)}
+.contentColors .line:nth-of-type(10) {background-color: var(--taanitic-green)}
+.contentColors .line:nth-of-type(11) {background-color: var(--chasidut-green)}
+.contentColors .line:nth-of-type(12) {background-color: var(--mussar-purple)}
+.contentColors .line:nth-of-type(13) {background-color: var(--responsa-red)}
+.contentColors .line:nth-of-type(14) {background-color: var(--apocrypha-pink)}
+.contentColors .line:nth-of-type(15) {background-color: var(--modern-works-blue)}
+.contentColors .line:nth-of-type(16) {background-color: var(--grammar-green)}
+.contentColors .line:nth-of-type(17) {background-color: var(--reference-orange)}
+.contentColors .line:nth-of-type(18) {background-color: var(--miscelaneous-brown)}
+.contentColors .line:nth-of-type(19) {background-color: var(--miscelaneous-blue)}
+.contentColors .line:nth-of-type(20) {background-color: var(--miscelaneous-green)}
+</style>
+{% endblock %}
+
+
+{% block content %}
+  <h2>Typography</h2>
+  <table class="serif">
+    <tr>
+      <td>Serif H1</td><td><h1>Tanakh</h1></td><td><h1 class="he">תנ"ך</h1></td>
+      <td><textarea readonly><div><h1>Tanakh</h1><h1 class="he">תנ"ך</h1></div></textarea></td>
+    </tr>
+    <tr>
+      <td>Serif H2</td><td><h2>Tanakh</h2></td><td><h2 class="he">תנ"ך</h2></td>
+      <td><textarea readonly><div><h2>Tanakh</h2><h2 class="he">תנ"ך</h2></div></textarea></td></tr>
+    <tr>
+      <td>Serif H3</td><td><h3>Tanakh</h3></td><td><h3 class="he">תנ"ך</h3></td>
+      <td><textarea readonly><div><h3>Tanakh</h3><h3 class="he">תנ"ך</h3></div></textarea></td></tr>
+    <tr>
+      <td>Serif Body</td><td><p>Tanakh</p></td><td><p class="he">תנ"ך</p></td>
+      <td><textarea readonly><div><p>Tanakh</p><p class="he">תנ"ך</p></div></textarea></td></tr>
+    <tr>
+      <td>Serif Small</td><td><small>Tanakh</small></td><td><small class="he">תנ"ך</p></td>
+      <td><textarea readonly><div><small>Tanakh</small><small class="he">תנ"ך</small></div></textarea></td></tr>
+  </table>
+
+  <table class="sans-serif">
+    <tr>
+      <td>Sans Serif H1</td><td><h1>Tanakh</h1></td><td><h1 class="he">תנ"ך</h1></td>
+      <td><textarea readonly><div><h1>Tanakh</h1><h1>תנ"ך</h1 class="he"></div></textarea></td></tr>
+    <tr>
+      <td>Sans Serif H2</td><td><h2>Tanakh</h2></td><td><h2 class="he">תנ"ך</h2></td>
+      <td><textarea readonly><div><h2>Tanakh</h2><h2 class="he">תנ"ך</h2></div></textarea></td></tr>
+    <tr>
+      <td>Sans Serif H3</td><td><h3>Tanakh</h3></td><td><h3 class="he">תנ"ך</h3></td>
+      <td><textarea readonly><div><h3>Tanakh</h3><h3 class="he">תנ"ך</h3></div></textarea></td></tr>
+    <tr>
+      <td>Sans Serif Body</td><td><p>Tanakh</p></td><td><p class="he">תנ"ך</p></td>
+      <td><textarea readonly><div><p>Tanakh</p><p class="he">תנ"ך</p></div></textarea></td></tr>
+    <tr>
+      <td>Sans Serif Small</td><td><small>Tanakh</small></td><td><small class="he">תנ"ך</small></td>
+      <td><textarea readonly><div><small>Tanakh</small><small>תנ"ך</small></div></textarea></td></tr>
+  </table>
+
+  <h2>Selectors</h2>
+
+  <h6>Standard Buttons</h6>
+  <div class="btn" role="button">Hello</div>
+  <div class="btn white" role="button">Hello</div>
+
+  <h6>Small Buttons</h6>
+  <div class="btn-sm" role="button">Hola</div>
+  <div class="btn-sm white" role="button">Hola</div>
+
+  <h6>Xtra Small Buttons</h6>
+  <div class="btn-xs" role="button">Hi</div>
+  <div class="btn-xs white" role="button">Hi</div>
+
+  <h2>System Colors</h2>
+
+  <div class="systemColors">
+    <div class="square"></div>
+    <div class="square"></div>
+    <div class="square"></div>
+    <div class="square"></div>
+    <div class="square"></div>
+    <div class="square"></div>
+    <div class="square"></div>
+    <div class="square"></div>
+    <div class="square"></div>
+    <div class="square"></div>
+  </div>
+
+  <h2>Content Colors</h2>
+  <div class="contentColors">
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
+  </div>
+{% endblock %}
+
+
+{% block js %}
+<script>
+  const tests = [
+    [".serif h1", "--serif-h1-font-size"],
+    [".serif h2", "--serif-h2-font-size"],
+    [".serif h3", "--serif-h3-font-size"],
+    [".serif p", "--serif-body-font-size"],
+    [".serif small", "--serif-small-font-size"],
+    [".sans-serif h1", "--sans-serif-h1-font-size"],
+    [".sans-serif h2", "--sans-serif-h2-font-size"],
+    [".sans-serif h3", "--sans-serif-h3-font-size"],
+    [".sans-serif p", "--sans-serif-body-font-size"],
+    [".sans-serif small", "--sans-serif-small-font-size"]
+  ];
+
+  function getStyle(el,styleProp) {
+    var camelize = function (str) {
+      return str.replace(/\-(\w)/g, function(str, letter){
+        return letter.toUpperCase();
+      });
+    };
+
+    if (el.currentStyle) {
+      return el.currentStyle[camelize(styleProp)];
+    } else if (document.defaultView && document.defaultView.getComputedStyle) {
+      return document.defaultView.getComputedStyle(el,null)
+                                 .getPropertyValue(styleProp);
+    } else {
+      return el.style[camelize(styleProp)]; 
+    }
+  }
+
+  tests.map(test => {
+    el = $(test[0])[0];
+    target = getComputedStyle(document.documentElement).getPropertyValue(test[1]);
+    console.log(test[0], getStyle(el, "font-size"), "/", target);  
+  });
+
+</script>
+{% endblock %}

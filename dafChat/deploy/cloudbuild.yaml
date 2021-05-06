@@ -45,13 +45,13 @@ steps:
     wait_for: [ "-" ]
 
   # Idempotently install/upgrade the Helm Release
-  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.0.2"
+  - name: "gcr.io/production-deployment/cloudbuild-helm:v3.5.4"
     id: install_chart
     args: ["upgrade", "-i", "dafchat-${_ENV_NAME}", "./deploy/dafchat", "--namespace", "${_GKE_NAMESPACE}", "-f", "./deploy/dafchat/valuesGeneration/_generatedHelmValues.yaml", "--debug" ]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECTL_VERSION=1.16'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
       - coturn_container

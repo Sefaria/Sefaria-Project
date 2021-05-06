@@ -278,3 +278,60 @@ def test_folio_type():
     folio = schema.AddressFolio(1)
     for i in [1,2,3,4,5,6,7,15,23,64,128]:
         assert folio.toNumber("en", folio.toStr("en", i)) == i
+
+
+class TestDefaultNodeWithChildren:
+    @classmethod
+    def setup_class(cls):
+        root_node = SchemaNode()
+        root_node.add_primary_titles('test text', 'מבחן')
+        leaf = JaggedArrayNode()
+        leaf.add_primary_titles('leaf', 'קצה')
+        leaf.add_structure(["Verse"])
+        root_node.append(leaf)
+        cls.test_index = Index({
+            'title': 'test text',
+            'categories': ['Tanakh'],
+            'schema': root_node.serialize()
+        })
+        cls.test_index.save()
+        cls.test_version = Version(
+            {
+                "chapter": cls.test_index.nodes.create_skeleton(),
+                "versionTitle": "Version TEST",
+                "versionSource": "blabla",
+                "language": "en",
+                "title": cls.test_index.title
+            }
+        )
+        cls.test_version.save()
+
+    @classmethod
+    def teardown_class(cls):
+        cls.test_index.delete()
+        cls.test_version.delete()
+
+    def test_default_node_with_children(self):
+        from sefaria.helper.schema import insert_last_child, prepare_ja_for_children
+        ja_parent = JaggedArrayNode()
+        ja_parent.key = "default"
+        ja_parent.default = True
+        ja_parent.add_structure(["Part", "Perek"])
+        insert_last_child(ja_parent, self.test_index.nodes)
+        prepare_ja_for_children(ja_parent)
+
+        # make sure prepare_ja_for_children worked
+        v = Version().load({"title": self.test_index.title, "versionTitle": self.test_version.versionTitle})
+        assert v.chapter['default'] == {}
+
+        ja_leaf = JaggedArrayNode()
+        ja_leaf.add_primary_titles('leaf2', 'קצה2')
+        ja_leaf.add_structure(["Perek"])
+        insert_last_child(ja_leaf, ja_parent)
+
+        i = Index().load({"title": self.test_index.title})
+        assert i.nodes.children[-1].children[-1].nodeType == "JaggedArrayNode"
+
+        # verify that you can refer to leaf2 by either name or number
+        assert Ref(f"{self.test_index.title}, leaf2") == Ref(f"{self.test_index.title} 1")
+
