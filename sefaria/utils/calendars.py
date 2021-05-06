@@ -161,7 +161,7 @@ def tanakh_yomi(datetime_obj):
             "displayValue": {"en": display_en, "he": display_he},
             "url": rf.url(),
             "ref": rf.normal(),
-            "order": 11
+            "order": 11,
             "category": rf.index.get_primary_category()
         })
     return tanakh_items
