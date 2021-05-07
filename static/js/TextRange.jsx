@@ -454,7 +454,7 @@ class TextSegment extends Component {
       //Click of citation
       event.preventDefault();
       let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
-      this.props.onCitationClick(ref, this.props.sref);
+      this.props.onCitationClick(ref, this.props.sref, true);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Citation Link Click", ref);
     } else if ($(event.target).hasClass("namedEntityLink")) {
