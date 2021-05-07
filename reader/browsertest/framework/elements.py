@@ -388,6 +388,13 @@ class AbstractTest(object):
             self.click_object_by_css_selector('#interruptingMessage #interruptingMessageClose')
             return True
         except NoSuchElementException:
+            pass
+
+        try:
+            self.driver.find_element_by_css_selector('#bannerMessageClose')
+            self.click_object_by_css_selector('#bannerMessageClose')
+            return True
+        except NoSuchElementException:
             return False
 
     def close_popup_with_accept(self):

@@ -454,7 +454,7 @@ class TextSegment extends Component {
       //Click of citation
       event.preventDefault();
       let ref = Sefaria.humanRef($(event.target).attr("data-ref"));
-      this.props.onCitationClick(ref, this.props.sref);
+      this.props.onCitationClick(ref, this.props.sref, true);
       event.stopPropagation();
       Sefaria.track.event("Reader", "Citation Link Click", ref);
     } else if ($(event.target).hasClass("namedEntityLink")) {
@@ -499,7 +499,7 @@ class TextSegment extends Component {
       }
       return value;
     };
-    $newElement.find('i[data-commentator="' + this.props.filter[0] + '"]').each(function () {
+    $newElement.find('i[data-commentator="' + escape(this.props.filter[0]) + '"]').each(function () {
       $(this).replaceWith('<sup class="itag">' + textValue(this) + "</sup>");
     });
     return $newElement.html();

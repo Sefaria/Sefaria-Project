@@ -1051,7 +1051,7 @@ class ReaderNavigationMenuCloseButton extends Component {
     } else {
       var icon = "×";
     }
-    var classes = classNames({readerNavMenuCloseButton: 1, serif: 1, circledX: this.props.icon === "circledX"});
+    var classes = classNames({readerNavMenuCloseButton: 1, circledX: this.props.icon === "circledX"});
     var url = this.props.url || "";
     return (<a href={url} className={classes} onClick={this.onClick}>{icon}</a>);
   }

@@ -282,7 +282,7 @@ class VersionBlock extends Component {
               </span>
             </div>
           { !v.merged ?
-            <div className="versionDetails">
+            <div className="versionDetails sans-serif">
               <div className="versionDetailsInformation">
                 <div className={classNames(this.makeAttrClassNames({"versionSource": 1, "versionDetailsElement": 1}, "versionSource"))}>
                   <span className="versionDetailsLabel">

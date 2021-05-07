@@ -13,7 +13,7 @@ steps:
     id: k8s-admin_clone
     wait_for: [ "-" ]
 
-  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.2"
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
     id: deploy_sandbox
     dir: k8s-admin/v2
     entrypoint: bash
