@@ -1036,6 +1036,7 @@ input.noselect {
   position: absolute;
   height: 100%;
   width: 100%;
+  direction: ltr; /* Even in Hebrew Interface we want scroll bars on the right */
 }
 .readerPanelBox + .readerPanelBox {
   border-left: 1px solid #eee;
@@ -1097,11 +1098,14 @@ input.noselect {
 .int-he .int-he {
   font-size: inherit;
 }
+.readerPanel .content {
+  direction: ltr; /* Even in Hebrew Interface, we want scroll bars on the right */
+}
 .readerPanel .he {
   direction: rtl;
   text-align: right;
 }
-.interface-hebrew .readerPanel .en{
+.interface-hebrew .readerPanel .en {
   direction: ltr;
 }
 .interface-hebrew .readerPanel .contentInner,
