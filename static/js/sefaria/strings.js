@@ -218,6 +218,8 @@ const Strings = {
     "Done": "סיום",
     "Add to Collection": "צירוף לאסופה",
 
+    "Saved": "שמורים",
+
     // Topics
     "More": "עוד",
     "Less": "פחות",
