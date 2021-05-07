@@ -385,7 +385,7 @@ def delete_sheet_api(request, sheet_id):
 @csrf_exempt
 def collections_api(request, slug=None):
     if request.method == "GET":
-        return collections_get_api(request, unquote(slug))
+        return collections_get_api(request, slug)
     else:
         if not request.user.is_authenticated and request.method == "POST":
             key = request.POST.get("apikey")
@@ -411,7 +411,7 @@ def protected_collections_post_api(request, user_id, slug=None):
 def collections_get_api(request, slug=None):
     if not slug:
         return jsonResponse(CollectionSet.get_collection_listing(request.user.id))
-    collection_obj = Collection().load({"slug": slug})
+    collection_obj = Collection().load({"slug": unquote(slug)})
     if not collection_obj:
         return jsonResponse({"error": "No collection with slug '{}'".format(slug)})
     is_member = request.user.is_authenticated and collection_obj.is_member(request.user.id)
