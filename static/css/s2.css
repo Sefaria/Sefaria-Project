@@ -880,7 +880,8 @@ input.noselect {
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   z-index: 1000000 !important;
-  font-family: var(--english-serif-font-family);
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
 }
 .header > .ui-autocomplete {
   z-index: 1000 !important;
@@ -3153,7 +3154,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result .similar-trigger-box {
   color: #999;
   font-weight: lighter;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 11px;
