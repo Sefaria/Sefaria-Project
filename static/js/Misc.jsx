@@ -760,7 +760,7 @@ class TextBlockLink extends Component {
             { saved ? <SaveButton historyObject={{ ref: sref, versions: currVersions }} /> : null }
             { !saved && timeStamp ?
               <span className="sans-serif">
-                <InterfaceText>{ Sefaria.util.naturalTime(timeStamp) }</InterfaceText>
+                { Sefaria.util.naturalTime(timeStamp) }
               </span>: null
             }
           </div>

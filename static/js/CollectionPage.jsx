@@ -303,7 +303,7 @@ class CollectionPage extends Component {
             {sheets.length ?
             <div className="splitHeader">
               { topicList && topicList.length ?
-              <span className="filterByTag" onClick={this.toggleSheetTags}>
+              <span className="filterByTag sans-serif" onClick={this.toggleSheetTags}>
                 <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
                 <span className="int-he">סנן לפי תווית <i className="fa fa-angle-down"></i></span>
                </span>

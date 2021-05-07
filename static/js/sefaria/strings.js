@@ -48,6 +48,34 @@ const Strings = {
     "Support Sefaria": "תמכו בספריא",
     "Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.": "ספריא היא מיזם קוד פתוח ללא מטרות רווח. תמכו בנו בעזרת תרומה בניכוי מס.",
     "Make a Donation": "תרמו",
+ 
+    // Texts Page
+    "Browse the Library": "",
+    "The Jewish Library": "",
+    "The tradition of Torah texts is a vast, interconnected network that forms a conversation across space and time. The five books of the Torah form its foundation, and each generation of later texts functions as a commentary on those that came before it.": "",
+    "Weekly Torah Portion": "פרשת השבוע",
+    "All Study Schedules": "",
+    "Sponsor A Day of Learning": "",
+    "With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.": "",
+    "Sponsor a Day": "",
+
+    // Text Category Pages
+    "All Portions": "",
+    "Popular Texts": "",
+    "All Visualizations": "",
+    "Daily Study": "",
+
+
+    // Topics
+    "Explore by Topic": "",
+    "About Topics": "",
+    "Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.": "",
+    "Trending Topics": "",
+    "More": "עוד",
+    "Less": "פחות",
+    // All Topics
+    "Reset": "לאתחל",
+    "Search Topics": "חפש נושאים",
 
     // Sheets
     "Source Sheets": "דפי מקורות",
@@ -162,6 +190,9 @@ const Strings = {
     // Collections
     // Edit collection page
     "Collections": "אסופות",
+    "About Collections": "",
+    "Collection": "אסופה",
+    "Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.": "",
     "Sefaria Collections": "אסופות של ספריא",
     "Edit Collection": "עריכת אסופה",
     "Create a Collection": "יצירת אסופה",
@@ -219,14 +250,13 @@ const Strings = {
     "Add to Collection": "צירוף לאסופה",
 
     "Saved": "שמורים",
+    "Notifications": "התראות",
 
-    // Topics
-    "More": "עוד",
-    "Less": "פחות",
+    // Study Schedules
+    "Daily Study": "",
+    "Weekly Study": "",
+    "Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar. Following this practice, many other calendars have been created to help communities of learners work through specific texts together.": "",
 
-    // All Topics
-    "Reset": "לאתחל",
-    "Search Topics": "חפש נושאים",
 
     //languages
     "English": "אנגלית",

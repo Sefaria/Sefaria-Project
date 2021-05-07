@@ -157,7 +157,7 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
       // Add a nested subcategory
       } else {
         const hasDesc  = item.enShortDesc || item.heShortDesc;
-        const longDesc = hasDesc.split(" ").length > 5; 
+        const longDesc = hasDesc && hasDesc.split(" ").length > 5; 
         content.push(
           <div className='category' key={"cat." + nestLevel + "." + item.category}>
             <h2>

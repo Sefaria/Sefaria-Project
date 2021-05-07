@@ -227,7 +227,7 @@ const ParashahLink = () => {
   return (
     <div className="navSidebarLink ref serif">
       <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
-      <a href={"/" + parashah.url}><InterfaceText>{parashah.ref}</InterfaceText></a>
+      <a href={"/" + parashah.url}><InterfaceText text={{en: parashah.ref, he: parashah.heRef}} /></a>
     </div>
   );
 };
@@ -235,7 +235,7 @@ const ParashahLink = () => {
 
 const ParashahName = () => {
   const parashah = Sefaria.calendars.filter(c => c.title.en === "Parashat Hashavua")[0];
-  return <InterfaceText text={{en: parashah.displayValue.en, he: parashah.displayValue.he}} />
+  return <InterfaceText text={parashah.displayValue} />
 };
 
 
@@ -246,7 +246,7 @@ const HaftarotLinks = () => {
       {haftarot.map(h => 
       <div className="navSidebarLink ref serif" key={h.url}>
         <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
-        <a href={"/" + h.url}><InterfaceText>{h.ref}</InterfaceText></a>
+        <a href={"/" + h.url}><InterfaceText text={h.displayValue} /></a>
       </div>)}
     </>
   );
@@ -259,7 +259,7 @@ const DafLink = () => {
     <div className="navSidebarLink ref serif">
       <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt={Sefaria._("book icon")} />
       <a href={"/" + daf.url}>
-        <InterfaceText text={{en: daf.displayValue.en, he: daf.displayValue.he}} />
+        <InterfaceText text={daf.displayValue} />
       </a>
     </div>
   );

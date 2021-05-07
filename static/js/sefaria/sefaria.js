@@ -2248,7 +2248,7 @@ _media: {},
           var inputStrs = inputStr.split(" | ");
           return Sefaria._(inputStrs[0])+ " | " + Sefaria._(inputStrs[1]);
         } else {
-          console.warn("Missing Hebrew translation for: " + inputStr);
+          //console.warn("Missing Hebrew translation for: " + inputStr);
           return inputStr;
         }
     } else {
