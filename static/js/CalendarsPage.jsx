@@ -26,7 +26,6 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
   const dailyListings   = makeListings(dailyCalendars);
   const weeklyListings  = makeListings(weeklyCalendars);
 
-
   const about = multiPanel ? null :
     <Modules type={"AboutStudySchedules"} />
 
@@ -66,37 +65,41 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
 
 const CalendarListing = ({calendar}) => {
   const style = {"borderColor": Sefaria.palette.categoryColor(calendar.category)};
-  return <div className="navBlock withColorLine" style={style}>
-          <a href={`/${calendar.url}`} className="navBlockTitle">
-            <span className="en">{calendar.displayTitle.en}</span>
-            <span className="he">{calendar.displayTitle.he}</span>
+  return (
+    <div className="navBlock withColorLine" style={style}>
+      <a href={`/${calendar.url}`} className="navBlockTitle">
+        <InterfaceText text={calendar.displayTitle} />
+      </a>
+      <div className="calendarRefs">
+        {calendar.refs.map(ref => (
+        <div className="calendarRef" key={ref.url}>
+          <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
+          <a href={`/${ref.url}`} className="">
+            <InterfaceText text={ref.displayValue} />
           </a>
-          <div className="calendarRef">
-            <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
-            <a href={`/${calendar.url}`} className="">
-              <span className="en">{calendar.displayValue.en}</span>
-              <span className="he">{calendar.displayValue.he}</span>
-            </a> 
-          </div>          
-          { calendar.description ?
-          <div className="navBlockDescription">
-            <span className="en">{calendar.description.en}</span>
-            <span className="he">{calendar.description.he}</span>
-          </div>
-          : null}
         </div>
+        ))}
+      </div>          
+      { calendar.description ?
+      <div className="navBlockDescription">
+        <InterfaceText text={calendar.description} />
+      </div>
+      : null}
+    </div>
+  );
 };
 
 
 const reformatCalendars = () => {
   const calendars = Sefaria.util.clone(Sefaria.calendars);
+  const mergedCalendars = [];
   calendars.map(cal => {
     let calData = calendarDescriptions[cal.title.en.replace(/ \([AS]\)$/, "")]
     if (!calData) debugger
     if (!cal.description) {
       cal.description = {en: calData.en, he: calData.he};
     }
-    if (cal.title.en == "Parashat Hashavua") {
+    if (cal.title.en === "Parashat Hashavua") {
       cal.displayTitle = cal.displayValue;
       cal.displayValue = {en: cal.ref, he: cal.heRef};
     } else {
@@ -105,10 +108,19 @@ const reformatCalendars = () => {
         cal.displayTitle.en = calData.enDisplayTitle;
       }
     }
+
+    let len = mergedCalendars.length;
+    if (len && cal.title.en === mergedCalendars[len-1].title.en) {
+      mergedCalendars[len-1].refs.push({url: cal.url, displayValue: cal.displayValue});
+    } else {
+      cal.refs = [{url: cal.url, displayValue: cal.displayValue}];
+      mergedCalendars.push(cal);
+    }
   });
 
-  return calendars;
+  return mergedCalendars;
 };
+
 
 const calendarDescriptions = {
   "Parashat Hashavua": {},

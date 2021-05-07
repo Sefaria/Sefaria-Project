@@ -7034,11 +7034,14 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
     border: 1px solid #eee;
     background: #eee;
 }
+.calendarRefs {
+  margin-bottom: 16px;
+}
 .calendarRef {
   font-size: 18px;
   color: #666;
   display: flex;
-  margin: 2px 0 16px;
+  margin: 2px 0;
 }
 .calendarRef a {
   color: inherit;
