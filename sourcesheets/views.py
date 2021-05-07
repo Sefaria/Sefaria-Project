@@ -941,9 +941,9 @@ def trending_tags_api(request):
 def all_sheets_api(request, limiter, offset=0):
     limiter  = int(limiter)
     offset   = int(offset)
-    response = public_sheets(limit=limiter, skip=offset)
+    lang     = request.GET.get("lang")
+    response = public_sheets(limit=limiter, skip=offset, lang=lang)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
     return response
 
 
