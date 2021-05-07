@@ -75,22 +75,26 @@ a, a:hover {
 body, .sans-serif {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family); 
-  --is-serif: initial;
+  --is-serif: initial; /* false */
 }
 .serif {
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-serif-font-family);
-  --is-serif: ;
+  --is-serif: ; /* true */
 }
 .sans-serif-in-hebrew {
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
-.en, .int-en, * {
-  font-family: var(--english-font);
+body, .en, .int-en {
+  --is-hebrew: initial; /* false */
 }
-.he, .int-he, .interface-hebrew * {
-  font-family: var(--hebrew-font);
+.interface-hebrew, .he, .int-he {
+  --is-hebrew: ; /* true */
+}
+* {
+  --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
+  font-family: var(--hebrew-font-conditional, var(--english-font));
 }
 .he {
   font-size: 122%;
@@ -6572,6 +6576,8 @@ a .button:hover {
   color: black;
   font-size: 30px;
   margin-bottom: 5px;
+  --hebrew-font: var(--hebrew-serif-font-family);
+  --english-font: var(--english-serif-font-family);
 }
 .collectionPage .navTitle {
   margin-bottom: 5px;
@@ -6590,42 +6596,39 @@ a .button:hover {
 .collectionPage .collectionWebsite {
   display: block;
   font-size: 16px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-top: 15px;
   color: #4B71B7;
+  direction: ltr;
 }
 .collectionPage .collectionDescription {
   font-size: 16px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #666;
   line-height: 1.3;
 }
-.collectionPage .collectionDescription .he {
-  font-family: "Heebo", sans-serif;
-  font-size: 16px;
+.collectionPage .collectionDescription .dedication {
+  --hebrew-font: var(--hebrew-serif-font-family);
+  --english-font: var(--english-serif-font-family);
 }
 .collectionPage .collectionDescription .en .dedication {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: italic;
   font-size: 18px;
   display: block;
 }
 .collectionPage .collectionDescription .he .dedication {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 20px;
 }
 .collectionPage .tabs {
   text-align: center;
   margin-bottom: 60px;
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  --english-font: var(--english-sans-serif-font-family);
 }
 .collectionPage .bubbleTab {
   font-size: 16px;
 }
-.collectionPage .tagsList .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-.collectionPage .tagsList .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+.collectionPage .tagsList {
+  --hebrew-font: var(--hebrew-serif-font-family);
+  --english-font: var(--english-serif-font-family);
 }
 .collectionPage .emptyMessage {
   text-align: center;

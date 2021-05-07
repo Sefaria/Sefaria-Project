@@ -82,7 +82,8 @@ class NotificationsPanel extends Component {
           </div>
           <Footer />
         </div>
-      </div>);
+      </div>
+    );
   }
 }
 NotificationsPanel.propTypes = {

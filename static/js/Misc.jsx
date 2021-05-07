@@ -1365,8 +1365,7 @@ const SheetListing = ({
 
   const views = (
     <>
-      <InterfaceText>{String(sheet.views)}</InterfaceText>&nbsp;
-      <InterfaceText>Views</InterfaceText>
+      {sheet.views}&nbsp;<InterfaceText>Views</InterfaceText>
     </>
   );
 

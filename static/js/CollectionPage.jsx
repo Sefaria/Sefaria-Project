@@ -270,7 +270,7 @@ class CollectionPage extends Component {
         content: editorsBlock}});
 
       content = <div>
-        <div className="collectionInfo">
+        <div className="collectionInfo sans-serif">
             {collection.toc ?
             <div className="navTitle">
               <h1>
