@@ -117,7 +117,7 @@ const AboutParashah = ({parashahTopic}) => {
       </div>
       <div className="readingLinks">
         <div className="readingLinksHeader">
-          <InterfaceText>Torah Reading</InterfaceText>
+          <InterfaceText context="AboutParashah">Torah Reading</InterfaceText>
         </div>
         <div className="calendarRef">
           <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />

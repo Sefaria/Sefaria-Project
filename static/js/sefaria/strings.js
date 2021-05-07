@@ -26,7 +26,7 @@ const Strings = {
     "The Torah Portion": "פרשת השבוע",
     "The Jewish Calendar": "לוח השנה העברי",
     "Discover ": "גלו את ה",
-    "Readings": "קריאות",
+    "Readings": "ענייני דיומא",
     "Recently Published": "פורסמו לאחרונה",
     "Load More": "להמשך קריאה",
     "Join the Conversation": "להצטרף לשיחה" ,
@@ -35,9 +35,9 @@ const Strings = {
     "A Living Library of Torah": "ספרייה תורנית חיה",
     "Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying and interpreting Torah.": "ספריא היא הבית של 3,000 שנות ספרות יהודית. אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות, ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך החי של לימוד וחידוש בתורה.",
     "Learn More": "לקריאה נוספת",
-    "Explore the Library": "גלו את נפלאות הספרייה",
+    "Explore the Library": "גלו את הספריה",
     "Study Schedules": "לוחות זמנים ללימוד",
-    "Teach with Sefaria": "לַמדו בעזרת ספריא",
+    "Teach with Sefaria": "ללמד עם ספריא",
     "Visualizations": "הדמיות חזותיות",
     "Torah Tab": "תורה טאב (לשונית)",
     "Get the Mobile App": "הורידו את היישומון",
@@ -367,6 +367,9 @@ const Strings = {
     },
     "SheetAuthorStatement": {
       "by ": "", // by line on sheets in reader, intentionally left blank
+    },
+    "AboutParashah": {
+      "Torah Reading": "פרשת השבוע",
     }
   },
 };
