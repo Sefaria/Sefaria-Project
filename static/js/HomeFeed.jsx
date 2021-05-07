@@ -192,18 +192,19 @@ const AboutDiscover = ({discoverContent}) => {
 
 
 const RecenltyPublished = ({multiPanel}) => {
+  const options = Sefaria.interfaceLang === "hebrew" ? {"lang": "hebrew"} : {};
   const pageSize = 12;
   const [nSheetsLoaded, setNSheetsLoded] = useState(pageSize);
   // Start with recent sheets in the cache, if any
-  const [recentSheets, setRecentSheets] = useState(Sefaria.sheets.publicSheets(0, pageSize));
+  const [recentSheets, setRecentSheets] = useState(Sefaria.sheets.publicSheets(0, pageSize, options));
 
   // But also make an API call immeditately to check for updates
   useEffect(() => {
-    Sefaria.sheets.publicSheets(0, pageSize, true, (data) => setRecentSheets(data));
+    Sefaria.sheets.publicSheets(0, pageSize, options, true, (data) => setRecentSheets(data));
   }, []);
 
   const loadMore = () => {
-    Sefaria.sheets.publicSheets(nSheetsLoaded, pageSize, true, (data) => {
+    Sefaria.sheets.publicSheets(nSheetsLoaded, pageSize, options, true, (data) => {
       setRecentSheets(recentSheets.concat(data));
       setNSheetsLoded(nSheetsLoaded + pageSize);
     });

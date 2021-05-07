@@ -2053,19 +2053,24 @@ _media: {},
       }, {});
     },
     _publicSheets: {},
-    publicSheets: function(offset, numberToRetrieve, skipCache, callback) {
-      if (!offset) offset = 0;
-      if (!numberToRetrieve) numberToRetrieve = 30;
+    publicSheets: function(offset, limit, options, skipCache, callback) {
       // Returns a list of public sheets
-      var sheets = this._publicSheets["offset"+offset+"num"+numberToRetrieve];
+      offset = offset || 0;
+      limit = limit || 30;
+      options = options || {};
+
+      const params = param(options);
+      const path = limit+"/"+offset + (params ? "?" + params : "");
+
+      const sheets = this._publicSheets[path];
       if (sheets && !skipCache) {
         if (callback) { callback(sheets); }
       } else {
-        var url = Sefaria.apiHost + "/api/sheets/all-sheets/"+numberToRetrieve+"/"+offset;
-        var url = "https://www.sefaria.org/api/sheets/all-sheets/"+numberToRetrieve+"/"+offset;
+        // const url = Sefaria.apiHost + "/api/sheets/all-sheets/" + path
+        const url = "https://www.sefaria.org/api/sheets/all-sheets/" + path;
 
         Sefaria._api(url, function(data) {
-          this._publicSheets["offset"+offset+"num"+numberToRetrieve] = data.sheets;
+          this._publicSheets[path] = data.sheets;
           if (callback) { callback(data.sheets); }
         }.bind(this));
       }
