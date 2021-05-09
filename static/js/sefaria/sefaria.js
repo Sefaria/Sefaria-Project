@@ -383,7 +383,11 @@ Sefaria = extend(Sefaria, {
     if (data && !("updateFromAPI" in data)) {return Promise.resolve(data);}
 
     return this._ApiPromise(Sefaria.apiHost + this._textUrl(ref, settings))
-        .then(d => { this._saveText(d, settings); return d; });
+        .then(d => {
+            this._saveText(d, settings);
+            this._saveVersions(d.sectionRef, d.versions);
+            return d;
+        });
   },
   _bulkTexts: {},
   getBulkText: function(refs, asSizedString=false, minChar=null, maxChar=null) {
@@ -442,6 +446,7 @@ Sefaria = extend(Sefaria, {
     }
     this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
       this._saveText(data, settings);
+      this._saveVersions(data.sectionRef, data.versions);
       cb(data);
     }.bind(this));
     return null;
@@ -458,7 +463,7 @@ Sefaria = extend(Sefaria, {
     }
     const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
     this._api(url, function(data) {
-      this._saveVersions(data)
+      this._saveVersions(ref, data)
       if (cb) { cb(data); }
     });
     return versions;
@@ -526,7 +531,6 @@ Sefaria = extend(Sefaria, {
 
   },
   _saveText: function(data, settings) {
-      debugger;
     if (Array.isArray(data)) {
       data.map(d => this._saveText(d, settings));
       return;
