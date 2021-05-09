@@ -686,7 +686,7 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
           if (!url) { return null; }
           return (
             <SimpleLinkedBlock
-              en={propObj.title} he={Sefaria._(propObj.title)} url={url} aclasses={"systemText topicMetaData"}
+              key={url} en={propObj.title} he={Sefaria._(propObj.title)} url={url} aclasses={"systemText topicMetaData"}
             />
           );
         })
