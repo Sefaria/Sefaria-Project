@@ -28,24 +28,26 @@ const jobKeys = [
 
 (async function() {
     // Get the committer via the commit
-
+    let commit;
     try {
-        const commit = await octokit.request('GET /repos/{owner}/{repo}/commits/{githubSha}',
+        commit = await octokit.request('GET /repos/{owner}/{repo}/commits/{githubSha}',
             {owner, repo, githubSha});
-        const committerLogin = commit.data.committer.login;
-        const slackName = gitToSlackMap[committerLogin];
     } catch(err) {
         console.log(err);
     }
+    const committerLogin = commit.data.committer.login;
+    const slackName = gitToSlackMap[committerLogin];
+
 
     // Branch name
+    let actionRun;
     try {
-        const actionRun = await octokit.request('GET /repos/{owner}/{repo}/actions/runs/{runId}',
+        actionRun = await octokit.request('GET /repos/{owner}/{repo}/actions/runs/{runId}',
             {owner, repo, runId});
-        const branch = actionRun.data.head_branch;
     } catch(err) {
         console.log(err);
     }
+    const branch = actionRun.data.head_branch;
     /*
     May be able to get branch with:
     const branch =
@@ -54,21 +56,20 @@ const jobKeys = [
      */
 
     // Results of the jobs
+    const jobsResults = {};
+    let actionJobs;
     try {
-        const actionJobs = await octokit.request('GET /repos/{owner}/{repo}/actions/runs/{runId}/jobs',
+        actionJobs = await octokit.request('GET /repos/{owner}/{repo}/actions/runs/{runId}/jobs',
             {owner, repo, runId});
-
-        const jobsResults = {};
-
-        actionJobs.data.jobs.forEach(j => {
-            if (jobKeys.includes(j.name)) {
-                jobsResults[j.name] = {conclusion: j.conclusion, url: j.html_url};
-            }
-        });
     } catch(err) {
         console.log(err);
     }
-
+    actionJobs.data.jobs.forEach(j => {
+        if (jobKeys.includes(j.name)) {
+            jobsResults[j.name] = {conclusion: j.conclusion, url: j.html_url};
+        }
+    });
+    
     // conclusion will be: "success" or "failure"
     // Construct the slack message
     const succeeded = x => x && x.conclusion === "success";
