@@ -185,14 +185,6 @@ class ConnectionsPanel extends Component {
     this.props.setConnectionsMode("Resources");
     this.flashMessage("Success! You've created a new connection.");
   }
-  getDataRef(props) {
-    // Returns ref to be used to looking up data
-    const secRef = Sefaria.sectionRef(props.srefs[0]);
-    if (!secRef) {
-      console.log("Sec ref is null for", props.srefs[0]);
-    }
-    return secRef || props.srefs[0];
-  }
   getData(cb) {
     // Gets data about this text from cache, which may be null.
     return Sefaria.getText(this.props.srefs[0], {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he}).then(cb);
@@ -236,6 +228,7 @@ class ConnectionsPanel extends Component {
               },
               mainVersionLanguage: currentLanguage,
               availableVersions: data.versions,
+              sectionRef: data.sectionRef,
           });
       });
   }
@@ -587,7 +580,7 @@ class ConnectionsPanel extends Component {
                   setConnectionsMode={this.props.setConnectionsMode}
                   getLicenseMap={this.props.getLicenseMap}
                   setFilter={this.props.setVersionFilter}
-                  getDataRef={this.getDataRef}
+                  sectionRef={this.state.sectionRef}
                   onRangeClick={this.props.onTextClick}
                   viewExtendedNotes={this.props.viewExtendedNotes}
                   onCitationClick={this.props.onCitationClick} />);

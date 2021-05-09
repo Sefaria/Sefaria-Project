@@ -23,11 +23,11 @@ class VersionsBox extends Component {
     };
   }
   componentDidMount() {
-    Sefaria.versions(this.props.getDataRef(this.props), this.onVersionsLoad);
+    Sefaria.versions(this.props.sectionRef, this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
-    if (this.props.getDataRef(prevProps) !== this.props.getDataRef(this.props)) {
-      Sefaria.versions(this.props.getDataRef(this.props), this.onVersionsLoad);
+    if (prevProps.sectionRef !== this.props.sectionRef) {
+      Sefaria.versions(this.props.sectionRef, this.onVersionsLoad);
     }
   }
   onVersionsLoad(versions) {
@@ -147,7 +147,7 @@ VersionsBox.propTypes = {
   setConnectionsMode:       PropTypes.func.isRequired,
   setFilter:                PropTypes.func.isRequired,
   selectVersion:            PropTypes.func.isRequired,
-  getDataRef:               PropTypes.func.isRequired,
+  sectionRef:               PropTypes.string.isRequired,
   onRangeClick:             PropTypes.func.isRequired,
   onCitationClick:          PropTypes.func.isRequired,
 };
