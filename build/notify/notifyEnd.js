@@ -11,6 +11,14 @@ const runId = process.env.GITHUB_RUN_ID;
 const githubSha = process.env.GITHUB_SHA;
 const commitUrl = `${githubURL}${githubRepository}/commit/${githubSha}`;
 
+console.log(`
+    Repo: ${githubRepository}
+    Run ID: ${runId}
+    SHA: ${githubSha}
+    Commit URL: ${commitUrl}
+`);
+
+
 const jobKeys = [
     "Jest",
     "PyTest",
