@@ -526,7 +526,7 @@ input.noselect {
   border-radius: 6px;
   display: none;
 }
-.header .interfaceLinks .interfaceLinks-header.profile-menu {
+.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header.profile-menu {
   padding-top: 8px;
   font-weight: 500;
   color: #000000;
@@ -541,7 +541,7 @@ input.noselect {
 .interface-hebrew .header .interfaceLinks .interfaceLinks-menu{
   left: 0px;
 }
-.header .interfaceLinks .interfaceLinks-header{
+.header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
   font-style: normal;
   font-weight: normal;
   font-size: 13px;
@@ -550,11 +550,11 @@ input.noselect {
   padding: 5px;
   border-bottom: 1px solid #CCCCCC;
 }
-.interface-english .header .interfaceLinks .interfaceLinks-header{
+.interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
 
-.interface-hebrew .header .interfaceLinks .interfaceLinks-header{
+.interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
   font-family: "Heebo", sans-serif;
 }
 

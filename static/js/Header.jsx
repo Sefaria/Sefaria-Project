@@ -67,9 +67,9 @@ const ProfilePicMenu = ({len, url, name}) => {
   }
   return (
     <div ref={wrapperRef}>
-        <div onClick={handleClick}>
+        <a href="/my/profile" className="my-profile" onClick={handleClick}>
           <ProfilePic len={len} url={url} name={name}/>
-        </div>
+        </a>
         <div className="interfaceLinks">
           <div className={`interfaceLinks-menu profile-menu ${ isOpen ? "open" : "closed"}`} onClick={resetOpen}>
             <div className="interfaceLinks-header profile-menu">{name}</div>
@@ -492,9 +492,8 @@ function LoggedInButtons({headerMode}){
   return(
       <div className="accountLinks">
           <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>{Sefaria.notificationCount}</a>
-        <a href="/my/profile" className="my-profile">
-          <ProfilePicMenu len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name}/>
-        </a>
+        <ProfilePicMenu len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name}/>
+
        </div>
   );
 }
