@@ -13,7 +13,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
-def get_topic(topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters):
+def get_topic(topic, with_links, annotate_links, with_refs, group_related, annotate_time_period, ref_link_type_filters, with_indexes):
     topic_obj = Topic.init(topic)
     response = topic_obj.contents(annotate_time_period=annotate_time_period)
     response['primaryTitle'] = {
@@ -98,6 +98,9 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related, annot
                     subset_ref_map[seg_ref] += [len(new_refs) - 1]
 
         response['refs'] = new_refs
+    if with_indexes:
+        response['indexes'] = topic_obj.get_authored_indexes()
+
     if getattr(topic_obj, 'isAmbiguous', False):
         possibility_links = topic_obj.link_set(_class="intraTopic", query_kwargs={"linkType": TopicLinkType.possibility_type})
         possibilities = []

@@ -1,7 +1,7 @@
 from typing import Union
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
-from .text import Ref
+from .text import Ref, IndexSet
 from sefaria.system.exceptions import DuplicateRecordError
 import structlog
 import regex as re
@@ -295,6 +295,10 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             return None, None
         return properties[property]['value'], properties[property]['dataSource']
 
+    def get_authored_indexes(self):
+        ins = IndexSet({"authors": self.slug})
+        return sorted(ins, key=lambda i: Ref(i.title).order_id())
+    
     @staticmethod
     def get_uncategorized_slug_set() -> set:
         categorized_topics = IntraTopicLinkSet({"linkType": TopicLinkType.isa_type}).distinct("fromTopic")
