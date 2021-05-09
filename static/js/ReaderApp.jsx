@@ -215,9 +215,9 @@ class ReaderApp extends Component {
         } else {
           panel = this.clonePanel(props.initialPanels[i]);
           let tempSettings = {}
-          if (panel.currVersions.he && p.currVersions.en) { tempSettings.language = "bilingual"; }
-          else if (panel.currVersions.he)                 { tempSettings.language = "hebrew" }
-          else if (panel.currVersions.en)                 { tempSettings.language = "english" }
+          if (panel?.currVersions?.he && p?.currVersions?.en) { tempSettings.language = "bilingual"; }
+          else if (panel?.currVersions?.he)                 { tempSettings.language = "hebrew" }
+          else if (panel?.currVersions?.en)                 { tempSettings.language = "english" }
           panel.settings = {...Sefaria.util.clone(defaultPanelSettings), ...tempSettings, ...props.initialPanels[i]?.settings};
         }
         panels.push(panel);
