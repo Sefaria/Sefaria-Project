@@ -85,7 +85,6 @@ const jobKeys = [
 
     console.log(JSON.stringify(slackMsg));
 
-
     const overallSuccess = jobKeys.every(k => succeeded(jobsResults[k]));
     const webhookUrl = overallSuccess ? slackSuccessUrl : slackFailureUrl;
     const webhook = new IncomingWebhook(webhookUrl);
