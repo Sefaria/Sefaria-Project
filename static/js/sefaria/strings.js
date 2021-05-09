@@ -22,6 +22,7 @@ const Strings = {
     "Source Sheets": "דפי מקורות",
     "Start a New Source Sheet": "התחלת דף מקורות חדש",
     "Untitled Source Sheet" : "דף מקורות ללא שם",
+    "Untitled": "ללא שם",
     "New Source Sheet" : "דף מקורות חדש",
     "Name New Sheet" : "כותרת לדף חדש",
     "Copy" : "העתקה",
@@ -87,7 +88,6 @@ const Strings = {
     "Indent Source": "הזחת מקור פנימה",
     "Create New" : "יצירת חדש",
     "Close" : "סגירה",
-    "by": "", // by line on sheets in reader, intentionally left blank
 
     // Reader Panel
     "Search" : "חיפוש",
@@ -187,6 +187,12 @@ const Strings = {
     "Done": "סיום",
     "Add to Collection": "צירוף לאסופה",
 
+    "Saved": "שמורים",
+
+    // Topics
+    "More": "עוד",
+    "Less": "פחות",
+
     //languages
     "English": "אנגלית",
     "Hebrew": "עברית",
@@ -242,7 +248,7 @@ const Strings = {
     "Stay in the know": "השארו מעודכנים",
     "Sign Up": "הרשמו לספריא",
     "Already have an account?": "כבר יש לכם חשבון?",
-    "Sign\u00A0in": "התחברו",
+    "Sign in": "התחברו",
     "Save": "שמירה",
     "Remove": "הסרה",
     "Email was successfully changed!": 'כתובת הדוא"ל שונתה בהצלחה!',
@@ -308,7 +314,6 @@ const Strings = {
     "Try the new version": "להתנסוּת בגרסה החדשה",
     "Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at": "אנחנו מעריכים מאוד את המשוב שלך. כעת באפשרותך לחזור לערוך את הדפים שלך באמצעות עורך המסמכים הישן. לשאלות או למשוב נוסף אפשר לפנות אלינו בדוא\"ל:",
 
-
     //TextTableofContents
     "Download": "הורדה",
     "Download Text": "הורדת הטקסט",
@@ -332,6 +337,9 @@ const Strings = {
       "Reference": "עיון",
       "Related Passage": "קשר אחר",
     },
+    "SheetAuthorStatement": {
+      "by ": "", // by line on sheets in reader, intentionally left blank
+    }
   },
 };
 

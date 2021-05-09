@@ -1509,7 +1509,7 @@ const SefariaEditor = (props) => {
           editorContainer.current.parentNode.parentNode.removeEventListener("scroll", onScrollListener)
           editorContainer.current.parentNode.parentNode.removeEventListener("click", onClickListener)
       }
-      }, [props.highlightedNodes]
+      }, [props.highlightedNode]
   );
 
 

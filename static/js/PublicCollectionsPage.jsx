@@ -80,49 +80,51 @@ function CollectionListing({data, showMembership, small}) {
   const imageUrl = data.imageUrl && !small ? data.imageUrl : "/static/icons/collection.svg";
   const imageClass = classNames({collectionListingImage: 1, default: !data.imageUrl});
   const collectionUrl = "/collections/" + data.slug;
-  return (<div className="collectionListing">
-            <div className="left-content">
-              {!small ?
-              <a href={collectionUrl}>
-                <div className="collectionListingImageBox">
-                  <img className={imageClass} src={imageUrl} alt="Collection Logo"/>
-                </div>
-              </a>
-              : null }
-              <div className="collectionListingText">
-                
-                <a href={collectionUrl} className="collectionListingName">
-                  {small ? <img className={imageClass} src={imageUrl} alt="Collection Icon"/> : null}
-                  {data.name}
-                </a>
-               
-                <div className="collectionListingDetails">
-                  {data.listed ? null :
-                    (<span className="unlisted">
-                      <img src="/static/img/eye-slash.svg"/>
-                      <InterfaceText>Unlisted</InterfaceText>
-                    </span>) }
+  return (
+    <div className="collectionListing">
+      <div className="left-content">
+        {!small ?
+        <a href={collectionUrl}>
+          <div className="collectionListingImageBox">
+            <img className={imageClass} src={imageUrl} alt="Collection Logo"/>
+          </div>
+        </a>
+        : null }
+        <div className="collectionListingText">
+          
+          <a href={collectionUrl} className="collectionListingName">
+            {small ? <img className={imageClass} src={imageUrl} alt="Collection Icon"/> : null}
+            {data.name}
+          </a>
+         
+          <div className="collectionListingDetails sans-serif">
+            {data.listed ? null :
+              (<span className="unlisted">
+                <img src="/static/img/eye-slash.svg"/>
+                <InterfaceText>Unlisted</InterfaceText>
+              </span>) }
 
-                  {data.listed ? null :
-                  <span className="collectionListingDetailSeparator">•</span> }
-                  
-                  <span className="collectionListingDetail collectionListingSheetCount">
-                    <InterfaceText>{`${data.sheetCount} `}</InterfaceText>
-                    <InterfaceText>Sheets</InterfaceText>
-                  </span>
+            {data.listed ? null :
+            <span className="collectionListingDetailSeparator">•</span> }
+            
+            <span className="collectionListingDetail collectionListingSheetCount">
+              <InterfaceText>{`${data.sheetCount} `}</InterfaceText>
+              <InterfaceText>Sheets</InterfaceText>
+            </span>
 
-                  {data.memberCount > 1 && small ? 
-                  <span className="collectionListingDetailSeparator">•</span> : null }
+            {data.memberCount > 1 && small ? 
+            <span className="collectionListingDetailSeparator">•</span> : null }
 
-                  {data.memberCount > 1 && small ?
-                  <span className="collectionListingDetail collectionListingMemberCount">
-                    <InterfaceText>{`${data.memberCount} `}</InterfaceText>
-                    <InterfaceText>Editors</InterfaceText>
-                  </span> : null }
-                </div>
-              </div>
-            </div>
-          </div>);
+            {data.memberCount > 1 && small ?
+            <span className="collectionListingDetail collectionListingMemberCount">
+              <InterfaceText>{`${data.memberCount} `}</InterfaceText>
+              <InterfaceText>Editors</InterfaceText>
+            </span> : null }
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 CollectionListing.propTypes = {
   data: PropTypes.object.isRequired,
