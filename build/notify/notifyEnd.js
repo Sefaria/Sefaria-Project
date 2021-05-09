@@ -3,16 +3,16 @@ const { Octokit } = require("@octokit/action");
 const octokit = new Octokit();
 
 const githubURL = process.env.GITHUB_SERVER_URL;
-const githubRepository = process.env.GITHUB_REPOSITORY;
+const [owner, repo] = process.env.GITHUB_REPOSITORY.split("/");
 const slackSuccessUrl = process.env.SLACK_TEST_SUCCESS_WEBHOOK_URL;
 const slackFailureUrl = process.env.SLACK_TEST_FAILURE_WEBHOOK_URL;
 const gitToSlackMap = JSON.parse(process.env.GITUSER_SLACK_MAP);  // map from git id to slack id
 const runId = process.env.GITHUB_RUN_ID;
 const githubSha = process.env.GITHUB_SHA;
-const commitUrl = `${githubURL}${githubRepository}/commit/${githubSha}`;
+const commitUrl = `${githubURL}${owner}/${repo}/commit/${githubSha}`;
 
 console.log(`
-    Repo: ${githubRepository}
+    Repo: ${owner}/${repo}
     Run ID: ${runId}
     SHA: ${githubSha}
     Commit URL: ${commitUrl}
@@ -30,8 +30,8 @@ const jobKeys = [
     // Get the committer via the commit
 
     try {
-        const commit = await octokit.request('GET /repos/{githubRepository}/commits/{githubSha}',
-            {githubRepository, githubSha});
+        const commit = await octokit.request('GET /repos/{owner}/{repo}/commits/{githubSha}',
+            {owner, repo, githubSha});
         const committerLogin = commit.data.committer.login;
         const slackName = gitToSlackMap[committerLogin];
     } catch(err) {
@@ -40,8 +40,8 @@ const jobKeys = [
 
     // Branch name
     try {
-        const actionRun = await octokit.request('GET /repos/{githubRepository}/actions/runs/{runId}',
-            {githubRepository, runId});
+        const actionRun = await octokit.request('GET /repos/{owner}/{repo}/actions/runs/{runId}',
+            {owner, repo, runId});
         const branch = actionRun.data.head_branch;
     } catch(err) {
         console.log(err);
@@ -55,8 +55,8 @@ const jobKeys = [
 
     // Results of the jobs
     try {
-        const actionJobs = await octokit.request('GET /repos/{githubRepository}/actions/runs/{runId}/jobs',
-            {githubRepository, runId});
+        const actionJobs = await octokit.request('GET /repos/{owner}/{repo}/actions/runs/{runId}/jobs',
+            {owner, repo, runId});
 
         const jobsResults = {};
 
@@ -68,7 +68,7 @@ const jobKeys = [
     } catch(err) {
         console.log(err);
     }
-    
+
     // conclusion will be: "success" or "failure"
     // Construct the slack message
     const succeeded = x => x && x.conclusion === "success";
