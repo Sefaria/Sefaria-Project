@@ -29,56 +29,72 @@ const Help = () => (
       </span>
     </div>
 )
-const ProfilePicMenu = ({len, url, name, key}) => {
+const ProfilePicMenu = ({len, url, name}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const timerID = useRef(null);
-  const handleMouseEnter = () => {
-    timerID.current = setTimeout(function(){
-      setIsOpen(false);
-    }, 1000);
-    setIsOpen(true);
-  };
-  const clearTimer = () => {
-    clearTimeout(timerID.current);
+  const wrapperRef = useRef(null);
+  const handleClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    resetOpen();
   }
-  const handleMouseLeave = () => {
-    setTimeout(function(){
-      setIsOpen(false);
-    }, 500);
+  const resetOpen = () => {
+    setIsOpen(isOpen => !isOpen);
+  }
+  const handleHideDropdown = (event) => {
+      if (event.key === 'Escape') {
+          setIsOpen(false);
+      }
   };
+  const handleClickOutside = (event) => {
+      if (
+          wrapperRef.current &&
+          !wrapperRef.current.contains(event.target)
+      ) {
+          setIsOpen(false);
+      }
+  };
+
+  useEffect(() => {
+      document.addEventListener('keydown', handleHideDropdown, true);
+      document.addEventListener('click', handleClickOutside, true);
+      return () => {
+          document.removeEventListener('keydown', handleHideDropdown, true);
+          document.removeEventListener('click', handleClickOutside, true);
+      };
+  }, []);
   const getCurrentPage = () => {
     return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
   }
   return (
-    <div className="interfaceLinks">
-      <div onMouseEnter={handleMouseEnter}>
-        <ProfilePic len={len} url={url} name={name} key={key}/>
-      </div>
-
-      <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
-        <div onMouseEnter={clearTimer} onMouseLeave={handleMouseLeave}>
-          <div className="interfaceLinks-header profile-menu">{name}</div>
-          <div><a className="interfaceLinks-row" href="/my/profile">
-            <span className="int-en">Profile</span>
-            <span className="int-he">פרופיל</span>
-          </a></div>
-          <div><a className="interfaceLinks-row" href="/settings/account">
-            <span className="int-en">Account Settings</span>
-            <span className="int-he">הגדרות</span>
-          </a></div>
-          <div className="interfaceLinks-row">
-            <a href={`/interface/english?next=${getCurrentPage()}`}>English</a>  &middot;  <a href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
-          </div>
-          <div><a className="interfaceLinks-row bottom" href="collections/sefaria-faqs">
-            <span className="int-en">Help</span>
-            <span className="int-he">עזרה</span>
-          </a></div>
-          <div><a className="interfaceLinks-row" href="/logout">
-            <span className="int-en">Logout</span>
-            <span className="int-he">ניתוק</span>
-          </a></div>
+    <div ref={wrapperRef}>
+        <div onClick={handleClick}>
+          <ProfilePic len={len} url={url} name={name}/>
         </div>
-      </div>
+        <div className="interfaceLinks">
+          <div className={`interfaceLinks-menu profile-menu ${ isOpen ? "open" : "closed"}`} onClick={resetOpen}>
+            <div className="interfaceLinks-header profile-menu">{name}</div>
+            <div><a className="interfaceLinks-row top" href="/my/profile">
+              <span className="int-en">Profile</span>
+              <span className="int-he">פרופיל</span>
+            </a></div>
+            <div><a className="interfaceLinks-row" href="/settings/account">
+              <span className="int-en">Account Settings</span>
+              <span className="int-he">הגדרות</span>
+            </a></div>
+            <div className="interfaceLinks-row">
+              <a className="enLink" href={`/interface/english?next=${getCurrentPage()}`}>English</a>  &middot;  <a className="heLink" href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
+            </div>
+            <div><a className="interfaceLinks-row bottom" href="/collections/sefaria-faqs">
+              <span className="int-en">Help</span>
+              <span className="int-he">עזרה</span>
+            </a></div>
+            <div><a className="interfaceLinks-row logout" href="/logout">
+              <span className="int-en">Logout</span>
+              <span className="int-he">ניתוק</span>
+            </a></div>
+
+          </div>
+        </div>
     </div>
   )
 }
@@ -476,7 +492,9 @@ function LoggedInButtons({headerMode}){
   return(
       <div className="accountLinks">
           <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>{Sefaria.notificationCount}</a>
+        <a href="/my/profile" className="my-profile">
           <ProfilePicMenu len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name}/>
+        </a>
        </div>
   );
 }

@@ -517,15 +517,20 @@ input.noselect {
   content: "";
 }
 .header .interfaceLinks .interfaceLinks-menu{
-  top: 35px;
+  top: 10px;
   position: absolute;
   z-index: 1;
-  position: absolute;
   width: 150px;
   background: #FBFBFA;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   border-radius: 6px;
   display: none;
+}
+.header .interfaceLinks .interfaceLinks-header.profile-menu {
+  padding-top: 8px;
+  font-weight: 500;
+  color: #000000;
+  height: 23px;
 }
 .header .interfaceLinks .interfaceLinks-menu.open{
   display: block;
@@ -542,23 +547,22 @@ input.noselect {
   font-size: 13px;
   line-height: 18px;
   color: #999999;
-  padding: 12px;
+  padding: 5px;
   border-bottom: 1px solid #CCCCCC;
 }
 .interface-english .header .interfaceLinks .interfaceLinks-header{
   font-family: "Roboto", "Helvetica Neue", Helvetica, sans-serif;
 }
-.interface-english .header .interfaceLinks .interfaceLinks-header.profile-menu {
-  padding-left: 2px;
-  font-weight: bold;
 
-}
 .interface-hebrew .header .interfaceLinks .interfaceLinks-header{
   font-family: "Heebo", sans-serif;
 }
+
+.interface-english .header .interfaceLinks .interfaceLinks-header.profile-menu {
+  padding-left: 17px;
+}
 .interface-hebrew .header .interfaceLinks .interfaceLinks-header.profile-menu {
-  padding-right: 2px;
-  font-weight: bold;
+  padding-right: 17px;
 }
 
 .interfaceLinks-options{
@@ -582,34 +586,55 @@ input.noselect {
   display: flex;
   text-decoration: none;
   font-style: normal;
-  font-weight: normal;
-  line-height: 23px;
+  font-weight: 400;
+  line-height: 18px;
   text-align: right;
-  color: #666666;
+  color: #000000;
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
   padding: 5px;
-  font-size: 12px;
+  font-size: 14px;
   text-decoration-color: #666666;
+  height: 23px;
 }
+
 div.interfaceLinks-row a:hover {
   text-decoration: none;
+}
+
+div.interfaceLinks-row a.enLink {
+  color: #000000;
+}
+
+div.interfaceLinks-row a.heLink {
   color: #666666;
+}
+
+.header .interfaceLinks .interfaceLinks-row.top {
+  padding-top: 8px;
 }
 
 .header .interfaceLinks .interfaceLinks-row.bottom {
-  font-size: 12px;
+  font-size: 14px;
   border-bottom: 1px solid #CCCCCC;
-  text-decoration-color: #666666;
+  text-decoration-color: #000000;
+}
+
+.header .interfaceLinks .interfaceLinks-row.logout {
+  font-size: 14px;
+  color: #666666;
 }
 
 .interface-hebrew .header .interfaceLinks .interfaceLinks-row {
-  padding-right: 2px;
+  padding-right: 17px;
 }
 
 .interface-english .header .interfaceLinks .interfaceLinks-row {
-  padding-left: 2px;
+  padding-left: 17px;
 }
 
+.header .profile-menu-he {
+  color: #666666;
+}
 
 .header .interfaceLinks .interfaceLinks-option::before{
   content: "";
