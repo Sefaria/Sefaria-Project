@@ -9,7 +9,7 @@ const slackFailureUrl = process.env.SLACK_TEST_FAILURE_WEBHOOK_URL;
 const gitToSlackMap = JSON.parse(process.env.GITUSER_SLACK_MAP);  // map from git id to slack id
 const runId = process.env.GITHUB_RUN_ID;
 const githubSha = process.env.GITHUB_SHA;
-const commitUrl = `${githubURL}${owner}/${repo}/commit/${githubSha}`;
+const commitUrl = `${githubURL}/${owner}/${repo}/commit/${githubSha}`;
 
 console.log(`
     Repo: ${owner}/${repo}
