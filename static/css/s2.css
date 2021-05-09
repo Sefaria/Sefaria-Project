@@ -89,7 +89,7 @@ body, .sans-serif {
 .en, .int-en, * {
   font-family: var(--english-font);
 }
-.he, .int-he {
+.he, .int-he, .he *, .int-he *{
   font-family: var(--hebrew-font);
 }
 .he {
@@ -8167,7 +8167,10 @@ section.SheetSource .SheetOutsideBiText {
   height: 120px;
 }
 
-.interface-hebrew textarea, .interface-hebrew textarea::placeholder {
+.interface-hebrew textarea,
+.interface-hebrew textarea::placeholder,
+.interface-hebrew input,
+{
   font-family: var(--hebrew-sans-serif-font-family);
 }
 
