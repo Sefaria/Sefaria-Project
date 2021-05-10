@@ -4688,7 +4688,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 8px;
 }
 .sheet .sheetTags .unlisted img,
-.collectionListing .collectionListingDetails .unlisted img {
+.collectionListing .collectionListingDetails .unlisted img,
+.tocTop .unlisted img {
   width: 13px;
   height: 13px;
   opacity: 0.4;
@@ -6251,7 +6252,6 @@ a .button:hover {
   font-size: 18px;
   line-height: 1.2;
   color: #666;
-
   /* clicking anywhere will focus the input */
   cursor: text;
 }
@@ -6293,6 +6293,13 @@ a .button:hover {
   font-size: 18px;
   font-style: normal;
 }
+
+body.interface-hebrew .publishBox .react-tags__search-input::placeholder,
+body.interface-hebrew .publishBox textarea::placeholder {
+  font-family: var(--hebrew-sans-serif-font-family);
+
+}
+
 
 
 .publishBox .react-tags__selected-tag:after {
