@@ -454,7 +454,7 @@ class SheetMetadata extends Component {
                         </div>
                     </div> : null }
 
-                    {canEdit ? <div className={"publishBox"}>
+                    {canEdit ? <div className={"publishBox sans-serif-in-hebrew"}>
                       <h3 className={"header"}>
                         <InterfaceText>{this.state.published ? "Publish Settings" : "Publish Sheet"}</InterfaceText>
                       </h3>

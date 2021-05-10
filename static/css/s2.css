@@ -92,9 +92,12 @@ body, .en, .int-en {
 .interface-hebrew, .he, .int-he {
   --is-hebrew: ; /* true */
 }
-.he, .int-he, .he *, .int-he *{
-  font-family: var(--hebrew-font);
+
+* {
+  --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
+  font-family: var(--hebrew-font-conditional, var(--english-font));
 }
+
 .he {
   font-size: 122%;
 }
@@ -4685,8 +4688,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 8px;
 }
 .sheet .sheetTags .unlisted img,
-.collectionListing .collectionListingDetails .unlisted img,
-.tocTop .unlisted img {
+.collectionListing .collectionListingDetails .unlisted img {
   width: 13px;
   height: 13px;
   opacity: 0.4;
