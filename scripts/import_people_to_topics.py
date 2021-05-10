@@ -76,33 +76,32 @@ def import_and_merge_talmud():
                 temp_slug = row[f'Slug {i}']
                 if len(temp_slug) == 0: continue
                 slugs += [temp_slug]
+            main_topic = Topic.init(slugs[0])
+            if main_topic is None:
+                print("NONe")
             if len(slugs) > 1:
-                main_topic = Topic.init(slugs[0])
-                if main_topic is None:
-                    print("NONe")
                 for other_topic in [Topic.init(s) for s in slugs[1:]]:
                     if other_topic is None:
                         print("NONE")
                         continue
                     main_topic.merge(other_topic)
-                    if getattr(main_topic, 'alt_ids', None) is None:
-                        setattr(main_topic, 'alt_ids', {})
-                    if getattr(main_topic, 'properties', None) is None:
-                        setattr(main_topic, 'properties', {})
-                    person = Person().load({"key": row['En']})
-                    if person is None:
-                        print("person none", row['En'])
-                        continue
-                    for prop in ['enWikiLink', 'heWikiLink', 'jeLink', 'generation', 'sex', 'birthYear', 'birthPlace', 'deathYear', 'deathPlace', 'deathYearIsApprox', 'birthYearIsApprox']:
-                        val = getattr(person, prop, None)
-                        if val is None: continue
-                        main_topic.properties[prop] = {
-                            'value': val,
-                            'dataSource': 'person-collection'
-                        }
-                    main_topic.alt_ids['old-person-key'] = row['En']
-                    main_topic.save()
-                print("MERGE", " | ".join(slugs))
+            if getattr(main_topic, 'alt_ids', None) is None:
+                setattr(main_topic, 'alt_ids', {})
+            if getattr(main_topic, 'properties', None) is None:
+                setattr(main_topic, 'properties', {})
+            person = Person().load({"key": row['En']})
+            if person is None:
+                print("person none", row['En'])
+                continue
+            for prop in ['enWikiLink', 'heWikiLink', 'jeLink', 'generation', 'sex', 'birthYear', 'birthPlace', 'deathYear', 'deathPlace', 'deathYearIsApprox', 'birthYearIsApprox']:
+                val = getattr(person, prop, None)
+                if val is None: continue
+                main_topic.properties[prop] = {
+                    'value': val,
+                    'dataSource': 'person-collection'
+                }
+            main_topic.alt_ids['old-person-key'] = row['En']
+            main_topic.save()
 
 def migrate_to_person_data_source():
     for t in TopicSet():
@@ -353,6 +352,53 @@ def set_description_published():
         t.description_published = True
         t.save()
 
+def create_topic_tocs():
+    Topic({
+        "slug": "talmudic-figures",
+        "titles": [{
+            "text": "Talmudic Figures",
+            "lang": "en",
+            "primary": True
+        },{
+            "text": "דמויות מהתלמוד",
+            "lang": "he",
+            "primary": True
+        }],
+        "isTopLevelDisplay": True,
+        "displayOrder": 100
+    }).save()
+    Topic({
+        "slug": "authors",
+        "titles": [{
+            "text": "Authors",
+            "lang": "en",
+            "primary": True
+        },{
+            "text": "מחברים",
+            "lang": "he",
+            "primary": True
+        }],
+        "isTopLevelDisplay": True,
+        "displayOrder": 101
+    }).save()
+
+    for p in PersonSet():
+        t = Topic.get_person_by_key(p.key)
+        if not t:
+            continue
+        to_topic = "authors" if p.is_post_talmudic() else "talmudic-figures"
+        try:
+            IntraTopicLink({
+                "toTopic": to_topic,
+                "fromTopic": t.slug,
+                "generatedBy": "import_people_to_topics",
+                "dataSource": "sefaria",
+                "linkType": "displays-under"
+            }).save()
+        except InputError as e:
+            print(e)
+
+
 if __name__ == "__main__":
     # create_csvs_to_match()
     # create_csv_of_all_topics()
@@ -362,5 +408,6 @@ if __name__ == "__main__":
     import_and_merge_authors()
     refactor_authors_on_indexes()
     import_people_links()
+    create_topic_tocs()
 
     # set_description_published()
