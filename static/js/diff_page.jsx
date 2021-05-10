@@ -86,10 +86,10 @@ class PageLoader extends Component {
     super(props);
     this.state = {
       secRef: this.props.secRef,
-          v1: this.props.v1,
-          v2: this.props.v2,
-        lang: this.props.lang,
- nextChapter: null
+      v1: this.props.v1,
+      v2: this.props.v2,
+      lang: this.props.lang,
+      nextChapter: null
     };
   //this.handlePublish = this.handlePublish.bind(this);
   }
