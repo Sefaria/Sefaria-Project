@@ -4013,42 +4013,12 @@ def person_page_redirect(request, name):
     return redirect(iri_to_uri(url), permanent=True)
 
 
-def person_index(request):
+def person_index_redirect(request):
+    return redirect(iri_to_uri('/topics/category/authors'), permanent=True)
+    
 
-    eras = ["GN", "RI", "AH", "CO"]
-    template_vars = {
-        "eras": []
-    }
-    for era in eras:
-        tp = TimePeriod().load({"symbol": era})
-        template_vars["eras"].append(
-            {
-                "name_en": tp.primary_name("en"),
-                "name_he": tp.primary_name("he"),
-                "years_en": tp.period_string("en"),
-                "years_he": tp.period_string("he"),
-                "people": [p for p in PersonSet({"era": era}, sort=[('deathYear', 1)]) if p.has_indexes()]
-            }
-        )
-
-    return render_template(request,'people.html', None, template_vars)
-
-
-def talmud_person_index(request):
-    gens = TimePeriodSet.get_generations()
-    template_vars = {
-        "gens": []
-    }
-    for gen in gens:
-        people = gen.get_people_in_generation()
-        template_vars["gens"].append({
-            "name_en": gen.primary_name("en"),
-            "name_he": gen.primary_name("he"),
-            "years_en": gen.period_string("en"),
-            "years_he": gen.period_string("he"),
-            "people": [p for p in people]
-        })
-    return render_template(request,'talmud_people.html', None, template_vars)
+def talmud_person_index_redirect(request):
+    return redirect(iri_to_uri('/topics/category/talmudic-figures'), permanent=True)
 
 
 def _get_sheet_tag_garden(tag):
