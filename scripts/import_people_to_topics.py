@@ -211,6 +211,7 @@ def import_and_merge_authors():
                 description[prop[:2]] = val
             if len(description) > 0:
                 main_author.description = description
+                main_author.description_published = True
             main_author.save()
             if len(author_slugs) > 0:
                 for a in author_slugs:
@@ -343,6 +344,12 @@ def import_people_links():
                 print(e)
             except InputError as e:
                 print(e)
+
+def set_description_published():
+    for t in TopicSet({"description": {"$exists": True}, "alt_ids.old-person-key": {"$exists": True}}):
+        t.description_published = True
+        t.save()
+
 if __name__ == "__main__":
     # create_csvs_to_match()
     # create_csv_of_all_topics()
@@ -352,3 +359,5 @@ if __name__ == "__main__":
     import_and_merge_authors()
     refactor_authors_on_indexes()
     import_people_links()
+
+    # set_description_published()
