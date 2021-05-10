@@ -11,45 +11,41 @@ import Component             from 'react-class';
 class VersionsBox extends Component {
   constructor(props) {
     super(props);
-    const initialCurrVersions = {};
-    for (let vlang in props.currObjectVersions) {
-      const tempV = props.currObjectVersions[vlang];
-      initialCurrVersions[vlang] = !!tempV ? tempV.versionTitle : null;
-    }
+    this._excludedLangs = ["he"];
     this.state = {
       versionLangMap: null,  // object with version languages as keys and array of versions in that lang as values
-      initialCurrVersions,
       initialMainVersionLanguage: props.mainVersionLanguage,
     };
   }
   componentDidMount() {
-    Sefaria.versions(this.props.sectionRef, false, null, false).then(this.onVersionsLoad);
+    Sefaria.versions(this.props.sectionRef, true, this._excludedLangs, true).then(this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.sectionRef !== this.props.sectionRef) {
-      Sefaria.versions(this.props.sectionRef,false, null, false).then(this.onVersionsLoad);
+      Sefaria.versions(this.props.sectionRef,true, this._excludedLangs, true).then(this.onVersionsLoad);
     }
   }
   onVersionsLoad(versions) {
-    const versionLangMap = {};
-    for (let v of versions) {
-      const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2})\\]$")); // two-letter ISO language code
-      const lang = matches ? matches[1] : v.language;
-      //if version is the initial one selected, put it first
-      versionLangMap[lang] = !!versionLangMap[lang] ?
-        (this.state.initialCurrVersions[lang] === v.versionTitle ? [v].concat(versionLangMap[lang]) : versionLangMap[lang].concat(v)) : [v];
+    //rearrange the current selected versions to be mapped by their real language,
+    // then sort the current version to the top of its language list
+    let versionsByLang = versions;
+    let currentVersionsByActualLangs = Object.values(this.props.currObjectVersions)
+          .filter(v => !!v && !this._excludedLangs.includes(v.actualLanguage))
+          .reduce((obj, version) => {
+            obj[version.actualLanguage] = version;
+            return obj;
+          }, {});
+    for(let v in currentVersionsByActualLangs){
+      let ver = currentVersionsByActualLangs[v];
+      versionsByLang[v].sort((a, b) => {return a.versionTitle == ver.versionTitle ? -1 : b.versionTitle == ver.versionTitle ? 1 : 0;});
     }
+    this.setState({versionLangMap: versionsByLang});
+  }
 
-    //sort versions by language so that
-    //- mainVersionLanguage shows up first
-    //- standard_langs show up second
-    //- everything else shows up in alphabetical order
-    this.setState({versionLangMap});
-  };
   openVersionInSidebar(versionTitle, versionLanguage) {
     this.props.setConnectionsMode("Translation Open");
     this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
-  };
+  }
   sortVersionsByActiveLang(prioritize=null){
     const standard_langs = ["en", "he"];
     return Object.keys(this.state.versionLangMap).sort(
