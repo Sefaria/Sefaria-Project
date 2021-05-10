@@ -246,7 +246,7 @@ def import_people_links():
         "inverseSlug" : "grandparent-of", 
         "displayName" : {
             "en" : "Grandparent", 
-            "he" : "סבא או סבתא"
+            "he" : "סב"
         }, 
         "inverseDisplayName" : {
             "en" : "Grandchild", 
