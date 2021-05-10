@@ -23,11 +23,11 @@ class VersionsBox extends Component {
     };
   }
   componentDidMount() {
-    Sefaria.versions(this.props.sectionRef, this.onVersionsLoad);
+    Sefaria.versions(this.props.sectionRef, false, null, false).then(this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.sectionRef !== this.props.sectionRef) {
-      Sefaria.versions(this.props.sectionRef, this.onVersionsLoad);
+      Sefaria.versions(this.props.sectionRef,false, null, false).then(this.onVersionsLoad);
     }
   }
   onVersionsLoad(versions) {
