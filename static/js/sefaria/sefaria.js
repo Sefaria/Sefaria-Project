@@ -456,17 +456,16 @@ Sefaria = extend(Sefaria, {
   _translateVersions: {},
   versions: function(ref, cb) {
     // Returns a list of available text versions for `ref`.
-    let versions = ref in this._versions ? this._versions[ref] : null;
-    if (versions) {
-      if (cb) {cb(versions)}
-      return versions
+    let versionsInCache = ref in this._versions;
+    if(!versionsInCache){
+        const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
+        return this._ApiPromise(url)
+        .then(d => {
+            this._saveVersions(ref, d)
+        });
     }
-    const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
-    this._api(url, function(data) {
-      this._saveVersions(ref, data)
-      if (cb) { cb(data); }
-    });
-    return versions;
+    if (cb) { cb(this._versions[ref]); }
+    return this._versions[ref];
   },
   _saveVersions: function(ref, versions){
       for (let v of versions) {
@@ -475,8 +474,20 @@ Sefaria = extend(Sefaria, {
           he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
         };
       }
-      Sefaria._versions[ref] = versions;
+      let versionStore = {};
+      let generalCount = 0;
+      debugger;
+      for (let v of versions) {
+        generalCount++;
+        const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2})\\]$")); // two-letter ISO language code
+        const lang = matches ? matches[1] : v.language;
+        //Sort each language into its own bucket
+        //For each version either create a new object for that lang with a new count integer, or increment the existing one
+        versionStore[lang] = !!versionStore[lang] ? versionStore[lang].concat(v)  :  [v];
+      }
+      Sefaria._versions[ref] = versionStore;
   },
+
   getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
   deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
   _textUrl: function(ref, settings) {
