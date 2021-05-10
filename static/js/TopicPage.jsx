@@ -560,7 +560,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
         return a.title.en.localeCompare(b.title.en);
       })
       .map(({ title, pluralTitle, links }) => {
-        const hasPlural = links.length > 1 && pluralTitle;
+        const hasPlural = links.filter(l => l.shouldDisplay !== false).length > 1 && pluralTitle;
         const pluralizedTitle = {
           en: hasPlural ? pluralTitle.en : title.en,
           he: hasPlural ? pluralTitle.he : title.he,
