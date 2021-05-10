@@ -1306,26 +1306,6 @@ class ReaderApp extends Component {
     }
     return licenseMap;
   }
-  translateISOLanguageCode(code) {
-    //takes two-letter ISO 639.2 code and returns full language name
-    const codeMap = {
-      "en": "English",
-      "he": "Hebrew",
-      "yi": "Yiddish",
-      "fi": "Finnish",
-      "pt": "Portuguese",
-      "es": "Spanish",
-      "fr": "French",
-      "de": "German",
-      "ar": "Arabic",
-      "it": "Italian",
-      "pl": "Polish",
-      "ru": "Russian",
-      "eo": "Esparanto",
-      "fa": "Farsi",
-    };
-    return codeMap[code.toLowerCase()] || code;
-  }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
     var panel = this.state.panels[n];
@@ -1871,7 +1851,6 @@ class ReaderApp extends Component {
                     panelsOpen={panelStates.length}
                     analyticsInitialized={this.state.initialAnalyticsTracked}
                     getLicenseMap={this.getLicenseMap}
-                    translateISOLanguageCode={this.translateISOLanguageCode}
                     openTopic={this.openTopic}
                     toggleSignUpModal={this.toggleSignUpModal} />) : null;
     var panels = [];
@@ -1959,7 +1938,6 @@ class ReaderApp extends Component {
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       getLicenseMap={this.getLicenseMap}
-                      translateISOLanguageCode={this.translateISOLanguageCode}
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}
                       toggleSignUpModal={this.toggleSignUpModal}

@@ -451,7 +451,26 @@ Sefaria = extend(Sefaria, {
     }.bind(this));
     return null;
   },
-
+  translateISOLanguageCode(code) {
+    //takes two-letter ISO 639.2 code and returns full language name
+    const codeMap = {
+      "en": "English",
+      "he": "Hebrew",
+      "yi": "Yiddish",
+      "fi": "Finnish",
+      "pt": "Portuguese",
+      "es": "Spanish",
+      "fr": "French",
+      "de": "German",
+      "ar": "Arabic",
+      "it": "Italian",
+      "pl": "Polish",
+      "ru": "Russian",
+      "eo": "Esparanto",
+      "fa": "Farsi",
+    };
+    return codeMap[code.toLowerCase()] || code;
+  },
   _versions: {},
   _translateVersions: {},
   versions: async function(ref, byLang, filter, excludeFilter) {

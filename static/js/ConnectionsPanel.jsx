@@ -576,7 +576,6 @@ class ConnectionsPanel extends Component {
                   srefs={this.props.srefs}
                   vFilter={this.props.versionFilter}
                   recentVFilters={this.props.recentVersionFilters}
-                  translateISOLanguageCode={this.props.translateISOLanguageCode}
                   setConnectionsMode={this.props.setConnectionsMode}
                   getLicenseMap={this.props.getLicenseMap}
                   setFilter={this.props.setVersionFilter}
@@ -653,7 +652,6 @@ ConnectionsPanel.propTypes = {
   contentLang:             PropTypes.string,
   getLicenseMap:           PropTypes.func.isRequired,
   masterPanelLanguage:     PropTypes.oneOf(["english", "bilingual", "hebrew"]),
-  translateISOLanguageCode:PropTypes.func.isRequired,
   versionFilter:           PropTypes.array,
   recentVersionFilters:    PropTypes.array,
   setVersionFilter:        PropTypes.func.isRequired,

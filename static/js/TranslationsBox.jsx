@@ -81,7 +81,7 @@ class TranslationsBox extends Component {
         {
           versionLangs.map((lang) => (
             <div key={lang}>
-              <div className="versionLanguage">{Sefaria._(this.props.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${this.state.versionLangMap[lang].length})`}</span></div>
+              <div className="versionLanguage">{Sefaria._(Sefaria.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${this.state.versionLangMap[lang].length})`}</span></div>
               {
                 this.state.versionLangMap[lang].map((v) => (
                   <VersionBlock
@@ -139,7 +139,6 @@ TranslationsBox.propTypes = {
   recentVFilters:           PropTypes.array,
   srefs:                    PropTypes.array.isRequired,
   getLicenseMap:            PropTypes.func.isRequired,
-  translateISOLanguageCode: PropTypes.func.isRequired,
   setConnectionsMode:       PropTypes.func.isRequired,
   setFilter:                PropTypes.func.isRequired,
   selectVersion:            PropTypes.func.isRequired,

@@ -761,7 +761,6 @@ class ReaderPanel extends Component {
           clearNamedEntity={this.props.clearNamedEntity}
           getLicenseMap={this.props.getLicenseMap}
           masterPanelLanguage={this.props.masterPanelLanguage}
-          translateISOLanguageCode={this.props.translateISOLanguageCode}
           versionFilter={this.state.versionFilter}
           recentVersionFilters={this.state.recentVersionFilters}
           setVersionFilter={this.setVersionFilter}
@@ -1161,7 +1160,6 @@ ReaderPanel.propTypes = {
   setSelectedWords:            PropTypes.func,
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,
-  translateISOLanguageCode:    PropTypes.func.isRequired,
   setVersionFilter:            PropTypes.func,
   saveLastPlace:               PropTypes.func,
   checkIntentTimer:            PropTypes.func,
