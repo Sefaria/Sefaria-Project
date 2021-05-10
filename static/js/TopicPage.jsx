@@ -545,7 +545,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
   const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} />;
   const indexesComponent = (indexes && indexes.length) ? (
     <TopicSideSection title={{en: "Works", he: "Works"}} hasMore={indexes.length > 10}>
-      {indexes.map(({en, he, url}) => <SimpleLinkedBlock key={url} en={en} he={he} url={url} aclasses={'relatedTopic'} />)}
+      {indexes.map(({en, he, url}) => <SimpleLinkedBlock key={url} en={en} he={he} url={'/' + url} aclasses={'relatedTopic'} />)}
     </TopicSideSection>
   ) : null;
   const linksComponent = (
