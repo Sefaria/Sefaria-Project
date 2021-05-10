@@ -75,19 +75,22 @@ a {
 body, .sans-serif {
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
-  --is-serif: initial;
+  --is-serif: initial; /* false */
 }
 .serif {
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-serif-font-family);
-  --is-serif: ;
+  --is-serif: ; /* true */
 }
 .sans-serif-in-hebrew {
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
-.en, .int-en, * {
-  font-family: var(--english-font);
+body, .en, .int-en {
+  --is-hebrew: initial; /* false */
+}
+.interface-hebrew, .he, .int-he {
+  --is-hebrew: ; /* true */
 }
 .he, .int-he, .he *, .int-he *{
   font-family: var(--hebrew-font);
@@ -120,7 +123,6 @@ body, .sans-serif {
   border-radius: 7px;
   cursor: pointer;
   font-size: 16px;
-  letter-spacing: 0.1em;
   box-sizing: border-box;
   line-height: 19px;
   text-align: center;
@@ -880,7 +882,8 @@ input.noselect {
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   z-index: 1000000 !important;
-  font-family: var(--english-serif-font-family);
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
 }
 .header > .ui-autocomplete {
   z-index: 1000 !important;
@@ -958,7 +961,6 @@ input.noselect {
   height: 100%;
   overflow: hidden;
   background-color: inherit;
-  font-family: var(--english-serif-font-family);
 }
 .readerContent {
   width: 100%;
@@ -3154,7 +3156,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .searchContent .result .similar-trigger-box {
   color: #999;
   font-weight: lighter;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   text-transform: uppercase;
   letter-spacing: 1px;
   font-size: 11px;
@@ -3272,6 +3275,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .dark .readerControls .readerTextToc .readerTextTocBox {
   color: white;
 }
+.readerNavMenuCloseButton {
+  font-family: var(--english-serif-font-family);
+}
 .readerControls.connectionsHeader {
   background-color: #F3F3F2;
   white-space: nowrap;
@@ -3322,11 +3328,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
 }
 .readerControls .readerTextToc .readerTextTocBox h1 {
-    display: unset;
-    font-size: unset;
-    font-weight: unset;
-    margin-block-start: unset;
-    margin-block-end: unset;
+  display: unset;
+  font-size: unset;
+  font-weight: unset;
+  margin-block-start: unset;
+  margin-block-end: unset;
 }
 .readerControls .readerTextToc .readerTextTocBox a {
   display: flex;
@@ -3563,11 +3569,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 2px auto 20px auto;
   /*margin-left: 1px;*/
 }
-.interface-hebrew .toggleSet.aliyotTorah, .interface-hebrew .toggleSet .toggle-set-label{
-  font-family: "Heebo", sans-serif;
-}
-.interface-english .toggleSet.aliyotTorah, .interface-english .toggleSet .toggle-set-label{
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+.toggleSet.aliyotTorah, .toggleSet .toggle-set-label {
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--english-sans-serif-font-family);
   text-transform: uppercase;
 }
 .toggleSet .toggle-set-label{
@@ -4621,7 +4625,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .textList .note .noteAuthor {
   color: #666;
   font-size: 16px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin: auto 14px;
 }
 .textList .sheet .sheetTitle {
@@ -4646,7 +4649,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 6px;
   font-size: 13px;
   color: #999;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   text-align: left;
 }
 .textList .sheet .sheetTag {
@@ -5764,10 +5766,11 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 0.1em;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   box-sizing: border-box;
   line-height: 19px;
   text-align: center;
+  --english-font: var(--english-sans-serif-font-family);
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
 }
 a.button {
   color: white;
@@ -6462,42 +6465,43 @@ body.interface-english .publishBox .react-tags__suggestions ul {
   display: block;
   text-align: center;
   font-size: 16px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   margin-bottom: 20px;
   color: #666;
+  --hebrew-font: var(--hebrew-serif-font-family);
+  --english-font: var(--english-serif-font-family);
+  direction: ltr;
 }
 .collectionPage .collectionDescription {
   font-size: 16px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   color: #333;
   text-align: center;
   line-height: 1.3;
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  --english-font: var(--english-sans-serif-font-family);
 }
-.collectionPage .collectionDescription .he {
-  font-family: "Heebo", sans-serif;
-  font-size: 16px;
+.collectionPage .collectionDescription .dedication {
+  --hebrew-font: var(--hebrew-serif-font-family);
+  --english-font: var(--english-serif-font-family);
 }
 .collectionPage .collectionDescription .en .dedication {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-style: italic;
   font-size: 18px;
 }
 .collectionPage .collectionDescription .he .dedication {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
   font-size: 20px;
 }
 .collectionPage .tabs {
   text-align: center;
   margin-bottom: 60px;
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
+  --english-font: var(--english-sans-serif-font-family);
 }
 .collectionPage .bubbleTab {
   font-size: 16px;
 }
-.collectionPage .tagsList .int-en {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-.collectionPage .tagsList .int-he {
-  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+.collectionPage .tagsList {
+  --hebrew-font: var(--hebrew-serif-font-family);
+  --english-font: var(--english-serif-font-family);
 }
 .collectionPage .emptyMessage {
   text-align: center;
@@ -8127,15 +8131,12 @@ section.SheetSource .SheetOutsideBiText {
   padding: 120px 60px;
   box-sizing: border-box;
 }
-
 .interface-hebrew .feedbackOverlay {
   direction: rtl;
 }
-
 .feedbackOverlay .buttonContainer {
   margin-top: 50px;
 }
-
 .feedbackOverlay h2 {
   font-size: 30px;
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
@@ -8144,7 +8145,6 @@ section.SheetSource .SheetOutsideBiText {
   text-transform: none;
   max-width: 600px;
 }
-
 .feedbackOverlay p, .feedbackOverlay ul  {
   font-size: 16px;
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -8152,7 +8152,6 @@ section.SheetSource .SheetOutsideBiText {
   max-width: 600px;
   margin: 10px auto;
 }
-
 .feedbackOverlay textarea {
   font-size: 18px;
   color: #000;
@@ -8173,25 +8172,20 @@ section.SheetSource .SheetOutsideBiText {
 {
   font-family: var(--hebrew-sans-serif-font-family);
 }
-
 .feedbackOverlay textarea::placeholder {
   font-size: 16px;
   font-style: normal;
   color: #666;
 }
-
 .feedbackOverlay a {
   color: #4871bf;
 }
-
 .feedbackOverlay .button {
   margin: 0;
 }
-
 .feedbackOverlay a.button  {
   color: white;
 }
-
 .sheetList .sheet {
   border-bottom: none;
 }
@@ -8205,7 +8199,6 @@ section.SheetSource .SheetOutsideBiText {
 }
 .sheetList .sheet .sheetTags {
   color: #999;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
 }
 .sheetList .sheet .sheetTags .bullet {
   margin: 0 5px;

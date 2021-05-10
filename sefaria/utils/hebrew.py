@@ -399,6 +399,7 @@ def encode_hebrew_numeral(n, punctuation=True):
 
 	return ret
 
+
 @memoized
 def encode_hebrew_daf(daf):
 	"""

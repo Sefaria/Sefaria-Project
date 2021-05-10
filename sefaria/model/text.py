@@ -2995,7 +2995,9 @@ class Ref(object, metaclass=RefCacheType):
     def is_segment_level(self):
         """
         Is this Ref segment (e.g. Verse) level?
+
         ::
+
             >>> Ref("Leviticus 15:3").is_segment_level()
             True
             >>> Ref("Leviticus 15").is_segment_level()
