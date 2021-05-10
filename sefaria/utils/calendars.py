@@ -115,7 +115,7 @@ def arukh_hashulchan(datetime_obj):
     display_he = rf.he_normal()
     items.append({
         "title": {"en": "Arukh HaShulchan Yomi", "he": 'ערוך השולחן היומי'},
-        "displayValue": {"en": display_en, "he": display_he},
+        "displayValue": {"en": display_en.replace("Arukh HaShulchan, ", ""), "he": display_he.replace("ערוך השולחן, ", "")},
         "url": rf.url(),
         "ref": rf.normal(),
         "order": 10,
@@ -152,18 +152,18 @@ def tanakh_yomi(datetime_obj):
     database_obj = db.tanakh_yomi.find_one({"date": {"$eq": datetime_obj}})
     if not database_obj:
         return []
-    for rf in database_obj["refs"]:
-        rf = model.Ref(rf)
-        display_en = rf.normal()
-        display_he = rf.he_normal()
-        tanakh_items.append({
-            "title": {"en": "Tanakh Yomi", "he": 'תנ"ך יומי'},
-            "displayValue": {"en": display_en, "he": display_he},
-            "url": rf.url(),
-            "ref": rf.normal(),
-            "order": 11,
-            "category": rf.index.get_primary_category()
-        })
+    rf = database_obj["ref"]
+    rf = model.Ref(rf)
+    display_en = database_obj["displayValue"]
+    display_he = database_obj["heDisplayValue"]
+    tanakh_items.append({
+        "title": {"en": "Tanakh Yomi", "he": 'תנ"ך יומי'},
+        "displayValue": {"en": display_en, "he": display_he},
+        "url": rf.url(),
+        "ref": rf.normal(),
+        "order": 11,
+        "category": rf.index.get_primary_category()
+    })
     return tanakh_items
 
 @graceful_exception(logger=logger, return_value=[])
