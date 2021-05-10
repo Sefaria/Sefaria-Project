@@ -454,18 +454,37 @@ Sefaria = extend(Sefaria, {
 
   _versions: {},
   _translateVersions: {},
-  versions: function(ref, cb) {
-    // Returns a list of available text versions for `ref`.
+  versions: async function(ref, byLang, filter, excludeFilter) {
+      /**
+       * Returns a list of available text versions for `ref`.
+       *
+       * byLang: whether to return an object bucketed by actual version language or a list
+       * filter: array filter which languages ISO codes
+       * excludeFilter: if the filter should be including the filter value or excluding it.
+       */
     let versionsInCache = ref in this._versions;
-    if(!versionsInCache){
+    if(!versionsInCache) {
         const url = Sefaria.apiHost + "/api/texts/versions/" + Sefaria.normRef(ref);
-        return this._ApiPromise(url)
-        .then(d => {
-            this._saveVersions(ref, d)
+        await this._ApiPromise(url).then(d => {
+            this._saveVersions(ref, d);
         });
     }
-    if (cb) { cb(this._versions[ref]); }
-    return this._versions[ref];
+    return Promise.resolve(this._filterVersions(this._versions[ref], ref, byLang, filter, excludeFilter));
+  },
+  _filterVersions: function(versions, ref, byLang, filter, excludeFilter){
+    let tempValue;
+    if(filter?.length){ // we filter out the languages we want bu filtering on the array of keys and then creating a new object on the fly with only those keys
+        tempValue = Object.keys(versions[ref])
+          .filter(key => { return !excludeFilter ? filter.includes(key) : !filter.includes(key)})
+          .reduce((obj, key) => {
+            obj[key] = versions[ref][key];
+            return obj;
+          }, {});
+    }else{
+       tempValue = this._versions[ref];
+    }
+    let finalValue = byLang ? tempValue : Object.values(tempValue).flat();
+    return finalValue;
   },
   _saveVersions: function(ref, versions){
       for (let v of versions) {
@@ -476,16 +495,16 @@ Sefaria = extend(Sefaria, {
       }
       let versionStore = {};
       let generalCount = 0;
-      debugger;
       for (let v of versions) {
         generalCount++;
         const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2})\\]$")); // two-letter ISO language code
         const lang = matches ? matches[1] : v.language;
+        v.actualLanguage = lang;
         //Sort each language into its own bucket
-        //For each version either create a new object for that lang with a new count integer, or increment the existing one
         versionStore[lang] = !!versionStore[lang] ? versionStore[lang].concat(v)  :  [v];
       }
       Sefaria._versions[ref] = versionStore;
+      return versionStore;
   },
 
   getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
