@@ -674,6 +674,8 @@ def topics_toc_page(request, topicCategory):
     List of topics in a category.
     """
     topic_obj = Topic.init(topicCategory)
+    if not topic_obj:
+        raise Http404
     props={
         "initialMenu": "navigation",
         "initialNavigationTopicCategory": topicCategory,
