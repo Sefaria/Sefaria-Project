@@ -7,7 +7,7 @@ import PropTypes  from 'prop-types';
 import DjangoCSRF  from './lib/django-csrf';
 import DiffMatchPatch  from 'diff-match-patch';
     import Component from 'react-class';  //auto-bind this to all event-listeners. see https://www.npmjs.com/package/react-class
-
+//TODO: fix the language selector to include any available language, not just English and Hebrew
 function changePath(newPath) {
   const newUrl = window.location.origin + newPath;
   window.location.assign(newUrl);
