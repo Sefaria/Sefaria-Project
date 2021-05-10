@@ -560,17 +560,17 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
         return a.title.en.localeCompare(b.title.en);
       })
       .map(({ title, pluralTitle, links }) => {
-        const hasPlural = links.filter(l => l.shouldDisplay !== false).length > 1 && pluralTitle;
+        const linksToDisplay = links.filter(l => l.shouldDisplay !== false);
+        const hasPlural = linksToDisplay.length > 1 && pluralTitle;
         const pluralizedTitle = {
           en: hasPlural ? pluralTitle.en : title.en,
           he: hasPlural ? pluralTitle.he : title.he,
         };
-        const hasMore = links.filter(l=>l.shouldDisplay !== false).length > 10;
+        const hasMore = linksToDisplay.length > 10;
         return (
           <TopicSideSection key={title.en+title.he} title={pluralizedTitle} hasMore={hasMore}>
             {
-              links
-              .filter(l => l.shouldDisplay !== false)
+              linksToDisplay
               .sort((a, b) => {
                 const shortLang = interfaceLang == 'hebrew' ? 'he' : 'en';
                 if (!!a.title[shortLang] !== !!b.title[shortLang]) {
