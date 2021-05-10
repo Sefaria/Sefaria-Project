@@ -469,19 +469,19 @@ Sefaria = extend(Sefaria, {
             this._saveVersions(ref, d);
         });
     }
-    return Promise.resolve(this._filterVersions(this._versions[ref], ref, byLang, filter, excludeFilter));
+    return Promise.resolve(this._filterVersions(this._versions[ref], byLang, filter, excludeFilter));
   },
-  _filterVersions: function(versions, ref, byLang, filter, excludeFilter){
+  _filterVersions: function(versions, byLang, filter, excludeFilter){
     let tempValue;
     if(filter?.length){ // we filter out the languages we want bu filtering on the array of keys and then creating a new object on the fly with only those keys
-        tempValue = Object.keys(versions[ref])
+        tempValue = Object.keys(versions)
           .filter(key => { return !excludeFilter ? filter.includes(key) : !filter.includes(key)})
           .reduce((obj, key) => {
-            obj[key] = versions[ref][key];
+            obj[key] = versions[key];
             return obj;
           }, {});
     }else{
-       tempValue = this._versions[ref];
+       tempValue = versions;
     }
     let finalValue = byLang ? tempValue : Object.values(tempValue).flat();
     return finalValue;
