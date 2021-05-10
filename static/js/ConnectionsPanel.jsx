@@ -40,7 +40,7 @@ class ConnectionsPanel extends Component {
       flashMessage: null,
       currObjectVersions: {en: null, he: null},
       mainVersionLanguage: props.masterPanelLanguage === "bilingual" ? "hebrew" : props.masterPanelLanguage,
-      availableVersions: [],
+      availableTranslations: [],
       linksLoaded: false, // has the list of refs been loaded
       connectionSummaryCollapsed: true,
     };
@@ -151,7 +151,7 @@ class ConnectionsPanel extends Component {
     return Sefaria.sectionRef(Sefaria.humanRef(this.props.srefs)) || this.props.srefs;
   }
   loadData() {
-    var ref = this.sectionRef();
+    let ref = this.sectionRef();
     if (!Sefaria.related(ref)) {
         Sefaria.related(ref, function (data) {
             if (this._isMounted) {
@@ -166,6 +166,7 @@ class ConnectionsPanel extends Component {
           linksLoaded: true,
         });
     }
+    Sefaria.versions(ref, false, ["he"], true).then(versions => this.setState({availableTranslations: versions})); //for counting translations
   }
   reloadData() {
     this.setState({
@@ -227,7 +228,6 @@ class ConnectionsPanel extends Component {
                   he: (this.props.masterPanelLanguage != "english" && !!data.he.length) ? this.getVersionFromData(data, "he") : null,
               },
               mainVersionLanguage: currentLanguage,
-              availableVersions: data.versions,
               sectionRef: data.sectionRef,
           });
       });
