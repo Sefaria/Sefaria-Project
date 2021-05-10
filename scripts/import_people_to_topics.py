@@ -2,6 +2,7 @@ import django, re, csv, json, srsly
 from tqdm import tqdm
 django.setup()
 from sefaria.model import *
+from sefaria.system.exceptions import InputError
 from collections import defaultdict
 
 def create_csvs_to_match():
@@ -213,7 +214,10 @@ def import_and_merge_authors():
                 "dataSource": "sefaria",
                 "generatedBy": "import_people_to_topics"
             })
-            # itl.save()
+            try:
+                itl.save()
+            except InputError as e:
+                print(e)
 
             
 
@@ -237,24 +241,97 @@ def refactor_authors_on_indexes():
 
 
 def import_people_links():
+    TopicLinkType({
+        "slug": "grandchild-of",
+        "inverseSlug" : "grandparent-of", 
+        "displayName" : {
+            "en" : "Grandparent", 
+            "he" : "סבא או סבתא"
+        }, 
+        "inverseDisplayName" : {
+            "en" : "Grandchild", 
+            "he" : "נכד"
+        }, 
+        "pluralDisplayName" : {
+            "en" : "Grandparents", 
+            "he" : "סבים"
+        }, 
+        "inversePluralDisplayName" : {
+            "en" : "Grandchildren", 
+            "he" : "נכדים"
+        }, 
+        "shouldDisplay" : True, 
+        "inverseShouldDisplay" : True, 
+        "validFrom" : [
+            "people"
+        ], 
+        "validTo" : [
+            "people"
+        ]
+    }).save()
+    Topic({
+        "slug": "group-of-rishon-people",
+        "titles": [{
+            "text": "group of rishon people",
+            "lang": "en",
+            "primary": True
+        }],
+        "shouldDisplay": False
+    }).save()
+    IntraTopicLink({
+        "toTopic": "group-of-people",
+        "fromTopic": "group-of-rishon-people",
+        "linkType": "is-a",
+        "dataSource": "sefaria",        
+    }).save()
+    tos_link = IntraTopicLink().load({"linkType": "is-a", "fromTopic": "tosafot1"})
+    tos_link.toTopic = "group-of-rishon-people"
+    tos_link.save()
     rel_to_link_type = {
         "student": "taught",
         "child": "child-of",
         "childinlaw": "child-in-law-of",
-        "grandchild": "grandchild-of",  # 
+        "grandchild": "grandchild-of",
         "member": "member-of",
         "correspondent": "corresponded-with",
         "opposed": "opposed",
         "cousin": "cousin-of"
     }
+    topics_by_person = defaultdict(list)
+    for t in TopicSet({"alt_ids.old-person-key": {"$exists": True}}):
+        topics_by_person[t.alt_ids['old-person-key']] += [t]
     authors = {p.key for p in PersonSet({"generation": {"$exists": False}})}
     for rel in PersonRelationshipSet():
         if rel.from_key in authors or rel.to_key in authors:
-            print(rel.from_key, rel.to_key)
-
+            to_topics = topics_by_person[rel.to_key]
+            try:
+                assert len(to_topics) == 1
+                to_topic = to_topics[0].slug
+            except AssertionError:
+                print(f"{rel.to_key} - {len(to_topics)}")
+                continue
+            from_topics = topics_by_person[rel.from_key]
+            try:
+                assert len(from_topics) == 1
+                from_topic = from_topics[0].slug
+            except AssertionError:
+                print(f"{rel.from_key} - {len(from_topics)}")
+                continue
+            try:
+                IntraTopicLink({
+                    "toTopic": to_topic,
+                    "fromTopic": from_topic,
+                    "linkType": rel_to_link_type[rel.type],
+                    "dataSource": "sefaria",
+                }).save()
+            except AssertionError as e:
+                print(e)
+            except InputError as e:
+                print(e)
 if __name__ == "__main__":
     # create_csvs_to_match()
     # create_csv_of_all_topics()
+
     # import_and_merge_talmud()
     # migrate_to_person_data_source()
     # import_and_merge_authors()
