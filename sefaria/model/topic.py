@@ -300,6 +300,13 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         return sorted(ins, key=lambda i: Ref(i.title).order_id())
     
     @staticmethod
+    def get_person_by_key(key: str):
+        """
+        Find topic corresponding to old Person key
+        """
+        return Topic().load({"alt_ids.old-person-key": key})
+
+    @staticmethod
     def get_uncategorized_slug_set() -> set:
         categorized_topics = IntraTopicLinkSet({"linkType": TopicLinkType.isa_type}).distinct("fromTopic")
         all_topics = TopicSet().distinct("slug")
