@@ -99,7 +99,13 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related, annot
 
         response['refs'] = new_refs
     if with_indexes:
-        response['indexes'] = topic_obj.get_authored_indexes()
+        response['indexes'] = [
+            {
+                "en": index.title,
+                "he": index.get_title('he'),
+                "url": index.title.replace(' ', '_')
+            } for index in topic_obj.get_authored_indexes()
+        ]
 
     if getattr(topic_obj, 'isAmbiguous', False):
         possibility_links = topic_obj.link_set(_class="intraTopic", query_kwargs={"linkType": TopicLinkType.possibility_type})
