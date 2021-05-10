@@ -313,6 +313,7 @@ def import_people_links():
         "opposed": "opposed",
         "cousin": "cousin-of"
     }
+    flip_link_dir = {'student'}
     topics_by_person = defaultdict(list)
     for t in TopicSet({"alt_ids.old-person-key": {"$exists": True}}):
         topics_by_person[t.alt_ids['old-person-key']] += [t]
@@ -334,11 +335,13 @@ def import_people_links():
                 print(f"{rel.from_key} - {len(from_topics)}")
                 continue
             try:
+                to_topic, from_topic = (from_topic, to_topic) if rel.type in flip_link_dir else (to_topic, from_topic)
                 IntraTopicLink({
                     "toTopic": to_topic,
                     "fromTopic": from_topic,
                     "linkType": rel_to_link_type[rel.type],
                     "dataSource": "sefaria",
+                    "generatedBy" : "import_people_to_topics",
                 }).save()
             except AssertionError as e:
                 print(e)
