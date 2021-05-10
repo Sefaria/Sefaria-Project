@@ -461,7 +461,7 @@ class TextDetails extends Component {
  render() {
    /** todo fix interfacetext */
     const index = this.props.index;
-    cosnt makeDescriptionText = function(compWord, compPlace, compDate, description) {
+    const makeDescriptionText = function(compWord, compPlace, compDate, description) {
       let composed = compPlace || compDate ? compWord + [compPlace, compDate].filter(x => !!x).join(" ") : null;
       return [composed, description].filter(x => !!x).join(". ");
     };
@@ -602,7 +602,7 @@ class TextTableOfContentsNavigation extends Component {
         onPress: this.setTab.bind(null, "commentary")
       });
     }
-
+    let content;
     let toggle = (this.props.isDictionary ? "" :
                   <TabbedToggleSet
                     options={options}
@@ -611,21 +611,21 @@ class TextTableOfContentsNavigation extends Component {
 
     switch(this.state.tab) {
       case "default":
-        let content = <SchemaNode
+        content = <SchemaNode
                           schema={this.props.schema}
                           addressTypes={this.props.schema.addressTypes}
                           refPath={this.props.title}
                           key="default"/>;
         break;
       case "commentary":
-        let content = <CommentatorList
+        content = <CommentatorList
                         commentatorList={this.props.commentatorList}
                         title={this.props.title} />;
 
 
         break;
       default:
-        let content = <SchemaNode
+        content = <SchemaNode
                           schema={this.props.alts[this.state.tab]}
                           addressTypes={this.props.schema.addressTypes}
                           refPath={this.props.title}
