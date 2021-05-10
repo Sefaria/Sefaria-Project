@@ -4,24 +4,6 @@ on:
   - push
 
 jobs:
-  starting-notification:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Setup Python 3.7
-        uses: actions/setup-python@v1
-        with: 
-          python-version: '3.7'
-      - name: Send Slack Message
-        run: |
-          pip3 install slack-sdk
-          python3 ./build/slack/notifyStart.py
-        env:
-          SLACK_BOT_TOKEN: "${{secrets.CI_SLACK_BOT_TOKEN}}"
-          TARGET_SLACK_CHANNEL: "${{secrets.TARGET_SLACK_CHANNEL}}"
-
   ending-notification:
     runs-on: ubuntu-latest
     if: ${{ always() }}
@@ -32,29 +14,21 @@ jobs:
 #      - selenium-readersuite-local
       - pytest-job
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Setup Python 3.7
-        uses: actions/setup-python@v1
-        with: 
-          python-version: '3.7'
-
-      - name: Define BUILD_RESULT_SUBDIR
-        run: echo "BUILD_RESULT_SUBDIR=${GITHUB_SHA:0:8}" >> $GITHUB_ENV
-        if: ${{ always() }}
-
-      - name: Send Slack Message
-        run: |
-          pip3 install slack-sdk
-          python3 ./build/slack/notifyEnd.py
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - run: npm ci
+        working-directory: ./build/notify
+      - run: node notifyEnd.js
+        working-directory: ./build/notify
         env:
-          # I might have to list the available result files until I build a proper frontend
-          SLACK_BOT_TOKEN: "${{secrets.CI_SLACK_BOT_TOKEN}}"
-          TEST_RESULTS_LINK: "https://buildresults.sefaria.org/${{env.BUILD_RESULT_SUBDIR}}"
-          TARGET_SLACK_CHANNEL: "${{secrets.TARGET_SLACK_CHANNEL}}"
-
+          SLACK_TEST_SUCCESS_WEBHOOK_URL: ${{secrets.SLACK_TEST_SUCCESS_WEBHOOK_URL}}
+          SLACK_TEST_FAILURE_WEBHOOK_URL: ${{secrets.SLACK_TEST_FAILURE_WEBHOOK_URL}}
+          GITUSER_SLACK_MAP: ${{secrets.GITUSER_SLACK_MAP}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   jest-tests:
+    name: "Jest"   # This name is referenced when slacking status
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -317,7 +291,7 @@ jobs:
 
   selenium-allsuites-local:
     # Start off with local firefox
-    name: "Selenium: All Default tests on Local Linux Firefox"
+    name: "Selenium: Local"   # This name is referenced when slacking status
     needs: sandbox-ready
     runs-on: ubuntu-latest
     services: 
@@ -404,7 +378,7 @@ jobs:
         if: ${{ always() }}
 
   selenium-pageloadsuite-sauce:
-    name: "Selenium: PageLoad Suite on Sauce Labs Firefox"
+    name: "Selenium: Sauce"   # This name is referenced when slacking status
     needs: sandbox-ready
     runs-on: ubuntu-latest
     steps:
@@ -487,7 +461,7 @@ jobs:
         if: ${{ always() }}
 
   pytest-job:
-    name: Run PyTest Job
+    name: "PyTest"  # This name is referenced when slacking status
     needs:
       - sandbox-ready
     runs-on: ubuntu-latest
