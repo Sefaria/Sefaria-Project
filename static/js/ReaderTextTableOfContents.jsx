@@ -58,15 +58,15 @@ class ReaderTextTableOfContents extends Component {
   loadData() {
     // Ensures data this text is in cache, rerenders after data load if needed
     Sefaria.getIndexDetails(this.props.title).then(data => this.setState({indexDetails: data}));
-    let ref;
     if (this.isBookToc()) {
-      ref  = this.getDataRef();
-      let versions = Sefaria.versions(ref);
-      if (!versions) {
-        Sefaria.versions(ref, () => this.forceUpdate() );
+      if(!this.state.versionsLoaded){
+        Sefaria.versions(this.props.title, false, null, false).then(versions => this.setState({versions: versions, versionsLoaded: true}));
       }
     } else if (this.isTextToc()) {
-      ref  = this.getDataRef();
+      let ref  = this.getDataRef();
+      if(!this.state.versionsLoaded){
+        Sefaria.versions(ref, false, null, false).then(versions => this.setState({versions: versions, versionsLoaded: true}));
+      }
       let data = this.getData();
       if (!data) {
         Sefaria.text(
@@ -77,13 +77,7 @@ class ReaderTextTableOfContents extends Component {
     }
   }
   getVersionsList() {
-    if (this.isTextToc()) {
-      let data = this.getData();
-      if (!data) { return null; }
-      return data.versions;
-    } else if (this.isBookToc()) {
-      return Sefaria.versions(this.props.title);
-    }
+     return this.state.versions;
   }
   getCurrentVersion() {
     // For now treat bilingual as english. TODO show attribution for 2 versions in bilingual case.
