@@ -183,9 +183,8 @@ class DataForm extends Component {
   }
 
   loadPossibleVersions(versions) {
-    debugger;
     let lang = this.state.lang;
-    let possibleVersions = versions[lang];
+    let possibleVersions = versions[lang].map(({ versionTitle }) => versionTitle);
     this.setState({possibleVersions: possibleVersions});
   }
 
