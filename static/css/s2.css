@@ -4535,12 +4535,14 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-inline-end: auto;
 }
 .textFilter {
-  padding: 19px 34px;
+  padding: 19px 0px;
   font-size: 18px;
   line-height: 1.2;
   display: block;
   cursor: pointer;
   color: #333;
+  margin-inline-start: 34px;
+  margin-inline-end: 34px;
 }
 .connectionsCount {
   color: #666;
@@ -4579,7 +4581,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
 }
 .categoryFilterGroup.withBooks + .categoryFilterGroup {
-  margin-top: 30px;
+  /*margin-top: 30px;*/
 }
 .categoryFilterGroup .textFilter {
     border-top: 1px solid #E5E5E5;
