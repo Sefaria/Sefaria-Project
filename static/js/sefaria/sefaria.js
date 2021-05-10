@@ -481,7 +481,7 @@ Sefaria = extend(Sefaria, {
             return obj;
           }, {});
     }else{
-       tempValue = versions;
+       tempValue = Object.assign({}, versions); //shallow copy to match the above shallow copy
     }
     let finalValue = byLang ? tempValue : Object.values(tempValue).flat();
     return finalValue;
