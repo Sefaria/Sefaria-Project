@@ -46,7 +46,7 @@ urlpatterns = [
 
 # People Pages
 urlpatterns += [
-    url(r'^person/(?P<name>.+)$', reader_views.person_page),
+    url(r'^person/(?P<name>.+)$', reader_views.person_page_redirect),
     url(r'^people/Talmud/?$', reader_views.talmud_person_index),
     url(r'^people/?$', reader_views.person_index),
 ]

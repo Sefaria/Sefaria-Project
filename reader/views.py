@@ -4001,48 +4001,14 @@ def visualize_timeline(request):
     return render_template(request, 'timeline.html', None, {})
 
 
-def person_page(request, name):
-    person = Person().load({"key": name})
+def person_page_redirect(request, name):
+    person = Topic().load({"alt_ids.old-person-key": name})
 
     if not person:
         raise Http404
-    assert isinstance(person, Person)
-
-    template_vars = person.contents()
-    if request.interfaceLang == "hebrew":
-        template_vars["name"] = person.primary_name("he")
-        template_vars["bio"]= getattr(person, "heBio", _("Learn about %(name)s - works written, biographies, dates and more.") % {"name": person.primary_name("he")})
-    else:
-        template_vars["name"] = person.primary_name("en")
-        template_vars["bio"]= getattr(person, "enBio", _("Learn about %(name)s - works written, biographies, dates and more.")  % {"name": person.primary_name("en")})
-
-    template_vars["primary_name"] = {
-        "en": person.primary_name("en"),
-        "he": person.primary_name("he")
-    }
-    template_vars["secondary_names"] = {
-        "en": person.secondary_names("en"),
-        "he": person.secondary_names("he")
-    }
-    try:
-        tp = person.mostAccurateTimePeriod()
-
-        template_vars["time_period_name"] = {
-            "en": tp.primary_name("en"),
-            "he": tp.primary_name("he")
-        }
-        template_vars["time_period"] = {
-            "en": tp.period_string("en"),
-            "he": tp.period_string("he")
-        }
-    except AttributeError:
-        pass
-    template_vars["relationships"] = person.get_grouped_relationships()
-    template_vars["indexes"] = person.get_indexes()
-    template_vars["post_talmudic"] = person.is_post_talmudic()
-    template_vars["places"] = person.get_places()
-
-    return render_template(request,'person.html', None, template_vars)
+    
+    url = f'/topics/{person.slug}'
+    return redirect(iri_to_uri(url), permanent=True)
 
 
 def person_index(request):
