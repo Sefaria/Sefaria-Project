@@ -184,12 +184,7 @@ class DataForm extends Component {
 
   loadPossibleVersions(versions) {
     let lang = this.state.lang;
-    let possibleVersions = versions.reduce(function(vList, version) {
-      if (version.language === lang) {
-        vList.push(version.versionTitle);
-      }
-      return vList;
-    }, []);
+    let possibleVersions = versions[lang];
     this.setState({possibleVersions: possibleVersions});
   }
 
