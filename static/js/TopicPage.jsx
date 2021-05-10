@@ -422,7 +422,7 @@ const TopicPage = ({
                     <TopicSideColumn key={topic} slug={topic} links={topicData.links}
                       clearAndSetTopic={clearAndSetTopic} setNavTopic={setNavTopic}
                       parashaData={parashaData} tref={topicData.ref} interfaceLang={interfaceLang}
-                      timePeriod={topicData.timePeriod} properties={topicData.properties}
+                      timePeriod={topicData.timePeriod} properties={topicData.properties} indexes={topicData.indexes}
                     />
                     : null }
                 </div>
@@ -523,7 +523,7 @@ TopicLink.propTypes = {
 };
 
 
-const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, interfaceLang, setNavTopic, timePeriod, properties }) => {
+const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, interfaceLang, setNavTopic, timePeriod, properties, indexes }) => {
   const category = Sefaria.topicTocCategory(slug);
   const linkTypeArray = links ? Object.values(links).filter(linkType => !!linkType && linkType.shouldDisplay && linkType.links.filter(l => l.shouldDisplay !== false).length > 0) : [];
   if (linkTypeArray.length === 0) {
@@ -543,6 +543,11 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
     <ReadingsComponent parashaData={parashaData} tref={tref} />
   ) : null;
   const topicMetaData = <TopicMetaData timePeriod={timePeriod} properties={properties} />;
+  const indexesComponent = indexes ? (
+    <TopicSideSection title={{en: "Works", he: "Works"}} hasMore={indexes.length > 10}>
+      {indexes.map(({en, he, url}) => <SimpleLinkedBlock key={url} en={en} he={he} url={url} aclasses={'relatedTopic'} />)}
+    </TopicSideSection>
+  ) : null;
   const linksComponent = (
     links ?
         linkTypeArray.sort((a, b) => {
@@ -594,6 +599,7 @@ const TopicSideColumn = ({ slug, links, clearAndSetTopic, parashaData, tref, int
       { readingsComponent }
       { topicMetaData }
       { linksComponent }
+      { indexesComponent }
     </div>
   )
 }
