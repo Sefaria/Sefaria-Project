@@ -93,7 +93,7 @@ def import_and_merge_talmud():
                     if person is None:
                         print("person none", row['En'])
                         continue
-                    for prop in ['enWikiLink', 'heWikiLink', 'jeLink', 'generation', 'sex']:
+                    for prop in ['enWikiLink', 'heWikiLink', 'jeLink', 'generation', 'sex', 'birthYear', 'birthPlace', 'deathYear', 'deathPlace', 'deathYearIsApprox', 'birthYearIsApprox']:
                         val = getattr(person, prop, None)
                         if val is None: continue
                         main_topic.properties[prop] = {
@@ -196,6 +196,21 @@ def import_and_merge_authors():
                     if title == prim:
                         main_author_dict['titles'][-1]['primary'] = True
             main_author = Topic(main_author_dict)
+            for prop in ['enWikiLink', 'heWikiLink', 'jeLink', 'generation', 'sex', 'birthYear', 'birthPlace', 'deathYear', 'deathPlace', 'deathYearIsApprox', 'birthYearIsApprox']:
+                val = getattr(person, prop, None)
+                if val is None: continue
+                if getattr(main_author, 'properties', None) is None: main_author.properties = {}
+                main_author.properties[prop] = {
+                    'value': val,
+                    'dataSource': 'person-collection'
+                }
+            description = {}
+            for prop in ['enBio', 'heBio']:
+                val = getattr(person, prop, None)
+                if val is None: continue
+                description[prop[:2]] = val
+            if len(description) > 0:
+                main_author.description = description
             main_author.save()
             if len(author_slugs) > 0:
                 for a in author_slugs:
@@ -332,8 +347,8 @@ if __name__ == "__main__":
     # create_csvs_to_match()
     # create_csv_of_all_topics()
 
-    # import_and_merge_talmud()
-    # migrate_to_person_data_source()
-    # import_and_merge_authors()
-    # refactor_authors_on_indexes()
+    import_and_merge_talmud()
+    migrate_to_person_data_source()
+    import_and_merge_authors()
+    refactor_authors_on_indexes()
     import_people_links()
