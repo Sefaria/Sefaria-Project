@@ -26,7 +26,7 @@ import ConnectionsPanelHeader from './ConnectionsPanelHeader';
 import { AddToSourceSheetBox } from './AddToSourceSheet';
 import LexiconBox from './LexiconBox';
 import AboutBox from './AboutBox';
-import VersionsBox from './VersionsBox';
+import TranslationsBox from './TranslationsBox';
 import ExtendedNotes from './ExtendedNotes';
 import classNames from 'classnames';
 import Component             from 'react-class';
@@ -568,7 +568,7 @@ class ConnectionsPanel extends Component {
                   viewExtendedNotes={this.props.viewExtendedNotes} />);
 
     } else if (this.props.mode === "Translations" || this.props.mode === "Translation Open") {
-      content = (<VersionsBox
+      content = (<TranslationsBox
                   currObjectVersions={this.state.currObjectVersions}
                   mainVersionLanguage={this.state.mainVersionLanguage}
                   mode={this.props.mode}

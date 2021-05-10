@@ -8,7 +8,7 @@ import { LoadingMessage } from './Misc';
 import { RecentFilterSet } from './ConnectionFilters';
 import Component             from 'react-class';
 
-class VersionsBox extends Component {
+class TranslationsBox extends Component {
   constructor(props) {
     super(props);
     this._excludedLangs = ["he"];
@@ -131,7 +131,7 @@ class VersionsBox extends Component {
     return (this.props.mode === "Translations" ? this.renderModeVersions() : this.renderModeSelected());
   }
 }
-VersionsBox.propTypes = {
+TranslationsBox.propTypes = {
   currObjectVersions:       PropTypes.object.isRequired,
   mode:                     PropTypes.oneOf(["Translations", "Translation Open"]),
   mainVersionLanguage:      PropTypes.oneOf(["english", "hebrew"]).isRequired,
@@ -214,4 +214,4 @@ VersionsTextList.propTypes = {
   onCitationClick: PropTypes.func.isRequired,
 };
 
-export default VersionsBox;
+export default TranslationsBox;
