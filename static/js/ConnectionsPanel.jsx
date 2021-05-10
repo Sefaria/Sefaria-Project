@@ -275,7 +275,7 @@ class ConnectionsPanel extends Component {
         audio: Sefaria.mediaByRef(this.props.srefs).length,
         topics: Sefaria.topicsByRefCount(this.props.srefs) || 0,
         manuscripts: Sefaria.manuscriptsByRef(this.props.srefs).length,
-        translations: this.state.availableVersions.length, //versions dont come from the related api, so this one looks a bit different than the others.
+        translations: this.state.availableTranslations.length, //versions dont come from the related api, so this one looks a bit different than the others.
       }
       const showResourceButtons = Object.values(resourcesButtonCounts).some(elem => elem > 0);
       const toolsButtonsCounts = {
