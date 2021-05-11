@@ -312,8 +312,8 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def get_property(self, property, default=None, value_only=True):
         properties = getattr(self, 'properties', {})
-        value = properties[property].get('value', default)
-        data_source = properties[property].get('dataSource', default)
+        value = properties.get(property, {}).get('value', default)
+        data_source = properties.get(property, {}).get('dataSource', default)
         if value_only:
             return value
         return value, data_source
