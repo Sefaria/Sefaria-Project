@@ -1,8 +1,9 @@
-from typing import Union
+from typing import Union, Optional
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet
 from sefaria.system.exceptions import DuplicateRecordError
+from sefaria.model.timeperiod import TimePeriod
 import structlog
 import regex as re
 logger = structlog.get_logger(__name__)
@@ -248,22 +249,42 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
         if annotate_time_period:
-            gen_symbol, _ = self.get_property("generation")
-            if gen_symbol is not None:
-                from sefaria.model.timeperiod import TimePeriod
-                tp = TimePeriod().load({"symbol": gen_symbol})
-                if tp is not None:
-                    d['timePeriod'] = {
-                        "name": {
-                            "en": tp.primary_name("en"),
-                            "he": tp.primary_name("he")
-                        },
-                        "yearRange": {
-                            "en": tp.period_string("en"),
-                            "he": tp.period_string("he")
-                        }
+            tp = self.most_accurate_time_period()
+            if tp is not None:
+                d['timePeriod'] = {
+                    "name": {
+                        "en": tp.primary_name("en"),
+                        "he": tp.primary_name("he")
+                    },
+                    "yearRange": {
+                        "en": tp.period_string("en"),
+                        "he": tp.period_string("he")
                     }
+                }
         return d
+
+    # Dates
+    # A person may have an era, a generation, or a specific birth and death years, which each may be approximate.
+    # They may also have none of these...
+    def most_accurate_time_period(self) -> Optional[TimePeriod]:
+        if self.get_property("birthYear") and self.get_property("deathYear"):
+            return TimePeriod({
+                "start": self.get_property("birthYear"),
+                "startIsApprox": self.get_property("birthYearIsApprox", False),
+                "end": self.get_property("deathYear"),
+                "endIsApprox": self.get_property("deathYearIsApprox", False)
+            })
+        elif self.get_property("birthYear") and self.get_property("era", "CO"):
+            return TimePeriod({
+                "start": self.get_property("birthYear"),
+                "startIsApprox": self.get_property("birthYearIsApprox", False),
+            })
+        elif self.get_property("generation"):
+            return TimePeriod().load({"symbol": self.get_property("generation")})
+        elif self.get_property("era"):
+            return TimePeriod().load({"symbol": self.get_property("era")})
+        else:
+            return None
 
     def get_primary_title(self, lang='en', with_disambiguation=True):
         title = super(Topic, self).get_primary_title(lang=lang)
@@ -289,11 +310,21 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             return titles
         return super(Topic, self).get_titles(lang)
 
-    def get_property(self, property):
+    def get_property(self, property, default=None, value_only=True):
         properties = getattr(self, 'properties', {})
-        if property not in properties:
-            return None, None
-        return properties[property]['value'], properties[property]['dataSource']
+        value = properties[property].get('value', default)
+        data_source = properties[property].get('dataSource', default)
+        if value_only:
+            return value
+        return value, data_source
+
+    def set_property(self, property, value, data_source):
+        if getattr(self, 'properties', None) is None:
+            self.properties = {}
+        self.properties[property] = {
+            'value': value,
+            'dataSource': data_source
+        }
 
     def get_authored_indexes(self):
         ins = IndexSet({"authors": self.slug})
