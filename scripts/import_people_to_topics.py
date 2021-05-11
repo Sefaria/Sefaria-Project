@@ -1,9 +1,12 @@
-import django, re, csv, json, srsly
+import django, re, csv, json
 from tqdm import tqdm
 django.setup()
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 from collections import defaultdict
+
+# BASE_PATH = "/home/nss/Downloads"
+BASE_PATH = "data"
 
 def create_csvs_to_match():
     by_type = defaultdict(list)
@@ -68,7 +71,7 @@ def create_csv_of_all_topics():
         c.writerows(rows)
 
 def import_and_merge_talmud():
-    with open('/home/nss/Downloads/Person Topic Matching - Talmud.csv', 'r') as fin:
+    with open(f'{BASE_PATH}/Person Topic Matching - Talmud.csv', 'r') as fin:
         c = csv.DictReader(fin)
         for row in c:
             slugs = []
@@ -144,7 +147,7 @@ def import_and_merge_authors():
         "T": "mishnaic-people",
         "A": "talmudic-people",
     }
-    with open('/home/nss/Downloads/Person Topic Matching - Authors.csv', 'r') as fin:
+    with open(f'{BASE_PATH}/Person Topic Matching - Authors.csv', 'r') as fin:
         c = csv.reader(fin)
         for irow, row in enumerate(c):
             if irow == 0: continue
@@ -399,15 +402,62 @@ def create_topic_tocs():
             print(e)
 
 
+def find_popular_writings(top_n, min_pr):
+    from sefaria.helper.topic import calculate_popular_writings_for_authors
+    TopicLinkType({
+        "slug": "popular-writing-of",
+        "inverseSlug" : "has-popular-writing", 
+        "displayName" : {
+            "en" : "Popular Writing", 
+            "he" : "Popular Writing"
+        }, 
+        "inverseDisplayName" : {
+            "en" : "Has Popular Writing", 
+            "he" : "Has Popular Writing"
+        }, 
+        "shouldDisplay" : True, 
+        "inverseShouldDisplay" : False,
+        "validTo" : [
+            "people",
+            "group-of-people"
+        ]
+    }).save()
+    calculate_popular_writings_for_authors(top_n, min_pr)
+        
+
+def percent_refs_translated(percent):
+    rds = sorted({rd.ref: rd.pagesheetrank for rd in RefDataSet()}.items(), key=lambda x: x[1], reverse=True)
+    total = len(rds)
+    print('Total', total)
+    cutoff = round(total * percent)
+    num_translated = 0
+    for ref, pr in tqdm(rds[:cutoff]):
+        try:
+            tc = TextChunk(Ref(ref), lang='en')
+            if len(tc.text) > 0:
+                num_translated += 1
+        except InputError:
+            continue
+    print(f'Num translated for {percent}% cutoff - {num_translated}/{cutoff} = {num_translated/cutoff}%')
+    
+
 if __name__ == "__main__":
     # create_csvs_to_match()
     # create_csv_of_all_topics()
 
-    import_and_merge_talmud()
-    migrate_to_person_data_source()
-    import_and_merge_authors()
-    refactor_authors_on_indexes()
-    import_people_links()
-    create_topic_tocs()
+    # import_and_merge_talmud()
+    # migrate_to_person_data_source()
+    # import_and_merge_authors()
+    # refactor_authors_on_indexes()
+    # import_people_links()
+    # create_topic_tocs()
+    find_popular_writings(100, 300)
 
     # set_description_published()
+
+"""
+POD=authors-web-67cb54bf45-csc9n
+kubectl cp "/home/nss/Downloads/Person Topic Matching - Talmud.csv" $POD:/app/data
+kubectl cp "/home/nss/Downloads/Person Topic Matching - Authors.csv" $POD:/app/data
+kubectl cp "/home/nss/sefaria/project/scripts/import_people_to_topics.py" $POD:/app/scripts
+"""
