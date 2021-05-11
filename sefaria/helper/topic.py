@@ -548,8 +548,11 @@ def calculate_mean_tfidf(ref_topic_links):
 
 def calculate_pagerank_scores(ref_topic_map):
     from sefaria.pagesheetrank import pagerank_rank_ref_list
+    from statistics import mean
     pr_map = {}
     pr_seg_map = {}  # keys are (topic, seg_tref). used for sheet relevance
+    global_pr_map = {}
+    global_pr_seg_map = {ref_data.ref: ref_data.pagesheetrank for ref_data in RefData()}
     for topic, ref_list in tqdm(ref_topic_map.items(), desc='calculate pr'):
         oref_list = []
         for tref in ref_list:
@@ -557,13 +560,16 @@ def calculate_pagerank_scores(ref_topic_map):
             if oref is None:
                 continue
             oref_list += [oref]
-
-        oref_pr_list = pagerank_rank_ref_list(oref_list, normalize=True)
+        seg_ref_map = {r.normal(): [rr.normal() for rr in r.all_segment_refs()] for r in oref_list}
+        oref_pr_list = pagerank_rank_ref_list(oref_list, normalize=True, seg_ref_map=seg_ref_map)
+        for tref, seg_tref_list in seg_ref_map.items():
+            avg_pr = mean([global_pr_seg_map.get(seg_tref, RefData.DEFAULT_PAGESHEETRANK) for seg_tref in seg_tref_list])
+            global_pr_map[tref] = avg_pr
         for oref, pr in oref_pr_list:
             pr_map[(topic, oref.normal())] = pr
-            for seg_oref in oref.all_segment_refs():
-                pr_seg_map[(topic, seg_oref.normal())] = pr
-    return pr_map, pr_seg_map
+            for seg_tref in seg_ref_map[oref.normal()]:
+                pr_seg_map[(topic, seg_tref)] = pr
+    return pr_map, pr_seg_map, global_pr_map
 
 
 def calculate_other_ref_scores(ref_topic_map):
@@ -602,7 +608,7 @@ def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
 
     topic_tref_score_map, ref_topic_map = calculate_mean_tfidf(ref_topic_links)
     num_datasource_map, langs_available, comp_date_map, order_id_map = calculate_other_ref_scores(ref_topic_map)
-    pr_map, pr_seg_map = calculate_pagerank_scores(ref_topic_map)
+    pr_map, pr_seg_map, global_pr_map = calculate_pagerank_scores(ref_topic_map)
     sheet_cache = {}
     intra_topic_link_cache = {}
 
@@ -678,7 +684,8 @@ def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
                     'availableLangs': langs_available[key],
                     'comp_date': comp_date_map[key],
                     'order_id': order_id_map[key],
-                    'pr': pr_map[key]
+                    'pr': pr_map[key],
+                    'global_pr': global_pr_map[l.ref]
                 })
                 setattr(l, 'order', order)
             except KeyError:
@@ -800,8 +807,38 @@ def get_ref_safely(tref):
         print("AssertionError", tref)
     return None
 
+def calculate_popular_writings_for_authors(top_n, min_pr):
+    IntraTopicLinkSet({"generatedBy": "calculate_popular_writings_for_authors"}).delete()
+    rds = RefDataSet()
+    by_author = defaultdict(list)
+    for rd in tqdm(rds, total=rds.count()):
+        try:
+            tref = rd.ref.replace('&amp;', '&')  # TODO this is a stopgap to prevent certain refs from failing
+            oref = Ref(tref)
+        except InputError as e:
+            continue
+        if getattr(oref.index, 'authors', None) is None: continue
+        for author in oref.index.authors:
+            by_author[author] += [rd.contents()]    
+    for author, rd_list in by_author.items():
+        rd_list = list(filter(lambda x: x['pagesheetrank'] > min_pr, rd_list))
+        if len(rd_list) == 0: continue
+        top_rd_indexes = sorted(range(len(rd_list)), key=lambda i: rd_list[i]['pagesheetrank'])[-top_n:]
+        top_rds = [rd_list[i] for i in top_rd_indexes]
+        for rd in top_rds:
+            RefTopicLink({
+                "toTopic": author,
+                "ref": rd['ref'],
+                "linkType": "popular-writing-of",
+                "dataSource": "sefaria",
+                "generatedBy": "calculate_popular_writings_for_authors"
+            }).save()
+
 
 def recalculate_secondary_topic_data():
+    # run before everything else because this creates new links
+    calculate_popular_writings_for_authors(100, 300)
+
     sheet_source_links, sheet_related_links, sheet_topic_links = generate_all_topic_links_from_sheets()
     related_links = update_intra_topic_link_orders(sheet_related_links)
     all_ref_links = update_ref_topic_link_orders(sheet_source_links, sheet_topic_links)
