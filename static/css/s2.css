@@ -4570,12 +4570,18 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   align-items: center;
 }
 .categoryFilterGroup.withBooks {
-  border-bottom: 1px solid #E5E5E5;
+  /*border-bottom: 1px solid #E5E5E5;*/
   border-top: 4px solid;
   border-top-color: var(--category-color);
 }
 .categoryFilterGroup.withBooks .categoryFilter{
   text-transform: uppercase;
+  margin: initial;
+  margin-inline-end: 34px;
+  margin-inline-start: 34px;
+  padding: 19px 0px;
+  border-bottom: 1px solid #E5E5E5;
+
 }
 .categoryFilterGroup a:hover {
   text-decoration: none;
@@ -4584,7 +4590,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   /*margin-top: 30px;*/
 }
 .categoryFilterGroup .textFilter {
-    border-top: 1px solid #E5E5E5;
+  border-bottom: 1px solid #E5E5E5;
+}
+.categoryFilterGroup :first-child .textFilter {
+  border-top: 1px solid #E5E5E5;
 }
 .categoryFilter.on, .textFilter.on {
   color: black;
