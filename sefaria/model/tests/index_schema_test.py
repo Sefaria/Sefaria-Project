@@ -5,7 +5,6 @@ import pprint
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
 
-
 class Test_Schema(object):
     # This needs a bunch of hebrew titles to validate
 
