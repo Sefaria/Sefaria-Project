@@ -509,6 +509,8 @@ class TocCollectionNode(TocNode):
                 "slug": c_contents["slug"],
                 "title": c_contents["toc"]["collectiveTitle"]["en"] if "collectiveTitle" in c_contents["toc"] else c_contents["toc"]["title"],
                 "heTitle": c_contents["toc"]["collectiveTitle"]["he"] if "collectiveTitle" in c_contents["toc"] else c_contents["toc"]["heTitle"], 
+                "enShortDesc": c_contents["toc"].get("enShortDesc", ""),
+                "heShortDesc": c_contents["toc"].get("heShortDesc", ""),
                 "isCollection": True,
                 "enComplete": True,
                 "heComplete": True,
@@ -539,6 +541,8 @@ class TocCollectionNode(TocNode):
         "order",
         "heComplete",
         "enComplete",
+        "enShortDesc",
+        "heShortDesc",
     ]
 
     title_attrs = {

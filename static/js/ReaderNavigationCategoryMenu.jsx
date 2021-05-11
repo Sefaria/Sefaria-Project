@@ -194,6 +194,8 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
                 nestLevel   = {nestLevel}
                 title       = {item.title}
                 heTitle     = {item.heTitle}
+                enDesc      = {item.enShortDesc}
+                heDesc      = {item.heShortDesc}
             />
         ));
 
