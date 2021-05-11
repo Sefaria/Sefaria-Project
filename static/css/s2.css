@@ -1456,6 +1456,8 @@ input.noselect {
 }
 .navSidebarModule .imageModuleImage {
   width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--lighter-grey);
 }
 .aboutTextMetadata {
   margin-bottom: 20px;
@@ -6629,9 +6631,6 @@ a .button:hover {
   --hebrew-font: var(--hebrew-serif-font-family);
   --english-font: var(--english-serif-font-family);
 }
-.collectionPage .emptyMessage {
-  text-align: center;
-}
 .collectionPage .emptyMessage .button {
   margin-top: 22px;
 }
@@ -6699,7 +6698,7 @@ a .button:hover {
   position: relative;
   border-radius: 7px;
   box-sizing: border-box;
-  width: 225px;
+  width: 215px;
   padding: 10px 15px;
 }
 .collectionInvitationBoxMessage {
@@ -6718,56 +6717,46 @@ a .button:hover {
   color: #666;
   display: flex;
   flex-direction: row;
-  justify-content: space-between;
-}
-.collectionPage .collectionMemberListing .collectionLeft,
-.collectionPage .collectionMemberListing .collectionMemberListingRoleBox {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+  justify-content: start;
 }
 .collectionMemberListingPic {
   margin-inline-end: 10px;
 }
+.collectionMemberListingPic.invitation {
+  background-color: var(--medium-grey);
+  border-radius: 1000px;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+}
 .collectionMemberListingName {
   color: black;
 }
-.collectionInvitationListing {
-  display: inline-block;
-  min-height: 50px;
-  line-height: 50px;
-}
-.collectionMemberListingRoleBox {
-  float: right;
-  line-height: 50px;
-}
 .collectionMemberListingRole {
-  color: #666;
+  color: var(--dark-grey);
   font-size: 13px;
   margin-top: 4px;
 }
-.collectionMemberListingActions {
+.collectionMemberListingText {
   position: relative;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  margin-left: 12px;
-  line-height: 36px
 }
-.interface-hebrew .collectionMemberListingActions {
-  margin-left: 0;
-  margin-right: 12px;
+.collectionPage .collectionMemberListing .collectionMemberListingActions {
+  display: none;
 }
-.collectionMemberListingActionsButton {
+.collectionPage .collectionMemberListing:hover .collectionMemberListingActions {
+  display: inline-flex;
+}
+.collectionMemberListingActions .collectionMemberListingActionsButton {
   cursor: pointer;
-  padding: 0 12px;
-  font-size: 18px;
-  color: #CCC;
+  color: var(--dark-grey);
+  margin-inline-start: 8px;
 }
 .collectionMemberListingActionsMenu {
   position: absolute;
-  right: 0;
+  left: 0;
   top: 46px;
+  line-height: 30px;
   background-color: white;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -6776,8 +6765,8 @@ a .button:hover {
   z-index: 1;
 }
 .interface-hebrew .collectionMemberListingActionsMenu {
-  left: 0;
-  right: unset;
+  right: 0;
+  left: unset;
 }
 .collectionMemberListingActionsMenu .action {
   padding: 4px 10px;
@@ -6795,7 +6784,12 @@ a .button:hover {
   margin-right: 4px;
 }
 .collectionMemberListingActionsMenu .role.current {
-  color: #666;
+  color: var(--dark-grey);
+}
+.collectionInvitationListing {
+  display: inline-block;
+  min-height: 50px;
+  line-height: 50px;
 }
 .topicPanel .smallText .separator {
   color: #999;

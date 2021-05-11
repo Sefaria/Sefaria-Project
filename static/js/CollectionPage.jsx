@@ -217,6 +217,7 @@ class CollectionPage extends Component {
 
       const editorsBlock = (
         <div>
+         {isAdmin ? <CollectionInvitationBox slug={this.props.slug} onDataChange={this.onDataChange}/> : null }
          { members.map(function (member, i) {
             return <CollectionMemberListing
                     member={member}
@@ -227,7 +228,6 @@ class CollectionPage extends Component {
                     key={i} />
             }.bind(this) )
           }
-         {isAdmin ? <CollectionInvitationBox slug={this.props.slug} onDataChange={this.onDataChange}/> : null }
         </div>
       );
 
@@ -340,14 +340,14 @@ class CollectionPage extends Component {
           {sheets.length && !this.state.showTopics ? sheets : null}
 
           {!sheets.length ? (isMember ?
-                  <div className="emptyMessage">
+                  <div className="emptyMessage sans-serif">
                     <InterfaceText>You can add sheets to this collection on your profile.</InterfaceText>
                     <br />
                     <a className="button" href="/my/profile">
                       <InterfaceText>Open Profile</InterfaceText>
                     </a>
                   </div>
-                : <div className="emptyMessage">
+                : <div className="emptyMessage sans-serif">
                     <InterfaceText>There are no sheets in this collection yet.</InterfaceText>
                   </div>) : null}
           </div>
@@ -484,25 +484,19 @@ class CollectionMemberListing extends Component {
 
     return (
       <div className="collectionMemberListing">
-        <div className="collectionLeft">
-          <a href={this.props.member.profileUrl} className="collectionMemberListingPic">
-            <ProfilePic
-              url={this.props.member.imageUrl}
-              name={this.props.member.name}
-              len={40}
-            />
+        <a href={this.props.member.profileUrl} className="collectionMemberListingPic">
+          <ProfilePic
+            url={this.props.member.imageUrl}
+            name={this.props.member.name}
+            len={40}
+          />
+        </a>
+        <div className="collectionMemberListingText">
+          <a href={this.props.member.profileUrl} className="collectionMemberListingName">
+            {this.props.member.name}
           </a>
-          <div>
-            <a href={this.props.member.profileUrl} className="collectionMemberListingName">
-              {this.props.member.name}
-            </a>
-            <div className="collectionMemberListingRole">
-              <InterfaceText>{this.props.member.role}</InterfaceText>
-            </div>
-          </div>
-        </div>
-
-        <div className="collectionMemberListingRoleBox">
+          <div className="collectionMemberListingRole">
+            <InterfaceText>{this.props.member.role}</InterfaceText>
           {this.props.isAdmin || this.props.isSelf ?
             <CollectionMemberListingActions
               member={this.props.member}
@@ -511,8 +505,8 @@ class CollectionMemberListing extends Component {
               isSelf={this.props.isSelf}
               onDataChange={this.props.onDataChange} />
             : null }
+          </div>
         </div>
-
       </div>);
   }
 }
@@ -529,19 +523,22 @@ class CollectionInvitationListing extends Component {
   render() {
     return (
       <div className="collectionMemberListing">
-        <span className="collectionInvitationListing">
-          {this.props.member.email}
-        </span>
-
-        <div className="collectionMemberListingRoleBox">
-          <span className="collectionMemberListingRole"><InterfaceText>Invited</InterfaceText></span>
-          <CollectionMemberListingActions
-            member={this.props.member}
-            slug={this.props.slug}
-            isInvitation={true}
-            onDataChange={this.props.onDataChange} />
+        <div className="collectionMemberListingPic invitation">
+          <img src="/static/icons/mail.svg" />
         </div>
-
+        <div className="collectionMemberListingText">
+          <span className="collectionMemberListingName">
+            {this.props.member.email}
+          </span>
+          <div className="collectionMemberListingRole">
+            <InterfaceText>Invited</InterfaceText>
+            <CollectionMemberListingActions
+              member={this.props.member}
+              slug={this.props.slug}
+              isInvitation={true}
+              onDataChange={this.props.onDataChange} />
+          </div>
+        </div>
       </div>);
   }
 }
