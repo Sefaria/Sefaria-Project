@@ -67,7 +67,15 @@ def get_homepage_items(date="5/23/21", language="englsih", diaspora=True, refres
     cache_key = cache_get_key("homepage", language=language)
     delete_cache_elem(cache_key)
   
-  data = get_homepage_data(language=language)
+  try:
+    data = get_homepage_data(language=language)
+  except:
+    data = {
+      "parashah": None,
+      "calendar": None,
+      "discover": None,
+      "featured": None,
+    }
 
   if date is None:
     datetime_obj = timezone.localtime(timezone.now())
@@ -85,7 +93,6 @@ def get_parashah_item(data, date=None, diaspora=True, interface_lang="english"):
   parashah = get_parasha(datetime.strptime(date, "%m/%d/%y"), diaspora=diaspora)
   parashah_name = parashah["parasha"]
   parashah_topic = get_topic_by_parasha(parashah_name)
-  # TODO failsafe if we don't have a topic
 
   todays_data = None
   for day_data in data:
@@ -93,18 +100,20 @@ def get_parashah_item(data, date=None, diaspora=True, interface_lang="english"):
       todays_data = day_data
       break
   if not todays_data or not todays_data["Sheet URL"]:
-    # Couldn't find a matching row in the data, fall back to something random
-    # sheet = get_featured_sheet_from_topic(parashah_topic.slug)
     sheet = None
   else:
     sheet = sheet_with_customization(todays_data)
-    sheet["heading"] = {
-      "en": "On " + parashah_name,
-      "he": "על " + hebrew_parasha_name(parashah_name)
-    }
+    if sheet:
+      sheet["heading"] = {
+        "en": "On " + parashah_name,
+        "he": "על " + hebrew_parasha_name(parashah_name)
+      }
+
+  if not parashah_topic and not sheet:
+    return None
 
   return {
-    "topic": parashah_topic.contents(),
+    "topic": parashah_topic.contents() if parashah_topic else None,
     "sheet": sheet
   }
 
@@ -115,16 +124,20 @@ def get_calendar_item(data, date):
     return None
 
   topic = topic_from_url(todays_data["Topic URL"])
+  if not topic:
+    return None
+
   topic["date"] = todays_data["Displayed Date"]
   if len(todays_data["Custom About Title"]):
     topic["primaryTitle"] = {"en": todays_data["Custom About Title"], "he": todays_data["Custom About Title"]}
 
   if todays_data["Sheet URL"]:
     sheet = sheet_with_customization(todays_data)
-    sheet["heading"] = {
-      "en": "On " + topic["primaryTitle"]["en"],
-      "he": "על " + topic["primaryTitle"]["he"],
-    }
+    if sheet:
+      sheet["heading"] = {
+        "en": "On " + topic["primaryTitle"]["en"],
+        "he": "על " + topic["primaryTitle"]["he"],
+      }
   else:
     sheet = None
 
@@ -194,7 +207,11 @@ def get_todays_data(data, date):
 
 def sheet_with_customization(data):
   sheet_id = url_to_sheet_id(data["Sheet URL"])
-  sheet = sheet_to_dict(get_sheet(sheet_id))
+  sheet = get_sheet(sheet_id)
+  if "error" in sheet:
+    return None
+
+  sheet = sheet_to_dict(sheet)
 
   if len(data["Custom Title"]):
     sheet["title"] = data["Custom Title"]

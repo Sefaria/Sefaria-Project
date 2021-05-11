@@ -28,6 +28,8 @@ const HomeFeed = ({multiPanel, toggleSignUpModal, initialWidth}) => {
     {type: "SupportSefaria", props: {blue: true}},
   ];
 
+  const {parashah, calendar, discover, featured} = Sefaria.homepage;
+
   return (
     <div className="readerNavMenu homepage sans-serif" key="0">
       <div className="content">
@@ -37,51 +39,43 @@ const HomeFeed = ({multiPanel, toggleSignUpModal, initialWidth}) => {
         </div>}
         <div className="sidebarLayout">
           <div className="contentInner mainColumn">
-            <h2><InterfaceText>The Torah Portion</InterfaceText></h2>
-            {Sefaria.homepage.parashah.sheet ?
-            <ResponsiveNBox content={[
-              <AboutParashah parashahTopic={Sefaria.homepage.parashah.topic} />,
-              <FeaturedSheet {...Sefaria.homepage.parashah.sheet} />
-            ]} initialWidth={initialWidth} />
-            :
-            <NBox content={[
-              <AboutParashah parashahTopic={Sefaria.homepage.parashah.topic} />
-            ]} n={1} /> }
             
-            {Sefaria.homepage.calendar ?
-            <div>
-              <h2><InterfaceText>The Jewish Calendar</InterfaceText></h2>
-              {Sefaria.homepage.calendar.sheet ?
-              <ResponsiveNBox content={[
-                <AboutHoliday {...Sefaria.homepage.calendar.topic} />,
-                <FeaturedSheet {...Sefaria.homepage.calendar.sheet} />
-              ]} initialWidth={initialWidth} />
-              :
-              <NBox content={[
-                <AboutHoliday {...Sefaria.homepage.calendar.topic} />
-              ]} n={1} /> }
-            </div>
+            {parashah ?
+            <HomepageRow 
+              title="The Torah Portion"
+              aboutContent={parashah.topic}
+              sheet={parashah.sheet}
+              AboutComponent={AboutParashah} 
+              initialWidth={initialWidth} />
             : null }
 
-            {Sefaria.homepage.discover ?
-            <div>
-              <h2>
-                <InterfaceText>Discover </InterfaceText>&nbsp;
-                <InterfaceText text={Sefaria.homepage.discover.about.category} />
-              </h2>
-              <ResponsiveNBox content={[
-                <AboutDiscover discoverContent={Sefaria.homepage.discover.about} />,
-                <FeaturedSheet {...Sefaria.homepage.discover.sheet} />
-              ]} initialWidth={initialWidth} />
-            </div>
+            {calendar ?
+            <HomepageRow 
+              title="The Jewish Calendar"
+              aboutContent={calendar.topic}
+              sheet={calendar.sheet}
+              AboutComponent={AboutCalendar} 
+              initialWidth={initialWidth} />
             : null }
 
-            {Sefaria.homepage.featured ? 
+            {discover ?
+            <HomepageRow 
+              biTitles={{
+                en: "Discover " + discover.about.category.en,
+                he: Sefaria._("Discover ") + discover.about.category.he
+              }}
+              aboutContent={discover.about}
+              sheet={discover.sheet}
+              AboutComponent={AboutDiscover} 
+              initialWidth={initialWidth} />
+            : null }
+
+            {featured ?
             <div className="headerBordered">
-              <h2><InterfaceText>{Sefaria.homepage.featured.heading}</InterfaceText></h2>
-              <NBox content={[
-                <FeaturedSheet {...Sefaria.homepage.featured.sheet} />
-              ]} n={1} />
+              <HomepageRow 
+                title={featured.heading}
+                sheet={featured.sheet}
+                initialWidth={initialWidth} />
             </div>
             : null }
             
@@ -100,8 +94,34 @@ HomeFeed.propTypes = {
 };
 
 
-const AboutParashah = ({parashahTopic}) => {
-  const {primaryTitle, description, slug, ref} = parashahTopic;
+const HomepageRow = ({title, biTitles, aboutContent, sheet, AboutComponent, initialWidth}) => {
+  const blocks = [];
+  if (aboutContent) {
+    blocks.push(<AboutComponent content={aboutContent} />);
+  }
+  if (sheet) {
+    blocks.push(<FeaturedSheet sheet={sheet} />);
+  }
+
+  return (
+    <div>
+      <h2>
+        {biTitles ? 
+        <InterfaceText text={biTitles} />
+        : <InterfaceText>{title}</InterfaceText>}
+      </h2>
+
+      {blocks.length > 1 ?
+      <ResponsiveNBox content={blocks} initialWidth={initialWidth} />
+      : <NBox content={blocks} n={1} /> }
+    </div>
+  );
+};
+
+
+const AboutParashah = ({content}) => {
+  if (!content) { return null; }
+  const {primaryTitle, description, slug, ref} = content;
   const title = {
     en: primaryTitle.en.replace("Parashat ", ""),
     he: primaryTitle.he.replace("פרשת ", ""),
@@ -131,7 +151,10 @@ const AboutParashah = ({parashahTopic}) => {
 };
 
 
-const AboutHoliday = ({primaryTitle, description, slug, date, readings}) => {
+const AboutCalendar = ({content}) => {
+  if (!content) { return null; }
+  const {primaryTitle, description, slug, date, readings} = content;
+
   return (
     <div className="navBlock" >
       <a href={`/topics/${slug}`} className="navBlockTitle">
@@ -162,8 +185,9 @@ const AboutHoliday = ({primaryTitle, description, slug, date, readings}) => {
 };
 
 
-const AboutDiscover = ({discoverContent}) => {
-  const {title, description, ref} = discoverContent;
+const AboutDiscover = ({content}) => {
+  if (!content) { return null; }
+  const {title, description, ref} = content;
   const cat   = Sefaria.refCategories(ref.url)[0]; 
   const style = {"borderColor": Sefaria.palette.categoryColor(cat)};
 
@@ -211,7 +235,7 @@ const RecenltyPublished = ({multiPanel}) => {
   };
 
   const recentSheetsContent = !recentSheets ? [<LoadingMessage />] :
-                                recentSheets.map(s => <FeaturedSheet {...s} />);
+                                recentSheets.map(s => <FeaturedSheet sheet={s} />);
   if (recentSheets) {
     recentSheetsContent.splice(2, 0, <Modules type={"JoinTheConversation"} props={{wide:multiPanel}} />);
     recentSheetsContent.push(
@@ -229,15 +253,16 @@ const RecenltyPublished = ({multiPanel}) => {
 };
 
 
-const FeaturedSheet = (props) => {
-  const {heading, title, id, summary} = props;
-  const uid = props.author || props.owner;
+const FeaturedSheet = ({sheet}) => {
+  if (!sheet) { return null; }
+  const {heading, title, id, summary} = sheet;
+  const uid = sheet.author || sheet.owner;
   const author = {
     uid,
-    url: props.ownerProfileUrl,
-    image: props.ownerImageUrl,
-    name: props.ownerName,
-    organization: props.ownerOrganization,
+    url: sheet.ownerProfileUrl,
+    image: sheet.ownerImageUrl,
+    name: sheet.ownerName,
+    organization: sheet.ownerOrganization,
     is_followed: Sefaria._uid ? Sefaria.following.indexOf(uid) !== -1 : false,
     toggleSignUpModal: ()=>{},
   };
