@@ -231,13 +231,14 @@ const RecenltyPublished = ({multiPanel}) => {
 
 const FeaturedSheet = (props) => {
   const {heading, title, id, summary} = props;
+  const uid = props.author || props.owner;
   const author = {
-    uid: props.author || props.owner,
+    uid,
     url: props.ownerProfileUrl,
     image: props.ownerImageUrl,
     name: props.ownerName,
     organization: props.ownerOrganization,
-    is_followed: false,
+    is_followed: Sefaria._uid ? Sefaria.following.indexOf(uid) !== -1 : false,
     toggleSignUpModal: ()=>{},
   };
 
