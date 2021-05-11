@@ -303,7 +303,7 @@ GLOBAL_INTERRUPTING_MESSAGE = {
     "repetition": 4,
     "condition":  {
         "returning_only": False,
-        "english_only": False,
+        "english_only": True,
         "desktop_only": False,
         "debug": False,
     }
