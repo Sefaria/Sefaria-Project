@@ -14,6 +14,7 @@ class TranslationsBox extends Component {
     this._excludedLangs = ["he"];
     this.state = {
       versionLangMap: null,  // object with version languages as keys and array of versions in that lang as values
+      currentVersionsByActualLangs: this.convertCurrentLanguages(),
       initialMainVersionLanguage: props.mainVersionLanguage,
     };
   }
@@ -29,83 +30,23 @@ class TranslationsBox extends Component {
     //rearrange the current selected versions to be mapped by their real language,
     // then sort the current version to the top of its language list
     let versionsByLang = versions;
-    let currentVersionsByActualLangs = Object.values(this.props.currObjectVersions)
+    let currentVersionsByActualLangs = this.convertCurrentLanguages();
+    for(let [lang,ver] of Object.entries(currentVersionsByActualLangs)){
+      versionsByLang[lang].sort((a, b) => {return a.versionTitle == ver.versionTitle ? -1 : b.versionTitle == ver.versionTitle ? 1 : 0;});
+    }
+    this.setState({versionLangMap: versionsByLang, currentVersionsByActualLangs:currentVersionsByActualLangs});
+  }
+  convertCurrentLanguages(){
+    return Object.values(this.props.currObjectVersions)
           .filter(v => !!v && !this._excludedLangs.includes(v.actualLanguage))
           .reduce((obj, version) => {
             obj[version.actualLanguage] = version;
             return obj;
           }, {});
-    for(let v in currentVersionsByActualLangs){
-      let ver = currentVersionsByActualLangs[v];
-      versionsByLang[v].sort((a, b) => {return a.versionTitle == ver.versionTitle ? -1 : b.versionTitle == ver.versionTitle ? 1 : 0;});
-    }
-    this.setState({versionLangMap: versionsByLang});
   }
-
   openVersionInSidebar(versionTitle, versionLanguage) {
     this.props.setConnectionsMode("Translation Open");
     this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
-  }
-  sortVersionsByActiveLang(prioritize=null){
-    const standard_langs = ["en", "he"];
-    return Object.keys(this.state.versionLangMap).sort(
-      (a, b) => {
-        if      (!!prioritize && a === prioritize)                {return -1;}
-        else if (!!prioritize && b === prioritize)                {return 1;}
-        else if (a === this.props.mainVersionLanguage.slice(0,2)) {return -1;}
-        else if (b === this.props.mainVersionLanguage.slice(0,2)) {return  1;}
-        else if (a in standard_langs && !(b in standard_langs))   {return -1;}
-        else if (b in standard_langs && !(a in standard_langs))   {return  1;}
-        else if (a < b)                                           {return -1;}
-        else if (b > a)                                           {return  1;}
-        else                                                      {return  0;}
-      }
-    );
-  }
-  renderModeVersions() {
-    if (!this.state.versionLangMap) {
-      return (
-        <div className="versionsBox">
-          <LoadingMessage />
-        </div>
-      );
-    }
-    const versionLangs = this.sortVersionsByActiveLang("en");
-    const currVersions = {};
-    for (let vlang in this.props.currObjectVersions) {
-      const tempV = this.props.currObjectVersions[vlang];
-      currVersions[vlang] = !!tempV ? tempV.versionTitle : null;
-    }
-    return (
-      <div className="versionsBox">
-        {
-          versionLangs.map((lang) => (
-            <div key={lang}>
-              <div className="versionLanguage">{Sefaria._(Sefaria.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${this.state.versionLangMap[lang].length})`}</span></div>
-              {
-                this.state.versionLangMap[lang].map((v) => (
-                  <VersionBlock
-                    rendermode="versions-box"
-                    sidebarDisplay={true}
-                    version={v}
-                    currVersions={currVersions}
-                    currentRef={this.props.srefs[0]}
-                    firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
-                    getLicenseMap={this.props.getLicenseMap}
-                    key={v.versionTitle + lang}
-                    openVersionInReader={this.props.selectVersion}
-                    openVersionInSidebar={this.openVersionInSidebar}
-                    viewExtendedNotes={this.props.viewExtendedNotes}
-                    isCurrent={(this.props.currObjectVersions.en && this.props.currObjectVersions.en.versionTitle === v.versionTitle && lang == 'en') ||
-                              (this.props.currObjectVersions.he && this.props.currObjectVersions.he.versionTitle === v.versionTitle && lang == 'he')}
-                  />
-                ))
-              }
-            </div>
-          ))
-        }
-      </div>
-    );
   }
   render() {
     if (this.props.mode == "Translation Open"){ // A single translation open in the sdiebar
@@ -121,10 +62,20 @@ class TranslationsBox extends Component {
         />
       );
     }else if(this.props.mode == "Translations"){
-      return this.renderModeVersions();
-      /*return (
-        <VersionsBlocksList/>
-      );*/
+      return (
+        <VersionsBlocksList
+          versionsByLanguages={this.state.versionLangMap}
+          activeLanguages={Object.keys(this.state.currentVersionsByActualLangs)}
+          mainVersionLanguage={this.props.mainVersionLanguage}
+          currObjectVersions={this.props.currObjectVersions}
+          sortPrioritizeLanugage={"en"}
+          currentRef={this.props.srefs[0]}
+          getLicenseMap={this.props.getLicenseMap}
+          openVersionInReader={this.props.selectVersion}
+          openVersionInSidebar={this.openVersionInSidebar}
+          viewExtendedNotes={this.props.viewExtendedNotes}
+        />
+      );
     }
   }
 }
@@ -145,7 +96,67 @@ TranslationsBox.propTypes = {
 };
 
 class VersionsBlocksList extends Component{
-
+  sortVersionsByActiveLang(prioritize=null){
+    //sorts the languages of the available versions
+    const standard_langs = ["en", "he"];
+    const activeLanguages = this.props.activeLanguages
+    return Object.keys(this.props.versionsByLanguages).sort(
+      (a, b) => {
+        if      (!!prioritize && a === prioritize)                {return -1;}
+        else if (!!prioritize && b === prioritize)                {return 1;}
+        else if (a in standard_langs && !(b in standard_langs))   {return -1;}
+        else if (b in standard_langs && !(a in standard_langs))   {return  1;}
+        else if (this.props.activeLanguages.includes(a))          {return -1;}
+        else if (this.props.activeLanguages.includes(b))          {return  1;}
+        else if (a < b)                                           {return -1;}
+        else if (b < a)                                           {return  1;}
+        else                                                      {return  0;}
+      }
+    );
+  }
+  render(){
+      if (!this.props.versionsByLanguages) {
+        return (
+          <div className="versionsBox">
+            <LoadingMessage />
+          </div>
+        );
+      }
+      const sortedLanguages = this.sortVersionsByActiveLang(this.props.sortPrioritizeLanugage)
+      const currVersions = {};
+      for (let [vlang, version] of Object.entries(this.props.currObjectVersions)) {
+        currVersions[vlang] = !!version ? version.versionTitle : null;
+      }
+      return (
+        <div className="versionsBox">
+          {
+            sortedLanguages.map((lang) => (
+              <div key={lang}>
+                <div className="versionLanguage">{Sefaria._(Sefaria.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${this.props.versionsByLanguages[lang].length})`}</span></div>
+                {
+                  this.props.versionsByLanguages[lang].map((v) => (
+                    <VersionBlock
+                      rendermode="versions-box"
+                      sidebarDisplay={true}
+                      version={v}
+                      currVersions={currVersions}
+                      currentRef={this.props.currentRef}
+                      firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
+                      getLicenseMap={this.props.getLicenseMap}
+                      key={v.versionTitle + lang}
+                      openVersionInReader={this.props.openVersionInReader}
+                      openVersionInSidebar={this.props.openVersionInSidebar}
+                      viewExtendedNotes={this.props.viewExtendedNotes}
+                      isCurrent={this.props.activeLanguages.includes(v.actualLanguage) && Object.values(currVersions).includes(v.versionTitle)}
+                    />
+                  ))
+                }
+              </div>
+            ))
+          }
+        </div>
+      );
+    }
 }
 VersionsBlocksList.propTypes={
 
@@ -219,4 +230,4 @@ VersionsTextList.propTypes = {
   onCitationClick: PropTypes.func.isRequired,
 };
 
-export default TranslationsBox;
+export {TranslationsBox as default, VersionsBlocksList};
