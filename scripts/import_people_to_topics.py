@@ -440,6 +440,53 @@ def percent_refs_translated(percent):
             continue
     print(f'Num translated for {percent}% cutoff - {num_translated}/{cutoff} = {num_translated/cutoff}%')
     
+def get_wikidata_entries():
+    import time
+    import requests
+    good_guys = [t.alt_ids['wikidata'] for t in TopicSet({"alt_ids.wikidata": {"$exists": True}})]
+    out = {"entities": {}}
+    for i in tqdm(list(range(0, len(good_guys), 50))):
+        time.sleep(1)
+        good_ids = "|".join(good_guys[i:i+50])
+        r = requests.get("https://www.wikidata.org/w/api.php", params={"action": "wbgetentities", "ids": good_ids, "format": "json", "languages": "en|he", "props": "sitelinks"})
+        j = r.json()
+        out["entities"].update(j["entities"])
+    with open('data/wikidata_people.json', 'w') as fout:
+        json.dump(out, fout, ensure_ascii=False, indent=2)
+
+def get_wikipedia_links_for_wikidata_ids():
+    try:
+        TopicDataSource().load({'slug': 'wikidata'}).delete()
+    except AttributeError:
+        pass
+    TopicDataSource({
+        'slug': 'wikidata',
+        "displayName" : {
+            "en" : "Wikidata", 
+            "he" : "Wikidata"
+        }
+    }).save()
+    good_guys = [(t.alt_ids['wikidata'], t) for t in TopicSet({"alt_ids.wikidata": {"$exists": True}})]
+    with open('data/wikidata_people.json', 'r') as fin:
+        entity_map = json.load(fin)['entities']
+    
+    lang_count = defaultdict(int)
+    for wikidata_id, topic in good_guys:
+        sitelinks = entity_map[wikidata_id].get('sitelinks', None)
+        if sitelinks is None: continue
+        for lang in ('en', 'he', 'de', 'es', 'fr', 'ru'):
+            wiki_link_dict = sitelinks.get(f'{lang}wiki', None)
+            if wiki_link_dict is None: continue
+            wiki_link = f'https://{lang}.wikipedia.org/wiki/{wiki_link_dict["title"].replace(" ", "_")}'
+            lang_count[lang] += 1
+            if getattr(topic, 'properties', None) is None: topic.properties = {}
+            topic.properties[f'{lang}WikiLink'] = {
+                "value": wiki_link,
+                "dataSource": "wikidata"
+            }
+        topic.save()
+    for k, v in lang_count.items():
+        print(k, f'{v}/{len(entity_map)} = {v/len(entity_map)}')
 
 if __name__ == "__main__":
     # create_csvs_to_match()
@@ -451,8 +498,9 @@ if __name__ == "__main__":
     # refactor_authors_on_indexes()
     # import_people_links()
     # create_topic_tocs()
-    find_popular_writings(100, 300)
-
+    # find_popular_writings(100, 300)
+    # get_wikidata_entries()
+    get_wikipedia_links_for_wikidata_ids()
     # set_description_published()
 
 """
