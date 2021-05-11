@@ -469,6 +469,14 @@ class RefTopicLink(abst.AbstractMongoRecord):
         else:  # Ref is a regular Sefaria Ref
             self.expandedRefs = [r.normal() for r in Ref(self.ref).all_segment_refs()]
 
+    def _validate(self):
+        to_topic = Topic.init(self.toTopic)
+        assert to_topic is not None, "toTopic '{}' does not exist".format(self.toTopic)
+        link_type = TopicLinkType().load({"slug": self.linkType})
+        assert link_type is not None, "Link type '{}' does not exist".format(self.linkType)
+        if getattr(link_type, 'validTo', False):
+            assert to_topic.has_types(set(link_type.validTo)), "to topic '{}' does not have valid types '{}' for link type '{}'. Instead, types are '{}'".format(self.toTopic, ', '.join(link_type.validTo), self.linkType, ', '.join(to_topic.get_types()))
+    
     def _pre_save(self):
         if getattr(self, "_id", None) is None:
             # check for duplicates
