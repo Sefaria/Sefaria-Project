@@ -1868,15 +1868,6 @@ h1 .languageToggle .he {
   font-weight: 300;
   color: #666;
   margin-bottom: 20px;
-  /* letter-spacing: 2px; */
-  /* height: 16px; */
-  /* line-height: 16px; */
-}
-.readerPanel h2 .en, .readerPanel h3 .en {
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
-}
-.readerPanel h2 .he, .readerPanel h3 .he {
-  font-family: "Heebo", sans-serif;
 }
 .readerNavSection h2, .topicsPanel h2 {
   font-size: 16px;
@@ -2200,7 +2191,7 @@ a.navBlockTitle {
   text-transform: none;
   position: relative;
   top: -1px;
-  margin-inline-start: 3px;
+  margin-inline-start: 5px;
 }
 .readerNavCategoryMenu .categoryDescription {
   margin-bottom: 16px;

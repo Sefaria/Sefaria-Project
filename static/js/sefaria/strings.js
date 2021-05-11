@@ -50,30 +50,35 @@ const Strings = {
     "Make a Donation": "תרמו",
  
     // Texts Page
-    "Browse the Library": "",
-    "The Jewish Library": "",
-    "The tradition of Torah texts is a vast, interconnected network that forms a conversation across space and time. The five books of the Torah form its foundation, and each generation of later texts functions as a commentary on those that came before it.": "",
+    "Browse the Library": "עיון בספרייה",
+    "The Jewish Library": "ארון הספרים היהודי",
+    "The tradition of Torah texts is a vast, interconnected network that forms a conversation across space and time. The five books of the Torah form its foundation, and each generation of later texts functions as a commentary on those that came before it.": "מסורת הלימוד היהודי ארוגה ברשת מסועפת של קשרים, היוצרים שיח מֵעבר לגבולות הזמן והמקום. חמשת חומשי התורה הם אבן היסוד של השיח הזה, וכל דור נוסף של כתיבה תורנית משמש פרשנות לכתיבה התורנית של הדורות הקודמים.",
     "Weekly Torah Portion": "פרשת השבוע",
-    "All Study Schedules": "",
-    "Sponsor A Day of Learning": "",
-    "With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.": "",
-    "Sponsor a Day": "",
+    "All Study Schedules": "לוחות זמנים ללימוד",
+    "Sponsor A Day of Learning": "מתן חסות ליום לימוד",
+    "With your help, we can add more texts and translations to the library, develop new tools for learning, and keep Sefaria accessible for Torah study anytime, anywhere.": "בעזרת התרומה שלך נוכל להוסיף מקורות ותרגומים נוספים לספרייה, לפתח כלים חדשים ללימוד ולשמור על גישה חופשית ללימוד תורה בספריא, בכל מקום ובכל זמן.",
+    "Sponsor A Day": "הקדשת יום לימוד",
 
     // Text Category Pages
-    "All Portions": "",
-    "Popular Texts": "",
-    "All Visualizations": "",
-    "Daily Study": "",
+    "All Portions": "כל פרשות השבוע",
+    "Popular Texts": "מקורות פופולריים",
+    "Explore interconnections among texts with our interactive visualizations.": "גלו קשרים מעניינים בין מקורות בעזרת  הויזואליזציות האינטראקטיביות שלנו.",
+    "All Visualizations": "כל הויזואליזציות",
+    "Daily Study": "לימוד יומי",
 
 
     // Topics
-    "Explore by Topic": "",
-    "About Topics": "",
-    "Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.": "",
-    "Trending Topics": "",
+    "Explore by Topic": "לימוד לפי נושאים",
+    "About Topics": "על אודות \"נושאים\"",
+    "Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.": "דפי נושא מביאים אותך ישירות למקורות נבחרים ולדפי מקורות של משתמשים המקורות המופיעים בדפי הנושא נלקטים ממאגרים קיימים של ספרות יהודית (דוגמת אספקלריא) ומדפי המקורות הציבוריים של משתמשי ספריא.",
+    "Trending Topics": "נושאים חמים",
     "More": "עוד",
     "Less": "פחות",
+    "All Topic A-Z": "כל הנושאים א-ת",
+    "Browse or search our complete list of topics": "עיון או חיפוש ברשימת כל הנושאים",
+    "Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.": "דפי נושא מביאים אותך ישירות למקורות נבחרים ולדפי מקורות של משתמשים המקורות המופיעים בדפי הנושא נלקטים ממאגרים קיימים של ספרות יהודית (דוגמת אספקלריא) ומדפי המקורות הציבוריים של משתמשי ספריא.",
     // All Topics
+    "All Topics": "כל הנושאים",
     "Reset": "לאתחל",
     "Search Topics": "חפש נושאים",
 
@@ -190,9 +195,9 @@ const Strings = {
     // Collections
     // Edit collection page
     "Collections": "אסופות",
-    "About Collections": "",
+    "About Collections": "על אודות \"אסופות\"",
     "Collection": "אסופה",
-    "Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.": "",
+    "Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.": "אסופות הן מקבצים של דפי מקורות שיצרו המשתמשים והמשתמשות. הן ניתנות לשימוש פרטי, לשיתוף עם חברים וחברות או לשימוש ציבורי באתר ספריא.",
     "Sefaria Collections": "אסופות של ספריא",
     "Edit Collection": "עריכת אסופה",
     "Create a Collection": "יצירת אסופה",
@@ -253,8 +258,8 @@ const Strings = {
     "Notifications": "התראות",
 
     // Study Schedules
-    "Daily Study": "",
-    "Weekly Study": "",
+    "Daily Study": "לימוד יומי",
+    "Weekly Study": "לימוד שבועי",
     "Since biblical times, the Torah has been divided into sections which are read each week on a set yearly calendar. Following this practice, many other calendars have been created to help communities of learners work through specific texts together.": "",
 
 

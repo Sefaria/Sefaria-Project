@@ -31,8 +31,9 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
   let catTitle = '', heCatTitle = '';
 
   if ((cats[0] === "Talmud" || cats[0] === "Tosefta") && cats.length === 2) {
-    catTitle   = (cats.length > 1) ? cats[0] +  " " + cats[1] : cats[0];
-    heCatTitle = (cats.length > 1) ? Sefaria.hebrewTerm(cats[0]) + " " + Sefaria.hebrewTerm(cats[1]) : Sefaria.hebrewTerm(cats[0]);
+    category   = cats[0]; 
+    catTitle   = cats[0];
+    heCatTitle = Sefaria.hebrewTerm(cats[0]);
   } else {
     if (category === "Commentary") {
       const onCat = cats.slice(-2)[0];
@@ -46,9 +47,9 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
 
   const tocObject = Sefaria.tocObjectByCategories(cats);
 
-  const catContents    = Sefaria.tocItemsByCategories(cats);
-  const nestLevel      = category === "Commentary" ? 1 : 0;
-  const aboutModule   = [
+  const catContents = Sefaria.tocItemsByCategories(cats);
+  const nestLevel   = category === "Commentary" ? 1 : 0;
+  const aboutModule = [
     multiPanel ? {type: "AboutTextCategory", props: {cats: aboutCats}} : {type: null},
   ];
 
@@ -156,23 +157,23 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
 
       // Add a nested subcategory
       } else {
-        const hasDesc  = item.enShortDesc || item.heShortDesc;
-        const longDesc = hasDesc && hasDesc.split(" ").length > 5; 
+        let shortDesc = contentLang === "hebrew" ? item.heShortDesc : item.enShortDesc;
+        const hasDesc  = !!shortDesc;
+        const longDesc = hasDesc && shortDesc.split(" ").length > 5;
+        shortDesc = hasDesc && !longDesc ? `(${shortDesc})` : shortDesc;
+
         content.push(
           <div className='category' key={"cat." + nestLevel + "." + item.category}>
             <h2>
-              <span className='en'>{item.category}</span>
-              <span className='he'>{item.heCategory}</span>
+              <ContentText text={{en: item.category, he: item.heCategory}} defaultToInterfaceOnBilingual={true} />
               {hasDesc && !longDesc ? 
               <span className="categoryDescription">
-                <span className='en'> ({item.enShortDesc})</span>
-                <span className='he'> ({item.heShortDesc})</span>
+                <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
               </span> : null }
             </h2>
             {hasDesc && longDesc ? 
             <div className="categoryDescription">
-              <span className='en'>{item.enShortDesc}</span>
-              <span className='he'>{item.heShortDesc}</span>
+              <ContentText text={{en: shortDesc, he: shortDesc}} defaultToInterfaceOnBilingual={true} />
             </div> : null }
             <ReaderNavigationCategoryMenuContents
               contents      = {item.contents}
