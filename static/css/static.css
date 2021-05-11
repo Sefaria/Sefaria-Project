@@ -184,14 +184,6 @@
   overflow: hidden;
   position: relative;
 }
-#homeCover #homeVideo {
-  position: absolute;
-  top: -90px;
-  left: 0;
-  width: 100%;
-  min-width: 1200px;
-  z-index: 0;
-}
 #homePage #homeCover h1.featureTitle {
   color: white;
   margin-bottom: 22px;
@@ -769,6 +761,40 @@ p.registration-links a:hover{
 #aboutPage {
   margin: 0;
   width: 100%;
+}
+#aboutCover {
+  height: 540px;
+  padding: 180px 0;
+  background-color: #ADA99B;
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+#aboutVideo {
+  position: absolute;
+  top: -90px;
+  left: 0;
+  width: 100%;
+  min-width: 1200px;
+  z-index: 0;
+  height: 710px;
+}
+#aboutPage .inner {
+  margin-top: -440px;
+}
+#aboutHeader {
+  color: white;
+  margin-bottom: 250px;
+  text-align: center;
+  position: relative;
+}
+#aboutPage #aboutTitle {
+  font-size: 50px;
+  margin-bottom: 20px;
+}
+#aboutTitleSub {
+  font-size: 18px;
 }
 #aboutPage .section {
   margin-bottom: 60px;
