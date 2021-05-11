@@ -426,7 +426,7 @@ class Test_AutoLinker(object):
         tracker.modify_text(1, oref, vtitle, lang, chunk.text)
         lower_link_count = LinkSet({"refs": {"$regex": regex}, "auto": True, "generated_by": "add_commentary_links"}).count()
         # Assert both of these after the removal - lest the first one failing prevent the text removal
-        assert higher_link_count == (desired_link_count+2)
+        assert higher_link_count == (desired_link_count+1)
         assert lower_link_count == desired_link_count
 
     def test_refresh_links_with_text_save_many_to_one_default_node(self):
