@@ -77,7 +77,7 @@ const jobKeys = [
     const badge = x => succeeded(x) ? ":large_green_circle:" : ":red_circle:";
     console.log(jobsResults);
 
-    const commitMsg =`${slackName?"@" + slackName:""} \`${branch}\` <${commitUrl}|${githubSha.slice(0,6)}>`;
+    const commitMsg =`${slackName?"@" + slackName:""} • \`${branch}\` • <${commitUrl}|${githubSha.slice(0,6)}>`;
     const testsMsg = jobKeys.filter(k=>jobsResults[k]).map(k => `${badge(jobsResults[k])} <${jobsResults[k].url}|${k}>`).join("     ");
 
     const slackMsg = {

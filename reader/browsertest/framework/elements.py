@@ -79,7 +79,6 @@ class AbstractTest(object):
         sys.stdout.write(msg if self.isVerbose or always else short_msg)
         sys.stdout.flush()
 
-
     def is_element_visible_in_viewport(self, element) -> bool:
         return self.driver.execute_script("var elem = arguments[0],            " 
                                      "  box = elem.getBoundingClientRect(),    " 
@@ -1397,10 +1396,17 @@ class AtomicTest(AbstractTest):
             if isinstance(e, ElementClickInterceptedException):
                 if self.close_modal_popup():
                     self.carp("{} - Closed modal. Restarting\n".format(self.name()))
-                    return self.body()
-            print(e)
-            err = traceback.format_exc()
-            result = SingleTestResult(self.__class__, self.cap, False, err)
+                    try:
+                        self.body()
+                        self.driver.execute_script('"**** Exit {} ****"'.format(self.name()))
+                    except Exception as e:
+                        print(e)
+                        err = traceback.format_exc()
+                        result = SingleTestResult(self.__class__, self.cap, False, err)
+            else:
+                print(e)
+                err = traceback.format_exc()
+                result = SingleTestResult(self.__class__, self.cap, False, err)
         else:
             result = SingleTestResult(self.__class__, self.cap, True)
 
