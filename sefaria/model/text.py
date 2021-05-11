@@ -123,8 +123,8 @@ class AbstractIndex(object):
         return refs
 
     def author_objects(self):
-        from . import person
-        return [person.Person().load({"key": k}) for k in getattr(self, "authors", []) if person.Person().load({"key": k})]
+        from . import topic
+        return [topic.Topic.init(slug) for slug in getattr(self, "authors", []) if topic.Topic.init(slug)]
 
     def composition_time_period(self):
         return None
@@ -262,7 +262,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         """
         authors = self.author_objects()
         if len(authors):
-            contents["authors"] = [{"en": author.primary_name("en"), "he": author.primary_name("he")} for author in authors]
+            contents["authors"] = [{"en": author.get_primary_name("en"), "he": author.get_primary_name("he"), "slug": author.slug} for author in authors]
 
         if getattr(self, "collective_title", None):
             contents["collective_title"] = {"en": self.collective_title, "he": hebrew_term(self.collective_title)}
@@ -460,8 +460,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         else:
             author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
-            if author and author.mostAccurateTimePeriod():
-                tp = author.mostAccurateTimePeriod()
+            tp = author and author.most_accurate_time_period()
+            if tp is not None:
                 tpvars = vars(tp)
                 start = tp.start if "start" in tpvars else None
                 end = tp.end if "end" in tpvars else None
