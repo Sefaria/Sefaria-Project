@@ -121,7 +121,7 @@ const CollectionsWidget = ({sheetID, close, handleCollectionsChange}) => {
       </span>
       <div className="collectionsWidgetClose" onClick={onClose}>×</div>
     </div>
-    <div className="collectionsWidgetList">
+    <div className="collectionsWidgetList serif">
       {!dataLoaded ? null :
         collections.map((collection, i) => {
         return <label className="checkmarkLabel" key={i+collection.name}>

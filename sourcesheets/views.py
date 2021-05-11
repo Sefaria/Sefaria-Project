@@ -35,10 +35,12 @@ from sefaria.utils.util import strip_tags
 
 from reader.views import render_template, catchall
 from sefaria.sheets import clean_source, bleach_text
+from bs4 import BeautifulSoup
 
 # sefaria.model.dependencies makes sure that model listeners are loaded.
 # noinspection PyUnresolvedReferences
 import sefaria.model.dependencies
+
 
 from sefaria.gauth.decorators import gauth_required
 
@@ -383,7 +385,7 @@ def delete_sheet_api(request, sheet_id):
 @csrf_exempt
 def collections_api(request, slug=None):
     if request.method == "GET":
-        return collections_get_api(request, unquote(slug))
+        return collections_get_api(request, slug)
     else:
         if not request.user.is_authenticated and request.method == "POST":
             key = request.POST.get("apikey")
@@ -409,7 +411,7 @@ def protected_collections_post_api(request, user_id, slug=None):
 def collections_get_api(request, slug=None):
     if not slug:
         return jsonResponse(CollectionSet.get_collection_listing(request.user.id))
-    collection_obj = Collection().load({"slug": slug})
+    collection_obj = Collection().load({"slug": unquote(slug)})
     if not collection_obj:
         return jsonResponse({"error": "No collection with slug '{}'".format(slug)})
     is_member = request.user.is_authenticated and collection_obj.is_member(request.user.id)
@@ -769,6 +771,16 @@ def add_source_to_sheet_api(request, sheet_id):
         can further specify the origin or content of text for that ref.
 
     """
+    def remove_footnotes(txt):
+        #removes all i tags that are of class "footnote" as well as the preceding "sup" tag
+        soup = BeautifulSoup(txt, parser='lxml')
+        for el in soup.find_all("i", {"class": "footnote"}):
+            if el.previousSibling.name == "sup":
+                el.previousSibling.decompose()
+            el.decompose()
+        return bleach.clean(str(soup), tags=Version.ALLOWED_TAGS, attributes=Version.ALLOWED_ATTRS, strip=True)
+
+
     # Internal func that does the same thing for each language to get text for the source
     def get_correct_text_from_source_obj(source_obj, ref_obj, lang):
 
@@ -797,7 +809,9 @@ def add_source_to_sheet_api(request, sheet_id):
         ref = Ref(source["ref"])
         source["heRef"] = ref.he_normal()
         text["en"] = get_correct_text_from_source_obj(source, ref, "en")
+        text["en"] = remove_footnotes(text["en"])
         text["he"] = get_correct_text_from_source_obj(source, ref, "he")
+        text["he"] = remove_footnotes(text["he"])
         source["text"] = text
 
     note = request.POST.get("note", None)
@@ -927,9 +941,9 @@ def trending_tags_api(request):
 def all_sheets_api(request, limiter, offset=0):
     limiter  = int(limiter)
     offset   = int(offset)
-    response = public_sheets(limit=limiter, skip=offset)
+    lang     = request.GET.get("lang")
+    response = public_sheets(limit=limiter, skip=offset, lang=lang)
     response = jsonResponse(response, callback=request.GET.get("callback", None))
-    response["Cache-Control"] = "max-age=3600"
     return response
 
 

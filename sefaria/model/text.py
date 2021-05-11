@@ -590,9 +590,63 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 # self.titleVariants.remove(d["oldTitle"])  # let this be determined by user
         return super(Index, self).load_from_dict(d, is_init)
 
+
+    @staticmethod
+    def get_title_quotations_variants(title):
+        """
+        If there is a quotation, fancy quotation, or gershayim in title, return two titles also with quotations.
+        For example, if title is 'S"A', return a list of 'S”A' and
+        'S״A'
+        :param title: str
+        :return: list
+        """
+        titles = []
+        quotes = ['"', '״', '”']
+        found_quotes = [quote for quote in quotes if quote in title]
+        for found_quote_char in found_quotes:
+            titles += [title.replace(found_quote_char, quote_char) for quote_char in quotes if quote_char != found_quote_char]
+        return titles
+
+    def normalize_titles_with_quotations(self):
+        # for all Index and node hebrew titles, this function does the following:
+        # 1. any title that has regular quotes, gershayim, or fancy quotes will now have two corresponding
+        # titles where the characters are exactly the same except for the type of quote
+        # 2. all primary titles will not have gershayim or fancy quotes, but only have regular quotes or none at all.
+        # 3. all titles have either gershayim or fancy quotes or regular quotes or none at all,
+        # so that no title can have two different types of quotes.
+        primary_title = self.get_title('he').replace('״', '"').replace('”', '"')
+        self.nodes.add_title(primary_title, 'he', True, True)
+        index_titles = [primary_title]
+        for title in self.schema["titles"]:
+            if title["lang"] == "he" and title.get("primary", False) == False:
+                index_titles.append(title["text"])
+
+        for title in index_titles:
+            title = title.replace('״', '"').replace('”', '"')
+            new_titles = [title] + self.get_title_quotations_variants(title)
+            for new_title in new_titles:
+                if new_title not in index_titles:
+                    self.nodes.add_title(new_title, 'he')
+
+        for node in self.nodes.children:
+            if getattr(node, "default", False) == False and getattr(node, "sharedTitle", "") == "":
+                primary_title = node.get_primary_title('he')
+                primary_title = primary_title.replace('״', '"').replace('”', '"')
+                node.add_title(primary_title, 'he', True, True)
+                node_titles = node.get_titles('he')
+                for node_title in node_titles:
+                    node_title = node_title.replace('״', '"').replace('”', '"')
+                    new_titles = [node_title] + self.get_title_quotations_variants(node_title)
+                    for new_title in new_titles:
+                        if new_title not in node_titles:
+                            node.add_title(new_title, 'he')
+
     def _normalize(self):
         self.title = self.title.strip()
         self.title = self.title[0].upper() + self.title[1:]
+
+        if getattr(self, "is_cited", False):
+            self.normalize_titles_with_quotations()
 
         if isinstance(getattr(self, "authors", None), str):
             self.authors = [self.authors]
@@ -2941,7 +2995,9 @@ class Ref(object, metaclass=RefCacheType):
     def is_segment_level(self):
         """
         Is this Ref segment (e.g. Verse) level?
+
         ::
+
             >>> Ref("Leviticus 15:3").is_segment_level()
             True
             >>> Ref("Leviticus 15").is_segment_level()

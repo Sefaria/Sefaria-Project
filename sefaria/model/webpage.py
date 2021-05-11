@@ -353,7 +353,7 @@ def dedupe_identical_urls(test=True):
             "count": -1
             }
         }
-    ]);
+    ], allowDiskUse=True);
 
     url_count = 0
     removed_count = 0
