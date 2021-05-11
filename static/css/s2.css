@@ -1983,6 +1983,9 @@ a.navBlockTitle {
   color: #000;
   margin-inline-end: 20px;
 }
+.navBlockTitle .subtitle {
+  color: var(--dark-grey);
+}
 .navBlockDescription {
   font-size: 14px;
   line-height: 18px;

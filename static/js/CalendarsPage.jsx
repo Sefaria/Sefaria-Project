@@ -16,7 +16,7 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
   const calendars = reformatCalendars();
 
   const parashaCalendars = ["Parashat Hashavua", "Haftarah (A)", "Haftarah (S)", "Haftarah"];
-  const dailyCalendars   = ["Daf Yomi", "929", "Daily Mishnah", "Daily Rambam", "Daily Rambam (3)", "Halakhah Yomit"];
+  const dailyCalendars   = ["Daf Yomi", "929", "Daily Mishnah", "Daily Rambam", "Daily Rambam (3 Chapters)", "Halakhah Yomit"];
   const weeklyCalendars  = ["Daf a Week"];
 
   const makeListings = list => calendars.filter(c => list.indexOf(c.title.en) != -1)
@@ -69,6 +69,10 @@ const CalendarListing = ({calendar}) => {
     <div className="navBlock withColorLine" style={style}>
       <a href={`/${calendar.url}`} className="navBlockTitle">
         <InterfaceText text={calendar.displayTitle} />
+        {calendar.enSubtitle ?
+        <span className="subtitle">
+          &nbsp;<InterfaceText text={{en: calendar.enSubtitle, he: ""}} />
+        </span> : null }
       </a>
       <div className="calendarRefs">
         {calendar.refs.map(ref => (
@@ -104,8 +108,8 @@ const reformatCalendars = () => {
       cal.displayValue = {en: cal.ref, he: cal.heRef};
     } else {
       cal.displayTitle = Sefaria.util.clone(cal.title);
-      if (calData.enDisplayTitle) {
-        cal.displayTitle.en = calData.enDisplayTitle;
+      if (calData.enSubtitle) {
+        cal.enSubtitle = calData.enSubtitle;
       }
     }
 
@@ -126,39 +130,38 @@ const calendarDescriptions = {
   "Parashat Hashavua": {},
   "Haftarah": {
     en: "The portion from Prophets (a section of the Bible) read on any given week, based on its thematic connection to the weekly Torah portion.",
-    he: ""
+    he: "קטע קבוע מספרי הנביאים (אחד מחלקי התנ\"ך) הנקרא בכל שבת ומועד, ובעל קשר רעיוני לפרשת השבוע."
   },
   "Daf Yomi": {
     en: "A study program that covers a page of Talmud a day. In this way, the entire Talmud is completed in about seven and a half years.",
-    he: "",
-    enDisplayTitle: "Daf Yomi (Talmud)",
+    he: "תוכנית לימודים לתלמוד הבבלי הכוללת לימוד של דף אחד בכל יום. הלומדים בדרך זו מסיימים את קריאת התלמוד כולו בתוך כשבע שנים וחצי.",
+    enSubtitle: "(Talmud)",
   },
   "929": {
     en: "A study program in which participants study five of the Bible’s 929 chapters a week, completing it in about three and a half years.",
-    he: "",
-    enDisplayTitle: "929 (Tanakh)",
+    he: "תוכנית שבועית ללימוד תנ\"ך שבה נלמדים בכל שבוע חמישה פרקים מתוך 929 פרקי התנ\"ך. הלומדים בדרך זו מסיימים את קריאת התנ\"ך כולו כעבור שלוש שנים וחצי.",
+    enSubtitle: "(Tanakh)"
   },
   "Daily Mishnah": {
     en: "A program of daily study in which participants study two Mishnahs (teachings) each day in order to finish the entire Mishnah in six years.",
-    he: ""
+    he: "תוכנית ללימוד משנה שבמסגרתה נלמדות שתי משניות בכל יום. הלומדים בדרך זו מסיימים את קריאת המשנה כולה כעבור שש שנים."
   },
   "Daily Rambam": {
     en: "A study program that divides Maimonides’ Mishneh Torah legal code into daily units, to complete the whole work in three years.",
-    he: ""
+    he: "תוכנית ללימוד הספר ההלכתי של הרמב\"ם, \"משנה תורה\", המחלקת את הספר ליחידות יומיות. הלומדים בדרך זו מסיימים את קריאת הספר כולו בתוך שלוש שנים."
   },
-  "Daily Rambam (3)": {
+  "Daily Rambam (3 Chapters)": {
     en: "A study program that divides Maimonides’ Mishneh Torah legal code into daily units, to complete the whole work in one year.",
-    he: "",
-    enDisplayTitle: "Daily Rambam (3 Chapters)",
+    he: "תוכנית ללימוד הספר ההלכתי של הרמב\"ם, \"משנה תורה\", המחלקת את הספר ליחידות יומיות. הלומדים בדרך זו מסיימים את קריאת הספר כולו בתוך שנה אחת.",
   },
   "Daf a Week": {
     en: "A study program  that covers a page of Talmud a week. By going at a slower pace, it facilitates greater mastery and retention.",
-    he: "",
-    enDisplayTitle: "Daf a Week (Talmud)"
+    he: "תוכנית שבועית ללימוד התלמוד הבבלי שבה נלמד דף תלמוד אחד בכל שבוע. קצב הלימוד האיטי מאפשר ללומדים הפנמה ושליטה רבה יותר בחומר הנלמד.",
+    enSubtitle: "(Talmud)"
   },
   "Halakhah Yomit": {
     en: "A four year daily study program in which participants study central legal texts that cover most of the daily and yearly rituals.",
-    he: ""
+    he: "תוכנית ארבע־שנתית ללימוד מקורות הלכתיים מרכזיים העוסקים ברוב הלכות היום־יום והמועדים."
   },
 }
 
