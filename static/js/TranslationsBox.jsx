@@ -107,28 +107,25 @@ class TranslationsBox extends Component {
       </div>
     );
   }
-  renderModeSelected() {
-    // open text in versionslist with current version selected
-    let currSelectedVersions = {en: null, he: null};
-    if (this.props.vFilter.length) {
-      const [vTitle, lang] = Sefaria.deconstructVersionsKey(this.props.vFilter[0]);
-      currSelectedVersions = {[lang]: vTitle};
-    }
-    const onRangeClick = (sref)=>{this.props.onRangeClick(sref, false, currSelectedVersions)};
-    return (
-      <VersionsTextList
-        srefs={this.props.srefs}
-        vFilter={this.props.vFilter}
-        recentVFilters={this.props.recentVFilters}
-        setFilter={this.props.setFilter}
-        onRangeClick={onRangeClick}
-        setConnectionsMode={this.props.setConnectionsMode}
-        onCitationClick={this.props.onCitationClick}
-      />
-    );
-  }
   render() {
-    return (this.props.mode === "Translations" ? this.renderModeVersions() : this.renderModeSelected());
+    if (this.props.mode == "Translation Open"){ // A single translation open in the sdiebar
+      return (
+        <VersionsTextList
+          srefs={this.props.srefs}
+          vFilter={this.props.vFilter}
+          recentVFilters={this.props.recentVFilters}
+          setFilter={this.props.setFilter}
+          onRangeClick={this.props.onRangeClick}
+          setConnectionsMode={this.props.setConnectionsMode}
+          onCitationClick={this.props.onCitationClick}
+        />
+      );
+    }else if(this.props.mode == "Translations"){
+      return this.renderModeVersions();
+      /*return (
+        <VersionsBlocksList/>
+      );*/
+    }
   }
 }
 TranslationsBox.propTypes = {
@@ -146,6 +143,13 @@ TranslationsBox.propTypes = {
   onRangeClick:             PropTypes.func.isRequired,
   onCitationClick:          PropTypes.func.isRequired,
 };
+
+class VersionsBlocksList extends Component{
+
+}
+VersionsBlocksList.propTypes={
+
+}
 
 
 class VersionsTextList extends Component {
@@ -178,7 +182,10 @@ class VersionsTextList extends Component {
     return sectionRef;
   }
   render() {
+    let currSelectedVersions = {en: null, he: null};
     const [vTitle, language] = Sefaria.deconstructVersionsKey(this.props.vFilter[0]);
+    currSelectedVersions = {[language]: vTitle};
+    const onRangeClick = (sref) => {this.props.onRangeClick(sref, false, currSelectedVersions)};
     return !this.state.loaded || !this.props.vFilter.length ?
       (<LoadingMessage />) :
       (<div className="versionsTextList">
@@ -189,16 +196,15 @@ class VersionsTextList extends Component {
           recentFilters={this.props.recentVFilters}
           setFilter={this.props.setFilter}/>
         <TextRange
-          panelPosition ={this.props.panelPosition}
           sref={Sefaria.humanRef(this.props.srefs)}
-          currVersions={{[language]: vTitle}}
+          currVersions={currSelectedVersions}
           useVersionLanguage={true}
           hideTitle={true}
           numberLabel={0}
           basetext={false}
           onCitationClick={this.props.onCitationClick} />
           <ConnectionButtons>
-            <OpenConnectionTabButton srefs={this.props.srefs} openInTabCallback={this.props.onRangeClick}/>
+            <OpenConnectionTabButton srefs={this.props.srefs} openInTabCallback={onRangeClick}/>
             <AddConnectionToSheetButton srefs={this.props.srefs} versions={{[language]: vTitle}} addToSheetCallback={this.props.setConnectionsMode}/>
           </ConnectionButtons>
       </div>);

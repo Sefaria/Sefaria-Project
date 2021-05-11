@@ -571,14 +571,14 @@ class ConnectionsPanel extends Component {
       content = (<TranslationsBox
                   currObjectVersions={this.state.currObjectVersions}
                   mainVersionLanguage={this.state.mainVersionLanguage}
+                  setConnectionsMode={this.props.setConnectionsMode}
                   mode={this.props.mode}
                   selectVersion={this.props.selectVersion}
-                  srefs={this.props.srefs}
+                  setFilter={this.props.setVersionFilter}
                   vFilter={this.props.versionFilter}
                   recentVFilters={this.props.recentVersionFilters}
-                  setConnectionsMode={this.props.setConnectionsMode}
                   getLicenseMap={this.props.getLicenseMap}
-                  setFilter={this.props.setVersionFilter}
+                  srefs={this.props.srefs}
                   sectionRef={this.state.sectionRef}
                   onRangeClick={this.props.onTextClick}
                   viewExtendedNotes={this.props.viewExtendedNotes}
