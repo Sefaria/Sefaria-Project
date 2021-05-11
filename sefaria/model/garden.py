@@ -8,7 +8,7 @@ from . import abstract as abst
 from . import text
 from . import place
 from . import timeperiod
-from . import person
+from . import topic
 from . import link
 from . import user_profile
 
@@ -115,8 +115,6 @@ class Garden(abst.AbstractMongoRecord):
         return place.PlaceSet({"key": {"$in": pkeys}})
 
     def stopsByAuthor(self):
-        from . import person
-
         res = []
         unknown = []
 
@@ -125,7 +123,7 @@ class Garden(abst.AbstractMongoRecord):
             if not k:
                 unknown.extend([s.contents() for s in g])
             else:
-                res.append(([person.Person().load({"key": p}) for p in k], [s.contents() for s in g]))
+                res.append(([topic.Topic.init(p) for p in k], [s.contents() for s in g]))
         res.append(("unknown", unknown))
         return res
 

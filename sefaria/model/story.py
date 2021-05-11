@@ -727,8 +727,8 @@ class AuthorStoryFactory(AbstractStoryFactory):
     def _data_object(cls, **kwargs):
         prs = kwargs.get("person")
         if isinstance(prs, str):
-            prs = person.Person().load({"key": prs})
-        assert isinstance(prs, person.Person)
+            prs = topic.Topic.init(prs)
+        assert isinstance(prs, topic.Topic)
         return {"author_key": prs.key, "example_work": random.choice(prs.get_indexes()).title}
 
     @classmethod
