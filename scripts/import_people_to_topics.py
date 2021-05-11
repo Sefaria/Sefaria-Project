@@ -198,7 +198,7 @@ def import_and_merge_authors():
                     if title == prim:
                         main_author_dict['titles'][-1]['primary'] = True
             main_author = Topic(main_author_dict)
-            for prop in ['enWikiLink', 'heWikiLink', 'jeLink', 'generation', 'sex', 'birthYear', 'birthPlace', 'deathYear', 'deathPlace', 'deathYearIsApprox', 'birthYearIsApprox']:
+            for prop in ['enWikiLink', 'heWikiLink', 'jeLink', 'generation', 'sex', 'birthYear', 'birthPlace', 'deathYear', 'deathPlace', 'deathYearIsApprox', 'birthYearIsApprox', 'era']:
                 val = getattr(person, prop, None)
                 if val is None: continue
                 if getattr(main_author, 'properties', None) is None: main_author.properties = {}
