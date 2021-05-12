@@ -374,7 +374,7 @@ class TopicLinkHelper(object):
     ]
     optional_attrs = [
         'generatedBy',
-        'order',
+        'order',  # dict with some data on how to sort this link. can have key 'custom_order' which should trump other data
         'isJudgementCall',
     ]
     generated_by_sheets = "sheet-topic-aggregator"
