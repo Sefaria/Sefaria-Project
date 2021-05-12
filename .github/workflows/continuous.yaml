@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ always() }}
     needs: 
-      - selenium-allsuites-local
+#      - selenium-allsuites-local
 #      - selenium-pageloadsuite-local
       - selenium-pageloadsuite-sauce
 #      - selenium-readersuite-local
@@ -520,7 +520,7 @@ jobs:
     name: "Clean up CI Sandbox"
     if: ${{ always() }}
     needs: 
-      - selenium-allsuites-local
+#      - selenium-allsuites-local
 #      - selenium-pageloadsuite-local
       - selenium-pageloadsuite-sauce
 #      - selenium-readersuite-local
