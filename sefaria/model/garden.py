@@ -422,8 +422,8 @@ class GardenStop(abst.AbstractMongoRecord):
         if getattr(self, "authors", None) and len(self.authors) > 0:
             author = topic.Topic.init(self.authors[0]) or {}
             if author:
-                self.authorsEn = author.get_primary_name("en")
-                self.authorsHe = author.get_primary_name("he")
+                self.authorsEn = author.get_primary_title("en")
+                self.authorsHe = author.get_primary_title("he")
         else:
             author = {}
 

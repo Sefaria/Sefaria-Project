@@ -110,7 +110,7 @@ class Story(abst.AbstractMongoRecord):
 
         if "author_key" in d:
             p = topic.Topic.init(d["author_key"])
-            d["author_names"] = {"en": p.get_primary_name("en"), "he": p.get_primary_name("he")}
+            d["author_names"] = {"en": p.get_primary_title("en"), "he": p.get_primary_title("he")}
             d["author_bios"] = p.description
 
         return c
