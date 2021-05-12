@@ -41,15 +41,15 @@ const CalendarsPage = ({multiPanel, initialWidth}) => {
         <div className="sidebarLayout">
           <div className="contentInner">
             {about}
-            <h2 className="styledH1"><InterfaceText>Weekly Torah Portion</InterfaceText></h2>
+            <h2 className="styledH1 sans-serif"><InterfaceText>Weekly Torah Portion</InterfaceText></h2>
             <div className="readerNavCategories">
               <ResponsiveNBox content={parashaListings} initialWidth={initialWidth} />
             </div>
-            <h2 className="styledH1"><InterfaceText>Daily Study</InterfaceText></h2>
+            <h2 className="styledH1 sans-serif"><InterfaceText>Daily Study</InterfaceText></h2>
             <div className="readerNavCategories">
               <ResponsiveNBox content={dailyListings} initialWidth={initialWidth} />
             </div>
-            <h2 className="styledH1"><InterfaceText>Weekly Study</InterfaceText></h2>
+            <h2 className="styledH1 sans-serif"><InterfaceText>Weekly Study</InterfaceText></h2>
             <div className="readerNavCategories">
               <ResponsiveNBox content={weeklyListings} initialWidth={initialWidth} />
             </div>

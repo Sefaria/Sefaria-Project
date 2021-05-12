@@ -74,9 +74,9 @@ const CollectionBlockListing = ({data}) => {
   return (
     <div className="navBlock">
       <a href={`/collections/${data.slug}`} className="navBlockTitle">
-        <span className="collectionListingImageBox">
+        <div className="collectionListingImageBox">
           <img className="collectionListingImage" src={data.imageUrl} alt="Collection Logo"/>
-        </span>
+        </div>
         <InterfaceText>{data.name}</InterfaceText>
       </a>
       {data.description ?

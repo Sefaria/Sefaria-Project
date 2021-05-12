@@ -809,8 +809,8 @@ class LanguageToggleButton extends Component {
   render() {
     var url = this.props.url || "";
     return (<a href={url} className="languageToggle" onClick={this.toggle}>
-              <span className="en"><img src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" /></span>
-              <span className="he"><img src="/static/img/aye.svg" alt="English Language Toggle Icon" /></span>
+              <img className="en" src="/static/img/aleph.svg" alt="Hebrew Language Toggle Icon" />
+              <img className="he" src="/static/img/aye.svg" alt="English Language Toggle Icon" />
             </a>);
   }
 }

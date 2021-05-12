@@ -1165,6 +1165,7 @@ input.noselect {
 .languageToggle img {
   opacity: 0.4;
   height: 18px;
+  width: 18px;
 }
 .loadingMessage {
   font-size: 14px;
@@ -1259,14 +1260,16 @@ input.noselect {
 .header .languageToggle {
   text-align: center;
   color: #ccc;
-  display: inline-block;
+  display: inline-flex;
   width: 32px;
   height: 32px;
   border: 1px solid #ccc;
   border-radius: 6px;
-  line-height: 34px;
   cursor: pointer;
   font-size: 22px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
 }
 .navTitleTab {
   margin-inline-end: 26px;
@@ -1285,7 +1288,7 @@ input.noselect {
   margin-inline-end: 6px;
   opacity: 0.4;
 }
-.navTitleTab.current img {
+.readerNavMenu h1 .navTitleTab.current img {
   opacity: 0.6;
 }
 .sidebarLayout {
@@ -1582,7 +1585,7 @@ input.noselect {
   position: relative;
   font-size: 22px;
   font-weight: 500;
-  margin: 0 0 40px 0;
+  margin: 0 0px 30px 0;
   height: auto;
   text-transform: none;
 }
@@ -1956,7 +1959,7 @@ input.resourcesLink {
 }
 .readerNavCategories .gridBox .gridBoxItem,
 .readerNavCategoryMenu .category .gridBoxItem {
-  margin: 0 15px;
+  margin: 0 5px;
   padding: 0;
 }
 .navBlock {
@@ -1970,7 +1973,7 @@ input.resourcesLink {
   background-color: white;
   text-align: start;
   font-size: 24px;
-  padding: 14px 0 8px;
+  padding: 15px 0 8px;
   margin: 0;
   cursor: pointer;
   display: flex;
@@ -1982,6 +1985,10 @@ input.resourcesLink {
 a.navBlockTitle {
   color: #000;
   margin-inline-end: 20px;
+}
+a.navBlockTitle:hover {
+  text-decoration: none;
+  color: var(--dark-grey);
 }
 .navBlockTitle .subtitle {
   color: var(--dark-grey);
@@ -2008,24 +2015,10 @@ a.navBlockTitle {
 .bilingual .navBlock .he {
   display: none;
 }
-.featuredSheet {
-}
-.featuredSheet.navBlock .navBlockTitle {
-  padding-top: 7px;
-}
-.featuredSheetHeading {
-  color: #666;
-  font-size: 18px;
-  padding-top: 17px;
-}
-.featuredSheet .navBlockDescription {
-  margin-bottom: 12px;
-}
-.featuredSheet .authorByLine {
-}
 .navSidebarModule.wide {
   background-color: #FAFAFB;
   padding: 24px;
+  border-radius: 6px;
 }
 .navSidebarModule.wide h3 {
   border-bottom: none;
@@ -2049,22 +2042,31 @@ a.navBlockTitle {
   font-size: 30px;
   color: #666;
   margin-top: 0;
-  margin-bottom: 14px;
+  margin-bottom: 20px;
 }
 .homepage .mainColumn h2 .int-en {
   font-family: var(--english-serif-font-family);
 }
-.homepage .navBlock {
+.homepage .gridBoxRow:first-child {
   border-top: 1px solid #CCC;
-}
-.homepage .navBlock.withColorLine {
-  border-top: 4px solid transparent;
-}
-.homepage .navBlockTitle .int-en {
-  font-family: var(--english-serif-font-family);
 }
 .homepage .gridBox {
   margin-bottom: 30px;
+}
+.homepage .gridBox .gridBoxItem {
+  padding: 0
+}
+.homepage .gridBox {
+  margin-bottom: 60px;
+}
+.homepage .navBlock {
+  border-top: 4px solid transparent;
+  padding: 26px 0 0 0;
+}
+.homepage .navBlockTitle {
+  padding-top: 0;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
 }
 .homepage .readingLinks {
   margin-top: 20px;
@@ -2082,13 +2084,14 @@ a.navBlockTitle {
   color: #999;
   margin-bottom: 15px;
 }
-.homepage .headerBordered h2 {
-  padding-bottom: 20px;
-  border-bottom: 1px solid #CCC;
-  margin-bottom: 6px;
+.featuredSheetHeading {
+  color: #666;
+  font-size: 18px;
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
 }
-.homepage .headerBordered .navBlock {
-  border-top: 0;
+.featuredSheet .navBlockDescription {
+  margin-bottom: 12px;
 }
 .bilingual .readerNavMenu .he {
   display: none;
@@ -2184,7 +2187,7 @@ a.navBlockTitle {
 .readerNavCategoryMenu h2 {
   font-size: 18px;
   color: #666;
-  margin: 0 0 10px;
+  margin: 0 0 20px;
 }
 .readerNavCategoryMenu .categoryDescription.top {
   margin-top: -26px;
@@ -2192,8 +2195,7 @@ a.navBlockTitle {
 }
 .readerNavCategoryMenu h2 .categoryDescription {
   text-transform: none;
-  position: relative;
-  top: -1px;
+  font-size: 18px;
   margin-inline-start: 5px;
 }
 .readerNavCategoryMenu .categoryDescription {
@@ -2686,6 +2688,10 @@ a.navBlockTitle {
   -moz-osx-font-smoothing: grayscale;
   font-family: FontAwesome;
   margin-inline-start: 8px;
+  font-size: 14px;
+  position: relative;
+  top: -2px;
+  color: var(--medium-grey);
 }
 .readerTextTableOfContents .content .schema-node-toc:not(.linked) > .schema-node-title.open:after {
   content: "\f107";
@@ -3695,7 +3701,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 0 34px;
 }
 .singlePanel .readerControls .readerControlsInner {
-  padding: 0 10px;
+  padding: 0px 15px;
 }
 .readerControls .readerTextToc a {
   color: inherit;
@@ -3828,7 +3834,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-decoration: none;
 }
 .leftButtons .readerNavMenuMenuButton {
-  font-size: 22px;
+  font-size: 24px;
   margin-top: 6px;
 }
 .leftButtons .readerNavMenuCloseButton {
@@ -4741,7 +4747,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .gridBox .gridBoxItem:last-child {
   padding-inline-end: 0;
-  margin-inline-start: 0;
+  margin-inline-end: 0;
 }
 .dark .filterSet td {
   border-color: #555;
@@ -6479,8 +6485,8 @@ a .button:hover {
   height: 40px;
   border-radius: 20px;
   margin-inline-end: 10px;
-  display: inline-block;
   overflow: hidden;
+  flex-shrink: 0;
 }
 .sheetMetaDataBox .collectionListingImageBox,
 .tocTop .collectionListingImageBox {
@@ -8951,6 +8957,7 @@ body .homeFeedWrapper .content {
   padding-top: 60px;
   max-width: 100%;
   box-sizing: border-box;
+  min-height: 500px;
 }
 .storyByLine:hover .smallFollowButton,
 .authorName:hover .smallFollowButton {
@@ -9108,7 +9115,6 @@ img.smallProfileImage {
   display: flex;
 }
 .authorByLine .authorByLineText {
-  letter-spacing: 2px;
   padding: 0 10px;
   line-height: 22px;
   margin-top: -1px;

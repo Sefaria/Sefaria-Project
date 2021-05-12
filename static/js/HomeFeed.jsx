@@ -71,12 +71,10 @@ const HomeFeed = ({multiPanel, toggleSignUpModal, initialWidth}) => {
             : null }
 
             {featured ?
-            <div className="headerBordered">
-              <HomepageRow 
-                title={featured.heading}
-                sheet={featured.sheet}
-                initialWidth={initialWidth} />
-            </div>
+            <HomepageRow 
+              title={featured.heading}
+              sheet={featured.sheet}
+              initialWidth={initialWidth} />
             : null }
             
             <RecenltyPublished multiPanel={multiPanel} />
@@ -205,7 +203,7 @@ const AboutDiscover = ({content}) => {
         </div>
           <div className="calendarRef" key={ref.url}>
             <img src="/static/img/book-icon-black.svg" className="navSidebarIcon" alt="book icon" />
-            <a href={`/${ref.url}`} className="">
+            <a href={`/${ref.url}`} className="serif">
               <InterfaceText text={ref} />
            </a> 
           </div>
@@ -245,7 +243,7 @@ const RecenltyPublished = ({multiPanel}) => {
     );
   }
   return (
-    <div className="recentlyPublished headerBordered">            
+    <div className="recentlyPublished">            
       <h2><InterfaceText>Recently Published</InterfaceText></h2>
       <NBox content={recentSheetsContent} n={1} />
     </div>

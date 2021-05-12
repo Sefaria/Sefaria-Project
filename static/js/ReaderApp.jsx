@@ -1700,8 +1700,8 @@ class ReaderApp extends Component {
     }
     // Header should not show box-shadow over panels that have color line
     const menuOpen = this.state.panels?.[0]?.menuOpen;
-    const hasColorLine = ["sheets", "sheets meta"];
-    const headerHasBoxShadow = hasColorLine.indexOf(menuOpen) === -1;
+    const hasColorLine = [null, "book toc", "sheets", "sheets meta"];
+    const headerHasBoxShadow = hasColorLine.indexOf(menuOpen) === -1 || !this.props.multiPanel;
     // Header is hidden on certain mobile panels, but still rendered so the mobileNavMenu can be opened
     const hideHeader = !this.props.multiPanel && !this.state.headerMode && (!menuOpen || menuOpen === "text toc");
     const header = (
