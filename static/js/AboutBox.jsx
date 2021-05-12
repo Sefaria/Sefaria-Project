@@ -9,14 +9,17 @@ import Component             from 'react-class';
 class AboutBox extends Component {
   constructor(props) {
     super(props);
+    this._includeOtherVersionsLangs = ["he"];
     this.state = {
+      versionLangMap: null,
+      currentVersionsByActualLangs: Sefaria.transformVersionObjectsToByActualLanguageKeys(this.props.currObjectVersions),
       details: null,
     }
   }
   setTextMetaData() {
     if (this.props.title == "Sheet") {
       const sheetID = (Sefaria.sheets.extractIdFromSheetRef(this.props.srefs));
-        if (!Sefaria.sheets.loadSheetByID(sheetID)) {
+      if (!Sefaria.sheets.loadSheetByID(sheetID)) {
           Sefaria.sheets.loadSheetByID(sheetID, function (data) {
               this.setState({ details: data });
           }.bind(this));
@@ -25,23 +28,35 @@ class AboutBox extends Component {
           this.setState({
             details: Sefaria.sheets.loadSheetByID(sheetID),
           });
-        }
-
-    }
-    else {
+      }
+    }else {
       Sefaria.getIndexDetails(this.props.title).then(data => {
         this.setState({details: data});
       });
     }
   }
   componentDidMount() {
+      Sefaria.versions(this.props.sectionRef, true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
       this.setTextMetaData();
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.title !== this.props.title) {
+      Sefaria.versions(this.props.sectionRef,true, this._excludedLangs, true).then(this.onVersionsLoad);
       this.setState({details: null});
       this.setTextMetaData();
     }
+  }
+  onVersionsLoad(versions) {
+    //rearrange the current selected versions to be mapped by their real language,
+    // then sort the current version to the top of its language list
+    let versionsByLang = versions;
+    let currentVersionsByActualLangs = Sefaria.transformVersionObjectsToByActualLanguageKeys(this.props.currObjectVersions);
+    for(let [lang,ver] of Object.entries(currentVersionsByActualLangs)){
+      if (this._includeOtherVersionsLangs.includes(lang)){ //remove current version if its "he"
+        versionsByLang[lang] = versionsByLang[lang].filter((v) => v.versionTitle != ver.versionTitle);
+      }
+    }
+    this.setState({versionLangMap: versionsByLang, currentVersionsByActualLangs:currentVersionsByActualLangs});
   }
   render() {
     const d = this.state.details;
