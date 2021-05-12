@@ -194,9 +194,6 @@ class ConnectionsPanel extends Component {
     //d - data received from this.getData()
     //language - the language of the version
     //console.log(d);
-
-      //BUG: this sets version objects to be something less than whatis in the version store and it winds up missing data that we now need
-      // Maybe fix in Sefaria._getText.
     const currentVersionTitle = (lang == "he") ? d.heVersionTitle : d.versionTitle;
     return {
       ... d.versions.find(v => v.versionTitle == currentVersionTitle && v.language == lang),
