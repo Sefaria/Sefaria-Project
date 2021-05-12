@@ -362,7 +362,6 @@ class VersionsBlocksList extends Component{
   sortVersionsByActiveLang(prioritize=null){
     //sorts the languages of the available versions
     const standard_langs = ["en", "he"];
-    const activeLanguages = this.props.activeLanguages
     return Object.keys(this.props.versionsByLanguages).sort(
       (a, b) => {
         if      (!!prioritize && a === prioritize)                {return -1;}
