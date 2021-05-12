@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
 import VersionBlock from './VersionBlock';
+import VersionsBlocksList from "./TranslationsBox";
 import Component             from 'react-class';
 
 
