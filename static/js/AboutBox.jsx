@@ -37,17 +37,16 @@ class AboutBox extends Component {
   }
   componentDidMount() {
       this.setTextMetaData();
-      Sefaria.versions(this.props.sectionRef, true, ["he"], false).then(this.onVersionsLoad);
+      Sefaria.versions(this.props.sectionRef, true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.title !== this.props.title) {
       this.setState({details: null});
       this.setTextMetaData();
-      Sefaria.versions(this.props.sectionRef,true, ["he"], false).then(this.onVersionsLoad);
+      Sefaria.versions(this.props.sectionRef,true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
     }
   }
   onVersionsLoad(versions) {
-    console.log(versions);
     //rearrange the current selected versions to be mapped by their real language,
     // then sort the current version to the top of its language list
     let versionsByLang = versions;
