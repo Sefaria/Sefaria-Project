@@ -568,6 +568,7 @@ class ConnectionsPanel extends Component {
                   mainVersionLanguage={this.state.mainVersionLanguage}
                   title={this.props.title}
                   srefs={this.props.srefs}
+                  sectionRef={this.state.sectionRef}
                   getLicenseMap={this.props.getLicenseMap}
                   selectVersion={this.props.selectVersion}
                   openVersionInSidebar={this.openVersionInSidebar}

@@ -1,8 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
-import VersionBlock from './VersionBlock';
-import VersionsBlocksList from "./TranslationsBox";
+import VersionBlock, {VersionsBlocksList} from './VersionBlock';
 import Component             from 'react-class';
 import {InterfaceText} from "./Misc";
 
@@ -38,16 +37,17 @@ class AboutBox extends Component {
   }
   componentDidMount() {
       this.setTextMetaData();
-      Sefaria.versions(this.props.sectionRef, true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
+      Sefaria.versions(this.props.sectionRef, true, ["he"], false).then(this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.title !== this.props.title) {
       this.setState({details: null});
       this.setTextMetaData();
-      Sefaria.versions(this.props.sectionRef,true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
+      Sefaria.versions(this.props.sectionRef,true, ["he"], false).then(this.onVersionsLoad);
     }
   }
   onVersionsLoad(versions) {
+    console.log(versions);
     //rearrange the current selected versions to be mapped by their real language,
     // then sort the current version to the top of its language list
     let versionsByLang = versions;
@@ -215,8 +215,8 @@ class AboutBox extends Component {
       <section className="aboutBox">
         {detailSection}
         { this.props.mainVersionLanguage === "english" ?
-          (<div>{versionSectionEn}{versionSectionHe}</div>) :
-          (<div>{versionSectionHe}{versionSectionEn}</div>)
+          (<div>{versionSectionEn}{versionSectionHe}{alternateSectionHe}</div>) :
+          (<div>{versionSectionHe}{versionSectionEn}{alternateSectionHe}</div>)
         }
       </section>
     );
