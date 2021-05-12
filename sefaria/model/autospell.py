@@ -47,7 +47,7 @@ class AutoCompleter(object):
     An AutoCompleter object provides completion services - it is the object in this module designed to be used by the Library.
     It instantiates objects that provide string completion according to different algorithms.
     """
-    def __init__(self, lang, lib, include_titles=True, include_people=False, include_categories=False,
+    def __init__(self, lang, lib, include_titles=True, include_categories=False,
                  include_parasha=False, include_lexicons=False, include_users=False, include_collections=False, include_topics=False, *args, **kwargs):
         """
 
@@ -102,14 +102,6 @@ class AutoCompleter(object):
             self.title_trie.add_titles_from_set(ts, "get_titles", "get_primary_title", "slug", 4 * PAD)
             self.spell_checker.train_phrases(tnames)
             self.ngram_matcher.train_phrases(tnames, normal_topics_names)
-        if include_people:
-            eras = ["GN", "RI", "AH", "CO"]
-            ps = PersonSet({"era": {"$in": eras}})
-            person_names = [n for p in ps for n in p.all_names(lang)]
-            normal_person_names = [self.normalizer(n) for n in person_names]
-            self.title_trie.add_titles_from_set(ps, "all_names", "primary_name", "key", 5 * PAD)
-            self.spell_checker.train_phrases(person_names)
-            self.ngram_matcher.train_phrases(person_names, normal_person_names)
         if include_users:
             pipeline = [
                 {"$match": {

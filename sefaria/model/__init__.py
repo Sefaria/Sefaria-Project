@@ -37,7 +37,6 @@ from .version_state import VersionState, VersionStateSet, StateNode, refresh_all
 from .timeperiod import TimePeriod, TimePeriodSet
 from .lexicon import Lexicon, LexiconEntry, LexiconEntrySet, Dictionary, DictionaryEntry, StrongsDictionaryEntry, RashiDictionaryEntry, JastrowDictionaryEntry, KleinDictionaryEntry, WordForm, WordFormSet, LexiconLookupAggregator
 from .place import Place, PlaceSet
-from .person import Person, PersonSet, PersonRelationship, PersonRelationshipSet, PersonRelationshipType, PersonRelationshipTypeSet
 from .garden import Garden, GardenStop, GardenStopRelation, GardenSet, GardenStopSet, GardenStopRelationSet
 from .category import Category, CategorySet
 from .passage import Passage, PassageSet

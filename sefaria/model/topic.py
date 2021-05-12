@@ -333,7 +333,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     @staticmethod
     def get_person_by_key(key: str):
         """
-        Find topic corresponding to old Person key
+        Find topic corresponding to deprecated Person key
         """
         return Topic().load({"alt_ids.old-person-key": key})
 
