@@ -132,7 +132,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
                     below_min_sources_set |= temp_below_min_sources
         return topics, links, below_min_sources_set
 
-    def has_types(self, search_slug_set):
+    def has_types(self, search_slug_set) -> bool:
         """
         WARNING: Expensive, lots of database calls
         Checks if `self` has any slug in `search_slug_set` as an ancestor when traversing `is-a` links
@@ -142,10 +142,19 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         types = self.get_types(search_slug_set=search_slug_set)
         return len(search_slug_set.intersection(types)) > 0
 
-    def should_display(self):
-        return getattr(self, 'shouldDisplay', True) and getattr(self, 'numSources', 0) > 0
+    def should_display(self) -> bool:
+        return getattr(self, 'shouldDisplay', True) and (getattr(self, 'numSources', 0) > 0 or self.has_description())
 
-    def set_slug_to_primary_title(self):
+    def has_description(self) -> bool:
+        """
+        returns True if self has description in at least on language
+        """
+        has_desc = False
+        for temp_desc in getattr(self, 'description', {}).values():
+            has_desc = has_desc or len(temp_desc) > 0
+        return has_desc
+
+    def set_slug_to_primary_title(self) -> None:
         new_slug = self.get_primary_title('en')
         if len(new_slug) == 0:
             new_slug = self.get_primary_title('he')
@@ -153,7 +162,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         if new_slug != self.slug:
             self.set_slug(new_slug)
 
-    def set_slug(self, new_slug):
+    def set_slug(self, new_slug) -> None:
         slug_field = self.slug_fields[0]
         old_slug = getattr(self, slug_field)
         setattr(self, slug_field, new_slug)
