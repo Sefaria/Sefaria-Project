@@ -551,8 +551,6 @@ def calculate_pagerank_scores(ref_topic_map):
     from statistics import mean
     pr_map = {}
     pr_seg_map = {}  # keys are (topic, seg_tref). used for sheet relevance
-    global_pr_map = {}
-    global_pr_seg_map = {ref_data.ref: ref_data.pagesheetrank for ref_data in RefData()}
     for topic, ref_list in tqdm(ref_topic_map.items(), desc='calculate pr'):
         oref_list = []
         for tref in ref_list:
@@ -562,14 +560,11 @@ def calculate_pagerank_scores(ref_topic_map):
             oref_list += [oref]
         seg_ref_map = {r.normal(): [rr.normal() for rr in r.all_segment_refs()] for r in oref_list}
         oref_pr_list = pagerank_rank_ref_list(oref_list, normalize=True, seg_ref_map=seg_ref_map)
-        for tref, seg_tref_list in seg_ref_map.items():
-            avg_pr = mean([global_pr_seg_map.get(seg_tref, RefData.DEFAULT_PAGESHEETRANK) for seg_tref in seg_tref_list])
-            global_pr_map[tref] = avg_pr
         for oref, pr in oref_pr_list:
             pr_map[(topic, oref.normal())] = pr
             for seg_tref in seg_ref_map[oref.normal()]:
                 pr_seg_map[(topic, seg_tref)] = pr
-    return pr_map, pr_seg_map, global_pr_map
+    return pr_map, pr_seg_map
 
 
 def calculate_other_ref_scores(ref_topic_map):
@@ -608,7 +603,7 @@ def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
 
     topic_tref_score_map, ref_topic_map = calculate_mean_tfidf(ref_topic_links)
     num_datasource_map, langs_available, comp_date_map, order_id_map = calculate_other_ref_scores(ref_topic_map)
-    pr_map, pr_seg_map, global_pr_map = calculate_pagerank_scores(ref_topic_map)
+    pr_map, pr_seg_map = calculate_pagerank_scores(ref_topic_map)
     sheet_cache = {}
     intra_topic_link_cache = {}
 
@@ -685,7 +680,6 @@ def update_ref_topic_link_orders(sheet_source_links, sheet_topic_links):
                     'comp_date': comp_date_map[key],
                     'order_id': order_id_map[key],
                     'pr': pr_map[key],
-                    'global_pr': global_pr_map[l.ref]
                 })
                 setattr(l, 'order', order)
             except KeyError:
@@ -811,6 +805,7 @@ def calculate_popular_writings_for_authors(top_n, min_pr):
     IntraTopicLinkSet({"generatedBy": "calculate_popular_writings_for_authors"}).delete()
     rds = RefDataSet()
     by_author = defaultdict(list)
+    global_pr_seg_map = {ref_data.ref: ref_data.pagesheetrank for ref_data in RefData()}
     for rd in tqdm(rds, total=rds.count()):
         try:
             tref = rd.ref.replace('&amp;', '&')  # TODO this is a stopgap to prevent certain refs from failing
@@ -831,7 +826,8 @@ def calculate_popular_writings_for_authors(top_n, min_pr):
                 "ref": rd['ref'],
                 "linkType": "popular-writing-of",
                 "dataSource": "sefaria",
-                "generatedBy": "calculate_popular_writings_for_authors"
+                "generatedBy": "calculate_popular_writings_for_authors",
+                "order": {"custom_order": global_pr_seg_map.get(rd['ref'], 0)}
             }).save()
 
 
