@@ -174,9 +174,7 @@ class Header extends Component {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   }
   getURLForObject(type, key) {
-    if (type === "Person") {
-      return `/person/${key}`;
-    } else if (type === "Collection") {
+    if (type === "Collection") {
       return `/collections/${key}`;
     } else if (type === "TocCategory") {
       return `/texts/${key.join('/')}`;

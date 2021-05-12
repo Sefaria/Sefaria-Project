@@ -729,7 +729,7 @@ class AuthorStoryFactory(AbstractStoryFactory):
         if isinstance(prs, str):
             prs = topic.Topic.init(prs)
         assert isinstance(prs, topic.Topic)
-        return {"author_key": prs.key, "example_work": random.choice(prs.get_indexes()).title}
+        return {"author_key": prs.slug, "example_work": random.choice(prs.get_authored_indexes()).title}
 
     @classmethod
     def _story_form(cls, **kwargs):
