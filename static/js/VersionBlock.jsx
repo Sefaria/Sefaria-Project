@@ -6,9 +6,7 @@ import Util from './sefaria/util';
 import $ from './sefaria/sefariaJquery';
 import Component from 'react-class';
 import {LoadingMessage} from "./Misc";
-import {RecentFilterSet} from "./ConnectionFilters";
-import TextRange from "./TextRange";
-import {AddConnectionToSheetButton, ConnectionButtons, OpenConnectionTabButton} from "./TextList";
+
 
 
 class VersionBlock extends Component {
@@ -441,71 +439,5 @@ VersionsBlocksList.defaultProps = {
 };
 
 
-class VersionsTextList extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      loaded: false,
-    };
-  }
-  componentDidMount() {
-    this.preloadText(this.props.vFilter);
-  }
-  componentWillReceiveProps(nextProps) {
-    this.preloadText(nextProps.vFilter);
-  }
-  preloadText(filter) {
-    if (filter.length) {
-      this.setState({loaded: false});
-      const sectionRef = this.getSectionRef();
-      const [vTitle, language] = Sefaria.deconstructVersionsKey(filter[0]);
-      let enVersion = null, heVersion = null;
-      if (language === "en") { enVersion = vTitle; }
-      else                   { heVersion = vTitle; }
-      Sefaria.getText(sectionRef, {enVersion, heVersion}).then(() => {this.setState({loaded: true})});
-    }
-  }
-  getSectionRef() {
-    const ref = this.props.srefs[0]; // TODO account for selections spanning sections
-    const sectionRef = Sefaria.sectionRef(ref) || ref;
-    return sectionRef;
-  }
-  render() {
-    let currSelectedVersions = {en: null, he: null};
-    const [vTitle, language] = Sefaria.deconstructVersionsKey(this.props.vFilter[0]);
-    currSelectedVersions = {[language]: vTitle};
-    const onRangeClick = (sref) => {this.props.onRangeClick(sref, false, currSelectedVersions)};
-    return !this.state.loaded || !this.props.vFilter.length ?
-      (<LoadingMessage />) :
-      (<div className="versionsTextList">
-        <RecentFilterSet
-          srefs={this.props.srefs}
-          asHeader={false}
-          filter={this.props.vFilter}
-          recentFilters={this.props.recentVFilters}
-          setFilter={this.props.setFilter}/>
-        <TextRange
-          sref={Sefaria.humanRef(this.props.srefs)}
-          currVersions={currSelectedVersions}
-          useVersionLanguage={true}
-          hideTitle={true}
-          numberLabel={0}
-          basetext={false}
-          onCitationClick={this.props.onCitationClick} />
-          <ConnectionButtons>
-            <OpenConnectionTabButton srefs={this.props.srefs} openInTabCallback={onRangeClick}/>
-            <AddConnectionToSheetButton srefs={this.props.srefs} versions={{[language]: vTitle}} addToSheetCallback={this.props.setConnectionsMode}/>
-          </ConnectionButtons>
-      </div>);
-  }
-}
-VersionsTextList.propTypes = {
-  srefs:           PropTypes.array,
-  vFilter:         PropTypes.array,
-  recentVFilters:  PropTypes.array,
-  setFilter:       PropTypes.func.isRequired,
-  onRangeClick:    PropTypes.func.isRequired,
-  onCitationClick: PropTypes.func.isRequired,
-};
 
-export {VersionBlock as default, VersionsBlocksList, VersionsTextList};
+export {VersionBlock as default, VersionsBlocksList};
