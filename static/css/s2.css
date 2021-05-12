@@ -482,10 +482,11 @@ input.noselect {
 
 .header .help {
   margin-inline-start: 23px;
+  margin-top: 8px;
 }
 
 .header .dot {
-  padding: 0 px;
+  padding: 0 4px;
 }
 .header .interfaceLinks{
   display: block;
