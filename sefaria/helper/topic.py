@@ -802,10 +802,9 @@ def get_ref_safely(tref):
     return None
 
 def calculate_popular_writings_for_authors(top_n, min_pr):
-    IntraTopicLinkSet({"generatedBy": "calculate_popular_writings_for_authors"}).delete()
+    RefTopicLinkSet({"generatedBy": "calculate_popular_writings_for_authors"}).delete()
     rds = RefDataSet()
     by_author = defaultdict(list)
-    global_pr_seg_map = {ref_data.ref: ref_data.pagesheetrank for ref_data in RefData()}
     for rd in tqdm(rds, total=rds.count()):
         try:
             tref = rd.ref.replace('&amp;', '&')  # TODO this is a stopgap to prevent certain refs from failing
@@ -827,7 +826,7 @@ def calculate_popular_writings_for_authors(top_n, min_pr):
                 "linkType": "popular-writing-of",
                 "dataSource": "sefaria",
                 "generatedBy": "calculate_popular_writings_for_authors",
-                "order": {"custom_order": global_pr_seg_map.get(rd['ref'], 0)}
+                "order": {"custom_order": rd['pagesheetrank']}
             }).save()
 
 
