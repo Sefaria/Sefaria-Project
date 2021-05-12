@@ -533,6 +533,14 @@ Sefaria = extend(Sefaria, {
       }
       return versionStore;
   },
+  transformVersionObjectsToByActualLanguageKeys(versionObjects){
+    return Object.values(versionObjects)
+          .filter(v => !!v)
+          .reduce((obj, version) => {
+            obj[version.actualLanguage] = version;
+            return obj;
+          }, {});
+  },
   getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
   deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
   _textUrl: function(ref, settings) {

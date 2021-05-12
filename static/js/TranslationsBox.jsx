@@ -14,8 +14,7 @@ class TranslationsBox extends Component {
     this._excludedLangs = ["he"];
     this.state = {
       versionLangMap: null,  // object with version languages as keys and array of versions in that lang as values
-      currentVersionsByActualLangs: this.convertCurrentLanguages(),
-      initialMainVersionLanguage: props.mainVersionLanguage,
+      currentVersionsByActualLangs: Sefaria.transformVersionObjectsToByActualLanguageKeys(this.props.currObjectVersions),
     };
   }
   componentDidMount() {
@@ -30,19 +29,11 @@ class TranslationsBox extends Component {
     //rearrange the current selected versions to be mapped by their real language,
     // then sort the current version to the top of its language list
     let versionsByLang = versions;
-    let currentVersionsByActualLangs = this.convertCurrentLanguages();
+    let currentVersionsByActualLangs = Sefaria.transformVersionObjectsToByActualLanguageKeys(this.props.currObjectVersions);
     for(let [lang,ver] of Object.entries(currentVersionsByActualLangs)){
       versionsByLang[lang].sort((a, b) => {return a.versionTitle == ver.versionTitle ? -1 : b.versionTitle == ver.versionTitle ? 1 : 0;});
     }
     this.setState({versionLangMap: versionsByLang, currentVersionsByActualLangs:currentVersionsByActualLangs});
-  }
-  convertCurrentLanguages(){
-    return Object.values(this.props.currObjectVersions)
-          .filter(v => !!v && !this._excludedLangs.includes(v.actualLanguage))
-          .reduce((obj, version) => {
-            obj[version.actualLanguage] = version;
-            return obj;
-          }, {});
   }
   openVersionInSidebar(versionTitle, versionLanguage) {
     this.props.setConnectionsMode("Translation Open");
