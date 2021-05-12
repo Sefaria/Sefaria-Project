@@ -31,7 +31,11 @@ class TranslationsBox extends Component {
     let versionsByLang = versions;
     let currentVersionsByActualLangs = Sefaria.transformVersionObjectsToByActualLanguageKeys(this.props.currObjectVersions);
     for(let [lang,ver] of Object.entries(currentVersionsByActualLangs)){
-      versionsByLang[lang].sort((a, b) => {return a.versionTitle == ver.versionTitle ? -1 : b.versionTitle == ver.versionTitle ? 1 : 0;});
+      if (!this._excludedLangs.includes(lang)) {
+        versionsByLang[lang].sort((a, b) => {
+          return a.versionTitle == ver.versionTitle ? -1 : b.versionTitle == ver.versionTitle ? 1 : 0;
+        });
+      }
     }
     this.setState({versionLangMap: versionsByLang, currentVersionsByActualLangs:currentVersionsByActualLangs});
   }
