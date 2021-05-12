@@ -384,11 +384,11 @@ Sefaria = extend(Sefaria, {
 
     return this._ApiPromise(Sefaria.apiHost + this._textUrl(ref, settings))
         .then(d => {
-            this._saveText(d, settings);
-            this._saveVersions(d.sectionRef, d.versions);
             //swap out original versions from the server with the ones that Sefaria client side has sorted and updated with some fields.
-            let versions = this._saveVersions(d.sectionRef, d.versions);
+            // This happens before saving the text to cache so that both caches are consistent
+            let versions = Sefaria._saveVersions(d.sectionRef, d.versions);
             d.versions = Sefaria._makeVersions(versions, false, null, false);
+            Sefaria._saveText(d, settings);
             return d;
         });
   },
@@ -448,9 +448,11 @@ Sefaria = extend(Sefaria, {
       return data;
     }
     this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
-      this._saveText(data, settings);
-      this._saveVersions(data.sectionRef, data.versions);
-      cb(data);
+        //save versions and then text so both caches have updated versions
+        let versions = this._saveVersions(data.sectionRef, data.versions);
+        data.versions = this._makeVersions(versions, false, null, false);
+        this._saveText(data, settings);
+        cb(data);
     }.bind(this));
     return null;
   },
@@ -2516,9 +2518,10 @@ Sefaria.unpackDataFromProps = function(props) {
       let panel = initialPanels[i];
       if (panel.text) {
         let settings = {context: 1, enVersion: panel.enVersion, heVersion: panel.heVersion};
-        Sefaria._saveText(panel.text, settings);
+        //save versions first, so their new format is also saved on text cache
         let versions = Sefaria._saveVersions(panel.text.sectionRef, panel.text.versions);
         panel.text.versions = Sefaria._makeVersions(versions, false, null, false);
+        Sefaria._saveText(panel.text, settings);
       }
       if(panel.bookRef){
         let versions = Sefaria._saveVersions(panel.bookRef, panel.versions);
