@@ -496,11 +496,15 @@ StorySheetList.propTypes = {
 
 
 const SheetBlock = ({sheet, compact, cozy, smallfonts, isTitle, toggleSignUpModal}) => {
-      const historyObject = {ref: "Sheet " + sheet.sheet_id,
-                  sheet_title: sheet.sheet_title,
-                  versions: {}};
+    const historyObject = {
+      ref: "Sheet " + sheet.sheet_id,
+      sheet_title: sheet.sheet_title,
+      sheet_owner: sheet.publisher_name,
+      versions: {}
+    };
 
-      return (<div className="storySheetListItem">
+    return (
+      <div className="storySheetListItem">
         <SaveLine historyObject={historyObject} toggleSignUpModal={toggleSignUpModal}>
             <SimpleLinkedBlock en={sheet.sheet_title} he={sheet.sheet_title} url={"/sheets/" + sheet.sheet_id} classes={"sheetTitle" + (smallfonts?" chapterText lowercase":" pageTitle") + (isTitle ? " storyTitle" : "")}/>
         </SaveLine>
@@ -516,7 +520,8 @@ const SheetBlock = ({sheet, compact, cozy, smallfonts, isTitle, toggleSignUpModa
           organization={sheet.publisher_organization}
           toggleSignUpModal={toggleSignUpModal}
         />}
-      </div>);
+      </div>
+    );
 };
 SheetBlock.propTypes = {sheet: sheetPropType.isRequired};
 

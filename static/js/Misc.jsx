@@ -767,11 +767,13 @@ class TextBlockLink extends Component {
         </a>
       );
     }
-    return (<a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
-              <span className={elang}>{title}</span>
-              <span className={hlang}>{heTitle}</span>
-                {subtitle}
-             </a>);
+    return (
+      <a href={url} className={classes} data-ref={sref} data-ven={currVersions.en} data-vhe={currVersions.he} data-position={position} style={style}>
+        <span className={elang}>{title}</span>
+        <span className={hlang}>{heTitle}</span>
+        {subtitle}
+      </a>
+    );
   }
 }
 TextBlockLink.propTypes = {
