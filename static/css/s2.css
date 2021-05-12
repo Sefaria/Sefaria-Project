@@ -481,13 +481,11 @@ input.noselect {
 }
 
 .header .help {
-  margin-top: 10px;
+  margin-inline-start: 23px;
 }
-.header .int-en .help {
-  margin-left: 20px;
-}
-.header .int-he .help {
-  margin-right: 20px;
+
+.header .dot {
+  padding: 0 px;
 }
 .header .interfaceLinks{
   display: block;
@@ -498,7 +496,7 @@ input.noselect {
   position: relative;
   -webkit-margin-start: 20px;
   -moz-margin-start: 20px;
-  margin-inline-start: 20px;
+  margin-inline-start: 10px;
 }
 .header .interfaceLinks img{
   height: 18px;
@@ -517,7 +515,7 @@ input.noselect {
   content: "";
 }
 .header .interfaceLinks .interfaceLinks-menu{
-  top: 10px;
+  top: 35px;
   position: absolute;
   z-index: 1;
   width: 150px;
@@ -526,9 +524,13 @@ input.noselect {
   border-radius: 6px;
   display: none;
 }
+.header .interfaceLinks .interfaceLinks-menu.profile-menu {
+  top: 10px;
+}
+
 .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header.profile-menu {
-  padding-top: 8px;
-  font-weight: 500;
+  padding: 5px 17px 5px 17px;
+  font-weight: 700;
   color: #000000;
   height: 23px;
 }
@@ -547,7 +549,7 @@ input.noselect {
   font-size: 13px;
   line-height: 18px;
   color: #999999;
-  padding: 5px;
+  padding: 12px;
   border-bottom: 1px solid #CCCCCC;
 }
 .interface-english .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
@@ -556,13 +558,6 @@ input.noselect {
 
 .interface-hebrew .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
   font-family: "Heebo", sans-serif;
-}
-
-.interface-english .header .interfaceLinks .interfaceLinks-header.profile-menu {
-  padding-left: 17px;
-}
-.interface-hebrew .header .interfaceLinks .interfaceLinks-header.profile-menu {
-  padding-right: 17px;
 }
 
 .interfaceLinks-options{
@@ -591,7 +586,7 @@ input.noselect {
   text-align: right;
   color: #000000;
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
-  padding: 5px;
+  padding: 5px 17px;
   font-size: 14px;
   text-decoration-color: #666666;
   height: 23px;
@@ -622,14 +617,6 @@ div.interfaceLinks-row a.heLink {
 .header .interfaceLinks .interfaceLinks-row.logout {
   font-size: 14px;
   color: #666666;
-}
-
-.interface-hebrew .header .interfaceLinks .interfaceLinks-row {
-  padding-right: 17px;
-}
-
-.interface-english .header .interfaceLinks .interfaceLinks-row {
-  padding-left: 17px;
 }
 
 .header .profile-menu-he {
@@ -675,6 +662,7 @@ div.interfaceLinks-row a.heLink {
 .header .library, .header .my-profile {
   font-size: 24px;
   line-height: 24px;
+  margin-top: 2px;
 }
 .header .library .fa {
   position: relative;
