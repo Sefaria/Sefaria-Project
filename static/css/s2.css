@@ -981,7 +981,7 @@ input.noselect {
   z-index: 1000 !important;
 }
 .ui-autocomplete .ui-menu-item {
-  display: block;
+  display: flex;
   padding: 6px 12px;
 }
 .interface-hebrew .ui-autocomplete .ui-menu-item {
