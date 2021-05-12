@@ -253,6 +253,10 @@ class ConnectionsPanel extends Component {
           return false
       }
   }
+  openVersionInSidebar(versionTitle, versionLanguage) {
+    this.props.setConnectionsMode("Translation Open");
+    this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
+  }
   render() {
     var content = null;
     if (!this.state.linksLoaded) {
@@ -565,7 +569,9 @@ class ConnectionsPanel extends Component {
                   title={this.props.title}
                   srefs={this.props.srefs}
                   getLicenseMap={this.props.getLicenseMap}
-                  viewExtendedNotes={this.props.viewExtendedNotes} />);
+                  selectVersion={this.props.selectVersion}
+                  openVersionInSidebar={this.openVersionInSidebar}
+                  viewExtendedNotes={this.props.viewExtendedNotes}/>);
 
     } else if (this.props.mode === "Translations" || this.props.mode === "Translation Open") {
       content = (<TranslationsBox
@@ -581,6 +587,7 @@ class ConnectionsPanel extends Component {
                   srefs={this.props.srefs}
                   sectionRef={this.state.sectionRef}
                   onRangeClick={this.props.onTextClick}
+                  openVersionInSidebar={this.openVersionInSidebar}
                   viewExtendedNotes={this.props.viewExtendedNotes}
                   onCitationClick={this.props.onCitationClick} />);
 

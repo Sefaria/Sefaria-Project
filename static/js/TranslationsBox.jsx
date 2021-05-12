@@ -35,10 +35,6 @@ class TranslationsBox extends Component {
     }
     this.setState({versionLangMap: versionsByLang, currentVersionsByActualLangs:currentVersionsByActualLangs});
   }
-  openVersionInSidebar(versionTitle, versionLanguage) {
-    this.props.setConnectionsMode("Translation Open");
-    this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
-  }
   render() {
     if (this.props.mode == "Translation Open"){ // A single translation open in the sdiebar
       return (
@@ -70,7 +66,7 @@ class TranslationsBox extends Component {
           currentRef={this.props.srefs[0]}
           getLicenseMap={this.props.getLicenseMap}
           openVersionInReader={this.props.selectVersion}
-          openVersionInSidebar={this.openVersionInSidebar}
+          openVersionInSidebar={this.props.openVersionInSidebar}
           viewExtendedNotes={this.props.viewExtendedNotes}
         />
       );

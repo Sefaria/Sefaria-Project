@@ -4,6 +4,7 @@ import Sefaria from './sefaria/sefaria';
 import VersionBlock from './VersionBlock';
 import VersionsBlocksList from "./TranslationsBox";
 import Component             from 'react-class';
+import {InterfaceText} from "./Misc";
 
 
 class AboutBox extends Component {
@@ -36,14 +37,14 @@ class AboutBox extends Component {
     }
   }
   componentDidMount() {
-      Sefaria.versions(this.props.sectionRef, true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
       this.setTextMetaData();
+      Sefaria.versions(this.props.sectionRef, true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.title !== this.props.title) {
-      Sefaria.versions(this.props.sectionRef,true, this._excludedLangs, true).then(this.onVersionsLoad);
       this.setState({details: null});
       this.setTextMetaData();
+      Sefaria.versions(this.props.sectionRef,true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
     }
   }
   onVersionsLoad(versions) {
@@ -165,8 +166,7 @@ class AboutBox extends Component {
     const versionSectionHe =
       (!!vh ? <div className="currVersionSection">
         <h2 className="aboutHeader">
-          <span className="int-en">Current Version</span>
-          <span className="int-he">מהדורה נוכחית</span>
+            <InterfaceText text={{en: "Current Version", he:"מהדורה נוכחית"}} />
         </h2>
         <VersionBlock
           rendermode="about-box"
@@ -180,8 +180,7 @@ class AboutBox extends Component {
     const versionSectionEn =
       (!!ve ? <div className="currVersionSection">
         <h2 className="aboutHeader">
-          <span className="int-en">Current Translation</span>
-          <span className="int-he">תרגום נוכחי</span>
+          <InterfaceText text={{en: "Current Translation", he:"תרגום נוכחי"}} />
         </h2>
         <VersionBlock
           rendermode="about-box"
@@ -193,6 +192,25 @@ class AboutBox extends Component {
           viewExtendedNotes={this.props.viewExtendedNotes}
           getLicenseMap={this.props.getLicenseMap} />
       </div> : null );
+    const alternateSectionHe =
+      (!!this.state.versionLangMap ?
+          <div className="currVersionSection">
+            <h2 className="aboutHeader">
+              <InterfaceText text={{en: "Alternate Hebrew Versions", he:"מהדורות נוספות"}} />
+            </h2>
+            <VersionsBlocksList
+              versionsByLanguages={this.state.versionLangMap}
+              activeLanguages={Object.keys(this.state.currentVersionsByActualLangs)}
+              mainVersionLanguage={this.props.mainVersionLanguage}
+              currObjectVersions={this.props.currObjectVersions}
+              currentRef={this.props.srefs[0]}
+              getLicenseMap={this.props.getLicenseMap}
+              openVersionInReader={this.props.selectVersion}
+              openVersionInSidebar={this.openVersionInSidebar}
+              viewExtendedNotes={this.props.viewExtendedNotes}
+            />
+      </div> : null );
+
     return (
       <section className="aboutBox">
         {detailSection}
