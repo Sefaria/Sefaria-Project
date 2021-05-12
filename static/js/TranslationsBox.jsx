@@ -59,6 +59,13 @@ class TranslationsBox extends Component {
         />
       );
     }else if(this.props.mode == "Translations"){
+      if (!this.state.versionLangMap) {
+        return (
+          <div className="versionsBox">
+            <LoadingMessage />
+          </div>
+        );
+      }
       return (
         <VersionsBlocksList
           versionsByLanguages={this.state.versionLangMap}
