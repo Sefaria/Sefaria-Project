@@ -386,6 +386,9 @@ Sefaria = extend(Sefaria, {
         .then(d => {
             this._saveText(d, settings);
             this._saveVersions(d.sectionRef, d.versions);
+            //swap out original versions from the server with the ones that Sefaria client side has sorted and updated with some fields.
+            let versions = this._saveVersions(d.sectionRef, d.versions);
+            d.versions = Sefaria._makeVersions(versions, false, null, false);
             return d;
         });
   },
@@ -488,9 +491,9 @@ Sefaria = extend(Sefaria, {
             this._saveVersions(ref, d);
         });
     }
-    return Promise.resolve(this._filterVersions(this._versions[ref], byLang, filter, excludeFilter));
+    return Promise.resolve(this._makeVersions(this._versions[ref], byLang, filter, excludeFilter));
   },
-  _filterVersions: function(versions, byLang, filter, excludeFilter){
+  _makeVersions: function(versions, byLang, filter, excludeFilter){
     let tempValue;
     if(filter?.length){ // we filter out the languages we want bu filtering on the array of keys and then creating a new object on the fly with only those keys
         tempValue = Object.keys(versions)
@@ -512,20 +515,22 @@ Sefaria = extend(Sefaria, {
           he: !!v.versionTitleInHebrew ? v.versionTitleInHebrew : v.versionTitle,
         };
       }
+      this._versions[ref] = this._sortVersionsIntoBuckets(versions);
+      return this._versions[ref];
+  },
+  _sortVersionsIntoBuckets: function(versions){
       let versionStore = {};
-      let generalCount = 0;
+      //let generalCount = 0;
       for (let v of versions) {
-        generalCount++;
+        //generalCount++;
         const matches = v.versionTitle.match(new RegExp("\\[([a-z]{2})\\]$")); // two-letter ISO language code
         const lang = matches ? matches[1] : v.language;
-        v.actualLanguage = lang;
+        v.actualLanguage = lang; //add actual language onto the object. Hopefully its then available always.
         //Sort each language into its own bucket
         versionStore[lang] = !!versionStore[lang] ? versionStore[lang].concat(v)  :  [v];
       }
-      Sefaria._versions[ref] = versionStore;
       return versionStore;
   },
-
   getTranslateVersionsKey: (vTitle, lang) => `${vTitle}|${lang}`,
   deconstructVersionsKey: (versionsKey) => versionsKey.split('|'),
   _textUrl: function(ref, settings) {
@@ -2512,10 +2517,12 @@ Sefaria.unpackDataFromProps = function(props) {
       if (panel.text) {
         let settings = {context: 1, enVersion: panel.enVersion, heVersion: panel.heVersion};
         Sefaria._saveText(panel.text, settings);
-        Sefaria._saveVersions(panel.text.sectionRef, panel.text.versions);
+        let versions = Sefaria._saveVersions(panel.text.sectionRef, panel.text.versions);
+        panel.text.versions = Sefaria._makeVersions(versions, false, null, false);
       }
       if(panel.bookRef){
-        Sefaria._saveVersions(panel.bookRef, panel.versions);
+        let versions = Sefaria._saveVersions(panel.bookRef, panel.versions);
+        panel.versions = Sefaria._makeVersions(versions, false, null, false);
       }
       if (panel.indexDetails) {
         Sefaria._indexDetails[panel.bookRef] = panel.indexDetails;
