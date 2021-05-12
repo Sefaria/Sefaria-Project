@@ -154,11 +154,14 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang,
 
       })
       .map((t,i) => {
-        const { slug, children, en, he, description} = t;
+        const { slug, children, description} = t;
         const openTopic = e => {
           e.preventDefault();
           t.children ? setNavTopic(slug, {en, he}) : setTopic(slug, {en, he});
         };
+        let {en, he} = t;
+        en = en.replace(/^Parashat /, "");
+        he = he.replace(/^פרשת /, "");
         return (
             <div className="navBlock">
               <a href={`/topics/${children ? 'category/' : ''}${slug}`}
