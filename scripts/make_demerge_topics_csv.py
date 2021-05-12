@@ -101,5 +101,5 @@ if __name__ == "__main__":
 
 """
 example call:
-scripts/make_demerge_topics_csv.py -s parashat-shoftim -o data/shoftim_demerge.csv -t sheets
+python scripts/make_demerge_topics_csv.py -s parashat-shoftim -o data/shoftim_demerge.csv -t sheets
 """ 
