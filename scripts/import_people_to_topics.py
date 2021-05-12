@@ -3,10 +3,11 @@ from tqdm import tqdm
 django.setup()
 from sefaria.model import *
 from sefaria.system.exceptions import InputError
+from sefaria.model.person import Person, PersonSet, PersonRelationship, PersonRelationshipSet
 from collections import defaultdict
 
-# BASE_PATH = "/home/nss/Downloads"
-BASE_PATH = "data"
+BASE_PATH = "/home/nss/Downloads"
+# BASE_PATH = "data"
 
 def create_csvs_to_match():
     by_type = defaultdict(list)
@@ -254,7 +255,7 @@ def refactor_authors_on_indexes():
         i.authors = new_authors
         # bypass save method so this goes much faster
         props = i._saveable_attrs()
-        getattr(db, 'index').replace_one({"_id":i._id}, props, upsert=True)
+        db.index.replace_one({"title":i.title}, props)
 
 
 
@@ -404,7 +405,7 @@ def create_topic_tocs():
 
 def find_popular_writings(top_n, min_pr):
     from sefaria.helper.topic import calculate_popular_writings_for_authors
-    TopicLinkType({
+    tlt = {
         "slug": "popular-writing-of",
         "inverseSlug" : "has-popular-writing", 
         "displayName" : {
@@ -421,7 +422,9 @@ def find_popular_writings(top_n, min_pr):
             "people",
             "group-of-people"
         ]
-    }).save()
+    }
+    if TopicLinkType().load({"slug": tlt['slug']}) is None:
+        TopicLinkType(tlt).save()
     calculate_popular_writings_for_authors(top_n, min_pr)
         
 
@@ -498,9 +501,10 @@ if __name__ == "__main__":
     # refactor_authors_on_indexes()
     # import_people_links()
     # create_topic_tocs()
-    # find_popular_writings(100, 300)
+    find_popular_writings(100, 300)
+    
     # get_wikidata_entries()
-    get_wikipedia_links_for_wikidata_ids()
+    # get_wikipedia_links_for_wikidata_ids()
     # set_description_published()
 
 """
