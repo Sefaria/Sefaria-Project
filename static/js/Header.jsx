@@ -32,6 +32,9 @@ const Help = () => (
 const ProfilePicMenu = ({len, url, name}) => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
+  let firstLang = "";
+  let secondLang = "";
+
   const handleClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -65,6 +68,14 @@ const ProfilePicMenu = ({len, url, name}) => {
   const getCurrentPage = () => {
     return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
   }
+  if (Sefaria.interfaceLang == "english") {
+    firstLang = <a className="firstLink" href={`/interface/english?next=${getCurrentPage()}`}>English</a>;
+    secondLang = <a className="secondLink" href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>;
+  }
+  else {
+    secondLang = <a className="secondLink" href={`/interface/english?next=${getCurrentPage()}`}>English</a>;
+    firstLang = <a className="firstLink" href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>;
+  }
   return (
     <div ref={wrapperRef}>
         <a href="/my/profile" className="my-profile" onClick={handleClick}>
@@ -82,7 +93,9 @@ const ProfilePicMenu = ({len, url, name}) => {
               <span className="int-he">הגדרות</span>
             </a></div>
             <div className="interfaceLinks-row">
-              <a className="enLink" href={`/interface/english?next=${getCurrentPage()}`}>English</a><span className="dot">•</span><a className="heLink" href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
+              {firstLang}
+              <span className="dot">•</span>
+              {secondLang}
             </div>
             <div><a className="interfaceLinks-row bottom" href="/collections/sefaria-faqs">
               <span className="int-en">Help</span>

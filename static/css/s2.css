@@ -597,11 +597,11 @@ div.interfaceLinks-row a:hover {
   text-decoration: none;
 }
 
-div.interfaceLinks-row a.enLink {
+div.interfaceLinks-row a.firstLink {
   color: #000000;
 }
 
-div.interfaceLinks-row a.heLink {
+div.interfaceLinks-row a.secondLink {
   color: #666666;
 }
 
