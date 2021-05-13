@@ -171,7 +171,7 @@ class VersionBlock extends Component {
       "en": "Translation",
       "he" : "Version"
     }
-    let voc = langMap[this.props.version.language] || "Translation";
+    let voc = langMap[this.props.version.actualLanguage] || "Translation";
     return this.props.isCurrent ? Sefaria._("Current " + voc) : Sefaria._("Select "+ voc);
   }
   makeDigitizedByLanguage(){
