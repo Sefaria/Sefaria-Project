@@ -280,9 +280,9 @@ def most_popular_refs_in_sheets(pattern, public_only=True):
 			if re.match(pattern, ref):
 				counts[ref] += 1
 
-	top = sorted(iter(counts.items()), key=lambda x: -x[1])[:10]
+	top = sorted(iter(counts.items()), key=lambda x: -x[1])
 
-	print(top)
+	return top
 
 
 def account_creation_stats():
