@@ -370,14 +370,15 @@ class VersionsBlocksList extends Component{
   sortVersionsByActiveLang(prioritize=null){
     //sorts the languages of the available versions
     const standard_langs = ["en", "he"];
+    //const activeLanguages = Object.values(this.props.currObjectVersions).map(({actualLanguage}) => actualLanguage);
     return Object.keys(this.props.versionsByLanguages).sort(
       (a, b) => {
         if      (!!prioritize && a === prioritize)                {return -1;}
         else if (!!prioritize && b === prioritize)                {return 1;}
-        else if (a in standard_langs && !(b in standard_langs))   {return -1;}
+        /*else if (a in standard_langs && !(b in standard_langs))   {return -1;}
         else if (b in standard_langs && !(a in standard_langs))   {return  1;}
         else if (this.props.activeLanguages.includes(a))          {return -1;}
-        else if (this.props.activeLanguages.includes(b))          {return  1;}
+        else if (this.props.activeLanguages.includes(b))          {return  1;}*/
         else if (a < b)                                           {return -1;}
         else if (b < a)                                           {return  1;}
         else                                                      {return  0;}
@@ -451,7 +452,6 @@ VersionsBlocksList.propTypes={
   versionsByLanguages: PropTypes.object.isRequired,
   currObjectVersions: PropTypes.object,
   displayCurrentVersions: PropTypes.bool,
-  activeLanguages: PropTypes.array.isRequired,
   mainVersionLanguage: PropTypes.string.isRequired,
   sortPrioritizeLanugage: PropTypes.string,
   currentRef: PropTypes.string,
