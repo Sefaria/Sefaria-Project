@@ -92,6 +92,9 @@ details {
 .segment .segmentNumber {
   top: 0px !important;
 }
+.segment sup {
+  display: none;
+}
 #printFooter {
   display: block !important;
   margin: 50px 0 0;

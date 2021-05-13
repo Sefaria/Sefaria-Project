@@ -223,7 +223,7 @@ class ReaderTextTableOfContents extends Component {
             aria-pressed={`${this.state.versionsDropDownOpen}`}
             onClick={this.toggleVersionsDropDownOpen}
             onKeyPress={(e) => {e.charCode == 13 ? this.toggleVersionsDropDownOpen(e):null}}>
-            <div className="versionSectionSummary versionSectionSummaryHidden" aria-hidden="true">
+            <div className="versionSectionSummary versionSectionSummaryHidden sans-serif" aria-hidden="true">
               {Sefaria._siteSettings.TORAH_SPECIFIC ?
               <span>
                 <InterfaceText>
@@ -236,11 +236,11 @@ class ReaderTextTableOfContents extends Component {
               </span>
               }
             </div>
-            <div className="versionSectionTitle">
+            <div className="versionSectionTitle sans-serif">
               <InterfaceText text={{en:"Versions", he:"גרסאות" }}/>
               {(this.state.versionsDropDownOpen) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
             </div>
-            <div className="versionSectionSummary">
+            <div className="versionSectionSummary sans-serif">
               {Sefaria._siteSettings.TORAH_SPECIFIC ?
               <span>
                 <InterfaceText>
@@ -320,7 +320,7 @@ class ReaderTextTableOfContents extends Component {
         plaintxt: {english: "Text (without Tags)", hebrew: "טקסט (ללא תיוגים)"}
       };
       downloadSection = (
-        <div className="dlSection">
+        <div className="dlSection sans-serif">
           <h2 className="dlSectionTitle">
             <InterfaceText>Download Text</InterfaceText>
           </h2>
@@ -355,7 +355,7 @@ class ReaderTextTableOfContents extends Component {
                     <ReaderNavigationMenuCloseButton onClick={closeClick}/>
                   </div>
                   <div className="readerTextToc readerTextTocHeader">
-                    <div className="readerTextTocBox">
+                    <div className="readerTextTocBox sans-serif">
                       <InterfaceText>Table of Contents</InterfaceText>
                     </div>
                   </div>
@@ -655,8 +655,8 @@ class TabbedToggleSet extends Component {
         option.onPress();
       }.bind(this);
 
-      let classes = classNames({altStructToggle: 1, active: this.props.active === option.name});
-      let url = Sefaria.util.replaceUrlParam("tab", option.name);
+      var classes = classNames({altStructToggle: 1, "sans-serif": 1, active: this.props.active === option.name});
+      var url = Sefaria.util.replaceUrlParam("tab", option.name);
       return (
         <div className="altStructToggleBox" key={i}>
           <a className={classes} onClick={handleClick} href={url}>
@@ -1021,14 +1021,14 @@ class VersionsList extends Component {
     return (
       <div className="versionBlocks">
         {(!!heVersionBlocks.length) ?
-          <div className="versionLanguageBlock">
+          <div className="versionLanguageBlock sans-serif">
             <div className="versionLanguageHeader">
               <InterfaceText>Hebrew Versions</InterfaceText>
             </div>
             <div>{heVersionBlocks}</div>
           </div> : null}
         {(!!enVersionBlocks.length) ?
-          <div className="versionLanguageBlock">
+          <div className="versionLanguageBlock sans-serif">
             <div className="versionLanguageHeader">
               <InterfaceText>English Versions</InterfaceText>
             </div>

@@ -110,8 +110,10 @@ subscribe(cascade_delete(notification.NotificationSet, "global_id", "_id"),  not
 subscribe(cascade_delete(story.UserStorySet, "shared_story_id", "_id"), story.SharedStory, "delete")
 
 # Collections
-subscribe(collection.process_collection_slug_change_in_sheets,                         collection.Collection, "attributeChange", "slug")
-subscribe(collection.process_collection_delete_in_sheets,                              collection.Collection, "delete")
+subscribe(collection.process_collection_slug_change_in_sheets,             collection.Collection, "attributeChange", "slug")
+subscribe(collection.process_collection_delete_in_sheets,                  collection.Collection, "delete")
+subscribe(cascade_delete(notification.NotificationSet, "content.collection_slug", "slug"), collection.Collection, "delete")
+
 
 # Categories
 subscribe(category.process_category_name_change_in_categories_and_indexes,  category.Category, "attributeChange", "lastPath")

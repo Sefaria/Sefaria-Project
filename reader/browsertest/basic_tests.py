@@ -30,6 +30,7 @@ class ReaderSuite(TestSuite):
         #    pass
         self.load_toc(my_temper=60)
         #self.driver.delete_all_cookies()
+        self.close_modal_popup()
         self.click_accept_cookies()
         #self.set_cookies_cookie()
         
@@ -50,6 +51,7 @@ class PageloadSuite(TestSuite):
         #    pass
         self.load_toc(my_temper=60)
         #self.driver.delete_all_cookies()
+        self.close_modal_popup()
         self.click_accept_cookies()
         #self.set_cookies_cookie()
         
@@ -89,6 +91,7 @@ class DeleteContentInEditor(AtomicTest):
     suite_class = EditorSuite
     every_build = False
     single_panel = False  # No source sheets on mobile
+
     def body(self):
         self.delete_sheet_content("back")
         self.delete_sheet_content("forward")
@@ -165,17 +168,11 @@ class PagesLoad(AtomicTest):
         self.load_toc()
         self.click_toc_category("Midrash").click_toc_text("Ein Yaakov")
         self.load_ref("Psalms.104")
-        print("Done loading Psalms 104")
         self.load_ref("Job.3")
-        print("Done loading Job 3")
         self.load_topics()
-        print("Done loading topics")
         self.load_gardens()
-        print("Done loading gardens")
         self.load_home()
-        print("Done loading home")
         self.load_people()
-        print("Done loading people ")
 
 class PagesLoadLoggedIn(AtomicTest):
     suite_class = PageloadSuite
@@ -186,14 +183,9 @@ class PagesLoadLoggedIn(AtomicTest):
         self.login_user()
         self.load_my_profile()
         # self.load_notifications()
-        print("Done loading user")
-        # self.load_notifications()
         self.nav_to_account() # load_account might be superceded by load_my_profile or nav_to_account
-        print("Done loading account")
         self.load_private_sheets()
-        print("Done loading private sheets")
         ## self.load_private_groups() # fails -- /my/groups no longer exists
-        print("Done loading private groups")
         self.load_notifications()
 
 
@@ -208,14 +200,14 @@ class InTextSectionHeaders(AtomicTest):
         self.click_source_title()
         self.click_masechet_and_chapter('2','3')
         section = self.get_section_txt('1')
-        assert 'רבי זירא הוה משתמיט' in strip_nikkud(section)
+        assert 'רבי זירא הוה' in strip_nikkud(section)
 
         self.load_toc()
-        self.click_toc_category("Midrash").click_toc_text("Seder Olam Rabbah")
+        self.click_toc_category("Midrash").click_toc_text("Midrash Mishlei")
         self.click_source_title()
         self.click_chapter('4')
         section = self.get_section_txt('1')
-        assert 'פרק ד ' == section
+        assert 'מכל משמר נצור ליבך' in section
 
 
 class ChangeTextLanguage(AtomicTest):
@@ -241,53 +233,60 @@ class ChangeTextLanguage(AtomicTest):
         assert 'hebrew' in self.get_content_language()
         assert 'english' not in self.get_content_language()
         assert 'bilingual' not in self.get_content_language()
-        assert sgmnt_heb.is_displayed() == True
-        assert sgmnt_eng.is_displayed() == False
+        assert self.has_hebrew_text() == True
+        assert self.has_english_text() == False
         self.toggle_on_text_settings()
         self.toggle_language_english()
         assert 'hebrew' not in self.get_content_language()
         assert 'english' in self.get_content_language()
         assert 'bilingual' not in self.get_content_language()
-        assert sgmnt_heb.is_displayed() == False
-        assert sgmnt_eng.is_displayed() == True
+        assert self.has_hebrew_text() == False
+        assert self.has_english_text() == True
         self.toggle_on_text_settings()
         self.toggle_language_bilingual()
         assert 'hebrew' not in self.get_content_language()
         assert 'english' not in self.get_content_language()
         assert 'bilingual' in self.get_content_language()
-        assert sgmnt_heb.is_displayed() == True
-        assert sgmnt_eng.is_displayed() == True
+        assert self.has_hebrew_text() == True
+        assert self.has_english_text() == True
         self.get_content_language()
 
 
-class TextSettings(AtomicTest):
+class FontSizeTest(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
 
     def body(self):
-        larger = 21.6
-        smaller = 18.7826
-        just_text = 'בראשית ברא אלהים את השמים ואת הארץ'
-        text_with_vowels = 'בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃'
-        text_with_cantillation = 'בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
-        self.load_ref("Genesis 1")
-        # 1] Language: heb/eng/bilingual
+        self.load_ref("Job 12")
         self.toggle_on_text_settings()
-        self.toggle_language_english()
-        assert not self.get_nth_section_hebrew(1).is_displayed()
-        assert self.get_nth_section_english(1).is_displayed()
+        font_size_original = self.get_font_size()
+        self.toggle_fontSize_smaller()
+        font_size_smaller = self.get_font_size()
 
-        self.toggle_on_text_settings()
-        self.toggle_language_hebrew()
-        assert self.get_nth_section_hebrew(1).is_displayed()
-        assert not self.get_nth_section_english(1).is_displayed()
+        # self.toggle_text_settings()
+        self.toggle_fontSize_larger()
+        font_size_larger = self.get_font_size()
+        assert font_size_larger > font_size_smaller
 
-        self.toggle_on_text_settings()
-        self.toggle_language_bilingual()
-        assert self.get_nth_section_hebrew(1).is_displayed()
-        assert self.get_nth_section_english(1).is_displayed()
+'''
+class AliyotTest(AtomicTest):
+    # 4] Aliyot: on off
+        # todo: Set up scroll_to_segment then enable this
+        # self.toggle_aliyotTorah_aliyotOn()
+        # self.scroll_to_segment(Ref("Genesis 2:4"))
+        # assert self.is_aliyot_displayed()
 
-        # 2] Layout: left/right/stacked
+        # self.toggle_on_text_settings()
+        # self.toggle_aliyotTorah_aliyotOff()
+        # self.scroll_reader_panel_to_bottom()
+        # assert not self.is_aliyot_displayed()
+'''
+
+class LayoutSettings(AtomicTest):
+    # 2] Layout: left/right/stacked
+
+    def body(self):
+        self.load_ref("Job 12")
         if not self.single_panel:
             self.toggle_on_text_settings()
             self.toggle_bilingual_layout_heLeft()
@@ -301,30 +300,18 @@ class TextSettings(AtomicTest):
             self.toggle_bilingual_layout_stacked()
             assert self.get_content_layout_direction() == 'stacked'
 
-        # 3] Font size: small/large
+
+class TextVocalizationSettings(AtomicTest):
+    suite_class = PageloadSuite
+    every_build = True
+
+    def body(self):
+        just_text = 'בראשית ברא אלהים את השמים ואת הארץ'
+        text_with_vowels = 'בְּרֵאשִׁית בָּרָא אֱלֹהִים אֵת הַשָּׁמַיִם וְאֵת הָאָרֶץ׃'
+        text_with_cantillation = 'בְּרֵאשִׁ֖ית בָּרָ֣א אֱלֹהִ֑ים אֵ֥ת הַשָּׁמַ֖יִם וְאֵ֥ת הָאָֽרֶץ׃'
+        self.load_ref("Genesis 1")
+
         self.toggle_on_text_settings()
-        font_size_original = self.get_font_size()
-        self.toggle_fontSize_smaller()
-        font_size_smaller = self.get_font_size()
-
-        # self.toggle_text_settings()
-        self.toggle_fontSize_larger()
-        font_size_larger = self.get_font_size()
-        assert font_size_larger > font_size_smaller
-
-        # 4] Aliyot: on off
-        # todo: Set up scroll_to_segment then enable this
-        # self.toggle_aliyotTorah_aliyotOn()
-        # self.scroll_to_segment(Ref("Genesis 2:4"))
-        # assert self.is_aliyot_displayed()
-
-        # self.toggle_on_text_settings()
-        # self.toggle_aliyotTorah_aliyotOff()
-        # self.scroll_reader_panel_to_bottom()
-        # assert not self.is_aliyot_displayed()
-
-        # 5] Vocalization: vowels and cantillation
-        # self.toggle_on_text_settings()
         self.toggle_vowels_partial()
         assert self.get_nth_section_hebrew(1).text.strip() == text_with_vowels, "'{}' does not equal '{}'".format(self.get_nth_section_hebrew(1).text.strip(), text_with_vowels)
 
@@ -446,6 +433,8 @@ class SideBarEntries(AtomicTest):
         self.click_resources_on_sidebar()
 
         self.click_sidebar_button("Tools")
+        self.click_resources_on_sidebar()
+
         self.click_sidebar_button("Share")
         '''
         Buggy.  Doesn't work on Safari. Mobile?
@@ -890,6 +879,8 @@ class SaveNewSourceSheet(AtomicTest):
         self.login_user()
         self.nav_to_sheets()
 
+        time.sleep(2)   #  If we enter text before the js is ready, we don't get a dropdown menu.
+
         textBox = self.driver.find_element_by_css_selector("#inlineAdd")
 
         textBox.send_keys("Genesis")
@@ -968,7 +959,6 @@ class EditorPagesLoad(AtomicTest):
         self.load_toc()
         #logged in stuff
         self.login_user()
-        self.load_translate("Shabbat 43b")
         # self.load_edit("Genesis 1", "en", "Sefaria Community Translation") -- need debugging, threw a 500 on travis, works local
         self.load_add("Mishnah Peah 4")
 
@@ -1034,7 +1024,8 @@ class InfiniteScrollDown(AtomicTest):
         # Complex Text
         self.test_down("Pesach Haggadah, Magid, The Four Sons", "Pesach Haggadah, Magid, Yechol Me'rosh Chodesh 1")
 
-
+'''
+# This test is cranky.  It can pass and fail without any external changes.  Seemingly because the underlying functionality isn't dependable yet.
 class BackRestoresScrollPosition(AtomicTest):
     suite_class = ReaderSuite
     every_build = True
@@ -1049,7 +1040,8 @@ class BackRestoresScrollPosition(AtomicTest):
         self.click_toc_category("Midrash")
         self.driver.back()
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '[data-cat="Midrash"]')))
-        assert self.get_content_scroll_position() == SCROLL_DISTANCE
+        time.sleep(0.4)
+        assert self.get_content_scroll_position() == SCROLL_DISTANCE, "Scroll Position {} != {}".format(self.get_content_scroll_position(), SCROLL_DISTANCE)
 
         # Search
         self.search_for("restoration")
@@ -1060,7 +1052,8 @@ class BackRestoresScrollPosition(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.segment')))
         self.driver.back()
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.text_result')))
-        assert self.get_content_scroll_position() == SCROLL_DISTANCE
+        time.sleep(0.4)
+        assert self.get_content_scroll_position() == SCROLL_DISTANCE, "Scroll Position {} != {}".format(self.get_content_scroll_position(), SCROLL_DISTANCE)
 
         # Topic
         self.load_topic_page("wonders")
@@ -1070,7 +1063,9 @@ class BackRestoresScrollPosition(AtomicTest):
         source.click()
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.segment')))
         self.driver.back()
-        assert self.get_content_scroll_position() == SCROLL_DISTANCE
+        time.sleep(0.4)
+        assert self.get_content_scroll_position() == SCROLL_DISTANCE, "Scroll Position {} != {}".format(self.get_content_scroll_position(), SCROLL_DISTANCE)
+'''
 
 
 """

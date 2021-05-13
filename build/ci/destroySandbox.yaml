@@ -21,14 +21,14 @@ steps:
   #
   # Helm Release Management
   #########################
-  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.0.2"
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
     id: delete_sandbox
     dir: k8s-admin/v2
     args: ["delete", "sandbox-${_SANDBOX_NAME}", "-n", "${_GKE_NAMESPACE}", "--debug"]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECTL_VERSION=1.16'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for: [ "-" ]
 
@@ -38,13 +38,13 @@ steps:
   #####################
 
   # emits a file to v2/sandboxes/_sandboxes.txt
-  - name: gcr.io/${PROJECT_ID}/cloudbuild-getsandboxnames:v0.2
+  - name: gcr.io/${PROJECT_ID}/cloudbuild-getsandboxnames:v0.3
     id: get_sandbox_names
     dir: k8s-admin/v2/sandboxes/ingresses
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECTL_VERSION=1.16'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
       - delete_sandbox
@@ -61,14 +61,14 @@ steps:
     wait_for: 
       - get_sandbox_names
 
-  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.1.2"
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
     id: deploy_ingress
     dir: k8s-admin/v2
     args: ["upgrade", "-i", "sandbox-ingress", "./charts/sandbox-ingress", "--namespace", "${_GKE_NAMESPACE}", "-f", "sandboxes/ingresses/_ingressValues.yaml", "--debug"]
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
-      - 'KUBECTL_VERSION=1.14'
+      - 'KUBECTL_VERSION=1.16'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
       - generate_ingress_values_file

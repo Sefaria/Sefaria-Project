@@ -139,8 +139,10 @@ def user_sheets(user_id, sort_by="date", limit=0, skip=0, private=True):
 	return response
 
 
-def public_sheets(sort=[["dateModified", -1]], limit=50, skip=0):
+def public_sheets(sort=[["dateModified", -1]], limit=50, skip=0, lang=None):
 	query = {"status": "public"}
+	if lang:
+		query["sheetLanguage"] = lang
 	response = {
 		"sheets": sheet_list(query=query, sort=sort, limit=limit, skip=skip)
 	}
@@ -464,6 +466,7 @@ def save_sheet(sheet, user_id, search_override=False, rebuild_nodes=False):
 
 	sheet["includedRefs"] = refs_in_sources(sheet.get("sources", []))
 	sheet["expandedRefs"] = model.Ref.expand_refs(sheet["includedRefs"]) 
+	sheet["sheetLanguage"] = get_sheet_language(sheet)
 
 	if rebuild_nodes:
 		sheet = rebuild_sheet_nodes(sheet)
@@ -536,6 +539,25 @@ def clean_source(source):
 		source["outsideBiText"]["en"] = bleach_text(source["outsideBiText"]["en"])
 
 	return source
+
+
+def get_sheet_language(sheet):
+	"""
+	Returns the language we believe `sheet` to be written in,
+	based on the language of its title.
+	"""
+	title = strip_tags(sheet.get("title", "")).replace("(Copy)", "").replace("\n", " ")
+	return "hebrew" if is_hebrew(title, heb_only=True) else "english"
+
+
+def test():
+	ss = db.sheets.find({}, sort=[["_id", -1]], limit=10000)
+
+	for s in ss:
+		lang = get_sheet_language(s)
+		if lang == "some hebrew":
+			print("{}\thttps://www.sefaria.org/sheets/{}".format(strip_tags(s["title"]).replace("\n", ""), s["id"]))
+
 
 
 def add_source_to_sheet(id, source, note=None):
@@ -1112,6 +1134,7 @@ class Sheet(abstract.AbstractMongoRecord):
 		"highlighterTags",
 		"summary",
         "reviewed",
+        "sheetLanguage",
         "ownerImageUrl",   # TODO this shouldn't be stored on sheets, but it is for many
         "ownerProfileUrl", # TODO this shouldn't be stored on sheets, but it is for many
 	]

@@ -22,6 +22,7 @@ const Strings = {
     "Source Sheets": "דפי מקורות",
     "Start a New Source Sheet": "התחלת דף מקורות חדש",
     "Untitled Source Sheet" : "דף מקורות ללא שם",
+    "Untitled": "ללא שם",
     "New Source Sheet" : "דף מקורות חדש",
     "Name New Sheet" : "כותרת לדף חדש",
     "Copy" : "העתקה",
@@ -87,7 +88,6 @@ const Strings = {
     "Indent Source": "הזחת מקור פנימה",
     "Create New" : "יצירת חדש",
     "Close" : "סגירה",
-    "by": "", // by line on sheets in reader, intentionally left blank
 
     // Reader Panel
     "Search" : "חיפוש",
@@ -187,6 +187,12 @@ const Strings = {
     "Done": "סיום",
     "Add to Collection": "צירוף לאסופה",
 
+    "Saved": "שמורים",
+
+    // Topics
+    "More": "עוד",
+    "Less": "פחות",
+
     //languages
     "English": "אנגלית",
     "Hebrew": "עברית",
@@ -242,7 +248,7 @@ const Strings = {
     "Stay in the know": "השארו מעודכנים",
     "Sign Up": "הרשמו לספריא",
     "Already have an account?": "כבר יש לכם חשבון?",
-    "Sign\u00A0in": "התחברו",
+    "Sign in": "התחברו",
     "Save": "שמירה",
     "Remove": "הסרה",
     "Email was successfully changed!": 'כתובת הדוא"ל שונתה בהצלחה!',
@@ -293,10 +299,9 @@ const Strings = {
     "Thanks for Trying the New Editor!": "תודה שבחרת לנסות את העורך החדש שלנו!",
     "Go to your profile to create a new sheet, or edit an existing sheet, to try out the new experience. After you’ve had a chance to try it out, we would love to hear your feedback. You can reach us at" : "כדי להתנסות בחוויית העריכה החדשה, יש להיכנס לפרופיל האישי שלך וליצור דף מקורות חדש או לערוך דף מקורות קיים. נשמח מאוד לקבל ממך משוב אחרי השימוש. אפשר ליצור איתנו קשר בדוא\"ל",
     "Back to Profile": "חזרה לפרופיל האישי שלך",
-    "You are currently testing the new document editor.": "ברגע זה הינך עושה שימוש בעורך המסמכים החדש של ספריא",
     "Go back to old version": "חזרה לגרסה הישנה",
     "Request for Feedback": "נא למלא משוב",
-    "Thank you for trying the new document editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.": "תודה שניסית את עורך המסמכים החדש! נשמח מאוד לשמוע את דעתך עליו. אנו מבקשים ממך להקדיש כמה דקות למילוי משוב על חוויית השימוש שלך.",
+    "Thank you for trying the new Sefaria editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.": "תודה שניסית את עורך ספריא החדש! נשמח מאוד לשמוע את דעתך עליו. אנו מבקשים ממך להקדיש כמה דקות למילוי משוב על חוויית השימוש שלך.",
     "Did you encounter any issues while using the new editor? For example:": "האם נתקלת בבעיות בעת השימוש בעורך החדש? למשל...",
     "Technical problems": "בעיות טכניות",
     "Difficulties using the editor": "קושי להשתמש בעורך",
@@ -304,10 +309,10 @@ const Strings = {
     "Tell us about it...": "ספר/י לנו על כך...",
     "Submit Feedback": "לשליחת המשוב",
     "Thank you!": "תודה רבה!",
-    "You are currently using the old document editor.": "כעת הינך עושה שימוש בגרסה הישנה של עורך המסמכים",
+    "You are currently testing the new Sefaria editor.": "ברגע זה הינך עושה שימוש בעורך החדש של ספריא",
+    "You are currently using the old Sefaria editor.": "כעת הינך עושה שימוש בגרסה הישנה של עורך ספריא",
     "Try the new version": "להתנסוּת בגרסה החדשה",
     "Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at": "אנחנו מעריכים מאוד את המשוב שלך. כעת באפשרותך לחזור לערוך את הדפים שלך באמצעות עורך המסמכים הישן. לשאלות או למשוב נוסף אפשר לפנות אלינו בדוא\"ל:",
-
 
     //TextTableofContents
     "Download": "הורדה",
@@ -328,11 +333,14 @@ const Strings = {
       "Reference": "עיון",
       "Related Passage": "קשר אחר",
     },
+    "SheetAuthorStatement": {
+      "by ": "", // by line on sheets in reader, intentionally left blank
+    },
     "ConnectionPanelSection":{
       "Related Texts": "מקורות לעיון",
       "Resources": "עזרים",
       "Tools": "כלים",
-    }
+    },
   },
 };
 

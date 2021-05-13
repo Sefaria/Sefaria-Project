@@ -466,6 +466,11 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
       setActiveSourceLangContent(null)
     }
     setSourceActive(true)
+
+    console.log(e)
+    console.log(activeSourceLangContent)
+    console.log(sourceActive)
+
   }
 
   const onBlur = (e) => {
@@ -474,7 +479,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   }
 
 
-  const isActive = selected && focused;
+  const isActive = selected;
   const sheetItemClasses = {sheetItem: 1, highlight: editor.highlightedNode == element.node}
   const classes = {
       SheetSource: element.ref ? 1 : 0,
@@ -486,7 +491,7 @@ const BoxedSheetElement = ({ attributes, children, element }) => {
   const enClasses = {en: 1, selected: isActive, editable: activeSourceLangContent == "en" ? true : false };
 
   return (
-    <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref}>
+    <div className={classNames(sheetItemClasses)} data-sheet-node={element.node} data-sefaria-ref={element.ref} style={{ pointerEvents: (isActive) ? 'none' : 'auto'}}>
     <div {...attributes} contentEditable={false} onBlur={(e) => onBlur(e) } onClick={(e) => onClick(e)} className={classNames(classes)} style={{"borderInlineStartColor": Sefaria.palette.refColor(element.ref)}}>
       <div className={classNames(heClasses)} style={{ pointerEvents: (isActive) ? 'auto' : 'none'}}>
           {element.heRef ? <div className="ref" contentEditable={false} style={{ userSelect: 'none' }}>{element.heRef}</div> : null }
@@ -525,7 +530,7 @@ const Element = props => {
         sheetItem: 1,
         empty: !(Node.string(element)),
         noPointer: element.type != ("SheetSource" || "SheetOutsideBiText"),
-        highlight: useSlate().highlightedNode == element.node
+        highlight: (useSlate().highlightedNode == element.node)
     }
 
     switch (element.type) {
@@ -780,9 +785,20 @@ const withSefariaSheet = editor => {
         }
 
         else {
-            // if deleting backwards would run into a sheet source, select it instead of delete it
+            //check to see if we're in a spacer to apply special delete rules
+            let inSpacer = false;
+            if (getClosestSheetElement(editor, editor.selection.focus.path, "spacer")) {
+              inSpacer = true;
+            }
+
+            //we do a dance to seeif we'll accidently delete a sheetsource and select it instead if we will
             Transforms.move(editor, { reverse: true })
             if (getClosestSheetElement(editor, editor.selection.focus.path, "SheetSource")) {
+              //deletes the extra spacer space that would otherwise be left behind
+              if (inSpacer)  {
+                Transforms.move(editor);
+                Editor.deleteForward(editor)
+              }
               return
             }
             else {
@@ -1440,6 +1456,13 @@ const SefariaEditor = (props) => {
     );
 
   useEffect(() => {
+    if(!props.hasSidebar) {
+      editor.highlightedNode = null;
+    }
+  }, [props.hasSidebar])
+
+
+  useEffect(() => {
       let scrollTimeOutId = null;
       const onScrollListener = () => {
           clearTimeout(scrollTimeOutId);
@@ -1486,7 +1509,7 @@ const SefariaEditor = (props) => {
           editorContainer.current.parentNode.parentNode.removeEventListener("scroll", onScrollListener)
           editorContainer.current.parentNode.parentNode.removeEventListener("click", onClickListener)
       }
-      }, [props.highlightedNodes]
+      }, [props.highlightedNode]
   );
 
 

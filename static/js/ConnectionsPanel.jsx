@@ -287,7 +287,7 @@ class ConnectionsPanel extends Component {
       }
       content = (
           <div>
-              { this.state.flashMessage ? <div className="flashMessage sans">{this.state.flashMessage}</div> : null }
+              { this.state.flashMessage ? <div className="flashMessage sans-serif">{this.state.flashMessage}</div> : null }
               <ToolsButton en="About this Text" he="אודות הטקסט" image="about-text.svg" onClick={() => this.props.setConnectionsMode("About")} />
               {showConnectionSummary ?
                   <ConnectionsPanelSection title="Related Texts">
@@ -1011,7 +1011,7 @@ class WebPagesList extends Component {
     }
 
     const linkerMessage = Sefaria._siteSettings.TORAH_SPECIFIC ?
-              <div className="webpagesLinkerMessage sans">
+              <div className="webpagesLinkerMessage sans-serif">
                 <span className="int-en">Sites that are listed here use the <a href="/linker">Sefaria Linker</a>.</span>
                 <span className="int-he">אתרים המפורטים כאן משתמשים <a href="/linker">במרשתת ההפניות</a>.</span>
               </div> : null;
