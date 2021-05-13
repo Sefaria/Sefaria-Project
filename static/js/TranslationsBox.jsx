@@ -92,7 +92,6 @@ TranslationsBox.propTypes = {
   setConnectionsMode:       PropTypes.func.isRequired,
   setFilter:                PropTypes.func.isRequired,
   openVersionInReader:      PropTypes.func.isRequired,
-  openVersionInSidebar:     PropTypes.func.isRequired,
   sectionRef:               PropTypes.string.isRequired,
   onRangeClick:             PropTypes.func.isRequired,
   onCitationClick:          PropTypes.func.isRequired,
