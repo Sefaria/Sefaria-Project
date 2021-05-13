@@ -1510,7 +1510,7 @@ ManuscriptImageList.propTypes = {
 const ConnectionsPanelSection = ({title, children}) => {
     return (
         <>
-            <div className="connectionPanelSectionHeader">
+            <div className="connectionPanelSectionHeader sans-serif">
                 <span className="connectionPanelSectionHeaderInner">
                     <InterfaceText context="ConnectionPanelSection">{title}</InterfaceText>
                 </span>
