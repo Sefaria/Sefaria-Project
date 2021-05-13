@@ -62,12 +62,11 @@ class AboutBox extends Component {
     const d = this.state.details;
     const sourceVersion = this.state.currentVersionsByActualLangs?.he;
     const translationVersions = Object.entries(this.state.currentVersionsByActualLangs).filter(([lang, version]) => lang != "he").map(([lang, version])=> version);
-    console.dir(sourceVersion);
-    console.dir(translationVersions);
-    const ve_plural = translationVersions?.length > 1;
+    const multiple_translations = translationVersions?.length > 1;
+    const no_source_versions = multiple_translations || translationVersions?.length == 1 && !sourceVersion;
     const sourceVersionSectionTitle = {en: "Current Version", he:"מהדורה נוכחית"};
-    const translationVersionsSectionTitle = ve_plural ? {en: "Current Translations", he:"תרגומים נוכחיים"} : {en: "Current Translation", he:"תרגום נוכחי"};
-    const alternateVersionsSectionTitle = ve_plural ? {en: "Source Versions", he:"מהדורות בשפת המקור"} : {en: "Alternate Source Versions", he:"מהדורות נוספות בשפת המקור"}
+    const translationVersionsSectionTitle = multiple_translations ? {en: "Current Translations", he:"תרגומים נוכחיים"} : {en: "Current Translation", he:"תרגום נוכחי"};
+    const alternateVersionsSectionTitle = no_source_versions ? {en: "Source Versions", he:"מהדורות בשפת המקור"} : {en: "Alternate Source Versions", he:"מהדורות נוספות בשפת המקור"}
 
     if (this.props.srefs[0].startsWith("Sheet")) {
       let detailSection = null;
@@ -180,7 +179,7 @@ class AboutBox extends Component {
       </div>
       : null );
     const versionSectionEn =
-      (!!translationVersions ?
+      (!!translationVersions?.length ?
       <div className="currVersionSection">
         <h2 className="aboutHeader">
           <InterfaceText text={translationVersionsSectionTitle} />
