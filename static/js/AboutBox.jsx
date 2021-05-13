@@ -60,8 +60,14 @@ class AboutBox extends Component {
   }
   render() {
     const d = this.state.details;
-    const vh = this.props.currObjectVersions.he;
-    const ve = this.props.currObjectVersions.en;
+    const sourceVersion = this.state.currentVersionsByActualLangs?.he;
+    const translationVersions = Object.entries(this.state.currentVersionsByActualLangs).filter(([lang, version]) => lang != "he").map(([lang, version])=> version);
+    console.dir(sourceVersion);
+    console.dir(translationVersions);
+    const ve_plural = translationVersions?.length > 1;
+    const sourceVersionSectionTitle = {en: "Current Version", he:"מהדורה נוכחית"};
+    const translationVersionsSectionTitle = ve_plural ? {en: "Current Translations", he:"תרגומים נוכחיים"} : {en: "Current Translation", he:"תרגום נוכחי"};
+    const alternateVersionsSectionTitle = ve_plural ? {en: "Source Versions", he:"מהדורות בשפת המקור"} : {en: "Alternate Source Versions", he:"מהדורות נוספות בשפת המקור"}
 
     if (this.props.srefs[0].startsWith("Sheet")) {
       let detailSection = null;
@@ -157,45 +163,47 @@ class AboutBox extends Component {
         </div>
       );
     }
-    const currVersions = {};
-    for (let vlang in this.props.currObjectVersions) {
-      const tempV = this.props.currObjectVersions[vlang];
-      currVersions[vlang] = !!tempV ? tempV.versionTitle : null;
-    }
     const versionSectionHe =
-      (!!vh ? <div className="currVersionSection">
+      (!!sourceVersion ?
+      <div className="currVersionSection">
         <h2 className="aboutHeader">
-            <InterfaceText text={{en: "Current Version", he:"מהדורה נוכחית"}} />
+            <InterfaceText text={sourceVersionSectionTitle} />
         </h2>
         <VersionBlock
           rendermode="about-box"
           sidebarDisplay = {true}
-          version={vh}
+          version={sourceVersion}
           currObjectVersions={this.props.currObjectVersions}
           currentRef={this.props.srefs[0]}
-          firstSectionRef={"firstSectionRef" in vh ? vh.firstSectionRef : null}
+          firstSectionRef={"firstSectionRef" in sourceVersion ? sourceVersion.firstSectionRef : null}
           getLicenseMap={this.props.getLicenseMap} />
-      </div> : null );
+      </div>
+      : null );
     const versionSectionEn =
-      (!!ve ? <div className="currVersionSection">
+      (!!translationVersions ?
+      <div className="currVersionSection">
         <h2 className="aboutHeader">
-          <InterfaceText text={{en: "Current Translation", he:"תרגום נוכחי"}} />
+          <InterfaceText text={translationVersionsSectionTitle} />
         </h2>
-        <VersionBlock
-          rendermode="about-box"
-          sidebarDisplay = {true}
-          version={ve}
-          currObjectVersions={this.props.currObjectVersions}
-          currentRef={this.props.srefs[0]}
-          firstSectionRef={"firstSectionRef" in ve ? ve.firstSectionRef : null}
-          viewExtendedNotes={this.props.viewExtendedNotes}
-          getLicenseMap={this.props.getLicenseMap} />
+          {
+              translationVersions.map((ve) => (
+                  <VersionBlock
+                  rendermode="about-box"
+                  sidebarDisplay = {true}
+                  version={ve}
+                  currObjectVersions={this.props.currObjectVersions}
+                  currentRef={this.props.srefs[0]}
+                  firstSectionRef={"firstSectionRef" in ve ? ve.firstSectionRef : null}
+                  viewExtendedNotes={this.props.viewExtendedNotes}
+                  getLicenseMap={this.props.getLicenseMap} />
+              ))
+          }
       </div> : null );
     const alternateSectionHe =
       (!!this.state.versionLangMap ?
           <div className="alternateVersionsSection">
             <h2 className="aboutHeader">
-              <InterfaceText text={{en: "Alternate Hebrew Versions", he:"מהדורות נוספות"}} />
+              <InterfaceText text={alternateVersionsSectionTitle} />
             </h2>
             <VersionsBlocksList key={`versions-${Object.values(this.props.currObjectVersions).map(({versionTitle}) => versionTitle).join("|")}`}
               versionsByLanguages={this.state.versionLangMap}

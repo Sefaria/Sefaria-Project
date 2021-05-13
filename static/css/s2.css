@@ -7318,6 +7318,11 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   border-top: none;
   padding-top: 10px;
 }
+.aboutBox .currVersionSection .versionBlock + .versionBlock {
+    border-top: solid 1px #CCC;
+    padding-top: 20px;
+    margin-top: 20px;
+}
 .version-with-buy-button {
   display: flex;
   flex-direction: column;
