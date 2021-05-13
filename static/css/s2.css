@@ -7244,7 +7244,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   background-color: white;
   box-sizing: border-box;
   padding: 0;
-  max-height: 300px;
+  max-height: 250px;
   overflow-x: hidden;
   overflow-y: scroll;
   border-bottom-left-radius: 7px;
