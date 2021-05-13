@@ -461,7 +461,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <InterfaceText>Home</InterfaceText>
       </a>
       <a href="/texts" onClick={close}>
-        <img src="/static/img/book-icon-black.svg" />
+        <img src="/static/icons/book.svg" />
         <InterfaceText>Texts</InterfaceText>
       </a>
       <a href="/topics" onClick={close}>
@@ -473,7 +473,7 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
         <InterfaceText>Study Schedules</InterfaceText>
       </a>
       <a href="/collections" onClick={close}>
-        <img src="/static/icons/collection.svg" />
+        <img src="/static/icons/collection.svg" className="blackIcon"/>
         <InterfaceText>Collections</InterfaceText>
       </a>
 

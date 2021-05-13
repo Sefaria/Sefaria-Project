@@ -96,13 +96,13 @@ const Resources = () => (
   <Module>
     <ModuleTitle>Resources</ModuleTitle>
     <div className="linkList">
-      <IconLink text="Study Schedules" url="/calendars" icon="calendar.svg" />
+      <IconLink text="Study Schedules" url="/calendars" icon="calendar-black.svg" />
       <IconLink text="Sheets" url="/sheets" icon="sheet.svg" />
       <IconLink text="Collections" url="/collections" icon="collection.svg" />
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
       <IconLink text="Visualizations" url="/visualizations" icon="visualizations.svg" />
       <IconLink text="Torah Tab" url="/torah-tab" icon="torah-tab.svg" />
-      <IconLink text="Help" url="/help" icon="help.svg" />
+      <IconLink text="Help" url="/help" icon="help-black.svg" />
     </div>
   </Module>
 );
@@ -436,7 +436,7 @@ const JoinTheConversation = ({wide}) => {
       </div>
       <div>
         <a className="button small" href="/sheets/new">
-          <img src="/static/icons/new-sheet.svg" alt="make a sheet icon" />
+          <img src="/static/icons/new-sheet-black.svg" alt="make a sheet icon" />
           <InterfaceText>Make a Sheet</InterfaceText>
         </a>
       </div>

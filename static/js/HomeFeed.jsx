@@ -234,8 +234,13 @@ const RecenltyPublished = ({multiPanel}) => {
 
   const recentSheetsContent = !recentSheets ? [<LoadingMessage />] :
                                 recentSheets.map(s => <FeaturedSheet sheet={s} />);
+  const joinTheConversation = (
+    <div className="navBlock">
+      <Modules type={"JoinTheConversation"} props={{wide:multiPanel}} />
+    </div>
+  );
   if (recentSheets) {
-    recentSheetsContent.splice(2, 0, <Modules type={"JoinTheConversation"} props={{wide:multiPanel}} />);
+    recentSheetsContent.splice(2, 0, joinTheConversation);
     recentSheetsContent.push(
       <a className="button small white" onClick={loadMore}>
         <InterfaceText>Load More</InterfaceText>
