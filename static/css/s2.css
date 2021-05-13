@@ -8944,7 +8944,7 @@ body .homeFeedWrapper .content {
 .sideColumn .feedbackBoxOverlay.open .feedbackBox {
   width: 470px;
 }
-.mainColumn {
+.readerNavMenu .content .contentInner.mainColumn {
   margin: 0 45px 0 30px;
 }
 .homeFeedWrapper .mainColumn {
