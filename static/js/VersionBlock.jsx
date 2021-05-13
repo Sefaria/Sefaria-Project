@@ -261,7 +261,7 @@ class VersionBlock extends Component {
     }
     else {
       return (
-        <div className = "versionBlock">
+        <div className="versionBlock">
             <div className="versionTitle">
               <a className={vtitle["className"]} href={this.makeVersionLink('side')} onClick={this.onVersionTitleClick}>
                 {vtitle["text"]}
@@ -359,6 +359,13 @@ VersionBlock.defaultProps = {
 };
 
 class VersionsBlocksList extends Component{
+  constructor(props) {
+    super(props);
+    this.state = {
+      sortedLanguages: this.sortVersionsByActiveLang(this.props.sortPrioritizeLanugage),
+      currentKeys: this.getCurrentVersionsKeys(this.props.currObjectVersions),
+    }
+  }
   sortVersionsByActiveLang(prioritize=null){
     //sorts the languages of the available versions
     const standard_langs = ["en", "he"];
@@ -376,6 +383,18 @@ class VersionsBlocksList extends Component{
       }
     );
   }
+  componentDidMount() {
+    this.setState({currentKeys : this.getCurrentVersionsKeys(this.props.currObjectVersions)});
+  }
+  isVersionCurrent(version){
+    let {actualLanguage, versionTitle} = version;
+    return this.state.currentKeys.includes(`${actualLanguage}|${versionTitle}`);
+  }
+  getCurrentVersionsKeys(currentVersions){
+    let currs = Object.values(currentVersions).map(({actualLanguage, versionTitle}) => `${actualLanguage}|${versionTitle}`);
+    console.log(currs);
+    return currs
+  }
   render(){
       if (!this.props.versionsByLanguages) {
         return (
@@ -384,7 +403,7 @@ class VersionsBlocksList extends Component{
           </div>
         );
       }
-      const sortedLanguages = this.sortVersionsByActiveLang(this.props.sortPrioritizeLanugage)
+      //const sortedLanguages = this.sortVersionsByActiveLang(this.props.sortPrioritizeLanugage)
       const currVersions = {};
       for (let [vlang, version] of Object.entries(this.props.currObjectVersions)) {
         currVersions[vlang] = !!version ? version.versionTitle : null;
@@ -392,7 +411,7 @@ class VersionsBlocksList extends Component{
       return (
         <div className="versionsBox">
           {
-            sortedLanguages.map((lang) => (
+            this.state.sortedLanguages.map((lang) => (
               <div key={lang}>
                 { this.props.showLanguageHeaders ?
                   <div className="versionLanguage">
@@ -411,11 +430,11 @@ class VersionsBlocksList extends Component{
                       currentRef={this.props.currentRef}
                       firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
                       getLicenseMap={this.props.getLicenseMap}
-                      key={v.versionTitle + lang}
+                      key={`${this.isVersionCurrent(v) ? "current" : ""}|${v.versionTitle}|${v.actualLanguage}`}
                       openVersionInReader={this.props.openVersionInReader}
                       openVersionInSidebar={this.props.openVersionInSidebar}
                       viewExtendedNotes={this.props.viewExtendedNotes}
-                      isCurrent={this.props.activeLanguages.includes(v.actualLanguage) && Object.values(currVersions).includes(v.versionTitle)}
+                      isCurrent={this.isVersionCurrent(v)}
                     />
                   ))
                 }

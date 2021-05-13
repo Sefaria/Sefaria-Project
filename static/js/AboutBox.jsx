@@ -197,7 +197,7 @@ class AboutBox extends Component {
             <h2 className="aboutHeader">
               <InterfaceText text={{en: "Alternate Hebrew Versions", he:"מהדורות נוספות"}} />
             </h2>
-            <VersionsBlocksList
+            <VersionsBlocksList key={`versions-${Object.values(this.props.currObjectVersions).map(({versionTitle}) => versionTitle).join("|")}`}
               versionsByLanguages={this.state.versionLangMap}
               activeLanguages={Object.keys(this.state.currentVersionsByActualLangs)}
               mainVersionLanguage={this.props.mainVersionLanguage}
