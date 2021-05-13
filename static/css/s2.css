@@ -6196,7 +6196,6 @@ a .button:hover {
 
 .publishBox h3 {
   font-size: 22px;
-  font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
   font-weight: 500;
   color: #666;
   margin-top: 12px;
@@ -6224,7 +6223,6 @@ a .button:hover {
   height: 100%;
   resize: none;
   box-sizing: border-box;
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
   color: #000;
   border: none;
@@ -6234,10 +6232,10 @@ a .button:hover {
   padding: 10px;
 }
 .publishBox textarea::placeholder {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
   color: #666;
   font-style: normal;
+  font-family: var(--english-sans-serif-font-family);
 }
 
 
@@ -6248,7 +6246,6 @@ a .button:hover {
   background-color: #fff;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
   /* shared font styles */
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
   line-height: 1.2;
   color: #666;
@@ -6289,9 +6286,9 @@ a .button:hover {
 }
 
 .publishBox .react-tags__search-input::placeholder {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
   font-size: 18px;
   font-style: normal;
+  font-family: var(--english-sans-serif-font-family);
 }
 
 body.interface-hebrew .publishBox .react-tags__search-input::placeholder,
