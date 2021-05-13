@@ -362,6 +362,7 @@ class VersionsBlocksList extends Component{
   constructor(props) {
     super(props);
     this.state = {
+      //We only want this calculated when component is created, so it doesnt cause a massive re-render/reshuffle in order every time a version is selected
       sortedLanguages: this.sortVersionsByActiveLang(this.props.sortPrioritizeLanugage),
       currentKeys: this.getCurrentVersionsKeys(this.props.currObjectVersions),
     }
@@ -387,10 +388,12 @@ class VersionsBlocksList extends Component{
     this.setState({currentKeys : this.getCurrentVersionsKeys(this.props.currObjectVersions)});
   }
   isVersionCurrent(version){
+    //make versions string key and check if that key is in the current keys array (hashing for morons)
     let {actualLanguage, versionTitle} = version;
     return this.state.currentKeys.includes(`${actualLanguage}|${versionTitle}`);
   }
   getCurrentVersionsKeys(currentVersions){
+    //make an array of strings that are keys of the current versions
     let currs = Object.values(currentVersions).map(({actualLanguage, versionTitle}) => `${actualLanguage}|${versionTitle}`);
     return currs
   }
