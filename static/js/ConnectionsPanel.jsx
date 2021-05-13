@@ -566,12 +566,14 @@ class ConnectionsPanel extends Component {
       content = (<AboutBox
                   currObjectVersions={this.state.currObjectVersions}
                   mainVersionLanguage={this.state.mainVersionLanguage}
+                  setConnectionsMode={this.props.setConnectionsMode}
+                  mode={this.props.mode}
+                  setFilter={this.props.setVersionFilter}
                   title={this.props.title}
                   srefs={this.props.srefs}
                   sectionRef={this.state.sectionRef}
                   getLicenseMap={this.props.getLicenseMap}
-                  selectVersion={this.props.selectVersion}
-                  openVersionInSidebar={this.openVersionInSidebar}
+                  openVersionInReader={this.props.selectVersion}
                   viewExtendedNotes={this.props.viewExtendedNotes}/>);
 
     } else if (this.props.mode === "Translations" || this.props.mode === "Translation Open") {
@@ -580,7 +582,6 @@ class ConnectionsPanel extends Component {
                   mainVersionLanguage={this.state.mainVersionLanguage}
                   setConnectionsMode={this.props.setConnectionsMode}
                   mode={this.props.mode}
-                  selectVersion={this.props.selectVersion}
                   setFilter={this.props.setVersionFilter}
                   vFilter={this.props.versionFilter}
                   recentVFilters={this.props.recentVersionFilters}
@@ -588,7 +589,7 @@ class ConnectionsPanel extends Component {
                   srefs={this.props.srefs}
                   sectionRef={this.state.sectionRef}
                   onRangeClick={this.props.onTextClick}
-                  openVersionInSidebar={this.openVersionInSidebar}
+                  openVersionInReader={this.props.selectVersion}
                   viewExtendedNotes={this.props.viewExtendedNotes}
                   onCitationClick={this.props.onCitationClick} />);
 

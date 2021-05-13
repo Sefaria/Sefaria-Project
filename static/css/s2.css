@@ -2429,7 +2429,7 @@ a.readerNavCategory {
 .versionBlock .versionSelect{
   margin: 10px 0;
 }
-.readerTextTableOfContents .versionBlock .versionSelect, .aboutBox .versionBlock .versionSelect{
+.readerTextTableOfContents .versionBlock .versionSelect, .aboutBox .currVersionSection .versionSelect{
   display: none;
 }
 .versionBlock a {
@@ -7311,7 +7311,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .versionsBox a {
   color: #999;
 }
-.aboutBox .currVersionSection {
+.aboutBox .currVersionSection, .aboutBox .alternateVersionsSection {
   padding-bottom: 30px;
 }
 .aboutBox .versionsBox .versionBlock:first-child{

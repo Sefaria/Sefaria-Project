@@ -193,7 +193,7 @@ class AboutBox extends Component {
       </div> : null );
     const alternateSectionHe =
       (!!this.state.versionLangMap ?
-          <div className="currVersionSection">
+          <div className="alternateVersionsSection">
             <h2 className="aboutHeader">
               <InterfaceText text={{en: "Alternate Hebrew Versions", he:"מהדורות נוספות"}} />
             </h2>
@@ -205,8 +205,7 @@ class AboutBox extends Component {
               showLanguageHeaders={false}
               currentRef={this.props.srefs[0]}
               getLicenseMap={this.props.getLicenseMap}
-              openVersionInReader={this.props.selectVersion}
-              openVersionInSidebar={this.openVersionInSidebar}
+              openVersionInReader={this.props.openVersionInReader}
               viewExtendedNotes={this.props.viewExtendedNotes}
             />
       </div> : null );
