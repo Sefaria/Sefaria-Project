@@ -32,8 +32,9 @@ const Help = () => (
 const ProfilePicMenu = ({len, url, name}) => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
-  let firstLang = "";
-  let secondLang = "";
+  let enClass = "";
+  let heClass = "";
+  let menuWidth = 150;
 
   const handleClick = (e) => {
     e.preventDefault();
@@ -69,12 +70,15 @@ const ProfilePicMenu = ({len, url, name}) => {
     return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
   }
   if (Sefaria.interfaceLang == "english") {
-    firstLang = <a className="firstLink" href={`/interface/english?next=${getCurrentPage()}`}>English</a>;
-    secondLang = <a className="secondLink" href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>;
+    enClass = "firstLink";
+    heClass = "secondLink";
   }
   else {
-    secondLang = <a className="secondLink" href={`/interface/english?next=${getCurrentPage()}`}>English</a>;
-    firstLang = <a className="firstLink" href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>;
+    enClass = "secondLink";
+    heClass = "firstLink";
+  }
+  if (name.length >= 12) {
+    menuWidth += 4*(name.length - 12);
   }
   return (
     <div ref={wrapperRef}>
@@ -82,7 +86,7 @@ const ProfilePicMenu = ({len, url, name}) => {
           <ProfilePic len={len} url={url} name={name}/>
         </a>
         <div className="interfaceLinks">
-          <div className={`interfaceLinks-menu profile-menu ${ isOpen ? "open" : "closed"}`} onClick={resetOpen}>
+          <div className={`interfaceLinks-menu profile-menu ${ isOpen ? "open" : "closed"}`} onClick={resetOpen} style={{width: menuWidth}}>
             <div className="interfaceLinks-header profile-menu">{name}</div>
             <div><a className="interfaceLinks-row top" href="/my/profile">
               <span className="int-en">Profile</span>
@@ -92,10 +96,9 @@ const ProfilePicMenu = ({len, url, name}) => {
               <span className="int-en">Account Settings</span>
               <span className="int-he">הגדרות</span>
             </a></div>
-            <div className="interfaceLinks-row">
-              {firstLang}
-              <span className="dot">•</span>
-              {secondLang}
+            <div className="interfaceLinks-row languages">
+              <a className={`${heClass}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
+              <a className={`${enClass}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
             </div>
             <div><a className="interfaceLinks-row bottom" href="/collections/sefaria-faqs">
               <span className="int-en">Help</span>
