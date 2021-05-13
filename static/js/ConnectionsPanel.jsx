@@ -564,6 +564,7 @@ class ConnectionsPanel extends Component {
 
     } else if (this.props.mode === "About") {
       content = (<AboutBox
+                  key={`About-${Object.values(this.state.currObjectVersions).map(({versionTitle}) => versionTitle).join("|")}`}
                   currObjectVersions={this.state.currObjectVersions}
                   mainVersionLanguage={this.state.mainVersionLanguage}
                   setConnectionsMode={this.props.setConnectionsMode}
@@ -578,6 +579,7 @@ class ConnectionsPanel extends Component {
 
     } else if (this.props.mode === "Translations" || this.props.mode === "Translation Open") {
       content = (<TranslationsBox
+                  key={`Translations`}
                   currObjectVersions={this.state.currObjectVersions}
                   mainVersionLanguage={this.state.mainVersionLanguage}
                   setConnectionsMode={this.props.setConnectionsMode}
