@@ -384,6 +384,7 @@ const Strings = {
     "Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at": "אנחנו מעריכים מאוד את המשוב שלך. כעת באפשרותך לחזור לערוך את הדפים שלך באמצעות עורך המסמכים הישן. לשאלות או למשוב נוסף אפשר לפנות אלינו בדוא\"ל:",
 
     //TextTableofContents
+    "Contents": "תוכן",
     "Download": "הורדה",
     "Download Text": "הורדת הטקסט",
     "Table of Contents": "תוכן העניינים",

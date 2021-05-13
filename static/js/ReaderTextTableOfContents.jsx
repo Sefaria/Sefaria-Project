@@ -470,28 +470,37 @@ class TextTableOfContentsNavigation extends Component {
     this.setState({tab: tab});
   }
   render() {
-    let options = [{
-      name: "default",
-      text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
-      heText: "sectionNames" in this.props.schema ? Sefaria.hebrewTerm(this.props.schema.sectionNames[0]) : "תוכן",
-      onPress: this.setTab.bind(null, "default")
-    }];
-    if (this.props.alts) {
-      for (var alt in this.props.alts) {
-        if (this.props.alts.hasOwnProperty(alt)) {
-          options.push({
-            name: alt,
-            text: alt,
-            heText: Sefaria.hebrewTerm(alt),
-            onPress: this.setTab.bind(null, alt)
-          });
+    let options;
+    const isTorah =["Genesis", "Exodus", "Leviticus", "Numbers", "Deuteronomy"].indexOf(this.props.title) > -1;
+    if (isTorah) {
+      // Special case for Torah -- show both chapters and parshiot on one tab
+      options = [{
+        name: "default",
+        text: "Contents",
+        onPress: this.setTab.bind(null, "default")
+      }];
+    } else {
+      options = [{
+        name: "default",
+        text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
+        onPress: this.setTab.bind(null, "default")
+      }];
+      if (this.props.alts) {
+        for (var alt in this.props.alts) {
+          if (this.props.alts.hasOwnProperty(alt)) {
+            options.push({
+              name: alt,
+              text: alt,
+              onPress: this.setTab.bind(null, alt)
+            });
+          }
         }
       }
+      options = options.sort(function(a, b) {
+        return a.name == this.props.defaultStruct ? -1 :
+                b.name == this.props.defaultStruct ? 1 : 0;
+      }.bind(this));
     }
-    options = options.sort(function(a, b) {
-      return a.name == this.props.defaultStruct ? -1 :
-              b.name == this.props.defaultStruct ? 1 : 0;
-    }.bind(this));
 
     if (this.props.commentatorList.length) {
       options.push({
@@ -502,35 +511,59 @@ class TextTableOfContentsNavigation extends Component {
       });
     }
 
-    var toggle = (this.props.isDictionary ? null :
+    const toggle = (this.props.isDictionary ? null :
                   <TabbedToggleSet
                     options={options}
                     active={this.state.tab}
                     narrowPanel={this.props.narrowPanel} />);
-
+    
+    let content;
     switch(this.state.tab) {
       case "default":
-        var content = <SchemaNode
-                          schema={this.props.schema}
-                          addressTypes={this.props.schema.addressTypes}
-                          refPath={this.props.title}
-                          topLevel={true}
-                          key="default"/>;
+        if (isTorah) {
+          content = (
+            <>
+              <div className="torahNavSectionHeader">
+                <ContentText text={{en: "Chapters", he: Sefaria._("Chapters")}}/>
+              </div>
+              <SchemaNode
+                schema={this.props.schema}
+                addressTypes={this.props.schema.addressTypes}
+                refPath={this.props.title}
+                topLevel={true} />
+
+              <div className="torahNavSectionHeader">
+                <ContentText text={{en: "Torah Portions", he: Sefaria._("Torah Portions")}}/>
+              </div>
+              <div className="torahNavParshiot">
+                <SchemaNode
+                  schema={this.props.alts["Parasha"]}
+                  addressTypes={this.props.schema.addressTypes}
+                  refPath={this.props.title} />
+              </div>
+            </>
+          );
+        } else {
+          content = <SchemaNode
+                      schema={this.props.schema}
+                      addressTypes={this.props.schema.addressTypes}
+                      refPath={this.props.title}
+                      topLevel={true} />;
+        }
         break;
       case "commentary":
-        var content = <CommentatorList
-                        commentatorList={this.props.commentatorList}
-                        title={this.props.title} />;
+        content = <CommentatorList
+                    commentatorList={this.props.commentatorList}
+                    title={this.props.title} />;
 
 
         break;
       default:
-        var content = <SchemaNode
-                          schema={this.props.alts[this.state.tab]}
-                          addressTypes={this.props.schema.addressTypes}
-                          refPath={this.props.title}
-                          topLevel={true}
-                          key="alt_struct"/>;
+        content = <SchemaNode
+                    schema={this.props.alts[this.state.tab]}
+                    addressTypes={this.props.schema.addressTypes}
+                    refPath={this.props.title}
+                    topLevel={true} />;
         break;
     }
 
@@ -567,7 +600,7 @@ class TabbedToggleSet extends Component {
       return (
         <div className="altStructToggleBox" key={i}>
           <a className={classes} onClick={handleClick} href={url}>
-              <InterfaceText text={{en:option.text, he:option.heText}} />
+              <InterfaceText>{option.text}</InterfaceText>
           </a>
         </div>
       );

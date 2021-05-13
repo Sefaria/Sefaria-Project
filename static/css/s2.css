@@ -2306,7 +2306,7 @@ a.navBlockTitle:hover {
 }
 .readerTextTableOfContents .categoryAttribution,
 .readerTextTableOfContents .dedication {
-  margin: 28px 0;
+  margin: 25px 0 10px;
   text-align: center;
   font-size: 18px;
   font-style: italic;
@@ -2584,7 +2584,7 @@ a.navBlockTitle:hover {
   direction: ltr;
 }
 .readerTextTableOfContents .content .structToggles {
-  margin-bottom: 40px;
+  margin-bottom: 25px;
   display: table;
   table-layout: fixed;
   width: 100%;
@@ -2655,6 +2655,8 @@ a.navBlockTitle:hover {
   margin: 0 auto 22px;
   display: block;
   width: 100%;
+}.readerTextTableOfContents .tocContent > .tocLevel {
+  margin-bottom: 30px;
 }
 .readerTextTableOfContents .tocContent > .tocLevel > .schema-node-toc > .schema-node-title {
   font-size: 24px;
@@ -2713,6 +2715,10 @@ a.navBlockTitle:hover {
 }
 .readerTextTableOfContents .content .schema-node-toc.linked:hover .schema-node-title {
   text-decoration: underline;
+}
+.readerTextTableOfContents .torahNavSectionHeader {
+  font-size: 24px;
+  margin-bottom: 10px;
 }
 .readerTextTableOfContents .altStruct .refLink {
   width: 49%;
