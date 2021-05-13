@@ -394,7 +394,13 @@ class VersionsBlocksList extends Component{
           {
             sortedLanguages.map((lang) => (
               <div key={lang}>
-                <div className="versionLanguage">{Sefaria._(Sefaria.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${this.props.versionsByLanguages[lang].length})`}</span></div>
+                { this.props.showLanguageHeaders ?
+                  <div className="versionLanguage">
+                    {Sefaria._(Sefaria.translateISOLanguageCode(lang))}<span className="enInHe connectionsCount">{` (${this.props.versionsByLanguages[lang].length})`}</span>
+                  </div>
+                    :
+                    null
+                }
                 {
                   this.props.versionsByLanguages[lang].map((v) => (
                     <VersionBlock
@@ -432,9 +438,11 @@ VersionsBlocksList.propTypes={
   openVersionInReader: PropTypes.func,
   openVersionInSidebar: PropTypes.func,
   viewExtendedNotes: PropTypes.func,
+  showLanguageHeaders: PropTypes.bool,
 };
 VersionsBlocksList.defaultProps = {
   displayCurrentVersions: true,
+  showLanguageHeaders: true,
 };
 
 

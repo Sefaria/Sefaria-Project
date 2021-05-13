@@ -7314,6 +7314,10 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .aboutBox .currVersionSection {
   padding-bottom: 30px;
 }
+.aboutBox .versionsBox .versionBlock:first-child{
+  border-top: none;
+  padding-top: 10px;
+}
 .version-with-buy-button {
   display: flex;
   flex-direction: column;

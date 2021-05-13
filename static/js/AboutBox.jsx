@@ -202,6 +202,7 @@ class AboutBox extends Component {
               activeLanguages={Object.keys(this.state.currentVersionsByActualLangs)}
               mainVersionLanguage={this.props.mainVersionLanguage}
               currObjectVersions={this.props.currObjectVersions}
+              showLanguageHeaders={false}
               currentRef={this.props.srefs[0]}
               getLicenseMap={this.props.getLicenseMap}
               openVersionInReader={this.props.selectVersion}
