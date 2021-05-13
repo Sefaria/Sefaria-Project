@@ -462,58 +462,15 @@ class TextTableOfContentsNavigation extends Component {
   // and tabs for alternate structures and commentary.
   constructor(props) {
     super(props);
-    this.shrinkWrap = this.shrinkWrap.bind(this);
     this.state = {
       tab: props.defaultStruct
     };
   }
-  componentDidMount() {
-    this.shrinkWrap();
-    window.addEventListener('resize', this.shrinkWrap);
-  }
-  componentWillUnmount() {
-    window.removeEventListener('resize', this.shrinkWrap);
-  }
-  componentDidUpdate(prevProps, prevState) {
-    if (prevState.tab != this.state.tab &&
-        this.state.tab !== "commentary") {
-      this.shrinkWrap();
-    }
-  }
   setTab(tab) {
     this.setState({tab: tab});
   }
-  shrinkWrap() {
-    // Shrink the width of the container of a grid of inline-line block elements,
-    // so that is is tight around its contents thus able to appear centered.
-    // As far as I can tell, there's no way to do this in pure CSS.
-    // TODO - flexbox should be able to solve this
-    var shrink  = function(i, container) {
-      var $container = $(container);
-      // don't run on complex nodes without sectionlinks
-      if ($container.hasClass("schema-node-toc") && !$container.find(".sectionLink").length) { return; }
-      var maxWidth   = $container.parent().innerWidth();
-      var itemWidth  = $container.find(".sectionLink").outerWidth(true);
-      var nItems     = $container.find(".sectionLink").length;
-
-      if (maxWidth / itemWidth > nItems) {
-        var width = nItems * itemWidth;
-      } else {
-        var width = Math.floor(maxWidth / itemWidth) * itemWidth;
-      }
-      $container.width(width + "px");
-    };
-    var $root = $(ReactDOM.findDOMNode(this));
-    if ($root.find(".tocSection").length) {             // nested simple text
-      //$root.find(".tocSection").each(shrink); // Don't bother with these for now
-    } else if ($root.find(".schema-node-toc").length) { // complex text or alt struct
-      // $root.find(".schema-node-toc, .schema-node-contents").each(shrink);
-    } else {
-      $root.find(".tocLevel").each(shrink);             // Simple text, no nesting
-    }
-  }
   render() {
-    var options = [{
+    let options = [{
       name: "default",
       text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
       heText: "sectionNames" in this.props.schema ? Sefaria.hebrewTerm(this.props.schema.sectionNames[0]) : "תוכן",
@@ -545,7 +502,7 @@ class TextTableOfContentsNavigation extends Component {
       });
     }
 
-    var toggle = (this.props.isDictionary ? "" :
+    var toggle = (this.props.isDictionary ? null :
                   <TabbedToggleSet
                     options={options}
                     active={this.state.tab}
@@ -557,6 +514,7 @@ class TextTableOfContentsNavigation extends Component {
                           schema={this.props.schema}
                           addressTypes={this.props.schema.addressTypes}
                           refPath={this.props.title}
+                          topLevel={true}
                           key="default"/>;
         break;
       case "commentary":
@@ -571,6 +529,7 @@ class TextTableOfContentsNavigation extends Component {
                           schema={this.props.alts[this.state.tab]}
                           addressTypes={this.props.schema.addressTypes}
                           refPath={this.props.title}
+                          topLevel={true}
                           key="alt_struct"/>;
         break;
     }
@@ -642,8 +601,8 @@ class SchemaNode extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      // Collapse everything except default nodes to start.
-      collapsed: "nodes" in props.schema ? props.schema.nodes.map(function(node) { return !(node.default || node.includeSections) }) : []
+      // Collapse nodes below top level, and those that aren't default or makred includedSections
+      collapsed: "nodes" in props.schema ? props.schema.nodes.map(node => !(props.topLevel || node.default || node.includeSections)) : []
     };
   }
   toggleCollapse(i) {

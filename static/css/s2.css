@@ -2656,7 +2656,7 @@ a.navBlockTitle:hover {
   display: block;
   width: 100%;
 }
-.readerTextTableOfContents .content .schema-node-toc > .schema-node-title {
+.readerTextTableOfContents .tocContent > .tocLevel > .schema-node-toc > .schema-node-title {
   font-size: 24px;
 }
 .readerTextTableOfContents .content .schema-node-title {
@@ -2665,9 +2665,6 @@ a.navBlockTitle:hover {
   display: inline-block;
   margin-bottom: 10px;
   cursor: pointer;
-}
-.readerTextTableOfContents .content .schema-node-title .he {
-  font-family: "Heebo", sans-serif;
 }
 .readerTextTableOfContents .content .schema-node-toc {
   display: block;
@@ -4118,7 +4115,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .interface-english .readerPanel.hebrew .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
-.interface-english .readerPanel.hebrew .tocContent{
+.interface-english .readerPanel.hebrew .structToggles,
+.interface-english .readerPanel.hebrew .tocContent {
   direction: rtl;
 }
 .basetext .text, .sheetContent .text {
