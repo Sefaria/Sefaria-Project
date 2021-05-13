@@ -169,6 +169,7 @@ class AboutBox extends Component {
             <InterfaceText text={sourceVersionSectionTitle} />
         </h2>
         <VersionBlock
+          key={`${sourceVersion.versionTitle}|${sourceVersion.actualLanguage}`}
           rendermode="about-box"
           sidebarDisplay = {true}
           version={sourceVersion}
@@ -187,6 +188,7 @@ class AboutBox extends Component {
           {
               translationVersions.map((ve) => (
                   <VersionBlock
+                  key={`${ve.versionTitle}|${ve.actualLanguage}`}
                   rendermode="about-box"
                   sidebarDisplay = {true}
                   version={ve}
