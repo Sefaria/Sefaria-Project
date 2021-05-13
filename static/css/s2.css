@@ -8967,7 +8967,7 @@ body .homeFeedWrapper .content {
   min-height: 500px;
 }
 .storyByLine:hover .smallFollowButton,
-.authorName:hover .smallFollowButton {
+.authorByLine:hover .smallFollowButton {
   display: inline-block;
 }
 .bilingual .homeFeedWrapper span.he,
