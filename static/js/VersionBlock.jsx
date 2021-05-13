@@ -395,7 +395,7 @@ class VersionsBlocksList extends Component{
   }
   getCurrentVersionsKeys(currentVersions){
     //make an array of strings that are keys of the current versions
-    let currs = Object.values(currentVersions).map(({actualLanguage, versionTitle}) => `${actualLanguage}|${versionTitle}`);
+    let currs = Object.values(currentVersions).map((v) => !!v ? `${v.actualLanguage}|${v.versionTitle}` : "");
     return currs
   }
   render(){

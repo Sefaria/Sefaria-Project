@@ -205,7 +205,7 @@ class AboutBox extends Component {
             <h2 className="aboutHeader">
               <InterfaceText text={alternateVersionsSectionTitle} />
             </h2>
-            <VersionsBlocksList key={`versions-${Object.values(this.props.currObjectVersions).map(({versionTitle}) => versionTitle).join("|")}`}
+            <VersionsBlocksList key={`versions-${Object.values(this.props.currObjectVersions).map((v) => v?.versionTitle ?? "").join("|")}`}
               versionsByLanguages={this.state.versionLangMap}
               mainVersionLanguage={this.props.mainVersionLanguage}
               currObjectVersions={this.props.currObjectVersions}
