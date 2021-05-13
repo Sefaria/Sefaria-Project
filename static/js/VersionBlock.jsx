@@ -137,9 +137,9 @@ class VersionBlock extends Component {
       return "#"; // there's no url for a merged version
     }
     const withParam = versionParam === 'side' ? "&with=Translation Open" : "";
-    const nonSelectedVersionParams = Object.keys(this.props.currVersions)
-                                      .filter(vlang=>!!this.props.currVersions[vlang] && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
-                                      .map(vlang=>`&v${vlang}=${this.props.currVersions[vlang].replace(/\s/g,'_')}`)
+    const nonSelectedVersionParams = Object.keys(this.props.currObjectVersions)
+                                      .filter(vlang=>!!this.props.currObjectVersions[vlang] && (versionParam === 'side' || vlang !== this.props.version.language))  // in 'side' case, keep all version params
+                                      .map(vlang=>`&v${vlang}=${this.props.currObjectVersions[vlang].versionTitle.replace(/\s/g,'_')}`)
                                       .join("");
     const versionLink = nonSelectedVersionParams == "" ? null : `/${Sefaria.normRef(this.props.currentRef)}${nonSelectedVersionParams}&v${versionParam}=${this.props.version.versionTitle.replace(/\s/g,'_')}${withParam}`.replace("&","?");
     return versionLink;
@@ -336,21 +336,21 @@ class VersionBlock extends Component {
   }
 }
 VersionBlock.propTypes = {
-  title:           PropTypes.string,
-  version:         PropTypes.object.isRequired,
-  currVersions:    PropTypes.object.isRequired,
-  currentRef:      PropTypes.string,
-  firstSectionRef: PropTypes.string,
-  showHistory:     PropTypes.bool,
-  showNotes:       PropTypes.bool,
-  openVersionInSidebar: PropTypes.func,
-  openVersionInReader: PropTypes.func,
-  getLicenseMap:   PropTypes.func.isRequired,
-  isCurrent:       PropTypes.bool,
-  openVersion:     PropTypes.func,
-  viewExtendedNotes: PropTypes.func,
-  sidebarDisplay: PropTypes.bool,
-  rendermode:     PropTypes.string,
+  title:                  PropTypes.string,
+  version:                PropTypes.object.isRequired,
+  currObjectVersions:     PropTypes.object.isRequired,
+  currentRef:             PropTypes.string,
+  firstSectionRef:        PropTypes.string,
+  showHistory:            PropTypes.bool,
+  showNotes:              PropTypes.bool,
+  openVersionInSidebar:   PropTypes.func,
+  openVersionInReader:    PropTypes.func,
+  getLicenseMap:          PropTypes.func.isRequired,
+  isCurrent:              PropTypes.bool,
+  openVersion:            PropTypes.func,
+  viewExtendedNotes:      PropTypes.func,
+  sidebarDisplay:         PropTypes.bool,
+  rendermode:             PropTypes.string,
 };
 VersionBlock.defaultProps = {
   showHistory: true,
@@ -406,11 +406,6 @@ class VersionsBlocksList extends Component{
           </div>
         );
       }
-      //const sortedLanguages = this.sortVersionsByActiveLang(this.props.sortPrioritizeLanugage)
-      const currVersions = {};
-      for (let [vlang, version] of Object.entries(this.props.currObjectVersions)) {
-        currVersions[vlang] = !!version ? version.versionTitle : null;
-      }
       return (
         <div className="versionsBox">
           {
@@ -429,7 +424,7 @@ class VersionsBlocksList extends Component{
                       rendermode="versions-box"
                       sidebarDisplay={true}
                       version={v}
-                      currVersions={currVersions}
+                      currObjectVersions={this.props.currObjectVersions}
                       currentRef={this.props.currentRef}
                       firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
                       getLicenseMap={this.props.getLicenseMap}
