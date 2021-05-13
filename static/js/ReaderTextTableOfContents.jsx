@@ -30,6 +30,7 @@ class ReaderTextTableOfContents extends Component {
       versions: [],
       versionsLoaded: false,
       currentVersion: null,
+      currObjectVersions: {en: null, he: null},
       showAllVersions: false,
       indexDetails: null,
       versionsDropDownOpen: false,
@@ -60,12 +61,12 @@ class ReaderTextTableOfContents extends Component {
     Sefaria.getIndexDetails(this.props.title).then(data => this.setState({indexDetails: data}));
     if (this.isBookToc()) {
       if(!this.state.versionsLoaded){
-        Sefaria.versions(this.props.title, false, null, false).then(versions => this.setState({versions: versions, versionsLoaded: true}));
+        Sefaria.versions(this.props.title, false, null, false).then(this.onVersionsLoad);
       }
     } else if (this.isTextToc()) {
       let ref  = this.getDataRef();
       if(!this.state.versionsLoaded){
-        Sefaria.versions(ref, false, null, false).then(versions => this.setState({versions: versions, versionsLoaded: true}));
+        Sefaria.versions(ref, false, null, false).then(this.onVersionsLoad);
       }
       let data = this.getData();
       if (!data) {
@@ -75,6 +76,20 @@ class ReaderTextTableOfContents extends Component {
           () => this.forceUpdate());
       }
     }
+  }
+  onVersionsLoad(versions){
+    this.setState({versions: versions, currObjectVersions: this.makeFullCurrentVersionsObjects(versions), versionsLoaded: true})
+  }
+  makeFullCurrentVersionsObjects(versions){
+    //build full versions of current object versions
+    let currObjectVersions = {en: null, he: null};
+    for(let [lang,ver] of Object.entries(this.props.currVersions)){
+      if(!!ver){
+        let fullVer = versions.find(version => version.versionTitle == ver && version.language == lang);
+        currObjectVersions[lang] = fullVer ? fullVer : null;
+      }
+    }
+    return currObjectVersions;
   }
   getVersionsList() {
      return this.state.versions;
@@ -87,20 +102,17 @@ class ReaderTextTableOfContents extends Component {
     let currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
     if (currentLanguage == "en" && !d.text.length) {currentLanguage = "he"}
     if (currentLanguage == "he" && !d.he.length) {currentLanguage = "en"}
-
+    let currObjectVersions;
+    if(this.state.versions.length){
+      currObjectVersions = this.state.currObjectVersions;
+    }else{
+      currObjectVersions = this.makeFullCurrentVersionsObjects(d.versions);
+    }
     let currentVersion = {
-      language:               currentLanguage,
-      versionTitle:           currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
-      versionSource:          currentLanguage == "he" ? d.heVersionSource : d.versionSource,
-      versionStatus:          currentLanguage == "he" ? d.heVersionStatus : d.versionStatus,
-      license:                currentLanguage == "he" ? d.heLicense : d.license,
-      sources:                currentLanguage == "he" ? d.heSources : d.sources,
-      versionNotes:           currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
-      digitizedBySefaria:     currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
-      versionTitleInHebrew: currentLanguage == "he" ? d.heVersionTitleInHebrew : d.VersionTitleInHebrew,
-      versionNotesInHebrew: currentLanguage == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew,
-      extendedNotes:        currentLanguage == "he" ? d.heExtendedNotes : d.extendedNotes,
-      extendedNotesHebrew:  currentLanguage == "he" ? d.extendedNotesHebrew : d.heExtendedNotesHebrew,
+      ... currObjectVersions[currentLanguage],
+      ...{
+        sources: currentLanguage == "he" ? d.heSources : d.sources,
+      }
     };
     currentVersion.merged = !!(currentVersion.sources);
     return currentVersion;
@@ -168,6 +180,7 @@ class ReaderTextTableOfContents extends Component {
     } else {
       catUrl  = "/texts/" + category;
     }
+    let currObjectVersions = this.state.currObjectVersions;
 
     let currentVersionElement = null;
     let defaultVersionString = "Default Version"; // TODO. this var is currently unused. consider removing
@@ -202,7 +215,7 @@ class ReaderTextTableOfContents extends Component {
           rendermode="toc-open-version"
           title={title}
           version={cv}
-          currVersions={this.props.currVersions}
+          currObjectVersions={currObjectVersions}
           currentRef={this.props.currentRef}
           showHistory={true}
           getLicenseMap={this.props.getLicenseMap}
@@ -256,7 +269,7 @@ class ReaderTextTableOfContents extends Component {
           { this.state.versionsDropDownOpen ?
             <VersionsList
               versionsList={versions}
-              currVersions={this.props.currVersions}
+              currObjectVersions={currObjectVersions}
               openVersion={this.openVersion}
               title={this.props.title}
               currentRef={this.props.currentRef}
@@ -1008,7 +1021,7 @@ class VersionsList extends Component {
         rendermode="version-list"
         title={this.props.title}
         version={v}
-        currVersions={this.props.currVersions}
+        currObjectVersions={this.props.currObjectVersions}
         currentRef={this.props.currentRef || this.props.title}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersionInReader={this.props.openVersion}
@@ -1038,7 +1051,7 @@ class VersionsList extends Component {
   }
 }
 VersionsList.propTypes = {
-  currVersions: PropTypes.object.isRequired,
+  currObjectVersions: PropTypes.object.isRequired,
   versionsList:      PropTypes.array.isRequired,
   openVersion:       PropTypes.func.isRequired,
   title:             PropTypes.string.isRequired,
