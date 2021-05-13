@@ -171,7 +171,7 @@ class AboutBox extends Component {
           rendermode="about-box"
           sidebarDisplay = {true}
           version={vh}
-          currVersions={currVersions}
+          currObjectVersions={this.props.currObjectVersions}
           currentRef={this.props.srefs[0]}
           firstSectionRef={"firstSectionRef" in vh ? vh.firstSectionRef : null}
           getLicenseMap={this.props.getLicenseMap} />
@@ -185,7 +185,7 @@ class AboutBox extends Component {
           rendermode="about-box"
           sidebarDisplay = {true}
           version={ve}
-          currVersions={currVersions}
+          currObjectVersions={this.props.currObjectVersions}
           currentRef={this.props.srefs[0]}
           firstSectionRef={"firstSectionRef" in ve ? ve.firstSectionRef : null}
           viewExtendedNotes={this.props.viewExtendedNotes}
