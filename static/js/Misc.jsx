@@ -1828,30 +1828,23 @@ InterruptingMessage.propTypes = {
 };
 
 
-const NBox = ({ content, n }) => {
+const NBox = ({ content, n, stretch }) => {
   // Wrap a list of elements into an n-column flexbox
+  // If `stretch`, extend the final row into any remaining empty columns
   let length = content.length;
-  if (length % n) {
-      length += (n-length%n);
-  }
-  content.pad(length, "");
   let rows = [];
   for (let i=0; i<length; i+=n) {
     rows.push(content.slice(i, i+n));
   }
   return (
     <div className="gridBox">
-    {
-      rows.map((row, i) => (
-        <div className="gridBoxRow" key={i}>
-          {
-            row.pad(n, "").map((item, j) => (
-              <div className={classNames({gridBoxItem: 1, placeholder: !item})} key={`gridItem|${j}`}>{item}</div>
-            ))
-          }
-        </div>
-      ))
-    }
+      {rows.map((row, i) => (
+      <div className="gridBoxRow" key={i}>
+        {row.pad(stretch ? row.length : n, "").map((item, j) => (
+          <div className={classNames({gridBoxItem: 1, placeholder: !item})} key={`gridItem|${j}`}>{item}</div>
+        ))}
+      </div>
+      ))}
     </div>
   );
 }
@@ -1877,7 +1870,7 @@ TwoOrThreeBox.defaultProps = {
 };
 
 
-const ResponsiveNBox = ({content, initialWidth}) => {
+const ResponsiveNBox = ({content, stretch, initialWidth}) => {
 
   initialWidth = initialWidth || (window ? window.innerWidth : 1000);
   const [width, setWidth] = useState(initialWidth);
@@ -1900,7 +1893,7 @@ const ResponsiveNBox = ({content, initialWidth}) => {
 
   return (
     <div className="responsiveNBox" ref={ref}>
-      <NBox content={content} n={n}/>
+      <NBox content={content} n={n} stretch={stretch} />
     </div>
   );
 };
@@ -2192,7 +2185,7 @@ class CookiesNotification extends Component {
 }
 
 
-const HomepagePreviewControls = ({date}) => {
+const CommunityPagePreviewControls = ({date}) => {
 
   const dateStr = (date, offset) => {
     const d = new Date(date);
@@ -2209,21 +2202,21 @@ const HomepagePreviewControls = ({date}) => {
   const yesterday = dateStr(date, -1)
 
   return (
-    <div id="homepagePreviewControls">
-      <InterfaceText>You are previewing the homepage for </InterfaceText>
-      <a className="date" href={"/admin/homepage-preview?date=" + date}>
+    <div id="communityPagePreviewControls">
+      <InterfaceText>You are previewing the Community page for </InterfaceText>
+      <a className="date" href={"/admin/community-preview?date=" + date}>
         <InterfaceText>{date}</InterfaceText>
       </a>
       <div>
-        <a href={"/admin/homepage-preview?date=" + yesterday}>
+        <a href={"/admin/community-preview?date=" + yesterday}>
           <InterfaceText>{"« " + yesterday}</InterfaceText>
         </a>
-        <a href={"/admin/homepage-preview?date=" + tomorrow}>
+        <a href={"/admin/community-preview?date=" + tomorrow}>
           <InterfaceText>{tomorrow + " »"}</InterfaceText>
         </a>
       </div>
       <div>
-        <a href={"/admin/reset/homepage?next=" + date}>
+        <a href={"/admin/reset/community?next=" + date}>
           <InterfaceText>Refresh Cache</InterfaceText>
         </a>
       </div>
@@ -2308,7 +2301,7 @@ export {
   ContentText,
   EnglishText,
   HebrewText,
-  HomepagePreviewControls,
+  CommunityPagePreviewControls,
   LanguageToggleButton,
   Link,
   LoadingMessage,

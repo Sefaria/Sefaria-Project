@@ -23,6 +23,7 @@ handler404 = 'reader.views.custom_page_not_found'
 
 # App Pages
 urlpatterns = [
+    url(r'^$', reader_views.home, name="home"),
     url(r'^texts/?$', reader_views.texts_list, name="table_of_contents"),
     url(r'^texts/saved/?$', reader_views.saved),
     url(r'^texts/history/?$', reader_views.user_history),
@@ -35,6 +36,7 @@ urlpatterns = [
     url(r'^collections/new$', reader_views.edit_collection_page),
     url(r'^collections/(?P<slug>[^.]+)/settings$', reader_views.edit_collection_page),
     url(r'^collections/(?P<slug>[^.]+)$', reader_views.collection_page),
+    url(r'^community/?$', reader_views.community),
     url(r'^notifications/?$', reader_views.notifications),
     url(r'^updates/?$', reader_views.updates),
     url(r'^modtools/?$', reader_views.modtools),
@@ -376,7 +378,7 @@ urlpatterns += [
     url(r'^admin/reset/toc$', sefaria_views.rebuild_toc),
     url(r'^admin/reset/ac$', sefaria_views.rebuild_auto_completer),
     url(r'^admin/reset/api/(?P<apiurl>.+)$', sefaria_views.reset_cached_api),
-    url(r'^admin/reset/homepage$', reader_views.homepage_reset),
+    url(r'^admin/reset/community$', reader_views.community_reset),
     url(r'^admin/reset/(?P<tref>.+)$', sefaria_views.reset_ref),
     url(r'^admin/delete/orphaned-counts', sefaria_views.delete_orphaned_counts),
     url(r'^admin/rebuild/auto-links/(?P<title>.+)$', sefaria_views.rebuild_auto_links),
@@ -393,7 +395,7 @@ urlpatterns += [
     url(r'^admin/spam', sefaria_views.spam_dashboard),
     url(r'^admin/versions-csv', sefaria_views.versions_csv),
     url(r'^admin/index-sheets-by-timestamp', sefaria_views.index_sheets_by_timestamp),
-    url(r'^admin/homepage-preview', reader_views.homepage_preview),
+    url(r'^admin/community-preview', reader_views.community_preview),
     url(r'^admin/?', include(admin.site.urls)),
 ]
 

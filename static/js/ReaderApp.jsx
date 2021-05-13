@@ -21,7 +21,7 @@ import {
   SignUpModal,
   InterruptingMessage,
   CookiesNotification,
-  HomepagePreviewControls,
+  CommunityPagePreviewControls,
 } from './Misc';
 import Component from 'react-class';
 
@@ -120,7 +120,7 @@ class ReaderApp extends Component {
       currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
       recentFilters:           state.recentFilters           || state.filter || [],
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
-      menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "home", "book toc"
+      menuOpen:                state.menuOpen                || null, // "navigation", "text toc", "display", "search", "sheets", "community", "book toc"
       navigationCategories:    state.navigationCategories    || [],
       navigationTopicCategory: state.navigationTopicCategory || "",
       sheetID:                 state.sheetID                 || null,
@@ -412,11 +412,6 @@ class ReaderApp extends Component {
       if (state.menuOpen) {
         hist.menuPage = true;
         switch (state.menuOpen) {
-          case "home":
-            hist.title = Sefaria._("Sefaria: a Living Library of Jewish Texts Online");
-            hist.url   = "";
-            hist.mode  = "home";
-            break;
           case "navigation":
             var cats   = state.navigationCategories ? state.navigationCategories.join("/") : "";
             hist.title = cats ? state.navigationCategories.map(Sefaria._).join(", ") + " | " + Sefaria._(siteName) : Sefaria._("The " + siteName + " Library");
@@ -478,10 +473,10 @@ class ReaderApp extends Component {
               hist.title = Sefaria._("All Topics") + " - " + state.navigationTopicLetter + " | " + Sefaria._(siteName);
               hist.mode  = "topics";
             break;
-          case "account":
-            hist.title = Sefaria._(siteName + " Account");
-            hist.url   = "account";
-            hist.mode  = "account";
+          case "community":
+            hist.title = Sefaria._("Community") + " | " + Sefaria._(siteName); // TODO
+            hist.url   = "community";
+            hist.mode  = "community";
             break;
           case "profile":
             hist.title = `${state.profile.full_name} ${Sefaria._("on Sefaria")}`;
@@ -489,7 +484,7 @@ class ReaderApp extends Component {
             hist.mode = "profile";
             break;
           case "notifications":
-            hist.title = Sefaria._(siteName + " Notifcations");
+            hist.title = Sefaria._("Notifcations") + " | " + Sefaria._(siteName);
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
@@ -502,12 +497,12 @@ class ReaderApp extends Component {
             hist.mode  = "collection";
             break;          
           case "collectionsPublic":
-            hist.title = Sefaria._(siteName + " Collections");
+            hist.title =  + "Collections" + " | " + Sefaria._(siteName);
             hist.url = "collections";
             hist.mode = "collcetionsPublic";
             break;
           case "calendars":
-            hist.title = Sefaria._("Study Schedule") + " | " + Sefaria._(siteName);
+            hist.title = Sefaria._("Study Schedules") + " | " + Sefaria._(siteName);
             hist.url = "calendars";
             hist.mode = "calendars";
             break;
@@ -944,7 +939,7 @@ class ReaderApp extends Component {
       return false;
 
     } else if (path == "/") {
-      this.showHome();
+      this.showLibrary();
 
     } else if (path == "/texts") {
       this.showLibrary();
@@ -960,6 +955,9 @@ class ReaderApp extends Component {
 
     } else if (path == "/collections") {
       this.showCollections();
+
+    } else if (path == "/community") {
+      this.showCommunity();
 
     } else if (path == "/my/profile") {
       this.openProfile(Sefaria.slug);
@@ -1498,8 +1496,8 @@ class ReaderApp extends Component {
 
     this.setSinglePanelState({mode: "Menu", menuOpen: "search", "searchTab": "sheet", searchQuery, textSearchState, sheetSearchState });
   }
-  showHome() {
-    this.setSinglePanelState({menuOpen: "home"});
+  showCommunity() {
+    this.setSinglePanelState({menuOpen: "community"});
   }  
   showSaved() {
     this.setSinglePanelState({menuOpen: "saved"});
@@ -1835,8 +1833,8 @@ class ReaderApp extends Component {
     const sefariaModal = (
       <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
     );
-    const homepagePreviewControls = this.props.homepagePreview ? 
-      <HomepagePreviewControls date={this.props.homepagePreview} /> : null;
+    const communityPagePreviewControls = this.props.communityPreview ? 
+      <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
     var interfaceLangClass = `interface-${this.props.interfaceLang}`;
@@ -1849,7 +1847,7 @@ class ReaderApp extends Component {
           {header}
           {panels}
           {sefariaModal}
-          {homepagePreviewControls}
+          {communityPagePreviewControls}
           <CookiesNotification />
         </div>
       </div>

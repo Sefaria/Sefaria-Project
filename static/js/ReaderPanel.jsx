@@ -23,7 +23,7 @@ import NotificationsPanel  from './NotificationsPanel';
 import UserHistoryPanel  from './UserHistoryPanel';
 import UserProfile  from './UserProfile';
 import UpdatesPanel  from './UpdatesPanel';
-import HomeFeed  from './HomeFeed';
+import CommunityPage  from './CommunityPage';
 import CalendarsPage from './CalendarsPage'
 import StoryEditor  from './StoryEditor';
 import UserStats  from './UserStats';
@@ -108,7 +108,7 @@ class ReaderPanel extends Component {
     let contentLangOverride = originalLanguage;
     if (mode === "Connections" && Sefaria.interfaceLang === "hebrew") {
       contentLangOverride = "hebrew";
-    } else if (["topics", "home", "story_editor" ].includes(menuOpen)) {
+    } else if (["topics", "community", "story_editor" ].includes(menuOpen)) {
       contentLangOverride = (["english", "bilingual"].includes(Sefaria.interfaceLang)) ? "bilingual" : "hebrew";
     } else if (["text toc", "book toc"].includes(menuOpen)) {
       contentLangOverride = (Sefaria.interfaceLang === "hebrew") ? "hebrew" : ((originalLanguage === "bilingual") ? "english" : originalLanguage);
@@ -971,9 +971,9 @@ class ReaderPanel extends Component {
           initialWidth={this.state.width} />
       );
 
-    } else if (this.state.menuOpen === "home") {
+    } else if (this.state.menuOpen === "community") {
       menu = (
-        <HomeFeed
+        <CommunityPage
           multiPanel={this.props.multiPanel}
           toggleSignUpModal={this.props.toggleSignUpModal}
           initialWidth={this.state.width} />

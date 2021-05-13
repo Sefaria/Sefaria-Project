@@ -56,7 +56,7 @@ from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
-from sefaria.helper.homepage import get_homepage_items
+from sefaria.helper.community_page import get_community_page_items
 from sefaria.system.database import db
 
 if USE_VARNISH:
@@ -230,7 +230,7 @@ def base_props(request):
             "fontSize":      request.COOKIES.get("fontSize", 62.5),
         },
         "trendingTopics": trending_topics(days=7, ntags=5),
-        "homepage": get_homepage_items(language=request.interfaceLang),
+        "community": get_community_page_items(language=request.interfaceLang),
         "_siteSettings": SITE_SETTINGS,
         "_debug": DEBUG,
     })
@@ -701,8 +701,8 @@ def all_topics_page(request, letter):
         "initialNavigationTopicLetter": letter,
     }
     return render_template(request, 'base.html', props, {
-        "title": "",
-        "desc":  "",
+        "title": "", # TODO
+        "desc":  "", # TODO
     })
 
 
@@ -897,9 +897,6 @@ def menu_page(request, props=None, page="", title="", desc=""):
     })
 
 
-def mobile_home(request):
-    return menu_page(request, page="home")
-
 def _get_user_calendar_params(request):
     if request.user.is_authenticated:
         profile = UserProfile(user_obj=request.user)
@@ -908,11 +905,16 @@ def _get_user_calendar_params(request):
         custom = "ashkenazi" # this is default because this is the most complete data set
     return {"diaspora": request.diaspora, "custom": custom}
 
+
 def texts_list(request):
     title = _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
     desc  = _("Browse 1,000s of Jewish texts in the Sefaria Library by category and title.")
     return menu_page(request, page="navigation", title=title, desc=desc)
 
+    """
+    title = _("Sefaria: a Living Library of Jewish Texts Online")
+    desc  = _("The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
+    """
 
 def calendars(request):
     title = _("Study Schedules") + " | " + _(SITE_SETTINGS["LIBRARY_NAME"]["en"])
@@ -955,12 +957,6 @@ def story_editor(request):
 def user_stats(request):
     title = _("User Stats")
     return menu_page(request, page="user_stats", title=title)
-
-
-@login_required
-def account(request):
-    title = _("Sefaria Account")
-    return menu_page(request, page="account", title=title)
 
 
 @login_required
@@ -3614,34 +3610,40 @@ def account_settings(request):
 @ensure_csrf_cookie
 def home(request):
     """
-    Homepage
+    Homepage (which is the texts page)
     """
-    title = _("Sefaria: a Living Library of Jewish Texts Online")
-    desc  = _( "The largest free library of Jewish texts available to read online in Hebrew and English including Torah, Tanakh, Talmud, Mishnah, Midrash, commentaries and more.")
+    return redirect("/texts")
 
-    return menu_page(request, page="home", title=title, desc=desc)
+
+def community(request):
+    """
+    Community Page
+    """    
+    title = _("Community") # TODO
+    desc  = _("") # TODO
+    return menu_page(request, page="community", title=title, desc=desc)
 
 
 @staff_member_required
-def homepage_preview(request):
+def community_preview(request):
     """
-    Preview the homepage as it will appear at some date in the future
+    Preview the community page as it will appear at some date in the future
     """
     date = request.GET.get("date", "5/23/21")
-    homepage = get_homepage_items(date=date, language=request.interfaceLang)
+    community = get_community_page_items(date=date, language=request.interfaceLang)
 
-    return menu_page(request, page="home", props={"homepage": homepage, "homepagePreview": date})
+    return menu_page(request, page="community", props={"community": community, "communityPreview": date})
 
 
 @staff_member_required
-def homepage_reset(request):
+def community_reset(request):
     """
-    Reset the cache of the homepage content from Google sheet
+    Reset the cache of the community page content from Google sheet
     """
     date = request.GET.get("next", "5/23/21")
-    homepage = get_homepage_items(date=date, language=request.interfaceLang, refresh=True)
+    community = get_community_page_items(date=date, language=request.interfaceLang, refresh=True)
 
-    return menu_page(request, page="home", props={"homepage": homepage, "homepagePreview": date})
+    return menu_page(request, page="community", props={"community": community, "communityPreview": date})
 
 
 def new_home_redirect(request):

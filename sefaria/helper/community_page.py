@@ -18,8 +18,8 @@ from sefaria.helper.topic import get_topic_by_parasha
 from sefaria.system.cache import django_cache, delete_cache_elem, cache_get_key
 
 
-@django_cache(timeout=1 * 60 * 60, cache_prefix="homepage")
-def get_homepage_data(language="english"):
+@django_cache(timeout=1 * 60 * 60, cache_prefix="community_page")
+def get_community_page_data(language="english"):
   urls = {
     "english": {
       "parashah": 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSoHRVY9Z5MNhERjolxXzQ6Efp3SFTniHMgkSORWFPlkwoj5ppYeP8AyTX7yG_LcQ3p165iRNfOpOSZ/pub?output=csv',
@@ -62,13 +62,13 @@ def load_data_from_sheet(url):
   return keyed_data
 
 
-def get_homepage_items(date="5/23/21", language="englsih", diaspora=True, refresh=False):
+def get_community_page_items(date="5/23/21", language="englsih", diaspora=True, refresh=False):
   if refresh:
-    cache_key = cache_get_key("homepage", language=language)
+    cache_key = cache_get_key("community_page", language=language)
     delete_cache_elem(cache_key)
   
   try:
-    data = get_homepage_data(language=language)
+    data = get_community_page_data(language=language)
   except:
     data = {
       "parashah": None,
@@ -105,8 +105,10 @@ def get_parashah_item(data, date=None, diaspora=True, interface_lang="english"):
     sheet = sheet_with_customization(todays_data)
     if sheet:
       sheet["heading"] = {
-        "en": "On " + parashah_name,
-        "he": "על " + hebrew_parasha_name(parashah_name)
+        "en": "This Week's Torah Portion",
+        "he": "פרשת השבוע"
+        #"en": "On " + parashah_name,
+        #"he": "על " + hebrew_parasha_name(parashah_name)
       }
 
   if not parashah_topic and not sheet:
@@ -135,8 +137,8 @@ def get_calendar_item(data, date):
     sheet = sheet_with_customization(todays_data)
     if sheet:
       sheet["heading"] = {
-        "en": "On " + topic["primaryTitle"]["en"],
-        "he": "על " + topic["primaryTitle"]["he"],
+        "en": topic["primaryTitle"]["en"],
+        "he": topic["primaryTitle"]["he"],
       }
   else:
     sheet = None
@@ -189,6 +191,8 @@ def get_featured_item(data, date):
     return None
 
   sheet = sheet_with_customization(todays_data)
+  if not sheet:
+    return None
 
   return {
     "heading": todays_data["Block Title"],
@@ -213,10 +217,14 @@ def sheet_with_customization(data):
 
   sheet = sheet_to_dict(sheet)
 
-  if len(data["Custom Title"]):
+  if len(data.get("Custom Title", "")):
     sheet["title"] = data["Custom Title"]
-  if len(data["Custom Summary"]):
+
+  if len(data.get("Custom Summary", "")):
     sheet["summary"] = data["Custom Summary"]
+
+  if len(data.get("Block Title", "")):
+    sheet["heading"] = {"en": data["Block Title"], "he": data["Block Title"]}
 
   return sheet
 
@@ -296,7 +304,7 @@ def translate_labels(label):
 
 def print_parashah_rows(n=1000, lang="en"):
   """
-  Helper for populating Homepage Schedule spreadsheet.
+  Helper for populating Community page Schedule spreadsheet.
   Prints a date and the name of upcoming parashah, to be coped into the spreadsheet.
   Prints multiple rows when Israel/Disapora readings differ.
   """

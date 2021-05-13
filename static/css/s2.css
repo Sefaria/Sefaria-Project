@@ -1226,12 +1226,14 @@ input.noselect {
   padding: 30px 10px;
 }
 .readerNavMenu .content .contentInner {
-  width: 680px;
+  width: 725px;
   margin: 0 auto;
   min-height: 520px;
   max-width: 100%;
   box-sizing: border-box;
   padding-bottom: 70px;
+  padding-inline-start: 15px;
+  padding-inline-end: 30px;
 }
 .homeFeedWrapper .content .contentInner {
   max-width: none;
@@ -1861,9 +1863,9 @@ h1 .languageToggle .he {
   text-transform: uppercase;
   text-align: start;
   font-size: 15px;
-  font-weight: 300;
   color: #666;
   margin-bottom: 20px;
+  font-weight: normal;
 }
 .readerNavSection h2, .topicsPanel h2 {
   font-size: 16px;
@@ -2017,74 +2019,70 @@ a.navBlockTitle:hover {
   border-bottom: none;
   margin-bottom: 0px;
 }
-.homepage .about {
-  padding-top: 25px;
-  margin-top: -25px;
-  background-color: #FAFAFB;
-}
-.homepage .about .navSidebarModule h1 {
-  border-bottom: 1px solid #CCC;
-  padding-bottom: 10px;
-  margin-bottom: 25px;
-}
-.homepage .about .button {
-  margin: 20px 0;
-}
-.readerPanel .homepage .mainColumn h2 {
+.readerPanel .communityPage h2 {
   text-transform: none;
-  font-size: 30px;
+  font-size: 22px;
   color: #666;
   margin-top: 0;
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
-.homepage .mainColumn h2 .int-en {
-  font-family: var(--english-serif-font-family);
+.communityPage .gridBoxRow:first-child,
+.communityPage .recentlyPublished {
+  border-top: 1px solid var(--lighter-grey);
 }
-.homepage .gridBoxRow:first-child {
-  border-top: 1px solid #CCC;
-}
-.homepage .gridBox {
+.communityPage .gridBox {
   margin-bottom: 30px;
 }
-.homepage .gridBox .gridBoxItem {
+.communityPage .gridBox .gridBoxItem {
   padding: 0
 }
-.homepage .gridBox {
-  margin-bottom: 60px;
+.communityPage .gridBox {
+  margin-bottom: 25px;
 }
-.homepage .navBlock {
-  border-top: 4px solid transparent;
-  padding: 26px 0 0 0;
+.communityPage .navBlock {
+  padding: 25px 0 0 0;
+  border: none;
 }
-.homepage .navBlockTitle {
+.communityPage .navBlockTitle {
   padding-top: 0;
   --english-font: var(--english-serif-font-family);
   --hebrew-font: var(--hebrew-serif-font-family);
 }
-.homepage .readingLinks {
+.communityPage .readingLinks {
   margin-top: 20px;
 }
-.homepage .readingLinksHeader {
+.communityPage .readingLinksHeader {
   color: #666;
   font-size: 14px;
   margin-bottom: 4px;
 }
-.homepage .readingLinks a {
+.communityPage .readingLinks a {
   font-size: 18px;
 }
-.homepage .calendarDate {
+.communityPage .calendarDate {
   font-size: 14px;
   color: #999;
   margin-bottom: 15px;
 }
 .featuredSheetHeading {
   color: #666;
-  font-size: 18px;
-  --english-font: var(--english-serif-font-family);
-  --hebrew-font: var(--hebrew-serif-font-family);
+  font-size: 16px;
+  margin-bottom: 10px;
 }
 .featuredSheet .navBlockDescription {
   margin-bottom: 12px;
+}
+.communityPage .recentlyPublished {
+  padding-top: 30px;
+}
+.communityPage .recentlyPublished .gridBoxRow {
+  border: none;
+}
+.communityPage .recentlyPublished .loadingMessage {
+  margin-top: 30px;
+}
+.recentlyPublished .loadMore {
+  margin-top: 30px;
 }
 .bilingual .readerNavMenu .he {
   display: none;
@@ -6126,6 +6124,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   --english-font: var(--english-sans-serif-font-family);
   --hebrew-font: var(--hebrew-sans-serif-font-family);
+  width: fit-content;
 }
 a.button {
   color: white;
@@ -8948,14 +8947,8 @@ body .homeFeedWrapper .content {
 .sideColumn .feedbackBoxOverlay.open .feedbackBox {
   width: 470px;
 }
-.readerNavMenu .content .contentInner.mainColumn {
-  margin: 0 45px 0 30px;
-}
 .homeFeedWrapper .mainColumn {
   background-color: white;
-}
-.interface-hebrew .mainColumn {
-  margin: 0 30px 0 45px;
 }
 .storyFeedInner,
 .interface-hebrew .storyFeedInner {
@@ -9494,9 +9487,9 @@ a.topicLexiconTitle.contentText {
     text-align: center;
   }
 }
-#homepagePreviewControls {
+#communityPagePreviewControls {
   position: fixed;
-  width: 349px;
+  width: 380px;
   bottom: 0;
   right: 0;
   color: white;
@@ -9507,18 +9500,18 @@ a.topicLexiconTitle.contentText {
   text-align: center;
   border: 1px solid #ccc;
 }
-.interface-hebrew #homepagePreviewControls {
+.interface-hebrew #communityPagePreviewControls {
   right: auto;
   left: 0;
 }
-#homepagePreviewControls a.date {
+#communityPagePreviewControls a.date {
   display: block;
   font-size: 22px;
 }
-#homepagePreviewControls a {
+#communityPagePreviewControls a {
   margin-inline-end: 10px;
 }
-#homepagePreviewControls a:hover {
+#communityPagePreviewControls a:hover {
   color: inherit;
 }
 /* Customize checkmark inputs */

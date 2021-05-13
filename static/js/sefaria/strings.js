@@ -2,6 +2,7 @@ const Strings = {
   _i18nInterfaceStrings: {
     "Sefaria": "ספריא",
     "Topics":"נושאים",
+    "Community": "קהילה",
     "Sefaria Notifcations": "הודעות בספריא",
     "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספרייה חיה של טקסטים יהודיים",
     "Recently Viewed" : "נצפו לאחרונה",
@@ -33,7 +34,7 @@ const Strings = {
     "Make a Sheet": "צור דף חדש",
     "Combine sources from our library with your own comments, questions, images, and videos.": "השתמשו במקורות מהספרייה ושלבו בהם את התגובות, השאלות, התמונות והסרטונים שלכם.",
     "A Living Library of Torah": "ספרייה תורנית חיה",
-    "Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying and interpreting Torah.": "ספריא היא הבית של 3,000 שנות ספרות יהודית. אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות, ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך החי של לימוד וחידוש בתורה.",
+    "Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.": "ספריא היא הבית של 3,000 שנות ספרות יהודית. אנו ארגון ללא מטרות רווח המציע גישה חופשית למקורות יהודיים, לתרגומים ולפרשנויות, ומטרתנו לאפשר לכל אחד ואחת להשתתף בתהליך החי של לימוד וחידוש בתורה.",
     "Learn More": "לקריאה נוספת",
     "Explore the Library": "גלו את הספריה",
     "Study Schedules": "לוחות זמנים ללימוד",
@@ -65,7 +66,6 @@ const Strings = {
     "Explore interconnections among texts with our interactive visualizations.": "גלו קשרים מעניינים בין מקורות בעזרת  הויזואליזציות האינטראקטיביות שלנו.",
     "All Visualizations": "כל הויזואליזציות",
     "Daily Study": "לימוד יומי",
-
 
     // Topics
     "Explore by Topic": "לימוד לפי נושאים",
@@ -193,32 +193,14 @@ const Strings = {
     "Location: ": "מיקום: ",
 
     // Collections
-    // Edit collection page
     "Collections": "אסופות",
     "About Collections": "על אודות \"אסופות\"",
     "Collection": "אסופה",
     "Collections are user generated bundles of sheets which can be used privately, shared with friends, or made public on Sefaria.": "אסופות הן מקבצים של דפי מקורות שיצרו המשתמשים והמשתמשות. הן ניתנות לשימוש פרטי, לשיתוף עם חברים וחברות או לשימוש ציבורי באתר ספריא.",
     "Sefaria Collections": "אסופות של ספריא",
-    "Edit Collection": "עריכת אסופה",
     "Create a Collection": "יצירת אסופה",
     "Create a New Collection": "יצירת אסופה חדשה",
-    "Collection Name": "שם האסופה",
-    "Website": "כתובת אתר",
-    "Description": "תיאור",
-    "Collection Image": "תמונת האסופה",
-    "Upload Image": "העלאת תמונה",
-    "Recommended size: 350px x 350px or larger": 'גודל מומלץ: לפחות 350 פיקסל ע"ג 350 פיקסל',
-    "Default Sheet Header": "כותרת עמוד ראשונית",
-    "Recommended size: 1000px width to fill sheet, smaller images align right": "גודל מומלץ: 1000 פיקסל כדי למלא את חלל הדף. גודל קטן יותר יתיישר לימין",
-    "List on Sefaria": "הצג לכלל משתמשי ספריא",
-    "Your collection will appear on the public collections page where others can find it.": "האסופה שלך תופיע בדף האסופות הציבוריות ותהיה זמינה לעיון של משתמשות ומשתמשים אחרים.",
-    "Delete Collection": "מחיקת אסופה",
-    "Are you sure you want to delete this collection? This cannot be undone.": "האם ברצונך למחוק את האסופה הזו? אין אפשרות לבטל את הפעולה אחר כך.",
-    "You have unsaved changes to your collection.": "האסופה שלך כוללת שינויים שלא נשמרו.",
-    "Images must be smaller than ": "תמונות חייבות להיות קטנות מ",
-    "Unfortunately an error occurred uploading your file.": "אירעה שגיאה בהעלאת הקובץ שלך.",
-    "Unfortunately an error occurred saving your collection.": "אירעה שגיאה בשמירת האסופה שלך.",
-    "Unfortunately an error occurred deleting your collection.": "אירעה שגיאה במחיקת האסופה שלך.",
+
     // Collection Page
     "Owner": "מנהל/ת",
     "Editor": "עורך/ה",
@@ -244,15 +226,40 @@ const Strings = {
     "Are you sure you want to remove this person from this collection?": "האם ברצונך להסיר משתמש זה מן האסופה?",
     "Are you sure you want to remove this invitation?": "האם ברצונך למחוק הזמנה זו?",
     "There was an error pinning your sheet.": "אירעה שגיאה בצירוף דף המקורות.",
+    
     // Public Collections Page
     "There are no public collections yet.": "טרם נוצרו אסופות ציבוריות",
-    // Collects in Profile
+    
+    // Collections in Profile
     "You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.": "באפשרותך ליצור אסופות כדי לארגן את דפי המקורות שלך או דפי מקורות פתוחים לשימוש שאהבת. את האסופות אפשר לשתף באופן פרטי או לפרסם באופן ציבורי באתר ספריא.",
     " hasn't shared any collections yet.": " טרם שיתפ/ה אסופות כלשהם",
     "Create new collection": "יצירת אסופה חדשה",
     "Create": "יצירה",
     "Done": "סיום",
     "Add to Collection": "צירוף לאסופה",
+
+    // Edit Collection page
+    "Edit Collection": "עריכת אסופה",
+    "Collection Name": "שם האסופה",
+    "Website": "כתובת אתר",
+    "Description": "תיאור",
+    "Collection Image": "תמונת האסופה",
+    "Upload Image": "העלאת תמונה",
+    "Recommended size: 350px x 350px or larger": 'גודל מומלץ: לפחות 350 פיקסל ע"ג 350 פיקסל',
+    "Default Sheet Header": "כותרת עמוד ראשונית",
+    "Recommended size: 1000px width to fill sheet, smaller images align right": "גודל מומלץ: 1000 פיקסל כדי למלא את חלל הדף. גודל קטן יותר יתיישר לימין",
+    "List on Sefaria": "הצג לכלל משתמשי ספריא",
+    "Your collection will appear on the public collections page where others can find it.": "האסופה שלך תופיע בדף האסופות הציבוריות ותהיה זמינה לעיון של משתמשות ומשתמשים אחרים.",
+    "Delete Collection": "מחיקת אסופה",
+    "Are you sure you want to delete this collection? This cannot be undone.": "האם ברצונך למחוק את האסופה הזו? אין אפשרות לבטל את הפעולה אחר כך.",
+    "You have unsaved changes to your collection.": "האסופה שלך כוללת שינויים שלא נשמרו.",
+    "Images must be smaller than ": "תמונות חייבות להיות קטנות מ",
+    "Unfortunately an error occurred uploading your file.": "אירעה שגיאה בהעלאת הקובץ שלך.",
+    "Unfortunately an error occurred saving your collection.": "אירעה שגיאה בשמירת האסופה שלך.",
+    "Unfortunately an error occurred deleting your collection.": "אירעה שגיאה במחיקת האסופה שלך.",
+
+    // Community Page
+    "Today on Sefaria": "היום על ספריא",
 
     "Saved": "שמורים",
     "Notifications": "התראות",

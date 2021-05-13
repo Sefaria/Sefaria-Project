@@ -49,6 +49,7 @@ class Header extends Component {
           <a className="home" href="/" >{logo}</a> : null }
           <a href="/texts" className="library"><InterfaceText>Texts</InterfaceText></a>
           <a href="/topics" className="library"><InterfaceText>Topics</InterfaceText></a>
+          <a href="/community" className="library"><InterfaceText>Community</InterfaceText></a>
           <a href="https://sefaria.nationbuilder.com/supportsefaria" target="_blank" className="library"><InterfaceText>Donate</InterfaceText></a>
         </div>
 

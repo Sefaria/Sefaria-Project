@@ -88,7 +88,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
     </div>
 
   const about = compare || multiPanel ? null :
-    <Modules type={"TheJewishLibrary"} props={{hideTitle: true}}/>;
+    <Modules type={"AboutSefaria"} props={{hideTitle: true}}/>;
 
   const dedication = Sefaria._siteSettings.TORAH_SPECIFIC && !compare ? <Dedication /> : null;
 
@@ -97,10 +97,11 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
     : null;
 
   const sidebarModules = [
-    multiPanel ? {type: "TheJewishLibrary"} : {type: null},
+    multiPanel ? {type: "AboutSefaria"} : {type: null},
+    {type: "Resources"},
     {type: "StudySchedules"},
+    {type: "JoinTheConversation"},
     {type: "SponsorADay"},
-    {type: "GetTheApp"},
   ];
 
   const footer = compare ? null : <Footer />;

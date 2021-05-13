@@ -81,13 +81,7 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
 const AboutSefaria = () => (
   <Module>
     <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle>
-    <InterfaceText>Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying and interpreting Torah.</InterfaceText> <a href="/about" className="inTextLink"><InterfaceText>Learn More</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText></a>
-    <br />
-    <a className="button small" href="/texts">
-      <img src="/static/icons/iconmonstr-book-15.svg" alt="library icon" />
-      <InterfaceText>Explore the Library</InterfaceText>
-    </a>
-    <br /><br />
+    <InterfaceText>Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.</InterfaceText> <a href="/about" className="inTextLink"><InterfaceText>Learn More</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText></a>
   </Module>
 );
 
