@@ -51,3 +51,56 @@ class FollowersSet(FollowSet):
 class FolloweesSet(FollowSet):
 	def __init__(self, uid):
 		self.uids = db.following.find({"follower": uid}).distinct("followee")
+
+
+creators = None
+def general_follow_recommendations(lang="english", n=4):
+	"""
+	Recommend people to follow without any information about the person we're recommending for.
+	"""
+	from random import choices
+	from django.contrib.auth.models import User
+	from sefaria.system.database import db
+
+	global creators
+	if not creators:
+		creators = []
+		pipeline = [
+			{"$match": {
+			   "status": "public"}},
+			{"$sortByCount": "$owner"},
+			{"$lookup": {
+				"from": "profiles",
+				"localField": "_id",
+				"foreignField": "id",
+				"as": "user"}},
+			{"$unwind": {
+				"path": "$user",
+				"preserveNullAndEmptyArrays": True
+			}}
+		]
+		results = db.sheets.aggregate(pipeline)
+		try:
+			profiles = {r["user"]["id"]: r for r in results}
+		except KeyError:
+			logger.error("Encountered sheet owner with no profile record.  No users will be recommended for following.")
+			profiles = {}
+		user_records = User.objects.in_bulk(profiles.keys())
+		creators = []
+		for id, u in user_records.items():
+			fullname = u.first_name + " " + u.last_name
+			user = {
+				"name": fullname,
+				"url": "/profile/" + profiles[id]["user"]["slug"],
+				"id": id,
+				"image": profiles[id]["user"]["profile_pic_url_small"],
+				"organization": profiles[id]["user"]["organization"],
+				"sheetCount": profiles[id]["count"],  
+			}
+			creators.append(user)
+		creators = sorted(creators, key=lambda x: -x["sheetCount"])
+
+	top_creators = creators[:1300]
+	recommendations = choices(top_creators, k=n)
+
+	return recommendations

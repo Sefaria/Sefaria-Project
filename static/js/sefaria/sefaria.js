@@ -2405,6 +2405,7 @@ Sefaria.unpackDataFromProps = function(props) {
       "profile_pic_url",
       "is_history_enabled",
       "following",
+      "followRecommendations",
 
       "calendars",
       "notificationCount",

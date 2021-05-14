@@ -1452,6 +1452,9 @@ input.noselect {
 .navSidebarModule.wide .button {
   margin-top: 0;
 }
+.navSidebarModule .authorByLine {
+  margin-bottom: 15px;
+}
 .navSidebarModule .imageModuleImage {
   width: 100%;
   box-sizing: border-box;

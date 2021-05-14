@@ -2,7 +2,7 @@ const Strings = {
   _i18nInterfaceStrings: {
     "Sefaria": "ספריא",
     "Topics":"נושאים",
-    "Community": "קהילה",
+    "Community": "קהילה", // TODO Hebrew
     "Sefaria Notifcations": "הודעות בספריא",
     "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספרייה חיה של טקסטים יהודיים",
     "Recently Viewed" : "נצפו לאחרונה",
@@ -77,6 +77,7 @@ const Strings = {
     "All Topic A-Z": "כל הנושאים א-ת",
     "Browse or search our complete list of topics": "עיון או חיפוש ברשימת כל הנושאים",
     "Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.": "דפי נושא מביאים אותך ישירות למקורות נבחרים ולדפי מקורות של משתמשים המקורות המופיעים בדפי הנושא נלקטים ממאגרים קיימים של ספרות יהודית (דוגמת אספקלריא) ומדפי המקורות הציבוריים של משתמשי ספריא.",
+    
     // All Topics
     "All Topics": "כל הנושאים",
     "Reset": "לאתחל",
@@ -259,7 +260,8 @@ const Strings = {
     "Unfortunately an error occurred deleting your collection.": "אירעה שגיאה במחיקת האסופה שלך.",
 
     // Community Page
-    "Today on Sefaria": "היום על ספריא",
+    "Today on Sefaria": "היום על ספריא", // TODO Hebrew
+    "Who to Follow": "אחרי מי לעקוב", // TODO Hebrew
 
     "Saved": "שמורים",
     "Notifications": "התראות",

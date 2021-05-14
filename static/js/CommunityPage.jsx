@@ -22,14 +22,15 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
 
   const sidebarModules = [
     {type: "JoinTheConversation"},
-    {type: "GetTheApp"},
+    {type: "WhoToFollow", props: {toggleSignUpModal}},
     {type: "StayConnected"},
+    {type: "GetTheApp"},
     {type: "SupportSefaria", props: {blue: true}},
   ];
 
   const {parashah, calendar, discover, featured} = Sefaria.community;
   const sheets = [parashah, calendar, discover, featured].filter(x => !!x)
-                    .map(x => <FeaturedSheet sheet={x.sheet} />);
+                    .map(x => <FeaturedSheet sheet={x.sheet} toggleSignUpModal={toggleSignUpModal} />);
 
   return (
     <div className="readerNavMenu communityPage sans-serif" key="0">
@@ -43,7 +44,7 @@ const CommunityPage = ({multiPanel, toggleSignUpModal, initialWidth}) => {
 
             {sheets.slice(2).map(sheet => <NBox content={[sheet]} n={1} key={sheet.id} /> )}
             
-            <RecenltyPublished multiPanel={multiPanel} />
+            <RecenltyPublished multiPanel={multiPanel} toggleSignUpModal={toggleSignUpModal} />
 
           </div>
           <NavSidebar modules={sidebarModules} />
@@ -58,7 +59,7 @@ CommunityPage.propTypes = {
 };
 
 
-const RecenltyPublished = ({multiPanel}) => {
+const RecenltyPublished = ({multiPanel, toggleSignUpModal}) => {
   const options = Sefaria.interfaceLang === "hebrew" ? {"lang": "hebrew"} : {};
   const pageSize = 12;
   const [nSheetsLoaded, setNSheetsLoded] = useState(pageSize);
@@ -78,7 +79,7 @@ const RecenltyPublished = ({multiPanel}) => {
   };
 
   const recentSheetsContent = !recentSheets ? [<LoadingMessage />] :
-                                recentSheets.map(s => <FeaturedSheet sheet={s} />);
+          recentSheets.map(s => <FeaturedSheet sheet={s} toggleSignUpModal={toggleSignUpModal} />);
   const joinTheConversation = (
     <div className="navBlock">
       <Modules type={"JoinTheConversation"} props={{wide:multiPanel}} />
@@ -101,7 +102,7 @@ const RecenltyPublished = ({multiPanel}) => {
 };
 
 
-const FeaturedSheet = ({sheet}) => {
+const FeaturedSheet = ({sheet, toggleSignUpModal}) => {
   if (!sheet) { return null; }
   const {heading, title, id, summary} = sheet;
   const uid = sheet.author || sheet.owner;
@@ -112,7 +113,7 @@ const FeaturedSheet = ({sheet}) => {
     name: sheet.ownerName,
     organization: sheet.ownerOrganization,
     is_followed: Sefaria._uid ? Sefaria.following.indexOf(uid) !== -1 : false,
-    toggleSignUpModal: ()=>{},
+    toggleSignUpModal: toggleSignUpModal,
   };
 
   return (

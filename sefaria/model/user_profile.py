@@ -22,7 +22,7 @@ if not hasattr(sys, '_doc_build'):
     from anymail.exceptions import AnymailRecipientsRefused
 
 from . import abstract as abst
-from sefaria.model.following import FollowersSet, FolloweesSet
+from sefaria.model.following import FollowersSet, FolloweesSet, general_follow_recommendations
 from sefaria.model.text import Ref
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
@@ -64,7 +64,6 @@ class UserHistory(abst.AbstractMongoRecord):
 
     def __init__(self, attrs=None, load_existing=False, field_updates=None, update_last_place=False):
         """
-
         :param attrs:
         :param load_existing: True if you want to load an existing mongo record if it exists to avoid duplicates
         :param field_updates: dict of updates in case load_existing finds a record
@@ -589,7 +588,6 @@ class UserProfile(object):
         else:  # history disabled do nothing.
             return None
 
-
     def get_user_history(self, oref=None, saved=None, secondary=None, sheets=None, last_place=None, serialized=False, limit=0):
         """
         personal user history
@@ -609,6 +607,16 @@ class UserProfile(object):
 
     def delete_user_history(self, exclude_saved=True, exclude_last_place=False):
         UserHistory.delete_user_history(uid=self.id, exclude_saved=exclude_saved, exclude_last_place=exclude_last_place)
+
+    def follow_recommendations(self, n=4):
+        """
+        Returns a list of users recommended for `self` to follow.
+        """
+        from random import choices
+        options = general_follow_recommendations(n=100)
+        filtered_options = [u for u in options if not self.follows(u["id"])]
+
+        return choices(filtered_options, k=n)
 
     def to_mongo_dict(self):
         """

@@ -1,12 +1,12 @@
-import {
-  InterfaceText,
-} from './Misc';
 import React, { useState } from 'react';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 import {NewsletterSignUpForm} from './Misc'
-
+import {
+  InterfaceText,
+  ProfileListing,
+} from './Misc';
 
 const NavSidebar = ({modules}) => {
   return <div className="navSidebar sans-serif">
@@ -44,6 +44,7 @@ const Modules = ({type, props}) => {
     "StayConnected":       StayConnected,
     "AboutStudySchedules": AboutStudySchedules,
     "AboutCollections":    AboutCollections,
+    "WhoToFollow":         WhoToFollow,
     "Image":               Image,
     "Wrapper":             Wrapper,
   };
@@ -504,6 +505,14 @@ const AboutCollections = ({hideTitle}) => (
         <InterfaceText>Create a Collection</InterfaceText>
       </a>
     </div>}
+  </Module>
+);
+
+
+const WhoToFollow = ({toggleSignUpModal}) => (
+  <Module>
+    <ModuleTitle>Who to Follow</ModuleTitle>
+    {Sefaria.followRecommendations.map(user => <ProfileListing {...user} toggleSignUpModal={toggleSignUpModal} />)}
   </Module>
 );
 

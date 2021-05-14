@@ -4800,7 +4800,6 @@ class Library(object):
     def get_collections_in_library(self):
         return self._toc_tree.get_collections_in_library()
 
-
     def build_full_auto_completer(self):
         from .autospell import AutoCompleter
         self._full_auto_completer = {

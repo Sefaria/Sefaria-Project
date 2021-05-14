@@ -38,26 +38,27 @@ from sefaria.model.collection import CollectionSet
 from sefaria.model.webpage import get_webpages_for_ref
 from sefaria.model.media import get_media_for_ref
 from sefaria.model.schema import SheetLibraryNode
+from sefaria.model.following import general_follow_recommendations
 from sefaria.model.trend import user_stats_data, site_stats_data
 from sefaria.client.wrapper import format_object_for_client, format_note_object_for_client, get_notes, get_links
-from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
 from sefaria.client.util import jsonResponse
 from sefaria.history import text_history, get_maximal_collapsed_activity, top_contributors, text_at_revision, record_version_deletion, record_index_deletion
-from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
 from sefaria.sheets import get_sheets_for_ref, get_sheet_for_panel, annotate_user_links, trending_topics
 from sefaria.utils.util import text_preview
 from sefaria.utils.hebrew import hebrew_term, is_hebrew
 from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_items, get_keyed_calendar_items, get_parasha, get_todays_parasha
 from sefaria.utils.util import short_to_long_lang_code
-import sefaria.tracker as tracker
-from sefaria.system.cache import django_cache
 from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
+from sefaria.system.decorators import catch_error_as_json, sanitize_get_params, json_response_decorator
+from sefaria.system.exceptions import InputError, PartialRefInputError, BookNameError, NoVersionFoundError, DictionaryEntryNotFoundError
+from sefaria.system.cache import django_cache
+from sefaria.system.database import db
 from sefaria.helper.search import get_query_obj
 from sefaria.helper.topic import get_topic, get_all_topics, get_topics_for_ref, get_topics_for_book
 from sefaria.helper.community_page import get_community_page_items
-from sefaria.system.database import db
+import sefaria.tracker as tracker
 
 if USE_VARNISH:
     from sefaria.system.varnish.wrapper import invalidate_ref, invalidate_linked
@@ -187,6 +188,7 @@ def base_props(request):
             "profile_pic_url": profile.profile_pic_url,
             "is_history_enabled": profile.settings.get("reading_history", True),
             "following": profile.followees.uids,
+            "followRecommendations": profile.follow_recommendations(),
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
             "notificationsHtml": profile.recent_notifications().to_HTML(),
@@ -205,7 +207,7 @@ def base_props(request):
             "profile_pic_url": "",
             "is_history_enabled": True,
             "following": [],
-
+            "followRecommendations": general_follow_recommendations(),
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": 0,
             "notificationsHtml": "",
