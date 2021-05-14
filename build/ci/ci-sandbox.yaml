@@ -61,7 +61,7 @@ steps:
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
       - 'KUBECTL_VERSION=1.16'
       - 'KUBECONFIG=/root/.kube/config'
-    wait_for: [ "-"" ]
+    wait_for: [ "-" ]
 
   # Build artifacts
   - name: gcr.io/kaniko-project/executor:latest
