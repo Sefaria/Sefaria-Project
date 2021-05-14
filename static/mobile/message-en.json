@@ -1,11 +1,11 @@
 {
-	"title": "Count on Us",
+	"title": "Sefaria Community,",
 	"text": [
-		"With over 268 million words of text currently on Sefaria, you can count on us for your Shavuot learning.",
-		"Can we count on you? Make a monthly gift today so Sefaria’s free library of Jewish texts continues to thrive!"
+		"In honor of Shavuot, please consider becoming a monthly donor to Sefaria. We are a nonprofit organization and rely entirely on donations from users like you to grow and maintain the library.",
+		"With your support, Sefaria will work to ensure that the Jewish library is free to explore and study for generations to come."
     ],
 	"buttonLink": "https://sefaria.nationbuilder.com/sustainers_e",
 	"buttonText": "Become a Sustainer",
-	"name": "shavuot-2021-banner-3",
+	"name": "shavuot-2021-modal-6",
 	"schemaVersion": 1
 }

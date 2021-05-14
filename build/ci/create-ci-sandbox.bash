@@ -18,7 +18,6 @@ gcpProject=${GCP_PROJECT:?Set GCP_PROJECT and re-run.}
 gkeCluster=${GKE_CLUSTER:?Set GKE_CLUSTER and re-run.}
 gkeRegion=${GKE_REGION:?Set GKE_REGION and re-run.}
 mongoHostName=${MONGO_HOST:?Set MONGO_HOST and re-run.}
-mongoDatabaseName=${MONGO_DATABASE:-sefaria-vecino}
 sandboxSubdomain=${SANDBOX_SUBDOMAIN:?Set SANDBOX_SUBDOMAIN and re-run.}
 #sanboxName=${SANDBOX_NAME:?Set SANDBOX_NAME and re-run.}
 gitCommit=${GITHUB_SHA:?Set GITHUB_SHA and re-run.}
@@ -27,6 +26,8 @@ postgresHostName=${POSTGRES_HOST:?Set POSTGRES_HOST and re-run.}
 gitRepoName=${GITHUB_REPOSITORY:-'Sefaria/Sefaria-Project'}
 
 mongoLoad="true"
+mongoDumpName="latest"
+mongoDatabaseName="sefaria-ci-${gitCommit:0:6}"
 isSandbox="true"
 resourceAllocation="small"
 
@@ -44,8 +45,8 @@ substVars+=("_GKE_REGION=$gkeRegion")
 substVars+=("_IS_SANDBOX=$isSandbox")
 substVars+=("_MONGO_HOST=$mongoHostName")
 substVars+=("_MONGO_DATABASE=$mongoDatabaseName")
-#substVars+=("_MONGO_LOAD=$mongoLoad")
-#substVars+=("_MONGO_SNAPSHOT_LOCATION=$mongoDumpName")
+substVars+=("_MONGO_LOAD=$mongoLoad")
+substVars+=("_MONGO_SNAPSHOT_LOCATION=$mongoDumpName")
 substVars+=("_POSTGRES_HOST=$postgresHostName")
 substVars+=("_SANDBOX_SUBDOMAIN=$sandboxSubdomain")
 #substVars+=("")

@@ -543,6 +543,7 @@ jobs:
           GKE_REGION: "${{secrets.DEV_GKE_REGION}}"
           SANDBOX_SUBDOMAIN: "${{secrets.DEV_SANDBOX_SUBDOMAIN}}"
           GKE_NAMESPACE: "${{secrets.DEV_SANDBOX_NAMESPACE}}"
+          MONGO_HOST: "${{secrets.DEV_MONGO_HOST}}"
 
   prepare-report-bucket:
     name: "Prepare Build Report"

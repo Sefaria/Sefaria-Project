@@ -2345,14 +2345,15 @@ function placed_segment_mapper(lang, segmented, includeNumbers, s) {
 
 function removeFootnotes(str) {
 	//removes all i tags that are of class "footnote" as well as the preceding "sup" tag
-	str = $(str);
-	str.find( "i[class='footnote']" ).each(function( index ) {
+	var $str = $("<span>" + str + "</span>");
+	$str.find( "i[class='footnote']" ).each(function( index ) {
 		if ($(this).prev().is("sup")) {
 			$(this).prev().remove();
 		}
   		$(this).remove();
 	});
-	return str;
+
+	return $str.html();
 }
 
 
@@ -2387,7 +2388,6 @@ function loadSource(data, $target, optionStr) {
 
     heStr = removeFootnotes(heStr);
     enStr = removeFootnotes(enStr);
-
 
 	enStr = enStr || "...";
 	heStr = heStr || "...";

@@ -43,6 +43,26 @@ steps:
     id: sefaria_repo_git_hash
     wait_for: [ "sefaria_repo_clone" ]
 
+  # Restore Mongo
+  # This build step is defined at `v2/containers/mongo-restore
+  - name: gcr.io/${PROJECT_ID}/mongo-restore:latest
+    id: mongo_restore
+    entrypoint: "/restoreMongo.bash" # figure out why the container's entrypoint isn't being respected
+    env:
+      # Restore Script Variables
+      - 'MONGO_HOST=${_MONGO_HOST}'
+      - 'SANDBOX_NAME=${_ENV_NAME}'
+      - 'MONGO_LOAD=${_MONGO_LOAD}' # If false, the job is a no-op
+      - 'MONGO_SNAPSHOT_LOCATION=${_MONGO_SNAPSHOT_LOCATION}'
+      - 'CLUSTER_NAMESPACE=${_GKE_NAMESPACE}'
+      - 'ENVIRONMENT=sandbox'
+      # kubectl Variables
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.16'
+      - 'KUBECONFIG=/root/.kube/config'
+    wait_for: [ "-"" ]
+
   # Build artifacts
   - name: gcr.io/kaniko-project/executor:latest
     args:
@@ -156,7 +176,7 @@ steps:
       - 'KUBECTL_VERSION=1.16'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
-      # - mongo_restore
+      - mongo_restore
       - web_container
       - nodejs_container
       - nginx_container
