@@ -47,7 +47,7 @@ steps:
   # This build step is defined at `v2/containers/mongo-restore
   - name: gcr.io/${PROJECT_ID}/mongo-restore:latest
     id: mongo_restore
-    entrypoint: "/restoreMongo.bash" # figure out why the container's entrypoint isn't being respected
+    entrypoint: "/restoreMongo.bash"
     env:
       # Restore Script Variables
       - 'MONGO_HOST=${_MONGO_HOST}'
