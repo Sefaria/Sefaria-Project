@@ -139,7 +139,7 @@ def annotate_topic_link(link: dict, link_topic_dict: dict) -> Union[dict, None]:
 
 @django_cache(timeout=24 * 60 * 60)
 def get_all_topics(limit=1000, displayableOnly=True):
-    query = {"shouldDisplay": True, "numSources": {"$gt": 0}} if displayableOnly else {}
+    query = {"shouldDisplay": {"$ne": False}, "numSources": {"$gt": 0}} if displayableOnly else {}
     return TopicSet(query, limit=limit, sort=[('numSources', -1)]).array()
 
 
