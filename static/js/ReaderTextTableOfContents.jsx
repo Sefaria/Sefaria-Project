@@ -112,6 +112,18 @@ class ReaderTextTableOfContents extends Component {
       ... currObjectVersions[currentLanguage],
       ...{
         sources: currentLanguage == "he" ? d.heSources : d.sources,
+        language:               currentLanguage,
+        versionTitle:           currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
+        versionSource:          currentLanguage == "he" ? d.heVersionSource : d.versionSource,
+        versionStatus:          currentLanguage == "he" ? d.heVersionStatus : d.versionStatus,
+        license:                currentLanguage == "he" ? d.heLicense : d.license,
+        sources:                currentLanguage == "he" ? d.heSources : d.sources,
+        versionNotes:           currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
+        digitizedBySefaria:     currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
+        versionTitleInHebrew: currentLanguage == "he" ? d.heVersionTitleInHebrew : d.VersionTitleInHebrew,
+        versionNotesInHebrew: currentLanguage == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew,
+        extendedNotes:        currentLanguage == "he" ? d.heExtendedNotes : d.extendedNotes,
+        extendedNotesHebrew:  currentLanguage == "he" ? d.extendedNotesHebrew : d.heExtendedNotesHebrew,
       }
     };
     currentVersion.merged = !!(currentVersion.sources);
