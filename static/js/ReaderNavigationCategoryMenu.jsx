@@ -81,7 +81,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
   const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noLangToggleInHebrew: 1, compare: compare});
   return (
     <div className={navMenuClasses}>
-      <CategoryColorLine category={category} />
+      <CategoryColorLine category={categories[0]} />
       { comparePanelHeader }
       <div className="content">
         <div className="sidebarLayout">
