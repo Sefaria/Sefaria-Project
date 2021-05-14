@@ -80,7 +80,7 @@ class Header extends Component {
         
         <div className="mobileHeaderCenter">
           { Sefaria._siteSettings.TORAH_SPECIFIC ? 
-          <a className="home" href="/" >{logo}</a> : null }
+          <a className="home" onClick={this.props.onMobileMenuButtonClick} href="/" >{logo}</a> : null }
         </div>
         
         {this.props.hasLanguageToggle ?
@@ -457,10 +457,6 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
           fullWidth={true}
           hideHebrewKeyboard={true} />
       </div>
-      <a href="/" onClick={close}>
-        <img src="/static/icons/home.svg" />
-        <InterfaceText>Home</InterfaceText>
-      </a>
       <a href="/texts" onClick={close}>
         <img src="/static/icons/book.svg" />
         <InterfaceText>Texts</InterfaceText>
@@ -468,6 +464,10 @@ const MobileNavMenu = ({onRefClick, showSearch, openTopic, openURL, close, visib
       <a href="/topics" onClick={close}>
         <img src="/static/icons/topic.svg" />
         <InterfaceText>Topics</InterfaceText>
+      </a>
+      <a href="/community" onClick={close}>
+        <img src="/static/icons/speech-bubble.svg" />
+        <InterfaceText>Community</InterfaceText>
       </a>
       <a href="/calendars" onClick={close}>
         <img src="/static/icons/calendar.svg" />

@@ -55,7 +55,7 @@ const Modules = ({type, props}) => {
 
 
 const Module = ({children, blue, wide}) => {
-  const classes = classNames({navSidebarModule: 1, blue, wide});
+  const classes = classNames({navSidebarModule: 1, "sans-serif": 1, blue, wide});
   return <div className={classes}>{children}</div>
 };
 
@@ -79,9 +79,10 @@ const TitledText = ({enTitle, heTitle, enText, heText}) => {
 };
 
 
-const AboutSefaria = () => (
+const AboutSefaria = ({hideTitle}) => (
   <Module>
-    <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle>
+    {!hideTitle ?
+    <ModuleTitle h1={true}>A Living Library of Torah</ModuleTitle> : null }
     <InterfaceText>Sefaria is home to 3,000 years of Jewish texts. We are a non-profit organization offering free access to texts, translations, and commentaries so that everyone can participate in the ongoing process of studying, interpreting, and creating Torah.</InterfaceText> <a href="/about" className="inTextLink"><InterfaceText>Learn More</InterfaceText> <InterfaceText>&rsaquo;</InterfaceText></a>
   </Module>
 );

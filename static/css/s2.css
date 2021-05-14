@@ -1170,6 +1170,9 @@ input.noselect {
   height: 18px;
   width: 18px;
 }
+.bilingual .languageToggle .he {
+  display: none;
+}
 .loadingMessage {
   font-size: 14px;
   font-style: italic;
