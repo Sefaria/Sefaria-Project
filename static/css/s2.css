@@ -1477,7 +1477,7 @@ input.noselect {
   box-sizing: border-box;
   height: 58px;
   z-index: 1;
-  padding: 5px 30px 0 30px;
+  padding: 5px 25px 0 25px;
   vertical-align: middle;
   line-height: 58px;
   display: flex;
@@ -1844,12 +1844,13 @@ h1 .languageToggle .he {
     flex: 1;
     margin-inline-start: 16px;
     margin-top: 4px;
+    margin-bottom: 30px;
 }
 .readerNavMenu .navToggles .navTogglesDivider {
   color: #ccc;
 }
 .readerNavMenu .navToggle {
-  margin: 0 6px;
+  margin-inline-end: 12px;
   display: inline-block;
   text-transform: uppercase;
   color: #666;
@@ -1971,7 +1972,6 @@ input.resourcesLink {
   border-top: 4px solid transparent;
 }
 .navBlockTitle {
-  background-color: white;
   text-align: start;
   font-size: 24px;
   padding: 15px 0 8px;
@@ -4616,7 +4616,10 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   text-align: center;
   line-height: 32px;
 }
-.readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX{
+.readerNavMenu.compare {
+  background-color: var(--lightest-grey);
+}
+.readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX {
   height: 32px;
   width: 30px;
   display: flex;
@@ -4627,7 +4630,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin: 0 15px;
 }
 .connectionsHeader .readerNavMenuCloseButton.circledX,
-.readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX{
+.readerNavMenu.compare .readerNavTop .readerNavMenuCloseButton.circledX {
   width: 20px;
 }
 .connectionsHeader .readerNavMenuCloseButton.circledX img,
@@ -4636,6 +4639,13 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   height: 20px;
   width: 20px;
   vertical-align: middle;
+}
+.readerNavMenu.compare .navBlockDescription,
+.readerNavMenu.compare .categoryDescription {
+  display: none;
+}
+.readerNavMenu.compare .navToggles {
+  margin-inline-start: 0;
 }
 .connectionsPanelHeader .languageToggle img {
   vertical-align: middle;

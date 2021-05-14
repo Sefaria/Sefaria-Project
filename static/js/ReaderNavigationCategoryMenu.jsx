@@ -57,6 +57,17 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
 
   const categoryToggle = <TalmudToggle categories={cats} setCategories={setCategories} /> || 
                           <ToseftaToggle categories={cats} setCategories={setCategories} />;
+  
+  const title = compare ? categoryToggle :
+    <div className="navTitle">
+      <h1>
+        <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
+      </h1>
+      {categoryToggle}
+      {multiPanel && Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? 
+      <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
+    </div>;
+
   const footer         = compare ? null : <Footer />;
   const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noLangToggleInHebrew: 1, compare: compare});
   return (
@@ -69,20 +80,14 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
         openDisplaySettings={openDisplaySettings}
         navHome={navHome}
         compare={compare}
+        category={"System"}
         catTitle={catTitle}
         heCatTitle={heCatTitle} /> : null}
-      
+    
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner followsContentLang">
-            <div className="navTitle">
-              <h1>
-                <ContentText text={{en: catTitle, he: heCatTitle}} defaultToInterfaceOnBilingual={true} />
-              </h1>
-              {categoryToggle}
-              {multiPanel && Sefaria.interfaceLang !== "hebrew"  && Sefaria._siteSettings.TORAH_SPECIFIC ? 
-              <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
-            </div>
+            { title }
             {!multiPanel ? 
             <div className="categoryDescription top">
               <ContentText text={{en: tocObject.enDesc, he: tocObject.heDesc}} defaultToInterfaceOnBilingual={true} />
@@ -96,7 +101,7 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
               contentLang={contentLang}
               nestLevel={nestLevel} />
           </div>
-          <NavSidebar modules={sidebarModules} />
+          {!compare ? <NavSidebar modules={sidebarModules} /> : null}
         </div>
         {footer}
       </div>

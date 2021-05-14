@@ -74,6 +74,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
       openDisplaySettings={openDisplaySettings}
       onClose={onClose}
       compare={compare}
+      category={"System"}
       openSearch={openSearch}
     /> : null;
 
@@ -118,7 +119,7 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
                 { libraryMessage }
                 { categoryListings }
               </div>
-              <NavSidebar modules={sidebarModules} />
+              {!compare ? <NavSidebar modules={sidebarModules} /> : null}
             </div>
             {footer}
           </div>

@@ -10,8 +10,8 @@ import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
 
 
-const InPanelHeader = ({
-  mode, category, openDisplaySettings, navHome, compare, catTitle, heCatTitle, onClose, openSearch,
+const InPanelHeader = ({ mode, category, openDisplaySettings, navHome, compare, 
+  catTitle, heCatTitle, onClose, openSearch,
 }) => {
   if (mode === 'mainTOC') {
     const [query, setQuery] = React.useState("");
