@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 cd "${0%/*}"  # cd to directory of script
 TMP_DIR="./tmp_monitor_build"
 

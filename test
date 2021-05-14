@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #py.test tests
 py.test -v -m 'not deep and not failing'
