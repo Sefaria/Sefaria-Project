@@ -197,7 +197,6 @@ def get_bulk_topics(topic_list: list) -> TopicSet:
 
 def recommend_topics(refs: list) -> list:
     """Returns a list of topics recommended for the list of string refs"""
-
     seg_refs = []
     for tref in refs:
         try:
@@ -248,14 +247,15 @@ def get_topics_for_ref(tref, annotate=False):
     return serialized
 
 
-@django_cache(timeout=24 * 60 * 60)
+@django_cache(timeout=24 * 60 * 60, cache_prefix="get_topics_for_book")
 def get_topics_for_book(title, annotate=False):
     all_topics = get_topics_for_ref(title, annotate=annotate)
 
     topic_counts = defaultdict(int)
     topic_data   = {}
     for topic in all_topics:
-        topic_counts[topic["topic"]] += 1
+        topic_counts[topic["topic"]] += topic["order"].get("user_votes", 1)
+        print("{} - {}".format(topic["topic"], topic["order"].get("user_votes", 1)))
         topic_data[topic["topic"]] = {"slug": topic["topic"], "title": topic["title"]}
 
     topic_order = sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)
