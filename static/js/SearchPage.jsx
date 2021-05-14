@@ -12,7 +12,7 @@ import Sefaria  from './sefaria/sefaria';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Footer  from './Footer';
-import InPanelHeader from './InPanelHeader';
+import ComparePanelHeader from './ComparePanelHeader';
 import SearchResultList  from './SearchResultList';
 import Component from 'react-class';
 
@@ -27,42 +27,43 @@ class SearchPage extends Component {
         var style          = {"fontSize": fontSize + "%"};
         var classes        = classNames({readerNavMenu: 1, compare: this.props.compare});
         var isQueryHebrew  = Sefaria.hebrew.isHebrew(this.props.query);
-        return (<div className={classes} key={this.props.query}>
-                  {this.props.compare ?
-                  <InPanelHeader
-                    mode={'mainTOC'}
-                    interfaceLang={this.props.interfaceLang}
-                    showDisplaySettings={false}
-                    onClose={this.props.close}
-                    compare={this.props.compare}
-                    openSearch={this.props.onQueryChange} /> : null}
+        return (
+          <div className={classes} key={this.props.query}>
+            {this.props.compare ?
+            <ComparePanelHeader
+              search={true}
+              interfaceLang={this.props.interfaceLang}
+              showDisplaySettings={false}
+              onCompareBack={this.props.close}
+              openSearch={this.props.onQueryChange} /> : null}
 
-                  <div className="content">
-                    <div className="contentInner">
-                      <div className="searchContentFrame">
-                          <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
-                            &ldquo;{ this.props.query }&rdquo;
-                          </h1>
-                          <div className="searchContent" style={style}>
-                              <SearchResultList
-                                interfaceLang={this.props.interfaceLang}
-                                query={this.props.query}
-                                tab={this.props.tab}
-                                textSearchState={this.props.textSearchState}
-                                sheetSearchState={this.props.sheetSearchState}
-                                onResultClick={this.props.onResultClick}
-                                updateTab={this.props.updateTab}
-                                updateAppliedFilter = {this.props.updateAppliedFilter}
-                                updateAppliedOptionField={this.props.updateAppliedOptionField}
-                                updateAppliedOptionSort={this.props.updateAppliedOptionSort}
-                                registerAvailableFilters={this.props.registerAvailableFilters}
-                              />
-                          </div>
-                      </div>
+            <div className="content">
+              <div className="contentInner">
+                <div className="searchContentFrame">
+                    <h1 className={classNames({"hebrewQuery": isQueryHebrew, "englishQuery": !isQueryHebrew})}>
+                      &ldquo;{ this.props.query }&rdquo;
+                    </h1>
+                    <div className="searchContent" style={style}>
+                        <SearchResultList
+                          interfaceLang={this.props.interfaceLang}
+                          query={this.props.query}
+                          tab={this.props.tab}
+                          textSearchState={this.props.textSearchState}
+                          sheetSearchState={this.props.sheetSearchState}
+                          onResultClick={this.props.onResultClick}
+                          updateTab={this.props.updateTab}
+                          updateAppliedFilter = {this.props.updateAppliedFilter}
+                          updateAppliedOptionField={this.props.updateAppliedOptionField}
+                          updateAppliedOptionSort={this.props.updateAppliedOptionSort}
+                          registerAvailableFilters={this.props.registerAvailableFilters}
+                        />
                     </div>
-                    { this.props.panelsOpen === 1 ? <Footer /> : null }
-                  </div>
-                </div>);
+                </div>
+              </div>
+              { this.props.panelsOpen === 1 ? <Footer /> : null }
+            </div>
+          </div>
+        );
     }
 }
 SearchPage.propTypes = {

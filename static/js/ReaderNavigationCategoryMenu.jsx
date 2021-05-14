@@ -1,3 +1,10 @@
+import React  from 'react';
+import classNames  from 'classnames';
+import PropTypes  from 'prop-types';
+import Sefaria  from './sefaria/sefaria';
+import { NavSidebar } from './NavSidebar';
+import Footer  from './Footer';
+import ComparePanelHeader from './ComparePanelHeader';
 import {
   CategoryAttribution,
   CategoryColorLine,
@@ -6,18 +13,11 @@ import {
   InterfaceText,
   ContentText,
 } from './Misc';
-import React  from 'react';
-import classNames  from 'classnames';
-import PropTypes  from 'prop-types';
-import Sefaria  from './sefaria/sefaria';
-import { NavSidebar } from './NavSidebar';
-import Footer  from './Footer';
-import InPanelHeader from './InPanelHeader';
 
 
 // Navigation Menu for a single category of texts (e.g., "Tanakh", "Bavli")
 const ReaderNavigationCategoryMenu = ({category, categories, setCategories, toggleLanguage,
-  openDisplaySettings, navHome, multiPanel, initialWidth, compare, contentLang}) => {
+  openDisplaySettings, onCompareBack, openTextTOC, multiPanel, initialWidth, compare, contentLang}) => {
 
   // Show Talmud with Toggles
   const cats  = categories[0] === "Talmud" && categories.length === 1 ?
@@ -68,22 +68,21 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
     </div>;
 
+  const comparePanelHeader = compare ? (
+    <ComparePanelHeader
+      category={cats[0]}
+      openDisplaySettings={openDisplaySettings}
+      onBack={() => setCategories(aboutCats.slice(0, -1))}
+      catTitle={catTitle}
+      heCatTitle={heCatTitle} />
+  ) : null;
+
   const footer         = compare ? null : <Footer />;
   const navMenuClasses = classNames({readerNavCategoryMenu: 1, readerNavMenu: 1, noLangToggleInHebrew: 1, compare: compare});
   return (
     <div className={navMenuClasses}>
       <CategoryColorLine category={category} />
-      { compare ? 
-      <InPanelHeader
-        mode={'innerTOC'}
-        category={cats[0]}
-        openDisplaySettings={openDisplaySettings}
-        navHome={navHome}
-        compare={compare}
-        category={"System"}
-        catTitle={catTitle}
-        heCatTitle={heCatTitle} /> : null}
-    
+      { comparePanelHeader }
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner followsContentLang">
@@ -96,8 +95,10 @@ const ReaderNavigationCategoryMenu = ({category, categories, setCategories, togg
             <ReaderNavigationCategoryMenuContents
               contents={catContents}
               categories={cats}
-              initialWidth={initialWidth}
               category={category}
+              setCategories={setCategories}
+              openTextTOC={openTextTOC}
+              initialWidth={initialWidth}
               contentLang={contentLang}
               nestLevel={nestLevel} />
           </div>
@@ -114,7 +115,7 @@ ReaderNavigationCategoryMenu.propTypes = {
   setCategories:       PropTypes.func.isRequired,
   toggleLanguage:      PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func.isRequired,
-  navHome:             PropTypes.func.isRequired,
+  //onCompareBack:       PropTypes.func.isRequired,
   initialWidth:        PropTypes.number,
   compare:             PropTypes.bool,
   contentLang:         PropTypes.string,
@@ -122,7 +123,8 @@ ReaderNavigationCategoryMenu.propTypes = {
 
 
 // Inner content of Category menu (just category title and boxes of texts/subcategories)
-const ReaderNavigationCategoryMenuContents = ({category, contents, categories, contentLang, initialWidth, nestLevel}) =>  {
+const ReaderNavigationCategoryMenuContents = ({category, contents, categories, contentLang, 
+  setCategories, openTextTOC, initialWidth, nestLevel}) =>  {
   const content = [];
   const cats = categories || [];
   const showInHebrew = contentLang === "hebrew" || Sefaria.interfaceLang === "hebrew";
@@ -139,24 +141,36 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
 
         // There's just one text in this category, render the text.
         if(item.contents && item.contents.length === 1 && !("category" in item.contents[0])) {
-            const chItem = item.contents[0];
-            if (chItem.hidden) { continue; }
-            content.push((
-                <TextMenuItem item={chItem} categories={categories} showInHebrew={showInHebrew} nestLevel={nestLevel}/>
-            ));
+          const chItem = item.contents[0];
+          if (chItem.hidden) { continue; }
+          const onClick = e => {
+            if (openTextTOC) {
+              e.preventDefault();
+              openTextTOC(item.title);
+            }
+          };
+          content.push(
+            <TextMenuItem
+              item={chItem}
+              categories={categories}
+              onClick={onClick}
+              showInHebrew={showInHebrew}
+              nestLevel={nestLevel} />
+          );
 
         // Create a link to a subcategory
         } else {
           content.push((
-              <MenuItem
-                href        = {"/texts/" + newCats.join("/")}
-                incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
-                cats        = {newCats}
-                title       = {item.category}
-                heTitle     = {item.heCategory}
-                enDesc      = {item.enShortDesc}
-                heDesc      = {item.heShortDesc}
-              />
+            <MenuItem
+              href        = {"/texts/" + newCats.join("/")}
+              incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
+              onClick     = {(e) => {e.preventDefault(); setCategories(newCats)}}
+              cats        = {newCats}
+              title       = {item.category}
+              heTitle     = {item.heCategory}
+              enDesc      = {item.enShortDesc}
+              heDesc      = {item.heShortDesc}
+            />
           ));
         }
 
@@ -183,9 +197,11 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
             <ReaderNavigationCategoryMenuContents
               contents      = {item.contents}
               categories    = {newCats}
+              category      = {item.category}
+              setCategories = {setCategories}
+              openTextTOC   = {openTextTOC}
               initialWidth  = {initialWidth}
               nestLevel     = {nestLevel + 1}
-              category      = {item.category}
               contentLang   = {contentLang} />
           </div>
         );
@@ -193,16 +209,15 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
 
     // Add a Collection
     } else if (item.isCollection) {
-        content.push((
-            <MenuItem
-                href        = {"/collections/" + item.slug}
-                nestLevel   = {nestLevel}
-                title       = {item.title}
-                heTitle     = {item.heTitle}
-                enDesc      = {item.enShortDesc}
-                heDesc      = {item.heShortDesc}
-            />
-        ));
+        content.push(
+          <MenuItem
+            href        = {"/collections/" + item.slug}
+            nestLevel   = {nestLevel}
+            title       = {item.title}
+            heTitle     = {item.heTitle}
+            enDesc      = {item.enShortDesc}
+            heDesc      = {item.heShortDesc} />
+        );
 
     // Skip hidden texts
     } else if (item.hidden) {
@@ -210,8 +225,19 @@ const ReaderNavigationCategoryMenuContents = ({category, contents, categories, c
 
     // Add a Text
     } else {
+        const onClick = e => {
+          if (openTextTOC) {
+            e.preventDefault();
+            openTextTOC(item.title);
+          }
+        };
         content.push((
-            <TextMenuItem item={item} categories={categories} showInHebrew={showInHebrew} nestLevel={nestLevel}/>
+          <TextMenuItem 
+            item={item}
+            categories={categories}
+            onClick={onClick}
+            showInHebrew={showInHebrew}
+            nestLevel={nestLevel} />
         ));
     }
   }
@@ -250,37 +276,34 @@ ReaderNavigationCategoryMenuContents.defaultProps = {
 };
 
 
-const MenuItem = ({href, dref, nestLevel, title, heTitle, cats, incomplete, enDesc, heDesc}) => {
+const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, incomplete, enDesc, heDesc}) => {
   const keytype  = !!cats ? "cat" : "text";
   const classes = classNames({ navBlockTitle: 1, incomplete: incomplete});
   return (
     <div className="navBlock">
       <a href={href}
         className   = {classes}
-        data-ref    = {dref ? dref : null}
-        data-cats   = {cats ? cats.join("|") : null}
+        onClick     = {onClick}
         key         = {keytype + "." + nestLevel + "." + title}
       >
-        <span className='en'>{title}</span>
-        <span className='he'>{heTitle}</span>
+        <ContentText text={{en: title, he: heTitle}} />
       </a>
       {enDesc || heDesc ? 
       <div className="navBlockDescription">
-        <span className='en'>{enDesc}</span>
-        <span className='he'>{heDesc}</span>
+        <ContentText text={{en: enDesc, he: heDesc}} />
       </div> : null }
     </div>
   );
 };
 
 
-const TextMenuItem = ({item, categories, showInHebrew, nestLevel}) => {
+const TextMenuItem = ({item, categories, showInHebrew, nestLevel, onClick}) => {
   const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, categories);
   return (
     <MenuItem
       href        = {"/" + Sefaria.normRef(item.title)}
+      onClick     = {onClick}
       incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
-      dref        = {item.title}
       nestLevel   = {nestLevel}
       title       = {title}
       heTitle     = {heTitle}
@@ -301,16 +324,16 @@ const TalmudToggle = ({categories, setCategories}) => {
     const bClasses = classNames({navToggle: 1, active: categories[1] === "Bavli"});
     const yClasses = classNames({navToggle: 1, active: categories[1] === "Yerushalmi", second: 1});
 
-    return (<div className="navToggles">
-                <span className={bClasses} onClick={setBavli}>
-                  <span className="en">Babylonian</span>
-                  <span className="he">בבלי</span>
-                </span>
-                <span className={yClasses} onClick={setYerushalmi}>
-                  <span className="en">Jerusalem</span>
-                  <span className="he">ירושלמי</span>
-                </span>
-    </div>);
+    return (
+      <div className="navToggles">
+        <span className={bClasses} onClick={setBavli}>
+          <ContentText text={{en: "Babylonian", he: "בבלי"}} />
+        </span>
+        <span className={yClasses} onClick={setYerushalmi}>
+          <ContentText text={{en: "Jerusalem", he: "ירושלמי"}} />
+        </span>
+      </div>
+    );
 };
 
 
@@ -324,22 +347,21 @@ const ToseftaToggle = ({categories, setCategories}) => {
     const vClasses = classNames({navToggle: 1, active: categories[1] === "Vilna Edition"});
     const lClasses = classNames({navToggle: 1, active: categories[1] === "Lieberman Edition", second: 1});
 
-    return (<div className="navToggles">
-                <span className={vClasses} onClick={setVilna}>
-                  <span className="en">Vilna Edition</span>
-                  <span className="he">דפוס וילנא</span>
-                </span>
-                <span className="navTogglesDivider">|</span>
-                <span className={lClasses} onClick={setLieberman}>
-                  <span className="en">Lieberman Edition</span>
-                  <span className="he">מהדורת ליברמן</span>
-                </span>
-    </div>);
+    return (
+      <div className="navToggles">
+        <span className={vClasses} onClick={setVilna}>
+          <ContentText text={{en: "Vilna Edition", he: "דפוס וילנא"}} />
+        </span>
+        <span className="navTogglesDivider">|</span>
+        <span className={lClasses} onClick={setLieberman}>
+          <ContentText text={{en: "Lieberman Edition", he: "מהדורת ליברמן"}} />
+        </span>
+      </div>
+    );
 };
 
 
 const getRenderedTextTitleString = (title, heTitle, categories) => {
-
     if (title === "Pesach Haggadah") {
         return ["Pesach Haggadah Ashkenaz", "הגדה של פסח אשכנז"]
     }
@@ -425,7 +447,6 @@ const getSidebarModules = (categories) => {
   ]; 
 
   return customModules.concat(defaultModules);
-
 };
 
 

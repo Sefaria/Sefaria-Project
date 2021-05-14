@@ -1,27 +1,28 @@
-import {
-  CategoryColorLine,
-  ReaderNavigationMenuMenuButton,
-  ReaderNavigationMenuDisplaySettingsButton,
-  ReaderNavigationMenuSearchButton,
-} from './Misc';
 import React  from 'react';
 import classNames  from 'classnames';
 import PropTypes  from 'prop-types';
 import Sefaria  from './sefaria/sefaria';
+import {
+  CategoryColorLine,
+  ContentText,
+  ReaderNavigationMenuMenuButton,
+  ReaderNavigationMenuDisplaySettingsButton,
+  ReaderNavigationMenuSearchButton,
+} from './Misc';
 
 
-const InPanelHeader = ({ mode, category, openDisplaySettings, navHome, compare, 
-  catTitle, heCatTitle, onClose, openSearch,
+const ComparePanelHeader = ({ search, category, openDisplaySettings, navHome, catTitle, heCatTitle, 
+  onBack, openSearch
 }) => {
-  if (mode === 'mainTOC') {
+  if (search) {
     const [query, setQuery] = React.useState("");
     const handleSearchKeyUp = event => {if (event.keyCode === 13 && query) { openSearch(query);}};
     const handleSearchButtonClick = () => {if (query) { openSearch(query);}};
     return (
       <div className="readerNavTop search">
-        <CategoryColorLine category="Other" />
+        <CategoryColorLine category="System" />
         <div className="readerNavTopStart">
-          <ReaderNavigationMenuMenuButton onClick={onClose} compare={compare} />
+          <ReaderNavigationMenuMenuButton onClick={onBack} compare={true} />
           <div className="searchBox">
             <ReaderNavigationMenuSearchButton onClick={handleSearchButtonClick} />
             <input
@@ -38,16 +39,13 @@ const InPanelHeader = ({ mode, category, openDisplaySettings, navHome, compare,
         : null}
       </div>
     );
-  }
-
-  if (mode === 'innerTOC') {
+  } else {
     return (
       <div className={classNames({readerNavTop: 1, searchOnly: 1})}>
         <CategoryColorLine category={category} />
-        <ReaderNavigationMenuMenuButton onClick={navHome} compare={compare} /> 
+        <ReaderNavigationMenuMenuButton onClick={onBack} compare={true} /> 
         <h2 className="readerNavTopCategory">
-          <span className="en">{catTitle}</span>
-          <span className="he">{heCatTitle}</span>
+          <ContentText text={{en: catTitle, he: heCatTitle}} />
         </h2>
         
         {(Sefaria.interfaceLang === "hebrew" || !openDisplaySettings) ?
@@ -59,4 +57,4 @@ const InPanelHeader = ({ mode, category, openDisplaySettings, navHome, compare,
 }
 
 
-export default InPanelHeader;
+export default ComparePanelHeader;

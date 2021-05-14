@@ -1,12 +1,3 @@
-import {
-  ReaderNavigationMenuSection,
-  TextBlockLink,
-  TwoOrThreeBox,
-  NBox,
-  ResponsiveNBox,
-  LanguageToggleButton,
-  InterfaceText, ContentText,
-} from './Misc';
 import React, { useState, useEffect, useRef } from 'react';
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
@@ -15,32 +6,33 @@ import $  from './sefaria/sefariaJquery';
 import { NavSidebar, Modules } from './NavSidebar';
 import ReaderNavigationCategoryMenu  from './ReaderNavigationCategoryMenu';
 import Footer  from './Footer';
-import InPanelHeader from './InPanelHeader';
-import {TopicCategory} from './TopicPage';
+import ComparePanelHeader from './ComparePanelHeader';
+import {
+  ReaderNavigationMenuSection,
+  TextBlockLink,
+  TwoOrThreeBox,
+  NBox,
+  ResponsiveNBox,
+  LanguageToggleButton,
+  InterfaceText, 
+  ContentText,
+} from './Misc';
 
 // The Navigation menu for browsing and searching texts
-const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCategories, setNavTopic, 
-  setTopic, onClose, openNav, openSearch, toggleLanguage, openMenu, handleClick, openDisplaySettings,
-  hideHeader, multiPanel, initialWidth, compare}) => {
-
-  const navHome = () => {
-    setCategories([]);
-    setNavTopic("", null);
-    openNav();
-  };
+const ReaderNavigationMenu = ({categories, settings, setCategories, onCompareBack, openSearch,
+  toggleLanguage, openTextTOC, openDisplaySettings, multiPanel, initialWidth, compare}) => {
 
   // List of Texts in a Category
   if (categories.length) {
     return (
-      <div className="readerNavMenu" onClick={handleClick}>
+      <div className="readerNavMenu">
         <ReaderNavigationCategoryMenu
           categories={categories}
           category={categories.slice(-1)[0]}
-          closeNav={onClose}
           setCategories={setCategories}
+          openTextTOC={openTextTOC}
           toggleLanguage={toggleLanguage}
           openDisplaySettings={openDisplaySettings}
-          navHome={navHome}
           compare={compare}
           multiPanel={multiPanel}
           initialWidth={initialWidth}
@@ -53,37 +45,34 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   let categoryListings = Sefaria.toc.map(cat => {
     const style = {"borderColor": Sefaria.palette.categoryColor(cat.category)};
     const openCat = e => {e.preventDefault(); setCategories([cat.category])};
-    return <div className="navBlock withColorLine" style={style}>
-            <a href={`/texts/${cat.category}`} className="navBlockTitle" data-cat={cat.category} onClick={openCat}>
-              <ContentText text={{en: cat.category, he: cat.heCategory}} defaultToInterfaceOnBilingual={true} />
-            </a>
-            <div className="navBlockDescription">
-              <ContentText text={{en: cat.enShortDesc, he: cat.heShortDesc}} defaultToInterfaceOnBilingual={true} />
-            </div>
-          </div>
+    return (
+      <div className="navBlock withColorLine" style={style}>
+        <a href={`/texts/${cat.category}`} className="navBlockTitle" data-cat={cat.category} onClick={openCat}>
+          <ContentText text={{en: cat.category, he: cat.heCategory}} defaultToInterfaceOnBilingual={true} />
+        </a>
+        <div className="navBlockDescription">
+          <ContentText text={{en: cat.enShortDesc, he: cat.heShortDesc}} defaultToInterfaceOnBilingual={true} />
+        </div>
+      </div>
+    );
   });
   categoryListings = (
     <div className="readerNavCategories">
       <ResponsiveNBox content={categoryListings} initialWidth={initialWidth} />
     </div>);
 
-  const topContent = compare ? 
-    <InPanelHeader
-      mode={'mainTOC'}
-      navHome={navHome}
+  const comparePanelHeader = compare ? 
+    <ComparePanelHeader
+      search={true}
+      onBack={onCompareBack}
       openDisplaySettings={openDisplaySettings}
-      onClose={onClose}
-      compare={compare}
-      category={"System"}
       openSearch={openSearch}
     /> : null;
 
   const title = compare ? null : 
     <div className="navTitle tight sans-serif">
-      <h1>
-        <InterfaceText>Browse the Library</InterfaceText>
-      </h1>
-      
+      <h1><InterfaceText>Browse the Library</InterfaceText></h1>
+
       { multiPanel && Sefaria.interfaceLang !== "hebrew" && Sefaria._siteSettings.TORAH_SPECIFIC ?
       <LanguageToggleButton toggleLanguage={toggleLanguage} /> : null }
     </div>
@@ -108,35 +97,32 @@ const ReaderNavigationMenu = ({categories, topic, topicTitle, settings, setCateg
   const footer = compare ? null : <Footer />;
   const classes = classNames({readerNavMenu:1, compare: compare, noLangToggleInHebrew: 1 });
 
-  return(<div className={classes} onClick={handleClick} key="0">
-          {topContent}
-          <div className="content">
-            <div className="sidebarLayout">
-              <div className="contentInner">
-                { title }
-                { about }
-                { dedication }
-                { libraryMessage }
-                { categoryListings }
-              </div>
-              {!compare ? <NavSidebar modules={sidebarModules} /> : null}
-            </div>
-            {footer}
+  return (
+    <div className={classes} key="0">
+      {comparePanelHeader}
+      <div className="content">
+        <div className="sidebarLayout">
+          <div className="contentInner">
+            { title }
+            { about }
+            { dedication }
+            { libraryMessage }
+            { categoryListings }
           </div>
-        </div>);
+          {!compare ? <NavSidebar modules={sidebarModules} /> : null}
+        </div>
+        {footer}
+      </div>
+    </div>
+  );
 };
 ReaderNavigationMenu.propTypes = {
   categories:          PropTypes.array.isRequired,
-  topic:               PropTypes.string.isRequired,
   settings:            PropTypes.object.isRequired,
   setCategories:       PropTypes.func.isRequired,
-  onClose:             PropTypes.func.isRequired,
   openSearch:          PropTypes.func.isRequired,
-  openMenu:            PropTypes.func.isRequired,
-  handleClick:         PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func,
   toggleLanguage:      PropTypes.func,
-  hideHeader:          PropTypes.bool,
   multiPanel:          PropTypes.bool,
   compare:             PropTypes.bool,
 };
@@ -187,123 +173,3 @@ const Dedication = () => {
 
 
 export default ReaderNavigationMenu;
-
-/*
-
-  const TocLink = ({en, he, img, alt, href, resourcesLink, classes, onClick}) =>
-    <a className={(resourcesLink?"resourcesLink ":"") + (classes||"")} href={href} onClick={onClick}>
-        {img?<img src={img} alt={alt} />:""}
-        <span className="int-en">{en}</span>
-        <span className="int-he">{he}</span>
-    </a>;
-
-
-
-  title="Texts" heTitle="טקסטים"
-
-  let siteLinks = Sefaria._uid ?
-                [(<a className="siteLink" key='profile' href="/my/profile">
-                    <i className="fa fa-user"></i>
-                    <span className="en">Your Profile</span>
-                    <span className="he">הפרופיל שלי</span>
-                  </a>),
-                 (<span className='divider' key="d1">•</span>),
-                 (<a className="siteLink" key='about' href="/about">
-                    <span className="en">About Sefaria</span>
-                    <span className="he">אודות ספריא</span>
-                  </a>),
-                 (<span className='divider' key="d2">•</span>),
-                 (<a className="siteLink" key='logout' href="/logout">
-                    <span className="en">Logout</span>
-                    <span className="he">התנתק</span>
-                  </a>)] :
-
-                [(<a className="siteLink" key='about' href="/about">
-                    <span className="en">About Sefaria</span>
-                    <span className="he">אודות ספריא</span>
-                  </a>),
-                 (<span className='divider' key="d1">•</span>),
-                 (<a className="siteLink" key='login' href="/login">
-                    <span className="en">Sign In</span>
-                    <span className="he">התחבר</span>
-                  </a>)];
-  siteLinks = (<div className="siteLinks">
-                {siteLinks}
-              </div>);
-
-
-  let calendar = Sefaria.calendars.map(function(item) {
-      return (<TextBlockLink
-                sref={item.ref}
-                url_string={item.url}
-                title={item.title["en"]}
-                heTitle={item.title["he"]}
-                displayValue={item.displayValue["en"]}
-                heDisplayValue={item.displayValue["he"]}
-                category={item.category}
-                showSections={false}
-                recentItem={false}/>)
-  });
-  calendar = (<div className="readerNavCalendar"><TwoOrThreeBox content={calendar} width={width} /></div>);
-
-
-  let resources = [
-      <TocLink en="Create a Sheet" he="צור דף חדש" href="/sheets/new" resourcesLink={true}
-            img="/static/img/new-sheet.svg"  alt="new source sheet icon" />,
-      <TocLink en="Authors" he="רשימת מחברים" href="/people" resourcesLink={true}
-            img="/static/img/authors-icon.png" alt="author icon"/>,
-      <TocLink en="Collections" he="אסופות" href="/collections" resourcesLink={true}
-            img="/static/icons/collection.svg" alt="Collections icon"/>,
-      <TocLink en="Visualizations" he="תרשימים גרפיים" href="/visualizations" resourcesLink={true}
-            img="/static/img/visualizations-icon.png" alt="visualization icon" />,
-  ];
-
-  const torahSpecificResources = ["/visualizations", "/people"];
-  if (!Sefaria._siteSettings.TORAH_SPECIFIC) {
-    resources = resources.filter(r => torahSpecificResources.indexOf(r.props.href) == -1);
-  }
-  resources = (<div className="readerTocResources"><NBox n={2} content={resources} width={width} /></div>);
-
-
-
-  let topUserData = [
-      <TocLink en="Saved" he="שמורים" href="/texts/saved" resourcesLink={true} img="/static/img/star.png" alt="saved text icon"/>,
-      <TocLink en="History" he="היסטוריה" href="/texts/history" resourcesLink={true} img="/static/img/clock.png" alt="history icon"/>
-  ];
-  topUserData = (<div className="readerTocResources userDataButtons"><NBox n={2} content={topUserData} width={width} /></div>);
-
-  let donation  = [
-      <TocLink en="Make a Donation" he="תרומות" resourcesLink={true} classes="donationLink" img="/static/img/heart.png" alt="donation icon" href="https://sefaria.nationbuilder.com/supportsefaria"/>,
-      <TocLink en="Sponsor a day" he="תנו חסות ליום לימוד" resourcesLink={true} classes="donationLink" img="/static/img/calendar.svg" alt="donation icon" href="https://sefaria.nationbuilder.com/sponsor"/>,
-  ];
-
-  donation = (<div className="readerTocResources"><NBox n={2} content={donation} width={width} /></div>);
-
-
-  let topicBlocks = Sefaria.topicTocPage().map((t,i) => {
-      const openTopic = e => {e.preventDefault(); setNavTopic(t.slug, {en: t.en, he: t.he})};
-      return <a href={"/topics/category/" + t.slug}
-         onClick={openTopic}
-         className="blockLink"
-         key={i}>
-          <span className='en'>{t.en}</span>
-          <span className='he'>{t.he}</span>
-      </a>
-  });
-  const moreTopics = (<a href="#" className="blockLink readerNavMore sans-serif" onClick={enableShowMoreTopics}>
-                  <span className="int-en">More<img src="/static/img/arrow-right.png" alt="" /></span>
-                  <span className="int-he">עוד<img src="/static/img/arrow-left.png" alt="" /></span>
-              </a>);
-  const azButton = (
-    <a href={"/topics"}
-       onClick={openMenu.bind(null, "topics")}
-       className="blockLink readerNavMore sans-serif"
-    >
-        <span className='en'>All Topics</span>
-        <span className='he'>כל הנושאים</span>
-    </a>
-  );
-  topicBlocks = showMoreTopics ? topicBlocks.concat(azButton) : topicBlocks.slice(0, nCats).concat(moreTopics);
-  const topicsBlock = (<div className="readerTocTopics"><TwoOrThreeBox content={topicBlocks} width={width} /></div>);
-
-*/

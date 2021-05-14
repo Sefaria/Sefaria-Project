@@ -16,7 +16,7 @@ import Footer  from './Footer';
 import Component from 'react-class';
 
 
-const UserHistoryPanel = ({menuOpen, handleClick, toggleLanguage, openDisplaySettings, openNav, compare}) => {
+const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare}) => {
   const [items, setItems] = useState(menuOpen === "saved" ? Sefaria.saved : Sefaria._userHistory.history);
 
   useEffect(() => {
@@ -81,7 +81,7 @@ const UserHistoryPanel = ({menuOpen, handleClick, toggleLanguage, openDisplaySet
   const navMenuClasses = classNames({recentPanel: 1, readerNavMenu: 1, compare: compare, noLangToggleInHebrew: 1});
   
   return (
-    <div onClick={handleClick} className={navMenuClasses}>
+    <div className={navMenuClasses}>
       <div className="content">
         <div className="sidebarLayout">
           <div className="contentInner">
@@ -100,7 +100,6 @@ const UserHistoryPanel = ({menuOpen, handleClick, toggleLanguage, openDisplaySet
     );
 };
 UserHistoryPanel.propTypes = {
-  handleClick:         PropTypes.func.isRequired,
   toggleLanguage:      PropTypes.func.isRequired,
   openDisplaySettings: PropTypes.func.isRequired,
   openNav:             PropTypes.func.isRequired,

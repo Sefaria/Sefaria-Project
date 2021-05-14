@@ -112,7 +112,7 @@ const sheetSort = (currSortOption, a, b, { interfaceLang }) => {
 
 
 const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang, 
-  compare, initialWidth, openDisplaySettings, openSearch, onClose}) => {
+  compare, initialWidth, openDisplaySettings, openSearch}) => {
     
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || {primaryTitle: topicTitle});
     const [subtopics, setSubtopics] = useState(Sefaria.topicTocPage(topic));
@@ -216,7 +216,7 @@ const TopicCategory = ({topic, topicTitle, setTopic, setNavTopic, interfaceLang,
 
 const TopicHeader = ({
   topic, topicData, multiPanel, interfaceLang, isCat, setNavTopic,
-  onClose, openDisplaySettings, openSearch
+  openDisplaySettings, openSearch
 }) => {
   const { en, he } = !!topicData && topicData.primaryTitle ? topicData.primaryTitle : {en: "Loading...", he: "טוען..."};
   const isTransliteration = !!topicData ? topicData.primaryTitleIsTransliteration : {en: false, he: false};
@@ -257,7 +257,7 @@ const TopicHeader = ({
 const TopicPage = ({
   tab, topic, topicTitle, setTopic, setNavTopic, openTopics, interfaceLang, multiPanel,
   showBaseText, navHome, toggleSignUpModal, openDisplaySettings,
-  updateTopicsTab, onClose, openSearch
+  updateTopicsTab, openSearch
 }) => {
     const defaultTopicData = {primaryTitle: topicTitle, textRefs: false, sheetRefs: false, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || defaultTopicData);
@@ -350,7 +350,7 @@ const TopicPage = ({
         <div className="content noOverflowX" ref={scrollableElement}>
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
-                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic} onClose={onClose} openSearch={openSearch} openDisplaySettings={openDisplaySettings} />
+                    <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic} openSearch={openSearch} openDisplaySettings={openDisplaySettings} />
                     {!topicData.isLoading ?
                        <TabView
                           currTabIndex={tabIndex}

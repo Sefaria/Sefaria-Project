@@ -1225,7 +1225,8 @@ input.noselect {
   top: 0;
 }
 .readerNavMenu.compare .content,
-.readerNavCategoryMenu.compare .content {
+.readerNavCategoryMenu.compare .content,
+.readerTextTableOfContents.compare .content {
   padding: 30px 10px;
 }
 .readerNavMenu .content .contentInner {
@@ -1475,14 +1476,14 @@ input.noselect {
   background-color: #FBFBFA;
   border-bottom: 1px solid #E2E2E1;
   box-sizing: border-box;
-  height: 58px;
+  height: 60px;
   z-index: 1;
-  padding: 5px 25px 0 25px;
+  padding: 10px 25px 10px 25px;
   vertical-align: middle;
-  line-height: 58px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  line-height: 60px;
 }
 .interface-hebrew .readerNavTop {
   direction: rtl;
@@ -2612,7 +2613,6 @@ a.navBlockTitle:hover {
 .altStructToggleBox a, .altStructToggleBox a:hover, .altStructToggleBox a:visited, .altStructToggleBox a:link, .altStructToggleBox a:active {
   text-decoration: none;
 }
-
 .readerTextTableOfContents .structToggles .altStructToggle {
   padding-bottom: 8px;
   display: block;
@@ -2622,6 +2622,9 @@ a.navBlockTitle:hover {
   font-size: 22px;
   text-align: start;
   letter-spacing: 1px;
+}
+.readerTextTableOfContents.compare .structToggles .altStructToggle {
+  font-size: 16px;
 }
 .readerTextTableOfContents .structToggles .altStructToggle.active {
   color: black;
@@ -2643,6 +2646,9 @@ a.navBlockTitle:hover {
 .readerTextTableOfContents .content .tocContent {
   padding: 30px 0 40px;
   text-align: start;
+}
+.readerTextTableOfContents.compare .content .tocContent {
+  padding: 10px 0;
 }
 .readerTextTableOfContents.narrowPanel .tocContent {
   padding: 0 0 40px;
@@ -3697,6 +3703,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   max-width:  100%;
   box-sizing: border-box;
 }
+.compare .readerControls .readerControlsInner {
+  padding: 0 25px;
+}
 .readerControls.connectionsHeader .readerControlsInner {
   padding: 0 34px;
 }
@@ -3836,6 +3845,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-size: 24px;
   margin-top: 6px;
 }
+.compare .leftButtons .readerNavMenuMenuButton {
+  font-size: 20px;
+}
 .leftButtons .readerNavMenuCloseButton {
   font-size: 44px;
 }
@@ -3857,9 +3869,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .readerTextTocHeader.readerTextToc {
   font-size: 16px;
 }
-.readerControls .readerTextToc{
-  min-width: 0;
-}
 .hebrew .readerControls .readerTextToc {
   direction: rtl;
 }
@@ -3872,7 +3881,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-hebrew .bilingual .readerControls .readerTextToc {
   direction: rtl;
 }
-
 .interface-hebrew .bilingual .readerControls .readerTextToc .readerTextTocBox.sheetBox,
 .interface-hebrew .english .readerControls .readerTextToc .readerTextTocBox.sheetBox {
   padding-left: 23px;
@@ -3887,6 +3895,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: inline-block;
   vertical-align: middle;
   max-width: 100%;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 .readerControls .readerTextToc .readerTextTocBox a h1,
 .readerControls .readerTextToc .readerTextTocBox a span,

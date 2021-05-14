@@ -1,5 +1,6 @@
 import {
   ReaderNavigationMenuCloseButton,
+  ReaderNavigationMenuMenuButton,
   ReaderNavigationMenuDisplaySettingsButton,
   CategoryAttribution,
   CategoryColorLine,
@@ -62,31 +63,19 @@ class ReaderTextTableOfContents extends Component {
     // Ensures data this text is in cache, rerenders after data load if needed
     Sefaria.getIndexDetails(this.props.title).then(data => this.setState({indexDetails: data}));
     let ref;
-    if (this.isBookToc()) {
+    if (this.isBookToc() && !this.props.compare) {
       ref  = this.getDataRef();
       let versions = Sefaria.versions(ref);
       if (!versions) {
         Sefaria.versions(ref, () => this.forceUpdate() );
       }
-    } else if (this.isTextToc()) {
-      ref  = this.getDataRef();
-      let data = this.getData();
-      if (!data) {
-        Sefaria.text(
-          ref,
-          {context: 1, enVersion: this.props.currVersions.en, heVersion: this.props.currVersions.he},
-          () => this.forceUpdate());
-      }
     }
   }
   getVersionsList() {
-    if (this.isTextToc()) {
-      let data = this.getData();
-      if (!data) { return null; }
-      return data.versions;
-    } else if (this.isBookToc()) {
+    if (this.isBookToc()) {
       return Sefaria.versions(this.props.title);
     }
+    return null;
   }
   getCurrentVersion() {
     // For now treat bilingual as english. TODO show attribution for 2 versions in bilingual case.
@@ -183,13 +172,6 @@ class ReaderTextTableOfContents extends Component {
     let defaultVersionObject = null; // TODO also unused
     let versionSection = null;
     let downloadSection = null;
-
-    let section, heSection;
-    if (this.isTextToc()) {
-      let sectionStrings = Sefaria.sectionString(this.props.currentRef);
-      section   = sectionStrings.en.named;
-      heSection = sectionStrings.he.named;
-    }
 
     // Versions List
     let versions = this.getVersionsList();
@@ -321,7 +303,7 @@ class ReaderTextTableOfContents extends Component {
       );
     }
 
-    const readButton = !this.state.indexDetails || this.isTextToc() ? null :
+    const readButton = !this.state.indexDetails || this.isTextToc() || this.props.compare ? null :
       Sefaria.lastPlaceForText(title) ? 
         <a className="button small readButton" href={"/" + Sefaria.normRef(Sefaria.lastPlaceForText(title).ref)}>
           <InterfaceText>Continue Reading</InterfaceText>
@@ -331,7 +313,6 @@ class ReaderTextTableOfContents extends Component {
           <InterfaceText>Start Reading</InterfaceText>
         </a>   
 
-
     const sidebarModules = !this.state.indexDetails ? [] :
       [
         this.props.multiPanel ? {type: "AboutText", props: {index: this.state.indexDetails}} : {type: null},
@@ -340,30 +321,38 @@ class ReaderTextTableOfContents extends Component {
 
     const isDictionary = this.state.indexDetails && !!this.state.indexDetails.lexiconName;
     const moderatorSection = Sefaria.is_moderator || Sefaria.is_editor ? (<ModeratorButtons title={title} />) : null;
-    const closeClick = (this.isBookToc()) ? this.props.closePanel : this.props.close;
     const categories = Sefaria.index(this.props.title).categories;
 
     const classes = classNames({
-      readerTextTableOfContents:1,
-      readerNavMenu:1,
+      readerTextTableOfContents: 1,
+      readerNavMenu: 1,
       bookPage: this.isBookToc(),
       narrowPanel: this.props.narrowPanel,
-      noLangToggleInHebrew: Sefaria.interfaceLang == 'hebrew'});
+      compare: this.props.compare,
+      noLangToggleInHebrew: Sefaria.interfaceLang == 'hebrew'
+    });
 
     return (
       <div className={classes}>
         <CategoryColorLine category={category} />
-        {this.isTextToc() ?
+        {this.isTextToc() || this.props.compare ?
         <>
           <div className="readerControls">
             <div className="readerControlsInner">
               <div className="leftButtons">
-                <ReaderNavigationMenuCloseButton onClick={closeClick}/>
+                {this.props.compare ?
+                <ReaderNavigationMenuMenuButton onClick={this.props.onCompareBack} compare={true} />
+                : <ReaderNavigationMenuCloseButton onClick={this.props.close} />}
               </div>
               <div className="readerTextToc readerTextTocHeader">
+                {this.props.compare ?
+                <div className="readerTextTocBox">
+                  <InterfaceText>{title}</InterfaceText>
+                </div>
+                :
                 <div className="readerTextTocBox sans-serif">
                   <InterfaceText>Table of Contents</InterfaceText>
-                </div>
+                </div>}
               </div>
               <div className="rightButtons">
                 {Sefaria.interfaceLang !== "hebrew" ?
@@ -377,8 +366,8 @@ class ReaderTextTableOfContents extends Component {
         <div className="content">
           <div className="sidebarLayout">
             <div className="contentInner">
+              {this.props.compare ? null :
               <div className="tocTop">
-
                 <div className="tocTitle" role="heading" aria-level="1">
                   <ContentText text={{en:title, he:heTitle}}/>
                   {moderatorSection}
@@ -396,7 +385,7 @@ class ReaderTextTableOfContents extends Component {
                       <ContentText html={{en:this.state.indexDetails.dedication.en, he:this.state.indexDetails.dedication.he}}/>
                     </span>
                   </div> : null }
-              </div>
+              </div>}
 
               {this.state.indexDetails ?
               <div>
@@ -427,10 +416,10 @@ class ReaderTextTableOfContents extends Component {
                 </div>
               </div> : <LoadingMessage />}
             </div>
-            {this.isBookToc() ? 
+            {this.isBookToc() && ! this.props.compare ? 
             <NavSidebar modules={sidebarModules} /> : null}
           </div>
-          {this.isBookToc() ?
+          {this.isBookToc() && ! this.props.compare ?
           <Footer /> : null}
         </div>
       </div>
@@ -438,22 +427,23 @@ class ReaderTextTableOfContents extends Component {
   }
 }
 ReaderTextTableOfContents.propTypes = {
-  mode:             PropTypes.string.isRequired,
-  title:            PropTypes.string.isRequired,
-  category:         PropTypes.string.isRequired,
-  currentRef:       PropTypes.string.isRequired,
-  settingsLanguage: PropTypes.string.isRequired,
-  currVersions:     PropTypes.object.isRequired,
-  narrowPanel:      PropTypes.bool,
-  close:            PropTypes.func.isRequired,
-  openNav:          PropTypes.func.isRequired,
-  showBaseText:     PropTypes.func.isRequired,
-  getLicenseMap:    PropTypes.func.isRequired,
-  selectVersion:    PropTypes.func,
-  viewExtendedNotes: PropTypes.func,
+  mode:                  PropTypes.string.isRequired,
+  title:                 PropTypes.string.isRequired,
+  category:              PropTypes.string.isRequired,
+  currentRef:            PropTypes.string.isRequired,
+  settingsLanguage:      PropTypes.string.isRequired,
+  currVersions:          PropTypes.object.isRequired,
+  compare:               PropTypes.bool,
+  narrowPanel:           PropTypes.bool,
+  close:                 PropTypes.func.isRequired,
+  showBaseText:          PropTypes.func.isRequired,
+  getLicenseMap:         PropTypes.func.isRequired,
+  selectVersion:         PropTypes.func,
+  viewExtendedNotes:     PropTypes.func,
+  onCompareBack:         PropTypes.func,
   backFromExtendedNotes: PropTypes.func,
-  extendedNotes:    PropTypes.string,
-  extendedNotesHebrew: PropTypes.string
+  extendedNotes:         PropTypes.string,
+  extendedNotesHebrew:   PropTypes.string
 };
 
 
