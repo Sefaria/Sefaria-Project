@@ -40,7 +40,7 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related, annot
     if with_links:
         response['links'] = {}
         link_dups_by_type = defaultdict(set)  # duplicates can crop up when group_related is true
-        if len(intra_links) > 0:
+        if len(intra_links) > 0 and annotate_links:
             link_topic_dict = {other_topic.slug: other_topic for other_topic in TopicSet({"$or": [{"slug": link['topic']} for link in intra_links]})}
         else:
             link_topic_dict = {}
