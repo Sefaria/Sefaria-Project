@@ -1051,7 +1051,6 @@ class ReaderApp extends Component {
   }
   handleCompareSearchClick(n, ref, currVersions, options) {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
-    // todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
     this.replacePanel(n, ref, currVersions, options);
   }
   handleInAppLinkClick(e) {
@@ -1432,8 +1431,9 @@ class ReaderApp extends Component {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
-  openPanelAt(n, ref, currVersions, options) {
+  openPanelAt(n, ref, currVersions, options, replace) {
     // Open a new panel after `n` with the new ref
+    // If `replace`, replace existing panel at `n`, otherwise insert new panel at `n`
     // If book level, Open book toc
     const parsedRef = Sefaria.parseRef(ref);
     var index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
@@ -1472,7 +1472,7 @@ class ReaderApp extends Component {
     }
 
     var newPanels = this.state.panels.slice();
-    newPanels.splice(n+1, 0, panel);
+    newPanels.splice(replace ? n : n+1, replace ? 1 : 0, panel);
     this.setState({panels: newPanels});
     this.setHeaderState({menuOpen: null});
     this.saveLastPlace(panel, n+1);
@@ -1482,9 +1482,7 @@ class ReaderApp extends Component {
   }
   replacePanel(n, ref, currVersions, options) {
     // Opens a text in in place of the panel currently open at `n`.
-    this.openPanelAt(n, ref, currVersions, options);
-    this.replaceHistory = true;
-    this.closePanel(n);
+    this.openPanelAt(n, ref, currVersions, options, true);
   }
   openComparePanel(n, connectAfter) {
     var comparePanel = this.makePanelState({

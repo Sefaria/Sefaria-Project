@@ -6887,7 +6887,7 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
   background-color: white;
   box-sizing: border-box;
   padding: 0;
-  max-height: 300px;
+  max-height: 250px;
   overflow-x: hidden;
   overflow-y: scroll;
   border-bottom-left-radius: 7px;
@@ -8358,15 +8358,15 @@ section.SheetSource .SheetOutsideBiText {
   width: 68px;
   text-align: center;
   cursor: pointer;
-  background: #fff;
-  border: 1px solid #ccc;
+  background: var(--sefaria-blue);
+  color: white;
   border-radius: 4px;
   margin-inline-start: 15px;
   display: none;
   letter-spacing: normal;
 }
 .smallFollowButton.smallText span {
-  color: #666;
+  color: white;
 }
 body .homeFeedWrapper {
   background-color: white;

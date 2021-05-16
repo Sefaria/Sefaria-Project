@@ -1478,6 +1478,7 @@ const SefariaEditor = (props) => {
 
       let clickTimeOutId = null;
       const onClickListener = (e) => {
+        console.log(e)
         clearTimeout(clickTimeOutId);
         clickTimeOutId = setTimeout(
           () => {
@@ -1501,6 +1502,7 @@ const SefariaEditor = (props) => {
       }
 
 
+
      editorContainer.current.parentNode.parentNode.addEventListener("scroll", onScrollListener)
      editorContainer.current.parentNode.parentNode.addEventListener("click", onClickListener)
 
@@ -1509,7 +1511,7 @@ const SefariaEditor = (props) => {
           editorContainer.current.parentNode.parentNode.removeEventListener("scroll", onScrollListener)
           editorContainer.current.parentNode.parentNode.removeEventListener("click", onClickListener)
       }
-      }, [props.highlightedNode]
+    }, [props.highlightedNode, props.hasSidebar]
   );
 
 
