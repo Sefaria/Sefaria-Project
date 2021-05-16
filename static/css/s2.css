@@ -584,7 +584,7 @@ input.noselect {
   text-align: right;
   color: #000000;
   font-family: "Roboto", "Heebo", "Helvetica Neue", Ariel, sans-serif;
-  padding: 10px 17px 5px 17px;
+  padding: 5px 17px 5px 17px;
   font-size: 14px;
   text-decoration-color: #666666;
   height: 23px;
@@ -653,6 +653,12 @@ div.interfaceLinks-row a.secondLink {
 }
 @media screen and (max-width: 700px) {
   .header .interfaceLinks {
+    display: none;
+  }
+  .header .help {
+    display: none;
+  }
+  .header .profile-pic {
     display: none;
   }
   .header .accountLinks .login{

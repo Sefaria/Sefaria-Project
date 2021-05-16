@@ -97,8 +97,8 @@ const ProfilePicMenu = ({len, url, name}) => {
               <span className="int-he">הגדרות</span>
             </a></div>
             <div className="interfaceLinks-row languages">
-              <a className={`${heClass}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
-              <a className={`${enClass}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
+              <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'firstLink':'secondLink'}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
+              <a className={`${(Sefaria.interfaceLang == 'english') ? 'firstLink':'secondLink'}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
             </div>
             <div><a className="interfaceLinks-row bottom" href="/collections/sefaria-faqs">
               <span className="int-en">Help</span>
