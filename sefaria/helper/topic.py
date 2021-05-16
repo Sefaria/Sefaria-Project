@@ -98,13 +98,13 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related, annot
                     subset_ref_map[seg_ref] += [len(new_refs) - 1]
 
         response['refs'] = new_refs
-    if with_indexes:
+    if with_indexes and isinstance(topic_obj, AuthorTopic):
         response['indexes'] = [
             {
-                "en": index.title,
-                "he": index.get_title('he'),
-                "url": index.title.replace(' ', '_')
-            } for index in topic_obj.get_authored_indexes()
+                "en": en,
+                "he": he,
+                "url": url
+            } for (url, en, he) in topic_obj.get_aggregated_urls_for_authors_indexes()
         ]
 
     if getattr(topic_obj, 'isAmbiguous', False):

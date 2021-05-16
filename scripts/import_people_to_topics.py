@@ -494,98 +494,6 @@ def get_wikipedia_links_for_wikidata_ids():
     for k, v in lang_count.items():
         print(k, f'{v}/{len(entity_map)} = {v/len(entity_map)}')
 
-def aggregate_author_indexes_by_category(author_slug):
-    def index_is_commentary(index):
-        return getattr(index, 'base_text_titles', None) and len(index.base_text_titles) > 0 and getattr(index, 'collective_title', None)
-    
-    def get_shared_category(temp_indexes):
-        cat_choice_dict = defaultdict(list)
-        for index in temp_indexes:
-            for icat, cat in enumerate(index.categories):
-                cat_path = tuple(index.categories[:icat+1])
-                cat_choice_dict[(icat, cat_path)] += [index]
-        sorted_cat_options = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
-        (_, cat_path), top_indexes = sorted_cat_options[0]
-        return Category().load({"path": list(cat_path)})
-
-    def get_indexes_in_category_path(path, include_dependant=False):
-        query = {} if include_dependant else {'dependence': {'$in': [False, None]}}
-        for icat, cat in enumerate(path):
-            query[f'categories.{icat}'] = cat
-        return IndexSet(query)
-
-    def indexes_fill_category(author, temp_indexes, path, include_dependant):
-        temp_index_title_set = {i.title for i in temp_indexes}
-        indexes_in_path = get_indexes_in_category_path(path, include_dependant)
-        if indexes_in_path.count() == 0:
-            # could be these are dependent texts without a collective title for some reason
-            indexes_in_path = get_indexes_in_category_path(path, True)
-            if indexes_in_path.count() == 0:
-                return False
-        path_end_set = {tuple(i.categories[len(path):]) for i in temp_indexes}
-        for index_in_path in indexes_in_path:
-            if tuple(index_in_path.categories[len(path):]) in path_end_set:
-                if index_in_path.title not in temp_index_title_set and author.slug not in set(getattr(index_in_path, 'authors', [])):
-                    return False
-        return True
-
-    def category_matches_author(author: Topic, category: Category, collective_title: Optional[str]) -> bool:
-        if collective_title is not None: return False
-        cat_term = Term().load({"name": category.sharedTitle})
-        return len(set(cat_term.get_titles()) & set(author.get_titles())) > 0
-
-    author = Topic.init(author_slug)
-    indexes = author.get_authored_indexes()
-    
-    index_or_cat_list = [] # [(index_or_cat, collective_title_term, base_category)]
-    cat_aggregator = defaultdict(lambda: defaultdict(list))  # of shape {(collective_title, top_cat): {(icat, category): [index_object]}}
-    MAX_ICAT_FROM_END_TO_CONSIDER = 2
-    for index in indexes:
-        is_comm = index_is_commentary(index)
-        base = library.get_index(index.base_text_titles[0]) if is_comm else index
-        collective_title = index.collective_title if is_comm else None
-        base_cat_path = tuple(base.categories[:-MAX_ICAT_FROM_END_TO_CONSIDER+1])
-        for icat in range(len(base.categories) - MAX_ICAT_FROM_END_TO_CONSIDER, len(base.categories)):
-            cat_aggregator[(collective_title, base_cat_path)][(icat, tuple(base.categories[:icat+1]))] += [index]
-    for (collective_title, _), cat_choice_dict in cat_aggregator.items():
-        cat_choices_sorted = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
-        (_, best_base_cat_path), temp_indexes = cat_choices_sorted[0]
-        if len(temp_indexes) == 1:
-            index_or_cat_list += [(temp_indexes[0], None, None)]
-            continue
-        
-        base_category = Category().load({"path": list(best_base_cat_path)})
-        if collective_title is None:
-            index_category = base_category
-            collective_title_term = None
-        else:
-            index_category = get_shared_category(temp_indexes)
-            collective_title_term = Term().load({"name": collective_title})
-        if index_category is None or not indexes_fill_category(author, temp_indexes, index_category.path, collective_title is not None) or category_matches_author(author, index_category, collective_title):
-            for temp_index in temp_indexes:
-                index_or_cat_list += [(temp_index, None, None)]
-            continue
-        index_or_cat_list += [(index_category, collective_title_term, base_category)]
-    return index_or_cat_list
-
-def get_links_for_author(author_slug):
-    index_or_cat_list = aggregate_author_indexes_by_category(author_slug)
-    link_names = []  # [(href, en, he)]
-    for index_or_cat, collective_title_term, base_category in index_or_cat_list:
-        if isinstance(index_or_cat, Index):
-            link_names += [(f'sefaria.org/{index_or_cat.title.replace(" ", "_")}', index_or_cat.get_title('en'), index_or_cat.get_title('he'))]
-        else:
-            if collective_title_term is None:
-                cat_term = Term().load({"name": index_or_cat.sharedTitle})
-                en_text = cat_term.get_primary_title('en')
-                he_text = cat_term.get_primary_title('he')
-            else:
-                base_category_term = Term().load({"name": base_category.sharedTitle})
-                en_text = f'{collective_title_term.get_primary_title("en")} on {base_category_term.get_primary_title("en")}'
-                he_text = f'{collective_title_term.get_primary_title("he")} על {base_category_term.get_primary_title("he")}'
-            link_names += [(f'sefaria.org/texts/{"/".join(index_or_cat.path)}', en_text, he_text)]
-    return link_names
-
 def add_subclasses():
     person = Topic.init('people')
     for topic in person.topics_by_link_type_recursively(only_leaves=True):
@@ -608,8 +516,8 @@ if __name__ == "__main__":
     
     # ONE TIMERS meshulam-katz | yosef-shaul-nathanson | david-ben-solomon-ibn-(abi)-zimra | aaron-samuel-kaidanover | yom-tov-lipmann-heller
     # for t in TopicSet({"alt_ids.old-person-key": {"$exists": True}}):  
-    # for t in [Topic.init('yom-tov-lipmann-heller')]:
-    #     link_names = get_links_for_author(t.slug)
+    # for t in [Topic.init('rashi1')]:
+    #     link_names = t.get_aggregated_urls_for_authors_indexes()
     #     if len(link_names) == 0: continue
     #     print(t.slug, t.get_primary_title('en'))
     #     for yo in link_names:

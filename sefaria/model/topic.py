@@ -2,6 +2,7 @@ from typing import Union, Optional
 from . import abstract as abst
 from .schema import AbstractTitledObject, TitleGroup
 from .text import Ref, IndexSet
+from .category import Category
 from sefaria.system.exceptions import DuplicateRecordError
 from sefaria.model.timeperiod import TimePeriod
 import structlog
@@ -383,7 +384,97 @@ class AuthorTopic(PersonTopic):
         """
         Find topic corresponding to deprecated Person key
         """
-        return Topic().load({"alt_ids.old-person-key": key})
+        return AuthorTopic().load({"alt_ids.old-person-key": key})
+
+    def _authors_indexes_fill_category(self, indexes, path, include_dependant):
+        from .text import library
+
+        temp_index_title_set = {i.title for i in indexes}
+        indexes_in_path = library.get_indexes_in_category_path(path, include_dependant, full_records=True)
+        if indexes_in_path.count() == 0:
+            # could be these are dependent texts without a collective title for some reason
+            indexes_in_path = get_indexes_in_category_path(path, True)
+            if indexes_in_path.count() == 0:
+                return False
+        path_end_set = {tuple(i.categories[len(path):]) for i in indexes}
+        for index_in_path in indexes_in_path:
+            if tuple(index_in_path.categories[len(path):]) in path_end_set:
+                if index_in_path.title not in temp_index_title_set and self.slug not in set(getattr(index_in_path, 'authors', [])):
+                    return False
+        return True
+
+    def _category_matches_author(self, category: Category, collective_title: Optional[str]) -> bool:
+        from .schema import Term
+
+        if collective_title is not None: return False
+        cat_term = Term().load({"name": category.sharedTitle})
+        return len(set(cat_term.get_titles()) & set(self.get_titles())) > 0
+
+    def aggregate_authors_indexes_by_category(self):
+        from .text import library
+        from .schema import Term
+        from collections import defaultdict
+
+        def index_is_commentary(index):
+            return getattr(index, 'base_text_titles', None) and len(index.base_text_titles) > 0 and getattr(index, 'collective_title', None)
+
+        indexes = self.get_authored_indexes()
+        
+        index_or_cat_list = [] # [(index_or_cat, collective_title_term, base_category)]
+        cat_aggregator = defaultdict(lambda: defaultdict(list))  # of shape {(collective_title, top_cat): {(icat, category): [index_object]}}
+        MAX_ICAT_FROM_END_TO_CONSIDER = 2
+        for index in indexes:
+            is_comm = index_is_commentary(index)
+            base = library.get_index(index.base_text_titles[0]) if is_comm else index
+            collective_title = index.collective_title if is_comm else None
+            base_cat_path = tuple(base.categories[:-MAX_ICAT_FROM_END_TO_CONSIDER+1])
+            for icat in range(len(base.categories) - MAX_ICAT_FROM_END_TO_CONSIDER, len(base.categories)):
+                cat_aggregator[(collective_title, base_cat_path)][(icat, tuple(base.categories[:icat+1]))] += [index]
+        for (collective_title, _), cat_choice_dict in cat_aggregator.items():
+            cat_choices_sorted = sorted(cat_choice_dict.items(), key=lambda x: (len(x[1]), x[0][0]), reverse=True)
+            (_, best_base_cat_path), temp_indexes = cat_choices_sorted[0]
+            if len(temp_indexes) == 1:
+                index_or_cat_list += [(temp_indexes[0], None, None)]
+                continue
+            
+            base_category = Category().load({"path": list(best_base_cat_path)})
+            if collective_title is None:
+                index_category = base_category
+                collective_title_term = None
+            else:
+                index_category = Category.get_shared_category(temp_indexes)
+                collective_title_term = Term().load({"name": collective_title})
+            if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path, collective_title is not None) or self._category_matches_author(index_category, collective_title):
+                for temp_index in temp_indexes:
+                    index_or_cat_list += [(temp_index, None, None)]
+                continue
+            index_or_cat_list += [(index_category, collective_title_term, base_category)]
+        return index_or_cat_list
+
+    def get_aggregated_urls_for_authors_indexes(self) -> list:
+        """
+        Aggregates author's works by category when possible and
+        returns list of tuples. Each tuple is of shape (url, en, he) corresponding to an index or category of indexes of this author's works.
+        """
+        from .schema import Term
+        from .text import Index
+
+        index_or_cat_list = self.aggregate_authors_indexes_by_category()
+        link_names = []  # [(href, en, he)]
+        for index_or_cat, collective_title_term, base_category in index_or_cat_list:
+            if isinstance(index_or_cat, Index):
+                link_names += [(f'/{index_or_cat.title.replace(" ", "_")}', index_or_cat.get_title('en'), index_or_cat.get_title('he'))]
+            else:
+                if collective_title_term is None:
+                    cat_term = Term().load({"name": index_or_cat.sharedTitle})
+                    en_text = cat_term.get_primary_title('en')
+                    he_text = cat_term.get_primary_title('he')
+                else:
+                    base_category_term = Term().load({"name": base_category.sharedTitle})
+                    en_text = f'{collective_title_term.get_primary_title("en")} on {base_category_term.get_primary_title("en")}'
+                    he_text = f'{collective_title_term.get_primary_title("he")} על {base_category_term.get_primary_title("he")}'
+                link_names += [(f'/texts/{"/".join(index_or_cat.path)}', en_text, he_text)]
+        return link_names
 
 class TopicSet(abst.AbstractMongoSet):
     recordClass = Topic
