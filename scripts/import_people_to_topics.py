@@ -7,6 +7,7 @@ from sefaria.system.exceptions import InputError
 from sefaria.model.person import Person, PersonSet, PersonRelationship, PersonRelationshipSet
 from collections import defaultdict
 
+# BASE_PATH = "/Users/nss/Downloads"
 BASE_PATH = "/home/nss/Downloads"
 # BASE_PATH = "data"
 
@@ -189,6 +190,7 @@ def import_and_merge_authors():
                 "slug": person.primary_name('en') if len(person.primary_name('en')) > 0 else person.primary_name('he'),
                 "titles": [],
                 "alt_ids": {"old-person-key": person.key},
+                "subclass": "author",
             }
             for lang in ('en', 'he'):
                 prim = person.primary_name(lang)
@@ -388,7 +390,7 @@ def create_topic_tocs():
     }).save()
 
     for p in PersonSet():
-        t = Topic.get_person_by_key(p.key)
+        t = AuthorTopic.get_person_by_key(p.key)
         if not t:
             continue
         to_topic = "authors" if p.is_post_talmudic() else "talmudic-figures"
@@ -584,6 +586,13 @@ def get_links_for_author(author_slug):
             link_names += [(f'sefaria.org/texts/{"/".join(index_or_cat.path)}', en_text, he_text)]
     return link_names
 
+def add_subclasses():
+    person = Topic.init('people')
+    for topic in person.topics_by_link_type_recursively(only_leaves=True):
+        if not getattr(topic, 'subclass', False):
+            topic.subclass = 'person'
+            topic.save()
+
 if __name__ == "__main__":
     # create_csvs_to_match()
     # create_csv_of_all_topics()
@@ -595,6 +604,7 @@ if __name__ == "__main__":
     import_people_links()
     create_topic_tocs()
     find_popular_writings(100, 300)
+    add_subclasses()
     
     # ONE TIMERS meshulam-katz | yosef-shaul-nathanson | david-ben-solomon-ibn-(abi)-zimra | aaron-samuel-kaidanover | yom-tov-lipmann-heller
     # for t in TopicSet({"alt_ids.old-person-key": {"$exists": True}}):  
