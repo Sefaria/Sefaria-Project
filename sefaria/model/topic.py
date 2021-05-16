@@ -393,7 +393,7 @@ class AuthorTopic(PersonTopic):
         indexes_in_path = library.get_indexes_in_category_path(path, include_dependant, full_records=True)
         if indexes_in_path.count() == 0:
             # could be these are dependent texts without a collective title for some reason
-            indexes_in_path = library.get_indexes_in_category_path(path, True)
+            indexes_in_path = library.get_indexes_in_category_path(path, True, full_records=True)
             if indexes_in_path.count() == 0:
                 return False
         path_end_set = {tuple(i.categories[len(path):]) for i in indexes}
