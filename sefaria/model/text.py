@@ -760,7 +760,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         if getattr(self, "authors", None):
             if not isinstance(self.authors, list):
-                raise InputError(f'{self.title} authors must be a list.'))
+                raise InputError(f'{self.title} authors must be a list.')
             for author_slug in self.authors:
                 topic = Topic.init(author_slug)
                 assert isinstance(topic, AuthorTopic), f"Author with slug {author_slug} does not match any valid AuthorTopic instance. Make sure the slug exists in the topics collection and has the subclass 'author'."
