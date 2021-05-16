@@ -176,6 +176,7 @@ def import_and_merge_authors():
                             'he': 'ספר'
                         }
                 main_book.save()
+                main_book.set_slug_to_primary_title()
             person = Person().load({"key": row[0]})
             if person is None:
                 ps = PersonSet({"names.text": row[0]})
@@ -516,6 +517,11 @@ def add_subclasses():
             topic.subclass = 'person'
             topic.save()
 
+def reset_slugs():
+    ts = TopicSet({"subclass": "author"})
+    for t in tqdm(ts, total=ts.count()):
+        t.set_slug_to_primary_title()
+
 if __name__ == "__main__":
     # create_csvs_to_match()
     # create_csv_of_all_topics()
@@ -528,6 +534,7 @@ if __name__ == "__main__":
     create_topic_tocs()
     find_popular_writings(100, 300)
     add_subclasses()
+    reset_slugs()
     
     # ONE TIMERS meshulam-katz | yosef-shaul-nathanson | david-ben-solomon-ibn-(abi)-zimra | aaron-samuel-kaidanover | yom-tov-lipmann-heller
     # for t in TopicSet({"alt_ids.old-person-key": {"$exists": True}}):  

@@ -183,6 +183,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         old_slug = getattr(self, slug_field)
         setattr(self, slug_field, new_slug)
         setattr(self, slug_field, self.normalize_slug_field(slug_field))
+        self.save()  # so that topic with this slug exists when saving links to it
         self.merge(old_slug)
 
     def merge(self, other: Union['Topic', str]) -> None:
@@ -195,7 +196,7 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             return
         other_slug = other if isinstance(other, str) else other.slug
         if other_slug == self.slug:
-            logger.warning('Cant merge slug into itself')
+            logger.warning(f'Cant merge slug into itself. Slug == {self.slug}')
             return
 
         # links
@@ -216,6 +217,12 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
         # source sheets
         db.sheets.update_many({'topics.slug': other_slug}, {"$set": {'topics.$[element].slug': self.slug}}, array_filters=[{"element.slug": other_slug}])
+
+        # indexes
+        for index in IndexSet({"authors": other_slug}):
+            index.authors = [self.slug if author_slug == other_slug else author_slug for author_slug in index.authors]
+            props = index._saveable_attrs()
+            db.index.replace_one({"title":index.title}, props)
 
         if isinstance(other, Topic):
             # titles

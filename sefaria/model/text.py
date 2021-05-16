@@ -759,6 +759,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
             raise InputError('All new Index records must have a valid schema.')
 
         if getattr(self, "authors", None):
+            from .topic import Topic, AuthorTopic
             if not isinstance(self.authors, list):
                 raise InputError(f'{self.title} authors must be a list.')
             for author_slug in self.authors:
