@@ -101,10 +101,9 @@ def get_topic(topic, with_links, annotate_links, with_refs, group_related, annot
     if with_indexes and isinstance(topic_obj, AuthorTopic):
         response['indexes'] = [
             {
-                "en": en,
-                "he": he,
+                "text": text_dict,
                 "url": url
-            } for (url, en, he) in topic_obj.get_aggregated_urls_for_authors_indexes()
+            } for (url, text_dict) in topic_obj.get_aggregated_urls_for_authors_indexes()
         ]
 
     if getattr(topic_obj, 'isAmbiguous', False):

@@ -454,7 +454,7 @@ class AuthorTopic(PersonTopic):
     def get_aggregated_urls_for_authors_indexes(self) -> list:
         """
         Aggregates author's works by category when possible and
-        returns list of tuples. Each tuple is of shape (url, en, he) corresponding to an index or category of indexes of this author's works.
+        returns list of tuples. Each tuple is of shape (url, {"en", "he"}) corresponding to an index or category of indexes of this author's works.
         """
         from .schema import Term
         from .text import Index
@@ -463,7 +463,7 @@ class AuthorTopic(PersonTopic):
         link_names = []  # [(href, en, he)]
         for index_or_cat, collective_title_term, base_category in index_or_cat_list:
             if isinstance(index_or_cat, Index):
-                link_names += [(f'/{index_or_cat.title.replace(" ", "_")}', index_or_cat.get_title('en'), index_or_cat.get_title('he'))]
+                link_names += [(f'/{index_or_cat.title.replace(" ", "_")}', {"en": index_or_cat.get_title('en'), "he": index_or_cat.get_title('he')})]
             else:
                 if collective_title_term is None:
                     cat_term = Term().load({"name": index_or_cat.sharedTitle})
@@ -473,7 +473,7 @@ class AuthorTopic(PersonTopic):
                     base_category_term = Term().load({"name": base_category.sharedTitle})
                     en_text = f'{collective_title_term.get_primary_title("en")} on {base_category_term.get_primary_title("en")}'
                     he_text = f'{collective_title_term.get_primary_title("he")} על {base_category_term.get_primary_title("he")}'
-                link_names += [(f'/texts/{"/".join(index_or_cat.path)}', en_text, he_text)]
+                link_names += [(f'/texts/{"/".join(index_or_cat.path)}', {"en": en_text, "he": he_text})]
         return link_names
 
 class TopicSet(abst.AbstractMongoSet):
