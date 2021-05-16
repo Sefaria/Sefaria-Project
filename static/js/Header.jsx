@@ -29,12 +29,11 @@ const Help = () => (
       </span>
     </div>
 )
+
 const ProfilePicMenu = ({len, url, name}) => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
-  let enClass = "";
-  let heClass = "";
-  let menuWidth = 150;
+  const menuWidth = name.length > 12 ? 150 + 6*(name.length - 12) : 150;
 
   const handleClick = (e) => {
     e.preventDefault();
@@ -68,17 +67,6 @@ const ProfilePicMenu = ({len, url, name}) => {
   }, []);
   const getCurrentPage = () => {
     return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
-  }
-  if (Sefaria.interfaceLang == "english") {
-    enClass = "firstLink";
-    heClass = "secondLink";
-  }
-  else {
-    enClass = "secondLink";
-    heClass = "firstLink";
-  }
-  if (name.length >= 12) {
-    menuWidth += 4*(name.length - 12);
   }
   return (
     <div ref={wrapperRef}>
