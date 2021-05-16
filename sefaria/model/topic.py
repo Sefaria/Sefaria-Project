@@ -14,11 +14,16 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     history_noun = 'topic'
     slug_fields = ['slug']
     title_group = None
+    subclass_map = {
+        'person': 'PersonTopic',
+        'author': 'AuthorTopic',
+    }
     required_attrs = [
         'slug',
         'titles',
     ]
     optional_attrs = [
+        'subclass',  # str which indicates which subclass of `Topic` this instance is
         'alt_ids',
         'properties',
         'description',
@@ -34,17 +39,27 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         'isAmbiguous',  # True if topic primary title can refer to multiple other topics
     ]
 
-    @staticmethod
-    def init(slug:str) -> 'Topic':
+    @classmethod
+    def init(cls, slug:str) -> 'Topic':
         """
         Convenience func to avoid using .load() when you're only passing a slug
+        Can return a subclass of Topic based on `subclass` field
         :param slug:
         :return:
         """
-        return Topic().load({'slug': slug})
+        topic =  Topic().load({'slug': slug})
+        if getattr(topic, 'subclass', False):
+            Subclass = globals()[cls.subclass_map[topic.subclass]]
+            topic = Subclass(topic._saveable_attrs())
+        return topic
 
     def _set_derived_attributes(self):
         self.set_titles(getattr(self, "titles", None))
+
+    def _validate(self):
+        super(Topic, self)._validate()
+        if getattr(self, 'subclass', False):
+            assert self.subclass in self.subclass_map, f"Field `subclass` set to {self.subclass} which is not one of the valid subclass keys in `Topic.subclass_map`. Valid keys are {', '.join(self.subclass_map.keys())}"
 
     def set_titles(self, titles):
         self.title_group = TitleGroup(titles)
@@ -251,49 +266,11 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
 
     def contents(self, **kwargs):
         mini = kwargs.get('minify', False)
-        annotate_time_period = kwargs.get('annotate_time_period', False)
-
         d = {'slug': self.slug} if mini else super(Topic, self).contents(**kwargs)
         d['primaryTitle'] = {}
         for lang in ('en', 'he'):
             d['primaryTitle'][lang] = self.get_primary_title(lang=lang, with_disambiguation=kwargs.get('with_disambiguation', True))
-        if annotate_time_period:
-            tp = self.most_accurate_time_period()
-            if tp is not None:
-                d['timePeriod'] = {
-                    "name": {
-                        "en": tp.primary_name("en"),
-                        "he": tp.primary_name("he")
-                    },
-                    "yearRange": {
-                        "en": tp.period_string("en"),
-                        "he": tp.period_string("he")
-                    }
-                }
         return d
-
-    # Dates
-    # A person may have an era, a generation, or a specific birth and death years, which each may be approximate.
-    # They may also have none of these...
-    def most_accurate_time_period(self) -> Optional[TimePeriod]:
-        if self.get_property("birthYear") and self.get_property("deathYear"):
-            return TimePeriod({
-                "start": self.get_property("birthYear"),
-                "startIsApprox": self.get_property("birthYearIsApprox", False),
-                "end": self.get_property("deathYear"),
-                "endIsApprox": self.get_property("deathYearIsApprox", False)
-            })
-        elif self.get_property("birthYear") and self.get_property("era", "CO"):
-            return TimePeriod({
-                "start": self.get_property("birthYear"),
-                "startIsApprox": self.get_property("birthYearIsApprox", False),
-            })
-        elif self.get_property("generation"):
-            return TimePeriod().load({"symbol": self.get_property("generation")})
-        elif self.get_property("era"):
-            return TimePeriod().load({"symbol": self.get_property("era")})
-        else:
-            return None
 
     def get_primary_title(self, lang='en', with_disambiguation=True):
         title = super(Topic, self).get_primary_title(lang=lang)
@@ -335,17 +312,6 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
             'dataSource': data_source
         }
 
-    def get_authored_indexes(self):
-        ins = IndexSet({"authors": self.slug})
-        return sorted(ins, key=lambda i: Ref(i.title).order_id())
-    
-    @staticmethod
-    def get_person_by_key(key: str):
-        """
-        Find topic corresponding to deprecated Person key
-        """
-        return Topic().load({"alt_ids.old-person-key": key})
-
     @staticmethod
     def get_uncategorized_slug_set() -> set:
         categorized_topics = IntraTopicLinkSet({"linkType": TopicLinkType.isa_type}).distinct("fromTopic")
@@ -358,6 +324,66 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
     def __repr__(self):
         return "{}.init('{}')".format(self.__class__.__name__, self.slug)
 
+class PersonTopic(Topic):
+    """
+    Represents a topic which is a person. Not necessarily an author of a book.
+    """
+
+    def contents(self, **kwargs):
+        annotate_time_period = kwargs.get('annotate_time_period', False)
+        d = super(PersonTopic, self).contents(**kwargs)
+        if annotate_time_period:
+            tp = self.most_accurate_time_period()
+            if tp is not None:
+                d['timePeriod'] = {
+                    "name": {
+                        "en": tp.primary_name("en"),
+                        "he": tp.primary_name("he")
+                    },
+                    "yearRange": {
+                        "en": tp.period_string("en"),
+                        "he": tp.period_string("he")
+                    }
+                }
+        return d
+    
+    # A person may have an era, a generation, or a specific birth and death years, which each may be approximate.
+    # They may also have none of these...
+    def most_accurate_time_period(self) -> Optional[TimePeriod]:
+        if self.get_property("birthYear") and self.get_property("deathYear"):
+            return TimePeriod({
+                "start": self.get_property("birthYear"),
+                "startIsApprox": self.get_property("birthYearIsApprox", False),
+                "end": self.get_property("deathYear"),
+                "endIsApprox": self.get_property("deathYearIsApprox", False)
+            })
+        elif self.get_property("birthYear") and self.get_property("era", "CO"):
+            return TimePeriod({
+                "start": self.get_property("birthYear"),
+                "startIsApprox": self.get_property("birthYearIsApprox", False),
+            })
+        elif self.get_property("generation"):
+            return TimePeriod().load({"symbol": self.get_property("generation")})
+        elif self.get_property("era"):
+            return TimePeriod().load({"symbol": self.get_property("era")})
+        else:
+            return None
+
+class AuthorTopic(PersonTopic):
+    """
+    Represents a topic which is an author of a book. Can be used on the `authors` field of `Index`
+    """
+
+    def get_authored_indexes(self):
+        ins = IndexSet({"authors": self.slug})
+        return sorted(ins, key=lambda i: Ref(i.title).order_id())
+    
+    @staticmethod
+    def get_person_by_key(key: str):
+        """
+        Find topic corresponding to deprecated Person key
+        """
+        return Topic().load({"alt_ids.old-person-key": key})
 
 class TopicSet(abst.AbstractMongoSet):
     recordClass = Topic
