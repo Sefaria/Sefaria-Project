@@ -5260,7 +5260,7 @@ class Library(object):
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
-    def get_indexes_in_category_path(path: list, include_dependant=False, full_records=False) -> Union[IndexSet, list]:
+    def get_indexes_in_category_path(self, path: list, include_dependant=False, full_records=False) -> Union[IndexSet, list]:
         """
         :param list path: list of category names, starting from root.
         :param bool include_dependant: If true includes records of Commentary and Targum
