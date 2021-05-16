@@ -5260,6 +5260,19 @@ class Library(object):
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 
+    def get_indexes_in_category_path(path: list, include_dependant=False, full_records=False) -> Union[IndexSet, list]:
+        """
+        :param list path: list of category names, starting from root.
+        :param bool include_dependant: If true includes records of Commentary and Targum
+        :param bool full_records: If True will return the actual :class: 'IndexSet' otherwise just the titles
+        :return: :class:`IndexSet` of :class:`Index` records in the specified category path
+        """
+        q = {} if include_dependant else {'dependence': {'$in': [False, None]}}
+        for icat, cat in enumerate(path):
+            q[f'categories.{icat}'] = cat
+
+        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+
     def get_indices_by_collective_title(self, collective_title, full_records=False):
         q = {'collective_title': collective_title}
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
