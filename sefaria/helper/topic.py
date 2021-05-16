@@ -81,13 +81,14 @@ def group_links_by_type(link_class, links, annotate_links, group_related):
             if link['topic'] in link_dups_by_type[link_type_slug]:
                 continue
             link_dups_by_type[link_type_slug].add(link['topic'])
+            if annotate_links:
+                link = annotate_topic_link(link, link_topic_dict)
+                if link is None:
+                    continue
 
         del link['linkType']
         del link['class']
-        if annotate_links:
-            link = annotate_topic_link(link, link_topic_dict)
-            if link is None:
-                continue
+
         if link_type_slug in grouped_links:
             grouped_links[link_type_slug][agg_field] += [link]
         else:
