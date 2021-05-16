@@ -758,8 +758,12 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         else:  # old style commentator record are no longer supported
             raise InputError('All new Index records must have a valid schema.')
 
-        if getattr(self, "authors", None) and not isinstance(self.authors, list):
-            raise InputError('{} authors must be a list.'.format(self.title))
+        if getattr(self, "authors", None):
+            if not isinstance(self.authors, list)
+                raise InputError(f'{self.title} authors must be a list.'))
+            for author_slug in self.authors:
+                topic = Topic.init(author_slug)
+                assert isinstance(topic, AuthorTopic), f"Author with slug {author_slug} does not match any valid AuthorTopic instance. Make sure the slug exists in the topics collection and has the subclass 'author'."
 
         return True
 
