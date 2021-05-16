@@ -388,7 +388,12 @@ def create_topic_tocs():
         "isTopLevelDisplay": True,
         "displayOrder": 101
     }).save()
-
+    IntraTopicLink({
+        "toTopic": "vocations",
+        "fromTopic": "authors",
+        "linkType": "is-a",
+        "dataSource": "sefaria",        
+    }).save()
     for p in PersonSet():
         t = AuthorTopic.get_person_by_key(p.key)
         if not t:
@@ -404,6 +409,16 @@ def create_topic_tocs():
             }).save()
         except InputError as e:
             print(e)
+        if len(t.get_authored_indexes()) > 0:
+            try:
+                IntraTopicLink({
+                    "toTopic": "authors",
+                    "fromTopic": t.slug,
+                    "linkType": "has-role",
+                    "dataSource": "sefaria",        
+                }).save()
+            except InputError as e:
+                print(e)     
 
 
 def find_popular_writings(top_n, min_pr):
