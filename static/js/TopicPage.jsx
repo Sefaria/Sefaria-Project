@@ -236,8 +236,10 @@ const TopicHeader = ({
        : null}
        {topicData && topicData.indexes ?
         <div>
-          <InterfaceText text={{en: "Works by Rashi", he: "Works by Rashi"}} />
-          {topicData.indexes.map(({text, url}) => <SimpleLinkedBlock key={url} {...text} url={url} />)}
+          <div className="sectionTitleText authorIndexTitle"><InterfaceText text={{en: `Works by ${en}`, he: `Works by${he}`}} /></div>
+          <div className="authorIndexList">
+            {topicData.indexes.map(({text, url}) => <SimpleLinkedBlock key={url} {...text} url={url} classes="authorIndex" />)}
+          </div>
         </div>
        : null}
     </div>

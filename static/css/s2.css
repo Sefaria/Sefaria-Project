@@ -1509,6 +1509,21 @@ h1 .languageToggle .he {
     font-size: 20px;
   }
 }
+.authorIndexTitle {
+  margin-top: 40px;
+  margin-bottom: 17px;
+}
+.authorIndexList {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+.authorIndex {
+  width: 50%;
+  font-size: var(--serif-h3-font-size);
+  margin-bottom: 10px;
+}
 .readerNavMenu .libraryMessage {
   font-size: 18px;
   margin-bottom: 40px;
