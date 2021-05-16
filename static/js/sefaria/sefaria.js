@@ -1872,7 +1872,11 @@ _media: {},
           tabKey = refObj.is_sheet ? 'sheets' : 'sources';
         }
         if (!tabs[tabKey]) {
-          tabs[tabKey] = {refMap: {}};
+          tabs[tabKey] = {
+            refMap: {},
+            title: linkTypeObj.title,
+            shouldDisplay: linkTypeObj.shouldDisplay,
+          };
         }
         const ref = refObj.is_sheet ? refObj.ref.replace('Sheet ', '') : refObj.ref;
         tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources};
