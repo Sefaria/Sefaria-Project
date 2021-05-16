@@ -1864,18 +1864,25 @@ _media: {},
   processTopicsData: function(data) {
     if (!data) { return null; }
     if (!data.refs) { return data; }
-    // Split  `refs` in `sourceRefs` and `sheetRefs`
-    let refMap = {};
-    for (let refObj of data.refs.filter(s => !s.is_sheet)) {
-      refMap[refObj.ref] = {ref: refObj.ref, order: refObj.order, dataSources: refObj.dataSources};
+    const tabs = {};
+    for (let [linkTypeSlug, linkTypeObj] of Object.entries(data.refs)) {
+      for (let refObj of linkTypeObj.refs) {
+        let tabKey = linkTypeSlug;
+        if (tabKey == 'about') {
+          tabKey = refObj.is_sheet ? 'sheets' : 'sources';
+        }
+        if (!tabs[tabKey]) {
+          tabs[tabKey] = {refMap: {}};
+        }
+        const ref = refObj.is_sheet ? refObj.ref.replace('Sheet ', '') : refObj.ref;
+        tabs[tabKey].refMap[refObj.ref] = {ref, order: refObj.order, dataSources: refObj.dataSources};
+      }
     }
-    data.textRefs = Object.values(refMap);
-    let sheetMap = {};
-    for (let refObj of data.refs.filter(s => s.is_sheet)) {
-      const sid = refObj.ref.replace('Sheet ', '');
-      sheetMap[sid] = {sid, order: refObj.order};
+    for (let tabObj of Object.values(tabs)) {
+      tabObj.refs = Object.values(tabObj.refMap);
+      delete tabObj.refMap;
     }
-    data.sheetRefs = Object.values(sheetMap);
+    data.tabs = tabs;
     return data;
   },
   getTopicFromCache: function(topic) {
