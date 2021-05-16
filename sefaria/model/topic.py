@@ -227,7 +227,8 @@ class Topic(abst.AbstractMongoRecord, AbstractTitledObject):
         if isinstance(other, Topic):
             # titles
             for title in other.titles:
-                if title.get('primary', False):
+                if title.get('primary', False) and self.get_primary_title(title['lang']):
+                    # delete primary flag if self already has primary in this language
                     del title['primary']
             self.titles += other.titles
 
