@@ -430,8 +430,8 @@ def find_popular_writings(top_n, min_pr):
         "slug": "popular-writing-of",
         "inverseSlug" : "has-popular-writing", 
         "displayName" : {
-            "en" : "Popular Writing", 
-            "he" : "Popular Writing"
+            "en" : "Top Citations", 
+            "he" : "Top Citations"
         }, 
         "inverseDisplayName" : {
             "en" : "Has Popular Writing", 

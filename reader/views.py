@@ -3073,7 +3073,7 @@ def topic_ref_api(request, tref):
 
 
 def _topic_data(topic):
-    response = get_topic(True, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=['about'], with_indexes=True) 
+    response = get_topic(True, topic, with_links=True, annotate_links=True, with_refs=True, group_related=True, annotate_time_period=False, ref_link_type_filters=['about', 'popular-writing-of'], with_indexes=True) 
     return response
 
 

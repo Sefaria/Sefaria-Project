@@ -1881,7 +1881,7 @@ _media: {},
           }
           tabs[tabKey] = {
             refMap: {},
-            title: linkTypeObj.title,
+            title,
             shouldDisplay: linkTypeObj.shouldDisplay,
           };
         }

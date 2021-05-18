@@ -52,7 +52,7 @@ const fetchBulkText = inRefs =>
 
 
 const fetchBulkSheet = inSheets =>
-    Sefaria.getBulkSheets(inSheets.map(x => x.sid)).then(outSheets => {
+    Sefaria.getBulkSheets(inSheets.map(x => x.ref)).then(outSheets => {
     for (let tempSheet of inSheets) {
       if (outSheets[tempSheet.sid]) {
         outSheets[tempSheet.sid].order = tempSheet.order;
@@ -310,6 +310,7 @@ const TAB_DISPLAY_DATA = [
   {
     key: 'sheets',
     fetcher: fetchBulkSheet,
+    sortOptions: ['Relevance', 'Views', 'Newest'],
     filterFunc: sheetFilter,
     sortFunc: sheetSort,
     renderWrapper: sheetRenderWrapper,
@@ -320,9 +321,9 @@ const TopicPage = ({
   hideNavHeader, showBaseText, navHome, toggleSignUpModal, openDisplaySettings,
   updateTopicsTab, onClose, openSearch
 }) => {
-    const defaultTopicData = {primaryTitle: topicTitle, tabs: {sources: {refs: false}, sheets: {refs:false}}, isLoading: true};
+    const defaultTopicData = {primaryTitle: topicTitle, tabs: {}, isLoading: true};
     const [topicData, setTopicData] = useState(Sefaria.getTopicFromCache(topic) || defaultTopicData);
-    const [tabData, setTabData] = useState(topicData ? topicData.tabData : {});
+    const [loadedData, setLoadedData] = useState(topicData ? Object.entries(topicData.tabs).reduce((obj, [key, tabObj]) => { obj[key] = tabObj.loadedData; return obj; }, {}) : {});
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
@@ -343,7 +344,7 @@ const TopicPage = ({
           if (refsWithoutData.length)  {
             setRefsToFetchByTab(prev => ({...prev, [tabKey]: refsWithoutData}));
           } else {
-            setTabData(prev => ({...prev, [tabKey]: tabObj.loadedData}));
+            setLoadedData(prev => ({...prev, [tabKey]: tabObj.loadedData}));
           }
         }
       })());
@@ -351,7 +352,7 @@ const TopicPage = ({
       return () => {
         cancel();
         setTopicData(false);
-        setTabData({});
+        setLoadedData({});
         setRefsToFetchByTab({});
       }
     }, [topic]);
@@ -360,12 +361,12 @@ const TopicPage = ({
     const displayTabs = [];
     let onClickFilterIndex = 2;
     for (let tabObj of TAB_DISPLAY_DATA) {
-      const { key } = tabObj.key;
+      const { key } = tabObj;
       useIncrementalLoad(
         tabObj.fetcher,
-        refsToFetchByTab[key],
+        refsToFetchByTab[key] || false,
         70,
-        data => setTabData(prev => {
+        data => setLoadedData(prev => {
           const updatedData = (!prev[key] || data === false) ? data : [...prev[key], ...data];
           if (topicData) { topicData.tabs[key].loadedData = updatedData; } // Persist loadedData in cache
           return {...prev, [key]: updatedData};
@@ -436,9 +437,10 @@ const TopicPage = ({
                               if (!displayTab) { return null; }
                               return (
                                 <TopicPageTab
+                                  key={key}
                                   scrollableElement={scrollableElement}
                                   showFilterHeader={showFilterHeader}
-                                  data={tabData[key]}
+                                  data={loadedData[key]}
                                   sortOptions={sortOptions}
                                   filterFunc={filterFunc}
                                   sortFunc={sortFunc}
