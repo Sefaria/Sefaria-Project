@@ -491,6 +491,17 @@ class TopicSet(abst.AbstractMongoSet):
         query = {'titles.text': title}
         return TopicSet(query=query)
 
+class PersonTopicSet(TopicSet):
+    recordClass = PersonTopic
+
+    def __init__(self, query=None, *args, **kwargs):
+        reverse_subclass_map = {v: k for k, v in Topic.subclass_map.items()}
+        query = query or {}
+        query['subclass'] = reverse_subclass_map[self.recordClass.__name__]
+        super().__init__(query=query, *args, **kwargs)
+
+class AuthorTopicSet(PersonTopicSet):
+    recordClass = AuthorTopic
 
 class TopicLinkHelper(object):
     """
