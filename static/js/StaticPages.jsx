@@ -669,6 +669,104 @@ const RemoteLearningPage = () => (
     </StaticPage>
 );
 
+const Educators = () => (
+    <StaticPage>
+
+        <Header
+            enTitle="Teach with Sefaria"
+            enText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
+            enImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
+            enImgAlt=""
+            heTitle="תחרות פיתוח תוכנה 2020"
+            heText="הכירו את המיזמים"
+            heImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
+            heImgAlt=""
+        />
+        <GreyBox>
+            <H2Block en="Empower and Engage" he=""/>
+            <EnBlock padded={true}>
+                <p>Empower your students with Sefaria’s free library of digital texts, in Hebrew and English translation, and use our teaching materials to spark creativity and foster independence. Learn new ways of teaching and engaging your students in the centuries-old conversation around Jewish texts, and join Sefaria’s Educator community.</p>
+            </EnBlock>
+            <HeBlock padded={true}>
+                <p>מתוך רצון לטפח את העתיד הדיגיטלי של מקורות יהודיים, הוצאנו לפועל ביולי 2020 את תחרות פיתוח התוכנה של ספריא. הזמנו את קהילת ספריא ברחבי העולם להשתמש במסד הנתונים הפתוח שלנו, הכולל מקורות יהודיים, תרגומים וקישורים אינטרטקסטואליים. במשך השנים השתמשו עשרות גופי צד שלישי ב־API שלנו, ערכו בעזרתו מחקרים ויצרו באמצעותו יישומים ותרשימים גרפיים. כעת רצינו לראות מה עוד הקהילה שלנו מסוגלת להמציא. נענינו בהתלהבות יוצאת דופן וקיבלנו בברכה 50 מיזמים איכותיים מאוד ממשתמשי ספריא ברחבי העולם. המשיכו לקרוא כדי לדעת עוד על שני הזוכים ועל כמה רעיונות יצירתיים מאוד הראויים בעינינו למקום של כבוד.</p>
+            </HeBlock>
+            <Spacer/>
+        </GreyBox>
+
+        <GreyBox light={true}>
+            <H2Block en="Professional Development" he="זוכה הפרס הראשון"/>
+        </GreyBox>
+
+        <Feature
+            enTitle="Professional Development"
+            enText="Whether you’re a pro or a new user, Sefaria has resources to help you and your students learn and thrive. Join a Sefaria webinar, browse our tutorials, sign up for our Educator course, or request a custom workshop for your team or your students."
+            enImg="/static/img/pbsc-2020-landing-page/talmudsidebar.png"
+            enImgAlt="Professional Development"
+            heTitle="תוסף סרגל הכלים של התלמוד"
+            heText="דב כץ<br/><br/>תוסף סרגל הכלים של התלמוד מביא את משאבי הלימוד של ספריא לאתרי דף יומי ברחבי הרשת. הפיתוח הזה נוצר מתוך רצון להתמודד עם המעבר של שיעורי הדף היומי ברחבי העולם אל המרחב הווירטואלי בעקבות נגיף קורונה.  התוסף יכול לזהות בדיוק מהו הדף שאנחנו לומדים או מאזינים לו מתוך קרוב לתריסר אתרי דף יומי – Hadran.org.il, YUTorah.org, Steinsaltz-center.org, OUTorah.org ועוד – ולפתוח סרגל כלים הכולל קישורים לטקסטים רלוונטיים במאגר של ספריא וכן קישור לדף היומי של ספריא."
+            heImg="/static/img/pbsc-2020-landing-page/talmudsidebar.png"
+            heImgAlt="תוסף סרגל הכלים של התלמוד"
+            borderColor={palette.colors.blue}
+            link="https://chrome.google.com/webstore/detail/talmud-sidebar-extension/dmpiiciebnbekblfbcdeogjkbbmeeimi"
+        />
+
+        <ButtonRow white={true} enTitle="Explore more projects" heTitle="למידע על עוד כמה מיזמים">
+            { [
+                ["Online Educator Course", "", "/static/files/Sefaria_Programs_for_Educators.pdf"],
+                ["Lesson Plans on Sefaria", "", "/"],
+                ["Schedule A Workshop", "", "https://docs.google.com/forms/d/1CJZHRivM2qFeF2AE2afpvE1m86AgJPCxUEFu5EG92F8/viewform?ts=5a4dc5e0&edit_requested=true"]
+            ].map(i =>
+                <SimpleButton
+                    white={true}
+                    rounded={false}
+                    tall={true}
+                    newTab={true}
+                    href={i[2]}
+                    he_href={i[2]}
+                    he={i[0]}
+                    en={i[0]}
+                />)
+            }
+        </ButtonRow>
+
+        <H2Block en="What the Judges Had to Say" he="דברי השופטים"/>
+
+        <Section>
+            <UserQuote
+                enText="It was very exciting to see all of the creative applications to the Powered by Sefaria Contest. There was such a wide range of ideas, truly displaying the power of Sefaria to engage a range of audiences. At the core of all of the ideas was creating innovative ways to allow more people to engage with text in a deeper way, from bringing the text to life through interactive museums to creating additional features and ease for the toolbar and the Sefaria browsing experience.<br/><br/>Many of the ideas are very promising and I hope the contestants continue to explore their ideas and bring their passion to life. Thanks to Sefaria for creating such an accessible and open platform to allow for such a meaningful and collaborative competition."
+                heText="התרגשנו מאוד לראות את המיזמים היצירתיים שנשלחו לתחרות פיתוח התוכנה של ספריא. מנעד הרעיונות היה רחב במיוחד וחשף את כוחה של ספריא לרתום מגוון קהלים. הלב של כל הרעיונות הללו היה אחד – יצירת דרכים חדשניות לאפשר לעוד ועוד אנשים לעסוק בטקסט באופן עמוק יותר, החל במוזיאונים אינטראקטיביים המפיחים חיים בטקסטים עצמם וכלה בשלל כלים שמטרתם להוסיף נוחות ויעילות לחוויית הגלישה בספריא או לשימוש בסרגל הכלים שלה. רבים מן הרעיונות האלה מבטיחים מאוד, ואנו מקווים שהמשתתפים והמשתתפות ימשיכו לחקור את הרעיונות שלהם ולהגשים את שאיפותיהם. תודה לספריא על יצירת פלטפורמה נגישה ופתוחה כל כך המאפשרת תחרות בעלת ערך ושיתופי פעולה."
+                enName="Libby Novack, <i>Chief Operations Officer, Maapilim; Sefaria advisory board member</i>"
+                heName='ליבי נובאק, סמנכ"ל תפעול בחברת "מעפילים"; חברה בצוות הייעוץ לספריא.'
+                image="/static/img/pbsc-2020-landing-page/libby.png"
+            />
+            <UserQuote
+                enText="Each of the top projects that I looked into were intriguing and useful.The Sidebar extension won deservedly because it is so obviously helpful for increasing Sefaria's efficiency. But I greatly admired the cleverness of the Shulkhan tool, the mathematical sophistication of the Sefer Similarity Map, and the ingenuity and resourcefulness of all the submissions."
+                heText='כל אחד מן המיזמים המעולים שבחנתי היו מסקרנים ושימושיים. במקום הראשון זכה ביושר תוסף סרגל הכלים של התלמוד, מכיוון שברור שבכוחו להגביר את היעילות של ספריא בקרב משתמשיה. עם זאת יש בי גם הערכה רבה לפיקחות של מיזם "השולחן", לתחכום המתמטי של "ספר" – מפת הדמיון הטקסטואלית – ולתושייה וכוח ההמצאה של כל אחד מן המיזמים האחרים.'
+                enName="Moshe Koppel, <i>Professor of Computer Science at Bar-Ilan University; Founder of DICTA, a laboratory creating computational linguistics tools for the analysis of Jewish and Hebrew texts</i>"
+                heName='משה קופל, פרופסור במחלקה למדעי המחשב באוניברסיטת בר־אילן; המקים של "דיקטה", מעבדה לפיתוח כלי לשון דיגיטליים לניתוח של טקסטים עבריים ויהודיים.'
+                image="/static/img/pbsc-2020-landing-page/moshe.png"
+            />
+            <UserQuote
+                enText="I was incredibly impressed by the submissions to the Powered by Sefaria contest. When Sefaria started, we could not have imagined the level of technical talent that would be applied to enhancing Sefaria's texts and platform. The submissions to the contest were both interesting and often quite practical, many adding useful features on top of Sefaria's existing platform. I was especially excited to see such wonderful energy from our younger supporters who brought creativity and vision to the contest. Congratulations to all the submitters!"
+                heText="התרשמתי עמוקות מן המיזמים שנשלחו לתחרות פיתוח התוכנה של ספריא. כשספריא החלה את פעילותה, לא יכולנו לדמיין שבעתיד ייעשה שימוש ברמה גבוהה כל כך של מיומנות טכנולוגית כדי לשכלל את הפלטפורמה ואת הטקסטים של ספריא. המיזמים שנשלחו לתחרות היו מעניינים ולרוב גם מעשיים למדי, ובהם תוספים שימושיים רבים לפלטפורמה הנוכחית של ספריא. התרגשתי מאוד לראות אנרגיה מופלאה כל כך מתומכינו הצעירים, שהביאו אל התחרות חזון ויצירתיות. ברכות לכל המשתתפים והמשתתפות!"
+                enName="Mo Koyfman, <i>Founder of early-stage venture capital firm, Shine Capital; founding Sefaria board member</i>"
+                heName="מוֹ קאופמן, מייסד Shine Capital, קרן הון־סיכון לחברות הזנק; חבר הנהלה בצוות המייסדים של ספריא."
+                image="/static/img/pbsc-2020-landing-page/mo.png"
+            />
+        </Section>
+
+        <CallToActionFooterWithButton
+            href="https://github.com/Sefaria/Sefaria-Project"
+            he_href="https://github.com/Sefaria/Sefaria-Project"
+            enText="Want to create something of your own?"
+            heText="רוצה ליצור משהו משלך?"
+            enButtonText="GitHub"
+            heButtonText="GitHub"
+        />
+
+
+    </StaticPage>
+);
 
 const PBSC2020LandingPage = () => (
     <StaticPage>
