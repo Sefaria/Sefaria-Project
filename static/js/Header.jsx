@@ -33,7 +33,6 @@ const Help = () => (
 const ProfilePicMenu = ({len, url, name}) => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
-  const menuWidth = name.length > 12 ? 150 + 6*(name.length - 12) : 150;
 
   const handleClick = (e) => {
     e.preventDefault();
@@ -74,7 +73,7 @@ const ProfilePicMenu = ({len, url, name}) => {
           <ProfilePic len={len} url={url} name={name}/>
         </a>
         <div className="interfaceLinks">
-          <div className={`interfaceLinks-menu profile-menu ${ isOpen ? "open" : "closed"}`} onClick={resetOpen} style={{width: menuWidth}}>
+          <div className={`interfaceLinks-menu profile-menu ${ isOpen ? "open" : "closed"}`} onClick={resetOpen}>
             <div className="interfaceLinks-header profile-menu">{name}</div>
             <div><a className="interfaceLinks-row top" href="/my/profile">
               <span className="int-en">Profile</span>

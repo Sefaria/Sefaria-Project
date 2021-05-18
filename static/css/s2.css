@@ -537,9 +537,15 @@ input.noselect {
 }
 .interface-english .header .interfaceLinks .interfaceLinks-menu{
   right: 0px;
+  min-width: 150px;
+  width: max-content;
 }
+
+
 .interface-hebrew .header .interfaceLinks .interfaceLinks-menu{
   left: 0px;
+  min-width: 150px;
+  width: max-content;
 }
 .header .interfaceLinks .interfaceLinks-menu .interfaceLinks-header{
   font-style: normal;
