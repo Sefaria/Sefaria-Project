@@ -1518,11 +1518,14 @@ h1 .languageToggle .he {
   flex-direction: row;
   flex-wrap: wrap;
   margin-bottom: 40px;
+  align-items: center;
 }
 .authorIndex {
   width: 50%;
   font-size: var(--serif-h3-font-size);
   margin-bottom: 10px;
+  padding-right: 10px;
+  box-sizing: border-box;
 }
 .readerNavMenu .libraryMessage {
   font-size: 18px;
