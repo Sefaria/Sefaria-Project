@@ -419,7 +419,9 @@ def create_topic_tocs():
                     "dataSource": "sefaria",        
                 }).save()
             except InputError as e:
-                print(e)     
+                print(e)
+            except AssertionError as e:
+                print(e)    
 
 
 def find_popular_writings(top_n, min_pr):
