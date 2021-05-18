@@ -1853,7 +1853,7 @@ _media: {},
   },
   _topics: {},
   getTopic: function(topic, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about', 'popular-writing-of'], with_indexes=true}={}) {
-    const url = `${this.apiHost}/api/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}&annotate_time_period=${0+annotate_time_period}&ref_link_type_filters=${ref_link_type_filters.join('|')}&with_indexes=${0+with_indexes}`;
+    const url = `${this.apiHost}/api/v2/topics/${topic}?with_links=${0+with_links}&annotate_links=${0+annotate_links}&with_refs=${0+with_refs}&group_related=${0+group_related}&annotate_time_period=${0+annotate_time_period}&ref_link_type_filters=${ref_link_type_filters.join('|')}&with_indexes=${0+with_indexes}`;
     return this._cachedApiPromise({
       url,
       key: url,
