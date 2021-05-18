@@ -1872,6 +1872,13 @@ _media: {},
           tabKey = refObj.is_sheet ? 'sheets' : 'sources';
         }
         if (!tabs[tabKey]) {
+          let { title } = linkTypeObj;
+          if (tabKey == 'sheets') {
+            title = {en: 'Sheets', he: Sefaria._('Sheets')};
+          } 
+          if (tabKey == 'sources') {
+            title = {en: 'Sources', he: Sefaria._('Sources')};
+          }
           tabs[tabKey] = {
             refMap: {},
             title: linkTypeObj.title,
