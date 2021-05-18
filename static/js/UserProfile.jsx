@@ -32,19 +32,19 @@ class UserProfile extends Component {
     const showNotes = !!props.profile.id && Sefaria._uid === props.profile.id;
     const showBio = !!props.profile.bio;
     const tabs = [
-      { name: "sheets", text: "Sheets", icon: "/static/img/sheet.svg" },
-      { name: "collections", text: "Collections", icon: "/static/icons/collection.svg" },
-      { name: "followers", text: "Followers", invisible: true },
-      { name: "following", text: "Following", invisible: true },
-      { name: "torah-tracker", text: "Torah Tracker", invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
+      { id: "sheets", text: "Sheets", icon: "/static/img/sheet.svg" },
+      { id: "collections", text: "Collections", icon: "/static/icons/collection.svg" },
+      { id: "followers", text: "Followers", invisible: true },
+      { id: "following", text: "Following", invisible: true },
+      { id: "torah-tracker", text: "Torah Tracker", invisible: Sefaria._uid !== props.profile.id, icon: "/static/img/chart-icon.svg", href: "/torahtracker", applink: true, justifyright: true}
     ];
     if (showNotes) {
-      tabs.splice(2, 0, { name: "notes", text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
+      tabs.splice(2, 0, { id: "notes", text: Sefaria._("Notes"), icon: "/static/img/note.svg" });
     }
     if (showBio) {
-      tabs.push({ name: "about", text: Sefaria._("About"), icon: "/static/img/info.svg" });
+      tabs.push({ id: "about", text: Sefaria._("About"), icon: "/static/img/info.svg" });
     }
-    let tabIndex = tabs.findIndex(t => t.name == props.tab);
+    let tabIndex = tabs.findIndex(t => t.id == props.tab);
     tabIndex = tabIndex == -1 ? 0 : tabIndex;
     return {
       showNotes,
@@ -332,7 +332,7 @@ class UserProfile extends Component {
   }
   onTabChange(tabIndex) {
     const tab = this.state.tabs[tabIndex];
-    this.props.setProfileTab(tab.name);
+    this.props.setProfileTab(tab.id);
   }
   message(e) {
     e.preventDefault();
