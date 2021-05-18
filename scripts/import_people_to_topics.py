@@ -196,6 +196,8 @@ def import_and_merge_authors():
             for lang in ('en', 'he'):
                 prim = person.primary_name(lang)
                 for title in person.all_names(lang):
+                    if isinstance(title, list):
+                        title = ' '.join(title).strip()
                     main_author_dict['titles'] += [{
                         "text": title,
                         "lang": lang,
@@ -523,6 +525,13 @@ def reset_slugs():
     ts = TopicSet({"subclass": "author"})
     for t in tqdm(ts, total=ts.count()):
         t.set_slug_to_primary_title()
+
+def fix_list_titles():
+    for t in TopicSet():
+        for title in t.titles:
+            if isinstance(title['text'], list):
+                title['text'] = ' '.join(title['text']).strip()
+                t.save()
 
 if __name__ == "__main__":
     # create_csvs_to_match()
