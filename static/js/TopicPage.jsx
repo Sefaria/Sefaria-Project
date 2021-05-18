@@ -368,12 +368,12 @@ const TopicPage = ({
         70,
         data => setLoadedData(prev => {
           const updatedData = (!prev[key] || data === false) ? data : [...prev[key], ...data];
-          if (topicData) { topicData.tabs[key].loadedData = updatedData; } // Persist loadedData in cache
+          if (topicData?.tabs?.[key]) { topicData.tabs[key].loadedData = updatedData; } // Persist loadedData in cache
           return {...prev, [key]: updatedData};
         }),
         topic
       );
-      if (topicData && topicData.tabs[key]) {
+      if (topicData?.tabs?.[key]) {
         displayTabs.push({
           title: topicData.tabs[key].title,
           id: key,
