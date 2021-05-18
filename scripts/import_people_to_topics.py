@@ -8,8 +8,8 @@ from sefaria.model.person import Person, PersonSet, PersonRelationship, PersonRe
 from collections import defaultdict
 
 # BASE_PATH = "/Users/nss/Downloads"
-BASE_PATH = "/home/nss/Downloads"
-# BASE_PATH = "data"
+# BASE_PATH = "/home/nss/Downloads"
+BASE_PATH = "data"
 
 def create_csvs_to_match():
     by_type = defaultdict(list)
@@ -534,6 +534,7 @@ if __name__ == "__main__":
     refactor_authors_on_indexes()
     import_people_links()
     create_topic_tocs()
+    Ref.clear_cache()  # ref cache may still have old index records attached to ref objects
     find_popular_writings(100, 300)
     add_subclasses()
     reset_slugs()
