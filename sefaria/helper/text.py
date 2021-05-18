@@ -6,6 +6,7 @@ from sefaria.system.database import db
 from sefaria.datatype.jagged_array import JaggedTextArray
 from diff_match_patch import diff_match_patch
 from functools import reduce
+from sefaria.system.exceptions import InputError
 
 import regex as re
 import pprint
@@ -15,7 +16,6 @@ except ImportError:
     import xml.etree.ElementTree as ET
 from sefaria.model import *
 from sefaria.utils.hebrew import is_hebrew
-
 
 def add_spelling(category, old, new, lang="en"):
     """
@@ -589,6 +589,7 @@ class WorkflowyParser(object):
                                            re.UNICODE)
         self.parsed_schema = None
         self.version_info = None
+        self.categories = None
         if delims:
             delims = delims.split()
             self.title_lang_delim = delims[0] if len(delims) >= 1 else self.title_lang_delim
@@ -599,12 +600,11 @@ class WorkflowyParser(object):
         # tree = tree.getroot()[1][0]
         # for element in tree.iter('outline'):
         #     print parse_titles(element)["enPrim"]
-        categories = self.extract_categories_from_title()
+        self.categories = self.extract_categories_from_title()
         self.version_info = {'info': self.extract_version_info(), 'text': []}
-        schema_root = self.build_index_schema(self.outline)
-        self.parsed_schema = schema_root
-        schema_root.validate()
-        idx = self.create_index_from_schema(categories)
+        self.parsed_schema = self.build_index_schema(self.outline)
+        self.parsed_schema.validate()
+        idx = self.create_index_from_schema()
         if self._c_index:
             idx_obj = Index(idx).save()
             res = "Index record [{}] created.".format(self.parsed_schema.primary_title())
@@ -703,7 +703,7 @@ class WorkflowyParser(object):
             categories = [s.strip() for s in category_str.group(1).split(",")]
             self.outline.set('text', re.sub(category_pattern, "", title))
             return categories
-        return None
+        raise InputError("Categories must be supplied on the Workflowy outline according to specifications")
 
     def parse_implied_depth(self, element):
         ja_depth_pattern = r"\[(\d)\]$"
@@ -744,12 +744,10 @@ class WorkflowyParser(object):
                           }
         return vinfo_dict
 
-    def create_index_from_schema(self, categories=None):
-        if not categories:
-            categories = ["Other"]
+    def create_index_from_schema(self):
         return {
             "title": self.parsed_schema.primary_title(),
-            "categories": categories,
+            "categories": self.categories,
             "schema": self.parsed_schema.serialize()
         }
 

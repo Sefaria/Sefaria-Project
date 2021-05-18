@@ -51,7 +51,7 @@ from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_
 from sefaria.utils.util import short_to_long_lang_code
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
@@ -70,23 +70,22 @@ logger.info("Initializing library objects.")
 logger.info("Initializing TOC Tree")
 library.get_toc_tree()
 
-
-""" """
-logger.info("Initializing Full Auto Completer")
-library.build_full_auto_completer()
-
-logger.info("Initializing Ref Auto Completer")
-library.build_ref_auto_completer()
-
-logger.info("Initializing Lexicon Auto Completers")
-library.build_lexicon_auto_completers()
-
-logger.info("Initializing Cross Lexicon Auto Completer")
-library.build_cross_lexicon_auto_completer()
-
 logger.info("Initializing Shared Cache")
 library.init_shared_cache()
-""" """
+
+if not DISABLE_AUTOCOMPLETER:
+    logger.info("Initializing Full Auto Completer")
+    library.build_full_auto_completer()
+
+    logger.info("Initializing Ref Auto Completer")
+    library.build_ref_auto_completer()
+
+    logger.info("Initializing Lexicon Auto Completers")
+    library.build_lexicon_auto_completers()
+
+    logger.info("Initializing Cross Lexicon Auto Completer")
+    library.build_cross_lexicon_auto_completer()
+
 
 if server_coordinator:
     server_coordinator.connect()
@@ -394,11 +393,12 @@ def make_search_panel_dict(get_dict, i, **kwargs):
 def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     highlighted_node = None
     if "." in sheet_id:
-        highlighted_node = sheet_id.split(".")[1]
-        sheet_id = sheet_id.split(".")[0]
+        highlighted_node = int(sheet_id.split(".")[1])
+        sheet_id = int(sheet_id.split(".")[0])
+    sheet_id = int(sheet_id)
 
-    db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
-    sheet = get_sheet_for_panel(int(sheet_id))
+    db.sheets.update({"id": sheet_id}, {"$inc": {"views": 1}})
+    sheet = get_sheet_for_panel(sheet_id)
     if "error" in sheet:
         raise Http404
     sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
@@ -417,7 +417,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         "sheetID": sheet_id,
         "mode": "Sheet",
         "sheet": sheet,
-        "highlightedNodes": highlighted_node
+        "highlightedNode": highlighted_node
     }
 
     ref = None
@@ -1098,7 +1098,7 @@ def edit_text(request, ref=None, lang=None, version=None):
                 text["edit_lang"] = lang if lang is not None else request.contentLang
                 text["edit_version"] = version
                 initJSON = json.dumps(text)
-        except:
+        except Exception as e:
             index = library.get_index(ref)
             if index:
                 ref = None
@@ -4199,7 +4199,7 @@ def apple_app_site_association(request):
 def application_health_api(request):
     """
     Defines the /healthz API endpoint which responds with
-        200 if the appliation is ready for requests,
+        200 if the application is ready for requests,
         500 if the application is not ready for requests
     """
     if library.is_initialized():
@@ -4213,7 +4213,7 @@ def application_health_api_nonlibrary(request):
 def rollout_health_api(request):
     """
     Defines the /healthz-rollout API endpoint which responds with
-        200 if the services Django depends on, Redis, Multiverver, and NodeJs
+        200 if the services Django depends on, Redis, Multiserver, and NodeJs
             are available.
         500 if any of the aforementioned services are not available
 

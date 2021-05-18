@@ -56,9 +56,8 @@ class ReaderApp extends Component {
         var initialPanel = props.initialPanels && props.initialPanels.length ? props.initialPanels[0] : {};
 
         panels[0] = {
-          highlightedNodes: initialPanel.highlightedNodes,
+          highlightedNode: initialPanel.highlightedNode,
           sheetID: initialPanel.sheetID,
-          sheet: initialPanel.sheet,
           refs: props.initialRefs,
           mode: mode,
           filter: props.initialFilter,
@@ -320,6 +319,8 @@ class ReaderApp extends Component {
           p.textSearchState = p.textSearchState && new SearchState(p.textSearchState);
           p.sheetSearchState = p.sheetSearchState && new SearchState(p.sheetSearchState);
         }
+      } else {
+        state.panels = [];
       }
 
       if (!h && state.panels) {
@@ -539,9 +540,10 @@ class ReaderApp extends Component {
             hist.mode = "book toc";
             break;
           case "sheet meta":
-            var sheetTitle = state.sheet.title.stripHtml();
+            const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
+            const sheetTitle = sheet? sheet.title.stripHtml() : "";
             hist.title = Sefaria._(siteName + " Source Sheets")+": " + sheetTitle;
-            hist.url = i == 0 ? "sheets/"+ state.sheet.id : "sheet&s="+ state.sheet.id;
+            hist.url = i == 0 ? "sheets/"+ state.sheetID : "sheet&s="+ state.sheetID;
             hist.mode = "sheet meta";
             break;
           case "extended notes":
@@ -698,24 +700,27 @@ class ReaderApp extends Component {
         hist.mode   = "Header"
 
       } else if (state.mode === "Sheet") {
-        hist.title = state.sheet.title.stripHtml();
-        var sheetURLSlug = state.highlightedNodes ? state.sheet.id + "." + state.highlightedNodes : state.sheet.id;
-        var filter    = state.filter.length ? state.filter :
+        const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
+        hist.title = sheet ? sheet.title.stripHtml() : "";
+        const sheetURLSlug = state.highlightedNode ? state.sheetID + "." + state.highlightedNode : state.sheetID;
+        const filter    = state.filter.length ? state.filter :
                           (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
-        hist.url = i == 0 ? "sheets/"+ sheetURLSlug : "sheet&s="+ sheetURLSlug;
+        hist.url = i == 0 ? "sheets/" + sheetURLSlug : "sheet&s=" + sheetURLSlug;
         hist.mode     = "Sheet"
 
       } else if (state.mode === "SheetAndConnections") {
-        var filter    = state.filter.length ? state.filter :
+        const filter    = state.filter.length ? state.filter :
                           (sidebarModes.has(state.connectionsMode) ? [state.connectionsMode] : ["all"]);
         hist.sources  = filter.join("+");
         if (state.connectionsMode === "Translation Open" && state.versionFilter.length) {
           hist.versionFilter = state.versionFilter[0];
         }
-        hist.title    = state.sheet.title.stripHtml()  + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
-        hist.url = i == 0 ? "sheets/"+state.sheet.id : "sheet&s="+ state.sheet.id + "?with=" + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
-        hist.mode     = "SheetAndConnections";
+        const sheet = Sefaria.sheets.loadSheetByID(state.sheetID);
+        const title = sheet ? sheet.title.stripHtml() : "";
+        hist.title  = title + Sefaria._(" with ") + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        hist.url    = i == 0 ? "sheets/" + state.sheetID : "sheet&s=" + state.sheetID + "?with=" + Sefaria._(hist.sources === "all" ? "Connections" : hist.sources);
+        hist.mode   = "SheetAndConnections";
       }
 
       if (state.mode !== "Header") {
@@ -744,7 +749,8 @@ class ReaderApp extends Component {
         ? {state: {header: states[0]}, url: url, title: title}
         : {state: {panels: states}, url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
-      if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") || (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections")) {
+      if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") || 
+        (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections")) {
         if (i == 1) {
           var sheetAndCommentary = histories[i-1].mode === "Sheet" ? true : false;
           // short form for two panels text+commentary - e.g., /Genesis.1?with=Rashi
@@ -811,13 +817,13 @@ class ReaderApp extends Component {
     
     if (replace) {
       history.replaceState(hist.state, hist.title, hist.url);
-      //console.log("Replace History - " + hist.url);
+      // console.log("Replace History - " + hist.url);
       if (currentUrl != hist.url) { this.checkScrollIntentAndTrack(); }
       //console.log(hist);
     } else {
       if (currentUrl == hist.url) { return; } // Never push history with the same URL
       history.pushState(hist.state, hist.title, hist.url);
-      //console.log("Push History - " + hist.url);
+      // console.log("Push History - " + hist.url);
       this.trackPageview();
     }
 
@@ -871,7 +877,8 @@ class ReaderApp extends Component {
       connectionsMode:         state.connectionsMode         || "Resources",
       currVersions:            state.currVersions            || {en:null,he:null},
       highlightedRefs:         state.highlightedRefs         || [],
-      highlightedNodes:        state.highlightedNodes        || null,
+      highlightedNode:         state.highlightedNode         || null,
+      scrollToHighlighted:     state.scrollToHighlighted     || false,
       currentlyVisibleRef:     state.refs && state.refs.length ? state.refs[0] : null,
       recentFilters:           state.recentFilters           || state.filter || [],
       recentVersionFilters:    state.recentVersionFilters    || state.versionFilter || [],
@@ -880,7 +887,7 @@ class ReaderApp extends Component {
       navigationTopicCategory: state.navigationTopicCategory || "",
       showMoreTexts:           state.showMoreTexts           || Sefaria.toc.length < 9,
       showMoreTopics:          state.showMoreTopics          || false,
-      sheet:                   state.sheet                   || null,
+      sheetID:                 state.sheetID                 || null,
       sheetNodes:              state.sheetNodes              || null,
       nodeRef:                 state.nodeRef                 || null,
       navigationTopic:         state.navigationTopic         || null,
@@ -1005,7 +1012,7 @@ class ReaderApp extends Component {
       this.setTextListHighlight(n, refs);
     }
 
-    var nodeRef = sheetNode ? this.state.panels[n].sheet.id + "." + sheetNode : null;
+    var nodeRef = sheetNode ? this.state.panels[n].sheetID + "." + sheetNode : null;
 
     if (this.currentlyConnecting()) { return }
 
@@ -1020,13 +1027,17 @@ class ReaderApp extends Component {
       this.closePanel(n+1);
     }
   }
-  handleCitationClick(n, citationRef, textRef) {
+  handleCitationClick(n, citationRef, textRef, replace) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
-    if (this.state.panels.length > n+1  && this.state.panels[n+1].mode === "Connections") {
+    // If `replace`, replace a following panel with this citation, otherwise open a new panel after.
+    if (this.state.panels.length > n+1  && 
+      (replace || this.state.panels[n+1].mode === "Connections")) {
       this.closePanel(n+1);
     }
-    this.setTextListHighlight(n, [textRef]);
-    this.openPanelAt(n, citationRef);
+    if (textRef) { 
+      this.setTextListHighlight(n, textRef);
+    }
+    this.openPanelAt(n, citationRef, null, {scrollToHighlighted: !!replace});
   }
   openNamedEntityInNewPanel(n, textRef, namedEntityState) {
     //this.setTextListHighlight(n, [textRef]);
@@ -1040,7 +1051,6 @@ class ReaderApp extends Component {
   }
   handleCompareSearchClick(n, ref, currVersions, options) {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
-    // todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
     this.replacePanel(n, ref, currVersions, options);
   }
   handleInAppLinkClick(e) {
@@ -1066,18 +1076,28 @@ class ReaderApp extends Component {
     if (el.target && el.target !== '_self') {
       return;
     }
-    const path = el.getAttribute('href');
-    if (!path) {
+    const href = el.getAttribute('href');
+    if (!href) {
       return;
     }
 
-    const handled = this.openURL(path);
+    const handled = this.openURL(href);
     if (handled) {
       e.preventDefault();
     }
   }
-  openURL(path) {
-    // Attempts to open `path` in app, return true if successful.
+  openURL(href) {
+    // Attempts to open `href` in app, return true if successful.
+    let path = href;
+    try {
+      const url = new URL(href);
+      // Allow absolute URLs pointing to Sefaria. TODO generalize to any domain of current deploy.
+      if (url.hostname.indexOf("sefaria.org") === -1) {
+        return false;
+      }
+      path = url.pathname;
+    } catch { }
+
     // TODO: Handle links with URL params
     if (path.indexOf("?") !== -1) {
       return false;
@@ -1103,16 +1123,16 @@ class ReaderApp extends Component {
     } else if (path == "/torahtracker") {
       this.showUserStats();
 
-    } else if (path.match(/\/sheets\/\d+/)) {
+    } else if (path.match(/^\/sheets\/\d+/)) {
       this.openPanel("Sheet " + path.slice(8));
 
-    } else if (path.match(/\/topics\/[^\/]+/)) {
+    } else if (path.match(/^\/topics\/[^\/]+/)) {
       this.openTopic(path.slice(8));
 
-    } else if (path.match(/\/profile\/.+/)) {
+    } else if (path.match(/^\/profile\/.+/)) {
       this.openProfile(path.slice(9));
 
-    } else if (path.match(/\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
+    } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
       this.openCollection(path.slice(13));
 
     } else if (Sefaria.isRef(path.slice(1))) {
@@ -1288,11 +1308,8 @@ class ReaderApp extends Component {
         return true;
       }
     } else if (nextPanel.mode === 'Sheet') {
-      if (!prevPanel.sheet && !!nextPanel.sheet) { return true; }
-      if (!nextPanel.sheet && !!prevPanel.sheet) { return true; }
-      if (!prevPanel.sheet && !nextPanel.sheet) { return false; }
-      if (prevPanel.sheet.id !== nextPanel.sheet.id) { return true; }
-      return prevPanel.highlightedNodes !== nextPanel.highlightedNodes
+      if (prevPanel.sheetID !== nextPanel.sheetID) { return true; }
+      return prevPanel.highlightedNode !== nextPanel.highlightedNode
     } else {
       return true;
     }
@@ -1414,9 +1431,9 @@ class ReaderApp extends Component {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
-  async openPanelAt(n, ref, currVersions, options) {
+  openPanelAt(n, ref, currVersions, options, replace) {
     // Open a new panel after `n` with the new ref
-
+    // If `replace`, replace existing panel at `n`, otherwise insert new panel at `n`
     // If book level, Open book toc
     const parsedRef = Sefaria.parseRef(ref);
     var index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
@@ -1424,10 +1441,14 @@ class ReaderApp extends Component {
     if (index) {
       panel = this.makePanelState({"menuOpen": "book toc", "bookRef": index.title});
     } else if (parsedRef.book === "Sheet") {
-      const [sheetId, sheetNode] = parsedRef.sections;
-      // a bit messy to put async func here. Ideally `sheet` would not be stored in props
-      const sheet = await (new Promise((resolve, reject) => Sefaria.sheets.loadSheetByID(sheetId, sheet => resolve(sheet))));
-      panel = this.makePanelState({mode: 'Sheet', sheet});
+      const [sheetID, sheetNode] = parsedRef.sections;
+      panel = this.makePanelState({
+        mode: 'Sheet',
+        sheetID: parseInt(sheetID),
+        highlightedNode: parseInt(sheetNode),
+        refs: null,
+        ...options
+      });
     } else {  // Text
       if (ref.constructor === Array) {
         // When called with an array, set highlight for the whole spanning range of the array
@@ -1441,11 +1462,17 @@ class ReaderApp extends Component {
         var highlightedRefs = [];
       }
       //console.log("Higlighted refs:", highlightedRefs)
-      panel = this.makePanelState({refs, currVersions, highlightedRefs, currentlyVisibleRef, mode: "Text", ...options });
+      panel = this.makePanelState({
+        refs,
+        currVersions,
+        highlightedRefs,
+        currentlyVisibleRef, mode: "Text",
+        ...options
+      });
     }
 
     var newPanels = this.state.panels.slice();
-    newPanels.splice(n+1, 0, panel);
+    newPanels.splice(replace ? n : n+1, replace ? 1 : 0, panel);
     this.setState({panels: newPanels});
     this.setHeaderState({menuOpen: null});
     this.saveLastPlace(panel, n+1);
@@ -1453,15 +1480,9 @@ class ReaderApp extends Component {
   openPanelAtEnd(ref, currVersions) {
     this.openPanelAt(this.state.panels.length+1, ref, currVersions);
   }
-  async replacePanel(n, ref, currVersions, options) {
-    
+  replacePanel(n, ref, currVersions, options) {
     // Opens a text in in place of the panel currently open at `n`.
-
-    // This ugly little dance is courtesy of `sheet` data needing to be in state before we can
-    // render the panel, because getHistoryItem() needs it, hence needing the API call to return first
-    await this.openPanelAt(n, ref, currVersions, options);
-    this.replaceHistory = true;
-    this.closePanel(n);
+    this.openPanelAt(n, ref, currVersions, options, true);
   }
   openComparePanel(n, connectAfter) {
     var comparePanel = this.makePanelState({
@@ -1525,7 +1546,8 @@ class ReaderApp extends Component {
   setSheetHighlight(n, node) {
     // Set the sheetListHighlight for panel `n` to `node`
     node = typeof node === "string" ? [node] : node;
-    this.state.panels[n].highlightedNodes = node;
+    this.state.panels[n].highlightedNode = node;
+    this.state.panels[n].scrollToHighlighted = false;
     this.setState({panels: this.state.panels});
     }
   setConnectionsFilter(n, filter, updateRecent) {
@@ -1615,9 +1637,11 @@ class ReaderApp extends Component {
     var base = this.state.panels[n-1];
     this.closePanel(n);
     if (base.mode == "Sheet") {
-      for(var i in base.sheet.sources){
-        if (base.sheet.sources[i].node == base.highlightedNodes) {
-          this.openTextListAt(n, [base.sheet.sources[i].ref]);
+      const sheet = Sefaria.sheets.loadSheetByID(base.sheetID);
+      if (!sheet) { return; }
+      for(var i in sheet.sources){
+        if (sheet.sources[i].node == base.highlightedNode) {
+          this.openTextListAt(n, [sheet.sources[i].ref]);
         }
       }
     }
@@ -1711,9 +1735,11 @@ class ReaderApp extends Component {
     // get rave to send to /api/profile/user_history
     let ref, sheet_owner, sheet_title;
     if (panel.mode === 'Sheet' || panel.mode === "SheetAndConnections") {
-      ref = `Sheet ${panel.sheet.id}${panel.highlightedNodes ? `:${panel.highlightedNodes}`: ''}`;
-      sheet_owner = panel.sheet.ownerName;
-      sheet_title = panel.sheet.title;
+      const sheet = Sefaria.sheets.loadSheetByID(panel.sheetID);
+      if (!sheet) { return null; }
+      ref = `Sheet ${sheet.id}${panel.highlightedNode ? `:${panel.highlightedNode}`: ''}`;
+      sheet_owner = sheet.ownerName;
+      sheet_title = sheet.title;
     } else {
       ref = (hasSidebar && panel.highlightedRefs && panel.highlightedRefs.length) ? Sefaria.normRef(panel.highlightedRefs) : (panel.currentlyVisibleRef || panel.refs.slice(-1)[0]);  // Will currentlyVisibleRef ever not be available?
     }
@@ -1735,7 +1761,7 @@ class ReaderApp extends Component {
     //openingSidebar is true when you call `saveLastPlace` at the time you're opening the sidebar. In this case, `doesPanelHaveSidebar` will be false
     const hasSidebar = this.doesPanelHaveSidebar(n) || openingSidebar;
     // if panel is sheet, panel.refs isn't set
-    if ((!panel.refs.length && panel.mode !== 'Sheet') || panel.mode === 'Connections') { return; }
+    if ((panel.mode !== 'Sheet' && !panel.refs.length ) || panel.mode === 'Connections') { return; }
     Sefaria.saveUserHistory(this.getHistoryObject(panel, hasSidebar));
   }
   currentlyConnecting() {
@@ -1961,6 +1987,7 @@ class ReaderApp extends Component {
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       getLicenseMap={this.getLicenseMap}
                       translateISOLanguageCode={this.translateISOLanguageCode}
+                      openURL={this.openURL}
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}
                       toggleSignUpModal={this.toggleSignUpModal}

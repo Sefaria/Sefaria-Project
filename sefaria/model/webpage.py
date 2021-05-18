@@ -163,6 +163,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"talmudology\.com\/?$",
             r"talmudology\.com\/[^\/]+$",  # seems everything at the top level is not an article
             r"sephardi\.co\.uk\/(category|community|tag|test)\/",
+            r"theameninstitute\.com\/?$",
+            r"theameninstitute\.com\/category\/whats-new-at-the-amen-institute\/?$",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -351,7 +353,7 @@ def dedupe_identical_urls(test=True):
             "count": -1
             }
         }
-    ]);
+    ], allowDiskUse=True);
 
     url_count = 0
     removed_count = 0
@@ -849,5 +851,9 @@ sites_data = [
     {
         "name": "Evolve",
         "domains": ["evolve.reconstructingjudaism.org"],
+    },
+    {
+        "name": "The Amen Institute",
+        "domains": ["theameninstitute.com"]
     }
 ]

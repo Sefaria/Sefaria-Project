@@ -183,12 +183,17 @@ class SheetMetadata extends Component {
       authorStatement = "by <a href='" + sheet.ownerProfileUrl + "'>" + sheet.ownerName + "</a>";
     }
 
-
     // Text Details
     var details = sheet.summary;
 
     var closeClick = this.props.close;
-    var classes = classNames({readerTextTableOfContents:1, readerNavMenu:1, narrowPanel: this.props.narrowPanel, noLangToggleInHebrew: this.props.interfaceLang == 'hebrew'});
+    var classes = classNames({
+      readerTextTableOfContents:1,
+      readerNavMenu:1,
+      narrowPanel: this.props.narrowPanel,
+      noLangToggleInHebrew: this.props.interfaceLang == 'hebrew',
+      "sans-serif": 1,
+    });
 
     return (<div className={classes}>
               <CategoryColorLine category="Sheets" />
@@ -213,11 +218,11 @@ class SheetMetadata extends Component {
               <div className="content">
                 <div className="contentInner">
                   <div className="tocTop">
-                    <a className="tocCategory" href="/sheets">
+                    <a className="tocCategory serif" href="/sheets">
                       <span className="en">Sheet</span>
                       <span className="he">{Sefaria.hebrewTerm("Sheets")}</span>
                     </a>
-                    <div className="tocTitle" role="heading" aria-level="1">
+                    <div className="tocTitle serif" role="heading" aria-level="1">
                       <span>{title.stripHtmlConvertLineBreaks()}</span>
                     </div>
 

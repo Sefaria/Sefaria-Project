@@ -1,7 +1,6 @@
 import {
   ReaderNavigationMenuSearchButton,
   GlobalWarningMessage,
-  TestMessage,
   ProfilePic,
   InterfaceLanguageMenu,
 } from './Misc';
@@ -241,12 +240,6 @@ class Header extends Component {
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   }
-  showTestMessage() {
-    this.props.setCentralState({showTestMessage: true});
-  }
-  hideTestMessage() {
-    this.props.setCentralState({showTestMessage: false});
-  }
   getURLForObject(type, key) {
     if (type === "Person") {
       return `/person/${key}`;
@@ -361,14 +354,11 @@ class Header extends Component {
                           toggleSignUpModal={this.props.toggleSignUpModal}
                         />) : null;
 
-    const headerMessage = this.props.headerMessage ?
-                          (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
-                          null;
     // Header should not show box-shadow over panels that have color line
     const hasColorLine = ["sheets", "sheets meta"];
     const hasBoxShadow = (!!this.state.menuOpen && hasColorLine.indexOf(this.state.menuOpen) === -1);
     const headerInnerClasses = classNames({headerInner: 1, boxShadow: hasBoxShadow});
-    const inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang === "english", hebrewSearch: this.props.interfaceLang === "hebrew"});
+    const inputClasses = classNames({search: 1, serif: 1, keyboardInput: this.props.interfaceLang === "english", hebrewSearch: this.props.interfaceLang === "hebrew"});
     const searchBoxClasses = classNames({searchBox: 1, searchFocused: this.state.searchFocused});
     return (<div className="header" role="banner">
               <div className={headerInnerClasses}>
@@ -390,7 +380,6 @@ class Header extends Component {
                     { Sefaria._siteSettings.TORAH_SPECIFIC ? <a className="home" href="/?home" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> : null }
                 </div>
                 <div className="headerLinksSection">
-                  { headerMessage }
                   { Sefaria._uid ?
                       <LoggedInButtons headerMode={this.props.headerMode}/>
                       :
@@ -403,7 +392,6 @@ class Header extends Component {
                 (<div className="headerNavContent">
                   {viewContent}
                  </div>) : null}
-              { this.state.showTestMessage ? <TestMessage hide={this.hideTestMessage} /> : null}
               <GlobalWarningMessage />
             </div>);
   }
