@@ -278,7 +278,7 @@ const TopicHeader = ({
            <span className="int-he">{ topicData.parasha ? Sefaria._('Read the Portion') : norm_hebrew_ref(topicData.ref.he) }</span>
          </a>
        : null}
-       {topicData && topicData.indexes ?
+       {topicData?.indexes?.length ?
         <div>
           <div className="sectionTitleText authorIndexTitle"><InterfaceText text={{en: `Works by ${en}`, he: `Works by${he}`}} /></div>
           <div className="authorIndexList">
