@@ -157,6 +157,11 @@ const AboutTextCategory = ({cats}) => {
   const enTitle = "About " + tocObject.category;
   const heTitle = "אודות " + tocObject.heCategory;
 
+  if ((Sefaria.interfaceLang === "hebrew" && !tocObject.heDesc) ||
+      (Sefaria.interfaceLang === "english" && !tocObject.enDec)) {
+    return null;
+  }
+
   return (
     <Module>
       <h3><InterfaceText text={{en: enTitle, he: heTitle}} /></h3>
