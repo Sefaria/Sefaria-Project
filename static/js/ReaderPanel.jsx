@@ -106,8 +106,8 @@ class ReaderPanel extends Component {
     //Determines the actual content language used inside this ReaderPanel.
     //Because it's called in the constructor, assume state isnt necessarily defined and pass variables mode and menuOpen manually
     let contentLangOverride = originalLanguage;
-    if (mode === "Connections" && Sefaria.interfaceLang === "hebrew") {
-      contentLangOverride = "hebrew";
+    if (mode === "Connections"){
+      contentLangOverride = (Sefaria.interfaceLang === "hebrew") ? "hebrew" : ((originalLanguage === "bilingual") ? "english" : originalLanguage);
     } else if (["topics", "community", "story_editor" ].includes(menuOpen)) {
       contentLangOverride = (["english", "bilingual"].includes(Sefaria.interfaceLang)) ? "bilingual" : "hebrew";
     } else if (["text toc", "book toc"].includes(menuOpen)) {
@@ -675,7 +675,6 @@ class ReaderPanel extends Component {
           clearNamedEntity={this.props.clearNamedEntity}
           getLicenseMap={this.props.getLicenseMap}
           masterPanelLanguage={this.props.masterPanelLanguage}
-          translateISOLanguageCode={this.props.translateISOLanguageCode}
           versionFilter={this.state.versionFilter}
           recentVersionFilters={this.state.recentVersionFilters}
           setVersionFilter={this.setVersionFilter}
@@ -1085,7 +1084,6 @@ ReaderPanel.propTypes = {
   setSelectedWords:            PropTypes.func,
   analyticsInitialized:        PropTypes.bool,
   getLicenseMap:               PropTypes.func.isRequired,
-  translateISOLanguageCode:    PropTypes.func.isRequired,
   setVersionFilter:            PropTypes.func,
   saveLastPlace:               PropTypes.func,
   checkIntentTimer:            PropTypes.func,

@@ -4221,7 +4221,7 @@ class Ref(object, metaclass=RefCacheType):
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
-            for v in  versions:
+            for v in versions:
                 version = {f: getattr(v, f, "") for f in fields}
                 oref = v.first_section_ref() or v.get_index().nodes.first_leaf().first_section_ref()
                 version["firstSectionRef"] = oref.normal()

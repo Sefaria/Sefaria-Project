@@ -70,6 +70,7 @@ a, a:hover {
   --modern-works-blue: #B8D4D3;
   --grammar-green: #B2B272;
   --reference-orange: #D4896C;
+  --miscelaneous-green: #3B5849;
 }
 /* Font Family */
 body, .sans-serif {
@@ -676,9 +677,11 @@ input.noselect {
 }
 .interface-english .header .interfaceLinks .interfaceLinks-menu {
   right: 0px;
+  direction: ltr;
 }
 .interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
   left: 0px;
+  direction: rtl;
 }
 .header .interfaceLinks .interfaceLinks-header {
   font-style: normal;
@@ -704,6 +707,10 @@ input.noselect {
   text-align: right;
   color: #666666;
   padding: 5px;
+  direction: ltr;
+}
+.interface-hebrew .header .interfaceLinks .interfaceLinks-option {
+  direction: rtl;
 }
 .header .interfaceLinks .interfaceLinks-option::before {
   content: "";
@@ -2810,7 +2817,7 @@ a.navBlockTitle:hover {
 .versionBlock .versionSelect{
   margin: 10px 0;
 }
-.readerTextTableOfContents .versionBlock .versionSelect, .aboutBox .versionBlock .versionSelect{
+.readerTextTableOfContents .versionBlock .versionSelect, .aboutBox .currVersionSection .versionSelect{
   display: none;
 }
 .versionBlock a {
@@ -4139,7 +4146,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .interface-english .readerPanel.hebrew .textRange,
 .interface-english .readerPanel.hebrew .categoryFilterGroup,
 .interface-english .readerPanel.hebrew .structToggles,
-.interface-english .readerPanel.hebrew .tocContent {
+.interface-english .readerPanel.hebrew .tocContent,
+.interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.more,
+.interface-english .readerPanel.hebrew .connectionsPanel .toolsButton.seeLess {
   direction: rtl;
 }
 .basetext .text, .sheetContent .text {
@@ -4862,21 +4871,62 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   float: right;
 }
 .categoryFilter {
-  text-transform: uppercase;
-  padding: 19px 34px;
+  margin: 19px 34px;
   font-size: 18px;
   cursor: pointer;
-  line-height: 18px;
+  line-height: 21.6px;
   color: #000;
   -webkit-tap-hightlight-color: rgba(0,0,0,0); /* pulled from common.css; should apply more broadly? */
 }
+.categoryFilter:not(.withBooks) .filterInner:before{
+  width: 18px;
+  height: 16px;
+  content: '';
+  -webkit-mask: url("/static/img/connection-book.svg") no-repeat;
+  mask: url("/static/img/connection-book.svg") no-repeat;
+  -webkit-mask-size: cover;
+  mask-size: cover;
+  line-height: 25px;
+  /**transform: scale(0.95);*/
+  display: inline-block;
+  background-color: var(--category-color);
+}
+.connectionsPanel .toolsButton.more{
+  color: #666666;
+}
+.connectionsPanel .toolsButton.seeLess{
+  margin-inline-start: 60px;
+  font-style: normal;
+  font-weight: normal;
+  font-size: 13px;
+  line-height: 18px;
+  color: #999999;
+  align-items: center;
+  margin-top: 15px;
+}
+.connectionsPanel .toolsButton.seeLess img.toolsButtonIcon{
+  height: 10px;
+  width: 10px;
+}
+.connectionsPanel .toolsButton.seeLess .toolsButtonText{
+  margin-inline-start: 5px;
+}
+.connectionsPanel .toolsButton.aboutThisText {
+  margin-top: 30px;
+}
+.categoryFilter:not(.withBooks) .filterText{
+  margin-inline-start: 15px;
+  margin-inline-end: auto;
+}
 .textFilter {
-  padding: 19px 34px;
+  padding: 19px 0px;
   font-size: 18px;
   line-height: 1.2;
   display: block;
   cursor: pointer;
   color: #333;
+  margin-inline-start: 34px;
+  margin-inline-end: 34px;
 }
 .connectionsCount {
   color: #666;
@@ -4901,18 +4951,33 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .filterInner {
   display: flex;
   justify-content: space-between;
+  align-items: center;
 }
 .categoryFilterGroup.withBooks {
+  /*border-bottom: 1px solid #E5E5E5;*/
+  border-top: 4px solid;
+  border-top-color: var(--category-color);
+}
+.categoryFilterGroup.withBooks .categoryFilter{
+  text-transform: uppercase;
+  margin: initial;
+  margin-inline-end: 34px;
+  margin-inline-start: 34px;
+  padding: 19px 0px;
   border-bottom: 1px solid #E5E5E5;
+
 }
 .categoryFilterGroup a:hover {
   text-decoration: none;
 }
 .categoryFilterGroup.withBooks + .categoryFilterGroup {
-  margin-top: 30px;
+  /*margin-top: 30px;*/
 }
 .categoryFilterGroup .textFilter {
-    border-top: 1px solid #E5E5E5;
+  border-bottom: 1px solid #E5E5E5;
+}
+.categoryFilterGroup :first-child .textFilter {
+  border-top: 1px solid #E5E5E5;
 }
 .categoryFilter.on, .textFilter.on {
   color: black;
@@ -5106,6 +5171,9 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .textList .sheetList {
   padding-top: 40px;
+}
+.textList .sheetList:first-of-type {
+  padding-top: 0px;
 }
 .textList .sheetList + .sheetList {
   border-top: 1px solid #E6E5E6;
@@ -5387,6 +5455,25 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   padding: 20px 34px;
   color: #999;
 }
+.connectionsPanel .connectionPanelSectionHeader{
+  margin-inline-start: 34px;
+  margin-inline-end: 34px;
+  margin-top: 30px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #CCCCCC;
+  padding-bottom: 13px;
+}
+.connectionsPanel .connectionPanelSectionHeader .connectionPanelSectionHeaderInner{
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 18px;
+  letter-spacing: 0em;
+  text-align: justified;
+  color: #666666;
+  text-transform: uppercase;
+
+}
 .connectionsPanel .connectionsSummaryLoading .loadingMessage {
   margin-top: 0;
 }
@@ -5452,11 +5539,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   display: flex;
   justify-content: flex-start;
   color: #000;
-  border-top: 1px solid #E5E5E5;
+  /*border-top: 1px solid #E5E5E5;*/
   cursor: pointer;
   font-size: 16px;
   letter-spacing: 1px;
-  padding: 20px 34px;
+  margin: 20px 34px;
+  align-items: center;
 }
 .toolsButton .toolsButtonText .connectionsCount::before{
   content: " ";
@@ -5467,9 +5555,16 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .topicList.topicsEn {
   direction: ltr;
 }
+.interface-hebrew .topicList.topicsEn {
+  direction: rtl;
+}
 .toolsButton.topicButton {
   flex-direction: column;
   letter-spacing: unset;
+  align-items: initial;
+  border-top: 1px solid #E5E5E5;
+  padding: 20px 34px;
+  margin: initial;
 }
 .topicButton .topicButtonTitle {
   display: flex;
@@ -5485,14 +5580,6 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 }
 .topicButtonTitle .he {
   font-size: 122%;
-}
-.topicButton .saveButton.tooltip-toggle.three-dots-button {
-  margin-bottom: 0;
-  margin-left: 30px;
-}
-.topicsHe .topicButton .saveButton.tooltip-toggle.three-dots-button {
-  margin-right: 30px;
-  margin-left: 0;
 }
 .topicButton .three-dots-button.tooltip-toggle::before,
 .named-entity-title-bar .three-dots-button.tooltip-toggle::before {
@@ -5511,7 +5598,7 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 10px;
   line-height: 18px;
   font-size: 18px;
-  text-align: left;
+  text-align: start;
 }
 .topicButton .smallText .en {
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
@@ -5525,18 +5612,26 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   font-weight: normal;
   color: #999;
 }
-.topicsHe .topicButton .smallText {
-  text-align: right;
-}
-.toolsButton:last-child {
-  border-bottom: 1px solid #E5E5E5;
-}
 .toolsButton:hover {
   text-decoration: none;
   color: inherit;
 }
-.toolsButton .en {
+.toolsButton.systemTypeface .toolsButtonText span.int-en,
+.toolsButton.systemTypeface .toolsButtonText span.en{
   font-family: "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.toolsButton.textTypeface .toolsButtonText span.int-en,
+.toolsButton.textTypeface .toolsButtonText span.en{
+  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
+}
+.toolsButton.systemTypeface .toolsButtonText span.int-he,
+.toolsButton.systemTypeface .toolsButtonText span.he{
+  font-family: "Heebo", "Roboto", "Helvetica Neue", "Helvetica", sans-serif;
+}
+.toolsButton.textTypeface .toolsButtonText span.int-he,
+.toolsButton.textTypeface .toolsButtonText span.he{
+  font-family: "Taamey Frank", "adobe-garamond-pro", "Crimson Text", Georgia, "Times New Roman", serif;
+  font-size: 122%;
 }
 .toolsButton .toolsButtonIcon {
   color: #999;
@@ -5547,13 +5642,12 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-top: 1px;
 }
 .toolsButton img.toolsButtonIcon {
-  width: 20px;
-  height: 20px;
-  opacity: 0.4;
+  width: 18px;
+  height: 18px;
   vertical-align: middle;
 }
 .toolsButton .toolsButtonText{
-  margin: 0 10px;
+  margin-inline-start: 15px;
 }
 .shareInputBox {
   padding: 34px;
@@ -7768,8 +7862,17 @@ body #keyboardInputMaster tbody tr td table tbody tr td.pressed{
 .versionsBox a {
   color: #999;
 }
-.aboutBox .currVersionSection {
+.aboutBox .currVersionSection, .aboutBox .alternateVersionsSection {
   padding-bottom: 30px;
+}
+.aboutBox .versionsBox .versionBlock:first-child{
+  border-top: none;
+  padding-top: 10px;
+}
+.aboutBox .currVersionSection .versionBlock + .versionBlock {
+    border-top: solid 1px #CCC;
+    padding-top: 20px;
+    margin-top: 20px;
 }
 .version-with-buy-button {
   display: flex;
@@ -8610,7 +8713,6 @@ section.SheetSource .SheetOutsideBiText {
 .textList .sheet .sheetLeft .sheetTitle img {
   width: 18px;
   height: 18px;
-  opacity: 0.4;
   margin-inline-end: 10px;
 }
 .default-profile-img {

@@ -175,7 +175,7 @@ const Strings = {
 
     // Reader Panel
     "Search" : "חיפוש",
-    "Search Dictionary": "חפש במילון",
+    "Search Dictionary": "חיפוש במילון",
     "Search for": "חיפוש",
     "Search for:": "חיפוש:",
     "Views": "צפיות",
@@ -375,8 +375,8 @@ const Strings = {
     "Etc": "שאר",
 
     // Chavruta
-    "Learn with a Chavruta": "ללמוד עם חברותא",
-    "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הזה:",
+    "Learn with a Chavruta": "לימוד בחברותא",
+    "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הבא:",
     "Start Call": "התחלת שיחה",
 
     // Subscribe & Register
@@ -419,6 +419,7 @@ const Strings = {
     "Hebrew Versions": "בעברית",
     "English Versions": "באנגלית",
   },
+  
   _i18nInterfaceStringsWithContext: {
     "AddConnectionBox": {
       "Select Type": "בחר סוג קישור",
@@ -436,7 +437,12 @@ const Strings = {
     },
     "AboutParashah": {
       "Torah Reading": "פרשת השבוע",
-    }
+    },
+    "ConnectionPanelSection":{
+      "Related Texts": "מקורות לעיון",
+      "Resources": "עזרים",
+      "Tools": "כלים",
+    },
   },
 };
 

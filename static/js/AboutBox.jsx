@@ -1,21 +1,25 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Sefaria from './sefaria/sefaria';
-import VersionBlock from './VersionBlock';
+import VersionBlock, {VersionsBlocksList} from './VersionBlock';
 import Component             from 'react-class';
+import {InterfaceText} from "./Misc";
 
 
 class AboutBox extends Component {
   constructor(props) {
     super(props);
+    this._includeOtherVersionsLangs = ["he"];
     this.state = {
+      versionLangMap: null,
+      currentVersionsByActualLangs: Sefaria.transformVersionObjectsToByActualLanguageKeys(this.props.currObjectVersions),
       details: null,
     }
   }
   setTextMetaData() {
     if (this.props.title == "Sheet") {
       const sheetID = (Sefaria.sheets.extractIdFromSheetRef(this.props.srefs));
-        if (!Sefaria.sheets.loadSheetByID(sheetID)) {
+      if (!Sefaria.sheets.loadSheetByID(sheetID)) {
           Sefaria.sheets.loadSheetByID(sheetID, function (data) {
               this.setState({ details: data });
           }.bind(this));
@@ -24,10 +28,8 @@ class AboutBox extends Component {
           this.setState({
             details: Sefaria.sheets.loadSheetByID(sheetID),
           });
-        }
-
-    }
-    else {
+      }
+    }else {
       Sefaria.getIndexDetails(this.props.title).then(data => {
         this.setState({details: data});
       });
@@ -35,17 +37,36 @@ class AboutBox extends Component {
   }
   componentDidMount() {
       this.setTextMetaData();
+      Sefaria.versions(this.props.sectionRef, true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
   }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.title !== this.props.title) {
       this.setState({details: null});
       this.setTextMetaData();
+      Sefaria.versions(this.props.sectionRef,true, this._includeOtherVersionsLangs, false).then(this.onVersionsLoad);
     }
+  }
+  onVersionsLoad(versions) {
+    //rearrange the current selected versions to be mapped by their real language,
+    // then sort the current version to the top of its language list
+    let versionsByLang = versions;
+    let currentVersionsByActualLangs = Sefaria.transformVersionObjectsToByActualLanguageKeys(this.props.currObjectVersions);
+    for(let [lang,ver] of Object.entries(currentVersionsByActualLangs)){
+      if (this._includeOtherVersionsLangs.includes(lang)){ //remove current version if its "he"
+        versionsByLang[lang] = versionsByLang[lang].filter((v) => v.versionTitle != ver.versionTitle);
+      }
+    }
+    this.setState({versionLangMap: versionsByLang, currentVersionsByActualLangs:currentVersionsByActualLangs});
   }
   render() {
     const d = this.state.details;
-    const vh = this.props.currObjectVersions.he;
-    const ve = this.props.currObjectVersions.en;
+    const sourceVersion = this.state.currentVersionsByActualLangs?.he;
+    const translationVersions = Object.entries(this.state.currentVersionsByActualLangs).filter(([lang, version]) => lang != "he").map(([lang, version])=> version);
+    const multiple_translations = translationVersions?.length > 1;
+    const no_source_versions = multiple_translations || translationVersions?.length == 1 && !sourceVersion;
+    const sourceVersionSectionTitle = {en: "Current Version", he:"מהדורה נוכחית"};
+    const translationVersionsSectionTitle = multiple_translations ? {en: "Current Translations", he:"תרגומים נוכחיים"} : {en: "Current Translation", he:"תרגום נוכחי"};
+    const alternateVersionsSectionTitle = no_source_versions ? {en: "Source Versions", he:"מהדורות בשפת המקור"} : {en: "Alternate Source Versions", he:"מהדורות נוספות בשפת המקור"}
 
     if (this.props.srefs[0].startsWith("Sheet")) {
       let detailSection = null;
@@ -142,48 +163,68 @@ class AboutBox extends Component {
         </div>
       );
     }
-    const currVersions = {};
-    for (let vlang in this.props.currObjectVersions) {
-      const tempV = this.props.currObjectVersions[vlang];
-      currVersions[vlang] = !!tempV ? tempV.versionTitle : null;
-    }
     const versionSectionHe =
-      (!!vh ? <div className="currVersionSection">
+      (!!sourceVersion ?
+      <div className="currVersionSection">
         <h2 className="aboutHeader">
-          <span className="int-en">Current Version</span>
-          <span className="int-he">מהדורה נוכחית</span>
+            <InterfaceText text={sourceVersionSectionTitle} />
         </h2>
         <VersionBlock
+          key={`${sourceVersion.versionTitle}|${sourceVersion.actualLanguage}`}
           rendermode="about-box"
           sidebarDisplay = {true}
-          version={vh}
-          currVersions={currVersions}
+          version={sourceVersion}
+          currObjectVersions={this.props.currObjectVersions}
           currentRef={this.props.srefs[0]}
-          firstSectionRef={"firstSectionRef" in vh ? vh.firstSectionRef : null}
+          firstSectionRef={"firstSectionRef" in sourceVersion ? sourceVersion.firstSectionRef : null}
           getLicenseMap={this.props.getLicenseMap} />
-      </div> : null );
+      </div>
+      : null );
     const versionSectionEn =
-      (!!ve ? <div className="currVersionSection">
+      (!!translationVersions?.length ?
+      <div className="currVersionSection">
         <h2 className="aboutHeader">
-          <span className="int-en">Current Translation</span>
-          <span className="int-he">תרגום נוכחי</span>
+          <InterfaceText text={translationVersionsSectionTitle} />
         </h2>
-        <VersionBlock
-          rendermode="about-box"
-          sidebarDisplay = {true}
-          version={ve}
-          currVersions={currVersions}
-          currentRef={this.props.srefs[0]}
-          firstSectionRef={"firstSectionRef" in ve ? ve.firstSectionRef : null}
-          viewExtendedNotes={this.props.viewExtendedNotes}
-          getLicenseMap={this.props.getLicenseMap} />
+          {
+              translationVersions.map((ve) => (
+                  <VersionBlock
+                  key={`${ve.versionTitle}|${ve.actualLanguage}`}
+                  rendermode="about-box"
+                  sidebarDisplay = {true}
+                  version={ve}
+                  currObjectVersions={this.props.currObjectVersions}
+                  currentRef={this.props.srefs[0]}
+                  firstSectionRef={"firstSectionRef" in ve ? ve.firstSectionRef : null}
+                  viewExtendedNotes={this.props.viewExtendedNotes}
+                  getLicenseMap={this.props.getLicenseMap} />
+              ))
+          }
       </div> : null );
+    const alternateSectionHe =
+      (!!this.state.versionLangMap ?
+          <div className="alternateVersionsSection">
+            <h2 className="aboutHeader">
+              <InterfaceText text={alternateVersionsSectionTitle} />
+            </h2>
+            <VersionsBlocksList key={`versions-${Object.values(this.props.currObjectVersions).map((v) => v?.versionTitle ?? "").join("|")}`}
+              versionsByLanguages={this.state.versionLangMap}
+              mainVersionLanguage={this.props.mainVersionLanguage}
+              currObjectVersions={this.props.currObjectVersions}
+              showLanguageHeaders={false}
+              currentRef={this.props.srefs[0]}
+              getLicenseMap={this.props.getLicenseMap}
+              openVersionInReader={this.props.openVersionInReader}
+              viewExtendedNotes={this.props.viewExtendedNotes}
+            />
+      </div> : null );
+
     return (
       <section className="aboutBox">
         {detailSection}
         { this.props.mainVersionLanguage === "english" ?
-          (<div>{versionSectionEn}{versionSectionHe}</div>) :
-          (<div>{versionSectionHe}{versionSectionEn}</div>)
+          (<div>{versionSectionEn}{versionSectionHe}{alternateSectionHe}</div>) :
+          (<div>{versionSectionHe}{versionSectionEn}{alternateSectionHe}</div>)
         }
       </section>
     );

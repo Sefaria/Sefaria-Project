@@ -644,7 +644,7 @@ class ReaderApp extends Component {
     }
     hist = {state: {panels: states}, url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
-      if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") || 
+      if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") ||
         (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections")) {
         if (i == 1) {
           var sheetAndCommentary = histories[i-1].mode === "Sheet" ? true : false;
@@ -865,11 +865,11 @@ class ReaderApp extends Component {
   handleCitationClick(n, citationRef, textRef, replace) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
     // If `replace`, replace a following panel with this citation, otherwise open a new panel after.
-    if (this.state.panels.length > n+1  && 
+    if (this.state.panels.length > n+1  &&
       (replace || this.state.panels[n+1].mode === "Connections")) {
       this.closePanel(n+1);
     }
-    if (textRef) { 
+    if (textRef) {
       this.setTextListHighlight(n, textRef);
     }
     this.openPanelAt(n, citationRef, null, {scrollToHighlighted: !!replace});
@@ -1151,26 +1151,6 @@ class ReaderApp extends Component {
       "CC-BY-NC": "https://creativecommons.org/licenses/by-nc/4.0/"
     }
     return licenseMap;
-  }
-  translateISOLanguageCode(code) {
-    //takes two-letter ISO 639.2 code and returns full language name
-    const codeMap = {
-      "en": "English",
-      "he": "Hebrew",
-      "yi": "Yiddish",
-      "fi": "Finnish",
-      "pt": "Portuguese",
-      "es": "Spanish",
-      "fr": "French",
-      "de": "German",
-      "ar": "Arabic",
-      "it": "Italian",
-      "pl": "Polish",
-      "ru": "Russian",
-      "eo": "Esparanto",
-      "fa": "Farsi",
-    };
-    return codeMap[code.toLowerCase()] || code;
   }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
@@ -1717,6 +1697,7 @@ class ReaderApp extends Component {
         firstPanelLanguage={this.state.panels?.[0]?.settings?.language}
         hasBoxShadow={headerHasBoxShadow} />
     );
+
     var panels = [];
     var allOpenRefs = panelStates.filter( panel => panel.mode == "Text" && !panel.menuOpen)
                                   .map( panel => Sefaria.humanRef(panel.highlightedRefs.length ? panel.highlightedRefs : panel.refs));
@@ -1802,7 +1783,6 @@ class ReaderApp extends Component {
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       getLicenseMap={this.getLicenseMap}
-                      translateISOLanguageCode={this.translateISOLanguageCode}
                       openURL={this.openURL}
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}

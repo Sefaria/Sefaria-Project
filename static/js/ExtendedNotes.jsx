@@ -5,6 +5,7 @@ import {
 import React  from 'react';
 import PropTypes  from 'prop-types';
 import Component   from 'react-class';
+import Sefaria from "./sefaria/sefaria";
 
 class ExtendedNotes extends Component {
   constructor(props) {
@@ -31,7 +32,7 @@ class ExtendedNotes extends Component {
   }
   componentDidMount() {
     // use Sefaria.versions(ref, cb), where cb will invoke setState
-    Sefaria.versions(this.props.title, this.getVersionData);
+    Sefaria.versions(this.props.title, false, null, false).then(this.getVersionData);
   }
   goBack(event) {
     event.preventDefault();
