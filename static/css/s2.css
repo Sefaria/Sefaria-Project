@@ -1517,7 +1517,7 @@ h1 .languageToggle .he {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
   align-items: center;
 }
 .authorIndex {
