@@ -931,6 +931,38 @@ const withSefariaSheet = editor => {
           if (nodeBelow.node && nodeBelow.node.type == "SheetOutsideText") {
               Transforms.mergeNodes(editor, {at: nodeBelow.path})
           }
+
+          if (Node.string(node) == "") {
+            console.log("empty SheetOutsideText")
+
+            const fragment = {
+              type: "spacer",
+              children: [{text: ""}]
+            }
+
+            const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,0]))
+
+            //This dance is required b/c it can't be changed in place
+            // it exits the spacer, deletes it, then places the new outside text in its place
+            Transforms.move(editor);
+            Transforms.delete(editor, {at: path});
+            Transforms.insertNodes(editor, fragment, { at: path });
+
+            if (atEndOfDoc) {
+              // sometimes the delete action above loses the cursor
+              //  at the end of the doc, this drops you back in place
+              ReactEditor.focus(editor)
+              Transforms.select(editor, Editor.end(editor, []));
+            }
+            else {
+              // gain back the cursor position that we exited above
+              Transforms.move(editor, { reverse: true })
+            }
+            return
+
+
+
+          }
       }
 
       if (node.type == "SheetContent") {
