@@ -4004,7 +4004,7 @@ def visualize_timeline(request):
 
 
 def person_page_redirect(request, name):
-    person = Topic.get_person_by_key(name)
+    person = PersonTopic.get_person_by_key(name)
 
     if not person:
         raise Http404
