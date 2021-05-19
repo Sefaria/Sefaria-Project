@@ -83,8 +83,8 @@ Category
 """
 
 # Time
-subscribe(cascade(person.PersonSet, "era"),                                timeperiod.TimePeriod, "attributeChange", "symbol")
-subscribe(cascade(person.PersonSet, "generation"),                         timeperiod.TimePeriod, "attributeChange", "symbol")
+subscribe(cascade(topic.PersonTopicSet, "properties.era.value"),          timeperiod.TimePeriod, "attributeChange", "symbol")
+subscribe(cascade(topic.PersonTopicSet, "properties.generation.value"),   timeperiod.TimePeriod, "attributeChange", "symbol")
 
 # Gardens
 subscribe(cascade(garden.GardenStopSet, "garden"),                         garden.Garden, "attributeChange", "key")
