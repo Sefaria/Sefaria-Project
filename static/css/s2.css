@@ -597,9 +597,11 @@ input.noselect {
 }
 .interface-english .header .interfaceLinks .interfaceLinks-menu {
   right: 0px;
+  direction: ltr;
 }
 .interface-hebrew .header .interfaceLinks .interfaceLinks-menu {
   left: 0px;
+  direction: rtl;
 }
 .header .interfaceLinks .interfaceLinks-header {
   font-style: normal;
@@ -625,6 +627,10 @@ input.noselect {
   text-align: right;
   color: #666666;
   padding: 5px;
+  direction: ltr;
+}
+.interface-hebrew .header .interfaceLinks .interfaceLinks-option {
+  direction: rtl;
 }
 .header .interfaceLinks .interfaceLinks-option::before {
   content: "";
