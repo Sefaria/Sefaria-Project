@@ -411,10 +411,9 @@ class AuthorTopic(PersonTopic):
                     return False
         return True
 
-    def _category_matches_author(self, category: Category, collective_title: Optional[str]) -> bool:
+    def _category_matches_author(self, category: Category) -> bool:
         from .schema import Term
 
-        if collective_title is not None: return False
         cat_term = Term().load({"name": category.sharedTitle})
         return len(set(cat_term.get_titles()) & set(self.get_titles())) > 0
 
@@ -424,7 +423,7 @@ class AuthorTopic(PersonTopic):
         from collections import defaultdict
 
         def index_is_commentary(index):
-            return getattr(index, 'base_text_titles', None) and len(index.base_text_titles) > 0 and getattr(index, 'collective_title', None)
+            return getattr(index, 'base_text_titles', None) is not None and len(index.base_text_titles) > 0 and getattr(index, 'collective_title', None) is not None
 
         indexes = self.get_authored_indexes()
         
@@ -444,6 +443,8 @@ class AuthorTopic(PersonTopic):
             if len(temp_indexes) == 1:
                 index_or_cat_list += [(temp_indexes[0], None, None)]
                 continue
+            if best_base_cat_path == ('Talmud', 'Bavli'):
+                best_base_cat_path = ('Talmud',)  # hard-coded to get 'Rashi on Talmud' instead of 'Rashi on Bavli'
             
             base_category = Category().load({"path": list(best_base_cat_path)})
             if collective_title is None:
@@ -452,7 +453,7 @@ class AuthorTopic(PersonTopic):
             else:
                 index_category = Category.get_shared_category(temp_indexes)
                 collective_title_term = Term().load({"name": collective_title})
-            if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path, collective_title is not None) or self._category_matches_author(index_category, collective_title):
+            if index_category is None or not self._authors_indexes_fill_category(temp_indexes, index_category.path, collective_title is not None) or (collective_title is None and self._category_matches_author(index_category)):
                 for temp_index in temp_indexes:
                     index_or_cat_list += [(temp_index, None, None)]
                 continue
