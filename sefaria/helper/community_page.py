@@ -62,7 +62,7 @@ def load_data_from_sheet(url):
   return keyed_data
 
 
-def get_community_page_items(date="5/23/21", language="englsih", diaspora=True, refresh=False):
+def get_community_page_items(date=None, language="englsih", diaspora=True, refresh=False):
   if refresh:
     cache_key = cache_get_key("community_page", language=language)
     delete_cache_elem(cache_key)
@@ -76,6 +76,11 @@ def get_community_page_items(date="5/23/21", language="englsih", diaspora=True, 
       "discover": None,
       "featured": None,
     }
+
+  # TODO remove pre-launch. For dev only, choose a random date in early weeks of the calendar
+  days = random.randrange(60)
+  datetime_obj = timezone.localtime(timezone.now()) + timedelta(days=days)
+  date = datetime_obj.strftime("%-m/%-d/%y")
 
   if date is None:
     datetime_obj = timezone.localtime(timezone.now())
