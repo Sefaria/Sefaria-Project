@@ -932,8 +932,8 @@ const withSefariaSheet = editor => {
               Transforms.mergeNodes(editor, {at: nodeBelow.path})
           }
 
-          if (Node.string(node) == "") {
-            console.log("empty SheetOutsideText")
+
+          if (Node.string(node) == "" && node.children.length <= 1) {
 
             const fragment = {
               type: "spacer",
@@ -959,9 +959,6 @@ const withSefariaSheet = editor => {
               Transforms.move(editor, { reverse: true })
             }
             return
-
-
-
           }
       }
 
