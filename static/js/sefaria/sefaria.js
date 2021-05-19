@@ -1852,7 +1852,7 @@ _media: {},
     });
   },
   _topics: {},
-  _CAT_REF_LINK_TYPE_FILTER_MAP = {
+  _CAT_REF_LINK_TYPE_FILTER_MAP: {
     'authors': ['popular-writing-of'],
   },
   getTopic: function(slug, {with_links=true, annotate_links=true, with_refs=true, group_related=true, annotate_time_period=false, ref_link_type_filters=['about', 'popular-writing-of'], with_indexes=true}={}) {
