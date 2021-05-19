@@ -356,13 +356,21 @@ function transformSheetJsonToSlate(sheet) {
     let sourceNodes = [];
 
     sheet.sources.forEach( (source, i) => {
+
       // this snippet of code exists to create placeholder spacers inbetween elements to allow for easier editting.
-      if (!(i == 0 && sheet.sources[0]["outsideText"]) ) {
+      //if the source is not the first source and it's not an outside text or adjacent to an outside text
+
+      const isCurrentSourceAnOutsideText = !!source["outsideText"]
+      const isPrevSourceAnOutsideText = !!(i > 0 && sheet.sources[i-1]["outsideText"])
+
+      if (!(isPrevSourceAnOutsideText || isCurrentSourceAnOutsideText) ) {
           sourceNodes.push({
             type: "spacer",
             children: [{text: ""}]
           })
         }
+
+
       //-------//
 
 
@@ -1478,7 +1486,6 @@ const SefariaEditor = (props) => {
 
       let clickTimeOutId = null;
       const onClickListener = (e) => {
-        console.log(e)
         clearTimeout(clickTimeOutId);
         clickTimeOutId = setTimeout(
           () => {
