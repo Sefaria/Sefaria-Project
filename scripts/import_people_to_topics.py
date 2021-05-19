@@ -398,7 +398,7 @@ def create_topic_tocs():
         "dataSource": "sefaria",        
     }).save()
     for p in PersonSet():
-        t = AuthorTopic.get_person_by_key(p.key)
+        t = PersonTopic.get_person_by_key(p.key)
         if not t:
             continue
         to_topic = "authors" if p.is_post_talmudic() else "talmudic-figures"
@@ -412,7 +412,8 @@ def create_topic_tocs():
             }).save()
         except InputError as e:
             print(e)
-        if len(t.get_authored_indexes()) > 0:
+        
+        if isinstance(t, AuthorTopic) and len(t.get_authored_indexes()) > 0:
             try:
                 IntraTopicLink({
                     "toTopic": "authors",
@@ -543,7 +544,7 @@ if __name__ == "__main__":
     refactor_authors_on_indexes()
     import_people_links()
     create_topic_tocs()
-    Ref.clear_cache()  # ref cache may still have old index records attached to ref objects
+    library.rebuild()  # cache may still have old index records
     find_popular_writings(100, 300)
     add_subclasses()
     reset_slugs()
