@@ -154,6 +154,25 @@ const Strings = {
     "Create New" : "יצירת חדש",
     "Close" : "סגירה",
 
+    //publish flow:
+    "Not Published" : "לא פורסם",
+    "Publish Settings": "הגדרות פרסום",
+    "Publish Sheet": "פרסום דף מקורות",
+    "Your sheet is": "דף המקורות שלך",
+    "published": "פורסם",
+    "on Sefaria and visible to others through search and topics.": ".בספריא ומשתמשים אחרים יכולים למצוא אותו בחיפוש ובדפי הנושא",
+    "List your sheet on Sefaria for others to discover.": ".רישום דף המקורות שלך בספריא באופן שמשתמשים אחרים יוכלו למצוא אותו",
+    "Summary": "תקציר דף המקורות",
+    "Write a short description of your sheet..." : "תיאור קצר של דף המקורות שלך...",
+    "Add a topic...": "הוספת נושא",
+    "Publish": "פרסום דף המקורות",
+    "Unpublish": "ביטול פרסום",
+    "Please add a description and topics to publish your sheet.": "יש להוסיף תיאור ונושאים כדי לפרסם את הדף",
+    "Please add topics to publish your sheet.": "יש להוסיף נושאים כדי לפרסם את הדף",
+    "Please add a description to publish your sheet.": "יש להוסיף תיאור כדי לפרסם את הדף",
+    "The summary description is limited to 280 characters.": "תקציר דף המקורות מוגבל ל280 תווים.",
+
+
     // Reader Panel
     "Search" : "חיפוש",
     "Search Dictionary": "חפש במילון",

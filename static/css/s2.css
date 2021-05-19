@@ -74,7 +74,7 @@ a, a:hover {
 /* Font Family */
 body, .sans-serif {
   --english-font: var(--english-sans-serif-font-family);
-  --hebrew-font: var(--hebrew-sans-serif-font-family); 
+  --hebrew-font: var(--hebrew-sans-serif-font-family);
   --is-serif: initial; /* false */
 }
 .serif {
@@ -92,10 +92,12 @@ body, .en, .int-en {
 .interface-hebrew, .he, .int-he {
   --is-hebrew: ; /* true */
 }
+
 * {
   --hebrew-font-conditional: var(--is-hebrew) var(--hebrew-font);
   font-family: var(--hebrew-font-conditional, var(--english-font));
 }
+
 .he {
   font-size: 122%;
 }
@@ -5081,7 +5083,8 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
   margin-right: 8px;
 }
 .sheet .sheetTags .unlisted img,
-.collectionListing .collectionListingDetails .unlisted img {
+.collectionListing .collectionListingDetails .unlisted img,
+.tocTop .unlisted img {
   width: 13px;
   height: 13px;
   opacity: 0.4;
@@ -6550,9 +6553,236 @@ a .button:hover {
   content: "\200B"; /* zero-width space required so that chrome doesn't cause change in size of box on focus/blur */
   width: 0;
 }
+
+.publishBox {
+  text-align: start;
+  background-color: #EDEDEC;
+  border-radius: 6px;
+  padding: 10px 25px;
+  max-width: 540px;
+  margin: 0 auto;
+  font-size: 16px;
+  color: #666;
+}
+
+.publishBox .smallText .int-en, .publishBox .smallText .int-he.enInHe {
+  color: #666;
+}
+
+.publishBox p.error {
+  color: red;
+}
+
+.publishBox .error .react-tags,
+.publishBox textarea.error {
+  border: 1px solid red;
+}
+
+.publishBox p strong {
+  color: black;
+  font-weight: 400;
+}
+
+
+.publishBox h3 {
+  font-size: 22px;
+  font-weight: 500;
+  color: #666;
+  margin-top: 12px;
+  margin-bottom: 14px;
+  text-transform: none;
+  text-align: start;
+}
+
+.publishBox hr {
+  border-bottom: none;
+  border-right: none;
+  border-left: none;
+  margin-left: -25px;
+  margin-right: -25px;
+  border-top: 1px solid #CCC;
+  margin-top: 20px;
+}
+
+.publishBox .smallText {
+  color: #666666
+}
+
+.publishBox textarea {
+  width: 100%;
+  height: 100%;
+  resize: none;
+  box-sizing: border-box;
+  font-size: 16px;
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  font-style: normal;
+  padding: 10px;
+}
+.publishBox textarea::placeholder {
+  font-size: 16px;
+  color: #666;
+  font-style: normal;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+
+.publishBox .react-tags {
+  position: relative;
+  padding: 10px 10px 4px 10px;
+  border-radius: 6px;
+  background-color: #fff;
+  box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.25);
+  /* shared font styles */
+  font-size: 16px;
+  line-height: 1.2;
+  color: #666;
+  /* clicking anywhere will focus the input */
+  cursor: text;
+}
+
+.publishBox .react-tags.is-focused {
+  border-color: #B1B1B1;
+}
+
+.publishBox .react-tags__selected {
+  display: inline;
+}
+
+.publishBox .react-tags__selected-tag {
+  display: inline-block;
+  box-sizing: border-box;
+  margin: 0 6px 6px 0;
+  padding: 6px 8px;
+  border: none;
+  border-radius: 6px;
+  background: #EDEDEC;
+  color: #000;
+  /* match the font styles */
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.publishBox .react-tags__search-input,
+.publishBox .react-tags__search-input:focus,
+.publishBox .react-tags__search-input:focus-visible {
+  font-family: inherit;
+  font-size: inherit;
+  border: none;
+  outline: none;
+}
+
+.publishBox .react-tags__search-input::placeholder {
+  font-size: 16px;
+  font-style: normal;
+  font-family: var(--english-sans-serif-font-family);
+}
+
+body.interface-hebrew .publishBox .react-tags__search-input::placeholder,
+body.interface-hebrew .publishBox textarea::placeholder {
+  font-family: var(--hebrew-sans-serif-font-family);
+
+}
+
+
+
+.publishBox .react-tags__selected-tag:after {
+  content: '\2715';
+  color: #AAA;
+  margin-inline-start: 8px;
+  font-size: 10px;
+}
+
+.publishBox .react-tags__selected-tag:hover,
+.publishBox .react-tags__selected-tag:focus {
+  border-color: #B1B1B1;
+}
+
+.publishBox .react-tags__search {
+  display: inline-block;
+
+  /* match tag layout */
+  padding: 7px 2px;
+  margin-bottom: 6px;
+
+  /* prevent autoresize overflowing the container */
+  max-width: 100%;
+}
+
+.publishBox .publishButton {
+  margin: 18px 0;
+  text-align: end;
+}
+
+.publishBox .publishButton .button.published {
+  background-color: #EDEDEC;
+  border: 1px solid #CCCCCC;
+  color: #666666
+}
+
+
+.publishBox p {
+  margin-bottom: 9px;
+ }
+
+.publishBox .react-tags__suggestions ul {
+  position: absolute;
+  inset-inline-start: 0;  /* Note reduntant css rules below `body.interface-[hebrew|english]  .publishBox .react-tags__suggestions ul` */
+  top: 100%;
+  margin: 4px -1px;
+  padding: 0;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  min-width: 300px;
+}
+
+/* Reduntant given above `inset-inline-start` rule, but not standard on all browsers yet
+RMN: 2021-04-22 */
+body.interface-hebrew  .publishBox .react-tags__suggestions ul {
+  right: 0;
+}
+
+/* Reduntant given above `inset-inline-start` rule, but not standard on all browsers yet
+RMN: 2021-04-22 */
+body.interface-english .publishBox .react-tags__suggestions ul {
+  left: 0;
+}
+
+.publishBox .react-tags__suggestions li {
+  border-bottom: none;
+  padding: 6px 8px;
+}
+
+.publishBox .react-tags__suggestions li mark {
+  text-decoration: none;
+  background: none;
+  font-weight: normal;
+}
+
+.publishBox .react-tags__suggestions li:hover {
+  cursor: pointer;
+  background: #eee;
+}
+
+.publishBox .react-tags__suggestions li.is-active {
+  background: #eee;
+}
+
+.publishBox .react-tags__suggestions li.is-disabled {
+  opacity: 0.5;
+  cursor: auto;
+}
+
+
 .interface-hebrew .sheetMetaDataBox .authorStatement {
   direction: rtl;
 }
+
 .editorSidebarToggle {
   position: fixed;
   top: 150px;
@@ -8327,7 +8557,11 @@ section.SheetSource .SheetOutsideBiText {
   margin-top: 10px;
   height: 120px;
 }
-.interface-hebrew textarea, .interface-hebrew textarea::placeholder {
+
+.interface-hebrew textarea,
+.interface-hebrew textarea::placeholder,
+.interface-hebrew input,
+{
   font-family: var(--hebrew-sans-serif-font-family);
 }
 .feedbackOverlay textarea::placeholder {
