@@ -338,6 +338,13 @@ class PersonTopic(Topic):
     Represents a topic which is a person. Not necessarily an author of a book.
     """
 
+    @staticmethod
+    def get_person_by_key(key: str):
+        """
+        Find topic corresponding to deprecated Person key
+        """
+        return PersonTopic().load({"alt_ids.old-person-key": key})
+
     def contents(self, **kwargs):
         annotate_time_period = kwargs.get('annotate_time_period', False)
         d = super(PersonTopic, self).contents(**kwargs)
@@ -386,13 +393,6 @@ class AuthorTopic(PersonTopic):
     def get_authored_indexes(self):
         ins = IndexSet({"authors": self.slug})
         return sorted(ins, key=lambda i: Ref(i.title).order_id())
-    
-    @staticmethod
-    def get_person_by_key(key: str):
-        """
-        Find topic corresponding to deprecated Person key
-        """
-        return AuthorTopic().load({"alt_ids.old-person-key": key})
 
     def _authors_indexes_fill_category(self, indexes, path, include_dependant):
         from .text import library
