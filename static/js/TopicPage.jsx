@@ -327,6 +327,10 @@ const TopicPage = ({
     const [refsToFetchByTab, setRefsToFetchByTab] = useState({});
     const [parashaData, setParashaData] = useState(null);
     const [showFilterHeader, setShowFilterHeader] = useState(false);
+    const [extraData, setExtraData] = useState({ interfaceLang });
+    useEffect(() => {
+      setExtraData({ interfaceLang });
+    }, [interfaceLang]);
     const scrollableElement = useRef();
 
     const clearAndSetTopic = (topic, topicTitle) => {setTopic(topic, topicTitle)};
@@ -449,7 +453,7 @@ const TopicPage = ({
                                     topicData._refsDisplayedByTab[key] = data.length;
                                   }}
                                   initialRenderSize={(topicData._refsDisplayedByTab && topicData._refsDisplayedByTab[key]) || 0}
-                                  extraData={{ interfaceLang }}
+                                  extraData={extraData}
                                   renderItem={renderWrapper(toggleSignUpModal, topicData, interfaceLang)}
                                 />
                               );
