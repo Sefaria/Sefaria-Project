@@ -256,7 +256,7 @@ def refactor_authors_on_indexes():
         new_authors = []
         for a in i.authors:
             ts = topics_by_person[a]
-            assert len(ts) == 1
+            assert len(ts) == 1, f"author {a} has {len(ts)} topics. they are {', '.join([t.slug for t in ts])}"
             new_authors += [ts[0].slug]
         i.authors = new_authors
         # bypass save method so this goes much faster
