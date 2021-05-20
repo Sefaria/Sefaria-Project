@@ -7,7 +7,7 @@ import PropTypes  from 'prop-types';
 import DjangoCSRF  from './lib/django-csrf';
 import DiffMatchPatch  from 'diff-match-patch';
     import Component from 'react-class';  //auto-bind this to all event-listeners. see https://www.npmjs.com/package/react-class
-
+//TODO: fix the language selector to include any available language, not just English and Hebrew
 function changePath(newPath) {
   const newUrl = window.location.origin + newPath;
   window.location.assign(newUrl);
@@ -86,10 +86,10 @@ class PageLoader extends Component {
     super(props);
     this.state = {
       secRef: this.props.secRef,
-          v1: this.props.v1,
-          v2: this.props.v2,
-        lang: this.props.lang,
- nextChapter: null
+      v1: this.props.v1,
+      v2: this.props.v2,
+      lang: this.props.lang,
+      nextChapter: null
     };
   //this.handlePublish = this.handlePublish.bind(this);
   }
@@ -184,18 +184,13 @@ class DataForm extends Component {
 
   loadPossibleVersions(versions) {
     let lang = this.state.lang;
-    let possibleVersions = versions.reduce(function(vList, version) {
-      if (version.language === lang) {
-        vList.push(version.versionTitle);
-      }
-      return vList;
-    }, []);
+    let possibleVersions = versions[lang].map(({ versionTitle }) => versionTitle);
     this.setState({possibleVersions: possibleVersions});
   }
 
   componentWillMount() {
     if (Sefaria.isRef(this.state.secRef)) {
-      Sefaria.versions(this.state.secRef, this.loadPossibleVersions);
+      Sefaria.versions(this.state.secRef, true, null, false).then(this.loadPossibleVersions);
     }
   }
 
@@ -228,7 +223,7 @@ class DataForm extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (Sefaria.isRef(this.state.secRef) && this.state.lang) {
-      Sefaria.versions(this.state.secRef, this.loadPossibleVersions)
+      Sefaria.versions(this.state.secRef, true, null, false).then(this.loadPossibleVersions);
     } else {
       this.setState({possibleVersions: null});
     }
