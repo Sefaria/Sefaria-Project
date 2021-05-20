@@ -357,8 +357,8 @@ class PersonTopic(Topic):
                         "he": tp.primary_name("he")
                     },
                     "yearRange": {
-                        "en": tp.period_string("en"),
-                        "he": tp.period_string("he")
+                        "en": re.sub(r'[()]', '', tp.period_string("en")),
+                        "he": re.sub(r'[()]', '', tp.period_string("he")),
                     }
                 }
         return d
