@@ -1175,11 +1175,46 @@ const insertSource = (editor, ref, path) => {
 
     Transforms.setNodes(editor, { loading: true }, {at: path});
 
+    const getNodeAbove = (curPath) => {
+      let top = null;
+      let topPath = null;
+      try {
+        topPath = Path.previous(curPath)
+        top = (Node.get(editor, topPath))
+      }
+      catch(err) {}
+
+      return {node: top, path: topPath}
+    }
+
+    const getNodeBelow = (curPath) => {
+      let bottom = null;
+      let bottomPath = null;
+      try {
+        bottomPath = Path.next(curPath)
+        bottom = (Node.get(editor, bottomPath))
+      }
+      catch(err) {}
+
+      return {node: bottom, path: bottomPath}
+    }
+
+
+    const nodeAbove = getNodeAbove(path)
+    const nodeBelow = getNodeBelow(path)
+
+    // if (nodeAbove.node && nodeAbove.node.type == "SheetOutsideText") {
+    //     Transforms.mergeNodes(editor, { at: path})
+    //     return
+    // }
+
+
+
+
     Sefaria.getText(ref).then(text => {
         const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
         const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
-
-        const fragment = [{
+        let fragment = [{
                 type: "SheetSource",
                 node: editor.children[0].nextNode,
                 ref: text.ref,
@@ -1190,8 +1225,13 @@ const insertSource = (editor, ref, path) => {
                 children: [
                     {text: ""},
                 ]
-        }, {type: 'spacer', children: [{text: ""}]}
-        ];
+        }];
+
+        console.log(nodeBelow.node)
+
+        if (!(nodeBelow.node && (nodeBelow.node.type == "SheetOutsideText" || nodeBelow.node.type == "paragraph" ) )) {
+          fragment.push({type: 'spacer', children: [{text: ""}]})
+        }
         Transforms.setNodes(editor, { loading: false }, { at: path });
         addItemToSheet(editor, fragment, path ? path : "bottom");
         checkAndFixDuplicateSheetNodeNumbers(editor)
