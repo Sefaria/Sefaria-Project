@@ -4545,6 +4545,7 @@ class Library(object):
         self._toc_tree = None
         self._topic_toc = None
         self._topic_toc_json = None
+        self._topic_toc_category_mapping = None
         self._topic_link_types = None
         self._topic_data_sources = None
         self._category_id_dict = None
@@ -4622,6 +4623,7 @@ class Library(object):
         self._toc_json = self.get_toc_json(rebuild=True)
         self._topic_toc = self.get_topic_toc(rebuild=True)
         self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
+        self._topic_toc_category_mapping = self.get_topic_toc_category_mapping(rebuild=True)
         self._category_id_dict = None
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
@@ -4633,6 +4635,7 @@ class Library(object):
         self.get_topic_mapping(rebuild=rebuild)
         self.get_topic_toc(rebuild=rebuild)
         self.get_topic_toc_json(rebuild=rebuild)
+        self.get_topic_toc_category_mapping(rebuild=rebuild)
         self.get_text_titles_json(rebuild=rebuild)
         self.get_simple_term_mapping(rebuild=rebuild)
         self.get_simple_term_mapping_json(rebuild=rebuild)
@@ -4746,6 +4749,33 @@ class Library(object):
         if topic is None:
             return topic_json['children']
         return topic_json
+
+    def build_topic_toc_category_mapping(self) -> dict:
+        """
+        Maps every slug in topic toc to its parent slug. This is usually the top level category, but in the case of laws it is the second-level category
+        """
+        topic_toc_category_mapping = {}
+        topic_toc = self.get_topic_toc()
+        discovered_slugs = set()
+        topic_stack = [t for t in topic_toc]
+        while len(topic_stack) > 0:
+            curr_topic = topic_stack.pop()
+            if curr_topic['slug'] in discovered_slugs: continue
+            discovered_slugs.add(curr_topic['slug'])
+            for child_topic in curr_topic.get('children', []):
+                topic_stack += [child_topic]
+                topic_toc_category_mapping[child_topic['slug']] = curr_topic['slug']
+        return topic_toc_category_mapping
+
+    def get_topic_toc_category_mapping(self, rebuild=False) -> dict:
+        if rebuild or not self._topic_toc_category_mapping:
+            if not rebuild:
+                self._topic_toc_category_mapping = scache.get_shared_cache_elem('topic_toc_category_mapping')
+            if rebuild or not self._topic_toc_category_mapping:
+                self._topic_toc_category_mapping = self.build_topic_toc_category_mapping()
+                scache.set_shared_cache_elem('topic_toc_category_mapping', self._topic_toc_category_mapping)
+                self.set_last_cached_time()
+        return self._topic_toc_category_mapping
 
     def get_search_filter_toc(self):
         """
