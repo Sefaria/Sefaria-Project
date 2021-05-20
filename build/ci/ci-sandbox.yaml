@@ -12,6 +12,8 @@ substitutions:
   _IS_SANDBOX: "false" # must be a quoted string
   _MONGO_HOST: mongo
   _MONGO_DATABASE: "sefaria-vecino"
+  _MONGO_RESTORE_JOB: "restore-mongo-ASDF-foobar"
+  _RAND_SLUG: "foobar"
   _RESOURCE_ALLOCATION: small
   _POSTGRES_HOST: postgres
   _SANDBOX_SUBDOMAIN: cauldron
@@ -54,6 +56,7 @@ steps:
       - 'SANDBOX_NAME=${_ENV_NAME}'
       - 'MONGO_LOAD=${_MONGO_LOAD}' # If false, the job is a no-op
       - 'MONGO_SNAPSHOT_LOCATION=${_MONGO_SNAPSHOT_LOCATION}'
+      - 'RAND_SLUG=${_RAND_SLUG}'
       - 'CLUSTER_NAMESPACE=${_GKE_NAMESPACE}'
       - 'ENVIRONMENT=sandbox'
       # kubectl Variables
@@ -62,6 +65,14 @@ steps:
       - 'KUBECTL_VERSION=1.16'
       - 'KUBECONFIG=/root/.kube/config'
     wait_for: [ "-" ]
+
+  # Wait for mongo job to finish
+  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
+    id: wait_for_mongo_job
+    entrypoint: "kubectl"
+    args: ['wait', '--for=condition=complete', '--timeout=20m' 'job/${_MONGO_RESTORE_JOB}']
+    wait_for:
+      - mongo_restore
 
   # Build artifacts
   - name: gcr.io/kaniko-project/executor:latest
@@ -177,6 +188,7 @@ steps:
       - 'KUBECONFIG=/root/.kube/config'
     wait_for:
       - mongo_restore
+      - wait_for_mongo_job
       - web_container
       - nodejs_container
       - nginx_container

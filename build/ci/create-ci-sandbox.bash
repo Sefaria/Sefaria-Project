@@ -30,6 +30,8 @@ mongoDumpName="latest"
 mongoDatabaseName="sefaria-$envName"
 isSandbox="true"
 resourceAllocation="small"
+randSlug=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
+mongoRestoreJobName="restore-mongo-$envName-$randSlug"   # A bit messy.  This sample logic is repeated in mongoRestoreJob.tmpl.yaml
 
 
 #--------
@@ -45,6 +47,8 @@ substVars+=("_GKE_REGION=$gkeRegion")
 substVars+=("_IS_SANDBOX=$isSandbox")
 substVars+=("_MONGO_HOST=$mongoHostName")
 substVars+=("_MONGO_DATABASE=$mongoDatabaseName")
+substVars+=("_MONGO_RESTORE_JOB=$mongoRestoreJobName")
+substVars+=("_RAND_SLUG=$randSlug")
 substVars+=("_MONGO_LOAD=$mongoLoad")
 substVars+=("_MONGO_SNAPSHOT_LOCATION=$mongoDumpName")
 substVars+=("_POSTGRES_HOST=$postgresHostName")
