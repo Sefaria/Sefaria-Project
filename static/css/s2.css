@@ -496,6 +496,9 @@ input.noselect {
   -moz-margin-start: 20px;
   margin-inline-start: 10px;
 }
+.header .interfaceLinks .int-en {
+  direction: ltr;
+}
 .header .interfaceLinks img{
   height: 18px;
   width: 18px;
