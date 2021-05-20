@@ -209,16 +209,15 @@ class ReaderApp extends Component {
           panel = {
               menuOpen: props.initialPanels[i].menuOpen,
               bookRef:  props.initialPanels[i].bookRef,
-              settings: ("settings" in props.initialPanels[i]) ? extend(Sefaria.util.clone(defaultPanelSettings), props.initialPanels[i].settings) : Sefaria.util.clone(defaultPanelSettings)
+              settings: {...Sefaria.util.clone(defaultPanelSettings), ...props.initialPanels[i]?.settings}
           };
         } else {
           panel = this.clonePanel(props.initialPanels[i]);
-          panel.settings = Sefaria.util.clone(defaultPanelSettings);
-          if (!props.initialPanels[i].hasOwnProperty("settings")) {
-            if (panel.currVersions.he && p.currVersions.en) { panel.settings.language = "bilingual"; }
-            else if (panel.currVersions.he)                 { panel.settings.language = "hebrew" }
-            else if (panel.currVersions.en)                 { panel.settings.language = "english" }
-          }
+          let tempSettings = {}
+          if (panel?.currVersions?.he && p?.currVersions?.en) { tempSettings.language = "bilingual"; }
+          else if (panel?.currVersions?.he)                 { tempSettings.language = "hebrew" }
+          else if (panel?.currVersions?.en)                 { tempSettings.language = "english" }
+          panel.settings = {...Sefaria.util.clone(defaultPanelSettings), ...tempSettings, ...props.initialPanels[i]?.settings};
         }
         panels.push(panel);
       }
@@ -749,7 +748,7 @@ class ReaderApp extends Component {
         ? {state: {header: states[0]}, url: url, title: title}
         : {state: {panels: states}, url: url, title: title};
     for (var i = 1; i < histories.length; i++) {
-      if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") || 
+      if ((histories[i-1].mode === "Text" && histories[i].mode === "Connections") ||
         (histories[i-1].mode === "Sheet" && histories[i].mode === "Connections")) {
         if (i == 1) {
           var sheetAndCommentary = histories[i-1].mode === "Sheet" ? true : false;
@@ -1030,11 +1029,11 @@ class ReaderApp extends Component {
   handleCitationClick(n, citationRef, textRef, replace) {
     // Handle clicking on the citation `citationRef` which was found inside of `textRef` in panel `n`.
     // If `replace`, replace a following panel with this citation, otherwise open a new panel after.
-    if (this.state.panels.length > n+1  && 
+    if (this.state.panels.length > n+1  &&
       (replace || this.state.panels[n+1].mode === "Connections")) {
       this.closePanel(n+1);
     }
-    if (textRef) { 
+    if (textRef) {
       this.setTextListHighlight(n, textRef);
     }
     this.openPanelAt(n, citationRef, null, {scrollToHighlighted: !!replace});
@@ -1051,7 +1050,6 @@ class ReaderApp extends Component {
   }
   handleCompareSearchClick(n, ref, currVersions, options) {
     // Handle clicking a search result in a compare panel, so that clicks don't clobber open panels
-    // todo: support options.highlight, passed up from SearchTextResult.handleResultClick()
     this.replacePanel(n, ref, currVersions, options);
   }
   handleInAppLinkClick(e) {
@@ -1325,26 +1323,6 @@ class ReaderApp extends Component {
     }
     return licenseMap;
   }
-  translateISOLanguageCode(code) {
-    //takes two-letter ISO 639.2 code and returns full language name
-    const codeMap = {
-      "en": "English",
-      "he": "Hebrew",
-      "yi": "Yiddish",
-      "fi": "Finnish",
-      "pt": "Portuguese",
-      "es": "Spanish",
-      "fr": "French",
-      "de": "German",
-      "ar": "Arabic",
-      "it": "Italian",
-      "pl": "Polish",
-      "ru": "Russian",
-      "eo": "Esparanto",
-      "fa": "Farsi",
-    };
-    return codeMap[code.toLowerCase()] || code;
-  }
   selectVersion(n, versionName, versionLanguage) {
     // Set the version for panel `n`.
     var panel = this.state.panels[n];
@@ -1432,8 +1410,9 @@ class ReaderApp extends Component {
     this.state.panels = []; // temporarily clear panels directly in state, set properly with setState in openPanelAt
     this.openPanelAt(0, ref, currVersions, options);
   }
-  openPanelAt(n, ref, currVersions, options) {
+  openPanelAt(n, ref, currVersions, options, replace) {
     // Open a new panel after `n` with the new ref
+    // If `replace`, replace existing panel at `n`, otherwise insert new panel at `n`
     // If book level, Open book toc
     const parsedRef = Sefaria.parseRef(ref);
     var index = Sefaria.index(ref); // Do we have to worry about normalization, as in Header.subimtSearch()?
@@ -1472,7 +1451,7 @@ class ReaderApp extends Component {
     }
 
     var newPanels = this.state.panels.slice();
-    newPanels.splice(n+1, 0, panel);
+    newPanels.splice(replace ? n : n+1, replace ? 1 : 0, panel);
     this.setState({panels: newPanels});
     this.setHeaderState({menuOpen: null});
     this.saveLastPlace(panel, n+1);
@@ -1482,9 +1461,7 @@ class ReaderApp extends Component {
   }
   replacePanel(n, ref, currVersions, options) {
     // Opens a text in in place of the panel currently open at `n`.
-    this.openPanelAt(n, ref, currVersions, options);
-    this.replaceHistory = true;
-    this.closePanel(n);
+    this.openPanelAt(n, ref, currVersions, options, true);
   }
   openComparePanel(n, connectAfter) {
     var comparePanel = this.makePanelState({
@@ -1900,7 +1877,6 @@ class ReaderApp extends Component {
                     panelsOpen={panelStates.length}
                     analyticsInitialized={this.state.initialAnalyticsTracked}
                     getLicenseMap={this.getLicenseMap}
-                    translateISOLanguageCode={this.translateISOLanguageCode}
                     openTopic={this.openTopic}
                     toggleSignUpModal={this.toggleSignUpModal} />) : null;
     var panels = [];
@@ -1988,7 +1964,6 @@ class ReaderApp extends Component {
                       layoutWidth={width}
                       analyticsInitialized={this.state.initialAnalyticsTracked}
                       getLicenseMap={this.getLicenseMap}
-                      translateISOLanguageCode={this.translateISOLanguageCode}
                       openURL={this.openURL}
                       saveLastPlace={this.saveLastPlace}
                       checkIntentTimer={this.checkIntentTimer}

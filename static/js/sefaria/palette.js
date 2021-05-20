@@ -36,7 +36,7 @@ palette.categoryColors = {
   "Responsa":           "var(--responsa-red)",
   "Quoting Commentary": "var(--responsa-red)",
   "Sheets":             "var(--sefaria-blue)",
-  "Targum":             "var(--philosophy-purple)",
+  "Targum":             "var(--miscelaneous-green)",
   "Modern Commentary":  "var(--modern-works-blue)",
   "Reference":          "var(--reference-orange)",
   "Static":             "linear-gradient(90deg, #00505E 0% 10%, #5698B4 10% 20%, #CCB37C 20% 30%, #5B9370 30% 40%, #823241 40% 50%, #5A4474 50% 60%, #AD4F66 60% 70%, #7285A6 70% 80%, #00807E 80% 90%, #4872B3 90% 100%)"

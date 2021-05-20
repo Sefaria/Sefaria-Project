@@ -283,7 +283,6 @@ class Header extends Component {
                           layoutWidth={100}
                           analyticsInitialized={this.props.analyticsInitialized}
                           getLicenseMap={this.props.getLicenseMap}
-                          translateISOLanguageCode={this.props.translateISOLanguageCode}
                           toggleSignUpModal={this.props.toggleSignUpModal}
                         />) : null;
 
