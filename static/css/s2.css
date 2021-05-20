@@ -8975,6 +8975,9 @@ body .homeFeedWrapper .content {
   margin: 0 auto;
   padding-top: 60px;
 }
+.interface-hebrew .topicPanel .storyFeedInner {
+  padding-top: 0;
+}
 .storyByLine:hover .smallFollowButton,
 .authorName:hover .smallFollowButton {
   display: inline-block;
