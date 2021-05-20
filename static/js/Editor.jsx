@@ -356,13 +356,21 @@ function transformSheetJsonToSlate(sheet) {
     let sourceNodes = [];
 
     sheet.sources.forEach( (source, i) => {
+
       // this snippet of code exists to create placeholder spacers inbetween elements to allow for easier editting.
-      if (!(i == 0 && sheet.sources[0]["outsideText"]) ) {
+      //if the source is not the first source and it's not an outside text or adjacent to an outside text
+
+      const isCurrentSourceAnOutsideText = !!source["outsideText"]
+      const isPrevSourceAnOutsideText = !!(i > 0 && sheet.sources[i-1]["outsideText"])
+
+      if (!(isPrevSourceAnOutsideText || isCurrentSourceAnOutsideText) ) {
           sourceNodes.push({
             type: "spacer",
             children: [{text: ""}]
           })
         }
+
+
       //-------//
 
 
@@ -923,6 +931,35 @@ const withSefariaSheet = editor => {
           if (nodeBelow.node && nodeBelow.node.type == "SheetOutsideText") {
               Transforms.mergeNodes(editor, {at: nodeBelow.path})
           }
+
+
+          if (Node.string(node) == "" && node.children.length <= 1) {
+
+            const fragment = {
+              type: "spacer",
+              children: [{text: ""}]
+            }
+
+            const atEndOfDoc = Point.equals(editor.selection.focus, Editor.end(editor, [0,0]))
+
+            //This dance is required b/c it can't be changed in place
+            // it exits the spacer, deletes it, then places the new outside text in its place
+            Transforms.move(editor);
+            Transforms.delete(editor, {at: path});
+            Transforms.insertNodes(editor, fragment, { at: path });
+
+            if (atEndOfDoc) {
+              // sometimes the delete action above loses the cursor
+              //  at the end of the doc, this drops you back in place
+              ReactEditor.focus(editor)
+              Transforms.select(editor, Editor.end(editor, []));
+            }
+            else {
+              // gain back the cursor position that we exited above
+              Transforms.move(editor, { reverse: true })
+            }
+            return
+          }
       }
 
       if (node.type == "SheetContent") {
@@ -1138,11 +1175,46 @@ const insertSource = (editor, ref, path) => {
 
     Transforms.setNodes(editor, { loading: true }, {at: path});
 
+    const getNodeAbove = (curPath) => {
+      let top = null;
+      let topPath = null;
+      try {
+        topPath = Path.previous(curPath)
+        top = (Node.get(editor, topPath))
+      }
+      catch(err) {}
+
+      return {node: top, path: topPath}
+    }
+
+    const getNodeBelow = (curPath) => {
+      let bottom = null;
+      let bottomPath = null;
+      try {
+        bottomPath = Path.next(curPath)
+        bottom = (Node.get(editor, bottomPath))
+      }
+      catch(err) {}
+
+      return {node: bottom, path: bottomPath}
+    }
+
+
+    const nodeAbove = getNodeAbove(path)
+    const nodeBelow = getNodeBelow(path)
+
+    // if (nodeAbove.node && nodeAbove.node.type == "SheetOutsideText") {
+    //     Transforms.mergeNodes(editor, { at: path})
+    //     return
+    // }
+
+
+
+
     Sefaria.getText(ref).then(text => {
         const enText = Array.isArray(text.text) ? `<p>${text.text.flat(Infinity).join("</p><p>")}</p>` : text.text;
         const heText = Array.isArray(text.text) ? `<p>${text.he.flat(Infinity).join("</p><p>")}</p>` : text.he;
-
-        const fragment = [{
+        let fragment = [{
                 type: "SheetSource",
                 node: editor.children[0].nextNode,
                 ref: text.ref,
@@ -1153,8 +1225,13 @@ const insertSource = (editor, ref, path) => {
                 children: [
                     {text: ""},
                 ]
-        }, {type: 'spacer', children: [{text: ""}]}
-        ];
+        }];
+
+        console.log(nodeBelow.node)
+
+        if (!(nodeBelow.node && (nodeBelow.node.type == "SheetOutsideText" || nodeBelow.node.type == "paragraph" ) )) {
+          fragment.push({type: 'spacer', children: [{text: ""}]})
+        }
         Transforms.setNodes(editor, { loading: false }, { at: path });
         addItemToSheet(editor, fragment, path ? path : "bottom");
         checkAndFixDuplicateSheetNodeNumbers(editor)
@@ -1478,7 +1555,6 @@ const SefariaEditor = (props) => {
 
       let clickTimeOutId = null;
       const onClickListener = (e) => {
-        console.log(e)
         clearTimeout(clickTimeOutId);
         clickTimeOutId = setTimeout(
           () => {
