@@ -1300,7 +1300,7 @@ input.noselect {
   margin-top: 20px;
 }
 .topicPanel .mainColumn {
-  padding: 0 0 0 50px;
+  padding: 0 50px;
 }
 @media (max-width: 450px) {
   .topicPanel .mainColumn,
@@ -1311,9 +1311,6 @@ input.noselect {
   .topicPanel .filterable-list .filter-sort-wrapper {
     margin-top: 20px;
   }
-}
-.interface-hebrew .topicPanel .mainColumn {
-  padding: 0 50px 0 0;
 }
 .topicPanel .sideColumn {
   padding: 0 50px;
@@ -1349,7 +1346,6 @@ input.noselect {
   text-align: unset;
   text-transform: none;
   margin-bottom: 20px;
-  letter-spacing: 2px;
   height: unset;
   line-height: unset;
 }
@@ -1497,28 +1493,19 @@ h1 .languageToggle .he {
 .readerNavMenu h1 .int-en {
   font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif, "Taamey Frank";  /* fallback on Hebrew if Hebrew in text */
 }
-@media (max-width: 450px) {
-  .readerNavMenu.home .tagline {
-    margin-top: 29px;
-    height: 60px;
-  }
-  .readerNavMenu .tagline .en {
-    font-size: 19px;
-  }
-  .readerNavMenu .tagline .he {
-    font-size: 20px;
-  }
-}
 .authorIndexTitle {
-  margin-top: 40px;
+  margin-top: 30px;
   margin-bottom: 17px;
+}
+.sectionTitleText.authorIndexTitle .int-en {
+  text-transform: none;
+  letter-spacing: 0;
 }
 .authorIndexList {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   margin-bottom: 20px;
-  align-items: center;
 }
 .authorIndex {
   width: 50%;
@@ -1530,6 +1517,22 @@ h1 .languageToggle .he {
 .interface-hebrew .authorIndex {
   padding-right: 0;
   padding-left: 20px;
+}
+@media (max-width: 450px) {
+  .readerNavMenu.home .tagline {
+    margin-top: 29px;
+    height: 60px;
+  }
+  .readerNavMenu .tagline .en {
+    font-size: 19px;
+  }
+  .readerNavMenu .tagline .he {
+    font-size: 20px;
+  }
+  .authorIndex {
+    width: 100%;
+    padding: 0;
+  }
 }
 .readerNavMenu .libraryMessage {
   font-size: 18px;
@@ -8099,6 +8102,7 @@ section.SheetSource .SheetOutsideBiText {
 .filterable-list .readerNavMenuSearchButton {
   margin: 0 10px 0 5px;
   display: inline-flex;
+  top: 0;
 }
 .interface-hebrew .filterable-list .readerNavMenuSearchButton {
   margin: 0 5px 0 10px;
@@ -8464,7 +8468,7 @@ body .homeFeedWrapper .content {
     flex-direction: column;
   }
   .topicPanel .sideColumn {
-    padding: 20px 25px 0 25px;
+    padding: 20px 25px 30px 25px;
     max-width: 100%;
     align-self: stretch;
     border: 0;

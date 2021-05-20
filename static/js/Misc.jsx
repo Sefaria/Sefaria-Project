@@ -854,14 +854,14 @@ SimpleContentBlock.propTypes = {
 };
 
 
-const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick}) => (
-        <div className={classes} onClick={onClick}>
-            <a href={url} className={aclasses}>
-              <InterfaceText text={{en, he}}/>
-            </a>
-            {children}
-        </div>
-    );
+const SimpleLinkedBlock = ({en, he, url, classes, aclasses, children, onClick, openInNewTab}) => (
+  <div className={classes} onClick={onClick}>
+    <a href={url} className={aclasses} target={openInNewTab ? "_blank" : "_self"}>
+      <InterfaceText text={{en, he}}/>
+    </a>
+    {children}
+  </div>
+);
 SimpleLinkedBlock.propTypes = {
     en: PropTypes.string,
     he: PropTypes.string,

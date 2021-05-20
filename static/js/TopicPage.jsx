@@ -421,7 +421,7 @@ const TopicPage = ({
             <div className="columnLayout">
                <div className="mainColumn storyFeedInner">
                     <TopicHeader topic={topic} topicData={topicData} multiPanel={multiPanel} interfaceLang={interfaceLang} setNavTopic={setNavTopic} onClose={onClose} openSearch={openSearch} openDisplaySettings={openDisplaySettings} />
-                    {!topicData.isLoading ?
+                    {(!topicData.isLoading && displayTabs.length) ?
                        <TabView
                           currTabIndex={tabIndex}
                           setTab={(tabIndex, tempTabs) => { updateTopicsTab(tempTabs[tabIndex].id); }}
@@ -460,7 +460,7 @@ const TopicPage = ({
                             })
                           }
                         </TabView>
-                    : <LoadingMessage /> }
+                    : (topicData.isLoading ? <LoadingMessage /> : null) }
                 </div>
                 <div className="sideColumn">
                     { topicData ?
@@ -731,7 +731,8 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
           if (!url) { return null; }
           return (
             <SimpleLinkedBlock
-              key={url} en={propObj.title} he={Sefaria._(propObj.title)} url={url} aclasses={"systemText topicMetaData"}
+              key={url} en={propObj.title} he={Sefaria._(propObj.title)}
+              url={url} aclasses={"systemText topicMetaData"} openInNewTab
             />
           );
         })
