@@ -89,9 +89,28 @@ const Strings = {
     "Create New" : "יצירת חדש",
     "Close" : "סגירה",
 
+    //publish flow:
+    "Not Published" : "לא פורסם",
+    "Publish Settings": "הגדרות פרסום",
+    "Publish Sheet": "פרסום דף מקורות",
+    "Your sheet is": "דף המקורות שלך",
+    "published": "פורסם",
+    "on Sefaria and visible to others through search and topics.": ".בספריא ומשתמשים אחרים יכולים למצוא אותו בחיפוש ובדפי הנושא",
+    "List your sheet on Sefaria for others to discover.": ".רישום דף המקורות שלך בספריא באופן שמשתמשים אחרים יוכלו למצוא אותו",
+    "Summary": "תקציר דף המקורות",
+    "Write a short description of your sheet..." : "תיאור קצר של דף המקורות שלך...",
+    "Add a topic...": "הוספת נושא",
+    "Publish": "פרסום דף המקורות",
+    "Unpublish": "ביטול פרסום",
+    "Please add a description and topics to publish your sheet.": "יש להוסיף תיאור ונושאים כדי לפרסם את הדף",
+    "Please add topics to publish your sheet.": "יש להוסיף נושאים כדי לפרסם את הדף",
+    "Please add a description to publish your sheet.": "יש להוסיף תיאור כדי לפרסם את הדף",
+    "The summary description is limited to 280 characters.": "תקציר דף המקורות מוגבל ל280 תווים.",
+
+
     // Reader Panel
     "Search" : "חיפוש",
-    "Search Dictionary": "חפש במילון",
+    "Search Dictionary": "חיפוש במילון",
     "Search for": "חיפוש",
     "Search for:": "חיפוש:",
     "Views": "צפיות",
@@ -278,8 +297,8 @@ const Strings = {
     "Etc": "שאר",
 
     // Chavruta
-    "Learn with a Chavruta": "ללמוד עם חברותא",
-    "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הזה:",
+    "Learn with a Chavruta": "לימוד בחברותא",
+    "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הבא:",
     "Start Call": "התחלת שיחה",
 
     // Subscribe & Register
@@ -339,7 +358,12 @@ const Strings = {
     },
     "SheetAuthorStatement": {
       "by ": "", // by line on sheets in reader, intentionally left blank
-    }
+    },
+    "ConnectionPanelSection":{
+      "Related Texts": "מקורות לעיון",
+      "Resources": "עזרים",
+      "Tools": "כלים",
+    },
   },
 };
 

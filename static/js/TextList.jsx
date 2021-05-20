@@ -338,7 +338,7 @@ const AddConnectionToSheetButton = ({srefs, addToSheetCallback, versions= {"en":
   Takes a ref(s) for opening an AddToSourceSheet element and callback for passing data to said element - refs and versions object
    */
   const addToSheet = () => {
-    addToSheetCallback("Add Connection To Sheet", {"connectionRefs" : srefs, "versions": versions});
+    addToSheetCallback("Add To Sheet", {"addSource": "connectionsPanel", "connectionRefs" : srefs, "versions": versions});
   }
   return(
     <SimpleLinkedBlock

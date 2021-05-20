@@ -390,7 +390,7 @@ const FilterableList = ({
 
   // Alternatively, if there is no `getData` function passed, we expect data
   // to be fed in directly through the `data` prop. Check `data` again whenever
-  // refreshData signal changes. 
+  // refreshData signal changes.
   useEffect(() => {
     setRawData(data);
     setDisplayData(processData(data));
@@ -1335,11 +1335,11 @@ ProfileListing.propTypes = {
 const SheetListing = ({
   sheet, connectedRefs, handleSheetClick, handleSheetDelete, handleCollectionsChange,
   editable, deletable, saveable, collectable, pinnable, pinned, pinSheet,
-  hideAuthor, showAuthorUnderneath, infoUnderneath, hideCollection, openInNewTab, toggleSignUpModal 
+  hideAuthor, showAuthorUnderneath, infoUnderneath, hideCollection, openInNewTab, toggleSignUpModal
 }) => {
   // A source sheet presented in lists, like sidebar or profile page
   const [showCollectionsModal, setShowCollectionsModal] = useState(false);
-  
+
   const handleSheetClickLocal = (e) => {
     //console.log("Sheet Click Handled");
     // TODO: There more contexts to distinguish / track. Profile, collections, search
@@ -1439,7 +1439,7 @@ const SheetListing = ({
   });
   const created = Sefaria.util.localeDate(sheet.created);
   const underInfo = infoUnderneath ? [
-      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Unlisted")}</span></span>) : undefined,
+      sheet.status !== 'public' ? (<span className="unlisted"><img src="/static/img/eye-slash.svg"/><span>{Sefaria._("Not Published")}</span></span>) : undefined,
       showAuthorUnderneath ? (<a href={sheet.ownerProfileUrl} target={openInNewTab ? "_blank" : "_self"}>{sheet.ownerName}</a>) : undefined,
       views,
       created,
@@ -1490,17 +1490,17 @@ const SheetListing = ({
         }
         {
           saveable ?
-            <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }} 
+            <SaveButton historyObject={{ ref: `Sheet ${sheet.id}`, versions: {}  }}
               toggleSignUpModal={toggleSignUpModal} />
             : null
         }
-        { pinnable || pinned ? 
+        { pinnable || pinned ?
             pinButton
             : null
         }
       </div>
-      {showCollectionsModal ? 
-        <CollectionsModal 
+      {showCollectionsModal ?
+        <CollectionsModal
           sheetID={sheet.id}
           close={toggleCollectionsModal}
           handleCollectionsChange={handleCollectionsChange} />
@@ -2103,7 +2103,7 @@ class FeedbackBox extends Component {
 
              <div className="button" role="button" onClick={() => this.sendFeedback()}>
                  <span className="int-en">Submit</span>
-                 <span className="int-he">שלח</span>
+                 <span className="int-he">שליחה</span>
              </div>
         </div>
     );
