@@ -71,6 +71,11 @@ steps:
     id: wait_for_mongo_job
     entrypoint: "kubectl"
     args: ['wait', '--for=condition=complete', '--timeout=20m', 'job/${_MONGO_RESTORE_JOB}']
+    env:
+      - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
+      - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
+      - 'KUBECTL_VERSION=1.16'
+      - 'KUBECONFIG=/root/.kube/config'
     wait_for:
       - mongo_restore
 

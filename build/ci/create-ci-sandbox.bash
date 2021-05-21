@@ -31,7 +31,7 @@ mongoDumpName="latest"
 mongoDatabaseName="sefaria-$envName"
 isSandbox="true"
 resourceAllocation="small"
-randSlug="dummy"  # $(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
+randSlug="slug"  # $(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
 mongoRestoreJobName="restore-mongo-$envName-$randSlug"   # A bit messy.  This sample logic is repeated in mongoRestoreJob.tmpl.yaml
 
 
