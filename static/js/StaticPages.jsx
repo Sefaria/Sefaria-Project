@@ -60,7 +60,7 @@ import classNames from 'classnames';
         />
  */
 
-/* Saving for next year....
+
 const ContestLandingPage = () => (
     <StaticPage>
         <Header
@@ -238,7 +238,6 @@ const ContestLandingPage = () => (
         />
     </StaticPage>
 );
-*/
 
 
 const RambanLandingPage = () => {
@@ -1269,5 +1268,6 @@ export {
     RemoteLearningPage,
     SheetsLandingPage,
     PBSC2020LandingPage,
+    ContestLandingPage,
     RambanLandingPage
 }
