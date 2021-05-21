@@ -11,7 +11,8 @@
 # POSTGRES_HOST=postgres \
 # SANDBOX_NAME=deadbeef \
 # SANDBOX_SUBDOMAIN=cauldron \
-# ./create-ci-sandbox.bash
+# GITHUB_SHA=deadbeef \
+# ./build/ci/create-ci-sandbox.bash
 
 
 gcpProject=${GCP_PROJECT:?Set GCP_PROJECT and re-run.}
@@ -30,7 +31,7 @@ mongoDumpName="latest"
 mongoDatabaseName="sefaria-$envName"
 isSandbox="true"
 resourceAllocation="small"
-randSlug=$(cat /dev/urandom | tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
+randSlug=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | fold -w 10 | head -n 1)
 mongoRestoreJobName="restore-mongo-$envName-$randSlug"   # A bit messy.  This sample logic is repeated in mongoRestoreJob.tmpl.yaml
 
 
