@@ -2547,7 +2547,7 @@ Sefaria.unpackDataFromProps = function(props) {
 
       "calendars",
       "notificationCount",
-      "notificationsHtml",
+      "notifications",
       "saved",
       "last_place",
       "interfaceLang",

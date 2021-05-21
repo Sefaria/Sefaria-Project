@@ -191,7 +191,7 @@ def base_props(request):
             "followRecommendations": profile.follow_recommendations(),
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
-            "notificationsHtml": profile.recent_notifications().to_HTML(),
+            "notifications": profile.recent_notifications().contents(),
             "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
             "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True),
             "interruptingMessage": InterruptingMessage(attrs=interrupting_message_dict, request=request).contents(),
@@ -210,7 +210,7 @@ def base_props(request):
             "followRecommendations": general_follow_recommendations(),
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": 0,
-            "notificationsHtml": "",
+            "notifications": [],
             "saved": [],
             "last_place": [],
             "interruptingMessage": InterruptingMessage(attrs=GLOBAL_INTERRUPTING_MESSAGE, request=request).contents(),
@@ -2835,7 +2835,7 @@ def notifications_api(request):
     notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page)
 
     return jsonResponse({
-                            "html": notifications.to_HTML(),
+                            "html": notifications.contents(),
                             "page": page,
                             "page_size": page_size,
                             "count": len(notifications)

@@ -116,13 +116,13 @@ def header_html(request):
     global HEADER
     if USE_NODE:
         lang = request.interfaceLang
-        LOGGED_OUT_HEADER = HEADER['logged_out'][lang] or 
+        LOGGED_OUT_HEADER = HEADER['logged_out'][lang] or \
             render_react_component("ReaderApp", {"headerMode": True,
                                                  "_uid": None,
                                                  "interfaceLang": lang,
                                                  "_siteSettings": SITE_SETTINGS})
 
-        LOGGED_IN_HEADER = HEADER['logged_in'][lang] or 
+        LOGGED_IN_HEADER = HEADER['logged_in'][lang] or \
             render_react_component("ReaderApp", {"headerMode": True,
                                                  "_uid": True,
                                                  "interfaceLang": lang,
@@ -131,7 +131,7 @@ def header_html(request):
                                                  "full_name": "",
                                                  "_siteSettings": SITE_SETTINGS})
 
-        MOBILE_HEADER = HEADER["mobile"][lang] or 
+        MOBILE_HEADER = HEADER["mobile"][lang] or \
             render_react_component("ReaderApp", {"headerMode": True,
                                                  "_uid": None,
                                                  "interfaceLang": lang,

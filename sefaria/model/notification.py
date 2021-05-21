@@ -237,21 +237,6 @@ class Notification(abst.AbstractMongoRecord):
         self.read_via = via
         return self
 
-    def to_JSON(self):
-        notification = self.contents()
-        if "_id" in notification:
-            notification["_id"] = self.id
-        if "global_id" in notification:
-            notification["global_id"] = str(notification["global_id"])
-        notification["date"] = notification["date"].isoformat()    
-    
-        return json.dumps(notification)
-
-    def to_HTML(self):
-        html = render_to_string("elements/notification.html", {"notification": self}).strip()
-        html = re.sub("[\n\r]", "", html)
-        return html
-
     @property
     def id(self):
         return str(self._id)
@@ -268,6 +253,13 @@ class Notification(abst.AbstractMongoRecord):
             "discuss":        "adder",
         }
         return self.content[keys[self.type]]
+
+    def contents(self):
+        d = super(Notification, self).contents(with_string_id=True)
+        d["date"] = d["date"].isoformat()
+        if "global_id" in d:
+            d["global_id"] = str(d["global_id"])
+        return d
 
 
 class NotificationSet(abst.AbstractMongoSet):
@@ -345,13 +337,6 @@ class NotificationSet(abst.AbstractMongoSet):
     def like_count(self):
         """Returns the number of likes in this NotificationSet"""
         return len([n for n in self if n.type == "sheet like"])
-
-    def to_JSON(self):
-        return "[%s]" % ", ".join([n.to_JSON() for n in self])
-
-    def to_HTML(self):
-        html = [n.to_HTML() for n in self]
-        return "".join(html)
 
 
 def process_sheet_deletion_in_notifications(sheet_id):
