@@ -67,9 +67,8 @@ steps:
     wait_for: [ "-" ]
 
   # Wait for mongo job to finish
-  - name: "gcr.io/${PROJECT_ID}/cloudbuild-helm:v3.5.4"
+  - name: gcr.io/cloud-builders/kubectl
     id: wait_for_mongo_job
-    entrypoint: "kubectl"
     args: ['wait', '--for=condition=complete', '--timeout=20m', 'job/${_MONGO_RESTORE_JOB}']
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
