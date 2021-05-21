@@ -24,7 +24,7 @@ from selenium.webdriver.support.expected_conditions import title_contains, prese
         element_to_be_clickable, visibility_of_element_located, invisibility_of_element_located, \
     text_to_be_present_in_element, _find_element, StaleElementReferenceException, visibility_of_any_elements_located
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, WebDriverException
+from selenium.common.exceptions import NoSuchElementException, NoAlertPresentException, WebDriverException, ElementClickInterceptedException
 # http://selenium-python.readthedocs.io/waits.html
 # http://selenium-python.readthedocs.io/api.html#module-selenium.webdriver.support.expected_conditions
 
@@ -130,6 +130,8 @@ class AbstractTest(object):
         ]
 
         js_console = self.driver.get_log("browser")
+        # This is cranky on many webdrivers.  It appears to only work on Chrome.
+        # See e.g. https://github.com/mozilla/geckodriver/issues/330
 
         for msg in js_console:
             if any(error in msg["message"] for error in error_strings):
@@ -205,7 +207,7 @@ class AbstractTest(object):
         It tries a few differnt things to get out of the current state, back to a dependable base toc.
         :return:
         """
-        if self.driver.current_url == urllib.parse.urljoin(self.base_url, "/texts") or self.driver.current_url.startswith(urllib.parse.urljoin(self.base_url,"/texts?")):
+        if self.driver.current_url == urllib.parse.urljoin(self.base_url, "/texts") or self.driver.current_url.startswith(urllib.parse.urljoin(self.base_url,"/texts") + "?"):
             return self
 
         # If text options are open, close them
@@ -301,7 +303,7 @@ class AbstractTest(object):
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, '.segment')))
 
     def click_source_title(self):
-        title_selector = 'div.readerTextToc > div > a'
+        title_selector = 'div.readerTextToc a'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, title_selector))
         )
@@ -309,7 +311,7 @@ class AbstractTest(object):
         ttl.click()
 
     def click_chapter(self, cptr):
-        chapter_selector = 'div.content div.tocLevel div div div a:nth-child('+ cptr + ')'
+        chapter_selector = 'div.content div.tocLevel a.sectionLink:nth-child('+ cptr + ')'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, chapter_selector))
         )
@@ -376,9 +378,24 @@ class AbstractTest(object):
     def click_sidebar_button(self, name):
         self.click_object_by_css_selector('a.toolsButton[data-name="{}"]'.format(name))
 
-    def close_join_sefaria_popup(self):
-        self.driver.find_element_by_css_selector('#interruptingMessage #interruptingMessageClose')
-        self.click_object_by_css_selector('#interruptingMessage #interruptingMessageClose')
+    def close_modal_popup(self):
+        """
+        :return: Boolean - did we manage to close the popup?
+        """
+        time.sleep(3)
+        try:
+            self.driver.find_element_by_css_selector('#interruptingMessage #interruptingMessageClose')
+            self.click_object_by_css_selector('#interruptingMessage #interruptingMessageClose')
+            return True
+        except NoSuchElementException:
+            pass
+
+        try:
+            self.driver.find_element_by_css_selector('#bannerMessageClose')
+            self.click_object_by_css_selector('#bannerMessageClose')
+            return True
+        except NoSuchElementException:
+            return False
 
     def close_popup_with_accept(self):
         try:
@@ -613,12 +630,20 @@ class AbstractTest(object):
         self.click_object_by_css_selector('#panel-0 div.readerOptionsPanel div.toggleSet.vowels div.toggleOption.all')
 
     def get_nth_section_english(self, n):
-        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') > div.segment > p.en'
+        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') .segmentText > span.en'
         return self.get_nth_section(selector)
 
     def get_nth_section_hebrew(self, n):
-        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') > div.segment > p.he'
+        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + str(n) + ') .segmentText > span.he'
         return self.get_nth_section(selector)
+
+    def has_hebrew_text(self):
+        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text .segmentText > span.he'
+        return len(self.driver.find_elements_by_css_selector(selector)) > 0
+
+    def has_english_text(self):
+        selector = '#panel-0 > div.readerContent div.textRange.basetext > div.text .segmentText > span.en'
+        return len(self.driver.find_elements_by_css_selector(selector)) > 0
 
     def get_content_layout_direction(self):
         panel = self.get_content_panel()
@@ -783,7 +808,7 @@ class AbstractTest(object):
         return new_url
 
     def get_section_txt(self, vrs):
-        verse_selector = '#panel-0 div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + vrs + ') > div > p.he'
+        verse_selector = '#panel-0 div.readerContent div.textRange.basetext > div.text > div > span:nth-child(' + vrs + ') > div p.segmentText > span.he'
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, verse_selector))
         )
@@ -793,8 +818,8 @@ class AbstractTest(object):
 
     def click_masechet_and_chapter(self, masechet, cptr):
         #The Masechtot and Chapters 1 based index
-        masechet_selector = 'div.content div div:nth-child(3) div div.tocContent div.tocLevel div:nth-child(' + masechet + ') span span.en i'
-        chapter_selector = 'div.content div div:nth-child(3) div div.tocContent div.tocLevel div:nth-child(' + masechet + ') div a:nth-child(' + cptr + ')'
+        masechet_selector = 'div.tocContent div.tocLevel div:nth-child(' + masechet + ') span span.en'
+        chapter_selector = 'div.tocContent div.tocLevel div:nth-child(' + masechet + ') div a:nth-child(' + cptr + ')'
 
         WebDriverWait(self.driver, TEMPER).until(
             element_to_be_clickable((By.CSS_SELECTOR, masechet_selector))
@@ -883,17 +908,14 @@ class AbstractTest(object):
             ref = Ref(ref)
         assert isinstance(ref, Ref)
         url = urllib.parse.urljoin(self.base_url, ref.url())
-        print(self.driver.current_url)
 
         if filter is not None:
             url += "&with={}".format(filter)
         if lang is not None:
             url += "&lang={}".format(lang)
 
-        print(self.driver.current_url)
-        
         self.driver.get(url.replace("&", "?", 1))
-        print(self.driver.current_url)
+
         if filter == "all":
             WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
         elif filter is not None:
@@ -902,7 +924,7 @@ class AbstractTest(object):
         else:
             WebDriverWait(self.driver, TEMPER).until(
                 element_to_be_clickable((By.CSS_SELECTOR, ".textColumn .textRange .segment")))
-            WebDriverWait(self.driver, TEMPER).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
+            WebDriverWait(self.driver, TEMPER * 2).until(visibility_of_any_elements_located((By.CSS_SELECTOR, ".linkCountDot")))
         self.set_modal_cookie()
         return self
 
@@ -961,7 +983,7 @@ class AbstractTest(object):
         self._perform_segment_click(ref)
         # Todo: put a data-* attribute on .filterSet, for the multi-panel case
         # Note below will fail if there are no connections
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
+        WebDriverWait(self.driver, TEMPER * 2).until(element_to_be_clickable((By.CSS_SELECTOR, ".categoryFilter")))
         return self
 
     def click_segment_to_close_commentary(self, ref):
@@ -1116,7 +1138,7 @@ class AbstractTest(object):
         return self
 
     def load_topic_page(self, slug):
-        self.driver.get(urllib.parse.urljoin(self.base_url, "/topics/", slug))
+        self.driver.get(urllib.parse.urljoin(self.base_url, "/topics/" + slug))
         WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, ".storyTitle")))
         return self
 
@@ -1167,22 +1189,10 @@ class AbstractTest(object):
         """
         self.driver.get(urllib.parse.urljoin(self.base_url, url))
         WebDriverWait(self.driver, TEMPER).until(presence_of_element_located((By.CSS_SELECTOR, test_selector)))
-        self.catch_js_error()
+        # self.catch_js_error()
         return self
 
     # Editing
-    def load_translate(self, ref):
-        if isinstance(ref, str):
-            ref = Ref(ref)
-        assert isinstance(ref, Ref)
-        url = urllib.parse.urljoin(self.base_url, "/translate/")
-        url = urllib.parse.urljoin(url, ref.url())
-        print(url)
-        self.driver.get(url)
-        WebDriverWait(self.driver, TEMPER).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
-        # WebDriverWait(driver, 15).until(element_to_be_clickable((By.CSS_SELECTOR, "#newVersion")))
-        return self
-
     def load_edit(self, ref, lang, version):
         if isinstance(ref, str):
             ref = Ref(ref)
@@ -1384,6 +1394,10 @@ class AtomicTest(AbstractTest):
             self.body()
             self.driver.execute_script('"**** Exit {} ****"'.format(self.name()))
         except Exception as e:
+            if isinstance(e, ElementClickInterceptedException):
+                if self.close_modal_popup():
+                    self.carp("{} - Closed modal. Restarting\n".format(self.name()))
+                    return self.body()
             print(e)
             err = traceback.format_exc()
             result = SingleTestResult(self.__class__, self.cap, False, err)
@@ -1735,7 +1749,7 @@ class Trial(object):
             command_executor = os.getenv("LOCAL_SELENIUM_URL")
             driver = webdriver.Remote(
                 command_executor=command_executor,
-                desired_capabilities=cap 
+                desired_capabilities=cap
             )
         else:
             raise Exception("Unrecognized platform: {}".format(self.platform))

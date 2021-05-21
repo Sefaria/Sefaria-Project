@@ -38,7 +38,7 @@ class CategoryFilter extends Component {
     }.bind(this)) : null;
 
     const color        = Sefaria.palette.categoryColor(this.props.category);
-    const style        = {"borderTop": "4px solid " + color};
+    const style       = {"--category-color":color}
     let innerClasses = classNames({categoryFilter: 1, withBooks: this.props.showBooks, on: this.props.on});
     let handleClick  = this.handleClick;
     const url = (this.props.srefs && this.props.srefs.length > 0)?"/" + Sefaria.normRef(this.props.srefs[0]) + "?with=" + this.props.category:"";

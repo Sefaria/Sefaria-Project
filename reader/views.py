@@ -51,7 +51,7 @@ from sefaria.utils.calendars import get_all_calendar_items, get_todays_calendar_
 from sefaria.utils.util import short_to_long_lang_code
 import sefaria.tracker as tracker
 from sefaria.system.cache import django_cache
-from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB
+from sefaria.settings import USE_VARNISH, USE_NODE, NODE_HOST, DOMAIN_LANGUAGES, MULTISERVER_ENABLED, SEARCH_ADMIN, RTC_SERVER, MULTISERVER_REDIS_SERVER, MULTISERVER_REDIS_PORT, MULTISERVER_REDIS_DB, DISABLE_AUTOCOMPLETER
 from sefaria.site.site_settings import SITE_SETTINGS
 from sefaria.system.multiserver.coordinator import server_coordinator
 from sefaria.helper.search import get_query_obj
@@ -66,27 +66,26 @@ logger = structlog.get_logger(__name__)
 
 #    #    #
 # Initialized cache library objects that depend on sefaria.model being completely loaded.
-logger.warning("Initializing library objects.")
-logger.warning("Initializing TOC Tree")
+logger.info("Initializing library objects.")
+logger.info("Initializing TOC Tree")
 library.get_toc_tree()
 
-
-""" """
-logger.warning("Initializing Full Auto Completer")
-library.build_full_auto_completer()
-
-logger.warning("Initializing Ref Auto Completer")
-library.build_ref_auto_completer()
-
-logger.warning("Initializing Lexicon Auto Completers")
-library.build_lexicon_auto_completers()
-
-logger.warning("Initializing Cross Lexicon Auto Completer")
-library.build_cross_lexicon_auto_completer()
-
-logger.warning("Initializing Shared Cache")
+logger.info("Initializing Shared Cache")
 library.init_shared_cache()
-""" """
+
+if not DISABLE_AUTOCOMPLETER:
+    logger.info("Initializing Full Auto Completer")
+    library.build_full_auto_completer()
+
+    logger.info("Initializing Ref Auto Completer")
+    library.build_ref_auto_completer()
+
+    logger.info("Initializing Lexicon Auto Completers")
+    library.build_lexicon_auto_completers()
+
+    logger.info("Initializing Cross Lexicon Auto Completer")
+    library.build_cross_lexicon_auto_completer()
+
 
 if server_coordinator:
     server_coordinator.connect()
@@ -179,7 +178,7 @@ def base_props(request):
         user_data = {
             "_uid": request.user.id,
             "_email": request.user.email,
-            "_uses_new_editor": request.COOKIES.get("new_editor", False),
+            "_uses_new_editor": getattr(profile, "uses_new_editor", False),
             "slug": profile.slug if profile else "",
             "is_moderator": request.user.is_staff,
             "is_editor": UserWrapper(user_obj=request.user).has_permission_group("Editors"),
@@ -347,7 +346,7 @@ def make_panel_dict(oref, versionEn, versionHe, filter, versionFilter, mode, **k
                 panel["connectionsMode"] = "TextList"
 
         settings_override = {}
-        panelDisplayLanguage = kwargs.get("panelDisplayLanguage")
+        panelDisplayLanguage = kwargs.get("connectionsPanelDisplayLanguage", None) if mode == "Connections" else kwargs.get("panelDisplayLanguage", None)
         aliyotOverride = kwargs.get("aliyotOverride")
         if panelDisplayLanguage:
             settings_override.update({"language" : short_to_long_lang_code(panelDisplayLanguage)})
@@ -394,11 +393,12 @@ def make_search_panel_dict(get_dict, i, **kwargs):
 def make_sheet_panel_dict(sheet_id, filter, **kwargs):
     highlighted_node = None
     if "." in sheet_id:
-        highlighted_node = sheet_id.split(".")[1]
-        sheet_id = sheet_id.split(".")[0]
+        highlighted_node = int(sheet_id.split(".")[1])
+        sheet_id = int(sheet_id.split(".")[0])
+    sheet_id = int(sheet_id)
 
-    db.sheets.update({"id": int(sheet_id)}, {"$inc": {"views": 1}})
-    sheet = get_sheet_for_panel(int(sheet_id))
+    db.sheets.update({"id": sheet_id}, {"$inc": {"views": 1}})
+    sheet = get_sheet_for_panel(sheet_id)
     if "error" in sheet:
         raise Http404
     sheet["ownerProfileUrl"] = public_user_data(sheet["owner"])["profileUrl"]
@@ -417,7 +417,7 @@ def make_sheet_panel_dict(sheet_id, filter, **kwargs):
         "sheetID": sheet_id,
         "mode": "Sheet",
         "sheet": sheet,
-        "highlightedNodes": highlighted_node
+        "highlightedNode": highlighted_node
     }
 
     ref = None
@@ -500,6 +500,11 @@ def text_panels(request, ref, version=None, lang=None, sheet=None):
             "panelDisplayLanguage": request.GET.get("lang", request.contentLang),
             'extended notes': int(request.GET.get("notes", 0)),
         }
+        if filter is not None:
+            lang1 = kwargs["panelDisplayLanguage"]
+            lang2 = request.GET.get("lang2", None)
+            if lang2:
+                kwargs["connectionsPanelDisplayLanguage"] = lang2 if lang2 in ["en", "he"] else lang1 if lang1 in ["en", "he"] else request.interfaceLang[0:2]
         if request.GET.get("aliyot", None):
             kwargs["aliyotOverride"] = "aliyotOn" if int(request.GET.get("aliyot")) == 1 else "aliyotOff"
         panels += make_panel_dicts(oref, versionEn, versionHe, filter, versionFilter, multi_panel, **kwargs)
@@ -745,16 +750,17 @@ def search(request):
 
 @login_required
 def enable_new_editor(request):
-    resp = home(request)
-    resp.set_cookie("new_editor", "yup", 60 * 60 * 24 * 365)
-    return resp
-
+    profile = UserProfile(id=request.user.id)
+    profile.update({"uses_new_editor": True, "show_editor_toggle": True})
+    profile.save()
+    return redirect(f"/profile/{profile.slug}")
 
 @login_required
 def disable_new_editor(request):
-    resp = home(request)
-    resp.delete_cookie("new_editor")
-    return resp
+    profile = UserProfile(id=request.user.id)
+    profile.update({"uses_new_editor": False})
+    profile.save()
+    return redirect(f"/profile/{profile.slug}")
 
 
 def public_collections(request):
@@ -1097,7 +1103,7 @@ def edit_text(request, ref=None, lang=None, version=None):
                 text["edit_lang"] = lang if lang is not None else request.contentLang
                 text["edit_version"] = version
                 initJSON = json.dumps(text)
-        except:
+        except Exception as e:
             index = library.get_index(ref)
             if index:
                 ref = None
@@ -1238,7 +1244,7 @@ def modify_bulk_text_api(request, title):
             @csrf_protect
             def protected_post(request):
                 return jsonResponse(modify(request.user.id))
-            return protected_post(request)        
+            return protected_post(request)
     return jsonResponse({"error": "Unsupported HTTP method."}, callback=request.GET.get("callback", None))
 
 
@@ -4198,7 +4204,7 @@ def apple_app_site_association(request):
 def application_health_api(request):
     """
     Defines the /healthz API endpoint which responds with
-        200 if the appliation is ready for requests,
+        200 if the application is ready for requests,
         500 if the application is not ready for requests
     """
     if library.is_initialized():
@@ -4211,8 +4217,8 @@ def application_health_api_nonlibrary(request):
 
 def rollout_health_api(request):
     """
-    Defines the /healthz-rollout API endpoint which responds with 
-        200 if the services Django depends on, Redis, Multiverver, and NodeJs
+    Defines the /healthz-rollout API endpoint which responds with
+        200 if the services Django depends on, Redis, Multiserver, and NodeJs
             are available.
         500 if any of the aforementioned services are not available
 
@@ -4224,7 +4230,7 @@ def rollout_health_api(request):
     }
     """
     def isRedisReachable():
-        try: 
+        try:
             redis_client = redis.StrictRedis(host=MULTISERVER_REDIS_SERVER, port=MULTISERVER_REDIS_PORT, db=MULTISERVER_REDIS_DB, decode_responses=True, encoding="utf-8")
             return redis_client.ping() == True
         except:

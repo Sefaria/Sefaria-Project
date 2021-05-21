@@ -73,6 +73,7 @@ def attach_branch(new_node, parent_node, place=0):
     # Update Index schema and save
     parent_node.children.insert(place, new_node)
     new_node.parent = parent_node
+    new_node.index = parent_node.index
 
     index.save(override_dependencies=True)
     library.rebuild()
@@ -258,6 +259,24 @@ def convert_simple_index_to_complex(index):
 
     handle_dependant_indices(index.title)
 
+def prepare_ja_for_children(ja):
+    """
+    JaggedArrayNodes can have children. However, when creating an empty JA and attaching it to a SchemaNode via attach_branch(),
+    the content_node corresponding to the JA in each Version will be an empty array. We need this to a dict so we can add children.
+    """
+    assert isinstance(ja, JaggedArrayNode)
+    vs = [v for v in ja.index.versionSet()]
+    for v in vs:
+        assert isinstance(v, Version)
+        content_node = v.content_node(ja)
+        if isinstance(content_node, dict):
+            print("JA is already prepared for children")
+            return
+        
+        assert isinstance(content_node, list) and len(content_node) == 0, "JA's content node must be a list and be empty in order to prepare for children" 
+        # convert content node to dict so it can have children (aka, IVF)
+        v.sub_content(ja.version_address(), value={})
+        v.save()
 
 def change_parent(node, new_parent, place=0):
     """
@@ -334,7 +353,7 @@ def change_node_title(snode, old_title, lang, new_title):
         return string.replace(old_title, new_title)
 
     def needs_rewrite(string, *args):
-        return string.find(old_title) >= 0 and snode.index.title == Ref(string).index.title
+        return string.find(old_title) >= 0 and snode.index.title in string
 
     if old_title == snode.primary_title(lang=lang):
         snode.add_title(new_title, lang, replace_primary=True, primary=True)

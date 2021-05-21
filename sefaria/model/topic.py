@@ -573,3 +573,27 @@ class TopicDataSource(abst.AbstractMongoRecord):
 
 class TopicDataSourceSet(abst.AbstractMongoSet):
     recordClass = TopicDataSource
+
+
+def process_index_title_change_in_topic_links(indx, **kwargs):
+    from sefaria.system.exceptions import InputError
+
+    print("Cascading Topic Links from {} to {}".format(kwargs['old'], kwargs['new']))
+
+    # ensure that the regex library we're using here is the same regex library being used in `Ref.regex`
+    from .text import re as reg_reg
+    patterns = [pattern.replace(reg_reg.escape(indx.title), reg_reg.escape(kwargs["old"]))
+                for pattern in Ref(indx.title).regex(as_list=True)]
+    queries = [{'ref': {'$regex': pattern}} for pattern in patterns]
+    objs = RefTopicLinkSet({"$or": queries})
+    for o in objs:
+        o.ref = o.ref.replace(kwargs["old"], kwargs["new"], 1)
+        try:
+            o.save()
+        except InputError:
+            logger.warning("Failed to convert ref data from: {} to {}".format(kwargs['old'], kwargs['new']))
+
+def process_index_delete_in_topic_links(indx, **kwargs):
+    from sefaria.model.text import prepare_index_regex_for_dependency_process
+    pattern = prepare_index_regex_for_dependency_process(indx)
+    RefTopicLinkSet({"ref": {"$regex": pattern}}).delete()

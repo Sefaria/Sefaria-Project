@@ -34,13 +34,16 @@ BS_CAPS = [
 ]
 
 SAUCE_CORE_CAPS = [
-    {'browserName': "firefox", 'platform': "macOS 10.13", 'version': "latest", "screenResolution": "1920x1440",
-     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x13', "extendedDebugging": True},
+    {'browserName': "firefox", 'platform': "macOS 10.15", 'version': "latest",
+     'sauce:options': {'screenResolution': '1920x1440'},
+     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x15', "extendedDebugging": True},
 
-    {'browserName': "safari", 'platform': "macOS 10.14", 'version': "latest", "screenResolution": "1920x1440",
+    {'browserName': "safari", 'platform': "macOS 10.14", 'version': "latest",
+     'sauce:options': {'screenResolution': '1920x1440'},
      'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Sf/x14'},
 
-    {'browserName': "chrome", 'platform': "Windows 10", 'version': "latest", "screenResolution": "1920x1080",
+    {'browserName': "chrome", 'platform': "Windows 10", 'browserVersion': "latest",
+     'sauce:options': {'screenResolution': '1920x1080'},
      'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/w10', "extendedDebugging": True},
 
     #{'browserName': "firefox", 'platform': "Windows 10", 'version': "latest", "screenResolution": "1920x1080",
@@ -49,13 +52,13 @@ SAUCE_CORE_CAPS = [
     #{'browserName': "MicrosoftEdge", 'platform': "Windows 10", 'version': "latest",
     #    'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Edg/w10'},
 
-    {'deviceName': 'Android Emulator', 'platformName': 'Android', 'platformVersion': '8.0',
-     'browserName': 'Chrome', 'appiumVersion': '1.13.0', 'deviceOrientation': "portrait",
-     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/8.0'},
+    {'deviceName': "Android GoogleAPI Emulator", 'platformName': 'Android', 'platformVersion': '11.0',
+     'browserName': 'Chrome', 'appiumVersion': '1.20.2', 'deviceOrientation': "portrait",
+     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'And/9.0'},
 
-    {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 8 Simulator",
-    'appiumVersion': "1.13.0", 'platformVersion': "12.2", 'deviceOrientation': "portrait",
-     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh8'},
+    {'browserName': "Safari", 'platformName': "iOS", 'deviceName': "iPhone 12 Simulator",
+    'appiumVersion': "1.20.1", 'platformVersion': "14.3", 'deviceOrientation': "portrait",
+     'sefaria_mode': 'single_panel', 'sefaria_short_name': 'iPh12'},
 
 ]
 
@@ -84,6 +87,6 @@ SAUCE_EXTENDED_CAPS = [  # Needs Review!
 SAUCE_CAPS = SAUCE_CORE_CAPS + SAUCE_EXTENDED_CAPS
 
 LOCAL_SELENIUM_CAPS = [
-    {'browserName': "firefox", 'platform': 'Linux', 'version': "latest", "screenResolution": "1920x1440",
-     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'FF/x13', "extendedDebugging": True},
+    {'browserName': "chrome", 'platform': 'Linux', 'version': "latest", "screenResolution": "1920x1440",
+     'sefaria_mode': 'multi_panel', 'sefaria_short_name': 'Cr/Lnx', "extendedDebugging": True},
 ]

@@ -79,7 +79,6 @@ class CollectionPage extends Component {
   sortSheetData(collection, sheetSort) {
     // Warning: This sorts the sheets within the cached collection item in sefaria.js
     if (!collection.sheets) { return; }
-
     const sorters = {
       date: function(a, b) {
         return Date.parse(b.modified) - Date.parse(a.modified);
@@ -93,14 +92,13 @@ class CollectionPage extends Component {
     };
     collection.sheets.sort(sorters[sheetSort]);
 
-    if (this.props.name == "גיליונות נחמה"){
+    if (collection.name == "גיליונות נחמה"){
       let parshaOrder = ["Bereshit", "Noach", "Lech Lecha", "Vayera", "Chayei Sara", "Toldot", "Vayetzei", "Vayishlach", "Vayeshev", "Miketz", "Vayigash", "Vayechi", "Shemot", "Vaera", "Bo", "Beshalach", "Yitro", "Mishpatim", "Terumah", "Tetzaveh", "Ki Tisa", "Vayakhel", "Pekudei", "Vayikra", "Tzav", "Shmini", "Tazria", "Metzora", "Achrei Mot", "Kedoshim", "Emor", "Behar", "Bechukotai", "Bamidbar", "Nasso", "Beha'alotcha", "Sh'lach", "Korach", "Chukat", "Balak", "Pinchas", "Matot", "Masei", "Devarim", "Vaetchanan", "Eikev", "Re'eh", "Shoftim", "Ki Teitzei", "Ki Tavo", "Nitzavim", "Vayeilech", "Ha'Azinu", "V'Zot HaBerachah"]
       if (this.props.interfaceLang == "english") {
         parshaOrder = ["English"].concat(parshaOrder);
       }
       collection.pinnedTags = parshaOrder;
     }
-
     if (collection.pinnedSheets && collection.pinnedSheets.length > 0) {
       this.pinSheetsToSheetList(collection);
     }
@@ -108,11 +106,11 @@ class CollectionPage extends Component {
       this.sortTags(collection);
     }
   }
-  pinSheetsToSheetList(collection){
+  pinSheetsToSheetList(collection) {
     // Applies any pinned sheets to the sorting of sheets list
-    var sortPinned = function(a, b) {
-      var ai = collection.pinnedSheets.indexOf(a.id);
-      var bi = collection.pinnedSheets.indexOf(b.id);
+    const sortPinned = function(a, b) {
+      const ai = collection.pinnedSheets.indexOf(a.id);
+      const bi = collection.pinnedSheets.indexOf(b.id);
       if (ai == -1 && bi == -1) { return 0; }
       if (ai == -1) { return 1; }
       if (bi == -1) { return -1; }
@@ -121,9 +119,9 @@ class CollectionPage extends Component {
     collection.sheets.sort(sortPinned);
   }
   sortTags(collection) {
-     var sortTags = function(a, b) {
-      var ai = collection.pinnedTags.indexOf(a.asTyped);
-      var bi = collection.pinnedTags.indexOf(b.asTyped);
+    const sortTags = function(a, b) {
+      const ai = collection.pinnedTags.indexOf(a.asTyped);
+      const bi = collection.pinnedTags.indexOf(b.asTyped);
       if (ai == -1 && bi == -1) { return 0; }
       if (ai == -1) { return 1; }
       if (bi == -1) { return -1; }
@@ -297,7 +295,7 @@ class CollectionPage extends Component {
             {sheets.length ?
             <div className="splitHeader">
               { topicList && topicList.length ?
-              <span className="filterByTag" onClick={this.toggleSheetTags}>
+              <span className="filterByTag sans-serif" onClick={this.toggleSheetTags}>
                 <span className="int-en" >Filter By Tag <i className="fa fa-angle-down"></i></span>
                 <span className="int-he">סנן לפי תווית <i className="fa fa-angle-down"></i></span>
                </span>

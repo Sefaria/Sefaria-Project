@@ -65,6 +65,7 @@ class WebPage(abst.AbstractMongoRecord):
             "remove www": lambda url: re.sub(r"^(https?://)www\.", r"\1", url),
             "remove mediawiki params": lambda url: re.sub(r"&amp;.+", "", url),
             "remove sort param": lambda url: re.sub(r"\?sort=.+", "", url),
+            "remove all params after id": lambda url: re.sub(r"(\?id=\d+).+$", r"\1", url)
         }
         global_rules = ["remove hash", "remove utm params", "remove fbclid param"]
         domain = WebPage.domain_for_url(url)
@@ -162,6 +163,8 @@ class WebPage(abst.AbstractMongoRecord):
             r"talmudology\.com\/?$",
             r"talmudology\.com\/[^\/]+$",  # seems everything at the top level is not an article
             r"sephardi\.co\.uk\/(category|community|tag|test)\/",
+            r"theameninstitute\.com\/?$",
+            r"theameninstitute\.com\/category\/whats-new-at-the-amen-institute\/?$",
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -350,7 +353,7 @@ def dedupe_identical_urls(test=True):
             "count": -1
             }
         }
-    ]);
+    ], allowDiskUse=True);
 
     url_count = 0
     removed_count = 0
@@ -839,5 +842,18 @@ sites_data = [
     {
         "name": "S and P Sephardi Community",
         "domains": ["sephardi.org.uk"],
+    },
+    {
+        "name": "זיכרון בספר",
+        "domains": ["mevoot.michlala.edu"],
+        "normalization_rules": ["use https", "remove www", "remove all params after id"]
+    },
+    {
+        "name": "Evolve",
+        "domains": ["evolve.reconstructingjudaism.org"],
+    },
+    {
+        "name": "The Amen Institute",
+        "domains": ["theameninstitute.com"]
     }
 ]

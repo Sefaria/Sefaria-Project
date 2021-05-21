@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+"""
+Deprecated as we move to structured logging
+
 import logging
 from django.conf import settings
 import requests, json, traceback
@@ -61,3 +64,5 @@ class SlackLogHandler(logging.Handler):
             requests.post(self.logging_url, data=json.dumps(slack_payload))
         except ConnectionError:
             pass  # basa. but slack posting failures should not crash a script
+
+"""

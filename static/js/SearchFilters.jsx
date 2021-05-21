@@ -160,7 +160,7 @@ class SearchFilters extends Component {
           { (this.props.isQueryRunning) ? runningQueryLine : null }
           { (this.props.searchState.availableFilters.length > 0) ? selected_filters : ""}
         </div>
-        <div className="searchButtonsBar">
+        <div className="searchButtonsBar sans-serif">
           { buttons }
           <div className="filterSortFlexbox">
             {filter_panel}

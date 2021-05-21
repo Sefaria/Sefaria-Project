@@ -108,7 +108,7 @@ def heb_string_to_int(n):
 	return sum(map(heb_to_int, n))
 
 @memoized
-def decode_hebrew_numeral(n):
+def decode_hebrew_numeral(numeral: str):
 	"""
 	Takes any string representing a Hebrew numeral and returns it integer value.
 
@@ -116,7 +116,7 @@ def decode_hebrew_numeral(n):
 	5764
 	"""
 
-	t = list(map(heb_string_to_int, split_thousands(n)))  # split and convert to numbers
+	t = list(map(heb_string_to_int, split_thousands(numeral)))  # split and convert to numbers
 	t = [pow(10, 3 * E_num[0]) * E_num[1] for E_num in enumerate(t)]  # take care of thousands and add
 	return sum(t)
 
@@ -398,6 +398,7 @@ def encode_hebrew_numeral(n, punctuation=True):
 	ret = sanitize(ret, punctuation)
 
 	return ret
+
 
 @memoized
 def encode_hebrew_daf(daf):

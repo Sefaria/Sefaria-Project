@@ -40,7 +40,8 @@ static_pages = [
     "remote-learning",
     "sheets",
     "powered-by-sefaria-contest-2020",
-    "ramban-sponsorships"
+    "ramban-sponsorships",
+    "design-system"
 ]
 
 static_pages_by_lang = [
@@ -77,7 +78,7 @@ site_urlpatterns += [
     url(r'^gala/?$', lambda x: HttpResponseRedirect('https://www.501auctions.com/sefaria')),
     url(r'^jfn?$', lambda x: HttpResponseRedirect('https://www.sefaria.org/sheets/60494')),
     url(r'^[nN]echama/?', lambda x: HttpResponseRedirect("/collections/גיליונות-נחמה")),
-    url(r'^contest?', lambda x: HttpResponseRedirect("/powered-by-sefaria-contest-2020")),    
+    url(r'^contest?', lambda x: HttpResponseRedirect("/powered-by-sefaria-contest-2020")),
 ]
 
 

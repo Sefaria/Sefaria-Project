@@ -298,12 +298,12 @@ CACHES = {
 
 """
 GLOBAL_INTERRUPTING_MESSAGE = {
-    "name":       "pesach-2021-banner",
-    "style":      "banner", # "modal" or "banner"
-    "repetition": 1,
+    "name":       "shavuot-2021",
+    "style":      "modal", # "modal" or "banner"
+    "repetition": 7,
     "condition":  {
         "returning_only": False,
-        "english_only": False,
+        "english_only": True,
         "desktop_only": False,
         "debug": False,
     }
