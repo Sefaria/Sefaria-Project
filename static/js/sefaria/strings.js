@@ -2,8 +2,8 @@ const Strings = {
   _i18nInterfaceStrings: {
     "Sefaria": "ספריא",
     "Topics":"נושאים",
+    "Sefaria Notifications": "הודעות בספריא",
     "Community": "קהילה", // TODO Hebrew
-    "Sefaria Notifcations": "הודעות בספריא",
     "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספרייה חיה של טקסטים יהודיים",
     "Recently Viewed" : "נצפו לאחרונה",
     "The Sefaria Library": "תוכן העניינים של ספריא",
@@ -49,7 +49,7 @@ const Strings = {
     "Support Sefaria": "תמכו בספריא",
     "Sefaria is an open source, non-profit project. Support us by making a tax-deductible donation.": "ספריא היא מיזם קוד פתוח ללא מטרות רווח. תמכו בנו בעזרת תרומה בניכוי מס.",
     "Make a Donation": "תרמו",
- 
+
     // Texts Page
     "Browse the Library": "עיון בספרייה",
     "The Jewish Library": "ארון הספרים היהודי",
@@ -77,7 +77,7 @@ const Strings = {
     "All Topic A-Z": "כל הנושאים א-ת",
     "Browse or search our complete list of topics": "עיון או חיפוש ברשימת כל הנושאים",
     "Topics bring you straight to selections of texts and user created source sheets about thousands of subjects. Sources that appear are drawn from existing indices of Jewish texts (like Aspaklaria) and from the sources our users include on their public source sheets.": "דפי נושא מביאים אותך ישירות למקורות נבחרים ולדפי מקורות של משתמשים המקורות המופיעים בדפי הנושא נלקטים ממאגרים קיימים של ספרות יהודית (דוגמת אספקלריא) ומדפי המקורות הציבוריים של משתמשי ספריא.",
-    
+
     // All Topics
     "All Topics": "כל הנושאים",
     "Reset": "לאתחל",
@@ -246,10 +246,10 @@ const Strings = {
     "Are you sure you want to remove this person from this collection?": "האם ברצונך להסיר משתמש זה מן האסופה?",
     "Are you sure you want to remove this invitation?": "האם ברצונך למחוק הזמנה זו?",
     "There was an error pinning your sheet.": "אירעה שגיאה בצירוף דף המקורות.",
-    
+
     // Public Collections Page
     "There are no public collections yet.": "טרם נוצרו אסופות ציבוריות",
-    
+
     // Collections in Profile
     "You can use collections to organize your sheets or public sheets you like. Collections can be shared privately or made public on Sefaria.": "באפשרותך ליצור אסופות כדי לארגן את דפי המקורות שלך או דפי מקורות פתוחים לשימוש שאהבת. את האסופות אפשר לשתף באופן פרטי או לפרסם באופן ציבורי באתר ספריא.",
     " hasn't shared any collections yet.": " טרם שיתפ/ה אסופות כלשהם",
@@ -419,7 +419,7 @@ const Strings = {
     "Hebrew Versions": "בעברית",
     "English Versions": "באנגלית",
   },
-  
+
   _i18nInterfaceStringsWithContext: {
     "AddConnectionBox": {
       "Select Type": "בחר סוג קישור",

@@ -87,7 +87,7 @@ class ReaderApp extends Component {
       if (panel.mode.endsWith("AndConnections")) {
         panel.highlightedRefs = panel.refs;
       }
-      return panel;  
+      return panel;
     }).map(panel => this.makePanelState(panel));
 
     const defaultVersions   = Sefaria.util.clone(props.initialDefaultVersions) || {};
@@ -229,7 +229,7 @@ class ReaderApp extends Component {
     // console.log(event.state);
     if (state) {
       this.justPopped = true;
-      
+
       // history does not preserve custom objects
       if (state.panels) {
         for (let p of state.panels) {
@@ -484,7 +484,7 @@ class ReaderApp extends Component {
             hist.mode = "profile";
             break;
           case "notifications":
-            hist.title = Sefaria._("Notifcations") + " | " + Sefaria._(siteName);
+            hist.title = Sefaria._("Notifications") + " | " + Sefaria._(siteName);
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
@@ -1000,10 +1000,10 @@ class ReaderApp extends Component {
   unsetTextHighlight(n) {
     this.setPanelState(n, { textHighlights: null });
   }
-  _getSearchStateName(type) { 
-    return `${type}SearchState`; 
+  _getSearchStateName(type) {
+    return `${type}SearchState`;
   }
-  _getSearchState(state, type) { 
+  _getSearchState(state, type) {
     return !!state && state[this._getSearchStateName(type)];
   }
   updateQuery(n, query) {
@@ -1477,7 +1477,7 @@ class ReaderApp extends Component {
   }
   showCommunity() {
     this.setSinglePanelState({menuOpen: "community"});
-  }  
+  }
   showSaved() {
     this.setSinglePanelState({menuOpen: "saved"});
   }
@@ -1812,7 +1812,7 @@ class ReaderApp extends Component {
     const sefariaModal = (
       <SignUpModal onClose={this.toggleSignUpModal} show={this.state.showSignUpModal} />
     );
-    const communityPagePreviewControls = this.props.communityPreview ? 
+    const communityPagePreviewControls = this.props.communityPreview ?
       <CommunityPagePreviewControls date={this.props.communityPreview} /> : null;
 
     var classDict = {readerApp: 1, multiPanel: this.props.multiPanel, singlePanel: !this.props.multiPanel};
