@@ -432,7 +432,14 @@ class ReaderTextTableOfContents extends Component {
                     alts={this.state.indexDetails.alts}
                     defaultStruct={"default_struct" in this.state.indexDetails && this.state.indexDetails.default_struct in this.state.indexDetails.alts ? this.state.indexDetails.default_struct : "default"}
                     narrowPanel={this.props.narrowPanel}
-                    title={this.props.title} />
+                    title={this.props.title}
+                    versions={versions}
+                    currVersions={this.props.currVersions}
+                    openVersion={this.openVersion}
+                    currentRef={this.props.currentRef}
+                    getLicenseMap={this.props.getLicenseMap}
+                    viewExtendedNotes={this.props.viewExtendedNotes}
+                  />
                 </div>
               </div> : <LoadingMessage />}
             </div>
@@ -511,7 +518,12 @@ class TextTableOfContentsNavigation extends Component {
                 b.name == this.props.defaultStruct ? 1 : 0;
       }.bind(this));
     }
-
+    options.push({
+        name: "versions",
+        text: "Versions",
+        heText: "מהדורות",
+        onPress: this.setTab.bind(null, "versions")
+    });
     if (this.props.commentatorList.length) {
       options.push({
         name: "commentary",
@@ -522,10 +534,10 @@ class TextTableOfContentsNavigation extends Component {
     }
 
     const toggle = (this.props.isDictionary ? null :
-      <TabbedToggleSet
-        options={options}
-        active={this.state.tab}
-        narrowPanel={this.props.narrowPanel} />);
+                  <TabbedToggleSet
+                    tabOptions={options}
+                    activeTab={this.state.tab}
+                    narrowPanel={this.props.narrowPanel} />);
     
     let content;
     switch(this.state.tab) {
@@ -565,6 +577,21 @@ class TextTableOfContentsNavigation extends Component {
         content = <CommentatorList
                     commentatorList={this.props.commentatorList}
                     title={this.props.title} />;
+
+
+        break;
+      case "versions":
+        content = <VersionsList
+                    versionsList={this.props.versions}
+                    currVersions={this.props.currVersions}
+                    openVersion={this.props.openVersion}
+                    title={this.props.title}
+                    currentRef={this.props.currentRef}
+                    getLicenseMap={this.props.getLicenseMap}
+                    viewExtendedNotes={this.props.viewExtendedNotes}
+                  />;
+
+
         break;
       default:
         content = <SchemaNode
@@ -594,29 +621,27 @@ TextTableOfContentsNavigation.propTypes = {
 };
 
 
-class TabbedToggleSet extends Component {
-  render() {
-    let options = this.props.options.map(function(option, i) {
+const TabbedToggleSet = ({tabOptions, activeTab, narrowPanel}) => {
+  let options = tabOptions.map(function(option, i) {
+    const handleClick = function(e) {
+      e.preventDefault();
+      option.onPress();
+    }.bind(this);
 
-      const handleClick = function(e) {
-        e.preventDefault();
-        option.onPress();
-      }.bind(this);
-
-      var classes = classNames({altStructToggle: 1, "sans-serif": 1, active: this.props.active === option.name});
-      var url = Sefaria.util.replaceUrlParam("tab", option.name);
-      return (
-        <div className="altStructToggleBox" key={i}>
-          <a className={classes} onClick={handleClick} href={url}>
-              <InterfaceText>{option.text}</InterfaceText>
-          </a>
-        </div>
-      );
+    let classes = classNames({altStructToggle: 1, "sans-serif": 1, active: activeTab === option.name});
+    const url = Sefaria.util.replaceUrlParam("tab", option.name);
+    return (
+      <div className="altStructToggleBox" key={i}>
+        <a className={classes} onClick={handleClick} href={url}>
+            <InterfaceText>{option.text}</InterfaceText>
+        </a>
+      </div>
+    );
     }.bind(this));
 
     let rows = [];
-    if (this.props.narrowPanel) {
-      let rowSize = options.length == 4 ? 2 : 3;
+    if (narrowPanel) {
+      const rowSize = options.length == 4 ? 2 : 3;
       for (let i = 0; i < options.length; i += rowSize) {
         rows.push(options.slice(i, i+rowSize));
       }
@@ -624,16 +649,18 @@ class TabbedToggleSet extends Component {
       rows = [options];
     }
 
-    return (<div className="structToggles">
-              {rows.map(function(row, i) {
-                return (<div className="structTogglesInner" key={i}>{row}</div>);
-              })}
-            </div>);
-  }
+    return (
+        <div className="structToggles">
+            {rows.map(function(row, i) {
+              return (<div className="structTogglesInner" key={i}>{row}</div>);
+            })}
+        </div>
+    );
+
 }
 TabbedToggleSet.propTypes = {
-  options:     PropTypes.array.isRequired, // array of object with `name`. `text`, `heText`, `onPress`
-  active:      PropTypes.string.isRequired,
+  tabOptions:     PropTypes.array.isRequired, // array of object with `name`. `text`, `heText`, `onPress`
+  activeTab:      PropTypes.string.isRequired,
   narrowPanel: PropTypes.bool
 };
 
