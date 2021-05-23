@@ -674,6 +674,7 @@ class UserProfile(object):
 
 
 def detect_potential_spam_message_notifications():
+    # Get "message" type notifications where one user has sent many messages to multiple users.
     spammers = db.notifications.aggregate(
         [
             {
@@ -709,6 +710,7 @@ def detect_potential_spam_message_notifications():
                 continue
 
         print(spammer["_id"])
+    # Mark all of these Notifications with these sender ids as suspicious so they dont get sent to the users
     db.notifications.update_many({"content.sender": {"$in": suspect_results}}, {"$set": {"suspected_spam": True}})
     return suspect_results
 
