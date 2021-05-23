@@ -671,17 +671,19 @@ const RemoteLearningPage = () => (
 
 const EducatorsPage = () => (
     <StaticPage>
-        <Header
+        <HeaderForEducatorsPage
             enTitle="Teach with Sefaria"
             enText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
-            enImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
-            enImgAlt=""
-            heTitle=""
-            heText=""
-            heImg="/static/img/pbsc-2020-landing-page/codemockup3.png"
-            heImgAlt=""
+            enImg="/static/img/mobile-landing-page/headerphone.png"
+            enImg2="/static/img/mobile-landing-page/tablet.png"
+            enImgAlt="Teach with Sefaria"
+            heTitle="Teach with Sefaria"
+            heText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
+            heImg="/static/img/mobile-landing-page/headerphoneHEB.png"
+            heImg2="/static/img/mobile-landing-page/tabletHEB.png"
+            heImgAlt="Teach with Sefaria"
             enActionText="Sign up for Educator Updates"
-            heActionText=""
+            heActionText="Sign up for Educator Updates"
             enActionURL="https://sefaria.nationbuilder.com/subscribe"
         />
         <GreyBox>
@@ -696,12 +698,12 @@ const EducatorsPage = () => (
         <Feature
             enTitle="Professional Development"
             enText="Whether you’re a pro or a new user, Sefaria has resources to help you and your students learn and thrive. Join a Sefaria webinar, browse our tutorials, sign up for our Educator course, or request a custom workshop for your team or your students."
-            enImg="/static/img/pbsc-2020-landing-page/talmudsidebar.png"
+            enImg="/static/img/educators-landing-page/teaching-with-sefaria-library.png"
             enImgAlt="Professional Development"
-            heTitle=""
-            heText=""
-            heImg="/static/img/pbsc-2020-landing-page/talmudsidebar.png"
-            heImgAlt="תוסף סרגל הכלים של התלמוד"
+            heTitle="Professional Development"
+            heText="Whether you’re a pro or a new user, Sefaria has resources to help you and your students learn and thrive. Join a Sefaria webinar, browse our tutorials, sign up for our Educator course, or request a custom workshop for your team or your students."
+            heImg="/static/img/educators-landing-page/teaching-with-sefaria-library.png"
+            heImgAlt="Professional Development"
             borderColor={palette.colors.darkblue}
         />
 
@@ -727,11 +729,11 @@ const EducatorsPage = () => (
          <Feature
             enTitle="Resources for Educators"
             enText="Stay up to date with the latest news and resources from Sefaria. Learn from other educators’ experiences teaching and using Sefaria’s resources, and get inspired to try new things in your work. Discover our adaptable lesson plans and resources, or find learning materials and activities ready-to-go for your classroom!"
-            enImg="/static/img/pbsc-2020-landing-page/talmudsidebar.png"
+            enImg="/static/img/educators-landing-page/megillah-activity.png"
             enImgAlt="Resources for Educators"
             heTitle=""
             heText=""
-            heImg="/static/img/pbsc-2020-landing-page/talmudsidebar.png"
+            heImg="/static/img/educators-landing-page/megillah-activity.png"
             heImgAlt=""
             borderColor={palette.colors.gold}
             link=""
@@ -758,11 +760,11 @@ const EducatorsPage = () => (
         <Feature
             enTitle="Sefaria for Educators How-Tos"
             enText="Browse our FAQ’s and learn more about how to use Sefaria’s tools to study and to teach. Sefaria’s Learning Team is always available to support you and your students or answer any questions you might have. If there are texts, translations, lesson plans, or student materials that would enhance your teaching, please share that with us as well."
-            enImg="/static/img/pbsc-2020-landing-page/talmudsidebar.png"
+            enImg="/static/img/educators-landing-page/tutorials-for-educators.png"
             enImgAlt="Sefaria for Educators How-Tos"
             heTitle=""
             heText=""
-            heImg="/static/img/pbsc-2020-landing-page/talmudsidebar.png"
+            heImg="/static/img/educators-landing-page/tutorials-for-educators.png"
             heImgAlt=""
             borderColor={palette.colors.red}
         />
@@ -802,38 +804,38 @@ const EducatorsPage = () => (
                 enText="As an educator, I have come to appreciate Sefaria more and more. I now make sure to expose all of my students to what Sefaria has to offer. I show them how to use Sefaria to make source sheets. <b>I love hearing their excitement as they realize how easy it is to make a sheet on Sefaria and how organized their final products look.</b> They also are impressed at how Sefaria helps them do research by finding sources that connect to their topic. I am grateful that Sefaria is there to provide Torah resources to my students after they complete their formal Jewish education. Overall, the experience of using Sefaria with my students has been very positive!"
                 enName="Sarit Anstandig | High School Judaics Teacher | Farber Hebrew Day School"
                 heName=""
-                image="/static/img/pbsc-2020-landing-page/libby.png"
+                image="/static/img/educators-landing-page/sarit anstandig.png"
             />
             <UserQuote
                 enText="I really appreciate Sefaria. I use it all the time studying for tests, doing homework, doing learning on my own or even preparing for a seminary interview. <b>The fact that I can quickly and easily find whatever I need wherever I am and understand and study it is incredible.</b> I'm so so grateful for Sefaria. I've introduced all my friends to it and they all use it now too."
                 heText=""
                 enName="Anonymous day school student"
                 heName=""
-                image="/static/img/pbsc-2020-landing-page/moshe.png"
+                image="/static/img/educators-landing-page/anonymous.png"
             />
             <UserQuote
                 heText=""
                 enText="Digital learning is making its way into all aspects of our students' education and learning, and if we are not on the train we will lose the hearts and minds of our students. We risk Torah being viewed as antiquated if it does not respond to our students' way of thinking about the world. Equally important, there are tools at our disposal which can enhance the experience of learning Torah and it would be malpractice not to see them. Through Sefaria's innovative educational features, my students' learning has been greatly enhanced. <b>We owe it to our students, and to ourselves, to make the most of this platform and to help make it better.</b>"
                 enName="Leib Zalesch | Judaic Studies Teacher | Beth Tfiloh Dahan Community School"
                 heName=""
-                image="/static/img/pbsc-2020-landing-page/moshe.png"
+                image="/static/img/educators-landing-page/Leib Pic Prof.png"
             />
             <UserQuote
                 enText="Students have exposure to so many more commentaries than they would have in the past because of Sefaria and online texts. What I like most about Sefaria is the ability to compare and contrast texts clearly with the text side by side. It is a very powerful tool in the classroom and allows students to be more active in the learning process. Sefaria has also enhanced the level of sophistication of student project based learning."
                 heText=""
                 enName="Yael Goldfischer | Chair: Chumash Department | The Frisch School"
                 heName=""
-                image="/static/img/pbsc-2020-landing-page/moshe.png"
+                image="/static/img/educators-landing-page/Yael Goldfischer.png"
             />
         </Section>
 
         <CallToActionFooterWithButton
-            href="https://github.com/Sefaria/Sefaria-Project"
-            he_href="https://github.com/Sefaria/Sefaria-Project"
-            enText="Want to create something of your own?"
-            heText="רוצה ליצור משהו משלך?"
-            enButtonText="GitHub"
-            heButtonText="GitHub"
+            href="https://sefaria.nationbuilder.com/subscribe"
+            he_href="https://sefaria.nationbuilder.com/subscribe"
+            enText="Sign up for our mailing list to get updates in your inbox"
+            heText="Sign up for our mailing list to get updates in your inbox"
+            enButtonText="Sign up for Educator Updates"
+            heButtonText="Sign up for Educators Updates"
         />
 
 
@@ -1253,10 +1255,46 @@ const H2Block = ({en, he, classes}) =>
         </h2>
     </div>;
 
+
+
+const HeaderForEducatorsPage = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, enActionURL, enActionText, heActionURL, heActionText}) =>
+    <div className="staticPageHeader">
+        <div className="staticPageBlockInner flexContainer">
+            <div className="staticPageHeaderTextBox">
+                <h1>
+                    <span className="int-en">{enTitle}</span>
+                    <span className="int-he">{heTitle}</span>
+                </h1>
+                <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
+                <SimpleButton en={enActionText} he={heActionText} href={enActionURL} he_href={heActionURL}
+                              white={true}/>
+            </div>
+            <div className="staticPageHeaderImg">
+                <span className="int-en"><img src={enImg} alt={enImgAlt}/></span>
+                <span className="int-en"><img src={enImg2} alt={enImgAlt2}/></span>
+                <span className="int-he"><img src={heImg} alt={heImgAlt}/></span>
+                <span className="int-he"><img src={heImg2} alt={heImgAlt2}/></span>
+            </div>
+        </div>
+    </div>
+
 const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, enActionURL, enActionText, heActionURL, heActionText}) => {
-    var staticPageHeaderClass = "staticPageHeader"
+    var staticPageHeaderClass = "staticPageHeader";
+    var imgComponent = "";
     if (enImg === "" && heImg === "") {
         staticPageHeaderClass += " textOnly";
+    }
+    else if (enImg2 !== "" && heImg2 !== "")
+    {
+        var imgEn1 = <span className="int-en"><img src={enImg} alt={enImgAlt}/></span>;
+        var imgEn2 = <span className="int-en"><img src={enImg2} alt={enImgAlt2}/></span>;
+        var imgHe1 = <span className="int-he"><img src={heImg} alt={heImgAlt}/></span>;
+        var imgHe2 = <span className="int-he"><img src={heImg2} alt={heImgAlt2}/></span>;
+        imgComponent = <span>{imgEn1}{imgEn2}{imgHe1}{imgHe2}</span>;
+    }
+    else
+    {
+        imgComponent = <span><img className="int-en" src={enImg} alt={enImgAlt}/><img className="int-he" src={heImg} alt={heImgAlt}/></span>;
     }
     return <div className={staticPageHeaderClass}>
         <div className="staticPageBlockInner flexContainer">
@@ -1271,8 +1309,7 @@ const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImg
                                   white={true}/> : null}
             </div>
             <div className="staticPageHeaderImg">
-                <img className="int-en" src={enImg} alt={enImgAlt}/>
-                <img className="int-he" src={heImg} alt={heImgAlt}/>
+                {imgComponent}
             </div>
         </div>
     </div>
