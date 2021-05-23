@@ -2,7 +2,7 @@ const Strings = {
   _i18nInterfaceStrings: {
     "Sefaria": "ספריא",
     "Topics":"נושאים",
-    "Sefaria Notifcations": "הודעות בספריא",
+    "Sefaria Notifications": "הודעות בספריא",
     "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספרייה חיה של טקסטים יהודיים",
     "Recently Viewed" : "נצפו לאחרונה",
     "The Sefaria Library": "תוכן העניינים של ספריא",
