@@ -15,7 +15,8 @@ import {
   RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,
-  RambanLandingPage
+  RambanLandingPage,
+  EducatorsPage
 } from './StaticPages';
 import {
   SignUpModal,
@@ -2085,5 +2086,6 @@ export {
   RemoteLearningPage,
   SheetsLandingPage,
   PBSC2020LandingPage,
-  RambanLandingPage
+  RambanLandingPage,
+  EducatorsPage
 };
