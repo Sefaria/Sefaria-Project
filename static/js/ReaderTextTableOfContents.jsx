@@ -35,7 +35,6 @@ class ReaderTextTableOfContents extends Component {
       versionsLoaded: false,
       currentVersion: null,
       currObjectVersions: {en: null, he: null},
-      showAllVersions: false,
       indexDetails: null,
       versionsDropDownOpen: false,
       dlVersionTitle: null,
@@ -434,7 +433,7 @@ class ReaderTextTableOfContents extends Component {
                     narrowPanel={this.props.narrowPanel}
                     title={this.props.title}
                     versions={versions}
-                    currVersions={this.props.currVersions}
+                    currObjectVersions={currObjectVersions}
                     openVersion={this.openVersion}
                     currentRef={this.props.currentRef}
                     getLicenseMap={this.props.getLicenseMap}
@@ -583,7 +582,7 @@ class TextTableOfContentsNavigation extends Component {
       case "versions":
         content = <VersionsList
                     versionsList={this.props.versions}
-                    currVersions={this.props.currVersions}
+                    currObjectVersions={this.props.currObjectVersions}
                     openVersion={this.props.openVersion}
                     title={this.props.title}
                     currentRef={this.props.currentRef}
