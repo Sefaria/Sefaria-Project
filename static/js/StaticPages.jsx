@@ -671,21 +671,7 @@ const RemoteLearningPage = () => (
 
 const EducatorsPage = () => (
     <StaticPage>
-        <HeaderForEducatorsPage
-            enTitle="Teach with Sefaria"
-            enText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
-            enImg="/static/img/mobile-landing-page/headerphone.png"
-            enImg2="/static/img/mobile-landing-page/tablet.png"
-            enImgAlt="Teach with Sefaria"
-            heTitle="Teach with Sefaria"
-            heText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
-            heImg="/static/img/mobile-landing-page/headerphoneHEB.png"
-            heImg2="/static/img/mobile-landing-page/tabletHEB.png"
-            heImgAlt="Teach with Sefaria"
-            enActionText="Sign up for Educator Updates"
-            heActionText="Sign up for Educator Updates"
-            enActionURL="https://sefaria.nationbuilder.com/subscribe"
-        />
+        <HeaderForEducatorsPage/>
         <GreyBox>
             <H2Block en="Empower and Engage" he=""/>
             <EnBlock padded={true}>
@@ -1257,8 +1243,24 @@ const H2Block = ({en, he, classes}) =>
 
 
 
-const HeaderForEducatorsPage = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, enActionURL, enActionText, heActionURL, heActionText}) =>
-    <div className="staticPageHeader">
+const HeaderForEducatorsPage = () => {
+    var enTitle="Teach with Sefaria"
+    var enText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
+    var enImg="/static/img/mobile-landing-page/headerphone.png"
+    var enImg2="/static/img/mobile-landing-page/tablet.png"
+    var heImg="/static/img/mobile-landing-page/headerphoneHEB.png"
+    var heImg2="/static/img/mobile-landing-page/tabletHEB.png"
+    var img1class="phoneImage"
+    var img2class="tabletImage"
+    var enImgAlt="Teach with Sefaria"
+    var heTitle="Teach with Sefaria"
+    var heText="Discover the power of digital texts and tools in your classroom. Explore Sefaria’s many resources to enrich teaching and learning in your community."
+    var heImgAlt="Teach with Sefaria"
+    var enActionText="Sign up for Educator Updates"
+    var heActionText="Sign up for Educator Updates"
+    var enActionURL="https://sefaria.nationbuilder.com/subscribe"
+    var heActionURL="https://sefaria.nationbuilder.com/subscribe"
+    return <div className="staticPageHeader">
         <div className="staticPageBlockInner flexContainer">
             <div className="staticPageHeaderTextBox">
                 <h1>
@@ -1266,31 +1268,30 @@ const HeaderForEducatorsPage = ({enTitle, heTitle, enText, heText, enImg, heImg,
                     <span className="int-he">{heTitle}</span>
                 </h1>
                 <SimpleInterfaceBlock classes="staticPageHeaderText" he={heText} en={enText}/>
-                <SimpleButton en={enActionText} he={heActionText} href={enActionURL} he_href={heActionURL}
-                              white={true}/>
+                <div className="simpleButtonWrapper wide">
+                    <a href={enActionURL} className={classNames({button:1, flexContainer:1, "int-en":1, white: true, tall: false, rounded:true})} target="_self">
+                        <span className="int-en">{enActionText}<img src="/static/img/circled-arrow-right.svg"/></span>
+                    </a>
+                    <a href={heActionURL || enActionURL} className={classNames({button:1, flexContainer:1, "int-he":1, white: true, tall: false, rounded:true})}>
+                        <span className="int-he">{heActionText}<img src="/static/img/circled-arrow-right.svg"/></span>
+                    </a>
+                </div>
             </div>
             <div className="staticPageHeaderImg">
-                <span className="int-en"><img src={enImg} alt={enImgAlt}/></span>
-                <span className="int-en"><img src={enImg2} alt={enImgAlt2}/></span>
-                <span className="int-he"><img src={heImg} alt={heImgAlt}/></span>
-                <span className="int-he"><img src={heImg2} alt={heImgAlt2}/></span>
+                <span className="int-en"><img className={img1class} src={enImg} alt={enImgAlt}/></span>
+                <span className="int-en"><img className={img2class} src={enImg2} alt={enImgAlt}/></span>
+                <span className="int-he"><img className={img1class} src={heImg} alt={heImgAlt}/></span>
+                <span className="int-he"><img className={img2class} src={heImg2} alt={heImgAlt}/></span>
             </div>
         </div>
     </div>
+};
 
 const Header = ({enTitle, heTitle, enText, heText, enImg, heImg, enImgAlt, heImgAlt, enActionURL, enActionText, heActionURL, heActionText}) => {
     var staticPageHeaderClass = "staticPageHeader";
     var imgComponent = "";
     if (enImg === "" && heImg === "") {
         staticPageHeaderClass += " textOnly";
-    }
-    else if (enImg2 !== "" && heImg2 !== "")
-    {
-        var imgEn1 = <span className="int-en"><img src={enImg} alt={enImgAlt}/></span>;
-        var imgEn2 = <span className="int-en"><img src={enImg2} alt={enImgAlt2}/></span>;
-        var imgHe1 = <span className="int-he"><img src={heImg} alt={heImgAlt}/></span>;
-        var imgHe2 = <span className="int-he"><img src={heImg2} alt={heImgAlt2}/></span>;
-        imgComponent = <span>{imgEn1}{imgEn2}{imgHe1}{imgHe2}</span>;
     }
     else
     {

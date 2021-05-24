@@ -2836,6 +2836,27 @@ display: none;
   justify-content: center;
   padding-bottom: 40px;
 }
+.staticPage .phoneImage{
+    position: absolute;
+    width: 207px;
+    height: 335px;
+    z-index: 1;
+    left: 550px;
+    top: 144px;
+}
+.staticPage .tabletImage{
+    position: relative;
+    width: 335px;
+    height: 419px;
+    left: 35px;
+    top: -10px;
+}
+.interface-hebrew .staticPage .phoneImage{
+    left: 205px;
+}
+.interface-hebrew .staticPage .tabletImage{
+    left: -48px;
+}
 .staticPage .staticPageBlockInner {
   width: 800px;
   margin: 0 auto;
@@ -2982,6 +3003,17 @@ display: none;
 }
 .staticPage .simpleButtonWrapper {
   width: 33%;
+}
+
+.staticPage .simpleButtonWrapper.wide img {
+  height: 18px;
+  width: 18px;
+  opacity: 0.2;
+  position: absolute;
+  margin-left: 10px;
+}
+.staticPage .staticPageHeaderTextBox .simpleButtonWrapper.wide {
+  width: 100%;
 }
 .staticPage .staticPageHeaderTextBox .simpleButtonWrapper {
   width: 66%;
