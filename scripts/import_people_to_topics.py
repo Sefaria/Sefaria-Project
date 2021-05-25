@@ -350,7 +350,7 @@ def import_people_links():
                     "fromTopic": from_topic,
                     "linkType": rel_to_link_type[rel.type],
                     "dataSource": "sefaria",
-                    "generatedBy" : "import_people_to_topics",
+                    "generatedBy" : "update_authors_data",  # preempting ability to delete relation links safely in update_authors_data.py
                 }).save()
             except AssertionError as e:
                 print(e)
@@ -533,6 +533,36 @@ def fix_list_titles():
             if isinstance(title['text'], list):
                 title['text'] = ' '.join(title['text']).strip()
                 t.save()
+
+def reorder_toc():
+    new_title_order = [s.strip() for s in """
+    Holidays
+    Torah Portions
+    Biblical Figures
+    Prayer
+    Lifecycle
+    Ritual Objects
+    Social Issues
+    Stories
+    Talmudic Figures
+    Authors
+    Values
+    Beliefs
+    Nature
+    Laws
+    Places
+    Food
+    Philosophy
+    History
+    Art
+    Supernatural
+    Health
+    """.strip().split('\n')]
+    for ititle, title in enumerate(new_title_order):
+        topic = Topic().load({"titles.text": title, "isTopLevelDisplay": True})
+        topic.displayOrder = ititle * 10
+        topic.save()
+
 
 if __name__ == "__main__":
     # create_csvs_to_match()
