@@ -464,9 +464,7 @@ class ReaderPanel extends Component {
     if (mode === "Resources") {
       this.setFilter();
     }
-    if (!!connectionData){
-      state["connectionData"] = connectionData;
-    }
+    state["connectionData"] = !!connectionData ? connectionData : null;
     this.conditionalSetState(state);
   }
   setConnectionsCategory(category) {
@@ -1015,6 +1013,7 @@ class ReaderPanel extends Component {
             interfaceLang={this.props.interfaceLang}
             toggleSignUpModal={this.props.toggleSignUpModal}
             historyObject={this.props.getHistoryObject(this.state, this.props.hasSidebar)}
+            connectionData={this.state.connectionData}
           />}
 
           {(items.length > 0 && !menu) ?
@@ -1165,12 +1164,14 @@ class ReaderControls extends Component {
         <ConnectionsPanelHeader
           connectionsMode={this.props.connectionsMode}
           previousCategory={this.props.connectionsCategory}
+          previousMode={this.props.connectionData?.previousMode}
           multiPanel={this.props.multiPanel}
           setConnectionsMode={this.props.setConnectionsMode}
           setConnectionsCategory={this.props.setConnectionsCategory}
           closePanel={this.props.closePanel}
           toggleLanguage={this.props.toggleLanguage}
-          interfaceLang={this.props.interfaceLang}/>
+          interfaceLang={this.props.interfaceLang}
+        />
       </div>
       :
       <div className={"readerTextToc" + (categoryAttribution ? ' attributed' : '')} onClick={this.props.sheetID ? this.openSheetMeta : this.openTextToc}>
