@@ -13,8 +13,9 @@ django.setup()
 from .framework import Trial
 from . import basic_tests    # This is in fact needed - to register subclasses Trial, etc.
 import sys
+import os
 
-build = sys.argv[1]
+build = os.getenv("GITHUB_SHA_SHORT", "deadbeef")
 
 if __name__ == '__main__':
     parser = OptionParser()

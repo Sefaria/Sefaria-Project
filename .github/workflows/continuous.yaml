@@ -10,7 +10,7 @@ jobs:
     needs: 
 #      - selenium-allsuites-local
 #      - selenium-pageloadsuite-local
-      - selenium-pageloadsuite-sauce
+      - selenium-sauce
 #      - selenium-readersuite-local
       - pytest-job
     steps:
@@ -377,7 +377,7 @@ jobs:
 #        run: gsutil cp /home/runner/selenium-allsuites-local.txt gs://${{secrets.GCS_BUILD_UPLOAD_BUCKET}}/${{env.BUILD_RESULT_SUBDIR}}/selenium-allsuites-local.txt
 #        if: ${{ always() }}
 
-  selenium-pageloadsuite-sauce:
+  selenium-sauce:
     name: "Selenium: Sauce"   # This name is referenced when slacking status
     needs: sandbox-ready
     runs-on: ubuntu-latest
@@ -432,8 +432,8 @@ jobs:
       - name: Install Python Packages
         run: pip3 install -r ./requirements.txt
 
-      - name: Run PageLoad Suite
-        run: python3 ./reader/browsertest/run_tests_on_github.py --tests PageloadSuite | tee /home/runner/selenium-pageloadsuite-sauce.txt #  ; echo $?
+      - name: Run Test Suite
+        run: python3 ./reader/browsertest/run_tests_on_github.py | tee /home/runner/selenium-pageloadsuite-sauce.txt #  ; echo $?
         shell: bash
         env:
           SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
@@ -522,7 +522,7 @@ jobs:
     needs: 
 #      - selenium-allsuites-local
 #      - selenium-pageloadsuite-local
-      - selenium-pageloadsuite-sauce
+      - selenium-sauce
 #      - selenium-readersuite-local
       - pytest-job
     runs-on: ubuntu-latest

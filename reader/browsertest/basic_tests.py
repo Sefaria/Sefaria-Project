@@ -177,6 +177,7 @@ class PagesLoad(AtomicTest):
 class PagesLoadLoggedIn(AtomicTest):
     suite_class = PageloadSuite
     every_build = True
+    single_panel = False   # todo write or rewrite this to account for logged in state on mobile
 
     def body(self):
         self.load_toc()
@@ -490,6 +491,7 @@ class LinkExplorer(AtomicTest):
     # that torah>nevi'im>ketuvim and the Sedarim are in the correct order
     suite_class = PageloadSuite
     every_build = False
+
     def body(self):
         self.driver.get(urllib.parse.urljoin(self.base_url,"/explore"))
         #todo ^ add a wait there that is connected to content
