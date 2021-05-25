@@ -90,7 +90,7 @@ body, .sans-serif {
 body, .en, .int-en {
   --is-hebrew: initial; /* false */
 }
-.interface-hebrew, .he, .int-he {
+.he, .int-he {
   --is-hebrew: ; /* true */
 }
 

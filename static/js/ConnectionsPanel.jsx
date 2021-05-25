@@ -615,6 +615,7 @@ class ConnectionsPanel extends Component {
           <ConnectionsPanelHeader
             connectionsMode={this.props.mode}
             previousCategory={this.props.connectionsCategory}
+            previousMode={this.props.connectionData?.previousMode}
             setConnectionsMode={this.props.setConnectionsMode}
             setConnectionsCategory={this.props.setConnectionsCategory}
             multiPanel={this.props.multiPanel}
@@ -697,7 +698,7 @@ const ToolsList = ({setConnectionsMode, toggleSignUpModal, openComparePanel, cou
               <ToolsButton en="Add to Sheet" he="הוספה לדף מקורות" image="sheetsplus.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Add To Sheet", {"addSource": "mainPanel"})} />
               <ToolsButton en="Dictionaries" he="מילונים" image="dictionaries.svg" onClick={() => setConnectionsMode("Lexicon")} />
               {openComparePanel ? <ToolsButton en="Compare Text" he="טקסט להשוואה" image="compare-panel.svg" onClick={openComparePanel} /> : null }
-              <ToolsButton en="Notes" he="הערות" image="notes.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Notes")} />
+              <ToolsButton en="Notes" he="הערות" image="notes.svg" alwaysShow={true} count={counts["notes"]} onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Notes")} />
               <ToolsButton en="Chavruta" he="חברותא" image="chavruta.svg" onClick={() => !Sefaria._uid ? toggleSignUpModal() : setConnectionsMode("Chavruta")} />
               <ToolsButton en="Share" he="שיתוף" image="share.svg" onClick={() => setConnectionsMode("Share")} />
               <ToolsButton en="Feedback" he="משוב" image="feedback.svg" onClick={() => setConnectionsMode("Feedback")} />
@@ -1074,7 +1075,7 @@ AdvancedToolsList.propTypes = {
 };
 
 
-const ToolsButton = ({en, he, icon, image, count=null, onClick, control="interface", typeface="system"}) => {
+const ToolsButton = ({en, he, icon, image, count=null, onClick, control="interface", typeface="system", alwaysShow = false}) => {
     const clickHandler = (e) => {
         e.preventDefault();
         onClick();
@@ -1092,7 +1093,7 @@ const ToolsButton = ({en, he, icon, image, count=null, onClick, control="interfa
     const nameClass = en.camelize();
     const wrapperClasses = classNames({toolsButton: 1,[nameClass]:1, [control+"Control"]: 1, [typeface+"Typeface"]: 1, noselect: 1})
     return (
-      count == null || count > 0 ?
+      count == null || count > 0 || alwaysShow ?
       <a href={url} className={wrapperClasses} data-name={en} onClick={clickHandler}>
         {iconElem}
         <span className="toolsButtonText">

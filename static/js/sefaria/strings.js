@@ -3,7 +3,7 @@ const Strings = {
     "Sefaria": "ספריא",
     "Topics":"נושאים",
     "Community": "קהילה", // TODO Hebrew
-    "Sefaria Notifcations": "הודעות בספריא",
+    "Sefaria Notifications": "הודעות בספריא",
     "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספרייה חיה של טקסטים יהודיים",
     "Recently Viewed" : "נצפו לאחרונה",
     "The Sefaria Library": "תוכן העניינים של ספריא",
@@ -443,6 +443,11 @@ const Strings = {
       "Resources": "עזרים",
       "Tools": "כלים",
     },
+    "FollowButton": {
+      "Follow": "עוקב",
+      "Unfollow": "הפסק לעקוב",
+      "Following": "עקוב",
+    }
   },
 };
 

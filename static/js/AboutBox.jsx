@@ -58,6 +58,10 @@ class AboutBox extends Component {
     }
     this.setState({versionLangMap: versionsByLang, currentVersionsByActualLangs:currentVersionsByActualLangs});
   }
+  openVersionInSidebar(versionTitle, versionLanguage) {
+    this.props.setConnectionsMode("Translation Open", {previousMode: "About"});
+    this.props.setFilter(Sefaria.getTranslateVersionsKey(versionTitle, versionLanguage));
+  }
   render() {
     const d = this.state.details;
     const sourceVersion = this.state.currentVersionsByActualLangs?.he;
@@ -215,6 +219,7 @@ class AboutBox extends Component {
               currentRef={this.props.srefs[0]}
               getLicenseMap={this.props.getLicenseMap}
               openVersionInReader={this.props.openVersionInReader}
+              openVersionInSidebar={this.openVersionInSidebar}
               viewExtendedNotes={this.props.viewExtendedNotes}
             />
       </div> : null );

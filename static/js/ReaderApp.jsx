@@ -484,7 +484,7 @@ class ReaderApp extends Component {
             hist.mode = "profile";
             break;
           case "notifications":
-            hist.title = Sefaria._("Notifcations") + " | " + Sefaria._(siteName);
+            hist.title = Sefaria._(siteName + " Notifications");
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
