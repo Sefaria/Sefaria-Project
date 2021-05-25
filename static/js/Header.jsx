@@ -73,7 +73,7 @@ const ProfilePicMenu = ({len, url, name}) => {
           <ProfilePic len={len} url={url} name={name}/>
         </a>
         <div className="interfaceLinks">
-          <div className={`interfaceLinks-menu profile-menu ${ isOpen ? "open" : "closed"}`} onClick={resetOpen}>
+          <div className={`interfaceLinks-menu profile-menu ${ isOpen ? "open" : "closed"}`}>
             <div className="interfaceLinks-header profile-menu">{name}</div>
             <div><a className="interfaceLinks-row top" href="/my/profile">
               <span className="int-en">Profile</span>
