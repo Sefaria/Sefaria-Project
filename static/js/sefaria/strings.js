@@ -360,6 +360,11 @@ const Strings = {
       "Resources": "עזרים",
       "Tools": "כלים",
     },
+    "FollowButton": {
+      "Follow": "עוקב",
+      "Unfollow": "הפסק לעקוב",
+      "Following": "עקוב",
+    }
   },
 };
 
