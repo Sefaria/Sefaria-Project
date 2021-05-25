@@ -142,6 +142,9 @@ class WebPage(abst.AbstractMongoRecord):
             r"jwa\.org\/encyclopedia\/author\/",  # tends to have articles by author that have snippets from article
             r"jwa\.org\/encyclopedia\/content\/",
             r"library\.yctorah\.org\/series\/",
+            r"psak\.yctorah\.org\/?$",
+            r"psak\.yctorah\.org\/(category|about|source)\/",  # archives
+            r"psak\.yctorah\.org\/sitemap_index\.xml$",
             r"reconstructingjudaism\.org\/taxonomy\/",
             r"reconstructingjudaism\.org\/search\/",
             r"askhalacha\.com\/?$",
@@ -643,7 +646,7 @@ sites_data = [
     {
         "name": "Yeshivat Chovevei Torah",
         "domains": ["yctorah.org"],
-        "title_branding": ["Torah Library of Yeshivat Chovevei Torah"]
+        "title_branding": ["Torah Library of Yeshivat Chovevei Torah", "Rosh Yeshiva Responds"]
     },
     {
         "name": "Rabbi Jeff Fox (Rosh ha-Yeshiva, Yeshivat Maharat)",
