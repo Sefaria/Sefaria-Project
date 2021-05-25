@@ -434,11 +434,11 @@ def find_popular_writings(top_n, min_pr):
         "inverseSlug" : "has-popular-writing", 
         "displayName" : {
             "en" : "Top Citations", 
-            "he" : "Top Citations"
+            "he" : "ציטוטים עיקריים"
         }, 
         "inverseDisplayName" : {
             "en" : "Has Popular Writing", 
-            "he" : "Has Popular Writing"
+            "he" : ""
         }, 
         "shouldDisplay" : True, 
         "inverseShouldDisplay" : False,

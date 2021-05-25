@@ -280,7 +280,7 @@ const TopicHeader = ({
        : null}
        {topicData?.indexes?.length ?
         <div>
-          <div className="sectionTitleText authorIndexTitle"><InterfaceText text={{en: `Works by ${en}`, he: `Works by${he}`}} /></div>
+          <div className="sectionTitleText authorIndexTitle"><InterfaceText>Works on Sefaria</InterfaceText></div>
           <div className="authorIndexList">
             {topicData.indexes.map(({text, url}) => <SimpleLinkedBlock key={url} {...text} url={url} classes="authorIndex" />)}
           </div>
@@ -701,7 +701,7 @@ const ReadingsComponent = ({ parashaData, tref }) => (
 
 const TopicMetaData = ({ timePeriod, properties={} }) => {
   const tpSection = !!timePeriod ? (
-    <TopicSideSection title={{en: "Lived", he: "חי"}}>
+    <TopicSideSection title={{en: "Lived", he: "תקופת פעילות"}}>
       <div className="systemText topicMetaData"><InterfaceText text={timePeriod.name} /></div>
       <div className="systemText topicMetaData"><InterfaceText text={timePeriod.yearRange} /></div>
     </TopicSideSection>

@@ -343,6 +343,7 @@ const Strings = {
     //Topics
     "Wikipedia": "ויקיפדיה",
     "Jewish Encyclopedia": "האנציקלופדיה היהודית",
+    "Works on Sefaria": "חיבורים וכתבים בספריא",
   },
   _i18nInterfaceStringsWithContext: {
     "AddConnectionBox": {
