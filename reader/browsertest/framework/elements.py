@@ -1379,6 +1379,8 @@ class AtomicTest(AbstractTest):
 
     def run(self):
         err = None
+        result = None
+
         if self.is_root:
             try:
                 self.setup()
@@ -1416,6 +1418,10 @@ class AtomicTest(AbstractTest):
             except Exception:
                 msg = "Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
                 self.carp(msg, always=True)
+
+
+        if result is None:
+            result = SingleTestResult(self.__class__, self.cap, False, "No result returned from test.")
 
         self.carp("{} - {}\n".format(result.word_status(), self.name()), always=not result.success)
         if err:
