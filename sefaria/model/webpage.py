@@ -165,6 +165,9 @@ class WebPage(abst.AbstractMongoRecord):
             r"sephardi\.co\.uk\/(category|community|tag|test)\/",
             r"theameninstitute\.com\/?$",
             r"theameninstitute\.com\/category\/whats-new-at-the-amen-institute\/?$",
+            r"chiefrabbi\.org\/?(\?post_type.+)?$",  # post_type are pages that seem to by filtered lists
+            r"chiefrabbi\.org\/(all-media|communities|education|maayan-programme)\/?$",
+            r"chiefrabbi\.org\/(dvar-torah|media_type)\/?",  # archives
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -855,5 +858,9 @@ sites_data = [
     {
         "name": "The Amen Institute",
         "domains": ["theameninstitute.com"]
+    },
+    {
+        "name": "Office of the Chief Rabbi",
+        "domains": ["chiefrabbi.org"],
     }
 ]
