@@ -6,6 +6,7 @@ import re
 import csv
 import requests
 from io import StringIO
+from collections import defaultdict
 
 from sefaria.system.database import db
 from sefaria.model import *
@@ -44,25 +45,39 @@ cr = csv.reader(StringIO(data))
 rows = list(cr)[4:]
 
 
-print("*** Deleting old authorTopic records ***")
+print("*** Deleting old authorTopic relationships ***")
 for foo, symbol in eras.items():
     people = AuthorTopicSet({"properties.era.value": symbol}).distinct("slug")
     db.topic_links.delete_many({"generatedBy": "update_authors_data", "toTopic": {"$in": people}})
     db.topic_links.delete_many({"generatedBy": "update_authors_data", "fromTopic": {"$in": people}})
-    db.topics.delete_many({"properties.era.value": symbol})
     # Dependencies take too long here.  Getting rid of relationship dependencies above.  Assumption is that we'll import works right after to handle those dependencies.
-    #PersonSet({"era": symbol}).delete()
 
+# Validate every slug is unique and doesn't exist as a non-author
+internal_slug_count = defaultdict(int)
+for l in rows:
+    slug = l[0].encode('ascii', errors='ignore').decode()
+    internal_slug_count[slug] += 1
+has_slug_issues = False
+for slug, count in internal_slug_count.items():
+    if count > 1:
+        print(f"ERROR: slug {slug} appears {count} times on this sheet. Please update slug in sheet to be internally unique")
+        has_slug_issues = True
+    non_author = Topic().load({"slug": slug, "subclass": {"$ne": "author"}})
+    if non_author is not None:
+        print(f"ERROR: slug {slug} exists as a non-author. Please update slug in sheet to be globally unique.")
+        has_slug_issues = True
+if has_slug_issues:
+    raise Exception("Duplicate slugs found. See above errors.")
 
 def _(p: Topic, attr, value):
     if value:
         p.set_property(attr, value, "sefaria")
 
-print("\n*** Adding authorTopic records ***\n")
-for l in rows:
+print("\n*** Updating authorTopic records ***\n")
+for irow, l in enumerate(rows):
     slug = l[0].encode('ascii', errors='ignore').decode()
     if not slug:
-        continue
+        raise Exception(f"Slug is empty for row {irow+5}")  # +5 to make row number match gsheet
     print(slug)
     p = AuthorTopic.init(slug) or AuthorTopic()
     p.slug = slug
