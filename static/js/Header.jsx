@@ -65,6 +65,8 @@ const ProfilePicMenu = ({len, url, name}) => {
       };
   }, []);
   const getCurrentPage = () => {
+    alert(isOpen);
+    alert(encodeURIComponent(Sefaria.util.currentPath()));
     return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
   }
   return (
