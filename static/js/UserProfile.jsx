@@ -12,6 +12,7 @@ import {
   SheetListing,
   ProfileListing,
   ProfilePic,
+  MessageModal,
   FollowButton,
   InterfaceText,
 } from './Misc';
@@ -674,46 +675,6 @@ ProfileSummary.propTypes = {
   openFollowers: PropTypes.func.isRequired,
   openFollowing: PropTypes.func.isRequired,
   toggleSignUpModal: PropTypes.func.isRequired,
-};
-
-
-class MessageModal extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      visible: false,
-      message: '',
-    };
-  }
-  onChange(e) { this.setState({ message: e.target.value }); }
-  onSend(e) {
-    if (!this.state.message) { return; }
-    Sefaria.messageAPI(this.props.uid, this.state.message).then(() => {
-      this.setState({ visible: false });
-      alert("Message Sent");
-      Sefaria.track.event("Messages", "Message Sent", "");
-    });
-  }
-  makeVisible() { this.setState({ visible: true }); }
-  onCancel(e) { this.setState({ visible: false }); }
-  render() {
-    if (!this.state.visible) { return null; }
-    return (
-      <div id="interruptingMessageBox" className="sefariaModalBox">
-        <div id="interruptingMessageOverlay" onClick={this.onCancel}></div>
-        <div id="interruptingMessage" className='message-modal' style={{display: 'block'}}>
-          <div className='messageHeader'>{ `${Sefaria._("Send a message to ")}${this.props.name}` }</div>
-          <textarea value={this.state.message} onChange={this.onChange} />
-          <div className='sendMessage button' onClick={this.onSend}>{ Sefaria._("Send") }</div>
-          <div className='cancel button white' onClick={this.onCancel}>{ Sefaria._("Cancel") }</div>
-        </div>
-      </div>
-    );
-  }
-}
-MessageModal.propTypes = {
-  name: PropTypes.string.isRequired,
-  uid:  PropTypes.number.isRequired,
 };
 
 

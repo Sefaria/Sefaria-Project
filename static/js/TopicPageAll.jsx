@@ -68,7 +68,7 @@ class TopicPageAll extends Component {
     }).sort((a, b) => {
       const lang = Sefaria.interfaceLang.slice(0,2);
       if (!hasFilter) {
-        return b.primaryTitle[lang] > a.primaryTitle[lang] ? -1 : 1; // Alphabetical if no filter
+        return b.primaryTitle[lang].stripNikkud() > a.primaryTitle[lang].stripNikkud() ? -1 : 1; // Alphabetical if no filter
       } else {
         return (0 + (!!b.primaryTitle[lang])) - (0 + (!!a.primaryTitle[lang])); // Keep original order (# source), but sort current interface lang first
       }
@@ -143,8 +143,10 @@ const AlphabeticalTopicsNav = () => {
 
   const letterRange = (start, stop) => {
     const result=[];
-    for (let idx = start.charCodeAt(0), end = stop.charCodeAt(0); idx <= end; ++idx){
-      result.push(String.fromCharCode(idx));
+    for (let idx = start.charCodeAt(0), end = stop.charCodeAt(0); idx <= end; ++idx) {
+      if (["ך", "ן", "ף", "ץ"].indexOf(String.fromCharCode(idx)) === -1) {
+        result.push(String.fromCharCode(idx));
+      }
     }
     return result;
   };

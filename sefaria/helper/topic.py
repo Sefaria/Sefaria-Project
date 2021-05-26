@@ -248,25 +248,25 @@ def get_topics_for_ref(tref, annotate=False):
 
 
 @django_cache(timeout=24 * 60 * 60, cache_prefix="get_topics_for_book")
-def get_topics_for_book(title, annotate=False):
+def get_topics_for_book(title: str, annotate=False, n=18) -> list:
     all_topics = get_topics_for_ref(title, annotate=annotate)
 
     topic_counts = defaultdict(int)
     topic_data   = {}
     for topic in all_topics:
+        if topic["topic"].startswith("parashat-"):
+            continue # parasha topics aren't useful here
         topic_counts[topic["topic"]] += topic["order"].get("user_votes", 1)
-        print("{} - {}".format(topic["topic"], topic["order"].get("user_votes", 1)))
         topic_data[topic["topic"]] = {"slug": topic["topic"], "title": topic["title"]}
 
     topic_order = sorted(topic_counts.items(), key=lambda x: x[1], reverse=True)
 
-    return [topic_data[topic[0]] for topic in topic_order]
+    return [topic_data[topic[0]] for topic in topic_order][:n]
 
 
 """
     SECONDARY TOPIC DATA GENERATION
 """
-
 
 def generate_all_topic_links_from_sheets(topic=None):
     """

@@ -744,11 +744,13 @@ input.noselect {
     margin:auto;
   }
 }
-.header .my-profile, .header .notifications {
+.header .my-profile, 
+.header .notifications {
   display: inline-block;
   vertical-align: middle;
 }
-.header .library, .header .my-profile {
+.header .library,
+.header .my-profile {
   font-size: 24px;
   line-height: 24px;
 }
@@ -6080,44 +6082,77 @@ body .ui-autocomplete.dictionary-toc-autocomplete .ui-menu-item a.ui-state-focus
 .profile-page .logoutLink .int-he {
   font-family: "Heebo", sans-serif;
 }
-.notificationsTitleIcon {position: relative;top: 2px;}
-.notificationsList .notification {
-  width: auto;
-  border-bottom: 1px solid #ccc;
+.notificationsTitleIcon {
+  position: relative;top: 2px;
+}
+.notification {
+  border-bottom: 1px solid var(--light-grey);
   border-top: none;
-  padding-bottom: 27px;
-  margin-bottom: 27px;
+  padding: 25px 0;
   line-height: 1.4;
 }
-.notificationsList .userLink {
+.notification {
+  display: flex;
 }
-.notificationsList a {
+.notification .imageSection {
+  margin-inline-end: 15px;
+}
+.notification .imageSection img {
+  height: 30px;
+  width: 30px;
+  border-radius: 15px;
+}
+.notification .mainSection {
+  flex: 1;
+}
+.notification a {
   unicode-bidi: plaintext;
-  font-weight: bold;
 }
-.notificationsList a:hover {
+.notification a:hover {
   color: inherit;
 }
-.notificationsList .sheetLink {
-  font-size: 22px;
+.notification .topLine {
+  display: flex;
+  justify-content: space-between;
+  flex-direction: row;
+  margin-top: 2px;
+  align-content: space-between;
+}
+.notification .topLine a {
+  font-weight: bold;
+}
+.notification .topLineText {
+  flex: 1;
+}
+.notification .date {
+  color: var(--medium-grey);
+  font-size: 14px;
+  margin-inline-start: 15px;
+}
+.notification .notificationBody {
+  margin-top: 20px;
+}
+.notification .sheetTitle,
+.notification .collectionName {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  font-size: 18px;
+  display: block;
+}
+.notification .sheetSummary {
+  --english-font: var(--english-serif-font-family);
+  --hebrew-font: var(--hebrew-serif-font-family);
+  color: var(--dark-grey);
+  font-size: 18px;
   margin-top: 10px;
 }
-.notificationsList .sheetLink a {
-  font-weight: normal;
+.notification .replyButton {
+  margin-top: 15px;
 }
-.notificationsList .int-en .sheetLink {
-  font-family: "adobe-garamond-pro", "Crimson Text", Georgia, serif;
-}
-.notificationsList .added-description {
-  padding: 5px 0 0;
-}
-.notificationsList .notification .date {
-  color: #999;
-  font-size: 13px;
-  margin-top: 8px;
-}
-.notificationsList .int-he {
-  font-size: inherit;
+.notification .replyButton img {
+  width: 15px;
+  height: 10px;
+  margin-inline-end: 10px;
 }
 .notification-message-link {
   display: inline-block;
@@ -8939,26 +8974,15 @@ section.SheetSource .SheetOutsideBiText {
 .profile-page .follow-header .follow-count {
   color: #999;
 }
-.profile-page .resourcesLink,
-.profile-page .largeFollowButton {
+.profile-page .resourcesLink  {
   min-height: 46px;
   height: 46px;
   overflow: visible;
   padding: 0px 16px;
   border-top: 0;
   display: flex;
-  letter-spacing: 1px;
   align-items: center;
   width: unset;
-}
-.profile-page .largeFollowButton {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-  border: 0;
-}
-.profile-page .largeFollowButton .int-en,
-.profile-page .largeFollowButton .int-he {
-  color: white;
-  font-size: 16px;
 }
 .profile-page .emptyList {
   display: flex;
@@ -9043,17 +9067,18 @@ section.SheetSource .SheetOutsideBiText {
   transition: all 0.75s ease;
 }
 .largeFollowButton {
-  display: inline-block;
-  padding: 7px;
-  height: 16px;
-  width: 59px;
+  display: inline-flex;
+  min-height: 46px;
+  height: 46px;
+  overflow: visible;
+  padding: 0px 16px;
+  align-items: center;
   text-align: center;
   cursor: pointer;
   background: #18345d;
   color: #fff;
   border-radius: 8px;
-  box-shadow: 1px 1px 1px #ccc;
-  border: 1px solid #ccc;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 20%);
 }
 .largeFollowButton.following {
   background: #fff;

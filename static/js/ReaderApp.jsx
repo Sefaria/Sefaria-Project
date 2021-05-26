@@ -484,7 +484,7 @@ class ReaderApp extends Component {
             hist.mode = "profile";
             break;
           case "notifications":
-            hist.title = Sefaria._("Notifications") + " | " + Sefaria._(siteName);
+            hist.title = Sefaria._(siteName + " Notifications");
             hist.url   = "notifications";
             hist.mode  = "notifications";
             break;
@@ -923,58 +923,57 @@ class ReaderApp extends Component {
   }
   openURL(href) {
     // Attempts to open `href` in app, return true if successful.
-    let path = href;
+    href = href.startsWith("/") ? "https://www.sefaria.org" + href : href;
+    let url;
     try {
-      const url = new URL(href);
-      // Allow absolute URLs pointing to Sefaria. TODO generalize to any domain of current deploy.
-      if (url.hostname.indexOf("sefaria.org") === -1) {
-        return false;
-      }
-      path = url.pathname;
-    } catch { }
-
-    // TODO: Handle links with URL params
-    if (path.indexOf("?") !== -1) {
+      url = new URL(href);
+    } catch {
       return false;
+    }
+    // Allow absolute URLs pointing to Sefaria. TODO generalize to any domain of current deploy.
+    if (url.hostname.indexOf("sefaria.org") === -1) {
+      return false;
+    }
+    const path = url.pathname;
+    const params = url.searchParams;
 
-    } else if (path == "/") {
+    if (path === "/") {
       this.showLibrary();
 
-    } else if (path == "/texts") {
+    } else if (path === "/texts") {
       this.showLibrary();
 
-    } else if (path == "/texts/history") {
+    } else if (path === "/texts/history") {
       this.showHistory();
 
-    } else if (path == "/texts/saved") {
+    } else if (path === "/texts/saved") {
       this.showSaved();
 
-    } else if (path.match(/\/texts\/.+/)) {
-      console.log("openURL showlibrary")
+    } else if (path.match(/^\/texts\/.+/)) {
       this.showLibrary(path.slice(7).split("/"));
 
-    } else if (path == "/collections") {
+    } else if (path === "/collections") {
       this.showCollections();
 
-    } else if (path == "/community") {
+    } else if (path === "/community") {
       this.showCommunity();
 
-    } else if (path == "/my/profile") {
+    } else if (path === "/my/profile") {
       this.openProfile(Sefaria.slug);
 
-    } else if (path == "/notifications") {
+    } else if (path === "/notifications") {
       this.showNotifications();
 
-    } else if (path == "/calendars") {
+    } else if (path === "/calendars") {
       this.showCalendars();
 
-    } else if (path == "/torahtracker") {
+    } else if (path === "/torahtracker") {
       this.showUserStats();
 
     } else if (path.match(/^\/sheets\/\d+/)) {
       this.openPanel("Sheet " + path.slice(8));
 
-    } else if (path == "/topics") {
+    } else if (path === "/topics") {
       this.showTopics();
 
     } else if (path.match(/^\/topics\/all\/[^\/]/)) {
@@ -984,13 +983,14 @@ class ReaderApp extends Component {
       this.openTopic(path.slice(8));
 
     } else if (path.match(/^\/profile\/.+/)) {
-      this.openProfile(path.slice(9));
+      this.openProfile(path.slice(9), params.get("tab"));
 
     } else if (path.match(/^\/collections\/.+/) && !path.endsWith("/settings") && !path.endsWith("/new")) {
       this.openCollection(path.slice(13));
 
     } else if (Sefaria.isRef(path.slice(1))) {
-      this.openPanel(Sefaria.humanRef(path.slice(1)));
+      const currVersions = {en: params.get("ven"), he: params.get("vhe")};
+      this.openPanel(Sefaria.humanRef(path.slice(1)), currVersions);
 
     } else {
       return false
@@ -1512,9 +1512,10 @@ class ReaderApp extends Component {
   openAllTopics(letter) {
     this.setSinglePanelState({menuOpen: "allTopics", navigationTopicLetter: letter});
   }
-  openProfile(slug) {
+  openProfile(slug, tab) {
+    tab = tab || "sheets";
     Sefaria.profileAPI(slug).then(profile => {
-      this.setSinglePanelState({ menuOpen: "profile", profile, profileTab: "sheets" });
+      this.setSinglePanelState({ menuOpen: "profile", profile, profileTab: tab});
     });
   }
   openCollection(slug) {

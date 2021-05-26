@@ -88,10 +88,10 @@ const ReaderNavigationMenu = ({categories, settings, setCategories, onCompareBac
 
   const sidebarModules = [
     multiPanel ? {type: "AboutSefaria"} : {type: null},
-    {type: "Resources"},
     {type: "StudySchedules"},
     {type: "JoinTheConversation"},
-    {type: "SponsorADay"},
+    {type: "Resources"},
+    {type: "SupportSefaria", props: {blue: true}},
   ];
 
   const footer = compare ? null : <Footer />;

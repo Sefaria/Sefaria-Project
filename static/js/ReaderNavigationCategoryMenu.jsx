@@ -296,23 +296,23 @@ const MenuItem = ({href, nestLevel, title, heTitle, cats, onClick, incomplete, e
   );
 };
 
-const TextMenuItem = ({item, categories, showInHebrew, nestLevel}) => {
-        const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, categories);
-        const lastPlace = Sefaria.lastPlaceForText(item.title);
-        const ref =  lastPlace ? lastPlace.ref : item.firstSection ? item.firstSection : item.title;
-        return (
-            <MenuItem
-                href        = {"/" + Sefaria.normRef(ref)}
-                onClick     = {onClick}
-                incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
-                nestLevel   = {nestLevel}
-                title       = {title}
-                heTitle     = {heTitle}
-                enDesc      = {item.enShortDesc}
-                heDesc      = {item.heShortDesc}
-            />
-        );
 
+const TextMenuItem = ({item, categories, showInHebrew, nestLevel, onClick}) => {
+  const [title, heTitle] = getRenderedTextTitleString(item.title, item.heTitle, categories);
+  const lastPlace = Sefaria.lastPlaceForText(item.title);
+  const ref =  lastPlace ? lastPlace.ref : item.firstSection ? item.firstSection : item.title;
+  return (
+    <MenuItem
+      href        = {"/" + Sefaria.normRef(ref)}
+      onClick     = {onClick}
+      incomplete  = {showInHebrew ? !item.heComplete : !item.enComplete}
+      nestLevel   = {nestLevel}
+      title       = {title}
+      heTitle     = {heTitle}
+      enDesc      = {item.enShortDesc}
+      heDesc      = {item.heShortDesc}
+    />
+  );
 };
 
 
