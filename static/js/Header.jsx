@@ -43,29 +43,29 @@ const ProfilePicMenu = ({len, url, name}) => {
     setIsOpen(isOpen => !isOpen);
   }
   const handleHideDropdown = (event) => {
-      if (event.key === 'Escape') {
-          setIsOpen(false);
-      }
+    if (event.key === 'Escape') {
+        setIsOpen(false);
+    }
   };
   const handleClickOutside = (event) => {
-      if (
-          wrapperRef.current &&
-          !wrapperRef.current.contains(event.target)
-      ) {
-          setIsOpen(false);
-      }
+    if (
+        wrapperRef.current &&
+        !wrapperRef.current.contains(event.target)
+    ) {
+        setIsOpen(false);
+    }
   };
 
   useEffect(() => {
-      document.addEventListener('keydown', handleHideDropdown, true);
-      document.addEventListener('click', handleClickOutside, true);
-      return () => {
-          document.removeEventListener('keydown', handleHideDropdown, true);
-          document.removeEventListener('click', handleClickOutside, true);
-      };
+    document.addEventListener('keydown', handleHideDropdown, true);
+    document.addEventListener('click', handleClickOutside, true);
+    return () => {
+        document.removeEventListener('keydown', handleHideDropdown, true);
+        document.removeEventListener('click', handleClickOutside, true);
+    };
   }, []);
   const getCurrentPage = () => {
-    return isOpen ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
+    return (typeof window === "undefined" ) ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
   }
   return (
     <div ref={wrapperRef}>
