@@ -21,8 +21,8 @@ substVars+=("_GKE_NAMESPACE=$gkeNamespace")
 substVars+=("_GKE_REGION=$gkeRegion")
 substVars+=("_SANDBOX_NAME=${gitCommit:0:6}")
 substVars+=("_SANDBOX_SUBDOMAIN=$sandboxSubdomain")
-substVars+=("_MONGO_HOST=$mongoHostName")
-substVars+=("_MONGO_DATABASE=$mongoDatabaseName")
+# substVars+=("_MONGO_HOST=$mongoHostName")         # Todo: delete db 
+# substVars+=("_MONGO_DATABASE=$mongoDatabaseName")
 #substVars+=("")
 #...
 
