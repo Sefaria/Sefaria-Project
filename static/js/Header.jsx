@@ -25,6 +25,7 @@ class Header extends Component {
       "Collection": "collection.svg",
       "AuthorTopic": "iconmonstr-pen-17.svg",
       "TocCategory": "iconmonstr-view-6.svg",
+      "PersonTopic": "iconmonstr-hashtag-1.svg",
       "Topic": "iconmonstr-hashtag-1.svg",
       "ref": "iconmonstr-book-15.svg",
       "search": "iconmonstr-magnifier-2.svg",
