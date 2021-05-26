@@ -339,6 +339,11 @@ const Strings = {
     "Table of Contents": "תוכן העניינים",
     "Hebrew Versions": "בעברית",
     "English Versions": "באנגלית",
+
+    //Topics
+    "Wikipedia": "ויקיפדיה",
+    "Jewish Encyclopedia": "האנציקלופדיה היהודית",
+    "Works on Sefaria": "חיבורים וכתבים בספריא",
   },
   _i18nInterfaceStringsWithContext: {
     "AddConnectionBox": {
