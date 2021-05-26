@@ -44,14 +44,6 @@ data = response.content.decode("utf-8")
 cr = csv.reader(StringIO(data))
 rows = list(cr)[4:]
 
-
-print("*** Deleting old authorTopic relationships ***")
-for foo, symbol in eras.items():
-    people = AuthorTopicSet({"properties.era.value": symbol}).distinct("slug")
-    db.topic_links.delete_many({"generatedBy": "update_authors_data", "toTopic": {"$in": people}})
-    db.topic_links.delete_many({"generatedBy": "update_authors_data", "fromTopic": {"$in": people}})
-    # Dependencies take too long here.  Getting rid of relationship dependencies above.  Assumption is that we'll import works right after to handle those dependencies.
-
 # Validate every slug is unique and doesn't exist as a non-author
 internal_slug_count = defaultdict(int)
 for l in rows:
@@ -68,6 +60,18 @@ for slug, count in internal_slug_count.items():
         has_slug_issues = True
 if has_slug_issues:
     raise Exception("Duplicate slugs found. See above errors.")
+
+print("*** Deleting old authorTopic relationships ***")
+for foo, symbol in eras.items():
+    people = AuthorTopicSet({"properties.era.value": symbol}).distinct("slug")
+    to_link_query = {"generatedBy": "update_authors_data", "toTopic": {"$in": people}}
+    from_link_query = to_link_query.copy()
+    from_link_query['fromTopic'] = to_link_query['toTopic']
+    print("To link", db.topic_links.count_documents(to_link_query))
+    print("From links", db.topic_links.count_documents(from_link_query))
+    db.topic_links.delete_many(to_link_query)
+    db.topic_links.delete_many(from_link_query)
+    # Dependencies take too long here.  Getting rid of relationship dependencies above.  Assumption is that we'll import works right after to handle those dependencies.
 
 def _(p: Topic, attr, value):
     if value:
@@ -148,3 +152,11 @@ for l in rows:
                         "dataSource": "sefaria",
                         "generatedBy" : "update_authors_data",
                     }).save()
+
+for foo, symbol in eras.items():
+    people = AuthorTopicSet({"properties.era.value": symbol}).distinct("slug")
+    to_link_query = {"generatedBy": "update_authors_data", "toTopic": {"$in": people}}
+    from_link_query = to_link_query.copy()
+    from_link_query['fromTopic'] = to_link_query['toTopic']
+    print("To link", db.topic_links.count_documents(to_link_query))
+    print("From links", db.topic_links.count_documents(from_link_query))
