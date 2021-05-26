@@ -355,7 +355,7 @@ class TanakhCantillationAndVowels(AtomicTest):
 
 class AliyotAndCantillationToggles(AtomicTest):
     suite_class = ReaderSuite
-    every_build = False
+    every_build = True
 
     def body(self):
         self.browse_to_ref("Darashos HaRan 1")        
@@ -471,7 +471,7 @@ class ChangeSiteLanguage(AtomicTest):
     # Switch between Hebrew and English and sample a few of the objects to make sure 
     # the language has actually changed.
     suite_class = ReaderSuite
-    every_build = False
+    every_build = True
 
     def body(self):
         self.nav_to_toc()
@@ -485,7 +485,7 @@ class ChangeSiteLanguage(AtomicTest):
             time.sleep(1)
         assert self.driver.find_element_by_class_name('interface-english') != None
 
-
+'''
 class LinkExplorer(AtomicTest):
     # Make sure all Tanach books and Mashechtot are displayed, and sample some entries to check 
     # that torah>nevi'im>ketuvim and the Sedarim are in the correct order
@@ -583,6 +583,7 @@ class LinkExplorer(AtomicTest):
         assert float(self.get_object_by_id('Tamid').get_attribute('cx')) < float(self.get_object_by_id('Niddah').get_attribute('cx'))
         assert self.get_object_by_id('Niddah').is_displayed()
 
+'''
 
 class ReadingHistory(AtomicTest):
     suite_class = PageloadSuite

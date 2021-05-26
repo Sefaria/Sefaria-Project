@@ -1419,7 +1419,6 @@ class AtomicTest(AbstractTest):
                 msg = "Exception in {}.teardown()\n{}".format(self.name(), traceback.format_exc())
                 self.carp(msg, always=True)
 
-
         if result is None:
             result = SingleTestResult(self.__class__, self.cap, False, "No result returned from test.")
 
