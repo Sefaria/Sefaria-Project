@@ -14,7 +14,7 @@ from sefaria.utils.util import strip_tags
 from sefaria.system.database import db
 from . import abstract as abst
 from . import user_profile
-from . import person
+from . import topic
 from . import text
 from . import following
 from . import ref_data
@@ -109,9 +109,9 @@ class Story(abst.AbstractMongoRecord):
                     sheet_dict.update(self.publisher_metadata(sheet_dict["publisher_id"]))
 
         if "author_key" in d:
-            p = person.Person().load({"key": d["author_key"]})
-            d["author_names"] = {"en": p.primary_name("en"), "he": p.primary_name("he")}
-            d["author_bios"] = {"en": p.enBio, "he": p.heBio}
+            p = topic.Topic.init(d["author_key"])
+            d["author_names"] = {"en": p.get_primary_title("en"), "he": p.get_primary_title("he")}
+            d["author_bios"] = p.description
 
         return c
 
@@ -727,9 +727,9 @@ class AuthorStoryFactory(AbstractStoryFactory):
     def _data_object(cls, **kwargs):
         prs = kwargs.get("person")
         if isinstance(prs, str):
-            prs = person.Person().load({"key": prs})
-        assert isinstance(prs, person.Person)
-        return {"author_key": prs.key, "example_work": random.choice(prs.get_indexes()).title}
+            prs = topic.Topic.init(prs)
+        assert isinstance(prs, topic.Topic)
+        return {"author_key": prs.slug, "example_work": random.choice(prs.get_authored_indexes()).title}
 
     @classmethod
     def _story_form(cls, **kwargs):
@@ -744,7 +744,7 @@ class AuthorStoryFactory(AbstractStoryFactory):
     @classmethod
     def _select_random_person(cls):
         eras = ["GN", "RI", "AH", "CO"]
-        ps = person.PersonSet({"era": {"$in": eras}})
+        ps = topic.TopicSet({"properties.era.value": {"$in": eras}})
 
         p = random.choice(ps)
         while not cls._can_use_person(p):
@@ -756,13 +756,13 @@ class AuthorStoryFactory(AbstractStoryFactory):
 
     @classmethod
     def _can_use_person(cls, p):
-        if not isinstance(p, person.Person):
+        if not isinstance(p, topic.Topic):
             return False
         if not p.has_indexes():
             return False
-        if not getattr(p, "enBio", False):
+        if not getattr(p, "description", {}).get('en', False):
             return False
-        if not getattr(p, "heBio", False):
+        if not getattr(p, "description", {}).get('he', False):
             return False
 
         return True

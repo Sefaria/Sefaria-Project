@@ -102,8 +102,8 @@ class AboutBox extends Component {
       if (d.authors && d.authors.length) {
         const authorArrayEn = d.authors.filter((elem) => !!elem.en);
         const authorArrayHe = d.authors.filter((elem) => !!elem.he);
-        authorsEn = authorArrayEn.map(author => <a key={author.en} href={"/person/" + author.en}>{author.en}</a> );
-        authorsHe = authorArrayHe.map(author => <a key={author.en} href={"/person/" + author.en}>{author.he}</a> );
+        authorsEn = authorArrayEn.map(author => <a key={author.slug} href={"/topics/" + author.slug}>{author.en}</a> );
+        authorsHe = authorArrayHe.map(author => <a key={author.slug} href={"/topics/" + author.slug}>{author.he}</a> );
       }
       // use compPlaceString and compDateString if available. then use compPlace o/w use pubPlace o/w nothing
       let placeTextEn, placeTextHe;
