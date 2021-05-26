@@ -137,10 +137,6 @@ class SefariaSiteMapGenerator(object):
         urls = [self._hostname + "/topics/" + topic.slug for topic in topics]
         self.write_urls(urls, "topics-sitemap.xml")
 
-    def generate_people_sitemap(self):
-        urls = [self._hostname + "/person/{}".format(p.key.replace(" ", "%20")) for p in PersonSet()]
-        self.write_urls(urls, "person-sitemap.xml")
-
     def generate_static_sitemap(self):
         """
         Creates a sitemap of static content listed above.

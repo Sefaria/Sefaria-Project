@@ -30,6 +30,7 @@ class ReaderTextTableOfContents extends Component {
       versions: [],
       versionsLoaded: false,
       currentVersion: null,
+      currObjectVersions: {en: null, he: null},
       showAllVersions: false,
       indexDetails: null,
       versionsDropDownOpen: false,
@@ -58,15 +59,15 @@ class ReaderTextTableOfContents extends Component {
   loadData() {
     // Ensures data this text is in cache, rerenders after data load if needed
     Sefaria.getIndexDetails(this.props.title).then(data => this.setState({indexDetails: data}));
-    let ref;
     if (this.isBookToc()) {
-      ref  = this.getDataRef();
-      let versions = Sefaria.versions(ref);
-      if (!versions) {
-        Sefaria.versions(ref, () => this.forceUpdate() );
+      if(!this.state.versionsLoaded){
+        Sefaria.versions(this.props.title, false, null, false).then(this.onVersionsLoad);
       }
     } else if (this.isTextToc()) {
-      ref  = this.getDataRef();
+      let ref  = this.getDataRef();
+      if(!this.state.versionsLoaded){
+        Sefaria.versions(ref, false, null, false).then(this.onVersionsLoad);
+      }
       let data = this.getData();
       if (!data) {
         Sefaria.text(
@@ -76,14 +77,22 @@ class ReaderTextTableOfContents extends Component {
       }
     }
   }
-  getVersionsList() {
-    if (this.isTextToc()) {
-      let data = this.getData();
-      if (!data) { return null; }
-      return data.versions;
-    } else if (this.isBookToc()) {
-      return Sefaria.versions(this.props.title);
+  onVersionsLoad(versions){
+    this.setState({versions: versions, currObjectVersions: this.makeFullCurrentVersionsObjects(versions), versionsLoaded: true})
+  }
+  makeFullCurrentVersionsObjects(versions){
+    //build full versions of current object versions
+    let currObjectVersions = {en: null, he: null};
+    for(let [lang,ver] of Object.entries(this.props.currVersions)){
+      if(!!ver){
+        let fullVer = versions.find(version => version.versionTitle == ver && version.language == lang);
+        currObjectVersions[lang] = fullVer ? fullVer : null;
+      }
     }
+    return currObjectVersions;
+  }
+  getVersionsList() {
+     return this.state.versions;
   }
   getCurrentVersion() {
     // For now treat bilingual as english. TODO show attribution for 2 versions in bilingual case.
@@ -93,20 +102,29 @@ class ReaderTextTableOfContents extends Component {
     let currentLanguage = this.props.settingsLanguage == "he" ? "he" : "en";
     if (currentLanguage == "en" && !d.text.length) {currentLanguage = "he"}
     if (currentLanguage == "he" && !d.he.length) {currentLanguage = "en"}
-
+    let currObjectVersions;
+    if(this.state.versions.length){
+      currObjectVersions = this.state.currObjectVersions;
+    }else{
+      currObjectVersions = this.makeFullCurrentVersionsObjects(d.versions);
+    }
     let currentVersion = {
-      language:               currentLanguage,
-      versionTitle:           currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
-      versionSource:          currentLanguage == "he" ? d.heVersionSource : d.versionSource,
-      versionStatus:          currentLanguage == "he" ? d.heVersionStatus : d.versionStatus,
-      license:                currentLanguage == "he" ? d.heLicense : d.license,
-      sources:                currentLanguage == "he" ? d.heSources : d.sources,
-      versionNotes:           currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
-      digitizedBySefaria:     currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
-      versionTitleInHebrew: currentLanguage == "he" ? d.heVersionTitleInHebrew : d.VersionTitleInHebrew,
-      versionNotesInHebrew: currentLanguage == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew,
-      extendedNotes:        currentLanguage == "he" ? d.heExtendedNotes : d.extendedNotes,
-      extendedNotesHebrew:  currentLanguage == "he" ? d.extendedNotesHebrew : d.heExtendedNotesHebrew,
+      ... currObjectVersions[currentLanguage],
+      ...{
+        sources: currentLanguage == "he" ? d.heSources : d.sources,
+        language:               currentLanguage,
+        versionTitle:           currentLanguage == "he" ? d.heVersionTitle : d.versionTitle,
+        versionSource:          currentLanguage == "he" ? d.heVersionSource : d.versionSource,
+        versionStatus:          currentLanguage == "he" ? d.heVersionStatus : d.versionStatus,
+        license:                currentLanguage == "he" ? d.heLicense : d.license,
+        sources:                currentLanguage == "he" ? d.heSources : d.sources,
+        versionNotes:           currentLanguage == "he" ? d.heVersionNotes : d.versionNotes,
+        digitizedBySefaria:     currentLanguage == "he" ? d.heDigitizedBySefaria : d.digitizedBySefaria,
+        versionTitleInHebrew: currentLanguage == "he" ? d.heVersionTitleInHebrew : d.VersionTitleInHebrew,
+        versionNotesInHebrew: currentLanguage == "he" ? d.heVersionNotesInHebrew : d.VersionNotesInHebrew,
+        extendedNotes:        currentLanguage == "he" ? d.heExtendedNotes : d.extendedNotes,
+        extendedNotesHebrew:  currentLanguage == "he" ? d.extendedNotesHebrew : d.heExtendedNotesHebrew,
+      }
     };
     currentVersion.merged = !!(currentVersion.sources);
     return currentVersion;
@@ -174,6 +192,7 @@ class ReaderTextTableOfContents extends Component {
     } else {
       catUrl  = "/texts/" + category;
     }
+    let currObjectVersions = this.state.currObjectVersions;
 
     let currentVersionElement = null;
     let defaultVersionString = "Default Version"; // TODO. this var is currently unused. consider removing
@@ -208,7 +227,7 @@ class ReaderTextTableOfContents extends Component {
           rendermode="toc-open-version"
           title={title}
           version={cv}
-          currVersions={this.props.currVersions}
+          currObjectVersions={currObjectVersions}
           currentRef={this.props.currentRef}
           showHistory={true}
           getLicenseMap={this.props.getLicenseMap}
@@ -229,7 +248,7 @@ class ReaderTextTableOfContents extends Component {
             aria-pressed={`${this.state.versionsDropDownOpen}`}
             onClick={this.toggleVersionsDropDownOpen}
             onKeyPress={(e) => {e.charCode == 13 ? this.toggleVersionsDropDownOpen(e):null}}>
-            <div className="versionSectionSummary versionSectionSummaryHidden" aria-hidden="true">
+            <div className="versionSectionSummary versionSectionSummaryHidden sans-serif" aria-hidden="true">
               {Sefaria._siteSettings.TORAH_SPECIFIC ?
               <span>
                 <InterfaceText>
@@ -242,11 +261,11 @@ class ReaderTextTableOfContents extends Component {
               </span>
               }
             </div>
-            <div className="versionSectionTitle">
+            <div className="versionSectionTitle sans-serif">
               <InterfaceText text={{en:"Versions", he:"גרסאות" }}/>
               {(this.state.versionsDropDownOpen) ? <img src="/static/img/arrow-up.png" alt=""/> : <img src="/static/img/arrow-down.png" alt=""/>}
             </div>
-            <div className="versionSectionSummary">
+            <div className="versionSectionSummary sans-serif">
               {Sefaria._siteSettings.TORAH_SPECIFIC ?
               <span>
                 <InterfaceText>
@@ -262,7 +281,7 @@ class ReaderTextTableOfContents extends Component {
           { this.state.versionsDropDownOpen ?
             <VersionsList
               versionsList={versions}
-              currVersions={this.props.currVersions}
+              currObjectVersions={currObjectVersions}
               openVersion={this.openVersion}
               title={this.props.title}
               currentRef={this.props.currentRef}
@@ -326,7 +345,7 @@ class ReaderTextTableOfContents extends Component {
         plaintxt: {english: "Text (without Tags)", hebrew: "טקסט (ללא תיוגים)"}
       };
       downloadSection = (
-        <div className="dlSection">
+        <div className="dlSection sans-serif">
           <h2 className="dlSectionTitle">
             <InterfaceText>Download Text</InterfaceText>
           </h2>
@@ -361,7 +380,7 @@ class ReaderTextTableOfContents extends Component {
                     <ReaderNavigationMenuCloseButton onClick={closeClick}/>
                   </div>
                   <div className="readerTextToc readerTextTocHeader">
-                    <div className="readerTextTocBox">
+                    <div className="readerTextTocBox sans-serif">
                       <InterfaceText>Table of Contents</InterfaceText>
                     </div>
                   </div>
@@ -460,13 +479,13 @@ ReaderTextTableOfContents.propTypes = {
 class TextDetails extends Component {
  render() {
    /** todo fix interfacetext */
-    var index = this.props.index;
-    var makeDescriptionText = function(compWord, compPlace, compDate, description) {
-      var composed = compPlace || compDate ? compWord + [compPlace, compDate].filter(x => !!x).join(" ") : null;
+    const index = this.props.index;
+    const makeDescriptionText = function(compWord, compPlace, compDate, description) {
+      let composed = compPlace || compDate ? compWord + [compPlace, compDate].filter(x => !!x).join(" ") : null;
       return [composed, description].filter(x => !!x).join(". ");
     };
-    var enDesc = makeDescriptionText("Composed in ", "compPlaceString" in index ? index.compPlaceString.en : null, "compDateString" in index ? index.compDateString.en : null, index.enDesc);
-    var heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in index ? index.compPlaceString.he : null, "compDateString" in index ? index.compDateString.he : null, index.heDesc);
+    let enDesc = makeDescriptionText("Composed in ", "compPlaceString" in index ? index.compPlaceString.en : null, "compDateString" in index ? index.compDateString.en : null, index.enDesc);
+    let heDesc = makeDescriptionText("נוצר/נערך ב", "compPlaceString" in index ? index.compPlaceString.he : null, "compDateString" in index ? index.compDateString.he : null, index.heDesc);
 
     if (index.categories.length == 2 && index.categories[0] == "Tanakh") {
       // Don't show date/time for Tanakh.
@@ -474,11 +493,11 @@ class TextDetails extends Component {
       heDesc = index.heDesc || "";
     }
 
-    var authors = "authors" in this.props.index ? this.props.index.authors : [];
+    let authors = "authors" in this.props.index ? this.props.index.authors : [];
 
     if (!authors.length && !enDesc) { return null; }
 
-    var initialWords = this.props.narrowPanel ? 12 : 30;
+    let initialWords = this.props.narrowPanel ? 12 : 30;
 
     return (
       <div className="tocDetails">
@@ -486,10 +505,10 @@ class TextDetails extends Component {
           <div className="tocDetail">
             <InterfaceText>
               <HebrewText>
-                מחבר: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.he}</a> )}
+                מחבר: {authors.map(author => <a key={author.slug} href={"/topics/" + author.slug}>{author.he}</a> )}
               </HebrewText>
               <EnglishText>
-                Author: {authors.map(author => <a key={author.en} href={"/person/" + author.en}>{author.en}</a> )}
+                Author: {authors.map(author => <a key={author.slug} href={"/topics/" + author.slug}>{author.en}</a> )}
               </EnglishText>
             </InterfaceText>
           </div>
@@ -546,22 +565,22 @@ class TextTableOfContentsNavigation extends Component {
     // so that is is tight around its contents thus able to appear centered.
     // As far as I can tell, there's no way to do this in pure CSS.
     // TODO - flexbox should be able to solve this
-    var shrink  = function(i, container) {
-      var $container = $(container);
+    const shrink  = function(i, container) {
+      const $container = $(container);
       // don't run on complex nodes without sectionlinks
       if ($container.hasClass("schema-node-toc") && !$container.find(".sectionLink").length) { return; }
-      var maxWidth   = $container.parent().innerWidth();
-      var itemWidth  = $container.find(".sectionLink").outerWidth(true);
-      var nItems     = $container.find(".sectionLink").length;
-
+      let maxWidth   = $container.parent().innerWidth();
+      let itemWidth  = $container.find(".sectionLink").outerWidth(true);
+      let nItems     = $container.find(".sectionLink").length;
+      let width;
       if (maxWidth / itemWidth > nItems) {
-        var width = nItems * itemWidth;
+        width = nItems * itemWidth;
       } else {
-        var width = Math.floor(maxWidth / itemWidth) * itemWidth;
+        width = Math.floor(maxWidth / itemWidth) * itemWidth;
       }
       $container.width(width + "px");
     };
-    var $root = $(ReactDOM.findDOMNode(this));
+    const $root = $(ReactDOM.findDOMNode(this));
     if ($root.find(".tocSection").length) {             // nested simple text
       //$root.find(".tocSection").each(shrink); // Don't bother with these for now
     } else if ($root.find(".schema-node-toc").length) { // complex text or alt struct
@@ -571,14 +590,14 @@ class TextTableOfContentsNavigation extends Component {
     }
   }
   render() {
-    var options = [{
+    let options = [{
       name: "default",
       text: "sectionNames" in this.props.schema ? this.props.schema.sectionNames[0] : "Contents",
       heText: "sectionNames" in this.props.schema ? Sefaria.hebrewTerm(this.props.schema.sectionNames[0]) : "תוכן",
       onPress: this.setTab.bind(null, "default")
     }];
     if (this.props.alts) {
-      for (var alt in this.props.alts) {
+      for (let alt in this.props.alts) {
         if (this.props.alts.hasOwnProperty(alt)) {
           options.push({
             name: alt,
@@ -602,8 +621,8 @@ class TextTableOfContentsNavigation extends Component {
         onPress: this.setTab.bind(null, "commentary")
       });
     }
-
-    var toggle = (this.props.isDictionary ? "" :
+    let content;
+    let toggle = (this.props.isDictionary ? "" :
                   <TabbedToggleSet
                     options={options}
                     active={this.state.tab}
@@ -611,21 +630,21 @@ class TextTableOfContentsNavigation extends Component {
 
     switch(this.state.tab) {
       case "default":
-        var content = <SchemaNode
+        content = <SchemaNode
                           schema={this.props.schema}
                           addressTypes={this.props.schema.addressTypes}
                           refPath={this.props.title}
                           key="default"/>;
         break;
       case "commentary":
-        var content = <CommentatorList
+        content = <CommentatorList
                         commentatorList={this.props.commentatorList}
                         title={this.props.title} />;
 
 
         break;
       default:
-        var content = <SchemaNode
+        content = <SchemaNode
                           schema={this.props.alts[this.state.tab]}
                           addressTypes={this.props.schema.addressTypes}
                           refPath={this.props.title}
@@ -654,14 +673,14 @@ TextTableOfContentsNavigation.propTypes = {
 
 class TabbedToggleSet extends Component {
   render() {
-    var options = this.props.options.map(function(option, i) {
+    let options = this.props.options.map(function(option, i) {
 
-      var handleClick = function(e) {
+      const handleClick = function(e) {
         e.preventDefault();
         option.onPress();
       }.bind(this);
 
-      var classes = classNames({altStructToggle: 1, active: this.props.active === option.name});
+      var classes = classNames({altStructToggle: 1, "sans-serif": 1, active: this.props.active === option.name});
       var url = Sefaria.util.replaceUrlParam("tab", option.name);
       return (
         <div className="altStructToggleBox" key={i}>
@@ -672,14 +691,14 @@ class TabbedToggleSet extends Component {
       );
     }.bind(this));
 
+    let rows = [];
     if (this.props.narrowPanel) {
-      var rows = [];
-      var rowSize = options.length == 4 ? 2 : 3;
-      for (var i = 0; i < options.length; i += rowSize) {
+      let rowSize = options.length == 4 ? 2 : 3;
+      for (let i = 0; i < options.length; i += rowSize) {
         rows.push(options.slice(i, i+rowSize));
       }
     } else {
-      var rows = [options];
+      rows = [options];
     }
 
     return (<div className="structToggles">
@@ -727,10 +746,11 @@ class SchemaNode extends Component {
       }
 
     } else {
-      var content = this.props.schema.nodes.map(function(node, i) {
+      let content = this.props.schema.nodes.map(function(node, i) {
+        let path;
         if ("nodes" in node || ("refs" in node && node.refs.length)) {
           // SchemaNode with children (nodes) or ArrayMapNode with depth (refs)
-          var path = this.props.refPath + ", " + node.title;
+          path = this.props.refPath + ", " + node.title;
           return (
             <div className="schema-node-toc" data-ref={path} key={i}>
               <span className={`schema-node-title ${this.state.collapsed[i] ? "collapsed" : "open"}`}
@@ -756,7 +776,7 @@ class SchemaNode extends Component {
           return <DictionaryNode schema={node} key={i}/>;
         } else if (node.depth == 1 && !node.default) {
           // SchemaNode title that points straight to content
-          var path = this.props.refPath + ", " + node.title;
+          path = this.props.refPath + ", " + node.title;
           return (
             <a className="schema-node-toc linked" href={Sefaria.normRef(path)} data-ref={path} key={i}>
               <span className="schema-node-title" role="heading" aria-level="3">
@@ -802,7 +822,7 @@ SchemaNode.propTypes = {
 class JaggedArrayNode extends Component {
   render() {
     if ("toc_zoom" in this.props.schema) {
-      var zoom = this.props.schema.toc_zoom - 1;
+      let zoom = this.props.schema.toc_zoom - 1;
       return (<JaggedArrayNodeSection
                 depth={this.props.schema.depth - zoom}
                 sectionNames={this.props.schema.sectionNames.slice(0, -zoom)}
@@ -828,7 +848,7 @@ class JaggedArrayNodeSection extends Component {
   contentCountIsEmpty(count) {
     // Returns true if count is zero or is an an array (of arrays) of zeros.
     if (typeof count == "number") { return count == 0; }
-    var innerCounts = count.map(this.contentCountIsEmpty);
+    let innerCounts = count.map(this.contentCountIsEmpty);
     return innerCounts.unique().compare([true]);
   }
   refPathTerminal(count) {
@@ -836,8 +856,8 @@ class JaggedArrayNodeSection extends Component {
     // Used in cases of "zoomed" JaggedArrays, where `contentCounts` is deeper than `depth` so that zoomed section
     // links still point to section level.
     if (typeof count == "number") { return ""; }
-    var terminal = ":";
-    for (var i = 0; i < count.length; i++) {
+    let terminal = ":";
+    for (let i = 0; i < count.length; i++) {
       if (count[i]) {
         terminal += (i+1) + this.refPathTerminal(count[i]);
         break;
@@ -847,20 +867,21 @@ class JaggedArrayNodeSection extends Component {
   }
   render() {
     if (this.props.depth > 2) {
-      var content = [];
-      for (var i = 0; i < this.props.contentCounts.length; i++) {
+      let content = [];
+      let enSection, heSection;
+      for (let i = 0; i < this.props.contentCounts.length; i++) {
         if (this.contentCountIsEmpty(this.props.contentCounts[i])) { continue; }
         if (this.props.addressTypes[0] === "Talmud") {
-          var enSection = Sefaria.hebrew.intToDaf(i);
-          var heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
+          enSection = Sefaria.hebrew.intToDaf(i);
+          heSection = Sefaria.hebrew.encodeHebrewDaf(enSection);
         } else if (this.props.addressTypes[0] === "Year") {
-          var enSection = i + 1241;
-          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+          enSection = i + 1241;
+          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
           heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
         }
         else {
-          var enSection = i+1;
-          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+          enSection = i+1;
+          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
         content.push(
           <div className="tocSection" key={i}>
@@ -877,24 +898,25 @@ class JaggedArrayNodeSection extends Component {
       }
       return ( <div className="tocLevel">{content}</div> );
     }
-    var contentCounts = this.props.depth == 1 ? new Array(this.props.contentCounts).fill(1) : this.props.contentCounts;
-    var sectionLinks = [];
-    for (var i = 0; i < contentCounts.length; i++) {
+    let contentCounts = this.props.depth == 1 ? new Array(this.props.contentCounts).fill(1) : this.props.contentCounts;
+    let sectionLinks = [];
+    let section, heSection;
+    for (let i = 0; i < contentCounts.length; i++) {
       if (this.contentCountIsEmpty(contentCounts[i])) { continue; }
       if (this.props.addressTypes[0] === "Talmud") {
-          var section = Sefaria.hebrew.intToDaf(i);
-          var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+          section = Sefaria.hebrew.intToDaf(i);
+          heSection = Sefaria.hebrew.encodeHebrewDaf(section);
         } else if (this.props.addressTypes[0] === "Year") {
-          var section = i + 1241;
-          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+          section = i + 1241;
+          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
           heSection = heSection.slice(0,-1) + '"' + heSection.slice(-1)
         }
         else {
-          var section = i+1;
-          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+          section = i+1;
+          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
-      var ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
-      var link = (
+      let ref  = (this.props.refPath + ":" + section).replace(":", " ") + this.refPathTerminal(contentCounts[i]);
+      let link = (
         <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
           <ContentText text={{en:section, he:heSection}}/>
         </a>
@@ -924,20 +946,21 @@ class ArrayMapNode extends Component {
   }
   render() {
     if ("refs" in this.props.schema && this.props.schema.refs.length) {
-      var sectionLinks = this.props.schema.refs.map(function(ref, i) {
+      let section, heSection;
+      let sectionLinks = this.props.schema.refs.map(function(ref, i) {
         i += this.props.schema.offset || 0;
         if (ref === "") {
           return null;
         }
         if (this.props.schema.addressTypes[0] === "Talmud") {
-          var section = Sefaria.hebrew.intToDaf(i);
-          var heSection = Sefaria.hebrew.encodeHebrewDaf(section);
+          section = Sefaria.hebrew.intToDaf(i);
+          heSection = Sefaria.hebrew.encodeHebrewDaf(section);
         } else if (this.props.schema.addressTypes[0] === "Folio") {
-          var section = Sefaria.hebrew.intToFolio(i);
-          var heSection = Sefaria.hebrew.encodeHebrewFolio(section);
+          section = Sefaria.hebrew.intToFolio(i);
+          heSection = Sefaria.hebrew.encodeHebrewFolio(section);
         } else {
-          var section = i+1;
-          var heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
+          section = i+1;
+          heSection = Sefaria.hebrew.encodeHebrewNumeral(i+1);
         }
         return (
           <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
@@ -966,9 +989,9 @@ ArrayMapNode.propTypes = {
 class DictionaryNode extends Component {
   render() {
     if (this.props.schema.headwordMap) {
-      var sectionLinks = this.props.schema.headwordMap.map(function(m,i) {
-      var letter = m[0];
-      var ref = m[1];
+      let sectionLinks = this.props.schema.headwordMap.map(function(m,i) {
+      let letter = m[0];
+      let ref = m[1];
       return (
           <a className="sectionLink" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
             <ContentText text={{en:letter, he:letter}} />
@@ -985,8 +1008,8 @@ DictionaryNode.propTypes = {
 
 class CommentatorList extends Component {
   render() {
-    var content = this.props.commentatorList.map(function(commentator, i) {
-      var ref = commentator.refs_to_base_texts[this.props.title];
+    let content = this.props.commentatorList.map(function(commentator, i) {
+      let ref = commentator.refs_to_base_texts[this.props.title];
       return (<a className="refLink linked" href={Sefaria.normRef(ref)} data-ref={ref} key={i}>
                 <ContentText text={{en:commentator.collectiveTitle, he:commentator.heCollectiveTitle}}/>
             </a>);
@@ -1003,14 +1026,14 @@ CommentatorList.propTypes = {
 
 class VersionsList extends Component {
   render() {
-    var versions = this.props.versionsList;
-    var [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
+    let versions = this.props.versionsList;
+    let [heVersionBlocks, enVersionBlocks] = ["he","en"].map(lang =>
      versions.filter(v => v.language == lang).map(v =>
       <VersionBlock
         rendermode="version-list"
         title={this.props.title}
         version={v}
-        currVersions={this.props.currVersions}
+        currObjectVersions={this.props.currObjectVersions}
         currentRef={this.props.currentRef || this.props.title}
         firstSectionRef={"firstSectionRef" in v ? v.firstSectionRef : null}
         openVersionInReader={this.props.openVersion}
@@ -1023,14 +1046,14 @@ class VersionsList extends Component {
     return (
       <div className="versionBlocks">
         {(!!heVersionBlocks.length) ?
-          <div className="versionLanguageBlock">
+          <div className="versionLanguageBlock sans-serif">
             <div className="versionLanguageHeader">
               <InterfaceText>Hebrew Versions</InterfaceText>
             </div>
             <div>{heVersionBlocks}</div>
           </div> : null}
         {(!!enVersionBlocks.length) ?
-          <div className="versionLanguageBlock">
+          <div className="versionLanguageBlock sans-serif">
             <div className="versionLanguageHeader">
               <InterfaceText>English Versions</InterfaceText>
             </div>
@@ -1040,7 +1063,7 @@ class VersionsList extends Component {
   }
 }
 VersionsList.propTypes = {
-  currVersions: PropTypes.object.isRequired,
+  currObjectVersions: PropTypes.object.isRequired,
   versionsList:      PropTypes.array.isRequired,
   openVersion:       PropTypes.func.isRequired,
   title:             PropTypes.string.isRequired,
@@ -1069,15 +1092,15 @@ class ModeratorButtons extends Component {
     window.location = "/add/" + this.props.title;
   }
   deleteIndex() {
-    var title = this.props.title;
+    const title = this.props.title;
 
-    var confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions, translations and links. This action CANNOT be undone. Type DELETE to confirm.", "");
+    const confirm = prompt("Are you sure you want to delete this text version? Doing so will completely delete this text from Sefaria, including all existing versions, translations and links. This action CANNOT be undone. Type DELETE to confirm.", "");
     if (confirm !== "DELETE") {
       alert("Delete canceled.");
       return;
     }
 
-    var url = "/api/index/" + title;
+    const url = "/api/index/" + title;
     $.ajax({
       url: url,
       type: "DELETE",
@@ -1100,21 +1123,21 @@ class ModeratorButtons extends Component {
                 <i className="fa fa-cog"></i>
               </div>);
     }
-    var editTextInfo = <div className="button white" onClick={this.editIndex}>
+    let editTextInfo = <div className="button white" onClick={this.editIndex}>
                           <span><i className="fa fa-info-circle"></i> Edit Text Info</span>
                         </div>;
-    var addSection   = <div className="button white" onClick={this.addSection}>
+    let addSection   = <div className="button white" onClick={this.addSection}>
                           <span><i className="fa fa-plus-circle"></i> Add Section</span>
                         </div>;
-    var deleteText   = <div className="button white" onClick={this.deleteIndex}>
+    let deleteText   = <div className="button white" onClick={this.deleteIndex}>
                           <span><i className="fa fa-exclamation-triangle"></i> Delete {this.props.title}</span>
                         </div>
-    var textButtons = (<span className="moderatorTextButtons">
+    let textButtons = (<span className="moderatorTextButtons">
                           {Sefaria.is_moderator ? editTextInfo : null}
                           {Sefaria.is_moderator || Sefaria.is_editor ? addSection : null}
                           {Sefaria.is_moderator ? deleteText : null}
                         </span>);
-    var message = this.state.message ? (<div className="moderatorSectionMessage">{this.state.message}</div>) : null;
+    let message = this.state.message ? (<div className="moderatorSectionMessage">{this.state.message}</div>) : null;
     return (<div className="moderatorSection">
               {textButtons}
               {message}
@@ -1133,7 +1156,7 @@ class ReadMoreText extends Component {
   }
   render() {
     /** todo fix interfacetext */
-    var text = this.state.expanded ? this.props.text : this.props.text.split(" ").slice(0, this.props.initialWords).join (" ") + "...";
+    let text = this.state.expanded ? this.props.text : this.props.text.split(" ").slice(0, this.props.initialWords).join (" ") + "...";
     return <div className="readMoreText">
       {text}
       {this.state.expanded ? null :
@@ -1156,70 +1179,7 @@ ReadMoreText.defaultProps = {
   initialWords: 30
 };
 
-// class ExtendedNotes extends Component {
-//   constructor(props) {
-//     super(props);
-//     this.state = {'notesLanguage': Sefaria.interfaceLang, 'extendedNotes': '', 'langToggle': false};
-//   }
-//   getVersionData(versionList){
-//     const versionTitle = this.props.currVersions['en'] ? this.props.currVersions['en'] : this.props.currVersions['he'];
-//     const thisVersion = versionList.filter(x=>x.versionTitle===versionTitle)[0];
-//     let extendedNotes = {'english': thisVersion.extendedNotes, 'hebrew': thisVersion.extendedNotesHebrew};
-//
-//     if (extendedNotes.english && extendedNotes.hebrew){
-//       this.setState({'extendedNotes': extendedNotes, 'langToggle': true});
-//     }
-//     else if (extendedNotes.english && !extendedNotes.hebrew) {
-//       this.setState({'extendedNotes': extendedNotes, 'notesLanguage': 'english'});
-//     }
-//     else if (extendedNotes.hebrew && !extendedNotes.english) {
-//       this.setState({'extendedNotes': extendedNotes, 'notesLanguage': 'hebrew'});
-//     }
-//     else{
-//       this.props.backFromExtendedNotes();
-//     }
-//   }
-//   componentDidMount() {
-//     // use Sefaria.versions(ref, cb), where cb will invoke setState
-//     Sefaria.versions(this.props.title, this.getVersionData);
-//   }
-//   goBack(event) {
-//     event.preventDefault();
-//     this.props.backFromExtendedNotes();
-//   }
-//   changeLanguage(event) {
-//     event.preventDefault();
-//     if (this.state.notesLanguage==='english') {
-//       this.setState({'notesLanguage': 'hebrew'});
-//     }
-//     else {
-//       this.setState({'notesLanguage': 'english'});
-//     }
-//   }
-//   render() {
-//     let notes = '';
-//     if (this.state.extendedNotes) {
-//       notes = this.state.extendedNotes[this.state.notesLanguage];
-//       if (this.state.notesLanguage==='hebrew' && !notes){
-//         notes = 'לא קיימים רשימות מורחבות בשפה העברית עבור גרסה זו';
-//       }
-//       else if (this.state.notesLanguage==='english' && !notes){
-//         notes = 'Extended notes in English do not exist for this version';
-//       }
-//     }
-//       return <div className="extendedNotes">
-//         <a onClick={this.goBack} href={`${this.props.title}`}>
-//           {Sefaria.interfaceLang==="hebrew" ? "חזור" : "Back"}
-//         </a>
-//         {this.state.extendedNotes
-//           ? <div className="extendedNotesText" dangerouslySetInnerHTML={ {__html: notes} }></div>
-//         : <LoadingMessage/>}
-//         {this.state.langToggle ? <a onClick={this.changeLanguage} href={`${this.props.title}`}>
-//           {this.state.notesLanguage==='english' ? 'עברית' : 'English'}
-//         </a> : ''}
-//       </div>
-//   }
-// }
+
 
 
 export default ReaderTextTableOfContents;

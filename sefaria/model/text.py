@@ -123,8 +123,8 @@ class AbstractIndex(object):
         return refs
 
     def author_objects(self):
-        from . import person
-        return [person.Person().load({"key": k}) for k in getattr(self, "authors", []) if person.Person().load({"key": k})]
+        from . import topic
+        return [topic.Topic.init(slug) for slug in getattr(self, "authors", []) if topic.Topic.init(slug)]
 
     def composition_time_period(self):
         return None
@@ -262,7 +262,7 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         """
         authors = self.author_objects()
         if len(authors):
-            contents["authors"] = [{"en": author.primary_name("en"), "he": author.primary_name("he")} for author in authors]
+            contents["authors"] = [{"en": author.get_primary_title("en"), "he": author.get_primary_title("he"), "slug": author.slug} for author in authors]
 
         if getattr(self, "collective_title", None):
             contents["collective_title"] = {"en": self.collective_title, "he": hebrew_term(self.collective_title)}
@@ -460,8 +460,8 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
 
         else:
             author = self.author_objects()[0] if len(self.author_objects()) > 0 else None
-            if author and author.mostAccurateTimePeriod():
-                tp = author.mostAccurateTimePeriod()
+            tp = author and author.most_accurate_time_period()
+            if tp is not None:
                 tpvars = vars(tp)
                 start = tp.start if "start" in tpvars else None
                 end = tp.end if "end" in tpvars else None
@@ -590,9 +590,63 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
                 # self.titleVariants.remove(d["oldTitle"])  # let this be determined by user
         return super(Index, self).load_from_dict(d, is_init)
 
+
+    @staticmethod
+    def get_title_quotations_variants(title):
+        """
+        If there is a quotation, fancy quotation, or gershayim in title, return two titles also with quotations.
+        For example, if title is 'S"A', return a list of 'S”A' and
+        'S״A'
+        :param title: str
+        :return: list
+        """
+        titles = []
+        quotes = ['"', '״', '”']
+        found_quotes = [quote for quote in quotes if quote in title]
+        for found_quote_char in found_quotes:
+            titles += [title.replace(found_quote_char, quote_char) for quote_char in quotes if quote_char != found_quote_char]
+        return titles
+
+    def normalize_titles_with_quotations(self):
+        # for all Index and node hebrew titles, this function does the following:
+        # 1. any title that has regular quotes, gershayim, or fancy quotes will now have two corresponding
+        # titles where the characters are exactly the same except for the type of quote
+        # 2. all primary titles will not have gershayim or fancy quotes, but only have regular quotes or none at all.
+        # 3. all titles have either gershayim or fancy quotes or regular quotes or none at all,
+        # so that no title can have two different types of quotes.
+        primary_title = self.get_title('he').replace('״', '"').replace('”', '"')
+        self.nodes.add_title(primary_title, 'he', True, True)
+        index_titles = [primary_title]
+        for title in self.schema["titles"]:
+            if title["lang"] == "he" and title.get("primary", False) == False:
+                index_titles.append(title["text"])
+
+        for title in index_titles:
+            title = title.replace('״', '"').replace('”', '"')
+            new_titles = [title] + self.get_title_quotations_variants(title)
+            for new_title in new_titles:
+                if new_title not in index_titles:
+                    self.nodes.add_title(new_title, 'he')
+
+        for node in self.nodes.children:
+            if getattr(node, "default", False) == False and getattr(node, "sharedTitle", "") == "":
+                primary_title = node.get_primary_title('he')
+                primary_title = primary_title.replace('״', '"').replace('”', '"')
+                node.add_title(primary_title, 'he', True, True)
+                node_titles = node.get_titles('he')
+                for node_title in node_titles:
+                    node_title = node_title.replace('״', '"').replace('”', '"')
+                    new_titles = [node_title] + self.get_title_quotations_variants(node_title)
+                    for new_title in new_titles:
+                        if new_title not in node_titles:
+                            node.add_title(new_title, 'he')
+
     def _normalize(self):
         self.title = self.title.strip()
         self.title = self.title[0].upper() + self.title[1:]
+
+        if getattr(self, "is_cited", False):
+            self.normalize_titles_with_quotations()
 
         if isinstance(getattr(self, "authors", None), str):
             self.authors = [self.authors]
@@ -704,8 +758,13 @@ class Index(abst.AbstractMongoRecord, AbstractIndex):
         else:  # old style commentator record are no longer supported
             raise InputError('All new Index records must have a valid schema.')
 
-        if getattr(self, "authors", None) and not isinstance(self.authors, list):
-            raise InputError('{} authors must be a list.'.format(self.title))
+        if getattr(self, "authors", None):
+            from .topic import Topic, AuthorTopic
+            if not isinstance(self.authors, list):
+                raise InputError(f'{self.title} authors must be a list.')
+            for author_slug in self.authors:
+                topic = Topic.init(author_slug)
+                assert isinstance(topic, AuthorTopic), f"Author with slug {author_slug} does not match any valid AuthorTopic instance. Make sure the slug exists in the topics collection and has the subclass 'author'."
 
         return True
 
@@ -885,16 +944,25 @@ class AbstractSchemaContent(object):
             key_list = []
         if not indx_list:
             indx_list = []
-        ja = reduce(lambda d, k: d[k], key_list, self.get_content())
-        if indx_list:
+        node = reduce(lambda d, k: d[k], key_list, self.get_content())
+        if indx_list:  # accessing/setting index with jagged array node
             if value is not None:
                 # NOTE: JaggedArrays modify their store in place, so this change will affect `self`
-                JaggedArray(ja).set_element(indx_list, value, '')
-            return reduce(lambda a, i: a[i], indx_list, ja)
-        else:
+                JaggedArray(node).set_element(indx_list, value, '')
+            return reduce(lambda a, i: a[i], indx_list, node)
+        else: # accessing/setting index in schema nodes
             if value is not None:
-                ja[:] = value
-            return ja
+                if isinstance(value, list):  # we assume if value is a list, you want to modify the entire contents of the jagged array node
+                    node[:] = value
+                else:  # this change is to a schema node that's not a leaf. need to explicitly set contents on the parent so this change affects `self` 
+                    if len(key_list) == 0:
+                        setattr(self, self.content_attr, value)
+                    elif len(key_list) == 1:
+                        self.get_content()[key_list[0]] = value
+                    else:
+                        node_parent = reduce(lambda d, k: d[k], key_list[:-1], self.get_content())
+                        node_parent[key_list[-1]] = value
+            return node
 
 
 class AbstractTextRecord(object):
@@ -2932,7 +3000,9 @@ class Ref(object, metaclass=RefCacheType):
     def is_segment_level(self):
         """
         Is this Ref segment (e.g. Verse) level?
+
         ::
+
             >>> Ref("Leviticus 15:3").is_segment_level()
             True
             >>> Ref("Leviticus 15").is_segment_level()
@@ -4153,7 +4223,7 @@ class Ref(object, metaclass=RefCacheType):
         versions = VersionSet(self.condition_query())
         version_list = []
         if self.is_book_level():
-            for v in  versions:
+            for v in versions:
                 version = {f: getattr(v, f, "") for f in fields}
                 oref = v.first_section_ref() or v.get_index().nodes.first_leaf().first_section_ref()
                 version["firstSectionRef"] = oref.normal()
@@ -4475,6 +4545,7 @@ class Library(object):
         self._toc_tree = None
         self._topic_toc = None
         self._topic_toc_json = None
+        self._topic_toc_category_mapping = None
         self._topic_link_types = None
         self._topic_data_sources = None
         self._category_id_dict = None
@@ -4552,6 +4623,7 @@ class Library(object):
         self._toc_json = self.get_toc_json(rebuild=True)
         self._topic_toc = self.get_topic_toc(rebuild=True)
         self._topic_toc_json = self.get_topic_toc_json(rebuild=True)
+        self._topic_toc_category_mapping = self.get_topic_toc_category_mapping(rebuild=True)
         self._category_id_dict = None
         scache.delete_template_cache("texts_list")
         scache.delete_template_cache("texts_dashboard")
@@ -4563,6 +4635,7 @@ class Library(object):
         self.get_topic_mapping(rebuild=rebuild)
         self.get_topic_toc(rebuild=rebuild)
         self.get_topic_toc_json(rebuild=rebuild)
+        self.get_topic_toc_category_mapping(rebuild=rebuild)
         self.get_text_titles_json(rebuild=rebuild)
         self.get_simple_term_mapping(rebuild=rebuild)
         self.get_simple_term_mapping_json(rebuild=rebuild)
@@ -4676,6 +4749,33 @@ class Library(object):
         if topic is None:
             return topic_json['children']
         return topic_json
+
+    def build_topic_toc_category_mapping(self) -> dict:
+        """
+        Maps every slug in topic toc to its parent slug. This is usually the top level category, but in the case of laws it is the second-level category
+        """
+        topic_toc_category_mapping = {}
+        topic_toc = self.get_topic_toc()
+        discovered_slugs = set()
+        topic_stack = [t for t in topic_toc]
+        while len(topic_stack) > 0:
+            curr_topic = topic_stack.pop()
+            if curr_topic['slug'] in discovered_slugs: continue
+            discovered_slugs.add(curr_topic['slug'])
+            for child_topic in curr_topic.get('children', []):
+                topic_stack += [child_topic]
+                topic_toc_category_mapping[child_topic['slug']] = curr_topic['slug']
+        return topic_toc_category_mapping
+
+    def get_topic_toc_category_mapping(self, rebuild=False) -> dict:
+        if rebuild or not self._topic_toc_category_mapping:
+            if not rebuild:
+                self._topic_toc_category_mapping = scache.get_shared_cache_elem('topic_toc_category_mapping')
+            if rebuild or not self._topic_toc_category_mapping:
+                self._topic_toc_category_mapping = self.build_topic_toc_category_mapping()
+                scache.set_shared_cache_elem('topic_toc_category_mapping', self._topic_toc_category_mapping)
+                self.set_last_cached_time()
+        return self._topic_toc_category_mapping
 
     def get_search_filter_toc(self):
         """
@@ -5188,6 +5288,19 @@ class Library(object):
             q = {"categories": category, 'dependence': {'$in': [False, None]}}
         else:
             q = {"categories": category}
+
+        return IndexSet(q) if full_records else IndexSet(q).distinct("title")
+
+    def get_indexes_in_category_path(self, path: list, include_dependant=False, full_records=False) -> Union[IndexSet, list]:
+        """
+        :param list path: list of category names, starting from root.
+        :param bool include_dependant: If true includes records of Commentary and Targum
+        :param bool full_records: If True will return the actual :class: 'IndexSet' otherwise just the titles
+        :return: :class:`IndexSet` of :class:`Index` records in the specified category path
+        """
+        q = {} if include_dependant else {'dependence': {'$in': [False, None]}}
+        for icat, cat in enumerate(path):
+            q[f'categories.{icat}'] = cat
 
         return IndexSet(q) if full_records else IndexSet(q).distinct("title")
 

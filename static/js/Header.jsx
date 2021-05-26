@@ -1,9 +1,9 @@
 import {
   ReaderNavigationMenuSearchButton,
   GlobalWarningMessage,
-  TestMessage,
   ProfilePic,
   InterfaceLanguageMenu,
+  InterfaceText
 } from './Misc';
 import React, { useState, useEffect, useRef} from 'react';
 import PropTypes  from 'prop-types';
@@ -34,9 +34,17 @@ const ProfilePicMenu = ({len, url, name}) => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef(null);
 
-  const handleClick = (e) => {
+  const menuClick = (e) => {
+    var el = e.target;
+    while (el && el.nodeName !== 'A') {
+      el = el.parentNode;
+    }
+    if (el) {
+      resetOpen();
+    }
+  }
+  const profilePicClick = (e) => {
     e.preventDefault();
-    e.stopPropagation();
     resetOpen();
   }
   const resetOpen = () => {
@@ -65,38 +73,36 @@ const ProfilePicMenu = ({len, url, name}) => {
     };
   }, []);
   const getCurrentPage = () => {
-    return (typeof window === "undefined" ) ? (encodeURIComponent(Sefaria.util.currentPath())) : "/";
+    return encodeURIComponent(Sefaria.util.currentPath());
   }
   return (
     <div ref={wrapperRef}>
-        <a href="/my/profile" className="my-profile" onClick={handleClick}>
+        <a href="/my/profile" className="my-profile" onClick={profilePicClick}>
           <ProfilePic len={len} url={url} name={name}/>
         </a>
         <div className="interfaceLinks">
-          <div className={`interfaceLinks-menu profile-menu ${ isOpen ? "open" : "closed"}`}>
+          {isOpen ?
+          <div className="interfaceLinks-menu profile-menu" onClick={menuClick}>
             <div className="interfaceLinks-header profile-menu">{name}</div>
             <div><a className="interfaceLinks-row top" href="/my/profile">
-              <span className="int-en">Profile</span>
-              <span className="int-he">פרופיל</span>
+              <InterfaceText>Profile</InterfaceText>
+
             </a></div>
             <div><a className="interfaceLinks-row" href="/settings/account">
-              <span className="int-en">Account Settings</span>
-              <span className="int-he">הגדרות</span>
+              <InterfaceText>Account Settings</InterfaceText>
             </a></div>
             <div className="interfaceLinks-row languages">
               <a className={`${(Sefaria.interfaceLang == 'hebrew') ? 'firstLink':'secondLink'}`} href={`/interface/hebrew?next=${getCurrentPage()}`}>עברית</a>
               <a className={`${(Sefaria.interfaceLang == 'english') ? 'firstLink':'secondLink'}`} href={`/interface/english?next=${getCurrentPage()}`}>English</a>
             </div>
             <div><a className="interfaceLinks-row bottom" href="/collections/sefaria-faqs">
-              <span className="int-en">Help</span>
-              <span className="int-he">עזרה</span>
+              <InterfaceText>Help</InterfaceText>
             </a></div>
             <div><a className="interfaceLinks-row logout" href="/logout">
-              <span className="int-en">Logout</span>
-              <span className="int-he">ניתוק</span>
+              <InterfaceText>Logout</InterfaceText>
             </a></div>
 
-          </div>
+          </div> : null}
         </div>
     </div>
   )
@@ -111,7 +117,7 @@ class Header extends Component {
     this._searchOverridePost = '"';
     this._type_icon_map = {
       "Collection": "collection.svg",
-      "Person": "iconmonstr-pen-17.svg",
+      "AuthorTopic": "iconmonstr-pen-17.svg",
       "TocCategory": "iconmonstr-view-6.svg",
       "Topic": "iconmonstr-hashtag-1.svg",
       "ref": "iconmonstr-book-15.svg",
@@ -261,20 +267,12 @@ class Header extends Component {
     this.props.showSearch(query);
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   }
-  showTestMessage() {
-    this.props.setCentralState({showTestMessage: true});
-  }
-  hideTestMessage() {
-    this.props.setCentralState({showTestMessage: false});
-  }
   getURLForObject(type, key) {
-    if (type === "Person") {
-      return `/person/${key}`;
-    } else if (type === "Collection") {
+    if (type === "Collection") {
       return `/collections/${key}`;
     } else if (type === "TocCategory") {
       return `/texts/${key.join('/')}`;
-    } else if (type === "Topic") {
+    } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
       return `/topics/${key}`;
     } else if (type === "ref") {
       return `/${key.replace(/ /g, '_')}`;
@@ -310,7 +308,7 @@ class Header extends Component {
           Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
           this.clearSearchBox();
           this.props.openTopic(d["topic_slug"]);
-        } else if (d["type"] === "Person" || d["type"] === "Group" || d["type"] === "TocCategory") {
+        } else if (d["type"] === "Group" || d["type"] === "TocCategory") {
           this.redirectToObject(d["type"], d["key"]);
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
@@ -377,18 +375,14 @@ class Header extends Component {
                           layoutWidth={100}
                           analyticsInitialized={this.props.analyticsInitialized}
                           getLicenseMap={this.props.getLicenseMap}
-                          translateISOLanguageCode={this.props.translateISOLanguageCode}
                           toggleSignUpModal={this.props.toggleSignUpModal}
                         />) : null;
 
-    const headerMessage = this.props.headerMessage ?
-                          (<div className="testWarning" onClick={this.showTestMessage} >{ this.props.headerMessage }</div>) :
-                          null;
     // Header should not show box-shadow over panels that have color line
     const hasColorLine = ["sheets", "sheets meta"];
     const hasBoxShadow = (!!this.state.menuOpen && hasColorLine.indexOf(this.state.menuOpen) === -1);
     const headerInnerClasses = classNames({headerInner: 1, boxShadow: hasBoxShadow});
-    const inputClasses = classNames({search: 1, keyboardInput: this.props.interfaceLang === "english", hebrewSearch: this.props.interfaceLang === "hebrew"});
+    const inputClasses = classNames({search: 1, serif: 1, keyboardInput: this.props.interfaceLang === "english", hebrewSearch: this.props.interfaceLang === "hebrew"});
     const searchBoxClasses = classNames({searchBox: 1, searchFocused: this.state.searchFocused});
     return (<div className="header" role="banner">
               <div className={headerInnerClasses}>
@@ -410,7 +404,6 @@ class Header extends Component {
                     { Sefaria._siteSettings.TORAH_SPECIFIC ? <a className="home" href="/?home" ><img src="/static/img/logo.svg" alt="Sefaria Logo"/></a> : null }
                 </div>
                 <div className="headerLinksSection">
-                  { headerMessage }
                   { Sefaria._uid ?
                       <LoggedInButtons headerMode={this.props.headerMode}/>
                       :
@@ -424,7 +417,6 @@ class Header extends Component {
                 (<div className="headerNavContent">
                   {viewContent}
                  </div>) : null}
-              { this.state.showTestMessage ? <TestMessage hide={this.hideTestMessage} /> : null}
               <GlobalWarningMessage />
             </div>);
   }

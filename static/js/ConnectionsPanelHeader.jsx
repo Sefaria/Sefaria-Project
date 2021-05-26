@@ -12,14 +12,18 @@ import Component      from 'react-class';
 class ConnectionsPanelHeader extends Component {
   constructor(props) {
     super(props);
-    this.previousModes = { // mapping from modes to previous modes
-      "Translation Open":"Translations",
-      "extended notes":"Translations",
-      "WebPagesList": "WebPages"
+    this.previousModes = {
+        // mapping from modes to previous modes
+        "Translation Open":"Translations",
+        "extended notes":"Translations",
+        "WebPagesList": "WebPages"
     };
   }
   componentDidMount() {
     this.setMarginForScrollbar();
+  }
+  getPreviousMode() {
+      return !!this.props.previousMode ? this.props.previousMode : this.previousModes[this.props.connectionsMode];
   }
   setMarginForScrollbar() {
     // Scrollbars take up spacing, causing the centering of ConnectsionPanel to be slightly off center
@@ -34,7 +38,7 @@ class ConnectionsPanelHeader extends Component {
   }
   onClick(e) {
     e.preventDefault();
-    const previousMode = this.previousModes[this.props.connectionsMode];
+    const previousMode = this.getPreviousMode();
     if (previousMode) {
       this.props.setConnectionsMode(previousMode);
     } else {
@@ -43,11 +47,11 @@ class ConnectionsPanelHeader extends Component {
   }
   render() {
       /** TODO: fix for interfacetext */
-    const previousMode = this.previousModes[this.props.connectionsMode];
+    const previousMode = this.getPreviousMode();
     let title;
     if (this.props.connectionsMode == "Resources") {
       // Top Level Menu
-      title = <div className="connectionsHeaderTitle">
+      title = <div className="connectionsHeaderTitle sans-serif">
                     <InterfaceText text={{en: "Resources" , he:"קישורים וכלים" }} />
                   </div>;
 
@@ -56,7 +60,7 @@ class ConnectionsPanelHeader extends Component {
       const prev = previousMode ? previousMode.splitCamelCase() : this.props.previousCategory;
       const prevHe = previousMode ? Sefaria._(prev) : Sefaria._(this.props.previousCategory);
       const url = Sefaria.util.replaceUrlParam("with", prev);
-      title = <a href={url} className="connectionsHeaderTitle active" onClick={this.onClick}>
+      title = <a href={url} className="connectionsHeaderTitle sans-serif active" onClick={this.onClick}>
                     <InterfaceText>
                         <EnglishText>
                             <i className="fa fa-chevron-left"></i>
@@ -75,7 +79,7 @@ class ConnectionsPanelHeader extends Component {
         e.preventDefault();
         this.props.setConnectionsMode("Resources");
       }.bind(this);
-      title = <a href={url} className="connectionsHeaderTitle active" onClick={onClick}>
+      title = <a href={url} className="connectionsHeaderTitle sans-serif active" onClick={onClick}>
                     <InterfaceText>
                         <EnglishText>
                             <i className="fa fa-chevron-left"></i>

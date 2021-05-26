@@ -349,6 +349,13 @@ class Util {
                           .replace(/^./, str => str.toUpperCase())
         };
 
+        String.prototype.camelize = function() {
+          return this.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
+            if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
+            return index === 0 ? match.toLowerCase() : match.toUpperCase();
+          });
+        }
+
         Array.prototype.compare = function(testArr) {
             if (this.length != testArr.length) return false;
             for (var i = 0; i < testArr.length; i++) {
@@ -904,5 +911,6 @@ Util.sefariaHumanizeDuration = humanizeDuration.humanizer({
     s: 1,
   },
 });
+
 
 export default Util;

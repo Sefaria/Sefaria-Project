@@ -2,7 +2,7 @@ const Strings = {
   _i18nInterfaceStrings: {
     "Sefaria": "ספריא",
     "Topics":"נושאים",
-    "Sefaria Notifcations": "הודעות בספריא",
+    "Sefaria Notifications": "הודעות בספריא",
     "Sefaria: a Living Library of Jewish Texts Online": "ספריא: ספרייה חיה של טקסטים יהודיים",
     "Recently Viewed" : "נצפו לאחרונה",
     "The Sefaria Library": "תוכן העניינים של ספריא",
@@ -22,6 +22,7 @@ const Strings = {
     "Source Sheets": "דפי מקורות",
     "Start a New Source Sheet": "התחלת דף מקורות חדש",
     "Untitled Source Sheet" : "דף מקורות ללא שם",
+    "Untitled": "ללא שם",
     "New Source Sheet" : "דף מקורות חדש",
     "Name New Sheet" : "כותרת לדף חדש",
     "Copy" : "העתקה",
@@ -87,11 +88,29 @@ const Strings = {
     "Indent Source": "הזחת מקור פנימה",
     "Create New" : "יצירת חדש",
     "Close" : "סגירה",
-    "by": "", // by line on sheets in reader, intentionally left blank
+
+    //publish flow:
+    "Not Published" : "לא פורסם",
+    "Publish Settings": "הגדרות פרסום",
+    "Publish Sheet": "פרסום דף מקורות",
+    "Your sheet is": "דף המקורות שלך",
+    "published": "פורסם",
+    "on Sefaria and visible to others through search and topics.": ".בספריא ומשתמשים אחרים יכולים למצוא אותו בחיפוש ובדפי הנושא",
+    "List your sheet on Sefaria for others to discover.": ".רישום דף המקורות שלך בספריא באופן שמשתמשים אחרים יוכלו למצוא אותו",
+    "Summary": "תקציר דף המקורות",
+    "Write a short description of your sheet..." : "תיאור קצר של דף המקורות שלך...",
+    "Add a topic...": "הוספת נושא",
+    "Publish": "פרסום דף המקורות",
+    "Unpublish": "ביטול פרסום",
+    "Please add a description and topics to publish your sheet.": "יש להוסיף תיאור ונושאים כדי לפרסם את הדף",
+    "Please add topics to publish your sheet.": "יש להוסיף נושאים כדי לפרסם את הדף",
+    "Please add a description to publish your sheet.": "יש להוסיף תיאור כדי לפרסם את הדף",
+    "The summary description is limited to 280 characters.": "תקציר דף המקורות מוגבל ל280 תווים.",
+
 
     // Reader Panel
     "Search" : "חיפוש",
-    "Search Dictionary": "חפש במילון",
+    "Search Dictionary": "חיפוש במילון",
     "Search for": "חיפוש",
     "Search for:": "חיפוש:",
     "Views": "צפיות",
@@ -187,6 +206,12 @@ const Strings = {
     "Done": "סיום",
     "Add to Collection": "צירוף לאסופה",
 
+    "Saved": "שמורים",
+
+    // Topics
+    "More": "עוד",
+    "Less": "פחות",
+
     //languages
     "English": "אנגלית",
     "Hebrew": "עברית",
@@ -225,6 +250,7 @@ const Strings = {
     "Request translation" : "בקשה לתרגום",
     "Report a bug" : "דיווח על תקלה באתר",
     "Get help" : "עזרה",
+    "Help": "עזרה",
     "Request a feature": "בקשה להוספת אפשרות באתר",
     "Give thanks": "תודה",
     "Other": "אחר",
@@ -242,9 +268,11 @@ const Strings = {
     "Stay in the know": "השארו מעודכנים",
     "Sign Up": "הרשמו לספריא",
     "Already have an account?": "כבר יש לכם חשבון?",
-    "Sign\u00A0in": "התחברו",
+    "Account Settings": "הגדרות",
+    "Sign in": "התחברו",
     "Save": "שמירה",
     "Remove": "הסרה",
+    "Logout": "ניתוק",
     "Email was successfully changed!": 'כתובת הדוא"ל שונתה בהצלחה!',
     "Settings Saved": "הגדרות נשמרו",
     "Turning this feature off will permanently delete your reading history." : "כיבוי אפשרות זו תמחק לצמיתות את היסטורית הקריאה שלך.",
@@ -272,8 +300,8 @@ const Strings = {
     "Etc": "שאר",
 
     // Chavruta
-    "Learn with a Chavruta": "ללמוד עם חברותא",
-    "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הזה:",
+    "Learn with a Chavruta": "לימוד בחברותא",
+    "Share this link with your chavruta to start a video call with this text": "כדי להתחיל שיחת וידאו, שתפו עם החברותא שלכם את הקישור הבא:",
     "Start Call": "התחלת שיחה",
 
     // Subscribe & Register
@@ -286,8 +314,28 @@ const Strings = {
     "Site Language": "שפת האתר",
 
     //Profile
+    "Profile": "פרופיל",
     " at ": " ב-",
     "on Sefaria": " בספריא",
+
+    //New Editor Flow
+    "Thanks for Trying the New Editor!": "תודה שבחרת לנסות את העורך החדש שלנו!",
+    "Go to your profile to create a new sheet, or edit an existing sheet, to try out the new experience. After you’ve had a chance to try it out, we would love to hear your feedback. You can reach us at" : "כדי להתנסות בחוויית העריכה החדשה, יש להיכנס לפרופיל האישי שלך וליצור דף מקורות חדש או לערוך דף מקורות קיים. נשמח מאוד לקבל ממך משוב אחרי השימוש. אפשר ליצור איתנו קשר בדוא\"ל",
+    "Back to Profile": "חזרה לפרופיל האישי שלך",
+    "Go back to old version": "חזרה לגרסה הישנה",
+    "Request for Feedback": "נא למלא משוב",
+    "Thank you for trying the new Sefaria editor! We’d love to hear what you thought. Please take a few minutes to give us feedback on your experience.": "תודה שניסית את עורך ספריא החדש! נשמח מאוד לשמוע את דעתך עליו. אנו מבקשים ממך להקדיש כמה דקות למילוי משוב על חוויית השימוש שלך.",
+    "Did you encounter any issues while using the new editor? For example:": "האם נתקלת בבעיות בעת השימוש בעורך החדש? למשל...",
+    "Technical problems": "בעיות טכניות",
+    "Difficulties using the editor": "קושי להשתמש בעורך",
+    "Missing features ": "תכונות חסרות",
+    "Tell us about it...": "ספר/י לנו על כך...",
+    "Submit Feedback": "לשליחת המשוב",
+    "Thank you!": "תודה רבה!",
+    "You are currently testing the new Sefaria editor.": "ברגע זה הינך עושה שימוש בעורך החדש של ספריא",
+    "You are currently using the old Sefaria editor.": "כעת הינך עושה שימוש בגרסה הישנה של עורך ספריא",
+    "Try the new version": "להתנסוּת בגרסה החדשה",
+    "Your feedback is greatly appreciated. You can now edit your sheets again using the old source sheet editor. If you have any questions or additional feedback you can reach us at": "אנחנו מעריכים מאוד את המשוב שלך. כעת באפשרותך לחזור לערוך את הדפים שלך באמצעות עורך המסמכים הישן. לשאלות או למשוב נוסף אפשר לפנות אלינו בדוא\"ל:",
 
     //TextTableofContents
     "Download": "הורדה",
@@ -295,6 +343,11 @@ const Strings = {
     "Table of Contents": "תוכן העניינים",
     "Hebrew Versions": "בעברית",
     "English Versions": "באנגלית",
+
+    //Topics
+    "Wikipedia": "ויקיפדיה",
+    "Jewish Encyclopedia": "האנציקלופדיה היהודית",
+    "Works on Sefaria": "חיבורים וכתבים בספריא",
   },
   _i18nInterfaceStringsWithContext: {
     "AddConnectionBox": {
@@ -308,6 +361,19 @@ const Strings = {
       "Reference": "עיון",
       "Related Passage": "קשר אחר",
     },
+    "SheetAuthorStatement": {
+      "by ": "", // by line on sheets in reader, intentionally left blank
+    },
+    "ConnectionPanelSection":{
+      "Related Texts": "מקורות לעיון",
+      "Resources": "עזרים",
+      "Tools": "כלים",
+    },
+    "FollowButton": {
+      "Follow": "עוקב",
+      "Unfollow": "הפסק לעקוב",
+      "Following": "עקוב",
+    }
   },
 };
 

@@ -301,6 +301,12 @@ class AbstractMongoRecord(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    @classmethod
+    def all_subclasses(cls) -> set:
+        # get all subclasses recursively
+        # see https://stackoverflow.com/a/3862957/4246723
+        return set(cls.__subclasses__()).union([sub_sub_cls for sub_cls in cls.__subclasses__() for sub_sub_cls in sub_cls.all_subclasses()])
+
 
 class AbstractMongoSet(collections.abc.Iterable):
     """
@@ -524,21 +530,22 @@ def cascade(set_class, attr):
     See examples in dependencies.py
     :param set_class: The set class of the impacted model
     :param attr: The name of the impacted class attribute (fk) that holds the references to the changed attribute (pk)
-        There is support for nested attributes one level deep, e.g. "contents.value"
+        There is support for any level of nested attributes, e.g. "contents.properties.value"
     :return: a function that will update 'attr' in 'set_class' and can be passed to subscribe()
     """
+    from functools import reduce
+
     attrs = attr.split(".")
     if len(attrs) == 1:
         return lambda obj, **kwargs: set_class({attr: kwargs["old"]}).update({attr: kwargs["new"]})
-    elif len(attrs) == 2:
+    else:
         def foo(obj, **kwargs):
             for rec in set_class({attr: kwargs["old"]}):
-                new_dict = {k: (v if k != attrs[1] else kwargs["new"]) for k, v in list(getattr(rec, attrs[0]).items())}
-                setattr(rec, attrs[0], new_dict)
+                dict_parent = reduce(lambda d, k: d[k], attrs[1:-1], getattr(rec, attrs[0]))
+                dict_parent[attrs[-1]] = kwargs["new"]
+                setattr(rec, attrs[0], getattr(rec, attrs[0]))
                 rec.save()
         return foo
-    else:
-        raise InputError("cascade does not support attributes deeper than two levels")
 
 
 def cascade_to_list(set_class, attr):
