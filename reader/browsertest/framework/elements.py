@@ -1782,10 +1782,11 @@ class Trial(object):
                 mode = "multi_panel"  # Assuming that local isn't single panel
         else:
             mode = cap.get("sefaria_mode")
-            cap.update({
-                'name': "{} on {}".format(test_class.__name__, self.cap_to_string(cap)),
-                'build': self.build,
-            })
+            cap['sauce:options'] = {
+                "build": self.build,
+                "name": "{} on {}".format(test_class.__name__, self.cap_to_string(cap)),
+                #  "tags": ["tag1", "tag2", "tag3"]
+            }
 
         try:
             driver = self._get_driver(cap)
