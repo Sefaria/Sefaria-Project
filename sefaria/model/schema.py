@@ -2064,7 +2064,10 @@ class AddressTalmud(AddressType):
 
             # 'Shabbat 7-8' -> 'Shabbat 7a-8b'; 'Zohar 3:7-8' -> 'Zohar 3:7a-8b'
             elif ref_lacks_amud(parts[1]):
-                ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, "{}b".format(ref.toSections[-1]))
+                amud = "{}b".format(ref.toSections[-1]) if ref._lang == "en" else "{} ב".format(ref.toSections[-1])
+                ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, amud)
+
+                # ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, "{}b".format(ref.toSections[-1]))
 
         ref.toSections[0] = int(ref.toSections[0])
         ref.sections[0] = int(ref.sections[0])
