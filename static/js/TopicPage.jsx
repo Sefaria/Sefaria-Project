@@ -724,7 +724,7 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
   ];
   const hasProps = propValues.reduce((accum, curr) => accum || curr.url.en || curr.url.he, false);
   const propsSection = hasProps ? (
-    <TopicSideSection title={{en: "Learn More", he: ""}}>
+    <TopicSideSection title={{en: "Learn More", he: "לקריאה נוספת"}}>
       {
         propValues.map(propObj => {
           const url = Sefaria.interfaceLang === "hebrew" ? (propObj.url.he || propObj.url.en) : (propObj.url.en || propObj.url.he);
