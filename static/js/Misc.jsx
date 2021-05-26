@@ -1216,6 +1216,7 @@ class FollowButton extends Component {
     });
   }
   onMouseEnter() {
+    if (this.props.disableUnfollow) { return; }
     this.setState({hovering: true});
   }
   onMouseLeave() {
@@ -1224,10 +1225,10 @@ class FollowButton extends Component {
   onClick(e) {
     e.stopPropagation();
     if (!Sefaria._uid) {
-        this.props.toggleSignUpModal();
-        return;
+      this.props.toggleSignUpModal();
+      return;
     }
-    if (this.state.following) {
+    if (this.state.following && !this.props.disableUnfollow) {
       this._postUnfollow();
       this.setState({following: false});
     } else {
@@ -1243,22 +1244,19 @@ class FollowButton extends Component {
       hovering: this.state.hovering,
       smallText: true,
     });
-    const en_text = this.state.following ? this.state.hovering ? "Unfollow":"Following":"Follow";
-    const he_text = this.state.following ? this.state.hovering ? "הפסק לעקוב":"עוקב":"עקוב";
-    return <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
-            <span className="int-en">
-                {en_text}
-            </span>
-            <span className="int-he">
-                {he_text}
-            </span>
-          </div>
+    const buttonText = this.state.following ? this.state.hovering ? "Unfollow":"Following":"Follow";
+    return ( 
+      <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
+        <InterfaceText context={"FollowButton"}>{buttonText}</InterfaceText>
+      </div>
+    );
   }
 }
 FollowButton.propTypes = {
-  uid: PropTypes.number.isRequired,
-  following: PropTypes.bool,  // is this person followed already?
-  large: PropTypes.bool,
+  uid:               PropTypes.number.isRequired,
+  following:         PropTypes.bool,  // is this person followed already?
+  large:             PropTypes.bool,
+  disableUnfollow:   PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
 };
 
@@ -1309,7 +1307,12 @@ class ProfileListing extends Component {
             en={name}
             he={name}
           >
-            <FollowButton large={false} uid={uid} following={is_followed} toggleSignUpModal={toggleSignUpModal}/>
+            <FollowButton 
+              large={false}
+              uid={uid}
+              following={is_followed}
+              disableUnfollow={true}
+              toggleSignUpModal={toggleSignUpModal} />
           </SimpleLinkedBlock>
           {
             !!organization ? <SimpleInterfaceBlock

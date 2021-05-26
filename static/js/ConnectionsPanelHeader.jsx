@@ -12,14 +12,18 @@ import Component      from 'react-class';
 class ConnectionsPanelHeader extends Component {
   constructor(props) {
     super(props);
-    this.previousModes = { // mapping from modes to previous modes
-      "Translation Open":"Translations",
-      "extended notes":"Translations",
-      "WebPagesList": "WebPages"
+    this.previousModes = {
+        // mapping from modes to previous modes
+        "Translation Open":"Translations",
+        "extended notes":"Translations",
+        "WebPagesList": "WebPages"
     };
   }
   componentDidMount() {
     this.setMarginForScrollbar();
+  }
+  getPreviousMode() {
+      return !!this.props.previousMode ? this.props.previousMode : this.previousModes[this.props.connectionsMode];
   }
   setMarginForScrollbar() {
     // Scrollbars take up spacing, causing the centering of ConnectsionPanel to be slightly off center
@@ -34,7 +38,7 @@ class ConnectionsPanelHeader extends Component {
   }
   onClick(e) {
     e.preventDefault();
-    const previousMode = this.previousModes[this.props.connectionsMode];
+    const previousMode = this.getPreviousMode();
     if (previousMode) {
       this.props.setConnectionsMode(previousMode);
     } else {
@@ -43,7 +47,7 @@ class ConnectionsPanelHeader extends Component {
   }
   render() {
       /** TODO: fix for interfacetext */
-    const previousMode = this.previousModes[this.props.connectionsMode];
+    const previousMode = this.getPreviousMode();
     let title;
     if (this.props.connectionsMode == "Resources") {
       // Top Level Menu
