@@ -23,7 +23,7 @@ class Header extends Component {
     this._searchOverridePost = '"';
     this._type_icon_map = {
       "Collection": "collection.svg",
-      "Person": "iconmonstr-pen-17.svg",
+      "AuthorTopic": "iconmonstr-pen-17.svg",
       "TocCategory": "iconmonstr-view-6.svg",
       "Topic": "iconmonstr-hashtag-1.svg",
       "ref": "iconmonstr-book-15.svg",
@@ -174,13 +174,11 @@ class Header extends Component {
     $(ReactDOM.findDOMNode(this)).find("input.search").sefaria_autocomplete("close");
   }
   getURLForObject(type, key) {
-    if (type === "Person") {
-      return `/person/${key}`;
-    } else if (type === "Collection") {
+    if (type === "Collection") {
       return `/collections/${key}`;
     } else if (type === "TocCategory") {
       return `/texts/${key.join('/')}`;
-    } else if (type === "Topic") {
+    } else if (type in {"Topic": 1, "PersonTopic": 1, "AuthorTopic": 1}) {
       return `/topics/${key}`;
     } else if (type === "ref") {
       return `/${key.replace(/ /g, '_')}`;
@@ -216,7 +214,7 @@ class Header extends Component {
           Sefaria.track.event("Search", "Search Box Navigation - Topic", query);
           this.clearSearchBox();
           this.props.openTopic(d["topic_slug"]);
-        } else if (d["type"] === "Person" || d["type"] === "Group" || d["type"] === "TocCategory") {
+        } else if (d["type"] === "Group" || d["type"] === "TocCategory") {
           this.redirectToObject(d["type"], d["key"]);
         } else {
           Sefaria.track.event("Search", "Search Box Search", query);
