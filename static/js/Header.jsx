@@ -13,6 +13,7 @@ import Sefaria  from './sefaria/sefaria';
 import ReaderPanel from './ReaderPanel';
 import Component from 'react-class';
 
+
 class Header extends Component {
   constructor(props) {
     super(props);
