@@ -1332,7 +1332,7 @@ class SchemaNode(TitledTreeNode):
 
         return traverse(self)
 
-    def text_index_map(self, tokenizer=lambda x: re.split('\s+',x), strict=True, lang='he', vtitle=None):
+    def text_index_map(self, tokenizer=lambda x: re.split(r'\s+',x), strict=True, lang='he', vtitle=None):
         """
         See TextChunk.text_index_map
         :param tokenizer:
@@ -1352,7 +1352,6 @@ class SchemaNode(TitledTreeNode):
                 index_list = [i + offset for i in index_list]
                 offset += temp_offset
             return index_list, ref_list, offset
-
 
         def callback(node):
             if not node.children:
@@ -1498,7 +1497,7 @@ class DictionaryEntryNode(TitledTreeNode):
         """
         if title and tref:
             self.title = title
-            self._ref_regex = regex.compile("^" + regex.escape(title) + "[, _]*(\S[^0-9.]*)(?:[. ](\d+))?$")
+            self._ref_regex = regex.compile("^" + regex.escape(title) + r"[, _]*(\S[^0-9.]*)(?:[. ](\d+))?$")
             self._match = self._ref_regex.match(tref)
             self.word = self._match.group(1) or ""
         elif word:
@@ -2001,8 +2000,8 @@ class AddressTalmud(AddressType):
         "he": r"(\u05d1?\u05d3\u05b7?\u05bc?[\u05e3\u05e4\u05f3\u2018\u2019'\"״]\s+)"			# Daf, spelled with peh, peh sofit, geresh, gereshayim,  or single or doublequote
     }
     amud_patterns = {
-        "en": "[ABabᵃᵇ]",
-        "he": '''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])'''
+        "en": r"[ABabᵃᵇ]",
+        "he": r'''([.:]|[,\s]+(?:\u05e2(?:"|\u05f4|''))?[\u05d0\u05d1])'''
     }
 
     @classmethod
@@ -2126,7 +2125,7 @@ class AddressTalmud(AddressType):
                 indx -= 1
             return indx
         elif lang == "he":
-            num = re.split("[.:,\s]", s)[0]
+            num = re.split(r"[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
             if s[-1] == ":" or (
                     s[-1] == "\u05d1"  # bet
@@ -2236,7 +2235,7 @@ class AddressFolio(AddressType):
             return indx
         elif lang == "he":
             # todo: This needs work
-            num = re.split("[.:,\s]", s)[0]
+            num = re.split(r"[.:,\s]", s)[0]
             daf = decode_hebrew_numeral(num) * 2
             if s[-1] == ":" or (
                     s[-1] == "\u05d1"    #bet

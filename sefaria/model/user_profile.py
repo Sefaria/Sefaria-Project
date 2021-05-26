@@ -487,7 +487,7 @@ class UserProfile(object):
         or None if the profile is valid.
         """
         # Slug
-        if re.search("[^a-z0-9\-]", self.slug):
+        if re.search(r"[^a-z0-9\-]", self.slug):
             return "Profile URLs may only contain lowercase letters, numbers and hyphens."
 
         existing = db.profiles.find_one({"slug": self.slug, "_id": {"$ne": self._id}})
