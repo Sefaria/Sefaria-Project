@@ -615,6 +615,7 @@ class ConnectionsPanel extends Component {
           <ConnectionsPanelHeader
             connectionsMode={this.props.mode}
             previousCategory={this.props.connectionsCategory}
+            previousMode={this.props.connectionData?.previousMode}
             setConnectionsMode={this.props.setConnectionsMode}
             setConnectionsCategory={this.props.setConnectionsCategory}
             multiPanel={this.props.multiPanel}

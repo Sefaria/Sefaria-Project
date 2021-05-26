@@ -142,6 +142,9 @@ class WebPage(abst.AbstractMongoRecord):
             r"jwa\.org\/encyclopedia\/author\/",  # tends to have articles by author that have snippets from article
             r"jwa\.org\/encyclopedia\/content\/",
             r"library\.yctorah\.org\/series\/",
+            r"psak\.yctorah\.org\/?$",
+            r"psak\.yctorah\.org\/(category|about|source)\/",  # archives
+            r"psak\.yctorah\.org\/sitemap_index\.xml$",
             r"reconstructingjudaism\.org\/taxonomy\/",
             r"reconstructingjudaism\.org\/search\/",
             r"askhalacha\.com\/?$",
@@ -165,6 +168,9 @@ class WebPage(abst.AbstractMongoRecord):
             r"sephardi\.co\.uk\/(category|community|tag|test)\/",
             r"theameninstitute\.com\/?$",
             r"theameninstitute\.com\/category\/whats-new-at-the-amen-institute\/?$",
+            r"chiefrabbi\.org\/?(\?post_type.+)?$",  # post_type are pages that seem to by filtered lists
+            r"chiefrabbi\.org\/(all-media|communities|education|maayan-programme)\/?$",
+            r"chiefrabbi\.org\/(dvar-torah|media_type)\/?",  # archives
         ]
         return "({})".format("|".join(bad_urls))
 
@@ -640,7 +646,7 @@ sites_data = [
     {
         "name": "Yeshivat Chovevei Torah",
         "domains": ["yctorah.org"],
-        "title_branding": ["Torah Library of Yeshivat Chovevei Torah"]
+        "title_branding": ["Torah Library of Yeshivat Chovevei Torah", "Rosh Yeshiva Responds"]
     },
     {
         "name": "Rabbi Jeff Fox (Rosh ha-Yeshiva, Yeshivat Maharat)",
@@ -855,5 +861,9 @@ sites_data = [
     {
         "name": "The Amen Institute",
         "domains": ["theameninstitute.com"]
+    },
+    {
+        "name": "Office of the Chief Rabbi",
+        "domains": ["chiefrabbi.org"],
     }
 ]
