@@ -13,74 +13,6 @@ import Sefaria  from './sefaria/sefaria';
 import ReaderPanel from './ReaderPanel';
 import Component from 'react-class';
 
-
-const ProfilePicMenu = ({currentLang, len, url, name, key}) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const handleMouseEnter = () => {
-      setIsOpen(true);
-  };
-  const handleMouseMove = (event) => {
-      var curr_x = (window.Event) ? event.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
-      var curr_y = (window.Event) ? event.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
-      var profile_pic_rect = document.getElementsByClassName("profile-pic")[0].getBoundingClientRect();
-      var profile_pic_x = profile_pic_rect.left;
-      var profile_pic_y = profile_pic_rect.top;
-      var profile_pic_width = profile_pic_rect.width;
-      var profile_pic_height = profile_pic_rect.height;
-      console.log("current");
-      console.log(curr_x);
-      console.log(curr_y);
-      console.log("profile");
-      console.log(profile_pic_x);
-      console.log(profile_pic_y);
-      var inside_menu = profile_pic_x - 20 <= curr_x && curr_x <= profile_pic_x + 150 && profile_pic_y - 20 <= curr_y && curr_y <= profile_pic_y + 400;
-      var inside_profile_pic = curr_x >= profile_pic_x - 20 && curr_x <= profile_pic_x+profile_pic_width && curr_y >= profile_pic_y - 20 && curr_y <= profile_pic_y+profile_pic_height;
-      if (inside_profile_pic) {
-          setIsOpen(true);
-      }
-      else if (!inside_menu)
-      {
-          setIsOpen(false);
-      }
-  };
-  useEffect(() => {
-      document.addEventListener('mousemove', handleMouseMove);
-      return () => {
-          document.removeEventListener('mouseleave', handleMouseMove);
-      };
-  }, []);
-  return (
-        <div className="interfaceLinks" onMouseEnter={handleMouseEnter}>
-            <ProfilePic len={len} url={url} name={name} key={key}/>
-
-     <div className={`interfaceLinks-menu ${ isOpen ? "open" : "closed"}`}>
-          <div className="interfaceLinks-header">{name}</div>
-         <div><a className="interfaceLinks-options" href="/my/profile">
-             <span className="int-en">Profile</span>
-            <span className="int-he">פרופיל</span></a></div>
-         <hr/>
-         <div><a className="interfaceLinks-options" href="/settings/account">
-           <span className="int-en">Account Settings</span>
-            <span className="int-he">הגדרות</span>
-         </a></div>
-         <div className="interfaceLinks-options">
-           <a href="/interface/english">English</a> | <a href="/interface/hebrew">עברית</a>
-         </div>
-         <div><a className="interfaceLinks-options" href="collections/sefaria-faqs">
-            <span className="int-en">Get Help</span>
-            <span className="int-he">עזרה</span>
-         </a></div>
-     <hr/>
-         <div><a className="interfaceLinks-options" href="/logout">
-            <span className="int-en">Logout</span>
-            <span className="int-he">שפת האתר</span>
-         </a></div>
-        </div>
-      </div>
-  )
-}
-
 class Header extends Component {
   constructor(props) {
     super(props);
@@ -460,7 +392,7 @@ function LoggedInButtons({headerMode}){
       <div className="accountLinks">
           <a href="/notifications" aria-label="See New Notifications" key={`notificationCount-C-${unread}`} className={notificationsClasses}>{Sefaria.notificationCount}</a>
           <a href="/my/profile" className="my-profile">
-            <ProfilePicMenu currentLang={Sefaria.interfaceLang} len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
+            <ProfilePic len={24} url={Sefaria.profile_pic_url} name={Sefaria.full_name} key={`profile-${isClient}-${Sefaria.full_name}`}/>
           </a>
        </div>
   );
