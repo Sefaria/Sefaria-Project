@@ -1643,7 +1643,7 @@ input.noselect {
   margin-top: 20px;
 }
 .topicPanel .mainColumn {
-  padding: 0 50px;
+  padding: 0 40px;
 }
 @media (max-width: 450px) {
   .topicPanel .mainColumn,
