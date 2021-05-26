@@ -92,7 +92,7 @@ const Resources = () => (
   <Module>
     <ModuleTitle>Resources</ModuleTitle>
     <div className="linkList">
-      <IconLink text="Study Schedules" url="/calendars" icon="calendar-black.svg" />
+      {/*<IconLink text="Study Schedules" url="/calendars" icon="calendar-black.svg" />*/}
       <IconLink text="Sheets" url="/sheets" icon="sheet.svg" />
       <IconLink text="Collections" url="/collections" icon="collection.svg" />
       <IconLink text="Teach with Sefaria" url="/educators" icon="educators.svg" />
@@ -273,7 +273,7 @@ const StudySchedules = () => {
       <ModuleTitle>Study Schedules</ModuleTitle>
       <div className="readingsSection">
         <span className="readingsSectionTitle">
-          <InterfaceText>Weekly Torah Portion</InterfaceText> - <ParashahName />
+          <InterfaceText>Weekly Torah Portion</InterfaceText>: <ParashahName />
         </span>
         <ParashahLink />
       </div>
