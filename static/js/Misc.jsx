@@ -1243,9 +1243,10 @@ class FollowButton extends Component {
       smallFollowButton: !this.props.large,
       following: this.state.following,
       hovering: this.state.hovering,
-      smallText: true,
+      smallText: !this.props.large,
     });
-    const buttonText = this.state.following ? this.state.hovering ? "Unfollow":"Following":"Follow";
+    let buttonText = this.state.following ? this.state.hovering ?  "Unfollow" : "Following" : "Follow";
+    buttonText = buttonText === "Follow" && this.props.followBack ? "Follow Back" : buttonText;
     return ( 
       <div className={classes} onMouseEnter={this.onMouseEnter} onMouseLeave={this.onMouseLeave} onClick={this.onClick}>
         <InterfaceText context={"FollowButton"}>{buttonText}</InterfaceText>
@@ -1258,7 +1259,9 @@ FollowButton.propTypes = {
   following:         PropTypes.bool,  // is this person followed already?
   large:             PropTypes.bool,
   disableUnfollow:   PropTypes.bool,
+  followBack:        PropTypes.bool,
   toggleSignUpModal: PropTypes.func,
+
 };
 
 
@@ -1575,6 +1578,52 @@ Note.propTypes = {
   isPrivate:       PropTypes.bool,
   isMyNote:        PropTypes.bool,
   editNote:        PropTypes.func
+};
+
+
+class MessageModal extends Component {
+  constructor(props) {
+    super(props);
+    this.textarea = React.createRef();
+    this.state = {
+      visible: false,
+      message: '',
+    };
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.visible && !prevState.visible) {
+      this.textarea.current.focus();
+    }
+  }
+  onChange(e) { this.setState({ message: e.target.value }); }
+  onSend(e) {
+    if (!this.state.message) { return; }
+    Sefaria.messageAPI(this.props.uid, this.state.message).then(() => {
+      this.setState({ visible: false });
+      alert("Message Sent");
+      Sefaria.track.event("Messages", "Message Sent", "");
+    });
+  }
+  makeVisible() { this.setState({ visible: true }); }
+  onCancel(e) { this.setState({ visible: false }); }
+  render() {
+    if (!this.state.visible) { return null; }
+    return (
+      <div id="interruptingMessageBox" className="sefariaModalBox sans-serif">
+        <div id="interruptingMessageOverlay" onClick={this.onCancel}></div>
+        <div id="interruptingMessage" className='message-modal' style={{display: 'block'}}>
+          <div className='messageHeader'>{ `${Sefaria._("Send a message to ")}${this.props.name}` }</div>
+          <textarea value={this.state.message} onChange={this.onChange} ref={this.textarea} />
+          <div className='sendMessage button' onClick={this.onSend}>{ Sefaria._("Send") }</div>
+          <div className='cancel button white' onClick={this.onCancel}>{ Sefaria._("Cancel") }</div>
+        </div>
+      </div>
+    );
+  }
+}
+MessageModal.propTypes = {
+  name: PropTypes.string.isRequired,
+  uid:  PropTypes.number.isRequired,
 };
 
 
@@ -2298,6 +2347,7 @@ export {
   DropdownOptionList,
   FeedbackBox,
   FilterableList,
+  FollowButton,
   GlobalWarningMessage,
   InterruptingMessage,
   InterfaceText,
@@ -2310,6 +2360,7 @@ export {
   LoadingMessage,
   LoadingRing,
   LoginPrompt,
+  MessageModal,
   NBox,
   NewsletterSignUpForm,
   Note,
@@ -2319,10 +2370,9 @@ export {
   ReaderNavigationMenuCloseButton,
   ReaderNavigationMenuDisplaySettingsButton,
   ReaderNavigationMenuMenuButton,
-  SaveButton,
-  FollowButton,
   ReaderNavigationMenuSection,
   ReaderNavigationMenuSearchButton,
+  SaveButton,
   SignUpModal,
   SheetListing,
   SheetAccessIcon,

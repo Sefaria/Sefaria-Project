@@ -191,7 +191,7 @@ def base_props(request):
             "followRecommendations": profile.follow_recommendations(),
             "calendars": get_todays_calendar_items(**_get_user_calendar_params(request)),
             "notificationCount": profile.unread_notification_count(),
-            "notifications": profile.recent_notifications().contents(),
+            "notifications": profile.recent_notifications().client_contents(),
             "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
             "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True),
             "interruptingMessage": InterruptingMessage(attrs=interrupting_message_dict, request=request).contents(),
@@ -972,7 +972,7 @@ def notifications(request):
     title = _("Sefaria Notifications")
     notifications = UserProfile(user_obj=request.user).recent_notifications()
     props = {
-        "notificationsHtml": notifications.to_HTML(),
+        "notifications": notifications.client_contents(),
     }
     return menu_page(request, props, page="notifications", title=title)
 
@@ -2758,7 +2758,6 @@ def updates_api(request, gid=None):
     """
     API for retrieving general notifications.
     """
-
     if request.method == "GET":
         page      = int(request.GET.get("page", 0))
         page_size = int(request.GET.get("page_size", 10))
@@ -2766,7 +2765,7 @@ def updates_api(request, gid=None):
         notifications = GlobalNotificationSet({},limit=page_size, page=page)
 
         return jsonResponse({
-                                "updates": notifications.contents(),
+                                "updates": notifications.client_contents(),
                                 "page": page,
                                 "page_size": page_size,
                                 "count": notifications.count()
@@ -2835,11 +2834,11 @@ def notifications_api(request):
     notifications = NotificationSet().recent_for_user(request.user.id, limit=page_size, page=page)
 
     return jsonResponse({
-                            "html": notifications.contents(),
-                            "page": page,
-                            "page_size": page_size,
-                            "count": len(notifications)
-                        })
+        "notifications": notifications.client_contents(),
+        "page": page,
+        "page_size": page_size,
+        "count": len(notifications)
+    })
 
 
 @catch_error_as_json

@@ -447,6 +447,7 @@ const Strings = {
       "Follow": "עוקב",
       "Unfollow": "הפסק לעקוב",
       "Following": "עקוב",
+      "Follow Back": "" // TODO Hebrew
     }
   },
 };
