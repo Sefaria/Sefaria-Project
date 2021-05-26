@@ -476,13 +476,11 @@ class ChangeSiteLanguage(AtomicTest):
     def body(self):
         self.nav_to_toc()
         self.click_ivrit_link()
-        if 'safari' in self.driver.name or "Safari" in self.driver.name:
-            time.sleep(1)
+        time.sleep(1)
         assert self.driver.find_element_by_class_name('interface-hebrew') != None
         
         self.click_english_link()
-        if 'safari' in self.driver.name or "Safari" in self.driver.name:
-            time.sleep(1)
+        time.sleep(1)
         assert self.driver.find_element_by_class_name('interface-english') != None
 
 '''
