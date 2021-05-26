@@ -2067,8 +2067,6 @@ class AddressTalmud(AddressType):
                 amud = "{}b".format(ref.toSections[-1]) if ref._lang == "en" else "{} ב".format(ref.toSections[-1])
                 ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, amud)
 
-                # ref.toSections[-1] = AddressTalmud(0).toNumber(ref._lang, "{}b".format(ref.toSections[-1]))
-
         ref.toSections[0] = int(ref.toSections[0])
         ref.sections[0] = int(ref.sections[0])
         if len(ref.sections) == len(ref.toSections) + 1:
