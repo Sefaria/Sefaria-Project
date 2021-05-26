@@ -158,7 +158,7 @@ const AboutTextCategory = ({cats}) => {
   const heTitle = "אודות " + tocObject.heCategory;
 
   if ((Sefaria.interfaceLang === "hebrew" && !tocObject.heDesc) ||
-      (Sefaria.interfaceLang === "english" && !tocObject.enDec)) {
+      (Sefaria.interfaceLang === "english" && !tocObject.enDesc)) {
     return null;
   }
 
