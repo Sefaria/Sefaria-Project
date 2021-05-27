@@ -1,7 +1,7 @@
 
 # -*- coding: utf-8 -*-
 
-from .config import TEMPER, SAUCE_CAPS, SAUCE_CORE_CAPS, SAUCE_MAX_THREADS, LOCAL_URL, REMOTE_URL, LOCAL_SELENIUM_CAPS
+from .config import TEMPER, SAUCE_CORE_CAPS, SAUCE_MAX_THREADS, LOCAL_URL, LOCAL_SELENIUM_CAPS
 from sefaria.model import *
 from pathos.multiprocessing import ProcessingPool as Pool
 import random
@@ -32,9 +32,12 @@ import time # import stand library below name collision in sefaria.model
 
 
 class AbstractTest(object):
-    every_build = False  # Run this test on every build?
-    single_panel = True  # run this test on mobile?
-    multi_panel = True  # run this test on desktop?
+    every_build = False     # Run this test on every build?
+    daily = False           # Run this test daily?
+    weekly = False          # Run this test weekly?
+
+    single_panel = True     # Run this test on mobile?
+    multi_panel = True      # Run this test on desktop?
 
     # Only use one of the below.
     include = []  # List of platforms (using cap_to_short_string) to include.  If this is present, only these platforms are included
@@ -1661,12 +1664,12 @@ class Trial(object):
     def __init__(self, platform="local", build=None, tests=None, caps=None, parallel=None, verbose=False, seleniumServerHostname="", targetApplicationUrl=""):
         """
         :param caps: If local: webdriver classes, if remote, dictionaries of capabilities
-        :param platform: "sauce", "bstack", "local", "travis"
+        :param platform: "sauce", "local", "travis"
         :return:
         BASE_URL refers to the target application
         """
         global SAUCE_USERNAME, SAUCE_ACCESS_KEY
-        assert platform in ["sauce", "bstack", "local", "travis", "github", "githubnew", "localselenium"]
+        assert platform in ["sauce", "local", "travis", "githubnew", "localselenium"]
         if platform == "travis":
             SAUCE_USERNAME = os.getenv('SAUCE_USERNAME')
             SAUCE_ACCESS_KEY = os.getenv('SAUCE_ACCESS_KEY')
@@ -1686,12 +1689,6 @@ class Trial(object):
             self.is_local = False
             self.BASE_URL = os.getenv('CI_URL')
             self.caps = caps if caps else SAUCE_CORE_CAPS
-        elif platform == "github":
-            self.is_local = False
-            self.BASE_URL = targetApplicationUrl
-            self.caps = sm.SeleniumDriverManager.getCapabilities(None)
-            self.seleniumDriverManager = sm.SeleniumDriverManager(seleniumServerHostname)
-            self.parallel = False
         elif platform == "githubnew":
             SAUCE_USERNAME = os.getenv('SAUCE_USERNAME')
             SAUCE_ACCESS_KEY = os.getenv('SAUCE_ACCESS_KEY')
@@ -1704,12 +1701,6 @@ class Trial(object):
             self.caps = caps if caps else LOCAL_SELENIUM_CAPS
             self.is_local = True # 'is_local' refers to the application location
 
-        else:
-            self.is_local = False
-            self.BASE_URL = REMOTE_URL
-            self.caps = caps if caps else BS_CAPS
-
-
         self.isVerbose = verbose
         self.platform = platform
         self.build = build
@@ -1717,7 +1708,7 @@ class Trial(object):
         self._results = TestResultSet()
         self.parallel = parallel if parallel is not None else False if self.is_local else True
         if self.parallel:
-            self.thread_count = BS_MAX_THREADS if self.platform == "bstack" else SAUCE_MAX_THREADS
+            self.thread_count = SAUCE_MAX_THREADS
 
     def _get_driver(self, cap=None):
         """
@@ -1741,11 +1732,6 @@ class Trial(object):
                 driver = webdriver.Remote(
                     command_executor='http://{}:{}@ondemand.saucelabs.com:80/wd/hub'.format(SAUCE_USERNAME, SAUCE_ACCESS_KEY),
                     desired_capabilities=cap)
-        elif self.platform == "bstack":
-            assert cap is not None
-            driver = webdriver.Remote(
-                command_executor='http://{}:{}@hub.browserstack.com:80/wd/hub'.format(BS_USER, BS_KEY),
-                desired_capabilities=cap)
         elif self.platform == "github":
             assert cap is not None
             driver = self.seleniumDriverManager.createDriver()
