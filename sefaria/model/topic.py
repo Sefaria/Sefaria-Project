@@ -550,7 +550,6 @@ class TopicLinkHelper(object):
 
 class IntraTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
-    sub_collection_query = {"class": "intraTopic"}
     required_attrs = TopicLinkHelper.required_attrs + ['fromTopic']
     optional_attrs = TopicLinkHelper.optional_attrs
     valid_links = []
@@ -563,6 +562,10 @@ class IntraTopicLink(abst.AbstractMongoRecord):
         """
         super(IntraTopicLink, self).__init__(attrs=attrs)
         self.context_slug = context_slug
+
+    def load(self, query, proj=None):
+        query = TopicLinkSetHelper.init_query(query, 'intraTopic')
+        return super().load(query, proj)
 
     def _normalize(self):
         setattr(self, "class", "intraTopic")
@@ -644,9 +647,12 @@ class IntraTopicLink(abst.AbstractMongoRecord):
 
 class RefTopicLink(abst.AbstractMongoRecord):
     collection = TopicLinkHelper.collection
-    sub_collection_query = {"class": "refTopic"}
     required_attrs = TopicLinkHelper.required_attrs + ['ref', 'expandedRefs', 'is_sheet']  # is_sheet  and expandedRef attrs are defaulted automatically in normalize
     optional_attrs = TopicLinkHelper.optional_attrs + ['text', 'charLevelData', 'unambiguousToTopic']  # unambiguousToTopic is used when linking to an ambiguous topic. There are some instance when you need to decide on one of the options (e.g. linking to an ambiguous rabbi in frontend). this can be used as a proxy for toTopic in those cases.
+
+    def load(self, query, proj=None):
+        query = TopicLinkSetHelper.init_query(query, 'refTopic')
+        return super().load(query, proj)
 
     def _normalize(self):
         super(RefTopicLink, self)._normalize()
