@@ -2,15 +2,12 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import PropTypes  from 'prop-types';
 import classNames  from 'classnames';
 import Sefaria  from './sefaria/sefaria';
+import { useIncrementalLoad } from './Hooks';
+import { NavSidebar } from './NavSidebar';
+import Footer from './Footer';
 import {
   SheetBlock,
-  StorySheetList,
-  SaveLine,
-  StoryTitleBlock,
-  ColorBarBox,
-  StoryBodyBlock,
-  StoryFrame,
-  textPropType,
+  TextPassage,
 } from './Story';
 import {
   TabView,
@@ -22,9 +19,7 @@ import {
   ToolTipped,
   SimpleLinkedBlock,
 } from './Misc';
-import { NavSidebar } from './NavSidebar';
-import Footer from './Footer';
-import { useIncrementalLoad } from './Hooks';
+
 
 /*
 *** Helper functions
@@ -135,14 +130,30 @@ const sheetSort = (currSortOption, a, b) => {
   }
 };
 
-const refRenderWrapper = (toggleSignUpModal, topicData) => item => (
-  <TextPassage
-    key={item[0]}
-    text={item[1]}
-    toggleSignUpModal={toggleSignUpModal}
-    topicTitle={topicData && topicData.primaryTitle}
-  />
-);
+const refRenderWrapper = (toggleSignUpModal, topicData) => item => {
+  const text = item[1];
+  const topicTitle = topicData && topicData.primaryTitle;
+  const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
+  let dataSourceText = '';
+
+  if (!!text.dataSources && Object.values(text.dataSources).length > 0) {
+    dataSourceText = `${Sefaria._('This source is connected to ')}"${topicTitle && topicTitle[langKey]}" ${Sefaria._('by')} ${Object.values(text.dataSources).map(d => d[langKey]).join(' & ')}.`;
+  }
+
+  const afterSave = (
+    <ToolTipped altText={dataSourceText} classes={"saveButton tooltip-toggle three-dots-button"}>
+      <img src="/static/img/three-dots.svg" alt={dataSourceText}/>
+    </ToolTipped>
+  );
+
+  return (
+    <TextPassage
+      key={item[0]}
+      text={text}
+      afterSave={afterSave}
+      toggleSignUpModal={toggleSignUpModal} />
+  );
+};
 
 
 const sheetRenderWrapper = (toggleSignUpModal) => item => (
@@ -525,35 +536,6 @@ const TopicPageTab = ({
 }
 
 
-const TextPassage = ({text, toggleSignUpModal, topicTitle}) => {
-    if (!text.ref) { return null; }
-    const url = "/" + Sefaria.normRef(text.ref);
-    let dataSourceText = '';
-    const langKey = Sefaria.interfaceLang === 'english' ? 'en' : 'he';
-    if (!!text.dataSources && Object.values(text.dataSources).length > 0) {
-      dataSourceText = `${Sefaria._('This source is connected to ')}"${topicTitle && topicTitle[langKey]}" ${Sefaria._('by')} ${Object.values(text.dataSources).map(d => d[langKey]).join(' & ')}.`;
-    }
-    return <StoryFrame cls="textPassageStory">
-        <SaveLine dref={text.ref} toggleSignUpModal={toggleSignUpModal} classes={"storyTitleWrapper"}
-          afterChildren={(
-            <ToolTipped altText={dataSourceText} classes={"saveButton tooltip-toggle three-dots-button"}>
-              <img src="/static/img/three-dots.svg" alt={dataSourceText}/>
-            </ToolTipped>
-          )}
-        >
-            <StoryTitleBlock en={text.ref} he={norm_hebrew_ref(text.heRef)} url={url}/>
-        </SaveLine>
-        <ColorBarBox tref={text.ref}>
-            <StoryBodyBlock en={text.en} he={text.he}/>
-        </ColorBarBox>
-    </StoryFrame>;
-};
-TextPassage.propTypes = {
-  text: textPropType,
-  toggleSignUpModal:  PropTypes.func
-};
-
-
 const TopicLink = ({topic, topicTitle, onClick, isTransliteration, isCategory}) => (
   <Link className="relatedTopic" href={`/topics/${isCategory ? 'category/' : ''}${topic}`}
     onClick={onClick.bind(null, topic, topicTitle)} key={topic}
@@ -673,6 +655,7 @@ const TopicSideSection = ({ title, children, hasMore }) => {
   );
 }
 
+
 const ReadingsComponent = ({ parashaData, tref }) => (
   <div className="readings link-section">
     <h2>
@@ -747,6 +730,7 @@ const TopicMetaData = ({ timePeriod, properties={} }) => {
     </>
   );
 };
+
 
 export {
   TopicPage,
