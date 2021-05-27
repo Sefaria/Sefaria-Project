@@ -193,7 +193,7 @@ def base_props(request):
             "notificationCount": profile.unread_notification_count(),
             "notifications": profile.recent_notifications().client_contents(),
             "saved": profile.get_user_history(saved=True, secondary=False, serialized=True),
-            "last_place": profile.get_user_history(last_place=True, secondary=False, serialized=True),
+            "last_place": profile.get_user_history(last_place=True, secondary=False, sheets=False, serialized=True),
             "interruptingMessage": InterruptingMessage(attrs=interrupting_message_dict, request=request).contents(),
         }
     else:

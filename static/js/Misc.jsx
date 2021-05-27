@@ -1136,7 +1136,7 @@ function InterfaceLanguageMenu({currentLang}){
 }
 InterfaceLanguageMenu.propTypes = {
   currentLang: PropTypes.string
-}
+};
 
 
 function SaveButton({historyObject, placeholder, tooltip, toggleSignUpModal}) {

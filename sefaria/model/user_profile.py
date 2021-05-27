@@ -23,7 +23,7 @@ if not hasattr(sys, '_doc_build'):
 
 from . import abstract as abst
 from sefaria.model.following import FollowersSet, FolloweesSet, general_follow_recommendations
-from sefaria.model.text import Ref
+from sefaria.model.text import Ref, TextChunk
 from sefaria.system.database import db
 from sefaria.utils.util import epoch_time
 from django.utils import translation
@@ -149,6 +149,15 @@ class UserHistory(abst.AbstractMongoRecord):
             d = {
                 key: d.get(key, default) for key, default in list(keys.items())
             }
+        if kwargs.get("with_text", False):
+            ref = Ref(d["ref"])
+            if ref.is_sheet():
+                pass
+            else:
+                d["text"] = {
+                    "en": TextChunk(ref, "en").as_sized_string(),
+                    "he": TextChunk(ref, "he").as_sized_string()
+                }
         return d
 
     def _sanitize(self):
@@ -199,7 +208,7 @@ class UserHistory(abst.AbstractMongoRecord):
         if last_place is not None:
             query["last_place"] = last_place
         if serialized:
-            return [uh.contents(for_api=True) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit)]
+            return [uh.contents(for_api=True, with_text=(not last_place)) for uh in UserHistorySet(query, proj={"uid": 0, "server_time_stamp": 0}, sort=[("time_stamp", -1)], limit=limit)]
         return UserHistorySet(query, sort=[("time_stamp", -1)], limit=limit)
 
     @staticmethod
