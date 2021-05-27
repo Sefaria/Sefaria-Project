@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .framework import AtomicTest, TestSuite, one_of_these_texts_present_in_element
+from .framework import SefariaTest, one_of_these_texts_present_in_element
 from sefaria.utils.hebrew import has_cantillation
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import TimeoutException
@@ -17,134 +17,8 @@ import urllib.parse
 TEMPER = 30
 
 
-class ReaderSuite(TestSuite):
-    """
-    Suite of reader tests that are run one after the other, without page reload
-    """
-    every_build = True
-
-    def setup(self):
-        # try:
-        #    self.driver.set_window_size(900, 1100)
-        #except WebDriverException:
-        #    pass
-        self.load_toc(my_temper=60)
-        #self.driver.delete_all_cookies()
-        self.close_modal_popup()
-        self.click_accept_cookies()
-        #self.set_cookies_cookie()
-        
-    def teardown(self):
-        self.driver.close()
-
-
-class PageloadSuite(TestSuite):
-    """
-    Tests that load pages and don't make any assumptions about starting or ending state
-    """
-    every_build = True
-
-    def setup(self):
-        # try:
-        #    self.driver.set_window_size(900, 1100)
-        #except WebDriverException:
-        #    pass
-        self.load_toc(my_temper=60)
-        #self.driver.delete_all_cookies()
-        self.close_modal_popup()
-        self.click_accept_cookies()
-        #self.set_cookies_cookie()
-        
-    def teardown(self):
-        self.driver.close()
-
-
-class DeepReaderSuite(TestSuite):
-    #TODO: When do we run this?
-    every_build = False
-
-
-class EditorSuite(TestSuite):
-    """
-    Tests that do editor things
-    """
-    every_build = False
-    temp_sheet_id = None
-
-    def setup(self):
-        from urllib.parse import urlparse
-        self.load_toc(my_temper=60)
-        self.login_user()
-        self.enable_new_editor()
-        self.click_accept_cookies()
-        self.new_sheet_in_editor()
-        self.nav_to_end_of_editor()
-        self.temp_sheet_id = urlparse(self.get_current_url()).path.rsplit("/", 1)[-1]
-
-    def teardown(self):
-        self.driver.get(f'{self.base_url}/api/sheets/{self.temp_sheet_id}/delete')
-        self.disable_new_editor()
-        self.driver.close()
-
-
-class DeleteContentInEditor(AtomicTest):
-    suite_class = EditorSuite
-    every_build = False
-    single_panel = False  # No source sheets on mobile
-
-    def body(self):
-        self.delete_sheet_content("back")
-        self.delete_sheet_content("forward")
-        self.catch_js_error()
-
-
-class AddSourceToEditor(AtomicTest):
-    suite_class = EditorSuite
-    every_build = False
-    single_panel = False  # No source sheets on mobile
-
-    def body(self):
-        self.add_source("Psalms 43:4")
-        sheet_items = self.driver.find_elements_by_css_selector(".sheetItem")
-        # sheet_items_and_spacers = self.driver.find_elements_by_css_selector(".editorContent div")
-        sheet_items_and_spacers = self.driver.find_elements_by_css_selector(".editorContent>div")
-
-
-        print(len(sheet_items))
-
-        last_sheet_item = sheet_items[-1]
-        added_source = last_sheet_item.find_element_by_css_selector(".SheetSource") # will throw error if doesn't exist
-
-        print(last_sheet_item == sheet_items_and_spacers[-2])
-
-        # print(last_sheet_item.get_attribute('innerHTML'))
-
-        spacer_after_source = last_sheet_item.find_elements_by_css_selector(".sheetItem")
-
-        print(len(spacer_after_source))
-
-        # assert len(sheet_items) == 1
-
-
-class AddSheetContent(AtomicTest):
-    suite_class = EditorSuite
-    every_build = False
-    single_panel = False  # No source sheets on mobile
-
-    def body(self):
-        self.type_lorem_ipsum_text("he")
-        self.type_lorem_ipsum_text("en")
-        self.catch_js_error()
-        assert 1 == 1
-        # edited_sheet = self.get_sheet_html()
-        # sheetURL = self.get_current_url()
-        # self.driver.get(sheetURL)
-        # loaded_sheet = self.get_sheet_html()
-        # assert edited_sheet == loaded_sheet
-
-
-class SinglePanelOnMobile(AtomicTest):
-    suite_class = ReaderSuite
+class SinglePanelOnMobile(SefariaTest):
+    
     every_build = True
     multi_panel = False
 
@@ -160,8 +34,8 @@ class SinglePanelOnMobile(AtomicTest):
         self.click_segment_to_close_commentary("Joshua 1:1")  # Close commentary window on mobile
 
 
-class PagesLoad(AtomicTest):
-    suite_class = PageloadSuite
+class PagesLoad(SefariaTest):
+    
     every_build = True
 
     def body(self):
@@ -174,8 +48,8 @@ class PagesLoad(AtomicTest):
         self.load_home()
         self.load_people()
 
-class PagesLoadLoggedIn(AtomicTest):
-    suite_class = PageloadSuite
+class PagesLoadLoggedIn(SefariaTest):
+    
     every_build = True
     single_panel = False   # todo write or rewrite this to account for logged in state on mobile
 
@@ -190,8 +64,8 @@ class PagesLoadLoggedIn(AtomicTest):
         self.load_notifications()
 
 
-class InTextSectionHeaders(AtomicTest):
-    suite_class = PageloadSuite
+class InTextSectionHeaders(SefariaTest):
+    
     every_build = True
 
     def body(self):
@@ -211,8 +85,8 @@ class InTextSectionHeaders(AtomicTest):
         assert 'מכל משמר נצור ליבך' in section
 
 
-class ChangeTextLanguage(AtomicTest):
-    suite_class = PageloadSuite
+class ChangeTextLanguage(SefariaTest):
+    
     every_build = True
 
     def body(self):
@@ -253,8 +127,8 @@ class ChangeTextLanguage(AtomicTest):
         self.get_content_language()
 
 
-class FontSizeTest(AtomicTest):
-    suite_class = PageloadSuite
+class FontSizeTest(SefariaTest):
+    
     every_build = True
 
     def body(self):
@@ -270,7 +144,7 @@ class FontSizeTest(AtomicTest):
         assert font_size_larger > font_size_smaller
 
 '''
-class AliyotTest(AtomicTest):
+class AliyotTest(SefariaTest):
     # 4] Aliyot: on off
         # todo: Set up scroll_to_segment then enable this
         # self.toggle_aliyotTorah_aliyotOn()
@@ -283,7 +157,7 @@ class AliyotTest(AtomicTest):
         # assert not self.is_aliyot_displayed()
 '''
 
-class LayoutSettings(AtomicTest):
+class LayoutSettings(SefariaTest):
     # 2] Layout: left/right/stacked
 
     def body(self):
@@ -302,8 +176,8 @@ class LayoutSettings(AtomicTest):
             assert self.get_content_layout_direction() == 'stacked'
 
 
-class TextVocalizationSettings(AtomicTest):
-    suite_class = PageloadSuite
+class TextVocalizationSettings(SefariaTest):
+    
     every_build = True
 
     def body(self):
@@ -325,8 +199,8 @@ class TextVocalizationSettings(AtomicTest):
         assert self.get_nth_section_hebrew(1).text.strip() == just_text, "'{}' does not equal '{}'".format(self.get_nth_section_hebrew(1).text.strip(), just_text)
 
 '''
-class TanakhCantillationAndVowels(AtomicTest):
-    suite_class = ReaderSuite
+class TanakhCantillationAndVowels(SefariaTest):
+    
     every_build = False
 
     def body(self):
@@ -353,8 +227,8 @@ class TanakhCantillationAndVowels(AtomicTest):
         # assert not has_cantillation(self.get_nth_section_hebrew(1).text, False)
 '''
 
-class AliyotAndCantillationToggles(AtomicTest):
-    suite_class = ReaderSuite
+class AliyotAndCantillationToggles(SefariaTest):
+    
     every_build = True
 
     def body(self):
@@ -381,8 +255,8 @@ class AliyotAndCantillationToggles(AtomicTest):
         assert self.is_vocalization_toggleSet_displayed()
 
 
-class SideBarEntries(AtomicTest):
-    suite_class = ReaderSuite
+class SideBarEntries(SefariaTest):
+    
     every_build = True
     single_panel = False
     # todo: make this work on mobile.
@@ -467,10 +341,10 @@ class SideBarEntries(AtomicTest):
         assert self.is_sidebar_calendar_title_displayed()
 
 
-class ChangeSiteLanguage(AtomicTest):
+class ChangeSiteLanguage(SefariaTest):
     # Switch between Hebrew and English and sample a few of the objects to make sure 
     # the language has actually changed.
-    suite_class = ReaderSuite
+    
     every_build = True
 
     def body(self):
@@ -484,10 +358,10 @@ class ChangeSiteLanguage(AtomicTest):
         assert self.driver.find_element_by_class_name('interface-english') != None
 
 '''
-class LinkExplorer(AtomicTest):
+class LinkExplorer(SefariaTest):
     # Make sure all Tanach books and Mashechtot are displayed, and sample some entries to check 
     # that torah>nevi'im>ketuvim and the Sedarim are in the correct order
-    suite_class = PageloadSuite
+    
     every_build = False
 
     def body(self):
@@ -583,8 +457,8 @@ class LinkExplorer(AtomicTest):
 
 '''
 
-class ReadingHistory(AtomicTest):
-    suite_class = PageloadSuite
+class ReadingHistory(SefariaTest):
+    
     single_panel = False
     every_build = True
 
@@ -602,8 +476,8 @@ class ReadingHistory(AtomicTest):
         self.load_toc().nav_to_history().click_toc_recent("Joshua 1")
 
 
-class NavToRefAndClickSegment(AtomicTest):
-    suite_class = ReaderSuite
+class NavToRefAndClickSegment(SefariaTest):
+    
     every_build = True
 
     def body(self):
@@ -625,8 +499,8 @@ class NavToRefAndClickSegment(AtomicTest):
         self.click_segment_to_close_commentary("Job 3:4")  #  This is needed on mobile, to close the commentary window
 
 
-class LoadRefAndClickSegment(AtomicTest):
-    suite_class = PageloadSuite
+class LoadRefAndClickSegment(SefariaTest):
+    
     every_build = True
 
     def body(self):
@@ -641,8 +515,8 @@ class LoadRefAndClickSegment(AtomicTest):
         assert "with=Ibn%20Ezra" in self.driver.current_url or "with=Ibn Ezra" in self.driver.current_url, self.driver.current_url
 
 
-class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
-    suite_class = PageloadSuite
+class LoadRefWithCommentaryAndClickOnCommentator(SefariaTest):
+    
     every_build = True
 
     def body(self):
@@ -651,8 +525,8 @@ class LoadRefWithCommentaryAndClickOnCommentator(AtomicTest):
         assert "with=Rashi" in self.driver.current_url, self.driver.current_url
 
 
-class NavAndVerifyTextTOC(AtomicTest):
-    suite_class = ReaderSuite
+class NavAndVerifyTextTOC(SefariaTest):
+    
     every_build = True
 
     def body(self):
@@ -669,8 +543,8 @@ class NavAndVerifyTextTOC(AtomicTest):
             self.nav_to_text_toc(cats, text_title)
 
 
-class LoadAndVerifyIndepenedentTOC(AtomicTest):
-    suite_class = PageloadSuite
+class LoadAndVerifyIndepenedentTOC(SefariaTest):
+    
     every_build = True
 
     def body(self):
@@ -686,8 +560,8 @@ class LoadAndVerifyIndepenedentTOC(AtomicTest):
             self.load_text_toc(title)
 
 
-class LoadSpanningRefAndOpenConnections(AtomicTest):
-    suite_class = PageloadSuite
+class LoadSpanningRefAndOpenConnections(SefariaTest):
+    
     every_build = True
 
     def body(self):
@@ -695,8 +569,8 @@ class LoadSpanningRefAndOpenConnections(AtomicTest):
         self.click_segment("Shabbat 2a:1")
 
 
-class NavToSpanningRefAndOpenConnections(AtomicTest):
-    suite_class = ReaderSuite
+class NavToSpanningRefAndOpenConnections(SefariaTest):
+    
     every_build = True
     single_panel = False
 
@@ -705,12 +579,12 @@ class NavToSpanningRefAndOpenConnections(AtomicTest):
         self.click_segment("Shabbat 2a:1")
 
 
-class PermanenceOfRangedRefs(AtomicTest):
+class PermanenceOfRangedRefs(SefariaTest):
     """
     There have been bugs around Links with ranged references.
     This test checks that they are present, and that they survive to a second click (they had previously been ephemeral.)
     """
-    suite_class = ReaderSuite
+    
     every_build = True
     single_panel = False  # Segment clicks on mobile have different semantics  todo: write this for mobile?  It's primarily a data test.
 
@@ -727,8 +601,8 @@ class PermanenceOfRangedRefs(AtomicTest):
         assert self.find_text_filter("Mishnah Shabbat")
 
 
-class NavToTocAndCheckPresenceOfDownloadButton(AtomicTest):
-    suite_class = ReaderSuite
+class NavToTocAndCheckPresenceOfDownloadButton(SefariaTest):
+    
     every_build = True
     exclude = ['And/5.1', 'iPh5s']  # Android driver doesn't support "Select" class. Haven't found workaround.
 
@@ -762,8 +636,8 @@ class NavToTocAndCheckPresenceOfDownloadButton(AtomicTest):
             visibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
 
 
-class LoadTocAndCheckPresenceOfDownloadButton(AtomicTest):
-    suite_class = PageloadSuite
+class LoadTocAndCheckPresenceOfDownloadButton(SefariaTest):
+    
     every_build = True
     exclude = ['And/5.1']  # Android driver doesn't support "Select" class. Haven't found workaround.
                            # iPhone 5 used to have an unrelated bug where a screen size refresh mid-test causes this to fail.
@@ -796,16 +670,16 @@ class LoadTocAndCheckPresenceOfDownloadButton(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, '.dlVersionFormatSelect + a')))
 
 
-class LoadSearchFromURL(AtomicTest):
-    suite_class = PageloadSuite
+class LoadSearchFromURL(SefariaTest):
+    
     every_build = True
 
     def body(self):
         self.load_search_url("Passover")
 
 
-class ClickVersionedSearchResultDesktop(AtomicTest):
-    suite_class = DeepReaderSuite
+class ClickVersionedSearchResultDesktop(SefariaTest):
+    weekly = True
     single_panel = False
 
     def body(self):
@@ -816,8 +690,7 @@ class ClickVersionedSearchResultDesktop(AtomicTest):
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
 
 
-class CollectionsPagesLoad(AtomicTest):
-    suite_class = PageloadSuite
+class CollectionsPagesLoad(SefariaTest):
     every_build = True
 
     def body(self):
@@ -827,8 +700,8 @@ class CollectionsPagesLoad(AtomicTest):
         self.load_url("/collections/bimbam", ".collectionPage .sheet")
 
 
-class BrowserBackAndForward(AtomicTest):
-    suite_class = ReaderSuite
+class BrowserBackAndForward(SefariaTest):
+    
     every_build = True
     exclude = ['FF/x12', 'FF/x13', 'Sf/x11', 'Sf/x12', 'Sf/x13'] # Buggy handling of Back button
 
@@ -854,8 +727,8 @@ class BrowserBackAndForward(AtomicTest):
         self.click_segment_to_close_commentary("Amos 3:1")  # Close commentary window on mobile
 
 
-class ClickVersionedSearchResultMobile(AtomicTest):
-    suite_class = DeepReaderSuite
+class ClickVersionedSearchResultMobile(SefariaTest):
+    weekly = True
     multi_panel = False
 
     def body(self):
@@ -871,8 +744,7 @@ class ClickVersionedSearchResultMobile(AtomicTest):
         assert "Psalms.59.7/en/The_Rashi_Ketuvim_by_Rabbi_Shraga_Silverstein" in self.driver.current_url, self.driver.current_url
 
 
-class SaveNewSourceSheet(AtomicTest):
-    suite_class = ReaderSuite
+class SaveNewSourceSheet(SefariaTest):
     every_build = True
     single_panel = False  # No source sheets on mobile
 
@@ -913,8 +785,8 @@ class SaveNewSourceSheet(AtomicTest):
 
 '''
 # Not sure why this isn't working.
-class LoginOnMobile(AtomicTest):
-    suite_class = ReaderSuite
+class LoginOnMobile(SefariaTest):
+    
     every_build = True
     multi_panel = False  # Login is tested as part of SaveNewSourceSheet on multipanel
 
@@ -925,8 +797,7 @@ class LoginOnMobile(AtomicTest):
 '''
 
 
-class SpecialCasedSearchBarNavigations(AtomicTest):
-    suite_class = ReaderSuite
+class SpecialCasedSearchBarNavigations(SefariaTest):
     every_build = True
     single_panel = False  # This hasn't yet been implemented on mobile
 
@@ -950,9 +821,8 @@ class SpecialCasedSearchBarNavigations(AtomicTest):
         WebDriverWait(self.driver, TEMPER).until(visibility_of_element_located((By.CSS_SELECTOR, ".readerNavCategoryMenu")))
 
 
-class EditorPagesLoad(AtomicTest):
+class EditorPagesLoad(SefariaTest):
     #todo: build a no-load reader test to match this
-    suite_class = PageloadSuite
     every_build = True
     single_panel = False
 
@@ -964,8 +834,7 @@ class EditorPagesLoad(AtomicTest):
         self.load_add("Mishnah Peah 4")
 
 
-class ScrollToHighlight(AtomicTest):
-    suite_class = PageloadSuite
+class ScrollToHighlight(SefariaTest):
     every_build = True    
 
     def test_by_load(self, ref):
@@ -989,8 +858,7 @@ class ScrollToHighlight(AtomicTest):
         self.test_in_app("Kol Bo 3:14")
 
 
-class InfiniteScrollUp(AtomicTest):
-    suite_class = ReaderSuite
+class InfiniteScrollUp(SefariaTest):
     every_build = True
 
     def test_up(self, start_ref, prev_segment_ref):
@@ -1011,8 +879,7 @@ class InfiniteScrollUp(AtomicTest):
         self.test_up("Pesach Haggadah, Magid, The Four Sons", "Pesach Haggadah, Magid, Story of the Five Rabbis 2")
 
 
-class InfiniteScrollDown(AtomicTest):
-    suite_class = ReaderSuite
+class InfiniteScrollDown(SefariaTest):
     every_build = True
 
     def test_down(self, start_ref, next_segment_ref):
@@ -1025,10 +892,89 @@ class InfiniteScrollDown(AtomicTest):
         # Complex Text
         self.test_down("Pesach Haggadah, Magid, The Four Sons", "Pesach Haggadah, Magid, Yechol Me'rosh Chodesh 1")
 
+
+##############
+# Editor Tests
+
+class EditorTest(SefariaTest):
+    """
+    Tests that do editor things
+    """
+
+    every_build = False
+    temp_sheet_id = None
+
+    def setup(self):
+        from urllib.parse import urlparse
+        self.load_toc(my_temper=60)
+        self.login_user()
+        self.enable_new_editor()
+        self.click_accept_cookies()
+        self.new_sheet_in_editor()
+        self.nav_to_end_of_editor()
+        self.temp_sheet_id = urlparse(self.get_current_url()).path.rsplit("/", 1)[-1]
+
+    def teardown(self):
+        self.driver.get(f'{self.base_url}/api/sheets/{self.temp_sheet_id}/delete')
+        self.disable_new_editor()
+        self.driver.close()
+
+
+class DeleteContentInEditor(EditorTest):
+    single_panel = False  # No source sheets on mobile
+
+    def body(self):
+        self.delete_sheet_content("back")
+        self.delete_sheet_content("forward")
+        self.catch_js_error()
+
+
+class AddSourceToEditor(EditorTest):
+    single_panel = False  # No source sheets on mobile
+
+    def body(self):
+        self.add_source("Psalms 43:4")
+        sheet_items = self.driver.find_elements_by_css_selector(".sheetItem")
+        # sheet_items_and_spacers = self.driver.find_elements_by_css_selector(".editorContent div")
+        sheet_items_and_spacers = self.driver.find_elements_by_css_selector(".editorContent>div")
+
+        print(len(sheet_items))
+
+        last_sheet_item = sheet_items[-1]
+        added_source = last_sheet_item.find_element_by_css_selector(".SheetSource")  # will throw error if doesn't exist
+
+        print(last_sheet_item == sheet_items_and_spacers[-2])
+
+        # print(last_sheet_item.get_attribute('innerHTML'))
+
+        spacer_after_source = last_sheet_item.find_elements_by_css_selector(".sheetItem")
+
+        print(len(spacer_after_source))
+
+        # assert len(sheet_items) == 1
+
+
+class AddSheetContent(EditorTest):
+    single_panel = False  # No source sheets on mobile
+
+    def body(self):
+        self.type_lorem_ipsum_text("he")
+        self.type_lorem_ipsum_text("en")
+        self.catch_js_error()
+        assert 1 == 1
+        # edited_sheet = self.get_sheet_html()
+        # sheetURL = self.get_current_url()
+        # self.driver.get(sheetURL)
+        # loaded_sheet = self.get_sheet_html()
+        # assert edited_sheet == loaded_sheet
+
+
+
+
 '''
 # This test is cranky.  It can pass and fail without any external changes.  Seemingly because the underlying functionality isn't dependable yet.
-class BackRestoresScrollPosition(AtomicTest):
-    suite_class = ReaderSuite
+class BackRestoresScrollPosition(SefariaTest):
+    
     every_build = True
 
     def body(self):
@@ -1072,8 +1018,8 @@ class BackRestoresScrollPosition(AtomicTest):
 """
 # Not complete
 
-class LoadRefAndOpenLexicon(AtomicTest):
-    suite_class = ReaderSuite
+class LoadRefAndOpenLexicon(SefariaTest):
+    
     single_panel = False
 
     def body(self):
