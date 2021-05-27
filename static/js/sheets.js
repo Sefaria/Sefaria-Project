@@ -3708,7 +3708,7 @@ var afterAction = function() {
 
 // ------------------ Upload locally stored images to Imgur ------------------
 
-var imgurClientId = "f409a1105c5e8af";
+var imgurClientId = "cf90b7f2c19622e";
 
 var addmediaChooseFile = function() {
   var file = this.files[0];
