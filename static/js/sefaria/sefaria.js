@@ -386,8 +386,10 @@ Sefaria = extend(Sefaria, {
         .then(d => {
             //swap out original versions from the server with the ones that Sefaria client side has sorted and updated with some fields.
             // This happens before saving the text to cache so that both caches are consistent
-            let versions = Sefaria._saveVersions(d.sectionRef, d.versions);
-            d.versions = Sefaria._makeVersions(versions, false, null, false);
+            if(d.versions){
+                let versions = Sefaria._saveVersions(d.sectionRef, d.versions);
+                d.versions = Sefaria._makeVersions(versions, false, null, false);
+            }
             Sefaria._saveText(d, settings);
             return d;
         });
@@ -449,8 +451,10 @@ Sefaria = extend(Sefaria, {
     }
     this._api(Sefaria.apiHost + this._textUrl(ref, settings), function(data) {
         //save versions and then text so both caches have updated versions
-        let versions = this._saveVersions(data.sectionRef, data.versions);
-        data.versions = this._makeVersions(versions, false, null, false);
+        if(data.versions){
+            let versions = this._saveVersions(data.sectionRef, data.versions);
+            data.versions = this._makeVersions(versions, false, null, false);
+        }
         this._saveText(data, settings);
         cb(data);
     }.bind(this));
