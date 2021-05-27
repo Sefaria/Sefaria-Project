@@ -3542,10 +3542,12 @@ def saved_history_for_ref(request):
         return jsonResponse(UserHistory.get_user_history(oref=oref, saved=True, serialized=True))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
+
 def _get_anonymous_user_history(request):
     import urllib.parse
     history = json.loads(urllib.parse.unquote(request.COOKIES.get("user_history", '[]')))
     return recents+history
+
 
 def profile_get_user_history(request):
     """
@@ -3562,7 +3564,9 @@ def profile_get_user_history(request):
             user = UserProfile(id=request.user.id)
             if "reading_history" in user.settings and not user.settings["reading_history"] and not saved:
                 return jsonResponse([])
-            return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place))
+            skip = int(request.GET.get("skip", 0))
+            limit = int(request.GET.get("limit", 100))
+            return jsonResponse(user.get_user_history(oref=oref, saved=saved, secondary=secondary, serialized=True, last_place=last_place, skip=skip, limit=limit))
     return jsonResponse({"error": "Unsupported HTTP method."})
 
 

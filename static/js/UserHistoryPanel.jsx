@@ -1,3 +1,11 @@
+import React, { useState, useEffect } from 'react';
+import PropTypes  from 'prop-types';
+import classNames  from 'classnames';
+import Component from 'react-class';
+import Sefaria  from './sefaria/sefaria';
+import { NavSidebar } from './NavSidebar';
+import { ColoBarBox } from './Story';
+import Footer  from './Footer';
 import {
   CategoryColorLine,
   ReaderNavigationMenuMenuButton,
@@ -7,13 +15,6 @@ import {
   LoadingMessage,
   InterfaceText,
 } from './Misc';
-import React, { useState, useEffect } from 'react';
-import PropTypes  from 'prop-types';
-import classNames  from 'classnames';
-import Sefaria  from './sefaria/sefaria';
-import { NavSidebar } from './NavSidebar';
-import Footer  from './Footer';
-import Component from 'react-class';
 
 
 const UserHistoryPanel = ({menuOpen, toggleLanguage, openDisplaySettings, openNav, compare}) => {

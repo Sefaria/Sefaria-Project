@@ -436,32 +436,41 @@ StoryFrame.propTypes = {
 };
 
 
-const NaturalTimeBlock = ({timestamp}) => <SimpleInterfaceBlock
+const NaturalTimeBlock = ({timestamp}) => (
+    <SimpleInterfaceBlock
         classes = "topTailBlock smallText"
         en = {Sefaria.util.naturalTime(timestamp) + " ago"}
-        he = {"לפני " + Sefaria.util.naturalTime(timestamp)}
-    />;
+        he = {"לפני " + Sefaria.util.naturalTime(timestamp)} />
+);
 
 
-const SeeAllLink = ({url}) => <SimpleLinkedBlock classes="topTailBlock smallText" url={url} en="See All" he="ראה הכל"/>;
+const SeeAllLink = ({url}) => (
+    <SimpleLinkedBlock classes="topTailBlock smallText" url={url} en="See All" he="ראה הכל"/>
+);
 
 
-const StoryTypeBlock = ({en, he}) => <SimpleInterfaceBlock en={en} he={he} classes="storyTypeBlock sectionTitleText"/>;
+const StoryTypeBlock = ({en, he}) => (
+    <SimpleInterfaceBlock en={en} he={he} classes="storyTypeBlock sectionTitleText"/>
+);
 
 
 const StoryTitleBlock = ({url, he, en, children}) => {
-        const SBlock = url ? SimpleLinkedBlock : SimpleInterfaceBlock;
-        return <div className="storyTitleBlock">
-            <SBlock classes="storyTitle pageTitle" url={url} he={he} en={en}/>
-            {children}
-        </div>;
+    const SBlock = url ? SimpleLinkedBlock : SimpleInterfaceBlock;
+    return <div className="storyTitleBlock">
+        <SBlock classes="storyTitle pageTitle" url={url} he={he} en={en}/>
+        {children}
+    </div>;
 };
 
 
-const ColorBarBox = ({tref, children}) =>  <div className="colorBarBox" style={{"borderColor": Sefaria.palette.refColor(tref)}}>{children}</div>;
+const ColorBarBox = ({tref, children}) =>  (
+    <div className="colorBarBox" style={{"borderColor": Sefaria.palette.refColor(tref)}}>{children}</div>
+);
 
 
-const StoryBodyBlock = ({en, he}) => <SimpleContentBlock classes="storyBody contentText" en={en} he={he}/>;
+const StoryBodyBlock = ({en, he}) => (
+    <SimpleContentBlock classes="storyBody contentText" en={en} he={he}/>
+);
 
 
 const StoryTextList = ({texts, toggleSignUpModal}) => (

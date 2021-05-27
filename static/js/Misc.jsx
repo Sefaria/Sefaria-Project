@@ -351,7 +351,7 @@ ProfilePic.propTypes = {
 
 const FilterableList = ({
   filterFunc, sortFunc, renderItem, sortOptions, getData, data, renderEmptyList,
-  renderHeader, renderFooter, showFilterHeader, extraData, refreshData,
+  renderHeader, renderFooter, showFilterHeader, refreshData,
   scrollableElement, pageSize, onDisplayedDataChange, initialRenderSize,
   bottomMargin, containerClass
 }) => {
@@ -362,7 +362,7 @@ const FilterableList = ({
   // Apply filter and sort to the raw data
   const processData = rawData => rawData ? rawData
       .filter(item => !filter ? true : filterFunc(filter, item))
-      .sort((a, b) => sortFunc(sortOption, a, b, extraData))
+      .sort((a, b) => sortFunc(sortOption, a, b))
       : [];
 
   const cachedData = data || null;
@@ -399,7 +399,7 @@ const FilterableList = ({
   // Updates to filter or sort
   useEffect(() => {
     setDisplayData(processData(rawData));
-  }, [filter, sortOption, extraData]);
+  }, [filter, sortOption]);
 
   const dataUpToPage = usePaginatedDisplay(scrollableElement, displayData, pageSize, bottomMargin, initialRenderSize || pageSize);
 
@@ -504,7 +504,6 @@ FilterableList.propTypes = {
   renderHeader:     PropTypes.func,
   renderFooter:     PropTypes.func,
   showFilterHeader: PropTypes.bool,
-  extraData:        PropTypes.object,  // extraData to pass to sort function
 };
 
 
