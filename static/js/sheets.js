@@ -3720,7 +3720,7 @@ var addmediaChooseFile = function() {
     var reader = new FileReader();
 
     reader.addEventListener("load", function() {
-      addmediaUploadImageToImgur(reader.result);
+      uploadImage(reader.result);
     }, false);
 
     reader.addEventListener("onerror", function() {
@@ -3734,28 +3734,26 @@ var addmediaChooseFile = function() {
 };
 
 
-var addmediaUploadImageToImgur = function(imageData) {
-  $.ajax({
-    url: "https://api.imgur.com/3/image",
-    type: "POST",
-    headers: {
-      Authorization: "Client-ID " + imgurClientId,
-      Accept: "application/json"
-    },
-    data: {
-      image: imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""),
-      type: "base64"
-    },
-    success: function(result) {
-	  var imageUrl = "https://i.imgur.com/" + result.data.id + ".png";
-      $("#inlineAddMediaInput").val(imageUrl);
-      $("#addmediaDiv").find(".button").first().trigger("click");
-			$("#inlineAddMediaInput").val("");
-    },
-    error: function(result) {
-      sjs.alert.message(result.responseJSON.data.error);
-    }
-  });
+var uploadImage = function(imageData) {
+	const formData = new FormData();
+	formData.append('file', imageData.replace(/data:image\/(jpe?g|png|gif);base64,/, ""));
+	// formData.append('file', imageData);
+
+	$.ajax({
+		url: Sefaria.apiHost + "/api/sheets/upload-image",
+		type: 'POST',
+		data: formData,
+		contentType: false,
+		processData: false,
+		success: function(data) {
+	      $("#inlineAddMediaInput").val(data.url);
+	      $("#addmediaDiv").find(".button").first().trigger("click");
+				$("#inlineAddMediaInput").val("");
+		},
+		error: function(e) {
+			console.log("photo upload ERROR", e);
+		}
+	});
 };
 $("#addmediaFileSelector").change(addmediaChooseFile);
 

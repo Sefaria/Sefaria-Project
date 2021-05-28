@@ -5,6 +5,8 @@ from google.cloud import storage
 class GoogleStorageManager(object):
 
     PROFILES_BUCKET = 'sefaria-profile-pictures'
+    UGC_SHEET_BUCKET = 'sheet-user-uploaded-media'
+
     BASE_URL = "https://storage.googleapis.com"
 
     @classmethod
