@@ -1524,15 +1524,11 @@ class TestResultSet(AbstractTestResult):
             if res.success is False:
                 return "Fail"
 
-        current_suite = None
-
-        results = []
+        results = [[""] * (len(caps) + 1)] + \
+                  [[" ** "] + caps]
         for test in test_classes:
-            if getattr(test, "suite_class", None) and test.suite_class != current_suite:
-                results += [[""] * (len(caps) + 1)]
-                results += [[" ** " + test.suite_class.__name__] + caps]
-                current_suite = test.suite_class
             results += [[test.__name__] + [text_result(test, cap) for cap in caps]]
+
         return results
 
     def report(self):
