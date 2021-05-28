@@ -21,7 +21,7 @@ substitutions:
 options:
   machineType: N1_HIGHCPU_8
 
-timeout: 1800s
+timeout: 2200s
 
 steps:
   - name: "gcr.io/cloud-builders/git"
@@ -71,8 +71,8 @@ steps:
   # Wait for mongo job to finish
   - name: gcr.io/cloud-builders/kubectl
     id: wait_for_mongo_job
-    args: ['wait', '--for=condition=complete', '--timeout=1200s', 'job/${_MONGO_RESTORE_JOB}']
-    timeout: 1260s
+    args: ['wait', '--for=condition=complete', '--timeout=1800s', 'job/${_MONGO_RESTORE_JOB}']
+    timeout: 1860s
     env:
       - 'CLOUDSDK_COMPUTE_ZONE=${_GKE_REGION}'
       - 'CLOUDSDK_CONTAINER_CLUSTER=${_GKE_CLUSTER}'
